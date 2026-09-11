@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,369 five-sentence working summaries, based on saved source material.
+1,382 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (58)
@@ -2386,7 +2386,7 @@ Vertex expansion measures how many distinct outside neighbors a small vertex set
 [Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (122)
+## Parameterized complexity and algorithms (124)
 
 ### TCS-6592 — Is k-Clique fixed-parameter tractable, equivalently FPT=W[1]?
 
@@ -2409,11 +2409,25 @@ Set Cover asks for a small collection of available sets whose union contains the
 [Read in atlas](index.html#TCS-6594) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2024.34)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7241 — Can twin-width be approximated in fixed-parameter time?
+
+Twin-width measures mixed adjacency during repeated merges of vertex groups. The question asks for an algorithm that finds a bounded-width merge sequence whenever the graph has twin-width at most k. Its running time may depend arbitrarily on k but only polynomially on graph size, with an exponent independent of k. The algorithm receives the graph alone, without a useful vertex order or decomposition. A positive answer would make twin-width-based algorithmic methods accessible from ordinary graph input.
+
+[Read in atlas](index.html#TCS-7241) · [Open problems in twin-width](https://perso.ens-lyon.fr/edouard.bonnet/openQuestions.html) · [Twin-width one](https://arxiv.org/abs/2501.00991)
+Existing status: `source_open` · Summary written: 2026-09-11
+
 ### TCS-6660 — A polynomial kernel for Edge Multiway Cut
 
 Edge Multiway Cut removes at most k edges from an undirected graph to separate every pair of designated terminals. The question asks for polynomial-time preprocessing into an equivalent instance with encoding length polynomial in k. Crucially, the size bound must remain independent of how many terminals the original graph contains. Such a kernel would show that a small separation budget also limits the information needed to represent the problem. The saved target explicitly allows randomized preprocessing, but preserving all terminal separation requirements is the central compression difficulty.
 
 [Read in atlas](index.html#TCS-6660) · [Quasipolynomial multicut-mimicking networks and kernelization of multiway cut problems](https://arxiv.org/abs/2002.08825)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7247 — Can weighted independent set be solved in time polynomial in its optimal tropical circuit size?
+
+A tropical circuit combines vertex weights using only maximum and addition. For each graph, τ measures the smallest circuit that computes maximum independent-set weight for every nonnegative weight assignment. The question asks for a uniform algorithm whose runtime is polynomial in τ and the input size. The algorithm receives no circuit or decomposition and may use unrestricted deterministic computation. A positive answer would turn the existence of a compact dynamic program into an effective algorithmic guarantee.
+
+[Read in atlas](index.html#TCS-7247) · [Lower Bounds on Dynamic Programming for Maximum Weight Independent Set](https://arxiv.org/abs/2102.06901) · [Open problems: Can dynamic programming for independent set be automated?](https://tuukkakorhonen.com/problems.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0787 — Lower Bounds for Computing Treewidth
@@ -5247,7 +5261,7 @@ A hypergraph transversal meets every hyperedge, and it is minimal when no select
 [Read in atlas](index.html#TCS-7112) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Structural graph theory and graph algorithms (62)
+## Structural graph theory and graph algorithms (72)
 
 ### TCS-6651 — Hadwiger’s conjecture: high chromatic number forces a clique minor
 
@@ -5277,6 +5291,13 @@ Reed's conjecture bounds chromatic number by the rounded average of maximum degr
 [Read in atlas](index.html#TCS-6682) · [ω, Δ, and χ](https://onlinelibrary.wiley.com/doi/10.1002/%28SICI%291097-0118%28199804%2927%3A4%3C177%3A%3AAID-JGT1%3E3.0.CO%3B2-K) · [Bounding χ by a fraction of Δ for graphs without large cliques](https://arxiv.org/abs/1803.01051) · [An improved procedure for colouring graphs of bounded local density](https://arxiv.org/abs/2007.07874) · [A Recolouring Version of a Conjecture of Reed](https://arxiv.org/abs/2502.10147) · [An analogue of Reed’s conjecture for digraphs](https://arxiv.org/abs/2407.05827)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7248 — Tutte’s 5-flow conjecture
+
+Tutte’s conjecture asks for a nowhere-zero 5-flow in every bridgeless graph. Each edge receives a direction and an integer from one to four. At every vertex the incoming and outgoing totals must agree. Parallel edges are allowed and are treated as distinct edges. The claim would sharpen the universal 6-flow theorem and strengthen a central graph-decomposition principle.
+
+[Read in atlas](index.html#TCS-7248) · [Approximately Packing Dijoins via Nowhere-Zero Flows](https://link.springer.com/article/10.1007/s00493-025-00159-x) · [5-flow conjecture](https://www.openproblemgarden.org/op/5_flow_conjecture)
+Existing status: `source_open` · Summary written: 2026-09-11
+
 ### TCS-6538 — Almost-linear-time exact maximum matching in general graphs
 
 Maximum matching chooses as many mutually vertex-disjoint edges as possible in an undirected graph. The target is an exact randomized algorithm with expected running time almost linear in the explicit input size. General graphs introduce odd cycles and the blossom structures needed to manage them. A fast maximal matching or an approximation does not guarantee the same answer. Progress would clarify whether finding the globally best pairing can approach the cost of simply reading all vertices and edges.
@@ -5296,6 +5317,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 The Excluded Grid Theorem guarantees a large grid minor when a graph has sufficiently large treewidth. The question asks for the optimal treewidth threshold forcing an r-by-r grid, including the correct logarithmic factors. Treewidth measures how difficult the graph is to decompose into small overlapping bags, while a grid supplies a concrete witness of large-scale complexity. Sharp bounds would quantify this foundational connection used throughout structural and algorithmic graph theory. The reviewed target concerns all graphs and grid side length, so bounds for an additional excluded-minor promise or suppressed polylogarithmic factors do not finish it.
 
 [Read in atlas](index.html#TCS-6683) · [Graph minors. V. Excluding a planar graph](https://doi.org/10.1016/0095-8956(86)90030-4) · [Quickly Excluding a Planar Graph](https://www.sciencedirect.com/science/article/pii/S0095895684710732) · [Polynomial Bounds for the Grid-Minor Theorem](https://arxiv.org/abs/1305.6577) · [Towards Tight(er) Bounds for the Excluded Grid Theorem](https://arxiv.org/abs/1901.07944) · [The Grid-Minor Theorem Revisited](https://link.springer.com/article/10.1007/s00493-025-00168-w) · [Catching Rats in H-minor-free Graphs](https://arxiv.org/abs/2506.22857)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7251 — Caccetta–Häggkvist: minimum outdegree forces a short directed cycle
+
+The conjecture links minimum outdegree with the length of a directed cycle. An n-vertex digraph of minimum outdegree r should contain a cycle of length at most the ceiling of n divided by r. Opposite arcs are allowed, but loops and parallel copies of an arc are forbidden. The assertion covers all graphs and all positive degree thresholds in the stated range. It is a sharp general principle connecting local expansion with global directed cycles.
+
+[Read in atlas](index.html#TCS-7251) · [Caccetta–Häggkvist conjecture](https://www.openproblemgarden.org/op/caccetta_haggkvist_conjecture) · [Short rainbow cycles for families of small edge sets](https://arxiv.org/abs/2507.04581)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6539 — Almost-linear triangle detection
@@ -5319,6 +5347,27 @@ A recoloring step changes one vertex's color while keeping the graph properly co
 [Read in atlas](index.html#TCS-6655) · [Research reference · www.sciencedirect.com](https://www.sciencedirect.com/science/article/abs/pii/S0012365X26000798)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7249 — Berge–Fulkerson: six perfect matchings covering each edge twice
+
+Every bridgeless cubic multigraph is asked to admit six perfect matchings. Each edge must occur in exactly two positions of that six-matching list. The matchings may repeat, and parallel edges remain distinct. The target is an exact integral decomposition rather than an approximate or fractional cover. It captures a longstanding structural question about how perfect matchings fit together globally.
+
+[Read in atlas](index.html#TCS-7249) · [The Berge–Fulkerson conjecture](https://www.openproblemgarden.org/op/the_berge_fulkerson_conjecture) · [On some perfect matching conjectures in infinite, cubic, bridgeless graphs](https://arxiv.org/abs/2607.29511)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7250 — Barnette’s Hamiltonicity conjecture
+
+Barnette’s conjecture concerns 3-connected cubic bipartite planar graphs. It predicts that every such graph contains a cycle through all vertices exactly once. Every consecutive pair on the cycle must be an existing graph edge. Relaxed book-embedding results may add missing adjacencies and therefore do not settle the conjecture. The question isolates a classical boundary between local structural restrictions and a global spanning traversal.
+
+[Read in atlas](index.html#TCS-7250) · [Barnette’s conjecture](https://www.openproblemgarden.org/op/barnettes_conjecture) · [Approximating Barnette’s Conjecture](https://drops.dagstuhl.de/storage/00lipics/lipics-vol357-gd2025/html/LIPIcs.GD.2025.6/LIPIcs.GD.2025.6.html) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://arxiv.org/abs/2412.11774)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7253 — Seymour’s second-neighborhood conjecture
+
+Seymour’s conjecture concerns oriented graphs with no loops or opposite pair of arcs. It asks for a vertex with at least as many vertices at distance exactly two as at distance one. Second neighbors exclude first neighbors and count vertices rather than paths. The statement is a general local expansion principle without degree or planarity promises. A complete-proof claim conflicts with a later specialist paper still treating the conjecture as open, and that status uncertainty is preserved.
+
+[Read in atlas](index.html#TCS-7253) · [Seymour’s second neighbourhood conjecture](https://www.openproblemgarden.org/op/seymours_second_neighbourhood_conjecture) · [Towards a strengthening of the second neighborhood conjecture](https://arxiv.org/abs/2607.18047)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
 ### TCS-6500 — Erdős girth conjecture: is the classical spanner size bound tight?
 
 The Erdős girth conjecture seeks graphs with many edges despite the absence of short cycles. For every fixed k, the target is arbitrarily large graphs with order n^(1+1/k) edges and girth greater than 2k. Such graphs would match the classical density upper bound up to a constant depending on k. They also force every stretch-(2k−1) spanner to retain all edges, connecting the extremal construction to sharp sparsification limits. The saved review notes that progress for special parameters or fault-tolerant spanner models does not supply the missing high-girth families in general.
@@ -5326,11 +5375,46 @@ The Erdős girth conjecture seeks graphs with many edges despite the absence of 
 [Read in atlas](index.html#TCS-6500) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://doi.org/10.4230/LIPIcs.ESA.2026.31) · [On Sparse Spanners of Weighted Graphs](https://doi.org/10.1007/BF02189308)
 Existing status: `open` · Summary written: 2026-09-11
 
+### TCS-7252 — Tuza’s triangle packing–covering conjecture
+
+Tuza’s conjecture compares packing triangles with deleting edges to eliminate all triangles. It predicts that the minimum deletion set has size at most twice the maximum edge-disjoint packing. Packed triangles may share vertices, but no edges. The comparison is integral and applies to every finite simple graph. A proof would establish a sharp universal relation between two standard graph optimization objectives.
+
+[Read in atlas](index.html#TCS-7252) · [Triangle packing versus triangle edge transversal](https://www.openproblemgarden.org/op/triangle_packing_vs_triangle_edge_transversal) · [On Tuza’s conjecture in dense graphs](https://doi.org/10.1016/j.dam.2025.06.049) · [Tuza's conjecture for graphs of maximum degree at most seven](https://arxiv.org/abs/2608.06538)
+Existing status: `source_open` · Summary written: 2026-09-11
+
 ### TCS-6511 — Is Exact Matching on general graphs in deterministic polynomial time?
 
 Exact Matching adds a prescribed red-edge count to the ordinary perfect matching problem. Given red and blue edges, an algorithm must decide whether some perfect matching contains exactly the requested number of red edges. The target is deterministic polynomial time on general graphs. Knowing the smallest and largest achievable counts is insufficient because intermediate counts can be absent. The problem isolates how to enforce an exact combinatorial constraint while avoiding the random algebraic choices used by existing approaches.
 
 [Read in atlas](index.html#TCS-6511) · [Exact Matching: Algorithms and Related Problems](https://doi.org/10.4230/LIPIcs.STACS.2023.29) · [Matching is as easy as matrix inversion](https://doi.org/10.1145/28395.383347) · [Exact Matching in Matrix Multiplication Time](https://arxiv.org/abs/2508.04081v2) · [Bipartite Exact Matching in P](https://arxiv.org/abs/2604.01571v3)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7254 — Neumann–Lara’s planar two-color conjecture
+
+The conjecture asks whether every oriented planar graph has a two-coloring with no monochromatic directed cycle. Arcs within a color class are allowed, so the coloring need not be proper. Loops and opposite pairs of arcs are excluded. The case without directed triangles is known, but directed triangles are allowed in the general target. The question is a directed analogue of central planar graph-decomposition principles.
+
+[Read in atlas](index.html#TCS-7254) · [Partitioning planar digraphs](https://www.openproblemgarden.org/op/partitioning_planar_digraphs) · [Planar digraphs of digirth four are 2-colourable](https://arxiv.org/abs/1606.06114) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://arxiv.org/abs/2412.11774)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7245 — Can subcubic subgraphs preserve treewidth within a constant factor?
+
+Every graph is asked to contain a subgraph of maximum degree three with comparable treewidth. Comparable means losing only a universal constant factor. The subgraph can delete edges and vertices but cannot contract edges or introduce new ones. Known general degree-three sparsifiers lose a polylogarithmic factor in treewidth. A constant-factor theorem would make bounded-degree structure a universal witness of large treewidth.
+
+[Read in atlas](index.html#TCS-7245) · [Degree-3 Treewidth Sparsifiers](https://home.ttic.edu/~cjulia/papers/treewidth-sparsifiers-SODA.pdf) · [Sparse induced subgraphs of large treewidth](https://www.sciencedirect.com/science/article/pii/S009589562500019X) · [List of open questions: Linear treewidth and pathwidth sparsifiers](https://a3nm.net/work/research/questions/#linear-treewidth-and-pathwidth-sparsifiers)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7244 — Is Boolean dimension bounded for posets with planar cover graphs?
+
+The cover graph records immediate comparabilities of a finite partial order. The question asks whether its planarity guarantees a constant number of total orders encoding every comparability. One Boolean rule interprets the pairwise comparison bits from those orders. The orders and rule may vary with the poset, but their number must have a universal bound. The target links sparse graph structure to concise representations of reachability.
+
+[Read in atlas](index.html#TCS-7244) · [Boolean dimension and dim-boundedness: Planar cover graph with a zero](https://arxiv.org/abs/2206.06942) · [Cliquewidth and dimension](https://arxiv.org/abs/2308.11950) · [List of open questions: Boolean dimension of planar posets](https://a3nm.net/work/research/questions/#boolean-dimension-of-planar-posets)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7246 — Is minimum-color cycle solvable in polynomial time under ETH?
+
+Each edge of an undirected graph carries a color label. The objective is to find a simple cycle using as few different colors as possible. A general quasipolynomial algorithm is known, but a polynomial bound remains unresolved. The card fixes ETH as the standing hypothesis so that an ETH-based obstruction is a precise negative answer. Explicit color input distinguishes this target from lower bounds for arbitrary submodular value oracles.
+
+[Read in atlas](index.html#TCS-7246) · [Shortest Cycles With Monotone Submodular Costs](https://arxiv.org/abs/2211.04797) · [Open problems: Complexity of minimum color cycle](https://tuukkakorhonen.com/problems.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0588 — Albertson’s chromatic-number crossing conjecture
@@ -9170,7 +9254,7 @@ The saved question asks whether a deterministic DNNF can be efficiently transfor
 [Read in atlas](index.html#TCS-7135) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Database theory and finite model theory (62)
+## Database theory and finite model theory (63)
 
 ### TCS-6678 — FO model checking on hereditary monadically dependent graph classes
 
@@ -9185,6 +9269,13 @@ A conjunctive query joins relations and projects the resulting assignments to it
 
 [Read in atlas](index.html#TCS-6645) · [Conjunctive Queries With Self-Joins, Towards a Fine-Grained Enumeration Complexity Analysis](https://arxiv.org/abs/2206.04988) · [On Acyclic Conjunctive Queries and Constant Delay Enumeration](https://webusers.imj-prg.fr/~arnaud.durand/papers/BDGcsl07.pdf) · [Enumerating answers of acyclic conjunctive queries with self-joins (Report)](https://www.normalesup.org/~rouvroy/papers/Report_M1S1.pdf) · [The Role of Semirings in Incremental View Maintenance](https://arxiv.org/abs/2606.07795)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7195 — Is there a logic capturing polynomial time on unordered structures?
+
+Is there an effective logic for all polynomial-time properties of finite unordered structures? Its sentences must describe properties unchanged by renaming domain elements. Each sentence must compile effectively to an evaluation algorithm with a polynomial time bound. Fixed-point logic captures polynomial time when an order is supplied, but that is a different input model. Current candidate and restricted-class results leave the general existence question open.
+
+[Read in atlas](index.html#TCS-7195) · [The Quest for a Logic Capturing PTIME: LICS 2008 invited paper](https://lics.siglog.org/2008/Grohe-TheQuestforaLogicCa.html) · [Is Polynomial Time Choiceless?](https://logic.rwth-aachen.de/pub/graedel/cptYuri.pdf) · [The quest for a logic for Ptime](https://www.cl.cam.ac.uk/~btp26/esslli/lecture1.pdf) · [Choiceless Polynomial Time with Witnessed Symmetric Choice](https://arxiv.org/abs/2205.14003v3) · [Subgroup Accessibility in Group Order Logic](https://arxiv.org/abs/2609.00499)
+Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6680 — Decidability of conjunctive-query entailment in SROIQ
 

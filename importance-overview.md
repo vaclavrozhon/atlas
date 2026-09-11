@@ -2,13 +2,13 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-985 records have an editorial importance assessment; 1,618 remain provisional.
+1,005 records have an editorial importance assessment; 1,618 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Computational complexity (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 133; importance assessed: 46; provisional: 87.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 137; importance assessed: 50; provisional: 87.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 172; importance as
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 171; importance assessed: 68; provisional: 103.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 172; importance assessed: 69; provisional: 103.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 68; importance ass
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 181; importance assessed: 99; provisional: 82.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 182; importance assessed: 100; provisional: 82.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -120,10 +120,10 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 181; importance as
 | 4 | [Polynomial Hirsch conjecture for edge-path diameter](index.html#TCS-6573) | 95 |
 | 5 | [How many k-element subsets can a line separate from a planar point set?](index.html#TCS-0318) | 94 |
 | 6 | [Lang–Plaut problem](index.html#TCS-6524) | 94 |
-| 7 | [Optimal size of weak ε-nets for convex ranges](index.html#TCS-6526) | 93 |
-| 8 | [Edge-Unfolding Convex Polyhedra](index.html#TCS-0406) | 92 |
-| 9 | [Constant-distortion Steiner point removal](index.html#TCS-6527) | 92 |
-| 10 | [Optimal ℓ₁ distortion of planar Earth Mover Distance](index.html#TCS-6529) | 92 |
+| 7 | [Is PL four-sphere recognition decidable?](index.html#TCS-7242) | 94 |
+| 8 | [Optimal size of weak ε-nets for convex ranges](index.html#TCS-6526) | 93 |
+| 9 | [Edge-Unfolding Convex Polyhedra](index.html#TCS-0406) | 92 |
+| 10 | [Constant-distortion Steiner point removal](index.html#TCS-6527) | 92 |
 
 ## 8. Learning theory (large)
 
@@ -263,7 +263,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 75; importance ass
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 124; importance assessed: 45; provisional: 79.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 126; importance assessed: 47; provisional: 79.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -271,12 +271,12 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 124; importance as
 | 2 | [Does deterministic 3-SAT have a positive optimal exponential rate?](index.html#TCS-6593) | 98 |
 | 3 | [Can general weighted TSP be solved in O*((2−ε)^n) time?](index.html#TCS-7233) | 96 |
 | 4 | [The Set Cover Conjecture](index.html#TCS-6594) | 94 |
-| 5 | [A polynomial kernel for Edge Multiway Cut](index.html#TCS-6660) | 93 |
-| 6 | [Exact recognition of bounded clique-width](index.html#TCS-7181) | 90 |
-| 7 | [Lower Bounds for Computing Treewidth](index.html#TCS-0787) | 79 |
-| 8 | [The exponential complexity of some SUBSET SUM variants](index.html#TCS-0819) | 78 |
-| 9 | [FPT Inapproximability Results Beyond Gap-ETH](index.html#TCS-0734) | 76 |
-| 10 | [The Complexity of #k-SAT](index.html#TCS-0818) | 76 |
+| 5 | [Can twin-width be approximated in fixed-parameter time?](index.html#TCS-7241) | 94 |
+| 6 | [A polynomial kernel for Edge Multiway Cut](index.html#TCS-6660) | 93 |
+| 7 | [Exact recognition of bounded clique-width](index.html#TCS-7181) | 90 |
+| 8 | [Can weighted independent set be solved in time polynomial in its optimal tropical circuit size?](index.html#TCS-7247) | 88 |
+| 9 | [Lower Bounds for Computing Treewidth](index.html#TCS-0787) | 79 |
+| 10 | [The exponential complexity of some SUBSET SUM variants](index.html#TCS-0819) | 78 |
 
 ## 7. Approximation algorithms and inapproximability (small)
 
@@ -365,7 +365,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 47; importance ass
 
 ## 12. Structural graph theory and graph algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 68; importance assessed: 34; provisional: 34.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 78; importance assessed: 44; provisional: 34.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -374,11 +374,11 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 68; importance ass
 | 3 | [The Erdős–Hajnal conjecture for every forbidden induced graph](index.html#TCS-6652) | 97 |
 | 4 | [Reed’s χ–ω–Δ conjecture](index.html#TCS-6682) | 97 |
 | 5 | [Is graph isomorphism solvable in polynomial time?](index.html#TCS-7222) | 97 |
-| 6 | [Almost-linear-time exact maximum matching in general graphs](index.html#TCS-6538) | 96 |
-| 7 | [The Gyárfás–Sumner conjecture](index.html#TCS-6653) | 96 |
-| 8 | [The optimal quantitative Excluded Grid Theorem](index.html#TCS-6683) | 96 |
-| 9 | [Almost-linear triangle detection](index.html#TCS-6539) | 95 |
-| 10 | [Seese’s conjecture for MSO₁ and clique-width](index.html#TCS-6654) | 95 |
+| 6 | [Tutte’s 5-flow conjecture](index.html#TCS-7248) | 97 |
+| 7 | [Almost-linear-time exact maximum matching in general graphs](index.html#TCS-6538) | 96 |
+| 8 | [The Gyárfás–Sumner conjecture](index.html#TCS-6653) | 96 |
+| 9 | [The optimal quantitative Excluded Grid Theorem](index.html#TCS-6683) | 96 |
+| 10 | [Caccetta–Häggkvist: minimum outdegree forces a short directed cycle](index.html#TCS-7251) | 96 |
 
 ## 13. Data structures (small)
 
@@ -586,12 +586,14 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 64; importance ass
 
 ## 25. Miscellaneous (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 5; importance assessed: 3; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 7; importance assessed: 5; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [The 1/3–2/3 conjecture](index.html#TCS-7177) | 90 |
 | 2 | [Determine the pancake numbers](index.html#TCS-7176) | 80 |
-| 3 | [The gold partition conjecture](index.html#TCS-7178) | 81 |
-| 4 | [Can execution bounded CRNs compute semilinear functions and predicates within polylogarithmic time?](index.html#TCS-1951) | 50 |
-| 5 | [Does every class C with unbounded grid-width contain arbitrarily large connected monotone grid subclasses?](index.html#TCS-3520) | 50 |
+| 3 | [Computational universality of nondirected planar temperature-1 tile assembly](index.html#TCS-7255) | 82 |
+| 4 | [The gold partition conjecture](index.html#TCS-7178) | 81 |
+| 5 | [Polylogarithmic universal reconfiguration with amoebot joint movements](index.html#TCS-7258) | 79 |
+| 6 | [Can execution bounded CRNs compute semilinear functions and predicates within polylogarithmic time?](index.html#TCS-1951) | 50 |
+| 7 | [Does every class C with unbounded grid-width contain arbitrarily large connected monotone grid subclasses?](index.html#TCS-3520) | 50 |

@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-1,167 five-sentence working summaries, based on saved source material.
+1,169 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (132)
+## Computational complexity (133)
 
 ### TCS-0001 — Does P equal NP?
 
@@ -137,6 +137,13 @@ A threshold-of-threshold circuit applies threshold gates in two successive layer
 
 [Read in atlas](index.html#TCS-1054) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-7243 — Do stable ternary compaction functions have linear-size Boolean circuits?
+
+Stable ternary compaction moves every 2 to the end while preserving the order of all 0s and 1s. The question is whether every input length admits a Boolean circuit of size proportional to that length. The circuits use a fixed bounded-fan-in basis and may have arbitrary depth and fan-out. Stability retains the original binary sequence, so ordinary ternary sorting is insufficient. The target supplies a concrete function for studying the limits of linear-size circuits.
+
+[Read in atlas](index.html#TCS-7243) · [Linear-size circuits for stable 0,1 < 2 sorting?](https://www.openproblemgarden.org/op/linear_size_circuits_for_stable_0_1_2_sorting) · [Sorting Short Keys in Circuits of Size o(n log n)](https://arxiv.org/abs/2010.09884)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0017 — Karchmer–Raz–Wigderson formula composition conjecture
 
@@ -5216,7 +5223,7 @@ Robust low-rank approximation measures reconstruction error by the sum of absolu
 [Read in atlas](index.html#TCS-7008) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Geometry, topology and metric spaces (173)
+## Geometry, topology and metric spaces (174)
 
 ### TCS-6523 — Does every isotropic log-concave measure have a dimension-free Poincaré constant?
 
@@ -5258,6 +5265,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 A doubling metric has uniformly limited local branching: each ball can be covered by a bounded number of smaller balls. The Lang–Plaut problem considers such a metric when it already sits inside a Hilbert space. It asks whether the points can be represented in some finite-dimensional Euclidean space while changing all distances by only a bounded factor. Both dimension and distortion should depend only on the doubling constant. The issue is whether intrinsic metric simplicity suffices to eliminate an infinite-dimensional ambient representation.
 
 [Read in atlas](index.html#TCS-6524) · [Research reference · web.math.princeton.edu](https://web.math.princeton.edu/~naor/homepage%20files/assouad-N%28K%29.pdf) · [Research reference · www.its.caltech.edu](https://www.its.caltech.edu/~sryoo/teaching/Syllabus_Ma191a_2024F.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7242 — Is PL four-sphere recognition decidable?
+
+The input is a finite triangulation promised to be a closed combinatorial four-dimensional manifold. The task is to recognize the standard piecewise-linear four-sphere. The question asks for a terminating decision algorithm, with no polynomial-time requirement. Recognizing a topological sphere or checking its homology would answer a different question. The problem marks the exceptional dimension between established decidability and undecidability results for sphere recognition.
+
+[Read in atlas](index.html#TCS-7242) · [Frontiers of sphere recognition in practice](https://link.springer.com/article/10.1007/s41468-022-00092-8) · [Applied topology: sphere recognition research presentation](https://page.math.tu-berlin.de/~joswig/presentations/Joswig-Applied%2BTopology-250715.pdf) · [Is there an algorithm to recognize the combinatorial four-sphere?](https://www.openproblemgarden.org/op/is_there_an_algorithm_to_determine_if_a_triangulated_4_manifold_is_combinatorially_equivalent_to_the_4_sphere)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6526 — Optimal size of weak ε-nets for convex ranges

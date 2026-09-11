@@ -11,14 +11,14 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 495 | 5 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 980 | 20 |
+| [Top 500](index.html?benchmark=top500) | 500 | 497 | 3 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 982 | 18 |
 
 ## Unfilled places
 
-- top500: Miscellaneous has 5/10 places.
+- top500: Miscellaneous has 7/10 places.
 - top1000: Cryptography has 45/50 places.
-- top1000: Miscellaneous has 5/20 places.
+- top1000: Miscellaneous has 7/20 places.
 
 ## Computational complexity
 
