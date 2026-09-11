@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,183 five-sentence working summaries, based on saved source material.
+1,184 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (49)
@@ -5374,7 +5374,7 @@ Different repetitiveness measures summarize a string through different kinds of 
 [Read in atlas](index.html#TCS-6929) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (41)
+## Game theory, social choice and fair division (42)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -5423,6 +5423,13 @@ Existing status: `open` · Summary written: 2026-09-11
 Three agents must receive all indivisible goods under nonnegative additive valuations. An allocation is EFX when removing any one good from another agent’s bundle would eliminate the first agent’s envy. Such allocations are known to exist for three agents, including when values are zero or tied. The question asks for a deterministic algorithm polynomial in the binary valuation table’s length. Pseudopolynomial constructions and polynomial algorithms for weaker fairness guarantees do not settle this target.
 
 [Read in atlas](index.html#TCS-7196) · [EFX Exists for Three Agents](https://arxiv.org/abs/2002.05119v3) · [EF2X Exists for Four Agents](https://ojs.aaai.org/index.php/AAAI/article/view/33480) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371v1)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7197 — The optimal polynomial-time approximation of EFX
+
+All indivisible goods must be allocated among agents with nonnegative additive values. An α-EFX allocation lets each agent retain at least an α fraction of the value she assigns to any other bundle after any one good is removed. The question asks for the supremum factor guaranteed by deterministic polynomial-time algorithms for arbitrarily many agents. A general factor of about 0.618 is known, while recent 2/3 guarantees cover only bounded numbers of agents. The computational supremum differs from an existence guarantee and need not be attained by one algorithm.
+
+[Read in atlas](index.html#TCS-7197) · [Fair division of indivisible goods: Recent progress and open questions](https://doi.org/10.1016/j.artint.2023.103965) · [Multiple Birds with One Stone: Beating 1/2 for EFX and GMMS via Envy Cycle Elimination](https://arxiv.org/abs/1909.07650v2) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1116 — Optimal universal approximation factor for EFX
