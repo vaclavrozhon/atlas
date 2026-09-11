@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,164 five-sentence working summaries, based on saved source material.
+1,165 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (49)
@@ -5255,7 +5255,7 @@ Different repetitiveness measures summarize a string through different kinds of 
 [Read in atlas](index.html#TCS-6929) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (42)
+## Game theory, social choice and fair division (43)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -5311,6 +5311,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 All indivisible goods must be allocated among agents with nonnegative additive values. An α-EFX allocation lets each agent retain at least an α fraction of the value she assigns to any other bundle after any one good is removed. The question asks for the supremum factor guaranteed by deterministic polynomial-time algorithms for arbitrarily many agents. A general factor of about 0.618 is known, while recent 2/3 guarantees cover only bounded numbers of agents. The computational supremum differs from an existence guarantee and need not be attained by one algorithm.
 
 [Read in atlas](index.html#TCS-7197) · [Fair division of indivisible goods: Recent progress and open questions](https://doi.org/10.1016/j.artint.2023.103965) · [Multiple Birds with One Stone: Beating 1/2 for EFX and GMMS via Envy Cycle Elimination](https://arxiv.org/abs/1909.07650v2) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371v1)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7200 — The optimal multiplicative MMS guarantee for chores
+
+Chores are indivisible tasks whose costs add, and each agent prefers a smaller burden. Her minimax share is the lowest worst-bundle cost she can obtain by partitioning all chores among the agents. The question asks for the smallest universal factor by which every agent’s share must be relaxed to make a complete allocation possible. The checked general bounds are 44/43 and 13/11, while stronger guarantees for restricted costs do not close this gap. Determining the factor would quantify the unavoidable fairness loss from indivisible burdens without requiring an efficient algorithm.
+
+[Read in atlas](index.html#TCS-7200) · [How to Fairly Allocate Easy and Difficult Chores](https://arxiv.org/abs/2110.11285) · [A tight negative example for MMS fair allocations](https://arxiv.org/abs/2104.04977v2) · [A Reduction from Chores Allocation to Job Scheduling](https://arxiv.org/abs/2302.04581v4) · [Improved Maximin Share Approximations for Chores by Bin Packing](https://ojs.aaai.org/index.php/AAAI/article/view/33518) · [Comparison-Based Fair Division of Indivisible Chores](https://arxiv.org/abs/2609.08687v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1116 — Optimal universal approximation factor for EFX
