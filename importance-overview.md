@@ -2,13 +2,13 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. Top 100 and Top 1000 use the first 5/2 and 50/20 category places respectively. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-1,026 records have an editorial importance assessment; 1,711 remain provisional.
+1,020 records have an editorial importance assessment; 1,694 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Algorithms (large)
 
-Target: 50; candidates: 99; importance assessed: 13; provisional: 86.
+Target: 50; candidates: 97; importance assessed: 13; provisional: 84.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -25,7 +25,7 @@ Target: 50; candidates: 99; importance assessed: 13; provisional: 86.
 
 ## 2. Computational complexity (large)
 
-Target: 50; candidates: 138; importance assessed: 49; provisional: 89.
+Target: 50; candidates: 137; importance assessed: 48; provisional: 89.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Target: 50; candidates: 174; importance assessed: 67; provisional: 107.
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Target: 50; candidates: 178; importance assessed: 70; provisional: 108.
+Target: 50; candidates: 174; importance assessed: 68; provisional: 106.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ Target: 50; candidates: 178; importance assessed: 70; provisional: 108.
 
 ## 6. Optimization and numerical computation (large)
 
-Target: 50; candidates: 71; importance assessed: 30; provisional: 41.
+Target: 50; candidates: 69; importance assessed: 29; provisional: 40.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ Target: 50; candidates: 71; importance assessed: 30; provisional: 41.
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Target: 50; candidates: 201; importance assessed: 109; provisional: 92.
+Target: 50; candidates: 199; importance assessed: 108; provisional: 91.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Target: 50; candidates: 201; importance assessed: 109; provisional: 92.
 
 ## 8. Learning theory (large)
 
-Target: 50; candidates: 102; importance assessed: 27; provisional: 75.
+Target: 50; candidates: 98; importance assessed: 26; provisional: 72.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ Target: 50; candidates: 102; importance assessed: 27; provisional: 75.
 
 ## 9. Cryptography (large)
 
-Target: 50; candidates: 48; importance assessed: 20; provisional: 28.
+Target: 50; candidates: 46; importance assessed: 20; provisional: 26.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -152,7 +152,7 @@ Target: 50; candidates: 48; importance assessed: 20; provisional: 28.
 | 2 | [Does P≠NP imply the existence of one-way functions?](index.html#TCS-0022) | 97 |
 | 3 | [Does ordinary polynomial-hard LWE suffice for circuit obfuscation?](index.html#TCS-6550) | 97 |
 | 4 | [Unleveled fully homomorphic encryption from LWE alone](index.html#TCS-6551) | 95 |
-| 5 | [Smaller shares for general secret sharing](index.html#TCS-0465) | 88 |
+| 5 | [Can every perfect secret-sharing access structure use shares below exponent one half?](index.html#TCS-0465) | 88 |
 | 6 | [Do classical one-way functions exist?](index.html#TCS-7167) | 99 |
 | 7 | [Does computationally secure public-key encryption exist?](index.html#TCS-7168) | 98 |
 | 8 | [Do one-way functions imply classical key agreement?](index.html#TCS-7229) | 98 |
@@ -365,7 +365,7 @@ Target: 20; candidates: 48; importance assessed: 15; provisional: 33.
 
 ## 12. Structural graph theory and graph algorithms (small)
 
-Target: 20; candidates: 74; importance assessed: 34; provisional: 40.
+Target: 20; candidates: 73; importance assessed: 34; provisional: 39.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -450,7 +450,7 @@ Target: 20; candidates: 64; importance assessed: 35; provisional: 29.
 
 ## 17. Algebraic computation (small)
 
-Target: 20; candidates: 136; importance assessed: 39; provisional: 97.
+Target: 20; candidates: 133; importance assessed: 39; provisional: 94.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -535,7 +535,7 @@ Target: 20; candidates: 22; importance assessed: 11; provisional: 11.
 
 ## 22. Constraint satisfaction (small)
 
-Target: 20; candidates: 39; importance assessed: 12; provisional: 27.
+Target: 20; candidates: 37; importance assessed: 12; provisional: 25.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |

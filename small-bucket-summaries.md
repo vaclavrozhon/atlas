@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,439 five-sentence working summaries, based on saved source material.
+1,433 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (59)
@@ -5527,7 +5527,7 @@ A hypergraph transversal meets every hyperedge, and it is minimal when no select
 [Read in atlas](index.html#TCS-7112) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Structural graph theory and graph algorithms (68)
+## Structural graph theory and graph algorithms (67)
 
 ### TCS-6651 — Hadwiger’s conjecture: high chromatic number forces a clique minor
 
@@ -5975,13 +5975,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Rank-width and Boolean-width both measure the complexity of adjacency across cuts in graph decompositions. The source asks whether a quadratic bound of Boolean-width in terms of rank-width can be improved to a linear one. A positive answer would show that the two cut descriptions are quantitatively closer than the stated upper bound suggests. This could sharpen algorithmic guarantees that use one parameter as a surrogate for the other. The source's logarithm and cut conventions remain important, and the saved question is a dated comparison rather than a fresh claim that no later linear bound exists.
 
 [Read in atlas](index.html#TCS-7136) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7142 — Excluding any fixed vertex-minor defines a χ-bounded graph class.
-
-A vertex-minor is obtained through vertex deletion and local complementation, which changes adjacency among a vertex's neighbors. The saved conjecture says that excluding any fixed vertex-minor forces chromatic number to be bounded as a function of clique number. This would identify a broad source of chi-bounded graph classes through an operation different from ordinary minors. The key challenge is linking local-complementation structure with ordinary coloring in the original graph. The source's dated conjecture should be preserved as provenance, and the exact excluded graph and bound quantifiers must be kept distinct from algorithmic coloring requirements.
-
-[Read in atlas](index.html#TCS-7142) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7143 — Large rank-width forces every fixed bipartite circle graph as a pivot-minor.
@@ -7133,7 +7126,7 @@ Global connection and cost-sharing games let agents choose network resources whi
 [Read in atlas](index.html#TCS-6961) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (132)
+## Algebraic computation (129)
 
 ### TCS-0007 — Is the matrix multiplication exponent equal to two?
 
@@ -7898,13 +7891,6 @@ Given finitely many integer matrices, semigroup membership asks whether a target
 [Read in atlas](index.html#TCS-5921) · [On Reachability Problems for Low-Dimensional Matrix Semigroups](https://doi.org/10.4230/LIPIcs.ICALP.2019.44)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5968 — Improved Low-Depth Set-Multilinear Circuit Lower Bounds — Explicit open question on PDF page 4
-
-Set-multilinear arithmetic circuits compute polynomials that select one variable from each designated variable group in every monomial. The imported passage highlights the historical challenge of proving n^(Ω(sqrt(n))) size lower bounds at product-depth two for an explicit degree-n polynomial. The source then obtains the corresponding near-optimal bounds using a Nisan-Wigderson design-based polynomial. Its theorem is stated for formulas, with the fixed-depth setting supporting the relevant circuit comparison. This record therefore describes a lower-bound milestone established by the cited work, with further questions concerning other polynomial families and stronger depth reductions.
-
-[Read in atlas](index.html#TCS-5968) · [Improved Low-Depth Set-Multilinear Circuit Lower Bounds](https://doi.org/10.4230/LIPIcs.CCC.2022.38)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6007 — Separating ABPs and Some Structured Formulas in the Non-Commutative Setting — Explicit open question on PDF page 2
 
 Noncommutative arithmetic circuits manipulate polynomials where multiplication preserves the order of variables. The selected passage points to the general challenge of proving strong lower bounds for explicit polynomials in this model. The paper approaches this through algebraic branching programs and formulas whose variable order has additional structure. It separates some restricted models while leaving the broader circuit lower-bound problem unresolved in its discussion. The motivation is that removing commutativity limits cancellation and may make algebraic complexity separations more accessible, even though unrestricted sharing of intermediate computations remains difficult to control.
@@ -7968,13 +7954,6 @@ An arithmetic circuit compactly represents a polynomial, and its second partial 
 [Read in atlas](index.html#TCS-6885) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6886 — Prove superpolynomial depth-four lower bounds outside characteristic two.
-
-Depth-four arithmetic circuits alternate a small number of addition and multiplication layers. The saved survey asks for superpolynomial lower bounds over fields outside characteristic two. The target would show that even a shallow computation can require more than any polynomial number of gates for a suitable explicit family. Field characteristic matters because algebraic identities and cancellation can change the force of a lower-bound method. The precise depth-four restrictions and family are not preserved in the short note, and the source date must not be confused with a verification of the question's present status.
-
-[Read in atlas](index.html#TCS-6886) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6888 — Prove superpolynomial arithmetic-formula lower bounds.
 
 Arithmetic formulas represent polynomial computations by trees, so every intermediate expression used twice must be copied. The source asks for an explicit family requiring superpolynomial formula size. The challenge is to rule out all small expression trees, including those using arbitrary cancellation rather than a visibly natural computation. Such a result would expose a basic limit of algebraic computation before tackling the greater sharing power of circuits. The saved survey lead needs its field and explicitness conventions restored, and restricted formula lower bounds must be distinguished from the unrestricted target being requested.
@@ -7987,13 +7966,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Noncommutative arithmetic circuits compute polynomials in which products retain the order of their variables. The source asks for superpolynomial circuit lower bounds in this setting. Order supplies additional structure for lower-bound arguments, but circuit reuse can still combine many ordered expressions compactly. A successful construction would identify a concrete polynomial whose difficulty survives that sharing ability. The saved note does not specify the field or target family, and its 2010 provenance means it records a historical question rather than independently establishing the status of every related restricted model today.
 
 [Read in atlas](index.html#TCS-6890) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6891 — Prove superpolynomial ΣΠΣ lower bounds over infinite fields.
-
-A ΣΠΣ circuit is a sum of products of linear forms, giving a shallow representation of a polynomial. The source seeks superpolynomial size lower bounds for this model over infinite fields. Even with only three layers, cancellations among product terms can make the representation much more expressive than a monomial expansion. The problem tests whether explicit polynomial structure can force many such product terms despite that freedom. The field and size conventions must come from the survey, and lower bounds for homogeneous or otherwise restricted variants should not automatically be substituted for the saved general target.
-
-[Read in atlas](index.html#TCS-6891) · [Arithmetic Circuits: A Survey of Recent Results and Open Questions](https://www.cs.tau.ac.il/~shpilka/publications/SY10.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6893 — Prove superpolynomial multilinear-circuit lower bounds.
@@ -9131,7 +9103,7 @@ Computational differential privacy protects against efficient adversaries, where
 [Read in atlas](index.html#TCS-6825) · [The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/privacybook.html) · [Towards Separating Computational and Statistical Differential Privacy (FOCS 2023)](https://doi.org/10.1109/FOCS57990.2023.00042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Constraint satisfaction (38)
+## Constraint satisfaction (36)
 
 ### TCS-6635 — Does every finite-template decision promise CSP have a P/NP-hard dichotomy?
 
@@ -9349,20 +9321,6 @@ Quantified temporal constraint satisfaction concerns relations on the rational o
 
 [Read in atlas](index.html#TCS-5225) · [Identifying Tractable Quantified Temporal Constraints Within Ord-Horn](https://doi.org/10.4230/LIPIcs.ICALP.2024.151)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5441 — Universal Factor Graphs for Every NP-Hard Boolean CSP — Explicit open question on PDF page 4
-
-The saved 2014 passage asks for a classification of non-Boolean finite-domain CSPs. Such a classification seeks a structural boundary between polynomial-time solvability and NP-completeness as the fixed relation language varies. The paper mentions the question while studying universal factor graphs for Boolean CSPs. The classification is historically important because it extends the organizing role of Boolean constraint dichotomies to larger domains. This is a dated source statement whose status requires historical handling, and it must not be promoted to a fresh unresolved finite-domain dichotomy merely because the old excerpt says it was open.
-
-[Read in atlas](index.html#TCS-5441) · [Universal Factor Graphs for Every NP-Hard Boolean CSP](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.274)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6002 — Robust Approximation of Temporal CSP — Explicit open question on PDF page 3
-
-The saved passage recalls the Feder–Vardi dichotomy conjecture for fixed finite-domain constraint languages. Its target was that every such CSP be either polynomial-time solvable or NP-complete. The cited temporal-CSP paper used this finite-domain question as background for a different, infinite-domain approximation setting. The dichotomy's role is to provide an organizing model for separating tractability from hardness. Because this is a truncated 2014 historical reference, it does not itself identify a new unresolved temporal problem and should not be presented as current evidence that the finite-domain dichotomy remains open.
-
-[Read in atlas](index.html#TCS-6002) · [Robust Approximation of Temporal CSP](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.419)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6725 — Color a promised 3-colorable graph with O(log n) colors in polynomial time.
 

@@ -9,11 +9,11 @@ Top 100 takes the first 5/2 places in each large/small category. Top 1000 takes 
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [top100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [top1000](index.html?benchmark=top1000) | 1000 | 983 | 17 |
+| [top1000](index.html?benchmark=top1000) | 1000 | 981 | 19 |
 
 ## Unfilled places
 
-- top1000: Cryptography has 48/50 places.
+- top1000: Cryptography has 46/50 places.
 - top1000: Miscellaneous has 5/20 places.
 
 ## Algorithms
@@ -142,7 +142,7 @@ Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
 | 4 | [Polynomial-time distribution-free PAC learning of DNF](index.html#TCS-5358) (TCS-5358) | Distribution-free Boolean rule learning | 97 | A defining improper PAC-learning question for compact Boolean rules under arbitrary input distributions, with broad consequences for decision-tree and junta learning. The general target and its conditional-hardness evidence are now stated precisely. |
 | 5 | [Linear conditional information for proper agnostic VC learning](index.html#TCS-0679) (TCS-0679) | Information revealed by learning | 82 | The information complexity of VC learning tests how much information learning must reveal beyond its sample count. |
 
-Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023, TCS-0677, TCS-0679, TCS-0691, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-0674, TCS-0676, TCS-5358.
+Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0679, TCS-0691, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-0674, TCS-0676, TCS-5358.
 
 ## Cryptography
 
@@ -156,7 +156,7 @@ Previous prefix: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547.
 | 2 | [Does P≠NP imply the existence of one-way functions?](index.html#TCS-0022) (TCS-0022) | Complexity foundations of cryptography | 97 | A foundational question about the weakest assumptions supporting cryptography, linking NP hardness, average-case complexity, inversion, and pseudorandomness. |
 | 3 | [Does ordinary polynomial-hard LWE suffice for circuit obfuscation?](index.html#TCS-6550) (TCS-6550) | Program obfuscation | 97 | A central assumption-minimization problem for general obfuscation, with consequences throughout cryptography and a crucial distinction between ordinary LWE and strengthened LWE-based assumptions. |
 | 4 | [Unleveled fully homomorphic encryption from LWE alone](index.html#TCS-6551) (TCS-6551) | Computation on encrypted data | 95 | A central foundational gap in fully homomorphic encryption, separating established leveled LWE constructions from reusable fixed-depth-independent keys and their extra security assumptions. |
-| 5 | [Smaller shares for general secret sharing](index.html#TCS-0465) (TCS-0465) | Information-theoretic secret sharing | 88 | The share size needed for general secret sharing is a fundamental efficiency limit for realizing arbitrary access structures. |
+| 5 | [Can every perfect secret-sharing access structure use shares below exponent one half?](index.html#TCS-0465) (TCS-0465) | Information-theoretic secret sharing | 88 | The share size needed for general secret sharing is a fundamental efficiency limit for realizing arbitrary access structures. |
 
 Candidates considered: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547, TCS-6546, TCS-6548, TCS-6551, TCS-6552, TCS-0465, TCS-6454, TCS-0461, TCS-0463, TCS-1138, TCS-0460.
 
