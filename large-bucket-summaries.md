@@ -4882,13 +4882,6 @@ Graph diameter becomes expensive when a geometric intersection graph has many im
 [Read in atlas](index.html#TCS-1356) · [Charting the Diameter Computation Landscape of Intersection Graphs in 3D and Above](https://doi.org/10.4230/LIPIcs.SoCG.2026.29)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1679 — Does every point set admit an oriented t-spanner with t < 2?
-
-An oriented spanner provides short directed closed walks through every pair of points. The benchmark for a pair is the perimeter of its smallest containing triangle, not simply twice its straight-line distance. The source asks whether every point set admits an orientation with worst-case dilation strictly below two. The question initially allows complete oriented graphs, so sparsity is not the first obstacle. The later source stored with TCS-1212 achieves a factor of five thirds, so this historical target should be read alongside that stronger result.
-
-[Read in atlas](index.html#TCS-1679) · [Computing Oriented Spanners and Their Dilation](https://doi.org/10.4230/LIPIcs.SoCG.2025.27) · [https://doi.org/10.4230/LIPIcs.ESA.2026.117](https://doi.org/10.4230/LIPIcs.ESA.2026.117)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1762 — We conjecture that tight instances exist in these spaces, i.e., the spanner bounds obtained in [25, 22] are optimal for every stretch t.
 
 A geometric spanner preserves distances in a normed space using fewer edges than the complete graph. For ℓₚ spaces with p between one and two, the source conjectures that existing sparsity guarantees are optimal at every stretch level. Proving this requires point configurations forcing matching lower bounds for unrestricted-hop spanners. Bounds for two-hop routes or for norms whose parameter grows with input size do not settle the fixed-norm target. The question would identify the true compression limits of these high-dimensional geometric metrics.
@@ -5161,6 +5154,13 @@ A subspace embedding compresses a matrix while approximately preserving the Eucl
 
 [Read in atlas](index.html#TCS-7006) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-1679 — Does every point set admit an oriented t-spanner with t < 2?
+
+An oriented spanner assigns at most one direction to each connection between two points. Its dilation compares the shortest directed round trip through each pair with the perimeter of that pair’s cheapest triangle. The historical question asks for one factor strictly below two that works for every point set. The published ESA 2026 theorem answers positively with factor five thirds, even in general finite metric spaces. Finding an orientation with the smallest possible dilation for a particular point set remains a separate question.
+
+[Read in atlas](index.html#TCS-1679) · [Computing Oriented Spanners and Their Dilation](https://doi.org/10.4230/LIPIcs.SoCG.2025.27) · [Sparse Oriented Spanners in Metric Spaces](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.117)
+Existing status: `resolved` · Summary written: 2026-09-11
 
 ## Learning theory (89)
 
