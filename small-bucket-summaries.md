@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,040 five-sentence working summaries, based on saved source material.
+1,043 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (35)
@@ -4639,7 +4639,7 @@ Different repetitiveness measures summarize a string through different kinds of 
 [Read in atlas](index.html#TCS-6929) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (44)
+## Game theory, social choice and fair division (47)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -4717,6 +4717,27 @@ Approximate EFX weakens the comparison between an agent's own bundle and another
 
 [Read in atlas](index.html#TCS-1116) · [Fair Division of Indivisible Goods: A Survey](https://www.cs.toronto.edu/~nisarg/teaching/2556s22/papers/fair-division-survey.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-7199 — Deciding whether an exact MMS allocation exists
+
+Each agent values an indivisible bundle by adding her values for its goods. Her maximin share is the best least-bundle value she can obtain by partitioning all goods into one bundle per agent. The decision problem asks whether one complete allocation gives every agent at least this personal benchmark. Known difficulties in computing benchmarks or finding allocations do not alone establish hardness of deciding their existence. The input and fairness predicate are explicit, while the imported request still needs a specified complexity-classification target.
+
+[Read in atlas](index.html#TCS-7199) · [Approximation and complexity of the optimization and existence problems for maximin share, proportional share, and minimax share allocation of indivisible goods](https://doi.org/10.1007/s10458-018-9393-0) · [Complexity Results and Exact Algorithms for Fair Division of Indivisible Items: A Survey](https://www.ijcai.org/proceedings/2023/0754.pdf) · [The Complexity of Computing Maximin Share Allocations on Graphs](https://cdn.aaai.org/ojs/5572/5572-13-8797-1-10-20200512.pdf) · [Temporal Fair Division of Indivisible Mixed Manna: Tractable Settings](https://arxiv.org/abs/2608.20033)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7201 — The optimal ordinal MMS guarantee for goods
+
+An agent’s 1-out-of-d maximin share is the best least-bundle value she can achieve by partitioning all goods into d bundles. The allocation itself still distributes the goods among n actual agents. The question asks for the smallest denominator that guarantees every agent her corresponding share in every additive goods instance. Known bounds allow roughly four benchmark bundles for every three agents, with separate rounding improvements for smaller n. Determining the exact denominator would describe the strongest universally attainable fairness standard of this form.
+
+[Read in atlas](index.html#TCS-7201) · [Envy-free matchings in bipartite graphs and their applications to fair division](https://doi.org/10.1016/j.ins.2021.11.059) · [Improving Approximation Guarantees for Maximin Share](https://arxiv.org/abs/2307.12916v2) · [Simultaneous Ordinal Maximin Share and Envy-Based Guarantees](https://arxiv.org/abs/2602.15566v2)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7198 — Do EFkX allocations exist for a universal constant k?
+
+EFkX compares each agent’s bundle with another bundle after any k of that other bundle’s goods are hypothetically removed. The same agent’s valuation is used on both sides, and all actual goods must still be allocated. The question asks whether one constant k works for every number of agents and every nonnegative additive goods instance. Exact guarantees are known for limited numbers of agents, while a 2026 preprint obtains multiplicative approximate guarantees for arbitrary n. A resolution would determine whether a bounded item allowance can always account for the envy caused by indivisibility.
+
+[Read in atlas](index.html#TCS-7198) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371) · [EF2X Exists for Four Agents](https://ojs.aaai.org/index.php/AAAI/article/view/33480)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0056 — Best α for α-MMS existence
 
