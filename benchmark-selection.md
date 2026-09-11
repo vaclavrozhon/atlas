@@ -50,7 +50,7 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) (TCS-0477) | Offline comparison complexity | 74 | Finding final survivors of a fully known heap-operation sequence isolates the comparison information needed for a batch answer. It does not require an online priority queue or intermediate query responses. |
 | 5 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
 
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595, TCS-0946, TCS-0477, TCS-5548, TCS-1141.
+Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595, TCS-0946, TCS-0477, TCS-1141.
 
 ## Automata and formal languages
 
@@ -82,7 +82,7 @@ Previous prefix: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569.
 | 4 | [Can a Scott-continuous lambda model validate exactly beta-conversion?](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
 | 5 | [Does weak normalization imply strong normalization for every pure type system?](index.html#TCS-6583) (TCS-6583) | Consistency of type systems | 94 | Asks whether the existence of a terminating reduction for every typable term forces every reduction of every such term to terminate. |
 
-Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632, TCS-0575, TCS-0637, TCS-0634, TCS-0150, TCS-0628, TCS-0639.
+Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632, TCS-0575, TCS-0634, TCS-0628, TCS-0639.
 
 ## Distributed, parallel and sublinear algorithms
 
@@ -282,7 +282,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [The deterministic k-server conjecture](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational conjecture about online decision-making, with an optimal lower bound, one broadly applicable candidate algorithm, and a persistent gap on general metrics despite many resolved special cases. |
 | 2 | [A constant improvement over factor 2 for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0701, TCS-0702, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0713, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1691, TCS-1696, TCS-1891, TCS-2032, TCS-2048, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2862, TCS-2969, TCS-3005, TCS-3147, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5094, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5184, TCS-5186, TCS-5220, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5481, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-5888, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6837, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922, TCS-0925.
+Candidates considered: TCS-0700, TCS-0701, TCS-0702, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0713, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1696, TCS-1891, TCS-2032, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2969, TCS-3005, TCS-3147, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5094, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5184, TCS-5186, TCS-5220, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5481, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-5888, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6837, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922, TCS-0925.
 
 ## Beyond worst-case and average-case analysis
 
@@ -308,7 +308,7 @@ Previous prefix: TCS-6621, TCS-6622.
 | 1 | [Rapid mixing of Glauber dynamics with Δ+2 colours](index.html#TCS-6621) (TCS-6621) | Colouring-chain mixing | 95 | A longstanding general-graph conjecture linking local algorithms, approximate counting and spin systems; recent near-threshold results still require structural restrictions. |
 | 2 | [The Kannan–Tetali–Vempala switch-chain conjecture for binary matrices](index.html#TCS-6622) (TCS-6622) | Sampling prescribed-degree graphs | 94 | A central obstruction to a general theory of uniform sampling with fixed combinatorial marginals. |
 
-Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-1158, TCS-1255, TCS-1381, TCS-1693, TCS-1967.
+Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-1158, TCS-1255, TCS-1381, TCS-1693.
 
 ## Counting and enumeration
 
@@ -360,7 +360,7 @@ Previous prefix: TCS-6625, TCS-6626.
 | 1 | [Deterministic fully dynamic connectivity with polylogarithmic worst-case updates](index.html#TCS-6625) (TCS-6625) | Dynamic connectivity | 97 | A foundational dynamic-graph frontier directly relevant to data structures, with a new randomized breakthrough and an explicit remaining deterministic bottleneck. |
 | 2 | [Fully dynamic near-optimal matching with polylogarithmic updates](index.html#TCS-6627) (TCS-6627) | Dynamic matching | 95 | A central dynamic graph problem connecting approximation, explicit solution maintenance and extremal induced-matching structure. |
 
-Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0542, TCS-0543, TCS-0541, TCS-0300, TCS-1221, TCS-1425, TCS-2730, TCS-2798, TCS-3788, TCS-4799, TCS-5825, TCS-0387, TCS-3647, TCS-3902, TCS-5612, TCS-3225, TCS-3669, TCS-2324, TCS-3331, TCS-4307.
+Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0542, TCS-0543, TCS-0541, TCS-0300, TCS-1221, TCS-1425, TCS-2730, TCS-2798, TCS-3788, TCS-4799, TCS-5825, TCS-0387, TCS-3647, TCS-3902, TCS-5612, TCS-3669, TCS-2324, TCS-3331, TCS-4307.
 
 ## String algorithms and computational biology
 
@@ -451,7 +451,7 @@ Previous prefix: TCS-6631, TCS-0506.
 | 1 | [Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) (TCS-6673) | Private continual counting | 94 | The saved target asks for optimal worst-time error when releasing every prefix sum under pure differential privacy. It complements sample-complexity bounds for private learning with a fundamental sequential data-release problem. |
 
-Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507, TCS-0508, TCS-0509, TCS-6451.
+Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507, TCS-0508, TCS-6451.
 
 ## Constraint satisfaction
 
