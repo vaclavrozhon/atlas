@@ -90,7 +90,7 @@ the quick view.
 
 The 2,353 source notes and 4,634 index records appear as **6,987 short drafts**.
 Some contain only a topic label or an incomplete excerpt; this is marked on the
-card. Expanded details retain the previously saved material. **Add a note** opens
+card. Expanded details retain the previously saved material. **My private note** opens
 the personal note directly, and notes remain associated with the stable problem
 ID when a card is developed further.
 
@@ -159,11 +159,41 @@ are screened. Automatic selection admits at most one new note per paper title.
 Collection-wide semantic deduplication remains incomplete. Existing identifiers
 are preserved; new identifiers are stored in a persistent registry.
 
+## Shared notes and new problems
+
+Use **Add public note** on a card to share an observation, correction or source.
+Use **New problem +** in the header to propose a problem with a category and
+statement, plus optional definitions, resolution criteria, motivation and sources.
+The form saves your draft in this browser as you type. **Continue on GitHub** opens
+a prefilled issue: sign in there and click **Submit new issue** to publish it.
+For a long draft, the form offers the complete text to copy into GitHub instead.
+After submitting, return to the form and click **Refresh shared contributions**.
+Drafts are kept until you choose **Discard draft**.
+
+Public notes appear on their problem cards. New problems appear under **Community**
+with an ID such as `GH-123`, and can receive public notes of their own. They are
+reader drafts, separate from the reviewed catalogue and Top 100/Top 1000 selections.
+Anyone can read these contributions without signing in. Use their GitHub links
+to reply or edit with the permissions granted by GitHub. Closing the issue hides
+the contribution on the next refresh; reopening it restores it.
+
+Shared contributions are stored as public issues in
+[vaclavrozhon/atlas](https://github.com/vaclavrozhon/atlas/issues).
+The website reads them from GitHub and caches the last successful result in your
+browser for five minutes. **Refresh contributions** checks immediately. If GitHub
+cannot be reached or limits requests, the last cached contributions remain visible
+and the Community section explains the failure. Replies written as GitHub issue
+comments are available through the GitHub link, rather than imported as new notes.
+**Export contributions** downloads the currently loaded public notes and problem
+drafts. The curated catalogue downloads remain separate.
+
 ## Local data and exports
 
 Saved cards and personal notes use browser local storage. They are not uploaded.
 Export selection includes the current records, saved flags, and personal notes;
 use it to keep a portable copy. Browser storage may be cleared by the browser.
+**My private note** and **Add public note** are separate editors: sharing a public
+contribution never copies your private notes into it.
 
 `catalog.json` is the complete structured catalogue; `data.js` wraps the same data
 for offline loading. `catalog.csv`, `sources.csv`, `areas.csv`, and `coverage.json`
