@@ -2622,12 +2622,12 @@ The intuitionistic temporal logic ITL^e combines an information ordering with a 
 [Read in atlas](index.html#TCS-4081) · [A Decidable Intuitionistic Temporal Logic](https://doi.org/10.4230/LIPIcs.CSL.2017.14)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4093 — An interesting next question is the complexity of the reachability problem for two-dimensional BVASS, which we conjecture decidable.
+### TCS-4093 — The complexity of reachability for two-dimensional branching VASS
 
-Branching vector addition systems combine finite control, nonnegative counters, and transitions that split computation into branches. Reachability asks whether the required configuration can be realized by a valid branching run. The source settles a one-counter encoding case and conjectures decidability with two counters. Branching prevents a direct transfer of ordinary vector-addition-system algorithms. The project studies the first genuinely multidimensional case, seeking either a finite representation of successful runs or an obstruction revealing undecidable behavior.
+A branching counter-system run combines two child configurations by adding their counters and a transition displacement. Reachability asks whether a given configuration has a finite run tree rooted there and ending in allowed zero-counter leaves. The 2017 question concerns the complexity of this task with two counters and binary numerical data. Decidability was proved in 2025, but the checked sources leave an explicit complexity classification open. This revision preserves that remaining question and marks the source’s unspecified requirement for matching time or space bounds.
 
-[Read in atlas](index.html#TCS-4093) · [Polynomial-Space Completeness of Reachability for Succinct Branching VASS in Dimension One](https://doi.org/10.4230/LIPIcs.ICALP.2017.119)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4093) · [Polynomial-Space Completeness of Reachability for Succinct Branching VASS in Dimension One](https://doi.org/10.4230/LIPIcs.ICALP.2017.119) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.22) · [Bridging the Gap Between Plain VASS and Branching VASS](https://link.springer.com/chapter/10.1007/978-3-032-22730-0_4) · [Solving the Reachability Problem for Branching Vector Addition Systems via Semilinear Inductive Invariants](https://arxiv.org/abs/2607.09558v1)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-4124 — While the problem of modular separability is ExpSpace-hard, we do not know whether it is as hard as the VAS reachability problem.
 
