@@ -305,7 +305,7 @@ Previous prefix: TCS-6656, TCS-0012.
 | 1 | [Planted clique: can polynomial time detect a clique below the square-root scale?](index.html#TCS-6656) (TCS-6656) | Planted inference | 98 | A canonical computational threshold with broad consequences in average-case complexity, statistical inference, and the study of algorithmic lower-bound frameworks. |
 | 2 | [Does P≠NP imply a samplable NP problem outside AvgP?](index.html#TCS-0012) (TCS-0012) | Worst-case versus average-case hardness | 97 | One of the central missing implications in complexity theory, connecting worst-case lower bounds to feasible instance generation and the limits of algorithms on typical inputs. |
 
-Candidates considered: TCS-6656, TCS-0012, TCS-6657, TCS-6684, TCS-6453, TCS-6658, TCS-0997.
+Candidates considered: TCS-6656, TCS-0012, TCS-6657, TCS-6684, TCS-6453, TCS-6658.
 
 ## Sampling, Markov chains and mixing times
 
@@ -448,7 +448,7 @@ Previous prefix: TCS-6630, TCS-6672, TCS-0672.
 | 1 | [Effective classification of polynomially testable hereditary graph properties](index.html#TCS-6630) (TCS-6630) | Graph property classification | 95 | An effective formulation of the major finite-family classification problem; it separates polynomial sampling from mere testability and abstract quantitative equivalences. |
 | 2 | [Does polynomial testability imply polynomial distance estimation for dense graph properties?](index.html#TCS-1033) (TCS-1033) | Testing versus distance estimation | 96 | A universal polynomial tester-to-estimator implication would convert robust graph-property recognition into quantitative distance measurement across the dense model. |
 
-Candidates considered: TCS-6630, TCS-6672, TCS-1030, TCS-1029, TCS-1026, TCS-1033, TCS-0837, TCS-0838, TCS-0672, TCS-1033.
+Candidates considered: TCS-6630, TCS-6672, TCS-1030, TCS-1029, TCS-1033, TCS-0672, TCS-1033.
 
 ## Differential privacy
 
@@ -487,7 +487,7 @@ Previous prefix: TCS-6562, TCS-6643.
 | 1 | [Are word equations with linear length constraints decidable?](index.html#TCS-6562) (TCS-6562) | Word equations with arithmetic | 97 | A longstanding decidability question at the intersection of formal languages, number-theoretic constraints and automated verification; even unrestricted termination is unknown, before asking for efficient algorithms. |
 | 2 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) (TCS-6643) | Modal unification | 94 | The basic unresolved decidability boundary in modal unification, already in the minimal normal modal logic. |
 
-Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-0169, TCS-0173, TCS-6650, TCS-0306, TCS-7134, TCS-7135.
+Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-0173, TCS-6650, TCS-0306, TCS-7134, TCS-7135.
 
 ## Database theory and finite model theory
 

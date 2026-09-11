@@ -12,7 +12,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 102 |
 | large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 147 |
 | large 6 | Optimization and numerical computation | 5 | 25 | 50 | 48 |
-| large 7 | Geometry, topology and metric spaces | 5 | 25 | 50 | 121 |
+| large 7 | Geometry, topology and metric spaces | 5 | 25 | 50 | 103 |
 | large 8 | Learning theory | 5 | 25 | 50 | 75 |
 | large 9 | Cryptography | 5 | 25 | 50 | 44 |
 | large 10 | Quantum computation and information | 5 | 25 | 50 | 105 |
@@ -22,9 +22,9 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 4 | Fine-grained complexity | 2 | 10 | 20 | 43 |
 | small 5 | Pseudorandomness and derandomization | 2 | 10 | 20 | 71 |
 | small 6 | Parameterized complexity and algorithms | 2 | 10 | 20 | 73 |
-| small 7 | Approximation algorithms and inapproximability | 2 | 10 | 20 | 56 |
+| small 7 | Approximation algorithms and inapproximability | 2 | 10 | 20 | 40 |
 | small 8 | Online algorithms, scheduling and packing | 2 | 10 | 20 | 66 |
-| small 9 | Beyond worst-case and average-case analysis | 2 | 10 | 20 | 40 |
+| small 9 | Beyond worst-case and average-case analysis | 2 | 10 | 20 | 35 |
 | small 10 | Sampling, Markov chains and mixing times | 2 | 10 | 20 | 16 |
 | small 11 | Counting and enumeration | 2 | 10 | 20 | 37 |
 | small 12 | Structural graph theory and graph algorithms | 2 | 10 | 20 | 68 |
@@ -35,13 +35,13 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 17 | Algebraic computation | 2 | 10 | 20 | 107 |
 | small 18 | Lattices and computational number theory | 2 | 10 | 20 | 35 |
 | small 19 | Coding and information theory | 2 | 10 | 20 | 49 |
-| small 20 | Property testing and distribution learning | 2 | 10 | 20 | 46 |
+| small 20 | Property testing and distribution learning | 2 | 10 | 20 | 40 |
 | small 21 | Differential privacy | 2 | 10 | 20 | 16 |
 | small 22 | Constraint satisfaction | 2 | 10 | 20 | 35 |
-| small 23 | Automated reasoning, rewriting and unification | 2 | 10 | 20 | 31 |
-| small 24 | Database theory and finite model theory | 2 | 10 | 20 | 50 |
+| small 23 | Automated reasoning, rewriting and unification | 2 | 10 | 20 | 28 |
+| small 24 | Database theory and finite model theory | 2 | 10 | 20 | 39 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 5 |
 
-Candidate pool: 2036. Deleted records: 5288 (IDs and reasons only).
+Candidate pool: 1977. Deleted records: 5347 (IDs and reasons only).
 
 The possible 1,000-problem expansion has 1000 assigned places; reserved places: 0. Removal reasons are recorded in deleted_records.json. Final quota selection and a comprehensive deduplication audit remain pending.

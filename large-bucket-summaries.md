@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-858 five-sentence working summaries, based on saved source material.
+841 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (133)
@@ -3760,7 +3760,7 @@ Robust low-rank approximation measures reconstruction error by the sum of absolu
 [Read in atlas](index.html#TCS-7008) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Geometry, topology and metric spaces (119)
+## Geometry, topology and metric spaces (102)
 
 ### TCS-6523 — Does every isotropic log-concave measure have a dimension-free Poincaré constant?
 
@@ -3860,13 +3860,6 @@ The Euclidean minimum spanning tree connects a collection of points with minimum
 [Read in atlas](index.html#TCS-0403) · [The Open Problems Project](https://topp.openproblem.net/p5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-7185 — The Gilbert–Pollak Steiner-ratio conjecture
-
-A minimum spanning tree joins the given planar points using only those points as vertices. A Steiner tree can be shorter because it may introduce new junctions anywhere in the plane. The conjecture says the Steiner optimum is always at least √3/2 times the spanning-tree optimum. An equilateral triangle attains exactly that ratio, so the proposed constant is sharp. Earlier claimed proofs had gaps, and checked 2026 lower-bound improvements still fall short of the conjectured value.
-
-[Read in atlas](index.html#TCS-7185) · [The Steiner ratio Gilbert–Pollak conjecture is still open: Clarification statement](https://doi.org/10.1007/s00453-011-9508-3) · [Du–Hwang Characteristic Area: Catch-22](https://arxiv.org/abs/1402.6079v1) · [Towards Solving the Gilbert-Pollak Conjecture via Large Language Models](https://arxiv.org/abs/2601.22365v3) · [Record Note: A certificate-layer bound of rho ≥ 0.860 for the Gilbert–Pollak Steiner ratio](https://www.beyond-plausible.com/steiner-record-note/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-0408 — Minimum Euclidean Matching in 2D
 
 Given an even number of planar points, a perfect matching pairs every point with exactly one other point. The Euclidean objective minimizes the sum of the lengths of all chosen segments. The question is the optimal complexity of computing that minimum exactly, with bipartite matching as a related restricted variant. Approximation algorithms can exploit geometry differently and do not by themselves settle the exact problem. Sharper algorithms would improve a central geometric pairing primitive whose implicit complete graph contains quadratically many candidate edges.
@@ -3888,11 +3881,11 @@ The goal is to find a simple closed route on a convex polyhedron that is straigh
 [Read in atlas](index.html#TCS-7183) · [Finding Weakly Simple Closed Quasigeodesics on Polyhedral Spheres](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2022.27) · [Finding Closed Quasigeodesics on Convex Polyhedra](https://arxiv.org/abs/2008.00589v3) · [Quasigeodesics on the Cube](https://cccg-wads-2025.eecs.yorku.ca/cccg-papers/32.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7188 — Three-page book embedding with a fixed vertex order
+### TCS-7189 — Is minimum-weight triangulation in NP?
 
-Vertices are fixed along a line, and each edge must be assigned to one of three pages. Two edges with alternating endpoints cannot share a page, while nested edges and shared endpoints are allowed. The question asks whether feasibility can always be decided in deterministic polynomial time. It is equivalent to three-coloring circle graphs, where a prior claimed polynomial algorithm has known defects. A SOSA 2026 quasipolynomial algorithm advances the upper bound but leaves polynomial-time solvability open.
+The input gives rational planar points and a rational limit on the total length of a triangulation. Every input point must be used, no extra points may be added, and Euclidean edge lengths are compared exactly. The question asks whether every feasible instance has a short certificate that can be checked in polynomial bit time. NP-hardness is known, but the sum of potentially irrational edge lengths prevents the usual edge-list argument from establishing NP membership. Practical exact solutions and rounded-cost variants do not settle the certificate question for arbitrary exact inputs.
 
-[Read in atlas](index.html#TCS-7188) · [Parameterized Algorithms for Book Embedding Problems](https://jgaa.info/index.php/jgaa/article/download/paper526/2412) · [On 3-Coloring Circle Graphs](https://jgaa.info/index.php/jgaa/article/view/2991) · [A Quasi-Polynomial Time Algorithm for 3-Coloring Circle Graphs](https://doi.org/10.1137/1.9781611978964.6)
+[Read in atlas](index.html#TCS-7189) · [Minimum-weight triangulation is NP-hard](https://arxiv.org/abs/cs/0601002) · [Solving Large-Scale Minimum-Weight Triangulation Instances to Provable Optimality](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2018.44) · [Taming Infinity One Chunk at a Time: Concisely Represented Strategies in One-Counter MDPs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.138)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0410 — Output-sensitive Convex Hull in \R^d
@@ -3930,13 +3923,6 @@ A three-dimensional subdivision divides space into cells bounded by faces. After
 [Read in atlas](index.html#TCS-0411) · [The Open Problems Project](https://topp.openproblem.net/p13)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0391 — Thrackles
-
-A thrackle draws a graph in the plane so that every pair of edges meets exactly once. Adjacent edges meet at their shared endpoint, whereas nonadjacent edges must cross. Conway's conjecture says that such a drawing cannot contain more edges than vertices. Curved edges are allowed, so conclusions about straight-line drawings leave an essential part of the question untouched. The challenge is to turn an exceptionally strong local intersection rule into the proposed global bound on graph density.
-
-[Read in atlas](index.html#TCS-0391) · [The Open Problems Project](https://topp.openproblem.net/p30)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0430 — NP-hardness of three-manifold homeomorphism
 
 Deciding whether two triangulated three-manifolds are homeomorphic has algorithms, but decidability alone says little about feasible running time. This question seeks an NP-hardness lower bound for the general decision problem. A reduction would have to encode arbitrary instances of a known hard problem into pairs of manifolds. Hardness of related knot or triangulation optimization tasks does not immediately supply that encoding. Such a result would locate manifold equivalence more precisely among familiar computational problems and constrain expectations for general-purpose recognition algorithms.
@@ -3972,32 +3958,11 @@ Computing two-parameter persistence can require changing basis in matrices whose
 [Read in atlas](index.html#TCS-0423) · [Applied and Combinatorial Topology](https://doi.org/10.4230/DagRep.14.2.206)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0322 — Plane (1 + ε)-spanners in R2
-
-A plane spanner joins planar input points without crossing edges while approximately preserving Euclidean distances. To obtain stretch arbitrarily close to one, the construction may introduce additional Steiner vertices. The source asks for the smallest number of such vertices as a function of input size and approximation accuracy. A related target also bounds total edge weight relative to a minimum spanning tree. The problem measures the cost of reconciling accurate distances with a crossing-free physical network rather than merely a sparse abstract graph.
-
-[Read in atlas](index.html#TCS-0322) · [Metric Sketching and Dynamic Algorithms for Geometric and Topological Graphs](https://doi.org/10.4230/DagRep.15.5.134)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0373 — Zipper Unfoldings of Convex Polyhedra
-
-A zipper unfolding cuts a convex polyhedron along one continuous path and flattens the remaining surface without overlap. The path must reach every vertex, but it may cross the interiors of faces. The question asks whether every convex polyhedron admits such a cut. Restricting the zipper to original edges creates immediate obstructions from graphs without suitable Hamiltonian paths. Allowing more general surface paths isolates whether the difficulty is combinatorial or an intrinsic obstacle to flattening with a single zipper.
-
-[Read in atlas](index.html#TCS-0373) · [The Open Problems Project](https://topp.openproblem.net/p77)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0399 — Union of Fat Objects in 3D
 
 Fat geometric objects have comparable inner and outer radii, excluding arbitrarily thin needles or sheets. The question asks how complicated the boundary of a union of such objects can become in three dimensions. The source proposes near-quadratic complexity and discusses special families where bounds of that scale are available. Interactions hidden inside the union do not contribute to its exposed boundary. A sharp general estimate would improve the analysis of geometric representations built by combining many individually simple solid objects.
 
 [Read in atlas](index.html#TCS-0399) · [The Open Problems Project](https://topp.openproblem.net/p4)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0415 — Vertical Decompositions in \R^d
-
-Vertical decomposition partitions an arrangement of surfaces into simpler cells using a fixed coordinate direction. The source asks for the worst-case number of resulting pieces in dimensions at least five. Even a moderate description of the original surfaces can produce many interactions across successive projections. The central issue is closing the combinatorial gap between lower-bound configurations and decomposition upper bounds. This matters because algorithms using the decomposition inherit its size before any subsequent searching or optimization begins.
-
-[Read in atlas](index.html#TCS-0415) · [The Open Problems Project](https://topp.openproblem.net/p19)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0326 — Similarity of Curves (Fréchet Distance)
@@ -4021,25 +3986,11 @@ Triangulations of the same compact three-manifold are connected by local bistell
 [Read in atlas](index.html#TCS-0432) · [Triangulations in Geometry and Topology](https://doi.org/10.4230/DagRep.14.2.120)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0433 — Polynomial height paths between three-manifold triangulations
-
-A path of bistellar flips between triangulations can become much larger before it simplifies again. This question asks whether the largest intermediate triangulation can always be bounded polynomially in the endpoint sizes. The quantity being controlled is the path's height, not the total number of moves. Thus a long sequence could still satisfy the target if it never needs excessively many tetrahedra at once. A positive bound would limit the storage burden of navigating the space of triangulations of a fixed three-manifold.
-
-[Read in atlas](index.html#TCS-0433) · [Triangulations in Geometry and Topology](https://doi.org/10.4230/DagRep.14.2.120)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2529 — First, is there an exact polynomial time algorithm for embedding into ultrametrics or even a PTAS?
 
 A probabilistic ultrametric embedding represents a metric by a distribution over hierarchical distance structures. The optimization objective controls expected distortion for every original pair of points. The cited work gives a constant-factor approximation to the best distortion achievable on the particular input. Its question is whether that instance-dependent optimum can instead be computed exactly or approximated arbitrarily closely in polynomial time. Improving this optimization would choose hierarchical representations more effectively when a metric is easier than worst-case embedding bounds suggest.
 
 [Read in atlas](index.html#TCS-2529) · [Probabilistic Metric Embedding via Metric Labeling](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0353 — Near-linear-time weighted planar centerpoints
-
-A weighted centerpoint is intended to remain centrally placed when geometric depth is measured using point weights. The source asks how quickly one can compute such a point for a planar weighted input. Its preferred target is a running time on the order of sorting the input. Unlike an arithmetic centroid, a centerpoint concerns the mass forced into halfplanes through the chosen location. The record leaves the exact admissibility conventions for weights to a fuller formulation, while isolating fast weighted geometric depth as the research task.
-
-[Read in atlas](index.html#TCS-0353) · [Computational Geometry](https://doi.org/10.4230/DagRep.9.4.107)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0414 — Surface Reconstruction
@@ -4056,13 +4007,6 @@ The input is a triangulated three-manifold, and the question is whether it is a 
 [Read in atlas](index.html#TCS-0428) · [Triangulations in Geometry and Topology](https://doi.org/10.4230/DagRep.14.2.120)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0429 — NP recognition of small Seifert-fibred spaces
-
-Small Seifert-fibred spaces form a particular class of three-manifolds organized around a circle-fibration structure. The question asks whether membership in this class has polynomial-size, polynomial-time verifiable certificates when the input is triangulated. The source suggests locating a short fibre circle as one possible starting point. Results for other Seifert-fibred classes do not directly settle this restricted recognition task. The challenge is to expose enough of the hidden fibration through a compact certificate without first reconstructing an unwieldy global description.
-
-[Read in atlas](index.html#TCS-0429) · [Triangulations in Geometry and Topology](https://doi.org/10.4230/DagRep.14.2.120)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0381 — Flip Graph Connectivity in 3D
 
 Fix a set of points in three dimensions with no four coplanar and consider all its geometric tetrahedralizations. Two tetrahedralizations are adjacent when a local configuration of two tetrahedra is replaced by three, or conversely. The question asks whether these moves connect the entire collection. Results for topological triangulations, additional vertices, or higher dimensions do not answer this precise geometric case. Connectivity would justify navigating among all tetrahedralizations by local modifications alone, a principle underlying many mesh improvement procedures.
@@ -4075,13 +4019,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 General unfolding allows a polyhedral surface to be cut through faces as well as along original edges. The target is a single connected planar piece whose interior does not overlap itself. The source asks whether every closed polyhedron admits such an unfolding, including nonconvex ones. Positive constructions for convex and certain orthogonal polyhedra motivate the broader question. It asks whether arbitrary surface cuts can always overcome the geometric obstructions that prevent more restrictive kinds of polyhedral nets.
 
 [Read in atlas](index.html#TCS-0382) · [The Open Problems Project](https://topp.openproblem.net/p43)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0385 — Hamiltonian Tetrahedralizations
-
-A tetrahedralization partitions a convex three-dimensional polytope into tetrahedra. Its dual graph joins tetrahedra that share a face, and a Hamiltonian path visits each tetrahedron exactly once. The question asks whether a partition with such a path always exists using the allowed original geometry. Failure of one particular tetrahedralization is insufficient, because another partition may admit the required traversal. The target links local face adjacency with an efficient sequential ordering of a solid's pieces, motivated in the source by rendering and pipelining.
-
-[Read in atlas](index.html#TCS-0385) · [The Open Problems Project](https://topp.openproblem.net/p29)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0328 — Sparse (1 + ϵ)-emulator for Euclidean Point Sets
@@ -4126,32 +4063,11 @@ The intersection graph of disks or rectangles can contain quadratically many edg
 [Read in atlas](index.html#TCS-2932) · [Hop-Spanners for Geometric Intersection Graphs](https://doi.org/10.4230/LIPIcs.SoCG.2022.30)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0431 — Optimal discrete Morse extensions of partial matchings
-
-Discrete Morse reconstruction turns a scalar function on a simplicial complex into a simplified geometric structure. Applications may also specify preferred local gradient pairs, representing directions inferred from other data. The source asks how to combine these partial matching constraints with the function in an appropriate optimal discrete gradient field. Choosing a meaningful objective is itself part of the task. The intended outcome is a reconstruction method with theoretical guarantees that respects both measured scalar information and externally supplied directional evidence.
-
-[Read in atlas](index.html#TCS-0431) · [Applied and Combinatorial Topology](https://doi.org/10.4230/DagRep.14.2.206)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1089 — Exists-R hardness of 2-complex embeddings in 4D
 
 An abstract two-dimensional simplicial complex specifies vertices, edges, and triangular faces without coordinates. The question is whether deciding its straight geometric embeddability in four-dimensional space is hard for the existential theory of the reals. The faces must realize the given incidence structure without unintended intersections. Hardness results for neighboring combinations of complex and ambient dimension motivate this specific boundary case. A resolution would show whether this apparently spacious embedding setting can still encode general systems of real polynomial constraints.
 
 [Read in atlas](index.html#TCS-1089) · [The Existential Theory of the Reals as a Complexity Class: A Compendium](https://arxiv.org/abs/2407.18006)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0317 — Is Finding Positive Euler Characteristic Normal Surfaces FPT?
-
-Normal surfaces intersect each tetrahedron in prescribed triangular or quadrilateral pieces. This question seeks a nontrivial connected normal surface of positive Euler characteristic inside a triangulated three-manifold. The proposed algorithmic target is fixed-parameter tractability in the treewidth of the triangulation's dual graph. Local matching constraints follow the tetrahedron adjacency structure, offering a reason that parameter might help. A solution would accelerate a bottleneck shared by recognition and decomposition algorithms, while the source also raises the complementary possibility of NP-hardness.
-
-[Read in atlas](index.html#TCS-0317) · [Computational Geometry](https://doi.org/10.4230/DagRep.15.5.64)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0324 — Precision of continuous distance problems
-
-Exact geometric distances can involve real numbers whose representation is itself computationally difficult. The source compares obstacle-avoiding shortest paths, diameters of polyhedral surfaces, and Euclidean Steiner trees. It asks how their exact complexity relates to real-algebraic decision problems and what oracle operations a meaningful exact algorithm should receive. It also asks whether strong approximation schemes imply useful restrictions on that complexity. The project separates geometric combinatorial difficulty from the numerical precision needed to express or compare an optimal value.
-
-[Read in atlas](index.html#TCS-0324) · [Precision in Geometric Algorithms](https://doi.org/10.4230/DagRep.15.9.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0331 — Treewidth of 3-Manifolds
@@ -4168,46 +4084,11 @@ The input is a directed graph embedded on a genus-two surface, with some edges m
 [Read in atlas](index.html#TCS-0346) · [Computational Geometry](https://doi.org/10.4230/DagRep.9.4.107)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0354 — Recognizing Minkowski sums of zero-one polytopes
-
-The input consists of three zero-one polytopes described by linear inequalities. The task is to decide whether the third equals the Minkowski sum of the first two. A Minkowski sum contains every vector obtained by adding one point from each summand. The zero-one promise restricts the vertices but does not present them explicitly in the input. The source asks whether that discrete structure changes the complexity of verifying a geometric sum identity that is difficult for general inequality-described polytopes.
-
-[Read in atlas](index.html#TCS-0354) · [Computational Geometry](https://doi.org/10.4230/DagRep.9.4.107)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0376 — Edge-Coloring Geometric Graphs
-
-Draw every segment between a planar point set in general position. Color those segments so that crossing edges always receive different colors. The task is to determine the worst-case minimum number of colors as the number of points grows. Each color class is a plane graph, making the question equivalent to partitioning a complete geometric graph into few crossing-free layers. Sharper bounds would describe how efficiently dense straight-line connectivity can be separated into geometrically compatible groups.
-
-[Read in atlas](index.html#TCS-0376) · [The Open Problems Project](https://topp.openproblem.net/p75)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0398 — Planar Euclidean Maximum TSP
 
 The maximum Euclidean traveling-salesman problem seeks the longest tour through a planar point set. Every point must be visited once before the tour closes, but long connections are rewarded rather than penalized. The source asks for the complexity of finding the exact optimum in the plane. Algorithms for polyhedral distance functions and hardness in higher-dimensional Euclidean space do not determine this intermediate case. The problem tests how the geometry of the distance function affects a familiar combinatorial optimization task.
 
 [Read in atlas](index.html#TCS-0398) · [The Open Problems Project](https://topp.openproblem.net/p49)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0048 — Conjecture: Log-concavity of conic intrinsic volumes
-
-Conic intrinsic volumes describe how a random direction projects onto faces of different dimensions of a convex cone. For a polyhedral cone, each volume is the probability of landing in the relative interior of a face of the corresponding dimension. The conjecture says this sequence is log-concave, so each interior term squared is at least the product of its neighbors. The source records low-dimensional positive cases and supporting high-dimensional behavior. A general theorem would provide a conic counterpart to classical inequalities governing the geometry of convex bodies.
-
-[Read in atlas](index.html#TCS-0048) · [Complexity of Symbolic and Numerical Problems](https://doi.org/10.4230/DagRep.5.6.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0049 — Cylindrical decomposition with topologically regular cells
-
-Cylindrical cell decomposition partitions a definable set into pieces arranged compatibly with coordinate projections. Although each piece is homeomorphic to an open ball, its closure need not form a well-behaved closed cell. The conjecture asks whether every bounded set definable in an o-minimal structure admits a compatible decomposition whose contained cells are topologically regular. Regularity requires the cell together with its closure to match the open-ball and closed-ball pair. Such a decomposition would combine the algorithmic organization of cylindrical methods with stronger topological control over how their pieces meet their boundaries.
-
-[Read in atlas](index.html#TCS-0049) · [Complexity of Symbolic and Numerical Problems](https://doi.org/10.4230/DagRep.5.6.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1397 — Is it NP-hard to find the optimal outlier set size when probabilistically embedding a given metric into HSTs with a small fixed distortion?
-
-Some metrics become much easier to approximate by hierarchical trees after a few exceptional points are removed. The optimization problem chooses the smallest outlier set permitting a probabilistic embedding with a specified small constant distortion. The source asks whether computing that minimum is NP-hard. Hardness for deterministic embeddings does not transfer automatically because a distribution over trees has more flexibility. A classification would clarify whether approximation losses in robust metric embedding are an algorithmic necessity or a limitation of existing constructions.
-
-[Read in atlas](index.html#TCS-1397) · [Bi-Lipschitz Extensions and Outlier Embeddings into Trees](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.17)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1468 — Can four-sided skyline reporting match ordinary range reporting?

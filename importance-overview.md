@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-819 records have an editorial importance assessment; 1,217 remain provisional.
+790 records have an editorial importance assessment; 1,187 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -110,7 +110,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 48; importance ass
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 121; importance assessed: 79; provisional: 42.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 103; importance assessed: 61; provisional: 42.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 73; importance ass
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 56; importance assessed: 14; provisional: 42.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance assessed: 14; provisional: 26.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -314,7 +314,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 66; importance ass
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance assessed: 10; provisional: 30.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance assessed: 8; provisional: 27.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -326,8 +326,8 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance ass
 | 6 | [Does average-case NP hardness imply infinitely-often one-way functions?](index.html#TCS-6453) | 95 |
 | 7 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
 | 8 | [Constant adaptivity gap for influence maximization with full feedback](index.html#TCS-7288) | 81 |
-| 9 | [Semi-Random Streams](index.html#TCS-0997) | 65 |
-| 10 | [Principal Component Analysis with Nonnegativity Constraints](index.html#TCS-0958) | 57 |
+| 9 | [Is there such an average-case to average-case hardness amplification pheonomemon, possibly by proving reduction between different instances of Remote-Point?](index.html#TCS-1149) | 50 |
+| 10 | [The first one had already been posed by Feige in the original formulation of the problem: is it possible to prove any hardness result under \[…\]](index.html#TCS-1699) | 50 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
@@ -501,7 +501,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 49; importance ass
 
 ## 20. Property testing and distribution learning (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 46; importance assessed: 22; provisional: 24.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance assessed: 16; provisional: 24.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -511,10 +511,10 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 46; importance ass
 | 4 | [Polynomial-time density estimation for arbitrary Gaussian mixtures](index.html#TCS-7295) | 92 |
 | 5 | [Characterizing polynomial-query dense graph properties](index.html#TCS-1030) | 88 |
 | 6 | [Sharp graph-removal bounds for fixed patterns](index.html#TCS-1029) | 85 |
-| 7 | [Characterizing near-optimal monotonicity path testers](index.html#TCS-1026) | 80 |
-| 8 | [Vertex-Distribution-Free Graph Testing](index.html#TCS-0837) | 77 |
-| 9 | [Dense Graph Property Testing “Tradeoffs”](index.html#TCS-0838) | 77 |
-| 10 | [Testing Submodularity](index.html#TCS-0848) | 75 |
+| 7 | [Testing Submodularity](index.html#TCS-0848) | 75 |
+| 8 | [AM vs. NP for Proofs of Proximity in Distribution Testing](index.html#TCS-0839) | 72 |
+| 9 | [Equivalence Testing with Conditional Samples](index.html#TCS-0841) | 72 |
+| 10 | [Testing Acyclicity](index.html#TCS-0847) | 68 |
 
 ## 21. Differential privacy (small)
 
@@ -552,7 +552,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance ass
 
 ## 23. Automated reasoning, rewriting and unification (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 31; importance assessed: 13; provisional: 18.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 28; importance assessed: 11; provisional: 17.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -564,12 +564,12 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 31; importance ass
 | 6 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
 | 7 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
 | 8 | [What is the exact complexity of word unification?](index.html#TCS-0171) | 87 |
-| 9 | [Is unification modulo the theory of allegories decidable?](index.html#TCS-0169) | 77 |
-| 10 | [Is unification of patterns modulo any set of variable-preserving equations decidable?](index.html#TCS-0173) | 74 |
+| 9 | [Is unification of patterns modulo any set of variable-preserving equations decidable?](index.html#TCS-0173) | 74 |
+| 10 | [Satisfiability of String Constraints with Subsequence relation](index.html#TCS-0114) | 69 |
 
 ## 24. Database theory and finite model theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 50; importance assessed: 18; provisional: 32.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 39; importance assessed: 17; provisional: 22.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
