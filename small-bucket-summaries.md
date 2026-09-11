@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,176 five-sentence working summaries, based on saved source material.
+1,177 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (48)
@@ -6498,7 +6498,7 @@ An explicitly represented arithmetic circuit can contain many cancellations, mak
 [Read in atlas](index.html#TCS-7113) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Lattices and computational number theory (31)
+## Lattices and computational number theory (32)
 
 ### TCS-6571 — Is rational solvability of polynomial equations decidable?
 
@@ -6583,6 +6583,13 @@ The source asks whether approximating SVP within a polynomial in the dimension c
 
 [Read in atlas](index.html#TCS-0655) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-7170 — The Scholz–Brauer addition-chain conjecture
+
+An addition chain starts at one and builds its target by repeatedly adding two already available values. Its length counts additions and corresponds to the number of multiplications in the associated repeated-power computation. The conjecture asks whether the minimum length for 2ⁿ−1 is always at most n−1 plus the minimum length for n. The analogous theorem for star chains and known infinite families leave the unrestricted universal inequality open in the checked sources. Resolving it would explain how efficiently optimal exponentiation plans can control the cost of all-ones binary exponents.
+
+[Read in atlas](index.html#TCS-7170) · [The Decompressed Tree Size of k-Ary Chains](https://link.springer.com/article/10.1007/s00026-026-00816-y) · [The Scholz Conjecture on Addition Chains Is True for Infinitely Many Integers with ℓ(2n)=ℓ(n)](https://math.colgate.edu/~integers/a17Proc23/a17Proc23.pdf) · [The Scholz Conjecture Is True for 2ⁿ−1 for Almost All n](https://vixra.org/pdf/2605.0012v1.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0652 — Dimension-preserving search-to-decision reductions for SVP
 
