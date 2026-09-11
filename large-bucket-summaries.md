@@ -3011,11 +3011,11 @@ Minimax optimization models a player minimizing an objective against a second pl
 [Read in atlas](index.html#TCS-0673) · [COLT / PMLR](https://proceedings.mlr.press/v195/chae23a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0643 — Low discrepancy sets in 2D
+### TCS-0643 — Permutation structure in two-dimensional discrepancy minimization
 
-Two-dimensional low-discrepancy point sets distribute points evenly across axis-aligned test regions. The source focuses on permutation sets, which place one point in each row and column of a uniform grid. It asks which combinatorial properties of the permutation yield low discrepancy and whether discrepancy minimizers must have this form. A related direction constructs point sets by projecting vertices of a high-dimensional cube into the plane. Understanding these structures could produce new deterministic constructions and explain why familiar digit-reversal and lattice examples distribute points unusually well.
+A permutation point set puts one point in each row and column of a uniform square grid. The source asks which such permutations have low discrepancy and when exact minimizers must have this structure. The identity permutation illustrates that balanced coordinate projections alone can still leave a linear counting error. A 2026 journal result gives a four-point periodic L2 minimizer whose coordinate projections are not equally spaced. The source’s remaining norm, configuration domain and single mathematical target still need to be specified.
 
-[Read in atlas](index.html#TCS-0643) · [Algorithms and Complexity for Continuous Problems](https://doi.org/10.4230/DagRep.13.8.106)
+[Read in atlas](index.html#TCS-0643) · [Algorithms and Complexity for Continuous Problems](https://doi.org/10.4230/DagRep.13.8.106) · [Minimizing Point Configurations for Tensor Product Energies on the Torus](https://doi.org/10.1007/s00365-026-09764-5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0645 — Standard information versus linear information for Lp -approximation

@@ -124,11 +124,11 @@ Algorithmic secret-key agreement studies parties holding correlated strings who 
 [Read in atlas](index.html#TCS-0240) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0263 — Which Compact Metric spaces do/don’t admit polynomially admissible representations?
+### TCS-0263 — Compact metric spaces without polynomially admissible representations
 
-Computing with points in a compact metric space requires a representation that supplies finite information about each point. The source asks which such spaces admit polynomially admissible representations. The intended representation must support the source's comparison or translation requirements with polynomial resource bounds. A characterization would identify when a topologically natural space also permits a computationally efficient interface. The saved question does not define polynomial admissibility or the encoding of accuracy, so these quantitative representation conventions must be recovered before treating ordinary topological admissibility as sufficient.
+A representation supplies infinite names for points in a compact metric space. Polynomial admissibility compares the information required by those names with the space’s covering entropy and with competing representations. The source asks whether any compact metric space admits no such representation at all. The polynomial comparison concerns moduli of continuity rather than polynomial running time. The intended convention for continuous competitors without a global modulus must still be reconciled with the published definition.
 
-[Read in atlas](index.html#TCS-0263) · [Descriptive Set Theory and Computable Topology](https://doi.org/10.4230/DagRep.11.10.72)
+[Read in atlas](index.html#TCS-0263) · [Descriptive Set Theory and Computable Topology](https://doi.org/10.4230/DagRep.11.10.72) · [Quantitative Coding and Complexity Theory of Continuous Data](https://arxiv.org/abs/2002.04005v5) · [Quantitative Coding and Complexity Theory of Continuous Data: Part I: Motivation, Definition, Consequences](https://doi.org/10.1145/3705609)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0279 — Extraction of mutual information about two strings
@@ -695,12 +695,12 @@ A Boolean function is evasive when a deterministic decision tree must inspect al
 [Read in atlas](index.html#TCS-0309) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#complexity-of-testing-if-a-boolean-function-is-evasive)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1050 — Explicit pairs with strong monotone approximation hardness
+### TCS-1050 — Explicit input pairs resistant to partial monotone separation
 
-The source seeks explicit pairs of objects that are difficult to separate or approximate by monotone computations. Monotonicity disallows using negative behavior to distinguish the two sides, making their structural relation central. The intended hardness would provide concrete examples for a lower-bound method based on monotone approximation. Such pairs can help explain why local or simple monotone descriptions fail to capture a global distinction. The saved title does not define the objects, approximation error, or computational measure, so the book's full formulation is required before selecting a candidate pair or stating the strength of hardness.
+The problem asks for explicit disjoint families of Boolean inputs that are hard to distinguish using monotone circuits. A circuit may separate only a small fraction of each family and may reverse the output labels. Both membership predicates must have uniform polynomially checkable witnesses under the book’s explicitness convention. The desired fractions shrink faster than any fixed inverse power of log n, while every such separator must remain superpolynomial in size. This robust form of monotone hardness is connected to lower bounds for circuits with a limited number of negations.
 
 [Read in atlas](index.html#TCS-1050) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1061 — Quadratic decision-tree bounds from block sensitivity
 
@@ -1511,11 +1511,11 @@ A universal traversal sequence prescribes local edge choices intended to visit e
 [Read in atlas](index.html#TCS-1007) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1104 — Composition-space lower bounds from familiar complexity assumptions
+### TCS-1104 — Complexity assumptions implying time-space lower bounds for composition
 
-The cited work uses hardness-versus-randomness ideas to design algorithms with small workspace. Its saved question seeks lower bounds on composition space derived from familiar complexity assumptions. Composing computations can require retaining intermediate information even when each component is individually space-efficient. A conditional lower bound would explain whether limits of the source's simulations reflect a deeper computational obstacle. The title-level record does not define composition space or name the proposed assumptions, so the intended model and reduction must be recovered before one particular lower-bound statement is asserted.
+Two individually memory-efficient algorithms can have a composition with a larger time-space cost. A revised 2026 paper proves such a barrier for linear-time stages. Extending suitable tradeoffs to every polynomial time bound would imply average-case derandomization of probabilistic logspace. The source asks whether these stronger composition lower bounds follow from established independent assumptions. The allowed assumptions and the exact lower-bound variant still need to be fixed for one benchmark implication.
 
-[Read in atlas](index.html#TCS-1104) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/)
+[Read in atlas](index.html#TCS-1104) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/) · [Composing Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2025/140/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1566 — Can we show the existence of √ low-degree low-error two-source extractors for min-entropy below n?
@@ -4095,11 +4095,11 @@ A Nash equilibrium is a profile of strategies from which no single player can pr
 [Read in atlas](index.html#TCS-0571) · [Automata Exchange](https://automata.exchange/24.02-positional-nash-equilibria/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0067 — Tractability frontier of justice criteria under submodular valuations
+### TCS-0067 — Tractability of fairness criteria beyond binary submodular valuations
 
-The cited source studies fairness or justice criteria when agents have submodular valuations. The recorded question asks for the boundary between tractable and intractable criteria. Diminishing returns limits complementarities, but different fairness definitions can still demand very different global comparisons. A classification would help identify which normative requirements can be computed efficiently under this widely used preference model. The saved title does not list the criteria or valuation access model, so it remains a taxonomy request rather than a single well-defined allocation decision problem.
+Agents must divide indivisible goods while their marginal values decrease as bundles grow. The source asks which restrictions beyond binary marginal gains permit efficient fair allocation. Leximin, Nash welfare, envy-freeness and maximin shares impose different requirements. AAMAS 2025 proves hardness of maximizing Nash or egalitarian welfare even for additive values from any fixed nonnegative integer triple. A single remaining criterion, valuation access model and guarantee must still be selected from the source’s broader program.
 
-[Read in atlas](index.html#TCS-0067) · [Computational Social Dynamics](https://doi.org/10.4230/DagRep.12.11.28)
+[Read in atlas](index.html#TCS-0067) · [Computational Social Dynamics](https://doi.org/10.4230/DagRep.12.11.28) · [Dividing Good and Great Items among Agents with Bivalued Submodular Valuations](https://par.nsf.gov/servlets/purl/10517525) · [On the Hardness of Fair Allocation under Ternary Valuations](https://www.ifaamas.org/Proceedings/aamas2025/pdfs/p758.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0064 — Condorcet outcome for m independent binary issues
