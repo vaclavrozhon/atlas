@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-979 five-sentence working summaries, based on saved source material.
+980 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (133)
@@ -4355,7 +4355,7 @@ Robust low-rank approximation measures reconstruction error by the sum of absolu
 [Read in atlas](index.html#TCS-7008) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Geometry, topology and metric spaces (117)
+## Geometry, topology and metric spaces (118)
 
 ### TCS-6523 — Does every isotropic log-concave measure have a dimension-free Poincaré constant?
 
@@ -4446,6 +4446,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Hill's conjecture predicts the exact minimum number of crossings needed to draw every edge of a complete graph in the plane. Vertices may be placed freely and edges may curve, so the task ranges over much more than straight-line drawings. Explicit constructions achieve the proposed formula, leaving a universal lower bound as the challenge. Results for restricted drawing families do not automatically cover arbitrary edge routings. The conjecture seeks an exact measure of unavoidable interference in the densest possible simple graph.
 
 [Read in atlas](index.html#TCS-0590) · [The Complexity of Chromatic Number When Restricted to Graphs with Bounded Genus or Bounded Crossing Number](https://www.cs.umd.edu/~gasarch/open/cross.pdf) · [The 2-page crossing number of K_n](https://arxiv.org/abs/1206.5669) · [Closing in on Hill’s conjecture](https://arxiv.org/abs/1711.08958v2) · [Sublevels in arrangements and the spherical arc crossing number of complete graphs](https://arxiv.org/abs/2504.07770v1)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7182 — The complexity of SEFE for two graphs
+
+Two planar graphs share labeled vertices and possibly some edges. The question asks whether the existence of compatible planar drawings can be decided in polynomial time. Each shared vertex and edge must look identical in both drawings, while edges exclusive to different graphs may cross. The case with connected common graph is known to be efficiently solvable. The remaining target covers arbitrary common graphs and is distinct from straight-line or three-graph variants.
+
+[Read in atlas](index.html#TCS-7182) · [Simultaneous Embedding of Planar Graphs](https://arxiv.org/abs/1204.5853) · [Constrained Planarity in Practice: Engineering the Synchronized Planarity Algorithm](https://doi.org/10.7155/jgaa.v29i1.2923) · [Structural Parameterizations of Simultaneous Planarity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ISAAC.2025.25) · [Simultaneous Embedding of Two Paths on the Grid](https://arxiv.org/abs/2603.09750v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0403 — Euclidean Minimum Spanning Tree
