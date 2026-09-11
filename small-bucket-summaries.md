@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,043 five-sentence working summaries, based on saved source material.
+1,047 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (35)
@@ -250,7 +250,7 @@ The Mandelbrot set consists of complex parameters for which repeatedly applying 
 [Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Proof complexity (48)
+## Proof complexity (49)
 
 ### TCS-6601 — Do some tautologies require superpolynomial Extended Frege proofs?
 
@@ -286,6 +286,13 @@ Does one propositional proof system efficiently translate proofs from every othe
 
 [Read in atlas](index.html#TCS-7162) · [Propositional proof systems, the consistency of first-order theories and the complexity of computations](https://doi.org/10.2307/2274765) · [The SPARSE-Relativization Framework and Applications to Optimal Proof Systems](https://arxiv.org/abs/2602.02294) · [Recursive Jump Operators and Optimal Proof Systems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.88)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7163 — Does Resolution effectively polynomially simulate Extended Frege?
+
+Resolution refutes inconsistent clauses, while Extended Frege permits named intermediate Boolean formulas. Ordinary proof-size comparisons keep the statement fixed and separate these systems. This question allows a polynomial-time transformation of the statement, given a unary bound on an EF proof’s length. Whenever that bound is sufficient, the transformed CNF must have a comparably short Resolution refutation, while correctness must be preserved for every input. An answer would clarify whether efficient preprocessing can overcome the proof-size gap between these systems.
+
+[Read in atlas](index.html#TCS-7163) · [Effectively polynomial simulations](https://www.cs.toronto.edu/~toni/Papers/effsimulation.pdf) · [Regular resolution effectively simulates resolution](https://arxiv.org/abs/2402.15871)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0024 — Frege lower bounds from circuit hardness
 
@@ -4639,7 +4646,7 @@ Different repetitiveness measures summarize a string through different kinds of 
 [Read in atlas](index.html#TCS-6929) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (47)
+## Game theory, social choice and fair division (50)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -4732,11 +4739,25 @@ An agent’s 1-out-of-d maximin share is the best least-bundle value she can ach
 [Read in atlas](index.html#TCS-7201) · [Envy-free matchings in bipartite graphs and their applications to fair division](https://doi.org/10.1016/j.ins.2021.11.059) · [Improving Approximation Guarantees for Maximin Share](https://arxiv.org/abs/2307.12916v2) · [Simultaneous Ordinal Maximin Share and Envy-Based Guarantees](https://arxiv.org/abs/2602.15566v2)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-7203 — Bounded protocols for connected envy-free proportional cake cutting
+
+The cake is a divisible interval valued differently by each agent. The desired division gives every agent one interval, eliminates envy, and guarantees at least one n-th of her value for the whole cake. Unallocated cake is allowed, but it cannot reduce that proportionality guarantee. Known connected partial protocols provide weaker guarantees for larger numbers of agents, while recent complete protocols allow fragmented shares. The question is whether a fixed finite query bound can achieve all the requested properties for every fixed n≥4.
+
+[Read in atlas](index.html#TCS-7203) · [Waste Makes Haste: Bounded Time Protocols for Envy-Free Cake Cutting with Free Disposal](https://arxiv.org/abs/1511.02599) · [A Discrete and Bounded Envy-Free Cake Cutting Protocol for Any Number of Agents](https://arxiv.org/abs/1604.03655) · [Envy-Free Cake Divisions Cannot Be Found by Finite Protocols](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfree.pdf) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191)
+Existing status: `source_open` · Summary written: 2026-09-11
+
 ### TCS-7198 — Do EFkX allocations exist for a universal constant k?
 
 EFkX compares each agent’s bundle with another bundle after any k of that other bundle’s goods are hypothetically removed. The same agent’s valuation is used on both sides, and all actual goods must still be allocated. The question asks whether one constant k works for every number of agents and every nonnegative additive goods instance. Exact guarantees are known for limited numbers of agents, while a 2026 preprint obtains multiplicative approximate guarantees for arbitrary n. A resolution would determine whether a bounded item allowance can always account for the envy caused by indivisibility.
 
 [Read in atlas](index.html#TCS-7198) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371) · [EF2X Exists for Four Agents](https://ojs.aaai.org/index.php/AAAI/article/view/33480)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7202 — Envy-free proportional cake cutting with free disposal
+
+A protocol must divide part or all of a cake so that no agent envies another assigned bundle. Every agent must also receive at least one n-th of her value for the entire original cake. The protocol may discard residue and give agents several intervals. Known protocols use a bounded number of exact value and cut queries, and a September 2026 preprint reports a single-exponential complete-allocation bound. The problem asks for matching worst-case query bounds for this more permissive partial-allocation task.
+
+[Read in atlas](index.html#TCS-7202) · [A discrete and bounded envy-free cake cutting protocol for any number of agents](https://arxiv.org/abs/1604.03655) · [Waste Makes Haste: Bounded Time Protocols for Envy-Free Cake Cutting with Free Disposal](https://arxiv.org/abs/1511.02599) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0056 — Best α for α-MMS existence
@@ -4745,6 +4766,13 @@ An agent's maximin share is the value they can secure by dividing the goods into
 
 [Read in atlas](index.html#TCS-0056) · [TCS Open Problems](https://tcsopenproblems.com/problem/4)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-7204 — Minimum cuts for finite envy-free cake-cutting protocols
+
+The whole cake must be allocated so that every agent prefers her own bundle to anyone else’s. A finite query protocol may give an agent several intervals and may mark more candidate boundaries than it ultimately uses. The objective is the smallest worst-case number of final allocation cuts for each n. Connected envy-free divisions exist, but for n≥3 no finite protocol can always find one. An exact answer would measure the unavoidable fragmentation of an envy-free division that can actually be found by finite interaction.
+
+[Read in atlas](index.html#TCS-7204) · [Envy-Free Cake Divisions Cannot Be Found by Finite Protocols](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfree.pdf) · [A Discrete and Bounded Envy-Free Cake Cutting Protocol for Any Number of Agents](https://arxiv.org/abs/1604.03655) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191) · [Exact Cut Complexity of Equal-Length Proportional Cake Cutting](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2026.34)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1115 — Polynomial-time EF1 and Pareto-optimal goods allocation
 
