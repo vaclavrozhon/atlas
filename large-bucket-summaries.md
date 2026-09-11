@@ -175,10 +175,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0305 — Supercubic uniform formula lower bounds for SAT
 
-De Morgan formulas compute with AND, OR, and NOT without reusing internal results. The source asks to prove a supercubic size lower bound for SAT under logarithmic-time uniformity. Uniformity requires that the formula family itself have an efficiently accessible description. The proposed improvement would combine combinatorial restriction methods with diagonalization or simulation-based arguments. The project targets a concrete quantitative step beyond existing nearly cubic formula lower bounds while exploiting SAT's richer computational structure.
+A De Morgan formula computes with binary AND and OR gates and input negations, without sharing internal computations. Its size counts leaf occurrences, and the target function is SAT on n bits encoding a 3-CNF formula. The source asks whether a fixed positive exponent can raise the required size beyond the cubic scale when the formula family is LOGTIME-uniform. Later NAND depth lower bounds use a different gate basis and cost measure, so they do not directly settle this question. The problem seeks a concrete improvement in uniform formula lower bounds for a central NP-complete language.
 
-[Read in atlas](index.html#TCS-0305) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0305) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Towards Stronger Depth Lower Bounds](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2024.10)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1052 — Depth-three lower bounds beyond the switching-lemma barrier
 
@@ -201,12 +201,12 @@ An in-place XOR computation updates a fixed collection of registers by exclusive
 [Read in atlas](index.html#TCS-1039) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0293 — Improving SPACE versus NSPACE via Tree Evaluation
+### TCS-0293 — Subquadratic deterministic simulation of nondeterministic space
 
-Savitch's theorem simulates nondeterministic space s using deterministic space roughly s squared. The source proposes exploiting the tree-shaped structure of the simulation together with improved tree-evaluation algorithms. The target is any asymptotic improvement to little-o of the squared-space bound. Its suggested route trades circuit height against larger intermediate alphabets. The project seeks to reduce the memory cost of coordinating recursive reachability checks, improving a general simulation theorem rather than solving one special graph class.
+Savitch’s theorem simulates nondeterministic space s with deterministic space O(s²). This card asks whether every at-least-logarithmic space-constructible bound admits an improvement to o(s²). The machine is deterministic and all ordinary working memory is charged, with no restriction on running time. A constant-factor improvement does not suffice, while no fixed polynomial saving is required. A resolution would sharpen the general memory cost of eliminating nondeterminism, including for logarithmic-space computation.
 
-[Read in atlas](index.html#TCS-0293) · [Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.15.3.56)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0293) · [Improving SPACE versus NSPACE via Tree Evaluation, in Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.15.3.56)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0301 — Excluding one-sided randomized quasilinear-time log-space SAT
 
@@ -231,10 +231,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0304 — Stronger uniform depth-three majority lower bounds for SAT
 
-Depth-three majority circuits can aggregate many inputs while using only a few sequential layers. The source asks for a SAT wire-count lower bound exceeding the n-to-the-two-and-a-half scale by a fixed exponent. The circuit family must satisfy logarithmic-time uniformity. Wire count measures information connections rather than merely the number of gates. The project aims to combine random-restriction lower bounds with uniform computational arguments, pushing beyond what either approach establishes on its own.
+A depth-three majority circuit aggregates Boolean inputs through at most three majority layers and may use negations. The source asks for a SAT lower bound exceeding n^(5/2) wires by a fixed positive exponent under LOGTIME-uniformity. The input length counts bits encoding the SAT instance, while wire count charges every connection into a gate. Known explicit-function wire bounds near the 5/2 exponent motivate the question but do not supply the requested uniform SAT bound. A resolution would improve quantitative understanding of shallow majority computation on an NP-complete language.
 
-[Read in atlas](index.html#TCS-0304) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0304) · [Some Open Problems Regarding Lower Bounds For NP](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf) · [Super-Linear Gate and Super-Quadratic Wire Lower Bounds for Depth-Two and Depth-Three Threshold Circuits](https://doi.org/10.1145/2897518.2897636)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0308 — Formula versus circuit succinctness
 

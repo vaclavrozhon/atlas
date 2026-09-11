@@ -662,7 +662,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1057 — Explicit polynomial-separation lower bounds
 
-The inherited book label asks for an explicit lower bound involving a polynomial-separation notion. Its emphasis on explicitness indicates that the desired hard object must be concretely specified rather than merely shown to exist. The task belongs to a communication and Boolean-complexity context where polynomial representations can certify distinctions between inputs. A successful construction would give a reusable example against the source's algebraic separation measure. The record does not define that measure or its parameters, so this working description deliberately leaves the target incomplete instead of substituting an unrelated notion of polynomial approximation or threshold degree.
+The source asks for an NP Boolean-function family whose yes inputs and no inputs cannot be separated by low-degree, low-weight polynomial values. Separation means that no yes input and no input receive the same value, rather than that a sign threshold computes the function. The book supplies a precise certificate-based meaning of explicitness. Its early draft conflicts over whether coefficients must remain in {−1,0,+1} or may include accumulated multiplicities. The card now explains the question and its circuit motivation while retaining that coefficient convention as an unresolved formulation issue.
 
 [Read in atlas](index.html#TCS-1057) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
