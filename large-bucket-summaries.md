@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-879 five-sentence working summaries, based on saved source material.
+858 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (133)
@@ -3760,7 +3760,7 @@ Robust low-rank approximation measures reconstruction error by the sum of absolu
 [Read in atlas](index.html#TCS-7008) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Geometry, topology and metric spaces (117)
+## Geometry, topology and metric spaces (119)
 
 ### TCS-6523 — Does every isotropic log-concave measure have a dimension-free Poincaré constant?
 
@@ -3880,6 +3880,20 @@ Two triangulations can describe the same three-dimensional manifold while lookin
 
 [Read in atlas](index.html#TCS-0427) · [Triangulations in Geometry and Topology](https://doi.org/10.4230/DagRep.14.2.120)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-7183 — Find a simple closed quasigeodesic in polynomial time
+
+The goal is to find a simple closed route on a convex polyhedron that is straight after local unfolding except for allowed turns at vertices. At every visited vertex, at most π of surface angle may lie on either side of the route. Classical existence theorems and finite algorithms do not supply a polynomial-time construction in the full requested setting. Recent results distinguish numerical computation models and sometimes permit degenerate or weakly simple curves. The geometric target is explicit, while the exact numerical input and output conventions still need specification.
+
+[Read in atlas](index.html#TCS-7183) · [Finding Weakly Simple Closed Quasigeodesics on Polyhedral Spheres](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2022.27) · [Finding Closed Quasigeodesics on Convex Polyhedra](https://arxiv.org/abs/2008.00589v3) · [Quasigeodesics on the Cube](https://cccg-wads-2025.eecs.yorku.ca/cccg-papers/32.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7188 — Three-page book embedding with a fixed vertex order
+
+Vertices are fixed along a line, and each edge must be assigned to one of three pages. Two edges with alternating endpoints cannot share a page, while nested edges and shared endpoints are allowed. The question asks whether feasibility can always be decided in deterministic polynomial time. It is equivalent to three-coloring circle graphs, where a prior claimed polynomial algorithm has known defects. A SOSA 2026 quasipolynomial algorithm advances the upper bound but leaves polynomial-time solvability open.
+
+[Read in atlas](index.html#TCS-7188) · [Parameterized Algorithms for Book Embedding Problems](https://jgaa.info/index.php/jgaa/article/download/paper526/2412) · [On 3-Coloring Circle Graphs](https://jgaa.info/index.php/jgaa/article/view/2991) · [A Quasi-Polynomial Time Algorithm for 3-Coloring Circle Graphs](https://doi.org/10.1137/1.9781611978964.6)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0410 — Output-sensitive Convex Hull in \R^d
 
@@ -4581,7 +4595,7 @@ An oriented spanner assigns at most one direction to each connection between two
 [Read in atlas](index.html#TCS-1679) · [Computing Oriented Spanners and Their Dilation](https://doi.org/10.4230/LIPIcs.SoCG.2025.27) · [Sparse Oriented Spanners in Metric Spaces](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2026.117)
 Existing status: `resolved` · Summary written: 2026-09-11
 
-## Learning theory (88)
+## Learning theory (71)
 
 ### TCS-6541 — Does every VC class admit linear-size sample compression?
 
@@ -4674,13 +4688,6 @@ It is natural to expect that giving a learner one more training example should i
 [Read in atlas](index.html#TCS-0682) · [COLT / PMLR](https://proceedings.mlr.press/v99/viering19a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0674 — Learning sparse linear concepts by priming the features
-
-Sparse linear targets can often be learned efficiently with multiplicative updates that emphasize relevant features. This project asks whether simpler closed-form updates based on past examples can achieve comparable guarantees. The proposed approach first fits least squares, rescales each feature by its fitted weight, and then fits least squares again. Experiments motivate this feature-priming procedure, but its online regret bounds remain to be established in the source. A proof would explain whether repeated reweighting can capture sparsity as effectively as established multiplicative methods while retaining a simpler batch-style calculation.
-
-[Read in atlas](index.html#TCS-0674) · [COLT / PMLR](https://proceedings.mlr.press/v195/warmuth23a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0663 — Is Interaction Necessary for Order-Optimal 1-bit Mean Estimation?
 
 One-bit mean estimation restricts each observed sample to a single communicated bit before the estimator sees it. This project asks whether nonadaptive quantizers can achieve the optimal estimation rate for the source's finite-moment distribution classes. Adaptive protocols can attain that rate, and the source explains that one adaptive transition already suffices with general queries. Lower bounds for fixed threshold or interval queries do not cover every possible nonadaptive one-bit quantizer. Resolving the general case would determine whether interaction is inherently necessary for optimal estimation or only compensates for overly restricted message designs.
@@ -4693,13 +4700,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A zero-sum matrix game models two players whose gains and losses are directly opposed. Here the payoff matrix is unknown and can only be explored through noisy observations of its entries. The selected question asks for the optimal sample complexity of finding an approximate Nash equilibrium as a function of the particular payoff matrix. Worst-case bounds can hide large differences between easy games with clear strategic gaps and games containing nearly tied alternatives. A matching algorithm and lower bound would extend instance-sensitive exploration theory from choosing one best arm to discovering stable strategies for two competing players.
 
 [Read in atlas](index.html#TCS-0668) · [COLT / PMLR](https://proceedings.mlr.press/v291/maiti25b.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0669 — Structure-Agnostic Minimax Risk for Partial Linear Model
-
-A partially linear model combines a linear coefficient of interest with more flexible nuisance functions that can be estimated by machine learning. Double machine learning uses those nuisance estimates to infer the coefficient while reducing the effect of estimation bias. This project asks whether that approach achieves the minimax risk when nuisance estimators are treated as black boxes with no additional exploitable structure. The source identifies control of variance as a gap that existing structure-aware analyses and lower bounds do not resolve. A sharp characterization would explain when black-box nuisance estimation already permits optimal inference and when further assumptions or better estimators are needed.
-
-[Read in atlas](index.html#TCS-0669) · [COLT / PMLR](https://proceedings.mlr.press/v291/gu25b.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0681 — How fast can a multiclass test set be overfit?
@@ -4737,20 +4737,6 @@ Semi-supervised learners can exploit knowledge of the unlabeled input distributi
 [Read in atlas](index.html#TCS-1157) · [Relatively Smart: A New Approach for Instance-Optimal Learning](https://proceedings.mlr.press/v336/dughmi26a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1316 — Determining the optimal computational–statistical trade-off for Sobolev spaces with invariances remains open.
-
-Learning an invariant function should exploit the fact that symmetry-related inputs have the same target value. This source gives a polynomial-time method that enforces exact invariance while attaining the rate available for the corresponding Sobolev problem without symmetry. The selected question asks for the optimal tradeoff between running time and statistical accuracy when the invariant structure is fully taken into account. Averaging over an entire symmetry group may be too expensive, and the sharp invariant minimax rate may require finer spectral information. Resolving the question would determine whether the best statistical benefit of symmetry can always be obtained without an excessive computational cost.
-
-[Read in atlas](index.html#TCS-1316) · [Efficient Learning and Symmetry Discovery under Exact Invariances](https://proceedings.mlr.press/v336/soleymani26a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1320 — Two questions remain open: (1) Is teacher forcing universally optimal for general hypothesis classes?
-
-Teacher forcing trains a sequential predictor using the correct intermediate prefixes supplied in its training traces. The cited source proves sample-complexity optimality for a specified Transformer learning setting with supervised intermediate steps. The selected question asks whether this optimality extends to general hypothesis classes, expressed through a gap between trace and answer shattering dimensions. A related question removes the intermediate traces and asks how difficult it is to learn only the final input–output mapping. Resolving these distinctions would clarify when supervising intermediate computation saves samples and when a different learning strategy can improve on teacher forcing.
-
-[Read in atlas](index.html#TCS-1320) · [Tight Sample Complexity of Transformers](https://proceedings.mlr.press/v336/yang26a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1343 — If a concept class C is agnostically testably learnable with queries in time t over a distribution D, then it is agnostically testably learnable with […]
 
 Testable learning couples prediction with a check of whether the data satisfy assumptions needed for a trustworthy accuracy guarantee. Membership queries let the learner choose additional inputs, potentially providing more information than random examples alone. The selected conjecture says that agnostic testable learning with queries can always be replaced by sample-only testable learning with polynomial overhead. The source proves related lower bounds through refutation, but a gap remains between that argument and a full equivalence of the two access models. Establishing the conjecture would show that testing the distributional assumptions largely removes the computational benefit of chosen-label queries in this framework.
@@ -4765,39 +4751,11 @@ Robust linear regression must estimate a predictor despite adversarially corrupt
 [Read in atlas](index.html#TCS-1361) · [On efficient robust regression with subquadratic samples](https://proceedings.mlr.press/v336/adil26a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1363 — We leave as an open problem whether there exist polynomial-time algorithms that achieve the optimal error rate exp(−Cd,ε /k) under the weaker condition ε2 d […]
-
-Community detection in a stochastic block model aims to recover hidden vertex labels with as few mistakes as possible. The source gives a polynomial-time algorithm achieving the optimal exponentially small error above a signal threshold that includes an extra logarithmic factor in the number of communities. The selected question asks whether the same optimal error is achievable under the weaker, constant-factor version of the Kesten–Stigum-scale condition. This gap remains even without adversarial corruption, although the paper also studies robust recovery. Removing it would align efficient near-exact recovery more closely with the signal level at which weaker community information first becomes accessible.
-
-[Read in atlas](index.html#TCS-1363) · [Rate-optimal community detection near the KS threshold via node-robust algorithms](https://proceedings.mlr.press/v336/ding26b.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1393 — We conjecture that this is not the case, in other words eVCdim(H) = ∞, whenever H contains even a single uncomputable hypothesis.
-
-Computable PAC learning requires an actual algorithm that learns a concept class, rather than only an information-theoretic learning rule. The source asks whether such a class can contain even one uncomputable hypothesis. Its conjecture says that the effective VC dimension becomes infinite whenever this occurs. Ordinary finite VC dimension alone does not resolve the issue because it does not account for computability. A proof or counterexample would clarify whether approximate learning can ever coexist with an uncomputable target inside the class under the source's uniform computational requirements.
-
-[Read in atlas](index.html#TCS-1393) · [Recursively Enumerably Representable Classes and Computable Versions of the Fundamental Theorem of Statistical Learning](https://proceedings.mlr.press/v336/kattermann26a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1441 — Likewise, is there a variant of Littlestone dimension that characterizes the optimal mistake bound against efficient online adversaries?
-
-Classical online mistake bounds are characterized by Littlestone dimension against unrestricted adversaries. The source instead considers adversaries whose choices must be computationally efficient. It asks for a modified dimension or comparable structural measure that characterizes optimal mistakes under this restriction. Hard sequences allowed in the ordinary definition may be impossible for such an adversary to generate. An answer would distinguish the information complexity of online learning from the complexity of presenting difficult examples, extending the source's broader investigation of learning under efficiently samplable distributions.
-
-[Read in atlas](index.html#TCS-1441) · [Samplability Makes Learning Easier](https://doi.org/10.4230/LIPIcs.ITCS.2026.20)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1478 — It remains open whether one can remove such constraints and achieve successful learning for all VC classes, which leads to the following open question:
 
 Sequential prediction with abstentions permits a learner to decline to label suspicious instances in a partly adversarial data stream. Clean instances come independently from an unknown distribution, while corrupted instances may be inserted by an adaptive adversary. The source asks for sublinear misclassification and erroneous-abstention counts for every finite-VC class, with polynomial dependence on VC dimension. Existing adaptive-adversary guarantees require an additional finite reduction-dimension condition. Removing it would show that abstention can preserve the broad learnability of stochastic classification even when corruptions respond to the learner and the clean distribution is unknown.
 
 [Read in atlas](index.html#TCS-1478) · [Distribution-Free Sequential Prediction with Abstentions](https://proceedings.mlr.press/v336/yu26a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1482 — We leave as an open question whether our npoly(L/ε) CSQ lower bound can be extended to the full SQ model, or whether our problem witnesses […]
-
-The source studies learning real-valued Lipschitz convex functions under the standard Gaussian distribution. It proves computational lower bounds in the correlational statistical query model, which exposes only particular averages involving labels. The question asks whether the same hardness extends to the full statistical query model. For real-valued targets, general queries may contain information that correlational queries cannot simulate. A proof would strengthen the barrier to learning these convex functions, while a faster full-query algorithm would instead exhibit a meaningful separation between two common models of statistical access.
-
-[Read in atlas](index.html#TCS-1482) · [Learning and Testing Convex Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.62)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1539 — Does there exist an adversarially robust compression scheme of size O(f (dVC )) for C?
@@ -4807,13 +4765,6 @@ Sample compression stores a small part of a labeled sample and reconstructs a hy
 [Read in atlas](index.html#TCS-1539) · [Sample Compression Scheme Reductions](https://proceedings.mlr.press/v272/attias25a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1541 — Given any hypothesis class H ⊆ [0, 1]X that has finite (γ, k)-fat shattering dimension for all γ, can we construct a list hypothesis class […]
-
-List regression predicts several candidate real values at each input instead of a single estimate. The source asks whether a class with finite generalized fat-shattering dimension can be covered by a suitable class of fixed-length list hypotheses. Every original hypothesis must be contained pointwise in some list hypothesis. At the same time, allowing arbitrary pointwise selections from those lists must preserve finite generalized dimension at every scale. Such a construction could support agnostic list learning while avoiding the complexity explosion caused by naively combining unrelated predictions into lists.
-
-[Read in atlas](index.html#TCS-1541) · [A Characterization of List Regression](https://proceedings.mlr.press/v272/pabbaraju25a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1573 — Lastly, of course, the NP-hardness of improper learning for P/poly remains open.
 
 Improper learning allows a learner to output a hypothesis outside the representation class used by the target function. This project asks for NP-hardness of learning functions represented by polynomial-size circuits even with that freedom. Hardness arguments for proper learning can fail because they constrain the output representation, a restriction absent here. The source develops connections between strong formulations of learning hardness and cryptographic primitives such as witness encryption. A reduction with the required guarantees would sharpen the boundary between computational learning and worst-case complexity while clarifying those cryptographic consequences.
@@ -4821,32 +4772,11 @@ Improper learning allows a learner to output a hypothesis outside the representa
 [Read in atlas](index.html#TCS-1573) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1738 — In particular, we do not know if it is possible to design algorithms whose mistake bound depends polynomially on ω(G) instead of h(G) like in […]
-
-Self-directed learning on a graph allows the learner to choose which vertices to query while predicting their labels. The source studies label classes forming convex regions in the graph. This question asks whether mistake guarantees can depend polynomially on clique number instead of the potentially larger Hadwiger number. It also distinguishes the existence of a low-mistake strategy from its efficient implementation. The project aims to identify which graph structure actually controls the uncertainty in learning a convex bipartition.
-
-[Read in atlas](index.html#TCS-1738) · [Self-Directed Node Classification on Graphs](https://proceedings.mlr.press/v272/sokolov25a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1739 — We leave as an open question whether or not there exists a polynomial time (improper) learning algorithm that obtains an O(1) volume approximation in the […]
 
 Learning a confidence set seeks a small-volume region containing a prescribed amount of probability mass from an unknown distribution. The source competes with the smallest Euclidean ball achieving that coverage but allows the output to have another shape. It asks for a polynomial-time improper learner with a constant-factor volume guarantee in the worst case. Its current general guarantee grows with dimension, while a constant factor is available under an isotropy condition. Resolving the question would show whether flexible output geometry can provide compact high-dimensional uncertainty regions without favorable distributional shape assumptions.
 
 [Read in atlas](index.html#TCS-1739) · [Computing High-dimensional Confidence Sets for Arbitrary Distributions](https://proceedings.mlr.press/v291/gao25b.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1877 — We leave as an intriguing open problem the question of whether white-box learning of polynomial, or even logarithmic-degree polynomials, also can be collapsed down to […]
-
-White-box learning studies a learning task in which the learner receives more structural information than ordinary black-box examples provide. The source connects a particular white-box learning framework with public-key encryption and noisy linear problems. Its open question is whether learning higher-degree polynomials in that framework can be reduced to the constant-degree case, which already reduces to linear functions. Even logarithmic degree would be a meaningful next step beyond the existing reduction. A positive result would support the idea that a broadly LWE-like linear structure underlies the public-key encryption captured by this framework.
-
-[Read in atlas](index.html#TCS-1877) · [On White-Box Learning and Public-Key Encryption](https://doi.org/10.4230/LIPIcs.ITCS.2025.73)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1941 — For some fixed d ∈ N and ∀n ∈ N, does there exist a concept class Hdn over some instance space X in the binary […]
-
-Self-directed learning allows the learner to influence which instance is labeled next. The source compares its mistake complexity with a best-order learning measure that has a different control over the presentation order. It asks for binary concept classes with one fixed self-directed mistake bound but arbitrarily large best-order complexity. The source already demonstrates a strong separation with a more general label space. Obtaining the binary separation would show that the advantage comes from the way examples are selected, rather than depending on the extra expressive possibilities of multiple labels.
-
-[Read in atlas](index.html#TCS-1941) · [The Dimension of Self-Directed Learning](https://proceedings.mlr.press/v237/devulapalli24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2111 — The existence of a fully-polynomial time algorithm remains open even for the special case of positive weights, where the best known algorithm (Diakonikolas and Kane, […]
@@ -4877,39 +4807,11 @@ A sparse parity predicts a binary label by adding only a small number of input b
 [Read in atlas](index.html#TCS-2422) · [Regularization of Low Error PCPs and an Application to MCSP](https://doi.org/10.4230/LIPIcs.ISAAC.2023.39)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2454 — For example, can we get TILU schemes for all concept classes with VC- dimension d, whose space complexity scales as poly(d, log(n), log(|X |))?
-
-Ticketed unlearning stores a small central state and gives each training example a small ticket to present if it is later deleted. The goal is to reproduce the predictor obtained by retraining on the surviving examples without retaining the whole dataset. The source asks whether every VC class admits such a scheme with space polynomial in VC dimension and logarithmic in dataset and domain size. Even linear separators are highlighted as an unresolved case. A characterization would determine whether compact learning theory alone suffices for exact, space-efficient data removal.
-
-[Read in atlas](index.html#TCS-2454) · [Ticketed Learning–Unlearning Schemes](https://proceedings.mlr.press/v195/ghazi23a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2557 — Does every 0 1 disambiguation H of H satisfy VC(H) = O(1)?
-
-Partial concept classes may leave some input labels unspecified, and a disambiguation replaces that partial description with suitable total concepts. The source studies whether simple forbidden patterns in the partial labeling matrix force controlled complexity after this extension. Problem 27 singles out a particular two-by-two pattern and asks for a constant VC-dimension bound under its disambiguation convention. The exact matrix pattern is essential to the claim, rather than merely the partial class's ordinary dimension. The printed universal quantifier needs clarification, since the stated definition permits enlarging a disambiguation and thereby increasing its VC dimension.
-
-[Read in atlas](index.html#TCS-2557) · [Online Learning and Disambiguations of Partial Concept Classes](https://doi.org/10.4230/LIPIcs.ICALP.2023.42)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2626 — More precisely, is it possible to get an agnostic PAC learning algorithm over any not necessarily explicitly given polysize samplable distribution ensemble D from a […]
-
-Agnostic PAC learning seeks a hypothesis competitive with the best available one even when labels do not follow the hypothesis class. The source asks for a learning consequence over any polynomial-size samplable distribution ensemble, even when that ensemble is not explicitly supplied. The unknown distribution description limits how an algorithm can exploit the sampling promise. An extension would broaden the usefulness of the paper's Kolmogorov-complexity-based learning connection. The excerpt cuts off the assumption from which the learner should be derived, so this summary cannot specify the claimed implication or its quantitative guarantees until the missing premise is recovered.
-
-[Read in atlas](index.html#TCS-2626) · [Improved Learning from Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.CCC.2023.12)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2654 — Does there exist an online learning rule that is strongly universally consistent for the family {(X, Y) : X ∈ SUOL}?
 
 Universal online learning seeks vanishing average regret against every fixed measurable prediction function. The source permits responses to depend arbitrarily on the history and imposes assumptions only on the input process. It asks for one strongly consistent rule whenever that input process belongs to the class admitting universal online learning. This strengthens the deterministic-target version by allowing general response sequences. An answer would identify whether learnability of the inputs alone can support one universal predictor even when the relationship between inputs and observed responses is neither fixed nor conditionally independent.
 
 [Read in atlas](index.html#TCS-2654) · [Universally Consistent Online Learning with Arbitrarily Dependent Responses](https://proceedings.mlr.press/v167/hanneke22a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2670 — Does there exist a hypothesis class that is properly CPAC learnable but not properly SCPAC learnable?
-
-Computable PAC learning requires an implementable learner, while strong computable PAC learning additionally requires a computable sample-complexity bound. The source asks whether these requirements differ for proper learning, where output hypotheses must belong to the original class. A separating class would be learnable but have no computably bounded guarantee of how many samples suffice in the required sense. The surrounding argument shows that such a separation would need unusually extreme sample growth. Resolving it would clarify whether algorithmic learnability and effective control of its statistical resource requirements are distinct notions.
-
-[Read in atlas](index.html#TCS-2670) · [On characterizations of learnability with computable learners](https://proceedings.mlr.press/v178/sterkenburg22a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2827 — In the case of bounded losses, both the question of the existence of optimistically universal online learning rules, and of concisely characterizing the set SUOL, […]
@@ -4945,13 +4847,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Learning complexity asks whether examples can be converted efficiently into predictors for an entire class of computational functions. The source considers the nonuniform classes NP/poly and PH/poly, which permit polynomial-size advice. It asks whether polynomial-time learnability of the first would imply polynomial-time learnability throughout the polynomial hierarchy. The analogy is with structural collapse theorems, but the learning setting introduces distributional and oracle issues. A proof or barrier would clarify whether learning a nondeterministic level is powerful enough to handle repeated alternations, rather than merely yielding faster algorithms for isolated concept classes.
 
 [Read in atlas](index.html#TCS-3177) · [On the Structure of Learnability Beyond P/Poly](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.46)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3290 — We leave it as an open problem to determine whether a class that is easonline learnable w.r.t. any distribution is also strongly eas-online learnbale. (Note […]
-
-The source studies online classification from independently sampled inputs with the strong goal of making only finitely many mistakes almost surely. For each input distribution separately, a class may admit a suitable learning rule. The question asks whether learnability for every distribution implies the existence of one rule that works for them all. The distinction is the order of the quantifiers over distributions and algorithms. A positive result would turn distribution-specific eventual correctness into a universal strategy without weakening the finite-error guarantee to merely vanishing average error.
-
-[Read in atlas](index.html#TCS-3290) · [Non-uniform Consistency of Online Learning with Random Sampling](https://proceedings.mlr.press/v132/wu21a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3391 — However, it is still unknown whether it is possible to learn a mixture of well-separated Gaussians in polynomial time with polynomial sample complexity.
@@ -5199,7 +5094,7 @@ Covariate shift changes the distribution of inputs between training and evaluati
 [Read in atlas](index.html#TCS-6135) · [Mitigating Covariate Shift in Misspecified Regression with Applications to Reinforcement Learning](https://proceedings.mlr.press/v247/amortila24a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Cryptography (38)
+## Cryptography (32)
 
 ### TCS-6545 — Do one-way functions imply public-key encryption in the standard model?
 
@@ -5292,32 +5187,11 @@ Learning parity with noise asks for information about hidden binary linear equat
 [Read in atlas](index.html#TCS-6454) · [Towards Worst-case Hardness for Low-Noise LPN](https://eccc.weizmann.ac.il/report/2026/095/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0463 — Abelian-group versus field secret sharing
-
-Algebraic secret-sharing schemes use structured operations to distribute information while enforcing which participant groups can recover a secret. The cited question compares constructions based on abelian groups with constructions realizable over fields. It asks for a secret-sharing scheme that can be realized in the first setting but not the second. The distinction concerns the expressive power of the algebraic representation, so merely rewriting the same field construction with group notation would not provide a separation. A separating example or a general equivalence would clarify whether moving beyond field-based methods enables fundamentally different secret-sharing behavior.
-
-[Read in atlas](index.html#TCS-0463) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1138 — Polynomial-time computationally sound NP verification of #SAT
 
 Counting satisfying assignments is harder to certify directly than showing that a single satisfying assignment exists. This project asks for a polynomial-time verifier for a claimed #SAT answer in the model called computationally sound NP by the source. Soundness is required against computationally bounded attempts to produce false proofs rather than against every possible proof string. That distinction allows the question to go beyond ordinary NP verification without asserting that #SAT has standard short certificates. A construction would expand the range of efficiently checkable counting claims and connect computational soundness with the source's broader study of derandomization.
 
 [Read in atlas](index.html#TCS-1138) · [New ways of studying the BPP = P conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0460 — Outsourcing ZK proof generation to an untrusted server
-
-Generating a zero-knowledge proof can be too expensive for a phone even when checking the proof is easy. This project asks how an untrusted server can perform most of the proving work without learning the client's secret witness. Splitting the witness among multiple servers depends on a noncollusion assumption, while evaluating the prover under fully homomorphic encryption can be costly. The source proposes designing proving algorithms that are friendlier to encrypted computation, possibly using shallow arithmetic or limited client interaction. An efficient construction would make private proof generation accessible to constrained clients while retaining protection against the outsourced prover.
-
-[Read in atlas](index.html#TCS-0460) · [0xPARC research workshops](https://notes.0xparc.org/problems/outsourcing-zkproofs/)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1643 — Assuming OWF, there is a polynomially evaluatable representation class n over {0, 1} that is efficiently defendable but not efficiently PAC learnable.
-
-Backdoor defense in this source means detecting at evaluation time that an input activates a maliciously modified function. The attacker must arrange the modification around a randomly chosen trigger while leaving almost all other behavior intact. The conjecture asks whether one-way functions imply an efficiently evaluatable class that can be defended efficiently but cannot be PAC learned efficiently. An oracle-based separation motivates the claim, but replacing the oracle with a pseudorandom function must avoid problematic similarities between different keys. Proving the conjecture would separate the ability to detect this kind of backdoor from the stronger ability to learn the underlying class.
-
-[Read in atlas](index.html#TCS-1643) · [Backdoor Defense, Learnability and Obfuscation](https://doi.org/10.4230/LIPIcs.ITCS.2025.38)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1929 — Are there SIPs with statistical (or even perfect) zero-knowledge?
@@ -5376,13 +5250,6 @@ Streaming zero-knowledge proofs combine small-memory verification with protectio
 [Read in atlas](index.html#TCS-4703) · [Streaming Zero-Knowledge Proofs](https://doi.org/10.4230/LIPIcs.CCC.2024.2)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-4723 — Collusion-Resistant Constrained PRFs for Compute-&-Compare Predicates from LWE — Explicit open question on PDF page 16
-
-A constrained pseudorandom function lets a key holder evaluate a function only on inputs satisfying an authorized predicate. Collusion resistance requires that combining many constrained keys reveal no additional evaluations beyond their combined permissions. The selected problem asks for such constructions for arbitrary polynomial-size predicates whose supports are disjoint, a restriction the source calls purification. Existing compute-and-compare constructions and a candidate for shallower constraints do not yet establish this general guarantee. A solution from standard lattice assumptions would clarify whether disjointness removes the main obstruction to secure combinations of expressive constrained keys.
-
-[Read in atlas](index.html#TCS-4723) · [Collusion-Resistant Constrained PRFs for Compute-&-Compare Predicates from LWE](https://eprint.iacr.org/2026/1874)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4754 — A Relativization Perspective on Meta-Complexity — Question 12
 
 Meta-complexity problems ask how much computational description is needed to represent a function or a string. The selected question asks whether an appropriate gap version of minimum circuit size or time-bounded description complexity admits a computational zero-knowledge proof system unconditionally. There is a tempting argument that an easy problem needs little proof, while a hard one might supply the one-way functions used to build zero knowledge. The missing case is worst-case hardness without the average-case hardness needed for that cryptographic implication. Closing this gap would connect structural complexity of descriptions with the ability to verify claims without revealing their witnesses.
@@ -5390,25 +5257,11 @@ Meta-complexity problems ask how much computational description is needed to rep
 [Read in atlas](index.html#TCS-4754) · [A Relativization Perspective on Meta-Complexity](https://doi.org/10.4230/LIPIcs.STACS.2022.54)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-4757 — Shuffling Cards When You Are of Very Little Brain: Low Memory Generation of Permutations — Unresolved-question passage on page 23
-
-A dealer with limited memory generates a permutation one item at a time while a guesser tries to predict the next item. Information-theoretic bounds relate the dealer's memory to how many predictions a computationally unrestricted guesser can get right. Cryptographic assumptions can let a small-memory dealer defeat efficient guessers much more effectively. The source asks whether absence of one-way functions gives a matching efficient way to exploit the dealer, noting that repeatedly composing inversion procedures creates a serious efficiency obstacle. Resolving this would characterize when the gap between computational and information-theoretic predictability is exactly explained by cryptography.
-
-[Read in atlas](index.html#TCS-4757) · [Shuffling Cards When You Are of Very Little Brain: Low Memory Generation of Permutations](https://doi.org/10.1109/FOCS63196.2025.00122)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-4803 — Limits on the Power of Private Constrained PRFs — Explicit open question on PDF page 3
 
 Private constrained pseudorandom functions restrict evaluations to an authorized set while also hiding information about the predicate describing that set. The selected question asks whether security for a single constrained key is enough to construct public-key-style primitives such as secret-key agreement. The source proves a black-box separation: an oracle can support these constrained functions while still preventing key agreement. That result limits a broad class of generic constructions but does not settle every possible non-black-box implication. The record therefore concerns both the underlying relationship between primitives and the specific construction barrier established in the cited paper.
 
 [Read in atlas](index.html#TCS-4803) · [Limits on the Power of Private Constrained PRFs](https://doi.org/10.4230/LIPIcs.ITC.2026.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4853 — Proofs of Space with Maximal Hardness — Explicit open question on PDF page 2
-
-A proof of space should convince a verifier that a prover retains a large amount of data rather than cheaply recreating answers when challenged. The selected question asks for storage and recomputation guarantees close to the honest parties' actual resource use. Earlier constructions could approach those ratios only with severe efficiency costs or an unfavorable tradeoff between the two guarantees. The cited paper presents a new construction and analysis that substantially improves this tradeoff, so its introductory question is addressed by its own contribution. This record introduces the resource target and the source's progress rather than treating the quoted motivation as an independently unresolved theorem.
-
-[Read in atlas](index.html#TCS-4853) · [Proofs of Space with Maximal Hardness](https://doi.org/10.1109/FOCS61266.2024.00076)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4950 — Towards Separating Computational and Statistical Differential Privacy — Unresolved-question passage on page 20

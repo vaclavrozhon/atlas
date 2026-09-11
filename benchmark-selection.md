@@ -12,12 +12,13 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 495 | 5 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 972 | 28 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 966 | 34 |
 
 ## Unfilled places
 
 - top500: Miscellaneous has 5/10 places.
 - top1000: Optimization and numerical computation has 48/50 places.
+- top1000: Cryptography has 44/50 places.
 - top1000: Sampling, Markov chains and mixing times has 16/20 places.
 - top1000: Data structures has 18/20 places.
 - top1000: Differential privacy has 15/20 places.
@@ -155,7 +156,7 @@ Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
 | 4 | [Polynomial-time distribution-free PAC learning of DNF](index.html#TCS-5358) (TCS-5358) | Distribution-free Boolean rule learning | 97 | A defining improper PAC-learning question for compact Boolean rules under arbitrary input distributions, with broad consequences for decision-tree and junta learning. The general target and its conditional-hardness evidence are now stated precisely. |
 | 5 | [Distribution-free learning of intersections of two halfspaces](index.html#TCS-6544) (TCS-6544) | Needs review | 92 | Unreviewed replacement |
 
-Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0691, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-0674, TCS-5358.
+Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0691, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-5358.
 
 ## Cryptography
 
@@ -171,7 +172,7 @@ Previous prefix: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547.
 | 4 | [Unleveled fully homomorphic encryption from LWE alone](index.html#TCS-6551) (TCS-6551) | Computation on encrypted data | 95 | A central foundational gap in fully homomorphic encryption, separating established leveled LWE constructions from reusable fixed-depth-independent keys and their extra security assumptions. |
 | 5 | [Can every perfect secret-sharing access structure use shares below exponent one half?](index.html#TCS-0465) (TCS-0465) | Information-theoretic secret sharing | 88 | The share size needed for general secret sharing is a fundamental efficiency limit for realizing arbitrary access structures. |
 
-Candidates considered: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547, TCS-6546, TCS-6548, TCS-6551, TCS-6552, TCS-0465, TCS-6454, TCS-0463, TCS-1138, TCS-0460.
+Candidates considered: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547, TCS-6546, TCS-6548, TCS-6551, TCS-6552, TCS-0465, TCS-6454, TCS-1138.
 
 ## Quantum computation and information
 
@@ -291,7 +292,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [The deterministic k-server conjecture](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational conjecture about online decision-making, with an optimal lower bound, one broadly applicable candidate algorithm, and a persistent gap on general metrics despite many resolved special cases. |
 | 2 | [A constant improvement over factor 2 for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0701, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1696, TCS-1891, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2969, TCS-3005, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5186, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
+Candidates considered: TCS-0700, TCS-0701, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-1891, TCS-2267, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5186, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
 
 ## Beyond worst-case and average-case analysis
 

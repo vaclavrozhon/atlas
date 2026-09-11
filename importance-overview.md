@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-863 records have an editorial importance assessment; 1,283 remain provisional.
+819 records have an editorial importance assessment; 1,217 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -127,7 +127,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 121; importance as
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 92; importance assessed: 25; provisional: 67.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 75; importance assessed: 23; provisional: 52.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 92; importance ass
 
 ## 9. Cryptography (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 50; importance assessed: 28; provisional: 22.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 44; importance assessed: 26; provisional: 18.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -178,7 +178,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 105; importance as
 
 ## 1. Computability and algorithmic information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 49; importance assessed: 28; provisional: 21.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance assessed: 19; provisional: 16.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -229,7 +229,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 77; importance ass
 
 ## 4. Fine-grained complexity (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 60; importance assessed: 23; provisional: 37.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 43; importance assessed: 18; provisional: 25.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -263,7 +263,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 71; importance ass
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 88; importance assessed: 34; provisional: 54.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 73; importance assessed: 24; provisional: 49.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -297,7 +297,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 56; importance ass
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 88; importance assessed: 31; provisional: 57.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 66; importance assessed: 22; provisional: 44.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -450,7 +450,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 51; importance ass
 
 ## 17. Algebraic computation (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 126; importance assessed: 40; provisional: 86.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 107; importance assessed: 33; provisional: 74.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
