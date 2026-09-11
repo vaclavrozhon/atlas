@@ -1465,13 +1465,6 @@ Cost register automata read words while updating numerical registers through a f
 [Read in atlas](index.html#TCS-0139) · [Automata Exchange](https://automata.exchange/20.07-equivalence-of-cra/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0121 — Decidability of $(\min,+)$-weighted automata determinization
-
-A min-plus weighted automaton assigns a word the minimum total weight among its accepting runs. The task is to decide whether a given machine has any equivalent deterministic weighted automaton. It asks about existence of a deterministic representation, rather than simply applying a particular conversion construction. The source identifies polynomial ambiguity as a decidable restriction and places the difficulty in unrestricted competing runs. A general criterion would characterize when optimal costs from many possible computations can instead be maintained by one finite-state computation.
-
-[Read in atlas](index.html#TCS-0121) · [Automata Exchange](https://automata.exchange/22.05-decidability-of-min-plus-weighted-automata-determinization/) · [https://doi.org/10.4230/LIPIcs.ESA.2026.121](https://doi.org/10.4230/LIPIcs.ESA.2026.121) · [https://doi.org/10.1137/1.9781611978971.11](https://doi.org/10.1137/1.9781611978971.11)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-0146 — Complexity of universality for unambiguous context-free grammars
 
 An unambiguous context-free grammar has at most one derivation tree for any particular word. Its universality problem asks whether it generates every word over its alphabet. The source places this decidable task between a polynomial-time lower bound and a polynomial-space upper bound and asks to tighten that gap. Unambiguity removes duplicate derivations but still permits dependencies that a deterministic pushdown presentation cannot express. Better bounds would measure how expensive exhaustive language coverage becomes when unique parsing replaces deterministic parsing as the structural promise.
@@ -2024,6 +2017,13 @@ An avoiding word drives every possible starting state outside a specified forbid
 
 [Read in atlas](index.html#TCS-6995) · [Synchronizing Automata: Open Problems](https://arxiv.org/abs/2608.24245)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0121 — Decidability of $(\min,+)$-weighted automata determinization
+
+A min-plus weighted automaton assigns each finite word the minimum accumulated cost of its runs. The historical question asks whether the existence of an equivalent deterministic weighted automaton can be decided. Almagor, Arbel and Sheinvald settled this positively in a 2025 preprint published at SODA 2026. Their LICS 2026 follow-up supplies a primitive-recursive complexity upper bound. The card is retained as a resolved record, with unrestricted ambiguity and the endpoint-weight conventions included.
+
+[Read in atlas](index.html#TCS-0121) · [Automata Exchange](https://automata.exchange/22.05-decidability-of-min-plus-weighted-automata-determinization/) · [Determinization of Min-Plus Weighted Automata is Decidable](https://arxiv.org/abs/2503.23826v1) · [Determinization of Min-Plus Weighted Automata is Decidable](https://epubs.siam.org/doi/10.1137/1.9781611978971.11) · [A Complexity Bound for Determinisation of Min-Plus Weighted Automata](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.LICS.2026.5)
+Existing status: `resolved` · Summary written: 2026-09-11
 
 ## Semantics, logic and verification (121)
 
