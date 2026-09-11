@@ -514,7 +514,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance ass
 | 7 | [Testing Submodularity](index.html#TCS-0848) | 75 |
 | 8 | [AM vs. NP for Proofs of Proximity in Distribution Testing](index.html#TCS-0839) | 72 |
 | 9 | [Equivalence Testing with Conditional Samples](index.html#TCS-0841) | 72 |
-| 10 | [Testing Acyclicity](index.html#TCS-0847) | 68 |
+| 10 | [Query complexity of directed acyclicity testing with bidirectional access](index.html#TCS-0847) | 68 |
 
 ## 21. Differential privacy (small)
 

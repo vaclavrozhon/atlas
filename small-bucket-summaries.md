@@ -2038,12 +2038,12 @@ A forest is an acyclic graph, and its connected components describe its separate
 [Read in atlas](index.html#TCS-0751) · [New Horizons in Parameterized Complexity](https://doi.org/10.4230/DagRep.9.1.67)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0756 — Shortest Three Disjoint Path
+### TCS-0756 — Minimum-total-length routing for three disjoint terminal pairs
 
-The source title concerns finding three disjoint paths while also optimizing their lengths. Even a fixed number of routes can compete for the same useful vertices or edges. Length minimization adds a global optimization requirement to the feasibility of routing all three connections. A satisfactory complexity result would clarify whether that extra requirement fundamentally changes the tractability of a small routing instance. The index does not identify terminal pairing, disjointness type, graph orientation, or the combined length objective, so it cannot yet support a unique formal problem.
+The input is an undirected unweighted graph with three prescribed pairs of distinct terminal vertices. The task is to connect each pair by a path, with all three paths sharing no vertices. Among all feasible triples, it must minimize the total number of edges used. The question is whether a randomized polynomial-time algorithm can always find an optimum or correctly report infeasibility. Later results for cycle packing and for individually shortest paths leave this three-pair minimum-sum problem distinct.
 
-[Read in atlas](index.html#TCS-0756) · [New Horizons in Parameterized Complexity](https://doi.org/10.4230/DagRep.9.1.67)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0756) · [New Horizons in Parameterized Complexity](https://doi.org/10.4230/DagRep.9.1.67) · [Packing Short Cycles](https://doi.org/10.1145/3765285) · [Efficient Algorithms for the Disjoint Shortest Paths Problem and Its Extensions](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.39)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0800 — Cutwidth
 
@@ -6350,12 +6350,12 @@ Distribution equivalence testing asks whether two unknown distributions are the 
 [Read in atlas](index.html#TCS-0841) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:87)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0847 — Testing Acyclicity
+### TCS-0847 — Query complexity of directed acyclicity testing with bidirectional access
 
-Acyclicity means that a graph contains no cycle of the source's intended kind. The saved entry asks whether this property can be tested using limited graph access. The tester must discover evidence of cyclic structure when the graph is far from becoming acyclic. Its difficulty depends strongly on whether cycles are directed and on how distance is normalized. Because the inherited label does not specify those choices or the degree model, it cannot support a particular query bound or be silently specialized to forest testing.
+The graph is directed and has bounded incoming and outgoing degree. A tester can ask for individual incoming or outgoing neighbors of any labeled vertex. It must distinguish graphs without directed cycles from graphs requiring more than εdn arc deletions to remove all directed cycles. The target is the optimal number of adaptive queries with error probability at most one third on either promised case. Recent lower bounds for outgoing-only access use a different model and do not by themselves settle this bidirectional question.
 
-[Read in atlas](index.html#TCS-0847) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:41)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0847) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:41) · [An Optimal Separation Between Two Property Testing Models for Bounded Degree Directed Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2023.96) · [Lower Bounds for Testing Directed Acyclicity in the Unidirectional Bounded-Degree Model](https://arxiv.org/abs/2604.13577v1)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1027 — Subquadratic proximity dependence for dense bipartiteness
 
@@ -6746,11 +6746,11 @@ Partial-near-unanimity operations express a restricted form of agreement among s
 [Read in atlas](index.html#TCS-0445) · [PACS 2024 workshop](https://pacs2024.github.io/pacs2024-open-problems.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0446 — Sub-base-two algorithms for symmetric Boolean CSPs
+### TCS-0446 — Characterizing sub-base-two algorithms for symmetric Boolean CSPs
 
-Symmetric Boolean constraints depend on the pattern of values without distinguishing the roles of their argument positions. The workshop asks for algorithms with exponential base below two for the corresponding CSPs. Symmetry can permit grouping assignments by counts or exploiting repeated local structure. A general speedup would reveal whether this simple restriction consistently improves on exhaustive Boolean assignment search. The saved title omits arity bounds and whether the language is fixed, so those choices must be specified because they determine how much structure the input actually promises.
+Each constraint accepts a Boolean tuple according to how many of its argument occurrences are one. The question asks which possibly infinite families of such constraints admit a common exponential running-time base below two. An algorithm may depend on a finite sublanguage, but the improved base must work for every finite sublanguage of the chosen family. Separate fixed-arity speedups whose bases approach two do not meet this requirement. The source asks for a general classification and still leaves its precise proposed criterion and hardness conventions to be fixed.
 
-[Read in atlas](index.html#TCS-0446) · [PACS 2024 workshop](https://pacs2024.github.io/pacs2024-open-problems.pdf)
+[Read in atlas](index.html#TCS-0446) · [PACS 2024: Workshop on Parameterized Algorithms and Constraint Satisfaction — Open problems](https://pacs2024.github.io/pacs2024-open-problems.pdf) · [The (Coarse) Fine-Grained Structure of NP-Hard SAT and CSP Problems](https://doi.org/10.1145/3492336)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1173 — Assuming P ̸= NP, does there exist an NP-intermediate ω-categorical CSP?
