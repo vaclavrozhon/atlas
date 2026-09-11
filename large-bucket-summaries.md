@@ -355,12 +355,12 @@ Algebrization barriers describe limitations of proof techniques that remain vali
 [Read in atlas](index.html#TCS-1442) · [New Algebrization Barriers to Circuit Lower Bounds via Communication Complexity of Missing-String](https://doi.org/10.4230/LIPIcs.ITCS.2026.37)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1494 — The main problem left open by this work is to exhibit a natural problem in TFZPPdt which is not reducible to Lossy-Code; we conjecture that […]
+### TCS-1494 — Does Nephew resist efficient decision-tree reductions to Lossy-Code?
 
-Total search problems guarantee that every valid input has some acceptable output. The cited paper studies a zero-error randomized decision-tree class denoted TFZPPdt. The saved question asks for a natural problem in that class that does not reduce to Lossy-Code. Such an example would show that one proposed search task does not capture the entire class under the intended reductions. The excerpt truncates the authors' conjectured candidate and omits the reduction model, so neither the candidate nor the precise separation criterion is reconstructed here.
+Nephew asks for a vertex violating one of two rules imposed on a pair of oracle functions. The conjecture says it cannot be reduced efficiently to finding a failure of a compression–decompression pair. Efficiency here means polylogarithmic query depth plus the logarithm of the target table size. The reduction must decode every valid target answer, not just an answer it prefers. The paper places Nephew in zero-error randomized total search and leaves this concrete separation unresolved.
 
 [Read in atlas](index.html#TCS-1494) · [Total Search Problems in ZPP](https://doi.org/10.4230/LIPIcs.ITCS.2026.60)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1510 — Are there properties of finite mathematical objects that can only be certified efficiently to a high degree of confidence by probabilistic algorithms, but that we […]
 
@@ -1761,12 +1761,12 @@ Cantor-Lukasiewicz set theory combines naive set comprehension with a restricted
 [Read in atlas](index.html#TCS-1420) · [On the Consistency of Naive Set Theories over Substructural and Fuzzy Logics](https://doi.org/10.4230/LIPIcs.FSCD.2026.30)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1497 — Finally, we recall that we do not know if the games studied in this paper are determined, namely if one of the players has always […]
+### TCS-1497 — Are one-clock timed Büchi–Landweber games determined?
 
-Timed Büchi-Landweber-style games let players generate behavior subject to timing choices and a nondeterministic timed-automaton winning condition. The project asks whether these games are determined, meaning that one player always has a winning strategy. Undecidability of computing strategies does not itself imply failure of their mathematical existence. Continuous time and the specified information structure complicate direct use of ordinary finite-state game arguments. A determinacy theorem or counterexample would clarify the foundations on which timed synthesis problems in this framework are posed.
+Timer chooses a letter and a rational delay, then Monitor sees the move and chooses a response. A one-clock nondeterministic timed automaton specifies the winning infinite words for one player. The question asks whether one of the players always has a strategy that wins against every opponent. Strategies may be uncomputable and use unlimited memory; this is stronger existence language than asking for a finite controller. The paper’s undecidability results do not settle whether every individual game is determined.
 
 [Read in atlas](index.html#TCS-1497) · [One-Clock Synthesis Problems](https://doi.org/10.4230/LIPIcs.STACS.2026.64)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1649 — The decidability status of the reachability problem for d-BVASS remains open in arbitrary dimension.
 
@@ -3475,11 +3475,11 @@ A minimum-link path connects two locations among polygonal obstacles while using
 [Read in atlas](index.html#TCS-0409) · [The Open Problems Project](https://topp.openproblem.net/p22)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1356 — Diameter-∆ of the intersection graph of low-complexity geometric objects (regardless of the dimension) can be solved in truly-subquadratic time if the VC dimension of ∆-neighborhoods […]
+### TCS-1356 — Does bounded neighborhood VC dimension suffice for fast geometric diameter tests?
 
-Graph diameter becomes expensive when a geometric intersection graph has many implicit edges. This conjecture proposes bounded VC dimension of the relevant distance neighborhoods as a sufficient structural condition for truly subquadratic diameter-threshold algorithms. The geometric objects should have low descriptive complexity, but their ambient dimension need not be two. The source's examples suggest a common explanation for several otherwise separate algorithmic successes. The task is to turn that observed relationship between set-system structure and distance computation into a general theorem.
+The input is a collection of geometric objects whose intersections implicitly form a graph. The conjecture asks whether bounded VC dimension of radius-Δ neighborhoods always permits a truly subquadratic diameter-threshold test. Simple neighborhoods may coexist with quadratically many edges, so explicit edge enumeration is unsuitable. The source proves that the converse is false: some fast cases have unbounded VC dimension. The general effective object model and dependence on Δ and dimension still need to be fixed.
 
-[Read in atlas](index.html#TCS-1356) · [Charting the Diameter Computation Landscape of Intersection Graphs in 3D and Above](https://doi.org/10.4230/LIPIcs.SoCG.2026.29)
+[Read in atlas](index.html#TCS-1356) · [Charting the Diameter Computation Landscape of Intersection Graphs in 3D and Above](https://doi.org/10.4230/LIPIcs.SoCG.2026.29) · [Truly Subquadratic Time Algorithms for Diameter and Related Problems in Graphs of Bounded VC-dimension](https://arxiv.org/abs/2510.16346v1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1762 — We conjecture that tight instances exist in these spaces, i.e., the spanner bounds obtained in [25, 22] are optimal for every stretch t.
@@ -3750,11 +3750,11 @@ A testable learner must return a near-optimal predictor or reject data whose dis
 [Read in atlas](index.html#TCS-1343) · [Limitations of Membership Queries in Testable Learning](https://doi.org/10.4230/LIPIcs.ITCS.2026.91) · [Limitations of Membership Queries in Testable Learning — full version](https://arxiv.org/abs/2512.02279v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1361 — We leave open √the problem of whether there is an efficient algorithm that uses n = Õ(dε2 κ2 ) samples when κ ⩽ d and […]
+### TCS-1361 — Robust regression with Õ(d ε² κ²) samples beyond εκ≈1
 
-Robust linear regression must estimate a predictor despite adversarially corrupted observations. This source studies Gaussian covariates with unknown covariance and tracks how the covariance condition number interacts with the corruption rate. The selected question asks for an efficient algorithm matching a proposed subquadratic sample scale while obtaining nontrivial error in the less favorable conditioning regime. Statistical-query and low-degree lower bounds provide evidence about the tradeoff but do not supply the missing general algorithm. A matching construction would identify how far efficient robust estimation can improve on a trivial predictor when corruption and ill-conditioning reinforce each other.
+Robust regression must estimate a linear predictor after an adversary corrupts some entire observations. The proposed sample budget is Õ(d ε² κ²) with condition number κ at most √d. The target regime has large εκ, beyond the assumption used by the paper’s fast positive algorithm. Low-degree lower bounds motivate the sample scale but do not establish hardness for every efficient estimator. The precise meaning of useful error, including signal and noise normalization, remains to be fixed.
 
-[Read in atlas](index.html#TCS-1361) · [On efficient robust regression with subquadratic samples](https://proceedings.mlr.press/v336/adil26a.html)
+[Read in atlas](index.html#TCS-1361) · [On efficient robust regression with subquadratic samples](https://proceedings.mlr.press/v336/adil26a.html) · [On efficient robust regression with subquadratic samples — version record](https://arxiv.org/abs/2605.18042v1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1478 — It remains open whether one can remove such constraints and achieve successful learning for all VC classes, which leads to the following open question:
@@ -4538,9 +4538,9 @@ An unknown random circuit prepares a quantum state, and the algorithm receives o
 [Read in atlas](index.html#TCS-1342) · [The Hardness of Learning Quantum Circuits and Its Cryptographic Applications](https://doi.org/10.4230/LIPIcs.ITCS.2026.56) · [Optimal cloning of pure states](https://doi.org/10.1103/PhysRevA.58.1827)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1490 — Our protocol moreover relies on the no-PE assumption for soundness; if malicious provers are allowed to share unbounded prior entanglement, known techniques for instantaneous non-local […]
+### TCS-1490 — Does prior entanglement reduce pyramid positional proof systems to PSPACE?
 
-Position-based proof systems use constraints on where participants are located and when they can communicate. The cited quantum protocol obtains additional power under a restriction forbidding shared prior entanglement among malicious provers. This question asks whether allowing unbounded prior entanglement collapses the relevant protocol's power to the polynomial-space regime identified in the classical comparison. Instantaneous nonlocal computation suggests a cheating strategy, but the source leaves the corresponding collapse proof unfinished. The issue separates benefits of quantum communication from benefits that depend on a physical limitation on the adversaries' initial resources.
+Positional proofs restrict communication through locations and message-arrival deadlines. The paper exhibits an arrangement whose classical proofs capture PSPACE while its no-prior-entanglement quantum proofs include EXP. The open question asks whether allowing malicious provers arbitrary prior entanglement removes that quantum advantage. Breaking the exhibited protocol alone would not prove the required upper bound for every protocol. The entangled-adversary variant must still specify its initialization, timing and acceptance conventions.
 
 [Read in atlas](index.html#TCS-1490) · [Quantum Advantage in Proof Systems Without Entanglement](https://doi.org/10.4230/LIPIcs.ICALP.2026.6)
 Existing status: `uncertain` · Summary written: 2026-09-11

@@ -5766,12 +5766,12 @@ An ω-categorical structure has a strong finiteness property for the types of fi
 [Read in atlas](index.html#TCS-1173) · [The Polynomial Hierarchy and ω-Categorical CSPs](https://doi.org/10.4230/LIPIcs.MFCS.2026.96)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1377 — Based on this, we conjecture that Monotone-CSP(Γ) is FPT if and only if Γ has the connector property.
+### TCS-1377 — Fixed-parameter tractability from the connector pattern in monotone CSPs
 
-The cited work studies CSPs with few variables but potentially unbounded domains. It conjectures that Monotone-CSP(Γ) is fixed-parameter tractable exactly when Γ has its connector property. The proposed structural condition is meant to explain when a small variable count effectively controls the search. A dichotomy would organize parameterized tractability beyond the graph-width framework discussed by the paper. The saved excerpt does not reproduce monotonicity, the connector property, or the parameterization, so these source-specific definitions are indispensable before the equivalence can be used algorithmically.
+Variables range over a large ordered domain, while each constraint applies monotone maps into a fixed small relation. The question asks whether preservation by a specific five-input connector pattern ensures fixed-parameter tractability in the number of variables. An FPT algorithm must keep the exponent on input size independent of the variable count. The binary-relation case and the qualified complementary hardness direction are already known. The remaining implication allows higher-arity relations and uses the precise preservation convention stated in Conjecture 14.
 
-[Read in atlas](index.html#TCS-1377) · [Going Beyond Twin-Width? CSPs with Unbounded Domain and Few Variables](https://doi.org/10.4230/LIPIcs.ICALP.2026.120)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1377) · [Going Beyond Twin-Width? CSPs with Unbounded Domain and Few Variables](https://doi.org/10.4230/LIPIcs.ICALP.2026.120) · [Going Beyond Twin-width? CSPs with Unbounded Domain and Few Variables — full version](https://arxiv.org/abs/2508.16389v1)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1555 — In particular, is VCSP(A) in P whenever A does not pp-construct K3 ?
 
