@@ -1,6 +1,6 @@
 # Importance order in all 35 categories
 
-Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. Top 100 and Top 1000 use the first 5/2 and 50/20 category places respectively. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
+Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
 1,020 records have an editorial importance assessment; 1,694 remain provisional.
 
@@ -8,13 +8,13 @@ The full ordered candidate list, with reasons and statuses, is in [importance-ra
 
 ## 1. Algorithms (large)
 
-Target: 50; candidates: 97; importance assessed: 13; provisional: 84.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 97; importance assessed: 13; provisional: 84.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) | 96 |
 | 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) | 79 |
-| 3 | [Cut-Sparsification of Hypergraphs](index.html#TCS-0946) | 76 |
+| 3 | [Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?](index.html#TCS-0946) | 76 |
 | 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) | 74 |
 | 5 | [Does ordinary median-of-medians selection with groups of three run in linear time?](index.html#TCS-0475) | 69 |
 | 6 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) | 75 |
@@ -25,7 +25,7 @@ Target: 50; candidates: 97; importance assessed: 13; provisional: 84.
 
 ## 2. Computational complexity (large)
 
-Target: 50; candidates: 137; importance assessed: 48; provisional: 89.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 137; importance assessed: 48; provisional: 89.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -42,7 +42,7 @@ Target: 50; candidates: 137; importance assessed: 48; provisional: 89.
 
 ## 3. Automata and formal languages (large)
 
-Target: 50; candidates: 122; importance assessed: 57; provisional: 65.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 122; importance assessed: 57; provisional: 65.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ Target: 50; candidates: 122; importance assessed: 57; provisional: 65.
 
 ## 4. Semantics, logic and verification (large)
 
-Target: 50; candidates: 174; importance assessed: 67; provisional: 107.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 174; importance assessed: 67; provisional: 107.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Target: 50; candidates: 174; importance assessed: 67; provisional: 107.
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Target: 50; candidates: 174; importance assessed: 68; provisional: 106.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 174; importance assessed: 68; provisional: 106.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ Target: 50; candidates: 174; importance assessed: 68; provisional: 106.
 
 ## 6. Optimization and numerical computation (large)
 
-Target: 50; candidates: 69; importance assessed: 29; provisional: 40.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 69; importance assessed: 29; provisional: 40.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ Target: 50; candidates: 69; importance assessed: 29; provisional: 40.
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Target: 50; candidates: 199; importance assessed: 108; provisional: 91.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 199; importance assessed: 108; provisional: 91.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Target: 50; candidates: 199; importance assessed: 108; provisional: 91.
 
 ## 8. Learning theory (large)
 
-Target: 50; candidates: 98; importance assessed: 26; provisional: 72.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 98; importance assessed: 26; provisional: 72.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ Target: 50; candidates: 98; importance assessed: 26; provisional: 72.
 
 ## 9. Cryptography (large)
 
-Target: 50; candidates: 46; importance assessed: 20; provisional: 26.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 46; importance assessed: 20; provisional: 26.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ Target: 50; candidates: 46; importance assessed: 20; provisional: 26.
 
 ## 10. Quantum computation and information (large)
 
-Target: 50; candidates: 115; importance assessed: 31; provisional: 84.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 115; importance assessed: 31; provisional: 84.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -178,7 +178,7 @@ Target: 50; candidates: 115; importance assessed: 31; provisional: 84.
 
 ## 1. Computability and algorithmic information theory (small)
 
-Target: 20; candidates: 60; importance assessed: 35; provisional: 25.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 60; importance assessed: 35; provisional: 25.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -195,7 +195,7 @@ Target: 20; candidates: 60; importance assessed: 35; provisional: 25.
 
 ## 2. Proof complexity (small)
 
-Target: 20; candidates: 60; importance assessed: 18; provisional: 42.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 60; importance assessed: 18; provisional: 42.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Target: 20; candidates: 60; importance assessed: 18; provisional: 42.
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Target: 20; candidates: 83; importance assessed: 24; provisional: 59.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 83; importance assessed: 24; provisional: 59.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -229,7 +229,7 @@ Target: 20; candidates: 83; importance assessed: 24; provisional: 59.
 
 ## 4. Fine-grained complexity (small)
 
-Target: 20; candidates: 71; importance assessed: 24; provisional: 47.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 71; importance assessed: 24; provisional: 47.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -246,7 +246,7 @@ Target: 20; candidates: 71; importance assessed: 24; provisional: 47.
 
 ## 5. Pseudorandomness and derandomization (small)
 
-Target: 20; candidates: 75; importance assessed: 38; provisional: 37.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 75; importance assessed: 38; provisional: 37.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -263,7 +263,7 @@ Target: 20; candidates: 75; importance assessed: 38; provisional: 37.
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Target: 20; candidates: 152; importance assessed: 58; provisional: 94.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 152; importance assessed: 58; provisional: 94.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ Target: 20; candidates: 152; importance assessed: 58; provisional: 94.
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Target: 20; candidates: 69; importance assessed: 13; provisional: 56.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 69; importance assessed: 13; provisional: 56.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -297,7 +297,7 @@ Target: 20; candidates: 69; importance assessed: 13; provisional: 56.
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Target: 20; candidates: 105; importance assessed: 33; provisional: 72.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 105; importance assessed: 33; provisional: 72.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -314,7 +314,7 @@ Target: 20; candidates: 105; importance assessed: 33; provisional: 72.
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
-Target: 20; candidates: 52; importance assessed: 12; provisional: 40.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 52; importance assessed: 12; provisional: 40.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -331,12 +331,12 @@ Target: 20; candidates: 52; importance assessed: 12; provisional: 40.
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
-Target: 20; candidates: 23; importance assessed: 3; provisional: 20.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 23; importance assessed: 3; provisional: 20.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Rapid mixing of Glauber dynamics with Δ+2 colours](index.html#TCS-6621) | 95 |
-| 2 | [The Kannan-Tetali-Vempala switch-chain conjecture](index.html#TCS-6622) | 94 |
+| 2 | [The Kannan–Tetali–Vempala switch-chain conjecture for binary matrices](index.html#TCS-6622) | 94 |
 | 3 | [Polynomial mixing of critical three-dimensional Ising dynamics](index.html#TCS-6668) | 93 |
 | 4 | [Given a partially observable Markov chain M = (Ω, P, O), candidate initial states a, b ∈ Ω, and hidden initial state X0 ∈ {a, \[…\]](index.html#TCS-1158) | 50 |
 | 5 | [The hitting time robustness is Ω(1/∆), where ∆ denotes the diameter.](index.html#TCS-1255) | 50 |
@@ -348,7 +348,7 @@ Target: 20; candidates: 23; importance assessed: 3; provisional: 20.
 
 ## 11. Counting and enumeration (small)
 
-Target: 20; candidates: 48; importance assessed: 15; provisional: 33.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 48; importance assessed: 15; provisional: 33.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -365,7 +365,7 @@ Target: 20; candidates: 48; importance assessed: 15; provisional: 33.
 
 ## 12. Structural graph theory and graph algorithms (small)
 
-Target: 20; candidates: 73; importance assessed: 34; provisional: 39.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 73; importance assessed: 34; provisional: 39.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -382,7 +382,7 @@ Target: 20; candidates: 73; importance assessed: 34; provisional: 39.
 
 ## 13. Data structures (small)
 
-Target: 20; candidates: 26; importance assessed: 11; provisional: 15.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 26; importance assessed: 11; provisional: 15.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -399,7 +399,7 @@ Target: 20; candidates: 26; importance assessed: 11; provisional: 15.
 
 ## 14. Dynamic algorithms (small)
 
-Target: 20; candidates: 35; importance assessed: 15; provisional: 20.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance assessed: 15; provisional: 20.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -416,7 +416,7 @@ Target: 20; candidates: 35; importance assessed: 15; provisional: 20.
 
 ## 15. String algorithms and computational biology (small)
 
-Target: 20; candidates: 46; importance assessed: 13; provisional: 33.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 46; importance assessed: 13; provisional: 33.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -433,7 +433,7 @@ Target: 20; candidates: 46; importance assessed: 13; provisional: 33.
 
 ## 16. Game theory, social choice and fair division (small)
 
-Target: 20; candidates: 64; importance assessed: 35; provisional: 29.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 64; importance assessed: 35; provisional: 29.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -450,7 +450,7 @@ Target: 20; candidates: 64; importance assessed: 35; provisional: 29.
 
 ## 17. Algebraic computation (small)
 
-Target: 20; candidates: 133; importance assessed: 39; provisional: 94.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 133; importance assessed: 39; provisional: 94.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -467,7 +467,7 @@ Target: 20; candidates: 133; importance assessed: 39; provisional: 94.
 
 ## 18. Lattices and computational number theory (small)
 
-Target: 20; candidates: 34; importance assessed: 24; provisional: 10.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 34; importance assessed: 24; provisional: 10.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -484,7 +484,7 @@ Target: 20; candidates: 34; importance assessed: 24; provisional: 10.
 
 ## 19. Coding and information theory (small)
 
-Target: 20; candidates: 53; importance assessed: 28; provisional: 25.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 53; importance assessed: 28; provisional: 25.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -501,7 +501,7 @@ Target: 20; candidates: 53; importance assessed: 28; provisional: 25.
 
 ## 20. Property testing and distribution learning (small)
 
-Target: 20; candidates: 52; importance assessed: 21; provisional: 31.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 52; importance assessed: 21; provisional: 31.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -518,24 +518,24 @@ Target: 20; candidates: 52; importance assessed: 21; provisional: 31.
 
 ## 21. Differential privacy (small)
 
-Target: 20; candidates: 22; importance assessed: 11; provisional: 11.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 22; importance assessed: 11; provisional: 11.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
-| 1 | [Optimal Euclidean error for pure-DP statistical-query release](index.html#TCS-6631) | 94 |
-| 2 | [Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?](index.html#TCS-0506) | 88 |
-| 3 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) | 94 |
-| 4 | [Can all marginals be privately released in polynomial time from a polynomial-size database?](index.html#TCS-7236) | 94 |
-| 5 | [Do you pay for Privacy in Online learning?](index.html#TCS-0510) | 80 |
-| 6 | [Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](index.html#TCS-0507) | 76 |
-| 7 | [What is the Complexity of Joint Differential Privacy in Linear Contextual Bandits?](index.html#TCS-0508) | 72 |
-| 8 | [Better Differentially Private Learning Algorithms with Margin Guarantees](index.html#TCS-0509) | 69 |
-| 9 | [Optimal private selection using only Gaussian queries](index.html#TCS-6451) | 66 |
-| 10 | [Optimal private selection using only Laplace queries](index.html#TCS-6452) | 66 |
+| 1 | [Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?](index.html#TCS-0506) | 88 |
+| 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) | 94 |
+| 3 | [Can all marginals be privately released in polynomial time from a polynomial-size database?](index.html#TCS-7236) | 94 |
+| 4 | [Do you pay for Privacy in Online learning?](index.html#TCS-0510) | 80 |
+| 5 | [Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](index.html#TCS-0507) | 76 |
+| 6 | [What is the Complexity of Joint Differential Privacy in Linear Contextual Bandits?](index.html#TCS-0508) | 72 |
+| 7 | [Better Differentially Private Learning Algorithms with Margin Guarantees](index.html#TCS-0509) | 69 |
+| 8 | [Optimal private selection using only Gaussian queries](index.html#TCS-6451) | 66 |
+| 9 | [Optimal private selection using only Laplace queries](index.html#TCS-6452) | 66 |
+| 10 | [Locally Private Heavy Hitters and Other Problems in Streaming](index.html#TCS-0947) | 65 |
 
 ## 22. Constraint satisfaction (small)
 
-Target: 20; candidates: 37; importance assessed: 12; provisional: 25.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 37; importance assessed: 12; provisional: 25.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -552,7 +552,7 @@ Target: 20; candidates: 37; importance assessed: 12; provisional: 25.
 
 ## 23. Automated reasoning, rewriting and unification (small)
 
-Target: 20; candidates: 37; importance assessed: 15; provisional: 22.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 37; importance assessed: 15; provisional: 22.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -569,7 +569,7 @@ Target: 20; candidates: 37; importance assessed: 15; provisional: 22.
 
 ## 24. Database theory and finite model theory (small)
 
-Target: 20; candidates: 68; importance assessed: 19; provisional: 49.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 68; importance assessed: 19; provisional: 49.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -586,7 +586,7 @@ Target: 20; candidates: 68; importance assessed: 19; provisional: 49.
 
 ## 25. Miscellaneous (small)
 
-Target: 20; candidates: 5; importance assessed: 3; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 5; importance assessed: 3; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |

@@ -19,11 +19,11 @@ Given two lists of n numbers, form every sum consisting of one number from each 
 [Read in atlas](index.html#TCS-0388) · [The Open Problems Project](https://topp.openproblem.net/p41)
 Existing status: `open` · Summary written: 2026-09-11
 
-### TCS-0946 — Cut-Sparsification of Hypergraphs
+### TCS-0946 — Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?
 
 A hypergraph cut counts the total weight of hyperedges meeting both sides of a vertex partition. A cut sparsifier replaces the hypergraph by a smaller weighted hypergraph that approximately preserves every cut at once. The question asks whether O(n/epsilon squared) hyperedges always suffice for multiplicative error epsilon. This matches the natural target from ordinary graphs, while a hyperedge can involve arbitrarily many vertices. The size measure counts hyperedges rather than their total incidence size, making the project specifically about how many distinct multiway interactions must be retained.
 
-[Read in atlas](index.html#TCS-0946) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:91)
+[Read in atlas](index.html#TCS-0946) · [Problem 91: Cut-Sparsification of Hypergraphs](https://sublinear.info/index.php?title=Open_Problems:91)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0477 — Can the final survivors of an offline heap sequence be found with linear comparisons?

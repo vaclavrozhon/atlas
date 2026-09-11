@@ -2,17 +2,21 @@
 
 Reviewed on 2026-09-11 across 35 categories.
 
+We aim for benchmarks of 100 and 500 problems, with a possible expansion to 1,000. All three use the same category order and the same ranking within each category.
+
 Individual editorial review of saved titles, importance rationales, problem statements, source notes and working summaries. This is a review of importance and topical diversity, not a fresh verification of open status or completion of draft formulations. Importance scores are preserved.
 
-Top 100 takes the first 5/2 places in each large/small category. Top 1000 takes the first 50/20 places from the same order. Focus places balance scientific importance and topical diversity; remaining places retain score order. Neither subset certifies current open status.
+Top 100 takes the first 5/2 places in each large/small category. Top 500 takes the first 25/10 and the possible Top 1000 expansion takes the first 50/20 places from the same order. Top 100 is contained in Top 500, which is contained in Top 1000. Focus places balance scientific importance and topical diversity; remaining places retain score order. None of these subsets certifies current open status.
 
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
-| [top100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [top1000](index.html?benchmark=top1000) | 1000 | 981 | 19 |
+| [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
+| [Top 500](index.html?benchmark=top500) | 500 | 495 | 5 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 981 | 19 |
 
 ## Unfilled places
 
+- top500: Miscellaneous has 5/10 places.
 - top1000: Cryptography has 46/50 places.
 - top1000: Miscellaneous has 5/20 places.
 
@@ -26,7 +30,7 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | ---: | --- | --- | ---: | --- |
 | 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) (TCS-6537) | Integer sorting | 96 | A foundational algorithmic primitive whose optimal complexity tests the computational power of the word RAM and would affect many tasks built on ordering integer keys. |
 | 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
-| 3 | [Cut-Sparsification of Hypergraphs](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
+| 3 | [Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
 | 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) (TCS-0477) | Offline comparison complexity | 74 | Finding final survivors of a fully known heap-operation sequence isolates the comparison information needed for a batch answer. It does not require an online priority queue or intermediate query responses. |
 | 5 | [Does ordinary median-of-medians selection with groups of three run in linear time?](index.html#TCS-0475) (TCS-0475) | Deterministic selection | 69 | The ordinary groups-of-three median-of-medians algorithm gives a precisely specified selection primitive whose worst-case analysis remains the saved question. It adds selection to the two sorting models. |
 
@@ -302,7 +306,7 @@ Previous prefix: TCS-6621, TCS-6622.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Rapid mixing of Glauber dynamics with Δ+2 colours](index.html#TCS-6621) (TCS-6621) | Colouring-chain mixing | 95 | A longstanding general-graph conjecture linking local algorithms, approximate counting and spin systems; recent near-threshold results still require structural restrictions. |
-| 2 | [The Kannan-Tetali-Vempala switch-chain conjecture](index.html#TCS-6622) (TCS-6622) | Sampling prescribed-degree graphs | 94 | A central obstruction to a general theory of uniform sampling with fixed combinatorial marginals. |
+| 2 | [The Kannan–Tetali–Vempala switch-chain conjecture for binary matrices](index.html#TCS-6622) (TCS-6622) | Sampling prescribed-degree graphs | 94 | A central obstruction to a general theory of uniform sampling with fixed combinatorial marginals. |
 
 Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-1158, TCS-1255, TCS-1381, TCS-1693, TCS-1967.
 
@@ -438,14 +442,14 @@ Candidates considered: TCS-6630, TCS-6672, TCS-1030, TCS-1029, TCS-1026, TCS-103
 
 ## Differential privacy
 
-Pair optimal private statistical-query release with the sample complexity of private PAC learning. Continual counting is a significant query-release problem but would make the two-place prefix narrower.
+Pair sample complexity of private PAC learning with optimal error in private continual counting. The saved review marks TCS-6631 resolved, making the former query-release focus ineligible. TCS-6673 is an active, previously considered replacement covering sequential private release; its statement, evidence and importance score are unchanged.
 
-Previous prefix: TCS-6631, TCS-6673.
+Previous prefix: TCS-6631, TCS-0506.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Optimal Euclidean error for pure-DP statistical-query release](index.html#TCS-6631) (TCS-6631) | Private query release | 94 | Would determine the fundamental worst-case accuracy of pure-private statistical-query release, independently of the number of queries. |
-| 2 | [Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
+| 1 | [Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
+| 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) (TCS-6673) | Private continual counting | 94 | The saved target asks for optimal worst-time error when releasing every prefix sum under pure differential privacy. It complements sample-complexity bounds for private learning with a fundamental sequential data-release problem. |
 
 Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507, TCS-0508, TCS-0509, TCS-6451.
 

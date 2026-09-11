@@ -5049,12 +5049,12 @@ Glauber dynamics samples graph colorings by repeatedly selecting a vertex and ch
 [Read in atlas](index.html#TCS-6621) · [Glauber dynamics for colourings of chordal graphs and graphs of bounded treewidth](https://arxiv.org/abs/2010.16158) · [Sampling Colorings with Fixed Color Class Sizes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.134) · [Flip Dynamics for Sampling Colorings: Improving (11/6−ε) Using a Simple Metric](https://arxiv.org/abs/2407.04870) · [Sampling Colorings Close to the Maximum Degree: Non-Markovian Coupling and Local Uniformity](https://arxiv.org/abs/2604.11938) · [A Spectral Local-to-Global Principle for Spin Systems on Graphs with Girth At Least Five](https://arxiv.org/abs/2608.25491)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6622 — The Kannan-Tetali-Vempala switch-chain conjecture
+### TCS-6622 — The Kannan–Tetali–Vempala switch-chain conjecture for binary matrices
 
-A zero-one matrix with prescribed row and column sums can encode a bipartite graph with prescribed degrees. The switch chain moves between such matrices by exchanging an alternating pattern in a two-by-two submatrix, preserving every required sum. The conjecture asks whether a lazy version converges in polynomial time to its uniform stationary distribution for every nonempty set of feasible matrices. An affirmative answer would justify a widely applicable local method for sampling constrained binary data. The difficulty is controlling global bottlenecks across all feasible margins, rather than merely showing that the margins are realizable or that individual switches preserve them.
+The lazy switch chain samples binary matrices while preserving every row and column sum. Each attempted move chooses a two-by-two rectangle and may exchange its two checkerboard patterns. The target is polynomial convergence to the uniform distribution for every feasible choice of margins and every starting matrix. Fu, Qin and Wang’s July 2026 preprint states an explicit bound meeting this target and supplies a Lean formalization. The card records that claimed resolution with uncertain status because its proof and formalization were not independently verified here.
 
-[Read in atlas](index.html#TCS-6622) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX-RANDOM.2018.36)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6622) · [Speeding up Switch Markov Chains for Sampling Bipartite Graphs with Given Degree Sequence](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX-RANDOM.2018.36) · [Spectral Gap for the Binary Fixed-Margin Swap Chain](https://arxiv.org/abs/2606.22636v2) · [KTV Proof Formalization](https://github.com/guanyangwang/ktv-swap-lean)
+Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6668 — Polynomial mixing of critical three-dimensional Ising dynamics
 
@@ -6759,8 +6759,8 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 The problem asks whether every instance with at least four agents and nonnegative additive values admits a complete EFX allocation of indivisible goods. Complete means that each good is assigned to exactly one agent, with empty bundles allowed. For every potentially envious agent i and other bundle A_j, removing any good that i values positively must leave a bundle worth at most i’s own bundle. The statement permits zero values and fixes the positive-good EFX convention, without requiring payments or an efficient algorithm. Universal existence would establish this fairness guarantee despite the inability to divide individual goods.
 
-[Read in atlas](index.html#TCS-0011) · [TCS Open Problems](https://tcsopenproblems.com/problem/3)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0011) · [Problem 3: Does EFX always exist?](https://tcsopenproblems.com/problem/3)
+Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6639 — A constant-factor approximation for general Santa Claus allocation
 
@@ -8956,13 +8956,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Differential privacy (21)
 
-### TCS-6631 — Optimal Euclidean error for pure-DP statistical-query release
-
-A statistical query averages a bounded function over a private database, and answering many such queries produces a vector of estimates. The saved proposal asks for pure differential privacy with normalized Euclidean error at most a constant times min{1, sqrt(log(2T)/(epsilon n))}, where T is the data-domain size and n the database size. The target must hold uniformly over the number and choice of queries. It would identify the optimal collective accuracy attainable while protecting each database record. The saved context separates this Euclidean-error question from a maximum-coordinate variant associated with a July 2026 claimed result.
-
-[Read in atlas](index.html#TCS-6631) · [Research reference · differentialprivacy.org](https://differentialprivacy.org/open-problem-optimal-query-release/) · [Research reference · arXiv 2607.20418](https://arxiv.org/abs/2607.20418)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-0506 — Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?
 
 A private PAC learner must infer a Boolean concept from examples while limiting what its output reveals about any one example. The reviewed question asks whether sample complexity is polynomial in VC dimension and the iterated logarithm of Littlestone dimension. VC dimension measures ordinary statistical capacity, whereas Littlestone dimension measures how many adaptive prediction challenges the class can support. A positive answer would bound the additional sample cost of privacy by a remarkably slow-growing contribution from that online complexity. The saved formulation fixes constant accuracy and confidence, permits improper hypotheses and unlimited computation, and specifies approximate privacy with an additive privacy parameter shrinking quadratically in sample size.
@@ -9102,6 +9095,13 @@ Computational differential privacy protects against efficient adversaries, where
 
 [Read in atlas](index.html#TCS-6825) · [The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/privacybook.html) · [Towards Separating Computational and Statistical Differential Privacy (FOCS 2023)](https://doi.org/10.1109/FOCS57990.2023.00042)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6631 — Optimal Euclidean error for pure-DP statistical-query release
+
+Statistical-query release publishes a vector of bounded averages while protecting replacement of any one database record. This card asks for expected normalized Euclidean error O(min{1, sqrt(log(2T)/(epsilon n))}), uniformly in the query count. Aleksandar Nikolov established this bound in a 2022 preprint published at SODA 2023 and in a 2024 journal version. The original theorem uses the same average-error criterion and pure privacy model as the card. The record is retained as resolved, with the stale imported open-status claim corrected.
+
+[Read in atlas](index.html#TCS-6631) · [Open Problem: Optimal Query Release for Pure Differential Privacy](https://differentialprivacy.org/open-problem-optimal-query-release/) · [Private Query Release via the Johnson-Lindenstrauss Transform](https://arxiv.org/abs/2208.07410) · [Private Query Release via the Johnson-Lindenstrauss Transform](https://journalprivacyconfidentiality.org/index.php/jpc/article/view/873) · [Pure-DP Statistical Query Release at the Conjectured Square-Root Rate](https://arxiv.org/abs/2607.20418v2)
+Existing status: `resolved` · Summary written: 2026-09-11
 
 ## Constraint satisfaction (36)
 
@@ -9370,8 +9370,8 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 Basic modal logic K interprets formulas on arbitrary accessibility relations between possible worlds. The problem asks whether it is decidable that a finite formula has a substitution instance valid at every world of every such model. Substitutions act simultaneously on all input variables, may introduce new variables, and leave no designated parameters fixed. Frames may be finite or infinite, and no reflexivity or transitivity condition is imposed. The requested algorithm must halt on every input; its time and the size of a possible substitution have no prescribed bounds.
 
-[Read in atlas](index.html#TCS-6643) · [Research reference · www.mathnet.ru](https://www.mathnet.ru/php/archive.phtml?jrnid=im&option_lang=eng&paperid=9592&wshow=paper)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6643) · [On the unification problem for GLP](https://www.mathnet.ru/php/archive.phtml?jrnid=im&option_lang=eng&paperid=9592&wshow=paper)
+Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6650 — Deterministic polynomial-time equivalence testing for d-DNNFs
 

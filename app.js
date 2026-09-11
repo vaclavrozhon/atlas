@@ -14,7 +14,7 @@
   let areasByName=new Map(data.areas.map(a=>[a.area,a]));
   const areaLabel=area=>areasByName.get(area)?.label||area||'';
   const cardAreaLabel=c=>areaLabel(c.area);
-  const benchmarks={top100:{label:'Top 100',quotas:{large:5,small:2}},top1000:{label:'Top 1000',quotas:{large:50,small:20}}};
+  const benchmarks={top100:{label:'Top 100',quotas:{large:5,small:2}},top500:{label:'Top 500',quotas:{large:25,small:10}},top1000:{label:'Top 1000',tentative:true,quotas:{large:50,small:20}}};
   const isActive=c=>!!c&&!c.scope_exclusion&&!['resolved','excluded'].includes(c.status);
   const inBenchmark=(c,name)=>isActive(c)&&Number.isInteger(c.importance_rank)&&c.importance_rank>0&&c.importance_rank<=(benchmarks[name]?.quotas[areasByName.get(c.area)?.group]||0);
   const benchmarkSummary=name=>{
@@ -137,9 +137,9 @@
   function updateCoverage(){
     const active=data.cards.filter(isActive),counts=new Map();
     for(const c of active)counts.set(c.area,(counts.get(c.area)||0)+1);
-    const selections=Object.keys(benchmarks).map(name=>{const summary=benchmarkSummary(name),b=benchmarks[name];return `${b.label} uses the first ${b.quotas.large} problems per large category and ${b.quotas.small} per small category: ${num(summary.total)} of ${num(summary.target)} places filled${summary.reserved_target?`, including ${num(summary.reserved_target)} places reserved for future categories`:''}.`;});
-    $('selection-plan').textContent=selections.join(' ')+' The first 5/2 places balance importance and diversity. Categories follow the same order in both selections. Search and category filters narrow the selection; they do not promote other problems into unfilled places.';
-    $('coverage-table').innerHTML=`<table><thead><tr><th>Category</th><th>Top 100 target</th><th>Top 1000 target</th><th>Active problems</th></tr></thead><tbody>${data.areas.map(a=>`<tr><th scope="row"><button class="category-link" data-area="${esc(a.area)}">${esc(a.label)}</button></th><td>${benchmarks.top100.quotas[a.group]}</td><td>${benchmarks.top1000.quotas[a.group]}</td><td>${num(counts.get(a.area)||0)}</td></tr>`).join('')}</tbody></table>`;
+    const selections=Object.keys(benchmarks).map(name=>{const summary=benchmarkSummary(name),b=benchmarks[name];return `${b.tentative?'The possible '+b.label+' expansion':b.label} uses the first ${b.quotas.large} problems per large category and ${b.quotas.small} per small category: ${num(summary.total)} of ${num(summary.target)} places filled${summary.reserved_target?`, including ${num(summary.reserved_target)} places reserved for future categories`:''}.`;});
+    $('selection-plan').textContent=selections.join(' ')+' All three use the same category order and the same ranking within each category: Top 100 is contained in Top 500, which is contained in Top 1000. The first 5/2 places balance importance and diversity. Search and category filters narrow the selection; they do not promote other problems into unfilled places.';
+    $('coverage-table').innerHTML=`<table><thead><tr><th>Category</th>${Object.values(benchmarks).map(b=>`<th>${b.tentative?'Possible ':''}${b.label}</th>`).join('')}<th>Active problems</th></tr></thead><tbody>${data.areas.map(a=>`<tr><th scope="row"><button class="category-link" data-area="${esc(a.area)}">${esc(a.label)}</button></th>${Object.values(benchmarks).map(b=>`<td>${b.quotas[a.group]}</td>`).join('')}<td>${num(counts.get(a.area)||0)}</td></tr>`).join('')}</tbody></table>`;
   }
   updateStats();renderAreas();updateCoverage();
   $('coverage-table').addEventListener('click',e=>{const b=e.target.closest('[data-area]');if(!b)return;clear();state.areas.add(b.dataset.area);renderAreas();filter(true);});
