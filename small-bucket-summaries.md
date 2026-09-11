@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,174 five-sentence working summaries, based on saved source material.
+1,175 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (48)
@@ -693,7 +693,7 @@ Resolution variable space counts the distinct variables represented in simultane
 [Read in atlas](index.html#TCS-6772) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Communication complexity and Boolean function analysis (76)
+## Communication complexity and Boolean function analysis (77)
 
 ### TCS-6603 — Log-rank conjecture for deterministic two-party communication
 
@@ -728,6 +728,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 A polynomial threshold function assigns a Boolean value according to the sign of a real polynomial. The asymptotic Gotsman–Linial question asks whether its total influence is always O(d√n), where d is degree and n is the number of variables. Influence measures the expected number of coordinate flips that change the output, giving a discrete notion of boundary size. The proposed bound would limit how irregular a low-degree threshold boundary can be on the cube. The saved review separates this asymptotic claim from the stronger conjecture identifying an exact extremizer, which the cited literature disproves.
 
 [Read in atlas](index.html#TCS-6664) · [The Gotsman–Linial Conjecture is False](https://arxiv.org/abs/2108.02288) · [A Dual Perspective on Computational Complexity](https://dspace.mit.edu/server/api/core/bitstreams/7f2e32fd-d615-4dba-97be-f26cd30ca234/content) · [The Correct Exponent for the Gotsman–Linial Conjecture](https://arxiv.org/abs/1210.1283) · [On Graphs and the Gotsman–Linial Conjecture for d = 2](https://arxiv.org/abs/1709.06650) · [The Boolean surface area of polynomial threshold functions](https://arxiv.org/abs/2604.08095) · [Rational degree is polynomially related to degree](https://arxiv.org/abs/2601.08727)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7219 — The Aanderaa–Karp–Rosenberg evasiveness conjecture
+
+An algorithm learns an unknown graph by asking whether individual pairs of vertices are edges. The conjecture asks whether every nonconstant monotone property invariant under vertex relabeling has some input requiring all possible pairs to be queried. Queries may be adaptive and all computation between them is free. The example of looking for one edge illustrates how an easy positive instance can coexist with an empty graph that requires a complete scan. The exact claim is known for prime-power vertex counts, while results about quantum queries, infinite graphs and broader topological symmetry must be distinguished from the full finite deterministic question.
+
+[Read in atlas](index.html#TCS-7219) · [A topological approach to evasiveness](https://doi.org/10.1007/BF02579140) · [Elusive properties of countably infinite graphs](https://arxiv.org/abs/2503.11798v3) · [Degree vs. Approximate Degree and Quantum Implications of Huang’s Sensitivity Theorem](https://arxiv.org/abs/2010.12629v1) · [The topological evasiveness conjecture — CATA IV talk abstract](https://indico.sns.it/event/134/timetable/?print=1&view=standard_numbered) · [Publications — On the Topological Evasiveness Conjecture](https://www.math.miami.edu/~bruno/publications.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6450 — A polynomial relation between classical and quantum communication for total functions
