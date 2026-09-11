@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-975 five-sentence working summaries, based on saved source material.
+976 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (132)
@@ -2025,7 +2025,7 @@ An avoiding word drives every possible starting state outside a specified forbid
 [Read in atlas](index.html#TCS-6995) · [Synchronizing Automata: Open Problems](https://arxiv.org/abs/2608.24245)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Semantics, logic and verification (120)
+## Semantics, logic and verification (121)
 
 ### TCS-6565 — Is positivity of integer linear recurrences decidable?
 
@@ -2089,6 +2089,13 @@ A rational linear differential system evolves as a matrix exponential applied to
 
 [Read in atlas](index.html#TCS-6566) · [The continuous Skolem-Pisot problem](https://perso.uclouvain.be/vincent.blondel/publications/10BDJ.pdf) · [On the Skolem Problem for Continuous Linear Dynamical Systems](https://arxiv.org/abs/1506.00695) · [On Recurrent Reachability for Continuous Linear Dynamical Systems](https://arxiv.org/abs/1507.03632) · [Axiomatization of Compact Initial Value Problems: Open Properties](https://publikationen.bibliothek.kit.edu/1000188295/170660770) · [A Survey of the Skolem and Positivity Problems for Linear Recurrence Sequences](https://people.mpi-sws.org/~joel/publications/skolem_and_positivity_survey26.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7192 — Is multiplicative-exponential linear logic decidable?
+
+MELL asks whether provability in a resource-sensitive propositional logic can always be decided. Its multiplicative connectives combine resources, while exponential modalities permit controlled reuse. The card specifies the entire finite proof calculus, including units and the conditions on contraction and promotion. Proof checking alone does not guarantee that a search can terminate on an unprovable input. A July 2026 preprint claims a positive resolution through general branching vector addition systems, which is recorded here without independent proof verification.
+
+[Read in atlas](index.html#TCS-7192) · [Handbook of Linear Logic](https://ll-handbook.pages.math.cnrs.fr/book/ll-handbook-public.pdf) · [On the Decision Problem for MELL](https://www.lix.polytechnique.fr/~lutz/papers/OnDeciMELL.pdf) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://drops.dagstuhl.de/storage/00lipics/lipics-vol345-mfcs2025/html/LIPIcs.MFCS.2025.22/LIPIcs.MFCS.2025.22.html) · [Solving the Reachability Problem for Branching Vector Addition Systems via Semilinear Inductive Invariants](https://arxiv.org/abs/2607.09558v1)
+Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0619 — Reachability in Low-Dimensional VASS
 

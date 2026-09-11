@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,171 five-sentence working summaries, based on saved source material.
+1,174 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (48)
@@ -4351,7 +4351,7 @@ A hypergraph transversal meets every hyperedge, and it is minimal when no select
 [Read in atlas](index.html#TCS-7112) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Structural graph theory and graph algorithms (59)
+## Structural graph theory and graph algorithms (60)
 
 ### TCS-6651 — Hadwiger’s conjecture: high chromatic number forces a clique minor
 
@@ -4436,6 +4436,13 @@ A recoloring step changes one vertex's color while keeping the graph properly co
 
 [Read in atlas](index.html#TCS-6655) · [Research reference · www.sciencedirect.com](https://www.sciencedirect.com/science/article/abs/pii/S0012365X26000798)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7216 — The vertex reconstruction conjecture
+
+The vertex reconstruction conjecture asks whether every finite simple graph with at least three vertices is determined by all its one-vertex-deleted views. The views forget vertex labels but retain the multiplicity of repeated isomorphism classes. Even the edge count and degree multiset can be recovered, while the full arrangement of edges is the unresolved target in current specialist sources. Finite computational checks and a theorem for interval graphs provide partial results. An earlier general proof claim is recorded without validation, and recent structured bipartite results are kept distinct from this full question.
+
+[Read in atlas](index.html#TCS-7216) · [Reconstruction of Small Graphs and Digraphs](https://arxiv.org/abs/2102.01942v4) · [Shuffling the Deck: Invariant Theory and the Graph Reconstruction Conjecture](https://arxiv.org/abs/2604.16567v1) · [Interval Graphs are Reconstructible](https://arxiv.org/abs/2504.02353v2) · [Advancing Mathematics Research with AI-Driven Formal Proof Search](https://arxiv.org/abs/2605.22763v2) · [Vertex-substitution framework verifies the reconstruction conjecture for finite undirected graphs](https://www.sciencedirect.com/science/article/pii/S0020025523014433)
+Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7249 — Berge–Fulkerson: six perfect matchings covering each edge twice
 
@@ -5621,7 +5628,7 @@ Global connection and cost-sharing games let agents choose network resources whi
 [Read in atlas](index.html#TCS-6961) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algebraic computation (121)
+## Algebraic computation (122)
 
 ### TCS-0007 — Is the matrix multiplication exponent equal to two?
 
@@ -5706,6 +5713,13 @@ Two finite groups are supplied by complete tables describing their multiplicatio
 
 [Read in atlas](index.html#TCS-6615) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2024.4)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7175 — Unrestricted arithmetic lower bounds for the discrete Fourier transform
+
+Must the discrete Fourier transform take order n log n exact arithmetic operations when constants are unrestricted? The target covers every sufficiently large power-of-two input length and all straight-line programs in the stated model. The FFT achieves this cost by sharing intermediate computations. Known matching lower bounds impose coefficient, gate, storage or conditioning restrictions. Normalization, bit precision and quantum state transformations require care because their computational models differ.
+
+[Read in atlas](index.html#TCS-7175) · [The Division Barrier: Optimal Bounds and Structural Limits in Toom-Cook Interpolation](https://epubs.siam.org/doi/10.1137/1.9781611978971.190) · [Lower Bounds on the Bounded Coefficient Complexity of Bilinear Maps](https://arxiv.org/abs/cs/0301016) · [A Lower Bound for Fourier Transform Computation in a Linear Model Over 2x2 Unitary Gates Using Matrix Entropy](https://arxiv.org/abs/1305.4745) · [Paraunitary Matrices, Entropy, Algebraic Condition Number and Fourier Computation](https://arxiv.org/abs/1609.03278v6)
+Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6616 — Breaking the 2^n barrier for exact permanent computation
 
@@ -6470,7 +6484,7 @@ An explicitly represented arithmetic circuit can contain many cancellations, mak
 [Read in atlas](index.html#TCS-7113) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Lattices and computational number theory (30)
+## Lattices and computational number theory (31)
 
 ### TCS-6571 — Is rational solvability of polynomial equations decidable?
 
@@ -6513,6 +6527,13 @@ A quadratic nonresidue modulo an odd prime is a nonzero residue that is not the 
 
 [Read in atlas](index.html#TCS-6620) · [Research reference · arXiv 1410.7073](https://arxiv.org/abs/1410.7073)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7169 — Can a quantum algorithm solve exact Euclidean SVP in polynomial time?
+
+Can a quantum computer find an exactly shortest nonzero lattice vector in time polynomial in the encoded basis length? The output must be a classical integer combination of the basis, with success probability at least two thirds on every valid input. Randomized NP-hardness would make such an algorithm a major quantum complexity result, but is not a quantum impossibility proof. August 2026 exact-SVP preprints claim faster exponential algorithms with additional memory details. The disputed dihedral-coset proposal has an approximate-SVP consequence and does not settle this exact target.
+
+[Read in atlas](index.html#TCS-7169) · [The Shortest Vector in a Lattice is Hard to Approximate to within Some Constant](https://doi.org/10.1137/S0097539700373039) · [Improved Classical and Quantum Algorithms for the Shortest Vector Problem via Bounded Distance Decoding](https://ir.cwi.nl/pub/35122/35122.pdf) · [Solving the Shortest Vector Problem in 2^{0.6039n} Time via Mid-point Hessian](https://arxiv.org/abs/2608.02478v2) · [One Discrete Gaussian Sample in 2^{n/2+o(n)} Time](https://arxiv.org/abs/2608.03220v1) · [A Polynomial-Time Quantum Algorithm for the Dihedral Coset Problem](https://eprint.iacr.org/2026/1591) · [The ePrint:2026/1591 Quantum Algorithm Does Not Solve DCP](https://eprint.iacr.org/2026/1693)
+Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-0658 — Standard-assumption hardness for cryptographic-factor SVP
 
