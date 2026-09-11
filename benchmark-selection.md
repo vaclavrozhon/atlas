@@ -1,6 +1,6 @@
 # Benchmark selection review
 
-Reviewed on 2026-09-11 across 34 categories.
+Reviewed on 2026-09-11 across 35 categories.
 
 Individual editorial review of saved titles, importance rationales, problem statements, source notes and working summaries. This is a review of importance and topical diversity, not a fresh verification of open status or completion of draft formulations. Importance scores are preserved.
 
@@ -8,30 +8,29 @@ Top 100 takes the first 5/2 places in each large/small category. Top 1000 takes 
 
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
-| [top100](index.html?benchmark=top100) | 100 | 98 | 2 |
-| [top1000](index.html?benchmark=top1000) | 1000 | 965 | 35 |
+| [top100](index.html?benchmark=top100) | 100 | 100 | 0 |
+| [top1000](index.html?benchmark=top1000) | 1000 | 983 | 17 |
 
 ## Unfilled places
 
-- top100: 2 places are reserved for future categories.
-- top1000: 20 places are reserved for future categories.
+- top1000: Cryptography has 48/50 places.
 - top1000: Miscellaneous has 5/20 places.
 
-## Algorithms and data structures
+## Algorithms
 
-Retain adaptive search trees, integer sorting, cell-probe lower bounds and deterministic static dictionaries. After the user removed TCS-0474, Sorting X+Y fills the fifth place with structured comparison sorting; its real-key model and quadratic output differ from word-RAM integer sorting. Its inherited formulation and evidence remain unchanged.
+After the approved Data structures split, focus on integer sorting, structured real-key sorting, hypergraph cut sparsification, offline comparison complexity and deterministic selection. The first two retain their previous focus status; the other three replace the transferred data-structure topics. These choices balance saved importance and diversity without changing statements, evidence or importance scores.
 
-Previous prefix: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540.
+Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
-| 2 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) (TCS-6537) | Integer sorting | 96 | A foundational algorithmic primitive whose optimal complexity tests the computational power of the word RAM and would affect many tasks built on ordering integer keys. |
-| 3 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
-| 4 | [Can a static dictionary be built deterministically in linear time?](index.html#TCS-6586) (TCS-6586) | Deterministic static dictionaries | 94 | Optimal deterministic construction of a basic dictionary tests whether randomness is necessary for linear preprocessing with constant-time queries. |
-| 5 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
+| 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) (TCS-6537) | Integer sorting | 96 | A foundational algorithmic primitive whose optimal complexity tests the computational power of the word RAM and would affect many tasks built on ordering integer keys. |
+| 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
+| 3 | [Cut-Sparsification of Hypergraphs](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
+| 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) (TCS-0477) | Offline comparison complexity | 74 | Finding final survivors of a fully known heap-operation sequence isolates the comparison information needed for a batch answer. It does not require an online priority queue or intermediate query responses. |
+| 5 | [Does ordinary median-of-medians selection with groups of three run in linear time?](index.html#TCS-0475) (TCS-0475) | Deterministic selection | 69 | The ordinary groups-of-three median-of-medians algorithm gives a precisely specified selection primitive whose worst-case analysis remains the saved question. It adds selection to the two sorting models. |
 
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595.
+Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595, TCS-0946, TCS-0477, TCS-0475, TCS-5548.
 
 ## Computational complexity
 
@@ -95,7 +94,7 @@ Previous prefix: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555.
 | 4 | [Distributed Lovász Local Lemma in O(log log n) rounds](index.html#TCS-6554) (TCS-6554) | Local distributed symmetry breaking | 94 | A canonical obstacle to resolving local conflicts rapidly, with consequences for many distributed graph algorithms. |
 | 5 | [Optimal exact single-source shortest paths in CONGEST](index.html#TCS-6555) (TCS-6555) | Bandwidth-limited distributed paths | 94 | A basic distributed graph primitive with an unresolved gap between algorithms and communication lower bounds. |
 
-Candidates considered: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555, TCS-6557, TCS-6507, TCS-0522, TCS-6499, TCS-6505, TCS-0518, TCS-6506, TCS-0513, TCS-0514, TCS-0998, TCS-0515.
+Candidates considered: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555, TCS-6557, TCS-6507, TCS-0522, TCS-6499, TCS-6505, TCS-6506, TCS-0513, TCS-0514, TCS-0998, TCS-0515.
 
 ## Optimization and numerical computation
 
@@ -109,7 +108,7 @@ Previous prefix: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585.
 | 2 | [Is exact semidefinite feasibility in polynomial time?](index.html#TCS-6574) (TCS-6574) | Exact semidefinite optimization | 97 | A foundational complexity gap in a widely used convex optimization model; exact decision remains open despite powerful approximation algorithms, exact duality and symbolic decidability. |
 | 3 | [Does the packing property imply the max-flow min-cut property?](index.html#TCS-7227) (TCS-7227) | Integral packing and covering | 90 | The packing versus max-flow min-cut conjecture adds a fundamental combinatorial integrality question alongside continuous optimization and numerical computation. |
 | 4 | [Nearly linear-time solution of general sparse linear systems](index.html#TCS-6585) (TCS-6585) | Numerical linear algebra | 97 | A fundamental input-size complexity question for one of the most widely used computational primitives, with meaningful positive results for structured classes and general reductions from apparently special systems. |
-| 5 | [Smale’s seventh problem](index.html#TCS-6578) (TCS-6578) | Geometric energy optimization | 94 | Smale's seventh problem asks for efficient construction of globally near-optimal configurations. |
+| 5 | [Smale’s seventh problem: efficient near-minimal logarithmic energy on the sphere](index.html#TCS-6578) (TCS-6578) | Geometric energy optimization | 94 | Smale's seventh problem asks for efficient construction of globally near-optimal configurations. |
 
 Candidates considered: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585, TCS-6576, TCS-6577, TCS-6578, TCS-0491, TCS-0711, TCS-0724, TCS-0715, TCS-0728, TCS-0708, TCS-0709, TCS-0722, TCS-7227, TCS-7226.
 
@@ -332,6 +331,19 @@ Previous prefix: TCS-6651, TCS-6652.
 | 2 | [Deterministic linear-time minimum spanning tree](index.html#TCS-6536) (TCS-6536) | Static graph algorithms | 96 | A foundational graph-algorithm question about the necessity of randomness and the relationship between comparison complexity and actual computation. |
 
 Candidates considered: TCS-6651, TCS-6652, TCS-6682, TCS-6653, TCS-6683, TCS-6654, TCS-6655, TCS-6500, TCS-6536, TCS-6538, TCS-6539, TCS-6511, TCS-0611, TCS-7180, TCS-0771, TCS-0595, TCS-0594, TCS-0773, TCS-0775, TCS-0612.
+
+## Data structures
+
+The user approved a small Data structures category with dynamic optimality of splay trees and general static cell-probe lower bounds as its two focus topics. Together they represent adaptive upper bounds and unconditional information-access lower bounds. Dictionaries, heaps, ordered sequences, external-memory structures, history independence and static query representations remain active below the focus pair with unchanged importance scores.
+
+Previous prefix: empty.
+
+| Position | Problem | Topic | Saved importance score | Selection rationale |
+| ---: | --- | --- | ---: | --- |
+| 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
+| 2 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
+
+Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6512, TCS-6509, TCS-6514, TCS-6502, TCS-1913, TCS-4997, TCS-5706, TCS-5758, TCS-5768, TCS-6290, TCS-6480, TCS-1783, TCS-5103, TCS-0956, TCS-1418, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-4799, TCS-5825.
 
 ## Dynamic algorithms
 

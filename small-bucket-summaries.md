@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,420 five-sentence working summaries, based on saved source material.
+1,439 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (59)
@@ -2421,7 +2421,7 @@ Vertex expansion measures how many distinct outside neighbors a small vertex set
 [Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (151)
+## Parameterized complexity and algorithms (150)
 
 ### TCS-6592 — Is k-Clique fixed-parameter tractable, equivalently FPT=W[1]?
 
@@ -3016,13 +3016,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Clique-width describes graphs through constructions that repeatedly join and relabel groups of vertices. The saved question asks for a meaningful restriction of this measure, or its linear version, that still preserves a cited lower bound for r-Coloring. The aim is to identify how little construction complexity already suffices for the hard coloring behavior. Such a threshold would explain which parts of a general width model are responsible for algorithmic difficulty. The excerpt does not reproduce the lower bound or define the desired restriction, so no numerical threshold or particular restricted graph class is claimed.
 
 [Read in atlas](index.html#TCS-2901) · [Towards Exact Structural Thresholds for Parameterized Complexity](https://doi.org/10.4230/LIPIcs.IPEC.2022.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2996 — Can 5-coloring be solved in O˚ pp2 ´ εq q time, for some ε ą 0?
-
-Five-coloring asks whether a graph's vertices can be colored with five colors while adjacent vertices differ. The imported question seeks a fixed improvement over base-two exponential dependence on the number of vertices. The cited paper explicitly answers this question affirmatively and also treats six-coloring. It raises broader questions about obtaining such savings for every fixed number of colors. This entry therefore describes a source-resolved historical target and its algorithmic motivation, rather than presenting the literal five-color question as newly verified open.
-
-[Read in atlas](index.html#TCS-2996) · [Breaking the 2ⁿ Barrier for 5-Coloring and 6-Coloring](https://doi.org/10.4230/LIPIcs.ICALP.2021.113)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3001 — Is the class [#paraW[1] L]≤pars equivalent to some known class?
@@ -6012,7 +6005,191 @@ A quasi-order is well-quasi-ordered when every infinite sequence contains an ear
 [Read in atlas](index.html#TCS-7145) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Dynamic algorithms (40)
+## Data structures (26)
+
+### TCS-6498 — Are splay trees dynamically optimal?
+
+Splay trees reorganize a binary search tree after each access using local rotations. The question asks whether this simple rule is always within a constant factor of the best tree strategy that knows the entire request sequence. An additive linear allowance pays for the initial tree. Frequency and locality guarantees cover useful patterns but do not establish this universal comparison. Understanding this gap would show whether local adaptation can exploit every advantage available to an offline search tree.
+
+[Read in atlas](index.html#TCS-6498) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498) · [Binary Search Trees and Dynamic Optimality, Lecture 23](https://www.cs.cmu.edu/~yangp/15-451/lecture23.pdf) · [Dynamic Optimality—Almost](https://doi.org/10.1137/S0097539705447347)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6540 — An explicit static problem requiring superlogarithmically many cell probes
+
+A static data structure preprocesses a database and later answers queries by reading stored memory cells. This question seeks an explicitly computable Boolean query problem forcing more than logarithmically many reads despite unrestricted preprocessing. The saved formulation fixes short queries, logarithmic word size, near-linear space, and deterministic adaptive access. Free computation between reads makes this an information-access lower bound. Such an example would expose a fundamental limit on making useful information locally accessible through clever storage alone.
+
+[Read in atlas](index.html#TCS-6540) · [The Natural Proofs Barrier against Data-Structure Lower-Bounds](https://doi.org/10.1145/3798129.3800843) · [Stronger Cell Probe Lower Bounds via Local PRGs](https://eccc.weizmann.ac.il/report/2025/030/) · [Lower Bounds for Linear Operators](https://eccc.weizmann.ac.il/report/2025/155/) · [Crossing the Logarithmic Barrier for Dynamic Boolean Data Structure Lower Bounds](https://epubs.siam.org/doi/10.1137/18M1198429) · [An Ω((log n/log log n)²) Cell-Probe Lower Bound for Dynamic Boolean Data Structures](https://eccc.weizmann.ac.il/report/2026/047/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6586 — Can a static dictionary be built deterministically in linear time?
+
+A static dictionary stores distinct integer keys together with associated values and supports exact membership queries. The question asks for deterministic linear-time construction, linear space, and constant worst-case query time on the stated word RAM. All preprocessing work must be included in the construction bound. Random hashing motivates the desired efficiency but does not itself provide a deterministic construction. A solution would give other algorithms a dependable dictionary primitive without making their preprocessing randomized or increasing their asymptotic running time.
+
+[Read in atlas](index.html#TCS-6586) · [Faster Deterministic Dictionaries](https://www.brics.dk/RS/99/48/BRICS-RS-99-48.pdf) · [Constructing Efficient Dictionaries in Close to Sorting Time](https://link.springer.com/chapter/10.1007/978-3-540-70575-8_8) · [Internal Pattern Matching Queries in a Text and Applications](https://epubs.siam.org/doi/10.1137/23M1567618) · [Compressed Index with Construction in Compressed Space](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.25)
+Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-0949 — Data Structure Lower Bound in the Cell Probe Model
+
+A data structure preprocesses an n-by-n Boolean matrix and then answers matrix-vector products over AND and OR. The cell-probe model counts memory accesses while allowing free computation on the information read. The source asks for a superlinear-in-n query lower bound when the representation stores the matrix with only a small amount of extra space. Existing upper bounds show that this succinct model can outperform straightforward word-RAM expectations. A lower bound must therefore identify information that genuinely has to be fetched, rather than charge for the arithmetic or logical work of computing the answer.
+
+[Read in atlas](index.html#TCS-0949) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:75)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6508 — Do splay trees support deque operations in constant amortized time?
+
+A deque permits insertions and deletions at either end of an ordered collection. This question studies the implementation that inserts extreme keys and splays an extreme key before deleting it. It asks whether every operation sequence costs linear total time, including an allowance for the initial tree. Alternating ends and inserting new keys creates behavior beyond a single sorted scan. The conjecture would show that self-adjusting search trees automatically attain the efficiency expected from this restricted interface.
+
+[Read in atlas](index.html#TCS-6508) · [Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture](https://arxiv.org/abs/0707.2160) · [A New Path from Splay to Dynamic Optimality](https://doi.org/10.1137/1.9781611975482.80) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6512 — Does splaying every BST preorder take linear total time?
+
+Take the preorder traversal of one binary search tree and access its keys in another tree using splaying. Each key appears once, but the resulting order can jump between distant parts of the key range. The conjecture asks whether the total search and rotation cost is always linear, regardless of either tree's shape. Building a tree by inserting the same sequence is a different task. This structured workload offers a focused test of how well splaying discovers organization hidden in an access sequence.
+
+[Read in atlas](index.html#TCS-6512) · [Splaying Preorders and Postorders](https://arxiv.org/abs/1907.06309) · [In pursuit of the dynamic optimality conjecture](https://arxiv.org/abs/1306.0207) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6509 — Does recursively splitting a splay tree always take linear total time?
+
+A splay-tree split brings a chosen key to the root, removes it, and leaves two separate component trees. Repeating this process eventually deletes every original key exactly once. The question asks whether every such sequence has linear total search, rotation, and bookkeeping cost. Pivots may be internal keys, so the workload includes recursive separations unavailable to ordinary end deletions. A proof must account globally for repeated restructuring of surviving keys, rather than merely count the number of requested splits.
+
+[Read in atlas](index.html#TCS-6509) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498) · [Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture](https://arxiv.org/abs/0707.2160)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6514 — Do pure pairing heaps support O(log log n) amortized decrease-key?
+
+A pure pairing heap maintains a priority queue through a small collection of comparison and pointer operations. A decrease-key can be cheap immediately yet create work that later delete-min operations must absorb. The question asks whether this delayed contribution is only doubly logarithmic per decrease while retaining the stated budgets for other operations. The maximum live heap population sets the size parameter. The issue is whether minimal structural bookkeeping suffices to prevent repeated expensive configurations over arbitrary operation sequences.
+
+[Read in atlas](index.html#TCS-6514) · [Pure Pairing Heaps](https://arxiv.org/abs/2607.23118v1) · [A Tight Lower Bound for Decrease-Key in the Pure Heap Model](https://arxiv.org/abs/1407.6665) · [Efficiency of Self-Adjusting Heaps](https://arxiv.org/abs/2307.02772)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6502 — Can lazy B-tree priority queues keep their I/O bounds with stable handles?
+
+An external-memory priority queue moves records in blocks while clients may retain handles to individual items. A stable handle must still locate an item after internal rearrangements and support later decreases of its key. The project asks whether lazy B-tree style I/O guarantees can include all this handle-maintenance work. Updating scattered references can cost much more than moving one contiguous block. Resolving the gap would establish whether the advertised block efficiency survives the interface needed by actual graph algorithms.
+
+[Read in atlas](index.html#TCS-6502) · [Towards Lazy B-Trees, revised version with erratum](https://arxiv.org/abs/2507.00277v2) · [DecreaseKeys Are Expensive for External Memory Priority Queues](https://doi.org/10.1145/3055399.3055437)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0300 — The randomized complexity of online labeling
+
+Online labeling assigns ordered numerical labels to arriving items while preserving their sorted order. New arrivals may force earlier labels to change, and each change has a cost. The source asks for the randomized complexity as a function of the item count and available label space. An equivalent view maintains a sorted array with spare slots and pays for moving items. The project quantifies whether randomization can reduce the unavoidable reorganizations caused by adversarial insertion positions.
+
+[Read in atlas](index.html#TCS-0300) · [Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.7.3.45)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0956 — Succinct Representation for Functions on Graphs
+
+A graph data structure can encode the answers to many graph-function queries without preserving the original edges. For minimum pairwise cuts, a Gomory-Hu tree gives a compact graphical representation of all answers. The source asks when a more general data structure can be substantially smaller than any graph encoding the same function. It considers exact and approximate cut, flow, and terminal-based queries as examples. Understanding this distinction would identify when insisting that a compressed summary remain a graph imposes an unnecessary space cost.
+
+[Read in atlas](index.html#TCS-0956) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:74)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1418 — Can we design a data structure of size 2 o(n ) that provides a good approximation for the shortest path under three faults?
+
+A fault-tolerant distance oracle preprocesses a weighted graph so that later queries can avoid failed edges. The source obtains approximate single-source distances when at most two edges fail. Its next question asks for a compact oracle giving useful approximations under three failures and, more broadly, additional failures. The stored title contains damaged asymptotic notation, so the precise space target needs the original typesetting. The underlying obstacle is how to organize interacting detours without storing a separate large structure for every failure combination.
+
+[Read in atlas](index.html#TCS-1418) · [Approximate Single Source Dual Fault Tolerant Distance Oracle](https://doi.org/10.4230/LIPIcs.ESA.2026.90)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1783 — Is there a candidate data structure for the convex shelling antimatroid that is fast enough to sort optimally?
+
+Sorting with partial information starts with a compressed description of the orders that could be valid. Convex shelling antimatroids describe feasible elimination orders arising from geometric convexity. The source asks for a data structure fast enough to support optimal sorting in this setting. Computing convex hulls already prevents simply borrowing a linear-time primitive from easier examples. The project must account for both comparison information and geometric maintenance, so that exploiting a restricted order family does not introduce larger hidden computation costs.
+
+[Read in atlas](index.html#TCS-1783) · [Optimal Antimatroid Sorting](https://doi.org/10.4230/LIPIcs.ESA.2025.104)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1798 — Is there a sparse fault-tolerant exact or approximate distance oracle for an arbitrary subset P of V × V ?
+
+A distance oracle stores information that can answer selected graph-distance queries without retaining every answer explicitly. The source asks for a sparse oracle supporting an arbitrary set of vertex pairs even when failures occur. It allows either exact answers or approximation, rather than insisting on one accuracy regime. Moving from a common source set to arbitrary requested pairs would broaden which applications can benefit from compact fault-tolerant distances. The saved question leaves the failure budget, sparsity target, stretch, and query time unspecified, so these tradeoffs still need a precise choice.
+
+[Read in atlas](index.html#TCS-1798) · [Fault-Tolerant Approximate Distance Oracles with a Source Set](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.27)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1913 — This raises a natural question: does there exist a cache-oblivious priority queue that achieves the same amortized bounds on comparisons and I/Os?
+
+An external-memory priority queue tries to minimize both key comparisons and transfers of disk blocks. The source gives especially cheap insertions by using a structure tuned to memory and block sizes. The question asks whether a cache-oblivious design can match those amortized comparison and I/O guarantees. Such a design cannot explicitly use the machine's block-size parameter. The project investigates whether the same asymmetric insertion and deletion efficiency can arise automatically across a memory hierarchy without architecture-specific tuning.
+
+[Read in atlas](index.html#TCS-1913) · [External-Memory Priority Queues with Optimal Insertions](https://doi.org/10.4230/LIPIcs.ESA.2025.5)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2730 — Thus, even in the non-succinct case, designing worst-case update operations is an open problem.
+
+An indexed list supports access both by stored item and by its position in an evolving order. Insertions and deletions must maintain that correspondence as positions shift. The source asks for worst-case update guarantees matching the efficiency available amortized, even without requiring a succinct representation. A rare expensive rebuilding step is unacceptable under this stronger target. The project concerns spreading maintenance work predictably across operations while retaining fast access and a reasonable memory footprint.
+
+[Read in atlas](index.html#TCS-2730) · [Succinct List Indexing in Optimal Time](https://doi.org/10.4230/LIPIcs.ISAAC.2022.65)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3788 — It is an open problem whether randomization can speed up partitioning algorithms and lead, in particular, to faster data structures for the various operations considered […]
+
+Approximate rank and selection allow an ordered-set query to err by a controlled number of positions. The source builds word-RAM structures using integer partitioning as an internal primitive. It asks whether randomization can accelerate that partitioning and thereby improve the supported operations. Fast randomized sorting provides motivation but does not directly yield the needed partition maintenance. The project studies whether relaxing exact order information opens additional algorithmic speedups once both approximation tolerance and machine word length are taken into account.
+
+[Read in atlas](index.html#TCS-3788) · [Dynamic Ordered Sets with Approximate Queries, Approximate Heaps and Soft Heaps](https://doi.org/10.4230/LIPIcs.ICALP.2019.95)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4799 — Limits of Quantum Speed-Ups for Computational Geometry and Other Problems: Fine-Grained Complexity via Quantum Walks — Unresolved-question passage on page 9
+
+A history-independent data structure represents the same logical contents identically regardless of the sequence of updates that produced them. This property is useful in quantum walks because information about the path taken can obstruct coherent interference. The question asks which dynamic problems admit structures that are simultaneously deterministic, fast, space-efficient, and history-independent. Even maintaining sorted information raises a distinction between randomized constructions and the desired deterministic alternative. Algorithms or lower bounds would explain the extra price of making a classical data structure compatible with coherent quantum computation.
+
+[Read in atlas](index.html#TCS-4799) · [Limits of Quantum Speed-Ups for Computational Geometry and Other Problems: Fine-Grained Complexity via Quantum Walks](https://doi.org/10.4230/LIPIcs.ITCS.2022.31)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-4997 — Optimal Non-Adaptive Cell Probe Dictionaries and Hashing — Explicit open question on PDF page 4
+
+A nonadaptive dictionary decides which memory cells to read before seeing any of their contents. The source obtains optimal cell-probe tradeoffs using combinatorial objects whose existence follows from counting. The question asks for explicit constructions strong enough to achieve the same bound in an effective RAM implementation. Available explicit expanders introduce additional polylogarithmic cost. The project would turn an information-theoretic storage scheme into an equally efficient constructive data structure, exposing the algorithmic price of finding the required hashing geometry.
+
+[Read in atlas](index.html#TCS-4997) · [Optimal Non-Adaptive Cell Probe Dictionaries and Hashing](https://doi.org/10.4230/LIPIcs.ICALP.2024.104)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5103 — The Diameter of Caterpillar Associahedra — Explicit open question on PDF page 3
+
+A search tree on a tree generalizes binary search by recursively choosing a query vertex and continuing in a remaining component. The input also gives a probability distribution over the possible targets. The source asks whether an optimal static search tree minimizing expected search cost can be found in polynomial time. Approximation schemes do not establish exact optimization. The project examines how branching in the underlying tree changes the familiar ordered-search problem and whether its recursive choices admit an efficiently solvable global structure.
+
+[Read in atlas](index.html#TCS-5103) · [The Diameter of Caterpillar Associahedra](https://doi.org/10.4230/LIPIcs.SWAT.2022.14)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5706 — The Group Access Bounds for Binary Search Trees — Explicit open question on PDF page 3
+
+The unified bound for binary search trees combines temporal reuse and proximity in key order. An access can be cheap when it lies near a recently accessed key, even if neither pure frequency nor consecutive-access distance captures the pattern. The source asks whether one BST algorithm can achieve the full unified bound. Restricted windows and separate locality guarantees give partial guidance. The project seeks one legal tree-restructuring strategy that realizes this combined notion of locality on every access sequence.
+
+[Read in atlas](index.html#TCS-5706) · [The Group Access Bounds for Binary Search Trees](https://doi.org/10.4230/LIPIcs.ICALP.2024.38)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5758 — Pairing heaps: the forward variant — Explicit open question on PDF page 6
+
+The forward variant of a pairing heap changes the order in which trees are combined after deleting the minimum. That small change can alter the accumulated work caused by earlier decrease-key operations. The source asks whether decrease-key has sublogarithmic amortized cost in this variant. Bounds for standard pairing heaps do not automatically transfer to the altered consolidation rule. The project aims to understand whether the forward linking pattern controls structural disorder well enough to retain stronger self-adjusting priority-queue behavior.
+
+[Read in atlas](index.html#TCS-5758) · [Pairing heaps: the forward variant](https://doi.org/10.4230/LIPIcs.MFCS.2018.13)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5768 — What Does Dynamic Optimality Mean in External Memory? — Explicit open question on PDF page 2
+
+Dynamic optimality compares an online search tree with the best legal strategy knowing the entire request sequence. The imported passage records the historical question of obtaining sublogarithmic competitiveness for splay trees. The surrounding paper studies why external-memory versions require careful choices of operations and comparison classes. Query-only and update-inclusive models need not behave equivalently there. This description preserves the dated source perspective while treating the deeper project as understanding which adaptive-search benchmark remains meaningful when data move in blocks.
+
+[Read in atlas](index.html#TCS-5768) · [What Does Dynamic Optimality Mean in External Memory?](https://doi.org/10.4230/LIPIcs.ITCS.2022.18)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5825 — Dynamic Membership for Regular Languages — Conjecture 2.3
+
+The prefix-U1 problem maintains a sequence over a small monoid while supporting updates and prefix-product queries. Its queries capture whether a nonneutral element occurs within a specified prefix, relating the task to finding a minimum position. The conjecture rules out a data structure with constant time per operation in the stated logarithmic-word RAM model. The source emphasizes that ordinary cell-probe arguments do not establish the desired obstacle. A lower bound would isolate computational work inside a word operation as a genuine limitation in dynamic regular-language membership.
+
+[Read in atlas](index.html#TCS-5825) · [Dynamic Membership for Regular Languages](https://doi.org/10.4230/LIPIcs.ICALP.2021.116)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6290 — Bottom-Up Rebalancing Binary Search Trees by Flipping a Coin — Unresolved-question passage on page 13
+
+Randomized binary-search-tree insertion can rebalance using coin flips instead of stored balance fields. The source studies bottom-up schemes satisfying a specific collection of local implementation restrictions. It asks whether expected logarithmic average depth can be guaranteed for every insertion sequence under those restrictions. Experiments with good average behavior do not establish a worst-sequence expectation bound. The project seeks either a robust local randomized rule or an explanation of which restriction must be relaxed to prevent adversarially deep trees.
+
+[Read in atlas](index.html#TCS-6290) · [Bottom-Up Rebalancing Binary Search Trees by Flipping a Coin](https://doi.org/10.4230/LIPIcs.FUN.2024.6)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6480 — Strongly History-Independent Storage Allocation: New Upper and Lower Bounds — Unresolved-question passage on page 19
+
+Strongly history-independent storage allocation aims to make the physical representation reveal only the current stored objects. The cited source conjectures that allowing larger objects makes a folklore overhead bound optimal. Object size can increase fragmentation while history independence restricts how the allocator rearranges memory. A matching lower bound would quantify the storage cost of hiding the sequence of past updates. The saved formula has lost the parameter before its inverse exponent, so the exact overhead scale and large-object regime remain unspecified despite this entry's inherited game-theory placement.
+
+[Read in atlas](index.html#TCS-6480) · [Strongly History-Independent Storage Allocation: New Upper and Lower Bounds](https://doi.org/10.1109/FOCS57990.2023.00111)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+## Dynamic algorithms (35)
 
 ### TCS-6625 — Deterministic fully dynamic connectivity with polylogarithmic worst-case updates
 
@@ -6112,13 +6289,6 @@ Given a connected undirected graph, the goal is to find a spanning tree whose ma
 [Read in atlas](index.html#TCS-0538) · [Graph Algorithms: Distributed Meets Dynamic](https://doi.org/10.4230/DagRep.14.11.92)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0300 — The randomized complexity of online labeling
-
-Online labeling assigns ordered numerical labels to arriving items while preserving their sorted order. New arrivals may force earlier labels to change, and each change has a cost. The source asks for the randomized complexity as a function of the item count and available label space. An equivalent view maintains a sorted array with spare slots and pays for moving items. The project quantifies whether randomization can reduce the unavoidable reorganizations caused by adversarial insertion positions.
-
-[Read in atlas](index.html#TCS-0300) · [Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.7.3.45)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1001 — Minimal complexity of MaxFlow on dynamic graphs
 
 The source models a temporal network as T graph snapshots with a capacity for each edge at each time step. It asks for the maximum amount of flow that can move from a designated source to a sink over these T steps, with zero edge transit time and unlimited storage at vertices. A time-expanded graph represents each vertex at successive times and adds storage edges between its copies. The open question asks whether one can improve the T^(5/2) dependence obtained from the best of the static-flow algorithms compared in the source. A faster algorithm could exploit the special structure of the expanded graph or work directly with compact vectors of time-dependent capacities.
@@ -6161,13 +6331,6 @@ A dynamic maximum-flow algorithm updates its answer as the graph changes. The so
 [Read in atlas](index.html#TCS-2558) · [Efficient Data Structures for Incremental Exact and Approximate Maximum Flow](https://doi.org/10.4230/LIPIcs.ICALP.2023.69)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2730 — Thus, even in the non-succinct case, designing worst-case update operations is an open problem.
-
-An indexed list supports access both by stored item and by its position in an evolving order. Insertions and deletions must maintain that correspondence as positions shift. The source asks for worst-case update guarantees matching the efficiency available amortized, even without requiring a succinct representation. A rare expensive rebuilding step is unacceptable under this stronger target. The project concerns spreading maintenance work predictably across operations while retaining fast access and a reasonable memory footprint.
-
-[Read in atlas](index.html#TCS-2730) · [Succinct List Indexing in Optimal Time](https://doi.org/10.4230/LIPIcs.ISAAC.2022.65)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2798 — We leave open the question of closing the gap between upper and lower bounds for the worker-task assignment problem: the upper bound is polylog(wt) and […]
 
 A memoryless assignment rule allocates w named workers to a multiset of w demanded tasks using only the current demands. When one demanded task changes, the switching cost counts how many workers must change assignments. The source asks to close the gap between a polylogarithmic upper bound in wt and a log* t lower bound. It highlights the particularly unclear regime where the number of task types and workers are polynomially related, for which even a superconstant lower bound is missing there. Tight bounds would quantify the unavoidable disruption of maintaining balanced assignments without remembering earlier allocations.
@@ -6203,13 +6366,6 @@ Dynamic strings change through edits while data structures continue to answer st
 [Read in atlas](index.html#TCS-3669) · [Repetition Detection in a Dynamic String](https://doi.org/10.4230/LIPIcs.ESA.2019.5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3788 — It is an open problem whether randomization can speed up partitioning algorithms and lead, in particular, to faster data structures for the various operations considered […]
-
-Approximate rank and selection allow an ordered-set query to err by a controlled number of positions. The source builds word-RAM structures using integer partitioning as an internal primitive. It asks whether randomization can accelerate that partitioning and thereby improve the supported operations. Fast randomized sorting provides motivation but does not directly yield the needed partition maintenance. The project studies whether relaxing exact order information opens additional algorithmic speedups once both approximation tolerance and machine word length are taken into account.
-
-[Read in atlas](index.html#TCS-3788) · [Dynamic Ordered Sets with Approximate Queries, Approximate Heaps and Soft Heaps](https://doi.org/10.4230/LIPIcs.ICALP.2019.95)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3902 — Updating an abstract Voronoi diagram, after deletion of one site, in deterministic linear time remains an open problem.
 
 Deleting one Voronoi site requires filling the region that previously belonged to it. The abstract model describes this task through admissible bisectors rather than one particular Euclidean site type. The source asks for deterministic time linear in the affected region's boundary complexity. Its randomized algorithm achieves expected linear time using intermediate Voronoi-like structures. The target is to remove randomness while preserving a local update guarantee that can serve many concrete proximity diagrams with different kinds of sites.
@@ -6230,13 +6386,6 @@ Extended conjunctive regular path queries describe relationships among paths in 
 
 [Read in atlas](index.html#TCS-4307) · [Dynamic Graph Queries](https://doi.org/10.4230/LIPIcs.ICDT.2016.14)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4799 — Limits of Quantum Speed-Ups for Computational Geometry and Other Problems: Fine-Grained Complexity via Quantum Walks — Unresolved-question passage on page 9
-
-A history-independent data structure represents the same logical contents identically regardless of the sequence of updates that produced them. This property is useful in quantum walks because information about the path taken can obstruct coherent interference. The question asks which dynamic problems admit structures that are simultaneously deterministic, fast, space-efficient, and history-independent. Even maintaining sorted information raises a distinction between randomized constructions and the desired deterministic alternative. Algorithms or lower bounds would explain the extra price of making a classical data structure compatible with coherent quantum computation.
-
-[Read in atlas](index.html#TCS-4799) · [Limits of Quantum Speed-Ups for Computational Geometry and Other Problems: Fine-Grained Complexity via Quantum Walks](https://doi.org/10.4230/LIPIcs.ITCS.2022.31)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-4885 — Dynamic Deterministic Constant-Approximate Distance Oracles with n^{ε} Worst-Case Update Time — Explicit open question on PDF page 9
 
@@ -6264,13 +6413,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Dynamic facility location maintains open facilities and client assignments as the client population changes. Besides solution cost, the algorithm must control either update time or the number of changes to earlier decisions. The source asks for constant-quality solutions with fast updates or polylogarithmic amortized recourse in the fully dynamic setting. Deletions make this stronger than maintaining a solution only as clients arrive. A successful method would preserve the benefits of local-search-style facility placement while preventing a small change in demand from requiring a large amount of recomputation or reassignment.
 
 [Read in atlas](index.html#TCS-5612) · [On the Facility Location Problem in Online and Dynamic Models](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.42)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5825 — Dynamic Membership for Regular Languages — Conjecture 2.3
-
-The prefix-U1 problem maintains a sequence over a small monoid while supporting updates and prefix-product queries. Its queries capture whether a nonneutral element occurs within a specified prefix, relating the task to finding a minimum position. The conjecture rules out a data structure with constant time per operation in the stated logarithmic-word RAM model. The source emphasizes that ordinary cell-probe arguments do not establish the desired obstacle. A lower bound would isolate computational work inside a word operation as a genuine limitation in dynamic regular-language membership.
-
-[Read in atlas](index.html#TCS-5825) · [Dynamic Membership for Regular Languages](https://doi.org/10.4230/LIPIcs.ICALP.2021.116)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5852 — Fully Dynamic Spanners with Worst-Case Update Time — Explicit open question on PDF page 4
@@ -8474,7 +8616,7 @@ The cited textbook construction uses inner linear codes attaining Gilbert–Vars
 [Read in atlas](index.html#TCS-6859) · [Essential Coding Theory](https://cse.buffalo.edu/faculty/atri/courses/coding-theory/book/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Property testing and distribution learning (53)
+## Property testing and distribution learning (52)
 
 ### TCS-6630 — Effective classification of polynomially testable hereditary graph properties
 
@@ -8656,13 +8798,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The distributions-over-huge-objects model samples long strings but charges for individual bit probes into those samples. Distribution distance uses transportation cost induced by relative Hamming distance between strings. The source asks which label-invariant properties can be tested with probe complexity close to their sample complexity, apart from accuracy and logarithmic factors. It proves this for properties closed under arbitrary mappings and gives examples showing that not all label-invariant properties behave alike. A characterization would identify when learning only tiny portions of sampled objects retains almost all the information needed for distribution testing.
 
 [Read in atlas](index.html#TCS-2665) · [Testing Distributions of Huge Objects](https://doi.org/10.4230/LIPIcs.ITCS.2022.78)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3003 — Is it the case that for every GSF-local property P = ∪n∈N Pn , there is a sequence F = (Fn )n∈N that is non-propagating […]
-
-Generalized subgraph freeness describes bounded-degree graph properties by forbidding specified local patterns. Non-propagation adds a condition ensuring that local violations do not force extensive global repairs. The historical question asks whether every GSF-local property admits a non-propagating presentation, which would simplify the characterization of constant-query proximity-oblivious testing. The cited paper answers negatively by constructing a GSF-local property that is propagating and lacks such a tester. This entry therefore illustrates an established separation: local forbidden descriptions alone do not guarantee that a fixed small sampling experiment can reliably detect distance from the property.
-
-[Read in atlas](index.html#TCS-3003) · [GSF-Locality Is Not Sufficient For Proximity-Oblivious Testing](https://doi.org/10.4230/LIPIcs.CCC.2021.34)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3017 — We leave open an interesting question posed also in [12]: is it possible to test for uniformity in the scarce regime, and if so – […]

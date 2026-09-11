@@ -1,27 +1,27 @@
-# Importance order in all 34 categories
+# Importance order in all 35 categories
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. Top 100 and Top 1000 use the first 5/2 and 50/20 category places respectively. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-1,028 records have an editorial importance assessment; 1,721 remain provisional.
+1,026 records have an editorial importance assessment; 1,711 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
-## 1. Algorithms and data structures (large)
+## 1. Algorithms (large)
 
-Target: 50; candidates: 120; importance assessed: 23; provisional: 97.
+Target: 50; candidates: 99; importance assessed: 13; provisional: 86.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
-| 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) | 97 |
-| 2 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) | 96 |
-| 3 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) | 96 |
-| 4 | [Can a static dictionary be built deterministically in linear time?](index.html#TCS-6586) | 94 |
-| 5 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) | 79 |
-| 6 | [Data Structure Lower Bound in the Cell Probe Model](index.html#TCS-0949) | 84 |
-| 7 | [Do splay trees support deque operations in constant amortized time?](index.html#TCS-6508) | 81 |
-| 8 | [Does splaying every BST preorder take linear total time?](index.html#TCS-6512) | 79 |
-| 9 | [Cut-Sparsification of Hypergraphs](index.html#TCS-0946) | 76 |
-| 10 | [Does recursively splitting a splay tree always take linear total time?](index.html#TCS-6509) | 76 |
+| 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) | 96 |
+| 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) | 79 |
+| 3 | [Cut-Sparsification of Hypergraphs](index.html#TCS-0946) | 76 |
+| 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) | 74 |
+| 5 | [Does ordinary median-of-medians selection with groups of three run in linear time?](index.html#TCS-0475) | 69 |
+| 6 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) | 75 |
+| 7 | [Hardness/tractability radius of Hamiltonian Cycle](index.html#TCS-0585) | 72 |
+| 8 | [Odd cycle transversal in P5 -free graphs](index.html#TCS-0596) | 65 |
+| 9 | [Precoloring extension of graphs](index.html#TCS-0598) | 65 |
+| 10 | [Near-linear-time minimum-cost Steiner perfect matching in planar graphs](index.html#TCS-0774) | 62 |
 
 ## 2. Computational complexity (large)
 
@@ -59,7 +59,7 @@ Target: 50; candidates: 122; importance assessed: 57; provisional: 65.
 
 ## 4. Semantics, logic and verification (large)
 
-Target: 50; candidates: 176; importance assessed: 67; provisional: 109.
+Target: 50; candidates: 174; importance assessed: 67; provisional: 107.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Target: 50; candidates: 176; importance assessed: 67; provisional: 109.
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Target: 50; candidates: 181; importance assessed: 72; provisional: 109.
+Target: 50; candidates: 178; importance assessed: 70; provisional: 108.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ Target: 50; candidates: 181; importance assessed: 72; provisional: 109.
 
 ## 6. Optimization and numerical computation (large)
 
-Target: 50; candidates: 72; importance assessed: 30; provisional: 42.
+Target: 50; candidates: 71; importance assessed: 30; provisional: 41.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -101,7 +101,7 @@ Target: 50; candidates: 72; importance assessed: 30; provisional: 42.
 | 2 | [Is exact semidefinite feasibility in polynomial time?](index.html#TCS-6574) | 97 |
 | 3 | [Does the packing property imply the max-flow min-cut property?](index.html#TCS-7227) | 90 |
 | 4 | [Nearly linear-time solution of general sparse linear systems](index.html#TCS-6585) | 97 |
-| 5 | [Smale’s seventh problem](index.html#TCS-6578) | 94 |
+| 5 | [Smale’s seventh problem: efficient near-minimal logarithmic energy on the sphere](index.html#TCS-6578) | 94 |
 | 6 | [Is there a polynomial-time simplex pivot rule?](index.html#TCS-6572) | 97 |
 | 7 | [Is the P-matrix linear complementarity problem in polynomial time?](index.html#TCS-7231) | 95 |
 | 8 | [Woodall’s conjecture on packing directed-cut covers](index.html#TCS-7226) | 89 |
@@ -110,7 +110,7 @@ Target: 50; candidates: 72; importance assessed: 30; provisional: 42.
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Target: 50; candidates: 202; importance assessed: 109; provisional: 93.
+Target: 50; candidates: 201; importance assessed: 109; provisional: 92.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Target: 50; candidates: 202; importance assessed: 109; provisional: 93.
 
 ## 8. Learning theory (large)
 
-Target: 50; candidates: 103; importance assessed: 27; provisional: 76.
+Target: 50; candidates: 102; importance assessed: 27; provisional: 75.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ Target: 50; candidates: 103; importance assessed: 27; provisional: 76.
 
 ## 9. Cryptography (large)
 
-Target: 50; candidates: 50; importance assessed: 20; provisional: 30.
+Target: 50; candidates: 48; importance assessed: 20; provisional: 28.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -263,7 +263,7 @@ Target: 20; candidates: 75; importance assessed: 38; provisional: 37.
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Target: 20; candidates: 153; importance assessed: 58; provisional: 95.
+Target: 20; candidates: 152; importance assessed: 58; provisional: 94.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -380,9 +380,26 @@ Target: 20; candidates: 74; importance assessed: 34; provisional: 40.
 | 9 | [Almost-linear triangle detection](index.html#TCS-6539) | 95 |
 | 10 | [Seese’s conjecture for MSO₁ and clique-width](index.html#TCS-6654) | 95 |
 
-## 13. Dynamic algorithms (small)
+## 13. Data structures (small)
 
-Target: 20; candidates: 40; importance assessed: 16; provisional: 24.
+Target: 20; candidates: 26; importance assessed: 11; provisional: 15.
+
+| Category position | Problem | Editorial priority |
+| --- | --- | --- |
+| 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) | 97 |
+| 2 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) | 96 |
+| 3 | [Can a static dictionary be built deterministically in linear time?](index.html#TCS-6586) | 94 |
+| 4 | [Data Structure Lower Bound in the Cell Probe Model](index.html#TCS-0949) | 84 |
+| 5 | [Do splay trees support deque operations in constant amortized time?](index.html#TCS-6508) | 81 |
+| 6 | [Does splaying every BST preorder take linear total time?](index.html#TCS-6512) | 79 |
+| 7 | [Does recursively splitting a splay tree always take linear total time?](index.html#TCS-6509) | 76 |
+| 8 | [Do pure pairing heaps support O(log log n) amortized decrease-key?](index.html#TCS-6514) | 68 |
+| 9 | [Can lazy B-tree priority queues keep their I/O bounds with stable handles?](index.html#TCS-6502) | 61 |
+| 10 | [The randomized complexity of online labeling](index.html#TCS-0300) | 60 |
+
+## 14. Dynamic algorithms (small)
+
+Target: 20; candidates: 35; importance assessed: 15; provisional: 20.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -397,7 +414,7 @@ Target: 20; candidates: 40; importance assessed: 16; provisional: 24.
 | 9 | [An Open Problem in Dynamic Edge Coloring](index.html#TCS-0536) | 74 |
 | 10 | [Open Problem: Dynamic Brooks’ Theorem](index.html#TCS-0537) | 74 |
 
-## 14. String algorithms and computational biology (small)
+## 15. String algorithms and computational biology (small)
 
 Target: 20; candidates: 46; importance assessed: 13; provisional: 33.
 
@@ -414,7 +431,7 @@ Target: 20; candidates: 46; importance assessed: 13; provisional: 33.
 | 9 | [Can pattern matching run in linear time in the LZ77 input size?](index.html#TCS-0468) | 81 |
 | 10 | [Can grammar random access use O(g log g) bits with logarithmic query time?](index.html#TCS-0470) | 80 |
 
-## 15. Game theory, social choice and fair division (small)
+## 16. Game theory, social choice and fair division (small)
 
 Target: 20; candidates: 64; importance assessed: 35; provisional: 29.
 
@@ -431,7 +448,7 @@ Target: 20; candidates: 64; importance assessed: 35; provisional: 29.
 | 9 | [The optimal multiplicative MMS guarantee for chores](index.html#TCS-7200) | 89 |
 | 10 | [Competitive equilibrium for almost all budgets with two additive agents](index.html#TCS-7207) | 88 |
 
-## 16. Algebraic computation (small)
+## 17. Algebraic computation (small)
 
 Target: 20; candidates: 136; importance assessed: 39; provisional: 97.
 
@@ -448,7 +465,7 @@ Target: 20; candidates: 136; importance assessed: 39; provisional: 97.
 | 9 | [The conjugacy problem for one-relator groups](index.html#TCS-6642) | 95 |
 | 10 | [The isomorphism problem for one-relator groups](index.html#TCS-6677) | 95 |
 
-## 17. Lattices and computational number theory (small)
+## 18. Lattices and computational number theory (small)
 
 Target: 20; candidates: 34; importance assessed: 24; provisional: 10.
 
@@ -465,7 +482,7 @@ Target: 20; candidates: 34; importance assessed: 24; provisional: 10.
 | 9 | [Standard-assumption hardness for cryptographic-factor SVP](index.html#TCS-0658) | 92 |
 | 10 | [Stronger worst-case reductions to SIS and LWE](index.html#TCS-0659) | 90 |
 
-## 18. Coding and information theory (small)
+## 19. Coding and information theory (small)
 
 Target: 20; candidates: 53; importance assessed: 28; provisional: 25.
 
@@ -482,9 +499,9 @@ Target: 20; candidates: 53; importance assessed: 28; provisional: 25.
 | 9 | [The rate-distortion region for distributed lossy source coding](index.html#TCS-7214) | 94 |
 | 10 | [The Shannon capacity of C7](index.html#TCS-6610) | 93 |
 
-## 19. Property testing and distribution learning (small)
+## 20. Property testing and distribution learning (small)
 
-Target: 20; candidates: 53; importance assessed: 21; provisional: 32.
+Target: 20; candidates: 52; importance assessed: 21; provisional: 31.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -499,7 +516,7 @@ Target: 20; candidates: 53; importance assessed: 21; provisional: 32.
 | 9 | [Testing Submodularity](index.html#TCS-0848) | 75 |
 | 10 | [AM vs. NP for Proofs of Proximity in Distribution Testing](index.html#TCS-0839) | 72 |
 
-## 20. Differential privacy (small)
+## 21. Differential privacy (small)
 
 Target: 20; candidates: 22; importance assessed: 11; provisional: 11.
 
@@ -516,7 +533,7 @@ Target: 20; candidates: 22; importance assessed: 11; provisional: 11.
 | 9 | [Optimal private selection using only Gaussian queries](index.html#TCS-6451) | 66 |
 | 10 | [Optimal private selection using only Laplace queries](index.html#TCS-6452) | 66 |
 
-## 21. Constraint satisfaction (small)
+## 22. Constraint satisfaction (small)
 
 Target: 20; candidates: 39; importance assessed: 12; provisional: 27.
 
@@ -533,7 +550,7 @@ Target: 20; candidates: 39; importance assessed: 12; provisional: 27.
 | 9 | [Polynomial kernels for Boolean MinCSP](index.html#TCS-0444) | 72 |
 | 10 | [Beating meet-in-the-middle for partial-Maltsev SAT](index.html#TCS-0440) | 68 |
 
-## 22. Automated reasoning, rewriting and unification (small)
+## 23. Automated reasoning, rewriting and unification (small)
 
 Target: 20; candidates: 37; importance assessed: 15; provisional: 22.
 
@@ -550,7 +567,7 @@ Target: 20; candidates: 37; importance assessed: 15; provisional: 22.
 | 9 | [Is unification modulo the theory of allegories decidable?](index.html#TCS-0169) | 77 |
 | 10 | [Is unification of patterns modulo any set of variable-preserving equations decidable?](index.html#TCS-0173) | 74 |
 
-## 23. Database theory and finite model theory (small)
+## 24. Database theory and finite model theory (small)
 
 Target: 20; candidates: 68; importance assessed: 19; provisional: 49.
 
@@ -567,7 +584,7 @@ Target: 20; candidates: 68; importance assessed: 19; provisional: 49.
 | 9 | [Complexity of polymatroid query-size bounds](index.html#TCS-0487) | 81 |
 | 10 | [Finite controllability from bounded derivation](index.html#TCS-0494) | 79 |
 
-## 24. Miscellaneous (small)
+## 25. Miscellaneous (small)
 
 Target: 20; candidates: 5; importance assessed: 3; provisional: 2.
 

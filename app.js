@@ -237,7 +237,12 @@
         const deltaResponse=await fetch('updates-delta.json',{cache:'no-store'});
         if(deltaResponse.ok){const delta=await deltaResponse.json();if(delta.base_version===currentVersion&&delta.version===version.version)update=delta;}
       }
-      if(!update){const fullResponse=await fetch('updates.json',{cache:'no-store'});if(!fullResponse.ok)throw new Error('Unavailable');update=await fullResponse.json();}
+      if(!update){
+        const fullResponse=await fetch('catalog.json',{cache:'no-store'});if(!fullResponse.ok)throw new Error('Unavailable');
+        const catalogue=await fullResponse.json();
+        if(catalogue.meta.version!==version.version)throw new Error('Publication in progress');
+        update={...catalogue,version:catalogue.meta.version,snapshot:true};
+      }
       await applyPublication(update);
     }}
     catch{/* Keep the current catalogue and retry on the next poll. */}
