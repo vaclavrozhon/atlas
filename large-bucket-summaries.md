@@ -362,18 +362,18 @@ Nephew asks for a vertex violating one of two rules imposed on a pair of oracle 
 [Read in atlas](index.html#TCS-1494) · [Total Search Problems in ZPP](https://doi.org/10.4230/LIPIcs.ITCS.2026.60)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1510 — Are there properties of finite mathematical objects that can only be certified efficiently to a high degree of confidence by probabilistic algorithms, but that we […]
+### TCS-1510 — Can efficient randomized evidence lack a comparably short certain proof?
 
-A randomized computation can give extremely high confidence in a finite mathematical fact without providing an ordinary short proof. The source motivates this issue through bounds on the diameter of Rubik's Cube and related vertex-transitive graphs. It asks whether some properties admit efficient probabilistic certification while resisting comparably efficient certain certification. The distinction concerns evidence for a fixed deterministic fact, not randomness in the fact itself. The project explores the boundary between trustworthy computational experiments and concise deductive verification.
+Random experiments can provide strong evidence for a deterministic property of a finite object. The source asks whether such evidence can be efficient even when a comparably short certain proof is unavailable. Efficient deterministic decision, short checkable certificates and short proofs in a chosen calculus are different requirements. The Rubik experiment and primality example illustrate practical evidence, not established proof-length separations. A precise object family, evidence guarantee and proof system remain to be selected.
 
-[Read in atlas](index.html#TCS-1510) · [A Demigod’s Number for the Rubik’s Cube](https://doi.org/10.4230/LIPIcs.FUN.2026.31)
+[Read in atlas](index.html#TCS-1510) · [A Demigod’s Number for the Rubik’s Cube](https://doi.org/10.4230/LIPIcs.FUN.2026.31) · [PRIMES is in P](https://annals.math.princeton.edu/2004/160-2/p12)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1553 — Construct an explicit family of boolean functions fn : {0, 1}n → {0, 1} such that there exist constants δ1 , δ2 > 0 such […]
+### TCS-1553 — Explicit superlinear circuit lower bounds with polynomially growing depth
 
-The selected question asks for an explicit Boolean function family that defeats circuits of mildly superlinear size and polynomially bounded depth. The circuit gates have constant fan-in and fan-out, and the target fixes positive exponents for both resource bounds. The source raises this circuit lower-bound problem as a barrier to proving stronger distributed graph-detection lower bounds. It shows that certain polynomial CONGEST lower bounds for ordered paths or induced cycles would already solve the circuit challenge. The connection warns that apparently local network problems can require progress on a major unrestricted circuit lower-bound frontier.
+The target is a concrete Boolean-function family that cannot be computed by circuits which are both near-linear in size and polynomially bounded in depth. Both exponents must exceed their baseline by a fixed positive amount. The circuits may be nonuniform but must be correct on every input. The source links sufficiently strong distributed lower bounds to this still-unproved circuit target. The precise uniform resource requirement behind the word explicit remains to be selected.
 
-[Read in atlas](index.html#TCS-1553) · [Distributed Complexity of P_k-Freeness: Decision and Certification](https://doi.org/10.4230/LIPIcs.ISAAC.2025.51)
+[Read in atlas](index.html#TCS-1553) · [Distributed Complexity of P_k-Freeness: Decision and Certification](https://doi.org/10.4230/LIPIcs.ISAAC.2025.51) · [Distributed Complexity of P_k-freeness: Decision and Certification — version record](https://arxiv.org/abs/2410.20353)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1602 — The most interesting question that remains open is to determine the deterministic query complexity of finding a king in an n-vertex tournament.
@@ -3025,11 +3025,11 @@ Approximating a continuous function can use either sampled function values or ar
 [Read in atlas](index.html#TCS-0645) · [Algorithms and Complexity for Continuous Problems](https://doi.org/10.4230/DagRep.13.8.106)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1512 — A central open question remains: can we design size-independent sparsifiers for general integer linear programs, with degree depending only on 1/p, 1/ϵ, and intrinsic structural […]
+### TCS-1512 — Dimension-independent polyhedral sparsifiers for stochastic integer programs
 
-Stochastic packing problems may require probing items before learning which ones are available or useful. The source measures sparsifier size through containment in a scaled feasibility polytope, rather than simply counting queried items. It asks whether general integer linear programs admit sparsifiers whose degree is independent of total instance size. The allowed dependence is on availability and accuracy parameters together with intrinsic structural features of the constraints. Such a theorem would show when near-optimal solutions can be recovered from a bounded amount of structurally relevant information across much broader packing models.
+A sparsifier chooses which items to query before learning which independently become available. It must preserve nearly the full expected optimum while its indicator fits inside a small scaling of the feasible-item polytope. This degree can stay constant even when the number of queried items grows. The source proves such bounds for knapsack and assignment models. Extending them to general integer programs still requires a specified activation model and genuine structural parameters independent of dimension.
 
-[Read in atlas](index.html#TCS-1512) · [Near-Optimal Sparsifiers for Stochastic Knapsack and Assignment Problems](https://doi.org/10.4230/LIPIcs.ITCS.2026.51)
+[Read in atlas](index.html#TCS-1512) · [Near-Optimal Sparsifiers for Stochastic Knapsack and Assignment Problems](https://doi.org/10.4230/LIPIcs.ITCS.2026.51) · [Near-Optimal Sparsifiers for Stochastic Knapsack and Assignment Problems — version record](https://arxiv.org/abs/2512.01240)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2277 — There exists an algorithm that on input M ∈ Zd×n such that 0 ∈ int(P ), a vector v ∈ (Q(i)× )n , and ε […]

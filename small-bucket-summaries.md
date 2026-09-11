@@ -2469,12 +2469,12 @@ In online metric traveling salesperson problems, arriving points must be inserte
 [Read in atlas](index.html#TCS-1241) · [Online Metric TSP: Beyond the √n Barrier](https://doi.org/10.4230/LIPIcs.ICALP.2026.18)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1529 — While our work establishes promising results, our initial motivating question is still wide open: does there exist an online forecasting algorithm which achieves the optimal […]
+### TCS-1529 — One forecaster with the optimal regret rate for every proper loss
 
-Proper losses reward probabilistic forecasts for honestly reporting the underlying chance of an outcome. Different proper losses can have different optimal regret rates, even on the same forecasting sequence. The source asks whether one online forecasting algorithm can attain the appropriate optimal rate for every proper loss simultaneously, up to constant or logarithmic factors. It also identifies classifying those individual optimal rates as part of the unresolved picture. This would strengthen universal calibration guarantees by making forecasts competitive at each loss's own statistical scale rather than a single shared worst-case rate.
+One online forecaster must issue predictions before knowing which proper loss a downstream user cares about. The question asks it to match each loss’s own optimal regret rate up to logarithmic factors in the horizon. The benchmark is the best fixed probability prediction in hindsight, with expectation over the forecaster’s randomness. The source already combines logarithmic regret for smooth losses with nearly square-root regret for all bounded proper losses. The remaining task is to adapt to the individually optimal rate of every bounded proper loss.
 
-[Read in atlas](index.html#TCS-1529) · [Toward Simultaneously Optimal Regret in U-Calibration](https://proceedings.mlr.press/v336/frongillo26a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1529) · [Toward Simultaneously Optimal Regret in U-Calibration](https://proceedings.mlr.press/v336/frongillo26a.html) · [Toward Simultaneously Optimal Regret in U-Calibration — version record](https://arxiv.org/abs/2606.18527)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-2367 — √ We conjecture that GMP admits an O( log n) approximation, based on suitably rounding the configuration LP.
 
