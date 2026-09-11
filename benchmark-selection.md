@@ -11,18 +11,20 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 495 | 5 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 966 | 34 |
+| [Top 500](index.html?benchmark=top500) | 500 | 494 | 6 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 937 | 63 |
 
 ## Unfilled places
 
-- top500: Miscellaneous has 5/10 places.
-- top1000: Optimization and numerical computation has 48/50 places.
-- top1000: Cryptography has 44/50 places.
-- top1000: Sampling, Markov chains and mixing times has 16/20 places.
-- top1000: Data structures has 18/20 places.
-- top1000: Differential privacy has 15/20 places.
-- top1000: Miscellaneous has 5/20 places.
+- top500: Miscellaneous has 4/10 places.
+- top1000: Algorithms has 41/50 places.
+- top1000: Optimization and numerical computation has 42/50 places.
+- top1000: Cryptography has 43/50 places.
+- top1000: Sampling, Markov chains and mixing times has 14/20 places.
+- top1000: Data structures has 15/20 places.
+- top1000: Dynamic algorithms has 18/20 places.
+- top1000: Differential privacy has 10/20 places.
+- top1000: Miscellaneous has 4/20 places.
 
 ## Review needed after catalogue changes
 
@@ -60,7 +62,7 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | 4 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
 | 5 | [Mincost flow in planar graphs](index.html#TCS-0809) (TCS-0809) | Needs review | 62 | Unreviewed replacement |
 
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-0595, TCS-0946, TCS-1141.
+Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-0946, TCS-1141.
 
 ## Automata and formal languages
 
@@ -124,7 +126,7 @@ Previous prefix: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585.
 | 4 | [Nearly linear-time solution of general sparse linear systems](index.html#TCS-6585) (TCS-6585) | Numerical linear algebra | 97 | A fundamental input-size complexity question for one of the most widely used computational primitives, with meaningful positive results for structured classes and general reductions from apparently special systems. |
 | 5 | [Smale’s seventh problem: efficient near-minimal logarithmic energy on the sphere](index.html#TCS-6578) (TCS-6578) | Geometric energy optimization | 94 | Smale's seventh problem asks for efficient construction of globally near-optimal configurations. |
 
-Candidates considered: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585, TCS-6576, TCS-6577, TCS-6578, TCS-0491, TCS-0711, TCS-0724, TCS-0715, TCS-0728, TCS-0708, TCS-0709, TCS-0722, TCS-7227, TCS-7226.
+Candidates considered: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585, TCS-6576, TCS-6577, TCS-6578, TCS-0491, TCS-0711, TCS-0724, TCS-0715, TCS-0728, TCS-0708, TCS-0722, TCS-7227, TCS-7226.
 
 ## Geometry, topology and metric spaces
 
@@ -292,7 +294,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [The deterministic k-server conjecture](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational conjecture about online decision-making, with an optimal lower bound, one broadly applicable candidate algorithm, and a persistent gap on general metrics despite many resolved special cases. |
 | 2 | [A constant improvement over factor 2 for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0701, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-1891, TCS-2267, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5186, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
+Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-3314, TCS-3392, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-5004, TCS-5030, TCS-5126, TCS-5158, TCS-5182, TCS-5186, TCS-5221, TCS-5252, TCS-5349, TCS-5514, TCS-5747, TCS-5779, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
 
 ## Beyond worst-case and average-case analysis
 
@@ -318,7 +320,7 @@ Previous prefix: TCS-6621, TCS-6622.
 | 1 | [Rapid mixing of Glauber dynamics with Δ+2 colours](index.html#TCS-6621) (TCS-6621) | Colouring-chain mixing | 95 | A longstanding general-graph conjecture linking local algorithms, approximate counting and spin systems; recent near-threshold results still require structural restrictions. |
 | 2 | [The Kannan–Tetali–Vempala switch-chain conjecture for binary matrices](index.html#TCS-6622) (TCS-6622) | Sampling prescribed-degree graphs | 94 | A central obstruction to a general theory of uniform sampling with fixed combinatorial marginals. |
 
-Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-1158, TCS-1255, TCS-1693.
+Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-1693.
 
 ## Counting and enumeration
 
@@ -344,7 +346,7 @@ Previous prefix: TCS-6651, TCS-6652.
 | 1 | [Hadwiger’s conjecture: high chromatic number forces a clique minor](index.html#TCS-6651) (TCS-6651) | Graph minors and colouring | 98 | One of the central graph-theoretic conjectures, with an exact extremal target and consequences across coloring and minor structure. |
 | 2 | [Deterministic linear-time minimum spanning tree](index.html#TCS-6536) (TCS-6536) | Static graph algorithms | 96 | A foundational graph-algorithm question about the necessity of randomness and the relationship between comparison complexity and actual computation. |
 
-Candidates considered: TCS-6651, TCS-6652, TCS-6682, TCS-6653, TCS-6683, TCS-6654, TCS-6655, TCS-6500, TCS-6536, TCS-6538, TCS-6539, TCS-6511, TCS-0611, TCS-7180, TCS-0771, TCS-0595, TCS-0594, TCS-0773, TCS-0775, TCS-0612.
+Candidates considered: TCS-6651, TCS-6652, TCS-6682, TCS-6653, TCS-6683, TCS-6654, TCS-6655, TCS-6500, TCS-6536, TCS-6538, TCS-6539, TCS-6511, TCS-0611, TCS-7180, TCS-0771, TCS-0594, TCS-0775.
 
 ## Data structures
 
@@ -357,7 +359,7 @@ Previous prefix: empty.
 | 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
 | 2 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
 
-Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6514, TCS-4997, TCS-5706, TCS-5768, TCS-6290, TCS-6480, TCS-5103, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-4799, TCS-5825.
+Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6514, TCS-4997, TCS-5706, TCS-5768, TCS-5103, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-5825.
 
 ## Dynamic algorithms
 
@@ -370,7 +372,7 @@ Previous prefix: TCS-6625, TCS-6626.
 | 1 | [Deterministic fully dynamic connectivity with polylogarithmic worst-case updates](index.html#TCS-6625) (TCS-6625) | Dynamic connectivity | 97 | A foundational dynamic-graph frontier directly relevant to data structures, with a new randomized breakthrough and an explicit remaining deterministic bottleneck. |
 | 2 | [Fully dynamic near-optimal matching with polylogarithmic updates](index.html#TCS-6627) (TCS-6627) | Dynamic matching | 95 | A central dynamic graph problem connecting approximation, explicit solution maintenance and extremal induced-matching structure. |
 
-Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0543, TCS-0541, TCS-0300, TCS-1425, TCS-2730, TCS-2798, TCS-3788, TCS-4799, TCS-5825, TCS-0387, TCS-3647, TCS-3902, TCS-5612, TCS-3669, TCS-2324, TCS-3331, TCS-4307.
+Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0543, TCS-0541, TCS-0300, TCS-2730, TCS-3788, TCS-5825, TCS-0387, TCS-5612, TCS-3331, TCS-4307.
 
 ## String algorithms and computational biology
 
@@ -500,7 +502,7 @@ Previous prefix: TCS-6678, TCS-6645.
 | 1 | [FO model checking on hereditary monadically dependent graph classes](index.html#TCS-6678) (TCS-6678) | Finite-model-theoretic tractability | 96 | The central proposed tractability boundary for first-order model checking on hereditary graph classes, connecting database queries, model theory, sparsity and dense graph structure. |
 | 2 | [The full constant-delay conjunctive-query classification](index.html#TCS-6645) (TCS-6645) | Database query enumeration | 95 | A central database-theory classification question: identify exactly which fixed queries permit optimal preprocessing and delay, including the self-joins excluded by classical dichotomies. |
 
-Candidates considered: TCS-6678, TCS-6645, TCS-0492, TCS-0488, TCS-0482, TCS-0487, TCS-0494, TCS-0497, TCS-6680, TCS-4206.
+Candidates considered: TCS-6678, TCS-6645, TCS-0492, TCS-0488, TCS-0482, TCS-0487, TCS-0494, TCS-6680, TCS-4206.
 
 ## Miscellaneous
 
@@ -513,4 +515,4 @@ Previous prefix: TCS-7222.
 | 1 | [The 1/3–2/3 conjecture](index.html#TCS-7177) (TCS-7177) | Partial-order balance | 90 | Would provide a universally informative comparison for sorting with partial-order information; retained as a computationally motivated combinatorial exception. |
 | 2 | [The sunflower conjecture](index.html#TCS-7290) (TCS-7290) | Needs review | 89 | Unreviewed replacement |
 
-Candidates considered: TCS-7222, TCS-7177, TCS-1951, TCS-3520.
+Candidates considered: TCS-7222, TCS-7177, TCS-3520.

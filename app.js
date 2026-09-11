@@ -162,6 +162,15 @@
   $('collapse').onclick=()=>document.querySelectorAll('.card-details[open]').forEach(d=>d.open=false);
   $('top').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
   $('cards').addEventListener('click',event=>{
+    const related=event.target.closest('.related-problem-link');
+    if(related){
+      // Searching can hide the current hash target. Clicking its link again
+      // does not emit hashchange, so reveal it explicitly in that case.
+      if(!event.ctrlKey&&!event.metaKey&&!event.shiftKey&&!event.altKey&&related.hash===location.hash){
+        event.preventDefault();go(decodeURIComponent(related.hash.slice(1)));
+      }
+      return;
+    }
     const link=event.target.closest('[data-action="permalink"]');if(!link)return;
     event.preventDefault();history.replaceState(null,'',link.getAttribute('href'));toast('The address bar now contains a direct link to this card.');
   });

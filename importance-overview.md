@@ -2,13 +2,13 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-790 records have an editorial importance assessment; 1,187 remain provisional.
+734 records have an editorial importance assessment; 943 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Computational complexity (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 139; importance assessed: 53; provisional: 86.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 136; importance assessed: 53; provisional: 83.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -25,7 +25,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 139; importance as
 
 ## 2. Algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 50; importance assessed: 6; provisional: 44.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 41; importance assessed: 5; provisional: 36.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -34,15 +34,15 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 50; importance ass
 | 3 | [Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?](index.html#TCS-0946) | 76 |
 | 4 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) | 75 |
 | 5 | [Mincost flow in planar graphs](index.html#TCS-0809) | 62 |
-| 6 | [Minimum-weight perfect matching with odd red-edge parity](index.html#TCS-0351) | 58 |
-| 7 | [It is unknown whether there exists a deterministic algorithm to reconstruct bounded-degree graphs in o(n2 ) queries.](index.html#TCS-1292) | 50 |
-| 8 | [For a set system S Ď 2rms , weights w : rms Ñ Rě0 and ϵ ą 0, there exists a p1 ˘ ϵq sparsifier \[…\]](index.html#TCS-1338) | 50 |
-| 9 | [For any subcubic graph H, H-ISC is in P if and only if H is planar.](index.html#TCS-1617) | 50 |
-| 10 | [We do not know yet if temporal cliques admit O(n) spanners, thus the latter result might not appear very decisive.](index.html#TCS-1664) | 50 |
+| 6 | [It is unknown whether there exists a deterministic algorithm to reconstruct bounded-degree graphs in o(n2 ) queries.](index.html#TCS-1292) | 50 |
+| 7 | [For a set system S Ď 2rms , weights w : rms Ñ Rě0 and ϵ ą 0, there exists a p1 ˘ ϵq sparsifier \[…\]](index.html#TCS-1338) | 50 |
+| 8 | [For any subcubic graph H, H-ISC is in P if and only if H is planar.](index.html#TCS-1617) | 50 |
+| 9 | [We do not know yet if temporal cliques admit O(n) spanners, thus the latter result might not appear very decisive.](index.html#TCS-1664) | 50 |
+| 10 | [Does every n-node undirected graph have a constant-stretch shortestpaths preserving graph of aspect ratio poly(n)?](index.html#TCS-1934) | 50 |
 
 ## 3. Automata and formal languages (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 73; importance assessed: 29; provisional: 44.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 57; importance assessed: 27; provisional: 30.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 73; importance ass
 
 ## 4. Semantics, logic and verification (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 102; importance assessed: 29; provisional: 73.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 80; importance assessed: 26; provisional: 54.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 102; importance as
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 147; importance assessed: 55; provisional: 92.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 116; importance assessed: 47; provisional: 69.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 147; importance as
 
 ## 6. Optimization and numerical computation (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 48; importance assessed: 25; provisional: 23.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 42; importance assessed: 24; provisional: 18.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 48; importance ass
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 103; importance assessed: 61; provisional: 42.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 66; importance assessed: 48; provisional: 18.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 103; importance as
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 75; importance assessed: 23; provisional: 52.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 71; importance assessed: 22; provisional: 49.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 75; importance ass
 
 ## 9. Cryptography (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 44; importance assessed: 26; provisional: 18.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 43; importance assessed: 26; provisional: 17.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 44; importance ass
 
 ## 10. Quantum computation and information (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 105; importance assessed: 33; provisional: 72.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 89; importance assessed: 33; provisional: 56.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -178,7 +178,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 105; importance as
 
 ## 1. Computability and algorithmic information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance assessed: 19; provisional: 16.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 33; importance assessed: 19; provisional: 14.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -195,7 +195,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance ass
 
 ## 2. Proof complexity (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 50; importance assessed: 16; provisional: 34.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 44; importance assessed: 16; provisional: 28.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 50; importance ass
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 77; importance assessed: 24; provisional: 53.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 67; importance assessed: 24; provisional: 43.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -229,7 +229,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 77; importance ass
 
 ## 4. Fine-grained complexity (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 43; importance assessed: 18; provisional: 25.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance assessed: 18; provisional: 22.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -246,7 +246,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 43; importance ass
 
 ## 5. Pseudorandomness and derandomization (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 71; importance assessed: 36; provisional: 35.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 65; importance assessed: 35; provisional: 30.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -263,7 +263,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 71; importance ass
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 73; importance assessed: 24; provisional: 49.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 62; importance assessed: 20; provisional: 42.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 73; importance ass
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance assessed: 14; provisional: 26.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance assessed: 14; provisional: 21.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -297,7 +297,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance ass
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 66; importance assessed: 22; provisional: 44.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 50; importance assessed: 17; provisional: 33.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -314,7 +314,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 66; importance ass
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance assessed: 8; provisional: 27.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 32; importance assessed: 8; provisional: 24.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -326,29 +326,29 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance ass
 | 6 | [Does average-case NP hardness imply infinitely-often one-way functions?](index.html#TCS-6453) | 95 |
 | 7 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
 | 8 | [Constant adaptivity gap for influence maximization with full feedback](index.html#TCS-7288) | 81 |
-| 9 | [Is there such an average-case to average-case hardness amplification pheonomemon, possibly by proving reduction between different instances of Remote-Point?](index.html#TCS-1149) | 50 |
-| 10 | [The first one had already been posed by Feige in the original formulation of the problem: is it possible to prove any hardness result under \[…\]](index.html#TCS-1699) | 50 |
+| 9 | [The first one had already been posed by Feige in the original formulation of the problem: is it possible to prove any hardness result under \[…\]](index.html#TCS-1699) | 50 |
+| 10 | [In particular, we do not know if the value iteration algorithm has polynomial smoothed complexity and we leave this problem as an open question.](index.html#TCS-2126) | 50 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 16; importance assessed: 3; provisional: 13.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 14; importance assessed: 3; provisional: 11.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Rapid mixing of Glauber dynamics with Δ+2 colours](index.html#TCS-6621) | 95 |
 | 2 | [The Kannan–Tetali–Vempala switch-chain conjecture for binary matrices](index.html#TCS-6622) | 94 |
 | 3 | [Polynomial mixing of critical three-dimensional Ising dynamics](index.html#TCS-6668) | 93 |
-| 4 | [Given a partially observable Markov chain M = (Ω, P, O), candidate initial states a, b ∈ Ω, and hidden initial state X0 ∈ {a, \[…\]](index.html#TCS-1158) | 50 |
-| 5 | [The hitting time robustness is Ω(1/∆), where ∆ denotes the diameter.](index.html#TCS-1255) | 50 |
-| 6 | [For example, it remains open for the Sherrington-Kirkpatrick model, for a PI/LSI w.r.t. the Glauber Dynamics.](index.html#TCS-1693) | 50 |
-| 7 | [If 0 ≤ β < βu or if β > βu and \|η\| > ηa , then the Kawasaki dynamics for µ̂G,β,η are optimally mixing: \[…\]](index.html#TCS-2076) | 50 |
-| 8 | [For example, can we efficiently sample from a WNR/NA/NR distribution for any marginals in a given matroid polytope?](index.html#TCS-2861) | 50 |
-| 9 | [For any vertex-transitive graph, is the blanket time of order nR2 for all δ > 1?](index.html#TCS-4599) | 50 |
-| 10 | [Testing Small Set Expansion in General Graphs — Unresolved-question passage on page 10](index.html#TCS-5935) | 50 |
+| 4 | [For example, it remains open for the Sherrington-Kirkpatrick model, for a PI/LSI w.r.t. the Glauber Dynamics.](index.html#TCS-1693) | 50 |
+| 5 | [If 0 ≤ β < βu or if β > βu and \|η\| > ηa , then the Kawasaki dynamics for µ̂G,β,η are optimally mixing: \[…\]](index.html#TCS-2076) | 50 |
+| 6 | [For example, can we efficiently sample from a WNR/NA/NR distribution for any marginals in a given matroid polytope?](index.html#TCS-2861) | 50 |
+| 7 | [For any vertex-transitive graph, is the blanket time of order nR2 for all δ > 1?](index.html#TCS-4599) | 50 |
+| 8 | [Testing Small Set Expansion in General Graphs — Unresolved-question passage on page 10](index.html#TCS-5935) | 50 |
+| 9 | [Prove polynomial mixing for grid Ising Glauber dynamics with all-plus boundaries at every temperature.](index.html#TCS-6839) | 50 |
+| 10 | [Establish the proposed monotonicity of Ising spectral gaps in temperature and interaction strengths.](index.html#TCS-6840) | 50 |
 
 ## 11. Counting and enumeration (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 37; importance assessed: 9; provisional: 28.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 31; importance assessed: 9; provisional: 22.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -361,11 +361,11 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 37; importance ass
 | 7 | [Minimal dominating sets enumeration and hypergraph colorings](index.html#TCS-0553) | 86 |
 | 8 | [Deterministic relative counting for DNF](index.html#TCS-1004) | 84 |
 | 9 | [Strong polynomial delay conjectures](index.html#TCS-0556) | 80 |
-| 10 | [What is the complexity of the counting problem #GpEpi?](index.html#TCS-1143) | 50 |
+| 10 | [For any ε > 0, there is no O(m2−ε )-time algorithm for computing SubH△ (G).](index.html#TCS-1610) | 50 |
 
 ## 12. Structural graph theory and graph algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 68; importance assessed: 42; provisional: 26.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 56; importance assessed: 38; provisional: 18.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -382,7 +382,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 68; importance ass
 
 ## 13. Data structures (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 18; importance assessed: 7; provisional: 11.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 15; importance assessed: 7; provisional: 8.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -399,7 +399,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 18; importance ass
 
 ## 14. Dynamic algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 28; importance assessed: 14; provisional: 14.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 18; importance assessed: 13; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -416,7 +416,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 28; importance ass
 
 ## 15. String algorithms and computational biology (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 29; importance assessed: 11; provisional: 18.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 20; importance assessed: 11; provisional: 9.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -433,7 +433,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 29; importance ass
 
 ## 16. Game theory, social choice and fair division (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 51; importance assessed: 31; provisional: 20.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 44; importance assessed: 28; provisional: 16.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -450,7 +450,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 51; importance ass
 
 ## 17. Algebraic computation (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 107; importance assessed: 33; provisional: 74.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 97; importance assessed: 33; provisional: 64.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -467,7 +467,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 107; importance as
 
 ## 18. Lattices and computational number theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance assessed: 25; provisional: 10.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 33; importance assessed: 25; provisional: 8.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -484,7 +484,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance ass
 
 ## 19. Coding and information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 49; importance assessed: 29; provisional: 20.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 44; importance assessed: 28; provisional: 16.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -501,7 +501,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 49; importance ass
 
 ## 20. Property testing and distribution learning (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance assessed: 16; provisional: 24.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 34; importance assessed: 12; provisional: 22.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -518,7 +518,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 40; importance ass
 
 ## 21. Differential privacy (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 16; importance assessed: 6; provisional: 10.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 11; importance assessed: 6; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -527,15 +527,15 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 16; importance ass
 | 3 | [Can all marginals be privately released in polynomial time from a polynomial-size database?](index.html#TCS-7236) | 94 |
 | 4 | [Do you pay for Privacy in Online learning?](index.html#TCS-0510) | 80 |
 | 5 | [Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](index.html#TCS-0507) | 76 |
-| 6 | [Is there a polynomial Pd (m) whose degree ⋆ (H) ≤ P (m) for every m?](index.html#TCS-1962) | 50 |
-| 7 | [Designing a private and computationally efficient density estimator for GMMs remains an open problem even in the one-dimensional setting.](index.html#TCS-2063) | 50 |
-| 8 | [However, the question of whether generic learners can be designed remains open.](index.html#TCS-2069) | 50 |
-| 9 | [The main question that we leave open is whether there exists a differentially private algorithm for this task which is polynomial in n and d?](index.html#TCS-3312) | 50 |
-| 10 | [Alternately, can we prove any non-trivial lower bound that holds also with interaction?](index.html#TCS-3361) | 50 |
+| 6 | [However, the question of whether generic learners can be designed remains open.](index.html#TCS-2069) | 50 |
+| 7 | [The main question that we leave open is whether there exists a differentially private algorithm for this task which is polynomial in n and d?](index.html#TCS-3312) | 50 |
+| 8 | [Alternately, can we prove any non-trivial lower bound that holds also with interaction?](index.html#TCS-3361) | 50 |
+| 9 | [Necessary Conditions in Multi-Server Differential Privacy — Explicit open question on PDF page 5](index.html#TCS-5236) | 50 |
+| 10 | [Can computational privacy improve achievable utility in the trusted-curator model?](index.html#TCS-6825) | 50 |
 
 ## 22. Constraint satisfaction (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance assessed: 12; provisional: 23.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 26; importance assessed: 9; provisional: 17.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -548,11 +548,11 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance ass
 | 7 | [Characterizing CSP languages with linear non-redundancy](index.html#TCS-0441) | 76 |
 | 8 | [Uniform algorithms across tractable CSPs](index.html#TCS-0504) | 76 |
 | 9 | [Polynomial kernels for Boolean MinCSP](index.html#TCS-0444) | 72 |
-| 10 | [Beating meet-in-the-middle for partial-Maltsev SAT](index.html#TCS-0440) | 68 |
+| 10 | [Assuming P ̸= NP, does there exist an NP-intermediate ω-categorical CSP?](index.html#TCS-1173) | 50 |
 
 ## 23. Automated reasoning, rewriting and unification (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 28; importance assessed: 11; provisional: 17.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 25; importance assessed: 11; provisional: 14.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -569,7 +569,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 28; importance ass
 
 ## 24. Database theory and finite model theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 39; importance assessed: 17; provisional: 22.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 36; importance assessed: 16; provisional: 20.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -586,12 +586,11 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 39; importance ass
 
 ## 25. Miscellaneous (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 5; importance assessed: 3; provisional: 2.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 4; importance assessed: 3; provisional: 1.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [The 1/3–2/3 conjecture](index.html#TCS-7177) | 90 |
 | 2 | [The sunflower conjecture](index.html#TCS-7290) | 89 |
 | 3 | [Computational universality of nondirected planar temperature-1 tile assembly](index.html#TCS-7255) | 82 |
-| 4 | [Can execution bounded CRNs compute semilinear functions and predicates within polylogarithmic time?](index.html#TCS-1951) | 50 |
-| 5 | [Does every class C with unbounded grid-width contain arbitrarily large connected monotone grid subclasses?](index.html#TCS-3520) | 50 |
+| 4 | [Does every class C with unbounded grid-width contain arbitrarily large connected monotone grid subclasses?](index.html#TCS-3520) | 50 |
