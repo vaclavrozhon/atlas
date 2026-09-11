@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,175 five-sentence working summaries, based on saved source material.
+1,176 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (48)
@@ -4358,7 +4358,7 @@ A hypergraph transversal meets every hyperedge, and it is minimal when no select
 [Read in atlas](index.html#TCS-7112) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Structural graph theory and graph algorithms (60)
+## Structural graph theory and graph algorithms (61)
 
 ### TCS-6651 — Hadwiger’s conjecture: high chromatic number forces a clique minor
 
@@ -4478,6 +4478,13 @@ The Erdős girth conjecture seeks graphs with many edges despite the absence of 
 
 [Read in atlas](index.html#TCS-6500) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://doi.org/10.4230/LIPIcs.ESA.2026.31) · [On Sparse Spanners of Weighted Graphs](https://doi.org/10.1007/BF02189308)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7218 — The list edge-coloring conjecture
+
+A proper edge coloring assigns different colors to edges that share an endpoint. In list edge coloring, each edge must choose its color from its own finite set of allowed colors. The conjecture asks whether giving every edge as many choices as the ordinary chromatic index always suffices, even with arbitrary list overlaps and parallel edges. It holds for bipartite multigraphs, and a general asymptotic theorem leaves only a vanishing relative gap. Exact equality for every finite loopless multigraph would show that local availability restrictions never impose an additional per-edge palette requirement.
+
+[Read in atlas](index.html#TCS-7218) · [The list chromatic index of a bipartite multigraph](https://doi.org/10.1006/jctb.1995.1011) · [Asymptotics of the list-chromatic index for multigraphs](https://sites.math.rutgers.edu/~jkahn/LMULTI.pdf) · [The List Edge-Coloring Conjecture for Two New Infinite Families of Complete Graphs](https://arxiv.org/abs/2608.22895v1)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7252 — Tuza’s triangle packing–covering conjecture
 
