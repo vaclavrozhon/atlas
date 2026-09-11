@@ -11,15 +11,23 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 498 | 2 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 983 | 17 |
+| [Top 500](index.html?benchmark=top500) | 500 | 495 | 5 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 972 | 28 |
 
 ## Unfilled places
 
-- top500: Miscellaneous has 8/10 places.
-- top1000: Sampling, Markov chains and mixing times has 18/20 places.
-- top1000: Differential privacy has 17/20 places.
-- top1000: Miscellaneous has 8/20 places.
+- top500: Miscellaneous has 5/10 places.
+- top1000: Optimization and numerical computation has 48/50 places.
+- top1000: Sampling, Markov chains and mixing times has 16/20 places.
+- top1000: Data structures has 18/20 places.
+- top1000: Differential privacy has 15/20 places.
+- top1000: Miscellaneous has 5/20 places.
+
+## Review needed after catalogue changes
+
+- Unreviewed focus places in Algorithms: 1
+- Unreviewed focus places in Learning theory: 1
+- Unreviewed focus places in Miscellaneous: 1
 
 ## Computational complexity
 
@@ -39,7 +47,7 @@ Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-653
 
 ## Algorithms
 
-The focus spans integer sorting, structured real-key sorting, hypergraph cut sparsification, offline comparison complexity and directed reachability distance. These choices balance saved importance and distinct algorithmic tasks without changing statements, evidence or importance scores.
+The focus spans integer sorting, structured real-key sorting, hypergraph cut sparsification, offline comparison complexity and directed reachability distance. These choices balance saved importance and distinct algorithmic tasks without changing statements, evidence or importance scores. The September 11 interest screen removed TCS-0477; replacement focus choices remain unreviewed.
 
 Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 
@@ -48,10 +56,10 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) (TCS-6537) | Integer sorting | 96 | A foundational algorithmic primitive whose optimal complexity tests the computational power of the word RAM and would affect many tasks built on ordering integer keys. |
 | 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
 | 3 | [Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
-| 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) (TCS-0477) | Offline comparison complexity | 74 | Finding final survivors of a fully known heap-operation sequence isolates the comparison information needed for a batch answer. It does not require an online priority queue or intermediate query responses. |
-| 5 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
+| 4 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
+| 5 | [Mincost flow in planar graphs](index.html#TCS-0809) (TCS-0809) | Needs review | 62 | Unreviewed replacement |
 
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595, TCS-0946, TCS-0477, TCS-1141.
+Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-0595, TCS-0946, TCS-1141.
 
 ## Automata and formal languages
 
@@ -67,7 +75,7 @@ Previous prefix: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563.
 | 4 | [Decidability of every level of the dot-depth hierarchy](index.html#TCS-6561) (TCS-6561) | Logical language hierarchies | 95 | A longstanding structural decision problem linking finite automata, logical definability and finite monoids; a full solution would explain much more than the known low-level algorithms. |
 | 5 | [Equivalence of deterministic macro tree transducers](index.html#TCS-6563) (TCS-6563) | Tree-transducer equivalence | 95 | A central longstanding transducer-equivalence problem, connecting functional program verification with finite-state methods, algebraic invariants and structural recursion. |
 
-Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0139, TCS-0121, TCS-0146, TCS-0135, TCS-0156, TCS-0167, TCS-0136.
+Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0121, TCS-0146, TCS-0135, TCS-0156, TCS-0167, TCS-0136.
 
 ## Semantics, logic and verification
 
@@ -83,7 +91,7 @@ Previous prefix: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569.
 | 4 | [Can a Scott-continuous lambda model validate exactly beta-conversion?](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
 | 5 | [Does weak normalization imply strong normalization for every pure type system?](index.html#TCS-6583) (TCS-6583) | Consistency of type systems | 94 | Asks whether the existence of a terminating reduction for every typable term forces every reduction of every such term to terminate. |
 
-Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632, TCS-0575, TCS-0634, TCS-0628, TCS-0639.
+Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632, TCS-0575.
 
 ## Distributed, parallel and sublinear algorithms
 
@@ -131,11 +139,11 @@ Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 | 4 | [Polynomial Hirsch conjecture for edge-path diameter](index.html#TCS-6573) (TCS-6573) | Polytope geometry | 95 | The surviving fundamental diameter question after the original Hirsch bound failed; it separates geometric existence of short routes from algorithmic navigation and the newly resolved circuit analogue. |
 | 5 | [How many k-element subsets can a line separate from a planar point set?](index.html#TCS-0318) (TCS-0318) | Discrete geometric complexity | 94 | A defining extremal-complexity question for geometric algorithms, already unresolved in the plane and connected to levels, geometric selection, and parametric optimization. |
 
-Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-6529, TCS-0590, TCS-0403, TCS-0408, TCS-0378, TCS-0427, TCS-0410.
+Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-6529, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
 
 ## Learning theory
 
-Retain sample compression, noisy learning, junta learning and the information complexity of VC learning. After source correction and a full review, select distribution-free improper PAC learning of DNF in place of the narrower two-halfspace question: DNF is a foundational general rule-learning target. Its implication for uniform-example junta learning is documented; both remain individually significant. TCS-0023 is a retired, mislabelled junta-source pointer and is not another DNF problem.
+Retain sample compression, noisy learning, junta learning and the information complexity of VC learning. After source correction and a full review, select distribution-free improper PAC learning of DNF in place of the narrower two-halfspace question: DNF is a foundational general rule-learning target. Its implication for uniform-example junta learning is documented; both remain individually significant. TCS-0023 is a retired, mislabelled junta-source pointer and is not another DNF problem. The September 11 interest screen removed TCS-0679; replacement focus choices remain unreviewed.
 
 Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
 
@@ -145,9 +153,9 @@ Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
 | 2 | [Polynomial-time learning parity with constant random noise](index.html#TCS-6542) (TCS-6542) | Learning with noise | 96 | A fundamental boundary between information-theoretic learnability and efficient learning, with broad consequences for noise-tolerant algorithms and cryptographic assumptions. |
 | 3 | [Learning Boolean juntas from uniform random examples](index.html#TCS-6543) (TCS-6543) | Sparse Boolean structure | 95 | A central unresolved task in computational learning theory, isolating feature selection and serving as a prerequisite for efficient learning of general decision trees and DNF formulas. |
 | 4 | [Polynomial-time distribution-free PAC learning of DNF](index.html#TCS-5358) (TCS-5358) | Distribution-free Boolean rule learning | 97 | A defining improper PAC-learning question for compact Boolean rules under arbitrary input distributions, with broad consequences for decision-tree and junta learning. The general target and its conditional-hardness evidence are now stated precisely. |
-| 5 | [Linear conditional information for proper agnostic VC learning](index.html#TCS-0679) (TCS-0679) | Information revealed by learning | 82 | The information complexity of VC learning tests how much information learning must reveal beyond its sample count. |
+| 5 | [Distribution-free learning of intersections of two halfspaces](index.html#TCS-6544) (TCS-6544) | Needs review | 92 | Unreviewed replacement |
 
-Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0679, TCS-0691, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-0674, TCS-5358.
+Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0691, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-0674, TCS-5358.
 
 ## Cryptography
 
@@ -309,7 +317,7 @@ Previous prefix: TCS-6621, TCS-6622.
 | 1 | [Rapid mixing of Glauber dynamics with Δ+2 colours](index.html#TCS-6621) (TCS-6621) | Colouring-chain mixing | 95 | A longstanding general-graph conjecture linking local algorithms, approximate counting and spin systems; recent near-threshold results still require structural restrictions. |
 | 2 | [The Kannan–Tetali–Vempala switch-chain conjecture for binary matrices](index.html#TCS-6622) (TCS-6622) | Sampling prescribed-degree graphs | 94 | A central obstruction to a general theory of uniform sampling with fixed combinatorial marginals. |
 
-Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-1158, TCS-1255, TCS-1381, TCS-1693.
+Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-1158, TCS-1255, TCS-1693.
 
 ## Counting and enumeration
 
@@ -322,7 +330,7 @@ Previous prefix: TCS-6628, TCS-6629, TCS-7112.
 | 1 | [An FPRAS for perfect matchings in general graphs](index.html#TCS-6628) (TCS-6628) | Approximate counting | 97 | The major missing generalization of the permanent FPRAS, with an established obstruction to the direct Markov-chain approach and consequences beyond matchings. |
 | 2 | [Does #BIS admit an FPRAS?](index.html#TCS-7221) (TCS-7221) | Approximate counting | 97 | #BIS is the canonical intermediate approximate-counting problem: an FPRAS would resolve a central boundary shared by many spin-system and combinatorial counting tasks. |
 
-Candidates considered: TCS-6628, TCS-6629, TCS-6671, TCS-0553, TCS-1004, TCS-0556, TCS-0547, TCS-7221, TCS-7112.
+Candidates considered: TCS-6628, TCS-6629, TCS-6671, TCS-0553, TCS-1004, TCS-0556, TCS-7221, TCS-7112.
 
 ## Structural graph theory and graph algorithms
 
@@ -348,7 +356,7 @@ Previous prefix: empty.
 | 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
 | 2 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
 
-Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6512, TCS-6509, TCS-6514, TCS-6502, TCS-4997, TCS-5706, TCS-5768, TCS-6290, TCS-6480, TCS-5103, TCS-0956, TCS-1418, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-4799, TCS-5825.
+Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6514, TCS-4997, TCS-5706, TCS-5768, TCS-6290, TCS-6480, TCS-5103, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-4799, TCS-5825.
 
 ## Dynamic algorithms
 
@@ -452,7 +460,7 @@ Previous prefix: TCS-6631, TCS-0506.
 | 1 | [Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) (TCS-6673) | Private continual counting | 94 | The saved target asks for optimal worst-time error when releasing every prefix sum under pure differential privacy. It complements sample-complexity bounds for private learning with a fundamental sequential data-release problem. |
 
-Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507, TCS-6451.
+Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507.
 
 ## Constraint satisfaction
 
@@ -495,13 +503,13 @@ Candidates considered: TCS-6678, TCS-6645, TCS-0492, TCS-0488, TCS-0482, TCS-048
 
 ## Miscellaneous
 
-After reviewing active records for the restored Miscellaneous scope, select the 1/3–2/3 conjecture and pancake numbers as distinct foundational boundary questions. Keep gold partition outside the pair to avoid two partial-order balance questions; molecular computation and structural permutation classes remain provisional candidates. Graph isomorphism now has an explicit graph-algorithm home.
+After reviewing active records for the restored Miscellaneous scope, select the 1/3–2/3 conjecture and pancake numbers as distinct foundational boundary questions. Keep gold partition outside the pair to avoid two partial-order balance questions; molecular computation and structural permutation classes remain provisional candidates. Graph isomorphism now has an explicit graph-algorithm home. The September 11 interest screen removed TCS-7176; replacement focus choices remain unreviewed.
 
 Previous prefix: TCS-7222.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [The 1/3–2/3 conjecture](index.html#TCS-7177) (TCS-7177) | Partial-order balance | 90 | Would provide a universally informative comparison for sorting with partial-order information; retained as a computationally motivated combinatorial exception. |
-| 2 | [Determine the pancake numbers](index.html#TCS-7176) (TCS-7176) | Extremal permutation operations | 80 | A canonical extremal problem about the power of restricted sorting operations. |
+| 2 | [The sunflower conjecture](index.html#TCS-7290) (TCS-7290) | Needs review | 89 | Unreviewed replacement |
 
-Candidates considered: TCS-7222, TCS-7177, TCS-7178, TCS-7176, TCS-1951, TCS-3520.
+Candidates considered: TCS-7222, TCS-7177, TCS-1951, TCS-3520.

@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,185 five-sentence working summaries, based on saved source material.
+1,164 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (49)
@@ -348,7 +348,7 @@ The Mandelbrot set consists of complex parameters for which repeatedly applying 
 [Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-## Proof complexity (50)
+## Proof complexity (48)
 
 ### TCS-6601 — Do some tautologies require superpolynomial Extended Frege proofs?
 
@@ -425,20 +425,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Extended Frege proof lower bounds assert that particular tautologies require long formal derivations. This entry asks whether PV₁ is unable to prove lower bounds of a fixed polynomial scale. The focus is the difficulty of certifying a proof-complexity obstruction inside a restricted arithmetic theory. Such a result would explain why some lower-bound arguments may require stronger formal reasoning than the bounds themselves suggest. The saved label does not identify the tautology family, polynomial degree, or encoding, so it cannot yet specify a unique unprovability claim.
 
 [Read in atlas](index.html#TCS-1100) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1094 — PV₁ proofs of parity circuit lower bounds
-
-Parity asks whether an odd number of input bits are one. The saved question concerns formal proofs in PV₁ of circuit lower bounds for that function. Even an established external lower-bound argument may require reasoning whose availability inside a weak theory is unclear. A formalization would help measure the arithmetic strength needed to justify basic computational limitations. The inherited label does not name the circuit basis, depth restriction, or size bound, so the draft does not claim that parity is hard for unrestricted Boolean circuits.
-
-[Read in atlas](index.html#TCS-1094) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1095 — PV₁ proofs of monotone clique lower bounds
-
-The clique function tests whether a graph contains a clique of the requested size. Monotone circuits use operations that respect adding edges, without negations that can reverse that behavior. The saved question concerns proving lower bounds for such circuits within PV₁. This would connect a concrete circuit-hardness argument with the strength of weak arithmetic formalization. The source label does not preserve the clique-size regime, quantitative lower bound, or circuit restrictions beyond monotonicity, so those parameters remain to be stated rather than inferred.
-
-[Read in atlas](index.html#TCS-1095) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1062 — Balancing tree-like cutting-planes proofs
@@ -2141,7 +2127,7 @@ Vertex expansion measures how many distinct outside neighbors a small vertex set
 [Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (87)
+## Parameterized complexity and algorithms (86)
 
 ### TCS-6592 — Is k-Clique fixed-parameter tractable, equivalently FPT=W[1]?
 
@@ -2211,13 +2197,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Counting k-SAT asks for the number of satisfying assignments of a Boolean formula with clauses of width at most k. Unlike decision satisfiability, an algorithm must account for every satisfying assignment rather than find one witness. The source entry concerns the computational complexity of this counting task as clause width and instance size vary. Quantitative bounds would clarify how much additional difficulty exact counting introduces into a basic constraint problem. The saved title leaves the desired exponent, treatment of k, and use of randomness unspecified, so the draft does not select a particular counting hypothesis.
 
 [Read in atlas](index.html#TCS-0818) · [Exponential Algorithms: Algorithms and Complexity Beyond Polynomial Time](https://doi.org/10.4230/DagRep.3.8.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0764 — FPT-approximation of VC dimension
-
-VC dimension measures how large a subset can have every possible intersection pattern realized by a set family. This entry asks about approximating that dimension using fixed-parameter algorithms. The difficulty comes from recognizing many simultaneous incidence patterns rather than only finding a large individual set. An effective approximation could help identify combinatorial complexity in data and set systems without exact dimension computation. The saved index does not fix how the family is represented, which quantity is the parameter, or the permitted approximation factor, leaving those model choices explicit gaps.
-
-[Read in atlas](index.html#TCS-0764) · [Randomization in Parameterized Complexity](https://doi.org/10.4230/DagRep.7.1.103)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0784 — Existence of Polynomial Kernel for Edge-Disjoint Paths
@@ -2752,7 +2731,7 @@ Directed Edge Multicut deletes arcs so that each specified source can no longer 
 [Read in atlas](index.html#TCS-7036) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (52)
+## Approximation algorithms and inapproximability (51)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -2815,13 +2794,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Max Di-Cut selects a vertex partition and counts arcs pointing from its first side to its second. The record asks for the best approximation ratio achievable by an efficient algorithm. Arc directions mean reversing the two sides can change the objective, unlike in an undirected cut. A sharp ratio would reveal how much of the best directed separation can be recovered without exact optimization. The saved entry does not specify weighting conventions, randomized guarantees, or the hardness assumption needed to turn this topic into one precise threshold question.
 
 [Read in atlas](index.html#TCS-0088) · [TCS Open Problems](https://tcsopenproblems.com/problem/1)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0929 — Feedback Arc Set Problems with Near-metric Weights
-
-Feedback Arc Set removes directed edges so that the remaining relation becomes acyclic. The saved entry studies versions whose edge weights approximately satisfy a metric-like condition. Such structure might make inconsistent pairwise preferences easier to reconcile than under arbitrary weights. An algorithmic bound would clarify how geometric regularity in costs affects the difficulty of finding a globally consistent ordering. The inherited label does not define near-metric or identify the desired approximation, so the draft cannot assume the ordinary triangle inequality or a fixed relaxation parameter.
-
-[Read in atlas](index.html#TCS-0929) · [Packing and Scheduling Algorithms for Information and Communication Services](https://doi.org/10.4230/DagRep.1.2.67)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1168 — For a constant k > 3, what is the computational complexity of coloring a 2-colorable digraph using at most k colors?
@@ -3983,7 +3955,7 @@ Smoothed simplex analysis bounds the expected running time after random perturba
 [Read in atlas](index.html#TCS-7148) · [Beyond Worst-Case Analysis](https://arxiv.org/abs/1806.09817)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Sampling, Markov chains and mixing times (18)
+## Sampling, Markov chains and mixing times (16)
 
 ### TCS-6621 — Rapid mixing of Glauber dynamics with Δ+2 colours
 
@@ -4020,13 +3992,6 @@ Hitting-time robustness measures how much adversarial perturbation a random walk
 [Read in atlas](index.html#TCS-1255) · [Markov Chain Robustness](https://doi.org/10.4230/LIPIcs.ITCS.2026.118)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1381 — Is this inherent, and is Θ(log k) the optimal stretch given Properties P1 and P2?
-
-Correlated sampling rounds fractional membership vectors to subsets using shared randomness. The source requires the rounded subset size to match the fractional mass up to rounding and each coordinate to retain its prescribed inclusion probability. Its question asks whether logarithmic dependence on the cardinality bound k is unavoidable in the rounding stretch. Stretch compares the expected symmetric difference of two rounded outputs with the distance between their fractional inputs. A smaller factor would make rounded decisions more stable as inputs change, while a matching lower bound would show that exact marginals and cardinality constraints inherently impose this loss.
-
-[Read in atlas](index.html#TCS-1381) · [Dimension-Free Correlated Sampling for the Hypersimplex](https://doi.org/10.4230/LIPIcs.ITCS.2026.104)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1693 — For example, it remains open for the Sherrington-Kirkpatrick model, for a PI/LSI w.r.t. the Glauber Dynamics.
 
 The Sherrington-Kirkpatrick model is a disordered spin system whose many interacting coordinates can create a complicated probability landscape. The retained source note points to Poincare or logarithmic Sobolev inequalities for its Glauber dynamics. These inequalities provide quantitative control of relaxation toward equilibrium through variance or entropy decay. They would connect the geometry of the distribution with guarantees for local sampling rather than merely with finding a low-energy configuration. The note omits the temperature regime and the desired scaling of the constants, so it cannot support an unrestricted assertion that every such inequality for this model is unknown.
@@ -4046,13 +4011,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A point of a matroid polytope specifies desired marginal probabilities for selecting elements. The question asks for efficient sampling of a feasible set distribution with those marginals and a strong negative-dependence property. The source lists weak negative regression, negative association, and negative regression as possible targets. Such dependence supports useful guarantees for expected submodular value, while maximum-entropy distributions do not automatically possess it. The project seeks principled randomized rounding whose joint behavior is controlled beyond merely matching individual selection probabilities.
 
 [Read in atlas](index.html#TCS-2861) · [Submodular Dominance and Applications](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2973 — So if one is to believe that α-fractionally log-concave distributions behave like distributions over (1/α)-sized sets, does that mean order-(1/α) marginals are sufficient to get […]
-
-Domain sparsification accelerates sampling k-element subsets by replacing a large n-element ground set with a much smaller random domain. The source asks whether constant-α fractionally log-concave distributions permit a reduced domain whose size depends polynomially on k and not on n. Its conjecture grants estimates of marginals involving about 1/α elements together with an oracle sampling from those marginals. First-order marginals suffice in the fully log-concave case, but the weaker fractional setting appears to require new ideas beyond the existing analysis. Proving the conjecture would make structured subset sampling insensitive to the size of an otherwise enormous ambient universe.
-
-[Read in atlas](index.html#TCS-2973) · [Domain Sparsification of Discrete Distributions Using Entropic Independence](https://doi.org/10.4230/LIPIcs.ITCS.2022.5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4599 — For any vertex-transitive graph, is the blanket time of order nR2 for all δ > 1?
@@ -4111,7 +4069,7 @@ A self-avoiding walk is a lattice path that never visits the same vertex twice. 
 [Read in atlas](index.html#TCS-6857) · [Markov Chains and Mixing Times, Second Edition](https://pages.uoregon.edu/dlevin/MARKOV/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Counting and enumeration (37)
+## Counting and enumeration (34)
 
 ### TCS-6628 — An FPRAS for perfect matchings in general graphs
 
@@ -4153,27 +4111,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Polynomial-delay enumeration bounds the waiting time before the first answer, between consecutive answers, and after the final answer. The saved source lists stronger conjectures refining this guarantee. These questions ask whether an algorithm can keep producing solutions promptly even when the complete output is enormous. Sharper delay bounds matter because fast total running time may still hide long intervals with no useful output. The inherited label does not define strong polynomial delay or identify the underlying task, so the source's size accounting and algorithmic restrictions must be recovered before a quantitative conjecture is stated.
 
 [Read in atlas](index.html#TCS-0556) · [Algorithmic Enumeration: Output-sensitive, Input-Sensitive, Parameterized, Approximative](https://doi.org/10.4230/DagRep.8.10.63)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0547 — Enumeration across primal and dual representations
-
-Combinatorial objects can have primal and dual representations that expose different collections of constraints or solutions. The source asks about enumeration across these representations. The difficulty is that a representation convenient for checking one solution may hide how to generate all solutions on the other side. A successful transfer would clarify whether enumeration efficiency is an intrinsic property or an artifact of the chosen encoding. The saved seminar label does not specify the objects, duality map, or delay target, so these details must be restored before the question can be equated with a particular hypergraph or polyhedral enumeration problem.
-
-[Read in atlas](index.html#TCS-0547) · [Algorithmic Enumeration: Output-sensitive, Input-Sensitive, Parameterized, Approximative](https://doi.org/10.4230/DagRep.8.10.63)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0551 — Enumeration of vertex subsets with non-local properties
-
-The source studies enumeration of vertex subsets defined by graph properties that cannot be checked through a purely local condition. The question is how to generate all such subsets with strong efficiency guarantees. Nonlocal requirements can couple distant choices, so adding or removing one vertex may not give a predictable way to navigate the solution space. The issue matters for global graph structures whose decision problems alone do not reveal enumeration complexity. The inherited label omits the property family, maximality convention, and output model, so one precise task must be recovered from the source before choosing an algorithmic target.
-
-[Read in atlas](index.html#TCS-0551) · [Algorithmic Enumeration: Output-sensitive, Input-Sensitive, Parameterized, Approximative](https://doi.org/10.4230/DagRep.8.10.63)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0554 — Minimal separators in graphs
-
-A graph separator removes vertices to disconnect specified parts of a graph, and minimality prevents deleting unnecessary chosen vertices. The source lists an enumeration question about minimal separators. The task is to output the relevant separating sets efficiently despite the possibility of many structurally different answers. This is useful because separators organize decompositions and often control other graph algorithms. The saved index does not retain whether terminals are fixed, which graph class is allowed, or the requested delay or total-time bound, so these conventions must be restored before a specific complexity claim can be made.
-
-[Read in atlas](index.html#TCS-0554) · [Algorithmic Enumeration: Output-sensitive, Input-Sensitive, Parameterized, Approximative](https://doi.org/10.4230/DagRep.8.10.63)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1143 — What is the complexity of the counting problem #GpEpi?
@@ -4808,7 +4745,7 @@ A quasi-order is well-quasi-ordered when every infinite sequence contains an ear
 [Read in atlas](index.html#TCS-7145) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Data structures (23)
+## Data structures (18)
 
 ### TCS-6498 — Are splay trees dynamically optimal?
 
@@ -4845,20 +4782,6 @@ A deque permits insertions and deletions at either end of an ordered collection.
 [Read in atlas](index.html#TCS-6508) · [Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture](https://arxiv.org/abs/0707.2160) · [A New Path from Splay to Dynamic Optimality](https://doi.org/10.1137/1.9781611975482.80) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6512 — Does splaying every BST preorder take linear total time?
-
-Take the preorder traversal of one binary search tree and access its keys in another tree using splaying. Each key appears once, but the resulting order can jump between distant parts of the key range. The conjecture asks whether the total search and rotation cost is always linear, regardless of either tree's shape. Building a tree by inserting the same sequence is a different task. This structured workload offers a focused test of how well splaying discovers organization hidden in an access sequence.
-
-[Read in atlas](index.html#TCS-6512) · [Splaying Preorders and Postorders](https://arxiv.org/abs/1907.06309) · [In pursuit of the dynamic optimality conjecture](https://arxiv.org/abs/1306.0207) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6509 — Does recursively splitting a splay tree always take linear total time?
-
-A splay-tree split brings a chosen key to the root, removes it, and leaves two separate component trees. Repeating this process eventually deletes every original key exactly once. The question asks whether every such sequence has linear total search, rotation, and bookkeeping cost. Pivots may be internal keys, so the workload includes recursive separations unavailable to ordinary end deletions. A proof must account globally for repeated restructuring of surviving keys, rather than merely count the number of requested splits.
-
-[Read in atlas](index.html#TCS-6509) · [Splay trees are almost dynamically optimal](https://arxiv.org/abs/2607.18498) · [Splay Trees, Davenport-Schinzel Sequences, and the Deque Conjecture](https://arxiv.org/abs/0707.2160)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6514 — Do pure pairing heaps support O(log log n) amortized decrease-key?
 
 A pure pairing heap maintains a priority queue through a small collection of comparison and pointer operations. A decrease-key can be cheap immediately yet create work that later delete-min operations must absorb. The question asks whether this delayed contribution is only doubly logarithmic per decrease while retaining the stated budgets for other operations. The maximum live heap population sets the size parameter. The issue is whether minimal structural bookkeeping suffices to prevent repeated expensive configurations over arbitrary operation sequences.
@@ -4866,32 +4789,11 @@ A pure pairing heap maintains a priority queue through a small collection of com
 [Read in atlas](index.html#TCS-6514) · [Pure Pairing Heaps](https://arxiv.org/abs/2607.23118v1) · [A Tight Lower Bound for Decrease-Key in the Pure Heap Model](https://arxiv.org/abs/1407.6665) · [Efficiency of Self-Adjusting Heaps](https://arxiv.org/abs/2307.02772)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6502 — Can lazy B-tree priority queues keep their I/O bounds with stable handles?
-
-An external-memory priority queue moves records in blocks while clients may retain handles to individual items. A stable handle must still locate an item after internal rearrangements and support later decreases of its key. The project asks whether lazy B-tree style I/O guarantees can include all this handle-maintenance work. Updating scattered references can cost much more than moving one contiguous block. Resolving the gap would establish whether the advertised block efficiency survives the interface needed by actual graph algorithms.
-
-[Read in atlas](index.html#TCS-6502) · [Towards Lazy B-Trees, revised version with erratum](https://arxiv.org/abs/2507.00277v2) · [DecreaseKeys Are Expensive for External Memory Priority Queues](https://doi.org/10.1145/3055399.3055437)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-0300 — The randomized complexity of online labeling
 
 Online labeling assigns ordered numerical labels to arriving items while preserving their sorted order. New arrivals may force earlier labels to change, and each change has a cost. The source asks for the randomized complexity as a function of the item count and available label space. An equivalent view maintains a sorted array with spare slots and pays for moving items. The project quantifies whether randomization can reduce the unavoidable reorganizations caused by adversarial insertion positions.
 
 [Read in atlas](index.html#TCS-0300) · [Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.7.3.45)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0956 — Succinct Representation for Functions on Graphs
-
-A graph data structure can encode the answers to many graph-function queries without preserving the original edges. For minimum pairwise cuts, a Gomory-Hu tree gives a compact graphical representation of all answers. The source asks when a more general data structure can be substantially smaller than any graph encoding the same function. It considers exact and approximate cut, flow, and terminal-based queries as examples. Understanding this distinction would identify when insisting that a compressed summary remain a graph imposes an unnecessary space cost.
-
-[Read in atlas](index.html#TCS-0956) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:74)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1418 — Can we design a data structure of size 2 o(n ) that provides a good approximation for the shortest path under three faults?
-
-A fault-tolerant distance oracle preprocesses a weighted graph so that later queries can avoid failed edges. The source obtains approximate single-source distances when at most two edges fail. Its next question asks for a compact oracle giving useful approximations under three failures and, more broadly, additional failures. The stored title contains damaged asymptotic notation, so the precise space target needs the original typesetting. The underlying obstacle is how to organize interacting detours without storing a separate large structure for every failure combination.
-
-[Read in atlas](index.html#TCS-1418) · [Approximate Single Source Dual Fault Tolerant Distance Oracle](https://doi.org/10.4230/LIPIcs.ESA.2026.90)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1798 — Is there a sparse fault-tolerant exact or approximate distance oracle for an arbitrary subset P of V × V ?
@@ -5169,7 +5071,7 @@ Dynamic s–t reachability asks whether a fixed target can be reached from a fix
 [Read in atlas](index.html#TCS-6477) · [Deterministic Fully Dynamic SSSP and More](https://doi.org/10.1109/FOCS57990.2023.00142)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## String algorithms and computational biology (30)
+## String algorithms and computational biology (26)
 
 ### TCS-6623 — Polynomial-sample worst-case trace reconstruction
 
@@ -5226,34 +5128,6 @@ A straight-line grammar can describe a string exponentially longer than its own 
 
 [Read in atlas](index.html#TCS-0470) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Space-Efficient SLP Encoding for O(log N)-Time Random Access](https://doi.org/10.1007/s00224-025-10243-w) · [Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes](https://doi.org/10.4230/LIPIcs.ICALP.2026.86)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0466 — Can a supplied Karp–Rabin fingerprint be verified in near-linear time?
-
-Karp–Rabin fingerprints summarize substrings by a polynomial value modulo a supplied prime. The reviewed question asks to detect any collision between unequal equal-length substrings in O(n log n) time. The same modulus must be certified across all substring lengths, not merely for comparisons made by one application. A faster certification would make compact fingerprints reliable for a whole text without quadratic repeated checking. The saved review explains that certifying selected lengths or replacing a fingerprint by a pair changes the guarantee and therefore does not resolve this precise task.
-
-[Read in atlas](index.html#TCS-0466) · [Adaptive and Scalable Data Structures — Detecting collisions in Karp-Rabin fingerprinting](https://doi.org/10.4230/DagRep.15.5.1) · [Efficient randomized pattern-matching algorithms](https://doi.org/10.1147/rd.312.0249) · [Indexing Highly Repetitive String Collections, Part II: Compressed Indexes](https://users.dcc.uchile.cl/~gnavarro/ps/acmcs20.2.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-1402 — Second, which kinds of graphs admit polynomial-size Wheelerizations with the same k-mer set?
-
-A sequence-labeled graph can represent the collection of k-mers spelled along its paths. Wheeler graph representations impose an ordering intended to support efficient indexing. The saved question asks which graphs admit polynomial-size Wheelerizations preserving the same k-mer set. A classification would show when indexing-friendly representations avoid an exponential blowup while keeping the required sequence language. The excerpt does not define the graph labels, treatment of k, or allowed transformation, so the precise preservation and size conditions remain tied to the source.
-
-[Read in atlas](index.html#TCS-1402) · [Computing k-mers in Graphs](https://doi.org/10.4230/LIPIcs.CPM.2026.3)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2122 — We leave the quest of discovering a robust approximation algorithm for ∆edit as an open question, which falls outside the scope of this paper.
-
-Edit distance and insertion-deletion distance measure related but different ways of transforming one string into another. The source studies embeddings intended to transfer algorithms between these measures. Its remaining target is an approximation algorithm for edit distance that is robust in the particular sense required by that transfer. A usual approximation guarantee alone may not survive the embedding's distortion and error terms. The project seeks a stable algorithmic interface that would let advances for one string metric apply systematically to the other.
-
-[Read in atlas](index.html#TCS-2122) · [Many Flavors of Edit Distance](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.11)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2378 — We conjecture that such a family exists and the coding is necessary.
-
-L-systems generate strings by applying structured rewriting rules and can serve as measures of repetitiveness. The cited paper compares their descriptive power with related compression mechanisms. The saved conjecture asserts that a particular family exists and that a coding step is necessary. Such a family would demonstrate a genuine expressive benefit from that extra transformation. The excerpt omits the family's required properties and the coding definition, so this draft cannot identify the intended separation rate or replace the missing claim with a generic compression example.
-
-[Read in atlas](index.html#TCS-2378) · [L-Systems for Measuring Repetitiveness](https://doi.org/10.4230/LIPIcs.CPM.2023.25)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3010 — Does there exist a string index of O(r) words supporting locate queries in optimal time for any alphabet size?
 
@@ -7414,7 +7288,7 @@ A proximity-oblivious tester uses a fixed local experiment whose rejection proba
 [Read in atlas](index.html#TCS-6744) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Differential privacy (17)
+## Differential privacy (15)
 
 ### TCS-0506 — Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?
 
@@ -7443,20 +7317,6 @@ Stochastic decision-theoretic online learning repeatedly selects among K actions
 
 [Read in atlas](index.html#TCS-0507) · [COLT / PMLR](https://proceedings.mlr.press/v247/hu24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6451 — Optimal private selection using only Gaussian queries
-
-Private selection chooses a nearly minimum-loss candidate from a finite public menu using a sensitive database. The reviewed question restricts all database access to adaptive sensitivity-one queries with Gaussian noise and a total budget rho. It asks whether expected excess loss can be O(log|Y|/sqrt(rho)), matching the direct-access benchmark recorded in the card. Estimating every candidate separately can spend accuracy on many alternatives that ultimately do not matter. The central challenge is to organize noisy comparisons and budget allocation so that the restricted interface loses no asymptotic factor, even though computation time itself is unrestricted.
-
-[Read in atlas](index.html#TCS-6451) · [Nearly-Optimal Private Selection via Gaussian Mechanism](https://doi.org/10.4230/LIPIcs.FORC.2026.4) · [Open Problem: Selection via Low-Sensitivity Queries](https://differentialprivacy.org/open-problem-selection/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6452 — Optimal private selection using only Laplace queries
-
-This private-selection problem asks for a nearly best candidate when database access is limited to noisy statistical queries. The algorithm fixes a number k of queries in advance, and every sensitivity-one answer receives independent Laplace noise with scale k. The target is expected excess loss O(log|Y|) for arbitrary public candidate losses of sensitivity one. More queries provide more comparisons but simultaneously make every answer noisier, so brute-force evaluation can waste the available accuracy. The reviewed card allows adaptive query choices and unlimited computation, making the unresolved issue the information obtainable through this particular pure-privacy interface.
-
-[Read in atlas](index.html#TCS-6452) · [Open Problem: Selection via Low-Sensitivity Queries](https://differentialprivacy.org/open-problem-selection/) · [Nearly-Optimal Private Selection via Gaussian Mechanism](https://doi.org/10.4230/LIPIcs.FORC.2026.4)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1962 — Is there a polynomial Pd (m) whose degree ⋆ (H) ≤ P (m) for every m?
 
@@ -8318,20 +8178,13 @@ Constant-delay enumeration aims to produce query answers promptly after an initi
 [Read in atlas](index.html#TCS-7128) · [Constant Delay Enumeration for Conjunctive Queries](https://databasetheory.org/sites/default/files/2016-06/segoufin.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Miscellaneous (4)
+## Miscellaneous (3)
 
 ### TCS-7177 — The 1/3–2/3 conjecture
 
 A partial order records known comparisons, and its linear extensions are all compatible complete rankings. The conjecture asks whether every finite non-total order has an incomparable pair that appears in either relative order in at least one third of all extensions. The extensions are weighted uniformly, and both endpoints of the interval are allowed. A three-element order with only one comparison shows that the constant one third cannot be improved universally. A resolution would identify the sharp balance guarantee for a comparison in sorting with partial information.
 
 [Read in atlas](index.html#TCS-7177) · [Balancing pairs and the cross product conjecture](https://trotter.math.gatech.edu/papers/97.pdf) · [Linear extensions of finite posets](https://arxiv.org/abs/2311.02743) · [Balancing Extensions in Posets of Large Width](https://arxiv.org/abs/2509.11549) · [Balance Constants, Majority Cycles, and the Gold Partition Conjecture through Fourteen Elements](https://arxiv.org/abs/2607.23926v2)
-Existing status: `open` · Summary written: 2026-09-11
-
-### TCS-7176 — Determine the pancake numbers
-
-A prefix reversal turns over an initial segment of a permutation, at unit cost. The pancake number f(n) is the maximum, over n-symbol permutations, of the minimum number of such flips required to sort them. The problem concerns unsigned permutations, with neither orientations nor suffix reversals allowed. Known general lower and upper bounds are linear with different leading constants, while small exact values are known. The source’s request for exact determination still needs a formal acceptance requirement beyond the already possible finite exhaustive computation.
-
-[Read in atlas](index.html#TCS-7176) · [(15/14)n Flips are (almost) Sufficient to Sort Heydari and Sudborough’s Pancake Stack](https://www.jstage.jst.go.jp/article/transinf/advpub/0/advpub_2024FCL0002/_pdf) · [An (18/11)n upper bound for sorting by prefix reversals](https://www.amrita.edu/publication/an-18-11-n-upper-bound-for-sorting-by-prefix-reversals/) · [Sortowanie naleśników](https://www.deltami.edu.pl/2026/02/sortowanie-nalesnikow/) · [Average number of flips in pancake sorting](https://arxiv.org/abs/0901.3119)
 Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-1951 — Can execution bounded CRNs compute semilinear functions and predicates within polylogarithmic time?
