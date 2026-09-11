@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-976 five-sentence working summaries, based on saved source material.
+977 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (132)
@@ -2874,7 +2874,7 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Distributed, parallel and sublinear algorithms (152)
+## Distributed, parallel and sublinear algorithms (153)
 
 ### TCS-6553 — Can every polynomial-time decision problem be efficiently parallelized?
 
@@ -2924,6 +2924,13 @@ A parallel reachability algorithm must identify every vertex reachable from a so
 
 [Read in atlas](index.html#TCS-6507) · [Parallel Reachability and Shortest Paths on Non-Sparse Digraphs: Near-Linear Work and Sub-Square-Root Depth](https://doi.org/10.4230/LIPIcs.ICALP.2026.15) · [Parallel Reachability in Almost Linear Work and Square Root Depth](https://arxiv.org/abs/1905.08841) · [Õ(1)-Depth Parallel Reachability Faster than Transitive Closure](https://arxiv.org/abs/2608.13231)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7172 — Is finding a depth-first-search tree in deterministic NC?
+
+A depth-first-search forest records the parent choices of recursive graph exploration. For an undirected graph, it is a rooted spanning forest in which every graph edge joins a vertex to one of its ancestors. The problem asks for a deterministic, uniformly specified parallel computation that constructs any such forest with polynomial resources and polylogarithmic depth. Randomized NC algorithms and deterministic results for restricted graph classes are known, but those guarantees do not settle the general target. A solution would show whether this basic search structure can always be built efficiently in parallel without random choices.
+
+[Read in atlas](index.html#TCS-7172) · [Parallel Complexity of Depth-First-Search and Maximal Path in Restricted Graph Classes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.FSTTCS.2025.23) · [A random NC algorithm for depth first search](https://doi.org/10.1007/BF02122548) · [Nearly Work-Efficient Parallel DFS in Undirected Graphs](https://arxiv.org/abs/2304.09774)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0522 — Quantum 3-coloring of cycles in o(log* n) rounds
 
