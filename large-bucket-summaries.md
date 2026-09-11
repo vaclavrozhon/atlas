@@ -959,12 +959,12 @@ Hidden-graph reconstruction learns a graph by asking for shortest-path distances
 [Read in atlas](index.html#TCS-1292) · [Cutwidth Versus BFS-Width with Applications to Graph Reconstruction from Distance Queries](https://doi.org/10.4230/LIPIcs.SWAT.2026.24)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1338 — For a set system S Ď 2rms , weights w : rms Ñ Rě0 and ϵ ą 0, there exists a p1 ˘ ϵq sparsifier […]
+### TCS-1338 — Set-system sparsifiers of size proportional to chain length
 
-A weighted set system can be compressed by retaining and reweighting only some of its coordinates. The aim is to approximate the weight of every set multiplicatively at once. The conjecture asks whether the required number of coordinates is proportional to chain length divided by the squared error parameter. Chain length is measured in the union-closure of the family. This would give a sharp structural sparsification bound and improve the understanding of special cases such as sparsifying linear codes.
+A sparsifier retains and reweights a few coordinates while approximately preserving every set’s total weight. The conjecture asks for a support bound proportional to chain length divided by ε². Chain length is measured through the union-closure, so even an incomparable collection of singleton sets can have large chain length. The published upper bound has extra logarithmic factors, which are precisely the remaining loss in the question. A resolution would establish whether this structural parameter completely controls multiplicative sparsification up to a universal constant.
 
 [Read in atlas](index.html#TCS-1338) · [Multiplicative Error Set System Sparsification: A Simpler Proof via Chain Length Contraction](https://doi.org/10.4230/LIPIcs.ICALP.2026.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1617 — For any subcubic graph H, H-ISC is in P if and only if H is planar.
 

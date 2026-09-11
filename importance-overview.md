@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-739 records have an editorial importance assessment; 938 remain provisional.
+740 records have an editorial importance assessment; 937 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -25,7 +25,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 136; importance as
 
 ## 2. Algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 41; importance assessed: 5; provisional: 36.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 41; importance assessed: 6; provisional: 35.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -35,7 +35,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 41; importance ass
 | 4 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) | 75 |
 | 5 | [Mincost flow in planar graphs](index.html#TCS-0809) | 62 |
 | 6 | [It is unknown whether there exists a deterministic algorithm to reconstruct bounded-degree graphs in o(n2 ) queries.](index.html#TCS-1292) | 50 |
-| 7 | [For a set system S Ď 2rms , weights w : rms Ñ Rě0 and ϵ ą 0, there exists a p1 ˘ ϵq sparsifier \[…\]](index.html#TCS-1338) | 50 |
+| 7 | [Set-system sparsifiers of size proportional to chain length](index.html#TCS-1338) | 50 |
 | 8 | [For any subcubic graph H, H-ISC is in P if and only if H is planar.](index.html#TCS-1617) | 50 |
 | 9 | [We do not know yet if temporal cliques admit O(n) spanners, thus the latter result might not appear very decisive.](index.html#TCS-1664) | 50 |
 | 10 | [Does every n-node undirected graph have a constant-stretch shortestpaths preserving graph of aspect ratio poly(n)?](index.html#TCS-1934) | 50 |
