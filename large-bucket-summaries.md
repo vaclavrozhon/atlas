@@ -1882,10 +1882,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0640 — Shortest runs in 3-D VASS
 
-Three-dimensional vector addition systems move among nonnegative counter vectors under finitely specified updates and control states. The project asks whether some reachable source-target pairs force shortest runs longer than exponential in the input size. The source contrasts exponential lower bounds with much larger tower-type upper bounds. It highlights systems with finite reachability sets as a promising setting for isolating the difficulty. A stronger example or improved universal bound would reveal how complex counter detours can become with only three numerical coordinates.
+A three-dimensional VASS is a finite-state system with three nonnegative integer counters. The source asks whether some reachable instances require shortest runs longer than every single-exponential bound in their binary input length. Encoding a large initial counter in binary already permits exponentially many necessary steps, so a stronger growth rate is required. A July 2026 preprint states a doubly-exponential upper bound, improving the triple-exponential bound from 2025. The remaining threshold question measures how much reachability-witness complexity three counters can force.
 
-[Read in atlas](index.html#TCS-0640) · [Automata Exchange](https://automata.exchange/19.11-shortest-runs-in-3-d-vass/)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0640) · [Shortest runs in 3-D VASS](https://automata.exchange/19.11-shortest-runs-in-3-d-vass/) · [Reachability in 3-VASS is Elementary](https://arxiv.org/abs/2502.13916) · [3-VASS Reachability is in EXPSPACE](https://arxiv.org/abs/2607.14983)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0869 — Give a complete (resource free) characterisation of rewrite systems with polynomial derivational complexity.
 
@@ -5345,10 +5345,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0031 — Oracle separation of BQP from IP
 
-This question asks for a black-box world in which some efficient quantum computation has no efficient classical interactive proof. Both the quantum algorithm and the interactive proof system would receive access to the same oracle. The distinction matters because the familiar unrelativized relation between quantum computation and interactive proofs does not automatically survive arbitrary oracles. Aaronson's survey points to Forrelation and stronger circuit lower bounds as a possible route to the separation. The result would reveal a barrier to verification techniques that treat the underlying computational oracle only as a black box.
+A classical interactive proof lets a verifier check answers supplied by a prover through a polynomial-length conversation. This problem asks for one oracle relative to which a quantum polynomial-time language has no such proof, even with an unrestricted prover. The quantum algorithm may query the oracle in superposition, whereas the classical verifier queries ordinary strings. The 2026 relativizing containment in the multiple-prover class MIP leaves the single-prover question open in that source. A separation would demonstrate a limit on classical verification of quantum computations through arbitrary oracle interfaces.
 
-[Read in atlas](index.html#TCS-0031) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0031) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [A Relativizing MIP for BQP](https://arxiv.org/abs/2604.11952)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0034 — Quantum query–space tradeoffs for collisions and distinctness
 
@@ -5394,10 +5394,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0030 — Oracle separation of BQP from efficient-prover interactive proofs
 
-An interactive proof may exist without an efficient way for the honest prover to execute it. This question asks for an oracle relative to which a quantumly easy decision problem cannot be verified through classical interaction with an efficient quantum prover. The restriction on the honest prover is essential: an unrestricted prover may carry out computations unavailable to the quantum device being checked. Aaronson's survey suggests Forrelation and a version of Simon's problem as potential examples. A separation would expose a black-box obstacle to verifying quantum computations using only the computational resources of the device itself.
+An efficient quantum computation can have a classical interactive proof whose honest prover is too expensive for the quantum device to execute. This problem asks for an oracle relative to which some quantum polynomial-time language has no classical interactive proof with a quantum polynomial-time honest prover. The verifier and honest prover access the same classical oracle, with quantum queries available only to the quantum computation. Soundness must hold even against an unbounded dishonest prover, so computationally sound cryptographic arguments have a different guarantee. A separation would expose an oracle obstruction to classical verification using only the computational power of an efficient quantum device.
 
-[Read in atlas](index.html#TCS-0030) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0030) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf) · [A Relativizing MIP for BQP](https://arxiv.org/abs/2604.11952)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0028 — Injective quantum oracles: standard versus erasing access
 
