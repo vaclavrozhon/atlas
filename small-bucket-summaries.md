@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,178 five-sentence working summaries, based on saved source material.
+1,179 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (48)
@@ -6724,7 +6724,7 @@ NTRU-like problems use structured algebraic relations involving short secret ele
 [Read in atlas](index.html#TCS-6868) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Coding and information theory (46)
+## Coding and information theory (47)
 
 ### TCS-6606 — The exact capacity region of the two-user Gaussian interference channel
 
@@ -6794,6 +6794,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 The graph C7 is a cycle on seven vertices, viewed as a pattern of symbol confusability. Its Shannon capacity is the supremum of independence numbers of strong graph powers, normalized by the number of factors. Coding across several uses can separate messages more efficiently than choosing an independent set for one use. Determining the exact value would resolve a compact benchmark for zero-error communication and graph products. The saved proposal identifies the mathematical target but supplies no reviewed matching bounds or assessment of the 2026 reference's specific contribution.
 
 [Read in atlas](index.html#TCS-6610) · [Research reference · arXiv 2608.30273](https://arxiv.org/abs/2608.30273)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7215 — Is the Shannon capacity of a finite graph computable?
+
+A graph records which transmitted symbols can be confused. Its Shannon capacity is the limiting number of distinguishable messages per use when arbitrarily long blocks are allowed. The question asks for one terminating algorithm that approximates this quantity to any requested absolute accuracy on every finite graph. Known examples show that fixed finite prefixes and finite-power attainment do not supply a general stopping guarantee. The target concerns computability itself, with no required running-time bound.
+
+[Read in atlas](index.html#TCS-7215) · [The Shannon capacity of a graph and the independence numbers of its powers](https://doi.org/10.1109/tit.2006.872856) · [The Shannon capacity of graph powers](https://arxiv.org/abs/2510.16151v1) · [Advances in the Shannon capacity of graphs](https://doi.org/10.3934/math.2026111)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1020 — Polynomial-length constant-query locally decodable codes
