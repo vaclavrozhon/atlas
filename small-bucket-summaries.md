@@ -662,7 +662,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1057 — Explicit polynomial-separation lower bounds
 
-The source asks for an NP Boolean-function family whose yes inputs and no inputs cannot be separated by low-degree, low-weight polynomial values. Separation means that no yes input and no input receive the same value, rather than that a sign threshold computes the function. The book supplies a precise certificate-based meaning of explicitness. Its early draft conflicts over whether coefficients must remain in {−1,0,+1} or may include accumulated multiplicities. The card now explains the question and its circuit motivation while retaining that coefficient convention as an unresolved formulation issue.
+The source asks for an NP Boolean-function family whose yes inputs and no inputs cannot be separated by low-degree, low-weight polynomial values. Separation means that no accepting input and rejecting input receive the same value, rather than that a sign threshold computes the function. The book supplies a precise certificate-based meaning of explicitness. Its early draft conflicts over whether coefficients must remain in {−1,0,+1} or may include accumulated multiplicities. The card now explains the question and its circuit motivation while retaining that coefficient convention as an unresolved formulation issue.
 
 [Read in atlas](index.html#TCS-1057) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -3912,19 +3912,19 @@ Three-colorability asks whether vertices can receive three colors with adjacent 
 [Read in atlas](index.html#TCS-0594) · [Colouring Graphs of Bounded Diameter, in Graph Colouring: from Structure to Algorithms](https://doi.org/10.4230/DagRep.9.6.125) · [Algorithms and Almost Tight Results for 3-Colorability of Small Diameter Graphs](https://doi.org/10.1007/s00453-014-9949-6) · [Faster 3-coloring of small-diameter graphs](https://arxiv.org/abs/2104.13860v1) · [List 3-coloring C₄-free graphs of diameter-2 in polynomial-time](https://arxiv.org/abs/2606.30282v2)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0587 — Polylogarithmic bounds on treewidth
+### TCS-0587 — Polylogarithmic treewidth with forbidden induced minors
 
-Treewidth measures how a graph can be decomposed into small overlapping pieces organized by a tree. The source asks for polylogarithmic bounds on treewidth under a particular structural setting. Such a bound would imply that large graphs in that setting retain relatively small decomposition width. This matters because many otherwise difficult graph tasks become easier when treewidth is controlled. The inherited title does not identify the hypotheses or the parameter inside the logarithm, so no universal treewidth estimate can be asserted until the seminar's precise graph class and quantitative target are recovered.
+Treewidth measures the largest bag needed to organize a graph in a tree decomposition. The question concerns graphs with no large clique and with neither a fixed complete bipartite graph nor a fixed wall as an induced minor. It asks whether their treewidth is bounded by a fixed power of the logarithm of their number of vertices. A March 2026 preprint proves a subpolynomial bound but still states the polylogarithmic target as a conjecture. The stronger bound would improve the structural and algorithmic understanding of these induced-minor-free graph classes.
 
-[Read in atlas](index.html#TCS-0587) · [Solving Problems on Graphs: From Structure to Algorithms](https://doi.org/10.4230/DagRep.15.1.105)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0587) · [Solving Problems on Graphs: From Structure to Algorithms](https://doi.org/10.4230/DagRep.15.1.105) · [Induced minors and subpolynomial treewidth](https://arxiv.org/abs/2512.18835)
+Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0592 — Logarithmic degree and logarithmic treewidth
+### TCS-0592 — Logarithmic treewidth for t-clean graphs of logarithmic degree
 
-The saved problem connects logarithmic degree conditions with logarithmic treewidth in a graph-partitioning context. Degree is local, whereas treewidth measures how connectivity is organized across the entire graph. The question seeks a structural bridge between these two scales under the source's additional conditions. Such a bridge could support decomposition or partition algorithms with controlled global complexity. The inherited label does not state the partition requirement, graph class, or whether degree means a maximum or another measure, so those hypotheses must be recovered rather than assuming that low degree alone forces low treewidth.
+The question concerns t-clean graphs, which exclude four specified kinds of induced subgraphs including subdivided walls and their line graphs. It additionally assumes that every vertex has degree at most the logarithm of the graph’s number of vertices. The requested conclusion is treewidth at most a t-dependent constant times that same logarithm. The corrected 2024 partial result yields a polylogarithmic bound, which can have a larger exponent. A logarithmic bound would improve both the decomposition structure and the algorithmic consequences for these graphs.
 
-[Read in atlas](index.html#TCS-0592) · [Vertex Partitioning in Graphs: From Structure to Algorithms](https://doi.org/10.4230/DagRep.12.11.109)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0592) · [Vertex Partitioning in Graphs: From Structure to Algorithms](https://doi.org/10.4230/DagRep.12.11.109) · [Treewidth is Polynomial in Maximum Degree on Weakly Sparse Graphs Excluding a Planar Induced Minor](https://arxiv.org/abs/2312.07962)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0773 — Near-linear algorithms for many-terminal vertex-disjoint surface paths
 
@@ -4790,10 +4790,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1108 — EF1 existence for arbitrary mixed-item utilities
 
-In mixed fair division, different agents can evaluate the same indivisible item as a good, a chore, or neutral. The saved question asks whether EF1 allocations exist for arbitrary utilities in this setting. Without additivity, removing one item can change a bundle's value through interactions with its remaining items. An existence theorem would show that a simple envy relaxation survives very broad preferences. The title does not define the permitted utility regularity or the mixed-item removal rule, so ordinary additive EF1 arguments cannot be assumed to apply unchanged.
+Agents divide a finite set of indivisible items, and each agent may assign an arbitrary real utility to every bundle. The question asks whether a complete EF1 allocation always exists for three or more agents. For each envy comparison, EF1 permits ignoring at most one item from either the envious agent’s own bundle or the other bundle. An item’s effect may depend on its companions, so the model does not assume a fixed division into goods and chores. The 2026 existence results allowing one removal from each bundle do not settle this stricter one-item question.
 
-[Read in atlas](index.html#TCS-1108) · [Mixed Fair Division: A Survey](https://arxiv.org/abs/2306.09564)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1108) · [Mixed Fair Division: A Survey](https://arxiv.org/abs/2306.09564) · [Approximately Envy-free and Equitable Allocations of Indivisible Items for Non-monotone Valuations](https://doi.org/10.1609/aaai.v40i20.38712)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1119 — Existence of pairwise maximin-share allocations
 
@@ -4802,11 +4802,11 @@ Pairwise maximin-share fairness compares an agent's bundle with what they could 
 [Read in atlas](index.html#TCS-1119) · [Fair Division of Indivisible Goods: A Survey](https://www.cs.toronto.edu/~nisarg/teaching/2556s22/papers/fair-division-survey.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0076 — Polynomial-time equilibrium computation for all monotone utility classes
+### TCS-0076 — Equilibrium computation for monotone exchange-market utility families
 
-Equilibrium computation seeks prices or strategies at which the relevant participants have no profitable unilateral change. The saved source asks for polynomial-time algorithms across monotone utility classes. Monotonicity says that receiving more of a desirable resource does not decrease utility, but leaves many different preference shapes possible. A broad algorithmic result would clarify which additional utility properties are truly needed for tractable equilibrium. The title does not identify the market model, utility representation, or equilibrium accuracy, so it cannot be read as a claim about every monotone preference in every game.
+Traders in an exchange market buy affordable bundles using the proceeds from their initial endowments. The source asks whether competitive-equilibrium computation is polynomial-time for every monotone utility family in a specialized market-demand sense. That condition excludes a local increase in excess demand when a good’s own price rises, under the source’s regularity conditions. It differs from the ordinary requirement that receiving more of a good never decreases utility. The card now states the correct market notion while retaining the unspecified utility interface and approximation convention.
 
-[Read in atlas](index.html#TCS-0076) · [Equilibrium Computation](https://doi.org/10.4230/DagRep.4.8.73)
+[Read in atlas](index.html#TCS-0076) · [Equilibrium Computation](https://doi.org/10.4230/DagRep.4.8.73) · [The Complexity of Non-Monotone Markets](https://doi.org/10.1145/3064810)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0073 — Complexity of mixed equilibria in identical-payoff polymatrix games
@@ -5842,12 +5842,12 @@ Module lattices carry additional algebraic structure beyond an arbitrary integer
 [Read in atlas](index.html#TCS-0661) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0662 — Unconditional exponential hardness for cryptographic lattice problems
+### TCS-0662 — Unconditional exponential hardness of n^(1+ε)-GapSVP
 
-Cryptographic lattice problems are designed to resist algorithms even on efficiently generated families of instances. The source asks for unconditional exponential hardness in the intended model. Such a theorem would replace a security-motivated assumption with a proved computational lower bound. It would also mark a major advance in understanding the intrinsic cost of high-dimensional arithmetic and geometry. The saved title does not name a precise problem or machine restriction, so this broad ambition still needs one concrete task, input distribution, and exponential resource measure before it becomes a mathematical proposition.
+The input is a rational basis for an n-dimensional lattice and a positive radius. The task distinguishes a nonzero vector within that radius from the promise that every nonzero vector is farther away by a factor n^(1+ε). The source asks for explicit c,ε>0 and an unconditional lower bound excluding 2^(cn)-time algorithms, up to polynomial input-processing factors. The bound must also exclude randomized and quantum computation with bounded error. Such a theorem would establish a powerful worst-case hardness foundation for lattice-based cryptography.
 
-[Read in atlas](index.html#TCS-0662) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0662) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Lattice Problems Beyond Polynomial Time](https://arxiv.org/abs/2211.11693)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0657 — Smaller-factor coNP or coAM certificates for SVP
 
@@ -5865,9 +5865,9 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0647 — Beyond-base-two lower bounds for lattice problems
 
-Fine-grained lattice hardness asks how the running time must grow with the lattice dimension. The source seeks lower bounds with an exponential base beyond two for designated lattice problems. A dimension blowup in a reduction can weaken the resulting base even when it establishes ordinary exponential hardness. Stronger quantitative reductions would sharpen comparisons with fast exact algorithms and their practical resource growth. The saved title does not specify the lattice task, norm, or hypothesis, so the target requires one explicit exponential bound and reduction model rather than a generic claim of hardness.
+The source asks for a conditional time lower bound beyond base two for an exact lattice decision problem. It permits either deciding whether a lattice has a short nonzero vector or whether it has a vector close to a supplied target. The desired threshold is 2^(cn) for a fixed c>1 in lattice dimension n. The source leaves the norm and the meaning of a standard starting hardness assumption open. Those admissibility choices remain explicit so that a precise specialization is not mistaken for the original question.
 
-[Read in atlas](index.html#TCS-0647) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
+[Read in atlas](index.html#TCS-0647) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0653 — Explicit quantum exponential-time lower bounds for Euclidean SVP
