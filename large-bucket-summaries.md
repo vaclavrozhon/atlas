@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-1,260 five-sentence working summaries, based on saved source material.
+1,255 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Algorithms and data structures (120)
@@ -26,19 +26,19 @@ A static data structure preprocesses a database and later answers queries by rea
 [Read in atlas](index.html#TCS-6540) · [The Natural Proofs Barrier against Data-Structure Lower-Bounds](https://doi.org/10.1145/3798129.3800843) · [Stronger Cell Probe Lower Bounds via Local PRGs](https://eccc.weizmann.ac.il/report/2025/030/) · [Lower Bounds for Linear Operators](https://eccc.weizmann.ac.il/report/2025/155/) · [Crossing the Logarithmic Barrier for Dynamic Boolean Data Structure Lower Bounds](https://epubs.siam.org/doi/10.1137/18M1198429) · [An Ω((log n/log log n)²) Cell-Probe Lower Bound for Dynamic Boolean Data Structures](https://eccc.weizmann.ac.il/report/2026/047/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6586 — Deterministic linear-time construction of static dictionaries
+### TCS-6586 — Can a static dictionary be built deterministically in linear time?
 
 A static dictionary stores distinct integer keys together with associated values and supports exact membership queries. The question asks for deterministic linear-time construction, linear space, and constant worst-case query time on the stated word RAM. All preprocessing work must be included in the construction bound. Random hashing motivates the desired efficiency but does not itself provide a deterministic construction. A solution would give other algorithms a dependable dictionary primitive without making their preprocessing randomized or increasing their asymptotic running time.
 
-[Read in atlas](index.html#TCS-6586) · [Research reference · www.brics.dk](https://www.brics.dk/RS/99/48/BRICS-RS-99-48.pdf) · [Research reference · doi.org](https://doi.org/10.1007/978-3-540-70575-8_8) · [Research reference · epubs.siam.org](https://epubs.siam.org/doi/10.1137/23M1567618) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.25)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6586) · [Faster Deterministic Dictionaries](https://www.brics.dk/RS/99/48/BRICS-RS-99-48.pdf) · [Constructing Efficient Dictionaries in Close to Sorting Time](https://link.springer.com/chapter/10.1007/978-3-540-70575-8_8) · [Internal Pattern Matching Queries in a Text and Applications](https://epubs.siam.org/doi/10.1137/23M1567618) · [Compressed Index with Construction in Compressed Space](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CPM.2026.25)
+Existing status: `open` · Summary written: 2026-09-11
 
-### TCS-0388 — Sorting X+Y (Pairwise Sums)
+### TCS-0388 — Can all pairwise sums X+Y be sorted in quadratic time?
 
 Given two lists of n numbers, form every sum consisting of one number from each list. The task is to sort these quadratically many sums as quickly as possible. They have substantial inherited order, so they are not an arbitrary collection of unrelated values. The source distinguishes having few comparisons from implementing those comparisons with equally small total running time. Removing avoidable overhead would improve both structured sorting and geometric problems whose events are ordered by pairwise sums.
 
 [Read in atlas](index.html#TCS-0388) · [The Open Problems Project](https://topp.openproblem.net/p41)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-0949 — Data Structure Lower Bound in the Cell Probe Model
 
@@ -1792,7 +1792,7 @@ An unambiguous DNF has at most one satisfied term on any assignment. The underly
 [Read in atlas](index.html#TCS-0485) · [Representation, Provenance, and Explanations in Database Theory and Logic (Dagstuhl Seminar 24032)](https://doi.org/10.4230/DagRep.14.1.49) · [Is this problem on unambiguous DNFs hard?](https://cstheory.stackexchange.com/questions/53733/is-this-problem-on-unambiguous-dnfs-hard) · [Weighted falsifiability for unambiguous DNFs](https://a3nm.net/work/research/questions/#weighted-falsifiability-for-unambiguous-dnfs)
 Existing status: `excluded` · Summary written: 2026-09-11
 
-## Automata and formal languages (124)
+## Automata and formal languages (121)
 
 ### TCS-6558 — Černý conjecture: a reset word of length at most (n−1)²
 
@@ -2613,13 +2613,6 @@ Conway's Game of Life has a limit set consisting of configurations with arbitrar
 [Read in atlas](index.html#TCS-5959) · [What Can Oracles Teach Us About the Ultimate Fate of Life?](https://doi.org/10.4230/LIPIcs.ICALP.2022.131)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5976 — History-Deterministic Vector Addition Systems — Explicit open question on PDF page 3
-
-A history-deterministic one-counter net resolves nondeterminism from the input prefix while preserving acceptance of every possible accepted continuation. The historical question asks whether its languages coincide with deterministic nets, with fully nondeterministic nets, or form a class strictly between them. The cited paper answers this question by proving strict intermediate expressive power, including for a fixed counter dimension of one. It even gives one-counter history-deterministic languages that no deterministic VASS of any dimension can recognize in the relevant setting. This establishes that online-resolvable nondeterminism adds real language power while remaining weaker than unrestricted guessing.
-
-[Read in atlas](index.html#TCS-5976) · [History-Deterministic Vector Addition Systems](https://doi.org/10.4230/LIPIcs.CONCUR.2023.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6064 — Construction of mu-Limit Sets of Two-dimensional Cellular Automata — Explicit open question on PDF page 1
 
 A cellular automaton's limit set contains every configuration that can appear after arbitrarily many update steps. This project asks which subshifts can arise as such limit sets. The characterization concerns all possible initial configurations, including exceptional behaviors of negligible probability. The source's positive result instead addresses measure-based limit sets under random initial conditions and therefore answers a different question. An ordinary limit-set characterization would describe the full range of persistent global behavior that can emerge from a finite local update rule.
@@ -2640,20 +2633,6 @@ Lexicographic transductions define word transformations with richer output growt
 
 [Read in atlas](index.html#TCS-6183) · [Lexicographic Transductions of Finite Words](https://doi.org/10.4230/LIPIcs.MFCS.2025.50)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6185 — Reversible Pebble Transducers — Explicit open question on PDF page 2
-
-Pebble transducers use marked input positions to compute string transformations with polynomial output growth. This record asks whether reversible versions retain that expressive power while supporting efficient composition. The cited paper presents the question as motivation and then explicitly supplies reversible constructions and improved composition bounds. Reversibility requires both deterministic forward evolution and uniquely determined backward evolution, imposing structure on how computation history is represented. The entry therefore describes a research question addressed by its own source, rather than treating the quoted historical uncertainty as an unresolved claim.
-
-[Read in atlas](index.html#TCS-6185) · [Reversible Pebble Transducers](https://doi.org/10.4230/LIPIcs.CONCUR.2025.14)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6323 — Monadic Decomposability of Regular Relations (Track B: Automata, Logic, Semantics, and Theory of Programming) — Explicit open question on PDF page 1
-
-A synchronized finite automaton can describe a relation among several words read together. Monadic decomposability asks whether that relation is a finite Boolean combination of independent regular conditions on individual components. The cited paper uses earlier uncertainty about the exact decision complexity as motivation and then settles it. It establishes nondeterministic-logspace completeness for deterministic input automata and polynomial-space completeness for nondeterministic ones. This record consequently explains a completed classification that identifies when synchronized dependencies can be eliminated from a regular relation.
-
-[Read in atlas](index.html#TCS-6323) · [Monadic Decomposability of Regular Relations (Track B: Automata, Logic, Semantics, and Theory of Programming)](https://doi.org/10.4230/LIPIcs.ICALP.2019.103)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6995 — Avoid any k<n states of a synchronizing automaton within O(kn) letters.
 
@@ -5144,7 +5123,7 @@ An online local algorithm labels newly requested vertices after inspecting a bou
 [Read in atlas](index.html#TCS-0520) · [Open problems related to locality in distributed graph algorithms](https://jukkasuomela.fi/open/#dynamic-online) · [Locality in Online, Dynamic, Sequential, and Distributed Graph Algorithms](https://doi.org/10.4230/LIPIcs.ICALP.2023.10) · [Online Locality Meets Distributed Quantum Computing](https://arxiv.org/abs/2403.01903v4) · [Distributed Quantum Advantage in Locally Checkable Labeling Problems](https://arxiv.org/abs/2504.05191v2)
 Existing status: `resolved` · Summary written: 2026-09-11
 
-## Optimization and numerical computation (70)
+## Optimization and numerical computation (69)
 
 ### TCS-0008 — Does general rational linear programming have a strongly polynomial algorithm?
 
@@ -5585,13 +5564,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The edge-connectivity terminal backup problem buys a minimum-cost network so that each terminal has its required connectivity to the other terminals collectively. The selected version allows general edge capacities and places no finite capacity restriction on internal vertices. The source asks whether this integer optimization problem is polynomial-time solvable or NP-hard. Its algorithms address fractional relaxations and support approximation results for a broader node-capacitated problem. An exact classification would determine whether the strong flow and discrete-convex structure of the relaxation can overcome the remaining integrality constraints.
 
 [Read in atlas](index.html#TCS-6034) · [Node-Connectivity Terminal Backup, Separately-Capacitated Multiflow, and Discrete Convexity](https://doi.org/10.4230/LIPIcs.ICALP.2020.65)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6283 — A Faster Algorithm for Finding Tarski Fixed Points — Explicit open question on PDF page 1
-
-Tarski fixed-point search seeks a fixed point of an order-preserving map using oracle queries on a finite multidimensional grid. The historical conjecture quoted by the source predicts that the O(log^k n) recursive-search algorithm is optimal in each constant dimension k. The cited paper refutes that conjecture for dimensions at least three by giving an O(log² n) algorithm in dimension three. Using this as a recursive base yields O(log^(k−1) n) queries in higher dimensions as well. This entry therefore records a resolved lower-bound proposal and the algorithmic improvement showing that extra dimensions need not each contribute the previously expected search cost.
-
-[Read in atlas](index.html#TCS-6283) · [A Faster Algorithm for Finding Tarski Fixed Points](https://doi.org/10.4230/LIPIcs.STACS.2021.29)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6311 — Exploration of Graphs with Excluded Minors — Explicit open question on PDF page 3
@@ -8043,7 +8015,7 @@ Cryptographic hardness must occur on instances that honest users can efficiently
 [Read in atlas](index.html#TCS-6953) · [Mathematics and Computation](https://www.math.ias.edu/avi/book)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Quantum computation and information (114)
+## Quantum computation and information (113)
 
 ### TCS-6446 — Quantum PCP: a constant promise gap for local Hamiltonians
 
@@ -8372,13 +8344,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Quantum variants of the minimum circuit size problem ask whether a given object has a small quantum implementation. The source distinguishes tasks involving Boolean computations, unitary transformations, and quantum state preparation. This question asks whether quantum exponential-time hypotheses can yield hardness results for these minimization problems. The reductions must connect the assumed hardness of quantum satisfiability-related computation with detecting a short circuit description. Such results would place quantum circuit minimization within fine-grained complexity and explain whether succinctness itself remains difficult to recognize on a quantum computer.
 
 [Read in atlas](index.html#TCS-2650) · [Quantum Meets the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.ITCS.2022.47)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2671 — For every n-qubit unitary transformation U , does there exists an oracle A : {0, 1}∗ → {0, 1} such that a BQPA machine can […]
-
-The unitary synthesis problem asks whether every quantum transformation becomes efficiently implementable with a suitable classical Boolean oracle. The cited paper revisits this through search-to-decision reductions and quantum state synthesis. An oracle can help prepare a state encoding the transformation, but possessing that state does not automatically let one apply the transformation to an arbitrary input. Teleportation-based attempts introduce correction operations or rare postselection events that must also be handled efficiently. This formulation highlights the gap between encoding a unitary as quantum data and using that data as an executable operation.
-
-[Read in atlas](index.html#TCS-2671) · [Quantum Search-To-Decision Reductions and the State Synthesis Problem](https://doi.org/10.4230/LIPIcs.CCC.2022.5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2707 — The main obstacle comes from the non-commutativity of Hamiltonians and it remains open to design a polynomial-time algorithm for such partition function assuming only zero-freeness.

@@ -1,9 +1,9 @@
 # Working summaries — small categories
 
-1,425 five-sentence working summaries, based on saved source material.
+1,420 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computability and algorithmic information theory (60)
+## Computability and algorithmic information theory (59)
 
 ### TCS-6646 — Martin’s full conjecture for Turing-invariant functions under determinacy
 
@@ -418,14 +418,7 @@ The Mandelbrot set consists of complex parameters for which repeatedly applying 
 [Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6386 — Decidability in the Logic of Subsequences and Supersequences — Explicit open question on PDF page 2
-
-The logic of subsequences and supersequences reasons about words ordered by deleting or inserting symbols. The source compares the decidability of quantifier fragments, with the retained passage reporting undecidability at a higher level. The intended open issue lies in the missing continuation concerning a lower fragment or alphabet restriction. Locating that boundary would explain how much logical alternation is needed to encode undecidable word problems. The excerpt cuts off before the actual question, so it does not justify identifying a particular open fragment until the alphabet conventions and complete source statement are recovered.
-
-[Read in atlas](index.html#TCS-6386) · [Decidability in the Logic of Subsequences and Supersequences](https://doi.org/10.4230/LIPIcs.FSTTCS.2015.84)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-## Proof complexity (59)
+## Proof complexity (58)
 
 ### TCS-6601 — Do some tautologies require superpolynomial Extended Frege proofs?
 
@@ -754,13 +747,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Dynamic symmetries allow a proof to exploit transformations that preserve the relevant formula structure during reasoning. The cited work studies how even small symmetries affect proof-system power. The saved passage identifies superpolynomial lower bounds for resolution with dynamic symmetries as unresolved in its source. Such a lower bound would show that symmetry-based reuse cannot compress every difficult contradiction. The extraction stops before a further comparison and omits the rule definitions, so the working summary does not conflate dynamic symmetries with ordinary resolution or static formula automorphisms.
 
 [Read in atlas](index.html#TCS-5413) · [The Power of Small Symmetries](https://doi.org/10.4230/LIPIcs.MFCS.2026.97)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5499 — Resolution Lower Bounds for Refutation Statements — Explicit open question on PDF page 2
-
-Refutation statements encode claims that a specified formula has no proof or has a proof of a bounded kind. The cited paper studies resolution lower bounds for such self-referential encodings. The saved passage leaves a lower-bound problem for an object written REFF Res,s unresolved. A result could illuminate how efficiently resolution reasons about the existence of its own derivations. The notation and the replacement used in the source's argument are not defined in the excerpt, so its exact formula family and size parameter remain unresolved editorial details.
-
-[Read in atlas](index.html#TCS-5499) · [Resolution Lower Bounds for Refutation Statements](https://doi.org/10.4230/LIPIcs.MFCS.2019.37)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5628 — SOS Lower Bounds with Hard Constraints: Think Global, Act Local — Unresolved-question passage on page 20
@@ -3494,7 +3480,7 @@ Linear rank-width restricts a rank-width-style decomposition to a linear arrange
 [Read in atlas](index.html#TCS-7140) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (70)
+## Approximation algorithms and inapproximability (68)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -3776,13 +3762,6 @@ Weighted Chordal Vertex Deletion removes vertices of minimum total weight so tha
 [Read in atlas](index.html#TCS-3955) · [Polylogarithmic Approximation Algorithms for Weighted-F-Deletion Problems](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2018.1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3984 — Can we show that coloring a 2-colorable 3-uniform hypergraph with ω(log log n) colors is NP-hard, or even quasi-NP-hard?
-
-A proper hypergraph coloring assigns colors to vertices so that no hyperedge is monochromatic. The promise here is that every hyperedge has three vertices and that a two-coloring exists. The question asks whether finding a coloring with more than a logarithm-of-logarithm number of colors is NP-hard, or at least quasi-NP-hard. The source obtains stronger coloring hardness for four-uniform hypergraphs, where one additional vertex per edge gives reductions more flexibility. Transferring comparable hardness to triples would sharpen the boundary of what efficient algorithms can do under a very strong colorability promise.
-
-[Read in atlas](index.html#TCS-3984) · [NP-Hardness of Coloring 2-Colorable Hypergraph with Poly-Logarithmically Many Colors](https://doi.org/10.4230/LIPIcs.ICALP.2018.15)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3991 — Can we remove the restriction of planar graphs?
 
 The source asks about approximating the Tutte polynomial T_G(x,1) for x>1 on general undirected graphs. These evaluations encode weighted counts of acyclic spanning subgraphs, so the objects being counted are forests. The paper gives an FPRAS for all-terminal network reliability, equivalently weighted counting of connected spanning subgraphs, on general undirected graphs. For planar graphs, the identity T_G(x,1)=T_G*(1,x) transfers this result through the planar dual G* to the acyclic-subgraph evaluations. The open question is whether efficient approximation of these forest counts extends beyond planar graphs; the saved source does not establish its later status.
@@ -3956,13 +3935,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Steiner forest buys a minimum-cost subgraph connecting every prescribed pair of terminals. The saved 2011 textbook question asks for an approximation factor strictly below two. Different required pairs may share purchased edges, so solving their paths separately can waste substantial cost. Beating two would sharpen a foundational guarantee for network construction with multiple connectivity obligations. This is a dated source question rather than a current-status audit, and a complete formulation still needs to fix the graph model and whether the improvement is a universal constant.
 
 [Read in atlas](index.html#TCS-6723) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6725 — Color a promised 3-colorable graph with O(log n) colors in polynomial time.
-
-The input is an n-vertex graph promised to admit a proper coloring with three colors. The textbook asks whether polynomial time suffices to produce a proper coloring using only O(log n) colors. The promise ensures a very small solution exists but does not reveal the hidden partition into independent sets. Achieving a logarithmic color count would substantially narrow the gap between existence and efficient recovery of a coloring. The question is preserved from the 2011 source, and its current status has not been independently established by this drafting pass.
-
-[Read in atlas](index.html#TCS-6725) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6755 — Determine the leading constant in optimal Boolean k-CSP approximation.
@@ -6322,7 +6294,7 @@ A repetitive index supports string search while using space tied to repeated str
 [Read in atlas](index.html#TCS-6930) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## String algorithms and computational biology (46)
+## String algorithms and computational biology (45)
 
 ### TCS-6623 — Polynomial-sample worst-case trace reconstruction
 
@@ -6618,13 +6590,6 @@ RNA folding models seek compatible pairings in a sequence under rules that restr
 [Read in atlas](index.html#TCS-5936) · [Hardness of RNA Folding Problem With Four Symbols](https://doi.org/10.4230/LIPIcs.CPM.2016.13)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6476 — Faster Algorithms for Text-to-Pattern Hamming Distances — Open Question 2
-
-Text-to-pattern Hamming distance counts mismatches at every alignment of a pattern within a longer text. The imported question asks to improve the running time of the cited multiplicative approximation algorithm, especially its accuracy dependence. The same paper announces an affirmative improvement to this and another motivating question. The broader issue is how efficiently very accurate mismatch estimates can be computed across all shifts. This description records the source-resolved target without presenting its historical benchmark as an independently verified current frontier.
-
-[Read in atlas](index.html#TCS-6476) · [Faster Algorithms for Text-to-Pattern Hamming Distances](https://doi.org/10.1109/FOCS57990.2023.00136)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6920 — Support fast random access to a string using O(r) words, where r counts BWT runs.
 
 The number r of runs in the Burrows–Wheeler transform measures one form of string repetitiveness. The saved survey question asks for fast access to arbitrary text characters using O(r) words. A representation compressed by transform runs must still recover positions in the original text efficiently. Meeting both goals would make this compression measure support direct text navigation as well as search-oriented operations. The note does not specify a required query-time function or machine model, so the target remains broader than one particular logarithmic-time data structure.
@@ -6646,7 +6611,7 @@ Different repetitiveness measures summarize a string through different kinds of 
 [Read in atlas](index.html#TCS-6929) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (55)
+## Game theory, social choice and fair division (54)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -6919,13 +6884,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Separable cost sharing assigns portions of a shared service's cost to individual participants. The cited paper develops black-box reductions and asks whether polynomial running time can be guaranteed for a particular procedure. A reduction may preserve incentive or approximation properties while making many costly calls to its component algorithms. A time bound would determine whether the conceptual transformation yields an efficient implementable mechanism. The saved sentence omits the procedure and its oracle assumptions, so the number of reduction steps and the cost of each step remain necessary before the guarantee is precise.
 
 [Read in atlas](index.html#TCS-3867) · [Efficient Black-Box Reductions for Separable Cost Sharing](https://doi.org/10.4230/LIPIcs.ICALP.2018.154)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4116 — In order to use a similar technique for CS-TNGs, we first establish PLS-hardness for acyclic CS-NGs, which is an open problem.
-
-In a cost-sharing network game, each player chooses a source-to-target path and shares edge costs with other users of those edges. A Nash equilibrium is a path profile from which no player can lower its cost through a unilateral change. The catalogue quotation concerns proving PLS-hardness of finding such an equilibrium even on acyclic networks. The cited paper actually supplies that proof as Theorem 15, using it to establish matching hardness for timed cost-sharing games. This entry therefore describes a resolved step inside the source: acyclicity does not remove the local-search difficulty of finding stable shared routes.
-
-[Read in atlas](index.html#TCS-4116) · [Timed Network Games](https://doi.org/10.4230/LIPIcs.MFCS.2017.37)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4151 — Also, while we know that non-integral strategies may be better than integral ones, we do not know whether strategies that use rational numbers are as […]
@@ -8516,7 +8474,7 @@ The cited textbook construction uses inner linear codes attaining Gilbert–Vars
 [Read in atlas](index.html#TCS-6859) · [Essential Coding Theory](https://cse.buffalo.edu/faculty/atri/courses/coding-theory/book/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Property testing and distribution learning (54)
+## Property testing and distribution learning (53)
 
 ### TCS-6630 — Effective classification of polynomially testable hereditary graph properties
 
@@ -8733,13 +8691,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A junta is a function depending on only a small number of input coordinates. Distribution-free testing measures distance using an unknown input distribution rather than the uniform one. The saved question asks whether a constant number of adaptive rounds can achieve query complexity polynomial in k and inverse accuracy. Such a result would combine efficient sampling with limited sequential interaction. The excerpt's denominator is damaged and its domain conventions are absent, so the precise proximity parameter and function model remain to be recovered from the source.
 
 [Read in atlas](index.html#TCS-3717) · [Almost Optimal Distribution-Free Junta Testing](https://doi.org/10.4230/LIPIcs.CCC.2019.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3808 — The foregoing motivates the problem of testing linearity of non-signaling functions with low error: how do we ensure that F̂ is sufficiently close to a […]
-
-Non-signaling strategies generalize local answer distributions while forbidding one queried location from revealing which other locations were queried. The selected passage asks how a linearity test can force such a strategy to be very close to a genuinely linear one. The challenge is to obtain a sufficiently small error without increasing the query pattern used by the existing proof-system compiler. Unlike in the classical setting, repeating a test and applying ordinary self-correction does not immediately provide the needed guarantee. The paper supplies a solution later in its argument, so this record describes a technical obstacle resolved in the cited construction rather than a separately established open problem.
-
-[Read in atlas](index.html#TCS-3808) · [Probabilistic Checking Against Non-Signaling Strategies from Linearity Testing](https://doi.org/10.4230/LIPIcs.ITCS.2019.25)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3853 — We leave it as an open question whether there exists a simple construction admitting both direct product testability and distance amplification.
@@ -9045,7 +8996,7 @@ Computational differential privacy protects against efficient adversaries, where
 [Read in atlas](index.html#TCS-6825) · [The Algorithmic Foundations of Differential Privacy](https://www.cis.upenn.edu/~aaroth/privacybook.html) · [Towards Separating Computational and Statistical Differential Privacy (FOCS 2023)](https://doi.org/10.1109/FOCS57990.2023.00042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Constraint satisfaction (36)
+## Constraint satisfaction (38)
 
 ### TCS-6635 — Does every finite-template decision promise CSP have a P/NP-hard dichotomy?
 
@@ -9229,6 +9180,13 @@ Primitive-positive definitions use conjunction and existential quantification to
 [Read in atlas](index.html#TCS-3770) · [On the Strength of Uniqueness Quantification in Primitive Positive Formulas](https://doi.org/10.4230/LIPIcs.MFCS.2019.36)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
+### TCS-3984 — Can we show that coloring a 2-colorable 3-uniform hypergraph with ω(log log n) colors is NP-hard, or even quasi-NP-hard?
+
+A proper hypergraph coloring assigns colors to vertices so that no hyperedge is monochromatic. The promise here is that every hyperedge has three vertices and that a two-coloring exists. The question asks whether finding a coloring with more than a logarithm-of-logarithm number of colors is NP-hard, or at least quasi-NP-hard. The source obtains stronger coloring hardness for four-uniform hypergraphs, where one additional vertex per edge gives reductions more flexibility. Transferring comparable hardness to triples would sharpen the boundary of what efficient algorithms can do under a very strong colorability promise.
+
+[Read in atlas](index.html#TCS-3984) · [NP-Hardness of Coloring 2-Colorable Hypergraph with Poly-Logarithmically Many Colors](https://doi.org/10.4230/LIPIcs.ICALP.2018.15)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
 ### TCS-4267 — For example, is it the case that CSP(Γ) is not solvable in subexponential time whenever CSP(Γ) is NP-complete and the primal treewidth of an instance […]
 
 The source studies exponential-time CSP algorithms through universal algebra and structural graph parameters. Its saved question asks whether NP-complete languages remain resistant to subexponential algorithms under a condition involving primal treewidth. Primal treewidth measures how tightly variables interact through shared constraints. A lower bound could identify when sparse decomposition structure genuinely permits faster exact solving. The final treewidth condition and any complexity assumption are missing from the excerpt, so NP-completeness alone must not be presented as proving an exponential running-time requirement.
@@ -9270,6 +9228,13 @@ The saved passage recalls the Feder–Vardi dichotomy conjecture for fixed finit
 
 [Read in atlas](index.html#TCS-6002) · [Robust Approximation of Temporal CSP](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2014.419)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6725 — Color a promised 3-colorable graph with O(log n) colors in polynomial time.
+
+The input is an n-vertex graph promised to admit a proper coloring with three colors. The textbook asks whether polynomial time suffices to produce a proper coloring using only O(log n) colors. The promise ensures a very small solution exists but does not reveal the hidden partition into independent sets. Achieving a logarithmic color count would substantially narrow the gap between existence and efficient recovery of a coloring. The question is preserved from the 2011 source, and its current status has not been independently established by this drafting pass.
+
+[Read in atlas](index.html#TCS-6725) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6748 — Classify the complexity of Boolean decision-Holant problems.
 

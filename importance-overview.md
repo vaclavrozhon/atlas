@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. Top 100 and Top 1000 use the first 5/2 and 50/20 category places respectively. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-1,028 records have an editorial importance assessment; 1,731 remain provisional.
+1,028 records have an editorial importance assessment; 1,721 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -15,8 +15,8 @@ Target: 50; candidates: 120; importance assessed: 23; provisional: 97.
 | 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) | 97 |
 | 2 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) | 96 |
 | 3 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) | 96 |
-| 4 | [Deterministic linear-time construction of static dictionaries](index.html#TCS-6586) | 94 |
-| 5 | [Sorting X+Y (Pairwise Sums)](index.html#TCS-0388) | 79 |
+| 4 | [Can a static dictionary be built deterministically in linear time?](index.html#TCS-6586) | 94 |
+| 5 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) | 79 |
 | 6 | [Data Structure Lower Bound in the Cell Probe Model](index.html#TCS-0949) | 84 |
 | 7 | [Do splay trees support deque operations in constant amortized time?](index.html#TCS-6508) | 81 |
 | 8 | [Does splaying every BST preorder take linear total time?](index.html#TCS-6512) | 79 |
@@ -42,7 +42,7 @@ Target: 50; candidates: 138; importance assessed: 49; provisional: 89.
 
 ## 3. Automata and formal languages (large)
 
-Target: 50; candidates: 125; importance assessed: 57; provisional: 68.
+Target: 50; candidates: 122; importance assessed: 57; provisional: 65.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ Target: 50; candidates: 181; importance assessed: 72; provisional: 109.
 
 ## 6. Optimization and numerical computation (large)
 
-Target: 50; candidates: 73; importance assessed: 30; provisional: 43.
+Target: 50; candidates: 72; importance assessed: 30; provisional: 42.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -161,7 +161,7 @@ Target: 50; candidates: 50; importance assessed: 20; provisional: 30.
 
 ## 10. Quantum computation and information (large)
 
-Target: 50; candidates: 116; importance assessed: 31; provisional: 85.
+Target: 50; candidates: 115; importance assessed: 31; provisional: 84.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -178,7 +178,7 @@ Target: 50; candidates: 116; importance assessed: 31; provisional: 85.
 
 ## 1. Computability and algorithmic information theory (small)
 
-Target: 20; candidates: 61; importance assessed: 35; provisional: 26.
+Target: 20; candidates: 60; importance assessed: 35; provisional: 25.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -195,7 +195,7 @@ Target: 20; candidates: 61; importance assessed: 35; provisional: 26.
 
 ## 2. Proof complexity (small)
 
-Target: 20; candidates: 61; importance assessed: 18; provisional: 43.
+Target: 20; candidates: 60; importance assessed: 18; provisional: 42.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ Target: 20; candidates: 153; importance assessed: 58; provisional: 95.
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Target: 20; candidates: 71; importance assessed: 13; provisional: 58.
+Target: 20; candidates: 69; importance assessed: 13; provisional: 56.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -399,7 +399,7 @@ Target: 20; candidates: 40; importance assessed: 16; provisional: 24.
 
 ## 14. String algorithms and computational biology (small)
 
-Target: 20; candidates: 47; importance assessed: 13; provisional: 34.
+Target: 20; candidates: 46; importance assessed: 13; provisional: 33.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -416,7 +416,7 @@ Target: 20; candidates: 47; importance assessed: 13; provisional: 34.
 
 ## 15. Game theory, social choice and fair division (small)
 
-Target: 20; candidates: 65; importance assessed: 35; provisional: 30.
+Target: 20; candidates: 64; importance assessed: 35; provisional: 29.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -484,7 +484,7 @@ Target: 20; candidates: 53; importance assessed: 28; provisional: 25.
 
 ## 19. Property testing and distribution learning (small)
 
-Target: 20; candidates: 54; importance assessed: 21; provisional: 33.
+Target: 20; candidates: 53; importance assessed: 21; provisional: 32.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -518,7 +518,7 @@ Target: 20; candidates: 22; importance assessed: 11; provisional: 11.
 
 ## 21. Constraint satisfaction (small)
 
-Target: 20; candidates: 37; importance assessed: 12; provisional: 25.
+Target: 20; candidates: 39; importance assessed: 12; provisional: 27.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
