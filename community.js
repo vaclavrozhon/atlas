@@ -17,7 +17,7 @@
   let contributions=[],loadedAt=0,loading=false,lastAttempt=0,current=null;
   let displayed=20;
   const openThreads=new Set();
-  const fields=['title','category','statement','definitions','answer','why','sources'];
+  const fields=['title','category','statement','sources'];
   const sectionNames={statement:'Problem statement',definitions:'Definitions and model',answer:'What would settle it?',why:'Why it matters',sources:'Sources'};
 
   function sections(body){
@@ -106,7 +106,13 @@
     const target=kind==='note'?problem(id):null;
     if(kind==='note'&&!target)return;
     current={kind,id,key:kind==='note'?`note:${id}`:'problem'};
-    const draft=drafts[current.key]||{};
+    const draft={...(drafts[current.key]||{})};
+    // Fold previously saved optional fields into the statement so the shorter
+    // form does not lose any unfinished contribution. Saving replaces the old shape.
+    if(kind==='problem'){
+      const extra=['definitions','answer','why'].filter(key=>draft[key]).map(key=>`${sectionNames[key]}:\n${draft[key]}`);
+      draft.statement=[draft.statement,...extra].filter(Boolean).join('\n\n');
+    }
     $('contribution-title').textContent=kind==='note'?'Add a public note':'New problem';
     $('problem-fields').hidden=kind!=='problem';$('public-note-fields').hidden=kind!=='note';
     $('contribution-target').hidden=!target;$('contribution-target').textContent=target?`${id} · ${target.title}`:'';
@@ -153,10 +159,6 @@
   };
   $('new-problem').onclick=()=>open('problem');
   $('refresh-community').onclick=()=>refresh(true);
-  $('export-community').onclick=()=>{
-    const blob=new Blob([JSON.stringify({repository,checked_at:loadedAt?new Date(loadedAt).toISOString():null,scope:'Public reader contributions; not reviewed catalogue records.',contributions},null,2)],{type:'application/json'});
-    const url=URL.createObjectURL(blob),link=document.createElement('a');link.href=url;link.download='atlas-community-contributions.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-  };
   document.addEventListener('click',event=>{
     const note=event.target.closest('[data-public-note]');if(note)open('note',note.dataset.publicNote);
     if(event.target.closest('[data-new-problem]'))open('problem');
