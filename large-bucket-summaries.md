@@ -341,12 +341,12 @@ Spiky rank measures how many block-structured matrices are needed to express a m
 [Read in atlas](index.html#TCS-1144) · [Spiky Rank and Its Applications to Rigidity and Circuits](https://doi.org/10.4230/LIPIcs.ICALP.2026.106)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1235 — It remains open whether the [ inclusion LDLk ⊊ LDLk is still proper if the depth restriction is removed.
+### TCS-1235 — Do unrestricted weights make polynomial-size linear decision lists stronger?
 
-A linear decision list tests weighted threshold conditions in sequence and returns the output attached to the first successful test. Its alternation depth counts changes between output values along that sequence. The source separates polynomial-size lists with polynomially bounded weights from lists allowing unrestricted weights when alternation depth is suitably limited. The question is whether a strict separation survives after removing the depth restriction. Resolving it would establish whether large numerical weights provide an intrinsic advantage for decision lists, or whether additional alternations can simulate their effect with modest size.
+A linear decision list evaluates weighted threshold tests and returns the bit attached to the first successful test. The question asks whether polynomially bounded weights are weaker than unrestricted weights when both kinds of list have polynomial size. Polynomial weight magnitude is a stronger restriction than polynomial encoding length. The source proves separations when the number of output alternations is restricted. The open comparison removes that restriction and asks whether large weights still provide additional expressive power.
 
 [Read in atlas](index.html#TCS-1235) · [Alternation Depth of Threshold Decision Lists](https://doi.org/10.4230/LIPIcs.ICALP.2026.148)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1442 — Is there an algebrizing barrier to proving MA ̸⊆ SIZE[nk ]?
 
@@ -4503,12 +4503,12 @@ A standard quantum oracle keeps the query input while writing the function value
 [Read in atlas](index.html#TCS-0028) · [Open Problems Related to Quantum Query Complexity](https://www.scottaaronson.com/papers/open.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1259 — 10 In fact, it is an open problem to exactly implement FANOUT using QAC0 circuits of any size.
+### TCS-1259 — Exact quantum fanout in constant depth with unrestricted circuit size
 
-Quantum fanout coherently distributes the value of a control bit across many target qubits. This record asks whether the operation can be implemented exactly by a constant-depth QAC0 circuit. The saved question allows arbitrary circuit size, making it a structural expressiveness question rather than merely a search for smaller circuits. Its context is a construction of complicated quantum transformations in constant depth, where approximate and exact implementation must be distinguished. Resolving the fanout case would identify a basic operation that this shallow circuit model can or cannot express.
+Quantum fanout coherently flips every target qubit according to one control qubit. The problem asks whether one constant depth bound can implement it exactly using arbitrary one-qubit and generalized Toffoli gates. The circuit may have any finite size and any finite number of clean ancillas. Superposition inputs must be handled correctly and the ancillas must return to zero. An exact construction or an impossibility theorem would determine whether this basic operation lies beyond the expressive power of the shallow gate model.
 
 [Read in atlas](index.html#TCS-1259) · [Random Unitaries in Constant (Quantum) Time](https://doi.org/10.4230/LIPIcs.ITCS.2026.61)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1298 — Every element of the Clifford hierarchy is generalized semi-Clifford.
 

@@ -2215,12 +2215,12 @@ Max Di-Cut selects a vertex partition and counts arcs pointing from its first si
 [Read in atlas](index.html#TCS-0088) · [TCS Open Problems](https://tcsopenproblems.com/problem/1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1168 — For a constant k > 3, what is the computational complexity of coloring a 2-colorable digraph using at most k colors?
+### TCS-1168 — Hardness of coloring 2-dicolorable digraphs with any fixed number of colors
 
-This record concerns coloring directed graphs promised to admit a coloring with only two colors. It asks for the complexity of finding a coloring using any fixed number k greater than three. The allowance of additional colors measures how much computational advantage comes from relaxing an optimum solution. The cited 2026 paper places the question within hardness and approximation for digraph coloring. The extracted sentence does not state the paper's coloring convention, so the forbidden monochromatic configurations must be recovered before treating this as a self-contained problem.
+A dicoloring partitions a directed graph into color classes containing no directed cycle. The input is promised to admit two colors, but that coloring is not supplied. The source conjecturally asks whether producing any fixed larger number of colors remains NP-hard. Its polynomial-time algorithm uses a number of colors growing as the square root of the vertex count. Settling the constant-color hardness claim would clarify whether a bounded relaxation of the optimum can overcome the search difficulty.
 
 [Read in atlas](index.html#TCS-1168) · [Hardness and Approximation for Coloring Digraphs](https://doi.org/10.4230/LIPIcs.ICALP.2026.53)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1243 — There is a polynomial-time (log1+o(1) k)-approximation algorithm for the all-or-nothing flow problem.
 
@@ -3755,13 +3755,6 @@ Given a connected undirected graph, the goal is to find a spanning tree whose ma
 [Read in atlas](index.html#TCS-0538) · [Graph Algorithms: Distributed Meets Dynamic](https://doi.org/10.4230/DagRep.14.11.92)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1001 — Minimal complexity of MaxFlow on dynamic graphs
-
-The source models a temporal network as T graph snapshots with a capacity for each edge at each time step. It asks for the maximum amount of flow that can move from a designated source to a sink over these T steps, with zero edge transit time and unlimited storage at vertices. A time-expanded graph represents each vertex at successive times and adds storage edges between its copies. The open question asks whether one can improve the T^(5/2) dependence obtained from the best of the static-flow algorithms compared in the source. A faster algorithm could exploit the special structure of the expanded graph or work directly with compact vectors of time-dependent capacities.
-
-[Read in atlas](index.html#TCS-1001) · [Temporal Graphs: Structure, Algorithms, Applications](https://doi.org/10.4230/DagRep.11.3.16)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3331 — Can ParityExists be maintained with first-order updates rules?
 
 Dynamic complexity maintains query answers as a database changes through a sequence of updates. The source asks whether its ParityExists query can be maintained using first-order update rules. The challenge is to track a parity-related global property through local logical updates rather than recomputing it from scratch. A solution would clarify the expressive power of first-order dynamic programs for counting-sensitive queries. The saved passage does not define ParityExists, initialization, or allowed modifications, so these conventions are necessary before comparing it with static first-order expressibility or ordinary parity computation.
@@ -3796,6 +3789,13 @@ Dynamic s–t reachability asks whether a fixed target can be reached from a fix
 
 [Read in atlas](index.html#TCS-6477) · [Deterministic Fully Dynamic SSSP and More](https://doi.org/10.1109/FOCS57990.2023.00142)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-1001 — Improving the time-horizon dependence of temporal maximum flow
+
+The problem concerns exact flow through a known sequence of capacitated graph snapshots with zero transit time and unlimited storage. The source asks whether its listed T^(5/2) dependence on the time horizon can be improved. Its exact layered representation has O(nT) vertices and O((m+n)T) arcs. The older strongly polynomial static maximum-flow bound gives O(n(m+n)T²) arithmetic operations on that network. The numerical improvement question is therefore resolved positively and is separate from finding the optimal temporal-flow complexity.
+
+[Read in atlas](index.html#TCS-1001) · [Temporal Graphs: Structure, Algorithms, Applications](https://doi.org/10.4230/DagRep.11.3.16) · [Max flows in O(nm) time, or better](https://doi.org/10.1145/2488608.2488705)
+Existing status: `resolved` · Summary written: 2026-09-11
 
 ## String algorithms and computational biology (17)
 
@@ -4440,13 +4440,6 @@ The Cayley-table membership problem asks whether a target element belongs to the
 [Read in atlas](index.html#TCS-1178) · [Efficient Compression in Semigroups](https://doi.org/10.4230/LIPIcs.STACS.2026.80)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1254 — The question of proving such lower bounds for general circuits remains open.
-
-The source studies lower bounds for noncommutative arithmetic circuits, where the order of variables in a product matters. Its retained passage asks whether the relevant lower bounds extend to general circuits. The paper title identifies low syntactic degree as a restriction in the established setting, making removal of that restriction the central direction. This would test whether the lower-bound mechanism controls unrestricted computation or depends on keeping intermediate expressions simple. The excerpt omits the target polynomial and numerical bound, so this draft cannot assert a particular separation until the surrounding theorem is recovered.
-
-[Read in atlas](index.html#TCS-1254) · [Lower Bounds for Noncommutative Circuits with Low Syntactic Degree](https://doi.org/10.4230/LIPIcs.ITCS.2026.115)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-1424 — That is, can formulas be efficiently simulated using bounded-width ABPs over R and R+ ?
 
 The question compares arithmetic formulas with algebraic branching programs of bounded width over the semirings studied in the source. A formula is a tree of operations, while a branching program packages computation into path sums through layers. The proposed simulation asks whether limited width can represent every formula with only an efficient increase in size. Such a result would clarify which computation-model equivalences survive when the algebraic operations come from min-plus semirings. The symbols R and R+ inherit source-specific operations, so treating them automatically as ordinary real-field arithmetic would misstate the problem.
@@ -4874,6 +4867,13 @@ An explicitly represented arithmetic circuit can contain many cancellations, mak
 [Read in atlas](index.html#TCS-7113) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-1254 — Beyond the n log n barrier for unrestricted noncommutative circuits
+
+The source asks for lower bounds beyond n log n for unrestricted noncommutative arithmetic circuits. Its palindrome polynomial contains words whose second block reverses the indices of the first. Earlier improvements imposed restrictions on the syntactic degrees of intermediate computations. A 2026 result accepted at FOCS gives a sufficient unrestricted lower bound, including for this target after a variable identification. The historical threshold is therefore resolved; a concurrent preprint states the stronger quadratic bound.
+
+[Read in atlas](index.html#TCS-1254) · [Lower Bounds for Noncommutative Circuits with Low Syntactic Degree](https://doi.org/10.4230/LIPIcs.ITCS.2026.115) · [Polynomial Lower Bounds for Arithmetic Circuits over Non-Commutative Rings](https://eccc.weizmann.ac.il/report/2026/061/) · [A Quadratic Lower Bound for Noncommutative Circuits](https://arxiv.org/abs/2604.20575v3) · [FOCS 2026 Accepted Papers](https://focs.computer.org/2026/accepted-papers/)
+Existing status: `resolved` · Summary written: 2026-09-11
+
 ## Lattices and computational number theory (31)
 
 ### TCS-6571 — Is rational solvability of polynomial equations decidable?
@@ -5037,12 +5037,12 @@ SVP in the ℓ1 norm measures a vector by the sum of the absolute values of its 
 [Read in atlas](index.html#TCS-0646) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1170 — Prove that for any p ∈ [1, 2], there exists a constant γ > 1 such that assuming ETH there are no sub-exponential time algorithms […]
+### TCS-1170 — ETH hardness of constant-factor shortest-vector approximation for 1≤p≤2
 
-The shortest-vector problem asks for a short nonzero vector in a lattice, with approximation allowing a bounded factor above the optimum. This project seeks an exponential-time lower bound for constant-factor approximation in the family of norms from ℓ1 through Euclidean ℓ2. The assumption is the Exponential Time Hypothesis, which rules out subexponential algorithms for satisfiability. The cited source identifies the Euclidean case as central because norm embeddings can transfer suitable hardness to the other specified norms. Establishing the reduction would strengthen the fine-grained hardness foundation of a lattice problem closely connected to cryptography.
+The shortest-vector problem asks how short a nonzero lattice vector can be. This card asks for constant-factor gap hardness in every norm ℓp with 1≤p≤2. The proposed lower bound excludes subexponential dependence on ambient dimension, with polynomial dependence on input encoding length. Its premise is ordinary deterministic ETH, and the approximation factor must stay bounded away from one as dimension grows. The source’s shortest-vector hardness theorem for p>2 uses randomized ETH and does not settle this stated interval or premise.
 
 [Read in atlas](index.html#TCS-1170) · [Mind the Gap? Not for SVP Hardness Under ETH!](https://doi.org/10.4230/LIPIcs.ICALP.2026.8)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5317 — Hardness of the Binary Covering Radius Problem in Large l_p Norms — Explicit open question on PDF page 7
 
@@ -5468,11 +5468,11 @@ Identity testing decides whether an unknown distribution matches a specified ref
 [Read in atlas](index.html#TCS-0672) · [COLT / PMLR](https://proceedings.mlr.press/v247/canonne24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0952 — Sample Stretching
+### TCS-0952 — Sample stretching and the meaning of independent synthetic observations
 
-Sample stretching asks whether k independent observations from an unknown distribution can be transformed into k plus one independent observations from a nearby distribution. The output distribution may differ from the original by at most epsilon in total variation distance. The source asks for the smallest achievable epsilon as a function of the available samples and domain. Simply repeating an observed value creates dependence, so it does not meet the required output guarantee. The project is to quantify how much distributional distortion is necessary to manufacture an additional independent sample without direct access to the source.
+Sample stretching asks whether k observations can produce k+1 independent observations from a nearby distribution. The nearby marginal must be compared with the original distribution in total variation. Repeating an observed bit preserves each marginal but makes the outputs dependent. If the nearby distribution is itself learned from random data, conditional independence and unconditional independence differ. The source must still specify that dependence and the probability convention for its accuracy guarantee; later sample-amplification results use a different joint-output condition.
 
-[Read in atlas](index.html#TCS-0952) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:85)
+[Read in atlas](index.html#TCS-0952) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:85) · [On the Statistical Complexity of Sample Amplification](https://doi.org/10.1214/24-AOS2444)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2337 — Is there a computationally efficient algorithm for learning any low rank distribution given access to a conditional sampling oracle?
