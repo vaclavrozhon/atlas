@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,177 five-sentence working summaries, based on saved source material.
+1,178 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (48)
@@ -6724,7 +6724,7 @@ NTRU-like problems use structured algebraic relations involving short secret ele
 [Read in atlas](index.html#TCS-6868) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Coding and information theory (45)
+## Coding and information theory (46)
 
 ### TCS-6606 — The exact capacity region of the two-user Gaussian interference channel
 
@@ -6781,6 +6781,13 @@ Can a binary code protect arbitrarily long messages at constant rate while recov
 
 [Read in atlas](index.html#TCS-6609) · [Asymptotically good large-alphabet LDCs with polylogarithmic query complexity](https://eccc.weizmann.ac.il/report/2025/168/revision/1/download/) · [High Rate Efficient Local List Decoding from HDX](https://arxiv.org/abs/2601.22535v1)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7214 — The rate-distortion region for distributed lossy source coding
+
+Two encoders compress correlated sources separately for one joint decoder. Each reconstructed source may have a prescribed average distortion. The desired rate region describes all pairs of description lengths attainable over long blocks. Lossless coding and special logarithmic-loss results do not settle arbitrary distortion measures. The inherited request still needs to specify the required form or evaluability of a new characterization.
+
+[Read in atlas](index.html#TCS-7214) · [Lecture Notes on Network Information Theory](https://arxiv.org/abs/1001.3404v4) · [Multiterminal Source Coding Under Logarithmic Loss](https://doi.org/10.1109/TIT.2013.2288257) · [Structured Codes for Distributed Matrix Multiplication (initial version)](https://arxiv.org/abs/2501.00371v1) · [Structured Codes for Distributed Matrix Multiplication (revision 4)](https://arxiv.org/abs/2501.00371v4)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6610 — The Shannon capacity of C7
 
