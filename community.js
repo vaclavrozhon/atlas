@@ -126,7 +126,7 @@
   }
   function saveDraft(){
     if(!current)return;
-    drafts[current.key]={...drafts[current.key],...values()};
+    drafts[current.key]=current.kind==='note'?{...drafts[current.key],...values()}:values();
     $('contribution-draft-status').textContent=write(draftKey,drafts)?'Draft saved in this browser. Nothing has been published yet.':'This browser could not save your draft. Keep the form open or copy your text.';
   }
   function categoryOptions(selected){
