@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,184 five-sentence working summaries, based on saved source material.
+1,185 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (49)
@@ -2141,7 +2141,7 @@ Vertex expansion measures how many distinct outside neighbors a small vertex set
 [Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Parameterized complexity and algorithms (86)
+## Parameterized complexity and algorithms (87)
 
 ### TCS-6592 — Is k-Clique fixed-parameter tractable, equivalently FPT=W[1]?
 
@@ -2176,6 +2176,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Edge Multiway Cut removes at most k edges from an undirected graph to separate every pair of designated terminals. The question asks for polynomial-time preprocessing into an equivalent instance with encoding length polynomial in k. Crucially, the size bound must remain independent of how many terminals the original graph contains. Such a kernel would show that a small separation budget also limits the information needed to represent the problem. The saved target explicitly allows randomized preprocessing, but preserving all terminal separation requirements is the central compression difficulty.
 
 [Read in atlas](index.html#TCS-6660) · [Quasipolynomial multicut-mimicking networks and kernelization of multiway cut problems](https://arxiv.org/abs/2002.08825)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7181 — Exact recognition of bounded clique-width
+
+Clique-width measures how many reusable vertex labels are needed to build a graph with four specified operations. Even a complete graph of arbitrary size needs only two labels. The question asks whether graphs of width at most k can be recognized in polynomial time for every fixed k. The polynomial exponent may depend on k, so known NP-completeness when k is input does not settle it. Small thresholds are understood, while approximate or supplied decompositions do not give exact recognition at every threshold.
+
+[Read in atlas](index.html#TCS-7181) · [Clique-width is NP-complete](https://doi.org/10.1137/070687256) · [Polynomial-time recognition of clique-width ≤3 graphs](https://doi.org/10.1016/j.dam.2011.03.020) · [Tight Bounds for Feedback Vertex Set Parameterized by Clique-Width](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.39)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7247 — Can weighted independent set be solved in time polynomial in its optimal tropical circuit size?
