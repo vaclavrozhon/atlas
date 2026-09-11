@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,165 five-sentence working summaries, based on saved source material.
+1,167 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (49)
@@ -4309,7 +4309,7 @@ A hypergraph transversal meets every hyperedge, and it is minimal when no select
 [Read in atlas](index.html#TCS-7112) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Structural graph theory and graph algorithms (62)
+## Structural graph theory and graph algorithms (63)
 
 ### TCS-6651 — Hadwiger’s conjecture: high chromatic number forces a clique minor
 
@@ -4470,6 +4470,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Every graph is asked to contain a subgraph of maximum degree three with comparable treewidth. Comparable means losing only a universal constant factor. The subgraph can delete edges and vertices but cannot contract edges or introduce new ones. Known general degree-three sparsifiers lose a polylogarithmic factor in treewidth. A constant-factor theorem would make bounded-degree structure a universal witness of large treewidth.
 
 [Read in atlas](index.html#TCS-7245) · [Degree-3 Treewidth Sparsifiers](https://home.ttic.edu/~cjulia/papers/treewidth-sparsifiers-SODA.pdf) · [Sparse induced subgraphs of large treewidth](https://www.sciencedirect.com/science/article/pii/S009589562500019X) · [List of open questions: Linear treewidth and pathwidth sparsifiers](https://a3nm.net/work/research/questions/#linear-treewidth-and-pathwidth-sparsifiers)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7217 — The edge reconstruction conjecture
+
+Delete each edge of a graph in turn, erase vertex labels and collect the resulting graphs with repetitions. The edge reconstruction conjecture asks whether this multiset determines every finite simple graph with at least four edges. All vertices survive deletion, and repeated copies of the same graph remain significant. A triangle plus an isolated vertex and a three-leaf star show why a three-edge version fails. Recent algebraic reformulations and results for promised graph classes leave the general uniqueness question open.
+
+[Read in atlas](index.html#TCS-7217) · [Reconstruction of Small Graphs and Digraphs](https://arxiv.org/abs/2102.01942) · [A combinatorial K-theory perspective on the Edge Reconstruction Conjecture in graph theory](https://arxiv.org/abs/2402.14986v2) · [The Class Edge-Reconstruction Number of a Maximal Planar Graph Is One or Two](https://arxiv.org/abs/2609.02389v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7244 — Is Boolean dimension bounded for posets with planar cover graphs?
@@ -5255,7 +5262,7 @@ Different repetitiveness measures summarize a string through different kinds of 
 [Read in atlas](index.html#TCS-6929) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (43)
+## Game theory, social choice and fair division (44)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -5318,6 +5325,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Chores are indivisible tasks whose costs add, and each agent prefers a smaller burden. Her minimax share is the lowest worst-bundle cost she can obtain by partitioning all chores among the agents. The question asks for the smallest universal factor by which every agent’s share must be relaxed to make a complete allocation possible. The checked general bounds are 44/43 and 13/11, while stronger guarantees for restricted costs do not close this gap. Determining the factor would quantify the unavoidable fairness loss from indivisible burdens without requiring an efficient algorithm.
 
 [Read in atlas](index.html#TCS-7200) · [How to Fairly Allocate Easy and Difficult Chores](https://arxiv.org/abs/2110.11285) · [A tight negative example for MMS fair allocations](https://arxiv.org/abs/2104.04977v2) · [A Reduction from Chores Allocation to Job Scheduling](https://arxiv.org/abs/2302.04581v4) · [Improved Maximin Share Approximations for Chores by Bin Packing](https://ojs.aaai.org/index.php/AAAI/article/view/33518) · [Comparison-Based Fair Division of Indivisible Chores](https://arxiv.org/abs/2609.08687v1)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7207 — Competitive equilibrium for almost all budgets with two additive agents
+
+Two agents use positive budgets to buy indivisible goods at common item prices. Each must receive a most valuable affordable bundle, and every good must be allocated. The question asks whether every positive additive valuation pair has an equilibrium outside a zero-area set of budget pairs. Equal budgets can fail even for one good, while nearby unequal budgets and several other restricted cases are understood. The unresolved target covers arbitrary numbers of goods and budgets that may be far from equal.
+
+[Read in atlas](index.html#TCS-7207) · [Competitive equilibrium with indivisible goods and generic budgets](https://doi.org/10.1287/moor.2020.1062) · [Competitive Equilibrium For Almost All Incomes: Existence and Fairness](https://arxiv.org/abs/1705.04212v6) · [Competitive Equilibrium with Generic Budgets: Beyond Additive](https://arxiv.org/abs/1911.09992v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1116 — Optimal universal approximation factor for EFX
