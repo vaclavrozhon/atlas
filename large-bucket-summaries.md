@@ -4529,10 +4529,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0694 — The Statistical Query Complexity of Learning Sparse Halfspaces
 
-A sparse halfspace predicts using only a small number of relevant coordinates among many possible features. Attribute-efficient learning aims to exploit this by requiring examples that depend polynomially on sparsity and only logarithmically on the total number of coordinates. This source asks for the corresponding query complexity in the statistical-query model, where a learner obtains approximate expectations rather than individual labeled samples. A combinatorial characterization reduces the question to estimating a parameter for sparse halfspaces, with decision lists proposed as a simpler starting point. The result would clarify whether this restricted but noise-tolerant learning model can exploit sparsity without paying for every irrelevant feature.
+An r-sparse halfspace uses at most r of the n Boolean input coordinates. Statistical-query learning accesses approximate expectations instead of individual labeled examples. The source asks whether the worst-case number of nearly uncorrelated sparse halfspaces stays polynomial in n when correlation is inverse-polynomial in r log n. Both the sparsity dependence and the worst-case distribution are essential to the question. A resolution would clarify the informational limits of exploiting sparse structure through statistical queries.
 
-[Read in atlas](index.html#TCS-0694) · [COLT / PMLR](https://proceedings.mlr.press/v35/feldman14c.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0694) · [Open Problem: The Statistical Query Complexity of Learning Sparse Halfspaces](https://proceedings.mlr.press/v35/feldman14c.html)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0683 — Improper learning of mixtures of Gaussians
 
@@ -4543,9 +4543,9 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0670 — Can Local Regularization Learn All Multiclass Problems?
 
-Multiclass learning allows labels beyond a binary choice, and its general learning rules are less well understood than ordinary binary empirical risk minimization. This project asks whether every learnable multiclass class can be learned using local regularization. The regularizer may depend on the test point, allowing the resulting predictor to combine behavior from different hypotheses across the domain. The source also asks for optimal sample complexity and proposes a particular learnable class as a possible counterexample. A resolution would either supply a general algorithmic template for multiclass learning or identify a task requiring more global information about the sample.
+A local regularizer fixes a score for every hypothesis and test point before seeing the training sample. At prediction time it selects among the lowest-scored hypotheses consistent with the sample. The question asks whether every realizably PAC-learnable multiclass class admits such a rule that succeeds under every tie-breaking choice. Two preprints from July and August 2026 claim counterexamples under this definition. Their statements match the main question, while independent verification of the claimed negative resolution remains outstanding.
 
-[Read in atlas](index.html#TCS-0670) · [COLT / PMLR](https://proceedings.mlr.press/v247/asilis24b.html)
+[Read in atlas](index.html#TCS-0670) · [Open Problem: Can Local Regularization Learn All Multiclass Problems?](https://proceedings.mlr.press/v247/asilis24b.html) · [Local Regularization Does Not Characterize Multiclass PAC Learnability](https://arxiv.org/abs/2607.23449) · [Algorithmic Principles For Multiclass Learning Are Hard To Come By: Limits of Regularization and Proper Learning](https://arxiv.org/abs/2608.26516)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0671 — Direct Sums in Learning Theory
