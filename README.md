@@ -77,3 +77,5 @@ those old fields into the statement when the shorter form is opened.
 Structured publication files remain available for development and archival use,
 without download links in the reader. Original research files and source citations
 are preserved. KaTeX is bundled under its MIT license in `vendor/`.
+
+Review progress: 246 completed reviews; 2,513 remaining. Completed reviews include 2 individually justified dispositions.
