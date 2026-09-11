@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,179 five-sentence working summaries, based on saved source material.
+1,180 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (48)
@@ -6724,7 +6724,7 @@ NTRU-like problems use structured algebraic relations involving short secret ele
 [Read in atlas](index.html#TCS-6868) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Coding and information theory (47)
+## Coding and information theory (48)
 
 ### TCS-6606 — The exact capacity region of the two-user Gaussian interference channel
 
@@ -6794,6 +6794,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 The graph C7 is a cycle on seven vertices, viewed as a pattern of symbol confusability. Its Shannon capacity is the supremum of independence numbers of strong graph powers, normalized by the number of factors. Coding across several uses can separate messages more efficiently than choosing an independent set for one use. Determining the exact value would resolve a compact benchmark for zero-error communication and graph products. The saved proposal identifies the mathematical target but supplies no reviewed matching bounds or assessment of the 2026 reference's specific contribution.
 
 [Read in atlas](index.html#TCS-6610) · [Research reference · arXiv 2608.30273](https://arxiv.org/abs/2608.30273)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7211 — The capacity region of the general two-way channel
+
+Two terminals exchange independent messages through the same channel. Each can adapt its next transmission to the outputs it has already received. The capacity region records pairs of rates attainable with vanishing average decoding error. Known bounds and exact special cases do not settle the general adaptive problem. The source still needs to state what form of new characterization is required beyond known multiletter formulas.
+
+[Read in atlas](index.html#TCS-7211) · [Lecture Notes on Network Information Theory](https://arxiv.org/abs/1001.3404v4) · [Two-Way Networks: When Adaptation is Useless](https://doi.org/10.1109/TIT.2013.2295596) · [Single-Output Two-Way Channels and the Dependence Balance Bound](https://www.inc.cuhk.edu.hk/seminars/single-output-two-way-channels-and-the-dependence-balance-bound/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7215 — Is the Shannon capacity of a finite graph computable?
