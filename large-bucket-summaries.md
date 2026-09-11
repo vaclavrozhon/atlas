@@ -1,9 +1,935 @@
 # Working summaries — large categories
 
-1,207 five-sentence working summaries, based on saved source material.
+1,198 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Algorithms (97)
+## Computational complexity (132)
+
+### TCS-0001 — Does P equal NP?
+
+P versus NP asks whether every problem with efficiently checkable solutions also has an efficient deterministic decision algorithm. Boolean satisfiability is a representative test case because all NP problems reduce to it. Checking one assignment is easy, while deciding whether any assignment works requires accounting for all possibilities. The target concerns worst-case polynomial time on arbitrarily large inputs. A resolution would establish a fundamental relationship between searching and verifying, without by itself determining practical exponents or average-case difficulty.
+
+[Read in atlas](index.html#TCS-0001) · [The P versus NP Problem](https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Algebrization: A New Barrier in Complexity Theory](https://www.scottaaronson.com/papers/alg.pdf) · [Non-Uniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [P vs NP — Millennium Prize Problem](https://www.claymath.org/millennium/p-vs-np/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6530 — Does P equal PSPACE?
+
+Polynomial space permits a computation to reuse its memory while exploring potentially enormous collections of possibilities. The question asks whether every problem solvable with that memory budget is also solvable in polynomial time. Truth of quantified Boolean formulas supplies a concrete complete problem. Alternating existential and universal choices describe strategies that can be much larger than one ordinary certificate. The project tests whether repeated reuse of a modest workspace gives strictly more decision power than any polynomial-time computation.
+
+[Read in atlas](index.html#TCS-6530) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Alternation](https://doi.org/10.1145/322234.322243) · [IP = PSPACE](https://doi.org/10.1145/146585.146609) · [Simulating Time With Square-Root Space](https://arxiv.org/abs/2502.17779v1) · [Some Recent Developments in Space Complexity](https://doi.org/10.4230/LIPIcs.MFCS.2026.3)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6531 — Can every polynomial-time decision problem be solved in logarithmic space?
+
+Logarithmic-space computation can retain only a few input indices and counters while repeatedly rereading the input. The question asks whether that memory always suffices for every polynomial-time decision problem. Evaluating a supplied Boolean circuit is a representative complete task. Shared dependencies make naive recomputation expensive, while storing all intermediate gate values exceeds the space budget. The project tests whether efficient computation fundamentally needs substantial working memory or can always reorganize its information into an extremely small state.
+
+[Read in atlas](index.html#TCS-6531) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Limits to Parallel Computation: P-Completeness Theory](https://homes.cs.washington.edu/~ruzzo/papers/limits.pdf) · [Undirected Connectivity in Log-Space](https://omereingold.wordpress.com/wp-content/uploads/2014/10/sl.pdf) · [Simulating Time With Square-Root Space](https://arxiv.org/abs/2502.17779v1) · [Logarithmic Space](https://cs.uwaterloo.ca/~eblais/cs365/w26/L-and-NL)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6535 — Is nonuniform TC⁰ strictly smaller than nonuniform NC¹?
+
+TC0 circuits use a constant number of layers of powerful majority gates. NC1 circuits use logarithmically many layers of ordinary bounded-input Boolean gates. The question asks whether the former nonuniform class is strictly weaker than the latter. Many arithmetic tasks already fit in TC0, so their familiar sequential implementations do not provide separating examples. The project seeks a function whose nested logical dependencies cannot be compressed into a fixed-depth network even when each gate can aggregate many inputs at once.
+
+[Read in atlas](index.html#TCS-6535) · [Bootstrapping Results for Threshold Circuits “Just Beyond” Known Lower Bounds](https://eccc.weizmann.ac.il/report/2018/199/) · [Uniform constant-depth threshold circuits for division and iterated multiplication](https://doi.org/10.1016/S0022-0000(02)00025-9) · [Characterizing NC¹ with Typed Monoids](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.26) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6534 — The Berman–Hartmanis isomorphism conjecture
+
+Polynomial-time reductions show that NP-complete problems can simulate each other, but may erase information. The Berman-Hartmanis conjecture asks whether every pair instead admits a polynomial-time computable bijection with a polynomial-time inverse. That bijection must preserve yes and no instances across the entire string space. Padding provides evidence for familiar complete problems without covering all possible complete languages. The project asks whether completeness forces one efficiently reversible organization of instances, reaching beyond ordinary mutual reducibility.
+
+[Read in atlas](index.html#TCS-6534) · [On Isomorphisms and Density of NP and Other Complete Sets](https://epubs.siam.org/doi/10.1137/0206023) · [The ismorphism conjecture fails relative to a random oracle](https://doi.org/10.1145/73007.73022) · [The Isomorphism Conjecture Holds Relative to an Oracle](https://epubs.siam.org/doi/10.1137/S0097539793248305) · [Reductions in Circuit Complexity: An Isomorphism Theorem and a Gap Theorem](https://www.cse.iitk.ac.in/users/manindra/isomorphism/non-uniform-ac0-iso.pdf) · [One-Way Functions and the Isomorphism Conjecture](https://eccc.weizmann.ac.il/report/2009/019/) · [Open Problems by or Inspired by Juris Hartmanis](https://www.cs.umd.edu/~gasarch/open/juris.pdf) · [The Isomorphism Conjecture for NP](https://cse.iitk.ac.in/users/manindra/survey/Isomorphism-Conjecture.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6532 — Is the polynomial hierarchy strict at every finite level?
+
+The polynomial hierarchy adds successive alternating blocks of efficiently bounded existential and universal choices. Its first levels already include polynomial-time computation and ordinary NP verification. The question asks whether every additional fixed level strictly increases computational power. Equality of neighboring levels would collapse all higher finite levels as well. The project studies whether increasingly nested candidate-and-challenge reasoning creates an endless hierarchy of difficulty, a stronger issue than separating P from NP at the first step.
+
+[Read in atlas](index.html#TCS-6532) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Polynomial-Time Hierarchy](https://research.ibm.com/publications/the-polynomial-time-hierarchy) · [The Polynomial Hierarchy, Random Oracles, and Boolean Circuits](https://www.cs.columbia.edu/~rocco/Public/sigact15.pdf) · [An Average-Case Depth Hierarchy Theorem for Boolean Circuits](https://arxiv.org/abs/1504.03398) · [Upper and Lower Bounds for the Linear Ordering Principle](https://eccc.weizmann.ac.il/report/2025/142/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0021 — Does NP contain a language without polynomial-size Boolean circuits?
+
+Nonuniform Boolean circuits may choose a separate computational design for each input length. The question asks whether some language in NP requires more than polynomially many gates despite that freedom. A uniform running-time lower bound would not automatically establish this stronger claim. Counting shows that most functions have large circuits but does not supply the necessary NP language. The project seeks explicit hardness robust to arbitrary length-specific preprocessing and would connect circuit lower bounds to the structure of the polynomial hierarchy.
+
+[Read in atlas](index.html#TCS-0021) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Natural Proofs](https://doi.org/10.1006/jcss.1997.1494) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0002 — Does every unsatisfiable Boolean formula have a short efficiently checkable certificate?
+
+An unsatisfiable formula has no assignment that makes every clause true. The question asks whether one fixed efficient verifier can always check a polynomial-length certificate of that impossibility. The certificate format is unrestricted as long as it is sound for every formula. This is equivalent to asking whether NP equals coNP. The project concerns the possibility of universally concise explanations for the failure of all candidate solutions, rather than lower bounds for any one particular set of proof rules.
+
+[Read in atlas](index.html#TCS-0002) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Circuits, Communication, and Proofs](https://www.icts.res.in/program/ccp)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0015 — An explicit function with no linear-size Boolean circuits
+
+A multi-output Boolean function can share intermediate computations among all its output bits. The question asks for one polynomial-time computable family whose unrestricted Boolean circuits exceed every fixed linear size bound. The saved formulation uses as many output bits as input bits. An arbitrary hard truth table does not satisfy the explicitness requirement. The project seeks a modest but fundamental lower bound demonstrating that some efficiently specified transformations intrinsically need more than a constant amount of circuit work per input bit.
+
+[Read in atlas](index.html#TCS-0015) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [3.1n − o(n) Circuit Lower Bounds for Explicit Functions](https://eccc.weizmann.ac.il/report/2021/023/) · [Boolean Circuit Complexity and Two-Dimensional Cover Problems](https://eccc.weizmann.ac.il/report/2025/033/) · [Convergent Gate Elimination and Constructive Circuit Lower Bounds](https://arxiv.org/abs/2602.17942) · [A Note on Natural-Proofs for Super-Linear Lower Bounds for Linear Functions](https://eccc.weizmann.ac.il/report/2026/008/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0016 — Exponential circuit lower bounds for 3-SAT
+
+The saved 3-SAT family uses a fixed encoding of which clauses on n variables are present. The conjecture asks for circuit size exponential in n, even when every input length gets its own arbitrary circuit. Its scale is stronger than merely excluding polynomial-size circuits. The variable count differs from the total number of encoded clause bits, so the parameter must remain explicit. The project aims to prove that searching for a satisfying assignment retains essentially exponential difficulty even under nonuniform computation.
+
+[Read in atlas](index.html#TCS-0016) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Which Problems Have Strongly Exponential Complexity?](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturiZane_2001_jcss.pdf) · [3.1n − o(n) Circuit Lower Bounds for Explicit Functions](https://eccc.weizmann.ac.il/report/2021/023/) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [A Better Analysis For PPSZ For 3-SAT](https://arxiv.org/abs/2607.10697)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6533 — NL versus UL
+
+An ordinary nondeterministic reachability algorithm can have many accepting paths of computation. UL requires at most one accepting computation for each input while retaining logarithmic workspace. The question asks whether this unambiguity restriction changes the class NL. The machine may still have many rejecting branches, so this is weaker than demanding determinism. The project seeks to isolate a unique successful witness efficiently, clarifying whether ambiguity itself is a source of computational power in small-space graph problems.
+
+[Read in atlas](index.html#TCS-6533) · [Making Nondeterminism Unambiguous](https://people.cs.rutgers.edu/~allender/papers/nlul.pdf) · [Derandomizing Isolation in Space-Bounded Settings](https://pages.cs.wisc.edu/~dieter/Papers/r-ul-sicomp.pdf) · [When Connectivity Is Hard, Random Walks Are Easy With Non-Determinism](https://eccc.weizmann.ac.il/report/2025/077/download) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/) · [Derandomizing Isolation In Catalytic Logspace](https://arxiv.org/abs/2512.09374) · [Deterministic, Oblivious Isolation for Space-Bounded Computation Requires Large Weights](https://eccc.weizmann.ac.il/report/2026/124/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0004 — Can directed reachability be decided in deterministic logarithmic space?
+
+Directed reachability asks whether a path leads from a specified source to a specified target. Nondeterminism solves it with logarithmic memory by guessing successive vertices. The question asks for a deterministic algorithm using the same tiny workspace on an explicitly stored graph. Repeated input scans are allowed, but a full visited array or search frontier is not. The project would settle L versus NL by showing whether all the essential information in directed exploration can be organized without guessing or substantial stored history.
+
+[Read in atlas](index.html#TCS-0004) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Relationships between nondeterministic and deterministic tape complexities](https://doi.org/10.1016/S0022-0000(70)80006-X) · [Nondeterministic Space is Closed under Complementation](https://doi.org/10.1137/0217058) · [Undirected Connectivity in Log-Space](https://omereingold.wordpress.com/wp-content/uploads/2014/10/sl.pdf) · [When Connectivity Is Hard, Random Walks Are Easy with Non-determinism](https://doi.org/10.1145/3717823.3718303) · [Reachability in graphs having linear 2-arboricity two is NL-hard](https://doi.org/10.1016/j.ipl.2025.106611)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6681 — DNF versus d-DNNF succinctness
+
+A DNF formula describes satisfying assignments as a union of conjunctions, whose cases may overlap. The proposal asks whether some polynomial-size DNFs require superpolynomial-size deterministic decomposable circuits for the same Boolean function. Determinism requires disjoint alternatives, while decomposability requires conjunctions to separate their variables. A separation would show that imposing these useful structural restrictions can force an inherent representation-size increase. The question is about the existence of compact equivalent circuits, so hardness of efficiently finding a conversion or a separation for unrestricted DNNFs does not by itself answer this more specific size comparison.
+
+[Read in atlas](index.html#TCS-6681) · [Florent Capelli — Habilitation manuscript](https://capelli.me/publi/hdr.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0020 — Polynomial-size circuits for EXP
+
+EXP contains problems solvable in deterministic exponential time. The question asks whether every such problem could nevertheless have polynomial-size Boolean circuits chosen separately for each input length. The circuits need not be efficiently constructible, making this different from a polynomial-time simulation. Time hierarchy theorems alone do not eliminate that nonuniform possibility. The project seeks a lower bound strong enough to defeat arbitrary length-specific circuit designs for some language with an explicit exponential-time decision procedure.
+
+[Read in atlas](index.html#TCS-0020) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1056 — Majority outside constant-depth modular circuits
+
+Constant-depth modular circuits combine ordinary Boolean gates with gates that inspect counts modulo specified integers. The saved question asks for a lower bound excluding majority from the relevant class. Majority depends on an overall threshold, so it provides a concrete test of whether modular counting and shallow composition capture ordinary counting strength. Proving the separation would sharpen the boundary between basic Boolean circuit models. The inherited book pointer does not preserve the allowed moduli, gate basis, or size target, and those details must be recovered before this becomes one precise majority lower-bound claim.
+
+[Read in atlas](index.html#TCS-1056) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0018 — P versus NP intersect coNP
+
+A language in NP intersect coNP has short efficiently checkable certificates for both yes and no instances. The question asks whether some such language still lies outside deterministic polynomial time. Having two kinds of witnesses does not automatically tell an algorithm how to find either one. The separation would identify difficulty independent of the asymmetric certification typical of NP-complete problems. The project explores whether efficiently verifiable certainty on both sides can coexist with an intrinsically hard decision process.
+
+[Read in atlas](index.html#TCS-0018) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1054 — Exponential lower bounds for unrestricted threshold-of-threshold circuits
+
+A threshold-of-threshold circuit applies threshold gates in two successive layers. The saved question seeks exponential lower bounds without imposing additional restrictions on those gates. Arbitrary weights and hidden-layer combinations can encode substantially more than a single threshold, making simple geometric arguments insufficient. A lower bound would expose a strong limitation of a shallow model related to weighted voting and classification. The inherited source label does not identify the explicit function, weight conventions, or measured size, so the full book problem is needed before specifying the exponential target more sharply.
+
+[Read in atlas](index.html#TCS-1054) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0017 — Karchmer–Raz–Wigderson formula composition conjecture
+
+Composing Boolean functions means applying one function to separate input blocks and feeding the results into another. A straightforward formula substitutes a copy of the inner formula for each outer input occurrence. The KRW conjecture asks whether formula complexity must essentially multiply under this operation. Unexpected sharing is unavailable in formulas, but alternate logical factorizations might still save size. The project seeks a composition lower bound powerful enough to separate efficient circuits from much larger formulas.
+
+[Read in atlas](index.html#TCS-0017) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0019 — Polynomial formulas versus linear circuits
+
+Circuits can reuse intermediate results, while formulas duplicate them whenever several later computations need them. The conjecture asks for functions with linear-size circuits but no polynomial-size formulas. Known polynomial gaps do not establish this superpolynomial separation. The source connects the goal to understanding formula complexity under repeated composition. The project asks whether a small directed computational graph can perform a task that every tree-shaped computation must express with vastly more repeated work.
+
+[Read in atlas](index.html#TCS-0019) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6455 — Doubly efficient IP = PSPACE for the full time range
+
+An interactive proof lets a verifier check a claim through conversation with a prover. The question asks whether polynomial-space computations taking time T can be verified in polynomial input time using an honest prover running in polynomial T time. The requirement extends across the full time range, beyond quasipolynomial computations. This would make proof generation efficient relative to the computation being certified, strengthening the resource content of IP=PSPACE. The saved review stresses that soundness must still withstand arbitrarily powerful cheating provers, despite the efficiency requirement imposed on the honest one.
+
+[Read in atlas](index.html#TCS-6455) · [Towards a Doubly Efficient IP=PSPACE](https://eccc.weizmann.ac.il/report/2026/102/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0305 — Supercubic uniform formula lower bounds for SAT
+
+De Morgan formulas compute with AND, OR, and NOT without reusing internal results. The source asks to prove a supercubic size lower bound for SAT under logarithmic-time uniformity. Uniformity requires that the formula family itself have an efficiently accessible description. The proposed improvement would combine combinatorial restriction methods with diagonalization or simulation-based arguments. The project targets a concrete quantitative step beyond existing nearly cubic formula lower bounds while exploiting SAT's richer computational structure.
+
+[Read in atlas](index.html#TCS-0305) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1052 — Depth-three lower bounds beyond the switching-lemma barrier
+
+Depth-three Boolean circuits compute through only three layers of gates but may have many gates within each layer. The source asks for lower bounds exceeding the reach of the stated switching-lemma approach. Switching arguments simplify restricted circuits, so the challenge is to prove hardness that survives limitations of that simplification method. Progress would strengthen explicit circuit lower bounds at a very small depth. The short inherited label does not preserve the gate basis, target function, or quantitative barrier, and those source details are needed before identifying exactly what improvement would answer the question.
+
+[Read in atlas](index.html#TCS-1052) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1053 — Depth-three size bounds beyond exponential square root
+
+The saved problem concerns size lower bounds for Boolean circuits of depth three. Its target lies beyond an exponential-in-square-root scale, asking for a stronger obstruction than the source's reference bound. Depth is fixed, so the sought improvement must come from showing that many parallel gates cannot compensate for limited composition. Such a result would clarify the expressive power of very shallow Boolean computation. The book pointer does not include the underlying input parameter, basis, or function family, so the notation for the exponential threshold must be recovered instead of guessed from the abbreviated title.
+
+[Read in atlas](index.html#TCS-1053) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1039 — Explicit superlinear in-place XOR lower bounds
+
+An in-place XOR computation updates a fixed collection of registers by exclusive-or operations. It must compute an explicitly described binary linear transformation without freely introducing new storage for intermediate values. The source asks for a superlinear lower bound on this restricted computational cost. General counting arguments give hard transformations without necessarily supplying the required explicit family. The project seeks to show that some concrete reversible-looking linear tasks need more than a constant number of register updates per input coordinate.
+
+[Read in atlas](index.html#TCS-1039) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0293 — Improving SPACE versus NSPACE via Tree Evaluation
+
+Savitch's theorem simulates nondeterministic space s using deterministic space roughly s squared. The source proposes exploiting the tree-shaped structure of the simulation together with improved tree-evaluation algorithms. The target is any asymptotic improvement to little-o of the squared-space bound. Its suggested route trades circuit height against larger intermediate alphabets. The project seeks to reduce the memory cost of coordinating recursive reachability checks, improving a general simulation theorem rather than solving one special graph class.
+
+[Read in atlas](index.html#TCS-0293) · [Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.15.3.56)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0301 — Excluding one-sided randomized quasilinear-time log-space SAT
+
+Randomized SAT algorithms may miss a satisfying assignment while never incorrectly declaring an unsatisfiable formula satisfiable. The question asks to rule out algorithms with that one-sided error using both quasilinear time and logarithmic space. The source emphasizes that reversing the permitted error direction changes what lower-bound methods can prove. Deterministic time-space tradeoffs do not automatically handle random choices. The project seeks a lower bound matching the error behavior of incomplete randomized search procedures under extremely small resource budgets.
+
+[Read in atlas](index.html#TCS-0301) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0302 — Excluding quasilinear-time log-space Max Clique
+
+Maximum Clique seeks a largest set of mutually adjacent vertices. The source asks to exclude algorithms using both quasilinear time in the number of edges and logarithmic workspace. The intended model permits random access to the input. A lower bound for sequential tape access is weaker, while ordinary reductions from SAT may inflate the input too much. The project seeks a resource lower bound sensitive to sparse encoding size and robust against an algorithm's ability to inspect arbitrary edges directly.
+
+[Read in atlas](index.html#TCS-0302) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0303 — Stronger log-space time lower bounds for SAT
+
+Time-space lower bounds show that some combinations of fast running time and tiny memory cannot solve SAT. The source asks to strengthen the known limits for logarithmic-space algorithms. This differs from proving a general SAT time lower bound because the memory restriction supplies additional structure. Simulation and alternation-trading arguments are central tools in the cited discussion. The project seeks a sharper quantitative obstruction to deciding satisfiability while retaining only a few indices, even if the input can be revisited freely.
+
+[Read in atlas](index.html#TCS-0303) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0304 — Stronger uniform depth-three majority lower bounds for SAT
+
+Depth-three majority circuits can aggregate many inputs while using only a few sequential layers. The source asks for a SAT wire-count lower bound exceeding the n-to-the-two-and-a-half scale by a fixed exponent. The circuit family must satisfy logarithmic-time uniformity. Wire count measures information connections rather than merely the number of gates. The project aims to combine random-restriction lower bounds with uniform computational arguments, pushing beyond what either approach establishes on its own.
+
+[Read in atlas](index.html#TCS-0304) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0308 — Formula versus circuit succinctness
+
+A Boolean circuit may send one intermediate result to many later gates. An equivalent formula must arrange its reasoning as a tree and can be forced to duplicate that result. The source question asks how large the resulting succinctness gap can become. A superpolynomial separation would show that small circuits cannot always be unfolded or reorganized into polynomial-size formulas. The project investigates whether computational sharing provides an intrinsically stronger representation, rather than only a convenient optimization of one chosen expression.
+
+[Read in atlas](index.html#TCS-0308) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#conciseness-gap-between-formulae-and-circuits)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0310 — Is weighted falsifiability of unambiguous DNFs in polynomial time?
+
+An unambiguous DNF has mutually disjoint satisfying terms, making some counting tasks straightforward. The question instead asks for a falsifying assignment with sufficiently large total variable weight. Weights and the threshold are binary encoded. Knowing how many assignments falsify the formula does not reveal whether one reaches the desired score. The project tests whether the strong disjointness promise still helps when every term must be defeated simultaneously while optimizing an additive objective over the complement.
+
+[Read in atlas](index.html#TCS-0310) · [Is this problem on unambiguous DNFs hard?](https://cstheory.stackexchange.com/questions/53733/is-this-problem-on-unambiguous-dnfs-hard) · [Representation, Provenance, and Explanations in Database Theory and Logic (Dagstuhl Seminar 24032)](https://doi.org/10.4230/DagRep.14.1.49) · [List of open questions: Weighted falsifiability for unambiguous DNFs](https://a3nm.net/work/research/questions/#weighted-falsifiability-for-unambiguous-dnfs)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-1035 — Cost of restricting linear circuits to depth two
+
+A linear circuit shares partial sums to compute a matrix transformation over a specified operation system. Restricting it to depth two allows only one intermediate layer. The source asks how much this restriction can increase circuit complexity, with different behavior for OR, SUM, and XOR operations. Known separations leave room for stronger gaps, particularly over the binary field. The project seeks to quantify the value of additional computational layers even when the final transformation is algebraically simple.
+
+[Read in atlas](index.html#TCS-1035) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1037 — Asymmetry of XOR complexity under matrix inversion
+
+An invertible binary matrix defines a linear transformation and its inverse. Both can be computed using XOR gates, but the smallest circuits need not follow the same construction. The question asks whether the ratio between their unrestricted XOR complexities can grow without bound. Separations at fixed depth do not settle the unrestricted model. The project seeks an algebraic analogue of directional computational difficulty, testing whether one exact linear change of coordinates can be fundamentally easier than undoing it.
+
+[Read in atlas](index.html#TCS-1037) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1040 — Nonlinear-gate advantages for binary linear operators
+
+A binary linear operator outputs parity combinations of its input bits. XOR circuits stay linear at every intermediate step, while general Boolean circuits may temporarily compute nonlinear functions. The question asks whether those nonlinear intermediates can provide an unbounded size advantage. The source relates this to rank-based conjectures for partially specified matrices. The project tests whether matching the algebraic form of the output is essentially optimal, or whether leaving that form during computation can lead to substantially more efficient circuits.
+
+[Read in atlas](index.html#TCS-1040) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1034 — Largest separation between SUM and OR circuits
+
+The same zero-one matrix can define a transformation using ordinary addition or Boolean OR. OR is idempotent, so repeated contributions can collapse, while SUM must count them accurately. The source asks for the largest possible circuit-size gap between these two computation systems. Depth restrictions lead to additional versions with different known bounds. The project aims to quantify how much the ability to ignore duplicate contributions changes the cost of computing many related linear-looking outputs at once.
+
+[Read in atlas](index.html#TCS-1034) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1036 — Unbounded XOR-over-OR complexity separations
+
+For one zero-one matrix, OR circuits and XOR circuits combine the same selected input positions using different operations. OR ignores repeated positive contributions, whereas XOR can cancel them modulo two. The question asks whether unrestricted XOR complexity can exceed OR complexity by an unbounded factor. Results for restricted depth do not automatically extend to arbitrary circuits. The project seeks a concrete matrix family showing that cancellation is not always an advantage when many outputs must share intermediate computations.
+
+[Read in atlas](index.html#TCS-1036) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1051 — Logarithmic negation-depth lower bounds for monotone functions
+
+A monotone Boolean function never changes from true to false when input bits are increased coordinatewise. The saved problem asks for logarithmic lower bounds on negation depth in the source's circuit setting. Although the output is monotone, using negations internally can alter how efficiently the function is computed. The question therefore probes how deeply nonmonotone behavior must be nested to obtain the relevant computational savings. The source's size restriction and definition of negation depth are absent from the label, and they are essential because an unrestricted monotone representation would contain no negation gates at all.
+
+[Read in atlas](index.html#TCS-1051) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0014 — Cubic monotone formulas for majority
+
+Majority decides whether more than half the input bits are one. A monotone formula computes it using AND and OR without negations or shared intermediate gates. The source asks for a cubic-size construction at the stated asymptotic scale. Efficient monotone circuits are easier because they can reuse partial computations. The project seeks an economical tree-shaped counting construction and a sharper understanding of how much repetition is unavoidable when formulas must aggregate many interchangeable input bits.
+
+[Read in atlas](index.html#TCS-0014) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0068 — AC0 on trees
+
+The source proposes Boolean circuit families indexed by unlabeled binary-tree shapes rather than only by input length. Input valuations then label the tree nodes with bits. The question asks which regular tree languages are recognizable by constant-depth polynomial-size circuits in this setting. A conjectured logical characterization uses label predicates, ancestry, and shape-only definable predicates. The project extends the well-studied connection between circuit complexity and regular word languages to inputs with branching structure.
+
+[Read in atlas](index.html#TCS-0068) · [Circuits, Logic and Games](https://doi.org/10.4230/DagRep.5.9.105)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0069 — Perfect matchings for grid graphs and AC0
+
+Constant-width grid graphs offer a restricted setting for deciding whether a perfect matching exists. The source obtains an ACC0 bound and seeks an improvement to AC0. It formulates a structural question about unions of shifted perfect matchings in an infinitely repeated grid construction. Ruling out the specified infinite alternating behavior would imply the circuit improvement. The project connects a geometric matching invariant with the question of whether modular counting gates are necessary for this narrow graph-recognition task.
+
+[Read in atlas](index.html#TCS-0069) · [Circuits, Logic and Games](https://doi.org/10.4230/DagRep.5.9.105)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0295 — Sampling modular distributions locally
+
+A local sampler produces each output bit from only a bounded number of independent random input bits. The desired distribution is uniform over strings whose Hamming weight is divisible by a fixed modulus. Parity has a simple exact local sampler. The source conjectures that moduli larger than two cannot be sampled with arbitrarily small variation error using locality depending only on that error. The project seeks to explain why one global modular constraint is compatible with local generation while others may require genuinely nonlocal dependence.
+
+[Read in atlas](index.html#TCS-0295) · [Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.13.3.17)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0297 — A counting function capturing exactly P with NP access
+
+A counting function in #P returns the number of accepting witnesses for an efficiently checkable relation. The question asks whether some such function gives a polynomial-time oracle machine exactly the power of polynomial time with an NP oracle. Ordinary complete counting functions provide substantially more apparent information than mere existence tests. The target therefore requires a specially controlled counting task. The project seeks a numerical oracle capturing NP access without unintentionally granting the full power of general witness counting.
+
+[Read in atlas](index.html#TCS-0297) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/oracles.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0298 — SAT multi-prover proofs using efficient SAT-oracle provers
+
+Multi-prover interactive proofs let a verifier question several provers that cannot coordinate their answers during the protocol. The source asks for such a proof system for SAT whose honest provers run in randomized polynomial time with SAT-oracle access. Unrestricted provers do not meet this efficiency requirement. The question is tied to whether SAT programs can be checked through suitable oracle interactions. The project seeks a verification protocol whose participants need no computational power beyond the problem they are supposed to certify.
+
+[Read in atlas](index.html#TCS-0298) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/oracles.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-0126 — The Parity Language
+
+The parity language separates binary words with an even number of ones from those with an odd number. This project asks for robust subsets whose opposite-parity witnesses remain coordinatewise compatible after polynomial-density thinning. Compatibility means that each coordinate of a chosen even-parity word is matched by some word in the surviving odd-parity set. The order of subset choices matters because the witness set may depend on the selected even-parity subset. Proving this combinatorial property would support structural lower-bound arguments for shallow Boolean circuits and related regular-language classifications.
+
+[Read in atlas](index.html#TCS-0126) · [Automata Exchange](https://automata.exchange/22.10-the-parity-language/)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1144 — Is it true that spr(IPn ) = ω(n) or spr(Disjn ) = ω(n)?
+
+Spiky rank measures how many block-structured matrices are needed to express a matrix as a sum. Each summand consists of disjoint rank-one blocks, combining a combinatorial partition with flexible real coefficients. The question asks whether the inner-product matrix or the disjointness matrix on n-bit inputs has spiky rank growing faster than n. The source introduces this parameter as a possible way to capture complexity that ordinary rank or rigid block decompositions miss. A superlinear lower bound for either standard matrix would demonstrate that the new measure detects a substantial obstruction on central communication problems.
+
+[Read in atlas](index.html#TCS-1144) · [Spiky Rank and Its Applications to Rigidity and Circuits](https://doi.org/10.4230/LIPIcs.ICALP.2026.106)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1235 — It remains open whether the [ inclusion LDLk ⊊ LDLk is still proper if the depth restriction is removed.
+
+A linear decision list tests weighted threshold conditions in sequence and returns the output attached to the first successful test. Its alternation depth counts changes between output values along that sequence. The source separates polynomial-size lists with polynomially bounded weights from lists allowing unrestricted weights when alternation depth is suitably limited. The question is whether a strict separation survives after removing the depth restriction. Resolving it would establish whether large numerical weights provide an intrinsic advantage for decision lists, or whether additional alternations can simulate their effect with modest size.
+
+[Read in atlas](index.html#TCS-1235) · [Alternation Depth of Threshold Decision Lists](https://doi.org/10.4230/LIPIcs.ICALP.2026.148)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1278 — Every 2-CNF formula φ on n variables has a 2-CNF encoding φ′ such 2 that |φ′ | ≤ ( 41 + o(1)) lgn n .
+
+A 2-CNF formula can be reencoded using auxiliary variables while preserving its meaning on the original variables. The goal is to reduce how many clauses are needed to express that relation. The cited conjecture proposes an asymptotic upper bound with leading constant one quarter times n squared divided by log n. Its benchmark improves on the source's analysis of idealized bounded variable addition. Understanding the optimum would distinguish a limitation of a SAT preprocessing technique from a limit on compact encodings themselves.
+
+[Read in atlas](index.html#TCS-1278) · [Automated Reencoding Meets Graph Theory](https://doi.org/10.4230/LIPIcs.SAT.2026.29)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1442 — Is there an algebrizing barrier to proving MA ̸⊆ SIZE[nk ]?
+
+Algebrization barriers describe limitations of proof techniques that remain valid when computation receives particular algebraic oracle access. The source asks whether such a barrier prevents proving MA is outside circuits of size n^k. The target concerns a circuit lower bound for a class with randomized verification and advice from a prover. A barrier would explain why a broad style of argument cannot establish that separation, rather than refute the separation itself. The saved excerpt does not specify the quantification over k or oracle framework, so these must be restored before stating the exact limitation theorem sought.
+
+[Read in atlas](index.html#TCS-1442) · [New Algebrization Barriers to Circuit Lower Bounds via Communication Complexity of Missing-String](https://doi.org/10.4230/LIPIcs.ITCS.2026.37)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1494 — The main problem left open by this work is to exhibit a natural problem in TFZPPdt which is not reducible to Lossy-Code; we conjecture that […]
+
+Total search problems guarantee that every valid input has some acceptable output. The cited paper studies a zero-error randomized decision-tree class denoted TFZPPdt. The saved question asks for a natural problem in that class that does not reduce to Lossy-Code. Such an example would show that one proposed search task does not capture the entire class under the intended reductions. The excerpt truncates the authors' conjectured candidate and omits the reduction model, so neither the candidate nor the precise separation criterion is reconstructed here.
+
+[Read in atlas](index.html#TCS-1494) · [Total Search Problems in ZPP](https://doi.org/10.4230/LIPIcs.ITCS.2026.60)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1510 — Are there properties of finite mathematical objects that can only be certified efficiently to a high degree of confidence by probabilistic algorithms, but that we […]
+
+A randomized computation can give extremely high confidence in a finite mathematical fact without providing an ordinary short proof. The source motivates this issue through bounds on the diameter of Rubik's Cube and related vertex-transitive graphs. It asks whether some properties admit efficient probabilistic certification while resisting comparably efficient certain certification. The distinction concerns evidence for a fixed deterministic fact, not randomness in the fact itself. The project explores the boundary between trustworthy computational experiments and concise deductive verification.
+
+[Read in atlas](index.html#TCS-1510) · [A Demigod’s Number for the Rubik’s Cube](https://doi.org/10.4230/LIPIcs.FUN.2026.31)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1516 — Can these techniques be used in order to separate LeastNumber from StrongAvoid?
+
+LeastNumber and StrongAvoid are search principles compared in the cited work on classes above TFNP. The saved question asks whether the paper's techniques can separate them. Its suggested tools arise from lower bounds for the Sherali–Adams proof or relaxation framework. A successful transfer would connect limitations of algebraic relaxations with reducibility between total-search principles. The excerpt does not define either problem or specify the reduction notion, so this draft preserves the intended comparison without inventing their witnesses or claiming one formal separation direction.
+
+[Read in atlas](index.html#TCS-1516) · [Separations Above TFNP from Sherali-Adams Lower Bounds](https://doi.org/10.4230/LIPIcs.CCC.2026.37)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1553 — Construct an explicit family of boolean functions fn : {0, 1}n → {0, 1} such that there exist constants δ1 , δ2 > 0 such […]
+
+The selected question asks for an explicit Boolean function family that defeats circuits of mildly superlinear size and polynomially bounded depth. The circuit gates have constant fan-in and fan-out, and the target fixes positive exponents for both resource bounds. The source raises this circuit lower-bound problem as a barrier to proving stronger distributed graph-detection lower bounds. It shows that certain polynomial CONGEST lower bounds for ordered paths or induced cycles would already solve the circuit challenge. The connection warns that apparently local network problems can require progress on a major unrestricted circuit lower-bound frontier.
+
+[Read in atlas](index.html#TCS-1553) · [Distributed Complexity of P_k-Freeness: Decision and Certification](https://doi.org/10.4230/LIPIcs.ISAAC.2025.51)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1602 — The most interesting question that remains open is to determine the deterministic query complexity of finding a king in an n-vertex tournament.
+
+A king in a tournament is a vertex that can reach every other vertex along a directed path of at most two edges. The graph is accessed by queries revealing the direction of individual edges. Every tournament has a king, so the challenge is to find one while inspecting as few edges as possible. The source asks for the deterministic query complexity, reporting an O(n^(3/2)) algorithm and an Ω(n^(4/3)) lower bound. Closing this gap would quantify the information needed to locate a globally influential vertex in a completely oriented graph.
+
+[Read in atlas](index.html#TCS-1602) · [Hardness of Finding Kings and Strong Kings](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.36)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-1936 — Does n2 -Ramsey belong to TFAP?
+
+The Ramsey search problem receives a succinctly represented graph on 2^n vertices and seeks a clique or independent set of size n/2. Ramsey's theorem guarantees a solution, placing the task in the landscape of total search problems. The question asks whether this problem belongs to TFAP, a class designed to capture search tasks with abundant solutions. The source also proposes the weaker target of finding a homogeneous set of size n/10. Membership would connect Ramsey search to abundance-based principles and yield consequences for oracle separations from classes whose hard instances can have very few solutions.
+
+[Read in atlas](index.html#TCS-1936) · [Total NP Search Problems with Abundant Solutions](https://doi.org/10.4230/LIPIcs.ITCS.2024.75)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2029 — In the other direction, we leave open whether FBPP ⊂ FBPPnegl or whether the two classes are incomparable.
+
+For a relation, an algorithm may output any answer satisfying the input-output specification rather than one uniquely determined value. This makes the precise convention for reducing error more consequential than it is for ordinary decision problems. The source compares FBPP with a version requiring negligible error and gives a relation separating the classes in one direction. The remaining question is whether an inclusion holds in the other direction or whether the two classes are incomparable. An answer would clarify which amplification intuitions remain valid when success means producing an arbitrary valid output.
+
+[Read in atlas](index.html#TCS-2029) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2093 — It is an open problem to give an unconditional depth hierarchy theorem that separates NDepth [a log n] from NDepth [b log n] for any […]
+
+Circuit-depth hierarchies ask whether allowing more layers necessarily lets a circuit family compute additional functions. Here the source's NDepth notation refers specifically to uniform NAND formulas of logarithmic depth. The question asks for an unconditional separation between depth bounds with any two distinct constant coefficients of log n. The paper obtains a conditional hierarchy useful for its SAT lower-bound argument, but that assumption-dependent result is weaker than the requested theorem. Removing the assumption would sharpen the understanding of how much computational power each constant-factor increase in uniform formula depth provides.
+
+[Read in atlas](index.html#TCS-2093) · [Towards Stronger Depth Lower Bounds](https://doi.org/10.4230/LIPIcs.ITCS.2024.10)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2215 — Can we prove a real version of Toda’s theorem [30]?
+
+Toda's theorem in discrete complexity relates alternating quantifiers to counting power. This source asks for an analogous relationship among real-algebraic complexity classes. The proposed target is to contain fixed levels of alternating real quantification in an existential real theory enhanced with summation operators. The exact operator language matters because unrestricted real exponentiation would change the setting substantially. A positive result would organize several real-feasibility hierarchies under one strengthened existential framework and illuminate the role of counting-like operations over real computation.
+
+[Read in atlas](index.html#TCS-2215) · [The Existential Theory of the Reals with Summation Operators](https://doi.org/10.4230/LIPIcs.ISAAC.2024.13)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2244 — Does Constant Degree Hypothesis hold?
+
+The Constant Degree Hypothesis concerns restricted circuits that combine bounded-fan-in conjunctions with two layers of modular counting gates. For fixed parameters d and m and prime p, it rules out subexponential-size AND_d composed with MOD_m and MOD_p circuits computing conjunctions of arbitrarily many inputs. The source asks whether this circuit lower-bound hypothesis holds. It connects the hypothesis to algorithms for satisfiability and equivalence of circuits over finite nilpotent algebras. A proof would justify an important assumption in that algebraic complexity program, while a counterexample would reveal unexpectedly efficient interactions between modular gates.
+
+[Read in atlas](index.html#TCS-2244) · [Circuit Equivalence in 2-Nilpotent Algebras](https://doi.org/10.4230/LIPIcs.STACS.2024.45)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2319 — Can we reduce explicit construction problems to solving NC03 -Avoid?
+
+Range avoidance asks for an output string outside the image of a Boolean circuit with more output bits than input bits. In NC0_3-Avoid, each output bit depends on at most three input bits. The source asks whether explicit construction problems can be reduced to this highly local version of range avoidance. General avoidance is already connected to constructing objects such as rigid matrices and functions requiring large formulas. Establishing comparable reductions at locality three would locate the computational power of a sharply restricted search task; the accompanying alternative is that this case admits a polynomial-time algorithm.
+
+[Read in atlas](index.html#TCS-2319) · [Range Avoidance for Constant Depth Circuits: Hardness and Algorithms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.65)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2331 — Is there a BPPNP certification algorithm that returns certificates of length O(Cert(f ))?
+
+A certificate for a Boolean function at an input is a set of fixed input bits that forces the function's value. The quantity Cert(f) is the largest minimum certificate size over all inputs. The source gives a randomized polynomial-time algorithm with an NP oracle that finds certificates of size O(Cert(f)^5). The question asks whether the same computational resources suffice to return certificates of length O(Cert(f)). This would make certification nearly optimal relative to the function's global certificate complexity, without requiring structural assumptions such as monotonicity.
+
+[Read in atlas](index.html#TCS-2331) · [Certification with an NP Oracle](https://doi.org/10.4230/LIPIcs.ITCS.2023.18)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2333 — Is every PLS-complete problem downward self-reducible?
+
+A search problem is downward self-reducible if solutions can be computed efficiently using an oracle only on strictly smaller instances. PLS contains total search problems whose solutions can be found through a finite process of improving a locally evaluated objective. The source proves downward self-reducibility for familiar PLS-complete problems and places downward self-reducible total search in PLS. It asks whether every PLS-complete problem enjoys this recursive property. The issue is that general completeness reductions need not preserve input length, so self-reducibility cannot simply be transferred through an arbitrary reduction.
+
+[Read in atlas](index.html#TCS-2333) · [Downward Self-Reducibility in TFNP](https://doi.org/10.4230/LIPIcs.ITCS.2023.67)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2425 — Notably, it is still an open question if SZK is closed under ≤Ptt reducibility.
+
+Statistical zero knowledge captures problems that can be verified interactively while revealing essentially no additional information even to a powerful observer. This project asks whether the class SZK is closed under polynomial-time truth-table reductions. Such a reduction prepares its oracle questions without depending on their answers and then combines the answers using polynomial-time computation. The source discusses closure under more restricted ways of combining answers, which do not automatically give this general closure property. A resolution would clarify whether nonadaptive composition preserves statistical zero knowledge across the full range of efficient postprocessing.
+
+[Read in atlas](index.html#TCS-2425) · [Kolmogorov Complexity Characterizes Statistical Zero Knowledge](https://doi.org/10.4230/LIPIcs.ITCS.2023.3)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2434 — Establishing a super-polynomial separation between randomness and pseudo-determinism remains open for Parity decision trees.
+
+A parity decision tree queries the XOR of a chosen subset of input bits at each step. For a search relation, a randomized algorithm may return different valid answers, while a pseudodeterministic algorithm must usually return one canonical answer for each input. The question asks for a superpolynomial separation between the query costs of these two forms of computation. The source establishes other separations involving deterministic and pseudodeterministic parity trees, but those do not resolve this comparison. Such an example would show that requiring reproducible output can be dramatically more expensive even when each query accesses a global parity.
+
+[Read in atlas](index.html#TCS-2434) · [Query Complexity of Search Problems](https://doi.org/10.4230/LIPIcs.MFCS.2023.34)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2464 — For every d ∈ N, ε ∈ (0, 1) for all large enough n, if X is samplable by a d-local function and is ε-close […]
+
+A d-local sampler produces each output bit from at most d independent random input bits. The conjecture considers samplers whose output is close in statistical distance to the uniform distribution on strings with allowed Hamming weights S. It predicts that, for fixed locality and sufficiently large dimension, the output must also be close to one of a short list of simple symmetric distributions. These are concentrated on all-zero strings, all-one strings, their pair, even weights, odd weights, or the full Boolean cube. Proving this structural restriction would sharply characterize which symmetric distributions constant-locality classical circuits can approximately generate.
+
+[Read in atlas](index.html#TCS-2464) · [Sampling and Certifying Symmetric Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.36)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2532 — Can one prove circuit lower bounds from the assumption that a (uniform) computationally-secure IO exists?
+
+Indistinguishability obfuscation hides which of two equivalent circuit implementations was supplied to an observer. The cited work shows that obfuscation secure against nonuniform polynomial-size circuits implies nontrivial circuit lower bounds. This project asks whether an analogous implication follows when security is assumed only against uniform efficient algorithms. Nonuniform attackers can use input-length-dependent advice, so the existing security hypothesis is stronger than the proposed replacement. Establishing lower bounds from uniform security would connect a more algorithmic cryptographic assumption with structural limitations on small circuits.
+
+[Read in atlas](index.html#TCS-2532) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2537 — Is the total search version of UniqueTarski in the class UEOPL (Unique-EOPL) [6]?
+
+Tarski-style search finds a fixed point of an order-preserving map on a finite lattice. The source asks whether the total-search version of UniqueTarski belongs to UEOPL. A total formulation must specify valid outputs even when an input fails the intended uniqueness promise. A containment would connect this fixed-point task with search problems governed by a unique improving path. The saved excerpt does not define the map representation or violation witnesses, so the total version cannot be replaced by simply promising that exactly one fixed point exists.
+
+[Read in atlas](index.html#TCS-2537) · [Reducing Tarski to Unique Tarski (In the Black-Box Model)](https://doi.org/10.4230/LIPIcs.CCC.2023.21)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2538 — For example, are there natural sampling tasks or similar tasks such that efficient solutions imply NP ̸⊆ BPP?
+
+The source develops sampling tasks whose efficient algorithms would imply lower bounds against uniform circuit classes. Its examples connect constructive probabilistic procedures to separations involving NP and restricted deterministic computation. The question asks for an analogous natural sampling task whose efficient solution would imply that NP is not contained in BPP. Here the desired lower bound must exclude randomized polynomial-time algorithms, making the target stronger than separating NP from a particular deterministic circuit model. Finding such a task would provide an algorithmic route toward a central complexity separation through a concrete sampling problem.
+
+[Read in atlas](index.html#TCS-2538) · [An Algorithmic Approach to Uniform Lower Bounds](https://doi.org/10.4230/LIPIcs.CCC.2023.35)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2681 — As mentioned in the introduction, it remains open whether UEOPL = EOPL.
+
+EOPL studies total search through implicitly represented paths equipped with a potential that increases along each path. UEOPL imposes a uniqueness structure, with suitable witnesses allowed when that structure fails. The source identifies EOPL with the intersection of PLS and PPAD and asks whether UEOPL has the same power. A first proposed step is a separation in the black-box model, where algorithms learn the paths through queries. Understanding the role of uniqueness would help classify natural problems in UEOPL and assess whether they could be complete for the broader intersection.
+
+[Read in atlas](index.html#TCS-2681) · [Further Collapses in TFNP](https://doi.org/10.4230/LIPIcs.CCC.2022.33)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-2914 — Namely, can one find a distribution that cannot be sampled in AC0 but can be sampled by ROBPs?
+
+Sampling complexity measures the resources needed to generate a probability distribution from independent random bits. This problem compares constant-depth Boolean circuits with oblivious read-once branching programs, which process their random inputs sequentially with limited memory. The source asks for a distribution efficiently sampled by such branching programs that cannot be sampled in AC0. It suggests constructing an extractor or disperser for AC0 sources that itself has a small-width branching program. A separation in this direction would distinguish the generative power of shallow parallel computation from that of a memory-limited sequential process.
+
+[Read in atlas](index.html#TCS-2914) · [The Space Complexity of Sampling](https://doi.org/10.4230/LIPIcs.ITCS.2022.40)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3095 — We conjecture that even G3 might be tractable, but again the only known general upper bound is PSPACE.
+
+In the unordered CNF game, two players alternately choose unassigned variables and give them Boolean values. One player wants the final formula to be true, while the other wants it false. The problem G3 restricts every clause to at most three literals and asks which player has a winning strategy. The source conjectures tractability for this width, while reporting only a general PSPACE upper bound and algorithms under additional restrictions. A classification would locate the transition from manageable local clauses to difficult strategic interaction in games where the order of assignments is itself a choice.
+
+[Read in atlas](index.html#TCS-3095) · [6-Uniform Maker-Breaker Game Is PSPACE-Complete](https://doi.org/10.4230/LIPIcs.STACS.2021.57)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3181 — More difficult question: can we prove a lower bound on random ∆-CNF formulas?
+
+An unsatisfied-clause search problem receives an assignment to an unsatisfiable CNF formula and must identify a clause that it falsifies. The source studies branching programs for this task with a controlled number of repeated variable queries. Its lower-bound construction uses a specially modified formula, leaving open whether comparable bounds hold for random constant-width CNFs. Random formulas are a natural candidate because their hardness should not depend on an artificial amplification gadget. Establishing such bounds would extend the connection between restricted branching programs and proof complexity to a canonical probabilistic family of unsatisfiable instances.
+
+[Read in atlas](index.html#TCS-3181) · [Branching Programs with Bounded Repetitions and Flow Formulas](https://doi.org/10.4230/LIPIcs.CCC.2021.17)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3205 — Is there a circuit family for sorting with circuits of depth O(log(n) + log(m)) and size O(nm2 )?
+
+A Boolean sorting circuit receives n binary integers of m bits each. The source achieves size proportional to n times m squared, but its depth contains an additional term growing almost linearly with m. The question asks to retain that size while reducing depth to logarithmic dependence on both n and m. Larger circuits can provide useful depth benchmarks but do not meet the simultaneous target. The project seeks a compact highly parallel sorting architecture that handles long keys without serializing their bit processing.
+
+[Read in atlas](index.html#TCS-3205) · [Sorting Short Integers](https://doi.org/10.4230/LIPIcs.ICALP.2021.88)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3228 — Is Sparse Complexity complete for SAPEPP?
+
+SAPEPP consists of sparse total search tasks defined by a fixed polynomial-time map that stretches its input length. Given the length in unary, the task is to construct a string outside that map's image. The selected question asks whether Sparse Complexity is complete for SAPEPP, as explicitly proposed in the source. That candidate seeks explicit truth tables for Boolean functions requiring large circuits. Completeness would organize several explicit-construction challenges around one representative task, while the sparse input format makes standard methods of transferring hardness less straightforward.
+
+[Read in atlas](index.html#TCS-3228) · [Total Functions in the Polynomial Hierarchy](https://doi.org/10.4230/LIPIcs.ITCS.2021.44)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3308 — For example, here is an open question that we have not addressed: for (say) the game Hex, does there necessarily exist a polynomial-size circuit that […]
+
+Strategy-stealing arguments can prove that a player has a winning strategy without revealing how to execute it. For Hex, the source asks whether optimal play can always be represented by a circuit whose size is polynomial in the board size. The circuit would take a position and supply the appropriate move, even if constructing that circuit were computationally difficult. This separates the existence of a compact strategy from the algorithmic task of discovering one. Understanding this distinction would clarify how much constructive content can be extracted from nonconstructive proofs about combinatorial games.
+
+[Read in atlas](index.html#TCS-3308) · [Strategy-Stealing Is Non-Constructive](https://doi.org/10.4230/LIPIcs.ITCS.2020.21)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3509 — Is Tarski in CLS (or in EOPL)?
+
+Tarski's fixed-point theorem guarantees a fixed point for an order-preserving map on a suitable lattice. The source asks whether the associated computational search problem lies in CLS or EOPL. These classes organize total search problems through continuous local improvement or structured potential-guided paths. A containment would connect monotone fixed points with algorithmic approaches used for equilibrium and local optimization. The saved excerpt does not state the finite encoding or violation outputs, so the computational Tarski problem must be defined separately from the unrestricted mathematical existence theorem.
+
+[Read in atlas](index.html#TCS-3509) · [Tarski’s Theorem, Supermodular Games, and the Complexity of Equilibria](https://doi.org/10.4230/LIPIcs.ITCS.2020.18)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3568 — Is there a total function g : {0, 1}m → {0, 1} such that BPP(Xor ◦ g n ) ≥ Ω(n log n · BPP(g)) […]
+
+Composing parity or majority with n copies of a function creates a natural randomized query algorithm that solves each copy separately. Reducing the chance of any harmful error introduces a logarithmic amplification overhead. The question asks for a total Boolean function g for which this overhead is necessary, giving complexity Ω(n log n times BPP(g)). The source demonstrates the phenomenon with partial functions, but the promise-free requirement resists those constructions. A total-function example would show that the extra logarithm reflects an inherent cost of reliable composition, even when every possible input must be handled.
+
+[Read in atlas](index.html#TCS-3568) · [When Is Amplification Necessary for Composition in Randomized Query Complexity?](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.28)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3685 — We conjecture that getting a much better agreement with Mn , say 1/2 + 1/ poly(n), or even 2 1/2 + 2−o(log n) , requires […]
+
+Boolean formula lower bounds measure how large a tree of logical operations must be to compute a function. This source studies a generalized Andreev function whose components use majority and asks how hard it is to approximate on random inputs. A simple linear-size formula already achieves a small advantage over random guessing, so extremely strong average-case hardness is impossible. The conjecture is that substantially improving that advantage requires almost cubic formula size. A proof would connect worst-case formula lower bounds with a sharper understanding of how approximation quality increases with available computation.
+
+[Read in atlas](index.html#TCS-3685) · [Cubic Formula Size Lower Bounds Based on Compositions with Majority](https://doi.org/10.4230/LIPIcs.ITCS.2019.35)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3718 — Formally, is NP 6⊂ SIZE[nk ] for all k equivalent to (NP ⊂ P/poly =⇒ PH ⊂ i.o.-NP/n )?
+
+Fixed-polynomial circuit lower bounds for NP assert that no single exponent k bounds circuit size for every NP problem. The source asks whether obtaining all these lower bounds is equivalent to a particular conditional collapse of the polynomial hierarchy. The proposed collapse assumes NP has polynomial-size circuits and places PH in nondeterministic polynomial time with linear advice on infinitely many lengths. Related equivalences in the paper connect lower bounds to Karp-Lipton-style implications for other classes. An equivalence here would explain whether two apparently different routes toward stronger NP circuit lower bounds are fundamentally the same.
+
+[Read in atlas](index.html#TCS-3718) · [Relations and Equivalences Between Circuit Lower Bounds and Karp-Lipton Theorems](https://doi.org/10.4230/LIPIcs.CCC.2019.30)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3743 — Can we show that either NQP 6⊆ P/poly or MCSP 6∈ ACC0 ?
+
+The Minimum Circuit Size Problem receives a truth table and asks whether its function has a circuit smaller than a given threshold. The source proves lower bounds for this problem against constant-depth circuits with prime-modulus gates. It asks for a stronger disjunction: either nondeterministic quasipolynomial time lacks polynomial-size circuits, or MCSP is outside ACC0. ACC0 permits modular gates beyond one fixed prime, making this a substantial extension of the proved result. The proposed connection would let progress on circuit minimization force a lower bound for a broader computational class, or vice versa.
+
+[Read in atlas](index.html#TCS-3743) · [AC^0(p) Lower Bounds Against MCSP via the Coin Problem](https://doi.org/10.4230/LIPIcs.ICALP.2019.66)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3832 — Is SZK ⊆ ZPPMKTP , or equivalently, is Entropy Approximation in ZPPMKTP ?
+
+Statistical zero knowledge captures problems admitting protocols that reveal essentially no extra statistical information to the verifier. The source asks whether SZK is contained in zero-error randomized polynomial time with an MKTP oracle. It gives Entropy Approximation in the same oracle class as an equivalent target. A positive answer would connect entropy estimation and zero-knowledge complexity to a concrete minimum-description-length decision problem. The oracle is an essential resource in the question, and the saved excerpt does not supply the encoding and approximation conventions needed to make the equivalence self-contained.
+
+[Read in atlas](index.html#TCS-3832) · [Minimum Circuit Size, Graph Isomorphism, and Related Problems](https://doi.org/10.4230/LIPIcs.ITCS.2018.20)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3862 — The question of whether search-ZK has complete problems in the computational and statistical setting remains open.
+
+Zero-knowledge protocols are usually framed around deciding whether a statement is true. Search zero knowledge instead concerns interactions that produce a valid solution while controlling what additional information is revealed. The selected problem asks whether these search classes have complete problems in either the computational or statistical security setting. A complete problem would serve as a universal representative to which other search-zero-knowledge tasks can be reduced under suitable definitions. Finding one would organize the new model and help transfer general techniques from the better-developed theory of decision zero knowledge.
+
+[Read in atlas](index.html#TCS-3862) · [Brief Announcement: Zero-Knowledge Protocols for Search Problems](https://doi.org/10.4230/LIPIcs.ICALP.2018.105)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3873 — Or is it impossible, which could solve the open question [11] of separating SDDs and d-SDNNFs?
+
+Sentential decision diagrams and deterministic structured DNNFs are circuit languages for storing Boolean knowledge through organized variable decompositions. The 2018 passage points to a possible separation between their succinctness, meaning the size needed to represent the same functions. Such a separation would explain whether the additional organization of sentential decisions has an unavoidable storage cost. The paper approaches the issue through connections between circuit width and structural restrictions. The excerpt's opening alternative refers to a missing construction, so the exact family and size bound remain unspecified even though the intended comparison between representation languages is visible.
+
+[Read in atlas](index.html#TCS-3873) · [Connecting Width and Structure in Knowledge Compilation](https://doi.org/10.4230/LIPIcs.ICDT.2018.6)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3886 — Indeed, whether ∃ · BPP = MA remains an open question [11].
+
+Merlin–Arthur verification combines a classical witness with an efficient randomized check. Applying an existential quantifier to an ordinary BPP language imposes an additional bounded-error condition on every witness-input pair. In an MA protocol, by contrast, unsuccessful witnesses on a yes-instance may have intermediate acceptance probabilities. This question asks whether those different promise conventions nevertheless define the same class. The distinction matters when building classical or quantum verification hierarchies, because moving quantifiers across probabilistic tests can silently strengthen the requirements on a verifier.
+
+[Read in atlas](index.html#TCS-3886) · [Quantum Generalizations of the Polynomial Hierarchy with Applications to QMA(2)](https://doi.org/10.4230/LIPIcs.MFCS.2018.58)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3962 — Does SAT ∈ P/poly imply that NP ⊆ ZPPMCSP ?
+
+The Minimum Circuit Size Problem asks whether an explicitly given truth table has a sufficiently small circuit. The saved question assumes SAT has polynomial-size circuits and asks whether NP then lies in zero-error randomized polynomial time with an MCSP oracle. This connects a nonuniform upper-bound hypothesis with the power of a concrete circuit-minimization oracle. A positive implication would clarify how much algorithmic usefulness follows from small circuits existing. The excerpt does not specify oracle encoding or reduction conventions, so those details remain needed for a fully formal class inclusion.
+
+[Read in atlas](index.html#TCS-3962) · [The Power of Natural Properties as Oracles](https://doi.org/10.4230/LIPIcs.CCC.2018.7)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4076 — We leave open the question of whether MLP gates (of any type) can polynomially simulate monotone real circuits. n I Theorem 19.
+
+Monotone linear-programming circuits use gates defined through linear-programming feasibility to compute partial Boolean functions. The source compares their expressive efficiency with monotone real circuits. It proves a separation in one direction and leaves open whether suitable linear-programming gates can simulate every monotone real circuit with polynomial overhead. The direction of simulation matters because a model can outperform another on one task without containing it efficiently on all tasks. Answering the question would clarify the hierarchy of monotone computation models that connect optimization formulations with proof-complexity lower bounds.
+
+[Read in atlas](index.html#TCS-4076) · [Representations of Monotone Boolean Functions by Linear Programs](https://doi.org/10.4230/LIPIcs.CCC.2017.3)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4205 — What is the maximum gap, if any, between U -invariant [depth d] formula size and non-invariant [depth d] formula size?
+
+A Boolean function may be invariant under a group of transformations even when the formula computing it does not visibly respect that symmetry. The source studies formulas whose syntax is invariant under a subspace U acting by toggling input negations. It asks how much larger the smallest U-invariant formula can be than an unrestricted formula for the same function, including comparisons at fixed depth. Its parity lower bounds show that imposing syntactic symmetry can make sharper analysis possible. Determining the largest gap would reveal whether those stronger bounds measure inherent computation or a significant cost of enforcing symmetry.
+
+[Read in atlas](index.html#TCS-4205) · [Subspace-Invariant AC^0 Formulas](https://doi.org/10.4230/LIPIcs.ICALP.2017.93)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4219 — What are the tradeoffs, if any, between the number of gates and the number of ancilla bits?
+
+A reversible Boolean circuit implements a permutation of bit strings using gates from a specified reversible gate set. Ancilla bits provide temporary workspace, and the classification in the source treats their availability as free when deciding which transformations are expressible. This question asks how the number of gates needed for a transformation trades off against the number of ancillas allowed. The source also seeks constructions approaching the circuit-size limits suggested by counting arguments. Such tradeoffs would turn an expressibility classification into a resource-sensitive account of reversible computation, where both circuit length and workspace matter.
+
+[Read in atlas](index.html#TCS-4219) · [The Classification of Reversible Bit Operations](https://doi.org/10.4230/LIPIcs.ITCS.2017.23)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4268 — Is there evidence that Gap MCSP has intermediate complexity when is a fixed constant, similar to the evidence that we present for the case when […]
+
+Gap MCSP approximates the smallest circuit computing a function presented by its full truth table. In the source's parameterization, the permitted multiplicative error is N^(1-epsilon), where N is the truth-table length. The paper gives evidence for intermediate complexity when epsilon tends to zero, under modest cryptographic assumptions. The question asks for comparable evidence when epsilon is a fixed positive constant and the approximation is therefore more accurate. This would broaden the case that natural circuit-minimization problems can lie between efficient computation and NP-hardness.
+
+[Read in atlas](index.html#TCS-4268) · [New Insights on the (Non-)Hardness of Circuit Minimization and Related Problems](https://doi.org/10.4230/LIPIcs.MFCS.2017.54)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4412 — Can gate elimination prove non-linear bounds here?
+
+Gate elimination proves circuit lower bounds by restricting inputs and counting the gates that each restriction removes. The source examines limitations of this method for ordinary Boolean functions and then turns to linear maps from n bits to n bits. It asks whether gate elimination can prove superlinear lower bounds for explicit linear maps. A further restricted version permits only linear circuit operations and linear substitutions in the argument. The distinction matters because the source's existing obstruction gadgets are nonlinear and do not automatically explain the power of elimination in this algebraically structured setting.
+
+[Read in atlas](index.html#TCS-4412) · [On the Limits of Gate Elimination](https://doi.org/10.4230/LIPIcs.MFCS.2016.46)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4466 — We leave open the question whether one can come up with an explicit and efficient transformation from any formula to a formula with few negations.
+
+Negation complexity measures how many NOT gates a Boolean formula or circuit uses. The source develops structural decompositions for formulas with few negations and transformations that reduce negations in related circuit models. It asks for an explicit, efficient transformation taking an arbitrary formula to a formula with few negations. Known existence arguments rely on a short monotone threshold construction that does not directly provide the desired explicit procedure. A constructive transformation would make negation-reduction results algorithmically usable while preserving the tree structure that distinguishes formulas from circuits with shared subcomputations.
+
+[Read in atlas](index.html#TCS-4466) · [Negation-Limited Formulas](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.850)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4468 — The best separation between subcube partition complexity and query complexity remains open, even in the deterministic case.
+
+A subcube partition divides all Boolean inputs into monochromatic pieces, each specified by fixing some coordinates. Unlike a decision tree, the pieces need not arise from one sequential hierarchy of queries. The source separates this partition model from randomized decision trees and asks for the strongest possible gap between their complexities. Even the comparison with deterministic query complexity is included in the question. Determining the extremal separation would quantify how much harder it is to discover an input's certificate adaptively than merely to exhibit a globally consistent collection of certificates.
+
+[Read in atlas](index.html#TCS-4468) · [Separating Decision Tree Complexity from Subcube Partition Complexity](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.915)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4746 — Enumerating Error Bounded Polytime Algorithms Through Arithmetical Theories — Explicit open question on PDF page 2
+
+A randomized polynomial-time program belongs to BPP only if its answer is reliably biased toward correctness on every input. That semantic requirement is harder to recognize than a syntactic time bound. This problem asks whether there is an effective enumeration of algorithms covering exactly the languages in BPP. The cited work uses arithmetical theories to study how error guarantees can be expressed and justified. A successful characterization would connect feasible randomized computation with formal languages whose programs come with uniformly controlled error behavior.
+
+[Read in atlas](index.html#TCS-4746) · [Enumerating Error Bounded Polytime Algorithms Through Arithmetical Theories](https://doi.org/10.4230/LIPIcs.CSL.2024.10)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4786 — Synergy Between Circuit Obfuscation and Circuit Minimization — Explicit open question on PDF page 3
+
+The minimum circuit size problem asks whether a truth table can be implemented by a Boolean circuit below a given size threshold. A small circuit supplies an efficiently checkable witness, placing the problem in NP when input length is measured by the full truth table. The selected passage highlights the unresolved classification between efficient randomized algorithms and NP-hardness. It also notes that an efficient algorithm would enable average-case inversion of candidate one-way functions through known reductions. Understanding this problem would connect circuit minimization, obfuscation, and the computational assumptions that make cryptography possible.
+
+[Read in atlas](index.html#TCS-4786) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-4960 — Theoretical Limitations of Multi-Layer Transformer — Open Question 2
+
+The source analyzes the representational limits of multilayer decoder-only Transformers using communication-complexity methods. Its lower bounds constrain constant-depth architectures solving carefully defined compositional tasks. The selected question asks for a polynomial lower bound on the depth needed by Transformers. The authors allow either an unconditional result or one based on established computational complexity conjectures. This would identify tasks whose sequential compositional structure cannot be absorbed into a shallow attention architecture without violating the model's other resource constraints.
+
+[Read in atlas](index.html#TCS-4960) · [Theoretical Limitations of Multi-Layer Transformer](https://doi.org/10.1109/FOCS63196.2025.00136)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-4961 — Range Avoidance and Remote Point: New Algorithms and Hardness — Open Problem 1
+
+Range avoidance asks for a string outside the outputs of a circuit that maps n input bits to a longer string. The selected question restricts each output bit to depend on at most k inputs and sets output length to n^(1+epsilon). The source obtains subexponential algorithms with an exponent depending on locality and stretch. It asks whether the running time can be improved to 2^(n^o(1)) for some positive epsilon. Reaching this much faster scale would help determine the search complexity of local range avoidance and its connections to circuit lower bounds.
+
+[Read in atlas](index.html#TCS-4961) · [Range Avoidance and Remote Point: New Algorithms and Hardness](https://doi.org/10.4230/LIPIcs.ITCS.2026.79)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-4988 — An Oracle with no UP-Complete Sets, but NP = PSPACE — Explicit open question on PDF page 3
+
+TFNP consists of search problems with efficiently checkable solutions whose existence is guaranteed for every input. This project asks whether the entire class has a complete problem under the intended efficient search reductions. Such a problem would represent the difficulty of all total NP search tasks, rather than only a subclass with a particular existence principle. The source discusses oracle constructions and their connections with promise classes, which can expose barriers without settling the unrelativized question. A complete problem or a rigorous obstruction would reshape how total search problems are compared, including those studied as foundations for cryptography.
+
+[Read in atlas](index.html#TCS-4988) · [An Oracle with no UP-Complete Sets, but NP = PSPACE](https://doi.org/10.4230/LIPIcs.MFCS.2024.50)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5149 — String Matching: Communication, Circuits, and Learning — Explicit open question on PDF page 4
+
+String matching determines whether a pattern occurs as a contiguous part of a text. The cited work studies communication, circuit, and learning perspectives on that task. The saved passage leaves a threshold-circuit lower bound, or a sublinear-size construction, unresolved. A sharp result would explain how compactly matching can be represented when gates perform threshold comparisons. The excerpt does not specify depth, input partition, or the meaning of n, so the draft cannot promote the alternative into a general lower bound for unrestricted threshold circuits.
+
+[Read in atlas](index.html#TCS-5149) · [String Matching: Communication, Circuits, and Learning](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.56)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5246 — Fractional Homomorphism, Weisfeiler-Leman Invariance, and the Sherali-Adams Hierarchy for the Constraint Satisfaction Problem — Explicit open question on PDF page 1
+
+Graph isomorphism asks whether a bijection between two vertex sets preserves adjacency. The saved introductory question asks whether this can always be decided in polynomial time. The cited CSP paper studies fractional homomorphisms and refinement hierarchies that provide related ways to compare graph structure. Understanding their power helps explain which structural information supports isomorphism testing. This entry is an inherited reference to the general graph-isomorphism question rather than a distinct new conjecture about the Sherali–Adams hierarchy, and it does not assert that the surrounding relaxation methods resolve it.
+
+[Read in atlas](index.html#TCS-5246) · [Fractional Homomorphism, Weisfeiler-Leman Invariance, and the Sherali-Adams Hierarchy for the Constraint Satisfaction Problem](https://doi.org/10.4230/LIPIcs.MFCS.2021.27)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5312 — Simple Circuit Extensions for XOR in PTIME — Explicit open question on PDF page 2
+
+The Minimum Circuit Size Problem takes a Boolean truth table and asks whether some circuit below a specified size computes it. The selected passage asks whether this problem is NP-hard. The source studies this question through simple extensions of functions and compares total truth tables with partially specified ones. Hardness results for partial circuit minimization do not immediately extend because the corresponding total extension problems can become easy. Understanding this obstacle could clarify why minimizing unrestricted Boolean circuits has resisted the reductions that succeed for several specialized variants.
+
+[Read in atlas](index.html#TCS-5312) · [Simple Circuit Extensions for XOR in PTIME](https://doi.org/10.4230/LIPIcs.STACS.2026.23)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5315 — Forrelation Is Extremally Hard — Conjecture 8
+
+Forrelation measures the correlation of one Boolean function with the Fourier transform of another. The extremal problem promises that this quantity is exactly positive one or negative one and asks for its sign. The conjecture restricts the input functions to degree-d polynomials over F2 and predicts randomized query complexity n^(Ω(d)). A quantum algorithm can exploit the Fourier structure, while a classical algorithm can always learn the low-degree polynomials before computing the answer. The lower bound would show that the promise of a simple polynomial description does not remove the essential classical difficulty.
+
+[Read in atlas](index.html#TCS-5315) · [Forrelation Is Extremally Hard](https://doi.org/10.4230/LIPIcs.ITCS.2026.72)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-5342 — Direct Sums for Parity Decision Trees — Explicit open question on PDF page 4
+
+A parity decision tree may query the XOR of any subset of its input bits. A direct sum theorem would say that computing k independent copies of a function costs k times the resources needed for one copy. The source asks whether such a perfect theorem holds for deterministic parity decision trees. Its proved bounds lose factors depending on the single-copy complexity or Fourier sparsity. The challenge is to rule out savings from parity queries that mix bits belonging to different copies, even though all k answers must ultimately be produced.
+
+[Read in atlas](index.html#TCS-5342) · [Direct Sums for Parity Decision Trees](https://doi.org/10.4230/LIPIcs.CCC.2025.16)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5397 — New Sampling Lower Bounds via the Separator — Explicit open question on PDF page 4
+
+For a uniformly random bit string, the Rank distribution records every prefix sum of its bits. Generating one sample therefore means producing a mutually consistent sequence of counts rather than answering one isolated rank query. The source asks whether polynomial-size AC0 circuits can sample this distribution. It proves sampling lower bounds for decision forests and notes a quasipolynomial-size shallow-circuit construction from related results. Resolving the polynomial-size case would compare the power of constant-depth sampling with the global dependencies in even a simple random walk of prefix sums.
+
+[Read in atlas](index.html#TCS-5397) · [New Sampling Lower Bounds via the Separator](https://doi.org/10.4230/LIPIcs.CCC.2023.26)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5417 — On the Limits of Gate Elimination — Unresolved-question passage on page 12
+
+Gate elimination proves circuit lower bounds by fixing input variables and counting how many gates can be removed. The source investigates functions for which a small number of substitutions causes only a small complexity decrease. It asks whether this resistance can persist after a linear number of substitutions for a function whose circuit complexity is superlinear. The desired decrease would remain only proportional to the number of substituted variables. Such examples would strengthen the structural barrier showing why repeatedly simplifying circuits through restrictions may fail to prove substantially larger lower bounds.
+
+[Read in atlas](index.html#TCS-5417) · [On the Limits of Gate Elimination](https://doi.org/10.4230/LIPIcs.MFCS.2016.46)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-5501 — Sum-Of-Squares Lower Bounds for the Minimum Circuit Size Problem — Explicit open question on PDF page 1
+
+The Minimum Circuit Size Problem asks whether a Boolean function given by its truth table has a circuit below a supplied size threshold. The saved passage identifies NP-hardness of this task as unresolved in its source. The cited work approaches the problem through sums-of-squares lower bounds. An NP-hardness result would connect circuit minimization with the broad landscape of efficiently verifiable search and decision problems. The excerpt does not specify the reduction convention, and lower bounds for a restricted relaxation do not themselves prove the requested classical hardness statement.
+
+[Read in atlas](index.html#TCS-5501) · [Sum-Of-Squares Lower Bounds for the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.CCC.2023.31)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5593 — Does Looking Inside a Circuit Help? — Explicit open question on PDF page 4
+
+A property of Boolean functions can be tested either from a circuit description or by querying the function as a black box. The Black-Box Hypothesis says that efficient access to the circuit's internal representation does not help decide such semantic properties, given an appropriate circuit-size bound. The source studies what follows if this hypothesis fails. For several kinds of counterexample, it derives nontrivial circuit satisfiability algorithms. Resolving the hypothesis would clarify whether inspecting an implementation offers a fundamental computational advantage over observing its behavior, with consequences for major complexity separations.
+
+[Read in atlas](index.html#TCS-5593) · [Does Looking Inside a Circuit Help?](https://doi.org/10.4230/LIPIcs.MFCS.2017.1)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5617 — On the Complexity of Modulo-q Arguments and the Chevalley - Warning Theorem — Explicit open question on PDF page 3
+
+PPAq classifies total search problems whose solutions are guaranteed by counting arguments modulo q. The source places problems from algebra, topology, and cryptography in these classes and proposes completeness as a possible classification for some of them. Its main theorem already proves PPAp-completeness for an explicit search problem based on the Chevalley-Warning theorem when p is prime. The imported passage is a broader research direction asking which additional natural problems capture the full power of modular counting principles. Developing those classifications would distinguish algorithmic difficulty arising from different moduli and connect abstract total-search classes to concrete mathematical tasks.
+
+[Read in atlas](index.html#TCS-5617) · [On the Complexity of Modulo-q Arguments and the Chevalley - Warning Theorem](https://doi.org/10.4230/LIPIcs.CCC.2020.19)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-5750 — On the Relative Power of Linear Algebraic Approximations of Graph Isomorphism — Explicit open question on PDF page 1
+
+Graph isomorphism asks whether two graphs become identical after consistently renaming their vertices. The cited source compares the power of linear-algebraic methods that approximate this distinction. Its saved introductory passage mentions unresolved complexity questions but truncates the exact target. Understanding the relative strength of such methods could identify which structural differences they can detect and which remain invisible. The fragment does not identify the specific problem or algebraic hierarchy being questioned, so it cannot yet distinguish a general graph-isomorphism question from a narrower comparison of relaxations.
+
+[Read in atlas](index.html#TCS-5750) · [On the Relative Power of Linear Algebraic Approximations of Graph Isomorphism](https://doi.org/10.4230/LIPIcs.MFCS.2021.37)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6006 — A Subexponential Algorithm for ARRIVAL — Explicit open question on PDF page 4
+
+ARRIVAL describes a deterministic walk in a directed graph whose vertices alternate between two outgoing choices on successive visits. The decision task asks which designated destination the walk eventually reaches. The source notes efficiently verifiable certificates for either answer, placing the problem in NP intersect coNP. It improves exponential algorithms to a subexponential bound and gives a polynomial-time algorithm for almost acyclic graphs. The remaining project is to decide whether all instances can be solved in polynomial time without explicitly following a walk that may be exponentially long.
+
+[Read in atlas](index.html#TCS-6006) · [A Subexponential Algorithm for ARRIVAL](https://doi.org/10.4230/LIPIcs.ICALP.2021.69)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6091 — NP-hardness of Minimum Circuit Size Problem for OR-AND-MOD Circuits — Explicit open question on PDF page 3
+
+The class E contains decision problems solvable in deterministic time exponential with a linear exponent. The selected question asks whether some problem in E requires depth-three AC0 circuits of size 2^(Ω(n)). These circuits use AND, OR, and NOT gates but have only three layers of computation. The source raises this lower-bound target while proving NP-hardness for minimization in a different OR-AND-MOD circuit model. It explains that natural attempts to extend that hardness result to depth-three AC0 would also establish the strong uniform circuit lower bound.
+
+[Read in atlas](index.html#TCS-6091) · [NP-hardness of Minimum Circuit Size Problem for OR-AND-MOD Circuits](https://doi.org/10.4230/LIPIcs.CCC.2018.5)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6139 — A Note on the Advice Complexity of Multipass Randomized Logspace — Explicit open question on PDF page 2
+
+A randomized logspace machine has very little working memory, but its power also depends on how it accesses random bits. Allowing two-way access lets it revisit its random tape instead of consuming each bit once. The source asks whether this model can be simulated deterministically in subexponential time. Its results for machines making a controlled number of passes do not settle unrestricted two-way access. Understanding the difference would clarify how reusable randomness affects small-space computation and why conventional logspace derandomization techniques do not automatically apply.
+
+[Read in atlas](index.html#TCS-6139) · [A Note on the Advice Complexity of Multipass Randomized Logspace](https://doi.org/10.4230/LIPIcs.MFCS.2016.31)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6168 — On the (Non) NP-Hardness of Computing Circuit Complexity — Explicit open question on PDF page 4
+
+MCSP asks whether a function given by its truth table has a Boolean circuit below a specified size. The source investigates what standard NP-hardness reductions to MCSP would imply for circuit lower bounds. It conjectures that polynomial-time NP-hardness would force EXP to lack polynomial-size circuits, strengthening its proved consequence. It also conjectures that MCSP is not NP-hard under uniform AC0 reductions. These questions aim to explain why proving hardness for circuit minimization appears to require understanding the very circuit lower bounds that the problem measures.
+
+[Read in atlas](index.html#TCS-6168) · [On the (Non) NP-Hardness of Computing Circuit Complexity](https://doi.org/10.4230/LIPIcs.CCC.2015.365)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6285 — Depth-First Search in Directed Planar Graphs, Revisited — Explicit open question on PDF page 3
+
+UL consists of logarithmic-space computations with at most one accepting computation on each input. The cited passage asks whether this unambiguous class is closed under complement. Closure would mean that rejecting instances also admit an equally economical unambiguous decision procedure. The paper encounters the issue while defining functions and composing algorithms for planar depth-first search. The project addresses a structural complexity question whose answer affects how safely unambiguous subroutines can replace ordinary nondeterministic reachability tests.
+
+[Read in atlas](index.html#TCS-6285) · [Depth-First Search in Directed Planar Graphs, Revisited](https://doi.org/10.4230/LIPIcs.MFCS.2021.7)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6488 — Winning the War by (Strategically) Losing Battles: Settling the Complexity of Grundy-Values in Undirected Geography — Open Question 4
+
+The Grundy value of an impartial game contains more information than whether the current player can force a win. The imported question asks for a general efficient reduction from computing that value to determining a winner. The source exhibits a sharp separation for Undirected Geography, where winner determination is efficient but Grundy computation is PSPACE-complete. That result supplies a complexity-theoretic obstruction to the proposed general reduction. The project explains why composing individually tractable games may require information much harder to obtain than their separate win-loss outcomes.
+
+[Read in atlas](index.html#TCS-6488) · [Winning the War by (Strategically) Losing Battles: Settling the Complexity of Grundy-Values in Undirected Geography](https://doi.org/10.1109/FOCS52979.2021.00119)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6496 — Polynomial-Time Pseudodeterministic Construction of Primes — Explicit open question on PDF page 3
+
+The cited prime-construction paper uses relationships between pseudodeterminism and strong circuit lower bounds. Its saved passage discusses known lower bounds for a higher exponential-time class and begins a stronger unresolved target. Circuit-size growth at sub-half-exponential scales can influence which hardness assumptions suffice for constructive number theory. A sharper bound could strengthen the complexity foundations of pseudodeterministic algorithms. The extraction stops before the target class or conclusion is stated, so this record must not be mistaken for the paper's already-announced prime-construction result or a fully specified circuit lower-bound conjecture.
+
+[Read in atlas](index.html#TCS-6496) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1109/FOCS57990.2023.00074)
+Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-6712 — Can every polynomial-size Boolean circuit be replaced by a polynomial-size, logarithmic-depth circuit?
+
+A polynomial-size Boolean circuit represents an efficient nonuniform computation, but its longest chain of dependent gates can be large. The question asks whether every such computation can be reorganized into logarithmic depth while retaining polynomial size. Logarithmic depth would permit much greater parallelism without allowing an excessive number of gates. Counting arguments and restricted circuit lower bounds do not settle this comparison for unrestricted Boolean circuits. Resolving it would determine whether polynomial-size circuits and the nonuniform version of NC1 have the same expressive power.
+
+[Read in atlas](index.html#TCS-6712) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6714 — Are there polynomial-size logarithmic-depth general Boolean circuits for perfect matching?
+
+Matching asks for edges with disjoint endpoints, with perfect matching requiring every vertex to be covered. Polynomial-time matching algorithms imply polynomial-size Boolean circuits for the decision problem. The question asks whether general circuits can achieve logarithmic depth as well. The cited source discusses a matching-size threshold and proves a strong depth lower bound when the circuit is required to be monotone. The project is to understand whether allowing negation permits substantially shallower matching computations, beyond the restrictions captured by that monotone lower bound.
+
+[Read in atlas](index.html#TCS-6714) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6715 — Separate polynomial-size monotone circuits from superpolynomial monotone span-program size.
+
+A monotone span program accepts an input when vectors enabled by its one-bits span a designated target vector over a field. A monotone Boolean circuit instead combines input bits using AND and OR gates. The question asks for functions with polynomial-size monotone circuits that require superpolynomial-size monotone span programs. The source discusses a separation in the opposite direction, so this asks whether the two models can be incomparable in efficiency. Such an example would expose a limitation of linear-algebraic representations even for functions having short purely monotone logical computations.
+
+[Read in atlas](index.html#TCS-6715) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6716 — Separate ordinary and monotone span-program size for monotone functions.
+
+Ordinary span programs may enable vectors using either positive or negative input literals. Monotone span programs use only positive literals, even when the function itself is monotone. The question asks for a monotone function with a polynomial-size ordinary span program but no polynomial-size monotone span program. The analogous distinction can be dramatic for Boolean circuits, but the source leaves it unsettled for span programs. A separation would show that negative tests can provide essential efficiency in linear-algebraic computation despite the monotonicity of the final answer.
+
+[Read in atlas](index.html#TCS-6716) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6717 — Strengthen monotone perfect-matching circuit lower bounds to stretched exponential.
+
+The perfect-matching function takes a graph's edge indicators and reports whether every vertex can be covered by disjoint edges. It is monotone because adding edges cannot destroy a perfect matching. The source presents a quasipolynomial monotone-circuit lower bound of the form m^(Ω(log m)). The question asks to strengthen this to 2^(Ω(m^epsilon)) for some positive constant epsilon. Reaching stretched-exponential size would substantially widen the demonstrated gap between ordinary polynomial-time matching algorithms and computations restricted to monotone gates.
+
+[Read in atlas](index.html#TCS-6717) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6718 — Prove exponential lower bounds for weakly read-once nondeterministic branching programs.
+
+A nondeterministic branching program accepts when some path consistent with the input reaches its accepting sink. The weakly read-once restriction requires variables to appear at most once on each consistent accepting path, while allowing repetition on inconsistent paths. The source asks for an exponential size lower bound against this model. It shows that permitting those inconsistent paths can make programs much smaller than more strictly read-once counterparts. A lower bound must therefore handle the extra structural freedom without treating every syntactic path as a possible computation.
+
+[Read in atlas](index.html#TCS-6718) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6743 — Every nontrivial monotone property of k-vertex graphs requires Ω(k²) randomized adjacency queries for exact recognition.
+
+A monotone graph property is preserved when edges are added, and a graph property ignores vertex labels. The randomized evasiveness conjecture asks whether every nontrivial such property on k vertices requires Ω(k squared) adjacency queries for exact recognition with bounded error. The algorithm must distinguish every yes-instance from every no-instance, including graphs differing by very few edges. This differs fundamentally from property testing, which allows a gap between valid graphs and graphs far from validity. A quadratic lower bound would say that randomness cannot avoid inspecting a constant fraction of potential edges in the worst case.
+
+[Read in atlas](index.html#TCS-6743) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6747 — Is graph nonisomorphism in BPP?
+
+Graph nonisomorphism asks whether two graphs cannot be matched by any relabeling that preserves adjacency. The question asks for a randomized polynomial-time algorithm with bounded error for this decision problem. Interactive protocols can certify nonisomorphism efficiently using help from an untrusted prover, but that assistance is absent in BPP. Since BPP is closed under complement, the same algorithmic question can be phrased for graph isomorphism. Resolving it would clarify whether randomization alone can efficiently handle a central structural comparison problem that has distinctive behavior among complexity-theoretic examples.
+
+[Read in atlas](index.html#TCS-6747) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6817 — Is directed reachability solvable simultaneously in polynomial time and polylogarithmic space?
+
+Directed reachability asks whether a path exists from a specified start vertex to a specified target. A graph search can solve it in polynomial time using substantial memory, while recursive reachability methods save memory at a time cost. The question asks for one algorithm that simultaneously uses polynomial time and only polylogarithmic space. Obtaining the two resource bounds in separate algorithms does not meet this requirement. The problem is a basic test of whether reachability can combine efficient exploration with an extremely small working memory.
+
+[Read in atlas](index.html#TCS-6817) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6832 — Which inclusions among P, RP and NP are strict?
+
+P consists of problems with deterministic polynomial-time algorithms, while RP permits randomized algorithms that can miss yes-instances but never falsely accept no-instances. Every RP algorithm can be viewed as an NP verification procedure by treating its random choices as a certificate. This gives the chain P contained in RP contained in NP. The question asks which of these inclusions are strict. The alternatives distinguish whether randomness adds power beyond deterministic computation and whether one-sided randomized search can capture the full strength of efficiently verifiable existence.
+
+[Read in atlas](index.html#TCS-6832) · [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6934 — Prove superlinear unconditional SAT time lower bounds in robust unrestricted computation models; establish stronger exponential lower bounds.
+
+SAT asks whether a Boolean formula admits a satisfying assignment. The source calls for unconditional superlinear time lower bounds in robust general computation models and ultimately stronger exponential bounds. Many known barriers depend on unproved hypotheses or restrictions on memory and algorithm structure. An unrestricted lower bound would directly demonstrate that a concrete fundamental problem requires more than near-input-reading work. The saved note intentionally states a research direction rather than one fixed exponent, so a finished card must select the encoding, machine model, and quantitative threshold it intends to resolve.
+
+[Read in atlas](index.html#TCS-6934) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6977 — Prove that SAT requires more than near-linear time.
+
+SAT asks whether a Boolean formula has a satisfying assignment. The selected question seeks an unconditional lower bound excluding algorithms whose running time stays near the input length. This is a weaker objective than excluding every polynomial-time algorithm, but it must still account for all algorithms in the chosen model. Restrictions on working space can support different lower bounds and should not be silently added to the question. Progress would establish a concrete limit on efficient satisfiability algorithms without needing to settle the full P versus NP problem.
+
+[Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6978 — Separate a given space bound from roughly the same time bound.
+
+Time measures how many computational steps an algorithm takes, while space measures how much working memory it uses. A computation can reuse the same memory through a very long sequence of steps. The question seeks a problem solvable within a given space bound that cannot be solved within roughly the same time bound. A precise version must specify the machine model, the resource function, and what slack is allowed by roughly the same. Such a separation would capture a basic advantage of reusable memory that ordinary time and space hierarchy theorems do not directly compare.
+
+[Read in atlas](index.html#TCS-6978) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-6979 — Could P versus NP be independent of standard mathematical axioms?
+
+P versus NP asks whether every efficiently verifiable decision problem can also be solved efficiently. The independence question concerns the possibility that a chosen mathematical axiom system proves neither equality nor inequality. This is a question about formal provability, distinct from proposing either an algorithm or a complexity lower bound. Any precise claim must name the axiom system and the assumptions made about its consistency or soundness. Investigating independence could identify limitations of the available foundations or proof methods, without treating the difficulty of existing approaches as evidence that independence must hold.
+
+[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7129 — Can prime-implicate representations always be expressed as polynomial-size DNNF?
+
+A prime-implicate representation lists the minimal clauses logically forced by a Boolean function. The 2002 compilation map asks whether every such representation has an equivalent DNNF of polynomially related size. DNNF permits disjunctions but restricts each conjunction to subcircuits using disjoint variable sets. The comparison asks whether compact logical consequences can always be reorganized into that decomposable structure without a superpolynomial size increase. This is a representation-size question measured against the supplied prime-implicate description; the historical table entry does not itself provide an efficient conversion algorithm or a current-status review.
+
+[Read in atlas](index.html#TCS-7129) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7130 — Can prime-implicate representations always be expressed as polynomial-size deterministic DNNF?
+
+This historical comparison starts from a Boolean function represented by all its prime implicates, the minimal clauses it entails. It asks whether an equivalent deterministic DNNF can always have size polynomial in that representation. Alongside variable-disjoint conjunctions, determinism requires alternative branches of each disjunction to have no common satisfying assignment. The additional condition makes this target stronger than merely finding a small decomposable circuit. A positive size comparison would limit the cost of arranging logical information into disjoint cases, while the saved source groups smooth and nonsmooth variants through their polynomial relationship.
+
+[Read in atlas](index.html#TCS-7130) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7131 — Can prime-implicant representations always be expressed as polynomial-size deterministic DNNF?
+
+A prime-implicant representation lists minimal conjunctions of literals sufficient to make a Boolean function true. The saved 2002 question asks whether these potentially overlapping witnesses always admit a polynomial-size deterministic DNNF representation. Each individual term has simple variable structure, but several terms can describe the same satisfying assignment. The challenge is therefore to organize the union into disjoint alternatives while retaining decomposability and avoiding excessive duplication. The input-size benchmark is the complete prime-implicant representation, and this historical succinctness comparison should not be silently replaced by a claim about arbitrary small DNF formulas or efficient compilation.
+
+[Read in atlas](index.html#TCS-7131) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7132 — Is prime-implicate representation polynomially succinct relative to explicit model enumeration?
+
+Explicit model enumeration lists every satisfying assignment of a Boolean function. The question recorded in the compilation map asks whether the function's prime-implicate representation is always polynomially bounded by that explicit description. Prime implicates encode the same function through minimal necessary clauses rather than through its individual models. The comparison measures whether switching between these views of the satisfying assignments can require a superpolynomial increase in representation size. Keeping the direction of the comparison matters: the historical entry starts with an explicit model list and asks about the size of its equivalent prime-implicate form.
+
+[Read in atlas](index.html#TCS-7132) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+## Algorithms (96)
 
 ### TCS-6537 — Expected linear-time integer sorting for every word length
 
@@ -425,13 +1351,6 @@ A graph flow can assign nonzero values to quadratically many edges, making full 
 [Read in atlas](index.html#TCS-5637) · [Computing Flows in Subquadratic Space](https://doi.org/10.4230/LIPIcs.ICALP.2026.46)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5661 — Fragile Complexity of Comparison-Based Algorithms — Explicit open question on PDF page 3
-
-A sorting network fixes all comparator locations before seeing its input. Optimal asymptotic networks exist, but their constructions are complex and can hide large constants. The cited passage asks for a simple optimal network, particularly one avoiding expander-based machinery. The surrounding work studies fragile complexity, which counts comparisons involving each individual item. A simpler optimal network would provide both an understandable parallel sorting design and a concrete benchmark for balancing total comparison work against per-item exposure.
-
-[Read in atlas](index.html#TCS-5661) · [Fragile Complexity of Comparison-Based Algorithms](https://doi.org/10.4230/LIPIcs.ESA.2019.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5675 — Vantage Point Selection Algorithms for Bottleneck Capacity Estimation — Explicit open question on PDF page 9
 
 Vantage-point selection measures an unknown network by probing bottleneck capacities along shortest paths. The source compares an algorithm using extra vantage points with an optimal solution using a smaller budget. Its existing lower bound stops forcing an information loss once that extra-resource allowance becomes large enough. The question asks whether a stronger lower bound still forces an unbounded loss beyond this regime. Any such example must exploit cycles, since the corresponding tradeoff is already tight for trees.
@@ -682,946 +1601,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Pivot-minor and vertex-minor containment ask whether a target graph can be obtained through their respective local transformations and deletions. The source asks for polynomial-time detection when the target graph is fixed. Fixing the target permits constants and exponents to depend on it while the host graph grows. An algorithm would make these structural relations useful as effectively testable graph-class restrictions. The saved formulation does not request a uniform fixed-parameter bound in target size, and the distinction matters when assessing whether a target-specific polynomial algorithm settles the intended question.
 
 [Read in atlas](index.html#TCS-7146) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-## Computational complexity (134)
-
-### TCS-0001 — Does P equal NP?
-
-P versus NP asks whether every problem with efficiently checkable solutions also has an efficient deterministic decision algorithm. Boolean satisfiability is a representative test case because all NP problems reduce to it. Checking one assignment is easy, while deciding whether any assignment works requires accounting for all possibilities. The target concerns worst-case polynomial time on arbitrarily large inputs. A resolution would establish a fundamental relationship between searching and verifying, without by itself determining practical exponents or average-case difficulty.
-
-[Read in atlas](index.html#TCS-0001) · [The P versus NP Problem](https://www.claymath.org/wp-content/uploads/2022/06/pvsnp.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Algebrization: A New Barrier in Complexity Theory](https://www.scottaaronson.com/papers/alg.pdf) · [Non-Uniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [P vs NP — Millennium Prize Problem](https://www.claymath.org/millennium/p-vs-np/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6530 — Does P equal PSPACE?
-
-Polynomial space permits a computation to reuse its memory while exploring potentially enormous collections of possibilities. The question asks whether every problem solvable with that memory budget is also solvable in polynomial time. Truth of quantified Boolean formulas supplies a concrete complete problem. Alternating existential and universal choices describe strategies that can be much larger than one ordinary certificate. The project tests whether repeated reuse of a modest workspace gives strictly more decision power than any polynomial-time computation.
-
-[Read in atlas](index.html#TCS-6530) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Alternation](https://doi.org/10.1145/322234.322243) · [IP = PSPACE](https://doi.org/10.1145/146585.146609) · [Simulating Time With Square-Root Space](https://arxiv.org/abs/2502.17779v1) · [Some Recent Developments in Space Complexity](https://doi.org/10.4230/LIPIcs.MFCS.2026.3)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6531 — Can every polynomial-time decision problem be solved in logarithmic space?
-
-Logarithmic-space computation can retain only a few input indices and counters while repeatedly rereading the input. The question asks whether that memory always suffices for every polynomial-time decision problem. Evaluating a supplied Boolean circuit is a representative complete task. Shared dependencies make naive recomputation expensive, while storing all intermediate gate values exceeds the space budget. The project tests whether efficient computation fundamentally needs substantial working memory or can always reorganize its information into an extremely small state.
-
-[Read in atlas](index.html#TCS-6531) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Limits to Parallel Computation: P-Completeness Theory](https://homes.cs.washington.edu/~ruzzo/papers/limits.pdf) · [Undirected Connectivity in Log-Space](https://omereingold.wordpress.com/wp-content/uploads/2014/10/sl.pdf) · [Simulating Time With Square-Root Space](https://arxiv.org/abs/2502.17779v1) · [Logarithmic Space](https://cs.uwaterloo.ca/~eblais/cs365/w26/L-and-NL)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6535 — Is nonuniform TC⁰ strictly smaller than nonuniform NC¹?
-
-TC0 circuits use a constant number of layers of powerful majority gates. NC1 circuits use logarithmically many layers of ordinary bounded-input Boolean gates. The question asks whether the former nonuniform class is strictly weaker than the latter. Many arithmetic tasks already fit in TC0, so their familiar sequential implementations do not provide separating examples. The project seeks a function whose nested logical dependencies cannot be compressed into a fixed-depth network even when each gate can aggregate many inputs at once.
-
-[Read in atlas](index.html#TCS-6535) · [Bootstrapping Results for Threshold Circuits “Just Beyond” Known Lower Bounds](https://eccc.weizmann.ac.il/report/2018/199/) · [Uniform constant-depth threshold circuits for division and iterated multiplication](https://doi.org/10.1016/S0022-0000(02)00025-9) · [Characterizing NC¹ with Typed Monoids](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.26) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6534 — The Berman–Hartmanis isomorphism conjecture
-
-Polynomial-time reductions show that NP-complete problems can simulate each other, but may erase information. The Berman-Hartmanis conjecture asks whether every pair instead admits a polynomial-time computable bijection with a polynomial-time inverse. That bijection must preserve yes and no instances across the entire string space. Padding provides evidence for familiar complete problems without covering all possible complete languages. The project asks whether completeness forces one efficiently reversible organization of instances, reaching beyond ordinary mutual reducibility.
-
-[Read in atlas](index.html#TCS-6534) · [On Isomorphisms and Density of NP and Other Complete Sets](https://epubs.siam.org/doi/10.1137/0206023) · [The ismorphism conjecture fails relative to a random oracle](https://doi.org/10.1145/73007.73022) · [The Isomorphism Conjecture Holds Relative to an Oracle](https://epubs.siam.org/doi/10.1137/S0097539793248305) · [Reductions in Circuit Complexity: An Isomorphism Theorem and a Gap Theorem](https://www.cse.iitk.ac.in/users/manindra/isomorphism/non-uniform-ac0-iso.pdf) · [One-Way Functions and the Isomorphism Conjecture](https://eccc.weizmann.ac.il/report/2009/019/) · [Open Problems by or Inspired by Juris Hartmanis](https://www.cs.umd.edu/~gasarch/open/juris.pdf) · [The Isomorphism Conjecture for NP](https://cse.iitk.ac.in/users/manindra/survey/Isomorphism-Conjecture.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6532 — Is the polynomial hierarchy strict at every finite level?
-
-The polynomial hierarchy adds successive alternating blocks of efficiently bounded existential and universal choices. Its first levels already include polynomial-time computation and ordinary NP verification. The question asks whether every additional fixed level strictly increases computational power. Equality of neighboring levels would collapse all higher finite levels as well. The project studies whether increasingly nested candidate-and-challenge reasoning creates an endless hierarchy of difficulty, a stronger issue than separating P from NP at the first step.
-
-[Read in atlas](index.html#TCS-6532) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Polynomial-Time Hierarchy](https://research.ibm.com/publications/the-polynomial-time-hierarchy) · [The Polynomial Hierarchy, Random Oracles, and Boolean Circuits](https://www.cs.columbia.edu/~rocco/Public/sigact15.pdf) · [An Average-Case Depth Hierarchy Theorem for Boolean Circuits](https://arxiv.org/abs/1504.03398) · [Upper and Lower Bounds for the Linear Ordering Principle](https://eccc.weizmann.ac.il/report/2025/142/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0021 — Does NP contain a language without polynomial-size Boolean circuits?
-
-Nonuniform Boolean circuits may choose a separate computational design for each input length. The question asks whether some language in NP requires more than polynomially many gates despite that freedom. A uniform running-time lower bound would not automatically establish this stronger claim. Counting shows that most functions have large circuits but does not supply the necessary NP language. The project seeks explicit hardness robust to arbitrary length-specific preprocessing and would connect circuit lower bounds to the structure of the polynomial hierarchy.
-
-[Read in atlas](index.html#TCS-0021) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Natural Proofs](https://doi.org/10.1006/jcss.1997.1494) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0002 — Does every unsatisfiable Boolean formula have a short efficiently checkable certificate?
-
-An unsatisfiable formula has no assignment that makes every clause true. The question asks whether one fixed efficient verifier can always check a polynomial-length certificate of that impossibility. The certificate format is unrestricted as long as it is sound for every formula. This is equivalent to asking whether NP equals coNP. The project concerns the possibility of universally concise explanations for the failure of all candidate solutions, rather than lower bounds for any one particular set of proof rules.
-
-[Read in atlas](index.html#TCS-0002) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Circuits, Communication, and Proofs](https://www.icts.res.in/program/ccp)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0015 — An explicit function with no linear-size Boolean circuits
-
-A multi-output Boolean function can share intermediate computations among all its output bits. The question asks for one polynomial-time computable family whose unrestricted Boolean circuits exceed every fixed linear size bound. The saved formulation uses as many output bits as input bits. An arbitrary hard truth table does not satisfy the explicitness requirement. The project seeks a modest but fundamental lower bound demonstrating that some efficiently specified transformations intrinsically need more than a constant amount of circuit work per input bit.
-
-[Read in atlas](index.html#TCS-0015) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [3.1n − o(n) Circuit Lower Bounds for Explicit Functions](https://eccc.weizmann.ac.il/report/2021/023/) · [Boolean Circuit Complexity and Two-Dimensional Cover Problems](https://eccc.weizmann.ac.il/report/2025/033/) · [Convergent Gate Elimination and Constructive Circuit Lower Bounds](https://arxiv.org/abs/2602.17942) · [A Note on Natural-Proofs for Super-Linear Lower Bounds for Linear Functions](https://eccc.weizmann.ac.il/report/2026/008/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0016 — Exponential circuit lower bounds for 3-SAT
-
-The saved 3-SAT family uses a fixed encoding of which clauses on n variables are present. The conjecture asks for circuit size exponential in n, even when every input length gets its own arbitrary circuit. Its scale is stronger than merely excluding polynomial-size circuits. The variable count differs from the total number of encoded clause bits, so the parameter must remain explicit. The project aims to prove that searching for a satisfying assignment retains essentially exponential difficulty even under nonuniform computation.
-
-[Read in atlas](index.html#TCS-0016) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Which Problems Have Strongly Exponential Complexity?](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturiZane_2001_jcss.pdf) · [3.1n − o(n) Circuit Lower Bounds for Explicit Functions](https://eccc.weizmann.ac.il/report/2021/023/) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [A Better Analysis For PPSZ For 3-SAT](https://arxiv.org/abs/2607.10697)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6533 — NL versus UL
-
-An ordinary nondeterministic reachability algorithm can have many accepting paths of computation. UL requires at most one accepting computation for each input while retaining logarithmic workspace. The question asks whether this unambiguity restriction changes the class NL. The machine may still have many rejecting branches, so this is weaker than demanding determinism. The project seeks to isolate a unique successful witness efficiently, clarifying whether ambiguity itself is a source of computational power in small-space graph problems.
-
-[Read in atlas](index.html#TCS-6533) · [Making Nondeterminism Unambiguous](https://people.cs.rutgers.edu/~allender/papers/nlul.pdf) · [Derandomizing Isolation in Space-Bounded Settings](https://pages.cs.wisc.edu/~dieter/Papers/r-ul-sicomp.pdf) · [When Connectivity Is Hard, Random Walks Are Easy With Non-Determinism](https://eccc.weizmann.ac.il/report/2025/077/download) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/) · [Derandomizing Isolation In Catalytic Logspace](https://arxiv.org/abs/2512.09374) · [Deterministic, Oblivious Isolation for Space-Bounded Computation Requires Large Weights](https://eccc.weizmann.ac.il/report/2026/124/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0004 — Can directed reachability be decided in deterministic logarithmic space?
-
-Directed reachability asks whether a path leads from a specified source to a specified target. Nondeterminism solves it with logarithmic memory by guessing successive vertices. The question asks for a deterministic algorithm using the same tiny workspace on an explicitly stored graph. Repeated input scans are allowed, but a full visited array or search frontier is not. The project would settle L versus NL by showing whether all the essential information in directed exploration can be organized without guessing or substantial stored history.
-
-[Read in atlas](index.html#TCS-0004) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Relationships between nondeterministic and deterministic tape complexities](https://doi.org/10.1016/S0022-0000(70)80006-X) · [Nondeterministic Space is Closed under Complementation](https://doi.org/10.1137/0217058) · [Undirected Connectivity in Log-Space](https://omereingold.wordpress.com/wp-content/uploads/2014/10/sl.pdf) · [When Connectivity Is Hard, Random Walks Are Easy with Non-determinism](https://doi.org/10.1145/3717823.3718303) · [Reachability in graphs having linear 2-arboricity two is NL-hard](https://doi.org/10.1016/j.ipl.2025.106611)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6681 — DNF versus d-DNNF succinctness
-
-A DNF formula describes satisfying assignments as a union of conjunctions, whose cases may overlap. The proposal asks whether some polynomial-size DNFs require superpolynomial-size deterministic decomposable circuits for the same Boolean function. Determinism requires disjoint alternatives, while decomposability requires conjunctions to separate their variables. A separation would show that imposing these useful structural restrictions can force an inherent representation-size increase. The question is about the existence of compact equivalent circuits, so hardness of efficiently finding a conversion or a separation for unrestricted DNNFs does not by itself answer this more specific size comparison.
-
-[Read in atlas](index.html#TCS-6681) · [Florent Capelli — Habilitation manuscript](https://capelli.me/publi/hdr.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0020 — Polynomial-size circuits for EXP
-
-EXP contains problems solvable in deterministic exponential time. The question asks whether every such problem could nevertheless have polynomial-size Boolean circuits chosen separately for each input length. The circuits need not be efficiently constructible, making this different from a polynomial-time simulation. Time hierarchy theorems alone do not eliminate that nonuniform possibility. The project seeks a lower bound strong enough to defeat arbitrary length-specific circuit designs for some language with an explicit exponential-time decision procedure.
-
-[Read in atlas](index.html#TCS-0020) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1056 — Majority outside constant-depth modular circuits
-
-Constant-depth modular circuits combine ordinary Boolean gates with gates that inspect counts modulo specified integers. The saved question asks for a lower bound excluding majority from the relevant class. Majority depends on an overall threshold, so it provides a concrete test of whether modular counting and shallow composition capture ordinary counting strength. Proving the separation would sharpen the boundary between basic Boolean circuit models. The inherited book pointer does not preserve the allowed moduli, gate basis, or size target, and those details must be recovered before this becomes one precise majority lower-bound claim.
-
-[Read in atlas](index.html#TCS-1056) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0018 — P versus NP intersect coNP
-
-A language in NP intersect coNP has short efficiently checkable certificates for both yes and no instances. The question asks whether some such language still lies outside deterministic polynomial time. Having two kinds of witnesses does not automatically tell an algorithm how to find either one. The separation would identify difficulty independent of the asymmetric certification typical of NP-complete problems. The project explores whether efficiently verifiable certainty on both sides can coexist with an intrinsically hard decision process.
-
-[Read in atlas](index.html#TCS-0018) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1054 — Exponential lower bounds for unrestricted threshold-of-threshold circuits
-
-A threshold-of-threshold circuit applies threshold gates in two successive layers. The saved question seeks exponential lower bounds without imposing additional restrictions on those gates. Arbitrary weights and hidden-layer combinations can encode substantially more than a single threshold, making simple geometric arguments insufficient. A lower bound would expose a strong limitation of a shallow model related to weighted voting and classification. The inherited source label does not identify the explicit function, weight conventions, or measured size, so the full book problem is needed before specifying the exponential target more sharply.
-
-[Read in atlas](index.html#TCS-1054) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0017 — Karchmer–Raz–Wigderson formula composition conjecture
-
-Composing Boolean functions means applying one function to separate input blocks and feeding the results into another. A straightforward formula substitutes a copy of the inner formula for each outer input occurrence. The KRW conjecture asks whether formula complexity must essentially multiply under this operation. Unexpected sharing is unavailable in formulas, but alternate logical factorizations might still save size. The project seeks a composition lower bound powerful enough to separate efficient circuits from much larger formulas.
-
-[Read in atlas](index.html#TCS-0017) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0019 — Polynomial formulas versus linear circuits
-
-Circuits can reuse intermediate results, while formulas duplicate them whenever several later computations need them. The conjecture asks for functions with linear-size circuits but no polynomial-size formulas. Known polynomial gaps do not establish this superpolynomial separation. The source connects the goal to understanding formula complexity under repeated composition. The project asks whether a small directed computational graph can perform a task that every tree-shaped computation must express with vastly more repeated work.
-
-[Read in atlas](index.html#TCS-0019) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6455 — Doubly efficient IP = PSPACE for the full time range
-
-An interactive proof lets a verifier check a claim through conversation with a prover. The question asks whether polynomial-space computations taking time T can be verified in polynomial input time using an honest prover running in polynomial T time. The requirement extends across the full time range, beyond quasipolynomial computations. This would make proof generation efficient relative to the computation being certified, strengthening the resource content of IP=PSPACE. The saved review stresses that soundness must still withstand arbitrarily powerful cheating provers, despite the efficiency requirement imposed on the honest one.
-
-[Read in atlas](index.html#TCS-6455) · [Towards a Doubly Efficient IP=PSPACE](https://eccc.weizmann.ac.il/report/2026/102/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0305 — Supercubic uniform formula lower bounds for SAT
-
-De Morgan formulas compute with AND, OR, and NOT without reusing internal results. The source asks to prove a supercubic size lower bound for SAT under logarithmic-time uniformity. Uniformity requires that the formula family itself have an efficiently accessible description. The proposed improvement would combine combinatorial restriction methods with diagonalization or simulation-based arguments. The project targets a concrete quantitative step beyond existing nearly cubic formula lower bounds while exploiting SAT's richer computational structure.
-
-[Read in atlas](index.html#TCS-0305) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1052 — Depth-three lower bounds beyond the switching-lemma barrier
-
-Depth-three Boolean circuits compute through only three layers of gates but may have many gates within each layer. The source asks for lower bounds exceeding the reach of the stated switching-lemma approach. Switching arguments simplify restricted circuits, so the challenge is to prove hardness that survives limitations of that simplification method. Progress would strengthen explicit circuit lower bounds at a very small depth. The short inherited label does not preserve the gate basis, target function, or quantitative barrier, and those source details are needed before identifying exactly what improvement would answer the question.
-
-[Read in atlas](index.html#TCS-1052) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1053 — Depth-three size bounds beyond exponential square root
-
-The saved problem concerns size lower bounds for Boolean circuits of depth three. Its target lies beyond an exponential-in-square-root scale, asking for a stronger obstruction than the source's reference bound. Depth is fixed, so the sought improvement must come from showing that many parallel gates cannot compensate for limited composition. Such a result would clarify the expressive power of very shallow Boolean computation. The book pointer does not include the underlying input parameter, basis, or function family, so the notation for the exponential threshold must be recovered instead of guessed from the abbreviated title.
-
-[Read in atlas](index.html#TCS-1053) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1039 — Explicit superlinear in-place XOR lower bounds
-
-An in-place XOR computation updates a fixed collection of registers by exclusive-or operations. It must compute an explicitly described binary linear transformation without freely introducing new storage for intermediate values. The source asks for a superlinear lower bound on this restricted computational cost. General counting arguments give hard transformations without necessarily supplying the required explicit family. The project seeks to show that some concrete reversible-looking linear tasks need more than a constant number of register updates per input coordinate.
-
-[Read in atlas](index.html#TCS-1039) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0293 — Improving SPACE versus NSPACE via Tree Evaluation
-
-Savitch's theorem simulates nondeterministic space s using deterministic space roughly s squared. The source proposes exploiting the tree-shaped structure of the simulation together with improved tree-evaluation algorithms. The target is any asymptotic improvement to little-o of the squared-space bound. Its suggested route trades circuit height against larger intermediate alphabets. The project seeks to reduce the memory cost of coordinating recursive reachability checks, improving a general simulation theorem rather than solving one special graph class.
-
-[Read in atlas](index.html#TCS-0293) · [Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.15.3.56)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0301 — Excluding one-sided randomized quasilinear-time log-space SAT
-
-Randomized SAT algorithms may miss a satisfying assignment while never incorrectly declaring an unsatisfiable formula satisfiable. The question asks to rule out algorithms with that one-sided error using both quasilinear time and logarithmic space. The source emphasizes that reversing the permitted error direction changes what lower-bound methods can prove. Deterministic time-space tradeoffs do not automatically handle random choices. The project seeks a lower bound matching the error behavior of incomplete randomized search procedures under extremely small resource budgets.
-
-[Read in atlas](index.html#TCS-0301) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0302 — Excluding quasilinear-time log-space Max Clique
-
-Maximum Clique seeks a largest set of mutually adjacent vertices. The source asks to exclude algorithms using both quasilinear time in the number of edges and logarithmic workspace. The intended model permits random access to the input. A lower bound for sequential tape access is weaker, while ordinary reductions from SAT may inflate the input too much. The project seeks a resource lower bound sensitive to sparse encoding size and robust against an algorithm's ability to inspect arbitrary edges directly.
-
-[Read in atlas](index.html#TCS-0302) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0303 — Stronger log-space time lower bounds for SAT
-
-Time-space lower bounds show that some combinations of fast running time and tiny memory cannot solve SAT. The source asks to strengthen the known limits for logarithmic-space algorithms. This differs from proving a general SAT time lower bound because the memory restriction supplies additional structure. Simulation and alternation-trading arguments are central tools in the cited discussion. The project seeks a sharper quantitative obstruction to deciding satisfiability while retaining only a few indices, even if the input can be revisited freely.
-
-[Read in atlas](index.html#TCS-0303) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0304 — Stronger uniform depth-three majority lower bounds for SAT
-
-Depth-three majority circuits can aggregate many inputs while using only a few sequential layers. The source asks for a SAT wire-count lower bound exceeding the n-to-the-two-and-a-half scale by a fixed exponent. The circuit family must satisfy logarithmic-time uniformity. Wire count measures information connections rather than merely the number of gates. The project aims to combine random-restriction lower bounds with uniform computational arguments, pushing beyond what either approach establishes on its own.
-
-[Read in atlas](index.html#TCS-0304) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/lbfornp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0308 — Formula versus circuit succinctness
-
-A Boolean circuit may send one intermediate result to many later gates. An equivalent formula must arrange its reasoning as a tree and can be forced to duplicate that result. The source question asks how large the resulting succinctness gap can become. A superpolynomial separation would show that small circuits cannot always be unfolded or reorganized into polynomial-size formulas. The project investigates whether computational sharing provides an intrinsically stronger representation, rather than only a convenient optimization of one chosen expression.
-
-[Read in atlas](index.html#TCS-0308) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#conciseness-gap-between-formulae-and-circuits)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0310 — Is weighted falsifiability of unambiguous DNFs in polynomial time?
-
-An unambiguous DNF has mutually disjoint satisfying terms, making some counting tasks straightforward. The question instead asks for a falsifying assignment with sufficiently large total variable weight. Weights and the threshold are binary encoded. Knowing how many assignments falsify the formula does not reveal whether one reaches the desired score. The project tests whether the strong disjointness promise still helps when every term must be defeated simultaneously while optimizing an additive objective over the complement.
-
-[Read in atlas](index.html#TCS-0310) · [Is this problem on unambiguous DNFs hard?](https://cstheory.stackexchange.com/questions/53733/is-this-problem-on-unambiguous-dnfs-hard) · [Representation, Provenance, and Explanations in Database Theory and Logic (Dagstuhl Seminar 24032)](https://doi.org/10.4230/DagRep.14.1.49) · [List of open questions: Weighted falsifiability for unambiguous DNFs](https://a3nm.net/work/research/questions/#weighted-falsifiability-for-unambiguous-dnfs)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-1035 — Cost of restricting linear circuits to depth two
-
-A linear circuit shares partial sums to compute a matrix transformation over a specified operation system. Restricting it to depth two allows only one intermediate layer. The source asks how much this restriction can increase circuit complexity, with different behavior for OR, SUM, and XOR operations. Known separations leave room for stronger gaps, particularly over the binary field. The project seeks to quantify the value of additional computational layers even when the final transformation is algebraically simple.
-
-[Read in atlas](index.html#TCS-1035) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1037 — Asymmetry of XOR complexity under matrix inversion
-
-An invertible binary matrix defines a linear transformation and its inverse. Both can be computed using XOR gates, but the smallest circuits need not follow the same construction. The question asks whether the ratio between their unrestricted XOR complexities can grow without bound. Separations at fixed depth do not settle the unrestricted model. The project seeks an algebraic analogue of directional computational difficulty, testing whether one exact linear change of coordinates can be fundamentally easier than undoing it.
-
-[Read in atlas](index.html#TCS-1037) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1040 — Nonlinear-gate advantages for binary linear operators
-
-A binary linear operator outputs parity combinations of its input bits. XOR circuits stay linear at every intermediate step, while general Boolean circuits may temporarily compute nonlinear functions. The question asks whether those nonlinear intermediates can provide an unbounded size advantage. The source relates this to rank-based conjectures for partially specified matrices. The project tests whether matching the algebraic form of the output is essentially optimal, or whether leaving that form during computation can lead to substantially more efficient circuits.
-
-[Read in atlas](index.html#TCS-1040) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1034 — Largest separation between SUM and OR circuits
-
-The same zero-one matrix can define a transformation using ordinary addition or Boolean OR. OR is idempotent, so repeated contributions can collapse, while SUM must count them accurately. The source asks for the largest possible circuit-size gap between these two computation systems. Depth restrictions lead to additional versions with different known bounds. The project aims to quantify how much the ability to ignore duplicate contributions changes the cost of computing many related linear-looking outputs at once.
-
-[Read in atlas](index.html#TCS-1034) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1036 — Unbounded XOR-over-OR complexity separations
-
-For one zero-one matrix, OR circuits and XOR circuits combine the same selected input positions using different operations. OR ignores repeated positive contributions, whereas XOR can cancel them modulo two. The question asks whether unrestricted XOR complexity can exceed OR complexity by an unbounded factor. Results for restricted depth do not automatically extend to arbitrary circuits. The project seeks a concrete matrix family showing that cancellation is not always an advantage when many outputs must share intermediate computations.
-
-[Read in atlas](index.html#TCS-1036) · [Complexity of Linear Boolean Operators](https://web.vu.lt/mif/s.jukna/Knizka/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1051 — Logarithmic negation-depth lower bounds for monotone functions
-
-A monotone Boolean function never changes from true to false when input bits are increased coordinatewise. The saved problem asks for logarithmic lower bounds on negation depth in the source's circuit setting. Although the output is monotone, using negations internally can alter how efficiently the function is computed. The question therefore probes how deeply nonmonotone behavior must be nested to obtain the relevant computational savings. The source's size restriction and definition of negation depth are absent from the label, and they are essential because an unrestricted monotone representation would contain no negation gates at all.
-
-[Read in atlas](index.html#TCS-1051) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0014 — Cubic monotone formulas for majority
-
-Majority decides whether more than half the input bits are one. A monotone formula computes it using AND and OR without negations or shared intermediate gates. The source asks for a cubic-size construction at the stated asymptotic scale. Efficient monotone circuits are easier because they can reuse partial computations. The project seeks an economical tree-shaped counting construction and a sharper understanding of how much repetition is unavoidable when formulas must aggregate many interchangeable input bits.
-
-[Read in atlas](index.html#TCS-0014) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1023 — Natural complete problems for randomized classes
-
-Randomized complexity classes are defined through algorithms with different success and error guarantees. The source asks for natural combinatorial or algebraic complete problems for these classes and their promise versions. A complete problem would represent every computation in its class under the specified reductions. Artificial machine-simulation problems are less informative about the mathematical source of randomness. The project seeks concrete benchmarks that make derandomization and hardness questions easier to study through familiar objects rather than through arbitrary algorithm encodings.
-
-[Read in atlas](index.html#TCS-1023) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0068 — AC0 on trees
-
-The source proposes Boolean circuit families indexed by unlabeled binary-tree shapes rather than only by input length. Input valuations then label the tree nodes with bits. The question asks which regular tree languages are recognizable by constant-depth polynomial-size circuits in this setting. A conjectured logical characterization uses label predicates, ancestry, and shape-only definable predicates. The project extends the well-studied connection between circuit complexity and regular word languages to inputs with branching structure.
-
-[Read in atlas](index.html#TCS-0068) · [Circuits, Logic and Games](https://doi.org/10.4230/DagRep.5.9.105)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0069 — Perfect matchings for grid graphs and AC0
-
-Constant-width grid graphs offer a restricted setting for deciding whether a perfect matching exists. The source obtains an ACC0 bound and seeks an improvement to AC0. It formulates a structural question about unions of shifted perfect matchings in an infinitely repeated grid construction. Ruling out the specified infinite alternating behavior would imply the circuit improvement. The project connects a geometric matching invariant with the question of whether modular counting gates are necessary for this narrow graph-recognition task.
-
-[Read in atlas](index.html#TCS-0069) · [Circuits, Logic and Games](https://doi.org/10.4230/DagRep.5.9.105)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0295 — Sampling modular distributions locally
-
-A local sampler produces each output bit from only a bounded number of independent random input bits. The desired distribution is uniform over strings whose Hamming weight is divisible by a fixed modulus. Parity has a simple exact local sampler. The source conjectures that moduli larger than two cannot be sampled with arbitrarily small variation error using locality depending only on that error. The project seeks to explain why one global modular constraint is compatible with local generation while others may require genuinely nonlocal dependence.
-
-[Read in atlas](index.html#TCS-0295) · [Computational Complexity of Discrete Problems](https://doi.org/10.4230/DagRep.13.3.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0297 — A counting function capturing exactly P with NP access
-
-A counting function in #P returns the number of accepting witnesses for an efficiently checkable relation. The question asks whether some such function gives a polynomial-time oracle machine exactly the power of polynomial time with an NP oracle. Ordinary complete counting functions provide substantially more apparent information than mere existence tests. The target therefore requires a specially controlled counting task. The project seeks a numerical oracle capturing NP access without unintentionally granting the full power of general witness counting.
-
-[Read in atlas](index.html#TCS-0297) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/oracles.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0298 — SAT multi-prover proofs using efficient SAT-oracle provers
-
-Multi-prover interactive proofs let a verifier question several provers that cannot coordinate their answers during the protocol. The source asks for such a proof system for SAT whose honest provers run in randomized polynomial time with SAT-oracle access. Unrestricted provers do not meet this efficiency requirement. The question is tied to whether SAT programs can be checked through suitable oracle interactions. The project seeks a verification protocol whose participants need no computational power beyond the problem they are supposed to certify.
-
-[Read in atlas](index.html#TCS-0298) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/oracles.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0126 — The Parity Language
-
-The parity language separates binary words with an even number of ones from those with an odd number. This project asks for robust subsets whose opposite-parity witnesses remain coordinatewise compatible after polynomial-density thinning. Compatibility means that each coordinate of a chosen even-parity word is matched by some word in the surviving odd-parity set. The order of subset choices matters because the witness set may depend on the selected even-parity subset. Proving this combinatorial property would support structural lower-bound arguments for shallow Boolean circuits and related regular-language classifications.
-
-[Read in atlas](index.html#TCS-0126) · [Automata Exchange](https://automata.exchange/22.10-the-parity-language/)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1144 — Is it true that spr(IPn ) = ω(n) or spr(Disjn ) = ω(n)?
-
-Spiky rank measures how many block-structured matrices are needed to express a matrix as a sum. Each summand consists of disjoint rank-one blocks, combining a combinatorial partition with flexible real coefficients. The question asks whether the inner-product matrix or the disjointness matrix on n-bit inputs has spiky rank growing faster than n. The source introduces this parameter as a possible way to capture complexity that ordinary rank or rigid block decompositions miss. A superlinear lower bound for either standard matrix would demonstrate that the new measure detects a substantial obstruction on central communication problems.
-
-[Read in atlas](index.html#TCS-1144) · [Spiky Rank and Its Applications to Rigidity and Circuits](https://doi.org/10.4230/LIPIcs.ICALP.2026.106)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1235 — It remains open whether the [ inclusion LDLk ⊊ LDLk is still proper if the depth restriction is removed.
-
-A linear decision list tests weighted threshold conditions in sequence and returns the output attached to the first successful test. Its alternation depth counts changes between output values along that sequence. The source separates polynomial-size lists with polynomially bounded weights from lists allowing unrestricted weights when alternation depth is suitably limited. The question is whether a strict separation survives after removing the depth restriction. Resolving it would establish whether large numerical weights provide an intrinsic advantage for decision lists, or whether additional alternations can simulate their effect with modest size.
-
-[Read in atlas](index.html#TCS-1235) · [Alternation Depth of Threshold Decision Lists](https://doi.org/10.4230/LIPIcs.ICALP.2026.148)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1278 — Every 2-CNF formula φ on n variables has a 2-CNF encoding φ′ such 2 that |φ′ | ≤ ( 41 + o(1)) lgn n .
-
-A 2-CNF formula can be reencoded using auxiliary variables while preserving its meaning on the original variables. The goal is to reduce how many clauses are needed to express that relation. The cited conjecture proposes an asymptotic upper bound with leading constant one quarter times n squared divided by log n. Its benchmark improves on the source's analysis of idealized bounded variable addition. Understanding the optimum would distinguish a limitation of a SAT preprocessing technique from a limit on compact encodings themselves.
-
-[Read in atlas](index.html#TCS-1278) · [Automated Reencoding Meets Graph Theory](https://doi.org/10.4230/LIPIcs.SAT.2026.29)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1442 — Is there an algebrizing barrier to proving MA ̸⊆ SIZE[nk ]?
-
-Algebrization barriers describe limitations of proof techniques that remain valid when computation receives particular algebraic oracle access. The source asks whether such a barrier prevents proving MA is outside circuits of size n^k. The target concerns a circuit lower bound for a class with randomized verification and advice from a prover. A barrier would explain why a broad style of argument cannot establish that separation, rather than refute the separation itself. The saved excerpt does not specify the quantification over k or oracle framework, so these must be restored before stating the exact limitation theorem sought.
-
-[Read in atlas](index.html#TCS-1442) · [New Algebrization Barriers to Circuit Lower Bounds via Communication Complexity of Missing-String](https://doi.org/10.4230/LIPIcs.ITCS.2026.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1494 — The main problem left open by this work is to exhibit a natural problem in TFZPPdt which is not reducible to Lossy-Code; we conjecture that […]
-
-Total search problems guarantee that every valid input has some acceptable output. The cited paper studies a zero-error randomized decision-tree class denoted TFZPPdt. The saved question asks for a natural problem in that class that does not reduce to Lossy-Code. Such an example would show that one proposed search task does not capture the entire class under the intended reductions. The excerpt truncates the authors' conjectured candidate and omits the reduction model, so neither the candidate nor the precise separation criterion is reconstructed here.
-
-[Read in atlas](index.html#TCS-1494) · [Total Search Problems in ZPP](https://doi.org/10.4230/LIPIcs.ITCS.2026.60)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1510 — Are there properties of finite mathematical objects that can only be certified efficiently to a high degree of confidence by probabilistic algorithms, but that we […]
-
-A randomized computation can give extremely high confidence in a finite mathematical fact without providing an ordinary short proof. The source motivates this issue through bounds on the diameter of Rubik's Cube and related vertex-transitive graphs. It asks whether some properties admit efficient probabilistic certification while resisting comparably efficient certain certification. The distinction concerns evidence for a fixed deterministic fact, not randomness in the fact itself. The project explores the boundary between trustworthy computational experiments and concise deductive verification.
-
-[Read in atlas](index.html#TCS-1510) · [A Demigod’s Number for the Rubik’s Cube](https://doi.org/10.4230/LIPIcs.FUN.2026.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1516 — Can these techniques be used in order to separate LeastNumber from StrongAvoid?
-
-LeastNumber and StrongAvoid are search principles compared in the cited work on classes above TFNP. The saved question asks whether the paper's techniques can separate them. Its suggested tools arise from lower bounds for the Sherali–Adams proof or relaxation framework. A successful transfer would connect limitations of algebraic relaxations with reducibility between total-search principles. The excerpt does not define either problem or specify the reduction notion, so this draft preserves the intended comparison without inventing their witnesses or claiming one formal separation direction.
-
-[Read in atlas](index.html#TCS-1516) · [Separations Above TFNP from Sherali-Adams Lower Bounds](https://doi.org/10.4230/LIPIcs.CCC.2026.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1553 — Construct an explicit family of boolean functions fn : {0, 1}n → {0, 1} such that there exist constants δ1 , δ2 > 0 such […]
-
-The selected question asks for an explicit Boolean function family that defeats circuits of mildly superlinear size and polynomially bounded depth. The circuit gates have constant fan-in and fan-out, and the target fixes positive exponents for both resource bounds. The source raises this circuit lower-bound problem as a barrier to proving stronger distributed graph-detection lower bounds. It shows that certain polynomial CONGEST lower bounds for ordered paths or induced cycles would already solve the circuit challenge. The connection warns that apparently local network problems can require progress on a major unrestricted circuit lower-bound frontier.
-
-[Read in atlas](index.html#TCS-1553) · [Distributed Complexity of P_k-Freeness: Decision and Certification](https://doi.org/10.4230/LIPIcs.ISAAC.2025.51)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1602 — The most interesting question that remains open is to determine the deterministic query complexity of finding a king in an n-vertex tournament.
-
-A king in a tournament is a vertex that can reach every other vertex along a directed path of at most two edges. The graph is accessed by queries revealing the direction of individual edges. Every tournament has a king, so the challenge is to find one while inspecting as few edges as possible. The source asks for the deterministic query complexity, reporting an O(n^(3/2)) algorithm and an Ω(n^(4/3)) lower bound. Closing this gap would quantify the information needed to locate a globally influential vertex in a completely oriented graph.
-
-[Read in atlas](index.html#TCS-1602) · [Hardness of Finding Kings and Strong Kings](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.36)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-1936 — Does n2 -Ramsey belong to TFAP?
-
-The Ramsey search problem receives a succinctly represented graph on 2^n vertices and seeks a clique or independent set of size n/2. Ramsey's theorem guarantees a solution, placing the task in the landscape of total search problems. The question asks whether this problem belongs to TFAP, a class designed to capture search tasks with abundant solutions. The source also proposes the weaker target of finding a homogeneous set of size n/10. Membership would connect Ramsey search to abundance-based principles and yield consequences for oracle separations from classes whose hard instances can have very few solutions.
-
-[Read in atlas](index.html#TCS-1936) · [Total NP Search Problems with Abundant Solutions](https://doi.org/10.4230/LIPIcs.ITCS.2024.75)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2029 — In the other direction, we leave open whether FBPP ⊂ FBPPnegl or whether the two classes are incomparable.
-
-For a relation, an algorithm may output any answer satisfying the input-output specification rather than one uniquely determined value. This makes the precise convention for reducing error more consequential than it is for ordinary decision problems. The source compares FBPP with a version requiring negligible error and gives a relation separating the classes in one direction. The remaining question is whether an inclusion holds in the other direction or whether the two classes are incomparable. An answer would clarify which amplification intuitions remain valid when success means producing an arbitrary valid output.
-
-[Read in atlas](index.html#TCS-2029) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2093 — It is an open problem to give an unconditional depth hierarchy theorem that separates NDepth [a log n] from NDepth [b log n] for any […]
-
-Circuit-depth hierarchies ask whether allowing more layers necessarily lets a circuit family compute additional functions. Here the source's NDepth notation refers specifically to uniform NAND formulas of logarithmic depth. The question asks for an unconditional separation between depth bounds with any two distinct constant coefficients of log n. The paper obtains a conditional hierarchy useful for its SAT lower-bound argument, but that assumption-dependent result is weaker than the requested theorem. Removing the assumption would sharpen the understanding of how much computational power each constant-factor increase in uniform formula depth provides.
-
-[Read in atlas](index.html#TCS-2093) · [Towards Stronger Depth Lower Bounds](https://doi.org/10.4230/LIPIcs.ITCS.2024.10)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2215 — Can we prove a real version of Toda’s theorem [30]?
-
-Toda's theorem in discrete complexity relates alternating quantifiers to counting power. This source asks for an analogous relationship among real-algebraic complexity classes. The proposed target is to contain fixed levels of alternating real quantification in an existential real theory enhanced with summation operators. The exact operator language matters because unrestricted real exponentiation would change the setting substantially. A positive result would organize several real-feasibility hierarchies under one strengthened existential framework and illuminate the role of counting-like operations over real computation.
-
-[Read in atlas](index.html#TCS-2215) · [The Existential Theory of the Reals with Summation Operators](https://doi.org/10.4230/LIPIcs.ISAAC.2024.13)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2244 — Does Constant Degree Hypothesis hold?
-
-The Constant Degree Hypothesis concerns restricted circuits that combine bounded-fan-in conjunctions with two layers of modular counting gates. For fixed parameters d and m and prime p, it rules out subexponential-size AND_d composed with MOD_m and MOD_p circuits computing conjunctions of arbitrarily many inputs. The source asks whether this circuit lower-bound hypothesis holds. It connects the hypothesis to algorithms for satisfiability and equivalence of circuits over finite nilpotent algebras. A proof would justify an important assumption in that algebraic complexity program, while a counterexample would reveal unexpectedly efficient interactions between modular gates.
-
-[Read in atlas](index.html#TCS-2244) · [Circuit Equivalence in 2-Nilpotent Algebras](https://doi.org/10.4230/LIPIcs.STACS.2024.45)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2319 — Can we reduce explicit construction problems to solving NC03 -Avoid?
-
-Range avoidance asks for an output string outside the image of a Boolean circuit with more output bits than input bits. In NC0_3-Avoid, each output bit depends on at most three input bits. The source asks whether explicit construction problems can be reduced to this highly local version of range avoidance. General avoidance is already connected to constructing objects such as rigid matrices and functions requiring large formulas. Establishing comparable reductions at locality three would locate the computational power of a sharply restricted search task; the accompanying alternative is that this case admits a polynomial-time algorithm.
-
-[Read in atlas](index.html#TCS-2319) · [Range Avoidance for Constant Depth Circuits: Hardness and Algorithms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.65)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2331 — Is there a BPPNP certification algorithm that returns certificates of length O(Cert(f ))?
-
-A certificate for a Boolean function at an input is a set of fixed input bits that forces the function's value. The quantity Cert(f) is the largest minimum certificate size over all inputs. The source gives a randomized polynomial-time algorithm with an NP oracle that finds certificates of size O(Cert(f)^5). The question asks whether the same computational resources suffice to return certificates of length O(Cert(f)). This would make certification nearly optimal relative to the function's global certificate complexity, without requiring structural assumptions such as monotonicity.
-
-[Read in atlas](index.html#TCS-2331) · [Certification with an NP Oracle](https://doi.org/10.4230/LIPIcs.ITCS.2023.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2333 — Is every PLS-complete problem downward self-reducible?
-
-A search problem is downward self-reducible if solutions can be computed efficiently using an oracle only on strictly smaller instances. PLS contains total search problems whose solutions can be found through a finite process of improving a locally evaluated objective. The source proves downward self-reducibility for familiar PLS-complete problems and places downward self-reducible total search in PLS. It asks whether every PLS-complete problem enjoys this recursive property. The issue is that general completeness reductions need not preserve input length, so self-reducibility cannot simply be transferred through an arbitrary reduction.
-
-[Read in atlas](index.html#TCS-2333) · [Downward Self-Reducibility in TFNP](https://doi.org/10.4230/LIPIcs.ITCS.2023.67)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2425 — Notably, it is still an open question if SZK is closed under ≤Ptt reducibility.
-
-Statistical zero knowledge captures problems that can be verified interactively while revealing essentially no additional information even to a powerful observer. This project asks whether the class SZK is closed under polynomial-time truth-table reductions. Such a reduction prepares its oracle questions without depending on their answers and then combines the answers using polynomial-time computation. The source discusses closure under more restricted ways of combining answers, which do not automatically give this general closure property. A resolution would clarify whether nonadaptive composition preserves statistical zero knowledge across the full range of efficient postprocessing.
-
-[Read in atlas](index.html#TCS-2425) · [Kolmogorov Complexity Characterizes Statistical Zero Knowledge](https://doi.org/10.4230/LIPIcs.ITCS.2023.3)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2434 — Establishing a super-polynomial separation between randomness and pseudo-determinism remains open for Parity decision trees.
-
-A parity decision tree queries the XOR of a chosen subset of input bits at each step. For a search relation, a randomized algorithm may return different valid answers, while a pseudodeterministic algorithm must usually return one canonical answer for each input. The question asks for a superpolynomial separation between the query costs of these two forms of computation. The source establishes other separations involving deterministic and pseudodeterministic parity trees, but those do not resolve this comparison. Such an example would show that requiring reproducible output can be dramatically more expensive even when each query accesses a global parity.
-
-[Read in atlas](index.html#TCS-2434) · [Query Complexity of Search Problems](https://doi.org/10.4230/LIPIcs.MFCS.2023.34)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2464 — For every d ∈ N, ε ∈ (0, 1) for all large enough n, if X is samplable by a d-local function and is ε-close […]
-
-A d-local sampler produces each output bit from at most d independent random input bits. The conjecture considers samplers whose output is close in statistical distance to the uniform distribution on strings with allowed Hamming weights S. It predicts that, for fixed locality and sufficiently large dimension, the output must also be close to one of a short list of simple symmetric distributions. These are concentrated on all-zero strings, all-one strings, their pair, even weights, odd weights, or the full Boolean cube. Proving this structural restriction would sharply characterize which symmetric distributions constant-locality classical circuits can approximately generate.
-
-[Read in atlas](index.html#TCS-2464) · [Sampling and Certifying Symmetric Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.36)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2532 — Can one prove circuit lower bounds from the assumption that a (uniform) computationally-secure IO exists?
-
-Indistinguishability obfuscation hides which of two equivalent circuit implementations was supplied to an observer. The cited work shows that obfuscation secure against nonuniform polynomial-size circuits implies nontrivial circuit lower bounds. This project asks whether an analogous implication follows when security is assumed only against uniform efficient algorithms. Nonuniform attackers can use input-length-dependent advice, so the existing security hypothesis is stronger than the proposed replacement. Establishing lower bounds from uniform security would connect a more algorithmic cryptographic assumption with structural limitations on small circuits.
-
-[Read in atlas](index.html#TCS-2532) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2537 — Is the total search version of UniqueTarski in the class UEOPL (Unique-EOPL) [6]?
-
-Tarski-style search finds a fixed point of an order-preserving map on a finite lattice. The source asks whether the total-search version of UniqueTarski belongs to UEOPL. A total formulation must specify valid outputs even when an input fails the intended uniqueness promise. A containment would connect this fixed-point task with search problems governed by a unique improving path. The saved excerpt does not define the map representation or violation witnesses, so the total version cannot be replaced by simply promising that exactly one fixed point exists.
-
-[Read in atlas](index.html#TCS-2537) · [Reducing Tarski to Unique Tarski (In the Black-Box Model)](https://doi.org/10.4230/LIPIcs.CCC.2023.21)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2538 — For example, are there natural sampling tasks or similar tasks such that efficient solutions imply NP ̸⊆ BPP?
-
-The source develops sampling tasks whose efficient algorithms would imply lower bounds against uniform circuit classes. Its examples connect constructive probabilistic procedures to separations involving NP and restricted deterministic computation. The question asks for an analogous natural sampling task whose efficient solution would imply that NP is not contained in BPP. Here the desired lower bound must exclude randomized polynomial-time algorithms, making the target stronger than separating NP from a particular deterministic circuit model. Finding such a task would provide an algorithmic route toward a central complexity separation through a concrete sampling problem.
-
-[Read in atlas](index.html#TCS-2538) · [An Algorithmic Approach to Uniform Lower Bounds](https://doi.org/10.4230/LIPIcs.CCC.2023.35)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2681 — As mentioned in the introduction, it remains open whether UEOPL = EOPL.
-
-EOPL studies total search through implicitly represented paths equipped with a potential that increases along each path. UEOPL imposes a uniqueness structure, with suitable witnesses allowed when that structure fails. The source identifies EOPL with the intersection of PLS and PPAD and asks whether UEOPL has the same power. A first proposed step is a separation in the black-box model, where algorithms learn the paths through queries. Understanding the role of uniqueness would help classify natural problems in UEOPL and assess whether they could be complete for the broader intersection.
-
-[Read in atlas](index.html#TCS-2681) · [Further Collapses in TFNP](https://doi.org/10.4230/LIPIcs.CCC.2022.33)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2914 — Namely, can one find a distribution that cannot be sampled in AC0 but can be sampled by ROBPs?
-
-Sampling complexity measures the resources needed to generate a probability distribution from independent random bits. This problem compares constant-depth Boolean circuits with oblivious read-once branching programs, which process their random inputs sequentially with limited memory. The source asks for a distribution efficiently sampled by such branching programs that cannot be sampled in AC0. It suggests constructing an extractor or disperser for AC0 sources that itself has a small-width branching program. A separation in this direction would distinguish the generative power of shallow parallel computation from that of a memory-limited sequential process.
-
-[Read in atlas](index.html#TCS-2914) · [The Space Complexity of Sampling](https://doi.org/10.4230/LIPIcs.ITCS.2022.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3095 — We conjecture that even G3 might be tractable, but again the only known general upper bound is PSPACE.
-
-In the unordered CNF game, two players alternately choose unassigned variables and give them Boolean values. One player wants the final formula to be true, while the other wants it false. The problem G3 restricts every clause to at most three literals and asks which player has a winning strategy. The source conjectures tractability for this width, while reporting only a general PSPACE upper bound and algorithms under additional restrictions. A classification would locate the transition from manageable local clauses to difficult strategic interaction in games where the order of assignments is itself a choice.
-
-[Read in atlas](index.html#TCS-3095) · [6-Uniform Maker-Breaker Game Is PSPACE-Complete](https://doi.org/10.4230/LIPIcs.STACS.2021.57)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3181 — More difficult question: can we prove a lower bound on random ∆-CNF formulas?
-
-An unsatisfied-clause search problem receives an assignment to an unsatisfiable CNF formula and must identify a clause that it falsifies. The source studies branching programs for this task with a controlled number of repeated variable queries. Its lower-bound construction uses a specially modified formula, leaving open whether comparable bounds hold for random constant-width CNFs. Random formulas are a natural candidate because their hardness should not depend on an artificial amplification gadget. Establishing such bounds would extend the connection between restricted branching programs and proof complexity to a canonical probabilistic family of unsatisfiable instances.
-
-[Read in atlas](index.html#TCS-3181) · [Branching Programs with Bounded Repetitions and Flow Formulas](https://doi.org/10.4230/LIPIcs.CCC.2021.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3205 — Is there a circuit family for sorting with circuits of depth O(log(n) + log(m)) and size O(nm2 )?
-
-A Boolean sorting circuit receives n binary integers of m bits each. The source achieves size proportional to n times m squared, but its depth contains an additional term growing almost linearly with m. The question asks to retain that size while reducing depth to logarithmic dependence on both n and m. Larger circuits can provide useful depth benchmarks but do not meet the simultaneous target. The project seeks a compact highly parallel sorting architecture that handles long keys without serializing their bit processing.
-
-[Read in atlas](index.html#TCS-3205) · [Sorting Short Integers](https://doi.org/10.4230/LIPIcs.ICALP.2021.88)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3228 — Does SAPEPP have natural complete problems?
-
-SAPEPP consists of sparse total search tasks defined by a fixed polynomial-time map that stretches its input length. Given the length in unary, the task is to construct a string outside that map's image. The question asks whether this class has natural complete problems, with Sparse Complexity proposed as a candidate. That candidate seeks explicit truth tables for Boolean functions requiring large circuits. Completeness would organize several explicit-construction challenges around one representative task, while the sparse input format makes standard methods of transferring hardness less straightforward.
-
-[Read in atlas](index.html#TCS-3228) · [Total Functions in the Polynomial Hierarchy](https://doi.org/10.4230/LIPIcs.ITCS.2021.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3308 — For example, here is an open question that we have not addressed: for (say) the game Hex, does there necessarily exist a polynomial-size circuit that […]
-
-Strategy-stealing arguments can prove that a player has a winning strategy without revealing how to execute it. For Hex, the source asks whether optimal play can always be represented by a circuit whose size is polynomial in the board size. The circuit would take a position and supply the appropriate move, even if constructing that circuit were computationally difficult. This separates the existence of a compact strategy from the algorithmic task of discovering one. Understanding this distinction would clarify how much constructive content can be extracted from nonconstructive proofs about combinatorial games.
-
-[Read in atlas](index.html#TCS-3308) · [Strategy-Stealing Is Non-Constructive](https://doi.org/10.4230/LIPIcs.ITCS.2020.21)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3509 — Is Tarski in CLS (or in EOPL)?
-
-Tarski's fixed-point theorem guarantees a fixed point for an order-preserving map on a suitable lattice. The source asks whether the associated computational search problem lies in CLS or EOPL. These classes organize total search problems through continuous local improvement or structured potential-guided paths. A containment would connect monotone fixed points with algorithmic approaches used for equilibrium and local optimization. The saved excerpt does not state the finite encoding or violation outputs, so the computational Tarski problem must be defined separately from the unrestricted mathematical existence theorem.
-
-[Read in atlas](index.html#TCS-3509) · [Tarski’s Theorem, Supermodular Games, and the Complexity of Equilibria](https://doi.org/10.4230/LIPIcs.ITCS.2020.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3568 — Is there a total function g : {0, 1}m → {0, 1} such that BPP(Xor ◦ g n ) ≥ Ω(n log n · BPP(g)) […]
-
-Composing parity or majority with n copies of a function creates a natural randomized query algorithm that solves each copy separately. Reducing the chance of any harmful error introduces a logarithmic amplification overhead. The question asks for a total Boolean function g for which this overhead is necessary, giving complexity Ω(n log n times BPP(g)). The source demonstrates the phenomenon with partial functions, but the promise-free requirement resists those constructions. A total-function example would show that the extra logarithm reflects an inherent cost of reliable composition, even when every possible input must be handled.
-
-[Read in atlas](index.html#TCS-3568) · [When Is Amplification Necessary for Composition in Randomized Query Complexity?](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3685 — We conjecture that getting a much better agreement with Mn , say 1/2 + 1/ poly(n), or even 2 1/2 + 2−o(log n) , requires […]
-
-Boolean formula lower bounds measure how large a tree of logical operations must be to compute a function. This source studies a generalized Andreev function whose components use majority and asks how hard it is to approximate on random inputs. A simple linear-size formula already achieves a small advantage over random guessing, so extremely strong average-case hardness is impossible. The conjecture is that substantially improving that advantage requires almost cubic formula size. A proof would connect worst-case formula lower bounds with a sharper understanding of how approximation quality increases with available computation.
-
-[Read in atlas](index.html#TCS-3685) · [Cubic Formula Size Lower Bounds Based on Compositions with Majority](https://doi.org/10.4230/LIPIcs.ITCS.2019.35)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3718 — Formally, is NP 6⊂ SIZE[nk ] for all k equivalent to (NP ⊂ P/poly =⇒ PH ⊂ i.o.-NP/n )?
-
-Fixed-polynomial circuit lower bounds for NP assert that no single exponent k bounds circuit size for every NP problem. The source asks whether obtaining all these lower bounds is equivalent to a particular conditional collapse of the polynomial hierarchy. The proposed collapse assumes NP has polynomial-size circuits and places PH in nondeterministic polynomial time with linear advice on infinitely many lengths. Related equivalences in the paper connect lower bounds to Karp-Lipton-style implications for other classes. An equivalence here would explain whether two apparently different routes toward stronger NP circuit lower bounds are fundamentally the same.
-
-[Read in atlas](index.html#TCS-3718) · [Relations and Equivalences Between Circuit Lower Bounds and Karp-Lipton Theorems](https://doi.org/10.4230/LIPIcs.CCC.2019.30)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3743 — Can we show that either NQP 6⊆ P/poly or MCSP 6∈ ACC0 ?
-
-The Minimum Circuit Size Problem receives a truth table and asks whether its function has a circuit smaller than a given threshold. The source proves lower bounds for this problem against constant-depth circuits with prime-modulus gates. It asks for a stronger disjunction: either nondeterministic quasipolynomial time lacks polynomial-size circuits, or MCSP is outside ACC0. ACC0 permits modular gates beyond one fixed prime, making this a substantial extension of the proved result. The proposed connection would let progress on circuit minimization force a lower bound for a broader computational class, or vice versa.
-
-[Read in atlas](index.html#TCS-3743) · [AC^0(p) Lower Bounds Against MCSP via the Coin Problem](https://doi.org/10.4230/LIPIcs.ICALP.2019.66)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3832 — Is SZK ⊆ ZPPMKTP , or equivalently, is Entropy Approximation in ZPPMKTP ?
-
-Statistical zero knowledge captures problems admitting protocols that reveal essentially no extra statistical information to the verifier. The source asks whether SZK is contained in zero-error randomized polynomial time with an MKTP oracle. It gives Entropy Approximation in the same oracle class as an equivalent target. A positive answer would connect entropy estimation and zero-knowledge complexity to a concrete minimum-description-length decision problem. The oracle is an essential resource in the question, and the saved excerpt does not supply the encoding and approximation conventions needed to make the equivalence self-contained.
-
-[Read in atlas](index.html#TCS-3832) · [Minimum Circuit Size, Graph Isomorphism, and Related Problems](https://doi.org/10.4230/LIPIcs.ITCS.2018.20)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3862 — The question of whether search-ZK has complete problems in the computational and statistical setting remains open.
-
-Zero-knowledge protocols are usually framed around deciding whether a statement is true. Search zero knowledge instead concerns interactions that produce a valid solution while controlling what additional information is revealed. The selected problem asks whether these search classes have complete problems in either the computational or statistical security setting. A complete problem would serve as a universal representative to which other search-zero-knowledge tasks can be reduced under suitable definitions. Finding one would organize the new model and help transfer general techniques from the better-developed theory of decision zero knowledge.
-
-[Read in atlas](index.html#TCS-3862) · [Brief Announcement: Zero-Knowledge Protocols for Search Problems](https://doi.org/10.4230/LIPIcs.ICALP.2018.105)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3873 — Or is it impossible, which could solve the open question [11] of separating SDDs and d-SDNNFs?
-
-Sentential decision diagrams and deterministic structured DNNFs are circuit languages for storing Boolean knowledge through organized variable decompositions. The 2018 passage points to a possible separation between their succinctness, meaning the size needed to represent the same functions. Such a separation would explain whether the additional organization of sentential decisions has an unavoidable storage cost. The paper approaches the issue through connections between circuit width and structural restrictions. The excerpt's opening alternative refers to a missing construction, so the exact family and size bound remain unspecified even though the intended comparison between representation languages is visible.
-
-[Read in atlas](index.html#TCS-3873) · [Connecting Width and Structure in Knowledge Compilation](https://doi.org/10.4230/LIPIcs.ICDT.2018.6)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3886 — Indeed, whether ∃ · BPP = MA remains an open question [11].
-
-Merlin–Arthur verification combines a classical witness with an efficient randomized check. Applying an existential quantifier to an ordinary BPP language imposes an additional bounded-error condition on every witness-input pair. In an MA protocol, by contrast, unsuccessful witnesses on a yes-instance may have intermediate acceptance probabilities. This question asks whether those different promise conventions nevertheless define the same class. The distinction matters when building classical or quantum verification hierarchies, because moving quantifiers across probabilistic tests can silently strengthen the requirements on a verifier.
-
-[Read in atlas](index.html#TCS-3886) · [Quantum Generalizations of the Polynomial Hierarchy with Applications to QMA(2)](https://doi.org/10.4230/LIPIcs.MFCS.2018.58)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-3962 — Does SAT ∈ P/poly imply that NP ⊆ ZPPMCSP ?
-
-The Minimum Circuit Size Problem asks whether an explicitly given truth table has a sufficiently small circuit. The saved question assumes SAT has polynomial-size circuits and asks whether NP then lies in zero-error randomized polynomial time with an MCSP oracle. This connects a nonuniform upper-bound hypothesis with the power of a concrete circuit-minimization oracle. A positive implication would clarify how much algorithmic usefulness follows from small circuits existing. The excerpt does not specify oracle encoding or reduction conventions, so those details remain needed for a fully formal class inclusion.
-
-[Read in atlas](index.html#TCS-3962) · [The Power of Natural Properties as Oracles](https://doi.org/10.4230/LIPIcs.CCC.2018.7)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4076 — We leave open the question of whether MLP gates (of any type) can polynomially simulate monotone real circuits. n I Theorem 19.
-
-Monotone linear-programming circuits use gates defined through linear-programming feasibility to compute partial Boolean functions. The source compares their expressive efficiency with monotone real circuits. It proves a separation in one direction and leaves open whether suitable linear-programming gates can simulate every monotone real circuit with polynomial overhead. The direction of simulation matters because a model can outperform another on one task without containing it efficiently on all tasks. Answering the question would clarify the hierarchy of monotone computation models that connect optimization formulations with proof-complexity lower bounds.
-
-[Read in atlas](index.html#TCS-4076) · [Representations of Monotone Boolean Functions by Linear Programs](https://doi.org/10.4230/LIPIcs.CCC.2017.3)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4205 — What is the maximum gap, if any, between U -invariant [depth d] formula size and non-invariant [depth d] formula size?
-
-A Boolean function may be invariant under a group of transformations even when the formula computing it does not visibly respect that symmetry. The source studies formulas whose syntax is invariant under a subspace U acting by toggling input negations. It asks how much larger the smallest U-invariant formula can be than an unrestricted formula for the same function, including comparisons at fixed depth. Its parity lower bounds show that imposing syntactic symmetry can make sharper analysis possible. Determining the largest gap would reveal whether those stronger bounds measure inherent computation or a significant cost of enforcing symmetry.
-
-[Read in atlas](index.html#TCS-4205) · [Subspace-Invariant AC^0 Formulas](https://doi.org/10.4230/LIPIcs.ICALP.2017.93)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4219 — What are the tradeoffs, if any, between the number of gates and the number of ancilla bits?
-
-A reversible Boolean circuit implements a permutation of bit strings using gates from a specified reversible gate set. Ancilla bits provide temporary workspace, and the classification in the source treats their availability as free when deciding which transformations are expressible. This question asks how the number of gates needed for a transformation trades off against the number of ancillas allowed. The source also seeks constructions approaching the circuit-size limits suggested by counting arguments. Such tradeoffs would turn an expressibility classification into a resource-sensitive account of reversible computation, where both circuit length and workspace matter.
-
-[Read in atlas](index.html#TCS-4219) · [The Classification of Reversible Bit Operations](https://doi.org/10.4230/LIPIcs.ITCS.2017.23)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4268 — Is there evidence that Gap MCSP has intermediate complexity when is a fixed constant, similar to the evidence that we present for the case when […]
-
-Gap MCSP approximates the smallest circuit computing a function presented by its full truth table. In the source's parameterization, the permitted multiplicative error is N^(1-epsilon), where N is the truth-table length. The paper gives evidence for intermediate complexity when epsilon tends to zero, under modest cryptographic assumptions. The question asks for comparable evidence when epsilon is a fixed positive constant and the approximation is therefore more accurate. This would broaden the case that natural circuit-minimization problems can lie between efficient computation and NP-hardness.
-
-[Read in atlas](index.html#TCS-4268) · [New Insights on the (Non-)Hardness of Circuit Minimization and Related Problems](https://doi.org/10.4230/LIPIcs.MFCS.2017.54)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4412 — Can gate elimination prove non-linear bounds here?
-
-Gate elimination proves circuit lower bounds by restricting inputs and counting the gates that each restriction removes. The source examines limitations of this method for ordinary Boolean functions and then turns to linear maps from n bits to n bits. It asks whether gate elimination can prove superlinear lower bounds for explicit linear maps. A further restricted version permits only linear circuit operations and linear substitutions in the argument. The distinction matters because the source's existing obstruction gadgets are nonlinear and do not automatically explain the power of elimination in this algebraically structured setting.
-
-[Read in atlas](index.html#TCS-4412) · [On the Limits of Gate Elimination](https://doi.org/10.4230/LIPIcs.MFCS.2016.46)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4466 — We leave open the question whether one can come up with an explicit and efficient transformation from any formula to a formula with few negations.
-
-Negation complexity measures how many NOT gates a Boolean formula or circuit uses. The source develops structural decompositions for formulas with few negations and transformations that reduce negations in related circuit models. It asks for an explicit, efficient transformation taking an arbitrary formula to a formula with few negations. Known existence arguments rely on a short monotone threshold construction that does not directly provide the desired explicit procedure. A constructive transformation would make negation-reduction results algorithmically usable while preserving the tree structure that distinguishes formulas from circuits with shared subcomputations.
-
-[Read in atlas](index.html#TCS-4466) · [Negation-Limited Formulas](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.850)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4468 — The best separation between subcube partition complexity and query complexity remains open, even in the deterministic case.
-
-A subcube partition divides all Boolean inputs into monochromatic pieces, each specified by fixing some coordinates. Unlike a decision tree, the pieces need not arise from one sequential hierarchy of queries. The source separates this partition model from randomized decision trees and asks for the strongest possible gap between their complexities. Even the comparison with deterministic query complexity is included in the question. Determining the extremal separation would quantify how much harder it is to discover an input's certificate adaptively than merely to exhibit a globally consistent collection of certificates.
-
-[Read in atlas](index.html#TCS-4468) · [Separating Decision Tree Complexity from Subcube Partition Complexity](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2015.915)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4735 — An Unholy Trinity: TFNP, Polynomial Systems, and the Quantum Satisfiability Problem — Explicit open question on PDF page 11
-
-The cited work connects guaranteed-solution search problems, complex polynomial equations, and quantum satisfiability. It introduces algebraically defined search classes and asks how they relate to established TFNP classes such as PPAD. Finding natural complete problems would make these new classes easier to interpret outside their defining reductions. Another issue is whether fixed algebraic parameters capture the whole family or whether increasing those parameters genuinely changes the class. Resolving these questions would organize the computational content of existence theorems that guarantee a root or a satisfying quantum state.
-
-[Read in atlas](index.html#TCS-4735) · [An Unholy Trinity: TFNP, Polynomial Systems, and the Quantum Satisfiability Problem](https://doi.org/10.4230/LIPIcs.ITCS.2026.7)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4746 — Enumerating Error Bounded Polytime Algorithms Through Arithmetical Theories — Explicit open question on PDF page 2
-
-A randomized polynomial-time program belongs to BPP only if its answer is reliably biased toward correctness on every input. That semantic requirement is harder to recognize than a syntactic time bound. This problem asks whether there is an effective enumeration of algorithms covering exactly the languages in BPP. The cited work uses arithmetical theories to study how error guarantees can be expressed and justified. A successful characterization would connect feasible randomized computation with formal languages whose programs come with uniformly controlled error behavior.
-
-[Read in atlas](index.html#TCS-4746) · [Enumerating Error Bounded Polytime Algorithms Through Arithmetical Theories](https://doi.org/10.4230/LIPIcs.CSL.2024.10)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4786 — Synergy Between Circuit Obfuscation and Circuit Minimization — Explicit open question on PDF page 3
-
-The minimum circuit size problem asks whether a truth table can be implemented by a Boolean circuit below a given size threshold. A small circuit supplies an efficiently checkable witness, placing the problem in NP when input length is measured by the full truth table. The selected passage highlights the unresolved classification between efficient randomized algorithms and NP-hardness. It also notes that an efficient algorithm would enable average-case inversion of candidate one-way functions through known reductions. Understanding this problem would connect circuit minimization, obfuscation, and the computational assumptions that make cryptography possible.
-
-[Read in atlas](index.html#TCS-4786) · [Synergy Between Circuit Obfuscation and Circuit Minimization](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4960 — Theoretical Limitations of Multi-Layer Transformer — Open Question 2
-
-The source analyzes the representational limits of multilayer decoder-only Transformers using communication-complexity methods. Its lower bounds constrain constant-depth architectures solving carefully defined compositional tasks. The selected question asks for a polynomial lower bound on the depth needed by Transformers. The authors allow either an unconditional result or one based on established computational complexity conjectures. This would identify tasks whose sequential compositional structure cannot be absorbed into a shallow attention architecture without violating the model's other resource constraints.
-
-[Read in atlas](index.html#TCS-4960) · [Theoretical Limitations of Multi-Layer Transformer](https://doi.org/10.1109/FOCS63196.2025.00136)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-4961 — Range Avoidance and Remote Point: New Algorithms and Hardness — Open Problem 1
-
-Range avoidance asks for a string outside the outputs of a circuit that maps n input bits to a longer string. The selected question restricts each output bit to depend on at most k inputs and sets output length to n^(1+epsilon). The source obtains subexponential algorithms with an exponent depending on locality and stretch. It asks whether the running time can be improved to 2^(n^o(1)) for some positive epsilon. Reaching this much faster scale would help determine the search complexity of local range avoidance and its connections to circuit lower bounds.
-
-[Read in atlas](index.html#TCS-4961) · [Range Avoidance and Remote Point: New Algorithms and Hardness](https://doi.org/10.4230/LIPIcs.ITCS.2026.79)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-4988 — An Oracle with no UP-Complete Sets, but NP = PSPACE — Explicit open question on PDF page 3
-
-TFNP consists of search problems with efficiently checkable solutions whose existence is guaranteed for every input. This project asks whether the entire class has a complete problem under the intended efficient search reductions. Such a problem would represent the difficulty of all total NP search tasks, rather than only a subclass with a particular existence principle. The source discusses oracle constructions and their connections with promise classes, which can expose barriers without settling the unrelativized question. A complete problem or a rigorous obstruction would reshape how total search problems are compared, including those studied as foundations for cryptography.
-
-[Read in atlas](index.html#TCS-4988) · [An Oracle with no UP-Complete Sets, but NP = PSPACE](https://doi.org/10.4230/LIPIcs.MFCS.2024.50)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5149 — String Matching: Communication, Circuits, and Learning — Explicit open question on PDF page 4
-
-String matching determines whether a pattern occurs as a contiguous part of a text. The cited work studies communication, circuit, and learning perspectives on that task. The saved passage leaves a threshold-circuit lower bound, or a sublinear-size construction, unresolved. A sharp result would explain how compactly matching can be represented when gates perform threshold comparisons. The excerpt does not specify depth, input partition, or the meaning of n, so the draft cannot promote the alternative into a general lower bound for unrestricted threshold circuits.
-
-[Read in atlas](index.html#TCS-5149) · [String Matching: Communication, Circuits, and Learning](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.56)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5246 — Fractional Homomorphism, Weisfeiler-Leman Invariance, and the Sherali-Adams Hierarchy for the Constraint Satisfaction Problem — Explicit open question on PDF page 1
-
-Graph isomorphism asks whether a bijection between two vertex sets preserves adjacency. The saved introductory question asks whether this can always be decided in polynomial time. The cited CSP paper studies fractional homomorphisms and refinement hierarchies that provide related ways to compare graph structure. Understanding their power helps explain which structural information supports isomorphism testing. This entry is an inherited reference to the general graph-isomorphism question rather than a distinct new conjecture about the Sherali–Adams hierarchy, and it does not assert that the surrounding relaxation methods resolve it.
-
-[Read in atlas](index.html#TCS-5246) · [Fractional Homomorphism, Weisfeiler-Leman Invariance, and the Sherali-Adams Hierarchy for the Constraint Satisfaction Problem](https://doi.org/10.4230/LIPIcs.MFCS.2021.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5312 — Simple Circuit Extensions for XOR in PTIME — Explicit open question on PDF page 2
-
-The Minimum Circuit Size Problem takes a Boolean truth table and asks whether some circuit below a specified size computes it. The selected passage asks whether this problem is NP-hard. The source studies this question through simple extensions of functions and compares total truth tables with partially specified ones. Hardness results for partial circuit minimization do not immediately extend because the corresponding total extension problems can become easy. Understanding this obstacle could clarify why minimizing unrestricted Boolean circuits has resisted the reductions that succeed for several specialized variants.
-
-[Read in atlas](index.html#TCS-5312) · [Simple Circuit Extensions for XOR in PTIME](https://doi.org/10.4230/LIPIcs.STACS.2026.23)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5315 — Forrelation Is Extremally Hard — Conjecture 8
-
-Forrelation measures the correlation of one Boolean function with the Fourier transform of another. The extremal problem promises that this quantity is exactly positive one or negative one and asks for its sign. The conjecture restricts the input functions to degree-d polynomials over F2 and predicts randomized query complexity n^(Ω(d)). A quantum algorithm can exploit the Fourier structure, while a classical algorithm can always learn the low-degree polynomials before computing the answer. The lower bound would show that the promise of a simple polynomial description does not remove the essential classical difficulty.
-
-[Read in atlas](index.html#TCS-5315) · [Forrelation Is Extremally Hard](https://doi.org/10.4230/LIPIcs.ITCS.2026.72)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5342 — Direct Sums for Parity Decision Trees — Explicit open question on PDF page 4
-
-A parity decision tree may query the XOR of any subset of its input bits. A direct sum theorem would say that computing k independent copies of a function costs k times the resources needed for one copy. The source asks whether such a perfect theorem holds for deterministic parity decision trees. Its proved bounds lose factors depending on the single-copy complexity or Fourier sparsity. The challenge is to rule out savings from parity queries that mix bits belonging to different copies, even though all k answers must ultimately be produced.
-
-[Read in atlas](index.html#TCS-5342) · [Direct Sums for Parity Decision Trees](https://doi.org/10.4230/LIPIcs.CCC.2025.16)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5397 — New Sampling Lower Bounds via the Separator — Explicit open question on PDF page 4
-
-For a uniformly random bit string, the Rank distribution records every prefix sum of its bits. Generating one sample therefore means producing a mutually consistent sequence of counts rather than answering one isolated rank query. The source asks whether polynomial-size AC0 circuits can sample this distribution. It proves sampling lower bounds for decision forests and notes a quasipolynomial-size shallow-circuit construction from related results. Resolving the polynomial-size case would compare the power of constant-depth sampling with the global dependencies in even a simple random walk of prefix sums.
-
-[Read in atlas](index.html#TCS-5397) · [New Sampling Lower Bounds via the Separator](https://doi.org/10.4230/LIPIcs.CCC.2023.26)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5417 — On the Limits of Gate Elimination — Unresolved-question passage on page 12
-
-Gate elimination proves circuit lower bounds by fixing input variables and counting how many gates can be removed. The source investigates functions for which a small number of substitutions causes only a small complexity decrease. It asks whether this resistance can persist after a linear number of substitutions for a function whose circuit complexity is superlinear. The desired decrease would remain only proportional to the number of substituted variables. Such examples would strengthen the structural barrier showing why repeatedly simplifying circuits through restrictions may fail to prove substantially larger lower bounds.
-
-[Read in atlas](index.html#TCS-5417) · [On the Limits of Gate Elimination](https://doi.org/10.4230/LIPIcs.MFCS.2016.46)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-5501 — Sum-Of-Squares Lower Bounds for the Minimum Circuit Size Problem — Explicit open question on PDF page 1
-
-The Minimum Circuit Size Problem asks whether a Boolean function given by its truth table has a circuit below a supplied size threshold. The saved passage identifies NP-hardness of this task as unresolved in its source. The cited work approaches the problem through sums-of-squares lower bounds. An NP-hardness result would connect circuit minimization with the broad landscape of efficiently verifiable search and decision problems. The excerpt does not specify the reduction convention, and lower bounds for a restricted relaxation do not themselves prove the requested classical hardness statement.
-
-[Read in atlas](index.html#TCS-5501) · [Sum-Of-Squares Lower Bounds for the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.CCC.2023.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5593 — Does Looking Inside a Circuit Help? — Explicit open question on PDF page 4
-
-A property of Boolean functions can be tested either from a circuit description or by querying the function as a black box. The Black-Box Hypothesis says that efficient access to the circuit's internal representation does not help decide such semantic properties, given an appropriate circuit-size bound. The source studies what follows if this hypothesis fails. For several kinds of counterexample, it derives nontrivial circuit satisfiability algorithms. Resolving the hypothesis would clarify whether inspecting an implementation offers a fundamental computational advantage over observing its behavior, with consequences for major complexity separations.
-
-[Read in atlas](index.html#TCS-5593) · [Does Looking Inside a Circuit Help?](https://doi.org/10.4230/LIPIcs.MFCS.2017.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5617 — On the Complexity of Modulo-q Arguments and the Chevalley - Warning Theorem — Explicit open question on PDF page 3
-
-PPAq classifies total search problems whose solutions are guaranteed by counting arguments modulo q. The source places problems from algebra, topology, and cryptography in these classes and proposes completeness as a possible classification for some of them. Its main theorem already proves PPAp-completeness for an explicit search problem based on the Chevalley-Warning theorem when p is prime. The imported passage is a broader research direction asking which additional natural problems capture the full power of modular counting principles. Developing those classifications would distinguish algorithmic difficulty arising from different moduli and connect abstract total-search classes to concrete mathematical tasks.
-
-[Read in atlas](index.html#TCS-5617) · [On the Complexity of Modulo-q Arguments and the Chevalley - Warning Theorem](https://doi.org/10.4230/LIPIcs.CCC.2020.19)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5750 — On the Relative Power of Linear Algebraic Approximations of Graph Isomorphism — Explicit open question on PDF page 1
-
-Graph isomorphism asks whether two graphs become identical after consistently renaming their vertices. The cited source compares the power of linear-algebraic methods that approximate this distinction. Its saved introductory passage mentions unresolved complexity questions but truncates the exact target. Understanding the relative strength of such methods could identify which structural differences they can detect and which remain invisible. The fragment does not identify the specific problem or algebraic hierarchy being questioned, so it cannot yet distinguish a general graph-isomorphism question from a narrower comparison of relaxations.
-
-[Read in atlas](index.html#TCS-5750) · [On the Relative Power of Linear Algebraic Approximations of Graph Isomorphism](https://doi.org/10.4230/LIPIcs.MFCS.2021.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6006 — A Subexponential Algorithm for ARRIVAL — Explicit open question on PDF page 4
-
-ARRIVAL describes a deterministic walk in a directed graph whose vertices alternate between two outgoing choices on successive visits. The decision task asks which designated destination the walk eventually reaches. The source notes efficiently verifiable certificates for either answer, placing the problem in NP intersect coNP. It improves exponential algorithms to a subexponential bound and gives a polynomial-time algorithm for almost acyclic graphs. The remaining project is to decide whether all instances can be solved in polynomial time without explicitly following a walk that may be exponentially long.
-
-[Read in atlas](index.html#TCS-6006) · [A Subexponential Algorithm for ARRIVAL](https://doi.org/10.4230/LIPIcs.ICALP.2021.69)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6091 — NP-hardness of Minimum Circuit Size Problem for OR-AND-MOD Circuits — Explicit open question on PDF page 3
-
-The class E contains decision problems solvable in deterministic time exponential with a linear exponent. The selected question asks whether some problem in E requires depth-three AC0 circuits of size 2^(Ω(n)). These circuits use AND, OR, and NOT gates but have only three layers of computation. The source raises this lower-bound target while proving NP-hardness for minimization in a different OR-AND-MOD circuit model. It explains that natural attempts to extend that hardness result to depth-three AC0 would also establish the strong uniform circuit lower bound.
-
-[Read in atlas](index.html#TCS-6091) · [NP-hardness of Minimum Circuit Size Problem for OR-AND-MOD Circuits](https://doi.org/10.4230/LIPIcs.CCC.2018.5)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6139 — A Note on the Advice Complexity of Multipass Randomized Logspace — Explicit open question on PDF page 2
-
-A randomized logspace machine has very little working memory, but its power also depends on how it accesses random bits. Allowing two-way access lets it revisit its random tape instead of consuming each bit once. The source asks whether this model can be simulated deterministically in subexponential time. Its results for machines making a controlled number of passes do not settle unrestricted two-way access. Understanding the difference would clarify how reusable randomness affects small-space computation and why conventional logspace derandomization techniques do not automatically apply.
-
-[Read in atlas](index.html#TCS-6139) · [A Note on the Advice Complexity of Multipass Randomized Logspace](https://doi.org/10.4230/LIPIcs.MFCS.2016.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6168 — On the (Non) NP-Hardness of Computing Circuit Complexity — Explicit open question on PDF page 4
-
-MCSP asks whether a function given by its truth table has a Boolean circuit below a specified size. The source investigates what standard NP-hardness reductions to MCSP would imply for circuit lower bounds. It conjectures that polynomial-time NP-hardness would force EXP to lack polynomial-size circuits, strengthening its proved consequence. It also conjectures that MCSP is not NP-hard under uniform AC0 reductions. These questions aim to explain why proving hardness for circuit minimization appears to require understanding the very circuit lower bounds that the problem measures.
-
-[Read in atlas](index.html#TCS-6168) · [On the (Non) NP-Hardness of Computing Circuit Complexity](https://doi.org/10.4230/LIPIcs.CCC.2015.365)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6285 — Depth-First Search in Directed Planar Graphs, Revisited — Explicit open question on PDF page 3
-
-UL consists of logarithmic-space computations with at most one accepting computation on each input. The cited passage asks whether this unambiguous class is closed under complement. Closure would mean that rejecting instances also admit an equally economical unambiguous decision procedure. The paper encounters the issue while defining functions and composing algorithms for planar depth-first search. The project addresses a structural complexity question whose answer affects how safely unambiguous subroutines can replace ordinary nondeterministic reachability tests.
-
-[Read in atlas](index.html#TCS-6285) · [Depth-First Search in Directed Planar Graphs, Revisited](https://doi.org/10.4230/LIPIcs.MFCS.2021.7)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6488 — Winning the War by (Strategically) Losing Battles: Settling the Complexity of Grundy-Values in Undirected Geography — Open Question 4
-
-The Grundy value of an impartial game contains more information than whether the current player can force a win. The imported question asks for a general efficient reduction from computing that value to determining a winner. The source exhibits a sharp separation for Undirected Geography, where winner determination is efficient but Grundy computation is PSPACE-complete. That result supplies a complexity-theoretic obstruction to the proposed general reduction. The project explains why composing individually tractable games may require information much harder to obtain than their separate win-loss outcomes.
-
-[Read in atlas](index.html#TCS-6488) · [Winning the War by (Strategically) Losing Battles: Settling the Complexity of Grundy-Values in Undirected Geography](https://doi.org/10.1109/FOCS52979.2021.00119)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6496 — Polynomial-Time Pseudodeterministic Construction of Primes — Explicit open question on PDF page 3
-
-The cited prime-construction paper uses relationships between pseudodeterminism and strong circuit lower bounds. Its saved passage discusses known lower bounds for a higher exponential-time class and begins a stronger unresolved target. Circuit-size growth at sub-half-exponential scales can influence which hardness assumptions suffice for constructive number theory. A sharper bound could strengthen the complexity foundations of pseudodeterministic algorithms. The extraction stops before the target class or conclusion is stated, so this record must not be mistaken for the paper's already-announced prime-construction result or a fully specified circuit lower-bound conjecture.
-
-[Read in atlas](index.html#TCS-6496) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1109/FOCS57990.2023.00074)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-6712 — Can every polynomial-size Boolean circuit be replaced by a polynomial-size, logarithmic-depth circuit?
-
-A polynomial-size Boolean circuit represents an efficient nonuniform computation, but its longest chain of dependent gates can be large. The question asks whether every such computation can be reorganized into logarithmic depth while retaining polynomial size. Logarithmic depth would permit much greater parallelism without allowing an excessive number of gates. Counting arguments and restricted circuit lower bounds do not settle this comparison for unrestricted Boolean circuits. Resolving it would determine whether polynomial-size circuits and the nonuniform version of NC1 have the same expressive power.
-
-[Read in atlas](index.html#TCS-6712) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6714 — Are there polynomial-size logarithmic-depth general Boolean circuits for perfect matching?
-
-Matching asks for edges with disjoint endpoints, with perfect matching requiring every vertex to be covered. Polynomial-time matching algorithms imply polynomial-size Boolean circuits for the decision problem. The question asks whether general circuits can achieve logarithmic depth as well. The cited source discusses a matching-size threshold and proves a strong depth lower bound when the circuit is required to be monotone. The project is to understand whether allowing negation permits substantially shallower matching computations, beyond the restrictions captured by that monotone lower bound.
-
-[Read in atlas](index.html#TCS-6714) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6715 — Separate polynomial-size monotone circuits from superpolynomial monotone span-program size.
-
-A monotone span program accepts an input when vectors enabled by its one-bits span a designated target vector over a field. A monotone Boolean circuit instead combines input bits using AND and OR gates. The question asks for functions with polynomial-size monotone circuits that require superpolynomial-size monotone span programs. The source discusses a separation in the opposite direction, so this asks whether the two models can be incomparable in efficiency. Such an example would expose a limitation of linear-algebraic representations even for functions having short purely monotone logical computations.
-
-[Read in atlas](index.html#TCS-6715) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6716 — Separate ordinary and monotone span-program size for monotone functions.
-
-Ordinary span programs may enable vectors using either positive or negative input literals. Monotone span programs use only positive literals, even when the function itself is monotone. The question asks for a monotone function with a polynomial-size ordinary span program but no polynomial-size monotone span program. The analogous distinction can be dramatic for Boolean circuits, but the source leaves it unsettled for span programs. A separation would show that negative tests can provide essential efficiency in linear-algebraic computation despite the monotonicity of the final answer.
-
-[Read in atlas](index.html#TCS-6716) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6717 — Strengthen monotone perfect-matching circuit lower bounds to stretched exponential.
-
-The perfect-matching function takes a graph's edge indicators and reports whether every vertex can be covered by disjoint edges. It is monotone because adding edges cannot destroy a perfect matching. The source presents a quasipolynomial monotone-circuit lower bound of the form m^(Ω(log m)). The question asks to strengthen this to 2^(Ω(m^epsilon)) for some positive constant epsilon. Reaching stretched-exponential size would substantially widen the demonstrated gap between ordinary polynomial-time matching algorithms and computations restricted to monotone gates.
-
-[Read in atlas](index.html#TCS-6717) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6718 — Prove exponential lower bounds for weakly read-once nondeterministic branching programs.
-
-A nondeterministic branching program accepts when some path consistent with the input reaches its accepting sink. The weakly read-once restriction requires variables to appear at most once on each consistent accepting path, while allowing repetition on inconsistent paths. The source asks for an exponential size lower bound against this model. It shows that permitting those inconsistent paths can make programs much smaller than more strictly read-once counterparts. A lower bound must therefore handle the extra structural freedom without treating every syntactic path as a possible computation.
-
-[Read in atlas](index.html#TCS-6718) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6743 — Every nontrivial monotone property of k-vertex graphs requires Ω(k²) randomized adjacency queries for exact recognition.
-
-A monotone graph property is preserved when edges are added, and a graph property ignores vertex labels. The randomized evasiveness conjecture asks whether every nontrivial such property on k vertices requires Ω(k squared) adjacency queries for exact recognition with bounded error. The algorithm must distinguish every yes-instance from every no-instance, including graphs differing by very few edges. This differs fundamentally from property testing, which allows a gap between valid graphs and graphs far from validity. A quadratic lower bound would say that randomness cannot avoid inspecting a constant fraction of potential edges in the worst case.
-
-[Read in atlas](index.html#TCS-6743) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6747 — Is graph nonisomorphism in BPP?
-
-Graph nonisomorphism asks whether two graphs cannot be matched by any relabeling that preserves adjacency. The question asks for a randomized polynomial-time algorithm with bounded error for this decision problem. Interactive protocols can certify nonisomorphism efficiently using help from an untrusted prover, but that assistance is absent in BPP. Since BPP is closed under complement, the same algorithmic question can be phrased for graph isomorphism. Resolving it would clarify whether randomization alone can efficiently handle a central structural comparison problem that has distinctive behavior among complexity-theoretic examples.
-
-[Read in atlas](index.html#TCS-6747) · [Introduction to Property Testing (April 2017 manuscript)](https://www.wisdom.weizmann.ac.il/~oded/pt-intro.html)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6817 — Is directed reachability solvable simultaneously in polynomial time and polylogarithmic space?
-
-Directed reachability asks whether a path exists from a specified start vertex to a specified target. A graph search can solve it in polynomial time using substantial memory, while recursive reachability methods save memory at a time cost. The question asks for one algorithm that simultaneously uses polynomial time and only polylogarithmic space. Obtaining the two resource bounds in separate algorithms does not meet this requirement. The problem is a basic test of whether reachability can combine efficient exploration with an extremely small working memory.
-
-[Read in atlas](index.html#TCS-6817) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6832 — Which inclusions among P, RP and NP are strict?
-
-P consists of problems with deterministic polynomial-time algorithms, while RP permits randomized algorithms that can miss yes-instances but never falsely accept no-instances. Every RP algorithm can be viewed as an NP verification procedure by treating its random choices as a certificate. This gives the chain P contained in RP contained in NP. The question asks which of these inclusions are strict. The alternatives distinguish whether randomness adds power beyond deterministic computation and whether one-sided randomized search can capture the full strength of efficiently verifiable existence.
-
-[Read in atlas](index.html#TCS-6832) · [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6934 — Prove superlinear unconditional SAT time lower bounds in robust unrestricted computation models; establish stronger exponential lower bounds.
-
-SAT asks whether a Boolean formula admits a satisfying assignment. The source calls for unconditional superlinear time lower bounds in robust general computation models and ultimately stronger exponential bounds. Many known barriers depend on unproved hypotheses or restrictions on memory and algorithm structure. An unrestricted lower bound would directly demonstrate that a concrete fundamental problem requires more than near-input-reading work. The saved note intentionally states a research direction rather than one fixed exponent, so a finished card must select the encoding, machine model, and quantitative threshold it intends to resolve.
-
-[Read in atlas](index.html#TCS-6934) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6977 — Prove that SAT requires more than near-linear time.
-
-SAT asks whether a Boolean formula has a satisfying assignment. The selected question seeks an unconditional lower bound excluding algorithms whose running time stays near the input length. This is a weaker objective than excluding every polynomial-time algorithm, but it must still account for all algorithms in the chosen model. Restrictions on working space can support different lower bounds and should not be silently added to the question. Progress would establish a concrete limit on efficient satisfiability algorithms without needing to settle the full P versus NP problem.
-
-[Read in atlas](index.html#TCS-6977) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6978 — Separate a given space bound from roughly the same time bound.
-
-Time measures how many computational steps an algorithm takes, while space measures how much working memory it uses. A computation can reuse the same memory through a very long sequence of steps. The question seeks a problem solvable within a given space bound that cannot be solved within roughly the same time bound. A precise version must specify the machine model, the resource function, and what slack is allowed by roughly the same. Such a separation would capture a basic advantage of reusable memory that ordinary time and space hierarchy theorems do not directly compare.
-
-[Read in atlas](index.html#TCS-6978) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-6979 — Could P versus NP be independent of standard mathematical axioms?
-
-P versus NP asks whether every efficiently verifiable decision problem can also be solved efficiently. The independence question concerns the possibility that a chosen mathematical axiom system proves neither equality nor inequality. This is a question about formal provability, distinct from proposing either an algorithm or a complexity lower bound. Any precise claim must name the axiom system and the assumptions made about its consistency or soundness. Investigating independence could identify limitations of the available foundations or proof methods, without treating the difficulty of existing approaches as evidence that independence must hold.
-
-[Read in atlas](index.html#TCS-6979) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7129 — Can prime-implicate representations always be expressed as polynomial-size DNNF?
-
-A prime-implicate representation lists the minimal clauses logically forced by a Boolean function. The 2002 compilation map asks whether every such representation has an equivalent DNNF of polynomially related size. DNNF permits disjunctions but restricts each conjunction to subcircuits using disjoint variable sets. The comparison asks whether compact logical consequences can always be reorganized into that decomposable structure without a superpolynomial size increase. This is a representation-size question measured against the supplied prime-implicate description; the historical table entry does not itself provide an efficient conversion algorithm or a current-status review.
-
-[Read in atlas](index.html#TCS-7129) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7130 — Can prime-implicate representations always be expressed as polynomial-size deterministic DNNF?
-
-This historical comparison starts from a Boolean function represented by all its prime implicates, the minimal clauses it entails. It asks whether an equivalent deterministic DNNF can always have size polynomial in that representation. Alongside variable-disjoint conjunctions, determinism requires alternative branches of each disjunction to have no common satisfying assignment. The additional condition makes this target stronger than merely finding a small decomposable circuit. A positive size comparison would limit the cost of arranging logical information into disjoint cases, while the saved source groups smooth and nonsmooth variants through their polynomial relationship.
-
-[Read in atlas](index.html#TCS-7130) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7131 — Can prime-implicant representations always be expressed as polynomial-size deterministic DNNF?
-
-A prime-implicant representation lists minimal conjunctions of literals sufficient to make a Boolean function true. The saved 2002 question asks whether these potentially overlapping witnesses always admit a polynomial-size deterministic DNNF representation. Each individual term has simple variable structure, but several terms can describe the same satisfying assignment. The challenge is therefore to organize the union into disjoint alternatives while retaining decomposability and avoiding excessive duplication. The input-size benchmark is the complete prime-implicant representation, and this historical succinctness comparison should not be silently replaced by a claim about arbitrary small DNF formulas or efficient compilation.
-
-[Read in atlas](index.html#TCS-7131) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-7132 — Is prime-implicate representation polynomially succinct relative to explicit model enumeration?
-
-Explicit model enumeration lists every satisfying assignment of a Boolean function. The question recorded in the compilation map asks whether the function's prime-implicate representation is always polynomially bounded by that explicit description. Prime implicates encode the same function through minimal necessary clauses rather than through its individual models. The comparison measures whether switching between these views of the satisfying assignments can require a superpolynomial increase in representation size. Keeping the direction of the comparison matters: the historical entry starts with an explicit model list and asks about the size of its equivalent prime-implicate form.
-
-[Read in atlas](index.html#TCS-7132) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Automata and formal languages (121)
@@ -2473,7 +2452,7 @@ An avoiding word drives every possible starting state outside a specified forbid
 [Read in atlas](index.html#TCS-6995) · [Synchronizing Automata: Open Problems](https://arxiv.org/abs/2608.24245)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Semantics, logic and verification (172)
+## Semantics, logic and verification (171)
 
 ### TCS-6565 — Is positivity of integer linear recurrences decidable?
 
@@ -3637,13 +3616,6 @@ Concurrent Kleene algebra represents executions as partially ordered multisets o
 [Read in atlas](index.html#TCS-6359) · [On Decidability of Concurrent Kleene Algebra](https://doi.org/10.4230/LIPIcs.CONCUR.2017.28)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6368 — Graph Traversals as Universal Constructions — Unresolved-question passage on page 14
-
-The source characterizes depth-first and breadth-first traversals through categorical constructions on edge-ordered graphs. Its research direction asks whether more general graph problems form a hierarchy based on alternating free and cofree constructions. Problems at one level might then share an algorithmic template. This is a proposed organizing framework rather than a single settled formal complexity measure. The project seeks a mathematical language for explaining why certain graph algorithms require particular sequences of traversal-like operations and what those sequences imply about computation.
-
-[Read in atlas](index.html#TCS-6368) · [Graph Traversals as Universal Constructions](https://doi.org/10.4230/LIPIcs.MFCS.2021.17)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6390 — Temporal Logics with Local Constraints (Invited Talk) — Unresolved-question passage on page 10
 
 Constraint temporal logics combine temporal operators with comparisons between data values drawn from an external structure such as the integers. Nonlocal order constraints can compare a current value with a value occurring at some future position, in forms such as x < Fy and Fx < y. The question asks whether satisfiability remains decidable when these constraints are added to the branching-time logic CCTL* over the indicated integer structures. The source handles corresponding linear-time constraints by replacing them with local ones, but branching time requires an additional argument. An answer would locate the limit of temporal reasoning about values that may be compared across unbounded time gaps.
@@ -3679,7 +3651,7 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Distributed, parallel and sublinear algorithms (173)
+## Distributed, parallel and sublinear algorithms (172)
 
 ### TCS-6553 — Can every polynomial-time decision problem be efficiently parallelized?
 
@@ -4295,13 +4267,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Proof-labeling schemes certify graph properties by assigning short labels that neighboring vertices can check locally. On graphs of bounded clique-width, the source asks whether some MSO₂ property necessarily requires Ω(n^ε) certificate bits per vertex for a fixed positive ε. MSO₂ can quantify over edge sets as well as vertices, making it richer than the vertex-set logic behind many compact certification results. Familiar examples such as Hamiltonicity still admit logarithmic certificates, so their centralized difficulty does not provide the desired lower bound. Finding a separating property would expose a real limit of generic compact distributed certification on these dense structured graphs.
 
 [Read in atlas](index.html#TCS-2540) · [Distributed Certification for Classes of Dense Graphs](https://doi.org/10.4230/LIPIcs.DISC.2023.20)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2541 — Is there a practical permissionless protocol that can achieve deterministic safety and tolerate fewer than a half Byzantine nodes?
-
-Permissionless consensus allows participation without a fixed membership list and must account for adversarial behavior under the source's resource and timing assumptions. Deterministic safety requires agreement never to fail, even though progress may involve randomization. The question asks for a practical protocol retaining this safety guarantee while tolerating Byzantine participation below one half in the specified model. The source's Gorilla and Sandglass constructions establish theoretical possibilities but require very large communication and potentially exponential decision time. Improving those costs would show whether their strong agreement guarantee can support an efficient protocol rather than only an existence result.
-
-[Read in atlas](index.html#TCS-2541) · [Gorilla: Safe Permissionless Byzantine Consensus](https://doi.org/10.4230/LIPIcs.DISC.2023.31)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2591 — Is there a 2.99-approximation semi-streaming space sliding window algorithm for MM?
@@ -5356,7 +5321,7 @@ Robust low-rank approximation measures reconstruction error by the sum of absolu
 [Read in atlas](index.html#TCS-7008) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Geometry, topology and metric spaces (191)
+## Geometry, topology and metric spaces (189)
 
 ### TCS-6523 — Does every isotropic log-concave measure have a dimension-free Poincaré constant?
 
@@ -5720,13 +5685,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A Johnson-Lindenstrauss transform maps a vector into fewer dimensions while approximately preserving its Euclidean length with high probability. The target dimension is O(log(1/P) divided by epsilon squared) for failure probability P and error epsilon. The source asks for applying the transform to an s-sparse input in time roughly s plus the output dimension, up to polylogarithmic factors. It also asks for an explicit distribution generated from only O(log(d/P)) random bits. The project combines fast multiplication, optimal dimensional reduction, and a compact random seed rather than optimizing any one resource alone.
 
 [Read in atlas](index.html#TCS-0970) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:46)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0413 — Simple Linear-Time Polygon Triangulation
-
-A simple polygon can be partitioned into triangles in deterministic linear time, but the classical construction is intricate. The source asks for an algorithm with the same asymptotic guarantee and a substantially simpler design. Randomized near-linear or linear procedures do not resolve the deterministic requirement. A related motivation is to obtain simple linear-time shortest-path algorithms inside polygons without relying on complicated triangulation machinery. The project concerns making an optimal geometric primitive conceptually and practically accessible, rather than proving triangulation possible for the first time.
-
-[Read in atlas](index.html#TCS-0413) · [The Open Problems Project](https://topp.openproblem.net/p10)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0339 — Why Are Polytime and NP-Hard Switched for Fréchet and Hausdorff?
@@ -6261,13 +6219,6 @@ Partition the edges of a complete straight-line graph into subgraphs whose edges
 [Read in atlas](index.html#TCS-2669) · [Edge Partitions of Complete Geometric Graphs](https://doi.org/10.4230/LIPIcs.SoCG.2022.6)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2876 — What about tsp with obstacles in higher dimensions?
-
-The traveling-salesman problem with obstacles asks for a shortest tour through specified sites while remaining in free space. The source develops methods inside a simple polygon and asks what survives in higher dimensions. Planar techniques rely on structures such as shortest-path triangulations and planar subset-tour algorithms. Those tools do not directly describe routes around three-dimensional obstacles. The direction is to identify useful geometric restrictions or new decompositions that make obstacle-constrained touring tractable beyond the planar setting.
-
-[Read in atlas](index.html#TCS-2876) · [TSP in a Simple Polygon](https://doi.org/10.4230/LIPIcs.ESA.2022.5)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3015 — Can the Hanani-Tutte criteria for the projective plane and the torus be turned into a polynomial-time test?
 
 Hanani–Tutte criteria relate surface embeddability to drawings in which independent edges cross evenly. The source asks whether the criteria for the projective plane and torus can become polynomial-time tests. Encoding the surface handles introduces quadratic conditions rather than the linear equations available in the plane. The aim is a simpler algebraic recognition route, even if it does not improve the fastest existing embedding algorithms. The problem separates an elegant existential drawing characterization from an efficiently solvable system expressing that characterization.
@@ -6695,7 +6646,7 @@ A subspace embedding compresses a matrix while approximately preserving the Eucl
 [Read in atlas](index.html#TCS-7006) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Learning theory (98)
+## Learning theory (97)
 
 ### TCS-6541 — Does every VC class admit linear-size sample compression?
 
@@ -7376,14 +7327,7 @@ Covariate shift changes the distribution of inputs between training and evaluati
 [Read in atlas](index.html#TCS-6135) · [Mitigating Covariate Shift in Misspecified Regression with Applications to Reinforcement Learning](https://proceedings.mlr.press/v247/amortila24a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6829 — Characterize when cross-validation reliably estimates generalization error beyond the established special cases.
-
-Cross-validation repeatedly trains on part of a sample and evaluates on held-out folds to estimate prediction error or choose model parameters. After parameter selection, the chosen learning procedure is commonly retrained on the entire available training sample. The textbook asks for a rigorous account of when these validation estimates reliably describe generalization, beyond the special cases already understood there. It cites positive results for local prediction rules and stable algorithms, while also noting examples in which cross-validation fails. The research direction is to identify which properties of the learner and data make reuse across overlapping training folds statistically dependable.
-
-[Read in atlas](index.html#TCS-6829) · [Understanding Machine Learning: From Theory to Algorithms](https://www.cs.huji.ac.il/~shais/UnderstandingMachineLearning/)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-## Cryptography (42)
+## Cryptography (41)
 
 ### TCS-6545 — Do one-way functions imply public-key encryption in the standard model?
 
@@ -7601,13 +7545,6 @@ Private constrained pseudorandom functions restrict evaluations to an authorized
 
 [Read in atlas](index.html#TCS-4803) · [Limits on the Power of Private Constrained PRFs](https://doi.org/10.4230/LIPIcs.ITC.2026.2)
 Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-4817 — Exponentially Fewer-Server PIR from Sparser $S$-Decoding Polynomials — Unresolved-question passage on page 48
-
-Private information retrieval lets a user obtain data while hiding which location was requested. The cited source asks for the best communication-versus-server tradeoff in its matching-vector framework when s grows with n. Using additional servers can reduce what each server learns while changing how much information must be exchanged. A sharp tradeoff would clarify the quantitative power of the particular sparse-decoding-polynomial construction. The saved question restricts the framework explicitly but does not define s or the communication accounting, so a result from another PIR model would not directly settle it.
-
-[Read in atlas](index.html#TCS-4817) · [Exponentially Fewer-Server PIR from Sparser $S$-Decoding Polynomials](https://eprint.iacr.org/2026/1515)
-Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-4853 — Proofs of Space with Maximal Hardness — Explicit open question on PDF page 2
 

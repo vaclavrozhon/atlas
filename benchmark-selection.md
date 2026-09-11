@@ -12,29 +12,13 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 495 | 5 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 981 | 19 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 980 | 20 |
 
 ## Unfilled places
 
 - top500: Miscellaneous has 5/10 places.
-- top1000: Cryptography has 46/50 places.
+- top1000: Cryptography has 45/50 places.
 - top1000: Miscellaneous has 5/20 places.
-
-## Algorithms
-
-After the approved Data structures split, focus on integer sorting, structured real-key sorting, hypergraph cut sparsification, offline comparison complexity and deterministic selection. The first two retain their previous focus status; the other three replace the transferred data-structure topics. These choices balance saved importance and diversity without changing statements, evidence or importance scores.
-
-Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
-
-| Position | Problem | Topic | Saved importance score | Selection rationale |
-| ---: | --- | --- | ---: | --- |
-| 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) (TCS-6537) | Integer sorting | 96 | A foundational algorithmic primitive whose optimal complexity tests the computational power of the word RAM and would affect many tasks built on ordering integer keys. |
-| 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
-| 3 | [Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
-| 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) (TCS-0477) | Offline comparison complexity | 74 | Finding final survivors of a fully known heap-operation sequence isolates the comparison information needed for a batch answer. It does not require an online priority queue or intermediate query responses. |
-| 5 | [Does ordinary median-of-medians selection with groups of three run in linear time?](index.html#TCS-0475) (TCS-0475) | Deterministic selection | 69 | The ordinary groups-of-three median-of-medians algorithm gives a precisely specified selection primitive whose worst-case analysis remains the saved question. It adds selection to the two sorting models. |
-
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595, TCS-0946, TCS-0477, TCS-0475, TCS-5548.
 
 ## Computational complexity
 
@@ -51,6 +35,22 @@ Previous prefix: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531.
 | 5 | [The Berman–Hartmanis isomorphism conjecture](index.html#TCS-6534) (TCS-6534) | Structure of complete problems | 96 | A defining structural-complexity conjecture about the entire NP-complete degree, stronger than P≠NP and supported by substantial restricted-model theorems and oracle barriers. |
 
 Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-6535, TCS-0002, TCS-0015, TCS-0016, TCS-6534, TCS-6533, TCS-0004, TCS-0020, TCS-1056, TCS-0018, TCS-1054, TCS-6681, TCS-1278, TCS-3873, TCS-7129, TCS-7130, TCS-7131, TCS-7132.
+
+## Algorithms
+
+After the approved Data structures split, focus on integer sorting, structured real-key sorting, hypergraph cut sparsification, offline comparison complexity and deterministic selection. The first two retain their previous focus status; the other three replace the transferred data-structure topics. These choices balance saved importance and diversity without changing statements, evidence or importance scores.
+
+Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
+
+| Position | Problem | Topic | Saved importance score | Selection rationale |
+| ---: | --- | --- | ---: | --- |
+| 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) (TCS-6537) | Integer sorting | 96 | A foundational algorithmic primitive whose optimal complexity tests the computational power of the word RAM and would affect many tasks built on ordering integer keys. |
+| 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
+| 3 | [Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
+| 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) (TCS-0477) | Offline comparison complexity | 74 | Finding final survivors of a fully known heap-operation sequence isolates the comparison information needed for a batch answer. It does not require an online priority queue or intermediate query responses. |
+| 5 | [Does ordinary median-of-medians selection with groups of three run in linear time?](index.html#TCS-0475) (TCS-0475) | Deterministic selection | 69 | The ordinary groups-of-three median-of-medians algorithm gives a precisely specified selection primitive whose worst-case analysis remains the saved question. It adds selection to the two sorting models. |
+
+Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595, TCS-0946, TCS-0477, TCS-0475, TCS-5548.
 
 ## Automata and formal languages
 
@@ -282,7 +282,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [The deterministic k-server conjecture](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational conjecture about online decision-making, with an optimal lower bound, one broadly applicable candidate algorithm, and a persistent gap on general metrics despite many resolved special cases. |
 | 2 | [A constant improvement over factor 2 for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0701, TCS-0702, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0713, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1691, TCS-1696, TCS-1891, TCS-2032, TCS-2048, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2862, TCS-2969, TCS-3005, TCS-3147, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3562, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5094, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5184, TCS-5186, TCS-5217, TCS-5220, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5481, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-5888, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6837, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922, TCS-0927, TCS-0925.
+Candidates considered: TCS-0700, TCS-0701, TCS-0702, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0713, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1691, TCS-1696, TCS-1891, TCS-2032, TCS-2048, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2862, TCS-2969, TCS-3005, TCS-3147, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3562, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5094, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5184, TCS-5186, TCS-5220, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5481, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-5888, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6837, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922, TCS-0925.
 
 ## Beyond worst-case and average-case analysis
 
@@ -360,7 +360,7 @@ Previous prefix: TCS-6625, TCS-6626.
 | 1 | [Deterministic fully dynamic connectivity with polylogarithmic worst-case updates](index.html#TCS-6625) (TCS-6625) | Dynamic connectivity | 97 | A foundational dynamic-graph frontier directly relevant to data structures, with a new randomized breakthrough and an explicit remaining deterministic bottleneck. |
 | 2 | [Fully dynamic near-optimal matching with polylogarithmic updates](index.html#TCS-6627) (TCS-6627) | Dynamic matching | 95 | A central dynamic graph problem connecting approximation, explicit solution maintenance and extremal induced-matching structure. |
 
-Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0542, TCS-0543, TCS-0541, TCS-0300, TCS-1221, TCS-1425, TCS-2730, TCS-2798, TCS-3788, TCS-4799, TCS-5825, TCS-0387, TCS-3647, TCS-3902, TCS-5612, TCS-3225, TCS-3669, TCS-6930, TCS-2324, TCS-3331, TCS-4307.
+Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0542, TCS-0543, TCS-0541, TCS-0300, TCS-1221, TCS-1425, TCS-2730, TCS-2798, TCS-3788, TCS-4799, TCS-5825, TCS-0387, TCS-3647, TCS-3902, TCS-5612, TCS-3225, TCS-3669, TCS-2324, TCS-3331, TCS-4307.
 
 ## String algorithms and computational biology
 
