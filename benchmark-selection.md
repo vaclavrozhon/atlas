@@ -34,7 +34,7 @@ Previous prefix: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531.
 | 4 | [Is nonuniform TC⁰ strictly smaller than nonuniform NC¹?](index.html#TCS-6535) (TCS-6535) | Shallow threshold circuits | 97 | A flagship unresolved containment between basic circuit classes, with explicit complete problems and connections to arithmetic, algebraic automata theory, and lower-bound amplification. |
 | 5 | [The Berman–Hartmanis isomorphism conjecture](index.html#TCS-6534) (TCS-6534) | Structure of complete problems | 96 | A defining structural-complexity conjecture about the entire NP-complete degree, stronger than P≠NP and supported by substantial restricted-model theorems and oracle barriers. |
 
-Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-6535, TCS-0002, TCS-0015, TCS-0016, TCS-6534, TCS-6533, TCS-0004, TCS-0020, TCS-1056, TCS-0018, TCS-1054, TCS-6681, TCS-1278, TCS-3873, TCS-7129, TCS-7130, TCS-7131, TCS-7132.
+Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-6535, TCS-0002, TCS-0015, TCS-0016, TCS-6534, TCS-6533, TCS-0004, TCS-0020, TCS-1056, TCS-0018, TCS-1054, TCS-6681, TCS-3873, TCS-7129, TCS-7130, TCS-7131, TCS-7132.
 
 ## Algorithms
 
@@ -256,7 +256,7 @@ Previous prefix: TCS-6592, TCS-6593.
 | 1 | [Is k-Clique fixed-parameter tractable, equivalently FPT=W[1]?](index.html#TCS-6592) (TCS-6592) | Parameterized tractability | 99 | The defining unresolved tractability separation of parameterized complexity, with Clique as a precise and widely used complete problem. |
 | 2 | [Does deterministic 3-SAT have a positive optimal exponential rate?](index.html#TCS-6593) (TCS-6593) | Exact exponential algorithms | 98 | A foundational quantitative hardness hypothesis underlying exact, parameterized, graph, and geometric algorithm lower bounds. |
 
-Candidates considered: TCS-6592, TCS-6593, TCS-6594, TCS-6660, TCS-0766, TCS-0769, TCS-0787, TCS-0079.
+Candidates considered: TCS-6592, TCS-6593, TCS-6594, TCS-6660, TCS-0787.
 
 ## Approximation algorithms and inapproximability
 
@@ -282,7 +282,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [The deterministic k-server conjecture](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational conjecture about online decision-making, with an optimal lower bound, one broadly applicable candidate algorithm, and a persistent gap on general metrics despite many resolved special cases. |
 | 2 | [A constant improvement over factor 2 for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0701, TCS-0702, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0713, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1691, TCS-1696, TCS-1891, TCS-2032, TCS-2048, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2862, TCS-2969, TCS-3005, TCS-3147, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3562, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5094, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5184, TCS-5186, TCS-5220, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5481, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-5888, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6837, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922, TCS-0925.
+Candidates considered: TCS-0700, TCS-0701, TCS-0702, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0713, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1691, TCS-1696, TCS-1891, TCS-2032, TCS-2048, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2862, TCS-2969, TCS-3005, TCS-3147, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5094, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5184, TCS-5186, TCS-5220, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5481, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-5888, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6837, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922, TCS-0925.
 
 ## Beyond worst-case and average-case analysis
 
@@ -347,7 +347,7 @@ Previous prefix: empty.
 | 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
 | 2 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
 
-Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6512, TCS-6509, TCS-6514, TCS-6502, TCS-1913, TCS-4997, TCS-5706, TCS-5758, TCS-5768, TCS-6290, TCS-6480, TCS-1783, TCS-5103, TCS-0956, TCS-1418, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-4799, TCS-5825.
+Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6512, TCS-6509, TCS-6514, TCS-6502, TCS-1913, TCS-4997, TCS-5706, TCS-5768, TCS-6290, TCS-6480, TCS-1783, TCS-5103, TCS-0956, TCS-1418, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-4799, TCS-5825.
 
 ## Dynamic algorithms
 
@@ -373,7 +373,7 @@ Previous prefix: TCS-6623, TCS-6624.
 | 1 | [Polynomial-sample worst-case trace reconstruction](index.html#TCS-6623) (TCS-6623) | Reconstruction from noisy strings | 96 | A defining worst-case recovery problem for synchronization noise, linking string algorithms, information theory, statistics and complex-analytic methods. |
 | 2 | [Constant-factor edit-distance approximation in O(n polylog n) time](index.html#TCS-6624) (TCS-6624) | Sequence distance algorithms | 95 | A central remaining precision–runtime boundary for edit distance, distinct from the established n^{1+ε} constant-factor algorithms and from exact-computation hardness. |
 
-Candidates considered: TCS-6623, TCS-6624, TCS-6669, TCS-6513, TCS-0467, TCS-0086, TCS-0468, TCS-0470, TCS-7220.
+Candidates considered: TCS-6623, TCS-6624, TCS-6669, TCS-6513, TCS-0467, TCS-0468, TCS-0470, TCS-7220.
 
 ## Game theory, social choice and fair division
 
@@ -477,7 +477,7 @@ Previous prefix: TCS-6562, TCS-6643.
 | 1 | [Are word equations with linear length constraints decidable?](index.html#TCS-6562) (TCS-6562) | Word equations with arithmetic | 97 | A longstanding decidability question at the intersection of formal languages, number-theoretic constraints and automated verification; even unrestricted termination is unknown, before asking for efficient algorithms. |
 | 2 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) (TCS-6643) | Modal unification | 94 | The basic unresolved decidability boundary in modal unification, already in the minimal normal modal logic. |
 
-Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-0169, TCS-0173, TCS-0176, TCS-6650, TCS-0306, TCS-7134, TCS-7135.
+Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-0169, TCS-0173, TCS-6650, TCS-0306, TCS-7134, TCS-7135.
 
 ## Database theory and finite model theory
 
