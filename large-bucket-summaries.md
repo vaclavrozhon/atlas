@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-977 five-sentence working summaries, based on saved source material.
+978 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (132)
@@ -4348,7 +4348,7 @@ Robust low-rank approximation measures reconstruction error by the sum of absolu
 [Read in atlas](index.html#TCS-7008) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Geometry, topology and metric spaces (116)
+## Geometry, topology and metric spaces (117)
 
 ### TCS-6523 — Does every isotropic log-concave measure have a dimension-free Poincaré constant?
 
@@ -4425,6 +4425,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Earth Mover Distance measures the cheapest transportation of one probability distribution into another across a planar grid. The problem asks how well this entire metric can be embedded into ℓ₁ while preserving every pairwise distance. Its parameter is the side length of the grid, and the target is the optimal dependence of distortion on that size. A single coordinate representation must accommodate many different transportation patterns. Understanding this loss would clarify the limits of treating geometric transport as ordinary coordinatewise comparison or sketching.
 
 [Read in atlas](index.html#TCS-6529) · [Research reference · www.weizmann.ac.il](https://www.weizmann.ac.il/math/gideon/sites/math.gideon/files/uploads/planar-earthmover.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7184 — The optimal complexity of Klee's measure problem in higher dimensions
+
+Klee’s measure problem asks for the volume covered by a union of axis-aligned boxes. Overlapping regions count once, and only the exact total volume is required. For each fixed dimension at least three, the question seeks matching worst-case time bounds in a specified arithmetic real-RAM model. Chan’s general upper bound is O(n^(d/2)), with no matching unconditional classification supplied by the checked later work. Recent approximation and dynamic advances answer different questions.
+
+[Read in atlas](index.html#TCS-7184) · [Klee's measure problem made easy](https://doi.org/10.1109/FOCS.2013.51) · [Approximating Klee’s Measure Problem and a Lower Bound for Union Volume Estimation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.SoCG.2025.25) · [Near-Optimal Dynamic Data Structures for Maximum Depth and Klee’s Measure of Boxes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.34)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0590 — Hill’s conjecture for the crossing number of complete graphs
