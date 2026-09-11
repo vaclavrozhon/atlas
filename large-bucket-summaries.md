@@ -3743,12 +3743,12 @@ Semi-supervised learners can exploit knowledge of the unlabeled input distributi
 [Read in atlas](index.html#TCS-1157) · [Relatively Smart: A New Approach for Instance-Optimal Learning](https://proceedings.mlr.press/v336/dughmi26a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1343 — If a concept class C is agnostically testably learnable with queries in time t over a distribution D, then it is agnostically testably learnable with […]
+### TCS-1343 — Can membership queries always be removed from agnostic testable learning?
 
-Testable learning couples prediction with a check of whether the data satisfy assumptions needed for a trustworthy accuracy guarantee. Membership queries let the learner choose additional inputs, potentially providing more information than random examples alone. The selected conjecture says that agnostic testable learning with queries can always be replaced by sample-only testable learning with polynomial overhead. The source proves related lower bounds through refutation, but a gap remains between that argument and a full equivalence of the two access models. Establishing the conjecture would show that testing the distributional assumptions largely removes the computational benefit of chosen-label queries in this framework.
+A testable learner must return a near-optimal predictor or reject data whose distribution it cannot safely handle. Membership queries let it choose extra inputs whose labels it wants to see. The conjecture says that independent labeled examples always suffice with only polynomial extra time. The source already relates query-based testable learning to ordinary learning, but ordinary learning does not include the required rejection guarantee. A resolution would establish whether testing the distributional assumption removes large speedups from chosen-label queries.
 
-[Read in atlas](index.html#TCS-1343) · [Limitations of Membership Queries in Testable Learning](https://doi.org/10.4230/LIPIcs.ITCS.2026.91)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1343) · [Limitations of Membership Queries in Testable Learning](https://doi.org/10.4230/LIPIcs.ITCS.2026.91) · [Limitations of Membership Queries in Testable Learning — full version](https://arxiv.org/abs/2512.02279v1)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1361 — We leave open √the problem of whether there is an efficient algorithm that uses n = Õ(dε2 κ2 ) samples when κ ⩽ d and […]
 
@@ -4517,25 +4517,25 @@ The Clifford hierarchy organizes quantum gates by how conjugation transforms sim
 [Read in atlas](index.html#TCS-1298) · [Characterization of Permutation Gates in the Third Level of the Clifford Hierarchy](https://doi.org/10.4230/LIPIcs.TQC.2026.2)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1324 — A proof of the quantum games PCP conjecture was claimed by [25], but it has since been established that the proof had errors, and as […]
+### TCS-1324 — Quantum games PCP with efficient honest provers and short messages
 
-The quantum games PCP conjecture seeks very short question-and-answer exchanges that verify quantum proofs using separated, potentially entangled provers. Both the verifier's questions and the provers' answers should have polylogarithmic length while retaining a constant completeness-soundness gap. The cited gap-amplification work suggests progress toward short questions but does not obtain equally short answers. Its discussion also notes that an earlier claimed proof contained errors, so that claim cannot serve as the resolution. The project asks how Hamiltonian gap amplification and nonlocal testing might be combined into a fully succinct quantum verification game.
+The question asks whether every quantum-verifiable problem has a short classical game with entangled provers. Both questions and answers must have polylogarithmic length, with a constant completeness–soundness gap. Honest provers must prepare their entanglement and answer in polynomial time given copies of a polynomial-size witness. Soundness must hold even against computationally unrestricted cheating provers. Existing unrestricted entangled proof systems and the source’s streaming Hamiltonian result do not establish this efficient-prover communication target.
 
-[Read in atlas](index.html#TCS-1324) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1324) · [Derandomised Tensor Product Gap Amplification for Quantum Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2026.15) · [The status of the quantum PCP conjecture (games version)](https://arxiv.org/abs/2403.13084v1)
+Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1341 — An important complexity-theoretic question is whether symmetric quantum circuits are universal for implementing symmetric operations: Given some finite group Γ, can we perform arbitrary Γ-symmetric […]
+### TCS-1341 — Are symmetric quantum circuits universal for every finite group action?
 
-A symmetry-preserving quantum operation commutes with the specified action of a group. This problem asks whether every such operation can be built from a circuit that respects the same symmetry in the paper's circuit model. The proposed universality should hold for an arbitrary finite symmetry group. The source establishes a permutation-symmetric case and distinguishes general universality from the separate cost of an implementation. A general answer would explain whether imposing symmetry throughout a computation loses expressive power compared with requiring it only of the final operation.
+A unitary can respect a symmetry even when a chosen gate decomposition does not. This question asks whether every symmetry-preserving unitary has a circuit whose layers themselves preserve the symmetry. The model permits threshold gates, arbitrary one-qubit gates and clean workspace that may also be permuted. Universality is known for independent full permutations within blocks, including the full permutation group. The open target is exact full-space implementation for every finite group action, without a size or depth bound.
 
-[Read in atlas](index.html#TCS-1341) · [Symmetric Quantum Computation](https://doi.org/10.4230/LIPIcs.ITCS.2026.35)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1341) · [Symmetric Quantum Computation](https://doi.org/10.4230/LIPIcs.ITCS.2026.35) · [Symmetric quantum computation — full version](https://arxiv.org/abs/2501.01214v2)
+Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1342 — We leave it is an interesting open problem to come up with an algorithms – even ones that run in subexponential time – for cloning […]
+### TCS-1342 — Cloning random-circuit states without first learning their circuits
 
-Random quantum circuits produce states that may be difficult to learn from a limited supply of copies. This question asks for an approximate cloning algorithm that makes additional useful copies without first reconstructing the circuit description. The source explicitly considers even subexponential running time as a meaningful algorithmic target. Learning-based approaches can perform poorly in the fidelity regime of interest, so a direct copying strategy could reveal a different computational mechanism. Understanding that possibility would clarify the computational hardness assumptions used in cryptographic applications of hard-to-learn quantum states.
+An unknown random circuit prepares a quantum state, and the algorithm receives only polynomially many copies of that state. The task is to output one more copy while keeping the whole joint output close to the desired tensor product. Universal cloning has global fidelity (k+1)/(2ⁿ+k), which is exponentially small for polynomially many input copies. The source asks whether circuit structure permits better direct cloning, even in subexponential time. A concrete circuit ensemble, fidelity and success target, and comparison with learning-based algorithms still need to be specified.
 
-[Read in atlas](index.html#TCS-1342) · [The Hardness of Learning Quantum Circuits and Its Cryptographic Applications](https://doi.org/10.4230/LIPIcs.ITCS.2026.56)
+[Read in atlas](index.html#TCS-1342) · [The Hardness of Learning Quantum Circuits and Its Cryptographic Applications](https://doi.org/10.4230/LIPIcs.ITCS.2026.56) · [Optimal cloning of pure states](https://doi.org/10.1103/PhysRevA.58.1827)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1490 — Our protocol moreover relies on the no-PE assumption for soundness; if malicious provers are allowed to share unbounded prior entanglement, known techniques for instantaneous non-local […]

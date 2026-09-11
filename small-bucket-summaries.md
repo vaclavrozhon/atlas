@@ -5284,11 +5284,11 @@ The Ingleton expression is a linear combination of entropies associated with a c
 [Read in atlas](index.html#TCS-0205) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1337 — However, it remains an open problem to design a list decoding algorithm for any subclasses of Reed–Solomon codes capable of correcting adversarial errors beyond the […]
+### TCS-1337 — Efficient Reed–Solomon list decoding beyond the Johnson radius
 
-Reed–Solomon list decoding seeks all low-degree polynomials agreeing sufficiently often with a corrupted evaluation word. The cited source asks for an algorithm for some subclasses that corrects adversarial errors beyond a specified bound. Adversarial errors may concentrate in the positions most damaging to a particular algebraic decoding strategy. An algorithm in that regime would strengthen effective decoding beyond guarantees obtained under more structured error models. The excerpt truncates the radius threshold, so the paper's semi-adversarial results should not be treated as already meeting the stronger adversarial target.
+Reed–Solomon codes encode a polynomial by its values at distinct field points. The source asks for efficient list decoding under fully adversarial errors beyond n−√(nk) errors. A small possible list does not by itself give an algorithm for finding it. The paper’s semi-adversarial results rely on randomness in part of the corruption and do not supply the desired worst-case guarantee. The asymptotic family, rate and size of the radius improvement still need to be fixed to exclude trivial small-message families.
 
-[Read in atlas](index.html#TCS-1337) · [Unique Decoding of Reed–Solomon and Related Codes for Semi-Adversarial Errors](https://doi.org/10.4230/LIPIcs.ICALP.2026.43)
+[Read in atlas](index.html#TCS-1337) · [Unique Decoding of Reed–Solomon and Related Codes for Semi-Adversarial Errors](https://doi.org/10.4230/LIPIcs.ICALP.2026.43) · [Unique Decoding of Reed-Solomon and Related Codes for Semi-Adversarial Errors — version record](https://arxiv.org/abs/2504.10399v3)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1444 — Can we find suitable choices to improve the MRRW bound?
