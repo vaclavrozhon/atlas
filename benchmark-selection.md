@@ -11,14 +11,15 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 497 | 3 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 982 | 18 |
+| [Top 500](index.html?benchmark=top500) | 500 | 498 | 2 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 985 | 15 |
 
 ## Unfilled places
 
-- top500: Miscellaneous has 7/10 places.
-- top1000: Cryptography has 45/50 places.
-- top1000: Miscellaneous has 7/20 places.
+- top500: Miscellaneous has 8/10 places.
+- top1000: Sampling, Markov chains and mixing times has 19/20 places.
+- top1000: Differential privacy has 18/20 places.
+- top1000: Miscellaneous has 8/20 places.
 
 ## Computational complexity
 
@@ -66,7 +67,7 @@ Previous prefix: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563.
 | 4 | [Decidability of every level of the dot-depth hierarchy](index.html#TCS-6561) (TCS-6561) | Logical language hierarchies | 95 | A longstanding structural decision problem linking finite automata, logical definability and finite monoids; a full solution would explain much more than the known low-level algorithms. |
 | 5 | [Equivalence of deterministic macro tree transducers](index.html#TCS-6563) (TCS-6563) | Tree-transducer equivalence | 95 | A central longstanding transducer-equivalence problem, connecting functional program verification with finite-state methods, algebraic invariants and structural recursion. |
 
-Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0139, TCS-0121, TCS-0146, TCS-0484, TCS-0135, TCS-0156, TCS-0167, TCS-0136.
+Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0139, TCS-0121, TCS-0146, TCS-0135, TCS-0156, TCS-0167, TCS-0136.
 
 ## Semantics, logic and verification
 
@@ -98,7 +99,7 @@ Previous prefix: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555.
 | 4 | [Distributed Lovász Local Lemma in O(log log n) rounds](index.html#TCS-6554) (TCS-6554) | Local distributed symmetry breaking | 94 | A canonical obstacle to resolving local conflicts rapidly, with consequences for many distributed graph algorithms. |
 | 5 | [Optimal exact single-source shortest paths in CONGEST](index.html#TCS-6555) (TCS-6555) | Bandwidth-limited distributed paths | 94 | A basic distributed graph primitive with an unresolved gap between algorithms and communication lower bounds. |
 
-Candidates considered: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555, TCS-6557, TCS-6507, TCS-0522, TCS-6499, TCS-6505, TCS-6506, TCS-0513, TCS-0514, TCS-0998, TCS-0515.
+Candidates considered: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555, TCS-6557, TCS-6507, TCS-0522, TCS-6499, TCS-6505, TCS-6506, TCS-0514, TCS-0998, TCS-0515.
 
 ## Optimization and numerical computation
 
@@ -282,7 +283,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [The deterministic k-server conjecture](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational conjecture about online decision-making, with an optimal lower bound, one broadly applicable candidate algorithm, and a persistent gap on general metrics despite many resolved special cases. |
 | 2 | [A constant improvement over factor 2 for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0701, TCS-0702, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0713, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1696, TCS-1891, TCS-2032, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2969, TCS-3005, TCS-3147, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5094, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5184, TCS-5186, TCS-5220, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5481, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-5888, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6837, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922, TCS-0925.
+Candidates considered: TCS-0700, TCS-0701, TCS-0705, TCS-0708, TCS-0709, TCS-0710, TCS-0711, TCS-0712, TCS-0715, TCS-0716, TCS-0717, TCS-0718, TCS-0917, TCS-1215, TCS-1241, TCS-1290, TCS-1529, TCS-1634, TCS-1696, TCS-1891, TCS-2070, TCS-2267, TCS-2460, TCS-2812, TCS-2831, TCS-2969, TCS-3005, TCS-3302, TCS-3314, TCS-3392, TCS-3455, TCS-3486, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-4985, TCS-5004, TCS-5030, TCS-5124, TCS-5126, TCS-5158, TCS-5182, TCS-5186, TCS-5220, TCS-5221, TCS-5252, TCS-5349, TCS-5418, TCS-5514, TCS-5515, TCS-5747, TCS-5779, TCS-6193, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6834, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
 
 ## Beyond worst-case and average-case analysis
 
@@ -347,7 +348,7 @@ Previous prefix: empty.
 | 1 | [Are splay trees dynamically optimal?](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
 | 2 | [An explicit static problem requiring superlogarithmically many cell probes](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
 
-Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6512, TCS-6509, TCS-6514, TCS-6502, TCS-1913, TCS-4997, TCS-5706, TCS-5768, TCS-6290, TCS-6480, TCS-1783, TCS-5103, TCS-0956, TCS-1418, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-4799, TCS-5825.
+Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6512, TCS-6509, TCS-6514, TCS-6502, TCS-4997, TCS-5706, TCS-5768, TCS-6290, TCS-6480, TCS-1783, TCS-5103, TCS-0956, TCS-1418, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-4799, TCS-5825.
 
 ## Dynamic algorithms
 
@@ -360,7 +361,7 @@ Previous prefix: TCS-6625, TCS-6626.
 | 1 | [Deterministic fully dynamic connectivity with polylogarithmic worst-case updates](index.html#TCS-6625) (TCS-6625) | Dynamic connectivity | 97 | A foundational dynamic-graph frontier directly relevant to data structures, with a new randomized breakthrough and an explicit remaining deterministic bottleneck. |
 | 2 | [Fully dynamic near-optimal matching with polylogarithmic updates](index.html#TCS-6627) (TCS-6627) | Dynamic matching | 95 | A central dynamic graph problem connecting approximation, explicit solution maintenance and extremal induced-matching structure. |
 
-Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0542, TCS-0543, TCS-0541, TCS-0300, TCS-1221, TCS-1425, TCS-2730, TCS-2798, TCS-3788, TCS-4799, TCS-5825, TCS-0387, TCS-3647, TCS-3902, TCS-5612, TCS-3669, TCS-2324, TCS-3331, TCS-4307.
+Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0542, TCS-0543, TCS-0541, TCS-0300, TCS-1425, TCS-2730, TCS-2798, TCS-3788, TCS-4799, TCS-5825, TCS-0387, TCS-3647, TCS-3902, TCS-5612, TCS-3669, TCS-2324, TCS-3331, TCS-4307.
 
 ## String algorithms and computational biology
 
@@ -451,7 +452,7 @@ Previous prefix: TCS-6631, TCS-0506.
 | 1 | [Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) (TCS-6673) | Private continual counting | 94 | The saved target asks for optimal worst-time error when releasing every prefix sum under pure differential privacy. It complements sample-complexity bounds for private learning with a fundamental sequential data-release problem. |
 
-Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507, TCS-0508, TCS-6451.
+Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507, TCS-6451.
 
 ## Constraint satisfaction
 
