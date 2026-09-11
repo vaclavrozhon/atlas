@@ -1,0 +1,687 @@
+                                                        Improved Truthful Mechanisms for Subadditive
+                                                    Combinatorial Auctions: Breaking the Logarithmic Barrier
+                                                             Sepehr Assadi∗           Thomas Kesselheim†             Sahil Singla‡
+arXiv:2010.01420v1 [cs.GT] 3 Oct 2020
+
+
+
+
+                                                                                           Abstract
+                                                    We present a computationally-efficient truthful mechanism for combinatorial auctions with
+                                                subadditive bidders that achieves an O((loglog m)3 )-approximation to the maximum welfare in
+                                                expectation using O(n) demand queries; here m and n are the number of items and bidders,
+                                                respectively. This breaks the longstanding logarithmic barrier for the problem dating back to
+                                                the O(log m · loglog m)-approximation mechanism of Dobzinski from 2007. Along the way, we
+                                                also improve and considerably simplify the state-of-the-art mechanisms for submodular bidders.
+
+
+
+                                        Contents
+
+                                        1 Introduction                                                                                               2
+
+                                        2 Preliminaries                                                                                              4
+                                              2.1    Subadditive Valuation Functions . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       4
+                                              2.2    Good Prices for Subadditive Bidders . . . . . . . . . . . . . . . . . . . . . . . . . . .       5
+                                              2.3    A Fixed-Price Auction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     5
+
+                                        3 The Binary-Search Mechanism                                                                                5
+                                              3.1    Existence of Good Candidate Prices . . . . . . . . . . . . . . . . . . . . . . . . . . .        6
+                                              3.2    Binary Search on the Candidate Prices . . . . . . . . . . . . . . . . . . . . . . . . . .       6
+
+                                        4 The Analysis                                                                                               8
+
+                                        5 Removing the Extra Assumption                                                                             10
+
+                                        6 Concluding Remarks and Open Problems                                                                      11
+
+
+
+                                          ∗
+                                             (sepehr.assadi@rutgers.edu) Department of Computer Science, Rutgers University.
+                                          †
+                                             (thomas.kesselheim@uni-bonn.de) Institute of Computer Science, University of Bonn.
+                                           ‡
+                                             (singla@cs.princeton.edu) Department of Computer Science at Princeton University and School of Mathematics
+                                        at Institute for Advanced Study. Supported in part by the Schmidt Foundation.
+
+
+                                                                                               1
+1        Introduction
+In a combinatorial auction, m items in M are to be allocated to n bidders in N who have valuations
+for bundles of items. Each bidder i ∈ N has a valuation function vi : : 2M → R+ that describes
+their value vi (S) for any bundle S of items. The goal is to design a mechanism that finds an
+allocation A = (A1 , . . . , An ) of the items to the bidders so as to maximize the social welfare defined
+as Welfare(A) := i∈N vi (Ai ). We need the mechanisms to be computationally efficient in that they
+                  P
+
+run in poly(m, n) time given proper query access to the valuations of bidders, namely, value queries
+and demand queries (see §2 for definitions). Mechanisms should also take into account the strategic
+behavior of the bidders. A mechanism in which the dominant strategy of each bidder is to reveal
+their true valuation in response to given queries is called truthful. For randomized mechanisms, we
+consider universally truthful mechanisms which are simply distributions over truthful mechanisms.
+   A central question of Algorithmic Mechanism Design is to understand the inherent clash between
+computational-efficiency and truthfulness for combinatorial auctions (see, e.g. [DNS06, ABDR12,
+FKV17, MN08, DV11, Dob07, Dob16a, AS19, AKSW20]). On one hand, the celebrated VCG
+mechanism of Vickrey, Clarke, and Groves [Vic61, Cla71, G+ 73] is a truthful mechanism that returns
+the welfare maximizing allocation but requires exponential time for most classes of valuations.
+On the other hand, constant factor approximation algorithms exist for many interesting classes of
+valuations, but they are not truthful. Are there mechanisms that are both computationally efficient
+and truthful while still matching the performance of these algorithms?
+    A particularly interesting case of this question is when the bidders’ valuations are subadditive 1 .
+This captures the property that items are not complementary in that they will not become more
+valuable together than apart, a natural and important property in many contexts. Moreover, sub-
+additive valuations encompass various other valuation classes of interest as special cases, e.g., XOS,
+submodular, and gross substitute valuations (see [LLN06] for definitions and significance of these
+classes in the context of combinatorial auctions). Finding a welfare maximizing allocation with sub-
+additive bidders is not possible in polynomial time [DNS05], and thus VCG is not a computationally
+efficient mechanism for this problem. However, from a purely algorithmic perspective, there is a
+poly-time 2-approximation algorithm for subadditive combinatorial auctions due to Feige [Fei06],
+                           log m
+improving upon the O( loglog    m ) approximation algorithm of Dobzinski et.al. [DNS05].
+   The state-of-the-art truthful and computationally efficient mechanisms for subadditive com-
+binatorial auctions are lagging considerably behind. The first such mechanism was obtained by
+                                                       √
+Dobzinski, Nisan, and Schapira and achieves an O( m)-approximation [DNS05]. This was soon
+after improved by Dobzinski in [Dob07] to an O(log m loglog m) approximation. Breaking this log-
+arithmic barrier however has remained elusive for way over a decade now. In the meantime, the
+special case of this problem with submodular (and even XOS) valuations has witnessed tremendous
+                                                                                           √
+progress: a long line of work in [DNS06, Dob07, KV12, Dob16a, AS19] culminated in an O( log m)-
+approximation mechanism of Dobzinski [Dob16a] that finally broke this logarithmic barrier, and was
+subsequently improved by the first and the last authors to an O((loglog m)3 )-approximation [AS19].
+These results fall short of addressing subadditive valuations due to the known Θ(log m)-gap for ap-
+proximating subadditive valuations via XOS valuations2 . Indeed, to quote [Dob16a]: “A logarithmic
+factor loss seems inevitable with this approach [i.e., combining [Dob07] with [Dob16a] (and [AS19]
+also)]. Breaking the logarithmic barrier also for subadditive valuations looks challenging”.
+    1
+        A valuation v(·) is subadditive if for all A, B ⊆ M , we have v(A ∪ B) ≤ v(A) + v(B).
+    2
+        A valuation v ′ (·) γ-approximates another valuation v(·) if for all S ⊆ M , we have v(S) ≤ v ′ (S) ≤ γ · v(S).
+
+
+                                                               2
+Our Result. We present a new mechanism that breaks the logarithmic barrier on the approxi-
+mation ratio of subadditive combinatorial auctions, all the way to a polyloglog(m) factor.
+
+  Main Result. There exists a universally truthful mechanism for combinatorial auctions with
+  subadditive bidders that achieves an O((loglog m)3 )-approximation to the social welfare in
+  expectation using at most n value and demand queries.
+
+   Our result matches the state-of-the-art for the special case of submodular (and XOS) valua-
+tions [AS19] and unifies the previous two lines of work on subadditive and submodular valuations.
+Furthermore, our approach considerably simplifies the previously best mechanism of [AS19], and
+improves it from O((loglog m)3 )-approximation to O((loglog m)2 )-approximation (Theorem 2).
+Our Techniques. Our starting point is the prior work on the existence of “good” prices for XOS
+(hence also for submodular) [FGL15, Dob07] and subadditive valuations [DKL20]; these prices are
+such that a fixed-price auction (FPA) on these prices results in an O(1)-approximation of welfare
+for XOS and O(loglog m)-approximation for subadditive bidders. The catch with these prices is
+that one needs prior knowledge of the (probability distributions of the) valuations, which we cannot
+assume. The goal in all truthful mechanisms in this line of work [DNS06, Dob07, KV12, Dob16a,
+AS19] is therefore to obtain “some estimates” on these prices and then allocate items using a FPA
+with these estimates. This is similarly the case for our mechanism.
+   For now, let us assume that these good prices belong to the set {1, 2, 4, 8, . . . , poly(m)} of
+O(log m) different prices; this assumption captures the essence of the problem and can be removed
+using standard ideas. To find a price for every item, our mechanism narrows down the choice of
+candidate prices for each item in multiple rounds. In particular, in each of these rounds, either the
+upper or the lower half of all candidate prices for an item are eliminated similar to a binary search.
+We do this by picking for each item, the price right in the middle of its remaining candidate prices,
+and then running one FPA on all items but involving only a subset of bidders. This FPA should
+mostly be seen as a “practice run”. For all items that are sold, we eliminate the lower half of the
+prices, and for the remaining items, we eliminate the upper half. After O(loglog m) rounds, only
+one price remains per item, which is then used in the last round’s FPA. There is one further caveat
+though: Any FPA to narrow down the set of candidate prices is not necessarily a practice run. With
+a certain probability, they determine already the final allocation. This is necessary to compensate
+that the mechanism may not necessarily be able to “learn” the correct prices. By ensuring that
+each bidder takes part in only one of these FPAs, the mechanism is immediately truthful because
+no bidder can actually influence their own price menu.
+    Our mechanism can be considered as a simplified version of the price-learning mechanism
+in [AS19], which involved using multiple prices for an item in each round to learn the final prices.
+Our analysis approach, however, is entirely different from the one in [AS19]. It is significantly
+simpler while also improving the approximation guarantee for XOS bidders. But more importantly,
+it allows us to work with the prices guaranteed for subadditive valuations in [DKL20], which are
+“less robust” than the ones for XOS valuations3 .
+   3
+     For instance, XOS prices have the property that even if only a subset of items are assigned their correct prices,
+a FPA results in a welfare at least as large as the prices of these correctly-priced items. Such a guarantee is crucially
+used in [AS19] as not all prices can be learned correctly and thus one needs to be able to consider only the items
+with correctly learned prices. However, subadditive prices from [DKL20] do not necessarily satisfy this guarantee.
+
+
+
+                                                           3
+    The analysis in [AS19] tracks the progress of the mechanism in every round. It is shown that
+in each round, the mechanism can either refine the learned prices significantly for most items
+(“Learnable”), or the intermediate FPAs already give a high-welfare allocation (“Allocatable”).
+Thus, one way or another, the mechanism guarantees a sufficiently large welfare. Unfortunately,
+maintaining such a guarantee for the case of subadditive bidders does not seem possible due to the
+different nature of prices for XOS versus subadditive valuations.
+    Our new analysis gives no guarantee for any particular round. Instead, we lower-bound the
+the expected utility of each bidder plus the revenue obtained from selling the optimal items for
+this bidder in the final outcome (not necessarily to this bidder)—it is easy to see that sum of this
+quantity for all bidders lower-bounds the welfare. At the same time, we show that this quantity
+is not much less than the optimal welfare contribution of this bidder. To this end, we trace every
+item individually through the rounds. Effectively, one of these cases has to take place: Maybe the
+item reaches its intended final price, which means it will contribute in the last round’s FPA. Or
+maybe the intended price gets eliminated in some round, which means that the item is either not
+sold at a smaller price, or it is sold at a higher price than the intended one. If the item is not sold
+at a smaller price, we argue that the bidder who gets this item in the optimal allocation could buy
+it in the respective round (bidders are assigned to different rounds randomly). If the item is sold
+at a higher price, we argue that we obtain enough revenue from the item. Due to subadditivity, we
+are able to combine the contribution of all these different rounds and conclude the analysis.
+Further Related Work. The question that whether or not computationally efficient and truthful
+mechanisms can match the performance of algorithms has been studied extensively in the litera-
+ture. For mechanisms that only use value queries, the answer is no: algorithms that use only
+poly(m, n) many value queries can only achieve an mΩ(1) -approximation [PSS08, Dob11, DV11,
+DV12, DV12, DSS15] even for submodular valuations, while O(1)-approximation algorithms are
+known for these valuations [LLN06, Von08, FV06]. However, these impossibility results no longer
+apply to mechanisms that are allowed other types of queries, in particular, demand queries. This has
+led the researchers to study the communication complexity of this problem that capture arbitrary
+queries [Nis00, BN02, DNS05, NS06, DV13, DNO14, Dob16b, Ass17, BMW18, EFN+ 19, AKSW20].
+The only known separation between communication complexity of truthful mechanism vs. arbitrary
+algorithms was very recently established in [AKSW20], building on a characterization of truthful
+mechanisms in [Dob16b] (see also [BMW18, EFN+ 19] for earlier attempts based on [Dob16b]).
+
+2     Preliminaries
+Notation. We denote by N the set of n bidders and by M the set of m items. We use bold-face
+letters to denote vectors of prices and capital letters for allocations. For a price vector p and a set
+of items M ′ ⊆ M , we define p(M ′ ) := e∈M ′ pe . Let (S1⋆ , . . . , Sn⋆ ) denote the optimal allocation
+                                          P
+
+that maximizes the welfare. Note that this allocation partitions the items M .
+2.1   Subadditive Valuation Functions
+We make the standard assumption that valuation vi of each bidder i is normalized, i.e., vi (∅) = 0,
+and is monotone, i.e., vi (S) ≤ vi (T ) for every S ⊆ T ⊆ M . We are interested in the case when
+bidders valuations are subadditive and hence capture the notion of “complement free” valuations.
+A valuation v is subadditive if v(S ∪ T ) ≤ v(S) + v(T ) for any S, T ⊆ M .
+
+
+
+                                                   4
+Query access to valuations. Since valuations have size exponential in m, a common assumption
+is that valuations are specified via certain queries instead, in particular, value queries and demand
+queries. A value query to valuation v on bundle S reveals the value of v(S). A demand query
+specifies a price vector p on items and the answer is the “most demanded” bundle under this
+pricing, i.e., a bundle S ∈ argmaxS ′ {v(S ′ ) − p(S ′ )}.
+2.2   Good Prices for Subadditive Bidders
+Our mechanism crucially uses the following prices of [DKL20].
+Lemma 2.1 ([DKL20]). Given any set of items U ⊆ M and valuation v : 2M → R+ , there is a
+                                                      |U |
+distribution λ over item sets S ⊆ U and prices q⋆ ∈ R≥0 such that for any T ⊆ U , we have
+                                                       1
+                              λS v(S \ T ) − q⋆ (S) ≥      · v(U ) − q⋆ (T ).
+                          X
+
+                         S⊆U
+                                                        α
+Here, if valuation v is subadditive then α = O(loglogm) and if v is XOS then α = O(1).
+
+   The primary challenge in using the prices of [DKL20] is that they may not be robust to losing a
+fraction of items. Indeed, our mechanism can at best hope to learn prices of only a fraction of the
+items, but Lemma 2.1 loses additively for any such lost items.
+2.3   A Fixed-Price Auction
+We use a standard fixed-price auction as a subroutine in our mechanism. For an ordered set N of
+bidders, M of items, and a price vector p, define FixedPriceAuction(N, M, p) as follows.
+
+    FixedPriceAuction(N, M, p)
+
+      1. Iterate over the bidders i of the ordered set N in the given order:
+          (a) Allocate Ai ∈ argmaxS⊆M {vi (S) − p(S)} to bidder i and update M ← M \ Ai .
+
+      2. Return the allocation A = (A1 , . . . , An ).
+
+   It is easy to see that FixedPriceAuction can be implemented using one demand query per
+bidder. Its truthfulness is also easy to check as bidders have no influence on the pricing mechanism.
+Utility and revenue. For a FixedPriceAuction, we denote the utility of any bidder i ∈ N by
+Utilityi := vi (Ai ) − p(Ai ). For any set S ⊆ M of items, we denote the revenue obtained by selling
+items in S by Rev(S) := e∈S pe · 1e is allocated . This implies that the total welfare i∈N vi (Ai ) of
+                             P                                                        P
+
+a FixedPriceAuction equals i∈N Utilityi + Rev(M ).
+                                  P
+
+
+3     The Binary-Search Mechanism
+In this section, we design our mechanism under the assumption that we have a rough estimate
+of the scale of valuation functions. Formally, let us assume that we are given an estimate ψ for
+the value maxi vi (M ). Simply asking the bidders for this value would lead to complex incentive
+issues, but the assumption can be removed using common sampling techniques from algorithmic
+mechanism design, which we give in §5 for completeness.
+   The idea of our mechanism is to find a good price for every item. The knowledge of ψ helps
+in the following way. Observe that pricing an item above ψ will be unreasonable since no bidder
+
+                                                     5
+would be willing to buy it. At the same time, items that are only bought if they have a “tiny” value
+compared to ψ are not important for social welfare. Such considerations lead to the observation
+that we can restrict our attention to a small set B of O(log m) candidate prices (Observation 3.1).
+   Based on this set of candidate prices, we design our binary-search mechanism in §3.2. For every
+item, we run a binary-search procedure of log2 |B| = O(loglog m) rounds. In each round, half of
+the candidate prices are eliminated, which leaves us with a unique price for each item in the end.
+3.1      Existence of Good Candidate Prices
+As a first step, we observe that given ψ it is enough to restrict our attention to a small number of
+candidate prices. More precisely, we derive a set of O(log m) prices, which are good in the sense
+that Lemma 2.1 still applies approximately if we restrict to these prices. The reason is that neither
+very high nor very low prices are important, and that it is okay to round prices to powers of 2. The
+following observation follows easily from Lemma 2.1.
+
+Observation 3.1. For a given ψ, define B := {0, 2−3⌈log 2 m⌉ ψ, 21−3⌈log 2 m⌉ ψ, . . . , 2−1 ψ} to be a set
+of 3⌈log2 m⌉ candidate prices. Now for any set of items U ⊆ M and any bidder i ∈ N , if vi (U ) ≤ ψ
+then there exist a distribution λ over item sets S ⊆ U and prices q ∈ B |U | such that for any T ⊆ U ,
+                        X                           1                      ψ
+                            λS vi (S \ T ) − q(S) ≥     · vi (U ) − 2q(T ) − 2 .
+                       S⊆U
+                                                      α                     m
+Here, if valuation vi is subadditive then α = O(loglog m) and if vi is XOS then α = O(1).
+
+   Note that the statement requires ψ to be at least vi (U ). If ψ is in the order of vi (U ), then the
+negative term mψ2 gets negligible. The higher ψ becomes, the weaker is the bound.
+Proof of Observation 3.1. We obtain qe by rounding qe⋆ from Lemma 2.1 to the next smaller number
+in B. Note that this is always possible because 0 is contained in B. We can assume without loss of
+generality that qe⋆ ≤ vi (U ) ≤ ψ for all e that are contained in a set S in the support of λ because
+otherwise vi (S \T )−q(S) < vi (U )−vi (U ) = 0 for any set T . This would mean that the contribution
+of S to sum is always negative and one could shift the probability mass to the empty set. Overall,
+this means that for all relevant e, we have qe ≤ qe⋆ ≤ 2qe + mψ3 .
+   By the property due to Lemma 2.1,
+                                                                         
+                                                     λS vi (S \ T ) − q⋆ (S)
+          X                                    X
+                λS vi (S \ T ) − q(S)      ≥
+          S⊆U                                  S⊆U
+                                               1                           1                          ψ
+                                           ≥     · vi (U ) − q⋆ (T )   ≥     · vi (U ) − 2q(T ) − |U | 3 .
+                                               α                           α                          m
+The claim follows because |U | ≤ m.
+3.2      Binary Search on the Candidate Prices
+The mechanism takes ψ as input, that is, the (estimated) value of maxi vi (M ). Based on this,
+it computes the set of candidate prices B as described in Observation 3.14 . It then determines a
+single price from B for each item within β = log2 |B| rounds. This is done akin to binary search.
+So in each of the β rounds every item eliminates half of its candidate prices until it gets a unique
+price. This price is used for a fixed-price auction in the round β + 1.
+  4
+      We assume that |B| is a power of 2, by adding arbitrary numbers to B until reaching the closest power of 2.
+
+
+
+                                                           6
+   To perform the binary search, we partition the ordered set of bidders N into β + 1 groups
+                                                                (ℓ)
+N1 , . . . , Nβ+1 . In round ℓ ∈ [β], for each item e, let be denote the ordered vector of remaining
+                                     (ℓ)
+|B|/2ℓ−1 candidate prices. Let pe be the price exactly in the middle. We now try these prices in a
+fixed-price auction on the bidders in Nℓ . The outcome of this fixed-price auction is used to update
+                                         (ℓ+1)
+the prices, that is, to determine be           for all e. In particular, if one of the bidders in Nℓ buys e,
+                (ℓ+1)                                  (ℓ)                    (ℓ)
+we define be          to only contain prices from be that are at least pe . Otherwise, it only contain
+                               (ℓ)
+prices that are less than pe .
+   While the above procedure might reach the correct price of an item, it can also end up with
+completely wrong prices. However, as we show, if we choose a random one of the β + 1 fixed-prices
+auctions for the final allocation, the expected social welfare is sufficiently large.
+
+   BinarySearchMechanism(N, M, ψ)
+
+      1. Let B = {0, 2−3⌈log 2 m⌉ ψ, 21−3⌈log 2 m⌉ ψ, . . . , 2−1 ψ}.
+                       (1)
+      2. Initialize be       for all e ∈ M to contain all elements of B ordered increasingly.
+
+      3. For every i ∈ N draw ri independently uniformly from [β + 1], where ri denotes the
+         round in which bidder i participates. For any ℓ ∈ [β + 1], let Nℓ := {i | ri = ℓ} in
+         the same order as N .
+
+      4. Select a uniformly random final allocation round r ⋆ ∈ [β + 1].
+
+      5. For ℓ = 1 to β rounds:
+                                                          (ℓ)    (ℓ)                                     (ℓ)
+          (a) For every item e, define the price pe = be,k/2+1 , where k = |B|/2ℓ−1 and be =
+                 (ℓ)          (ℓ)
+               (be,1 , . . . , be,k ) is the vector of candidate prices for e;
+          (b) Run FixedPriceAuction(Nℓ , M, p(ℓ) ) and let A(ℓ) be the allocation;
+          (c) For every item e, if e is allocated in A(ℓ) , define remaining candidate prices
+               (ℓ+1)     (ℓ)                (ℓ)                          (ℓ+1)     (ℓ)            (ℓ)
+              be     = (be,k/2+1 , . . . , be,k ), and otherwise define be     = (be,1 , . . . , be,k/2 );
+          (d) If r ⋆ = ℓ then return A(ℓ) as the final allocation.
+                                                                        (β+1)
+      6. Run FixedPriceAuction(Nβ+1 , M, p(β+1) ), where pe                      in p(β+1) is the unique price
+             (β+1)
+         in be     , and return this as the final allocation.
+
+   We remark that BinarySearchMechanism can be implemented using one demand query per
+bidder. Its truthfulness is also easy to check as bidders have no influence on their prices since they
+appear in at most one FixedPriceAuction. The following theorem is our main technical result.
+
+Theorem 1. For a combinatorial auction with n subadditive bidders and m items, given ψ ≥
+maxi vi (M ), BinarySearchMechanism is universally truthful, uses at most n demand queries and
+polynomial time, and has expected welfare
+                                                  1                    ψ
+                                                            vi (Si⋆ ) − ,
+                                                          X
+                          E[Welfare] ≥                  2
+                                         2 · α · (β + 1) i             m
+where α = O(loglog m) for subadditive and α = O(1) for XOS valuations, and β = O(loglog m).
+
+
+                                                        7
+   In §5, we will show that ψ can be assumed to be order maxi vi (M ) without loss of generality,
+which, together with Theorem 1, immediately implies the desired O((loglog m)3 )-approximation for
+subadditive and O((loglog m)2 )-approximation for XOS (and submodular) valuations.
+
+4    The Analysis
+The proof of Theorem 1 will follow from the following proposition.
+
+Proposition 4.1. Consider any bidder i ∈ N and the case that ψ ≥ vi (Si⋆ ). Let r−i denote a
+vector containing ri′ for all i′ 6= i. Then, for any choices of r−i we have
+                                                                   1                   ψ
+                  Er⋆ ,ri [Utilityi + Rev(Si⋆ ) | r−i ] ≥                2
+                                                                           vi (Si⋆ ) − 2 ,
+                                                          2 · α · (β + 1)             m
+where Utility and Rev are defined for the FixedPriceAuction corresponding to the final allocation.
+
+   The proposition lower bounds for any bidder i the sum of their utility and the revenue generated
+from items in Si⋆ . Before proving it, let us finish the proof of Theorem 1.
+Proof of Theorem 1. Note that Proposition 4.1 holds for any fixed r−i . So, in particular, we can
+also take the expectation over r−i to bound the unconditional expectation by
+   h                   i              h                        i            1                   ψ
+ E Utilityi + Rev(Si⋆ ) = Er−i Er⋆ ,ri Utilityi + Rev(Si⋆ ) r−i ≥                 2
+                                                                                    vi (Si⋆ ) − 2 .
+                                                                   2 · α · (β + 1)             m
+   Since the item sets Si⋆ are pairwise disjoint and because welfare equals total utility plus total
+revenue, we get
+                                (Utilityi + Rev(Si⋆ )) ≥       (Utilityi + Rev(Si⋆ )) ,
+                            X                             X
+               Welfare =
+                                        i                                 i:Si⋆ 6=∅
+where we use non-negativity of utilities. So, in combination, by linearity of expectation, we get
+                                    h                    i
+                                   E Utilityi + Rev(Si⋆ )
+                        X
+    E[Welfare] ≥
+                       i:Si⋆ 6=∅
+                        X                    1                   ψ                            1                     ψ
+                                                                      
+                                                      vi (Si⋆ ) − 2                                      vi (Si⋆ ) −
+                                                                                                      X
+                  ≥                                                         ≥                                          ,
+                       i:Si⋆ 6=∅
+                                     2 · α · (β + 1)2            m                    2 · α · (β + 1)2 i             m
+where last inequality is because there are at most m choices of i for which Si⋆ 6= ∅.
+Proof of Proposition 4.1. For e ∈ Si⋆ , let qe denote the item prices given in Observation 3.1, which
+we think of as the correct price for e.
+   Let us observe what happens when we run the BinarySearchMechanism on all bidders except
+bidder i. Recall that we have already conditioned on arbitrary values of r−i . Further, if we condition
+on r ⋆ , there is no more randomness in the decisions of BinarySearchMechanism(N \ {i}, M, ψ).
+   For every item e ∈ Si⋆ , there are three possible scenarios depending on what happens to e in
+the execution of BinarySearchMechanism(N \ {i}, M, ψ), where we imagine running all the rounds
+even after the final allocation (alternately, think of what happens to e for r ⋆ = β + 1).
+     (β+1)
+(a) pe       = qe . That is, item e is eventually offered at the correct price.
+     (β+1)                                                                                                       (ℓ)
+(b) pe       > qe . That is, there is a level ℓ ∈ [β] for which e is allocated in Aℓ although pe > qe .
+     (β+1)                                                                                                         (ℓ)
+(c) pe       < qe . That is, there is a level ℓ ∈ [β] for which e is not allocated in Aℓ although pe ≤ qe .
+We partition the items Si⋆ based on which scenario takes place as follows.
+
+
+                                                             8
+   Let C ⊆ Si⋆ denote the set for which Scenario (a) takes place, i.e., these items are eventually
+                        (β+1)
+correctly priced with pe      = qe . Among them, let D ⊆ C be the items that are sold before the
+arrival of bidder i in FixedPriceAuction(Nβ+1 , M, p(β+1) ), assuming ri = β + 1.
+    For the remaining items Si⋆ \ C, we partition them based on these scenarios and at which level
+the first “incorrect” event happened. Let Oℓ ⊆ Si⋆ denote the set of oversold items which are sold at
+a higher price in Scenario (b), where ℓ is the smallest number such that e is allocated in Aℓ although
+ (ℓ)
+pe > qe . Analogously, let Uℓ ⊆ Si⋆ denote the set of undersold items e that in Scenario (c) in level
+ℓ. Note that all of the above sets are disjoint and their union is Si⋆ , i.e., Si⋆ = ∪· βℓ=1 (Uℓ ∪· Oℓ ) ∪· C.
+   The general structure of the proof is as follows. Let T = ∪· βℓ=1 Oℓ ∪· D denote the items that are
+sold on some level at a sufficiently high price. So, we will use their contribution to the revenue.
+For the remaining items in Si⋆ \ T in contrast, we will argue that bidder i could buy them at some
+point (depending on randomness ri and r ⋆ ). So, we will use their contribution to bidder i’s utility.
+   We first lower bound the expected revenue E[Rev(Si⋆ )].
+Claim 4.2. For any choice of r−i , we have
+                                                                  1
+                                Er⋆ ,ri [Rev(Si⋆ ) | r−i ] ≥            · q(T ) .
+                                                               (β + 1)2
+Proof. We will lower-bound the revenue for all possible values of ri and r ⋆ . If ri 6= β + 1, we use
+the trivial bound of Rev(Si⋆ ) = 0.
+   Next, if ri = β + 1 and r ⋆ = ℓ for any ℓ < β + 1, we know that that Aℓ is the final allocation.
+Moreover, the set Oℓ defined in BinarySearchMechanism(N \ {i}, M, ψ) remains the same even in
+the actual mechanism BinarySearchMechanism(N, M, ψ), as in the latter, bidder i “appears” after
+round ℓ. In this allocation, each item e ∈ Oℓ is sold at a price of at least qe . So Rev(Si⋆ ) ≥ q(Oℓ ).
+     Finally, if ri = β +1 = r ⋆ , the allocation is Aβ+1 . Here, each item e ∈ D is sold at a price at least
+qe , the same way in BinarySearchMechanism(N \ {i}, M, ψ) and BinarySearchMechanism(N, M, ψ),
+as in the latter, bidder i “appears” after the items in D are sold. So Rev(Si⋆ ) ≥ q(D).
+                                                                    1
+   Since every combination of ri and r ⋆ happens with probability (β+1)2 , we have
+
+                                                       β
+                                             1    X                                  1
+           Er⋆ ,ri [Rev(Si⋆ ) | r−i ] ≥                q(Oℓ ) + q(D)  =                      · q(T ) ,
+                                          (β + 1)2 ℓ=1                              (β + 1)2
+where the last equality uses that T is defined to be ∪· βℓ=1 Oℓ ∪· D.
+   Next we lower bound bidder i’s utility for an arbitrary set S ⊆ Si⋆ (the reason we bound this
+for all subsets of Si⋆ and not only Si⋆ itself is because the prices in Observation 3.1 and Lemma 2.1
+are accompanied by a distribution λ which may put different masses on different subsets of Si⋆ ).
+Claim 4.3. For any choice of r−i , and any arbitrary set S ⊆ Si⋆ , we have
+                                                 1                             
+                  Er⋆ ,ri [Utilityi | r−i ] ≥        2
+                                                       · vi (S \ T ) − q(S \ T ) .
+                                              (β + 1)
+Proof. To lower-bound the LHS, we will again consider all possible choices of ri and r ⋆ . First note
+that if ri 6= r ⋆ , then Utilityi = 0 because bidder i does not get any items in the final allocation.
+   Next, consider the case where ri = r ⋆ = ℓ < β + 1. In this case, bidder i can purchase items in
+the set Uℓ ∩ S by paying price at most q(Uℓ ∩ S) since these items are not sold in this round in the
+
+
+
+                                                           9
+absence of bidder i. Thus, in this case, the utility is lower-bounded by
+                                Utilityi ≥ vi (Uℓ ∩ S) − q(Uℓ ∩ S) .
+   Now consider the case where ri = β + 1 = r ⋆ . Since bidder i can purchase items in the set
+(C \ D) ∩ S by paying prices at most q((C \ D) ∩ S), the utility is this case is at least
+                         Utilityi ≥ vi ((C \ D) ∩ S) − q((C \ D) ∩ S) .
+                                                             1
+    Any combination of ri and r ⋆ happens with probability (β+1)2 . Therefore, we get
+
+                                          β                                                            β
+                                 1    X                                                     X            
+Er⋆ ,ri [Utilityi | r−i ] ≥                vi (Uℓ ∩ S) + vi ((C ∩ S) \ D) − q((C ∩ S) \ D) −     q(Uℓ ∩ S)
+                              (β + 1)2 ℓ=1                                                   ℓ=1
+                                 1                             
+                        ≥                vi (S \ T ) − q(S \ T )  ,
+                              (β + 1)2
+where the last inequality uses subadditivity of vi and that Si⋆ = ∪· βℓ=1 (Uℓ ∪· Oℓ ) ∪· C.
+    Since Utilityi ≥ 0 pointwise, we have Er⋆ ,ri [Utilityi | r−i ] ≥ 21 Er⋆ ,ri [Utilityi | r−i ] and so an
+                                                                                                                 
+                                                                                   1
+immediate implication of Claim 4.3 is that Er⋆ ,ri [Utilityi | r−i ] ≥ 2·(β+1)          2 vi (S \ T ) − q(S \ T ) .
+
+Combining this with Claim 4.2, we can lower bound the expected sum of revenue and utility by
+                                                          1                                       q(T )
+          Er⋆ ,ri [Utilityi + Rev(Si⋆ ) | r−i ] ≥              2
+                                                                  vi (S \ T ) − q(S  \  T  )  +             ,    (1)
+                                                    2 · (β + 1)                                   (β + 1)2
+for an arbitrary subset of items S ⊆ Si⋆ . Finally, we use Observation 3.1 to get
+                                                                              1                            ψ
+                                                                                     · vi (Si⋆ ) − 2 · q(T ) − 2 .
+   X                                           X
+        λS vi (S \ T ) − q(S \ T ) ≥                λS vi (S \ T ) − q(S) ≥
+  S⊆S ⋆                                       S⊆S ⋆
+                                                                                  α                           m
+       i
+                                                  Pi
+Combining this with Eq. (1) and using                  S⊆Si⋆ λS ≤ 1, we get
+                                                        1                                            q(T )
+      Er⋆ ,ri [Utilityi + Rev(Si⋆ ) | r−i ] ≥
+                                                                X
+                                                                     λS   vi (S \ T ) − q(S \ T )  +
+                                                  2 · (β + 1)2 S⊆S ⋆                                 (β + 1)2
+                                                                      i
+
+                                            1          1                           ψ                     q(T )
+                                                                                              
+                                              ≥    ·     · vi (Si⋆ ) − 2 · q(T ) − 2               +
+                                      2 · (β + 1)2     α                          m                    (β + 1)2
+                                            1        1                ψ
+                                   ≥             2
+                                                   · · vi (Si⋆ ) − 2 ,
+                                      2 · (β + 1) α                   m
+which completes the proof of this proposition.
+
+5     Removing the Extra Assumption
+We now remove the assumption on the knowledge of an upper bound ψ for maxi∈N vi (M ) and obtain
+our final mechanism. Simply asking the bidders for this value would lead to complex incentive issues,
+and thus, we instead apply a common sampling approach [DNS06, Dob07, Dob16a, AS19].
+
+Theorem 2. There is a universally truthful mechanism for combinatorial auctions with at most n
+demand and value queries and polynomial time that achieves an O((loglog m)3 )-approximation for
+subadditive and O((loglog m)2 )-approximation for XOS (and submodular) bidders, in expectation.
+
+Proof. The mechanism is as follows. We first independently add each bidder to the set Nsecond price
+with probability 21 . Then, we run a second-price auction, in which the grand bundle as a whole is
+assigned to the bidder in Nsecond price whose valuation vi (M ) is highest (using value queries). With
+probability 21 , this is the final allocation. Otherwise, we let ψ := maxi∈Nsecond price vi (M ), and run
+
+                                                             10
+BinarySearchMechanism(N \ Nsecond price , M, ψ) and allocate the items to bidders in N \Nsecond price
+accordingly. This mechanism is universally truthful and uses for each bidder only one demand or
+value query and polynomial time. Thus, it only remains to analyze its approximation ratio.
+   Let imax be a bidder i whose valuation for the grand bundle vi (M ) is maximum. In the following,
+we condition on imax ∈ Nsecond price , which happens with probability 21 . If imax 6∈ Nsecond price , we
+use that the social welfare is non-negative.
+   Due to our conditioning, the social welfare obtained in the second-price auction is always
+maxi vi (M ) = vimax (M ). Besides, we always have ψ = maxi vi (M ). Therefore, by Theorem 1,
+the expected social welfare obtained by BinarySearchMechanism(N \ Nsecond price , M, ψ) for a fixed
+Nsecond price (which contains imax ) is at least
+                         1               ⋆     ψ                   1                    vi (M )
+                                                                           · vi (Si⋆ ) − max
+      X                                                 X
+                               2
+                                 · vi (S i ) −   =                       2
+                                                                                                  .
+ i∈N \N
+                2 · α · (β + 1)                m   i∈N \N
+                                                          2 · α · (β + 1)                  m
+      second price                                        second price
+
+   Even when conditioning on imax ∈ Nsecond price , every i 6= imax is contained in Nsecond price with
+probability 21 . Therefore, taking the conditional expectation over Nsecond price , we get the following
+lower bound on the expected social welfare obtained by BinarySearchMechanism:
+                                      1                           vi (M )
+                                                       vi (Si⋆ ) − max
+                                                 X
+                                            2
+                                                                          .
+                             4 · α · (β + 1) i∈N \{i }               m
+                                                    max
+
+   Finally, the second-price auction and BinarySearchMechanism are each run with probability 12 .
+So, still conditioning on imax ∈ Nsecond price , the expected welfare of the final mechanism is at least
+                                                                        
+ 1             1          1                                 vi (M )                      1
+                                                 vi (Si⋆ ) − max                                     vi (Si⋆ ) .
+                                    X                                                             X
+   vimax (M ) +                2
+                                                                             ≥                  2
+ 2             2 4 · α · (β + 1) i∈N \{i       }
+                                                               m                 8 · α · (β + 1) i∈N
+                                         max
+
+As imax ∈ Nsecond price with probability 12 , the expected welfare of the mechanism is at least half
+the above bound. As β = O(loglog m) and α = O(loglog m) for subadditive and α = O(1) for XOS
+bidders, we obtain the final bound in the theorem.
+
+6    Concluding Remarks and Open Problems
+We gave a computationally-efficient and universally truthful mechanism for subadditive combi-
+natorial auctions that achieves an O((loglog m)3 )-approximation in expectation. This breaks the
+longstanding logarithmic barrier on the approximation ratio of such mechanisms for subadditive
+bidders dating back to the O(log m · loglog m) approximation mechanism of [Dob07]. Along the
+way, we also considerably simplified the previously best mechanism of [AS19] for submodular (and
+XOS) bidders, and improved its approximation ratio from O((loglog m)3 ) to O((loglog m)2 ).
+   The obvious question left open by our work is whether our bounds can be improved further.
+The limit of the recent “price learning” approaches for this problem on submodular or subadditive
+bidders in [Dob16a, AS19] and our work seems to be an Ω(loglog m) approximation; it is an inter-
+esting open question if we can improve our mechanisms to match this limit. However, the most
+fascinating open question in this line of work is to improve the approximation factor all the way
+down to a constant or alternatively prove that this is not possible. At this point, we do not even
+have a lower bound that rule out such possibility for deterministic mechanisms even though the best
+                                                                √
+deterministic mechanism for this problem only achieves an O( m) approximation [DNS06]. Thus,
+improving the lower bound techniques for this problem is another very interesting open question.
+
+
+                                                    11
+References
+[ABDR12] Ittai Abraham, Moshe Babaioff, Shaddin Dughmi, and Tim Roughgarden. Combinatorial auc-
+         tions with restricted complements. In Proceedings of EC, 2012. 2
+[AKSW20] Sepehr Assadi, Hrishikesh Khandeparkar, Raghuvansh Saxena, and Matthew Weinberg. Sepa-
+         rating the communication complexity of truthful and non-truthful combinatorial auctions. In
+         Proceedings of STOC, 2020. 2, 4
+[AS19]     Sepehr Assadi and Sahil Singla. Improved truthful mechanisms for combinatorial auctions with
+           submodular bidders. In Proceedings of FOCS, 2019. 2, 3, 4, 10, 11
+[Ass17]    Sepehr Assadi. Combinatorial auctions do need modest interaction. In Proceedings of EC, 2017.
+           4
+[BMW18] Mark Braverman, Jieming Mao, and S. Matthew Weinberg. On simultaneous two-player combi-
+        natorial auctions. In Proceedings of SODA, 2018. 4
+[BN02]     Liad Blumrosen and Noam Nisan. Auctions with severely bounded communication. In Proceed-
+           ings of FOCS, 2002. 4
+[Cla71]    Edward H Clarke. Multipart pricing of public goods. Public choice, 11(1):17–33, 1971. 2
+[DKL20]    Paul Dütting, Thomas Kesselheim, and Brendan Lucier. An o(log log m) prophet inequality for
+           subadditive combinatorial auctions. In Proceedings of FOCS (to appear), 2020. 3, 5
+[DNO14]    Shahar Dobzinski, Noam Nisan, and Sigal Oren. Economic efficiency requires interaction. In
+           Proceedings of STOC, 2014. 4
+[DNS05]    Shahar Dobzinski, Noam Nisan, and Michael Schapira. Approximation algorithms for combina-
+           torial auctions with complement-free bidders. In Proceedings of STOC, 2005. 2, 4
+[DNS06]    Shahar Dobzinski, Noam Nisan, and Michael Schapira. Truthful randomized mechanisms for
+           combinatorial auctions. In Proceedings of STOC, 2006. 2, 3, 10, 11
+[Dob07]    Shahar Dobzinski. Two randomized mechanisms for combinatorial auctions. In Proceedings of
+           APPROX and RANDOM, pages 89–103, 2007. 2, 3, 10, 11
+[Dob11]    Shahar Dobzinski. An impossibility result for truthful combinatorial auctions with submodular
+           valuations. In Proceedings of STOC, 2011. 4
+[Dob16a]   Shahar Dobzinski. Breaking the logarithmic barrier for truthful combinatorial auctions with
+           submodular bidders. In Proceedings of STOC, 2016. 2, 3, 10, 11
+[Dob16b]   Shahar Dobzinski. Computational efficiency requires simple taxation. In Proceedings of FOCS,
+           2016. 4
+[DSS15]    Amit Daniely, Michael Schapira, and Gal Shahaf. Inapproximability of truthful mechanisms via
+           generalizations of the VC dimension. In Proceedings of STOC, 2015. 4
+[DV11]     Shaddin Dughmi and Jan Vondrák. Limitations of randomized mechanisms for combinatorial
+           auctions. In Proceedings of FOCS, 2011. 2, 4
+[DV12]     Shahar Dobzinski and Jan Vondrák. The computational complexity of truthfulness in combina-
+           torial auctions. In Proceedings of EC, 2012. 4
+[DV13]     Shahar Dobzinski and Jan Vondrák. Communication complexity of combinatorial auctions with
+           submodular valuations. In Proceedings of SODA, 2013. 4
+[EFN+ 19] Tomer Ezra, Michal Feldman, Eric Neyman, Inbal Talgam-Cohen, and Matthew Weinberg. Set-
+          tling the communication complexity of combinatorial auctions with two subadditive buyers. In
+          Proceedings of FOCS, 2019. 4
+
+                                                  12
+[Fei06]   Uriel Feige. On maximizing welfare when utility functions are subadditive. In Proceedings of
+          STOC, 2006. 2
+[FGL15]   Michal Feldman, Nick Gravin, and Brendan Lucier. Combinatorial auctions via posted prices.
+          In Proceedings of SODA, 2015. 3
+[FKV17]   Dimitris Fotakis, Piotr Krysta, and Carmine Ventre. Combinatorial auctions without money.
+          Algorithmica, 77(3):756–785, 2017. 2
+[FV06]    Uriel Feige and Jan Vondrák. Approximation algorithms for allocation problems: Improving the
+          factor of 1 - 1/e. In Proceedings of FOCS, 2006. 4
+[G+ 73]   Theodore Groves et al. Incentives in teams. Econometrica, 41(4):617–631, 1973. 2
+[KV12]    Piotr Krysta and Berthold Vöcking. Online mechanism design (randomized rounding on the fly).
+          In Proceedings of ICALP. Springer, 2012. 2, 3
+[LLN06]   Benny Lehmann, Daniel J. Lehmann, and Noam Nisan. Combinatorial auctions with decreasing
+          marginal utilities. Games and Economic Behavior, 55(2):270–296, 2006. 2, 4
+[MN08]    Ahuva Mu’alem and Noam Nisan. Truthful approximation mechanisms for restricted combina-
+          torial auctions. Games and Economic Behavior, 64(2):612–631, 2008. 2
+[Nis00]   Noam Nisan. Bidding and allocation in combinatorial auctions. In Proceedings of EC, 2000. 4
+[NS06]    Noam Nisan and Ilya Segal. The communication requirements of efficient allocations and sup-
+          porting prices. J. Economic Theory, 129(1):192–224, 2006. 4
+[PSS08]   Christos H. Papadimitriou, Michael Schapira, and Yaron Singer. On the hardness of being
+          truthful. In Proceedings of FOCS, 2008. 4
+[Vic61]   William Vickrey. Counterspeculation, auctions, and competitive sealed tenders. The Journal of
+          finance, 16(1):8–37, 1961. 2
+[Von08]   Jan Vondrák. Optimal approximation for the submodular welfare problem in the value oracle
+          model. In Proceedings of STOC, 2008. 4
+
+
+
+
+                                                 13
+

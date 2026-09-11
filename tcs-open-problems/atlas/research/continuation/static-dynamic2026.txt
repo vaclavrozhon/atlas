@@ -1,0 +1,1934 @@
+                Electronic Colloquium on Computational Complexity, Report No. 47 (2026)
+
+
+
+
+       An Ω((log n/ log log n)2) Cell-Probe Lower Bound
+            for Dynamic Boolean Data Structures
+                                         Young Kun Ko
+
+Department of Computer Science and Engineering, Pennsylvania State University
+
+                                     Email: ykko@psu.edu
+
+
+                                         March 26, 2026
+
+
+                                              Abstract
+    We resolve the long-standing open problem of Boolean dynamic data structure hardness,
+proving an unconditional lower bound of Ω((log n/ log log n)2 ) for the Multiphase Problem of
+Pătraşcu [STOC 2010] (instantiated with Inner Product over F2 ). This matches the celebrated
+barrier for weighted problems established by Larsen [STOC 2012] and closes the gap left by the
+Ω(log1.5 n) Boolean bound of Larsen, Weinstein, and Yu [STOC 2018].
+    The previous barrier was methodological: all prior works relied on “one-way” communication
+games, where the inability to verify query simulations necessitated complex machinery (such as
+the Peak-to-Average Lemma) that hit a hard ceiling at log1.5 n.
+    Our key contribution is conceptual: We introduce a 2.5-round Multiphase Communication
+Game that augments the standard one-way model with a verification round, where Bob confirms
+the consistency of Alice’s simulation against the actual memory. This simple, qualitative change
+allows us to bypass technical barriers and obtain the optimal bound directly. As a consequence,
+our analysis naturally extends to other hard Boolean functions, offering a general recipe for
+translating discrepancy lower bounds into Ω((log n/ log log n)2 ) dynamic Boolean data structure
+lower bounds.
+    We also argue that this result likely represents the structural ceiling of the Chronogram
+framework initiated by Fredman and Saks [STOC 1989]: any ω(log2 n) lower bound would
+require either fundamentally new techniques or major circuit complexity breakthroughs.
+
+
+
+
+                                                                                              ISSN 1433-8092
+1      Introduction
+Proving unconditional lower bounds for dynamic data structures in the cell-probe model [Yao81]
+stands as one of the grand challenges in theoretical computer science. In this model, memory is
+organized into fixed-size cells of w = Θ(log n) bits, and we charge unit cost for accessing a cell while
+permitting arbitrary computation on the probed data for free. Because of this unbounded com-
+putational power, the cell-probe model strictly subsumes all realistic architectures; consequently,
+any lower bound proved here applies universally. However, this generality comes at a steep price:
+the model’s ability to arbitrarily compress and encode information makes proving lower bounds
+notoriously difficult.
+   Despite over 35 years of sustained effort since Fredman and Saks’ seminal Chronogram method
+[FS89], progress has been slow. The field advanced from Ω(log n/ log log n) to Ω(log n) over 15 years
+[PD06], then to Ω((log n/ log log n)2 ) for weighted problems over another 7 years [Lar12], where each
+query output is Ω(log n) bits. For Boolean (decision) problems—where queries return a single bit—
+even this Ω((log n/ log log n)2 ) barrier seemed insurmountable. Larsen’s breakthrough technique
+[Lar12] inherently required Ω(log n)-bit outputs, leaving the Boolean case explicitly open. This
+question was listed among Mihai Pătraşcu’s five most important open problems in the posthumous
+compilation by Thorup [Tho13], and stood as perhaps the central challenge in dynamic lower
+bounds for decades.
+
+           1989            2006             2012                  2018               2026
+                                                                                                  Year
+          [FS89]          [PD06]           [Lar12]               [LWY20]           Our Result
+         e (log n)1                             2                       1.5        e log2 n
+                                                                                             
+         Ω               Ω(log n)        Ω
+                                         e log n                Ω(log
+                                                                e             n)   Ω
+         (Boolean)       (Boolean)       (weighted)             (Boolean)          (Boolean)
+
+                   Figure 1: Historical progression of dynamic cell-probe lower bounds.
+
+    In this paper, we close this gap. We prove an unconditional lower bound of Ω((log n/ log log n)2 )
+for Boolean data structures, matching the highest known bound for weighted problems and resolving
+the open question of Boolean hardness. Our result applies to the Multiphase Problem with Inner
+Product over F2 , directly implying lower bounds for fundamental problems including dynamic
+matrix-vector multiplication over F2 , dynamic path parity, and dynamic range counting mod 2.
+
+1.1      Our Contribution
+As our hard problem, we consider the seminal Multiphase Problem of Pătraşcu [Pat10]. For a
+Boolean function f : {0, 1}2n → {±1}, the problem is:
+
+    • S
+      ⃗ = S1 , . . . , Sm ∈ {0, 1}n are pre-processed.
+
+    • Updates X ∈ {0, 1}n modify the data structure (tu -probes per update).
+
+    • Per any given q ∈ [m], output f (Sq , X) using ttot total probes.
+
+                                    Problem 1: Multiphase Problem for f
+
+
+    1e
+      Ω hides a poly(log log n) factor in the denominator
+
+
+                                                            1
+    When f is Disjointness or Inner Product over F2 , Pătraşcu conjectured that max{tu , ttot } ≥
+nΩ(1) [Pat10] – the notorious Multiphase Conjecture [Pat10, Tho13, Bra22]. Pătraşcu showed
+that this conjecture implies polynomial lower bounds for dynamic problems including dynamic s-t
+reachability. We show the following main theorem for the Multiphase Problem.
+
+Theorem 1.1. For the Multiphase Problem with f Inner Product over F2 , and m = n1+Ω(1) ,
+                                                           2 !
+                                                    log n
+                            max{tu , ttot } ≥ Ω
+                                                  log log n
+
+   Formally, we prove a slightly stronger statement where we can allow tu to be any poly-logarithmic
+function of n, just as in the case of [LWY20]. We provide the full statement and proof in Section 3.
+
+General Lifting Theorem While Theorem 1.1 focuses on the Inner Product over F2 to resolve
+the specific open problem posed by Pătraşcu and Larsen, our technique is not limited to the Inner
+Product over F2 . Our Simulation Theorem (Section 3.1) establishes a general translation from
+communication complexity to dynamic data structure lower bounds. Our lower bound applies to
+any function f that is “hard.” Roughly, functions for which one cannot obtain n−Ω(1) advantage
+(i.e., low discrepancy) under product distributions with large min-entropy are defined to be hard.
+This hardness condition is indeed satisfied by the Inner Product over F2 function, but unfortunately,
+the Disjointness function does not meet the criterion [BM13]. A naive strategy of sampling and
+revealing a few coordinates of X already yields non-trivial advantage for Disjointness, violating the
+hardness condition. We refer the reader to Section B, specifically Definition B.1 for the precise
+technical definition. We then show a general “lifting” theorem (Theorem B.4) which shows that if
+f is “hard,” then the Multiphase Problem with f must have
+                                                                2 !
+                                                         log n
+                                max{tu , ttot } ≥ Ω                   .
+                                                       log log n
+
+We defer the full proof to Section B to preserve the clarity of the main argument.
+
+1.2     Applications
+Due to the standard reductions given by Pătraşcu in [Pat10], this directly implies lower bounds for
+the following problems.
+
+   • A matrix M ∈ Fm×n
+                   2   is given and pre-processed.
+
+   • X ∈ {0, 1}n is updated dynamically. Output ⟨Mq , X⟩ for any given q ∈ [m].
+
+                  Problem 2: Dynamic Matrix-Vector Multiplication over F2
+
+
+   • A directed graph G = (V, E) is initially given. Updates add and remove edges in the graph.
+
+   • For a given (u, v) ∈ V × V , output the parity of the number of paths between u and v. For
+     k-Path Parity Problem, output the parity of the number of paths of length exactly k.
+
+                             Problem 3: Dynamic (k-) Path Parity
+
+
+                                                 2
+   • A matrix of integers is preprocessed. Updates increment all values in a specified row or
+     column.
+
+   • For a given query, output the parity of the number of maximum values in the matrix.
+
+                        Problem 4: Erickson’s Problem, Counting Version
+                                                                                                2 
+                                                                                        log n
+Corollary 1.2. Problem 2, Problem 3, Problem 4 require max{tu , ttot } ≥ Ω            log log n
+
+
+1.3     Previous Works
+To put our technical contribution into perspective, we briefly summarize nearly 40 years of devel-
+opments in dynamic cell-probe lower bounds. Readers who are familiar with the developments can
+skip to Section 1.4 for our technical contribution.
+
+1.3.1    Explicit Quests for Poly-logarithmic Lower Bounds
+Chronogram Method The seminal work of Fredman and Saks [FS89] introduced the Chrono-
+gram method. At a high-level, the Chronogram method divides the sequence of n updates X into
+ℓ epochs, {X (i) }ℓi=1 , where X (i) consists of ni bits and ni = |X (i) | = β i , where β is a parameter
+set per problem in question (roughly poly(wtu )). We will be then processing the updates in the
+reverse order, that is, the larger epochs are processed first, denoting the updates at each epoch i
+as Ui respectively.
+
+                                      Chronogram: Epoch Decomposition
+                                         Processing Order (Reverse)
+                     End                                                                                 Start
+
+
+                           U1        U2               U3                 ···                Uℓ              Time
+                           n1        n2               n3                                    nℓ
+                                               Geometrically growing: ni = β i
+
+
+Memory Cells:               C1            C2              C3               ···                Cℓ
+
+
+                           Ci = cells last updated in epoch i (no longer updated in epochs < i)
+                                                                             Pℓ
+                              Query q probes tq [i] cells from each Ci , with i=1 tq [i] ≤ ttot
+
+
+Figure 2: The Chronogram technique decomposes n updates into ℓ = Θ(logβ n) epochs with
+geometrically growing sizes ni = β i . Crucially, epochs are processed in reverse order (largest
+first). Each epoch i has associated cells Ci that were last updated in that epoch. A query algorithm
+for q ∈ Q probes tq [i] cells from each Ci .
+
+   The main observation by Fredman and Saks is that we can decompose the updated cells de-
+pending on the latest epoch that performed the update. That is C1 , . . . , Cℓ , where each Ci ⊆ Ui
+contains the cells last updated by epoch i, no longer updated in epochs < i. The key point is
+
+
+
+                                                      3
+that there must exist i ∈ [ℓ] such that the query algorithm probes ttot /ℓ cells from Ci on aver-
+age. That is Eq∼Q [tq [i]] ≤ O(ttot /ℓ). This was elegantly put in [LY25] as “static” data struc-
+ture with pre-initialized memory and a cache, where pre-initialized memory refers to C>i and
+cache refers to C<i . The goal then is to show a lower bound on ttot /ℓ, which is the average
+number of probes into Ci . Fredman and Saks proved an Ω(1) lower bound on ttot /ℓ, leading to
+max{tu , ttot } ≥ Ω(log n/ log log n). Then it took more than 15 years for further quantitative im-
+provement. A more careful analysis by considering the information transfer between the epochs
+[PD06] led to shaving the log log n factor in the denominator.
+
+Chronogram + Cell-sampling The breakthrough work of Larsen [Lar12] then successfully
+merged the cell-sampling technique [Sie04, PTW10] with the Chronogram technique [FS89] to give
+an Ω((log n/ log log n)2 ) bound with the following rough idea. Recall that after the decomposition
+using the Chronogram method, the goal is to show a lower bound on ttot /ℓ, which is the number
+of probes into Ci . As ℓ would always be roughly Θ(log n/ log(tu w)), if we can show, say, ttot /ℓ ≥
+                                     2
+Ω(log
+e       n), this would give an Ω(log
+                                 e     n) bound on ttot .
+     To show such lower bound on ttot /ℓ, Larsen [Lar12] utilizes the cell-sampling method [Sie04,
+PTW10]. The main idea behind cell-sampling is the following. If there exists a too-good-to-be-true
+(i.e., short) ttot query algorithm, then naively sampling some p := (poly log n)−1 fraction of the cells
+would give a non-trivial advantage (of roughly pttot /ℓ ) in answering the queries. An equivalent way
+to frame this argument is to find a small subset C0 ⊂ Ci such that C0 along with C−i will answer
+n−o(1) fraction of possible queries, without having to know the whole Ci . We can generate such C0
+by simply sampling each cell in Ci at random with probability p. By the rule of expectation, there
+must exist a setting of such C0 which can answer n−o(1) fraction of possible queries, say Q∗ ⊂ Q.
+     An elegant way to formulate the underlying combinatorial problem is through the following
+one-way communication simulation, as the ultimate goal is to show such one-way communication
+cannot exist.
+
+   • Fix S⃗ known to both Alice and Bob. Bob is given all the updates {X (i) }ℓ , but not the
+                                                                              i=1
+     desired query Q ∈ Q.
+
+   • Alice is given all the updates, except the updates in epoch i (i.e., X (i) ), and the desired query
+     Q.
+
+   • Bob sends a one-way message M of length |M | ≤ ni /poly log n bits to Alice. Then Alice
+     announces f (SQ , X).
+
+                        Protocol 1: One-way Communication Simulation
+
+    As a one-way message, Bob will send the small sub-sampled subset C    ei along with C<i . Cell-
+sampling ensures that Ci is small, while the Chronogram ensures that C<i is small. Alice then
+                        e
+can simulate the queries for Q∗ . So for any Q ∈ Q∗ , Alice will be outputting the correct answer,
+achieving a non-trivial advantage! We then just need to show that a short one-way message M
+cannot answer an n−o(1) fraction of Q.
+                                                       ei cannot identify Q∗ , (i.e., Q∗ -identification
+    Though tempting, this argument has a crucial flaw. C
+problem). This occurs because Alice cannot distinguish whether the probed cells are inside Ci \C      ei
+                                                                 ∗
+or absent from Ci entirely. As she cannot identify the set Q , there is no guarantee that Al-
+ice’s guess provides zero advantage over completely random guessing for queries in Q\Q∗ . This
+technical subtlety is what appears in all subsequent works to prove an ω(log n) lower bound
+
+
+                                                   4
+[Pat07, Lar12, LWY20, LY25].
+   Larsen [Lar12] tackled this technical subtlety by encoding a subset of Q∗ as a part of Bob’s
+message, but this argument crucially requires the output to be Ω(log n) bits. To extend the method
+to the Boolean setting, Larsen, Weinstein, and Yu [LWY20] introduced the so-called Peak-to-
+Average Lemma, a proof of which requires a technical dive into Chebyshev polynomials. The
+lemma allows Bob to carefully choose
+                                   √ a subset of cells, knowledge of which yields a non-trivial
+advantage (of n −o(1) ) but with a log n parameter loss. No improvement can be made to the
+lemma, as the lemma is tight (Appendix B of [LWY20]).
+
+1.3.2    Previous Work on the Multiphase Problem
+Pătraşcu envisioned an approach [Pat10, Tho13] to break out of the Chronogram Method and its
+extensions (all the methods in Section 1.3.1), providing a new angle on dynamic Boolean cell-probe
+lower bounds.
+    His ambitious goal was to directly prove a polynomial lower bound by considering Problem
+1. He conjectured that Problem 1 requires nΩ(1) for m = poly(n), even for f being Disjointness.
+This is the notorious Multiphase Conjecture. Pătraşcu then showed reductions to various dynamic
+problems such as dynamic reachability, among others.
+    It is noteworthy to point out that Pătraşcu [Pat10] actually opened the whole area of Fine-
+Grained Complexity of Dynamic Problems using the Multiphase Problem (Problem 1). He showed
+that the 3SUM Conjecture2 implies the Multiphase Conjecture. We refer the reader to the sur-
+vey [Wil17] for the context of Multiphase Conjecture in the area of Fine-Grained Complexity of
+Dynamic Problems.
+    While the problem is conjectured to be polynomially hard, the best unconditional lower bound
+stood at merely Ω(log n) for over a decade against the easier bit-probe model (i.e., the word size
+w = 1) [BL15, CGL15, KW20].3 Pătraşcu’s proposed approach was to consider the following
+communication game, which is now commonly referred to as the Multiphase Communication Game.
+
+                  ⃗ ∈ ({0, 1}n )m , and Q ∈ [m]. Bob holds X ∈ {0, 1}n and Q ∈ [m]. Merlin holds
+    • Alice holds S
+      ⃗ and X.
+      S
+
+    • Merlin sends U to Bob of length s = O(n · tu · w).
+
+    • Alice and Bob engage in standard two-party O(t
+                                                 e tot ) bits communication to output f (SQ , X).
+
+                             Protocol 2: Multiphase Communication Game
+
+    The communication model then can simulate the update and query algorithms, as Merlin can
+simulate all the update algorithms, with s = w · n · tu . Then Alice and Bob can simulate the query
+algorithm using w · ttot = O(t
+                             e tot ) communications to output f (SQ , X).
+    Pătraşcu believed that if s = m0.99 , then Merlin’s advice should not matter. Thus Alice and Bob
+must spend roughly the standard communication complexity of f . However, this crude intuition
+was falsified in [CEEP12], which showed examples of f with very efficient protocols. For example,
+                                                                     √
+if f is Disjointness, there exists Merlin’s message U with s = Õ( n) such that Alice and Bob only
+
+   2
+      The Conjecture states that 3SUM problem on n integers from {−n4 , . . . , +n4 } cannot be solved in O(n2−ε ) for
+any ε > 0.
+    3
+      While [BL15, CGL15, KW20] do not explicitly mention the lower bound, one can simulate a t-round adaptive
+algorithm with 2t -round non-adaptive algorithms under the bit-probe model.
+
+
+                                                          5
+communicate O(  e √n) bits, in stark contrast to the Ω(n) communication complexity of Disjointness
+[KS92, Raz92, BYJKS04].
+    In fact, as pointed out in [KW20, Ko25a], even a lower bound against 3-round communica-
+tion between Alice and Bob (Alice, Bob then Alice speaks) would imply a breakthrough in circuit
+complexity, namely circuit lower bounds for random linear operators [JS10, Juk12, Juk13, Dru12].
+Nevertheless, Ko and Weinstein [KW20] developed an information-theoretic framework to han-
+dle 2-rounds (Alice, then Bob speaks) communication, for the zero-error or small-error regime.
+This framework was further extended by Ko [Ko25a] to handle low advantage regime, where the
+performance of Bob’s final output is compared against a random guess.
+    Recently, Ko [Ko25b] successfully applied the information-theoretic framework [KW20, Ko25a]
+                                                                                           3/2
+with the one-way simulation theorem of Larsen, Weinstein, and Yu [LWY20], to give an Ω(log
+                                                                                      e        (n))
+lower bound for Problem 1 when f is Inner Product over F2 . As the work was directly applying
+the one-way simulation theorem of Larsen, Weinstein and Yu [LWY20], then using the information-
+theoretic methods to lower bound the one-way communication, the only possible lower bound was
+      3/2
+Ω(log
+e         (n)).
+
+1.4   Technical Contribution: The 2.5-Round Communication Game
+We resolve the Boolean hardness question by introducing a fundamentally different communication
+model that eliminates the technical barriers faced by all previous approaches.
+
+The Core Challenge. All previous super-logarithmic lower bounds [Lar12, LWY20, LY25] rely
+on the Chronogram and cell-sampling techniques, which reduce the problem to proving that no
+short one-way message from Bob to Alice can help answer an n−o(1) fraction of queries in Protocol
+1. However, as discussed in Section 1.3.1, there is a fatal technical subtlety: Alice does not know
+which queries she can answer correctly (the set Q∗ ), because she cannot distinguish between:
+   • Probed cells missing from Bob’s randomly sampled subset;
+   • Probed cells that were never written to memory at all
+    This ambiguity destroys the advantage argument. Larsen, Weinstein, and Yu [LWY20] resolved
+this using the Peak-to-Average
+                 √               Lemma, a sophisticated application of Chebyshev polynomials,
+                                                            1.5
+but this incurs a log n parameter loss, yielding only Ω(log
+                                                      e         (n)). The lemma is provably tight
+[LWY20, Appendix B].
+
+Our Key Insight. The one-way communication prevents Alice from verifying whether her sim-
+ulation is correct. But if we add just an additional round – letting Bob verify and certify Alice’s
+guess – the entire technical barrier disappears.
+    We introduce a 2.5-round Multiphase Communication Game:
+                                             ⃗ X) sends update information U to Bob
+  1. Round 0 (Merlin → Bob): Merlin (holding S,
+  2. Round 0.5 (Bob → Alice): Bob (holding X) forwards a message Φ(U ) to Alice (depends
+     only on U and Bob’s randomness, not the query)
+  3. Round 1 (Alice → Bob): Query Q is revealed to Alice; Alice sends her simulation transcript
+     AQ to Bob
+  4. Round 2 (Bob outputs): Bob verifies AQ against U and outputs final answer
+The protocol structure is illustrated in Figure 3.
+
+                                                     6
+                            Merlin
+                             ⃗ X)
+                            (S,
+
+                    Round 0
+                  U (updates)
+                                              Round 0.5
+                              Bob          Φ(U ): sampled cells        Alice
+                              (X)                                       ⃗ Q)
+                                                                       (S,
+
+
+
+                                                 Round 1
+                                           AQ : query transcript
+                                            (Alice’s simulation)
+
+
+                          Round 2
+                       Bob verifies AQ
+                      Outputs answer or
+                     random guess (FAIL)
+
+Figure 3: Our 2.5-round Multiphase Communication Game. The crucial difference from prior
+work is the verification step (Round 2): Bob checks if Alice’s transcript AQ is consistent with
+the actual memory U . The 0.5-round message Φ(U ) is sent independently of query Q, making this
+analyzable with information-theoretic techniques from [KW20, Ko25a].
+
+
+Verification Step     The verification step is crucial:
+
+   • Alice simulates the query algorithm and sends the full transcript to Bob.
+
+   • Bob checks if Alice’s simulation is consistent with actual updated memory U .
+
+   • If Alice probes the wrong cells, namely C>i instead of Ci due to sampling error, her transcript
+     will not match U .
+
+   • Bob detects this inconsistency and outputs FAIL, which then results in a random guess.
+
+   • Only when Alice’s simulation is correct does Bob output a meaningful answer.
+
+    This completely eliminates the Q∗ ambiguity: Bob’s verification determines whether to use
+Alice’s simulation or default to a random guess, so there is no need for Alice to identify Q∗ . We
+delegate verification to Bob. We no longer need the Peak-to-Average Lemma, and can achieve the
+full Ω((log n/ log log n)2 ) bound.
+
+Our Second Contribution: Handling 2.5-Round Protocols. Conceptually, the above sim-
+ulation is simple. Yet, for the past decade, we have lacked technical tools to give a lower bound for
+such 2.5-round protocols against small non-trivial advantage.
+    While 3-round communication lower bounds remain beyond current techniques (and would
+imply major circuit lower bounds [JS10, Dru12, Juk13, DGW19]), our key observation is that
+the information-theoretic framework introduced by Ko and Weinstein [KW20], further refined by
+
+                                                  7
+Ko [Ko25a] for small advantage regime, can handle exactly this 2.5-round structure. The key is
+that Bob’s “0.5-round” message Φ(U ) is independent of the query Q. This allows us to apply the
+combinatorial lemmas from [KW20, Ko25a], and we can extract a random variable Z from the
+2.5-round protocol such that (a) the min-entropy of SQ and X conditioned on Z is large; (b) while
+maintaining I(SQ ; X|Z) to be small.
+
+The Complete Argument.           Our proof proceeds in two steps:
+
+  1. Simulation (Section 3.1): We show that any dynamic data structure with tu = poly log(n)
+     and ttot = o((log n/ log log n)2 ) can be simulated by a 2.5-round Multiphase Communication
+     Game with non-trivial advantage n−o(1) .
+
+  2. Communication Lower Bound (Section 3.2): We prove that no such 2.5-round protocol
+     can achieve advantage better than n−Ω(1) , yielding a contradiction.
+
+   We note that the two main components of our proof — the simulation theorem (Section 3.1)
+and the communication lower bound (Section 3.2) — are self-contained and can be verified inde-
+pendently.
+
+                   2
+1.5   Why is Ω(log
+             e       (n)) the barrier?
+A natural question arises:
+
+      Can this approach be extended to prove higher lower bounds for dynamic Boolean
+      problems, i.e., ω(log2 n)?
+
+We argue that our result likely matches the “structural ceiling” of the current techniques, specifically
+the Chronogram framework.
+    The core of the Chronogram technique relies on decomposing the timeline of updates into a
+hierarchy of ℓ distinct epochs, where the duration  of epoch  i grows geometrically. This construc-
+                                                       log n
+tion naturally yields a hierarchy of depth ℓ ≈ Θ log log n . The lower bound is then obtained by
+constructing a hard distribution of updates and queries that forces the data structure to probe
+Ω(log
+e      n) distinct cells at each epoch.
+    Another perspective on the Chronogram framework is that it reduces dynamic cell-probe lower
+bound to a static cell-probe lower bound (with pre-initialized memory and cache [LY25]) with ℓ-
+factor difference. As ℓ is fixed, if we are to show ω(log2 n) lower bound, we must show ω(log n)
+lower bound for a single epoch i ∈ [ℓ].
+    Unfortunately, the barriers to static cell-probe lower bounds are well-known. The best explicit
+static cell-probe lower bound we can show is described as a ceiling known as the logarithmic barrier
+[MNSW98, Sie04, PD06, PTW08, PTW10, Pǎ11, KPI25]
+
+                                                   log |Q|
+                                                            !
+                                                         n
+                                           t≥Ω                                                       (1)
+                                                    log ns
+
+where s is the number of cells used by the static cell-probe data structure, and |Q| is the number
+of possible queries. Even if we allow semi-explicit static cell-probe lower bound, allowing queries
+to be non-explicit linear functions, only a lower bound of
+
+                                   t ≥ Ω(min{log(|Q|/s), n/ log s})                                 (2)
+
+
+                                                   8
+is known against a weaker bit-probe model [Ko25a]. Both (1) and (2) are merely logarithmic in our
+regime of interest, since both s and |Q| are polynomial in n. And due to a well-known connection
+to circuit lower bounds [JS10, Juk12, Juk13, Dru12, DGW19, KPI25, Ko25a], showing t ≥ ω(log n)
+when |Q| is poly(n) would be a major circuit complexity breakthrough.
+    To conclude, any ω(log2 n) Boolean lower bound would require either completely breaking away
+from the Chronogram framework, which has been the main recipe for the past ≈ 37 years, or a
+major circuit complexity breakthrough.
+
+
+2     Preliminaries
+2.1   Information Theory
+In this section, we provide the necessary background on information theory and information com-
+plexity that are used in this paper. For comprehensive background, we direct the reader to [CT06].
+Unless noted otherwise, all logarithms are base 2.
+
+Definition 2.1 (Entropy). The entropy of a random variable X is defined as
+                                        X                       1
+                             H(X) :=        Pr[X = x] log             .
+                                        x
+                                                            Pr[X = x]
+
+Similarly, the conditional entropy is defined as
+                                   "                                            #
+                                     X                                1
+                   H(X|Y ) := EY        Pr[X = x|Y = y] log                       .
+                                    x
+                                                                Pr[X = x|Y = y]
+
+Fact 2.2 (Conditioning Decreases Entropy). For any random variables X and Y
+
+                                        H(X) ≥ H(X|Y )
+
+With entropy defined, we can also quantify the correlation between two random variables, or how
+much information one random variable conveys about the other.
+
+Definition 2.3 (Mutual Information). Mutual information between X and Y (conditioned on Z)
+is defined as
+                            I(X; Y |Z) := H(X|Z) − H(X|Y Z).
+
+Similarly, we can also define how much one distribution conveys information about the other dis-
+tribution.
+
+Definition 2.4 (KL-Divergence). KL-Divergence between two distributions µ and ν is defined as
+                                                 X              µ(x)
+                                 DKL (µ||ν) :=       µ(x) log        .
+                                                 x
+                                                                ν(x)
+
+To bound mutual information, it suffices to bound KL-divergence, due to the following fact.
+
+Fact 2.5 (KL-Divergence and Mutual Information). The following equality between mutual infor-
+mation and KL-Divergence holds
+
+                          I(A; B|C) = EB,C [DKL (A|B=b,C=c ||A|C=c )] .
+
+                                                 9
+Fact 2.6 (Pinsker’s Inequality). For any two distributions P and Q,
+                                                      r
+                                        1                   1
+                         ∥P − Q∥T V = ∥P − Q∥1 ≤                 D(P ||Q)
+                                        2                2 log e
+We also make use of the following facts on Mutual Information throughout the paper.
+
+Fact 2.7 (Chain Rule). For any random variables A, B, C and D
+
+                             I(AD; B|C) = I(D; B|C) + I(A; B|CD).
+
+Fact 2.8. For any random variables A, B, C and D, if I(B; D|C) = 0
+
+                                     I(A; B|C) ≤ I(A; B|CD).
+
+Proof. By the chain rule and non-negativity of mutual information,
+
+               I(A; B|C) ≤ I(AD; B|C) = I(B; D|C) + I(A; B|CD) = I(A; B|CD).
+
+
+
+Fact 2.9. For any random variables A, B, C and D, if I(B; D|AC) = 0
+
+                                     I(A; B|C) ≥ I(A; B|CD).
+
+Proof. By the chain rule and non-negativity of mutual information,
+
+               I(A; B|CD) ≤ I(AD; B|C) = I(A; B|C) + I(B; D|AC) = I(A; B|C).
+
+
+
+   We will also use the following version of Chernoff bound.
+
+Fact 2.10 (Chernoff bound). Let X1 , . . . , Xn be n independent random variables with Xi ∈ {0, 1}
+and Pr[Xi = 1] = p for all i ∈ [n]. Then for any ε > 0 with ε < 1 − p, we have
+                                      
+                                                                                  
+                    X                                  n
+               Pr      Xi ≥ (p + ε)n ≤ exp −
+                                                          · D (Ber(p + ε)||Ber(p))
+                                                    log2 e
+                     i∈[n]
+
+where Ber(p) refers to the Bernoulli distribution with probability p.
+
+2.2   Min-Entropy
+Definition 2.11. We define the Rényi entropy H2 (A) and min-entropy H∞ (A) as
+                                                              !
+                                               X
+                              H2 (A) := − log      Pr[A = a]2
+                                                      a
+                                                                 
+                                 H∞ (A) := − log max Pr[A = a]
+                                                          a
+
+
+
+
+                                                 10
+Fact 2.12 (Rényi Entropy). Let A be a random variable. Then
+                                     H(A) ≥ H2 (A) ≥ H∞ (A)
+In particular, for any fixed b we have
+                                   H2 (A|B = b) ≥ H∞ (A|B = b)
+   We use the following lemma on “average” min-entropy.
+Definition 2.13 (Average Min-Entropy).
+                              h                   i          h             i
+       He ∞ (A|B) := − log Eb∼B max Pr[A = a|B = b] = − log Eb∼B 2−H∞ (A|B=b)
+                                      a
+
+Lemma 2.14 (Lemma 2.2 of [DORS08]). Let A, B, C be random variables. Then if B has at most
+2λ possible values, then
+                        e ∞ (A|B, C) ≥ H
+                        H              e ∞ (A, B|C) − λ ≥ H
+                                                          e ∞ (A|C) − λ.
+
+In particular,
+                              e ∞ (A|B) ≥ H
+                              H           e ∞ (A, B) − λ ≥ H∞ (A) − λ.
+
+Claim 2.15.
+                                     e ∞ (A|B, C) ≤ H
+                                     H              e ∞ (A|B)
+
+Proof. We first proceed with showing the following inequality,
+                          h                           i
+                 Ec∼C|B=b max Pr[A = a|B = b, C = c] ≥ max Pr[A = a|B = b].                 (3)
+                               a                             a
+
+which is a standard fact about the max function. Let a∗ := arg maxa Pr[A = a|B = b]. Then
+                                                                  h                          i
+Pr[A = a∗ |B = b] = Ec∼C|B=b [Pr[A = a∗ |B = b, C = c]] ≤ Ec∼C|B=b max Pr[A = a|B = b, C = c]
+                                                                         a
+
+   With (3) established, we are ready to prove the claim. Recall that
+                                               h                         i
+                He ∞ (A|B, C) := − log Eb,c∼B,C max Pr[A = a|B = b, C = c]
+                                                     a
+
+Taking expectation over B on both sides of (3), we have
+                     h                            i     h                   i
+             Eb,c∼B,C max Pr[A = a|B = b, C = c] ≥ Eb∼B max Pr[A = a|B = b]
+                          a                                      a
+
+Therefore, we get
+                                             h                           i
+                 e ∞ (A|B, C) = − log Eb,c∼B,C max Pr[A = a|B = b, C = c]
+                 H
+                                                a
+                                          h                   i
+                              ≤ − log Eb∼B max Pr[A = a|B = b] = H   e ∞ (A|B)
+                                                a
+
+
+
+Claim 2.16 (Claim 2.12 of [Ko25a]). Let D be a distribution and U a uniform distribution over
+some S ⊂ {0, 1}n . Then if D(D||U) < t with t > 1, then for every α > 2 there exists an event E
+such that
+                                               1
+                                  D(E) ≥ 1 −
+                                               α
+                                  H∞ (D|E ) ≥ log |S| − 2αt
+
+                                                11
+3    Main Proof
+In this section, we prove our main theorem, a slightly stronger statement than in Section 1.1.
+
+Theorem 1.1. For the Multiphase Problem with f Inner Product over F2 , with m = n1+Ω(1) , if
+tu ≤ logκ n for some large constant κ > 0, then
+                                                          2 !
+                                                   log n
+                                     ttot ≥ Ω
+                                                 log log n
+
+   Before we delve into the proof of the main theorem, we introduce formal notation and the model
+necessary for the proof.
+
+Epochs To give a super-logarithmic lower bound, the first main technical component is the
+Chronogram technique [FS89], P      where we divide the sequence of n updates into epochs, each con-
+taining ni := β i updates, with ℓi=1 ni = n. Then observe that ℓ := logβ n = log      log n
+                                                                                          β.
+                                                       (i)
+    For each epoch of ni updates, denoted as X , the update algorithms will use tu ni cell-probe
+operations (write operations) to overwrite the memory. We denote the epochs of updates as {Ui }ℓi=1 ,
+each of size |Ui | = w · tu ni , and we process the updates in reverse order, that is, the larger epochs
+get processed first.
+    The essence of the Chronogram technique is that every query algorithm can be decomposed in
+the following manner. Let Ci denote the cells last updated in epoch i. The query algorithm for the
+query q will then probe into C1 , . . . , Cℓ . We will denote tq [i] as the number of probes the query for
+q ∈ Q makes into Ci . Then it must be the case that
+                                             ℓ
+                                             X
+                                                   tq [i] ≤ ttot
+                                             i=1
+
+
+Communication Model We define the following 2.5-round Multiphase Communication Game,
+as an extension of 1.5-round Multiphase Communication Game introduced in [CEEP12]. This
+replaces the one-way communication model used in [LWY20, LY25] for the lower bound.
+
+    • Alice holds S.
+                  ⃗ Bob holds X. Merlin holds S
+                                              ⃗ and X.
+
+    • Merlin sends U to Bob.
+
+    • As the 0.5-round message, Bob simply forwards Φ(U ), a message that depends only on U and
+      independent randomness, to Alice.
+
+    • q ∈ Q is then revealed to both Alice and Bob. Alice sends a message Aq to Bob. Then Bob
+      outputs the estimate Bq ∈ {±1} for f (Sq , X).
+
+                     Protocol 3: 2.5-round Multiphase Communication Game
+
+Advantage of the Protocol We will be considering a fixed S   ⃗ for the simulation theorem, while
+                                                        ⃗
+for the lower bound analysis, we will assume that these S are distributed uniformly at random.
+                         ⃗ we will be using a uniform distribution over X as the update, and a
+Regardless of the chosen S,
+
+
+
+                                                     12
+uniform distribution over Q as the possible query. And for the sake of simplicity, we restrict to
+balanced functions f .4 That is, for any SQ ,
+
+                                                EX [f (SQ , X)] = 0
+
+Under the distribution, we will measure the advantage of the 2.5-round protocol Π.
+
+Definition 3.1. The advantage of 2.5-round protocol Π = (Φ(U ), AQ , BQ ) over the distribution Q
+over the queries is defined as
+                                               h                                        i
+                 adv(Gf , Π) := EQ,Φ(U ),AQ ,BQ E(SQ ,X)|Φ(U ),AQ ,BQ [BQ · f (SQ , X)]
+
+where BQ ∈ {±1} is Bob’s final estimate.
+
+   For the rest of the section, we prove the simulation theorem (Section 3.1) showing any efficient
+data structure yields an efficient 2.5-round protocol achieving good advantage. This results in a
+contradiction via information-theoretic arguments (Section 3.2).
+
+3.1    Simulation Theorem
+First, we show the following simulation theorem, which argues that an efficient dynamic data
+structure implies an efficient 2.5-round Multiphase Communication Game protocol Π with large
+advantage.
+
+Theorem 3.2 (New Simulation Theorem). Fix S.        ⃗ If there exists a data structure for the Multiphase
+problem f with ttot query time, and tu update time, then for any p ∈ (0, 1/3) with p ≤ 4t1u w , there
+exists a 2.5-round Multiphase Communication Game protocol Π with
+                                                                        √
+           |U | ≤ w · tu n + log ℓ, |Φ(U )| ≤ n − (1 − 2p · wtu − o(1)) n, |Aq | ≤ O(ttot · w)
+
+while achieving the advantage
+                                                                                        
+                                 200 · ttot               100 · ttot      1
+        adv(Gf , Π) ≥ Ω    exp −            · ln(ttot ) −            · ln      − exp (−Ω(pn))
+                                    ℓ                        ℓ            p
+
+Proof. Suppose there exists a dynamic data structure for the Multiphase Problem f with ttot query
+time and tu update time. We want to then simulate the data structure with 2.5-round Multiphase
+Communication Game, in the following manner.
+
+
+
+
+    4
+      While it is possible to extend the definition and our technique to non-balanced functions, doing so would
+significantly compromise the simplicity of the argument. Consequently, we restrict our analysis to balanced functions.
+
+
+                                                         13
+   • First Merlin chooses i ∈ [2ℓ/3, ℓ], which satisfies
+
+                                                Eq∈Q|S,X
+                                                     ⃗   [tq [i]] ≤ 10 · ttot /ℓ.
+
+        Note that by a simple averaging argument, such i is guaranteed to exist. Merlin then forwards
+        U = U1 , . . . , Uℓ along with the index i to Bob. Bob from U can construct C1 , . . . , Cℓ .
+
+   • As the 0.5-round message, Bob sends the following. For Ci , he samples each cell with proba-
+     bility p at random, and creates C       ei > 2p · wtu · ni , then Bob simply aborts, and outputs
+                                     ei . If C
+     FAIL. Otherwise, forward X (>i) , C<i and C ei along with i (which is evident in the message
+     already) to Alice. Observe that the message only depends on U, i and Bob’s randomness, no
+     dependence on q.
+
+   • Alice does the following.
+                    ⃗ and X (>i) , the first ℓ − i epochs of updates, Alice constructs U>i from X (>i) .
+            – Using S,
+            – Choose distinct probe times uniformly at random r1 < . . . < rt̃q ∈ [ttot ] where t̃q ≤ 100·t
+                                                                                                         ℓ
+                                                                                                           tot
+
+                      ttot 
+              from ≤ 100·ttot possible choices.
+                           ℓ
+
+                                                                  ⃗ generating the query transcript
+            – Alice simulates the query algorithm for q ∈ Q under S,
+
+                                              Aq := ((a1 , c1 ), . . . , (attot , cttot ), zout )
+
+               where ai refers to the address and ci refers to its content, zout refers to the final output
+               of the query algorithm, with the following caveat. For the probe time rj , check if its
+               address arj is in C
+                                 ei . If the address does not exist in Cei , abort the simulation. Signal
+               FAIL to Bob. Then Bob also signals FAIL. Otherwise, proceed.
+            – If successful, send the query transcript Aq to Bob, along with the indices r1 < . . . < rt̃q .
+
+   • Then Bob simply verifies Aq . That is, check if (aτ , cτ ) matches with U for all τ ∈ [ttot ], along
+     with the indices r1 < . . . < rt̃q .5 Check if (arj , crj ) for all j ∈ [t̃q ] indeed exists in Ci , and for
+     τ ∈ [ttot ]\{r1 , . . . , rt̃q } the cell address aτ does not exist in Ci . If yes, then declare zout as the
+     answer Bq . Otherwise, output FAIL.
+
+   • If the protocol signals FAIL, Bob outputs an independent random guess as Bq .
+
+                                       Protocol 4: Simulation Protocol Π
+
+    The cost guarantee of the protocol is straightforward. Merlin’s message is simply the update
+with an index i ∈ [2ℓ/3, ℓ]. Therefore |U | ≤ tu wn + log ℓ = O(tu wn). We bound the length of Bob’s
+0.5-round message.
+                                                   X         X
+              |Φ(U )| = X (>i) + |C<i | + C  ei ≤      nk +    (wtu ) · nk + 2p · wtu · ni
+                                                              k>i          k<i
+                           ≤ (n − ni ) + 2p · wtu · ni + o(ni )                                                 (4)
+                                                                                                 i
+where  the upper bound follows the guarantee of the epoch size with ni := β i = (tu w)Θ(1) .
+                                                                                               i
+P
+  k<i (wtu ) · nk ≤ o(ni ) as it is a geometric series. As Merlin chooses i ∈ [2ℓ/3, ℓ], ni = β ≥
+   5                                                                                                       ⃗
+       Note that if the cell aτ is never updated by U , Alice’s content cτ must be correct, as Alice holds S.
+
+
+                                                              14
+                    √
+β 2ℓ/3 ≥ 2log n/2 = n. Therefore, assuming 1 − 2p · wtu − o(1) > 0, as we will choose the parameters
+accordingly, (4) becomes
+                                                                                √
+                   (4) ≤ n − (1 − 2p · wtu − o(1))ni ≤ n − (1 − 2p · wtu − o(1)) n.              (5)
+
+Next, we bound the length of Alice’s message,
+
+                                    |Aq | = 2w · ttot + 1 + t̃q log(ttot ) ≤ 3w · ttot .                  (6)
+
+(5) and (6) give the desired bound on the cost of Π. Now we proceed to showing the lower bound
+of adv(Gf , Π) by considering the probability of Alice outputting the correct transcript.
+Claim 3.3.
+                                                                                                 
+                                          200 · ttot               100 · ttot      1
+        adv(Gf , Π) ≥ Ω             exp −            · ln(ttot ) −            · ln      − exp (−Ω(pn))
+                                             ℓ                        ℓ            p
+                                 ⃗ Merlin chose i ∈ [2ℓ/3, ℓ] such that
+Proof. Recall that we have fixed S.
+
+                                              EQ|S,X
+                                                 ⃗   [tq [i]] ≤ 10 · ttot /ℓ.
+
+If the chosen query q ∈ Q has tq [i] > 100tℓ tot , then our simulation will always output FAIL. As Alice’s
+guess t̃q < tq [i], there must exist a probe where Alice should be probing Ci , but Alice is probing
+otherwise. The transcript probes into C−i (in fact into C>i , as then such cell cannot exist in C<i )
+instead. Bob will catch such Aq as he has a complete knowledge of C1 , . . . , Ci , . . . , Cℓ . Therefore,
+Bob will always output FAIL, yielding zero advantage for this set of queries. But due to Markov’s
+argument, there are at most a 1/10 fraction of such queries in Q.
+    For the rest of the queries, it is guaranteed that tq [i] ≤ 100tℓ tot . Note that a non-trivial guess
+would only be given when Alice guesses r1 < . . . < rt̃q ’s correctly, and Bob actually successfully
+sampled these cells in C  ei as well. Otherwise, Bob will reject Alice’s guess, and output FAIL, leading
+to zero advantage.
+    Therefore, to analyze the advantage, we simply need to lower bound the probability of Alice
+transmitting the correct query transcript, in which case Bob outputs the correct guess.
+    The probability that Alice guesses r1 < . . . < rt̃q ’s correctly is lower bounded by the term
+                                 −1                                                
+                        ttot                         100·ttot
+                                                                  200ttot
+                                        ≥ (ttot + 1)−( ℓ ) ≥ exp −         · ln(ttot ) .                  (7)
+                     ≤ 100·t
+                          ℓ
+                            tot
+                                                                     ℓ
+                                                                                                        n
+                                                                                                          
+where the first inequality follows from a standard sums of binomial coefficients bound, (i.e., ≤r           ≤
+       r
+(n + 1) ).
+    Given that Alice guessed r1 < . . . < rt̃q ’s correctly (observe that otherwise, Bob would output
+FAIL), Alice will then transmit the correct transcript if and only if all the required cells in Ci are
+included in Bob’s message C      ei . For any other probes, Alice, due to Φ(U ), can simulate the queries
+that are from C1 , . . . , Ci−1 , Ci+1 , . . . , Cℓ . The only part of her query that she cannot simulate is
+those from Ci , unless they are included in C          ei .
+    The probability of ar1 , . . . , art̃q (as they are conditioned to be in Ci ) being included in C ei then
+depends on Bob’s private randomness. This is independent of Alice’s private randomness. The
+probability is lower bounded by
+                                                                                       
+         ( 100·ttot
+                    )                                                  100 · ttot
+       p      ℓ       − exp (−Ω(n · D(Ber(2p)||Ber(p)))) ≥ exp                    · ln p − exp(−Ω(pn))
+                                                                           ℓ
+
+                                                            15
+where a standard estimate D(Ber(2p)||Ber(p)) = Θ(p) holds.
+   Multiplying the two probabilities, we get the probability of Alice correctly guessing and Bob
+sampling “correct” cells in C
+                            ei as
+                                                                         
+                                   200ttot               100 · ttot      1
+          adv(Gf , Π) ≥ Ω exp −            · ln(ttot ) −            · ln      − exp (−Ω(pn))  (8)
+                                      ℓ                     ℓ            p
+which then completes the proof of the claim.
+
+   (5), (6) and Claim 3.3 complete the proof of the simulation theorem.
+
+
+  Now we would like to select a range of parameters to derive a contradiction.
+                                       2 
+                                 log n
+Corollary 3.4. Set ttot = o    log log n     , tu = logκ (n) for some constant κ > 3, β = (w · tu )Θ(1) ,
+p := β −1 /2. Then
+                                                                   √
+                                       κ+1                          n
+                      |U | ≤ O(n log         (n)), |Φ(U )| ≤ n −      , |Aq | ≤ o(log3 (n))
+                                                                   2
+while having
+                                               adv(Gf , Π) ≥ n−o(1) .
+                                                                                               2 
+                                    log n             Θ(1) , and t                     log n
+Proof. If we choose ℓ := logβ (n) = log β , β = (tu w)            tot = o            log log n          , and with the
+sampling probability p := β −1 /2, as tu will be in the poly-logarithmic regime,
+                                 |U | ≤ O(wntu ) ≤ O(n logκ+1 (n))
+                                                                   √
+                                                           √         n
+                                 |Φ(U )| ≤ n − (1 − o(1)) n ≤ n −
+                                                                    2
+                                 |Aq | ≤ O(ttot · w) ≤ o(log3 n),
+while the advantage (8) becomes
+                     (8) ≥ Ω (exp (−o(log n))) − exp (−Ω(n/poly log(n))) ≥ n−o(1) .
+
+
+
+3.2   2.5-round Multiphase Communication Game Lower Bound
+The goal of this section is to show that such an advantage is impossible, using the framework of
+[KW20, Ko25a] and finally [Ko25b]. The key idea, developed across [KW20, Ko25a, Ko25b], is to
+extract a random variable Z containing the output Zout from the 2.5-round protocol such that (a)
+the min-entropy of SQ and X conditioned on Z is large; (b) while maintaining I(SQ ; X|Z) to be
+small. Then it must be the case that E(SQ ,X)|Z [Zout · f (SQ , X)] is small. We follow the analogous
+argument, by selecting the Z as the following
+                                        Z := Φ(U ), AQall , S<Q , BQ , Q
+where Q is chosen uniformly at random from Q = [m] with m = n1+Ω(1) . AQall refers to Aq for
+all q ∈ Q, and S<Q refers to S1 , . . . , SQ−1 . Note that BQ essentially acts as the final output of the
+random variable. We need to include Aq for all q ∈ Q to apply direct-sum techniques.
+    First, we start by showing that Corollary 3.4 implies the following claim on the advantage
+conditioned on Z.
+
+                                                        16
+Claim 3.5.                             h                      i
+                                                                 ≥ n−o(1)
+                                                     
+                                  EZ       E(SQ ,X)|Z χSQ (X)
+
+where χSQ (X) := (−1)⟨SQ ,X ⟩ .
+                                                                                       ⃗
+Proof. As Q is chosen uniformly at random, Corollary 3.4 guarantees that for any fixed S,
+                            EΦ(U ),AQ ,BQ ,Q|S⃗ BQ · χSQ (X) ≥ n−o(1)
+                                                           
+
+This then implies
+                                           h                                   i
+               n−o(1) ≤ EΦ(U ),AQ ,BQ ,Q,S⃗ EX|Φ(U ),AQ ,BQ ,Q,S⃗ BQ · χSQ (X)
+                                                                 
+                                                h                                       i
+                      = EΦ(U ),AQ ,BQ ,Q,S<Q ,SQ EX|Φ(U ),AQ ,BQ ,Q,S<Q ,SQ BQ · χSQ (X)
+                                              h                                       i
+                      = EΦ(U ),AQ ,BQ ,Q,S<Q E(SQ ,X)|Φ(U ),AQ ,BQ ,Q,S<Q BQ · χSQ (X)
+                                              h                                   i
+                      ≤ EΦ(U ),AQ ,BQ ,Q,S<Q E(SQ ,X)|Φ(U ),AQ ,BQ ,Q,S<Q χSQ (X)
+
+But then
+                                                h                                 i
+                n−o(1) ≤ EΦ(U ),AQ ,BQ ,Q,S<Q
+                                                                         
+                                             E(SQ ,X)|Φ(U ),AQ ,BQ ,Q,S<Q χSQ (X)
+                                             h                                      i
+                       ≤ EΦ(U ),AQ ,BQ ,Q,S<Q E(SQ ,X)|Φ(U ),AQ ,BQ ,Q,S<Q χSQ (X)
+                                  all                            all
+                            h                  i
+                       = EZ E(SQ ,X)|Z χSQ (X)
+
+where the inequality follows from Jensen’s inequality on the convex function, | · |.
+
+
+   We now show that Claim 3.5 leads to a contradiction.
+
+3.2.1   Small Information on SQ
+First, we would like to show that the min-entropy of SQ conditioned on Z is large. The statement
+is not true in general. However, a simple Markov argument allows us to “extract” a good event
+EQ . We start with the following standard claim on the mutual information.
+Claim 3.6.
+                                  I(SQ ; Φ(U ), AQall , S<Q , Q) ≤ 4w · ttot
+Proof. Due to a standard direct sum trick, as Q is chosen independently at random, S1 , . . . , Sm are
+i.i.d, we know
+              I(SQ ; Φ(U ), AQall , S<Q , Q) = I(SQ ; S<Q , Q) +I(SQ ; Φ(U ), AQall |S<Q , Q)
+                                               |      {z     }
+                                                       =0
+                                               = EQ [I(SQ ; Φ(U ), AQall |S<Q )]
+Then we can bound EQ [I(SQ ; Φ(U ), AQall |S<Q )] as
+                                               1     ⃗ Φ(U ), AQ ) ≤           |Φ(U )|          m |Aq |
+           EQ [I(SQ ; Φ(U ), AQall |S<Q )] =     · I(S;         all
+                                                                                            +
+                                               m                                 m }
+                                                                               | {z              m
+                                                                          n
+                                                                         ≤m =n−Ω(1) =o(1)
+
+                                            = o(1) + 3w · ttot ≤ 4w · ttot
+
+
+                                                       17
+                                          ⃗ Φ(U ), AQ ) ≤ H(Φ(U ), AQ ) ≤ |Φ(U )| + m |Aq |,
+where the first inequality follows from I(S;         all             all
+completing the proof of the claim.
+
+    Unfortunately, we cannot simply use the mutual information, and the related KL divergence
+for our proof. Since we are considering “small” advantage regime, we need to argue that the min-
+entropy of SQ conditioned on Z, BQ is large as in [Ko25a]. We will use the following lemma to
+extract “good” event in terms of min-entropy.
+                                                                       1
+Lemma 3.7 (SQ min-entropy). For every setting of the parameter α ∈ (0, 10 ), there exist events
+ 1      2
+EQ and EQ such that
+                      1                               2
+                   H(EQ |Φ(U ), AQall , S<Q , Q) = H(EQ |Φ(U ), AQall , S<Q , SQ , Q) = 0
+
+and
+                      1                   2                              1
+                                                                                 
+                   Pr EQ   ≥ 1 − α, Pr EQ        | Φ(U ), AQall , S<Q , Q, EQ  =1 ≥1−α
+                                                                     8w · ttot
+                   H∞ (SQ |Φ(U ), AQall , S<Q , Q, EQ = 1) ≥ n −
+                                                                         α2
+                 1 = 1, E 2 = 1 as E = 1 for short.
+where we denote EQ       Q          Q
+
+                                  1 , which is defined as a set of Φ(U ), A
+Proof. First we define the event EQ                                         Qall , S<Q , Q’s such that
+
+                                                                               4w · ttot
+                                      D(SQ |Φ(U ),AQ        ,S<Q ,Q ||SQ ) ≤
+                                                      all                        α
+Due to Claim 3.6,
+                                                                    h                                      i
+        I(SQ ; Φ(U ), AQall , S<Q , Q) = EΦ(U ),AQ
+                                                       all
+                                                             ,S<Q ,Q D(SQ |Φ(U ),AQ    all
+                                                                                             ,S<Q ,Q ||SQ )  ≤ 4w · ttot
+
+a simple Markov’s inequality would imply Pr[EQ1 ] ≥ (1 − α). Then if E 1 is set to true, we consider
+                                                                      Q
+                    2
+a setting of event EQ given by Claim 2.16. As EQ1 = 1 guarantees
+
+
+                                                                                                      4w · ttot
+               D(SQ |Φ(U ),AQ                1 =1 ||SQ ) = D(SQ |Φ(U ),A
+                                    ,S<Q ,Q,EQ                           Qall ,S<Q ,Q
+                                                                                      ||SQ ) ≤
+                              all                                                                       α
+where the equality holds as EQ1 is a deterministic function of Φ(U ), A
+                                                                       Qall , S<Q , Q, Claim 2.16
+                    2
+generates an event EQ such that
+                          2                            1
+                      Pr[EQ | Φ(U ), AQall , S<Q , Q, EQ = 1] ≥ 1 − α
+                        2                                1
+                     H(EQ |SQ , Φ(U ), AQall , S<Q , Q, EQ = 1) = 0
+                                                      1       2                                8w · ttot
+                     H∞ (SQ |Φ(U ), AQall , S<Q , Q, EQ = 1, EQ = 1) ≥ n −
+                                                                                                 α2
+which completes the proof of the lemma.
+
+3.2.2     Small Information on X
+Then we would like to show that H
+                                e ∞ (X|Z, EQ = 1) is large. Here, we remark that we need to have
+a conditioning EQ = 1 to deduce the contradiction.
+Lemma 3.8.
+                                e ∞ (X|Z, EQ = 1) ≥ n − |Φ(U )| − 10α − 1
+                                H
+
+                                                              18
+                                                                                  ⃗
+Proof. Recall that as X is chosen uniformly at random, regardless of chosen Q and S,
+                                                 ⃗ Q) = n
+                                           H∞ (X|S,
+
+while Lemma 2.14 implies that
+
+                                  H      ⃗ Φ(U ), Q) ≥ n − |Φ(U )|.
+                                  e ∞ (X|S,
+
+     ⃗ Φ(U ), Q and Alice’s independent private randomness determine AQ . That is AQ is
+But S,                                                                 all          all
+                                             ⃗ Φ(U ). Therefore,
+determined by Alice’s private randomness and S,
+                                                 ⃗ Φ(U ), Q) = 0.
+                                     I(X; AQall |S,
+
+And S,⃗ AQ , Φ(U ), Q contains SQ , Φ(U ), AQ , S<Q , Q, which determines both E 1 and E 2 . There-
+          all                                all                                Q       Q
+fore,
+
+                             H      ⃗ AQ , Φ(U ), EQ , Q) ≥ n − |Φ(U )|
+                             e ∞ (X|S,
+                                        all
+
+
+Then by the definition of average min-entropy we have the following equality.
+                         ⃗                                            ⃗
+               2−H∞ (X|S,AQall ,Φ(U ),EQ ,Q) = Pr[EQ = 1] · 2−H∞ (X|S,AQall ,Φ(U ),EQ =1,Q)
+                  e                                            e
+
+                                                                     ⃗
+                                           + Pr[EQ = 0] · 2−H∞ (X|S,AQall ,Φ(U ),EQ =0,Q)
+                                                               e
+
+
+which implies the following inequality
+
+      H      ⃗ AQ , Φ(U ), EQ = 1, Q) ≥ log (Pr[EQ = 1]) + H
+      e ∞ (X|S,                                                   ⃗ AQ , Φ(U ), EQ , Q)
+                                                           e ∞ (X|S,                            (9)
+                 all                                                  all
+
+
+The left hand side term of (9) is upper bounded by
+
+            H      ⃗ AQ , Φ(U ), EQ = 1, Q) ≤ H
+            e ∞ (X|S,                         e ∞ (X|S<Q , AQ , Φ(U ), EQ = 1, Q)
+                       all                                   all
+
+
+due to Claim 2.15.
+     Lemma 3.7 guarantees that Pr[EQ = 1] ≥ (1 − α)2 ≥ 1 − 2α. Then the right hand side of (9)
+is lower bounded by
+
+log (Pr[EQ = 1]) + H      ⃗ AQ , Φ(U ), EQ , Q) ≥ log(1 − 2α) + n − |Φ(U )| ≥ n − |Φ(U )| − 10α.
+                   e ∞ (X|S,
+                              all
+
+
+where the last lower bound holds from α ∈ (0, 0.1), and log(1 − 2α) ≥ −10α in this interval.
+   This implies the final inequality of
+                      e ∞ (X|S<Q , AQ , Φ(U ), EQ = 1, Q) ≥ n − |Φ(U )| − 10α.
+                      H                                                                        (10)
+                                     all
+
+
+Again applying Lemma 2.14 to (10), we get
+                e ∞ (X|S<Q , AQ , Φ(U ), BQ , EQ = 1, Q) ≥ n − |Φ(U )| − 10α − 1,
+                H              all
+
+
+which completes the proof of the lemma.
+
+
+
+
+                                                   19
+3.2.3   Small Correlation between SQ and X
+Finally, we show that SQ and X are weakly correlated after conditioning on Z and EQ = 1. We
+show the following lemma.
+Lemma 3.9.
+                                                                   1    |U |
+                                  I(SQ ; X|Z, EQ = 1) ≤               2
+                                                               (1 − α) m
+Proof. We start by just plugging our Z into I(SQ ; X|Z, EQ = 1).
+
+                 I(SQ ; X|Z, EQ = 1) ≤ I(SQ ; XU |S<Q , AQall , Φ(U ), BQ , EQ = 1, Q)
+                                       ≤ I(SQ ; XU |S<Q , AQall , Φ(U ), EQ = 1, Q)
+
+where the last inequality holds from Fact 2.9 with
+
+                           I(SQ ; BQ |XU, S<Q , AQall , Φ(U ), EQ = 1, Q) = 0,
+
+as U, AQall and Bob’s independent random variable fully determines BQ . That is depending on U ,
+either AQ ’s final output is picked as BQ , or it is uniformly random {±1}. Then we can further
+upper bound the term of interest as
+                                                                                  1       2
+    I(SQ ; XU |S<Q , AQall , Φ(U ), EQ = 1, Q) = I(SQ ; XU |S<Q , AQall , Φ(U ), EQ = 1, EQ = 1, Q)
+                                         1 = 1, E 2 , Q)
+        I(SQ ; XU |S<Q , AQall , Φ(U ), EQ                                                      1 = 1, Q)
+                                                               I(SQ ; XU |S<Q , AQall , Φ(U ), EQ
+                                                 Q
+    ≤         2 = 1|S                     1                ≤
+          Pr[EQ      <Q , AQall , Φ(U ), EQ = 1, Q]                               1−α
+
+where the last inequality holds from Fact 2.9 with
+      2                                  1              2                             1
+   I(EQ ; XU |SQ , S<Q , AQall , Φ(U ), EQ = 1, Q) ≤ H(EQ |SQ , S<Q , AQall , Φ(U ), EQ = 1, Q) = 0
+
+from Lemma 3.7. Now EQ 1 is fully determined by S
+                                                 <Q , AQall , Φ(U ), Q, and is 1 with probability at
+least 1 − α. Therefore
+                                             1                 I(SQ ; XU |S<Q , AQall , Φ(U ), Q)
+            I(SQ ; XU |S<Q , AQall , Φ(U ), EQ = 1, Q) ≤                                          .
+                                                                            1−α
+   Now finally, using the standard direct-sum technique, and the chain rule of Mutual Information
+(Fact 2.7), we get
+                                         m                                     ⃗ XU |AQ , Φ(U ))
+                                       1 X                                   I(S;      all
+  I(SQ ; XU |S<Q , AQall , Φ(U ), Q) =     I(Sq ; XU |S<q , AQall , Φ(U )) =
+                                       m                                             m
+                                           q=1
+                                         ⃗ XU |Φ(U ))
+                                       I(S;               ⃗ XU )
+                                                        I(S;         ⃗ X) + I(S;
+                                                                   I(S;       ⃗ U |X)   |U |
+                                     ≤                ≤          =                    ≤
+                                            m              m               m             m
+                                                                  ⃗ Φ(U )) = 0. This is true as
+where the first inequality holds from Fact 2.9 with I(AQall ; XU |S,
+⃗ Φ(U ) and Alice’s independent randomness determines Alice’s message AQ . The second in-
+S,                                                                             all
+                                                 ⃗
+equality holds again from Fact 2.9 with I(Φ(U ); S|XU ) = 0 as Φ(U ) is fully determined by Bob’s
+                                                                  ⃗ X) = 0 and I(S;
+independent randomness and U . The final inequality holds from I(S;                 ⃗ U |X) ≤ |U |.
+   Combining the inequalities we get
+                                                                   1    |U |
+                                  I(SQ ; X|Z, EQ = 1) ≤               2
+                                                               (1 − α) m
+our desired inequality.
+
+                                                    20
+3.2.4   The main contradiction
+We will use the following combinatorial lower bound from [Ko25a] which provides a combinatorial
+impossibility.
+
+Lemma 3.10 (Lemma 3.10 of [Ko25a]). Let X and Y be a distribution over {0, 1}n . For any
+γ ≥ 3, if a random process Z = z and A, which contains zout satisfy the following inequalities
+
+                          H̃∞ (Y |A, Z = z) + H̃∞ (X|A, Z = z) ≥ n + 2γ
+                          I(Y ; X|A, Z = z) ≤ 2−2γ
+
+Then it must be the case that
+                          h                                         i
+                   EA|Z=z EY,X|A=a,Z=z [χY (X) · zout |A = a, Z = z] < 2−γ+2
+
+   We attach the full proof of Lemma 3.10 in Section A for completeness. The following lemma
+completes the proof of Theorem 1.1.
+
+Lemma 3.11. If m = n1+Ω(1) , then no 2.5-round Multiphase Communication Game satisfying the
+parameters of Corollary 3.4 can exist.
+
+    To see how Lemma 3.11 completes the proof of Theorem 1.1, the choice of parameters gives
+a 2.5-round protocol Corollary 3.4. However, Lemma 3.11 then argues that such protocol cannot
+exist. Therefore, this provides the claimed lower bound on ttot .
+Proof of Lemma 3.11. Recall that Corollary 3.4 implies Claim 3.5 or
+                             h                   i
+                                                     ≥ n−o(1) .
+                                         
+                         EZ E(SQ ,X)|Z χSQ (X)
+
+with the parameters
+                                                                √
+                                    κ+1                          n
+                   |U | ≤ O(n log         (n)), |Φ(U )| ≤ n −      , |Aq | ≤ o(log3 (n)).
+                                                                2
+    On the other hand, from Lemma 3.7, Lemma 3.8, Lemma 3.9, we get the following set of
+inequalities:
+                            e ∞ (X|Z, EQ = 1) ≥ n − |Φ(U )| − 10α − 1
+                            H                                                                          (11)
+                            e ∞ (SQ |Z, EQ = 1) ≥ n − 8w · ttot − 1
+                            H                                                                          (12)
+                                                         α2
+                                                       1    |U |
+                            I(SQ ; X|Z, EQ = 1) ≤         2
+                                                                                                       (13)
+                                                   (1 − α) m
+
+where (12) simply follows from
+        e ∞ (SQ |Z, EQ = 1) = H
+        H                     e ∞ (SQ |BQ , Φ(U ), AQ , S<Q , Q, EQ = 1)
+                                                     all
+
+                                                                                        8w · ttot
+                           ≥H
+                            e ∞ (SQ |Φ(U ), AQ , S<Q , Q, EQ = 1) − 1 ≥ n −                       −1
+                                              all
+                                                                                          α2
+where the first inequality holds from Lemma 2.14 and the second inequality follows from Lemma
+3.7.
+
+
+
+                                                     21
+    Adding (11) and (12), and plugging in the bounds for |U | , |Φ(U )| , |Aq |, we obtain
+                                                            √
+                                                                            log3 (n)
+                                                                                    
+                                                               n
+                H∞ (X|Z, EQ = 1) + H∞ (SQ |Z, EQ = 1) ≥
+                 e                   e                           + n−
+                                                              2                α2
+                                                    n logκ+1 (n)
+                                                                
+                                               1
+                I(SQ ; X|Z, EQ = 1) ≤ O
+                                           (1 − α)2      m
+upon which we can invoke Lemma 3.10. By setting α := n−1/5 , and m := n1+Ω(1) , our γ for Lemma
+3.10 becomes γ := Θ(log n). In particular, we get
+                      H
+                      e ∞ (X|Z, EQ = 1) + H e ∞ (SQ |Z, EQ = 1) ≥ n + nΘ(1)
+                        I(SQ ; X|Z, EQ = 1) ≤ 2−Θ(log n)
+Here, we remark that (13) is really the bottleneck for γ. This then implies
+                                  h                         i
+                                                                < n−Ω(1) .
+                                                   
+                        EZ,EQ =1 E(SQ ,X)|Z,EQ =1 χSQ (X)
+However, this contradicts Claim 3.5, due to the following chain of inequalities.
+                      h                     i
+         n−o(1) ≤ EZ E(SQ ,X)|Z χSQ (X)
+                                 
+                      h                                              i
+                ≤ EZ Pr[EQ = 1|Z = z] · E(SQ ,X)|Z=z,EQ =1 χSQ (X)
+                      h                                              i
+                + EZ Pr[EQ = 0|Z = z] · E(SQ ,X)|Z=z,EQ =0 χSQ (X)
+                  |                           {z                        }
+                                ≤EZ [Pr[EQ =0|Z=z]]=Pr[EQ =0]
+                      h                         i
+                ≤ EZ E(SQ ,X)|Z,EQ =1 χSQ (X) + Pr[EQ = 0]
+                           h                          i
+                ≤ EZ,EQ =1 E(SQ ,X)|Z,EQ =1 χSQ (X) + ∥Z − Z|EQ =1 ∥1 + Pr[EQ = 0]                  (14)
+where the last inequality follows from the standard fact |EX [f (X)] − EY [f (Y )]| ≤ ∥f ∥∞ · ∥X − Y ∥1 .
+But ∥Z − Z|EQ =1 ∥1 can be upper bounded by
+∥Z − Z|EQ =1 ∥1
+                                                                                       
+ ≤ ∥ Pr[EQ = 1] · Z|EQ =1 + Pr[EQ = 0] · Z|EQ =0 − Pr[EQ = 1]Z|EQ =1 + Pr[EQ = 0]Z|EQ =1 ∥1
+ ≤ Pr[EQ = 0] · ∥Z|EQ =0 − Z|EQ =1 ∥1 ≤ 2 · Pr[EQ = 0].                                             (15)
+Combining (14) with (15), results in the final contradiction, as
+                                       h                         i
+            n−o(1) ≤ (14) ≤ EZ,EQ =1 E(SQ ,X)|Z,EQ =1 χSQ (X) + 3 · Pr[EQ = 0]
+                                                        
+
+                      ≤ n−Ω(1) + O(α) ≤ n−Ω(1)                                                      (16)
+The final inequality on Pr[EQ = 0] = 1 − Pr[EQ = 1] follows from Lemma 3.7 as
+                                   Pr[EQ = 1] ≥ (1 − α)2 ≥ 1 − 2α.
+Setting α := n−1/5 completes the argument. However, (16) is a contradiction as the inequality
+states n−o(1) ≤ n−Ω(1) .
+                                                                                           □
+
+
+4    Acknowledgment
+The author thanks Huacheng Yu for carefully reading an earlier draft of this paper and providing
+valuable feedback.
+
+                                                   22
+References
+[BL15]     Joshua Brody and Kasper Gren Larsen. Adapt or Die: Polynomial Lower Bounds for
+           Non-Adaptive Dynamic Data Structures. THEORY OF COMPUTING, 11:19, 2015.
+
+[BM13]     Mark Braverman and Ankur Moitra. An information complexity approach to extended
+           formulations. In Proceedings of the forty-fifth annual ACM symposium on Theory of
+           Computing, pages 161–170, Palo Alto California USA, June 2013. ACM.
+
+[Bra22]    Mark Braverman. Communication and information complexity. Proc. Int. Cong. Math.
+           2022, 2022.
+
+[BYJKS04] Ziv Bar-Yossef, T.S. Jayram, Ravi Kumar, and D. Sivakumar. An information statistics
+          approach to data stream and communication complexity. Journal of Computer and
+          System Sciences, 68(4):702–732, June 2004.
+
+[CEEP12]   Arkadev Chattopadhyay, Jeff Edmonds, Faith Ellen, and Toniann Pitassi. A Little
+           Advice Can Be Very Helpful. In Proceedings of the Twenty-Third Annual ACM-SIAM
+           Symposium on Discrete Algorithms, pages 615–625. Society for Industrial and Applied
+           Mathematics, January 2012.
+
+[CGL15]    Raphael Clifford, A. Grønlund, and K. G. Larsen. New Unconditional Hardness Re-
+           sults for Dynamic and Online Problems. In 2015 IEEE 56th Annual Symposium on
+           Foundations of Computer Science, pages 1089–1107, October 2015.
+
+[CT06]     Thomas M. Cover and Joy A. Thomas. Elements of Information Theory (Wiley Series
+           in Telecommunications and Signal Processing). Wiley-Interscience, New York, NY,
+           USA, 2006.
+
+[DGW19]    Zeev Dvir, Alexander Golovnev, and Omri Weinstein. Static data structure lower
+           bounds imply rigidity. In Proceedings of the 51st Annual ACM SIGACT Symposium
+           on Theory of Computing, STOC 2019, pages 967–978, Phoenix, AZ, USA, June 2019.
+           Association for Computing Machinery.
+
+[DORS08] Yevgeniy Dodis, Rafail Ostrovsky, Leonid Reyzin, and Adam Smith. Fuzzy Extractors:
+         How to Generate Strong Keys from Biometrics and Other Noisy Data. SIAM Journal
+         on Computing, 38(1):97–139, January 2008.
+
+[Dru12]    Andrew Drucker. Limitations of Lower-Bound Methods for the Wire Complexity of
+           Boolean Operators. In 2012 IEEE 27th Conference on Computational Complexity,
+           pages 170–180, June 2012.
+
+[FS89]     Michael L. Fredman and Michael E. Saks. The Cell Probe Complexity of Dynamic
+           Data Structures. In Proceedings of the 21st Annual ACM Symposium on Theory of
+           Computing, pages 345–354, 1989.
+
+[JS10]     S. Jukna and G. Schnitger. Circuits with arbitrary gates for random operators, 2010.
+           Version Number: 1.
+
+[Juk12]    Stasys Jukna. Boolean function complexity: advances and frontiers, volume 27.
+           Springer Science & Business Media, 2012.
+
+
+
+                                             23
+[Juk13]    Stasys Jukna. Complexity of Linear Boolean Operators. Foundations and Trends® in
+           Theoretical Computer Science, 9(1):1–123, 2013.
+
+[Ko25a]    Young Kun Ko. Lower Bounds for Linear Operators, 2025. Version Number: 1.
+
+[Ko25b]    Young Kun Ko. Unifying the Landscape of Super-Logarithmic Dynamic Cell-Probe
+           Lower Bounds, 2025. Version Number: 1.
+
+[KPI25]    Oliver Korten, Toniann Pitassi, and Russell Impagliazzo. Stronger Cell Probe Lower
+           Bounds via Local PRGs, March 2025. ISSN: 1433-8092.
+
+[KS92]     Bala Kalyanasundaram and Georg Schnitger. The Probabilistic Communication Com-
+           plexity of Set Intersection. SIAM Journal on Discrete Mathematics, 5(4):545–557,
+           November 1992.
+
+[KW20]     Young Kun Ko and Omri Weinstein. An Adaptive Step Toward the Multiphase Con-
+           jecture. In 2020 IEEE 61st Annual Symposium on Foundations of Computer Science
+           (FOCS), pages 752–761, Durham, NC, USA, November 2020. IEEE.
+
+[Lar12]    Kasper Green Larsen. The Cell Probe Complexity of Dynamic Range Counting. In
+           Proceedings of the Forty-fourth Annual ACM Symposium on Theory of Computing,
+           STOC ’12, pages 85–94, New York, NY, USA, 2012. ACM.
+
+[LWY20]    Kasper Green Larsen, Omri Weinstein, and Huacheng Yu. Crossing the Logarithmic
+           Barrier for Dynamic Boolean Data Structure Lower Bounds. SIAM Journal on Com-
+           puting, 49(5):STOC18–323–STOC18–367, January 2020.
+
+[LY25]     Kasper Green Larsen and Huacheng Yu. Super-Logarithmic Lower Bounds for Dy-
+           namic Graph Problems. SIAM Journal on Computing, pages FOCS23–42–FOCS23–69,
+           February 2025.
+
+[MNSW98] Peter Bro Miltersen, Noam Nisan, Shmuel Safra, and Avi Wigderson. On Data Struc-
+         tures and Asymmetric Communication Complexity. J. Comput. Syst. Sci., 57(1):37–49,
+         1998.
+
+[Pat07]    Mihai Patrascu. Lower Bounds for 2-dimensional Range Counting. In Proceedings of
+           the Thirty-ninth Annual ACM Symposium on Theory of Computing, STOC ’07, pages
+           40–46, New York, NY, USA, 2007. ACM.
+
+[Pat10]    Mihai Patrascu. Towards polynomial lower bounds for dynamic problems. In Leonard J.
+           Schulman, editor, Proceedings of the 42nd ACM Symposium on Theory of Computing,
+           STOC 2010, Cambridge, Massachusetts, USA, 5-8 June 2010, pages 603–610. ACM,
+           2010.
+
+[PD06]     Mihai Patrascu and Erik D. Demaine. Logarithmic Lower Bounds in the Cell-Probe
+           Model. SIAM J. Comput., 35(4):932–963, April 2006.
+
+[PTW08]    Rina Panigrahy, Kunal Talwar, and Udi Wieder. A Geometric Approach to Lower
+           Bounds for Approximate Near-Neighbor Search and Partial Match. In 2008 49th An-
+           nual IEEE Symposium on Foundations of Computer Science, pages 414–423, Philadel-
+           phia, PA, USA, October 2008. IEEE.
+
+
+
+                                             24
+[PTW10]   Rina Panigrahy, Kunal Talwar, and Udi Wieder. Lower Bounds on Near Neighbor
+          Search via Metric Expansion. In FOCS 2010, pages 805–814, 2010.
+
+[Pǎ11]   Mihai Pǎtraşcu. Unifying the Landscape of Cell-Probe Lower Bounds. SIAM J. Com-
+          put., 40(3):827–847, 2011.
+
+[Raz92]   A.A. Razborov. On the distributional complexity of disjointness. Theoretical Computer
+          Science, 106(2):385–390, December 1992.
+
+[Sie04]   Alan Siegel. On Universal Classes of Extremely Random Constant-Time Hash Func-
+          tions. SIAM J. Comput., 33(3):505–543, 2004.
+
+[Sko19]   Maciej Skorski. Strong Chain Rules for Min-Entropy under Few Bits Spoiled. In 2019
+          IEEE International Symposium on Information Theory (ISIT), pages 1122–1126, Paris,
+          France, July 2019. IEEE.
+
+[Tho13]   Mikkel Thorup. Mihai PǎTraşCu: Obituary and Open Problems. SIGACT News,
+          44(1):110–114, March 2013.
+
+[Wai19]   Martin J. Wainwright. High-Dimensional Statistics: A Non-Asymptotic Viewpoint.
+          Cambridge University Press, 1 edition, February 2019.
+
+[Wil17]   Virginia Vassilevska Williams. On some fine-grained questions in algorithms and com-
+          plexity. In ICM 2018, 2017.
+
+[Yao81]   Andrew Chi-Chih Yao. Should Tables Be Sorted? J. ACM, 28(3):615–628, July 1981.
+
+
+
+
+                                             25
+A     Omitted Proof of Claims and Lemmas
+To make the presentation self-contained, we attach the missing proofs of claims and lemmas.
+Claim 2.16. Let D be a distribution and U a uniform distribution over some S ⊂ {0, 1}n . Then
+if D(D||U) < t with t > 1, then for every α > 2 there exists an event E such that
+                                                    1
+                                        D(E) ≥ 1 −
+                                                    α
+                                        H∞ (D|E ) ≥ log |S| − 2αt
+Proof. We partition X depending on D(X). Let E denote the set of X such that
+                                                     D(X)
+                                              log         < αt
+                                                     U(X)
+Since D(D||U) < t, by Markov’s inequality 1 − D(E) < 1/α. With α > 2, for any X that is in the
+support of D|E , we have
+                         D(X)
+             D|E (X) =        ≤ 2 · D(X) ≤ 2αt+1 · U (X) = 2− log |S|+αt+1 ≤ 2− log |S|+2αt
+                         D(E)
+which then gives H∞ (D|E ) ≥ log |S| − 2αt.
+
+   Towards the proof of Lemma 3.10, we need the following well-known fact about the Hadamard
+matrix.
+Claim A.1 (Lindsey’s Lemma). Let H be a Hadamard matrix. Let µ and ν be distributions, written
+as vectors. Then
+                                 µT Hν ≤ ∥µ∥2 ∥ν∥2 · 2n/2
+    Also Fact 2.12 implies the following simple proposition about ℓ22 norm of the distribution versus
+its min-entropy.
+Proposition A.2.                      "                          #
+                                       X
+                               Eb∼B        Pr[A = a|B = b]2 ≤ 2−H̃∞ (A|B)
+                                       a
+Proof.                   X
+                               Pr[A = a|B = b]2 = 2−H2 (A|B=b) ≤ 2−H∞ (A|B=b)
+                           a
+Therefore,              "                            #
+                         X                                     h            i
+                 Eb∼B          Pr[A = a|B = b]   2
+                                                         ≤ Eb∼B 2−H∞ (A|B=b) = 2−H̃∞ (A|B)
+                          a
+where the last equality holds from the definition of average min-entropy.
+
+    Now we are ready to prove Lemma 3.10. We prove an equivalent statement.
+Lemma 3.10. No setting of a random variable Z = z and A, which contains zout can simultaneously
+satisfy all three of the following inequalities for any γ ≥ 3
+                              h                                        i
+                      EA|Z=z EY,X|A=a,Z=z [χY (X) · zout |A = a, Z = z] ≥ 2−γ+2            (17)
+                   H̃∞ (Y |A, Z = z) + H̃∞ (X|A, Z = z) ≥ n + 2γ                                (18)
+                                             −2γ
+                   I(Y ; X|A, Z = z) ≤ 2                                                        (19)
+
+                                                          26
+Proof. For the sake of contradiction, suppose such z and A exists. First as zout is ±1, the absolute
+value of the guess does not change. That is
+
+          EY,X|A=a,Z=z [χY (X) · zout |A = a, Z = z] = EY,X|A=a,Z=z [χY (X)|A = a, Z = z]        (20)
+
+Then we can use the ℓ1 bound to have
+
+      EY,X|A=a,Z=z [χY (X)|A = a, Z = z] ≤ |Y |A=a,Z=z · H · X|A=a,Z=z |                         (21)
+                                                 + ∥Y |A=a,Z=z × X|A=a,Z=z − (Y, X)|A=a,Z=z ∥1   (22)
+   We bound the expectation of (22). Our KL-divergence term is then equal to the mutual in-
+formation between Y and X conditioned on Z = z. Namely, using the chain rule for the KL
+divergence,
+           D((Y, X)|A=a,Z=z ||Y |A=a,Z=z × X|A=a,Z=z )
+            = D(X|A=a,Z=z ||X|A=a,Z=z ) +Ex∼X|A=a,Z=z [D(Y |X=x,A=a,Z=z ||Y |A=a,Z=z )]
+              |         {z           }
+                             =0
+            = I(Y ; X|A = a, Z = z)
+Then, due to Pinsker’s inequality (Fact 2.6), we have
+                                                            p
+             ∥Y |A=a,Z=z × X|A=a,Z=z − (Y, X)|A=a,Z=z ∥1 ≤ 2 I(Y ; X|A = a, Z = z)
+Taking expectation over A and applying Jensen’s inequality,
+    EA|Z=z [∥Y |A=a,Z=z × X|A=a,Z=z − (Y, X)|A=a,Z=z ∥1 ] ≤ 2 I(Y ; X|A, Z = z) ≤ 2−γ+1
+                                                             p
+                                                                                                 (23)
+where the last bound holds from (19).
+   Next, we bound (21). Due to Claim A.1 and Cauchy-Schwarz Inequality,
+                                                      h                                      i
+       EA|Z=z [|Y |A=a,Z=z · H · X|A=a,Z=z |] ≤ EA|Z=z 2n/2 · ∥Y |A=a,Z=z ∥2 · ∥X|A=a,Z=z ∥2
+                q
+        ≤ 2n/2 · EA|Z=z ∥Y |A=a,Z=z ∥22 · EA|Z=z ∥X|A=a,Z=z ∥22
+                                                                
+
+Proposition A.2 implies
+
+                                  EA|Z=z ∥Y |A=a,Z=z ∥22 ≤ 2−H̃∞ (Y |A,Z=z)
+                                                       
+
+                                  EA|Z=z ∥X|A=a,Z=z ∥22 ≤ 2−H̃∞ (X|A,Z=z)
+                                                       
+
+which would in turn imply
+       q
+        EA|Z=z ∥Y |A=a,Z=z ∥22 · EA|Z=z ∥X|A=a,Z=z ∥22 ≤ 2−(H̃∞ (Y |A,Z=z)+H̃∞ (X|A,Z=z))/2
+                                                   
+
+               n+2γ
+        ≤ 2−    2     = 2−n/2 · 2−γ
+which then implies (21) is upper bounded by
+                                         (21) ≤ 2n/2 · 2−n/2 · 2−γ = 2−γ                         (24)
+   Therefore, we get
+                                 h                                                i       3
+                        EA|Z=z       EY,X|A=a,Z=z [χY (X) · zout |A = a, Z = z]       ≤          (25)
+                                                                                          2γ
+which contradicts (17).
+
+                                                       27
+B     Lifting Theorem
+We consider the following “hard” functions, which are roughly f with a small discrepancy under a
+product distribution.
+Definition B.1 (Hard Functions). Let X be a uniform distribution over {0, 1}n , and let S be an
+independently distributed random variable with min-entropy H∞ (S). We say f : {0, 1}2n → {±1}
+is hard if for any random variables A such that
+
+                                  (S, X)|A = X|A × S|A
+                                               √
+                                                 n
+                                  H∞ (X|A) ≥
+                                   e
+                                                3
+                                  He ∞ (S|A) ≥ H∞ (S) − o(log3 (n))
+
+it must be the case that
+                                  EA E(S,X)|A [f (S, X)] ≤ n−Ω(1)
+                                                       
+
+     Intuitively, “hard” functions are those that exhibit small discrepancy under some product dis-
+tribution with X set to be a uniform distribution. For instance, Inner Product over F2 satisfies the
+definition, as its discrepancy is exponentially small. Unfortunately, Disjointness does not satisfy
+the definition. One can obtain good advantage by sampling and revealing a few coordinates. (See
+[BM13])
+     For example, suppose Alice has S and Bob has X. Bob does the following. Consider the coor-
+dinates where X equals 1. Sample each coordinate with probability ε. Then send these coordinates
+X0 to Alice. The message length is roughly O(εn log n). Alice simply checks Disjointness with the
+sampled coordinates X0 . If S and X0 are not disjoint, declare the inputs are not disjoint. Otherwise
+flip a random coin to output 1 with probability Pr(S,X) [DISJ(S, X) = 1]. One can verify that such a
+strategy ensures roughly Ω(ε) advantage over random guessing. That is a O(n  e 1−δ ) length message
+already gives Ω(nδ ) advantage over random guessing.
+     One key ingredient necessary for our general proof is the following technical theorem regarding
+the min-entropy.
+Theorem B.2 (Theorem 1 and Corollary 1 of [Sko19]). Let X be a fixed alphabet, and X =
+(X1 , . . . , Xt ) be a sequence of (possibly correlated) random variables each over X , equipped with a
+distribution µ. Then for any ε ∈ (0, 1) and δ > 0, there exists a collection B of disjoint sets on X t
+such that
+    • B can be indexed by a small number of bits, namely
+
+                            log |B| = t · O log log |X | + log log ε−1 + log(t/δ)
+                                                                                 
+
+
+    • B almost covers the domain              X
+                                                   µ(B) ≥ 1 − ε
+                                             B∈B
+
+    • Conditioned on B, block distributions Xi |X<i are nearly flat. That is
+                                                         µ(xi |x<i )
+                                 ∀x, x′ ∈ B, 2−O(δ) ≤                  ≤ 2O(δ)
+                                                         µ(x′i |x′<i )
+
+    • For every B ∈ B, for every index i ∈ [t], and for every set I ⊂ [i − 1], we have
+
+                                                   28
+        1. The chain rule for min-entropy
+
+                              H∞ (Xi |XI , B) + H∞ (XI |B) = H∞ (Xi , XI |B) ± O(δ)
+
+        2. The average and worst-case min-entropy almost match
+                                       e ∞ (Xi |XI , B) = H∞ (Xi |XI , B) ± O(δ)
+                                       H
+
+Remark B.3. The proof of the theorem invokes the standard ℓ∞ covering-number bound for the
+probability simplex. Skórski [Sko19] cites an unpublished note for this bound; for an accessible
+reference see Chapter 5, Example 5.6 of [Wai19].
+    While the standard chain rule does not hold for min-entropy, Theorem B.2 essentially allows
+us to maintain a chain rule structure by “paying” for partitions and discarding a small set of
+inputs. Then we are ready to prove the following general lifting theorem, which is a strengthening
+of Theorem 1.1 using Theorem B.2.
+Theorem B.4 (Lifting Theorem). For the Multiphase Problem with f satisfying Definition B.1,
+and m = n1+Ω(1) ,
+                                                          2 !
+                                                   log n
+                           max{tu , ttot } ≥ Ω
+                                                 log log n
+
+Proof. Our simulation theorem Section 3.1 guarantees a 2.5-round Multiphase communication pro-
+tocol Π with exactly the same parameters as in Corollary 3.4. But on top of the usual simulation,
+we will also consider an independent random permutation σ ∈ Sym([m]) known to all players, to
+“average out” the advantage per coordinate. When conditioned on σ, σ permutes the query indices
+so that fσ (Sq , X) := f (Sσ(q) , X). By the same choice of parameters, we get
+                                                            √
+                                     κ+1                      n
+                      |U | ≤ O(n log (n)), |Φ(U )| ≤ n −        , |Aq | ≤ o(log3 (n))
+                                                             2
+while having
+                                   adv(Gfσ , Π) = adv(Gf , Π) ≥ n−o(1) .
+This holds as the whole protocol for fσ is constructed via the following argument. Construct the
+same protocol up to the 0.5-round message for S       ⃗ = (S1 , . . . , Sm ). Given query q ∈ Q, Alice simply
+sends Aσ(q) , and Bob outputs accordingly.
+   A useful property here is that
+                                  h h                                        ii
+               EAq ,Φ(U ),Bq |σ,S⃗ E Bq · fσ (Sq , X)|Aq , Φ(U ), Bq , σ, S⃗
+                                         h h                                                  ii
+                = EA ,Φ(U ),B |id,S⃗ E Bσ(q) · f (Sσ(q) , X)|Aσ(q) , Φ(U ), Bσ(q) , S,   ⃗ id
+                      σ(q)      σ(q)
+
+
+where the second case refers to choosing the permutation as the identity. By taking expectation
+over uniformly random σ, for any fixed q ∈ Q = [m], we get
+                               h h                                       ii
+                                                                       ⃗
+            EAq ,Φ(U ),Bq ,σ|S⃗ E Bq · fσ (Sq , X)|Aq , Φ(U ), Bq , σ, S
+                                     h h                                           ii
+             = EAQ ,Φ(U ),BQ ,Q|id,S⃗ E BQ · f (SQ , X)|AQ , Φ(U ), BQ , S, ⃗ Q, id ≥ n−o(1) (26)
+
+Intuitively, introducing a random permutation averages out the advantage across the coordinates
+q, ensuring no single coordinate disproportionately affects the overall advantage. Such a step is
+
+                                                     29
+technically necessary, as unlike in the proof of Theorem 1.1, we will be fixing a single q in the later
+part of the proof.
+    Again, we would like to extract a random variable Z from a 2.5-round protocol Π to derive a
+combinatorial contradiction. As a “hard” distribution, analogous to the proof of Theorem 1.1, we
+will be selecting each Sq ’s independently at random according to the distribution given in Definition
+B.1, and X, a uniformly random distribution.
+    Our proof is analogous to that of Lemma 3.11, essentially selecting the same Z, with the follow-
+ing caveat. Recall that in the proof of Lemma 3.11, we have selected Z as AQall , Φ(U ), S<Q , Q, BQ .
+We add an additional “partitioning” of S,        ⃗ B guaranteed by Theorem B.2 with {Xi }i∈[m] :=
+(Sσ(1) , . . . , Sσ(m) ) in the notation of Theorem B.2, conditioned on AQall , Φ(U ), σ.
+                              Ω(1)
+   We will choose ε := 2−n                1
+                            and δ := poly(n)  ≪ m 1
+                                                    for our choice of ε and δ in Theorem B.2.
+Then Theorem B.2 would guarantee a partitioning of (Sσ(1) , . . . , Sσ(m) ) such that
+                                                         Ω(1)
+             log |B| = m · O(log log (2n ) + log log 2n         + log(poly(m))) = m · O(log n)
+where conditioned on a valid partition in B, near chain rule holds for min-entropy. But with a
+slight abuse of notation, we will also include B as the case where S⃗ is not included in any of the
+partitions (i.e., spoiled set Bspoil ). Then GB = 1 refers to the event of valid “choosing” B, i.e.,
+choosing B ∈ B\{Bspoil }, to derive the contradiction. Theorem B.2 implies the near chain rule
+property:
+ m h
+ X                                                   i
+       e ∞ (Sσ(q) |Sσ(<q) , AQ , B, Φ(U ), σ, GB = 1) = H
+       H                                                     ⃗ Q , B, Φ(U ), σ, GB = 1) ± m · O(δ)
+                                                        e ∞ (S|A
+                              all                                all
+ q=1
+                                                                                                  (27)
+   Then our new Z would be
+                            Z := AQall , Φ(U ), B, Sσ(<Q) , Q, BQ , σ, GB = 1
+where Sσ(<Q) := Sσ(1) , . . . , Sσ(Q−1) .
+                  e ∞ (Sσ(Q) |Z) for a random Q, or equivalently, H
+   We first bound H                                                             e ∞ (Sσ(Q) |Z). From
+                                                                  e ∞ (Sσ(Q) )− H
+Theorem B.2 and Lemma 2.14, we have
+ H    ⃗ Q , B, Φ(U ), σ) ≥ H
+ e ∞ (S|A                       ⃗
+                           e ∞ (S|σ)−m |Aq |−O(m log n)−|Φ(U )| ≥ m·H∞ (SQ )−1.5m |Aq | (28)
+          all
+
+as |B| ≤ O(m log n) and |Φ(U )| ≤ n ≪ m. So the term is dominated by m |Aq |. As S1 , . . . , Sm
+are chosen independently at random, Sσ(1) , . . . , Sσ(m) are chosen independently at random as well,
+resulting in the final inequality. Then further conditioning on GB = 1, and using the observation,
+we can still deduce
+ H    ⃗ Q , B, Φ(U ), σ, GB = 1) ≥ log (Pr[GB = 1]) + H
+ e ∞ (S|A                                                  ⃗ Q , B, Φ(U ), σ, GB )
+                                                      e ∞ (S|A
+          all                                                  all
+
+                                                 ⃗
+                                 ≥ −O(ε) + H∞ (S|AQ , B, Φ(U ), σ)
+                                             e
+                                                                 all
+
+                                      ≥ m · H∞ (SQ ) − 1.5m |Aq | − O(ε) ≥ m · H∞ (SQ ) − 1.75m |Aq |
+as Pr[GB = 0] ≤ ε, which is guaranteed to be exponentially small due to our choice of parameters.
+The second inequality holds as B determines GB . The subtraction terms are indeed dominated by
+m |Aq | terms. Then applying (27), we obtain that for a random q,
+                                     h                                               i
+                 H∞ (Sσ(q) ) − Eq∈[m] He ∞ (Sσ(q) |Sσ(<q) , AQ , B, Φ(U ), σ, GB = 1)
+                                                              all
+
+                                     m · H∞ (Sσ(q) ) − 1.75m |Aq | + O(m · δ)
+                  ≤ H∞ (Sσ(q) ) −                                             ≤ 2 |Aq | .         (29)
+                                                        m
+
+                                                    30
+   Next we bound the average min-entropy of X. Due to the same argument as in Lemma 3.8,
+    H      ⃗ AQ , B, Φ(U ), σ, GB = 1) ≥ log (Pr[GB = 1]) + H
+    e ∞ (X|S,                                                       ⃗ AQ , B, Φ(U ), σ, GB )
+                                                             e ∞ (X|S,
+               all                                                      all
+
+                                       ≥ −O(ε) + H        ⃗ AQ , Φ(U ), σ)
+                                                   e ∞ (X|S,
+                                                                          all
+
+                                            ≥ n − |Φ(U )| − O(ε)
+
+where the second inequality holds as S,⃗ AQ , Φ(U ), σ fully determines the partition B and GB ,
+                                            all
+again a property guaranteed by Theorem B.2, as B forms a partition over S   ⃗ while conditioned
+on Φ(U ), AQall , σ. The third inequality holds due to the same argument from Lemma 3.8. In
+particular,
+      H      ⃗ AQ , Φ(U ), σ) = H
+      e ∞ (X|S,                        ⃗ Φ(U ), σ) ≥ H
+                                e ∞ (X|S,                   ⃗ σ) − |Φ(U )| = n − |Φ(U )| .
+                                                     e ∞ (X|S,
+                 all
+
+
+Then for any fixed q, Claim 2.15 implies
+e ∞ (X|Sσ(<q) , AQ , B, Φ(U ), σ, GB = 1) ≥ H
+H                                                  ⃗ AQ , B, Φ(U ), σ, GB = 1) ≥ n−|Φ(U )|−O(ε)
+                                            e ∞ (X|S,
+                  all                                  all
+
+
+therefore
+   e ∞ (X|Sσ(<q) , AQ , B, Φ(U ), σ, GB = 1, Bq ) ≥ n − |Φ(U )| − 1 − O(ε) ≥ n − |Φ(U )| − 2
+   H                                                                                                   (30)
+                     all
+
+
+where the last extra −1 term follows from Lemma 2.14 applied upon He ∞ (X|Sσ(<q) , AQ , B, Φ(U ), σ, GB =
+                                                                                     all
+1) term.
+    Finally, we are left with bounding the correlation term. The steps are analogous to the proof
+of Lemma 3.9.
+  I(Sσ(Q) ; X|Q, Sσ(<Q) , AQall , B, Φ(U ), σ, GB = 1, BQ )
+   ≤ I(Sσ(Q) ; U X|Q, Sσ(<Q) , AQall , B, Φ(U ), σ, GB = 1, BQ )
+                                                                  1 ⃗
+   ≤ I(Sσ(Q) ; U X|Q, Sσ(<Q) , AQall , B, Φ(U ), σ, GB = 1) = I(S;       U X|AQall , B, Φ(U ), σ, GB = 1)
+                                                                 m
+                                                                   ⃗
+   ≤
+            1          ⃗ U X|AQ , B, Φ(U ), σ, GB ) ≤ 2 · I(S; U X|AQall , Φ(U ), σ)
+                     I(S;          all
+     m · Pr[GB = 1]                                                         m
+                                                                                   
+         ⃗ U X|Φ(U ), σ)           ⃗ U X|σ)        2 ·   I( ⃗
+                                                            S; X|σ) + I( ⃗
+                                                                         S; U |X, σ)
+     2I(S;                   2 · I(S;                                                    2|U |
+   ≤                      ≤                    =                                      ≤        .        (31)
+               m                     m                              m                     m
+The only difference from the proof of Lemma 3.9 is the introduction of GB , B and σ. Fact 2.9 allows
+us to remove any additional random variables. That is
+                       ⃗ U X|AQ , B, Φ(U ), σ, GB ) ≤ I(S;
+                     I(S;                               ⃗ U X|AQ , σ, Φ(U ))
+                               all                              all
+
+                                   ⃗ = 0 with AQ , Φ(U ), σ inducing a partition on S.
+as I(B, GB ; U X|AQall , Φ(U ), σ, S)                                               ⃗ Also
+                                                all
+
+                                 ⃗ U X|AQ , Φ(U ), σ) ≤ I(S;
+                               I(S;                       ⃗ U X|Φ(U ), σ)
+                                         all
+
+                           ⃗ = 0.
+as I(AQall ; U X|Φ(U ), σ, S)
+    Then due to Markov’s argument, there must exist q ∈ [m] such that
+              e ∞ (Sσ(q) |AQ , Φ(U ), B, Sσ(<q) , Bq , σ, GB = 1) ≥ H∞ (SQ ) − o(log3 (n))
+              H                                                                                        (32)
+                            all
+
+              H∞ (X|AQ , Φ(U ), B, Sσ(<q) , Bq , σ, GB = 1) ≥ n − |Φ(U )| − 2
+              e
+                         all
+                                                                                                       (33)
+                                                                         10|U |
+              I(Sσ(q) ; X|AQall , Φ(U ), B, Sσ(<q) , Bq , σ, GB = 1) ≤          .                      (34)
+                                                                          m
+
+                                                    31
+while we have established in (26) that for any q ∈ [m] and any S       ⃗
+                                    h h                                         ii
+                                                                              ⃗ ≥ n−o(1)
+                 EAq ,Φ(U ),Bq ,σ|S⃗ E Bq · f (Sσ(q) , X)|Aq , Φ(U ), Bq , σ, S
+
+This is why we need to introduce a random permutation to average out the advantage. Without
+the averaging argument, we cannot guarantee that the advantage is high for every q ∈ [m].
+   Then via an analogous argument from Claim 3.5
+
+         n−o(1) ≤EAq ,Φ(U ),Sσ(<q) ,Bq ,σ E Bq · f (Sσ(q) , X)|Aq , Φ(U ), Sσ(<q) , Bq , σ
+                                                                                         
+                                                                                        
+                 ≤ EAq ,Φ(U ),Sσ(<q) ,Bq ,σ E f (Sσ(q) , X)|Aq , Φ(U ), Sσ(<q) , Bq , σ
+                                                                                              
+                 ≤ EAQ ,B,Φ(U ),Sσ(<q) ,Bq ,σ E f (Sσ(q) , X)|AQall , B, Φ(U ), Sσ(<q) , Bq , σ    (35)
+                            all
+
+
+For shorthand, we will denote
+
+                                  Zq := AQall , B, Φ(U ), Sσ(<q) , Bq , σ, GB = 1
+
+Again as Pr[GB = 0] ≤ ε, the exact same argument to that of the proof of Lemma 3.11 applied
+upon (35) gives
+                                               ≥ n−o(1) − O(ε) ≥ n−o(1)
+                                          
+                     EZq E f (Sσ(q) , X)|Zq
+                                     Ω(1)
+due to our choice of ε, ε := 2−n .
+    Now we want to deduce a contradiction. (32) and (33) satisfy the average min-entropy condition.
+But (Sσ(q) , X)|Zq is not a product distribution. Nevertheless, (34) guarantees that they are “close”
+to a product distribution as
+                                                                                 10|U |
+                    EZq D((Sσ(q) , X)|Zq ||Sσ(q) |Zq × X|Zq ) = I(Sσ(q) ; X|Zq ) ≤
+                                                                                    m
+A standard application of Pinsker’s inequality (Fact 2.6) and Jensen’s inequality, gives
+                                                                             r
+                                                        q                    40|U |
+            EZq ∥Sσ(q) |Zq × X|Zq − (Sσ(q) , X)|Zq ∥1 ≤ 2 I(Sσ(q) ; X|Zq ) ≤          .
+                                                                                 m
+Now if we consider RZq := Sσ(q) |Zq × X|Zq , which is forced to be a product distribution,
+                                                                                              r
+         h                                 i      h                            i                40|U |
+                                                                                                         ≥ n−o(1)
+                                                                 
+   EZq       E(Sσ(q) ,X)∼RZq f (Sσ(q) , X)    ≥ EZq E(Sσ(q) ,X)|Zq f (Sσ(q) , X) −
+                                                                                                   m
+But from our definition of hard (Definition B.1) and bounds on average min-entropy ((32),(33)), it
+must be the case that          h                             i
+                                                                ≤ n−Ω(1)
+                                               
+                           EZq E(Sσ(q) ,X)∼RZq f (Sσ(q) , X)
+
+which is a contradiction.
+
+
+
+
+                                                                                    ECCC                          ISSN 1433-8092
+                                                        32
+                                                                                    https://eccc.weizmann.ac.il
+

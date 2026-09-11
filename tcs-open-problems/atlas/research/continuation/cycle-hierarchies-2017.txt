@@ -1,0 +1,951 @@
+Title                       Breaking cycles in noisy hierarchies
+
+
+Authors(s)                  Sun, Jiankai, Ajwani, Deepak, Nicholson, Patrick K., et al.
+
+
+Publication date            2017-06-28
+
+
+Publication information     Sun, Jiankai, Deepak Ajwani, Patrick K. Nicholson, and et al. “Breaking Cycles in Noisy
+                            Hierarchies.” ACM, June 28, 2017. https://doi.org/10.1145/3091478.3091495.
+
+
+Conference details          9th International ACM Web Science Conference 2017, held from June 26 to June 28, 2017 in
+                            Troy, NY (USA)
+
+
+Publisher                   ACM
+
+
+Item record/more            http://hdl.handle.net/10197/10131
+information
+Publisher's statement       © ACM, 2017. This is the author's version of the work. It is posted here by permission of ACM for
+                            your personal use. Not for redistribution. The definitive version was published in WebSci '17
+                            Proceedings of the 2017 ACM on Web Science Conference, (2017)}
+                            http://doi.acm.org/10.1145/3091478.3091495
+
+
+Publisher's version (DOI)   10.1145/3091478.3091495
+
+
+
+
+Downloaded 2026-09-10 15:22:50
+
+The UCD community has made this article openly available. Please share how this access
+benefits you. Your story matters! (@ucd_oa)
+
+
+
+© Some rights reserved. For more information
+                                        Breaking Cycles in Noisy Hierarchies∗
+                       Jiankai Sun                                                Deepak Ajwani                                   Patrick K. Nicholson
+              The Ohio State University                                  Nokia Bell Labs, Ireland                                Nokia Bell Labs, Ireland
+                 sun.1306@osu.edu                                   deepak.ajwani@nokia-bell-labs.com                      pat.nicholson@nokia-bell-labs.com
+
+                                                  Alessandra Sala                                  Srinivasan Parthasarathy
+                                          Nokia Bell Labs, Ireland                                   The Ohio State University
+                                    alessandra.sala@nokia-bell-labs.com                              srini@cse.ohio-state.edu
+ABSTRACT                                                                                        and information architecture, rely on ontological knowledge such
+Taxonomy graphs that capture hyponymy or meronymy relation-                                     as taxonomies and meronomies. Taxonomies capture generaliza-
+ships through directed edges are expected to be acyclic. However,                               tion/specification of semantic concepts and categories and meronomies
+in practice, they may have thousands of cycles, as they are often                               capture “has a” and “is a part of” relationship. Thus, the taxonomy
+created in a crowd-sourced way. Since these cycles represent logical                            and meronomy graphs (as well as graphs representing many other
+fallacies, they need to be removed for many web applications. In                                ontological relationships) should ideally be acyclic as cycles repre-
+this paper, we address the problem of breaking cycles while preserv-                            sent logical contradictions.
+ing the logical structure (hierarchy) of a directed graph as much as                               However, many large ontological knowledge bases are created
+possible. Existing approaches for this problem either need manual                               either in (i) crowd-sourced way (e.g., Wikipedia categories [39])
+intervention or use heuristics that can critically alter the taxonomy                           or (ii) using automated text analytics tools (e.g, Yago [13, 31]).
+structure. In contrast, our approach infers graph hierarchy using                               The creation process often results in inconsistencies and errors.
+a range of features, including a Bayesian skill rating system and                               As a result, the directed graphs capturing these ontological rela-
+a social agony metric. We also devise several strategies to lever-                              tions, can have a large number of cycles. For instance, the popular
+age the inferred hierarchy for removing a small subset of edges to                              skos:broader category1 is not guaranteed to be transitive and ir-
+make the graph acyclic. Extensive experiments demonstrate the                                   reflexive and, as a result, it has various cycles that can “represent a
+effectiveness of our approach.                                                                  potential problem for many web applications” 2 . In fact, there exists
+                                                                                                a body of work [5, 9, 20, 24, 26, 29, 33, 34, 38, 42] that has identified
+CCS CONCEPTS                                                                                    and recognized the presence of cycles in the hierarchical relations
+                                                                                                as one of the main problems for many web applications dealing
+•Theory of computation → Network flows; •Computing method-
+                                                                                                with ontologies, such as United Medical Language System (UMLS)
+ologies → Ontology engineering; •Information systems → Data
+                                                                                                Metathesaurus graph and DBpedia taxonomy graph. For example,
+cleaning;
+                                                                                                the unsupervised learning approach proposed by Fossati et al. [9],
+KEYWORDS                                                                                        to automatically derive a taxonomy for a DBpedia entity from a
+                                                                                                prominent subset of the Wikipedia category graph, requires that
+Directed Acyclic Graph, Graph Hierarchy, TrueSkill, Social Agony,                               the Wikipedia category graph is a directed acyclic graph (DAG),
+Cycle Edges                                                                                     which can ensure a strict hierarchy. To support these web applica-
+ACM Reference format:                                                                           tions, there is a need for a principled technique to reduce a directed
+Jiankai Sun, Deepak Ajwani, Patrick K. Nicholson, Alessandra Sala, and Srini-                   graph modeling a hierarchical relationship into a DAG, which only
+vasan Parthasarathy. 2017. Breaking Cycles in Noisy Hierarchies. In Pro-                        includes acyclic relationships.
+ceedings of WebSci’17, June 25-28, 2017, Troy, NY, USA., , 10 pages.                               In addition to removing logical contradictions, a DAG with strict
+DOI: http://dx.doi.org/10.1145/3091478.3091495
+                                                                                                hierarchy, can also benefit many applications to be computationally
+                                                                                                more efficient. This is because a DAG supports faster traversals
+1     INTRODUCTION                                                                              (e.g., for computing descendants and transitive closure) compared
+A large number of applications in information science, in fields                                to general directed graphs.
+such as AI, semantic web, biomedical informatics, library science                                  The problem of reducing graphs modeling hierarchical relations
+∗ This Work was conducted while the first author was doing internship at Nokia Bell
+                                                                                                into DAGs is also relevant in many other domains. For instance, in
+Labs, Ireland.
+                                                                                                synchronous dataflow (SDF) scheduling (an important problem in
+                                                                                                design automation for communication and digital signal processing
+Permission to make digital or hard copies of all or part of this work for personal or           systems [14, 15]), the existence of cycles in SDF graphs prevents
+classroom use is granted without fee provided that copies are not made or distributed
+for profit or commercial advantage and that copies bear this notice and the full citation
+                                                                                                or greatly restricts applications of many useful optimization tech-
+on the first page. Copyrights for components of this work owned by others than the              niques that are available for acyclic SDF graphs, because cyclic data
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or          dependences can cause deadlocks when scheduling tasks.
+republish, to post on servers or to redistribute to lists, requires prior specific permission
+and/or a fee. Request permissions from permissions@acm.org.                                        In this paper, we propose techniques to remove the cycles while
+WebSci’17, June 25-28, 2017, Troy, NY, USA.                                                     preserving the logical structure (hierarchy) of a directed graph as
+© 2017 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+                                                                                                1 https://www.w3.org/2009/08/skos-reference/skos.html
+978-1-4503-4896-6/17/06. . . $15.00
+DOI: http://dx.doi.org/10.1145/3091478.3091495                                                  2 https://www.w3.org/TR/skos-reference/#L2484
+much as possible. Despite the proliferation of applications relying            • We show extensive experimental results on real and syn-
+on ontologies capturing hierarchical relationships, there is hardly              thetic data sets demonstrating the effectiveness of our ap-
+any solution for this problem that is principled, fast and fully auto-           proaches.
+mated. Existing approaches for this problem fall into the following         The rest of this article is organized as follows: In section 2, we
+categories:                                                              describe related work. In section 3, we discuss ways to infer graph
+      • Simple DFS or BFS based heuristic (e.g., [9, 33, 34, 42]) to     hierarchy and strategies to remove cycle edges via graph hierarchy.
+        eliminate cycles (e.g., remove back edges in DFS)                Section 4 reports on our empirical results. Finally, we conclude in
+      • Theoretical solutions that model the problem in terms of         Section 5.
+        variants of minimum-feedback arc set problem [18] or
+        other NP-hard optimization problems                              2     RELATED WORK
+      • Complex domain-specific algorithms (e.g. [24, 26]) that          We categorize the related work as follows:
+        eliminate cycles based on many criteria, including redun-
+        dancy and confidence of sources asserting the relations          2.1    Simple Heuristics Based on BFS or DFS
+While the first set of techniques are fast and automated, they are       Owing to their simplicity, speed and domain independence, simple
+not principled – the edges removed heavily depend on the order of        heuristics based on Depth-First Search (DFS) (e.g., [33, 34, 42]) or
+traversal, independent of other structural properties (For example       Breadth-First Search (BFS) (e.g., [9]) have been used to remove
+in Figure 1, edge (C, B) will be deleted if DFS starts from node         cycles. Assuming edges in taxonomy graph point from specific to
+A, otherwise edge (B, C) will be the back edge). As a result, they       general concepts, DFS based approaches perform a DFS starting
+often eliminate a large number of edges relevant for the taxonomy        from the most specific concepts (zero in-degree) in the hierarchy
+structure. The second set of techniques have a theoretical basis, but    and then remove the back edges. In contrast, a BFS based approach
+they are too slow in practice. Also, since minimum feedback arc          traverses the graph in a breadth-first manner (though still from
+set problem is APX-hard [17], one has to rely on approximation           the most specific concept l) and removes the edges (u, v) with
+algorithms [8] with poor worst-case guarantees or heuristics (e.g.,      d (u) ≥ d (v). Here, (u, v) is a directed edge from u to v, and d (u) is
+[2, 21, 30]). As such, it is not clear how well these techniques can     the unweighted distance from l to u that is computed during the BFS
+preserve the logical structure of taxonomy while removing the            traversal. Note that this can potentially remove many non-cycle
+cycles. The last set of techniques are (i) typically domain-specific,    edges as well and even from cycles, it may remove more edges than
+(ii) require significant manual intervention making it difficult to      is strictly necessary. Take Figure 2 as an example: a BFS will start
+scale and (iii) depend on additional information (e.g., number of        from a leaf node A, and will remove non-cycle edge (C, B) and both
+sources asserting each relation and confidence on sources) that is       cycle edges (D, E) and (E, D).
+not easily available.                                                        The main problem with these heuristics is that there is no intu-
+                                                                         itive or empirical evidence that edges deleted this way are actually
+         Figure 1: DFS-based Approach Toy Example                        the appropriate edges to be removed. In our experiments, we found
+                                                                         that these heuristics removed a large number of edges that were rel-
+                                                                         evant for the taxonomy hierarchy, based on a manual insepection of
+                                                                         the removed edges. The selection of edges to remove solely depends
+                                                                         on the order in which the graph is traversed and is independent of
+                                                                         other structural properties of the nodes.
+
+                                                                                  Figure 2: BFS-based Approach Toy Example
+   To overcome the above limitations, we propose to remove cycle
+edges via graph hierarchy. The graph hierarchy can be inferred
+by a Bayesian skill rating system (TrueSkill) [12] or Social agony
+(SocialAgony) [11], without any manual intervention. Several strate-
+gies are then devised to remove cycle edges based on their corre-
+sponding nodes’ ranking scores in the hierarchy. To summarize,
+the key contributions of this article are:
+      • We address the problem of breaking cycles from directed
+        graphs, while preserving the underlying hierarchy of the
+        ontological relation as much as possible. To this end, we
+        propose an ensemble of strategies, based on inferring the        2.2    Minimum Feedback Arc Set
+        underlying graph hierarchy, to select edges for removal          Theoretically, one can consider the problem of maximizing the size
+        from the graph.                                                  of the acyclic subgraph or minimizing the number of edges removed
+      • To infer graph hierarchy, we (i) model it as a competition       to make the graph acyclic. This is the popular minimum feedback
+        problem and leverage TrueSkill to solve it and (ii) model        arc set (MFAS) problem and it is on the original list of Richard M.
+        it as the problem of minimizing agony in social networks         Karp’s 21 NP-complete problems [18]. In fact, the MFAS problem
+        and leverage SocialAgony to solve it.                            is APX-hard: Unless P = N P, the MFAS problem does not have
+a polynomial-time approximation scheme (PTAS) [17]. Heuristic               determine relations. However, this information about number and
+approaches are proposed to gradually build the feedback edge set            confidence of sources is not easily available for many ontological
+by always removing the edge that breaks the most of the remaining           knowledge bases.
+simple cycles(e.g., [21]).                                                     For synchronous data flow graphs, Bhattacharyya et al. and
+   To avoid enumerating all simple cycles of a graph, there exists          Hsu et al. [3, 14, 15] proposed the loose interdependence algorithm
+a greedy local heuristic method that only uses local information            framework (LIAF) to decompose and break cycles. This framework
+to make greedy choices [6, 7]. Score functions are defined based            relies on a very specific property of SDF graphs, namely, that for
+on local information (in- and out-degree of nodes). Such score              each strongly connected component (SCC)3 of the SDF graph, there
+functions are defined as: score (i) = |diin − diout | or score (i) =        exists a set of edges with sufficient delays (an edge in an SDF
+       d in   d out                                                         graph is associated with a delay that can also be interpreted as the
+max ( d out
+        i
+            , di in ), where score (i) is the score of a node i (a higher
+       i        i                                                           number of initial tokens) whose removal reduces the number of
+score means node i is more asymmetric regarding to its in- and out-         nodes in the SCC of the remaining graph. In fact, the algorithm
+degrees), and diin (resp. diout ) are the in-degree (resp. out-degree)      recursively eliminates such edges to get rid of all cycles in the
+of node i. The node with the highest score is selected, then all of         input SDF graphs (removed edges become inter-iteration edges).
+its in- or out-edges are removed, whichever edge set is of smaller          However, in our scenario of large ontological knowledge graphs, no
+cardinality.                                                                such delay measure is known to exist and there is no corresponding
+    MFAS heuristics (e.g., [6, 7, 21, 27, 35]) do not offer any guaran-     notion of iterations, so these algorithms are not applicable.
+tees on the number of edges removed and in the worst case, the                 Some approaches [20] transform the SCCs in the hierarchical
+gap between the heuristic solution and the optimal solution can be          relationships (broader/narrower, whole/part, generic/specific, in-
+extremely large. Furthermore, even if an exact algorithm (e.g., [2])        stance of) into related relationship between the concepts. While
+can be used, there is no evidence to suggest that it preserves the          this may be sufficient for some applications, many applications will
+logical hierarchy structure or that minimizing the edges to remove          end up simply ignoring the related relationship edges and the large
+is the correct objective to optimize for cleaning the ontologies with       number of corresponding direct and implied relations, leading to
+hierarchical relations. Take Figure 3 for example, the edge (Program-       inaccurate results.
+ming Language,Computer Science) will be removed according to the
+above greedy local heuristic method. However, edges (Computer               3     OUR APPROACH
+Science, Python) and (Computer Science, Java) should be removed
+                                                                            In this section, we propose graph hierarchy based strategies to
+to maintain the correctness of this graph’s logical structure.
+                                                                            break cycles from a directed graph, while preserving the under-
+      Figure 3: Minimum Feedback Arc Set Toy Example                        lying hierarchy of the relations as much as possible. Consider a
+                                                                            ranking function f that assigns a ranking score to each node in
+                                                                            the graph. A higher ranking score implies that the corresponding
+                                                                            node is higher up (e.g., more general) in the hierarchy. Given such
+                                                                            a ranking, the edges which violate the hierarchy (i.e., edges from a
+                                                                            higher/general group to a lower/specific group) are potential candi-
+                                                                            dates for removal. Thus in our approach, there are two sub-tasks
+                                                                            involved:
+                                                                                  • Inferring graph hierarchy (or finding a ranking function)
+                                                                                  • Proposing strategies to select violation edges as candidates
+                                                                                     for removal
+
+                                                                            3.1      Inferring Graph Hierarchy
+                                                                            One way to infer graph hierarchy is through PageRank [28]. The
+2.3    Domain-specific Algorithms                                           relative importance inferred by PageRank is considered as corre-
+                                                                            sponding nodes’ ranking score in the graph hierarchy. However,
+Many other algorithms have been proposed for the problem of
+                                                                            nodes’ ranking scores in graph hierarchy are not always consistent
+eliminating cycles for specific domains. However, these techniques
+                                                                            with their PageRank values even in a DAG. Take Figure 4 as an
+rely on manual intervention and/or additional information that is
+                                                                            example, node C has the highest PageRank value, but it is neither
+often not available.
+                                                                            the highest, nor the lowest node in the actual graph hierarchy.
+   For UMLS Metathesaurus graph, solutions [24, 26] have been
+proposed for eliminating inappropriate edges causing circular hi-              3.1.1 TrueSkill. TrueSkill [12] is a Bayesian skill rating system
+erarchical relations. The algorithm proposed by Bodenreider [26]            which is designed to calculate the relative skill of players from the
+is relatively complex and for complex cycles, it requires manual            set of generated competitions in multi-player games. Liu et al. [22,
+intervention [24] by domain experts, which is not scalable. The             23] introduced a two-player and no-draw version of TrueSkill to
+technique by Mougin and Bodenreider [24] uses a set of heuristics           estimate question difficulty level in community question answering
+and rules to identify and eliminate all cycles from the UMLS graph.         3 A directed graph is strongly connected if there is a path between all pairs of vertices.
+For example, criteria redundancy (i.e. the number of sources as-            An SCC of a directed graph is a maximal strongly connected subgraph. SCCs can be
+serting each relation) and criteria confidence can be exploited to          detected by the work of Nuutila et al. [25].
+Figure 4: Illustrating issues of using PageRank to infer
+graph hierarchy (damping parameter d = 0.85)                            If it is set as a constant 1, then this problem is equivalent to a
+                                                                        minimum feedback arc set problem as we discussed earlier. A more
+                                                                        practical variant is to penalize the violating edges by the severity of
+                                                                        their violation, which means that edges that respect the hierarchy
+                                                                        receive a penalty of 0 and penalty increase linearly as the violation
+                                                                        becomes more severe. Gupte et al. [11] defined the agony to u
+                                                                        caused by edge (u, v) is equal to max (r (u) − r (v) + 1, 0).
+                                                                            The agony in the network relative to the ranking r is the sum
+                                                                        of agony on each edge: A(G, r ) = (u,v ) ∈E max(r (u) − r (v) + 1, 0).
+                                                                                                            P
+                                                                        Since nodes typically minimize their agony, the problem is changed
+                                                                        to find a ranking r that minimize the total agony in the graph:
+services. It assumes that the practical performance of each player      A(G) = minr ∈Rankinдs ( (u,v ) ∈E max(r (u) − r (v) + 1, 0)).
+                                                                                                   P
+in one game follows a normal distribution N (µ, σ 2 ), where µ is the       Gupte et al. [11] provided an O (nm2 ) algorithm to minimize the
+average skill of the player and σ means a system’s uncertainty of       agony of the graph, which has n vertices and m edges. A faster
+the estimated skill level. Intuitively, if a system learns more about   discovery algorithm with the computational complexity of O (m2 )
+the skill of one player from more data, the standard deviation σ        was introduced by Tatti [36, 37].
+(uncertainty) will decrease. The skill of each player will slightly         A node v’s ranking score in the graph hierarchy inferred by
+change after each game in TrueSkill. The measure µ − 3σ is used to      social agony is defined as:
+rank players to ensure that top ranked players are highly skilled
+with high certainty [12, 22, 23].
+                                                                                                   faдony (v) = r (v)                         (2)
+   We transform a directed graph G = (V , E) into a multiplayer
+tournament with |V | players and |E| competitions. For each edge
+                                                                        3.2    Strategies to select violation edges
+(u, v) ∈ E, we consider that u loses the competition between u and
+v. Based on the current estimated skill levels of two players (u and    In this section, we will introduce strategies to select edges to remove
+v) and the outcome of a new game between them (edge (u, v)), the        and break cycles in the graph.
+TrueSkill model updates the skill level µ and σ intuitively based           Our first strategy is to select the edge which violates the graph
+on whether the outcome of the new competition is expected or            hierarchy the most in a simple cycle (a closed path where no
+unexpected:                                                             node appears twice, except that the first and last node are the
+                                                                        same). Consider a simple cycle s = (v 1 , v 2 , ..., vl , v 1 ), and let
+      • If player v has a higher skill level than u, then the outcome
+                                                                        i = arдmax ( f (vi ) − f (v (i+1)%l )), then edge (vi , v (i+1)%l ) is the
+        of edge (u, v) is expected, and it will cause small updates
+                                                                        one which violates the graph hierarchy the most and will be added
+        in skill level µ and σ .
+                                                                        to the set of edges to be removed. Note that removal of one edge
+      • If player u has a higher skill level than v, then the outcome
+                                                                        in a simple cycle may break many other cycles at the same time,
+        of edge (u, v) is unexpected, and it will cause large updates
+                                                                        since the removed edge could be a part of multiple simple cycles.
+        in skill level µ and σ .
+                                                                        Hence it is necessary to track all simple cycles that the target edge
+   As far as we know, we are the first one to consider the problem      is involved in. A major challenge in using this strategy is the time
+of inferring graph hierarchy as a competition problem. A node           complexity to find all simple cycles in a directed graph. The time
+v’s ranking score in the graph hierarchy inferred by TrueSkill is       complexity for finding all simple cycles introduced by Donald [16]
+defined as:                                                             is O ((|V | + |E|)(|C | + 1)) for |V | nodes, |E| edges and |C | simple
+                                                                        cycles. It can be computationally expensive for large graphs.
+                         ft s (v) = µv − 3σv                      (1)       To be more efficient, we propose to simplify the input graph
+                                                                        before using any strategy for selecting edges to break cycles. The
+   3.1.2 Social Agony. Social agony proposed by Gupte et al. [11]
+                                                                        simplification includes removing self-loops, dividing the graph into
+assumes that the existence of a link indicates a rank recommenda-
+                                                                        SCCs, and then dropping the trivial SCCs (a trivial SCC consists of
+tion. A link u ⇒ v indicates a recommendation of v from u. If there
+                                                                        a single node). For a non trivial SCC scc i , several heuristic solutions
+is no reverse link from v to u, it could indicate that v is higher up
+                                                                        to reduce scc i to a DAG are proposed as follows:
+in the hierarchy than u. It’s assumed that in social networks such
+as Twitter, agony can be caused when people follow other people               • Forward: Select the node v which has the highest ranking
+who are lower in the hierarchy.                                                 score f (v) in scc i and then remove its all out edges in scc i :
+   Given a network G = (V , E) which contains cycles, each node                 {(v, u), ∀(v, u) ∈ scc i }.
+v has a rank r (v). Higher ranking nodes are less likely to connect           • Backward: Select the node v which has the lowest ranking
+to lower ranking nodes. Hence, directed edges that go from higher               score f (v) in scc i and then remove its all in edges in scc i :
+ranking nodes are less prevalent than edges that go in reverse                  {(u, v), ∀(u, v) ∈ scc i }.
+direction. If r (u) > r (v), then edge u ⇒ v causes agony to the node         • Greedy: Select the edge which violates the hierarchy the
+u and the amount of agony depends on the difference between their               most to remove. The violation of hierarchy on an edge
+ranks.                                                                          (u, v) is defined as max ( f (u) − f (v), 0).
+   There are many choices for defining agony. The simplest way is          We iteratively use the above simplification processes and heuris-
+to define a constant value for any edge that violates the hierarchy.    tic solutions to break cycles in the graph until the graph becomes
+a DAG. It is easy to notice that processes for each SCC are inde-                   user i’s question, there is a directed edge from i to j in the
+pendent from each other, and they can be parallelized to improve                    Stackoverflow Q2A graph.
+efficiency.                                                                       • DBP 2014, DBP 2015, DBP 2016: These three category graphs
+   Since each node’s hierarchical ranking score can be inferred by                  from DBpedia10 are extracted from relationships of cate-
+TrueSkill and Social Agony, we have 6 combinations to remove                        gories published in 2014, Oct. 2015, and April. 2016 re-
+cycle edges:                                                                        spectively. If i is a sub-category of category j, there is a
+        • TS G: Use TrueSkill (TS) to infer the graph hierarchy, and                directed edge from i to j in corresponding category graph.
+          strategy Greedy is applied to remove cycle edges.                   In addition, we also consider two graph datasets that have no
+        • TS B: Same as TS G, except strategy Backward is applied          cycle edges: a patent citation graph (Cit-Patents)11 and the NCBI
+          to remove cycle edges.                                           taxonomy graph (NCBI-Taxo) 12 . The Cit-Patent data set spans from
+        • TS F: Same as TS G, except strategy Forward is applied to        January 1, 1963 to December 30, 1999, and includes all the utility
+          remove cycle edges.                                              patents granted during that period. In the Cit-Patent graph, if a
+        • SA G: Same as TS G, except use Social Agony (SA) to infer        patent i cites patent j, there is a directed edge from i to j. In NCBI-
+          the graph hierarchy.                                             Taxo graph, there is a directed edge from more specific nodes to
+        • SA B: Same as TS B, except use SA to infer graph hierarchy.      more general nodes. There is a self loop for the root node. Hence
+        • SA F: Same as TS F, except use SA to infer graph hierarchy.      the out-degree of each node in NCBI-Taxo graph is 1.
+   We use a voting schema (H Voting) to ensemble the above 6 ap-           Condensation graphs: For graphs containing cycles such as arXiv,
+proaches for breaking cycles in a graph. For each cycle edge e, its        EU Email, etc., we use their corresponding condensation graphs
+voting score is m (Im (e)), where m ∈ {T S G,T S F ,T S B, SA G, SA F ,
+               P                                                           in our experiments. The condensation graph CG of graph G is a
+SA B} and Im (·) is an indicator function. If edge e is removed by         cycle-free graph that is generated by contracting each SCC in G to
+method m, Im (e) = 1, otherwise Im (e) = 0. Thus, H Voting selects         a single node. Statistics of these condensation graphs are shown in
+the edge with the highest voting score for removal.                        Table 1.
+
+4 EXPERIMENTS                                                                                    Table 1: Statistics of Datasets
+4.1 Datasets
+                                                                                                Dataset               # nodes      # edges
+In this section we describe the datasets used in our experiments.
+                                                                                               Cit-Patents            3,774,768   16,518,948
+We experiment not only with real-world datasets but also synthetic                             NCBI-Taxo              1,553,020   1,553,019
+(random) graphs in order to demonstrate the robustness of our                                     arXiv                 20,085     130,469
+approach.                                                                                       EU-Email               230,795     223,004
+   We use the following real-world graphs:                                                    Web Google               371,603     519,304
+        • arXiv: The Arxiv HEP-PH citation graph4 is extracted from                            Wiki Vote                5,816       19,540
+          arXiv5 and covers all citations from Jan. 1993 to Arpril 2003.                        Gnutella                48,438      55,349
+          If a paper i cites paper j, the graph contains a directed edge                       Wiki Talk              2,394,385   5,021,410
+          from i to j.                                                                     Stackoverflow Q2A          2,021,984   3,345,760
+        • EU Email: The EU email community network graph6 is                                    DBP 2014              5,502,627   20,854,028
+                                                                                                DBP 2015              6,092,789   24,173,109
+          generated using email data from a large European research
+                                                                                                DBP 2016              6,263,925   25,211,684
+          institution. If a node i sent at least one message to j, then
+          there is a directed edge from i to j.
+        • Web Google: The Google web graph7 is generated by repre-
+                                                                              Random Graphs: To provide evidence that our techniques are
+          senting web pages as nodes and hyperlinks between web
+                                                                           not merely exploiting structural properties of these particular real-
+          pages as directed edges.
+                                                                           world graphs, we also generated several random DAGs for our
+        • Wiki Vote/Wiki Talk: Wikipedia vote/talk network graph8
+                                                                           experiments. This follows the DAG(n, M ) model from the random
+          contains all the Wikipedia voting/talk data from the incep-
+                                                                           graph literature (see e.g., [1]). The following procedure is applied
+          tion of Wikipedia till Jan. 2008. If user i voted/edited the
+                                                                           to generate a random DAG RG = (N , M ):
+          talk page on/of user j, there is a directed edge from i to j
+          in the graph.                                                           • Generate |N | nodes with node ids in the range [1, |N |].
+        • Stackoverflow Q2A: The Stack Overflow network9 contains                 • Randomly select |M | pairs of nodes as edges in M. For
+          interactions between users and questions on the stack ex-                 each pair {u, v}, add (u, v) to M if id (u) < id (v) and (v, u)
+          change web site Stack Overflow. If user j has answered                    otherwise.
+                                                                                  • Randomly permute the node ids for each node in N , so
+4 https://snap.stanford.edu/data/cit-HepPh.html                                     that node ids do not imply anything about the order infor-
+5 https://arxiv.org/
+                                                                                    mation.
+6 https://snap.stanford.edu/data/email-EuAll.html
+7 https://snap.stanford.edu/data/web-Google.html
+8 https://snap.stanford.edu/data/wiki-Vote.html                            10 http://downloads.dbpedia.org/
+                                                                    and
+https://snap.stanford.edu/data/wiki-Talk.html                              11 https://snap.stanford.edu/data/cit-Patents.html
+9 https://snap.stanford.edu/data/sx-stackoverflow.html                     12 https://www.ncbi.nlm.nih.gov/taxonomy
+4.2     Experimental Setup                                                                contrast, the F1 score of DFS based heuristic is 0.12 for Cit-Patents,
+Since there are few large real taxonomy graphs with ground truth                          0.17 for NCBI-Taxo and 0.02 for arXiv.
+publicly available, we consider the following set up to evaluate the
+different approaches: We consider a large real or synthetic DAG                           4.4    Number of Edges to be Removed
+and introduce cycles in it by inserting edges that violate the partial                    In addition to precision, recall and F1 score, another important
+ordering induced by the DAG. The goal for the various approaches                          performance measure is the number of edges removed. Although
+is to identify the set of edges that were inserted. In particular, we                     there is no empirical evidence that removing fewer edges causes
+evaluate the performance of different approaches by considering                           less damage to the logical hierarchy of the ontological relation, we
+the set of newly inserted cycle-introducing edges as the ground                           still want as few edges to be removed as possible. In particular, this
+truth and computing precision, recall, and F1-score with respect to                       is the measure that is directly optimized by the minimum feedback
+this ground truth.                                                                        arc set (MFAS) problem.
+    To introduce cycles, we repeatedly perform the following step:                            For brevity, we only report the number of edges that are removed
+randomly select a node pair (u, v) and if u can reach v in the input                      from graphs RG (3K, 15K ), RG (30K, 150K ), and RG (10K, 150K ) in
+DAG, then we insert the edge (v, u) into the cycle-introducing edge                       Table 2. In these cases, 1500 random edges were inserted to intro-
+set T . In some experiments, we also constrain the shortest path                          duce cycles. We note that TS G, SA G, and H Voting remove fewer
+length of u → v to be no larger than a threshold d. Once we have                          edges compared to other approaches. Furthermore, the number of
+the required number of edges in T , we insert these edges into the                        removed edges is close to 1500, which is the number of edges in the
+input DAG. Hence, edges in T are labeled as noisy edges which can                         ground truth. Interestingly, the number of edges removed by TS G,
+be used for evaluation.                                                                   SA G, and H Voting is considerably smaller than by the greedy
+Baselines to Remove Cycle Edges:                                                          heuristic for MFAS, which is directly minimizing the number of
+  Three baseline approaches are used in our experiments:                                  removed edges. The results in other settings are similar. The corre-
+                                                                                          sponding precision, recall and F1 scores are shown in Figure 5, and
+       • DFS: use DFS to detect and remove back edges
+                                                                                          indicate that strategies that remove fewer edges also have higher
+       • PR: use PageRank to infer graph hierarchy, and strategy
+                                                                                          F1 scores.
+         Greedy is applied to break cycles.
+       • MFAS: a local greedy implementation of minimum feedback                                           Table 2: # edges to be removed
+         arc set problem, as described in section 2.
+   In addition to the precision, recall and F1-score obtained using                        # edges to be removed   RG(3K,15K)    RG(30K,150K)    RG(10K,150K)
+the above setup, we also consider auxiliary measures such as the                                     DFS             6,057          17,587          54,774
+number of edges removed to make the graph acyclic.                                                   PR              3,337           5,155           8,478
+                                                                                                   MFAS              2,423           3,378           4,584
+                                                                                                    TS B             2,431           3,622           3,865
+4.3     Experimental Results
+                                                                                                    TS F             2,307           3,232           3,736
+First, we consider the general case where there are no constraints                                  SA F             2,175           2,077           2,707
+on the length (d) of the cycle. Figure 5 presents our results on                                    SA B             2,193           1,881           2,566
+random DAGs (with RG (n, m) representing a random DAG with n                                        TS G             1,860           1,544           1,597
+nodes and m edges, where 1K is used as shorthand for 1000). We                                      SA-G             1,691           1,506           1,531
+inserted 150013 random edges into these graphs to create cycles14 ,                              H Voting            1,649           1,502           1,513
+and the goal is to identify and remove these edges in order to break
+the cycles. We observe that the different approaches achieve very
+different precision, recall and overall F1 score. Our proposed voting
+                                                                                          4.5    Sensitivity to Number of Noisy Edges
+approach, H Voting, achieves the best F1 score across the entire                          Next, we test the sensitivity of H Voting to the number of noisy
+range of different random DAGs. Note that our approach is much                            edges in the hierarchical relationship. For this, we consider small
+more accurate for these graphs than the traditional heuristics based                      (RG (3K, 15K )), medium (RG (3K, 30K )) and a large (RG (3K, 45K ))
+on DFS and MFAS on random DAGs.                                                           random DAGs. Figure 7 shows how the precision (“-p” in leg-
+    Next, we consider the real-world graphs, and, as before, insert                       end), recall (“-r”) and F1 (“-f1”) scores vary on these graphs as the
+1, 500 random edges to create cycles. As shown in Figure 6, there is                      fraction of noisy edges is increased (e.g., a fraction of 0.1 in the
+no consistent winning strategy. While most approaches based on                            x-axis corresponds to adding 1.5K, 3K, and 4.5K noisy edges in
+TrueSkill and Social agony achieve fairly similar performance on                          RG (3K, 15K ),RG (3K, 30K ), and RG (3K, 45K ), respectively, for in-
+Cit-Patents, TS-B achieves the best F1 score on the tree-like NCBI                        troducing cycles). As expected, the accuracy scores decrease as the
+taxonomy graph15 . We note that H Voting achieves the best F1                             fraction of incorrect edges is increased. But more importantly, we
+score (around 0.9) on the arXiv condensation graph and is among                           find that the accuracy of our approaches becomes more robust to
+the top-3 over all settings, both in terms of precision and F1. In                        noise as the graph size increases. For instance, when 30% (13.5K)
+                                                                                          extra noisy edges are added to RG (3K, 45K ), H Voting is still able
+13 We have tested the performance on a varying number of edges as shown in Section 4.5.
+                                                                                          to achieve a F1 score of around 0.8 and recall of around 0.9. This
+In the interest of space, we report only the performance for 1500 extra edges. Other      gives us confidence that in large real-world graphs, H Voting can
+settings yield similar results.
+14 The maximum number of big SCCs generated is 1500                                       accurately identify the edges to remove, even in scenarios with
+15 After removal of the only self-loop edge.                                              large amounts of noise.
+                                    RG(3K,15K)           f = 0.9                                                   RG(3K,30K)           f = 0.9                                                   RG(3K,45K)           f = 0.9
+          1.0                                                                           1.0                                                                            1.0
+
+
+          0.9                                                                           0.9                                                                            0.9
+
+
+          0.8                                                                           0.8                                                                            0.8
+
+
+          0.7                                                                           0.7                                                                            0.7
+
+
+          0.6                                                                           0.6                                                                            0.6
+ Recall
+
+
+
+
+                                                                               Recall
+
+
+
+
+                                                                                                                                                              Recall
+          0.5                                                                           0.5                                                                            0.5
+
+
+          0.4                                                                           0.4                                                                            0.4
+
+
+          0.3                                                                           0.3                                                                            0.3
+
+
+          0.2                                                                           0.2                                                                            0.2
+
+
+          0.1                                                                           0.1                                                                            0.1
+            0.1   0.2   0.3   0.4    0.5     0.6   0.7   0.8       0.9   1.0              0.1   0.2   0.3   0.4     0.5     0.6   0.7   0.8       0.9   1.0              0.1   0.2   0.3   0.4     0.5     0.6   0.7   0.8       0.9   1.0
+                                      Precision                                                                      Precision                                                                      Precision
+
+
+
+                                    RG(5K,25K)           f = 0.9                                                   RG(5K,50K)           f = 0.9                                                   RG(5K,75K)           f = 0.9
+          1.0                                                                           1.0                                                                            1.0
+
+
+          0.9                                                                           0.9                                                                            0.9
+
+
+          0.8                                                                           0.8                                                                            0.8
+
+
+          0.7                                                                           0.7                                                                            0.7
+
+
+          0.6                                                                           0.6                                                                            0.6
+ Recall
+
+
+
+
+                                                                               Recall
+
+
+
+
+                                                                                                                                                              Recall
+          0.5                                                                           0.5                                                                            0.5
+
+
+          0.4                                                                           0.4                                                                            0.4
+
+
+          0.3                                                                           0.3                                                                            0.3
+
+
+          0.2                                                                           0.2                                                                            0.2
+
+
+          0.1                                                                           0.1                                                                            0.1
+            0.1   0.2   0.3   0.4    0.5     0.6   0.7   0.8       0.9   1.0              0.1   0.2   0.3   0.4     0.5     0.6   0.7   0.8       0.9   1.0              0.1   0.2   0.3   0.4     0.5     0.6   0.7   0.8       0.9   1.0
+                                      Precision                                                                      Precision                                                                      Precision
+
+
+
+                                    RG(10K,50K)          f = 0.9                                                  RG(10K,100K)          f = 0.9                                                  RG(10K,150K)          f = 0.9
+          1.0                                                                           1.0                                                                            1.0
+
+
+          0.9                                                                           0.9                                                                            0.9
+
+
+          0.8                                                                           0.8                                                                            0.8
+
+
+          0.7                                                                           0.7                                                                            0.7
+
+
+          0.6                                                                           0.6                                                                            0.6
+ Recall
+
+
+
+
+                                                                               Recall
+
+
+
+
+                                                                                                                                                              Recall
+
+          0.5                                                                           0.5                                                                            0.5
+
+
+          0.4                                                                           0.4                                                                            0.4
+
+
+          0.3                                                                           0.3                                                                            0.3
+
+
+          0.2                                                                           0.2                                                                            0.2
+
+
+          0.1                                                                           0.1                                                                            0.1
+            0.1   0.2   0.3   0.4    0.5     0.6   0.7   0.8       0.9   1.0              0.1   0.2   0.3   0.4     0.5     0.6   0.7   0.8       0.9   1.0              0.1   0.2   0.3   0.4     0.5     0.6   0.7   0.8       0.9   1.0
+                                      Precision                                                                      Precision                                                                      Precision
+
+
+
+                                    RG(15K,75K)          f = 0.9                                                  RG(20K,100K)          f = 0.9                                                  RG(30K,150K)          f = 0.9
+          1.0                                                                           1.0                                                                            1.0
+
+
+          0.9                                                                           0.9                                                                            0.9
+
+
+          0.8                                                                           0.8                                                                            0.8
+
+
+          0.7                                                                           0.7                                                                            0.7
+
+
+          0.6                                                                           0.6                                                                            0.6
+ Recall
+
+
+
+
+                                                                               Recall
+
+
+
+
+                                                                                                                                                              Recall
+
+
+
+
+          0.5                                                                           0.5                                                                            0.5
+
+
+          0.4                                                                           0.4                                                                            0.4
+
+
+          0.3                                                                           0.3                                                                            0.3
+
+
+          0.2                                                                           0.2                                                                            0.2
+
+
+          0.1                                                                           0.1                                                                            0.1
+            0.1   0.2   0.3   0.4    0.5     0.6   0.7   0.8       0.9   1.0              0.1   0.2   0.3   0.4     0.5     0.6   0.7   0.8       0.9   1.0              0.1   0.2   0.3   0.4     0.5     0.6   0.7   0.8       0.9   1.0
+                                      Precision                                                                      Precision                                                                      Precision
+
+
+
+
+Figure 5: Performance (precision,recall,f-1 score) on different sizes of random generated graphs (path length control parameter
+d is unlimited). We can observe that our proposed voting approach, H Voting, achieves the best F1 score across the entire range
+of different random DAGs.
+
+
+4.6               Special case of constrained cycle length                                                                         of real-world graphs and insert 1, 500 random edges to introduce
+To further understand why the TrueSkill and Social agony based ap-                                                                 cycles. Note that it is easy to obtain high accuracy in this setting,
+proaches are more accurate than the traditional heuristics based on                                                                as even randomly selecting one of the two edges from every simple
+MFAS, DFS or Pagerank, we consider the special case in which cycles                                                                cycle achieves an expected 0.5 precision and recall. As expected,
+are constrained to be of length at most two. We consider a range                                                                   we observe from Figure 8 that generally, most approaches achieve
+                                                      Cit-Patents          f = 0.9                                                           NCBI-Taxo            f = 0.9                                                        arXiv            f = 0.9
+          1.0                                                                                                   1.0                                                                                   1.0
+
+
+          0.9                                                                                                   0.9                                                                                   0.9
+
+
+          0.8                                                                                                   0.8                                                                                   0.8
+
+
+          0.7                                                                                                   0.7                                                                                   0.7
+ Recall
+
+
+
+
+                                                                                                       Recall
+
+
+
+
+                                                                                                                                                                                             Recall
+          0.6                                                                                                   0.6                                                                                   0.6
+
+
+          0.5                                                                                                   0.5                                                                                   0.5
+
+
+          0.4                                                                                                   0.4                                                                                   0.4
+
+
+          0.3                                                                                                   0.3                                                                                   0.3
+
+
+          0.2                                                                                                   0.2                                                                                   0.2
+            0.2                 0.3     0.4     0.5       0.6       0.7    0.8       0.9   1.0                    0.2   0.3     0.4    0.5       0.6      0.7    0.8        0.9   1.0                   0.2   0.3   0.4   0.5      0.6      0.7   0.8       0.9   1.0
+                                                       Precision                                                                              Precision                                                                         Precision
+
+
+
+
+Figure 6: Performance (precision,recall,f-1 score) on different datasets’ corresponding graphs (condensation graph for arXiv);
+path length control parameter d is unlimited
+
+                                      Figure 7: Sensitivity to Extra Edges Added
+                                                                                                                                                                simple cycles, these heuristics suffer from very poor precision (as
+                                                                                                                                                                already noted in Section 4.3).
+                                                        Performance on different sizes of graphs
+                          1.0
+                                                                                                                                                                Figure 9: A toy scenario in which MFAS can outperform
+                                                                                                                                                                other strategies.
+                          0.9
+
+
+
+                          0.8
+            performance
+
+
+
+
+                          0.7
+                                              large-f1
+                                              large-p
+                                              large-r
+                          0.6                 medium-f1
+                                              medium-p
+                                              medium-r
+                          0.5                 small-f1
+                                              small-p
+                                              small-r
+                          0.4
+                            0.00              0.05                 0.10         0.15        0.20      0.25               0.30
+                                                                     extra edges added (percentage)
+                                                                                                                                                                4.7           Performance on Wikipedia Category Graph
+                                                                                                                                                                We apply our approach to remove cycle edges in the Wikipedia
+high precision and recall values. However, even here we find that                                                                                               category graphs. Note that this is a graph extracted from a 2014
+sometimes the accuracy of DFS, Pagerank and MFAS approaches                                                                                                     snapshot of the popular skos:broader relationships in DBpedia.
+can be quite poor (e.g., consider DFS and Pagerank on Web Google                                                                                                First, we note that even though skos:broader captures the hierar-
+graph, DFS on Wiki Talk and PR and MFAS on Stackoverflow Q2A                                                                                                    chical specific/general relationship, it has a large number of cycles
+graphs). On the other hand, TrueSkill, Social Agony and H Voting                                                                                                forming many SCCs (c.f. Table 3). This is because it is created in
+approaches consistently achieve promising F1 scores.                                                                                                            a crowd-sourced way and its creators often misinterpret the gran-
+    Interestingly, there are a few graphs in this special setting, where                                                                                        ularity of concepts. For instance, the concept United Nations can
+MFAS based greedy heuristic does outperform the other approaches                                                                                                refer to its headquarter in New York or it can refer to the intergov-
+slightly (e.g., Web Google) or performs as well as the other ap-                                                                                                ernmental organization, creating a cycle United Nations → New
+proaches. To understand this, consider Figure 9, where edge (B, A)                                                                                              York → United States of America → United Nations. The results
+is the randomly added edge that generates a SCC in the correspond-                                                                                              are similar for later snapshots of Wikipedia categories.
+                                                                                                                                d in
+ing graph. A node i’s ratio value is defined as r (i) = d out
+                                                          i
+                                                              . In                                                                                                                Table 3: Statistics of big SCCs in DBpedia
+                                                                                                                                i
+this example r (B)  1 and r (A)  1. Then edge (B, A) will be
+selected as the edge to be removed based on the local greedy imple-                                                                                                                              DBpedia                                     2014
+mentation of MFAS. The average ratio value of source nodes such                                                                                                                                   # SCCs                                     534
+as B in Figure 9 is 14, 13.23, and 13.97 in EU-Email, Web Google                                                                                                                             # nodes in SCCs                                8,939
+and Wiki Vote graph respectively. And the average ratio value of                                                                                                                             # edges in SCCs                                24,178
+target nodes such as A in Figure 9 is 0.076, 0.85, and 0.0664 in                                                                                                                        # nodes in the biggest SCC                          6,741
+EU-Email, Web Google and Wiki Vote graph respectively. As a re-                                                                                                                         # edges in the biggest SCC                          20,979
+sult, the greedy MFAS heuristic correctly picks up edge (B, A) for                                                                                                 Since we don’t have a good ground truth for edges to remove
+removal in many of these graphs. However, in graphs with larger                                                                                                 in this dataset (there are a large number of cycles destroyed, new
+                                    EU-Email           f = 0.9                                              Web_Google             f = 0.9                                                         Wiki_Vote          f = 0.9
+          1.0                                                                         1.0                                                                               1.0
+
+
+          0.9                                                                         0.9                                                                               0.9
+
+
+          0.8                                                                         0.8                                                                               0.8
+
+
+          0.7                                                                         0.7                                                                               0.7
+ Recall
+
+
+
+
+                                                                             Recall
+
+
+
+
+                                                                                                                                                               Recall
+          0.6                                                                         0.6                                                                               0.6
+
+
+          0.5                                                                         0.5                                                                               0.5
+
+
+          0.4                                                                         0.4                                                                               0.4
+
+
+          0.3                                                                         0.3                                                                               0.3
+
+
+          0.2                                                                         0.2                                                                               0.2
+            0.2   0.3   0.4   0.5       0.6      0.7   0.8       0.9   1.0              0.2   0.3   0.4   0.5       0.6      0.7   0.8       0.9   1.0                    0.2   0.3   0.4    0.5       0.6      0.7   0.8       0.9   1.0
+                                     Precision                                                                   Precision                                                                          Precision
+
+
+
+
+                                    Gnutella           f = 0.9                                                  Wiki_Talk          f = 0.9                                                  Stackoverflow_Q2A         f = 0.9
+          1.0                                                                         1.0                                                                               1.0
+
+
+          0.9                                                                         0.9                                                                               0.9
+
+
+          0.8                                                                         0.8                                                                               0.8
+
+
+          0.7                                                                         0.7                                                                               0.7
+ Recall
+
+
+
+
+                                                                             Recall
+
+
+
+
+                                                                                                                                                               Recall
+          0.6                                                                         0.6                                                                               0.6
+
+
+          0.5                                                                         0.5                                                                               0.5
+
+
+          0.4                                                                         0.4                                                                               0.4
+
+
+          0.3                                                                         0.3                                                                               0.3
+
+
+          0.2                                                                         0.2                                                                               0.2
+            0.2   0.3   0.4   0.5       0.6      0.7   0.8       0.9   1.0              0.2   0.3   0.4   0.5       0.6      0.7   0.8       0.9   1.0                    0.2   0.3   0.4    0.5       0.6      0.7   0.8       0.9   1.0
+                                     Precision                                                                   Precision                                                                          Precision
+
+
+
+
+                                    DBP_2014           f = 0.9                                                  DBP_2015           f = 0.9                                                         DBP_2016           f = 0.9
+          1.0                                                                         1.0                                                                               1.0
+
+
+          0.9                                                                         0.9                                                                               0.9
+
+
+          0.8                                                                         0.8                                                                               0.8
+
+
+          0.7                                                                         0.7                                                                               0.7
+ Recall
+
+
+
+
+                                                                             Recall
+
+
+
+
+                                                                                                                                                               Recall
+
+
+
+
+          0.6                                                                         0.6                                                                               0.6
+
+
+          0.5                                                                         0.5                                                                               0.5
+
+
+          0.4                                                                         0.4                                                                               0.4
+
+
+          0.3                                                                         0.3                                                                               0.3
+
+
+          0.2                                                                         0.2                                                                               0.2
+            0.2   0.3   0.4   0.5       0.6      0.7   0.8       0.9   1.0              0.2   0.3   0.4   0.5       0.6      0.7   0.8       0.9   1.0                    0.2   0.3   0.4    0.5       0.6      0.7   0.8       0.9   1.0
+                                     Precision                                                                   Precision                                                                          Precision
+
+
+
+
+Figure 8: Performance (precision,recall,f-1 score) on different datasets’ corresponding condensation graphs (path length con-
+trol parameter d = 2)
+
+
+cycles created and many new nodes and edges created from one                                                                                              Table 4: # edges to be removed
+snapshot to another), we focus on the number of edges that are
+removed by different approaches. We observe from Table 4 that,                                                                                     # edges to be removed              DBP 2014 Category Graph
+similar to the results on random DAGs in Section 4.4, H Voting and                                                                                         MFAS                                4,075
+SA G break cycles in DBP 2014 graph by removing considerably                                                                                                 PR                                3,920
+fewer edges compared to other approaches.                                                                                                                    DFS                               3,602
+                                                                                                                                                            TS F                               3,030
+                                                                                                                                                            TS B                               2,501
+5               CONCLUSION                                                                                                                                  TS G                               2,479
+                                                                                                                                                            SA F                               1,737
+In this paper, we address the problem of breaking cycles while
+                                                                                                                                                            SA B                               1,730
+preserving the logical structure (hierarchy) of the directed graph                                                                                       H Voting                              1,713
+as much as possible. We propose approaches that explicitly focus                                                                                            SA G                               1,672
+on inferring the graph hierarchy using TrueSkill and Social Agony.
+We leverage this inferred hierarchy using an ensemble approach
+to identify the edges to be removed. We show that our approaches
+achieve significantly better accuracy compared to the traditional                           [16] Donald B Johnson. 1975. Finding all the elementary circuits of a directed graph.
+heuristics based on DFS and MFAS and at the same time, they are                                  SIAM J. Comput. 4, 1 (1975), 77–84.
+                                                                                            [17] Viggo Kann. 1992. On the approximability of NP-complete optimization problems.
+fast, scalable and fully automated. Thus, they can support a large                               Ph.D. Dissertation.
+and growing number of applications that rely on clean ontological                           [18] Richard M. Karp. 1972. Reducibility among Combinatorial Problems. Boston, MA,
+                                                                                                 85–103.
+knowledge bases representing hierarchical relations.                                        [19] Y. Koren, R. Bell, and C. Volinsky. 2009. Matrix Factorization Techniques for
+   Future work. In this study, the issue of breaking cycles from                                 Recommender Systems. Computer 42, 8 (Aug 2009), 30–37.
+directed graphs is addressed from a heuristic perspective. An alter-                        [20] Javier Lacasta, Javier Nogueras-Iso, and Francisco Javier Zarazaga-Soria. 2010.
+                                                                                                 Terminological Ontologies - Design, Management and Practical Applications. Se-
+native is to consider model based approaches to predict the edge in                              mantic Web and Beyond: Computing for Human Experience, Vol. 9. Springer.
+a SCC that has the highest probability of being removed. The re-                            [21] Wooyoung Lee and Dale F Rudd. 1966. On the ordering of recycle calculations.
+quired features for the prediction model can be extracted from graph                             AIChE Journal 12, 6 (1966), 1184–1190.
+                                                                                            [22] Jing Liu, Young-In Song, and Chin-Yew Lin. 2011. Competition-based User
+embedding methods, such as node2vec[10], or low rank representa-                                 Expertise Score Estimation. In Proceedings of the 34th International ACM SIGIR
+tions of adjacency matrices, decomposed by matrix factorization (a                               Conference on Research and Development in Information Retrieval (SIGIR ’11). New
+                                                                                                 York, NY, USA, 425–434.
+widely used technique in recommender systems [4, 19, 32, 40, 41]).                          [23] Jing Liu, Quan Wang, Chin-Yew Lin, and Hsiao-Wuen Hon. 2013. Question Diffi-
+Furthermore, other measures, such as deviation to dominant struc-                                culty Estimation in Community Question Answering Services. In Proceedings
+tural role, and deviation to transitive closure, may also prove to                               of the 2013 Conference on Empirical Methods in Natural Language Processing,
+                                                                                                 85–90.
+be very useful both for the heuristic and model-based approaches.                           [24] Bodenreider Olivier Mougin Fleur. 2005. Approaches to Eliminating Cycles
+However, significant effort is required to compute these measures                                in the UMLS Metathesaurus: Nave vs. Formal. American Medical Informatics
+for large graphs in a fast and scalable way.                                                     Association Annual Symposium Proceedings (2005), 550–554.
+                                                                                            [25] Esko Nuutila and Eljas Soisalon-Soininen. 1994. On Finding the Strongly Con-
+   Acknowledgments This work is supported by the National                                        nected Components in a Directed Graph. Inf. Process. Lett. 49, 1 (Jan. 1994),
+Science Foundation of United States under grant CCF-1645599 and                                  9–14.
+                                                                                            [26] Bodenreider Olivier. 2001. Circular Hierarchical Relationships in the UMLS:
+IIS-1550302. All content represents the opinion of the authors,                                  Etiology, Diagnosis, Treatment, Complications and Prevention. Proceedings of
+which is not necessarily shared or endorsed by their respective                                  the American Medical Informatics Association Symposium (2001), 57–61.
+employers and/or sponsors.                                                                  [27] Tatiana Orenstein, Zvi Kohavi, and Irith Pomeranz. 1995. An optimal algorithm
+                                                                                                 for cycle breaking in directed graphs. Journal of Electronic Testing 7, 1 (1995),
+                                                                                                 71–81.
+                                                                                            [28] Lawrence Page, Sergey Brin, Rajeev Motwani, and Terry Winograd. 1999. The
+                                                                                                 PageRank citation ranking: Bringing order to the web. Technical Report. Stanford
+REFERENCES                                                                                       InfoLab.
+ [1] Deepak Ajwani and Tobias Friedrich. 2010. Average-case analysis of incremental         [29] Domenico M Pisanelli, Aldo Gangemi, and Geri Steve. 1998. An ontological
+     topological ordering. Discrete Applied Mathematics 158, 4 (2010), 240–250.                  analysis of the UMLS Metathesaurus.. In Proceedings of the AMIA symposium.
+ [2] Ali Baharev, Hermann Schichl, and Arnold Neumaier. 2015. An exact method                    American Medical Informatics Association, 810.
+     for the minimum feedback arc set problem. (2015).                                      [30] Youssef Saab. 2001. A Fast and Effective Algorithm for the Feedback Arc Set
+ [3] Shuvra S Bhattacharyya, Praveen K Murthy, and Edward A Lee. 1996. Software                  Problem. Journal of Heuristics 7, 3 (May 2001), 235–250.
+     Synthesis from Dataflow Graphs. Vol. 360. Springer Science & Business Media.           [31] Fabian M Suchanek, Gjergji Kasneci, and Gerhard Weikum. 2007. Yago: a core of
+ [4] Peizhe Cheng, Shuaiqiang Wang, Jun Ma, Jiankai Sun, and Hui Xiong. 2017.                    semantic knowledge. In Proceedings of the 16th international conference on World
+     Learning to Recommend Accurate and Diverse Items. In Proceedings of the 26th                Wide Web. ACM, 697–706.
+     International Conference on World Wide Web (WWW ’17). 183–192.                         [32] Jiankai Sun, Shuaiqiang Wang, Byron J. Gao, and Jun Ma. 2012. Learning to
+ [5] James J Cimino. 1998. Auditing the unified medical language system with                     Rank for Hybrid Recommendation. In Proceedings of the 21st ACM International
+     semantic methods. Journal of the American Medical Informatics Association 5, 1              Conference on Information and Knowledge Management (CIKM ’12). 2239–2242.
+     (1998), 41–51.                                                                         [33] Osma Suominen and Eero Hyvönen. 2012. Improving the Quality of SKOS
+ [6] Peter Eades and Xuemin Lin. 1995. A new heuristic for the feedback arc set                  Vocabularies with Skosify. In Proceedings of the 18th International Conference on
+     problem. Australasian Journal of Combinatorics (1995), 15–25.                               Knowledge Engineering and Knowledge Management (EKAW’12). 383–397.
+ [7] Peter Eades, Xuemin Lin, and William F Smyth. 1993. A fast and effective               [34] Osma Suominen and Christian Mader. 2014. Assessing and Improving the Quality
+     heuristic for the feedback arc set problem. Inform. Process. Lett. 47, 6 (1993),            of SKOS Vocabularies. Journal on Data Semantics 3, 1 (2014), 47–73. DOI:
+     319–323.                                                                                    http://dx.doi.org/10.1007/s13740-013-0026-0
+ [8] G. Even, J. (Seffi) Naor, B. Schieber, and M. Sudan. 1998. Approximating Minimum       [35] Roberto Tamassia. 2007. Handbook of Graph Drawing and Visualization (Discrete
+     Feedback Sets and Multicuts in Directed Graphs. Algorithmica 20, 2 (1998), 151–             Mathematics and Its Applications). Chapman & Hall/CRC.
+     174.                                                                                   [36] Nikolaj Tatti. 2014. Faster Way to Agony Discovering hierarchies in directed graphs.
+ [9] Marco Fossati, Dimitris Kontokostas, and Jens Lehmann. 2015. Unsupervised                   Berlin, Heidelberg, 163–178.
+     Learning of an Extensive and Usable Taxonomy for DBpedia. In Proceedings of the        [37] Nikolaj Tatti. 2015. Hierarchies in Directed Networks. In 2015 IEEE International
+     11th International Conference on Semantic Systems (SEMANTICS ’15). 177–184.                 Conference on Data Mining. 991–996.
+[10] Aditya Grover and Jure Leskovec. 2016. node2vec: Scalable feature learning for         [38] Hahn Udo and Stefan Schulz. 2004. Boosting the Medical Knowledge Infrastruc-
+     networks. In Proceedings of the 22nd ACM SIGKDD International Conference on                 turefi!?A Feasibility Study on Very Large Terminological Knowledge Bases. Proc
+     Knowledge Discovery and Data Mining. ACM, 855–864.                                          Symp on Engineering of Intelligent Systems (2004).
+[11] Mangesh Gupte, Pravin Shankar, Jing Li, S. Muthukrishnan, and Liviu Iftode.            [39] Denny Vrandečić and Markus Krötzsch. 2014. Wikidata: a free collaborative
+     2011. Finding Hierarchy in Directed Online Social Networks. In Proceedings of               knowledgebase. Commun. ACM 57, 10 (2014), 78–85.
+     the 20th International Conference on World Wide Web (WWW ’11). New York, NY,           [40] Shuaiqiang Wang, Jiankai Sun, Byron J. Gao, and Jun Ma. 2012. Adapting Vector
+     USA, 557–566.                                                                               Space Model to Ranking-based Collaborative Filtering. In Proceedings of the 21st
+[12] Ralf Herbrich, Tom Minka, and Thore Graepel. 2007. TrueSkill™: A Bayesian                   ACM International Conference on Information and Knowledge Management (CIKM
+     Skill Rating System. In Advances in Neural Information Processing Systems (NIPS),           ’12). 1487–1491.
+     P. B. Schölkopf, J. C. Platt, and T. Hoffman (Eds.). 569–576.                         [41] Shuaiqiang Wang, Jiankai Sun, Byron J. Gao, and Jun Ma. 2014. VSRank: A Novel
+[13] Johannes Hoffart, Fabian M Suchanek, Klaus Berberich, and Gerhard Weikum.                   Framework for Ranking-Based Collaborative Filtering. ACM Trans. Intell. Syst.
+     2013. YAGO2: A spatially and temporally enhanced knowledge base from                        Technol. 5, 3, Article 51 (July 2014), 24 pages.
+     Wikipedia. Artificial Intelligence 194 (2013), 28–61.                                  [42] Torsten Zesch and Iryna Gurevych. 2007. Analysis of the Wikipedia Cate-
+[14] Chia-Jui Hsu and Shuvra S Bhattacharyya. 2007. Cycle-breaking techniques for                gory Graph for NLP Applications. In Proceedings of the TextGraphs-2 Workshop
+     scheduling synchronous dataflow graphs. Technical Report.                                   (NAACL-HLT). Association for Computational Linguistics, Rochester, 1–8.
+[15] Chia-Jui Hsu, Ming-Yung Ko, Shuvra S Bhattacharyya, Suren Ramasubbu, and
+     José Luis Pino. 2007. Efficient simulation of critical synchronous dataflow graphs.
+     ACM Transactions on Design Automation of Electronic Systems (TODAES) 12, 3
+     (2007), 21.
+

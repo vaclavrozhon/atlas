@@ -1,0 +1,1587 @@
+                                                       Learning-Augmented Approximation for
+                                                      Unrelated-Machines Makespan Scheduling
+
+
+                                                             Kaito Baba                                      Evripidis Bampis
+                                                        The University of Tokyo,                      Sorbonne Université, CNRS, LIP6,
+                                                             Tokyo, Japan                                  F-75005 Paris, France
+                                                 baba-kaito662@g.ecc.u-tokyo.ac.jp                     evripidis.bampis@lip6.fr
+arXiv:2606.13133v1 [cs.DS] 11 Jun 2026
+
+
+
+
+                                                                                 Giorgos Mitropoulos
+                                                                            Sorbonne Université, CNRS, LIP6,
+                                                                                 F-75005 Paris, France
+                                                                           georgios.mitropoulos@lip6.fr
+
+
+
+                                                                                        Abstract
+                                                     Recently, Antoniadis et al. (ICLR 2025) proposed a framework for incorporating
+                                                     predictions to approximate NP-hard selection problems. Despite its simplicity, this
+                                                     approach tightly matches theoretical lower bounds, making its generalization highly
+                                                     compelling. We address an open question raised in the work of Antoniadis et al.,
+                                                     concerning the extension of this approach to other important problems outside the
+                                                     class of selection problems, such as scheduling. We develop a learning-augmented
+                                                     algorithm for the makespan minimization problem on unrelated machines, de-
+                                                     noted by R∥Cmax . By using predictions of heavy job assignments, we achieve
+                                                     a polynomial-time (1 + ε)-approximation for accurate predictions that smoothly
+                                                     degrades to a worst-case 2-approximation as the error increases. We conclude our
+                                                     work with an empirical analysis of our method.
+
+
+                                         1    Introduction
+                                         Scheduling is one of the central problems in combinatorial optimization (Pinedo, 2016; Brucker,
+                                         2007). A particularly fundamental model is scheduling on unrelated parallel machines, denoted by
+                                         R∥Cmax (Graham et al., 1979). Here, we are given a set of n jobs and a set of m machines, and
+                                         each job j has a machine-dependent processing time pij on machine i. The goal is to assign each
+                                         job to one of the machines so as to minimize the maximum load over all machines. This problem
+                                         models settings in which processing times vary across machines. At the same time, it is a notoriously
+                                         difficult NP-hard problem: the classical result of Lenstra et al. (1990) gives a polynomial-time
+                                         2-approximation, and they showed that improving the approximation factor below 3/2 is NP-hard.
+                                         In recent years, there has been growing interest in algorithms with predictions, or learning-augmented
+                                         algorithms (Purohit et al., 2018; Lykouris & Vassilvitskii, 2018). Motivated by the increasing
+                                         availability of high-quality machine-learning predictions, this line of work studies how algorithms
+                                         can exploit such predictions while retaining rigorous guarantees when they are inaccurate. Most
+                                         early work focused on online algorithms, where the standard objectives are consistency, robustness,
+                                         and smoothness: the algorithm should perform optimally when predictions are accurate, remain
+                                         competitive when they are poor, and degrade smoothly as prediction error increases (Mitzenmacher
+                                         & Vassilvitskii, 2022; Azar et al., 2023).
+                                         More recently, learning-augmented ideas have also begun to appear in approximation algorithms
+                                         for NP-hard problems (Cohen-Addad et al., 2024; Bampis et al., 2024; Antoniadis et al., 2025). In
+                                         this offline setting, predictions may describe part of an optimal solution or some structural object
+                                         Preprint.
+                                                                     −        −
+Table 1: Comparison with classical bounds for R∥Cmax . Here, ROPT         , ROPT,K   , and ROPT
+                                                                                             +
+                                                                                                 are
+prediction error measures defined in Section 5.1: the first two capture false negatives, while ROPT
+                                                                                                +
+                                   −
+captures false-positive overload. ROPT,K  monotonically decreases with the search budget K, which
+is chosen as a constant parameter. P := maxi,j pij denotes the largest processing time of the input.
+Algorithm                          Makespan guarantee                            Running time              Assumption / Parameter
+LST (Lenstra et al., 1990)                2OPT                           O(poly(m, n, log P ))                        –
+LST (Lenstra et al., 1990)             (1 + ε)OPT                   O((n + 1)m/ε poly(m, n, log P ))              fixed m
+Mordechai (2015)                         (1 + ε)T                     O(2 poly(m, n, log P, 1/ε)) k := |{(i, j) | pij > εT }|, given T
+                                                                         k
+                       n                                          o                                
+                                            −
+Ours (Theorem 5.2) min OPT + max{εOPT, ROPT,K           +
+                                                  } + ROPT  , 2OPT O (mn)K poly(m, n, log P, 1/ε)                     –
+                                                                                                  
+Ours (Corollary 5.3)      min   (1 + ε)OPT + R +
+                                                   , 2OPT           O (mn) K
+                                                                             poly(m, n, log P, 1/ε)     K  ≥   |Miss       b ⋆
+                                                                                                                      OPT (ϕ, σ )|
+                                            −
+                                               OPT
+Ours (Corollary 5.4) min OPT + max{εOPT, ROPT          +
+                                                 } + ROPT , 2OPT       O(poly(m, n, log P, 1/ε))                      –
+
+
+that a classical approximation algorithm would otherwise need to guess or search over. The main
+goal is to obtain near-optimal performance when the prediction is accurate, together with a guarantee
+that degrades smoothly with the prediction error. Robustness can often be obtained by running a
+classical approximation algorithm in parallel, so the central challenge is to design algorithms that
+yield meaningful consistency and smoothness.
+A recent work of Antoniadis et al. (2025) develops such algorithms for a broad class of selection
+problems with linear objectives, including Vertex Cover and Steiner Tree, and provides approximation
+guarantees that vary smoothly with false-positive and false-negative prediction errors. However, their
+framework does not cover problems beyond this linear-objective selection setting, and they explicitly
+identify constructing such prediction-dependent smooth guarantees for other optimization problems,
+such as scheduling, as an open direction.
+In this work, we develop a learning-augmented approximation algorithm for R∥Cmax , addressing
+this open question posed by Antoniadis et al. (2025) in the context of scheduling. Our starting point
+is the classical heavy/short decomposition for unrelated-machine scheduling (Lenstra et al., 1990;
+Mordechai, 2015). For a target makespan T , the combinatorial difficulty lies in assignments with
+processing time greater than εT ; once these assignments are fixed, the remaining short jobs can be
+handled by a linear program (LP) and an appropriate rounding procedure, such as LST rounding
+(Lenstra et al., 1990) and Shmoys–Tardos rounding (Shmoys & Tardos, 1993). Classical schemes
+search over the heavy assignments to obtain a (1+ε)OPT guarantee, but this requires non-polynomial
+running time unless m is fixed to be small. We use the prediction to localize this search.
+Our learning-augmented algorithm achieves a (1 + ε)OPT guarantee with accurate predictions while
+running in time comparable to the classical polynomial-time 2-approximation algorithm, thereby
+improving the makespan guarantee when m is large. The guarantee degrades smoothly with the
+prediction error and, even with poor predictions, never exceeds the classical 2OPT baseline. At a high
+level, false-positive predictions contribute to the makespan bound, while false-negative predictions
+can either be recovered by local search or left in the bound, with the constant search budget K
+smoothly controlling this tradeoff. Table 1 summarizes the comparison with the classical guarantees.
+Experiments show that, consistently with our theory, accurate predictions allow our algorithm to
+outperform the classical 2-approximation baseline in makespan, while running significantly faster
+than the classical (1 + ε)-approximation based on heavy-assignment search.
+Our contributions can be summarized as follows:
+         • We introduce a learning-augmented framework for R∥Cmax , addressing the open question
+           of Antoniadis et al. (2025) in the context of scheduling. Rather than searching globally over
+           heavy assignments, our approach localizes the search around the prediction.
+         • Our guarantee exhibits the desired learning-augmented behavior. Accurate predictions yield
+           a (1 + ε)OPT makespan bound in polynomial time, and it degrades smoothly with the
+           prediction error; even with poor predictions, it never exceeds the classical 2OPT baseline.
+         • We also provide the smooth tradeoff between running time and makespan quality. Larger
+           search budgets K allow the algorithm to repair more missed heavy assignments, while
+           K = 0 yields a fast, purely prediction-based variant without local search.
+         • Numerical experiments show that, consistent with our theory, accurate predictions improve
+           over the classical 2-approximation baseline, while our algorithm runs significantly faster
+           than classical (1 + ε)-type heavy-assignment search.
+
+
+                                                                 2
+2     Related work
+Here we review the prior work most relevant to ours; further discussion is provided in Appendix A.
+Learning-augmented online algorithms. Learning-augmented algorithms were first studied exten-
+sively in the online setting, where predictions are used to improve performance beyond worst-case
+guarantees while retaining robustness when the predictions are inaccurate (Mitzenmacher & Vas-
+silvitskii, 2022). Starting with the works of Lykouris & Vassilvitskii (2018); Purohit et al. (2018)
+on caching, ski rental, and online scheduling, subsequent work developed sharper guarantees for
+caching (Rohatgi; Wei, 2020), primal-dual frameworks for online covering problems (Bamas et al.,
+2020), and more general online covering linear and semidefinite programs (Grigorescu et al., 2022).
+Learning-augmented approximation algorithms. More recently, learning-augmented ideas have
+been applied to offline approximation algorithms for NP-hard problems. Recent results include
+learning-augmented approximation algorithms for Max-Cut and related CSPs (Cohen-Addad et al.,
+2024), dense NP-hard problems (Bampis et al., 2024), Maximum Independent Set (Braverman et al.,
+2024), and permutation problems (Bampis et al., 2025). Recently, Antoniadis et al. (2025) gave black-
+box algorithms for selection problems with linear objectives, including Vertex Cover, Steiner Tree,
+Min-Weight Perfect Matching, Knapsack, and Clique, with approximation guarantees that degrade
+smoothly with false-negative and false-positive prediction errors. Their framework, however, does not
+cover scheduling problems such as R∥Cmax , which are not selection problems and whose objective
+is makespan minimization rather than the total weight of a selected set. They leave scheduling as an
+open question for such smooth guarantees, which we address for R∥Cmax .
+Scheduling and heavy-assignment search. In the context of classical approximation algorithms
+without prediction, Lenstra et al. (1990) gave a polynomial-time 2-approximation for R∥Cmax , as
+well as a (1 + ε)OPT approximation scheme when the number of machines m is fixed. The latter
+relies on exhaustive search over heavy assignments and LP rounding for the remaining short jobs.
+For a given threshold T , Mordechai (2015) later gave a parameterized approximation scheme whose
+parameter is k := {(i, j) | pij > εT } . However, these (1 + ε)-type guarantees are not polynomial-
+time unless m is fixed to be small. Our work uses predictions to go beyond these fixed-m regimes:
+when the predictions are accurate, we obtain a (1 + ε)OPT guarantee with running time comparable
+to that of the classical polynomial-time 2-approximation algorithm.
+
+3     Problem setup
+Problem definition. We consider the makespan minimization problem on unrelated-machines. There
+are m machines and n jobs. For every machine i ∈ [m] and job j ∈ [n]1 , let pij ∈ R>0 denote the
+processing time of job Pj on machine i. A schedule is a function σ : [n] → [m], and its makespan is
+Cmax (σ) := maxi∈[m] j:σ(j)=i pij . The goal is to find a schedule σ minimizing Cmax (σ).
+Prediction model. The algorithm is given as input a predicted partial assignment ϕb : [n] → [m]∪{⊥},
+        b
+where ϕ(j)    = i means that the prediction suggests assigning job j to machine i, and ϕ(j) b   =⊥
+                                                                 b
+means that no assignment is predicted for job j. Intuitively, ϕ is intended to capture part of the
+heavy-assignment structure of a good schedule. We let dom(ϕ)  b := {j ∈ [n] | ϕ(j)
+                                                                               b ̸= ⊥} denote the
+set of jobs for which the prediction specifies a machine. See Remark 4.1 for further discussion.
+
+4     Algorithm
+Our algorithm has the classical two-layer structure used in approximation schemes for R∥Cmax
+(Lenstra et al., 1990; Mordechai, 2015): an inner layer that solves a completion problem for a fixed
+threshold makespan T , and an outer layer that ranges over the relevant threshold values. However, in
+our algorithm, both layers are prediction-aware, which we explain in the following sections.
+
+4.1    Inner layer: prediction-localized heavy-assignment completion
+We now describe the inner layer of our algorithm, which is the main algorithmic component where
+prediction enters the search procedure. The pseudocode is given in Algorithm 1.
+Step 1: Keep only the predicted assignments that are T -heavy. The prediction ϕb may contain
+assignments that are irrelevant at scale T . Accordingly, the algorithm forms the T -heavy projection:
+    1 Here and throughout, for a positive integer r, we write [r] := {1, 2, . . . , r}.
+
+
+
+
+                                                                  3
+                                                                          b
+     Algorithm 1: Inner layer: P REDICTION -G UIDED -C OMPLETION(T, ε, K, ϕ)
+                                                                                               b
+   Input: target makespan T , parameter ε ∈ (0, 1), search budget K , and predicted assignment ϕ
+   // Step 1: Keep only the predicted assignments that are T -heavy.
+ 1 Compute ϕ    bT according to Eq. (1)
+ 2 Initialize the candidate set C ← ∅
+   // Step 2: Search only for missing heavy assignments.
+ 3 foreach augmentation A of ϕ     bT with budget K satisfying Eq. (2) do
+ 4      ψA ← ϕbT ∪ A
+        // Step 3: Fix the heavy assignments and solve the residual LP over relevant thresholds.
+ 5      foreach threshold τ ∈ Λ(T ) defined in Eq. (3) do
+ 6           Solve the residual LP Eq. (4) with threshold τ for ψA
+ 7           if the LP is feasible with optimum value LψA then
+                  // Step 4: Round the solution of the residual LP.
+ 8                SA ← the schedule obtained by Shmoys–Tardos rounding (Shmoys & Tardos, 1993)
+ 9                C ← C ∪ {SA }
+     // Step 5: Return the best schedule among all candidates.
+10   return the schedule in C that minimizes makespan
+
+
+                                        (
+                                          b
+                                         ϕ(j),       b ̸= ⊥ and p b
+                                                  if ϕ(j)        ϕ(j),j > εT,
+                              ϕbT (j) =                                                                  (1)
+                                         ⊥,       otherwise.
+     The intuition is that only jobs with processing time exceeding εT need special treatment. Assignments
+     with processing time at most εT are left to the LP, since the rounding incurs only an additive εT loss.
+     Remark 4.1. A full-assignment prediction ϕb : [n] → [m] is a special case of our framework: once T
+     is fixed, one simply keeps the predicted assignments with pϕ(j),j
+                                                                   b     > εT . Allowing abstention is more
+     flexible, since uncertain heavy jobs can be left to the local search rather than fixed incorrectly.
+     Remark 4.2. In the present formulation, every predicted assignment with processing time larger than
+     εT is trusted and fixed. This makes the distinction between false-positive and false-negative errors
+     especially transparent. A variant that allows editing or deleting some predictions will be considered
+     in Appendix D. Conceptually, such edits simply trade one type of prediction error for the other.
+     Step 2: Search only for missing heavy assignments. The projected prediction ϕbT may miss
+     some heavy assignments in a good schedule. The algorithm therefore enumerates augmentations
+     A : [n] → [m] ∪ {⊥} that add at most K extra heavy assignments, where
+
+       dom(A) ∩ dom(ϕbT ) = ∅, and | dom(A)| ≤ K, and pA(j),j > εT for every j ∈ dom(A).                 (2)
+
+     Thus, the algorithm replaces the classical global heavy-assignment search (Lenstra et al., 1990;
+     Mordechai, 2015) by a search for at most K missing heavy assignments. Even in the worst case,
+     the necessary budget K never exceeds that of the classical heavy-assignment search. We also note
+     that our algorithm still works if K is insufficient; the remaining missed heavy assignments are
+     smoothly reflected in the makespan guarantees in Theorems 5.1 and 5.2. Thus, K is a freely chosen
+     constant parameter, not a problem- or prediction-dependent quantity. This role is analogous to the
+     trust parameter λ used in prior learning-augmented algorithms (Purohit et al., 2018; Bamas et al.,
+     2020): it controls how much the algorithm corrects or trusts the prediction.
+     Step 3: Fix the heavy assignments and solve the residual LP over relevant thresholds. Once
+     ψA := ϕbT ∪ A is fixed, the algorithm computes the fixed machine loads from dom(ψA ) and solves
+     an LP on the remaining jobs. However, if the prediction has errors and K does not recover all missed
+     heavy assignments, some residual jobs may still have processing time exceeding εT . Hence, unlike
+     in the classical setting, the residual LP cannot be restricted to edges (i, j) with pij ≤ εT alone.
+     For this reason, the algorithm considers a threshold parameter τ ≥ εT and lets the residual LP use all
+     edges (i, j) with pij ≤ τ . Since τ affects the LP only through the admissible edge set, it changes
+     only when τ crosses some processing time pij . Thus, it suffices to consider the discrete candidate set
+
+                                      Λ(T ) := {εT } ∪ {pij | pij ≥ εT }.                                (3)
+
+
+                                                       4
+  Algorithm 2: Outer layer: P REDICTION -L OCALIZED -S EARCH(ε, K, ϕ)   b
+  Input: parameter ε ∈ (0, 1), search budget K , and predicted assignment ϕb
+  // Step 1: Compute the baseline upper bound.
+1 Compute a baseline schedule S0 using the classical 2-approximation (Lenstra et al., 1990)
+2 Set B ← Cmax (S0 ), and initialize the candidate set C ← {S0 }
+  // Step 2: Run the inner procedure on all critical thresholds.
+3 foreach T ∈ T , where T is defined in Eq. (5) do
+4      ST ← P REDICTION -G UIDED -C OMPLETION(T, ε, K, ϕ)    b
+5      C ← C ∪ {ST }
+  // Step 3: Return the best schedule among all candidates.
+6 return the schedule in C that minimizes makespan
+
+
+  For each τ ∈ Λ(T ), the algorithm solves an LP over edges with pij ≤ τ to minimize the load bound L:
+        minimize         L
+                         Xm
+        subject to              xij = 1                             ∀j ∈
+                                                                       / dom(ψA ),
+                          i=1
+                           X
+                                    pij xij ≤ L − ℓfix              ∀i ∈ [m],                                             (4)
+                                                   i (ψA )
+                       j ∈dom(ψ
+                         /     A)
+                         xij = 0                                    ∀i, j with j ∈
+                                                                                 / dom(ψA ) and pij > τ,
+                         xij ≥ 0                                    ∀i, j with j ∈
+                                                                                 / dom(ψA ),
+                         P
+  where ℓfix
+          i (ψA ) :=    j:ψA (j)=i pij is the fixed load on machine i induced by ψA . Note that the
+  threshold τ only affects the residual LP; heavy assignments ϕbT (j) are still defined by εT .
+  Step 4: Round the solution of the residual LP. If the residual LP is feasible, the algorithm applies
+  the Shmoys–Tardos rounding (Shmoys & Tardos, 1993) to obtain an integral schedule.2 Because
+  every residual edge has processing time at most τ , the rounding increases the load of each machine
+  by at most τ . Therefore, the final makespan of the schedule extending ψA is at most LψA + τ , where
+  LψA is the optimum value of the residual LP, if the LP is feasible. This is exactly why the heavy/short
+  decomposition is useful and why the algorithm does not need predictions for short assignments.
+  Step 5: Return the best schedule among all candidates. The algorithm compares all schedules
+  produced by feasible augmentations, and returns the one with minimum makespan.
+
+  4.2   The outer layer: synchronizing the threshold search with the prediction
+  The inner layer assumes that the target makespan T is fixed. The outer layer removes this assumption.
+  Unlike the classical inner routine, our prediction-guided inner layer does not certify feasibility at
+  a fixed threshold T , since failure may reflect an inaccurate prediction rather than true infeasibility;
+  consequently, the classical binary search over T is no longer applicable. Nevertheless, we can
+  still design the outer layer without increasing the overall running-time order, by enumerating the
+  polynomially many critical threshold values at which the prediction-induced heavy-assignment
+  structure changes. The pseudocode is given in Algorithm 2.
+  Step 1: Compute the baseline upper bound. The algorithm first computes the classical 2-
+  approximation schedule S0 (Lenstra et al., 1990) and sets B := Cmax (S0 ). Since B ≤ 2OPT,
+  the unknown optimum lies in the interval [B/2, B].
+  Step 2: Run the inner procedure on all critical thresholds. The heavy/short classification changes
+  only when εT crosses some processing time pij , i.e., when T crosses some critical threshold
+  T = pij /ε. Therefore, the outer algorithm constructs the critical threshold set
+                                                                
+                                    B        pij B       pij
+                            T =          ∪            ≤      ≤ B ∪ {B},                          (5)
+                                     2        ε    2      ε
+  and runs the inner procedure for every T ∈ T : P REDICTION -G UIDED -C OMPLETION(T, ε, K, ϕ). b
+  Step 3: Return the best schedule among all candidates. Finally, the algorithm returns the best
+  schedule among: (i) the baseline schedule S0 , and (ii) all schedules produced at all critical thresholds.
+    2 This rounding generalizes the LST rounding (Lenstra et al., 1990). In our setting, both yield the same guarantee.
+
+
+
+
+                                                              5
+5     Analysis
+5.1   Prediction error measures
+
+Following Antoniadis et al. (2025), we decompose prediction error into false-negative and false-
+positive components. Because their framework is designed for selection problems, we define the
+corresponding notions for R∥Cmax . For any schedule σ : [n] → [m], define the false-negative
+threshold and false-positive overload:
+                                                                      X
+                     b σ) := max pσ(j),j ,
+                RT− (ϕ,                               b σ) := max
+                                                 RT+ (ϕ,                    pij ,            (6)
+                             j∈MissT (ϕ,σ)
+                                      b                               i∈[m]
+                                                                          j: ϕ
+                                                                             bT (j)=i
+                                                                          ϕ
+                                                                          bT (j)̸=σ(j)
+
+where MissT (ϕ,b σ) is the missed heavy jobs defined as MissT (ϕ,b σ):={j ∈ [n] | pσ(j),j > εT and
+                               − b σ) = 0 if MissT (ϕ,
+ϕbT (j) = ⊥}. Here, we treat RT (ϕ,                  b σ) = ∅. Intuitively, R− (ϕ,
+                                                                             T
+                                                                                b σ) measures the
+                                                              b σ) measures the maximum overload
+largest heavy assignment missed by the prediction, while RT+ (ϕ,
+caused by predicted heavy assignments that disagree with σ. We further define the K-residual
+false-negative threshold:
+                           −
+                          RT,K  b σ) :=
+                               (ϕ,         min            max      pσ(j),j ,                    (7)
+                                         U ⊆MissT (ϕ,σ)
+                                                   b    j∈MissT (ϕ,σ)\U
+                                                                 b
+                                            |U |≤K
+                                                                             −
+with the convention that the maximum over the empty set is 0. Equivalently, RT,K  b σ) is the (K+1)-
+                                                                                 (ϕ,
+st largest processing time among the missed heavy jobs. This represents the largest processing time
+among the missed heavy jobs that remain after optimally recovering up to K of them. In particular,
+                                                                       −
+when K = 0, it is the same as the original false-negative threshold: RT,0   b σ) = R− (ϕ,
+                                                                           (ϕ,           b σ).
+                                                                                     T
+
+
+5.2   Guarantees for the inner layer
+Theorem 5.1 (Inner-layer guarantee). Fix ε ∈ (0, 1), a target value T > 0, a search budget K ≥ 0,
+                 b Then for any schedule σ, Algorithm 1 returns a feasible schedule S satisfying
+and a prediction ϕ.
+                                                   −
+                    Cmax (S) ≤ Cmax (σ) + max{εT, RT,K  b σ)} + R+ (ϕ,
+                                                       (ϕ,          b σ).                            (8)
+                                                                 T
+
+The running time of the algorithm is O((mn)K poly(m, n, log P, 1/ε)), where P := maxi,j pij is
+the largest processing time.
+Here we present a proof sketch of Theorem 5.1. The full proof is deferred to Appendix B.1.
+                                      −
+Proof sketch. By the definition of RT,K     b σ), there exists a subset U ⋆ ⊆ MissT (ϕ,
+                                           (ϕ,                                       b σ) with |U ⋆ | ≤
+K such that maxj∈MissT (ϕ,σ)\U
+                           b
+                                               −     b
+                                  ⋆ pσ(j),j = RT,K (ϕ, σ). Define an augmentation A (j) = σ(j) for
+                                                                                       ⋆
+
+j ∈ U and A (j) = ⊥ otherwise. Since U consists only of missed heavy assignments, we can
+       ⋆       ⋆                               ⋆
+
+confirm that A⋆ satisfies Eq. (2) and is one of the augmentations considered by the algorithm.
+Let ψ ⋆ := ϕbT ∪ A⋆ and τ ⋆ := max{εT, RT,K  −     b σ)}. By construction, we can confirm τ ⋆ ∈ Λ(T ).
+                                                 (ϕ,
+Consider the residual LP for (ψ , τ ), and assign every residual job j to σ(j). Then we can confirm
+                                 ⋆ ⋆
+
+that every edge (σ(j), j) is allowed in the residual LP with τ ⋆ : if pσ(j),j ≤ εT this is immediate,
+while otherwise j is a missed heavy job not recovered by U ⋆ , and hence pσ(j),j ≤ RT,K−   b σ) ≤ τ ⋆ .
+                                                                                          (ϕ,
+Consider the assignments that follows ψ ⋆ on fixed jobs and σ on residual jobs. We can confirm that
+this assignment is bounded by Cmax (σ) + RT+ (ϕ,b σ). Thus, the residual LP for (ψ ⋆ , τ ⋆ ) is feasible
+                                      + b
+with load bound at most Cmax (σ) + RT (ϕ, σ).
+       ⋆
+Let Lτψ⋆ be the returned optimum of the residual LP for (ψ ⋆ , τ ⋆ ). By the classical rounding argument
+(Theorem
+   ⋆
+            2.1 in Shmoys & Tardos (1993)), this yields an integral schedule of makespan at most
+Lτψ⋆ + τ ⋆ . Hence, for (A⋆ , τ ⋆ ), the algorithm obtains a schedule of makespan at most
+                          Cmax (σ) + R+ (ϕ,     b σ) + max{εT, R− (ϕ,   b σ)}.                       (9)
+                                         T                      T,K
+Since the algorithm returns the best candidate, the same bound holds for its output.
+The running time follows from the enumeration bounds. The number of augmentations is at most
+PK n s
+   s=0 s m ≤ (K + 1)(mn) , and |Λ(T )| ≤ mn + 1. For each pair (A, τ ), the LP and rounding
+                             K
+
+take polynomial time: poly(m, n, log P, 1/ε). Hence, we obtain the claimed total running time.
+
+
+                                                   6
+Interpretation. Theorem 5.1 exhibits a clean tradeoff, controlled by the budget K, between paying
+for false-negative heavy assignments in running time and paying for them in the makespan bound.
+The local search step (Step 2) runs in (mn)O(K) time, which increases monotonically with K. In
+                                            −
+contrast, the residual false-negative term RT,K  b σ) decreases monotonically with K. In particular,
+                                                (ϕ,
+when K = 0, the largest missed heavy job appears directly in the bound; when K = 1, the algorithm
+can recover the largest missed heavy job by search, so the bound is determined by the second-largest
+missed heavy job; and so on. Hence increasing K makes the algorithm slower but improves the
+makespan guarantee, whereas decreasing K speeds up the algorithm at the cost of a weaker guarantee.
+In this sense, the parameter K provides a smooth interpolation between search effort and schedule
+quality. For further intuition, Corollaries C.1 and C.2 in Appendix C.1 discuss two special cases
+of Theorem 5.1: one where K is large enough to recover all missed heavy assignments, and one
+where K = 0, so no local search is performed. The smoothness of the final makespan guarantee is
+discussed later in Section 5.3, where we analyze the outer-layer theorem.
+
+5.3   Guarantees for the outer layer
+                                                                                             b
+Theorem 5.2 (Outer-layer guarantee). Fix ε ∈ (0, 1), a search budget K ≥ 0, and a prediction ϕ.
+Let σ be an optimal schedule, and write OPT := Cmax (σ ). Then Algorithm 2 returns a feasible
+     ⋆                                                   ⋆
+
+schedule S satisfying n                                                                 o
+     Cmax (S) ≤ min OPT + max{εOPT, ROPT,K   −        b σ ⋆ )} + R+ (ϕ,
+                                                     (ϕ,                  b σ ⋆ ), 2OPT
+                                                                  OPT
+                      n                                                           o        (10)
+               ≤ min (1 + ε)OPT + ROPT,K−      b σ ⋆ ) + R+ (ϕ,
+                                              (ϕ,                b σ ⋆ ), 2OPT .
+                                                           OPT
+The running time of the algorithm is O((mn)K poly(m, n, log P, 1/ε)).
+Proof. Fix an optimal schedule σ ⋆ of makespan OPT. Recall that B is the baseline 2-approximation
+makespan. Since OPT ∈ [B/2, B], there exists a largest critical value T ⋆ ∈ T such that
+T ⋆ ≤ OPT. By construction of T , there is no value of the form pij /ε in the open interval
+(T ⋆ , OPT]. Hence, for every machine–job pair (i, j), we have: pij > εT ⋆ ⇔ pij > εOPT.
+Thus, the heavy/short decomposition is identical at thresholds T ⋆ and OPT, and in particular
+we have ϕbT ⋆ = ϕbOPT , MissT ⋆ (ϕ,
+                                 b σ ⋆ ) = MissOPT (ϕ,b σ ⋆ ), R−⋆ (ϕ,
+                                                                T ,K
+                                                                        b σ ⋆ ) = R−       b ⋆
+                                                                                    OPT,K (ϕ, σ ) and
+  + b ⋆          +    b    ⋆
+RT ⋆ (ϕ, σ ) = ROPT (ϕ, σ ).
+Hence we may apply Theorem 5.1 to the call P REDICTION -G UIDED -C OMPLETION(T ⋆ , ε, K, ϕ),        b
+taking σ as the comparison schedule. It follows that the returned schedule ST ⋆ satisfies
+         ⋆
+
+                                                               b σ ⋆ )} + R+⋆ (ϕ,
+              Cmax (ST ⋆ ) ≤ Cmax (σ ⋆ ) + max{εT ⋆ , RT−⋆ ,K (ϕ,                b σ⋆ )
+                                                                             T
+                                                               b σ ⋆ )} + R+ (ϕ,  b σ ⋆ ).        (11)
+                           ≤ OPT + max{εOPT, R−        OPT,K (ϕ,            OPT
+The outer algorithm returns the best schedule among the inner-layer candidates and the baseline
+schedule S0 . Since Cmax (S0 ) ≤ 2OPT, we obtain the claimed minimum bound.
+It remains to bound the running time. The set T contains at most mn + 2 critical values. For each
+T ∈ T , Algorithm 1 runs in time O((mn)K · poly(m, n, log P, 1/ε)). Multiplying by the polynomial
+number of outer iterations preserves the same asymptotic form.
+Interpretation. As in Theorem 5.1, Theorem 5.2 provides a smooth tradeoff between running time
+and makespan quality. The running time grows monotonically with the budget K, while the makespan
+                       −
+false-negative term ROPT,K     b σ ⋆ ) decreases monotonically with K. Thus, larger budgets K let the
+                             (ϕ,
+algorithm spend more time correcting predictions and obtain stronger guarantees, whereas smaller
+budgets run faster at the cost of a weaker bound.
+                                               −
+If the prediction is accurate enough that ROPT,K      b σ ⋆ ) = 0 and R+ (ϕ,
+                                                    (ϕ,                       b σ ⋆ ) = 0, the theorem
+                                                                         OPT
+gives a (1 + ε)OPT schedule, matching the classical heavy-assignment search guarantee (Lenstra
+et al., 1990; Mordechai, 2015). Unlike classical schemes, which are polynomial-time only when
+the number of machines m is fixed to be small, the exponent in our running time is governed by
+the search budget K. This budget is the user-chosen constant parameter that controls how much
+the algorithm corrects the prediction, analogous to trust parameters in prior learning-augmented
+algorithms (Purohit et al., 2018; Bamas et al., 2020). Thus, the running time remains polynomial
+independently of whether m or other problem-dependent quantities are fixed, and accurate predictions
+allow the algorithm to improve over the classical polynomial-time 2-approximation baseline.
+                                                    −
+As the prediction error increases, the error terms ROPT,K    b σ ⋆ ) and R+ (ϕ,
+                                                           (ϕ,                 b σ ⋆ ) increase, and the
+                                                                          OPT
+makespan bound degrades smoothly with them. Even in the worst case, the bound never exceeds
+
+
+                                                   7
+the classical 2-approximation baseline. Thus, Theorem 5.2 exhibits the desired learning-augmented
+behavior: accurate predictions yield improved guarantees, while worse predictions lead to smooth
+degradation without exceeding the classical worst-case guarantee.
+For further intuition, we present the following corollary for the sufficiently accurate prediction.
+Corollary 5.3 (False-negative recovery). If K ≥ |MissOPT (ϕ,    b σ ⋆ )|, Algorithm 2 returns a feasible
+schedule S such that                   n                                         o
+                     Cmax (S) ≤ min (1 + ε)OPT + ROPT      +     b σ ⋆ ), 2OPT .
+                                                                (ϕ,                                 (12)
+The running time of the algorithm is O((mn)K poly(m, n, log P, 1/ε)).
+The proof follows immediately from Theorem 5.2; we provide the details in Appendix B.2.
+                                                                                     −
+Interpretation. When the budget K is sufficiently large, the false-negative term ROPT,K       b σ⋆ )
+                                                                                             (ϕ,
+disappears entirely from the makespan bound. Thus, false negatives are paid for purely in running
+time, while false positives are paid for in the approximation bound through ROPT
+                                                                             +    b σ ⋆ ), revealing
+                                                                                 (ϕ,
+a clear asymmetry between the two types of prediction error. The corresponding smoothness and
+robustness properties are exactly those discussed for Theorem 5.2.
+Moreover, the budget needed for this condition has a prediction-sensitive behavior reminiscent of
+learning-augmented guarantees. If the prediction has no false negatives, then K = 0 already suffices
+to remove the false-negative term from the makespan bound. The budget needed to remove the
+false-negative term increases gradually with the prediction error and, even in the worst case, does not
+exceed the scale of the classical heavy-assignment search.
+Note that this corollary is intended to isolate the intuition for the large-K case and to highlight the
+asymmetry between false negatives and false positives; it does not mean that our algorithm requires
+K ≥ |MissOPT (ϕ, b σ ⋆ )|. As shown in Theorem 5.2, the algorithm also works for insufficient K, with
+                                        −
+the unrecovered false-negative term ROPT,K       b σ ⋆ ) appearing smoothly in the makespan bound.
+                                               (ϕ,
+As the opposite extreme, we next state the corollary for the case with no local search, i.e., K = 0.
+Corollary 5.4 (No-search bound). When K = 0, Algorithm 2 returns a feasible schedule S such that
+                        n                                                              o
+       Cmax (S) ≤ min OPT + max{εOPT, ROPT     −      b σ ⋆ )} + R+ (ϕ,
+                                                    (ϕ,                  b σ ⋆ ), 2OPT
+                                                                  OPT
+                        n                                                       o           (13)
+                 ≤ min (1 + ε)OPT + ROPT −    b σ ⋆ ) + R+ (ϕ,
+                                             (ϕ,                b σ ⋆ ), 2OPT .
+                                                          OPT
+
+The running time of the algorithm is O(poly(m, n, log P, 1/ε)).
+The proof follows immediately from Theorem 5.2; we provide the details in Appendix B.2.
+Interpretation. When K = 0, no local search is performed, so the K-dependent factor in the running
+time disappears. Even in this case, the prediction is still used effectively, and accurate predictions can
+lead to a significantly improved makespan bound. The corresponding smoothness and robustness
+properties are the same as those discussed for Theorem 5.2.
+
+6     Numerical experiments
+In this section, we empirically investigate how the proposed algorithm actually behaves as the
+prediction quality and the search budget K vary.
+
+6.1   Experimental setup
+Following prior work on R∥Cmax (Fanjul-Peyro & Ruiz, 2011, 2010; Åblad et al., 2021), we use
+synthetic instances whose processing times are sampled independently and uniformly from the
+interval [1, 100]. Following prior work on learning-augmented algorithms (Purohit et al., 2018;
+Antoniadis et al., 2025), we generate synthetic predictions with controlled error rates to evaluate how
+the algorithm behaves as the prediction error varies. Specifically, we obtain predictions by randomly
+corrupting a prescribed fraction of the heavy assignments in an optimal schedule into false negatives
+or false positives. Throughout the experiments, we set ε = 0.01 and vary the search budget K from 0
+to 2. Since Mordechai (2015) only gives a fixed-T routine, we combine it with the LST outer search
+as a baseline, which yields a running time of O(2mn poly(m, n, log P, 1/ε)). All experiments are
+run with five different random seeds, and we report the mean and standard error. Further details on
+the experimental setup and implementation are given in Appendix E.
+
+                                                    8
+               1.25                                                                                                      Ours (K = 0)
+                                                                                                               600       Ours (K = 1)
+                                                                                                                         Ours (K = 2)
+               1.20                                                                                                      LST 2-approximation
+Cmax (S)/OPT                                                                                                             LST (1 + ε)-approximation
+
+
+
+
+                                                                                               Runtime / sec
+                                                                                                               400       Mordechai + LST outer
+               1.15
+
+               1.10
+                                                                         Ours (K = 0)                          200
+               1.05                                                      Ours (K = 1)
+                                                                         Ours (K = 2)
+                                                                         LST 2-approximation
+               1.00                                                                                              0
+                      0.0   0.1      0.2         0.3   0.0   0.2       0.4     0.6     0.8                           2     4        6        8       10
+                                   b ?                                   b ?                                                        m
+                              OPT (φ , σ )/OPT
+                             R−                                     OPT (φ , σ )/OPT
+                                                                   R+
+                            (a) False negatives              (b) False positives                                         (c) Running time
+          Figure 1: Numerical results. (a) and (b) show the change in makespan as the false-negative and
+          false-positive rates are varied, respectively. (c) shows the change in running time as the number of
+          machines m is varied; the curves for Ours with K = 0, 1, 2 and the LST 2-approximation baseline
+          overlap because they finish almost immediately. The lines denote the mean, and the shaded regions
+          denote the standard error, both computed over five independent runs with different random seeds.
+
+          6.2          Effect of false negatives and false positives on makespan
+        We use instances with m = 10 and n = 100, and vary either the false-negative rate or the false-positive
+        rate while fixing the other to 0. The results are shown in Figs. 1a and 1b. Note that both classical
+        (1 + ε)-type baselines are not available in these experiments due to their excessive running time.
+         We first discuss the false-negative experiment in Fig. 1a. Across all choices of K, our algorithm
+         recovers an optimal schedule when there are no false negatives, i.e., when ROPT−     b σ ⋆ )/OPT = 0.0,
+                                                                                             (ϕ,
+         and the makespan increases smoothly as the false-negative error grows. Even in the extreme case
+         where all heavy predictions are removed, around ROPT   −    b σ ⋆ )/OPT ≃ 0.38, the makespan remains
+                                                                    (ϕ,
+         below the LST 2-approximation baseline (The fact that this baseline has Cmax (S)/OPT ≃ 1.26
+         rather than 2 is consistent with the fact that the 2-approximation ratio is a worst-case guarantee). This
+         behavior precisely matches the learning-augmented guarantee in Theorem 5.2.
+         Comparing K = 0, 1, 2, we observe that larger K consistently improves the makespan. This re-
+                                             −
+         flects the monotone decrease of ROPT,K      b σ ⋆ ) in Theorem 5.2. In particular, for K = 1 when
+                                                    (ϕ,
+           −      b
+         ROPT (ϕ, σ )/OPT ≲ 0.1, and for K = 2 when ROPT
+                     ⋆                                          −    b σ ⋆ )/OPT ≲ 0.14, the algorithm still
+                                                                    (ϕ,
+         attains the optimal makespan despite the presence of false negatives. This is consistent with Corol-
+         lary 5.3: in these regions, the condition K ≥ |MissOPT (ϕ,  b σ ⋆ )| is satisfied, so a small amount of
+         search around the prediction completely eliminates the effect of false negatives from the makespan.
+         We next discuss the false-positive experiment in Fig. 1b. As in the false-negative experiment, the
+         algorithm attains the optimal makespan when there are no false positives, and the makespan degrades
+         smoothly as the false-positive error increases. Even in the worst case, the makespan remains below
+         the classical 2-approximation baseline. Unlike the false-negative case, all choices of K yield nearly
+         identical makespans. This reflects Theorem 5.2, where the false-positive term ROPT        +     b σ ⋆ ) is
+                                                                                                        (ϕ,
+         independent of K. Thus, Figs. 1a and 1b illustrate the theoretical asymmetry: false negatives can be
+         recovered by search, whereas false positives remain in the makespan bound.
+         Appendix F.1 reports additional results for other m, n settings and non-uniform instances with
+         machine-dependent correlations in processing times, showing similar qualitative behavior consistently.
+
+          6.3          Running time comparison
+         We next examine the running time as the number of machines varies. In Fig. 1c, we fix n = 10 and
+         vary m, with both the false-negative and false-positive rates set to 0.1.
+         Our algorithm and the classical LST 2-approximation baseline finish almost immediately even as m
+         increases. In contrast, both classical (1 + ε)-type baselines scale rapidly, reaching roughly 400 and
+         600 seconds even on these tiny m, n settings. This is consistent with Theorem 5.2: our algorithm, like
+         the 2-approximation baseline, has polynomial running time with constant search budget K, whereas
+         the classical (1 + ε)-type baselines are not polynomial-time unless m is fixed to be small.
+         Appendix F.2 reports running time experiments with fixed m and varying n, where our algorithm
+         remains comparable to the polynomial-time 2-approximation baseline and much faster than the
+         classical (1 + ε)-type baselines.
+
+                                                                          9
+7   Conclusion
+We developed a learning-augmented approximation algorithm for unrelated-machines makespan
+scheduling, addressing an open question of Antoniadis et al. (2025) on constructing smooth prediction-
+dependent guarantees to scheduling. The resulting algorithm achieves a (1 + ε)OPT guarantee when
+the prediction is accurate, while its makespan bound degrades smoothly with false-negative and
+false-positive prediction errors and never exceeds the classical 2OPT baseline. Our experiments
+support these theoretical properties, showing smooth degradation with prediction error, the predicted
+asymmetry between false negatives and false positives, and substantially better scalability than
+classical (1 + ε)-type algorithms. We hope that this prediction-localized perspective will help
+extend learning-augmented approximation guarantees to other optimization problems whose classical
+algorithms rely on expensive structural guessing.
+
+References
+Aamand, A., Chen, J. Y., Gollapudi, S., Silwal, S., and Wu, H. Improved approximations for hard
+  graph problems using predictions. In Proceedings of the 42nd International Conference on Machine
+  Learning, volume 267 of Proceedings of Machine Learning Research, pp. 73–101. PMLR, 2025.
+
+Antoniadis, A., Elias, M., Polak, A., and Venzin, M. Approximation algorithms for combina-
+  torial optimization with predictions. In The Thirteenth International Conference on Learning
+ Representations, 2025.
+
+Azar, Y., Panigrahi, D., and Touitou, N. Discrete-smoothness in online algorithms with predictions.
+  In Advances in Neural Information Processing Systems, volume 36, pp. 41932–41955. Curran
+  Associates, Inc., 2023.
+
+Bamas, E., Maggiori, A., and Svensson, O. The primal-dual method for learning augmented
+  algorithms. In Advances in Neural Information Processing Systems, volume 33, pp. 20083–20094.
+  Curran Associates, Inc., 2020.
+
+Bampis, E., Escoffier, B., and Xefteris, M. Parsimonious learning-augmented approximations for
+  dense instances of N P-hard problems. In Proceedings of the 41st International Conference on
+  Machine Learning, volume 235 of Proceedings of Machine Learning Research, pp. 2700–2714.
+  PMLR, 2024.
+
+Bampis, E., Escoffier, B., Fotakis, D., Patsilinakos, P., and Xefteris, M. Polynomial time learning
+  augmented algorithms for NP-hard permutation problems. In Proceedings of the 42nd International
+  Conference on Machine Learning, volume 267 of Proceedings of Machine Learning Research, pp.
+  2790–2800. PMLR, 13–19 Jul 2025.
+
+Bouška, M., Šůcha, P., Novák, A., and Hanzálek, Z. Deep learning-driven scheduling algorithm
+  for a single machine problem minimizing the total tardiness. European Journal of Operational
+  Research, 308(3):990–1006, 2023. ISSN 0377-2217. doi: 10.1016/j.ejor.2022.11.034.
+
+Braverman, V., Dharangutte, P., Shah, V., and Wang, C. Learning-augmented maximum indepen-
+  dent set. In Approximation, Randomization, and Combinatorial Optimization. Algorithms and
+  Techniques (APPROX/RANDOM), volume 317 of Leibniz International Proceedings in Informat-
+  ics (LIPIcs), pp. 24:1–24:18. Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2024. ISBN
+  978-3-95977-348-5. doi: 10.4230/LIPIcs.APPROX/RANDOM.2024.24.
+
+Brucker, P. Scheduling Algorithms. Springer, 5 edition, 2007. ISBN 978-3-540-69516-5. doi:
+  10.1007/978-3-540-69516-5.
+
+Cohen-Addad, V., d'Orsi, T., Gupta, A., Lee, E., and Panigrahi, D. Learning-augmented approximation
+  algorithms for maximum cut and related problems. In Advances in Neural Information Processing
+  Systems, volume 37, pp. 25961–25980. Curran Associates, Inc., 2024. doi: 10.52202/079017-0816.
+
+Fanjul-Peyro, L. and Ruiz, R. Iterated greedy local search methods for unrelated parallel machine
+  scheduling. European Journal of Operational Research, 207(1):55–69, 2010. ISSN 0377-2217.
+  doi: 10.1016/j.ejor.2010.03.030.
+
+
+                                                 10
+Fanjul-Peyro, L. and Ruiz, R. Size-reduction heuristics for the unrelated parallel machines scheduling
+  problem. Computers & Operations Research, 38(1):301–309, 2011. ISSN 0305-0548. doi:
+  10.1016/j.cor.2010.05.005.
+
+Graham, R., Lawler, E., Lenstra, J., and Kan, A. Optimization and approximation in deterministic
+  sequencing and scheduling: a survey. In Discrete Optimization II, volume 5 of Annals of Discrete
+  Mathematics, pp. 287–326. Elsevier, 1979. doi: 10.1016/S0167-5060(08)70356-X.
+
+Grigorescu, E., Lin, Y.-S., Silwal, S., Song, M., and Zhou, S. Learning-augmented algorithms
+  for online linear and semidefinite programming. In Advances in Neural Information Processing
+  Systems, volume 35, pp. 38643–38654. Curran Associates, Inc., 2022.
+
+Gupta, A., Panigrahi, D., Subercaseaux, B., and Sun, K. Augmenting online algorithms with ε-
+  accurate predictions. In Advances in Neural Information Processing Systems, volume 35, pp.
+  2115–2127. Curran Associates, Inc., 2022.
+
+Hijazi, A., Ozaltin, O., and Uzsoy, R. All you need is an improving column: Enhancing column
+  generation for parallel machine scheduling via transformers. arXiv preprint arXiv:2410.15601,
+  2024.
+
+Huangfu, Q. and Hall, J. A. J. Parallelizing the dual revised simplex method. Mathematical
+ Programming Computation, 10(1):119–142, 2018. doi: 10.1007/s12532-017-0130-5.
+
+Im, S., Kumar, R., Petety, A., and Purohit, M. Parsimonious learning-augmented caching. In Pro-
+  ceedings of the 39th International Conference on Machine Learning, volume 162 of Proceedings
+  of Machine Learning Research, pp. 9588–9601. PMLR, 17–23 Jul 2022.
+
+Lenstra, J. K., Shmoys, D. B., and Tardos, É. Approximation algorithms for scheduling unrelated
+  parallel machines. Mathematical Programming, 46(1):259–271, 1990. ISSN 1436-4646. doi:
+  10.1007/BF01585745.
+
+Lykouris, T. and Vassilvitskii, S. Competitive caching with machine learned advice. In Proceedings
+  of the 35th International Conference on Machine Learning, volume 80 of Proceedings of Machine
+  Learning Research, pp. 3296–3305. PMLR, 2018.
+
+Mitzenmacher, M. and Vassilvitskii, S. Algorithms with predictions. Commun. ACM, 65(7):33–35,
+ 2022. ISSN 0001-0782. doi: 10.1145/3528087.
+
+Mordechai, Y. Optimization and reoptimization in scheduling problems.                arXiv preprint
+ arXiv:1509.01630, 2015.
+
+Perron, L. and Didier, F. Cp-sat. URL https://developers.google.com/optimization/cp/
+  cp_solver/.
+
+Pinedo, M. L. Scheduling: Theory, Algorithms, and Systems. Springer, 5 edition, 2016. ISBN
+  978-3-319-26580-3. doi: 10.1007/978-3-319-26580-3.
+
+Purohit, M., Svitkina, Z., and Kumar, R. Improving online algorithms via ML predictions. In
+  Advances in Neural Information Processing Systems, volume 31. Curran Associates, Inc., 2018.
+
+Åblad, E., Strömberg, A.-B., and Spensieri, D. Exact makespan minimization of unrelated parallel
+  machines. Open Journal of Mathematical Optimization, 2:2, 2021. doi: 10.5802/ojmo.4.
+
+Rohatgi, D. Near-optimal bounds for online caching with machine learned advice. In Proceedings of
+  the 2020 ACM-SIAM Symposium on Discrete Algorithms (SODA), pp. 1834–1845. doi: 10.1137/1.
+  9781611975994.112.
+
+Shmoys, D. B. and Tardos, É. An approximation algorithm for the generalized assignment
+  problem. Mathematical Programming, 62(1):461–474, Feb 1993. ISSN 1436-4646. doi:
+  10.1007/BF01585178.
+
+
+                                                 11
+Virtanen, P., Gommers, R., Oliphant, T. E., Haberland, M., Reddy, T., Cournapeau, D., Burovski, E.,
+  Peterson, P., Weckesser, W., Bright, J., van der Walt, S. J., Brett, M., Wilson, J., Millman, K. J.,
+  Mayorov, N., Nelson, A. R. J., Jones, E., Kern, R., Larson, E., Carey, C. J., Polat, İ., Feng, Y.,
+  Moore, E. W., VanderPlas, J., Laxalde, D., Perktold, J., Cimrman, R., Henriksen, I., Quintero,
+  E. A., Harris, C. R., Archibald, A. M., Ribeiro, A. H., Pedregosa, F., van Mulbregt, P., and SciPy
+  1.0 Contributors. SciPy 1.0: Fundamental Algorithms for Scientific Computing in Python. Nature
+  Methods, 17:261–272, 2020. doi: 10.1038/s41592-019-0686-2.
+Wei, A. Better and simpler learning-augmented online caching. In Approximation, Randomization,
+ and Combinatorial Optimization. Algorithms and Techniques (APPROX/RANDOM), volume 176
+ of Leibniz International Proceedings in Informatics (LIPIcs), pp. 60:1–60:17. Schloss Dagstuhl –
+ Leibniz-Zentrum für Informatik, 2020. ISBN 978-3-95977-164-1. doi: 10.4230/LIPIcs.APPROX/
+ RANDOM.2020.60.
+
+
+A     Extended related work
+A.1   Learning-augmented online algorithms
+
+The learning-augmented algorithms framework was developed primarily in the online setting (Mitzen-
+macher & Vassilvitskii, 2022). The central idea is to augment a worst-case algorithm with predictions,
+for example from a machine-learning model, and to derive guarantees that depend on the quality
+of these predictions. Early representative works include the learning-augmented caching algorithm
+of Lykouris & Vassilvitskii (2018) and the algorithms of Purohit et al. (2018) for ski rental and
+non-clairvoyant scheduling. These works introduced a paradigm in which predictions can improve
+performance when accurate, while the algorithm retains worst-case guarantees when predictions are
+inaccurate. This viewpoint is often summarized through the desiderata of consistency, robustness,
+and smoothness: the algorithm should perform well with accurate predictions, remain safe with poor
+predictions, and degrade gracefully as prediction error increases.
+Subsequent work developed this framework in several directions. For caching, Rohatgi and Wei (2020)
+obtained sharper and simpler guarantees for learning-augmented caching, and later work studied
+parsimonious prediction models for the same problem (Im et al., 2022). Beyond caching, Bamas et al.
+(2020) introduced a primal-dual framework for learning-augmented online algorithms and applied
+it to a variety of online covering problems. This line was further generalized by Grigorescu et al.
+(2022), who studied learning-augmented online covering linear and semidefinite programs. Other
+representative works include learning-augmented algorithms with ε-accurate predictions for problems
+such as caching, online set cover, online facility location, and online network design (Gupta et al.,
+2022).
+
+A.2   Learning-augmented approximation algorithms
+
+A more recent line of work studies learning-augmented algorithms for offline NP-hard optimization
+problems. Here the prediction is no longer about future online inputs, but may describe part
+of an optimal solution, a structural property of an optimal solution, or an object that a classical
+approximation algorithm would otherwise need to guess.
+Several recent works explore this direction beyond the online setting. Cohen-Addad et al. (2024)
+study Max-Cut and related max-CSPs with predictions, showing how learned information can help
+overcome classical approximation barriers. Bampis et al. (2024) consider parsimonious learning-
+augmented approximations for dense NP-hard problems. Braverman et al. (2024) study learning-
+augmented Maximum Independent Set using oracle access to predicted vertex membership in a fixed
+maximum independent set. Bampis et al. (2025) consider NP-hard permutation problems, including
+scheduling and network-design problems, with predictions about the relative order of elements in an
+optimal permutation. Aamand et al. (2025) design improved approximation algorithms for hard graph
+problems using edge-based predictions, including MaxCut, Vertex Cover, Set Cover, and Maximum
+Independent Set. These works highlight that the choice of prediction object is crucial: different
+problems require different forms of predictions.
+A recent prominent work with broad applicability in offline learning-augmented approximation is
+Antoniadis et al. (2025). They give black-box algorithms for a broad class of selection problems with
+
+
+                                                 12
+linear objectives, where a feasible subset of items is selected to minimize or maximize total weight.
+Their framework yields results for problems such as Vertex Cover, Steiner Tree, Min-Weight Perfect
+Matching, Knapsack, and Clique. However, scheduling problems, such as R∥Cmax lie outside this
+black-box setting, as they are assignment problems with a makespan objective rather than total-weight
+selection problems, and were explicitly identified as a natural open direction for future work. Our
+work takes a step in this direction by developing a learning-augmented algorithmic framework tailored
+to the heavy-assignment structure of unrelated-machine scheduling.
+
+A.3   Classical approximation algorithms for R∥Cmax
+
+The unrelated-machines makespan problem R∥Cmax is a central problem in scheduling. The classical
+algorithm of Lenstra et al. (1990) gives a polynomial-time 2-approximation and shows that no
+polynomial-time approximation with ratio below 3/2 is possible unless P = N P . The same
+work also gives a polynomial approximation scheme for the case of a fixed number of machines,
+which yields a (1 + ε)OPT guarantee. The scheme uses a heavy/short decomposition: for a target
+makespan T , assignments with processing time larger than εT are treated as large assignments, and
+there can be only a bounded number of such assignments on each machine in a schedule of makespan
+at most T . Thus, if the large assignments are guessed correctly, the remaining jobs are short and can
+be completed by solving an LP and applying the LST rounding procedure.
+Mordechai (2015) later studied parameterized approximation schemes for scheduling, including
+unrelated-machines makespan. In this approach, the parameter is the number of large machine-job
+pairs k(T ) = |{(i, j) | pij > εT }|. The algorithm treats the variables corresponding to these large
+pairs integrally and rounds the remaining fractional solution. This yields a (1 + ε)OPT guarantee
+with running time exponential in k(T ) and polynomial in the input size.
+Our algorithm can be viewed as a prediction-localized refinement of this paradigm: instead of
+searching over the full heavy-assignment structure, it searches only for the heavy assignments that
+are missing from the prediction, yielding prediction-sensitive tradeoffs in both running time and
+approximation quality.
+
+A.4   Learning and scheduling
+
+There is also some work using machine learning to improve the practical performance of scheduling
+algorithms and solvers. Bouška et al. (2023) use a neural network within a decomposition-based
+algorithm for the single-machine total tardiness problem, where the model guides the decompo-
+sition by estimating the best split. Relatedly, Hijazi et al. (2024) use transformer-style models to
+enhance column generation for parallel-machine scheduling by predicting improving columns. These
+works show that ML predictions can be useful in scheduling practice, especially when they guide
+expensive search or decomposition steps. However, their focus is primarily empirical or solver-
+acceleration oriented. Also, neither of these works studies R∥Cmax itself. In contrast, our work gives
+approximation-theoretic guarantees: the prediction determines a local neighborhood of the classical
+heavy-assignment search, and the resulting makespan and running time bounds depend explicitly on
+prediction errors.
+
+B     Proofs deferred from the main text
+B.1   Full proof of Theorem 5.1
+
+In Section 5.1, we presented the proof sketch of Theorem 5.1. Here we provide the full proof.
+
+                             −
+Proof. By the definition of RT,K  b σ), there exists a subset U ⋆ ⊆ MissT (ϕ,
+                                 (ϕ,                                       b σ) with |U ⋆ | ≤
+K such that every missed heavy job outside U ⋆ has processing time at most R− (ϕ,  b σ), i.e.,
+                                                                                      T,K
+maxj∈MissT (ϕ,σ)\U
+              b
+                                  −    b
+                     ⋆ pσ(j),j = RT,K (ϕ, σ). Since U
+                                                      ⋆          b σ), every job in U ⋆ is missed by
+                                                        ⊆ MissT (ϕ,
+ϕbT and satisfies pσ(j),j > εT .
+Define an augmentation                         
+                                   A⋆ (j) :=       σ(j), if j ∈ U ⋆ ,                            (14)
+                                                   ⊥,    otherwise.
+
+                                                     13
+Then we have | dom(A⋆ )| = |U ⋆ | ≤ K by construction. Thus, A⋆ satisfies Eq. (2) and is considered
+by the algorithm.
+Let ψ ⋆ := ϕbT ∪ A⋆ and define τ ⋆ := max{εT, RT,K−    b σ)}. By construction, τ ⋆ is one of the
+                                                     (ϕ,
+                                                                   b σ) = 0, then τ ⋆ = εT ;
+threshold candidate set Λ(T ) considered by the algorithm: if R− (ϕ,               T,K
+            −
+otherwise, RT,K  b σ) is the processing time pσ(j),j of some missed heavy job j.
+                (ϕ,
+Now we claim that the residual LP with threshold τ ⋆ for ψ ⋆ is feasible with load bound L :=
+                b σ). Consider the fractional assignment that sends every residual job j ∈
+Cmax (σ) + RT+ (ϕ,                                                                       / dom(ψ ⋆ )
+to machine σ(j). We verify feasibility of this assignment for the residual LP with threshold τ ⋆ .
+Let j ∈/ dom(ψ ⋆ ). If pσ(j),j ≤ εT , then clearly pσ(j),j ≤ τ ⋆ . Otherwise, pσ(j),j > εT . Since
+j∈/ dom(ψ ⋆ ), we have ϕbT (j) = ⊥ and j ∈ / U ⋆ . Hence j ∈ MissT (ϕ, b σ) \ U ⋆ , and therefore we
+                  −   b σ) ≤ τ . Thus, in all cases, the edge (σ(j), j) is allowed in the residual LP
+have pσ(j),j ≤ RT,K (ϕ,         ⋆
+
+with threshold τ ⋆ .
+We now verify the machine-capacity constraints. Fix a machine i. Under the assignment that follows
+ψ ⋆ on fixed jobs and σ on residual jobs, the total load on machine i is
+                       X             X            X            X          X
+            ℓfix   ⋆
+              i (ψ ) +       pij =         pij +        pij =       pij +     pij
+                      j:σ(j)=i,        j:σ(j)=i         j:ψ ⋆ (j)=i      j:σ(j)=i    j:ϕ
+                                                                                       bT (j)=i
+                      ψ ⋆ (j)=⊥     ψ ⋆ (j)∈{⊥,i}         σ(j)̸=i     ψ ⋆ (j)∈{⊥,i} ϕ
+                                                                                    bT (j)̸=σ(j)
+                                          X                X                                          (15)
+                                    ≤              pij +                                 b σ) =: L.
+                                                                   pij ≤ Cmax (σ) + RT+ (ϕ,
+                                     j:σ(j)=i           j:ϕ
+                                                          bT (j)=i
+                                                       ϕ
+                                                       bT (j)̸=σ(j)
+
+Here, the first equality uses
+                                           X                    X                 X
+                         ℓfix ⋆
+                          i (ψ ) =                    pij =               pij +             pij ,     (16)
+                                        j:ψ ⋆ (j)=i         j:ψ ⋆ (j)=i       j:ψ ⋆ (j)=i
+                                                              σ(j)=i            σ(j)̸=i
+and the second equality holds because every job in A is assigned according to σ by construction, so
+                                                                 ⋆
+
+the only fixed jobs that may increase the load of machine i relative to σ are those coming from ϕbT .
+Thus, from Eq. (15), if we define
+                                          
+                                  xij =       1,    if i = σ(j), j ∈
+                                                                   / dom(ψ ⋆ ),                       (17)
+                                              0,    otherwise,
+we have                           X                        X
+                                          pij xij =             pij ≤ L − ℓfix ⋆
+                                                                           i (ψ ).                    (18)
+                             j ∈dom(ψ
+                               /      ⋆)               j:σ(j)=i,
+                                                       ψ ⋆ (j)=⊥
+Hence the residual jobs, when assigned according to σ, form a feasible solution to the residual LP
+                                                                                                 ⋆
+with load bound L. In particular, the residual LP is feasible and its optimum value satisfies Lτψ⋆ ≤ L.
+By the classical rounding argument (Theorem 2.1 in Shmoys & Tardos (1993)), the algorithm can
+                                                                                ⋆
+round this residual solution into an integral schedule of makespan at most Lτψ⋆ + τ ⋆ . Therefore, for
+the candidate pair (A⋆ , τ ⋆ ), the algorithm obtains a schedule of makespan at most
+                           Cmax (σ) + R+ (ϕ,  b σ) + max{εT, R− (ϕ,   b σ)}.                     (19)
+                                               T                             T,K
+Since Algorithm 1 returns the best schedule among all candidates, its output satisfies the same bound.
+It remains to analyze the running time. The computation of ϕbT takes polynomial time. The number
+of augmentations considered by the algorithm is at most
+                        X K  
+                              n
+                                 ms ≤ (K + 1)(mn)K ≤ (n + 1)(mn)K .                          (20)
+                         s=0
+                              s
+For each augmentation A, the algorithm iterates over the threshold set Λ(T ), whose size is at most
+mn + 1. For each pair (A, τ ), it forms the combined assignment, solves the residual LP, and, if
+feasible, applies LST rounding. Each of these steps takes time polynomial in m, n, log P , and 1/ε.
+Hence the total running time is O((mn)K · poly(m, n, log P, 1/ε)).
+
+
+                                                           14
+B.2   Proofs of Corollaries 5.3 and 5.4
+
+Proof of Corollary 5.3. Since K ≥ |MissOPT (ϕ,b σ ⋆ )|, all missed εOPT-heavy assignments can be
+                                            −
+recovered by the augmentation step. Hence ROPT,K (ϕ,  b σ ⋆ ) = 0. Applying Theorem 5.2, we obtain
+the claimed bound immediately. The running-time bound is inherited directly from Theorem 5.2.
+
+                                                                    −
+Proof of Corollary 5.4. Set K = 0 in Theorem 5.2. Since we have ROPT,0    b σ ⋆ ) = R− (ϕ,
+                                                                         (ϕ,             b σ⋆ )
+                                                                                     OPT
+by definition, Theorem 5.2 gives the claimed bound immediately. The running-time bound also
+follows immediately by substituting K = 0 into the running time of Theorem 5.2.
+
+C     Additional discussions
+C.1   Additional discussions for the inner layer
+
+The following corollary is obtained as the special case of Theorem 5.1 in which the search budget K
+is sufficiently large.
+Corollary C.1. Suppose there exists a schedule σ such that K ≥ |MissT (ϕ,  b σ)|. Then, Algorithm 1
+returns a feasible schedule S satisfying
+                                                             b σ).
+                             Cmax (S) ≤ Cmax (σ) + εT + RT+ (ϕ,                                 (21)
+The running time of the algorithm is O((mn)K · poly(m, n, log P, 1/ε)).
+
+Proof. Since K ≥ |MissT (ϕ,b σ)|, the algorithm can recover all missed heavy assignments. Hence,
+                            −
+by the definition, we have RT,K  b σ) = 0. Applying Theorem 5.1, we obtain the claimed bound
+                                (ϕ,
+immediately. The running-time bound is inherited directly from Theorem 5.1.
+
+Interpretation. Corollary C.1 reveals a genuine asymmetry between the two types of prediction
+error. False-negative heavy assignments affect the running time through the augmentation budget
+K, since they must be recovered by additional local search. On the other hand, false-positive heavy
+assignments do not enlarge the search space, but instead consume machine capacity and therefore
+                                                    b σ).
+appear directly in the makespan bound through RT+ (ϕ,
+The required running time to satisfy the condition degrades smoothly with the amount of false-
+negative heavy predictions, since the required augmentation budget K grows with the number of
+                           b σ)|. At the same time, even when the number of false negatives is large,
+missed-heavy jobs |MissT (ϕ,
+the search remains in the same asymptotic regime as the classical algorithm based on exhaustive
+search over heavy assignments (Lenstra et al., 1990; Mordechai, 2015).
+On the quality side, if the false-positive heavy assignments are negligible, then the algorithm
+achieves a (1 + ε)OP T makespan guarantee, matching the classical completion-based guarantee
+with exhaustive search (Lenstra et al., 1990; Mordechai, 2015). As the false-positive load increases,
+the makespan guarantee deteriorates smoothly through the additive overload term RT+ (ϕ, b σ).
+As the opposite extreme, when no search is performed, i.e., K = 0, we obtain the following corollary.
+Corollary C.2. When K = 0, for any schedule σ, Algorithm 1 returns a feasible schedule S satisfying
+                                                       b σ)} + R+ (ϕ,
+                    Cmax (S) ≤ Cmax (σ) + max{εT, RT− (ϕ,          b σ).                        (22)
+                                                                T
+In particular, if σ has makespan at most T , then the returned schedule S satisfies
+                                                     b σ)} + R+ (ϕ,
+                        Cmax (S) ≤ T + max{εT, RT− (ϕ,           b σ)
+                                                              T
+                                                                                                (23)
+                                                  b σ) + R+ (ϕ,
+                                 ≤ (1 + ε)T + R− (ϕ,         b σ).
+                                                    T            T
+
+The running time of the algorithm is O(poly(m, n, log P, 1/ε)).
+
+Proof. Apply Theorem 5.1 with K = 0. Since RT,0 −   b σ) = R− (ϕ,
+                                                   (ϕ,          b σ) by definition, we obtain
+                                                              T
+the claimed makespan bound immediately. The running-time bound also follows immediately from
+Theorem 5.1, which gives O((mn)0 · poly(m, n, log P, 1/ε)) = O(poly(m, n, log P, 1/ε)).
+
+
+                                                 15
+Interpretation. Corollary C.2 eliminates the search requirement on K. Instead of recovering
+missed heavy assignments combinatorially, the algorithm absorbs them into the approximation
+                    b σ), making the (mn)O(K) search disappear entirely. Here, the upper bound
+bound through RT− (ϕ,
+                                                         b σ) and false-positive term R+ (ϕ,
+deteriorates smoothly with both false-negative term RT− (ϕ,                               b σ).
+                                                                                       T
+
+
+D     A variant with editable predictions
+The formulation we presented in Section 4 trusts every predicted assignment that survives the T -heavy
+projection. We now describe a more flexible variant in which the algorithm is allowed to delete,
+insert, or edit a bounded number of heavy predicted assignments. This variant uses the same residual
+LP and rounding procedure as before; the only change is the local neighborhood of heavy partial
+assignments searched by the inner layer.
+
+D.1   Editable heavy-assignment neighborhood
+
+We first define the neighborhood of heavy partial assignments considered by the inner layer. Fix
+a threshold T > 0. Recall that ϕbT denotes the T -heavy projection of the prediction. For a partial
+assignment ψ : [n] → [m] ∪ {⊥}, define its edit distance from the projected prediction at scale T by
+                                         n                         o
+                                   b := j ∈ [n] ψ(j) ̸= ϕbT (j) .
+                            dT (ψ, ϕ)                                                            (24)
+Thus, changing ⊥ to a machine corresponds to an insertion, changing a predicted machine to ⊥
+corresponds to a deletion, and changing a predicted machine to another one corresponds to an edit.
+For an edit budget K ≥ 0, define the editable K-neighborhood of the prediction by
+                  n                                                               o
+     ET,K (ϕ)b := ψ : [n] → [m] ∪ {⊥} dT (ψ, ϕ)  b ≤ K, ψ(j) ̸= ⊥ ⇒ εT < pψ(j),j .                 (25)
+                                                            b in Step 2, in place of all augmentations
+The editable inner-layer algorithm enumerates all ψ ∈ ET,K (ϕ)
+defined in Eq. (2). The rest of the algorithm is unchanged. For each such ψ, it fixes the jobs in
+dom(ψ), solves the same residual LP over thresholds τ ∈ Λ(T ), applies Shmoys–Tardos rounding
+whenever the LP is feasible, and returns the best schedule among all candidates.
+
+D.2   Edit-aware prediction error measures
+
+We next define prediction-error measures for the editable variant. The key point is that deletions and
+edits may trade false positives against false negatives: deleting an incorrectly fixed heavy assignment
+can reduce false-positive overload, but if the job is truly heavy in the comparison schedule, it may
+become a missed heavy assignment. Therefore, the two components must be defined with respect to
+the same edited prediction.
+Accordingly, we use the same false-negative and false-positive error measures as in Eq. (6), but
+evaluate them on the edited partial assignment ψ instead of the projected prediction ϕbT . Concretely,
+fix an arbitrary minimizer
+                                                                              
+                           b σ) ∈ arg min max{εT, R− (ψ, σ)} + R+ (ψ, σ) ,
+                   ψ edit (ϕ,                                                                    (26)
+                     T,K                                      T          T
+                                  ψ∈ET ,K (ϕ)
+                                           b
+
+where ties are broken deterministically. We then define the edit-aware false-negative and false-positive
+components by
+                                                                                         
+    R−,edit (ϕ,b σ) := R− ψ edit (ϕ,b σ), σ ,                 b σ) := R+ ψ edit (ϕ,
+                                                    R+,edit (ϕ,                     b σ), σ .      (27)
+       T,K                 T   T,K                      T,K              T       T,K
+
+Equivalently, it is simpler to define the edit-aware combined prediction error directly as
+                                                                                
+                           b σ) := min
+                    ∆edit (ϕ,                    max{εT, R− (ψ, σ)} + R+ (ψ, σ) .                  (28)
+                    T,K                                       T              T
+                                     ψ∈ET ,K (ϕ)
+                                              b
+
+By definition, we have
+                                      n               o
+                     ∆edit b                −,edit b      +,edit b
+                                                                                                   (29)
+                      T,K (ϕ, σ) = max εT, RT,K (ϕ, σ) + RT,K (ϕ, σ).
+                                                                       −,edit      +,edit
+The quantity ∆edit
+              T,K is monotone nonincreasing in the budget K, although RT,K    and RT,K    need
+not be individually monotone because an edit may trade one type of error for the other.
+
+
+                                                   16
+D.3   Inner-layer guarantee for the editable variant
+
+Theorem D.1 (Inner-layer guarantee with editable predictions). Fix ε ∈ (0, 1), a target value
+                                               b Consider the editable inner-layer algorithm that
+T > 0, an edit budget K ≥ 0, and a prediction ϕ.
+                         b
+enumerates all ψ ∈ ET,K (ϕ) in place of all augmentations defined in Eq. (2).
+Then, for any schedule σ, the algorithm returns a feasible schedule S satisfying
+                                             n                   o
+                                                     −,edit b          +,edit b
+                Cmax (S) ≤ Cmax (σ) + max εT, RT,K         (ϕ, σ) + RT,K      (ϕ, σ).                 (30)
+Equivalently,
+                                   Cmax (S) ≤ Cmax (σ) + ∆edit b                                      (31)
+                                                          T,K (ϕ, σ).
+                                                                  
+The running time of the algorithm is O (mn) poly(m, n, log P, 1/ε) .
+                                                   K
+
+
+                     edit b
+Proof. Let ψ ⋆ := ψT,K   (ϕ, σ) be an edited partial assignment attaining the definition of the edit-
+aware error measures. Since ψ ⋆ ∈ ET,K (ϕ),b it is one of the candidates enumerated by the editable
+inner-layer algorithm.
+                    n                   o
+                           −,edit b                                           −,edit b
+Define τ ⋆ := max εT, RT,K       (ϕ, σ) . We first note that τ ⋆ ∈ Λ(T ). If RT,K   (ϕ, σ) = 0, then
+                          −,edit b
+τ = εT . Otherwise, R
+  ⋆
+                           T,K  (ϕ, σ) is equal to pσ(j),j for some missed heavy job j, and hence
+appears in the discrete threshold set Λ(T ).
+Consider the residual LP for the fixed assignment ψ ⋆ and threshold τ ⋆ . Assign every residual job
+  / dom(ψ ⋆ ) to the machine σ(j). We verify that each such edge is allowed. If pσ(j),j ≤ εT ,
+j ∈
+then pσ(j),j ≤ τ ⋆ . Otherwise pσ(j),j > εT . Since j is residual under ψ ⋆ , we have ψ ⋆ (j) = ⊥,
+                                                                     −,edit b
+and therefore j ∈ MissT (ψ ⋆ , σ). Hence pσ(j),j ≤ RT− (ψ ⋆ , σ) = RT,K     (ϕ, σ) ≤ τ ⋆ . Thus the
+assignment of residual jobs according to σ uses only edges allowed by the residual LP.
+We next bound the load. Fix a machine i. Under the assignment that follows ψ ⋆ on fixed jobs and
+follows σ on residual jobs, the load on machine i is
+                                      X              X         X
+                        ℓfix  ⋆
+                         i (ψ ) +          pij =        pij +        pij .                   (32)
+                                       j:σ(j)=i           j:σ(j)=i      j:ψ ⋆ (j)=i
+                                       ψ ⋆ (j)=⊥       ψ ⋆ (j)∈{⊥,i}   ψ ⋆ (j)̸=σ(j)
+Therefore,
+                         X              X                                       +,edit b
+             ℓfix ⋆
+              i (ψ ) +         pij ≤          pij + RT+ (ψ ⋆ , σ) ≤ Cmax (σ) + RT,K   (ϕ, σ).         (33)
+                       j:σ(j)=i      j:σ(j)=i
+                       ψ ⋆ (j)=⊥
+
+                                                                                       +,edit b
+Hence the residual LP for (ψ ⋆ , τ ⋆ ) is feasible with load bound at most Cmax (σ) + RT,K   (ϕ, σ).
+By the Shmoys–Tardos rounding guarantee, rounding the residual LP solution increases the load
+of every machine by at most τ ⋆ . Thus, for the candidate ψ ⋆ , the algorithm obtains a schedule of
+makespan at most                                      n                     o
+                                   +,edit b                     −,edit b
+                    Cmax (σ) + RT,K      (ϕ, σ) + max εT, RT,K        (ϕ, σ) .                 (34)
+Since the algorithm returns the best candidate, the same bound holds for its output.
+It remains to bound the running time. The number of edited partial assignments in ET,K (ϕ)b is at most
+PK n
+    s=0 s (m + 1) = O((mn) ). For each candidate ψ, the algorithm considers at most mn + 1
+                   s             K
+
+thresholds in Λ(T ), and for each pair (ψ, τ ) it solves one LP and performs one rounding step, both in
+polynomial time. This gives the claimed running time.
+
+Interpretation. Theorem D.1 shows that allowing edits changes the role of the budget K from a
+false-negative recovery budget into a general correction budget for the predicted heavy-assignment
+structure. In the original augmentation-only variant, the algorithm can only insert missed heavy
+assignments; hence false positives remain fixed and appear directly in the makespan bound. In
+contrast, the editable variant can spend part of its budget to delete an incorrect prediction or to edit it
+to another machine. Thus, both false negatives and false positives can be repaired by local search.
+
+
+                                                       17
+The guarantee should be interpreted through the combined error ∆edit       b
+                                                                      T,K (ϕ, σ). This quantity is
+                                                                                                 b
+monotone nonincreasing in K, because a larger budget only enlarges the edit neighborhood ET,K (ϕ).
+                                  −,edit b           +,edit b
+However, the two components RT,K (ϕ, σ) and RT,K (ϕ, σ) need not be individually monotone.
+For example, deleting a false-positive heavy assignment may reduce false-positive overload, but if
+that job is heavy in the comparison schedule, it may become a missed heavy assignment. This is why
+the theorem defines the edit-aware error by minimizing the sum
+                                  max{εT, RT− (ψ, σ)} + RT+ (ψ, σ)                             (35)
+over a common edited partial assignment ψ.
+Consequently, K provides a smooth tradeoff between running time and the quality of the edited
+prediction. Larger values of K allow the algorithm to search a larger neighborhood of the prediction
+and can only improve the combined prediction-dependent bound, while increasing the running time
+by the factor (mn)K . When K = 0, the editable variant reduces to trusting the projected prediction
+ϕbT without any local correction; as K increases, the algorithm gradually interpolates toward the best
+completion obtainable after correcting up to K heavy predicted assignments.
+
+D.4    Outer-layer guarantee for the editable variant
+
+We next show that the outer-layer guarantee for the augmentation-only variant (Theorem 5.2) also
+extends to the editable variant with the same proof structure, by simply replacing the augmentation-
+based error measures with their edit-aware counterparts.
+Theorem D.2 (Outer-layer guarantee with editable predictions). Fix ε ∈ (0, 1), an edit budget K ≥ 0,
+and a prediction ϕ.b Let σ ⋆ be an optimal schedule, and write OPT := Cmax (σ ⋆ ). The editable
+outer-layer algorithm returns a feasible schedule S satisfying
+                     n              n                         o                            o
+                                               −,edit b ⋆            +,edit b ⋆
+   Cmax (S) ≤ min OPT + max εOPT, ROPT,K               (ϕ, σ ) + ROPT,K     (ϕ, σ ), 2OPT . (36)
+Equivalently,                           n                            o
+                          Cmax (S) ≤ min OPT + ∆edit  ( b σ ⋆ ), 2OPT .
+                                                       ϕ,                                                        (37)
+                                                OPT,K
+In particular,
+                          n                                                      o
+                                           −,edit b ⋆        +,edit b ⋆
+        Cmax (S) ≤ min (1 + ε)OPT + ROPT,K        (ϕ, σ ) + ROPT,K  (ϕ, σ ), 2OPT .                              (38)
+                                                                   
+The running time of the algorithm is O (mn)K poly(m, n, log P, 1/ε) .
+Proof. Let S0 be the baseline schedule computed by the classical 2-approximation, and let B =
+Cmax (S0 ). Then OPT ∈ [B/2, B]. Let T ⋆ be the largest critical threshold in the outer search
+satisfying T ⋆ ≤ OPT.
+By construction of the critical threshold set, there is no value of the form pij /ε in the open interval
+(T ⋆ , OPT]. Therefore, for every machine-job pair (i, j), we have the equivalence pij > εT ⋆ ⇔
+pij > εOPT. Consequently, the heavy/short decomposition is identical at thresholds T ⋆ and OPT.
+In particular, we have ϕbT ⋆ = ϕbOPT , and ET ⋆ ,K (ϕ)
+                                                    b = EOPT,K (ϕ).
+                                                                  b
+
+Let ψ ◦ := ψOPT,K
+            edit     b σ ⋆ ) be an edited partial assignment attaining the edit-aware error at scale
+                    (ϕ,
+                     b = EOPT,K (ϕ),
+OPT. Since ET ⋆ ,K (ϕ)              b the inner call at threshold T ⋆ enumerates ψ ◦ .
+Moreover, because the heavy/short decomposition is identical at T ⋆ and OPT, the primitive missed-
+heavy set and the primitive false-positive overload of ψ ◦ with respect to σ ⋆ are the same at the two
+thresholds:
+                RT−⋆ (ψ ◦ , σ ⋆ ) = ROPT
+                                     −
+                                           (ψ ◦ , σ ⋆ ),       RT+⋆ (ψ ◦ , σ ⋆ ) = ROPT
+                                                                                    +
+                                                                                         (ψ ◦ , σ ⋆ ).             (39)
+Applying the same inner-layer argument to the candidate ψ at threshold T ⋆ gives a schedule ST ⋆
+                                                                         ◦
+
+satisfying
+                                                              −
+                Cmax (ST ⋆ ) ≤ OPT + max εT ⋆ , ROPT                (ψ ◦ , σ ⋆ ) + ROPT
+                                                                                    +
+                                                                                          (ψ ◦ , σ ⋆ ).            (40)
+                                                 −
+                                                                                          −
+Since T ⋆ ≤ OPT, we have max εT ⋆ , ROPT                (ψ ◦ , σ ⋆ ) ≤ max εOPT, ROPT            (ψ ◦ , σ ⋆ ) . By the
+                                 −                     −,edit b ⋆                                       +,edit b ⋆
+definition of ψ ◦ , we have ROPT    (ψ ◦ , σ ⋆ ) = ROPT,K       (ϕ, σ ) and ROPT  +
+                                                                                    (ψ ◦ , σ ⋆ ) = ROPT,K      (ϕ, σ ).
+Therefore, it follows that
+                                                n                                o
+             Cmax (ST ⋆ ) ≤ OPT + max εOPT, R−,edit (ϕ,                  b σ ⋆ ) + R+,edit (ϕ,   b σ ⋆ ).          (41)
+                                                              OPT,K                   OPT,K
+
+
+
+                                                         18
+The outer algorithm returns the best schedule among all inner-layer candidates and the baseline
+schedule S0 . Since Cmax (S0 ) ≤ 2OPT, the claimed bound follows.
+Finally, the outer search considers at most mn + 2 critical thresholds. Combining this with the
+running-time bound from Theorem D.1 gives the claimed running time.
+Interpretation. Compared with the augmentation-only guarantee in Theorem 5.2, the editable
+guarantee is strictly more flexible. False-negative heavy assignments can be inserted, false-positive
+heavy assignments can be deleted, and incorrect heavy assignments can be edited to another machine.
+Therefore, the relevant error is not merely the number or size of missed heavy assignments, nor merely
+the overload caused by trusted false positives, but rather the smallest residual combination of these
+two effects after at most K edits. This residual combination is exactly captured by ∆edit       b ⋆
+                                                                                       OPT,K (ϕ, σ ).
+
+As the prediction becomes more accurate, the edit-aware error ∆edit        b ⋆
+                                                                   OPT,K (ϕ, σ ) decreases and the
+guarantee approaches (1 + ε)OPT. As the prediction becomes worse, the bound degrades smoothly
+through the same error term, but it never exceeds 2OPT regardless of the prediction quality. Thus
+the editable variant preserves the same consistency–smoothness–robustness behavior as the main
+algorithm, while allowing the search budget to correct both types of prediction error.
+Relation to the augmentation-only guarantee (Theorem 5.2). The editable guarantee generalizes
+the augmentation-only guarantee. Indeed, the augmentation-only search considered earlier corre-
+                                             b in which the only allowed changes are insertions of
+sponds to the restricted subfamily of ET,K (ϕ)
+missed heavy assignments, i.e., changes of the form ⊥ → i. For the candidate that inserts the best
+K missed heavy assignments according to the comparison schedule σ, the primitive false-negative
+                       −
+threshold is exactly RT,K   b σ) and the primitive false-positive overload remains R+ (ϕ,
+                           (ϕ,                                                           b σ). Since
+                                                                                      T
+the editable error minimizes over a larger family of corrected partial assignments, we have
+                                b σ) ≤ max{εT, R− (ϕ,
+                         ∆edit (ϕ,                       b σ)} + R+ (ϕ, b σ).                   (42)
+                           T,K                         T,K            T
+Equivalently, n              o
+                 −,edit b        +,edit b                −    b σ)} + R+ (ϕ,
+                                                                          b σ).
+        max εT, RT,K   (ϕ, σ) + RT,K   (ϕ, σ) ≤ max{εT, RT,K (ϕ,       T                           (43)
+Thus, allowing deletions and edits cannot worsen the prediction-dependent bound at the same
+asymptotic running time.
+
+D.5   Corollary for consistency under small edit distance
+
+For further intuition, we state the following consistency corollary for the case where the prediction is
+sufficiently accurate.
+Corollary D.3 (Consistency under small edit distance). Let σ ⋆ be an optimal schedule. Define its
+heavy projection at scale OPT by
+                                            ⋆
+                                             σ (j), if pσ⋆ (j),j > εOPT,
+                               ⋆
+                             σOPT (j) :=                                                            (44)
+                                             ⊥,       otherwise.
+Define the heavy edit distance between the prediction and the optimum by
+                                         n                               o
+                       dedit  b ⋆         j ∈ [n] : ϕbOPT (j) ̸= σOPT
+                                                                  ⋆
+                                                                                                   (45)
+                         OPT (ϕ, σ ) :=                               (j) .
+
+If K ≥ dedit b ⋆
+        OPT (ϕ, σ ), then the editable outer-layer algorithm returns a feasible schedule S satisfying
+                                      Cmax (S) ≤ (1 + ε)OPT.                                       (46)
+
+Proof. The condition K ≥ dedit     b ⋆                                    b
+                              OPT (ϕ, σ ) implies that σOPT ∈ EOPT,K (ϕ). For this edited par-
+                                                         ⋆
+
+tial assignment, there are no missed εOPT-heavy jobs and no false-positive fixed assignments
+                                      −
+with respect to σ ⋆ . Hence we have ROPT    ⋆
+                                          (σOPT               +
+                                                , σ ⋆ ) = 0, ROPT   ⋆
+                                                                  (σOPT , σ ⋆ ) = 0, and therefore
+  edit     b
+∆OPT,K (ϕ, σ ) ≤ εOPT. Applying Theorem D.2 gives Cmax (S) ≤ min{(1 + ε)OPT, 2OPT} =
+              ⋆
+
+(1 + ε)OPT, where the equality uses ε ∈ (0, 1).
+
+Interpretation. Corollary D.3 identifies the strongest consistency regime for the editable variant.
+If the predicted heavy partial assignment is within K edits of the heavy projection of an optimal
+schedule, the algorithm incurs only an additive εOPT loss.
+
+
+                                                  19
+This differs from the augmentation-only consistency statement in Corollary 5.3. In the augmentation-
+only variant, a sufficiently large budget can remove all false negatives, but any false positives that
+survive the T -heavy projection remain fixed and still contribute to the makespan bound. On the other
+hand, in the editable variant, false positives can also be corrected, either by deletion or by editing the
+predicted machine. Hence, when the entire heavy partial assignment is within the edit budget, both
+residual error terms vanish:
+                                  −,edit b ⋆           +,edit b ⋆
+                                ROPT,K   (ϕ, σ ) = ROPT,K     (ϕ, σ ) = 0.                            (47)
+The algorithm therefore achieves the clean (1 + ε)OPT guarantee.
+As in Corollary 5.3, the required budget here is also prediction-sensitive. If the prediction already
+matches the optimal heavy projection, then K = 0 is sufficient. If the prediction has a small number
+of incorrect, missing, or extra heavy assignments, the required budget increases by exactly the heavy
+edit distance. Even in the worst case, the required budget does not exceed the one needed in the
+classical (1 + ε)-type baselines.
+
+E     Detailed experimental setup
+Prediction generation. We generate synthetic predictions from an optimal schedule σ ⋆ . We first
+keep only the heavy assignments of σ ⋆ , namely assignments with processing time greater than εOPT,
+and set all other jobs to ⊥. To introduce false negatives, we randomly select a ρ− fraction of these
+heavy jobs and change their predicted assignment to ⊥. To introduce false positives, we restrict
+attention to heavy jobs that have at least one alternative heavy machine i ̸= σ ⋆ (j) with pij > εOPT;
+we then randomly select a ρ+ fraction of such jobs and reassign each of them to an alternative heavy
+machine. When varying the error level, we sweep ρ− or ρ+ over {0, 0.001, 0.002, . . . , 1}, and keep
+                                                −
+the predictions that yield distinct values of ROPT    b σ ⋆ ) or R+ (ϕ,
+                                                     (ϕ,              b σ ⋆ ).
+                                                                  OPT
+Implementation details. All experiments are implemented in Python 3.13.11. We compute optimal
+schedules using the CP-SAT solver in OR-Tools (Perron & Didier). The LPs used in our algorithm
+and in the classical baseline are solved using the HiGHS solver (Huangfu & Hall, 2018) through
+SciPy (Virtanen et al., 2020). We use OR-Tools version 9.15.6755 and SciPy version 1.17.1.
+Machine specifications. All experiments are run on a single machine with an Intel® CoreTM Ultra 7
+155H CPU (22 logical CPUs) and 16 GB RAM, running Arch Linux.
+
+F     Additional experimental results
+F.1     Additional results on false negatives and false positives
+
+In Section 6.2, we reported experiments for the setting with m = 10 and n = 100, where the
+processing times pij are generated independently and uniformly at random. In this appendix,
+we provide additional experiments under different choices of m and n, and under a non-uniform
+processing-time model.
+
+F.1.1    Experimental settings
+We consider the following three settings:
+         • m = 10 and n = 50, with processing times pij generated independently and uniformly at
+           random as in Section 6.2.
+         • m = 5 and n = 100, with processing times pij generated independently and uniformly at
+           random as in Section 6.2.
+         • m = 10 and n = 100, with processing times generated from a machine-correlated model.
+For the machine-correlated setting, following prior work on R∥Cmax (Fanjul-Peyro & Ruiz, 2011,
+2010; Åblad et al., 2021), we sample αi ∼ Uniform{1, . . . , 100} and ηij ∼ Uniform{1, . . . , 20}
+independently for all i ∈ [m] and j ∈ [n], and set
+                                          pij := αi + ηij .                                   (48)
+This model induces correlations among processing times associated with the same machine through
+the shared machine-specific component αi .
+
+
+                                                   20
+                       1.25
+
+                       1.20
+
+
+
+
+        Cmax (S)/OPT
+                       1.15
+
+                       1.10
+                                                                                                                         Ours (K = 0)
+                       1.05                                                                                              Ours (K = 1)
+                                                                                                                         Ours (K = 2)
+                                                                                                                         LST 2-approximation
+                       1.00
+                               0.0     0.1      0.2     0.3        0.4    0.5         0.6        0.0         0.2         0.4         0.6
+                                                      b ?                                                           b ?
+                                                 OPT (φ , σ )/OPT
+                                                R−                                                             OPT (φ , σ )/OPT
+                                                                                                              R+
+                                    (a) m = 10, n = 50, i.i.d. uniform;                           (b) m = 10, n = 50, i.i.d. uniform;
+                                             false negatives                                               false positives
+
+
+
+                       1.06
+        Cmax (S)/OPT
+
+
+
+
+                       1.04
+
+
+                       1.02                                                                                              Ours (K = 0)
+                                                                                                                         Ours (K = 1)
+                                                                                                                         Ours (K = 2)
+                                                                                                                         LST 2-approximation
+                       1.00
+                              0.00           0.05           0.10         0.15           0.20     0.0   0.2         0.4     0.6     0.8     1.0
+                                                      b ?                                                           b ?
+                                                 OPT (φ , σ )/OPT
+                                                R−                                                             OPT (φ , σ )/OPT
+                                                                                                              R+
+                                    (c) m = 5, n = 100, i.i.d. uniform;                           (d) m = 5, n = 100, i.i.d. uniform;
+                                             false negatives                                               false positives
+
+
+
+                       1.3
+        Cmax (S)/OPT
+
+
+
+
+                       1.2
+
+
+                       1.1                                                                                               Ours (K = 0)
+                                                                                                                         Ours (K = 1)
+                                                                                                                         Ours (K = 2)
+                                                                                                                         LST 2-approximation
+                       1.0
+                              0.0        0.1          0.2          0.3          0.4            0.0     0.2         0.4     0.6     0.8     1.0
+                                                     b ?                                                            b ?
+                                                OPT (φ , σ )/OPT
+                                               R−                                                              OPT (φ , σ )/OPT
+                                                                                                              R+
+                       (e) m = 10, n = 100, machine-correlated; (f) m = 10, n = 100, machine-correlated;
+                                    false negatives                          false positives
+Figure 2: Additional numerical results under alternative experimental settings. Panels (a) and (b)
+show the results for m = 10 and n = 50 with independently and uniformly generated processing
+times. Panels (c) and (d) show the results for m = 5 and n = 100 under the same generation model.
+Panels (e) and (f) show the results for m = 10 and n = 100 with machine-correlated processing times.
+In each row, the left panel varies the false-negative rate and the right panel varies the false-positive
+rate. The lines denote the mean, and the shaded regions denote the standard error, both computed
+over five independent runs with different random seeds.
+
+F.1.2   Results and discussion
+The results are shown in Fig. 2. As in Section 6.2, both classical (1 + ε)-type baselines were
+computationally infeasible in these experiments due to their excessive running time.
+Across all instance classes, the results show the same qualitative behavior. For both false-negative
+and false-positive errors, our algorithm attains the optimal makespan when the prediction error is
+zero, and its makespan degrades smoothly as the error increases. The resulting schedules remain
+no worse than the classical 2-approximation baseline. In the false-negative setting, increasing the
+search budget K further improves the makespan, reflecting the fact that additional local search can
+
+
+                                                                                            21
+                                         2000   Ours (K = 0)
+                                                Ours (K = 1)
+                                                Ours (K = 2)
+                                         1500   LST 2-approximation
+                                                LST (1 + ε)-approximation
+
+
+
+
+                         Runtime / sec
+                                                Mordechai + LST outer
+                                         1000
+
+
+                                         500
+
+
+                                            0
+                                                6        8        10        12   14
+                                                                   n
+
+Figure 3: Additional running-time results with fixed m = 5 and varying n. The classical (1 + ε)-type
+baselines are shown only up to n = 12 because of their large running time. The lines denote the
+mean, and the shaded regions denote the standard error, both computed over five independent runs
+with different random seeds.
+recover more missed heavy assignments. These trends are consistent with the results in Section 6.2
+and provide additional empirical support for the effectiveness of our approach.
+
+F.2   Additional running-time results with varying n
+
+We also report additional running-time results in which the number of machines is fixed and the num-
+ber of jobs is varied. Specifically, we fix m = 5 and vary n ∈ {5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}.
+The results are shown in Fig. 3. Since the classical (1 + ε)-type baselines become computationally
+expensive, we report their results only up to n = 12.
+The results show that our algorithm remains substantially faster than the classical (1 + ε)-type
+baselines even when m is fixed and n varies. This reflects the fact that the classical (1 + ε)-type
+running times can still contain large factors such as nm/ε or 2mn , even for constant m. In contrast,
+our algorithm runs almost as fast as the polynomial-time 2-approximation baseline throughout this
+range, which is consistent with our theoretical guarantee for constant search budget K.
+
+G     Limitations and broader impact
+Limitations. Our results are developed for unrelated-machines makespan scheduling with predictions
+of heavy assignments. While this prediction model is well aligned with the heavy/short decompo-
+sition underlying classical approximation schemes, other scheduling settings may require different
+prediction objects. Our experiments use synthetic instances and controlled prediction errors, and
+evaluating the method with learned predictions on application-specific scheduling data remains an
+important direction for future work.
+Broader Impact. The potential positive impact of this work is to provide a principled way to
+combine increasingly accurate machine-learning predictions with classical approximation guarantees
+for scheduling problems, a setting not covered by the framework of Antoniadis et al. (2025). As
+prediction quality continues to improve, such approaches enable scheduling algorithms to substantially
+improve practical performance beyond classical worst-case baselines, while retaining robustness
+when predictions are inaccurate.
+We do not identify direct negative societal impacts specific to this theoretical work, since it does
+not introduce a deployed system, collect data, or make decisions about individuals. As with any
+scheduling system, however, deployment in application-specific settings should validate the quality
+of predictions and the consequences of scheduling decisions.
+
+
+
+
+                                                             22
+

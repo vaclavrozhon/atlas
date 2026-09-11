@@ -1,0 +1,705 @@
+          Absorption-Based Query Entailment Checking
+               for Expressive Description Logics
+
+                               Andreas Steigmiller? and Birte Glimm
+
+              Ulm University, Ulm, Germany, <first name>.<last name>@uni-ulm.de
+
+
+
+         Abstract. Conjunctive query answering is an important reasoning task for logic-
+         based knowledge representation formalisms, such as Description Logics, to query
+         for instance data that is related in certain ways. Although there exist many knowl-
+         edge bases that use language features of more expressive Description Logics,
+         there are hardly any systems that support full conjunctive query answering for
+         these logics. In fact, existing systems usually impose restrictions on the queries
+         or only compute incomplete results.
+         In this paper, we present a new approach for conjunctive query entailment check-
+         ing that can directly be integrated into existing reasoning systems for expressive
+         Description Logics and serves as basis for conjunctive query answering. The ap-
+         proach reminds of absorption, a well-known preprocessing step that rewrites ax-
+         ioms such that they can be handled more efficiently. In this sense, we rewrite the
+         query such that entailment can dynamically be checked in the dominantly used
+         tableau calculi with minor extensions. Our implementation in the reasoning sys-
+         tem Konclude shows encouraging results.
+
+
+1     Introduction
+Although conjunctive query answering has intensively been studied for many expres-
+sive Description Logics (DL), most of the state-of-the-art reasoning systems for these
+DLs do not support conjunctive queries or only with limitations. In fact, conjunctive
+query answering is typically reduced to many query entailment checking problems for
+which decidability is still open in SROIQ. Furthermore, the used techniques for show-
+ing decidability and worst-case complexity of sub-languages (e.g., [3,13,16]) are often
+not directly suitable for practical implementations. For the DLs SHIQ and SHOQ
+approaches have been developed that reduce conjunctive query answering to instance
+checking (e.g, [4,6,10]), which is not goal-directed, often requires many unnecessary
+entailment checks, and may require language features (e.g., role conjunctions) which
+are not available in OWL 2 and, hence, usually not supported by reasoning systems.
+Even for queries with only answer variables, existing approaches (e.g., [8,12,17]) are
+often suboptimal since they are based on the above mentioned reduction to many in-
+stance checks. Recently, query answering has been improved by lower and upper bound
+optimisations that utilise model abstractions built by a reasoner [5] or delegate work to
+specialised procedures [14,22]. However, their effectiveness is ontology dependent and,
+hence, optimised and deeply integrated query entailment checking and answering tech-
+niques for expressive DLs are still needed for further improvements.
+?
+    Funded by the German Research Foundation (Deutsche Forschungsgemeinschaft, DFG), project number 330492673
+2        Andreas Steigmiller and Birte Glimm
+
+    In this paper, we present an approach that encodes the query such that entailment
+can efficiently be detected in the model construction process with minor extensions to
+the dominantly used tableau algorithm. The encoding serves to identify individuals in-
+volved in satisfying the query and guides the search for a model where the query is
+not entailed. We refer to this technique as absorption-based query entailment checking
+since it reminds of the absorption technique for nominal schemas [19]. The approach is
+correct and terminates for several expressive DLs for which decidability of conjunctive
+query entailment is well-known (e.g., SHIQ, SHOQ). For the challenging combina-
+tion of nominals, inverse roles, and number restrictions, termination is only guaranteed
+if a bounded number of new nominals is generated. The technique seems well-suited
+for practical implementations since (i) it only requires minor extensions to tableau algo-
+rithms, (ii) can easily be combined with other well-known (query answering) optimisa-
+tion techniques, and (iii) real-world ontologies hardly require the generation of (many)
+new nominals. We implemented the proposed technique in the reasoning system Kon-
+clude [20] with encouraging results. The accompanying technical report [18] sketches
+extensions to query answering and contains more details as well as evaluation results.
+
+
+2    Preliminaries
+
+We assume readers to be familiar with DLs and conjunctive queries (see, e.g., [1]).
+Since we focus on query entailment checking, we only consider Boolean queries (i.e.,
+all variables are existential variables). A query Q is a set of query terms {q1 , . . . , qk } with
+qi either a concept term of the form C(z) or a role term of the form r(z1 , z2 ). We consider
+r(x, y) ∈ Q as equivalent to r− (y, x) ∈ Q and use vars(Q) to refer to the variables in Q.
+W.l.o.g. we do not use individual names in query terms and we assume that all variables
+are connected via role terms.
+     Reasoning algorithms for SROIQ are dominantly based on (variants of) tableau
+algorithms, which, roughly speaking, check the consistency of a knowledge base K by
+trying to construct an abstraction of a model for K, a so-called “completion graph”. A
+completion graph G is a tuple (V, E, L, ,̇), where each node v ∈ V (edge hv, wi ∈ E)
+represents one or more (pairs of) individuals. Each node v (edge hv, wi) is labelled with a
+set of concepts (roles), L(v) (L(hv, wi)), which the individuals represented by v (hv, wi)
+are instances of. The relation ,̇ records inequalities between nodes. We call C ∈ L(v)
+(r ∈ L(hv, wi)) a concept (role) fact, which we write as C(v) (r(v, w)). A node v is a
+nominal node if {a} ∈ L(v) for some individual a and a blockable node otherwise.
+     A completion graph is initialised with one node for each individual in the input
+knowledge base. Concepts and roles are added to the node and edge labels as specified
+by concept and role assertions. Complex concepts are then decomposed using expansion
+rules, where each rule application can add new concepts to node labels and/or new
+nodes and edges, thereby explicating the structure of a model. The rules are applied
+until either the graph is fully expanded (no more rules are applicable), in which case the
+graph can be used to construct a model that is a witness to the consistency of K, or an
+obvious contradiction (called a clash) is discovered (e.g., a node v with C, ¬C ∈ L(v)),
+proving that the completion graph does not correspond to a model. K is consistent if the
+rules (some of which are non-deterministic) can be applied such that they build a fully
+                                          Absorption-Based Query Entailment Checking               3
+
+                           x                                                          x
+                       t        r
+                                                    t, s−          r, s−                  t− , r
+                w                     y                                        w, y
+                                                w           x, z           y              s− , s
+                       s        s
+                           z                                                          z
+
+
+           Fig. 1. Visualisation of the query of Example 1 and two possible foldings
+
+
+expanded, clash-free completion graph. Cycle detection techniques such as pairwise
+blocking [9] prevent the infinite generation of new nodes.
+    For handling axioms of the form A v C, where A is atomic, one typically uses
+special lazy unfolding rules in the tableau algorithm, which add C to a node label if
+it contains the concept A. Axioms of the form C v D, where C is not atomic, cannot
+directly be handled with lazy unfolding rules. Instead, they are internalised to > v
+¬C t D. Given that > is satisfied at each node, the disjunction is then present in all node
+labels. To avoid the non-determinism introduced by internalisation, one typically uses
+a preprocessing step called absorption to rewrite axioms into (possibly several) simpler
+concept inclusion axioms that can be handled by lazy unfolding. Binary absorption
+[11] utilises axioms of the form A1 u A2 v C for absorbing more complex axioms. This
+requires a binary unfolding rule that adds C to node labels if A1 and A2 are present.
+
+
+3   Absorption-Based Query Entailment Checking
+With the exception of role relationships between nominals/individuals, DLs allow only
+for expressing tree-shaped structures [7,21]. Even with nominals/individuals, forest-
+shaped models exists [16]. Hence, we can check query entailment by “folding” the
+relational structure of (parts of) the query into a tree-shaped form by identifying vari-
+ables. The resulting queries (query parts), called foldings, can then be expressed as DL
+concepts (possibly using role conjunctions). Such query concepts can be used to check
+query entailment: we have that a query (part) is not entailed if a completion graph exists
+that satisfies none of its foldings.
+Example 1. Consider the (cyclic) query Q1 = {t(w, x), r(x, y), s(y, z), s(z, w)} (cf. Fig-
+ure 1, left-hand side). There are different (tree-shaped) foldings of the query, e.g., by
+identifying x and z or w and y (cf. Figure 1, middle and right-hand side). The foldings
+can be expressed as ∃(t u s− ).∃(r u s− ).> and ∃(t− u r).∃(s− u s).>, respectively.
+    If we add, for each concept, say C, that represents a folding of the query, the ax-
+iom C v ⊥ to the knowledge base, then consistency checking reveals query entailment.
+Note that the tableau algorithm decides for each node whether (sub-)concepts of the
+foldings are satisfied (due to the internalisation to > v ¬C t ⊥) and adds corresponding
+(sub-)concepts or their negations to the node labels and, hence, the expansion of nodes
+is not blocked too early w.r.t. deciding query entailment. Unfortunately, state-of-the-art
+reasoners do not support role conjunctions and there can be many foldings of a query
+(especially if the query has several nested cycles or uses role terms with complex roles).
+    Here we propose, as an alternative, to dynamically match and fold the query onto the
+completion graph. This is achieved by ‘absorbing’ a query into several simple axioms
+4        Andreas Steigmiller and Birte Glimm
+
+that can efficiently be processed, where intermediate states encode the parts of the query
+that are already satisfied. The intermediate states are tracked in the form of so-called
+query state concepts (written S, possibly with sub-/super-scripts), which can be seen as
+fresh atomic concepts with a set of associated bindings of query variables to nodes in
+the completion graph. To realise this, we extend the tableau algorithm to create variable
+bindings (to match a variable to a node in the completion graph), to propagate variable
+bindings in the process of folding the query onto the completion graph, and to join
+variable bindings. Creating and propagating variable bindings according to the role
+terms of a query ultimately allows us to detect when cycles are closed.
+     For the creation of variable bindings, we borrow the ↓ binders from Hybrid Logics
+[2]. Informally, a concept of the form ↓x.C in the label of a node v instructs the tableau
+algorithm to create a binding {x 7→ v}, which binds x to the node v, and to store the
+binding for the sub-concept C. For the propagation of bindings, we extend the ∀-rule of
+the tableau algorithm. For example, if ∀r.C is in the label of a node v and the variable
+binding {x 7→ v} is associated with it, then the tableau algorithm associates {x 7→ v}
+with C for all r-successors of v. Additionally, propagation can happen within node
+labels, e.g., if S ∈ L(v) with the associated binding {x 7→ v} and the knowledge base
+contains S v C, we add C to L(v) and associate {x 7→ v} with it. Finally, for joining
+bindings, we extend the binary unfolding rule. For example, if S 1 and S 2 are in the label
+of a node v and the bindings {x 7→ v, y 7→ w} and {x 7→ v, z 7→ w} are associated with
+them, respectively, then, for an axiom S 1 u S 2 v C in the knowledge base, we add C to
+L(v) and associate the joined bindings {x 7→ v, y 7→ w, z 7→ w} with it. With these basic
+adaptations, we can capture the query in several simple types of axioms: S v ↓x.S 0 for
+creating bindings, S v S 0 and S v ∀r.S 0 for propagating bindings, and S 1 u S 2 v S 0 for
+joining bindings, where S , S 0 , S 1 , S 2 are query state concepts and r is an atomic role or
+its inverse. The resulting axioms can usually be processed quite efficiently.
+
+
+3.1   Query Absorption
+
+Before presenting a formal algorithm, we demonstrate how the concepts and axioms for
+a query are obtained by means of an example. We call this process absorbing a query.
+
+Example 2 (Example 1 cont.). Consider again Q1 = {t(w, x), r(x, y), s(y, z), s(z, w)}.
+We first pick a starting variable, say w, and introduce the axiom > v ↓w.S w , which
+triggers, for all nodes, that a binding for w is created. We use the (fresh) query state
+concept S w to indicate that w is bound. Since it is convenient to continue with a role
+term containing w, we choose t(w, x) and propagate the bindings for w to t-successors
+using the axiom S w v ∀t.S tw (again S tw is fresh and indicates the state that bindings for w
+have been propagated via t). Nodes to which S tw (with the bindings for w) is propagated
+are suitable bindings for x. This is captured by the axiom S tw v ↓x.S x . Since S tw may be
+propagated from different nodes, we join the propagated bindings for w and the newly
+created bindings for x using the axiom S tw u S x v S wx , for which the extended tableau
+algorithm attaches the joined bindings to the fresh concept S wx . We proceed analogously
+for r(x, y), s(y, z), and s(z, w) (see Figure 2 for all created axioms). Nodes to which
+the concept S wxyz
+                s     is propagated, potentially close the cycle in the query. The axiom
+S wxyz
+  s    u S w
+             v S wxyzw
+                       checks whether a join is possible. In case it is, the query is satisfied
+                                             Absorption-Based Query Entailment Checking          5
+
+
+                 > v ↓w.S w         S w v ∀t.S tw               S tw v ↓x.S x
+         S tw u S x v S wx          S wx v ∀r.S rwx            S rwx v ↓y.S y
+         S rwx u S y v S wxy       S v ∀s.S wxy
+                                    wxy
+                                                s              S wxy
+                                                                 s   v ↓z.S z
+        S wxy
+          s    u S z v S wxyz     S wxyz v ∀s.S wxyz
+                                                s       S wxyz
+                                                          s    u S w v S wxyzw     S wxyzw v ⊥
+
+
+                      Fig. 2. The axioms for absorbing the query Q1 of Example 2
+
+
+and a clash is triggered by the axiom S wxyzw v ⊥. In this case, backtracking is potentially
+triggered to try other non-deterministic choices which might yield a complete and clash-
+free completion graph that is a counter example for the query entailment.
+
+      The next example demonstrates how concept terms in the query are handled.
+
+Example 3 (Example 2 continued). Consider Q2 = Q1 ∪ {B(x)}. As in Example 2, we
+pick w as starting node and then process t(w, x). This yields (again) the first four axioms
+shown in Figure 2. Assume that we now process B(x). At the state S wx , the tableau
+algorithm can either satisfy ¬B (which indicates that the query is not satisfied with these
+bindings for w and x) or we have to assume a query state where also B(x) is satisfied.
+This is achieved by adding the axiom S wx v ¬B t F Bx , where F Bx is a fresh concept.
+Note that we want to keep the number of modified tableau rules minimal. Hence, when
+applied to ¬BtF Bx , the t-rule does not propagate variable bindings. In case, the disjunct
+F Bx is chosen, we join its empty set of variable bindings with those for S wx using the
+axiom S wx u F Bx v S wx
+                      B , which is handled by the extended binary unfolding rule. For the
+next role term r(x, y), we then add S wx       wx
+                                      B v ∀r.S r and continue as in Example 2.
+
+     Algorithm 1 formalizes the query absorption process and extends the given knowl-
+edge base K via side effects. The functions absorbCT (Algorithm 2) and absorbRT
+(Algorithm 3) handle concept and role terms, respectively. The functions use a map-
+ping VLS from variables to the last query state concepts, i.e., each variable in the query
+is mapped to the last introduced query state concept for that variable such that we can
+later continue or incorporate the propagation for that variable. In the example, we al-
+ways chose an adjacent next query term that contains the current variable z. In case a
+non-adjacent term is chosen, Lines 6–11 ensure the connection to the current variable
+(which exists as we consider connected queries, see Section 2). In our example, if we
+were to choose s(y, z) as first query term in Line 5 (with w as starting variable), Lines 6–
+11 ensure that we process, for example, t(w, x) and r(x, y) before we process s(y, z) in
+Line 17. Clearly, the presented algorithm can further be optimised, e.g., by not creating
+binder concepts for variables that are not required in joins, but the presented algorithm
+is already quite convenient to show the principle of the approach.
+
+3.2    Tableau Rules and Blocking Extensions
+As outlined in the previous sections, minor extensions and adaptations of the tableau
+algorithm are required for creating, propagating, and joining bindings as well as for
+6          Andreas Steigmiller and Birte Glimm
+
+
+Algorithm 1 absorbQ(Q, K)                                  Algorithm 2 absorbCT(C(x), VLS , K)
+Input: A query Q and a knowledge base K                     1: S x1 ...x...xn ← VLS (x)
+    that is extended via side effects                       2: FCx ← fresh atomic concept
+ 1: z ← choose one variable from vars(Q)                    3: SCx1 ...x...xn ← fresh query state concept
+ 2: S z ← fresh query state concept                         4: K ← K ∪ {S x1 ...x...xn v ¬C t FCx }
+ 3: K ← K ∪ {> v ↓z.S z }                                   5: K ← K ∪ {S x1 ...x...xn u FCx v SCx1 ...x...xn }
+ 4: VLS (z) ← S z                                           6: VLS (x) ← SCx1 ...x...xn
+ 5: for each q ∈ Q do
+ 6:        if q = C(x) or q = r(x, y), z , x then
+ 7:              choose q1 , q2 , . . . , qn ∈ Q with
+                   q1 = r1 (z, y1 ), q2 = r2 (y1 , y2 ),
+                   . . . , qn = rn (yn−1 , x)
+ 8:              for 1 ≤ i ≤ n do                          Algorithm 3 absorbRT(r(x, y), VLS , K)
+ 9:                  absorbRT(qi , VLS , K)                 1: S x1 ...x...xn ← VLS (x)
+10:              end for                                    2: S rx1 ...x...xn ← fresh query state concept
+11:        end if                                           3: K ← K ∪ {S x1 ...x...xn v ∀r.S rx1 ...x...xn }
+12:        if q = C(x) then                                 4: if VLS (y) is undefined then
+13:              absorbCT(C(x), VLS , K)                    5:         S y ← fresh query state concept
+14:              z←x                                        6:         K ← K ∪ {S rx1 ...x...xn v ↓y.S y }
+15:        end if                                           7:         VLS (y) ← S y
+16:        if q = r(x, y) then                              8: end if
+17:              absorbRT(r(x, y), VLS , K)                 9: S y1 ...y...ym ← VLS (y)
+18:              z←y                                       10: S z1 ...zk ← fresh query state concept with
+19:        end if                                                    z1 . . . zk = x1 . . . x . . . xn y1 . . . y . . . ym
+20: end for                                                11: K ← K∪
+21: S z1 ...zm z ← VLS (z)                                         {S rx1 ...x...xn u S y1 ...y...ym v S z1 ...zk }
+22: K ← K ∪ {S z1 ...zm z v ⊥}                             12: VLS (y) ← S z1 ...zk
+
+
+
+ensuring a correct blocking. First, we discuss the required rule extensions and define
+the notion of variable mappings:
+
+Definition 1 (Variable Mapping). A variable mapping µ is a (partial) function from
+variable names to nodes and we refer to the set of elements on which µ is defined as
+the domain, written dom(µ), of µ. We say that two variable mappings µ1 and µ2 are
+compatible if µ1 (x) = µ2 (x) for all x ∈ dom(µ1 ) ∩ dom(µ2 ).
+    For an extended completion graph G = (V, E, L, ,̇, M) and v ∈ V, we denote with
+M(C, v) the sets of variable mappings that are associated with a concept C in L(v).
+
+    The ↓-rule creates and associates variable mappings with concept facts in the com-
+pletion graph, which we then propagate to other concept facts w.r.t. the axioms from
+the query absorption by using the extensions of expansion rules depicted in Table 1.
+In particular, the application of the ∀-rule to a concept fact ∀r.C(v) now also propa-
+gates mappings that are associated with ∀r.C(v) to the concept C in the labels of the
+r-neighbours. If complex roles have to be handled, one can, for example, use an unfold-
+ing of the universal restriction according to the automata for role inclusion axioms [9].
+    The remaining rules of Table 1 handle the (lazy) unfolding of the new query state
+concepts in node labels. Please note that the standard unfolding rules for simple atomic
+                                                 Absorption-Based Query Entailment Checking                             7
+
+         Table 1. Tableau rule extensions for creating and propagating variable mappings
+
+ ↓-rule:   if   ↓x.C ∈ L(v), v not indirectly blocked, and C < L(v) or {x 7→ v} < M(C, v)
+           then L(v) = L(v) ∪ {C} and M(C, v) = M(C, v) ∪ {{x 7→ v}}
+ ∀-rule: if     ∀r.C ∈ L(v), v not indirectly blocked, there is an r-neighbour w of v with
+                C < L(w) or M(∀r.C, v) * M(C, w)
+           then L(w) = L(w) ∪ {C} and M(C, w) = M(C, w) ∪ M(∀r.C, v)
+ v1 -rule: if   S x1 ...xn v C ∈ K, S x1 ...xn ∈ L(v), v not indirectly blocked, and C < L(v) or
+                M(S x1 ...xn , v) * M(C, v)
+           then L(v) = L(v) ∪ {C} and M(C, v) = M(C, v) ∪ M(S x1 ...xn , v)
+ v2 -rule: if   S x1 ...xn u A v C ∈ K, {S x1 ...xn , A} ⊆ L(v), v not indirectly blocked, and
+                M(S x1 ...xn , v) * M(C, v)
+           then L(v) = L(v) ∪ {C} and M(C, v) = M(C, v) ∪ M(S x1 ...xn , v)
+ v3 -rule: if   S 1x1 ...xn u S 2y1 ...ym v C ∈ K, {S 1x1 ...xn , S 2y1 ...ym } ⊆ L(v), v not indirectly blocked, and
+                (M(S 1x1 ...xn , v) 1 M(S 2y1 ...ym , v)) * M(C, v)
+           then L(v) = L(v) ∪ {C} and M(C, v) = M(C, v) ∪ (M(S 1x1 ...xn , v) 1 M(S 2y1 ...ym , v))
+
+
+concepts are still necessary, i.e., C has to be added to a node label for axioms of the
+form A v C and A1 u A2 v C if A or A1 and A2 are present. In contrast, the new un-
+folding rules are only applied if at least one concept on the left-hand side is a query
+state concept and they additionally also propagate associated variable mappings to C.
+More precisely, if the query state concept S x1 ...xn is in the label of a node v and we have
+the variable mappings M associated with this fact, then we add C for an axiom of the
+form S x1 ...xn v C ∈ K and we associate M also with C(v) (cf. v1 -rule). For an axiom
+of the form S x1 ...xn u A v C, we only add C and propagate the mappings to C if also
+the atomic concept A is in the label (cf. v2 -rule). Finally, the v3 -rule handles binary
+inclusion axioms, where both concepts on the left-hand side are query state concepts,
+by propagating the join of the associated variable mappings to the implied concept.
+Definition 2 (Variable Mapping Join). A variable mapping µ1 ∪ µ2 is defined by set-
+ting (µ1 ∪ µ2 )(x) = µ1 (x) if x ∈ dom(µ1 ), and (µ1 ∪ µ2 )(x) = µ2 (x) otherwise. The join
+M1 1 M2 between the sets of variable mappings M1 and M2 is defined as follows:
+       M1 1 M2 = {µ1 ∪ µ2 | µ1 ∈ M1 , µ2 ∈ M2 and µ1 is compatible with µ2 }.
+    By applying the rules of Table 1 (in addition to the standard tableau rules) for a
+knowledge base that is extended by the axioms from the query absorption, we get asso-
+ciations of variable mappings with query state concepts such that they indicate which
+parts of a query (and how these parts) are satisfied in the completion graph.
+Example 4 (Example 2 cont.). Assume we extend K1 = {A(a), A v ∃t.B, B v ∃r.A, t v
+s− , r v s− } with the axioms from absorbing Q1 in Figure 2 and test the consistency with
+a tableau algorithm extended by the rules of Table 1. We observe that the constructed
+completion graph contains a clash and, consequently, Q1 is entailed (cf. Figure 3). More
+precisely, we create a node for the individual a and add A to its node label (due to A(a)).
+Now, we alternately create t- and r-successors (due to A v ∃t.B and B v ∃r.A), where the
+t-successors are labelled with B and the r-successors with A. Due to t v s− and r v s− ,
+we add s− to each edge label. It is obvious to see that the folding ∃(t u s− ).∃(r u s− ).>
+of Q1 (cf. Example 1 and Figure 1) is satisfied for each node that instantiates A.
+8                Andreas Steigmiller and Birte Glimm
+
+                                                    >, A, ∃t.B, ↓w.S w , S w {{w7→va }} , ∀t.S tw {{w7→va }} ,
+                                                                                                                                    
+                   L(va ) = 
+                                                                                                                                    
+            va
+                                                                                                                                    
+                                                                          1 , S wxyzw {{w7→va ,x7→v1 ,y7→v2 ,z7→v1 }} , ⊥
+                                             wxyz {{w7→v ,x7→v ,y7→v ,z7→v }}                                                        
+                                           Ss          a     1     2
+                                                                                                                                     
+        t, s−
+                               >, B, ∃r.A, ↓w.S w , S w {{w7→v1 }} , ∀t.S tw {{w7→v1 }} , S tw {{w7→va }} , ↓x.S x , S x {{x7→v1 }} , 
+                                                                                                                                     
+                            
+                            
+                                                                                                                                     
+                                                                                                                                      
+                   L(v1 ) =                       ,                            ,                            2 , ↓z.S , S {{z7→v1 }} ,
+                                                                                      wxy {{w7→v ,x7→v ,y7→v }}
+                             wx {{w7→va ,x7→v1 }}
+                                                          wx {{w7→va ,x7→v1 }}                                          z     z
+                                                                                                                                      
+            v1                S                       ∀r.S                        S             a     1
+                                                                                                                                      
+                                                          r                          s                                               
+                                                                                                                                     
+                                         S wxyz {{w7→va ,x7→v1 ,y7→v2 ,z7→v1 }} , ∀s.S wxyz    {{w7→va ,x7→v1 ,y7→v2 ,z7→v1 }}
+                            
+                                                                                                                                     
+                                                                                                                                      
+                                                                                          s
+        r, s−
+                             >, A, ∃t.B, ↓w.S , S {{w7→v2 }} , ∀t.S t {{w7→v2 }} , S r {{w7→va ,x7→v1 }} , ↓y.S ,
+                                                        w      w                    w               wx                          y    
+                   L(v2 ) = 
+                                                                                                                                     
+            v2
+                                                                                                                                      
+                                     S y {{y7→v2 }} , S wxy {{w7→va ,x7→v1 ,y7→v2 }} , ∀s.S s {{w7→va ,x7→v1 ,y7→v2 }} , . . .
+                                                                                              wxy
+                                                                                                                                     
+                                                                                                                                      
+         ...
+                            n                                                                                                         o
+            v3     L(v3 ) =                              >, B, ∃r.A, ↓w.S w , S w {{w7→v3 }} , . . .
+
+
+            Fig. 3. Clashed completion graph for Example 4 with propagated variable mappings
+
+
+
+    Due to > v ↓w.S w from the absorption, we add S w to each node label and associate
+    w
+S with a mapping from w to the node. In particular, for va representing the individual a,
+we associate {w 7→ va } with S w . Note that {w 7→ va } ∈ M(S w , va ) is shown as S w {{w7→va }} in
+Figure 3, i.e., we list the set of associated mappings as a second super-script highlighted
+in grey. To satisfy the axiom S w v ∀t.S tw , we unfold S w to ∀t.S tw and we also keep the
+variable mappings, i.e., we have {w 7→ va } ∈ M(∀t.S tw , va ). Now, the application of the
+∀-rule propagates {w 7→ va } to S tw ∈ L(v1 ). There, we unfold S tw to the binder concept
+for x, for which then the ↓-rule creates a new variable mapping {x 7→ v1 } that is joined
+by the v3 -rule with {w 7→ va } such that we have {w 7→ va , x 7→ v1 } ∈ M(S wx , v1 ). These
+steps are repeated until we have {w 7→ va , x 7→ v1 , y 7→ v2 , z 7→ v1 } ∈ M(S wxyz s  , va ). Since
+{w 7→ va } is compatible with {w 7→ va , x 7→ v1 , y 7→ v2 , z 7→ v1 }, the v3 -rule adds the latter
+variable mapping to M(S wxyzw , va ). Finally, the v1 -rule adds ⊥ to L(va ). Since all facts
+and variable mappings are derived deterministically, no non-deterministic alternatives
+have to be evaluated and entailment of Q1 is correctly determined.
+
+    As one can see from the example, the variable mappings associated with query state
+concepts directly correspond to foldings of the query. In particular, variables that are
+mapped to the same node correspond to the folding where the corresponding variables
+are identified. In addition, if a variable is mapped to a nominal node, then the mapping
+basically represents the “folding” that is obtained by replacing the variable with the
+associated nominal/individual (and folding up the remaining terms).
+    Without further optimisations, we create new bindings for every node and, due to
+complex roles and/or nominals, variable mappings might be propagated arbitrarily far
+through a completion graph. At first sight, this seems problematic for blocking. The
+correspondence with foldings, however, helps us to find a suitable extension of the
+typically used pairwise blocking technique [9] defined as follows:
+
+Definition 3 (Pairwise Blocking). Let G = (V, E, L, ,̇, M) be a completion graph. We
+say that a node v with predecessor v0 is directly blocked if there exists an ancestor node
+w of v with predecessor w0 such that (1) v, v0 , w, w0 are all blockable, (2) w, w0 are not
+blocked, (3) L(v) = L(w) and L(v0 ) = L(w0 ), and (4) L(hv0 , vi) = L(hw0 , wi). A node
+                                                                Absorption-Based Query Entailment Checking                                            9
+
+                           n                                                            o
+           va     L(va ) = >, A, ∃t.A, ↓w.S w , S w {{w7→va }} , ∀t.S tw {{w7→va }}
+                             >, A, ∃t.A, ↓w.S w , S w {{w7→v1 }} , ∀t.S tw {{w7→v1 },{w7→va }} ,
+                                                                                               
+           t               
+                           
+                                                                                               
+                                                                                                
+                  L(v1 ) =                             ,        ,                ,
+                                          w {{w7→va }}        x     x {{x7→v1 }}
+                                                                                                
+                                        S                 ↓x.S     S
+                                                                                               
+                                           t                                                    
+           v1              
+                                                                                               
+                                                                                                
+                                    S wx {{w7→va ,x7→v1 }} , ∀r.S rwx {{w7→va ,x7→v1 }}
+                           
+                                                                                               
+                                                                                                
+
+           t
+                             >, A, ∃t.A, ↓w.S w , S w {{w7→v2 }} , ∀t.S tw {{w7→v2 },{w7→v1 },{w7→va }} , 
+                                                                                                               
+                           
+                           
+                                                                                                               
+                                                                                                                
+                  L(v2 ) =                  S tw {{w7→v1 },{w7→va }} , ↓x.S x , S x {{x7→v2 }} ,
+                                                                                                               
+           v2              
+                           
+                                                                                                                
+                                                                                                                
+                                                                                                                
+blocking
+
+
+
+
+                                                                                                               
+                            S wx {{w7→va ,x7→v2 },{w7→v1 ,x7→v2 }} , ∀r.S wx {{w7→va ,x7→v2 },{w7→v1 ,x7→v2 }} 
+                                                                                                               
+                                                                           r
+           t
+                                           >, A, ∃t.A, ↓w.S w , S w {{w7→v3 }} , ∀t.S tw {{w7→v3 },{w7→v2 },{w7→v1 },{w7→va }} ,
+                                                                                                                                                     
+           v3              
+                           
+                                                                                                                                                     
+                                                                                                                                                      
+                                                                                                                                                      
+                  L(v3 ) =                               S tw {{w7→v2 },{w7→v1 },{w7→va }} , ↓x.S x , S x {{x7→v3 }} ,
+                           
+                                                                                                                                                     
+                                                                                                                                                      
+                                                                                                                                                      
+           t               
+                                                                                                                                                     
+                                                                                                                                                      
+                                S wx {{w7→va ,x7→v3 },{w7→v1 ,x7→v3 },{w7→v2 ,x7→v3 }} , ∀r.S rwx {{w7→va ,x7→v3 },{w7→v1 ,x7→v3 },{w7→v2 ,x7→v3 }}
+                           
+                                                                                                                                                     
+                                                                                                                                                      
+           v4
+
+                Fig. 4. Expansion blocked completion graph for Example 5 with variable mappings
+
+
+is indirectly blocked if it has an ancestor node that is directly blocked, and a node is
+blocked if it is directly or indirectly blocked.
+    The query state concepts, which track how much of the query is satisfied, are already
+part of the concept labels. Hence, it remains to check whether the query is analogously
+satisfied (i.e., same foldings must exist) by, roughly speaking, checking whether the
+variable mappings have been propagated in the same way between the blocking node,
+its predecessor and (related) nominal nodes and between the blocked node, its prede-
+cessor and (related) nominal nodes. Note that a mapping µ and the query state concepts
+with which µ is associated capture which query parts are already satisfied. Query state
+concepts that are associated with mappings that are compatible with µ correspond to
+states where fewer or additional query parts are satisfied. The following notion captures
+such related query state concepts for a mapping µ and a node v of a completion graph:
+Definition 4. Let G = (V, E, L, ,̇, M) be a completion graph. For v ∈ V and a mapping
+µ, we set states(v, µ) = {C ∈ L(v) | µv ∈ M(C, v) is compatible with µ}.
+Note that we do not limit states to query state concepts only to enable more absorp-
+tion optimisations (see [18] for details). We formally capture (query state) concepts
+associated with a mapping and their relation to blocking with the notion of analogous
+propagation blocking and witness mappings:
+Definition 5 (Analogous Propagation Blocking). Let G = (V, E, L, ,̇, M) be a com-
+pletion graph and o1 , ..., on ∈ V all the nominal nodes in G. We say that a node v with
+predecessor v0 is directly blocked by w with predecessor w0 if v is pairwise blocked by
+w and, for each mapping µ ∈ M(C, v) ∪ M(C, v0 ) ∪ M(C, o1 ) ∪ ... ∪ M(C, on ), C ∈
+L(v) ∪ L(v0 ) ∪ L(o1 ) ∪ ... ∪ L(on ), there exists a witness mapping µ0 ∈ M(D, w) ∪
+M(D, w0 ) ∪ M(D, o1 ) ∪ ... ∪ M(D, on ), D ∈ L(w) ∪ L(w0 ) ∪ L(o1 ) ∪ ... ∪ L(on ) and
+vice versa such that states(v, µ) = states(w, µ0 ), states(v0 , µ) = states(w0 , µ0 ), and
+states(oi , µ) = states(oi , µ0 ) for 1 ≤ i ≤ n.
+10          Andreas Steigmiller and Birte Glimm
+
+      Table 2. Witness mappings for testing analogous propagation blocking for Example 5
+
+µ                         µ0                      states(v3 , µ) = states(v2 , µ0 ) states(v2 , µ) = states(v1 , µ0 )
+{w 7→ v3 }             {w 7→ v2 }           {S w , ∀t.S tw , S x }                       {S x }
+{w 7→ v2 }             {w 7→ v1 }           {∀t.S tw , S tw , S x , S wx , ∀r.S rwx }    {S w , ∀t.S tw , S x }
+{w 7→ v1 }, {w 7→ va } {w 7→ va }           {∀t.S tw , S tw , S x , S wx , ∀r.S rwx }    {∀t.S tw , S tw , S x , S wx , ∀r.S rwx }
+{x 7→ v3 }             {x 7→ v2 }           {S , ∀t.S t , S t , S , S , ∀r.S r } {S w , ∀t.S tw , S tw }
+                                               w          w     w     x    wx         wx
+
+{w 7→ va , x 7→ v3 },
+                       {w 7→ va , x 7→ v2 } {∀t.S tw , S tw , S x , S wx , ∀r.S rwx }    {∀t.S tw , S tw }
+{w 7→ v1 , x 7→ v3 }
+{w 7→ v2 , x 7→ v3 } {w 7→ v1 , x 7→ v2 } {∀t.S tw , S tw , S x , S wx , ∀r.S rwx }      {S w , ∀t.S tw }
+{x 7→ v2 }             {x 7→ v1 }           {S , ∀t.S t , S t }
+                                               w          w     w
+                                                                                         {S w , ∀t.S tw , S tw , S x , S wx , ∀r.S rwx }
+{w 7→ va , x 7→ v2 },
+                       {w 7→ va , x 7→ v1 } {∀t.S tw , S tw }                            {∀t.S tw , S tw , S x , S wx , ∀r.S rwx }
+{w 7→ v1 , x 7→ v2 }
+
+
+Example 5 (Example 2 cont.). For testing entailment of Q1 over K2 = {A(a), A v ∃t.A,
+t ◦ t v t}, we can capture the transitivity of t by extending the axioms of Figure 2 with
+S tw v∀t.S tw (cf. [9]). For the resulting axioms, the tableau algorithm creates a completion
+graph as depicted in Figure 4, where the query is not entailed. Due to the axiom Av∃t.A,
+the tableau algorithm successively builds t-successors until blocking is established.
+Note that new variable mappings are created for all nodes and all mappings are propa-
+gated to all descendants due to the transitive role t. Hence, we not only have mappings
+with new bindings for each new successor, but also an increasing number of mappings.
+Nevertheless, v3 is already directly blocked by v2 using analogous propagation blocking
+since all pairwise blocking conditions are satisfied (e.g., L(v3 ) = L(v2 ), L(v2 ) = L(v1 ))
+and we have for each variable mapping a witness mapping as shown in Table 2. For
+example, for the mapping {w 7→ v3 }, we have states(v3 , {w 7→ v3 }) = {S w , ∀t.S tw , S x } and
+states(v2 , {w 7→ v3 }) = {S x } due to the compatible mappings {x 7→ v3 } and {x 7→ v2 },
+respectively (cf. first row of Table 2). A witness for {w 7→ v3 } is {w 7→ v2 } since
+states(v2 , {w 7→ v2 }) = {S w , ∀t.S tw , S x } and states(v1 , {w 7→ v2 }) = {S x }.
+
+    To avoid considering all nominal nodes in blocking tests, one could obtain restricted
+sets of relevant nominal nodes by “remembering” nominal nodes over which variable
+mappings have been propagated, by tracking the usage of nominals for descendants or
+by indexing variable mappings propagated over nominal nodes.
+
+
+4     Implementation and Experiments
+The presented query entailment checking approach is implemented in the tableau-based
+reasoning system Konclude [20], which supports the DL SROIQ with nominal schemas,
+i.e., an extension of the nominal constructor by variables for natively representing rule-
+based knowledge in ontologies. Axioms with nominal schemas are also absorbed in
+Konclude such that variable bindings are appropriately propagated through the com-
+pletion graph [19], which we reuse to some extent for the query entailment checking
+extension. The implementation and data for the experiments are available online [18].
+     At the moment, Konclude may not terminate for SROIQ ontologies if the absorp-
+tion of the query leads to propagations over new nominal nodes. However, this does not
+                                        Absorption-Based Query Entailment Checking            11
+
+Table 3. Statistics for evaluated ontologies with query entailment checking (EC) times in seconds
+
+Ontology         DL       #Axioms         #C    #P        #I #Assertions     EC avg/max [s]
+DMKB          SROIQ          4, 945     697    177      653       1, 500   0.31 /     1.34
+Family      SROIQ(D)            317      61     87      405       1, 523 180.33 / ≥ 300.00
+Finance\D   ALCROIQ          1, 391     323    247 2, 466         2, 809   0.09 /     0.27
+FMA3.1\D     ALCOIN         86, 898 83, 284    122 232, 647     501, 220   0.11 /     0.78
+GeoSkills\D ALCHOIN             738     603     23 2, 592         5, 985   0.04 /     0.35
+OBI         SROIQ(D)         6, 216 2, 826     116      167          235   0.08 /     0.05
+UOBM(1) SHOIN(D)                206      69     44 24, 858      257, 658   0.73 /     6.69
+Wine        SHOIN(D)            643     214     31      367          903   0.08 /     0.32
+
+
+
+seem problematic in practice. For example, the ORE2015 dataset [15] contains 1920
+ontologies (with trivial ontologies already filtered out), but only 399 use all problem-
+atic language features (36 are OIQ, 281 are OIN, and 82 are OIF ). Konclude never
+applied the new nominal rule in the consistency checks for these 399 ontologies, but
+we terminated the reasoner (and, hence, the analysis of the new nominal generation)
+for 4 ontologies after reaching the time limit of 5 minutes. Even if new nominals are
+generated, it would further be required that the query propagates differently over new
+nominal and blockable nodes such that blocking cannot be established.
+    For evaluating (the limits of) our query entailment checking approach, we identified
+several interesting ontologies (i.e., ontologies that use most features of SROIQ with at
+least 100 individuals and for which standard reasoning tasks are difficult but process-
+able by Konclude), such as DMKB, FMA, OBI, UOBM (cf. Table 3), and generated
+50 non-trivial queries with several cycles for each ontology. In summary, the entail-
+ment for most queries can be decided in under one second (90% require less than 1s,
+49% less than 0.1s) by using one core of a Dell PowerEdge R420 server with two In-
+tel Xeon E5-2440 CPUs at 2.4 GHz and 144 GB RAM under a 64bit Ubuntu 16.04.5
+LTS. However, there are queries that lead to many propagations (e.g., UOBM) and/or
+require many blocking checks (e.g., Family) and, consequently, such queries require
+significantly more time (e.g., 30 queries for the Family ontology reached the time limit
+of 5 minutes since complex roles lead to many propagations with non-trivial blocking
+tests). To further improve the performance, one could also use a representative prop-
+agation of variable mappings [19] for entailment checks and/or index more precisely
+which nodes constitute blocker candidates. Nevertheless, the extension of the presented
+query entailment checking approach to query answering (with appropriate reduction
+optimisations) is already able to outperform PAGOdA [22] on some of the non-trivial
+real-world queries from the PAGOdA evaluation (see [18] for details).
+
+
+5    Conclusions
+We presented a novel query entailment checking approach based on the well-known
+absorption optimisation that improves the reasoning performance for several more ex-
+pressive Description Logics. The approach can nicely be integrated into state-of-the-art
+tableau-based systems and our implementation in Konclude shows encouraging results.
+12       Andreas Steigmiller and Birte Glimm
+
+References
+ 1. Baader, F., Calvanese, D., McGuinness, D., Nardi, D., Patel-Schneider, P. (eds.): The De-
+    scription Logic Handbook: Theory, Implementation, and Applications. Cambridge Univer-
+    sity Press, second edn. (2007)
+ 2. Blackburn, P., Seligman, J.: Hybrid languages. Journal of Logic, Language and Information
+    4(3) (1995)
+ 3. Calvanese, D., Eiter, T., Ortiz, M.: Answering regular path queries in expressive description
+    logics: An automata-theoretic approach. In: Proc. 22nd AAAI Conf. on Artificial Intelligence
+    (AAAI’07). pp. 391–396. AAAI Press (2007)
+ 4. Glimm, B., Horrocks, I., Sattler, U.: Unions of conjunctive queries in SHOQ. In: Proc. 11th
+    Int. Conf. on Principles of Knowledge Representation and Reasoning (KR’08). pp. 252–262.
+    AAAI Press (2008)
+ 5. Glimm, B., Kazakov, Y., Kollia, I., Stamou, G.: Lower and upper bounds for SPARQL
+    queries over OWL ontologies. In: Proc. 29th Conf. on Artificial Intelligence (AAAI’15).
+    AAAI Press (2015)
+ 6. Glimm, B., Lutz, C., Horrocks, I., Sattler, U.: Conjunctive query answering for the descrip-
+    tion logic SHIQ. J. of Artificial Intelligence Research 31, 157–204 (2008)
+ 7. Grädel, E.: Why are modal logics so robustly decidable? In: Paun, G., Rozenberg, G., Salo-
+    maa, A. (eds.) Current Trends in Theoretical Computer Science, Entering the 21th Century,
+    vol. 2, pp. 393–408. World Scientific (2001)
+ 8. Haarslev, V., Möller, R., Wessel, M.: Querying the semantic web with Racer + nRQL. In:
+    Proc. KI-2004 Int. Workshop on Applications of Description Logics (2004)
+ 9. Horrocks, I., Kutz, O., Sattler, U.: The even more irresistible SROIQ. In: Proc. 10th Int.
+    Conf. on Principles of Knowledge Representation and Reasoning (KR’06). pp. 57–67. AAAI
+    Press (2006)
+10. Horrocks, I., Tessaris, S.: Querying the semantic web: a formal approach. In: Proc. 1st Int.
+    Semantic Web Conf. (ISWC’02). pp. 177–191. Springer (2002)
+11. Hudek, A.K., Weddell, G.E.: Binary absorption in tableaux-based reasoning for description
+    logics. In: Proc. 19th Int. Workshop on Description Logics (DL’06). vol. 189. CEUR (2006)
+12. Kollia, I., Glimm, B.: Optimizing SPARQL query answering over OWL ontologies. J. of
+    Artificial Intelligence Research 48, 253–303 (2013)
+13. Ortiz, M., Calvanese, D., Eiter, T.: Data complexity of query answering in expressive de-
+    scription logics via tableaux. J. of Automated Reasoning 41(1), 61–98 (2008)
+14. Pan, J.Z., Thomas, E., Zhao, Y.: Completeness guaranteed approximation for OWL-DL
+    query answering. In: Proceedings of the 22nd International Workshop on Description Logics
+    (DL’09). vol. 477. CEUR (2009)
+15. Parsia, B., Matentzoglu, N., Gonçalves, R.S., Glimm, B., Steigmiller, A.: The OWL rea-
+    soner evaluation (ORE) 2015 competition report. J. of Automated Reasoning 59(4), 455–482
+    (2017)
+16. Rudolph, S., Glimm, B.: Nominals, inverses, counting, and conjunctive queries or: Why
+    infinity is your friend! J. of Artificial Intelligence Research 39, 429–481 (2010)
+17. Sirin, E., Parsia, B., Cuenca Grau, B., Kalyanpur, A., Katz, Y.: Pellet: A practical OWL-DL
+    reasoner. J. of Web Semantics 5(2), 51–53 (2007)
+18. Steigmiller, A., Glimm, B.: Absorption-based query answering for expressive description
+    logics – technical report. Tech. rep., Ulm University, Ulm, Germany (2019), available on-
+    line at https://www.uni-ulm.de/fileadmin/website_uni_ulm/iui.inst.090/Publikationen/2019/
+    StGl2019-ABQA-TR-DL.pdf
+19. Steigmiller, A., Glimm, B., Liebig, T.: Reasoning with nominal schemas through absorption.
+    J. of Automated Reasoning 53(4), 351–405 (2014)
+                                        Absorption-Based Query Entailment Checking            13
+
+20. Steigmiller, A., Liebig, T., Glimm, B.: Konclude: system description. J. of Web Semantics
+    27(1) (2014)
+21. Vardi, M.Y.: Why is modal logic so robustly decidable? In: Descriptive Complexity and
+    Finite Models: Proceedings of a DIMACS Workshop. DIMACS: Series in Discrete Mathe-
+    matics and Theoretical Computer Science, vol. 31, pp. 149–184. Memoirs of the American
+    Mathematical Society (1997)
+22. Zhou, Y., Cuenca Grau, B., Nenov, Y., Kaminski, M., Horrocks, I.: PAGOdA: Pay-as-you-go
+    ontology query answering using a datalog reasoner. J. of Artificial Intelligence Research 54,
+    309–367 (2015)
+

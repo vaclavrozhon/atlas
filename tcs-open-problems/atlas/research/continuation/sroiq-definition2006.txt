@@ -1,0 +1,757 @@
+                                         The Even More Irresistible SROIQ
+
+                                    Ian Horrocks and Oliver Kutz and Ulrike Sattler
+                                       School of Computer Science, The University of Manchester
+                                       Kilburn Building, Oxford Road, Manchester M13 9PL, UK
+                                          {Horrocks, Kutz, Sattler}@cs.man.ac.uk
+
+
+
+
+                             Abstract                                 (Horrocks & Sattler, 2005). That is, we extend SHOIQ—
+                                                                      which is SHOIN with qualified number restrictions—and
+     We describe an extension of the description logic under-
+                                                                      extend the work begun in Horrocks, Kutz, & Sattler (2005).
+     lying OWL-DL, SHOIN , with a number of expressive
+     means that we believe will make it more useful in prac-             Since OWL-DL is becoming more widely used, it turns
+     tice. Roughly speaking, we extend SHOIN with all                 out that it lacks a number of expressive means which—
+     expressive means that were suggested to us by ontology           when considered carefully—can be added without causing
+     developers as useful additions to OWL-DL, and which,             too much difficulties for automated reasoning. We extend
+     additionally, do not affect its decidability and practica-       SHOIQ with these expressive means and, although they
+     bility. We consider complex role inclusion axioms of             are not completely independent in that some of them can
+     the form R ◦ S v̇ R or S ◦ R v̇ R to express prop-               be expressed using others, first present them together with
+     agation of one property along another one, which have            some examples. Recall that, in SHOIQ, we can already
+     proven useful in medical terminologies. Furthermore,             state that a role is transitive or the subrole or the inverse of
+     we extend SHOIN with reflexive, antisymmetric, and
+                                                                      another one (and therefore also that it is symmetric).
+     irreflexive roles, disjoint roles, a universal role, and con-
+     structs ∃R.Self, allowing, for instance, the definition          In addition, SROIQ allows for the following:
+     of concepts such as a “narcist”. Finally, we consider           1. disjoint roles. Most DLs can be said to be “unbalanced”
+     negated role assertions in Aboxes and qualified number
+                                                                         since they allow to express disjointness on concepts but
+     restrictions. The resulting logic is called SROIQ.
+                                                                         not on roles, despite the fact that role disjointness is quite
+     We present a rather elegant tableau-based reasoning al-
+     gorithm: it combines the use of automata to keep track              natural and can generate new subsumptions or inconsis-
+     of universal value restrictions with the techniques de-             tencies in the presence of role hierarchies and number re-
+     veloped for SHOIQ. The logic SROIQ has been                         strictions. E.g., the roles sister and mother should be
+     adopted as the logical basis for the next iteration of              declared as being disjoint.
+     OWL, OWL 1.1.                                                   2. reflexive, irreflexive, and antisymmetric roles. These fea-
+                                                                         tures are of minor interest when considering only TBoxes
+                         Introduction                                    not using nominals, yet they add some useful constraints
+                                                                         if we also refer to individuals, either by using nominals or
+We describe an extension, called SROIQ, of the descrip-                  ABoxes, especially in the presence of number restrictions.
+tion logics (DLs) SHOIN (Horrocks, Sattler, & Tobies,                    E.g., the roles knows, hasSibling, and properPartOf,
+1999) underlying OWL-DL (Horrocks, Patel-Schneider, &                    should be declared as, respectively, reflexive, irreflexive,
+van Harmelen, 2003)1 and RIQ (Horrocks & Sattler, 2004).                 and antisymmetric.
+SHOIN provides most expressive means that one could
+reasonably expect from the description-logical basis of an           3. negated role assertions. Most Abox formalisms only al-
+ontology language, and was designed to constitute a good                 low for positive role assertions (with few exceptions (Are-
+compromise between expressive power and computational                    ces et al., 2003; Baader et al., 2005)), whereas SROIQ
+complexity/practicability of reasoning. It lacks, however,               also allows for statements like (John, Mary) : ¬likes.
+e.g. qualified number restrictions which are present in the              In the presence of complex role inclusions, negated role
+DL considered here since they are required in various appli-             assertions can be quite useful and, like disjoint roles, they
+cations (Wolstencroft et al., 2005) and do not pose problems             overcome a certain asymmetry in expressivity.
+                                                                     4. SROIQ provides complex role inclusion axioms of the
+Copyright c 2006, American Association for Artificial Intelli-
+                                                                         form R ◦ S v̇ R and S ◦ R v̇ R that were first intro-
+gence (www.aaai.org). All rights reserved.
+   1
+     OWL also includes datatypes, a simple form of concrete do-          duced in RIQ. For example, w.r.t. the axiom owns ◦
+main (Baader & Hanschke, 1991). These can, however, be treated           hasPart v̇ owns, and the fact that each car contains an
+exactly as in SHOQ(D)/SHOQ(Dn ) (Horrocks & Sattler, 2001;               engine Car v̇ ∃hasPart.Engine, an owner of a car is
+Pan & Horrocks, 2003), so we will not complicate our presentation        also an owner of an engine, i.e., the following subsump-
+by considering them here.                                                tion holds: ∃owns.Car v ∃owns.Engine.
+5. SROIQ provides the universal role U . Together with              To avoid considering roles such as R−− , we define a func-
+   nominals (which are also provided by SHOIQ), this             tion Inv on roles such that Inv(R) = R− if R ∈ R is a role
+   role is a prominent feature of hybrid logics (Blackburn &     name, and Inv(R) = S ∈ R if R = S − .
+   Seligman, 1995). Nominals can be viewed as a powerful            Since we will often work with finite strings of roles it is
+   generalisation of ABox individuals (Schaerf, 1994; Hor-       convenient to extend both ·I and Inv(·) to such strings: if
+   rocks & Sattler, 2001), and they occur naturally in ontolo-   w = R1 . . . Rn is a string of roles Ri (1 ≤ i ≤ n), we set
+   gies, e.g., when describing a class such as EUCountries       Inv(w) = Inv(Rn ) . . . Inv(R1 ) and wI = R1I ◦ . . . ◦ RnI ,
+   by enumerating its members.                                   where ◦ denotes composition of binary relations.
+6. Finally, SROIQ allows for concepts of the form ∃R.Self           A role box R consists of two components. The first com-
+   which can be used to express “local reflexivity” of a role    ponent is a role hierarchy Rh which consists of (gener-
+   R, e.g., to define the concept “narcist” as ∃likes.Self.      alised) role inclusion axioms. The second component is a
+                                                                 set Ra of role assertions stating, for instance, that a role R
+Besides a Tbox and an Abox, SROIQ provides a so-called           must be interpreted as an irreflexive relation.
+Rbox to gather all statements concerning roles.                     We start with the definition of a (regular) role hierarchy
+   SROIQ is designed to be of similar practicability as          whose definition involves a certain ordering on roles, called
+SHOIQ. The tableau algorithm for SROIQ presented                 regular. A strict partial order ≺ on a set A is an irreflexive
+here is essentially a combination of the algorithms for RIQ      and transitive relation on A. A strict partial order ≺ on the
+and SHOIQ. In particular, it employs the same technique          set of roles R ∪ {R− | R ∈ R} is called a regular order
+using finite automata as in Horrocks & Sattler (2004) to han-    if ≺ satisfies, additionally, S ≺ R ⇐⇒ S − ≺ R, for all
+dle role inclusions R ◦ S v̇ R and S ◦ R v̇ R. Even              roles R and S. Note, in particular, that the irreflexivity of ≺
+though the additional expressive means require certain ad-       ensures that neither S − ≺ S nor S ≺ S − hold.
+justments, these adjustments do not add new sources of non-
+determinism and, subject to empirical verification, are be-      Definition 2 ((Regular) Role Inclusion Axioms) Let ≺ be
+lieved to be “harmless” in the sense of not significantly de-    a regular order on roles. A role inclusion axiom (RIA for
+grading typical performance as compared with the SHOIQ           short) is an expression of the form w v̇ R, where w is a
+algorithm. Moreover, the algorithm for SROIQ has, simi-          finite string of roles not including the universal role U , and
+lar to the one for SHOIQ, excellent “pay as you go” char-        R 6= U is a role name. A role hierarchy Rh is a finite set
+acteristics. For instance, in case only expressive means of      of RIAs. An interpretation I satisfies a role inclusion axiom
+SHIQ are used, the new algorithm will behave just like the       w v̇ R, written I |= w v̇ R, if wI ⊆ RI . An interpretation
+algorithm for SHIQ.                                              is a model of a role hierarchy Rh if it satisfies all RIAs in
+   We believe that the combination of properties described       Rh , written I |= Rh .
+above makes SROIQ a very useful basis for future exten-
+sions of OWL DL.                                                 A RIA w v̇ R is ≺-regular if R is a role name, and
+                                                                 1. w = RR, or
+                  The Logic SROIQ                                2. w = R− , or
+In this section, we introduce the DL SROIQ. This includes        3. w = S1 . . . Sn and Si ≺ R, for all 1 ≤ i ≤ n, or
+the definition of syntax, semantics, and inference problems.     4. w = RS1 . . . Sn and Si ≺ R, for all 1 ≤ i ≤ n, or
+                                                                 5. w = S1 . . . Sn R and Si ≺ R, for all 1 ≤ i ≤ n.
+Roles, Role Hierarchies, and Role Assertions
+                                                                 Finally, a role hierarchy Rh is regular if there exists a reg-
+Definition 1 Let C be a set of concept names including a         ular order ≺ such that each RIA in Rh is ≺-regular.
+subset N of nominals, R a set of role names including the
+universal role U , and I = {a, b, c . . .} a set of individual     Regularity prevents a role hierarchy from containing
+names. The set of roles is R ∪ {R− | R ∈ R}, where a role        cyclic dependencies. For instance, the role hierarchy
+R− is called the inverse role of R.
+   As usual, an interpretation I = (∆I , ·I ) consists of a            {RS v̇ S,    RT v̇ R,      V T v̇ T,    V S v̇ V }
+set ∆I , called the domain of I, and a valuation ·I which        is not regular because it would require ≺ to satisfy S ≺ V ≺
+associates, with each role name R, a binary relation RI ⊆        T ≺ R ≺ S, which would imply S ≺ S, thus contradicting
+∆I × ∆I , with the universal role U the universal relation       the irreflexivity of ≺. Such cyclic dependencies are known
+∆I × ∆I , with each concept name C a subset C I ⊆ ∆I ,           to lead to undecidability (Horrocks & Sattler, 2004).
+where C I is a singleton set if C ∈ N, and, with each in-           Also, note that RIAs of the form RR− v̇ R, which would
+dividual name a, an element aI ∈ ∆I . Inverse roles are          imply (a weak form of) reflexivity of R, are not regular
+interpreted as usual, i.e., for each role R ∈ R, we have         according to the definition of regular orderings. However,
+              (R− )I = {hy, xi | hx, yi ∈ RI }.                  the same condition on R can be imposed by using the GCI
+                                                                 ∃R.> v̇ ∃R.Self; see below.
+   Obviously, (U − )I = (U )I . Note that, unlike in the cases      From the definition of the semantics of inverse roles, it
+of SHIQ or SHOIQ, we did not introduce transitive role           follows immediately that hx, yi ∈ wI iff hy, xi ∈ Inv(w)I .
+names. This is because, as will become apparent below, role      Hence, each model satisfying w v̇ S also satisfies Inv(w) v̇
+box assertions can be used to force roles to be transitive.      Inv(S) (and vice versa), and thus the restriction to those
+RIAs with only role names on their right hand side does not           sion of antisymmetry is more difficult to handle algorithmi-
+have any effect on expressivity.                                      cally, and we leave this to future work.
+   Given a role hierarchy Rh , we define the relation v * to be          In SHIQ (and SHOIQ), the application of qualified
+the transitive-reflexive closure of v̇ over {R v̇ S, Inv(R) v̇        number restrictions has to be restricted to certain roles,
+Inv(S) | R v̇ S ∈ Rh }. A role R is called a sub-role                 called simple roles, to preserve decidability (Horrocks, Sat-
+(super-role) of a role S if R v * S (S v* R). Two roles R and         tler, & Tobies, 1999). In the context of SROIQ, the defi-
+S are equivalent (R ≡ S) if R v    * S and S v* R.                    nition of simple role has to be slightly modified, and simple
+   Note that, due to restriction (3) in the definition of ≺-          roles figure not only in qualified number restrictions, but in
+regularity, we also restrict v* to be acyclic, and thus regular       several other constructs as well. Intuitively, non-simple roles
+role hierarchies never contain two equivalent roles.2                 are those that are implied by the composition of roles.
+   Next, let us turn to the second component of Rboxes, the              Given a role hierarchy Rh and a set of role assertions Ra
+role assertions. For an interpretation I, we define Diag I            (without transitivity or symmetry assertions), the set of roles
+to be the set {hx, xi | x ∈ ∆I }. Note that, since the                that are simple in R = Rh ∪ Ra is inductively defined as
+interpretation of the universal role U is fixed in any given          follows:
+model (as the universal relation on ∆I × ∆I which is, by
+definition, reflexive, symmetric, and transitive), we disallow        • a role name is simple if it does not occur on the right hand
+the universal role to appear in role assertions.                        side of a RIA in Rh ,
+                                                                      • an inverse role R− is simple if R is, and
+Definition 3 (Role Assertions) For roles R, S 6= U , we               • if R occurs on the right hand side of a RIA in Rh , then R
+call the assertions Ref(R), Irr(R), Sym(R), Asy(R),                     is simple if, for each w v̇ R ∈ Rh , w = S for a simple
+Tra(R), and Dis(R, S), role assertions, where, for each in-             role S.
+terpretation I and all x, y, z ∈ ∆I , we have:
+                                                                      A set of role assertions Ra is called simple if all roles R, S
+       I |= Sym(R)    if hx, yi ∈ RI implies hy, xi ∈ RI ;            appearing in role assertions of the form Irr(R), Asy(R), or
+       I |= Asy(R)    if hx, yi ∈ RI implies hy, xi ∈
+                                                    / RI              Dis(R, S), are simple in R. If R is clear from the context,
+       I |= Tra(R)    if hx, yi ∈ R and hy, zi ∈ RI
+                                    I                                 we often use “simple” instead of “simple in R”.
+                         imply hx, zi ∈ RI ;
+       I |= Ref(R)    if Diag I ⊆ RI ;                                Definition 4 (Role Box) A SROIQ-role box (Rbox for
+       I |= Irr(R)    if RI ∩ Diag I = ∅;                             short) is a set R = Rh ∪ Ra , where Rh is a regular role
+       I |= Dis(R, S) if RI ∩ S I = ∅.                                hierarchy and Ra is a finite, simple set of role assertions.
+                                                                         An interpretation satisfies a role box R (written I |= R)
+   Adding symmetric and transitive role assertions is a trivial       if I |= Rh and I |= φ for all role assertions φ ∈ Ra . Such
+move since both of these expressive means can be replaced             an interpretation is called a model of R.
+with complex role inclusion axioms as follows: Sym(R) is
+equivalent to R− v̇ R and Tra(R) is equivalent to RR v̇ R.            Concepts and Inference Problems for SROIQ
+   Thus, as far as expressivity is concerned, we can assume,          Definition 5 (SROIQ Concepts, Tboxes, and Aboxes)
+for convenience, that no role assertions of the form Tra(R)           The set of SROIQ-concepts is the smallest set such that
+or Sym(R) appear in Ra , but that transitive and/or symmet-           • every concept name (including nominals) and >, ⊥ are
+ric roles will be handled by the RIAs alone. In particular,             concepts, and,
+notice that regularity of a role hierarchy is preserved when
+replacing such role assertions with the corresponding RIAs.           • if C, D are concepts, R is a role (possibly inverse), S is
+                                                                        a simple role (possibly inverse), and n is a non-negative
+   The situation is different, however, for the other Rbox as-
+                                                                        integer, then C u D, C t D, ¬C, ∀R.C, ∃R.C, ∃S.Self,
+sertions. None of reflexivity, irreflexivity, antisymmetry or
+                                                                        (⩾nS.C), and (⩽nS.C) are also concepts.
+disjointness of roles can be enforced by role inclusion ax-
+ioms. However, as we shall see later, reflexivity and irreflex-          A general concept inclusion axiom (GCI) is an expres-
+ivity of roles are closely related to the new concept ∃R.Self.        sion of the form C v̇ D for two SROIQ-concepts C and
+   Note that the version of antisymmetry introduced above is          D. A Tbox T is a finite set of GCIs.
+strict in the sense that it also implies irreflexivity as opposed        An individual assertion is of one of the following forms:
+                                                                                                            .
+to the more widely used notion of antisymmetry which al-              a : C, (a, b) : R, (a, b) : ¬R, or a =
+                                                                                                           6 b, for a, b ∈ I (the
+lows for reflexive points. For instance, in mereology, the            set of individual names), a (possibly inverse) role R, and a
+relation PartOf is usually assumed to be ‘reflexive antisym-          SROIQ-concept C. A SROIQ-Abox A is a finite set of
+metric’ (i.e., reflexivity, plus xRy and yRx implies x = y),          individual assertions.
+while the relation properPartOf is assumed to be ‘irreflex-
+ive antisymmetric’ (defined just as antisymmetry above) (Si-             It is part of future work to determine which of the restric-
+mons, 1987; Casati & Varzi, 1999). The more general ver-              tions to simple roles in role assertions Dis(R, S), Asy(R),
+                                                                      and Irr(R), as well as the concept expression ∃S.Self, are
+   2
+    This is not a serious restriction for, if R contains v* cycles,   strictly necessary in order to preserve decidability or practi-
+we can simply choose one role R from each cycle and replace all       cability. These restrictions, however, allow a rather smooth
+other roles in this cycle with R in the input Rbox, Tbox, and Abox.   integration of the new constructs into existing algorithms.
+Definition 6 (Semantics and Inference Problems) Given              hA, R, T i, and which, additionally, connects all nominals
+an interpretation I = (∆I , ·I ), concepts C, D, roles R,          appearing in the input.
+S, and non-negative integers n, the extension of complex              Thus, let C and hA, R, T i be a SROIQ concept and
+concepts is defined inductively by the following equa-             Abox, Rbox, and Tbox, respectively. In a first step, we re-
+tions, where ]M denotes the cardinality of a set M , and           place the Abox A with an Abox A0 such that A0 only con-
+concept names, roles, and nominals are interpreted as in           tains individual assertions of the form a : C. To this purpose,
+Definition 1:                                                      we associate with every individual a ∈ I appearing in A a
+                                                                   new nominal oa not appearing in T or C. Next, A0 is the re-
+    >I = ∆I ,      ⊥I = ∅,       (¬C)I = ∆I \ C I
+          I     I       I                                          sult of replacing every individual assertion in A of the form
+  (C u D) = C ∩ D ,           (C t D)I = C I ∪ DI
+                                                                   (a, b) : R with a : ∃R.ob , every (a, b) : ¬R with a : ∀R.¬ob ,
+   (∃R.C) = {x | ∃y.hx, yi ∈ RI and y ∈ C I }
+          I
+                                                                   and every a =
+                                                                                 .
+                                                                                6 b with a : ¬ob . Now, given C and A0 , define
+ (∃R.Self)I = {x | hx, xi ∈ RI }                                   C 0 as follows:
+   (∀R.C)I = {x | ∀y.hx, yi ∈ RI implies y ∈ C I }
+ (⩾nR.C)I = {x | ]{y.hx, yi ∈ RI and y ∈ C I } ⩾ n}                                C 0 := C u         u
+                                                                                                    a:D∈A0
+                                                                                                             ∃U.(oa u D),
+ (⩽nR.C)I = {x | ]{y.hx, yi ∈ RI and y ∈ C I } ⩽ n}
+                                                                   where U is the universal role. It should be clear that C is
+   I is a model of a Tbox T (written I |= T ) if C I ⊆ DI
+                                                                   satisfiable with respect to hA, R, T i if and only if C 0 is sat-
+for each GCI C v̇ D in T . A concept C is called satisfiable       isfiable with respect to hR, T i.
+if there is an interpretation I with C I 6= ∅. A concept D
+subsumes a concept C (written C v D) if C I ⊆ DI holds
+                                                                   Lemma 7 (Abox Elimination) SROIQ concept satisfia-
+for each interpretation. For an interpretation I, an element
+                                                                   bility with respect to Aboxes, Rboxes, and Tboxes is poly-
+x ∈ ∆I is called an instance of a concept C if x ∈ C I .
+                                                                   nomially reducible to SROIQ concept satisfiability with
+   I satisfies (is a model of) an Abox A (I |= A) if for all
+                                                                   respect to Rboxes and Tboxes only.
+individual assertions φ ∈ A we have I |= φ, where
+    I |= a : C         if   aI ∈ C I ;                             Hence, in the following we will assume that Aboxes have
+             .                                                     been eliminated. Next, although we have the ‘real’ universal
+    I |= a =6 b        if   aI 6= bI ;
+    I |= (a, b) : R    if   haI , bI i ∈ RI ;                      role U present in the language, the following lemma shows
+    I |= (a, b) : ¬R   if   haI , bI i ∈
+                                       / RI .                      how general concept inclusion axioms can be internalised
+                                                                   while at the same time eliminating occurrences of the uni-
+  An Abox A is consistent with respect to an Rbox R and a          versal role U , using a simulated “universal” role U 0 , that is,
+Tbox T if there is a model I for R and T such that I |= A.         a transitive super-role of all roles (except U ) occurring in T
+                                                                   or R and their respective inverses. Recall that the universal
+   The above inference problems can be defined w.r.t. a role
+                                                                   role U is not allowed to appear in Rboxes.
+box R and/or a Tbox T in the usual way, i.e., by replacing
+interpretation with model of R and/or T .
+                                                                   Lemma 8 (Tbox and Universal Role Elimination) Let C,
+Reduction of Inference Problems                                    D be concepts, T a Tbox, and R = Rh ∪ Ra an Rbox. Let
+For DLs that are closed under negation, subsumption and            U 0 6= U be a role that does not occur in C, D, T , or R, and,
+(un)satisfiability of concepts can be mutually reduced: C v        for X a Tbox or a concept, let X 0 result from X by replacing
+D iff C u ¬D is unsatisfiable, and C is unsatisfiable iff C v      every occurrence of U with U 0 . We define
+⊥. Furthermore, a concept C is satisfiable iff the Abox {a :       CT 0 := ∀U 0 .     u ¬Ci0 t Di0 u              u       ∃U 0 .o ,
+                                                                                                                                
+C} (a a ‘new’ individual name) is consistent.                                      Ci0 v̇Di0 ∈T 0                  N3o∈T ∪C∪D
+   It is straightforward to extend these reductions to Rboxes         0
+                                                                                     0               0   0   0
+and Tboxes. In contrast, the reduction of inference prob-          RU
+                                                                    h := Rh ∪ {R v̇ U | R occurs in C , D , T , or R},
+lems w.r.t. a Tbox to pure concept inference problems (pos-           0
+                                                                                    0        0        0
+                                                                   RU
+                                                                    a := Ra ∪ {Tra(U ), Sym(U ), Ref(U )}, and
+sibly w.r.t. a role hierarchy), deserves special care: in Baader
+                                                                               0          0
+(1991); Schild (1991); Baader et al. (1993), the internalisa-      RU 0 := RU    U
+                                                                            h ∪ Ra . Then
+tion of GCIs is introduced, a technique that realises exactly
+this reduction. For SROIQ, this technique only needs to            • C is satisfiable w.r.t. T and R iff C 0 u CT 0 is satisfiable
+be slightly modified. We will show in a series of steps that,        w.r.t. RU 0 .
+in SROIQ, satisfiability of a concept C with respect to a          • D subsumes C with respect to T and R iff C 0 u¬D0 uCT 0
+triple hA, R, T i of, respectively, a SROIQ Abox, Rbox,              is unsatisfiable w.r.t. RU 0 .
+and Tbox, can be reduced to concept satisfiability of a con-
+cept C 0 with respect to an Rbox R0 , where the Rbox R0               The proof of Lemma 8 is similar to the ones that can be
+only contains role assertions of the form Dis(R, S), Ref(R),       found in Schild (1991) and Baader (1991). Most impor-
+or Asy(R), and the universal role U does not appear in C 0 .       tantly, it must be shown that (a): if a SROIQ-concept C
+   While nominals can be used to ‘internalise’ the Abox, in        is satisfiable with respect to a Tbox T and an Rbox R, then
+order to eliminate the universal role, we use a ‘simulated’        C, T , R have a nominal connected model, i.e., a model
+universal role U 0 , i.e., a reflexive, symmetric, and transi-     which is a union of connected components, where each such
+tive super-role of all roles and their inverses appearing in       component contains a nominal, and where any two elements
+of a connected component are connected by a role path over           Unfortunately, as shown in Horrocks & Sattler (2004), the
+those roles occurring in C, T or R, and (b): if y is reachable    size of BR can be exponential in the size of R. Horrocks &
+from x via a role path (possibly involving inverse roles), then   Sattler (2004) consider certain further syntactic restrictions
+            I
+hx, yi ∈ U 0 . These are easy consequences of the semantics       of role hierarchies (there called simple role hierarchies) that
+and the definition of U 0 and CT 0 , which guarantees that all    avoid this exponential blow-up. We conjecture that, without
+nominals are connected by U 0 links.                              some such further restriction, this blow-up is unavoidable.
+   Now, note also that, instead of having a role assertion        The following technical Lemma from Horrocks & Sattler
+Irr(R) ∈ Ra , we can add, equivalently, the GCI > v̇              (2004) will be needed later on.
+¬∃R.Self to T , which can in turn be internalised. Likewise,
+instead of asserting Ref(R), we can, equivalently, add the         Lemma 11
+GCI > v̇ ∃R.Self to T . However, in the case of Ref(R)            1. S ∈ L(BS ) and, if w v̇ S ∈ R, then w ∈ L(BS ).
+this replacement is only admissible for simple roles R and        2. If S is a simple role, then L(BS ) = {R | R v
+                                                                                                                 * S}.
+thus not possible (syntactically) in general.
+                                                                  3. L(BInv(S) ) = {Inv(w) | w ∈ L(BS )}.
+   Thus, using these equivalences (including the replace-
+ment of Rbox assertions of the form Sym(R) and Tra(R))            A Tableau for SROIQ
+and Lemmas 7 and 8, we arrive at the following theorem:
+                                                                  In the following, if not stated otherwise, C, D (possibly
+                                                                  with subscripts) denote SROIQ-concepts (not using the
+Theorem 9 (Reduction)                                             universal role), R, S (possibly with subscripts) roles, R =
+1. Satisfiability and subsumption of SROIQ-concepts w.r.t.        Rh ∪ Ra an Rbox, and RC the set of roles occurring in C
+   Tboxes, Aboxes, and Rboxes, are polynomially reducible         and R together with their inverses. Furthermore, as noted in
+   to (un)satisfiability of SROIQ-concepts w.r.t. Rboxes.         Theorem 9, we can (and will from now on) assume w.l.o.g.
+2. W.l.o.g., we can assume that Rboxes do not contain role        that all role assertions appearing in Ra are of the form
+   assertions of the form Irr(R), Tra(R), or Sym(R), and          Dis(R, S), Asy(R), or Ref(R).
+   that the universal role is not used.                              We start by defining fclos(C0 , R), the closure of a concept
+                                                                  C0 w.r.t. a regular role hierarchy R. Intuitively, this contains
+  With Theorem 9, all standard inference problems for             all relevant sub-concepts of C0 together with universal value
+SROIQ-concepts and Aboxes can be reduced to the prob-             restrictions over sets of role paths described by an NFA. We
+lem of determining the consistency of a SROIQ-concept             use NFAs in universal value restrictions to memorise the
+w.r.t. to an Rbox (both not containing the universal role),       path between an object that has to satisfy a value restriction
+where we can assume w.l.o.g. that all role assertions in the      and other objects. To do this, we “push” this NFA-value re-
+Rbox are of the form Ref(R), Asy(R), or Dis(R, S)—we              striction along all paths while the NFA gets “updated” with
+call such an Rbox reduced.                                        the path taken so far. For this “update”, we use the following
+                                                                  definition.
+                 SROIQ is Decidable
+                                                                  Definition 12 For B an NFA and q a state of B, B(q) de-
+In this section, we show that SROIQ is decidable. We              notes the NFA obtained from B by making q the (only) initial
+present a tableau-based algorithm that decides the consis-                                  S
+tency of a SROIQ concept w.r.t. a reduced Rbox, and               state of B, and we use q → q 0 ∈ B to denote that B has a
+                                                                               S 0
+therefore also all standard inference problems as discussed       transition q → q .
+above, see Theorem 9. Therefore, in the following, by Rbox
+we always mean reduced Rbox.                                         Without loss of generality, we assume all concepts to be
+   The algorithm tries to construct, for a SROIQ-concept          in negation normal form (NNF), that is, negation occurs
+C and an Rbox R, a tableau for C and R, that is, an abstrac-      only in front of concept names or in front of ∃R.Self. Any
+tion of a model of C and R.                                       SROIQ-concept can easily be transformed into an equiv-
+                                                                  alent one in NNF by pushing negations inwards using a
+   For a regular role hierarchy Rh and a (possibly inverse)
+                                                                  combination of De Morgan’s laws and equivalences such as
+role S occurring in Rh , a non-deterministic finite automaton
+                                                                  ¬(∃R.C) ≡ (∀R.¬C), ¬(⩽nR.C) ≡ (⩾(n + 1)R.C), etc.
+(NFA) BS is defined. The construction of these automata is
+                                                                  We use ¬C ˙ for the NNF of ¬C. Obviously, the length of
+identical to the one presented in Horrocks & Sattler (2004),
+                                                                  ¬C
+                                                                   ˙ is linear in the length of C.
+and we therefore refer to this paper for detailed definitions
+                                                                     For a concept C0 , clos(C0 ) is the smallest set that contains
+and proofs of the automata related results below.
+                                                                  C0 and that is closed under sub-concepts and ¬.       ˙ The set
+   The following proposition states that BS indeed captures
+                                                                  fclos(C0 , R) is then defined as follows:
+all implications between (paths of) roles and S that are con-
+sequences of the role hierarchy Rh , where L(BS ) denotes          fclos(C0 , R) := clos(C0 ) ∪ {∀BS (q).D |
+the language (a set of strings of roles) accepted by BS .
+                                                                                   ∀S.D ∈ clos(C0 ) and BS has a state q}.
+Proposition 10 I is a model of Rh if and only if, for each        It is not hard to show and well-known that the size of
+(possibly inverse) role S occurring in Rh , each word w ∈         clos(C0 ) is linear in the size of C0 . For the size of
+L(BS ), and each hx, yi ∈ wI , we have hx, yi ∈ S I .             fclos(C0 , R), we have mentioned above that, for a role S,
+the size of BS can be exponential in the depth of R. Since       and (P20) guarantee that nominals are indeed interpreted as
+there are at most linearly many concepts ∀S.D, this yields a     singleton sets, and, for roles names R ∈ RC0 , we set
+bound for the cardinality of fclos(C0 , R) that is exponential
+in the depth of R and linear in the size of C0 .                   RI := {hs0 , sn i ∈ (∆I )2 | exists s1 , . . . , sn−1 with
+                                                                          hsi , si+1 i ∈ E(Si+1 ) and S1 · · · Sn ∈ L(BR )}
+Definition 13 (Tableau) T = (S, L, E) is a tableau for C0
+w.r.t. R if                                                      The semantics of complex concepts is given through the def-
+• S is a non-empty set;                                          inition of the SROIQ-semantics. Due to Lemma 11.3 and
+• L : S → 2fclos(C0 ,R) maps each element in S to a set of       (P11), the semantics of inverse roles can either be given di-
+   concepts;                                                     rectly as for role names, or by setting (R− )I := {hy, xi |
+• E : RC0 → 2S×S maps each role to a set of pairs of             hx, yi ∈ RI }. Moreover, we have, by definition of I,
+   elements in S;                                                Lemma 11.2, (P11), and (P12) that, for T a simple role,
+• C0 ∈ L(s) for some s ∈ S.                                      T I = E(T ).
+Furthermore, for all s, t ∈ S, C, C1 , C2 ∈ fclos(C0 , R),          We have to show that I is a model of R and C0 . We begin
+o ∈ N ∩ fclos(C0 , R), R, S ∈ RC0 , and                          by showing that I |= R. Since R is reduced, we only have
+                                                                 to deal with role assertions of the form Dis(R, S), Ref(R),
+  S T (s, C) := {r ∈ S | hs, ri ∈ E(S) and C ∈ L(r)},            and Asy(R).
+the tableau T satisfies:                                            Consider an assertion Dis(R, S) ∈ R. By definition of
+                                                                 SROIQ-Rboxes, both R and S are simple roles, and thus
+ (P1) C ∈ L(s) =⇒ ¬C ∈     / L(s),                               RI = E(R) and S I = E(S). Moreover, (P16) implies
+      (C atomic or ∃R.Self);                                     E(R) ∩ E(S) = ∅, and thus RI ∩ S I = ∅. Next, if Ref(R) ∈
+ (P2) > ∈ L(s), and ⊥ ∈  / L(s);                                 Ra , (P17) and R ∈ L(BR ) (Lemma 11.1) imply Diag I ⊆
+ (P3) ∃R.Self ∈ L(s) =⇒ hs, si ∈ E(R);                           RI . Finally, if Asy(R) ∈ Ra then RI = E(R) since R
+ (P4) ¬∃R.Self ∈ L(s) =⇒ hs, si ∈  / E(R);                       is simple, and so hs, ti ∈ RI implies hs, ti ∈ E(R) and
+                                                                 so ht, si ∈/ E(R) by (P18), whence ht, si ∈  / RI . Thus I
+ (P5) C1 u C2 ∈ L(s) =⇒ C1 , C2 ∈ L(s);                          satisfies each role assertion in Ra .
+ (P6) C1 tC2 ∈ L(s) =⇒ C1 ∈ L(s) or C2 ∈ L(s);
+                                                                    Next, we have to show that I |= Rh . Due to Proposi-
+ (P7) ∀B(p).C ∈ L(s), hs, ti ∈ E(S),
+              S
+                                                                 tion 10, it suffices to prove that, for each (possibly inverse)
+      and p → q ∈ B(p) =⇒ ∀B(q).C ∈ L(t);                        role S, each word w ∈ L(BS ), and each hx, yi ∈ wI , we
+ (P8) ∀B.C ∈ L(s) and ε ∈ L(B) =⇒ C ∈ L(s);                      have hx, yi ∈ S I . The proof of this is identical to the case
+ (P9) ∀S.C ∈ L(s) =⇒ ∀BS .C ∈ L(s);                              of RIQ and can be found in Horrocks & Sattler (2004).
+(P10) ∃S.C ∈ L(s) =⇒ there is some r ∈ S with                       Secondly, we prove that I is a model of C0 . We show
+      hs, ri ∈ E(S) and C ∈ L(r);                                that C ∈ L(s) implies s ∈ C I for each s ∈ S and each
+(P11) hs, ti ∈ E(R) ⇐⇒ ht, si ∈ E(Inv(R));                       C ∈ fclos(A, R). This proof can be given by induction on
+(P12) hs, ti ∈ E(R) and R v * S =⇒ hs, ti ∈ E(S);
+                                                                 the length of concepts, where we count neither negation nor
+                                                                 integers in number restrictions. The only interesting cases
+(P13) (⩽nS.C) ∈ L(s) =⇒ ]S T (s, C) ⩽ n;
+                                                                 are C = (⩽nS.E), C = ∀S.E, and C = (¬)∃R.Self (for
+(P14) (⩾nS.C) ∈ L(s) =⇒ ]S T (s, C) ⩾ n;                         the other cases, see Horrocks, Sattler, & Tobies (2000); Hor-
+(P15) (⩽nS.C) ∈ L(s) and hs, ti ∈ E(S) =⇒                        rocks & Sattler (2002)):
+      C ∈ L(t) or ¬C ˙ ∈ L(t);
+                                                                 • If (⩽nS.E) ∈ L(s), then (P13) implies that
+(P16) Dis(R, S) ∈ Ra =⇒ E(R) ∩ E(S) = ∅;                           #S T (s, E) ≤ n.           Moreover, since S is simple,
+(P17) Ref(R) ∈ Ra =⇒ hs, si ∈ E(R);                                Lemma 11.2 implies that L(BS ) = {S 0 | S 0 v       * S},
+(P18) Asy(R) ∈ Ra =⇒ hs, ti ∈ E(R)                                 and (P12) implies that S I = E(S). Hence (P15) im-
+                     / E(R);
+      implies ht, si ∈                                             plies that, for all t, if hs, ti ∈ S I , then E ∈ L(t) or
+(P19) o ∈ L(r) for some r ∈ S;                                      ˙ ∈ L(t). By induction E I = {t | E ∈ L(t)}, and
+                                                                   ¬E
+(P20) o ∈ L(s) ∩ L(t) =⇒ s = t.                                    thus s ∈ (⩽nS.E)I .
+                                                                 • Let ∀S.E ∈ L(s) and hs, ti ∈ S I . From (P9) we
+Theorem 14 (Tableau) A SROIQ-concept C0 is satisfi-                have that ∀BS .E ∈ L(s). By definition of S I , there are
+able w.r.t. a reduced Rbox R iff there exists a tableau for        S1 . . . Sn ∈ L(BS ) and si with s = s0 , t = sn , and
+C0 w.r.t. R.                                                       hsi−1 , si i ∈ E(Si ). Applying (P7) n times, this yields
+                                                                   ∀BS (q).E ∈ L(t) for q a final state of BS . Thus (P8)
+   Proof: For the if direction, let T = (S, L, E) be a tableau
+                                                                   implies that E ∈ L(t). By induction, t ∈ E I , and thus
+for C0 w.r.t. R. We extend the relational structure of T and
+                                                                   s ∈ (∀S.E)I .
+then prove that this indeed gives a model.
+   More precisely, a model I = (∆I , ·I ) of C0 and R can        • Let ∃R.Self ∈ L(s). Then, by (P3), hs, si ∈ E(R) and,
+be defined as follows: we set ∆I := S, C I := {s | C ∈             since R ∈ L(BR ) and by definition of I, we have hs, si ∈
+L(s)} for concept names C in fclos(C0 , R), where (P19)            RI . It follows that s ∈ (∃R.Self)I .
+• Let ¬∃R.Self ∈ L(s). Then, by (P4), hs, si ∈   / E(R).         Definition 15 (Completion Graph) Let R be a reduced
+  Since R is a simple role, RI = E(R). Hence hs, si ∈
+                                                    / RI ,       Rbox, let C0 be a SROIQ-concept in NNF not using the
+                          I
+  and so s ∈ (¬∃R.Self) .                                        universal role, and let N be the set of nominals. A com-
+                                                                 pletion graph for C0 with respect to R is a directed graph
+                                                                                  .
+   For the converse, suppose I = (∆I , ·I ) is a model of C0     G = (V, E, L, =)6 where each node x ∈ V is labelled with
+w.r.t. R. We define a tableau T = (S, L, E) for C0 and R as      a set
+follows:
+                                                                    L(x) ⊆ fclos(C0 , R) ∪ N ∪ {(⩽mR.C) |
+    S := ∆I ;
+                                                                                  (⩽nR.C) ∈ fclos(C0 , R) and m ≤ n}
+E(R) := RI ; and
+                                                                 and each edge hx, yi ∈ E is labelled with a set of role
+ L(s) := {C ∈ fclos(C0 , R) | s ∈ C I }                          names L(hx, yi) containing (possibly inverse) roles occur-
+   ∪ {∀BS .C | ∀S.C ∈ fclos(C0 , R) and s ∈ (∀S.C)I }             ring in C0 or R. Additionally, we keep track of inequalities
+   ∪ {∀BR (q).C ∈ fclos(C0 , R) | S1 · · · Sn ∈ L(BR (q)) ⇒      between nodes of the graph with a symmetric binary relation
+                                                                   .
+                                                                 6= between the nodes of G.
+    s ∈ (∀S1 .∀S2 . · · · ∀Sn .C)I , ε ∈ L(BR (q)) ⇒ s ∈ C I }       In the following, we often use R ∈ L(hx, yi) as an abbre-
+                                                                  viation for hx, yi ∈ E and R ∈ L(hx, yi).
+We have to show that T satisfies (P1)–(P20), and restrict            If hx, yi ∈ E, then y is called a successor of x and x is
+our attention to the only new cases.                              called a predecessor of y. Ancestor is the transitive closure
+   For (P9), if ∀S.C ∈ L(s), then s ∈ (∀S.C)I and thus            of predecessor, and descendant is the transitive closure of
+∀BS .C ∈ L(s) by definition of T .                                successor. A node y is called an R-successor of a node x if,
+   For (P7), let ∀B(p).C ∈ L(s) and hs, ti ∈ E(S). Assume         for some R0 with R0 v * R, R ∈ L(hx, yi). A node y is called
+                                                                                               0
+                             S
+that there is a transition p → q in B(p) and ∀B(q).C 6∈ L(t).     a neighbour (R-neighbour) of a node x if y is a successor
+By definition of T , this can have two reasons:                   (R-successor) of x or if x is a successor (Inv(R)-successor)
+1. there is a word S2 . . . Sn          ∈     L(B(q)) and         of y.
+   t 6∈ (∀S2 . . . . ∀Sn .C)I .     However, this implies            For a role S and a node x in G, we define the set of x’s
+   that SS2 . . . Sn ∈ L(B(p)) and thus that we have              S-neighbours with C in their label, S G (x, C), as follows:
+   s ∈ (∀S.∀S2 . . . . ∀Sn .C)I , which contradicts, together    S G (x, C) := {y | y is an S-neighbour of x and C ∈ L(y)}.
+   with hs, ti ∈ S I , the definition of the semantics of
+   SROIQ concepts.                                                  G is said to contain a clash if there are nodes x and y
+                           I
+2. ε ∈ L(B(q)) and t 6∈ C . This implies that S ∈ L(B(p))         such that
+   and thus contradicts s ∈ (∀S.C)I .                            1. ⊥ ∈ L(x), or
+   For (P8), ε ∈ L(B(p)) implies s ∈ C I by definition of        2. for some concept name A, {A, ¬A} ⊆ L(x), or
+T , and thus C ∈ L(s).                                           3. x is an S-neighbour of x and ¬∃S.Self ∈ L(x), or
+   Finally, (P16)–(P20) follow immediately from the defi-        4. there is some Dis(R, S) ∈ Ra and y is an R- and an
+nition of the semantics.                                            S-neighbour of x, or
+                                                                5. there is some Asy(R) ∈ Ra and y is an R-neighbour of x
+                                                                    and x is an R-neighbour of y, or
+The Tableau Algorithm
+                                                                 6. there is some concept (⩽nS.C) ∈ L(x) and
+In this section, we present a terminating, sound, and                                                        .
+                                                                    {y0 , . . . , yn } ⊆ S G (x, C) with yi =
+                                                                                                            6 yj for all 0 ≤ i <
+complete tableau algorithm that decides consistency of              j ≤ n, or
+SROIQ-concepts not using the universal role w.r.t. reduced                                  .
+                                                                 7. for some o ∈ N, x =    6 y and o ∈ L(x) ∩ L(y).
+Rboxes, and thus, using Theorem 9, also concept satisfiabil-
+ity w.r.t. Rboxes, Tboxes and Aboxes.                               If o1 , . . . , o` are all the nominals occurring in C0 then the
+   We first define the underlying data structures and corre-     tableau algorithm is initialised with the completion graph
+sponding operations. For more detailed explanations con-         G = ({r0 , r1 . . . , r` }, ∅, L, ∅) with L(r0 ) = {C0 } and
+cerning the intuitions underlying these definitions, consult     L(ri ) = {oi } for 1 ≤ i ≤ `. G is then expanded by
+Horrocks & Sattler (2005).                                       repeatedly applying the expansion rules given in Figure 1,
+   The algorithm generates a completion graph, a structure       stopping if a clash occurs.
+that, if complete and clash-free, can be unravelled to a (pos-
+sibly infinite) tableau for the input concept and Rbox. More-       Before describing the tableau algorithm in more detail, we
+over, it is shown that the algorithm returns a complete and      define some terms and operations used in the (application of
+clash-free completion graph for C0 and R if and only if there    the) expansion rules:
+exists a tableau for C0 and R, and thus with Lemma 14, if
+and only if the concept C0 is satisfiable w.r.t. R.              Nominal Nodes and Blockable Nodes A node x is a
+   As usual, in the presence of transitive roles, blocking is    nominal node if L(x) contains a nominal. A node that is
+employed to ensure termination of the algorithm (Horrocks,       not a nominal node is a blockable node. A nominal o ∈ N
+Sattler, & Tobies, 2000).                                        is said to be new in G if no node in G has o in its label.
+ Blocking A node x is label blocked if it has ancestors x0 ,        Level (of Nominal Nodes) Let o1 , . . . , o` be all the nom-
+ y and y 0 such that                                                inals occurring in the input concept D. We define the level
+1. x is a successor of x0 and y is a successor of y 0 ,             of a node inductively as follows:
+2. y, x and all nodes on the path from y to x are blockable,        • each (nominal) node x with an oi ∈ L(x), 1 ≤ i ≤ `, is
+3. L(x) = L(y) and L(x0 ) = L(y 0 ), and                              of level 0, and
+4. L(hx0 , xi) = L(hy 0 , yi).                                      • a nominal node x is of level i if x is not of some level
+ In this case, we say that y blocks x. A node is blocked if           j < i and x has a neighbour that is of level i − 1.
+ either it is label blocked or it is blockable and its predeces-    Strategy (of Rule Application) The expansion rules in
+ sor is blocked; if the predecessor of a blockable node x is        Figure 1 are applied according to the following strategy:
+ blocked, then we say that x is indirectly blocked.
+                                                                    1. the o-rule is applied with highest priority,
+ Generating and Shrinking Rules and Safe Neighbours
+ The ⩾-, ∃- and NN-rules are called generating rules, and           2. next, the ⩽- and the NN-rule are applied, and they are ap-
+ the ⩽- and the o-rule are called shrinking rules. An R-               plied first to nominal nodes with lower levels (before they
+ neighbour y of a node x is safe if (i) x is blockable or if (ii)      are applied to nodes with higher levels). In case they are
+ x is a nominal node and y is not blocked.                             both applicable to the same node, the NN-rule is applied
+ Pruning When a node y is merged into a node x, we                     first.
+ “prune” the completion graph by removing y and, recur-             3. all other rules are applied with a lower priority.
+ sively, all blockable successors of y. More precisely, prun-
+                                                         .
+ ing a node y (written Prune(y)) in G = (V, E, L, =)    6 yields       We are now ready to finish the description of the tableau
+ a graph that is obtained from G as follows:                        algorithm. A completion graph is complete if it contains a
+1. for all successors z of y, remove hy, zi from E and, if z is     clash, or when none of the rules is applicable. If the expan-
+    blockable, Prune(z);                                            sion rules can be applied to C0 and R in such a way that
+                                                                    they yield a complete, clash-free completion graph, then the
+2. remove y from V .                                                algorithm returns “C0 is satisfiable w.r.t. R”, and “C0 is un-
+ Merging In some rules, we “merge” one node into another            satisfiable w.r.t. R” otherwise.
+ node. Intuitively, when we merge a node y into a node x, we
+ add L(y) to L(x), “move” all the edges leading to y so that        Termination, Soundness, and Completeness
+ they lead to x and “move” all the edges leading from y to          All but the Self–Ref-rule have been used before for frag-
+ nominal nodes so that they lead from x to the same nominal         ments of SROIQ, see Horrocks, Sattler, & Tobies (1999);
+ nodes; we then remove y (and blockable sub-trees below y)          Horrocks & Sattler (2002, 2004), and the three ∀i -rules are
+ from the completion graph. More precisely, merging a node          the obvious counterparts to the tableau conditions (P7)–
+                                                              .
+ y into a node x (written Merge(y, x)) in G = (V, E, L, =)  6       (P9).
+ yields a graph that is obtained from G as follows:                    As usual, we prove termination, soundness, and complete-
+1. for all nodes z such that hz, yi ∈ E                             ness of the tableau algorithm to show that it indeed decides
+                                                                    satisfiability of SROIQ-concepts w.r.t. Rboxes.
+  (a) if {hx, zi, hz, xi} ∩ E = ∅, then add hz, xi to E and set
+      L(hz, xi) = L(hz, yi),
+                                                                    Theorem 16 (Termination, Soundness, and Completeness)
+  (b) if hz, xi ∈ E, then set L(hz, xi) = L(hz, xi) ∪
+      L(hz, yi),                                                     Let C0 be a SROIQ-concept in NNF and R a reduced
+  (c) if hx, zi ∈ E, then set L(hx, zi) = L(hx, zi) ∪               Rbox.
+      {Inv(S) | S ∈ L(hz, yi)}, and
+                                                                    1. The tableau algorithm terminates when started with C0
+  (d) remove hz, yi from E;
+                                                                       and R.
+2. for all nominal nodes z such that hy, zi ∈ E                     2. The expansion rules can be applied to C0 and R such that
+  (a) if {hx, zi, hz, xi} ∩ E = ∅, then add hx, zi to E and set        they yield a complete and clash-free completion graph if
+      L(hx, zi) = L(hy, zi),                                           and only if there is a tableau for C0 w.r.t. R.
+  (b) if hx, zi ∈ E, then set L(hx, zi) = L(hx, zi) ∪
+      L(hy, zi),                                                    Proof: (1): The algorithm constructs a graph that consists of
+                                                                    a set of arbitrarily interconnected nominal nodes, and “trees”
+  (c) if hz, xi ∈ E, then set L(hz, xi) = L(hz, xi) ∪
+                                                                    of blockable nodes with each tree rooted in r0 or in a nomi-
+      {Inv(S) | S ∈ L(hy, zi)}, and
+                                                                    nal node, and where branches of these trees might end in an
+  (d) remove hy, zi from E;                                         edge leading to a nominal node.
+3. set L(x) = L(x) ∪ L(y);                                             Termination is a consequence of the usual SHIQ condi-
+            .                         .                             tions with respect to the blockable tree parts of the graph,
+4. add x = 6 z for all z such that y =
+                                     6 z; and
+                                                                    plus the fact that there is a bound on the number of new
+5. Prune(y).                                                        nominal nodes that can be added to G by the NN-rule.
+ If y was merged into x, we call x a direct heir of y, and we          The termination proof for the SROIQ tableaux is virtu-
+ use being an heir of another node for the transitive closure       ally identical to the one for SHOIQ, whence we omit the
+ of being a “direct heir”.
+                                                                          details and refer the reader to Horrocks & Sattler (2005).
+u-rule:        if    C1 u C2 ∈ L(x), x is not indirectly blocked,         To see this, note first that the blocking technique employed
+                     and {C1 , C2 } 6⊆ L(x),                              for SROIQ is identical to the one for SHOIQ. Next,
+               then L(x) −→ L(x) ∪ {C1 , C2 }
+                                                                          the closure fclos(C0 , R) is defined differently, comprising
+t-rule:        if C1 t C2 ∈ L(x), x is not indirectly blocked,
+                     and {C1 , C2 } ∩ L(x) = ∅                            concepts of the form ∀BS (q).C, generally yielding a size of
+               then L(x) −→ L(x) ∪ {E} for some E ∈ {C1 , C2 }            fclos(C0 , R) that can be exponential in the depth of the role
+∃-rule:        if ∃S.C ∈ L(x), x is not blocked, and                      hierarchy. However, the construction of the automata can
+                     x has no S-neighbour y with C ∈ L(y)                 also be considered a pre-processing step and part of the in-
+               then create a new node y with                              put, in that case keeping the polynomial bound on the size
+                     L(hx, yi) := {S} and L(y) := {C}                     of the closure relative to the input. Furthermore, it should be
+Self–Ref-rule: if ∃S.Self ∈ L(x) or Ref(S) ∈ Ra ,                         clear that the new Self–Ref-rule (only adding new reflexive
+                     x is not blocked, and S ∈     / L(hx, xi)            edges) as well as the new clash conditions do not affect the
+               then add an edge hx, xi if it does not yet exist, and      termination of the algorithm.
+                     set L(hx, xi) −→ L(hx, xi) ∪ {S}                     (2): For the “if” direction, we can obtain a tableau T =
+∀1 -rule:      if ∀S.C ∈ L(x), x is not indirectly blocked,               (S, L0 , E) from a complete and clash-free completion graph
+                     and ∀BS .C 6∈ L(x)
+               then L(x) −→ L(x) ∪ {∀BS .C}
+                                                                          G by unravelling blockable “tree” parts of the graph as usual
+∀2 -rule:      if ∀B(p).C ∈ L(x), x is not indirectly blocked,            (these are the only parts where blocking can apply).
+                        S                                                    More precisely, paths are defined as follows. For a label
+                     p → q in B(p), and there is an S-neighbour
+                                                                          blocked node x, let b(x) denote a node that blocks x.
+                     y of x with ∀B(q).C ∈       / L(y),
+               then L(y) −→ L(y) ∪ {∀B(q).C}                                 A path is a sequence of pairs of blockable nodes of
+∀3 -rule:      if ∀B.C ∈ L(x), x is not indirectly blocked,               G of the form p = h(x0 , x00 ), . . . , (xn , x0n )i. For such a
+                     ε ∈ L(B) and C 6∈ L(x)                               path, we define Tail(p) := xn and Tail0 (p) := x0n . With
+               then L(x) −→ L(x) ∪ {C}                                    hp|(xn+1 , x0n+1 )i we denote the path
+choose-rule: if (⩽nS.C) ∈ L(x), x is not indirectly blocked,
+                                                                                    h(x0 , x00 ), . . . , (xn , x0n ), (xn+1 , x0n+1 )i.
+                     and there is an S-neighbour y of x
+                     with {C, ¬C}    ˙    ∩ L(y) = ∅                      The set Paths(G) is defined inductively as follows:
+               then L(y) −→ L(y) ∪ {E} for some E ∈ {C, ¬C}       ˙       • For each blockable node x of G that is a successor of a
+⩾-rule:        if 1. (⩾nS.C) ∈ L(x), x is not blocked
+                                                                             nominal node or a root node, h(x, x)i ∈ Paths(G), and
+                  2. there are not n safe S-neighbours
+                     y1 , . . . , yn of x with C ∈ L(yi )                 • For a path p ∈ Paths(G) and a blockable node y in G:
+                                   .
+                     and yi =    6 yj for 1 ≤ i < j ≤ n                      – if y is a successor of Tail(p) and y is not blocked, then
+               then create n new nodes y1 , . . . , yn with                    hp|(y, y)i ∈ Paths(G), and
+                     L(hx, yi i) = {S}, L(yi ) = {C},
+                                   .                                         – if y is a successor of Tail(p) and y is blocked, then
+                     and yi =     6 yj for 1 ≤ i < j ≤ n.
+⩽-rule:        if 1. (⩽nS.C) ∈ L(z), z is not indirectly blocked               hp|(b(y), y)i ∈ Paths(G).
+                  2. ]S G (z, C) > n and there are two S-neighbours       Please note that, due to the construction of Paths, all nodes
+                                                                     .
+                     x, y of z with C ∈ L(x) ∩ L(y), and not x =    6 y   occurring in a path are blockable and, for p ∈ Paths(G)
+               then 1. if x is a nominal node then Merge(y, x)            with p = hp0 |(x, x0 )i, x is not blocked, x0 is blocked iff
+                     2. else, if y is a nominal node or an                x 6= x0 , and x0 is never indirectly blocked. Furthermore, the
+                     ancestor of x then Merge(x, y)
+                                                                          blocking condition implies L(x) = L(x0 ).
+                     3. else Merge(y, x)
+o-rule:        if for some o ∈ NI there are 2 nodes x, y
+                                                                             Next, we use Nom(G) for the set of nominal nodes in G,
+                     with o ∈ L(x) ∩ L(y) and not x =
+                                                             .
+                                                            6 y           and define a tableau T = (S, L0 , E) from G as follows.
+               then Merge(x, y)                                                        S = Nom(G) ∪ Paths(G)
+NN-rule:       if 1. (⩽nS.C) ∈ L(x), x is a nominal node, and
+                                                                                             L(Tail(p)) if p ∈ Paths(G)
+                                                                                           
+                     there is a blockable S-neighbour y of x such                 L0 (p) =
+                     that C ∈ L(y) and x is a successor of y,                                L(p)       if p ∈ Nom(G)
+                  2. there is no m such that 1 ⩽ m ⩽ n,
+                     (⩽mS.C) ∈ L(x), and there exist m nominal                    E(R) = E1 ∪ E2 ∪ E3 ∪ E4 , where
+                     S-neighbours z1 , . . . , zm of x with C ∈ L(zi )    E1 = {hp, qi ∈ Paths(G) × Paths(G) |
+                                   .
+                     and zi =   6 zj for all 1 ≤ i < j ≤ m.
+               then 1. guess m with 1 ⩽ m ⩽ n,                               q = hp|(x, x0 )i and x0 is an R-successor of Tail(p), or
+                         and set L(x) = L(x) ∪ {(⩽mS.C)}                     p = hq|(x, x0 )i and x0 is an Inv(R)-successor of Tail(q)}
+                      2. create m new nodes y1 , . . . , ym with
+                         L(hx, yi i) = {S}, L(yi ) = {C, oi },            E2 = {hp, xi ∈ Paths(G) × Nom(G) |
+                         for each oi ∈ NI new in G,                                               x is an R-neighbour of Tail(p)}
+                                       .
+                         and yi =     6 yj for 1 ≤ i < j ≤ m.
+                                                                          E3 = {hx, pi ∈ Nom(G) × Paths(G) |
+Figure 1: The Expansion Rules for the SROIQ Tableau                                              Tail(p) is an R-neighbour of x}
+Algorithm.                                                                E4 = {hx, yi ∈ Nom(G) × Nom(G) |
+                                                                                                     y is an R-neighbour of x}
+   We already commented above on S, and L0 is straightfor-             ∗ If x is a nominal node, then hs, xi ∈ E(R) and C ∈
+ward. Unfortunately, E is slightly cumbersome because we                 L0 (x).
+must distinguish between blockable and nominal nodes.                  ∗ If x is a blockable node, then x is a safe R-neighbour
+C LAIM : T is a tableau for C0 with respect to R.                        of s and thus not blocked. Hence there is a path p ∈
+   Firstly, by definition of the algorithm, there is an heir x0          Paths(G) with Tail(p) = x, hs, pi ∈ E(R) and C ∈
+of r0 with C0 ∈ L(x0 ). By the ⩽-rule, x0 is either a root               L0 (p).
+node or a nominal node, and thus cannot be blocked. Hence           • (P11) and (P12) are immediate consequences of the def-
+there is some s ∈ S with C0 ∈ L0 (s). Next, we prove that             inition of “R-successor” and “R-neighbour”, as well as
+T satisfies each (Pi).                                                the definition of E.
+• (P1), (P2), (P5) and (P6) are trivially implied by the def-       • for (P13), consider some s ∈ S with (⩽nR.C) ∈ L0 (s).
+   inition of L0 and completeness of G.                               Clash-freeness implies the existence of at most n R-
+• (P3) and (P17) follow from the construction of E and                neighbours yi of s with C ∈ L(yi ). By construction, each
+   completeness of G, and (P4) follows from clash-freeness.           t ∈ S with hs, ti ∈ E(R) corresponds to an R-neighbour
+• for (P7), consider a tuple hs, ti ∈ E(R) with ∀B(p).C ∈             yi of s or Tail(s), and none of these R-neighbours gives
+                      R                                               rise to more than one such yi . Moreover, since L0 (t) =
+   L0 (s) and p → q ∈ B(p). We have to show that                      L(yi ), (P13) is satisfied.
+   ∀B(q).C ∈ L (t) and distinguish four different cases:
+                    0
+                                                                    • for (P14), consider some s ∈ S with (⩾nR.C) ∈ L0 (s).
+   – if hs, ti ∈ Paths(G) × Paths(G), then ∀B(p).C ∈
+      L(Tail(s)) and                                                  – if s ∈ Nom(G), then completeness implies the exis-
+    ∗ either Tail0 (t) is an R-successor of Tail(s). Hence              tence of n safe R-neighbours y1 , . . . , yn of s with and
+        completeness implies ∀B(q).C ∈ L(Tail0 (t)), and by             yj 6= yj , for each i 6= j, and C ∈ L(yi ), for each
+        definition of Paths(G), either Tail0 (t) = Tail(t), or          1 ≤ i ≤ n. By construction, each yi corresponds to a
+        Tail(t) blocks Tail0 (t) and the blocking condition im-         ti ∈ S with ti 6= tj , for each i 6= j:
+        plies L(Tail0 (t)) = L(Tail(t)).                               ∗ if yi is blockable, then it cannot be blocked since it
+    ∗ or Tail0 (s) is an Inv(R)-successor of Tail(t). Again,              is a safe R-neighbour of s. Hence there is a path
+        either Tail0 (s) = Tail(s), or Tail(s) blocks Tail0 (s)           hp|(yi , yi )i ∈ S and hs, hp|(yi , yi )ii ∈ E(R).
+        in which case the blocking condition implies that              ∗ if yi is a nominal node, then hs, yi i ∈ E(R).
+        ∀B(p).C ∈ L(Tail0 (s)), and thus completeness im-             – if s ∈ Paths(G), then completeness implies the ex-
+        plies that ∀B(q).C ∈ L(Tail(t)).                                istence of n R-neighbours y1 , . . . , yn of Tail(s) with
+   – if hs, ti ∈ Nom(G) × Nom(G), then ∀B(p).C ∈ L(s)                   yj 6= yj , for each i 6= j, and C ∈ L(yi ), for each
+      and t is an R-neighbour of s. Hence completeness im-              1 ≤ i ≤ n. By construction, each yi corresponds to a
+      plies ∀B(q).C ∈ L(t).                                             ti ∈ S with ti 6= tj , for each i 6= j:
+   – if hs, ti ∈ Nom(G)×Paths(G), then ∀B(p).C ∈ L(s)                  ∗ if yi is safe, then it can be blocked if it is a succes-
+      and Tail(t) is an R-neighbour of s. Hence complete-                 sor of Tail(s). In this case, the “pair” construction
+      ness implies ∀B(q).C ∈ L(Tail(t)).                                  in our definition of paths ensure that, even if b(yi ) =
+   – if hs, ti ∈ Paths(G) × Nom(G), then ∀B(p).C ∈                        b(yj ), for some i 6= j, we still have hp|(b(yi ), yi )i =
+                                                                                                                                   6
+      L(Tail(s)) and t is an R-neighbour of Tail(s). Hence                hp|(b(yj ), bj )i.
+      completeness implies ∀B(q).C ∈ L(t).                             ∗ if yi is unsafe, then hs, yi i ∈ E(R).
+   In all four cases, by definition of L0 , we have ∀B(q).C ∈           Hence all ti are different and, by construction, C ∈
+   L0 (t).                                                              L0 (ti ), for each 1 ≤ i ≤ n.
+• (P8) and (P9) follow from completeness of G.                      • (P15) is satisfied due to completeness of G and the fact
+• for (P10), consider some s ∈ S with ∃R.C ∈ L0 (s).                  that each t ∈ S with hs, ti ∈ E(R) corresponds to an R-
+                                                                      neighbour of s (in case s ∈ Nom(G)) or of Tail(s) (in
+   – If s ∈ Paths(G), then ∃R.C ∈ L(Tail(s)), Tail(s) is              case s ∈ Paths(G)).
+      not blocked, and completeness of T implies the exis-
+      tence of an R-neighbour y of Tail(s) with C ∈ L(y).           • (P16) and (P18) follow from clash-freeness and defini-
+    ∗ If y is a nominal node, then y ∈ S, C ∈ L0 (y), and             tion of E, (P19) follows trivially from the initialisation of
+        hs, yi ∈ E(R).                                                G, and (P20) is due to completeness of G and the fact
+                                                                      that nominal nodes are not “unravelled”.
+    ∗ If y is blockable and a successor of Tail(s), then
+        hs|(ỹ, y)i ∈ S, for ỹ = y or ỹ = b(y), C ∈
+        L0 (hs|(ỹ, y)i), and hs, hs|(ỹ, y)ii ∈ E(R).                 For the “only if” direction, given a tableau T = (S, L0 , E)
+    ∗ If y is blockable and a predecessor of Tail(s), then          for C0 w.r.t. R, we can apply the non-deterministic rules,
+        s = hp|(y, y)|(Tail(s), Tail0 (s))i, C ∈ L0 (hp|(y, y)i),   i.e., the t-, choose-, ⩽-, and NN-rule, in such a way that we
+        and                                                         obtain a complete and clash-free graph: inductively with the
+        hs, hp|(y, y)ii ∈ E(R).                                     generation of new nodes, we define a mapping π from nodes
+   – If s ∈ Nom(G), then completeness implies the exis-             in the completion graph to individuals in S of the tableau in
+      tence of some R-successor x of s with C ∈ L(x).               such a way that,
+1. for each node x, L(x) ⊆ L0 (π(x)),                             Blackburn, P., and Seligman, J. 1995. Hybrid languages. J.
+2. for each pair of nodes x, y and each role R, if y is an R-       of Logic, Language and Information 4:251–272.
+    successor of x, then hπ(x), π(y)i ∈ E(R), and                 Casati, R., and Varzi, A. 1999. Parts and Places. The Struc-
+       .                                                            ture of Spatial Representation. Cambridge, MA: MIT
+3. x =6 y implies π(x) 6= π(y).
+                                                                    Press.
+    This is analogous to the proof in Horrocks, Sattler, &
+ Tobies (1999) with the additional observation that, due to       Goodwin, J. 2005. Experiences of Using OWL at the Ord-
+ (P20), application of the o-rule does not lead to a clash of       nance Survey. In Proc. of OWL: Experiences and Direc-
+ the form (7) as given in Definition 15. Similarly, an appli-       tions.
+ cation of the Self–Ref-rule does not lead to a clash of the      Horrocks, I., and Sattler, U. 2001. Ontology reasoning in
+ form (3) due to Condition (P4), a clash of the form (4) can        the SHOQ(D) description logic. In Proc. of IJCAI-17,
+ not occur due to (P16), and a clash of the form (5) can not        199–204.
+ occur due to (P18).
+                                                                  Horrocks, I., and Sattler, U. 2002. Optimised reasoning for
+                                                           
+                                                                    SHIQ. In Proc. of ECAI-15.
+  From Theorems 9, 14 and 16, we thus arrive at the fol-          Horrocks, I., and Sattler, U. 2004. Decidability of SHIQ
+lowing theorem:                                                     with complex role inclusion axioms. Artificial Intelli-
+                                                                    gence 160:79–104.
+Theorem 17 (Decidability) The tableau algorithm decides
+satisfiability and subsumption of SROIQ-concepts with re-         Horrocks, I., and Sattler, U. 2005. A Tableaux Decision
+spect to Aboxes, Rboxes, and Tboxes.                                Procedure for SHOIQ. In Proc. of IJCAI-19. Morgan
+                                                                    Kaufmann, Los Altos.
+             Outlook and Future Work                              Horrocks, I.; Kutz, O.; and Sattler, U. 2005. The Irresistible
+We introduced a description logic, SROIQ, that overcomes            SRIQ. In Proc. of OWL: Experiences and Directions.
+certain shortcomings in expressiveness of other DLs. We           Horrocks, I.; Patel-Schneider, P. F.; and van Harmelen, F.
+have used SHOIQ and RIQ as a starting point, extended               2003. From SHIQ and RDF to OWL: The Making of a
+them with “useful-yet-harmless” expressive means, and ex-           Web Ontology Language. J. of Web Semantics 1(1):7–26.
+tended the tableau algorithm accordingly. SROIQ is in-
+tended to be a basis for future extensions of OWL, and has        Horrocks, I.; Sattler, U.; and Tobies, S. 1999. Practical Rea-
+already been adopted as the logical basis of OWL 1.1.               soning for Expressive Description Logics. In Ganzinger,
+   It is left for future work to determine whether the restric-     H.; McAllester, D.; and Voronkov, A., eds., Proc. of
+tions to simple roles can be relaxed, to pinpoint the exact         LPAR-6, volume 1705 of LNAI, 161–180. Springer.
+computational complexity of SROIQ, and to include fur-            Horrocks, I.; Sattler, U.; and Tobies, S. 2000. Reason-
+ther role assertions such as the more general version of an-        ing with individuals for the description logic SHIQ. In
+tisymmetry to allow a better modeling of mereological no-           MacAllester, D., ed., Proc. of CADE-17, volume 1831 of
+tions (Goodwin, 2005).                                              LNCS. Germany: Springer.
+   A further line of investigation concerns concrete datatypes    Pan, J., and Horrocks, I. 2003. Web ontology reasoning with
+with inverse functional datatype properties: these are of in-       datatype groups. In Fensel, D.; Sycara, K.; and Mylopou-
+terest since they allow to express simple key constraints. For      los, J., eds., Proc. of ISWC 2003, number 2870 in LNCS,
+instance, we might want to use a datatype property SSN for          47–63. Springer.
+social security number as a key for US citizen.
+                                                                  Schaerf, A. 1994. Reasoning with individuals in concept
+                        References                                  languages. Data and Knowledge Engineering 13(2):141–
+                                                                    176.
+Areces, C.; Blackburn, P.; Hernandez, B.; and Marx, M.
+  2003. Handling Boolean Aboxes. In Proc. of DL 2003.             Schild, K. 1991. A Correspondence Theory for Termino-
+                                                                    logical Logics: Preliminary Report. In Proc. of IJCAI-12,
+Baader, F., and Hanschke, P. 1991. A Schema for Integrating
+                                                                    466–471.
+  Concrete Domains into Concept Languages. In Proc. of
+  IJCAI-12, 452–457.                                              Simons, P. 1987. Parts: A Study in Ontology. Oxford:
+                                                                    Clarendon Press.
+Baader, F.; Bürckert, H.-J.; Nebel, B.; Nutt, W.; and Smolka,
+  G. 1993. On the Expressivity of Feature Logics with             Wolstencroft, K.; Brass, A.; Horrocks, I.; Lord, P.; Sattler,
+  Negation, Functional Uncertainty, and Sort Equations.             U.; Turi, D.; and Stevens, R. 2005. A Little Semantic
+  Journal of Logic, Language and Information 2:1–18.                Web Goes a Long Way in Biology. In Proc. of ISWC-4,
+Baader, F.; Lutz, C.; Milicic, M.; Sattler, U.; and Wolter,         number 3729 in LNCS, 786–800. Springer.
+  F. 2005. Integrating Description Logics and Action For-
+  malisms: First Results. In Proc. of AAAI-20. AAAI Press.
+Baader, F. 1991. Augmenting Concept Languages by Tran-
+  sitive Closure of Roles: An Alternative to Terminological
+  Cycles. In Proc. of IJCAI-12.
+

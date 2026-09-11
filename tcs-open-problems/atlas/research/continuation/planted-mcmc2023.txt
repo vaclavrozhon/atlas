@@ -1,0 +1,1392 @@
+                                                    FINDING PLANTED CLIQUES USING GRADIENT DESCENT
+
+                                                                REZA GHEISSARI∗ , AUKOSH JAGANNATH† , AND YIMING XU‡
+
+
+
+
+                                                 Abstract. The planted clique problem is a paradigmatic model of statistical-to-computational
+                                                 gaps: the planted clique is information-theoretically detectable if its size k ≥ 2 log2 n but polynomial-
+                                                                                                                  √
+arXiv:2311.07540v2 [cs.DS] 15 May 2025
+
+
+
+
+                                                 time algorithms only exist for the recovery task when k = Ω( n). By now, there are many algo-
+                                                                                         √
+                                                 rithms that succeed as soon as k = Ω( n). Glaringly, however, no black-box optimization method,
+                                                 e.g., gradient descent or the Metropolis process, has been shown to work. In fact, Chen, Mossel,
+                                                 and Zadik recently showed that any Metropolis process whose state space is the set of cliques fails
+                                                 to find any sub-linear sized planted clique in polynomial time if initialized naturally from the empty
+                                                 set. We show that using the method of Lagrange multipliers, namely optimizing the Hamiltonian
+                                                 given by the sum of the objective function and the clique constraint over the space of all subgraphs,
+                                                 succeeds. In particular, we prove that Markov chains which minimize this Hamiltonian (gradi-
+                                                 ent descent and a low-temperature relaxation of it) succeed at recovering planted cliques of size
+                                                         √
+                                                 k = Ω( n) if initialized from the full graph. Importantly, initialized from the empty set, the relax-
+                                                 ation still does not help the gradient descent find sub-linear planted cliques. We also demonstrate
+                                                 robustness of these Markov chain approaches under a natural contamination model.
+
+                                                                                         1. Introduction
+                                            The most commonly used method for solving constrained optimization problems is the method
+                                         of Lagrange multipliers. Here one runs gradient descent on an energy function, or Hamiltonian,
+                                         which is given by the sum of the objective function and the constraint. In many of the central
+                                         problems arising out of the recent literature in computational complexity of statistical inference,
+                                         however, there is a substantial gap between the performance guarantees for this black-box method
+                                         and problem-specific methods. From this perspective, it is natural to try to close the gap in arguably
+                                         the central problem in the field, namely the planted clique problem.
+                                            The planted clique problem is the algorithmic task of finding a planted clique with k vertices
+                                         inside an Erdös–Rényi G(n, 21 ) random graph. This task was first introduced in the work of Jerrum
+                                         [Jer92] as a planted version of the maximum clique problem proposed by Karp [Kar76]. Since then,
+                                         the planted clique problem has become a central problem in average-case complexity in its own
+                                         right as it is one of the simplest models exhibiting a statistical-to-computational gap: the clique
+                                         is information-theoretically recoverable if k ≥ 2 log2 n, but
+                                                                                                     √ it is expected to be algorithmically
+                                         intractable to recover in polynomial time whenever k = o( n). Indeed, there is a substantial and
+                                         influential line of recent work in which various problems are shown to have average case reductions
+                                         to the planted clique problem (more precisely, its detection analogue) including the sparse PCA
+                                         problem [BR13] and certain community detection problems [HWX15], and more broadly a hierarchy
+                                         of reductions of [BB20] to planted clique with generalized priors.
+                                            √ now, many algorithms are known to succeed√ for recovery of the planted clique when k =
+                                            By
+                                         Ω( n). Kucera [Kuc95] noticed that √       if k ≥ C n log n, the k vertices of the largest degree
+                                         typically form the planted clique. The n threshold was then attained by a spectral algorithm
+
+                                           ∗; Department of Mathematics, Northwestern University. gheissari@northwestern.edu.
+                                           †: Department of Statistics and Actuarial Science, Department of Applied Mathematics, and Cheriton School of
+                                         Computer Science, University of Waterloo. a.jagannath@uwaterloo.ca.
+                                           ‡: Department of Mathematics, University of Kentucky. yiming.xu@uky.edu.
+in [AKS98]; see also the refinement of [McS01] and semi-definite programs of [FK00, AV11]. Other
+fast algorithms have been provided for the planted clique problem including multi-stage algo-
+rithms of [FR10, DGGP14] and a message-passing-based algorithm by [DM15]. On the hardness
+side, there have been low-degree semidefinite programming refutations [FK03], statistical query
+lower bounds [FGR+ 17], and sum-of-squares lower bounds [MPW15, DM15, HKP+ 18] culminating
+in [BHK+ 19], together indicating canonical families of “low-degree”
+                                                                 √      algorithms cannot succeed at
+recovering the planted clique in polynomial time when k = o( n).                                   √
+   Prior to these hardness results, the main argument for algorithmic intractability when k = o( n)
+was the work of Jerrum [Jer92]. Jerrum observed that gradient descent restricted to the constraint
+set (i.e., only moving on the space of cliques) fails to find the planted clique; moreover, he showed
+that a Markov Chain Monte Carlo (MCMC) relaxation, namely the Metropolis process         √      on the
+set of cliques is slow to mix. Since problem-specific algorithms work when k = Ω( n), Jerrum
+posited that if the Metropolis process could not also find large cliques above this scale it would be
+a “severe
+        √ indictment of the Metropolis process”. Despite the many algorithms that do succeed when
+k = Ω( n), for thirty years, there was no matching positive result for these off-the-shelf approaches.
+   This question was revisited in recent years, with the work of Gamarnik and Zadik [GZ19] finding
+an annealed√overlap gap property (see e.g., the survey [Gam21]) in clique space that persisted well
+beyond the n threshold, suggesting that perhaps MCMC algorithms that move purely on cliques
+would not succeed even in the easy regime for the problem (at least from worst-case initializations).
+Remarkably, in subsequent work, Chen, Mossel, and Zadik [CMZ23] proved that gradient descent
+and Metropolis processes restricted to the set of cliques fail to find the planted clique even when
+initialized from the empty configuration—the most natural uninformed initialization in the space of
+cliques—and that this failure holds whenever k = O(nα ) for any α < 1! They went further to obtain
+similar results even for simulated tempering. This raised the question of whether such approaches
+were simply ill-suited to one of the central problems of average-case complexity and statistical-to-
+computational gaps. On the other hand, in [GZ19], it was asked whether a relaxation
+                                                                                  √        of the state
+space could perhaps salvage the performance of such methods and attain the n threshold.
+   Our main result answers this in the affirmative. We show that the black-box method of Lagrange
+multipliers succeeds from a natural uninformed start. Specifically, we allow the Markov chain to
+evolve on the space of all subsets of V by adding a penalty term to the Hamiltonian for the missing
+edges; see (1.1). We show that when initialized from the full vertex set, V , both the gradient
+descent and its low-temperature
+                   √              MCMC analogue recover the planted clique in linearly many steps,
+as long as k = Ω( n): see Theorem 1.1. Note, that as we have relaxed the problem to the space
+of all subgraphs, there are now two natural uninformed initializations: the empty set and the full
+graph. Importantly, we find that the choice of which uninformed start is crucial to the success of
+the algorithm: like the Metropolis process on cliques, gradient descent is unable to find the planted
+clique when started from the empty set; see Theorem 1.3.
+
+1.1. Main results. The planted clique distribution G(n, 21 , k) is the distribution over random
+graphs G = (V, E) in which V = [n], and the edge set E is randomly drawn as follows: pick a
+subset PC ⊂ [n] of k vertices uniformly at random, and include every internal edge of PC with
+probability 1, while independently including every other edge with probability 21 .
+   The planted clique problem is the algorithmic task of recovering the vertex set PC, given G.
+Above the information theoretic threshold, this is well-known to be equivalent to the maximum
+clique problem. That is, one seeks to find
+                                            max |E(U )|
+                                            U ⊂V
+                                                                |U |
+                                                                   
+                                    subject to: |E(U )| =
+                                                                 2
+                                                   2
+where E(U ) is the edge-set of the subgraph induced by G on U . The method of Lagrange multipliers
+for this problem amounts to optimizing the following Hamiltonian over U ⊂ V = [n]: for γ > 1, let
+                                                         h|U |          i
+                        H(U ) = HG,γ (U ) = −|E(U )| + γ         − |E(U )| .                 (1.1)
+                                                            2
+The restriction to γ > 1 is because this ensures that H is minimized by PC: see Theorem 2.1.
+When restricted to cliques this is essentially the energy function of [Jer92].1 The only difference
+is that the state space is expanded to all subsets, and the constraint is imposed by the Lagrange
+multiplier γ penalizing the number of missing internal edges of U . A related relaxation—with a fixed
+number of non-clique vertices—was suggested in [GZ19] as a possible approach to circumventing
+some bottlenecks of the energy landscape.
+   We consider the gradient descent as well as its low-temperature, local Markov chain relaxation.
+In what follows, we write U ∼ U ′ if they are at Hamming distance at most 1 from one another.
+Gradient descent on (1.1) is the following Markov chain {Si }i≥0 : initialize from some S0 ⊂ V ;
+    (1) For every i ≥ 1, if H(Si−1 ) > min{H(U ) : U ∼ Si−1 }, draw Si uniformly at random from
+        arg min{H(U ) : U ∼ Si−1 } (this may be non-singleton in the case of ties).
+    (2) Else, let Si = Si−1 (terminating the process).
+Evidently, this process will eventually terminate in an absorbing state (local minimum) of H. Let us
+note here that whenever k ≫ log n, the unique global minimizer of (1.1) is the planted clique itself
+with probability tending to one, but also that there exist many small, non-PC, local minimizers of
+the Hamiltonian (1.1). In particular, the landscape is not at all convex. See Section 2 where we
+study the energy landscape in more detail.
+   We also consider a positive temperature, Gibbs sampler, relaxation of the gradient descent. It
+is natural to look at Markov chains whose invariant measure is proportional to exp(−βH(U ))
+for the same Hamiltonian. Note, however, that the zero temperature limits of popular chains
+with this invariant measure, such as Metropolis or Glauber with respect to H, are not given by
+gradient descent; their zero-temperature limits make uniform-at-random choices over all lower-
+energy neighbors. To correct for this entropic effect, we instead consider the random walk on the
+hypercube with transition probabilities given by the local Gibbs probabilities. Namely, we consider
+the discrete-time Markov chain {Siβ }i≥0 with transition probability from W to U given by
+                                               ( −βH(U )
+                                                 e
+                                                   Z(W )  U ∼W
+                                   P (W, U ) =                     ,                           (1.2)
+                                                0         else
+                             −βH(U ′ ) . The zero-temperature (β → ∞) limit is indeed the gradient
+                  P
+where Z(W ) =        U ′ ∼W e
+descent chain for H(U ). This Markov chain is itself a Gibbs sampler as it is easily checked to
+be reversible with respect to the tilted Gibbs measure ν(U ) ∝ e−βH(U )+log Z(U ) . When β is large,
+ν(U ) is concentrated on PC, and thus this is also a reasonable approach to finding the planted
+clique. Intuitively, one can view this new measure ν as the Gibbs measure where the Hamiltonian
+is modified by the free energy of the 1-neighborhood of U . It could be interesting to compare
+the performance of this Gibbs sampler to the standard Glauber dynamics for H in this and other
+discrete optimization problems.
+   Our main result is that initialized from S0 = S0β = V , the gradient descent, and the low-
+temperature (large β) Gibbs sampler, described above, both find the planted clique in O(n) steps.
+
+
+  1Jerrum’s Hamiltonian had the number of vertices in U as opposed to the number of edges E(U ). For cliques,
+these are effectively the same from an optimization standpoint.
+                                                         3
+                                                                                             √
+Theorem 1.1. Suppose γ > 3. For every ε > 0, there exists C(ε, γ) > 0 such that for all k ≥ C n,
+with probability at least 1 − ε, the gradient descent St initialized from S0 = [n] achieves
+                                   St = PC       for all t ≥ n + 2k .
+The same holds for the low-temperature chain Stβ for all n + 2k ≤ t ≤ nk/C if β ≥ C log n.
+Remark 1.2. We are not careful here about the constant C and its dependence on ε. Note√that
+one could use a boosting scheme of [AKS98] which takes any algorithm that works at k ≥ C n to
+                           √              √
+one that work when k ≥ √C2 n by paying a n in the running time.
+   The mechanism behind the success proved by Theorem 1.1 when S0 = V , is roughly described
+as follows: it initially peels off vertices of the lowest degree within St , then after some time, vertex
+additions may be possible. At that point, it typically oscillates in size, adding PC vertices while
+removing extraneous non-PC vertices, before eventually converging to the full PC. Analysis of the
+landscape of H (2.8) reveals that the beginning and end of this trajectory resemble the two-stage
+algorithm of Feige and Ron [FR10]. We emphasize, however, that in the middle the trajectories will
+differ somewhat, and that this is produced by a black box constrained optimization approach.
+   We remark that while Theorem 1.1 only guarantees the success of the positive temperature chain
+for β = Ω(log n), we expect that at β sufficiently large, but O(1), the same success should hold. The
+proof uses stochastic domination for vertex degrees, which seems too fragile to handle the situation
+in which β = O(1), and non-energy-minimizing moves are taken with uniformly positive probability.
+   While tools like spectral gaps, mixing times, and overlap gap properties are very useful in proving
+refutation results for Markov chains with worst-case initializations, Theorem 1.1 demonstrates the
+power of a well-chosen (though still completely uninformative) initialization to help a Markov chain
+succeed at sampling and optimization when worst-case mixing times are slow (e.g., due to the
+presence of local minima in H with zero overlap with PC, per Theorem 2.2). The success of gradient
+descent initialized uninformatively, even when worst-case initialization fails, was for instance also
+leveraged in MCMC analysis of the tensor PCA problem [MR14] in [BGJ20].
+1.1.1. The importance of the initialization. It is natural to wonder if these Markov chains are suc-
+cessful from every G-independent initialization, or if there are bottlenecks in the space that the full
+initialization is circumventing. It turns out that when initialized from S0 √ = ∅, they face the same
+obstruction that Metropolis processes on cliques do, even well beyond the n threshold.
+Theorem 1.3. If γ > 1 and k ≤ nα for some α < 1, with probability 1 − o(1), the gradient descent
+St initialized from S0 = ∅ fails to find PC in the planted clique model G(n, 21 , k), i.e., it absorbs in
+polylog(n) steps into a configuration S∞ of size O(log n) with no intersection with PC.
+   Theorem 1.3 demonstrates that not only do these chains fail from worst-case initialization, they
+even fail from the natural uninformative initialization of S0 = ∅. Importantly, however, with the
+state space relaxed to all subsets, S0 = V is an alternative natural uninformative initialization that
+does not face this bottleneck. The source of this discrepancy can roughly be described as follows: on
+the way up from ∅, the chain doesn’t behave that differently from one that moves purely on cliques,
+and it therefore gets trapped by the large entropy of Θ(log n) (near-)cliques that are disjoint from
+PC. Conversely, from S0 = V it can descend straight to PC without facing any entropy-induced
+bottleneck: i.e., the algorithm is starting on the “right side” of the overlap gap. This dichotomy of
+behaviors depending on the initialization is shown in Figure 1.
+   To make this into a proof, we show that the gradient descent initialized from S0 = ∅ performed on
+G is coupled with a gradient descent process on Erdös–Rényi G0 (before the edges of PC were forced
+to be included). This latter process absorbs quickly into one of the many near-clique local minima
+of H, with zero overlap with PC. This approach for proving failure by coupling the dynamics with
+one in an unplanted (zero-signal) model may be of independent interest.
+                                                    4
+                   1.0                                          Start                     0.05
+                                  γ=2                                                                                                         γ=2
+                                  γ=4                                                                                                         γ=4
+                   0.8                                                                    0.04
+       |St ∩ PC c|/|PC c|
+
+
+
+
+                                                                              |St ∩ PC c|/|PC c|
+                   0.6                                                                    0.03
+
+
+                   0.4                                                                    0.02
+
+
+                   0.2                                                                    0.01
+
+
+                   0.0                                                                    0.00        Start
+                            0.0    0.2    0.4       0.6   0.8       1.0                            0.00       0.01     0.02     0.03   0.04     0.05
+                                         |St ∩ PC|/|PC|                                                              |St ∩ PC|/|PC|
+
+
+
+        Figure 1. Simulated trajectories of the relative ratio of PC and non-PC vertices in St while
+        applying the gradient descent with full-graph initialization (left) and empty-set initialization (right)
+        to find the planted clique in G(5000, 21 , 70) under different values of γ. The x-axis is the overlap
+        with PC and the y-axis is the overlap with PC c . Both trajectories in the left plot start from (1, 1)
+        and terminate in PC, whereas both trajectories in the right plot start from (0, 0) and stop at local
+        minima that do not have any overlap with PC.
+
+
+1.1.2. Robustness to adversary. Let us end by briefly discussing the robustness of the gradient
+descent and positive temperature chain to adversarial planting. Robustness to an adversary tweaking
+non-PC edges has been studied extensively for the planted-clique model since it has been suggested
+that the fact that the highest degree vertices recover PC nearly down to the predicted algorithmic
+bound makes the planted clique problem less realistic than its robust versions. Some of the different
+robust variants that have been introduced include the monotone adversaries model of [BS95] and the
+semi-random model of [FK01]; information-theoretic and algorithmic thresholds for semi-random
+graph problems have seen much attention, e.g., [CO07, Ste18, CSV17, MMT20, BKS23].
+   We consider a weaker form of robustness, but one strong enough that the adversary can still
+change the set of high-degree vertices to differ significantly from PC, for instance. Namely, we allow
+an adversary to change the edge-probability 1/2 to q > 1/2 for some m = O(n3/4−o(1) ) number of
+the vertices in G. Note that with this type of modification, the largest clique in G will remain PC
+when PC ≫ log n, but for instance, the highest degree vertices will contain those modified by the
+adversary if q > 1/2, rather than being PC, even well into the algorithmically tractable regime.
+   In Section 6, we prove that the gradient descent and positive temperature chain for the Hamil-
+tonian (1.1) are robust to such adversaries: see Theorem 6.1. Namely, they will still recover PC
+in linearly many steps. It would be of interest to explore MCMC approaches to the semi-random
+graph problems in the abovementioned literature, as well as on the hosts of other combinatorial op-
+timization tasks, where problem-specific algorithms are well-understood but MCMC from natural
+uninformative initializations are not.
+
+                                                           2. The energy landscape
+   In this section, we collect results about the energy landscape of (1.1). Our first result is that PC
+is the global minimizer of (1.1); this will follow from a concentration estimate on the degree counts
+between subsets U and their intersections with PC c —Lemma 2.3.
+Theorem 2.1 (Energy landscape: global minimum). For any γ > 1 and 0 < α ≤ 1, if k ≥ nα ,
+then with probability 1 − o(1), arg minU ⊆[n] HG,γ (U ) = PC.
+                                                                          5
+        Figure 2. Phase diagram in terms of U ∩ PC and U ∩ PC c , depicting the regions where H(U )
+        has complexity and admits local minima. The global minimum (circled red) is exactly PC.
+
+
+   The other important landscape result for (1.1) we can establish is that the landscape exhibits
+complexity in the sense that it has nO(log n) local minima that are subsets of size O(log n), and
+that are completely uncorrelated with the planted clique PC. We say a subset U is a (strict) local
+minimum of H if for all W ∼ U : W ̸= U , we have H(W ) > H(U ). Let h(p) = −p log2 p − (1 −
+                                                        γ
+p) log2 (1 − p) be the binary entropy function and κ = 1+γ ∈ ( 12 , 1).
+
+Theorem 2.2 (Energy landscape: local minima). If γ > 9 (whence h(κ) < 21 ), then for any
+                                                                               1
+        1
+c ∈ ( 1−h(κ) , 2), with probability at least 1 − o(1), there are at least n(1− 2 c(1−h(κ))+o(1))m many local
+minimizers of HG,γ with size m = c log2 n with empty intersection with PC.
+   Landscape complexity has been extensively studied and used as a heuristic explanation for hard-
+ness of optimization in the spin glass literature (see e.g., the works of [AB13, ABC13]), and more
+recently for tensor PCA [BMMN19], and even risk landscapes of generalized linear models [MBB20].
+Intuitively, the complexity of the landscape (1.1) at subsets of size O(log n) is consistent with our
+success and failure results. There is complexity in between the empty-set and the PC, and the gra-
+dient descent fails from that initialization; on the other hand our proof of Theorem 2.1 demonstrates
+that there are no local minima of sizes larger than O(log n) except the planted clique itself, so there
+is no such complexity blocking descent from the full initialization: see Remark 2.5. See Figure 2 for
+a visualization of the complexity landscape.
+   Theorem 2.1 is proved in Subsection 2.1. Since Theorem 2.2 will not be used in the algorithmic
+results, its proof is postponed to Section 5. Its proof goes via a second-moment method.
+
+2.1. Planted clique is the global energy minimizer. Without loss of generality and for con-
+venience, in the remainder of the paper, let PC = [k] := {1, . . . , k} with k ≥ nα for some α ∈ (0, 1),
+and let E denote the edge set of the graph G ∼ G(n, 21 , k). For any U ⊆ [n], we write U = U1 ∪ U2 ,
+where U1 = U ∩ [k], U2 = U ∩ [k]c , and define H(U1 , U2 ) = H(U ). When U is fixed, we typically
+use n1 = |U1 | and n2 = |U2 |. We will frequently use the following energy-change relations when
+adding/removing a vertex to/from U :
+              H(U ∪ {x}) − H(U ) = −(1 + γ)|E(x, U )| + γ|U |                         x ∈ Uc          (2.1)
+              H(U \ {z}) − H(U ) = (1 + γ)|E(z, U )| − γ(|U | − 1)                    z ∈ U.          (2.2)
+                                                     6
+where throughout the paper, we use E(A, B) to denote the set of edges between A and B. In what
+follows, we always assume n is taken to be sufficiently large.
+   The proof of Theorem 2.1 is based on the following lemma, which will be frequently appealed to.
+This lemma is based on standard concentration bounds and union bounds and its proof is deferred
+to Section 5.
+Lemma 2.3. There exists an absolute constant c > 0 such that for every k ≥ 0, with probability
+1 − o(n−2 ), for all pairs (U ′ , U ) satisfying U ′ ⊆ U ⊆ [n] with |U ′ | ≥ c log n,
+                     (1 − δ) E[deg(U ′ , U )] ≤ deg(U ′ , U ) ≤ (1 + δ) E[deg(U ′ , U )],             (2.3)
+                                                                                    q
+where deg(U ′ , U ) = x∈U ′ |E(x, U )| is the total degree of U ′ in U and δ ≥ 96|Ulog′ | n . Consequently,
+                     P
+
+                                                                      E[deg(U ′ , U )]
+                                    min′ |E(x, U )| ≤ (1 + δ)                          .              (2.4)
+                                    x∈U                                   |U ′ |
+  Lemma 2.3 holds for all (U ′ , U ) in a wide regime simultaneously with probability tending to one.
+Sometimes it is also useful to have the following sharper bound in a narrower regime.
+Lemma 2.4. There exists an absolute constant ρ > 0 such that, for any α ∈ (0, 1) and nα ≤ k ≤
+  n                                                                c      n            ′         c
+log n , with probability at least 1 − o(1), for all U with |U ∩ [k] | ≥ log n (taking U = U ∩ [k] in
+Lemma 2.3),
+                                           E[deg(U ∩ [k]c , U )]    √   1              √
+                      min |E(x, U )| ≤                 c
+                                                                 + ρ n = (|U | − 1) + ρ n.
+                x∈U ∩[k]c                      |U ∩ [k] |               2
+  With these inputs, we can show that indeed PC is the global minimizer of H.
+
+Proof of Theorem 2.1. We first claim that there exists c(γ) > 0 such that with probability at
+least 1 − 2n−2 , for every U1 ,
+                                    min          H(U1 , U2 ) >      min          H(U1 , U2 ).         (2.5)
+                                 |U2 |>c log n                   |U2 |≤c log n
+
+The proof of (2.5) follows from Lemma 2.3 and is deferred momentarily. Meanwhile, for fixed U2
+and x ∈ [k] \ U1 , by (2.1), if n1 > γn2 ,
+                             H(U1 ∪ {x}, U2 ) − H(U1 , U2 ) ≤ −n1 + γn2 < 0.                          (2.6)
+Combining (2.5) and (2.6), we conclude that, with probability at least 1 − n−2 ,
+                                                                                   
+           min H(U1 , U2 ) = min      min H([k], U2 ),        min        H(U1 , U2 ) .                (2.7)
+             U1 ,U2                          |U2 |≤c log n                |U1 |≤γ|U2 |≤γc log n
+
+Now notice that H([k], ∅) is an upper bound for the first minimum, and equals − k2 . At the same
+                                                                                  
+time,
+                                                                           
+                                                         (1 + γ)c log n      k
+                           min           H(U1 , U2 ) ≥ −                  >−
+                   |U1 |≤γ|U2 |≤γc log n                       2             2
+so as long as k > (1 + γ)c log n. Consequently,
+                            min H(U ) = min H(U1 , U2 ) =                 min         H([k], U2 ) .   (2.8)
+                             U               U1 ,U2                   |U2 |≤c log n
+                                                                                      γ
+   To show that this minimum is attained with U2 = ∅, start by letting τ = 21 ( 12 + 1+γ ) > 12 so that
+(1 + γ1 )τ < 1. Applying Hoeffding’s inequality for each non-PC vertex followed by a union bound,
+                                                             7
+we have maxx∈[k]c |E(x, [k])| ≤ τ k holds with probability at least 1 − n−2 . On this event, for any
+U = [k] ∪ U2 with |U2 | ≤ c log n, and any x ∈ U2 ̸= ∅, by (2.2)
+        H([k], U2 \ {x}) − H([k], U2 ) = (1 + γ)|E(x, U )| − γ(|U | − 1)                             (2.9)
+                                     = (1 + γ)|E(x, [k])| − γk + (1 + γ)|E(x, U2 )| − γ(|U2 | − 1)
+                                                        
+                                     ≤ γ 1 + 1/γ τ − 1 k + c log n < 0,
+where the last step is followed by k ≫ log n.pThis combined with (2.8) yields the desired result.
+   It remains to prove (2.5). If we let δ = 96/c in Lemma 2.3 (such a choice of δ works for all
+|U ′ | ≥ c log n in Lemma 2.3), then for any U1 , U2 with |U2 | > c log n, with probability at least
+1 − 2n−2 , there exists x ∈ U2 such that |E(x, U )| ≤ 1+δ
+                                                       2 (n1 + n2 − 1). Consequently,
+                H(U1 , U2 \ {x}) − H(U1 , U2 ) ≤ −γ 1 − 21 1 + γ1 (1 + δ) (n1 + n2 − 1) .
+                                                                       
+
+This is strictly negative if δ is sufficiently small, i.e., c is sufficiently large.                    □
+Remark 2.5. The above proof actually shows that in both {U : |U2 | > c log n} and {U : |U1 | >
+γ|U2 |} portions of the state space, the Hamiltonian H has no local minimum (in fact no absorbing
+state) besides the global minimum. On the other hand, as we will show in Section 4, H has at
+least one local minimum in the regime {|U2 | ≤ c log n} with high probability, and in fact when
+γ is at least a large constant, there are many local minimizers in the portion of the state space
+{U : |U2 | ≤ c log n}.
+
+                        3. Recovery from the full-graph initialization
+   In this section, we analyze the dynamics of the gradient descent and positive temperature chain
+with full-graph initialization S0 = V and prove Theorem 1.1. Though the full-graph initialization
+is uninformative, it provides sufficient time for the algorithm to explore the global structure of the
+graph in the portion of the state space where there are no local minima to trap the gradient descent.
+The crux of the proof of Theorem 1.1 are the following two observations:
+    (1) |St | will keep decreasing until it contains O(log n) many non-PC vertices. Most of the
+        vertices removed are non-PC vertices, so at the end, a 1 − o(1) fraction of St is in PC.
+    (2) If St is such that most of its vertices are members of PC, the gradient descent algorithm
+        will converge to PC in a further O(k) steps.
+These are formalized by the following two lemmas.
+Lemma 3.1. Let γ > 3. There exists an absolute constant c0 (γ) > 0 such that with probability
+1 − o(1), for all U ⊆ [n] with |U ∩ [k]c | ≥ c0 log n,
+                                                                 
+                       min H(U \ {x}) ≤ min H(U ), minc H(U ∪ {z}) − 1.                (3.1)
+                         x∈U                                 z∈U
+
+Consequently, (|St |)t≥0 will only decrease until |St ∩ [k]c | ≤ c0 log n.
+Lemma 3.2. Let γ > 3 and 0 < ξ < 1 − 21 (1 + γ1 ). With probability 1 − o(1) the following holds. For
+any S having |S ∩ [k]| ≥ max{γ|S ∩ [k]c | + 2, (1 − ξ)k}, if St′ is the gradient descent initialized from
+S0′ = S, then dH (St′ , PC) is strictly decreasing in t while St′ ̸= PC, where dH denotes the Hamming
+distance. Consequently St′ will converge to PC in at most 2k steps.
+   Moreover, for any W ⊆ [n], W ̸= PC that satisfies |W ∩ [k]| ≥ max{γ|W ∩ [k]c | + 2, (1 − ξ)k},
+                                     min H(U ) ≤       min      H(U ) − 1,                           (3.2)
+                                     U ∈U           U ∼W,U ∈U
+                                                           /
+
+where U = {U ∼ W : dH (U, PC) < dH (W, PC)} represents the set of neighboring states of W that
+are one Hamming distance closer to the PC than W is.
+                                                       8
+  The proofs of Lemma 3.1 and Lemma 3.2 are based on the degree concentration estimates of
+Lemma 2.3 and are deferred to Section 5. To stitch the two lemmas together, we introduce a peeling
+process Yt , initialized from S0 = V , that at each time t ≥ 1 removes the vertex in Yt−1 having
+the smallest degree in Yt−1 (if there are multiple, pick randomly) to obtain Yt . By the form of the
+Hamiltonian (1.1),
+                                arg min H(U \ {x}) = arg min |E(x, U )|,                                 (3.3)
+                                  x∈U                      x∈U
+
+(where the arg min’s are understood as sets when they are not singletons). Therefore, by Lemma 3.1,
+with high probability, Yt = St until the first time |Yt ∩[k]c | ≤ c0 log n. For convenience, let τ0 = τ0 (c0 )
+be the hitting time for this event. The process Yt turns out to coincide exactly with the removal
+stage of the algorithm of [FR10] (though now stopped at τ0 ). The following lemma says that with
+large probability, a large portion of [k] remains well-connected in Yt . In particular, we define the
+random subset of vertices of PC that retain degrees close to their expectations (which is larger than
+those of typical non-PC vertices) throughout the removal process: for any c1 > 0 let
+                                                                             √
+                                                                                              
+                                                           1          c
+     A(c1 ) = x ∈ [k] : deg(x, Yt ) ≥ (|Yt ∩ [k]| − 1) + |Yt ∩ [k] | − c1 n for all t < Tx .           (3.4)
+                                                           2
+The following lemma shows that most of PC is in this set.
+Lemma 3.3. Let Yt denote the peeling process defined above. For x ∈ [n], let Tx denote the time
+that x is removed from Yt , i.e., Tx = min{t : x ∈/ Yt } ∧ τ0 . For any ε, η > 0, there exists an absolute
+constant c1 (ε, η) > 0 such that with probability at least 1 − ε, |A| ≥ (1 − η)k.
+  The proof is similar to [FR10, Corollary 5]; for completeness, we reproduce the proof in a more
+general setting when discussing the robustness of the algorithm in Section 6, namely Lemma 6.7.
+Proof of Theorem 1.1. We first prove the result for the gradient descent St and then extend it
+to the positive temperature chain Stβ via a coupling argument. According to Lemma 3.1 and (3.3),
+there exists c0 > 0 such that, with probability 1 − o(1), there exists a valid coupling of St and Yt
+such that they coincide up to time τ0 (c0 ), resulting in Sτ0 = Yτ0 . For any η < 1 − 21 (1 + γ1 ), we
+claim that there exists c1 (ε, η) > 0 such that with probability at least 1 − ε,
+                             |A| ≥ (1 − η)k     and A ⊆ Yt          for all t ≤ τ0 ,                     (3.5)
+where c1 appears in the definition of A in (3.4). Assuming that, then for t = τ0 ,
+                                                            (3.5)
+            γ|Sτ0 ∩ [k]c | + 2 = γc0 log n + 2 ≤ (1 − η)k ≤ |A| ≤ |Yτ0 ∩ [k]| = |Sτ0 ∩ [k]|.
+The proof of the gradient descent part is completed by appealing to Lemma 3.2 with S0′ = Sτ0 and
+noting that the total number of steps to reach St = PC is at most τ0 + 2k ≤ n + 2k. Note that once
+the gradient descent has reached PC, it will be absorbed per Theorem
+                                                                 √      2.1.
+    To verify (3.5), we apply an inductive argument. Let k ≥ C n for some absolute constant C
+to be determined during the proof. Taking a union bound for the statements in Lemmas 2.3, 2.4,
+3.3, we see that the following events hold simultaneously with probability at least 1 − ε: there exist
+c, c1 , ρ > 0 such that
+                                      E[deg(U ′ , U )]
+              min′ |E(x, U )| ≤ (1 + δ)                               ∀U ′ ⊆ U ⊆ [n], |U ′ | ≥ c log n   (3.6)
+             x∈U                          |U ′ |
+                               1            √                                                      n
+            min |E(x, U )| ≤ (|U | − 1) + ρ n                          ∀U ⊆ [n], |U ∩ [k]c | ≥           (3.7)
+          x∈U ∩[k]c            2                                                                 log n
+              |A| = |A(c1 )| ≥ (1 − η)k,                                                                 (3.8)
+                                                      9
+                        q
+where δ = δ(U ′ ) = 96|Ulog′ | n . It is easy to see that A ⊆ Y0 = [n] at t = 0. To apply induction,
+we assume A ⊆ Yt−1 and verify A ⊆ Yt . For ease of presentation, we let |Yt | = nt,1 + nt,2 where
+nt,1 = |Yt ∩ [k]|, nt,2 = |Yt ∩ [k]c |. If nt−1,2 ≥ logn n , letting U = Yt−1 in (3.7), we have
+
+                                   (3.7) 1         √
+       min                        (|Yt−1 | − 1) + ρ n
+                    deg(y, Yt−1 ) ≤
+    y∈Yt−1 ∩[k]c                2
+                                            √                      √     √
+                                                                           
+                              1                     1
+              ≤ (nt−1,1 − 1) + nt−1,2 − c1 n − (nt−1,1 − 1) − ρ n − c1 n
+                              2                     2
+                                                           √      √
+           (3.4)
+                                                                     
+                                           1
+            ≤      min deg(x, Yt−1 ) − (nt−1,1 − 1) − ρ n − c1 n
+                 x∈A⊂Yt−1                  2
+                                           C(1 − η) √      √      √
+           (3.8)
+                                                                    
+            ≤      min deg(x, Yt−1 ) −                n − ρ n − c1 n < min deg(x, Yt−1 ),
+                 x∈A⊂Yt−1                      2                        x∈A⊂Yt−1
+
+
+where the last inequality holds for any C satisfying C > 2(ρ+c 1)                        n
+                                                           1−η . If c log n ≤ nt−1,2 ≤ log n , letting
+(U, U ′ ) = (Yt−1 , Yt−1 ∩ [k]c ) in (3.6), we have
+                                  (3.6) 1
+      min                         (1 + δ)(|Yt−1 | − 1)
+                    deg(y, Yt−1 ) ≤
+   y∈Yt−1   ∩[k]c                       2
+                                           √                                                √
+                                                                                            
+                               1                          1+δ                    δ
+               = (nt−1,1 − 1) + nt−1,2 − c1 n − 1 −               (nt−1,1 − 1) − nt−1,2 − c1 n
+                               2                            2                    2
+                                                                                    √
+            (3.4)
+                                                                                    
+                                                 1+δ                     δ
+             ≤      min deg(x, Yt−1 ) − 1 −              (nt−1,1 − 1) − nt−1,2 − c1 n
+                  x∈A⊂Yt−1                         2                     2
+                                          C(1 − η) √       √          √
+            (3.8)
+                                                                          
+             ≤      min deg(x, Yt−1 ) −                n − 24n − c1 n < min deg(x, Yt−1 ),
+                  x∈A⊂Yt−1                    4                               x∈A⊂Yt−1
+                                                   √
+where the last inequality holds if C > 4( 1−η
+                                          24+c1 )
+                                                  . Combining the two cases together, we have A ⊆ Yt .
+  To extend the above result to the positive temperature chain when β = Ω(log n), it suffices to
+show that the following events hold with high probability:
+     • St and Stβ remain fully coupled before τ0 , i.e. Sτ0 = Sτβ0 ;
+     • For t > τ0 , the Hamming distance between Stβ and PC is decreasing before reaching PC;
+     • Once it has reached PC, Stβ will stay there for nΘ(k) steps.
+Indeed, for t < τ0 , denote Mt = arg minU ∼St H(U ) and mt = minU ∼St H(U ). Suppose that St and
+Stβ are equal at time t. In this case, St and Stβ will remain the same at time t + 1 if the positive
+temperature chain moves to a neighboring state of St in Mt (if Mt is not a singleton, the choice of
+which one can be coupled trivially). The probability of this event, according to (1.2), is at least
+
+                                   |Mt |e−βmt                     1
+                             −βm
+                                    P              −βH(U )
+                                                           ≥        −β∆
+                                                                        > 1 − ne−β∆ ,            (3.9)
+                       |Mt |e    t + U ∼St ,U ∈M
+                                              / t e          1 + ne
+
+where ∆ := minU ∼St ,U ∈M/ t H(U )−mt is the energy gap between the smallest and second to smallest
+energy in the neighboring states of St . Meanwhile, it follows from Lemma 3.1 that Mt ⊆ {U ∼ St :
+|U | < |St |}, and consequently,
+                                                                                (2.2),(3.1)
+         ∆ = min           min       H(U ) − mt ,         min        H(U ) − mt       ≥       1.
+                        U ∼St ,U ∈M
+                                 / t ,|U |≥|St |       U ∼St ,U ∈M
+                                                                / t ,|U |<|St |
+                                                       10
+                                                               β
+Substituting this into the above estimate we obtain that St+1      = St+1 holds with probability at least
+1 − ne  −β∆            −2
+             ≥ 1 − n if β = Ω(log n). Applying a union bound over t ≤ τ0 and noting τ0 < n
+concludes that with probability at least 1 − n−1 , Sτβ0 = Sτ0 .
+    For t ≥ τ0 , denote the neighboring states of Stβ that are one Hamming distance closer to PC than
+St as Utβ = {U ∼ Stβ , dH (U, PC) < dH (U, Stβ )}. When t = τ0 , Uτβ0 = Uτ0 and Sτβ0 = Sτ0 satisfies
+  β
+
+the condition on the initialization in Lemma 3.2. By a similar calculation to (3.9), using (3.2), we
+        β
+have St+1   ∈ Utβ with probability at least 1 − n−2 . In this case, as opposed to the situation before
+τ0 , the energy gap (the difference between the smallest neighboring energy and the second lowest
+neighboring energy) amongst elements of Ut may not be lower bounded by an absolute positive
+                                    β
+constant, so we may not expect St+1     and St+1 to be fully coupled in this stage. Nevertheless, both
+chains are moving in the right direction in the sense that their Hamming distance to PC is strictly
+                                  β
+decreasing. In particular, dH (St+1  , PC) < dH (Stβ , PC) and St+1
+                                                                 β
+                                                                     can be analyzed similarly as in the
+previous step. By repeating this process, we can show via a union bound that with probability at
+least 1 − |Utβ | · n−2 ≥ 1 − n−1 , dH (Sℓ+1
+                                         β
+                                            , PC) < dH (Sℓβ , PC) for all ℓ ≥ τ0 until dH (Sℓβ , PC) = 0.
+Consequently, Stβ = PC with t = τ0 + |Uτβ0 |. Combining the portion before τ0 and the portion after,
+we establish that the positive temperature chain takes n + 2k steps to find PC with probability at
+least 1 − o(1) if β = Ω(log n). Meanwhile, there exists an absolute constant c2 > 0 such that
+                                                                  (2.6),(2.9)
+                                    min          H(U ) − H([k])       ≥         c2 k.             (3.10)
+                                U ∼[k],U ̸=[k]
+
+Thus, upon reaching PC, the probability of staying in PC in the next move is at least 1 −
+                                                          (c2 k−1)     k
+e−(c2 k−1) log n . Thus, it will stay in PC for at least e 2 log n ≥ n C (C > 3/c2 ) steps with
+probability tending to one.                                                                  □
+
+
+                        4. Failure from the empty-set initialization
+   In this section, we prove Theorem 1.3, showing that if the initialization were S0 = ∅ instead of
+S0 = V , then the gradient descent and positive temperature chain processes would fail whenever the
+planted clique has any sub-linear size. This matches the failure result of [CMZ23] and demonstrates
+that while both ∅ and V are natural uninformed initializations one could hope the MCMC succeeds
+from, it is crucial that the latter choice be made in this problem.
+   We start with some intuition as to why starting from the empty set does not work, even with the
+relaxed Hamiltonian of (1.1). In its initial stages, started from S0 = ∅, St increases while remaining
+a clique until its size reaches Θ(log n) and may not have any lower-energy neighbors that are cliques.
+In this period, it is simply a greedy algorithm moving in the space of cliques, and the relaxation to
+non-cliques plays no role. When the gradient descent has reached the O(log n)-size and starts to
+move off of cliques, it is already close to some near-clique local minimum with no overlap with PC,
+and gets absorbed into that state.
+   To make this a rigorous proof, we consider a coupled Erdös–Rényi random graph G0 ∼ G(n, 21 )
+with G, where one first generates G0 ∼ G(n, 12 ) and then completes the missing edges between
+vertices of [k] to obtain G ∼ G(n, 21 , k). We can then run coupled gradient descent processes on
+both G0 and G, denoting the corresponding processes by Set and St . The trajectories of Set and St
+can be fully coupled up to time τ where τ is the first time Si ∩ [k] ̸= ∅. This is seen by noting that
+while Sei = Si , the energies of all possible transitions are identical, as they only depend on edges
+incident to Si (and not any internal edges of PC). Thus the next steps of the processes are coupled
+identically. This observation leads to the following.
+
+                                                        11
+Lemma 4.1. Let St and Set be the two Markov chains running on G, G0 that are coupled in the way
+described above, and τ be the first time that St intersects with PC. For any γ1 > 0 and L = (log n)γ1 ,
+P(τ > L) = 1 − o(1). Consequently, St = Set for all t ≤ L with probability 1 − o(1).
+   That is to say, if the un-planted model’s gradient descent is absorbed in poly(log n) time, then the
+two chains St , Set are perfectly coupled and St is also absorbed. This suggests studying the dynamics
+of Set as a proxy for St as long as it terminates in poly(log n) time. The next lemma verifies this
+statement.
+Lemma 4.2. Let Set be the gradient descent running on G0 ∼ G(n, 21 ). Denote the absorption time
+of Set by Te. There exists γ1 > 0 such that with probability 1 − o(1), Te ≤ (log n)γ1 . Moreover, the
+terminal state Se∞ has no overlap with PC, i.e. Se∞ ∩ [k] = ∅.
+   The proof of Lemma 4.2 follows by noting that the global minima in the Erdös–Rényi must have
+polylog energy at most, and that in a constant fraction of its steps before Te, HG0 (St ) decreases by
+an Ω(1) amount. This latter step is actually somewhat delicate, since for general γ, the energy gaps
+in H do not have uniform (n independent) lower bounds. The proofs of both Lemmas 4.1 and 4.2
+are given in Section 5.
+Proof of Theorem 1.3. By Lemma 4.2, with probability 1 − o(1), the process Set is absorbed
+before time L from Lemma 4.1. On that event, by Lemma 4.1, τ > L and STe = SeTe , and finally this
+is also an absorbing state for STe since while STe ∩ [k] = ∅, under the coupling of (G0 , G), its energy
+and those of all its neighbors on the hypercube are identical to those for SeTe .                     □
+
+                                               5. Deferred proofs
+   In this section, we include the technical proofs that were deferred from the above sections.
+
+5.1. Degree concentration.
+Proof of Lemma 2.3. The proof follows from a union bound argument. Write deg(U ′ , U ) as
+                   X                     X                        X
+   deg(U ′ , U ) =   I{(x, z) ∈ E} =            I{(x, z) ∈ E} + 2        I{(x, z) ∈ E},
+                     x∈U ′ ,z∈U                      x∈U ′ ,z∈U \U ′                 x,z∈U ′ ,z̸=x
+                                                     ′ 
+which is a sum of nU ′ := |U ′ |(|U | − |U ′ |) + |U2 | independent random variables bounded by 2. By
+the Chernoff bound, for δ ∈ (0, 1),
+                                                                          δ 2 E[deg(U ′ ,U )]      δ 2 nU ′
+         P | deg(U ′ , U ) − E[deg(U ′ , U )]| ≥ δE[deg(U ′ , U )] ≤ 2e−                      ≤ 2e− 16 ,
+                                                                  
+                                                                                  8
+
+                                                                                    q
+                                                              n
+where the last inequality follows from E[deg(U ′ , U )] ≥ 2U ′ . Taking δ ≥ 96|Ulog′ | n yields
+
+                   P | deg(U ′ , U ) − E[deg(U ′ , U )]| ≥ δE[deg(U ′ , U )] ≤ 2n−3|U | .
+                                                                             
+                                                                                                              (5.1)
+Taking a union bound of (5.1) shows that | deg(U ′ , U ) − E[deg(U ′ , U )]| ≥ δE[deg(U ′ , U )] holds
+simultaneously for all U ′ ⊆ U ⊆ [n] with |U ′ | ≥ c log n with probability at least
+                       X               X                          X n
+                                                         −3|U |
+                                                      2n        ≤            · 2r n−3r .
+                                 ′             ′
+                                                                         r
+                    U ⊆[n]:|U |≥c log n U ⊆U :c log n≤|U |≤|U |         r≥c log n
+
+This is at most n−α for any α > 0 by taking c large enough. In particular, this proves the desired
+bound of (2.3). The second part of the lemma follows immediately from the fact that the minimum
+degree has to be at most the average degree of U ′ in U .                                       □
+                                                             12
+Proof of Lemma 2.4. The proof is similar to the proof of Lemma 2.3. For fixed U , choosing
+U ′ = U ∩ [k]c as in the previous proof and applying the Chernoff bound, we have for δ ∈ (0, 1),
+                                                                          δ 2 E[deg(U ′ ,U )]      δ2 n ′
+                                 ′                  ′                   − ′                       − 16U
+                                                                 
+         P | deg(U , U ) − E[deg(U , U )]| ≥ δE[deg(U , U )] ≤ 2e                 8           ≤ 2e        ,
+                                         ′
+where nU ′ := |U ′ |(|U | − |U ′ |) + |U2 | . To obtain a bound for all U with |U ∩ [k]c | ≥ logn n (the total
+                                           
+                                                                                                                            δ 2 nU ′
+number of such U is bounded by 2n ) with probability at least 1 − n−2 , we require 2n · 2e−                                    16      =
+        δ 2 nU ′                                                              q
+    −                                                                             16(2 log n+(n+1) log 2)
+e          16
+                 +(n+1) log 2
+                                ≤ n−2 , which holds if we choose δ =                        nU ′          . In this case,
+                                   deg(U ′ , U )                E[deg(U ′ , U )]
+                          min′ |E(x, U )| ≤      ≤  (1   +   δ)
+                x∈U                   |U ′ |                          |U ′ |
+                                                   s
+                                   1                    16(2 log n + (n + 1) log 2)(|U | − 1)2
+                                = (|U | − 1) +
+                                   2                                         nU ′
+                                   1                √
+                                ≤ (|U | − 1) + ρ n,
+                                   2
+where the last step holds for some constant ρ > 0 since
+                                                             n
+                                                   |U ′ |≥ log   >k                ′
+                                 2      ′        2
+                                                               n
+                                                                        ′ 2        |U |
+                      (|U | − 1) ≤ (|U | + k)             ≤         4|U | = O(          ),
+                                                                                    2
+                              ′ 
+and, by definition, nU ′ ≥ |U2 | .                                                                                                     □
+5.2. Deferred proofs for success from full initialization.
+Proof of Lemma 3.1. Choose c0 at least as large as the constant c in Lemma 2.3, and furthermore
+large enough that
+                                                   q 
+                                                       96
+                          (1 + δ) (γ + 1)       1 +     c (γ + 1)
+                     ω :=                  ≤                       < 1.                    (5.2)
+                             2(γ − 1)               2(γ − 1)
+Note that such a c always exists for γ > 3. By Lemma 2.3, specifically (2.4) applied with U = U
+and U ′ = U ∩ [k]c , there exists x ∈ U ∩ [k]c such that
+                                      (2.2) 1                                                 (5.2)
+          H(U \ {x}) − H(U ) ≤                  (1 + δ) (γ + 1) (|U | − 1) − γ(|U | − 1) ≤ −(|U | − 1) < −1.                    (5.3)
+                           2
+For the same x and any z ∈ U c ,
+                                                        (2.1),(5.3)
+                                                                          
+                                                               1
+                    H(U \ {x}) − H(U ∪ {z})   ≤     −γ + 1 + (1 + δ)(γ + 1) (|U | − 1) + γ
+                                                               2
+                                            ≤ −(1 − ω)(|U | − 1) + γ
+                                                        ≤ −(1 − ω)(c0 log n − 1) + γ < −1.                                      (5.4)
+Combining (5.3) and (5.4) finishes the proof.                                                                                          □
+Proof of Lemma 3.2. Assume the event of Lemma 3.1 holds for some c0 > 0. Recall that St′ is
+a realization of the gradient descent chain initialized from S0′ = S. If |St′ ∩ [k]c | > c0 log n, then
+  ′ | < |S ′ |. Meanwhile, a similar calculation as (2.6) shows
+|St+1       t
+
+                  H(St′ \ {x}) − H(St′ ) ≥ (|St′ ∩ [k]| − 1) − γ|St′ ∩ [k]c | ≥ 1                      ∀x ∈ St′ ∩ [k],          (5.5)
+i.e., none of the vertices in St′ ∩ [k] will be removed in the first step. Therefore, the removed vertex
+is from St′ ∩ [k]c , which implies dH (St+1
+                                         ′ , PC) < d (S ′ , PC).
+                                                     H t
+                                                     13
+  If |St′ ∩ [k]c | ≤ c0 log n, (5.5) still holds. Meanwhile, under the assumption |St′ ∩ [k]| ≥ (1 − ξ)k
+                                         1−ξ− 12 (1+ γ1 )
+with ξ < 1 − 12 (1 + γ1 ), letting ζ =      2(1+ γ1 )
+                                                            > 0, we have for any x ∈ (St′ )c ∩ [k]c ,
+
+H(St′ ∪ {x}) − H(St′ ) = γ|St′ | − (1 + γ)|E(x, St′ )| ≥ γ|St′ ∩ [k]| − (1 + γ)|E(x, [k])| − |E(x, St′ ∩ [k]c )|
+                                                         
+                                                   1
+                        ≥ γ(1 − ξ)k − (1 + γ)        + ζ k − c0 log n
+                                                   2
+                          γ(1 − ξ)
+                        ≥           k − c0 log n > 1,                                                    (5.6)
+                               2
+where the second inequality holds with high probability 1−o(1) as a result of standard concentration
+                                                                         2c0
+bounds for |E(x, [k])| for all x ∈ [k]c , and the last step uses k > γ(1−ξ)   log n. This shows |St′ ∩ [k]c | is
+nonincreasing. Since St′ is in a regime where H has no local minima (Remark 2.5), either |St′ ∩ [k]c |
+decreases or St′ ∩ [k] increases. In particular, dH (St+1′ , PC) < d (S ′ , PC). The proof is finished by
+                                                                       H t
+noting such a process can last at most dH (St′ , PC) steps, which can be bounded as
+                                                                       1−ξ ′
+                   dH (St′ , PC) = |St′ ∩ [k]c | + |(St′ )c ∩ [k]| ≤      |St ∩ [k]| + k ≤ 2k.
+                                                                        γ
+The corresponding energy gap estimate of (3.2) follows by combining (5.5) and (5.6).                         □
+5.3. Deferred proofs for failure from empty initialization.
+Proof of Lemma 4.1. Assuming t < τ so that St = Set and St ∩ [k] = ∅, then the probability of
+St+1 ∩ [k] ̸= ∅ is equal to the probability that a vertex is added and that vertex is from [k]. In
+particular, the probability that τ ≤ L is bounded by the probability that in one of the first L steps,
+Set adds a vertex in [k]. By the exchangeability of vertices in G0 , this probability is upper bounded
+             k
+by |Skc | ≤ n−L . The desired result follows by taking a union bound over t ≤ L.                    □
+     t
+
+Proof of Lemma 4.2. Throughout the proof, we use notation EG0 , HG0 , etc., to emphasize that
+we are working under the Erdös–Rényi model G0 . We start by noting that Lemma 2.3 does not
+depend on k so it also applies to G0 . As a result, there exists
+                                                             q c(γ) > 0qsuch that with probability
+                                                                            96 log n     96   γ−1
+at least 1 − o(1), for all U ⊆ [n] with |U | ≥ c log n and δ =                |U |   ≤    c < γ+1 ,
+
+                                                                            |U |
+                                                                            
+                             1                                           γ
+                 |EG0 (U )| = degG0 (U, U ) ≤ (1 + δ)E[degG0 (U, U )] <          .
+                             2                                          1+γ 2
+The Hamiltonian of such U ’s are lower bounded by
+                           |U |
+                                                  
+                                         1
+           HG0 (U ) = γ          − 1+        |EG0 (U )| > 0                              |U | ≥ c log n.
+                             2           γ
+Since HG0 (Set ) is strictly decreasing prior to Te, and HG0 (Se0 ) = 0, |Set | ≤ c log n for all t ≤ Te.
+Consequently,
+                                                                (c log n)2
+                                                          
+                                                   c log n
+                               min HG0 (St ) ≥ −
+                                         e                   ≥−            .                        (5.7)
+                               t≤Te                   2              2
+
+Meanwhile, we claim that |{t < Te, HG0 (Set+1 ) − HG0 (Set ) ≤ − 12 }| ≥ T2 . This combined with (5.7)
+                                                                          e
+
+shows that Te ≤ 2(c log n)2 . In particular, since Te ≤ L (for large choice of γ1 ), the probability that
+the absorbed state SeTe has no intersection with PC is at least 1 − o(1).
+   It remains to verify the claim to finish the proof. Without loss of generality, we first assume that
+γ is a rational number, i.e., γ = qq12 for some q1 > q2 and q2 is a prime number, and then extend to
+the general case of real numbers via a continuity argument. For any t < Te − 1, suppose that Set+1
+                                                             14
+is obtained from Set (|Set | = m) by adding a vertex x ∈ Setc , i.e. Set+1 = Set ∪ {x}. By definition of
+gradient descent,
+                                                         (2.1)                 γm
+                        HG0 (Set ∪ {x}) − HG0 (Set ) < 0 =⇒ |EG0 (x, Set )| >     .
+                                                                              1+γ
+   γm                                        γm
+If 1+γ is an integer, then |EG0 (x, Set )| ≥ 1+γ + 1. In this case, it is easy to check HG0 (Set ∪ {x}) −
+HG (Set ) < −(1+γ) < −1. When γm is not an integer, we can represent it as the difference between
+   0                                 1+γ
+its ceiling part and the decimals:
+                     γm       q1 m          r
+                          =          =s−                                 r < q1 + q2 .
+                    1+γ      q1 + q2     q1 + q2
+In this case, we have
+                                                                         
+                                                                 γm      γm
+                       HG0 (St ∪ {x}) − HG0 (St ) ≤ −(1 + γ)
+                            e                 e                       −
+                                                                γ+1     γ+1
+                                                       
+                          q1 + q2      q1 m        q1 m        r
+                      = −                      −            =− .
+                             q2      q1 + q2      q1 + q2     q2
+
+A key observation is the following. If r ≥ q22 , then HG0 (Set ∪ {x}) − HG0 (Set ) < − 12 . Otherwise, a
+large energy decrease must occur in the next step, i.e., HG0 (Set+2 ) − HG0 (Set+1 ) < −1. To see this,
+note there are two cases that might be happening at t + 2:
+                                              c , by a similar computation to the above,
+      • If Set+2 = Set+1 ∪ {z} for some z ∈ Set+1
+                                                                                     
+                                                  q1 + q2    q1 (m + 1)     q1 (m + 1)
+               HG0 (St+1 ∪ {z}) − HG0 (St+1 ) ≤ −
+                     e                  e                                 −                .
+                                                     q2        q1 + q2        q1 + q2
+          Note
+                         q1 (m + 1)        r       q1               q2 + r
+                                    =s−        +        = (s + 1) −         ,
+                          q1 + q2       q1 + q2 q1 + q2             q1 + q2
+          where the subtracted fraction in the last equality is strictly less than 1 since r < q22 < q1 .
+          Consequently,
+                                                                    
+                                                   q1 + q2 q2 + r            q2 + r
+               HG0 (St+1 ∪ {z}) − HG0 (St+1 ) ≤ −
+                     e                  e                               =−          ≤ −1.
+                                                      q2     q1 + q2           q2
+
+        • If Set+2 = Set+1 \ {z} for some z ∈ Set+1 , then
+                                                                                   q1 + q2 − r
+                                       (2.2)
+                                                                           
+                                             q1 + q2      q1 m        q1 m
+       HG0 (Set+1 \ {z}) − HG0 (Set+1 ) ≤ −                      −              =−             < −1.
+                                                q2       q1 + q2     q1 + q2           q2
+
+The case where Set+1 = Set \ {x} for some x ∈ Set can be reasoned similarly. Putting the above
+discussions together, we conclude that either the energy decrease from t to t + 1 is at least − 12 , or
+the energy decrease from t + 1 to t + 2 is at least − 12 . This implies that in at least half of the steps
+of the gradient descent prior to termination, there is an energy decrease of − 12 (uniformly over all
+rational γ). For any γ (possibly irrational), there is a rational γ ′ sufficiently close to γ such that
+the gradient descent moves are all identical for at least n steps—note that this γ ′ , and in particular
+its denominator, will depend on n. But the uniformity of the above estimate over the denominator
+in γ ′ implies that also for the γ-dynamics in the first n steps, half of the steps prior to absorption
+lower the energy by at least 12 .                                                                       □
+                                                    15
+5.4. Proof of landscape complexity. In this section, we prove Theorem 2.2. By definition,
+U ⊆ [n] is a local minimizer of H if the following conditions hold:
+                      max |E(x, U )| < κ|U |                                                      (5.8)
+                      x∈U c
+                                                                             γ
+                      min |E(x, U )| > κ(|U | − 1)                               κ :=
+                                                                                 .            (5.9)
+                      x∈U                                                  1+γ
+Computing the number of local minimizers amounts to counting the number of U satisfying the above
+conditions. More specifically, we count the number of minimizers with fixed sizes, i.e., |U | = m
+for some m. We have seen in Theorem 2.1 that local minimizers can only exist in the regime
+m = O(log n). Hence, we parameterize m = c log2 n for some constant c, where we use the base 2 to
+simplify computation. To obtain a lower bound on the number of local minimizers, we only consider
+U ’s with no intersection with PC, which take a dominant portion of m-subsets of [n] ( n−k
+                                                                                            n
+                                                                                         m / m )
+and are easier to analyze due to the independence assumptions. The following lemma shows that
+for such U ’s with no intersection with PC, it suffices to check condition (5.9) only.
+                                                                                                 1
+Lemma 5.1. With probability tending to one, (5.8) holds for all U with |U | = c log2 n for c > 1−h(κ)
+and U ∩ PC = ∅.
+Proof.
+P        For every U ⊆ [n], let W (U ) = I{U does not satisfy (5.8)}, and define X(m) as X(m) =
+  U :|U |=m,U ∩[k]=∅ W (U ). By a rapid calculation, one can show that for |U | = m = c log2 n, with
+U ∩ PC = ∅
+                                 Y
+                P(W (U ) = 1) =      P(|E(x, U )| ≤ κm) = (1 − P(|E(x, U )| > κm))n−m
+                                     x∈U c
+                                  κ> 21 h                         in−m         n−c log2 n
+                                                 1 (1−h(κ)+o(1))m
+                                                                          − c(1−h(κ)+o(1))
+                                   ≤        1−   2                     ≤ e  n               .
+                  1
+Hence, when c > 1−h(κ) ,
+                            n−k
+                                        n−c log2 n          n−c log2 n
+                                      −                   −                +c(log2 n)2
+             E[X(m)] ≤               e nc(1−h(κ)+o(1)) ≤ e nc(1−h(κ)+o(1))             = o(1).
+                           c log2 n
+The desired result follows by applying Markov’s inequality.                                          □
+  We are now ready to prove Theorem 2.2.
+Proof of Theorem 2.2. Throughout the proof we ignore the integer rounding effects to simplify
+                          1
+discussion. Fixing 1−h(κ)       < c < 2, we count the number of size-m subsets with no intersection
+with PC and satisfying conditions (5.8) and (5.9). By Lemma 5.1, (5.8) holds for all size-m subsets
+that do not intersect with PC with probability tending to one, so we only need to check (5.9).
+P Z(U ) = I{U satisfies (5.9)}, and we are interested in obtaining a lower bound for Q(m) =
+Let
+   U :|U |=m,U ∩[k]=∅ Z(U ), for which we apply a second-moment estimate. We first note
+                                  P (Z(U ) = 1) ≥ P (U is a κm-regular graph) .                  (5.10)
+To count the number of κm-regular graphs among all graph configurations on m vertices, we appeal
+to a result in [MW90] that states this number is asymptotically
+                                       m 
+                       √ 1 1 h(κ)( 2 ) m − 1 m √ 1 (h(κ)+o(1)) m
+                                               
+                        2e 4                        = 2e 4 2         ( 2 ).
+                               2           κm
+Consequently, for all sufficiently large n (hence m),
+                                                          (1−(h(κ)+o(1))(m)
+                                                          1                2
+                              E[Z(U )] = P (Z(U ) = 1) ≥                      ,                  (5.11)
+                                                          2
+                                                            16
+and
+                           (1−(h(κ)+o(1))(m)  (1−(h(κ)+o(1))(m)−m log2 (n−k−m)
+                     n−k
+                    
+                            1                2   1                2
+          E[Q(m)] ≥                            ≥
+                      m     2                    2
+                                                                                       
+                                                                         (1−h(κ))m
+                                                                    1−              +o(1)m
+                                                           =n              2 log2 n
+                                                                                             .
+We next compute the second moment of Q(m).
+                             m 
+                                  n−k   m n−k−m
+                            X                 
+                         2
+                 E[Q(m) ] =                         E[Z(V1 )Z(V2 )],
+                                   m     r    m−r   |     {z      }
+                            r=0 |          {z     }      :=ζr
+                                                    :=ξr
+
+where (V1 , V2 ) in the summand is any fixed pair of vertex subsets V1 , V2 with |V1 ∩ V2 | = r, |V1 | =
+|V2 | = m, V1 ∩ [k] = V2 ∩ [k] = ∅ (the expectation is independent of the choice of (V1 , V2 ) due to
+exchangeability). For ξr , one can easily check that
+                          ξr             mr
+                             = (1 + o(1)) r                                         r ≥ 0.        (5.12)
+                          ξ0             n
+To analyze ζr , we have the following observations. For fixed pair (V1 , V2 ), we write E[Z(V1 )Z(V2 )] =
+E[Z(V1 )E[Z(V2 ) | E(V1 )]] where the conditioning is on the edge configuration on V1 . By monotonic-
+ity of the Erdös–Rényi random graph model, and the fact that (5.9) is an increasing event on the
+edge-set, the conditional expectation E[Z(V2 ) | E(V1 )] is maximized when all edges of V1 are present,
+whence it becomes measurable with respect to the edges on E \ E(V1 ) and therefore conditionally
+independent of Z(V1 ). As such,
+                                                                               i
+                                                  h                             r
+                     E[Z(V1 )Z(V2 )] ≤ E[Z(V1 )]E Z(V2 ) | |E(V1 ∩ V2 )| =         .
+                                                                                2
+By the inequality P(A | B) ≤ P(A)P(B)−1 , since the event that we have conditioned on has
+               r
+probability 2−(2) , we get
+                                                                       r
+                            ζr = E[Z(V1 )Z(V2 )] ≤ E[Z(V1 )]E[Z(V2 )]2(2) .
+Consequently, since ζ0 = E[Z(V1 )]E[Z(V2 )], we have
+                                              r
+                                ξr ζr   mr 2(2)             r−1
+                                      ≤     r
+                                                = 2r(log2 m+ 2 −log2 n) .
+                                ξ0 ζ0    n
+Since r ≤ m ≤ c log2 n for c < 2, for n large the quantity in the exponent is negative for n large;
+thus r ≥ 1 gives
+                              ξr ζr            c               c<2  1     c
+                                    ≤ 2log2 m+ 2 log2 n−log2 n ≤ n− 2 (1− 2 ) .                   (5.13)
+                              ξ0 ζ0
+The proof is finished by appealing to the Paley–Zygmund inequality: for any ε ∈ [0, 1], we have
+                                                                          n−k 2
+                                                                              
+                                                   2                            ζ0
+                                          2 E[Q(m)]                  2P m
+         P(Q(m) > εE[Q(m)]) > (1 − ε)             2
+                                                      = (1 − ε)
+                                            E[Q(m) ]                      r∈[m] ξr ζr
+                                                  n−k 2
+                                                       
+                                                         ζ0
+                             ≥ (1 − ε)2             m
+                                                                            ≥ (1 − o(1))(1 − ε)2 .
+                                                       − 12 (1− 2c )
+                                        (1 + (m − 1)n                )ξ0 ζ0
+The proof is completed by taking ε = log1 n .                                                          □
+                                            2
+                                                     17
+                                  6. Extension to the robust case
+   We now consider a more general setting where a subset of non-PC vertices is allowed to have
+a higher edge probability. Let 12 ≤ q < 1 be fixed parameters, and k ≥ nα , m ≥ nλ for some
+0 < α, λ < 1. A contaminated planted clique model G(n, 21 , q, k, m) with vertices [n] is defined as
+follows. One first uniformly samples a k-size subset of [n] as the planted clique (denoted by PC)
+and connects all the edges on it. Then one arbitrarily picks an m-size subset of [n] \ PC (denoted
+by V) for large-degree vertices and forms the potential edges connected to V independently with
+probability q. Finally, one connects the remaining edges independently with probability 12 . When
+q = 12 , G(n, 21 , q, k, m) reduces to the planted clique model G(n, 21 , k). In general, G(n, 21 , q, k, m)
+admits high-degree non-PC vertices to obscure the planted PC structure, e.g. m > k. We show that
+the above algorithms based on the Hamiltonian H(U ) of (1.1) still works when initialized from the
+full graph to recover PC.
+Theorem 6.1. Suppose γ > 1+q
+                          1−q . For every ε > 0, there exists C0 (ε, γ), C1 (ε, γ) > 0 such that for
+          √          2  k3
+all k ≥ C0 n and m < C1 log n , with probability at least 1 − ε, the gradient descent St initialized
+from S0 = [n] achieves
+                               St = PC       for all t ≥ n + 2k .
+The same holds for the positive temperature chain Stβ for all n + 2k ≤ t ≤ nk/C0 if β = Ω(log n).
+   For convenience and without loss of generality, we let PC = [k] := {1, . . . , k} and V = [k + m] \
+[k] := {k + 1, . . . , k + m} in the subsequent analysis. Similar to the analysis of the planted clique
+model, for any U ⊆ [n], we write U = U1 ∪ U2 ∪ U3 , where U1 = U ∩ [k], U2 = U ∩ ([k + m] \ [k]),
+U3 = U ∩ [k + m]c , and n1 = |U1 |, n2 = |U2 |, n3 = |U3 |, and define H(U1 , U2 , U3 ) = H(U ). The
+following lemmas, which are the analogues of Lemmas 2.3, 2.4, 3.1, 3.2, respectively, in the planted
+clique setting, still hold. The proofs are essentially identical, and thus are omitted.
+Lemma 6.2. For any γ > 1, there exists an absolute constant c(γ) > 0 such that, with probability
+at least 1 − o(1), for all pairs (U ′ , U ) satisfying U ′ ⊆ U ⊆ [n] with |U ′ | ≥ c log n,
+                     (1 − δ) E[deg(U ′ , U )] ≤ deg(U ′ , U ) ≤ (1 + δ) E[deg(U ′ , U )],
+                                                                                    q
+where deg(U ′ , U ) = x∈U ′ |E(x, U )| is the total degree of U ′ in U and δ ≥ 96|Ulog′ | n . Consequently,
+                     P
+
+                                                              E[deg(U ′ , U )]
+                                  min′ |E(x, U )| ≤ (1 + δ)                    .                      (6.1)
+                                  x∈U                             |U ′ |
+Lemma 6.3. There exists an absolute constant ρ > 0 such that, for any α, λ ∈ (0, 1) and k ≥
+nα , m ≤ nλ , with probability at least 1 − o(1), for all U with |U ∩ [k + m]c | ≥ logn n ,
+                                  E[deg(U ∩ [k + m]c , U )]     √
+            min        |E(x, U )| ≤                c
+                                                             +ρ n
+         x∈U ∩[k+m]c                  |U ∩ [k + m] |
+                                  1                                                          √
+                                 = (|U ∩ ([k + m] \ [k])c | − 1) + q|U ∩ ([k + m] \ [k])| + ρ n.
+                                  2
+Lemma 6.4. Let γ > 1+q  1−q . There exists an absolute constant c0 (γ) > 0 such that with probability
+1 − o(1), for all U ⊆ [n], |U ∩ [k]c | ≥ c0 log n,
+                                                                       
+                       min H(U \ {x}) ≤ min H(U ), minc H(U ∪ {z}) − 1.                        (6.2)
+                          x∈U                                 z∈U
+
+Consequently, |St | will only decrease until |St ∩ [k]c | ≤ c0 log n.
+                                                     18
+Lemma 6.5. Let γ > 1+q                             1
+                         1−q and ξ < 1 − q(1 + γ ). With probability 1 − o(1) the following holds. For
+any S having |S ∩ [k]| ≥ max{γ|S ∩ [k]c | + 2, (1 − ξ)k}, if St′ is the gradient descent initialized from
+S0′ = S then dH (St′ , PC) is strictly decreasing in t while St′ ̸= PC. Consequently, St′ will converge to
+PC in at most 2k further steps.
+   Moreover, for any W ⊆ [n], W ̸= PC that satisfies |W ∩ [k]| ≥ max{γ|W ∩ [k]c | + 2, (1 − ξ)k},
+                                         min H(U ) ≤       min       H(U ) − 1,                            (6.3)
+                                         U ∈U            U ∼W,U ∈U
+                                                                /
+
+where U = {U ∼ W : dH (U, PC) < dH (W, PC)} represents the set of neighboring states of W that
+are one Hamming distance closer to the PC than W is.
+   Let Yt be the same peeling process introduced in Section 3 and τ0 = τ0 (c0 ) be the first time
+|Yt ∩ [k]c | ≤ c0 log n; see the paragraph above (3.3) for the details of their definitions. To establish
+a similar version of Lemma 3.3, we need the following stochastic dominance result concerning the
+dynamics of Yt while running on the contaminated planted clique model. For convenience, we
+introduce the following notation to keep track of the statistics of the dynamics:
+                      Ut,1 = Yt ∩ [k]                                             nt,1 = |Ut,1 | ,
+                      Ut,2 = Yt ∩ ([k + m] \ [k])                                 nt,2 = |Ut,2 | ,
+                                                     c
+                      Ut,3 = Yt ∩ [k + m]                                         nt,3 = |Ut,3 | ,
+                      Ūt,1 = Ytc ∩ [k]                                           n̄t,1 = |Ūt,1 | ,
+                      Ūt,2 = Ytc ∩ ([k + m] \ [k])                               n̄t,2 = |Ūt,2 | ,
+                      Ūt,3 = Ytc ∩ [k + m]c                                      n̄t,3 = |Ūt,3 | .
+For x ∈ [n], let Tx denote the time that x is removed from Yt before τ0 , i.e., Tx = min{t : x ∈/
+Yt } ∧ τ0 . The below lemma is saying that for any x ∈ [k] and before its removal from Yt , both
+{deg(x, Ūt,2 )}t≤Tx and {deg(x, Ūt,3 )}t≤Tx are upper bounded by the respective correct Binomial
+processes under appropriate coupling.
+Lemma 6.6. Let Yt be the peeling process and Ft be the associated filtration. For every x ∈ [k], there
+exist processes {b̄t,2 (x)}t<Tx , {b̄t,3 (x)}t<Tx defined on the same probability space of {deg(x, Ūt,2 )}t<Tx ,
+{deg(x, Ūt,3 )}t<Tx and upper bound them, respectively, where
+                                        n̄t,2                                           n̄t,3
+                                        X                                               X
+                          b̄t,2 (x) =           εi                        b̄t,3 (x) =           ε′i ,      (6.4)
+                                        i=0                                             i=0
+
+and {εi }i≥1 , {ε′i }i≥1 are independent Bernoulli random variables with parameters q and 1/2, respec-
+tively, with initial values ε0 = ε′0 = 0.
+Proof. The proof follows from a similar edge-exposure argument of [FR10, Lemma 4] and we
+only provide a sketch here for completeness. For convenience, we focus on the stopped process
+{deg(x, Ūt,2 )}t<Tx , the argument for {deg(x, Ūt,3 )t<Tx being identical.
+   Fixing x ∈ [k], we first draw an edge configuration of the contaminated model except for the
+edges between x and [k + m] \ [k]. We call such a configuration partially observed. We run a
+tentative peeling process Yt on the partially observed configuration as follows. Suppose that at
+time t < Tx , z is chosen as the candidate for removal because it has the lowest degree in Yt among
+the revealed portion of the graph (z could be equal to x). If all edges adjacent to z have been
+revealed, then remove z as usual. Otherwise, randomly choose one of the unrevealed edges adjacent
+to z and reveal it (this corresponds to drawing an independent Bernoulli random variable Ber(q) to
+decide whether to form an edge or not), and then re-find the smallest-degree vertex in Yt with this
+additional information. Note that all unrevealed edges at the beginning have exactly one vertex x
+                                                           19
+and the other vertex z ∈ [k + m] \ [k]. For each z ∈ [k + m] \ [k], we let εez denote the edge outcome
+between x and z after revealing, i.e., εez = 1 if there is an edge between x and z and εez = 0 if there
+is not. The tentative peeling process agrees with the original peeling process before Tx .
+   At each time t < Tx , the edge information between x and every vertex in Ūt,2 must have been
+revealed. Denoting all revealed vertices in [k + m] \ [k] at time t as Rt , it is easy to see that
+{z ∈ Rt : εez = 0} ⊆ Ūt,2 so {z ∈ Rt : z ∈
+                                          / Ūt,2 } ⊆ {z ∈ Rt : εez = 1}. Consequently,
+                                                                                              n̄t,2
+                                           X                X                                 X
+                       deg(x, Ūt,2 ) =             εez =          εez − (|Rt | − n̄t,2 ) ≤           εez (i) ,
+                                          z∈Ūt,2           z∈Rt                              i=0
+
+where z (i) denotes the i-th vertex in Rt whose edge to x was revealed, with the convention that
+ε̃z 0 = 0 identically. By definition, {e
+                                       εz (i) }i∈[n̄t,2 ] are i.i.d. Bernoulli random variables with parameter
+q. Letting εi = εez (i) yields the desired result.                                                          □
+  Using Lemma 6.6 and applying the Optional Stopping Theorem and Doob’s inequality, we can
+prove the following result which can be viewed as a more general version of Lemma 3.3.
+Lemma 6.7. Let Yt denote the peeling process defined above. For any ε, η > 0, there exists an
+absolute constant c1 (ε, η) > 0 such that if we define the random subset of [k],
+                                                                     √
+                                                                                     
+                                                             1
+      A(c1 ) = x ∈ [k] : deg(x, Yt ) ≥ (nt,1 − 1) + qnt,2 + nt,3 − c1 n for all t < Tx . (6.5)
+                                                             2
+then with probability at least 1 − ε, |A| ≥ (1 − η)k.
+Proof. Fix x ∈ [k] and let b̄t,2 (x) be the process defined in (6.4) in Lemma 6.6 that bounds
+deg(x, Ūt,2 ). Observe that the process b̄t,2 (x) − qn̄t,2 is a martingale with bounded increments.
+Applying the Optional Stopping Theorem (OST), Doob’s maximal inequality to the centered dom-
+inating process, and Lemma 6.6, we have
+                                             √                                                √
+                                                                                              
+                                                   Lemma 6.6
+        P max(deg(x, Ūt,2 ) − qn̄t,2 ) > c11 n       ≤       P max(b̄t,2 (x) − qn̄t,2 ) > c11 n
+            t<Tx                                                                 t<Tx
+              OST+Doob E[(b̄T −1,2 (x) − qn̄T −1,2
+                                x                     x      )2 ] n̄Tx −1,2 ≤n   q(1 − q)  εη
+                   ≤                                                   ≤                  ≤ ,
+                                          c211 n                                     2
+                                                                                   c11      3
+where the last inequality holds if c211 ≥ q(1−q)
+                                             ε   . For the same c11 , by the same reasoning, we have
+                                                                √
+                                                                    
+                                                                          εη
+                          P max(deg(x, Ūt,3 ) − n̄t,3 /2) > c11 n ≤ .
+                              t<Tx                                         3
+Putting the two cases together and noting deg(x, Ūt,1 ) ≤ n̄t,1 yields that, with probability at most
+1 − 2εη
+     3 ,
+                                                                                               √
+         max deg(x, Ūt,1 ) + deg(x, Ūt,2 ) + deg(x, Ūt,3 ) − n̄t,1 − qn̄t,2 − n̄t,3 /2 ≤ 2c11 n. (6.6)
+          t<Tx
+
+Meanwhile, since deg(x) is a sum of independent Bernoulli random variables, by Chebyshev’s in-
+equality, there exists c21 (ε, η) > 0 such that with probability at least 1 − εη
+                                                                               3 ,
+                                                   n−k−m            √
+                               deg(x) ≥ k − 1 + qm +          − c21 n.                        (6.7)
+                                                        2
+It is easy to check that (6.6) and (6.7) together implies the property defined by A in (6.5) with
+c1 = 2c11 + c21 , and such a property holds with probability at least 1 − εη for each x ∈ [k]. The
+desired follows by an application of Markov’s inequality.                                        □
+  We are ready to prove the success result for the robust version of the planted clique problem.
+                                                              20
+Proof of Theorem 6.1. Given Lemmas 6.6–6.7, the proof is similar to the proof of Theorem 1.1, and
+we only describe the differences that arise in the gradient descent case. By similar reasoning to the
+proof of Theorem 1.1, it suffices to verify that for any η < 1 − q(1 + γ1 ) < 12 , there exists c1 (η) > 0
+such that with probability at least 1 − ε,
+                               |A| ≥ (1 − η)k       and A ⊆ Yt     for all t ≤ τ0 ,
+where c√1 appears in the definition of A in (6.5). To this end, we apply an inductive argument. Let
+k ≥ C0 n for some absolute constant C0 to be determined during the proof. Taking a union bound
+for the statements in Lemmas 6.2, 6.3, 6.7, we have the following events hold simultaneously with
+probability at least 1 − ε: there exist c, c1 , ρ > 0 such that
+                                            E[deg(U ′ , U )]
+                min′ |E(x, U )| ≤ (1 + δ)                      ∀U ′ ⊆ U ⊆ [n], |U ′ | ≥ c log n       (6.8)
+                x∈U                             |U ′ |
+                                   1                                                         √
+          min        |E(x, U )| ≤ (|U ∩ ([k + m] \ [k])c | − 1) + q|U ∩ ([k + m] \ [k])| + ρ n     (6.9)
+       x∈U ∩[k+m]c                 2
+                                                                                           n
+                                                            ∀U ⊆ [n], |U ∩ [k + m]c | ≥
+                                                                                         log n
+              |A| = |A(c1 )| ≥ (1 − η)k,                                                          (6.10)
+                        q
+where δ = δ(U ′ ) = 96|Ulog′ | n . It is easy to see that A ⊆ Y0 = [n] at t = 0. To apply induction, we
+assume A ⊆ Yt−1 and verify A ⊆ Yt . We now consider three separate cases.
+   If nt−1,3 ≥ logn n , letting U = Yt−1 in (6.9), we have
+                             (6.9) 1                    √
+       min deg(y, Yt−1 ) ≤             (|Yt−1 | − 1) + ρ n
+     y∈Ut−1,3                     2
+                                                 √                   √       √
+                                                                              
+                                    1                    1
+            ≤ nt−1,1 − 1 + qnt−1,2 + nt−1,3 − c1 n − (nt−1,1 − 1) − ρ n − c1 n
+                                    2                    2
+                                                          √     √
+         (6.5)
+                                                                 
+                                        1
+          ≤      min deg(x, Yt−1 ) − (nt−1,1 − 1) − ρ n − c1 n
+               x∈A⊂Yt−1                 2
+                                        C0 (1 − η) √      √     √
+        (6.10)
+                                                                 
+          ≤      min deg(x, Yt−1 ) −                n − ρ n − c1 n < min deg(x, Yt−1 ),
+               x∈A⊂Yt−1                      2                       x∈A⊂Yt−1
+
+where the last inequality holds for any C0 satisfying C0 > 2(ρ+c 1)
+                                                             1−η .
+                              2
+  If nt−1,2 ≤ nt−1,3 or Kmk2log n ≤ nt−1,3 < logn n for some large absolute constant K (e.g. K = 105
+works), then letting (U, U ′ ) = (Yt−1 , Ut−1,3 ) in (6.8), we have
+                     (6.8)
+                                                                       
+                                     1
+  min deg(y, Yt−1 ) ≤ (1 + δ) (nt−1,1 + nt−1,3 − 1) + qnt−1,2
+y∈Ut−1,3                             2
+                                                 √       1−δ                                           √
+                                                                                                         
+                                  1
+       ≤ nt−1,1 − 1 + qnt−1,2 + nt−1,3 − c1 n −                (nt−1,1 − 1) − δ(qnt−1,2 + nt−1,3 ) − c1 n
+                                  2                         2
+                                      1−δ                                           √
+    (6.5)
+                                                                                       
+     ≤       min deg(x, Yt−1 ) −            (nt−1,1 − 1) − δ(qnt−1,2 + nt−1,3 ) − c1 n
+           x∈A⊂Yt−1                     2
+                                                   √          √
+                                                                 
+                                     k     k
+     ≤       min deg(x, Yt−1 ) −        −     − 2 96n − c1 n
+          x∈A⊂Yt−1                    8 16
+     <       min deg(x, Yt−1 ),
+        x∈A⊂Yt−1
+                                                          21
+where the second to last inequality follows by noting that nt−1,1 ≥ |A| ≥ (1 − η)k > k2 and under
+                                           2
+the conditions nt−1,2 ≤ nt−1,3 or Kmk2log n ≤ nt−1,3 < logn n ,
+                                                                          s                
+                                       p                   p                   2
+                                                                             96nt−1,2 log n 
+         δ(nt−1,2 + nt−1,3 ) ≤ max 2 96nt−1,3 log n, 96nt−1,3 log n +
+                                                                               nt−1,3      
+                                           √      √               √
+                                                            
+                                                           k            k
+                             ≤ max 2 96n, 96n +                ≤ 2 96n + ,
+                                                          16            16
+                                             √
+and the last inequality holds if C160 − 2 96 − c1 > 0.
+                                                     2
+  Finally, if nt−1,2 > nt−1,3 and nt−1,3 < Kmk2log n where K is the same as in the previous case,
+then letting (U, U ′ ) = (Yt−1 , Ut−1,2 ) in (6.8), we have
+ min deg(y, Yt−1 ) ≤ (1 + δ)q(nt−1,1 + nt−1,2 + nt−1,3 − 1)
+y∈Ut−1,2
+                                1          √                                                       √ 
+       ≤ nt−1,1 − 1 + qnt−1,2 + nt−1,3 − c1 n − (1 − (1 + δ)q)(nt−1,1 − 1) − nt−1,3 − 2δqnt−1,2 − c1 n
+                                2
+    (6.5)                                                                           √ 
+     ≤       min deg(x, Yt−1 ) − (1 − (1 + δ)q)(nt−1,1 − 1) − nt−1,3 − 2δqnt−1,2 − c1 n
+           x∈A⊂Yt−1
+                                   (1 − q)k (1 − q)k                     √
+                                                                           
+                                                         p
+     ≤       min deg(x, Yt−1 ) −           −          − 2 96nt−1,2 − c1 n
+          x∈A⊂Yt−1                     4        8
+     <       min deg(x, Yt−1 ),
+           x∈A⊂Yt−1
+
+where the second to last inequality follows by noting nt−1,1 ≥ |A| ≥ (1 − η)k > k2 , and k 3 ≥
+C1 m2 log n with C1 = C08K
+                        (1−q) implies
+
+                                             Km2 log n    (1 − q)k
+                                       nt−1,3 <   2
+                                                       ≤           ,
+                                                k             8
+                                             √
+and the last inequality holds if C0 (1−q)
+                                     8    − 2 96 − c1 > 0.                                                     □
+
+Acknowledgements. The authors thank anonymous referees for their helpful feedback. The re-
+search of R.G. was supported in part by NSF DMS-2246780. A.J. acknowledges the support of the
+Natural Sciences and Engineering Research Council of Canada (NSERC) and the Canada Research
+Chairs programme. Cette recherche a été enterprise grâce, en partie, au soutien financier du Con-
+seil de Recherches en Sciences Naturelles et en Génie du Canada (CRSNG), [RGPIN-2020-04597,
+DGECR-2020-00199], et du Programme des chaires de recherche du Canada. The authors thank
+Kailong Zhang for helping make the phase diagram plot Figure 2.
+
+                                                  References
+[AB13]       Antonio Auffinger and Gérard Ben Arous, Complexity of random smooth functions on the high-
+             dimensional sphere, Ann. Probab. 41 (2013), no. 6, 4214–4247. MR 3161473
+[ABC13]      Antonio Auffinger, Gérard Ben Arous, and Jiri Cerny, Random matrices and complexity of spin glasses,
+             Comm. Pure Appl. Math. 66 (2013), no. 2, 165–201. MR 2999295
+[AKS98]      Noga Alon, Michael Krivelevich, and Benny Sudakov, Finding a large hidden clique in a random graph,
+             Random Structures & Algorithms 13 (1998), no. 3-4, 457–466.
+[AV11]       Brendan PW Ames and Stephen A Vavasis, Nuclear norm minimization for the planted clique and biclique
+             problems, Mathematical programming 129 (2011), no. 1, 69–89.
+[BB20]       Matthew Brennan and Guy Bresler, Reducibility and statistical-computational gaps from secret leakage,
+             Proceedings of Thirty Third Conference on Learning Theory (Jacob Abernethy and Shivani Agarwal,
+             eds.), Proceedings of Machine Learning Research, vol. 125, PMLR, 09–12 Jul 2020, pp. 648–847.
+                                                        22
+[BGJ20]   Gérard Ben Arous, Reza Gheissari, and Aukosh Jagannath, Algorithmic thresholds for tensor PCA, The
+          Annals of Probability 48 (2020), no. 4, 2052 – 2087.
+[BHK+ 19] Boaz Barak, Samuel Hopkins, Jonathan Kelner, Pravesh K. Kothari, Ankur Moitra, and Aaron Potechin,
+          A nearly tight sum-of-squares lower bound for the planted clique problem, SIAM Journal on Computing
+          48 (2019), no. 2, 687–735.
+[BKS23]   Rares-Darius Buhai, Pravesh K. Kothari, and David Steurer, Algorithms approaching the threshold for
+          semi-random planted clique, Proceedings of the 55th Annual ACM Symposium on Theory of Computing
+          (New York, NY, USA), STOC 2023, Association for Computing Machinery, 2023, p. 1918–1926.
+[BMMN19] Gérard Ben Arous, Song Mei, Andrea Montanari, and Mihai Nica, The landscape of the spiked tensor
+          model, Comm. Pure Appl. Math. 72 (2019), no. 11, 2282–2330. MR 4011861
+[BR13]    Quentin Berthet and Philippe Rigollet, Optimal detection of sparse principal components in high dimen-
+          sion, The Annals of Statistics 41 (2013), no. 4, 1780 – 1815.
+[BS95]    A. Blum and J. Spencer, Coloring random and semi-random k-colorable graphs, Journal of Algorithms
+          19 (1995), no. 2, 204–234.
+[CMZ23]   Zongchen Chen, Elchanan Mossel, and Ilias Zadik, Almost-linear planted cliques elude the Metropolis
+          process, Proceedings of the 2023 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA), SIAM,
+          2023, pp. 4504–4539.
+[CO07]    Amin Coja-Oghlan, Solving NP-hard semirandom graph problems in polynomial expected time, Journal
+          of Algorithms 62 (2007), no. 1, 19–46.
+[CSV17]   Moses Charikar, Jacob Steinhardt, and Gregory Valiant, Learning from untrusted data, Proceedings of
+          the 49th Annual ACM SIGACT Symposium on Theory of Computing (New York, NY, USA), STOC
+          2017, Association for Computing Machinery, 2017, p. 47–60.
+[DGGP14] Yael Dekel, Ori Gurel-Gurevich, and Yuval Peres, Finding hidden cliques in linear time with high proba-
+          bility, Combinatorics, Probability and Computing 23 (2014), no. 1, 29–49. p
+[DM15]    Yash Deshpande and Andrea Montanari, Finding hidden cliques of size          N/e in nearly linear time,
+          Found. Comput. Math. 15 (2015), no. 4, 1069–1128.
+[FGR+ 17] Vitaly Feldman, Elena Grigorescu, Lev Reyzin, Santosh S. Vempala, and Ying Xiao, Statistical algorithms
+          and a lower bound for detecting planted cliques, J. ACM 64 (2017), no. 2.
+[FK00]    Uriel Feige and Robert Krauthgamer, Finding and certifying a large hidden clique in a semirandom graph,
+          Random Structures & Algorithms 16 (2000), no. 2, 195–208.
+[FK01]    Uriel Feige and Joe Kilian, Heuristics for semirandom graph problems, Journal of Computer and System
+          Sciences 63 (2001), no. 4, 639–671.
+[FK03]    Uriel Feige and Robert Krauthgamer, The probable value of the Lovász-Schrijver relaxations for maximum
+          independent set, SIAM J. Comput. 32 (2003), no. 2, 345–370.
+[FR10]    Uriel Feige and Dorit Ron, Finding hidden cliques in linear time, Discrete Mathematics & Theoretical
+          Computer Science (2010), no. Proceedings.
+[Gam21]   David Gamarnik, The overlap gap property: A topological barrier to optimizing over random structures,
+          Proceedings of the National Academy of Sciences 118 (2021), no. 41, e2108492118.
+[GZ19]    David Gamarnik and Ilias Zadik, The landscape of the planted clique problem: Dense subgraphs and the
+          overlap gap property, 2019.
+[HKP+ 18] Samuel B. Hopkins, Pravesh Kothari, Aaron Henry Potechin, Prasad Raghavendra, and Tselil Schramm,
+          On the integrality gap of degree-4 sum of squares for planted clique, ACM Trans. Algorithms 14 (2018),
+          no. 3.
+[HWX15] Bruce Hajek, Yihong Wu, and Jiaming Xu, Computational lower bounds for community detection on
+          random graphs, Proceedings of The 28th Conference on Learning Theory (Paris, France) (Peter Grünwald,
+          Elad Hazan, and Satyen Kale, eds.), Proceedings of Machine Learning Research, vol. 40, PMLR, 03–06
+          Jul 2015, pp. 899–928.
+[Jer92]   Mark Jerrum, Large cliques elude the metropolis process, Random Structures & Algorithms 3 (1992),
+          no. 4, 347–359.
+[Kar76]   R Karp, Probabilistic analysis of some combinatorial search problems. traub, jf (ed.): Algorithms and
+          complexity: New directions and recent results, 1976.
+[Kuc95]   Ludek Kucera, Expected complexity of graph partitioning problems, Discrete Applied Mathematics 57
+          (1995), no. 2-3, 193–212.
+[MBB20] Antoine Maillard, Gérard Ben Arous, and Giulio Biroli, Landscape complexity for the empirical risk
+          of generalized linear models, Proceedings of The First Mathematical and Scientific Machine Learning
+          Conference (Jianfeng Lu and Rachel Ward, eds.), Proceedings of Machine Learning Research, vol. 107,
+          PMLR, 20–24 Jul 2020, pp. 287–327.
+
+                                                       23
+[McS01]   F. McSherry, Spectral partitioning of random graphs, Proceedings 42nd IEEE Symposium on Foundations
+          of Computer Science, 2001, pp. 529–537.
+[MMT20]   Theo McKenzie, Hermish Mehta, and Luca Trevisan, A new algorithm for the robust semi-random in-
+          dependent set problem, Proceedings of the Thirty-First Annual ACM-SIAM Symposium on Discrete
+          Algorithms (USA), SODA ’20, Society for Industrial and Applied Mathematics, 2020, p. 738–746.
+[MPW15]   Raghu Meka, Aaron Potechin, and Avi Wigderson, Sum-of-squares lower bounds for planted clique, Pro-
+          ceedings of the Forty-Seventh Annual ACM Symposium on Theory of Computing (New York, NY, USA),
+          STOC ’15, Association for Computing Machinery, 2015, p. 87–96.
+[MR14]    Andrea Montanari and Emile Richard, A statistical model for tensor PCA, Proceedings of the 27th
+          International Conference on Neural Information Processing Systems - Volume 2 (Cambridge, MA, USA),
+          NIPS’14, MIT Press, 2014, p. 2897–2905.
+[MW90]    Brendan D McKay and Nicholas C Wormald, Asymptotic enumeration by degree sequence of graphs of
+          high degree, European Journal of Combinatorics 11 (1990), no. 6, 565–580.
+[Ste18]   Jacob Steinhardt, Does robustness imply tractability? A lower bound for planted clique in the semi-random
+          model, 2018.
+
+
+
+
+                                                       24
+

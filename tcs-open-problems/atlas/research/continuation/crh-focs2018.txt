@@ -1,0 +1,614 @@
+                       2018 IEEE 59th Annual Symposium on Foundations of Computer Science
+
+
+
+
+                                 Cryptographic Hashing From
+                                  Strong One-Way Functions
+                              Or: One-Way Product Functions and their Applications
+
+           The full version of this paper is freely available on the Cryptology ePrint Archive [1].
+
+                           Justin Holmgren                                            Alex Lombardi
+                              MIT CSAIL                                                MIT CSAIL
+                          Cambridge, USA                                             Cambridge, USA
+                       Email: holmgren@mit.edu                                     Email: alexjl@mit.edu
+
+
+    Abstract—Constructing collision-resistant hash fami-                in which case it is heuristically assumed that an explicitly
+ lies (CRHFs) from one-way functions is a long-standing                 described hash function H (possibly sampled at random
+ open problem and source of frustration in theoretical                  from a family) behaves like a random function, as far as a
+ cryptography. In fact, there are strong negative results:
+ black-box separations from one-way functions that are                  computationally bounded adversary can tell.
+ 2−(1−o(1))n -secure against polynomial time adversaries                   One of the most basic properties one might desire from
+ (Simon, EUROCRYPT ’98) and even from indistin-                         a hash function is collision resistance, which requires that
+ guishability obfuscation (Asharov and Segev, FOCS                      a computationally bounded adversary, given an explicit
+ ’15).
+    In this work, we formulate a mild strengthening of ex-
+                                                                        (shrinking) function H, cannot ﬁnd a pair of distinct
+ ponentially secure one-way functions, and we construct                 inputs (x, y) such that H(x) = H(y). Since their intro-
+ CRHFs from such functions. Speciﬁcally, our security                   duction [6], collision-resistant hash functions have proved
+ notion requires that every polynomial time algorithm                   extremely useful in designing cryptographic primitives and
+ has at most 2−n · negl(n) probability of inverting two                 protocols. As such, the following problem has received
+ independent challenges.
+    More generally, we consider the problem of simul-
+                                                                        much attention in theoretical cryptography.
+ taneously inverting k functions f1 , . . . , fk , which we say         Question I.1. What are the assumptions from which
+ constitute a “one-way product function” (OWPF). We
+ show that suﬃciently hard OWPFs yield hash families                    collision-resistant hash functions can be built? In particu-
+ that are multi-input correlation intractable (Canetti,                 lar, can they be built from an arbitrary one-way function?
+ Goldreich, and Halevi, STOC ’98) with respect to all
+ sparse (bounded arity) output relations. Additionally                     The question of building CRHFs from arbitrary one-
+ assuming indistinguishability obfuscation, we construct                way functions is particularly intriguing because OWFs
+ hash families that achieve a broader notion of cor-                    are suﬃcient to construct a wide class of cryptographic
+ relation intractability, extending the recent work of                  primitives, including: pseudorandom generators [7], pseu-
+ Kalai, Rothblum, and Rothblum (CRYPTO ’17). In
+ particular, these families are suﬃcient to instantiate                 dorandom functions [8] and secret-key encryption, uni-
+ the Fiat-Shamir heuristic in the plain model for a                     versal one-way hash functions [9] and digital signatures,
+ natural class of interactive proofs.                                   commitment schemes [10], zero-knowledge proofs [11], and
+    An interesting consequence of our results is a poten-               garbled circuits [12], [13].
+ tial new avenue for bypassing black-box separations.
+                                                                           Unfortunately, all known constructions of CRHFs have
+ In particular, proving (with necessarily non-black-box
+ techniques) that parallel repetition ampliﬁes the hard-                required assumptions beyond general one-way functions,
+ ness of speciﬁc one-way functions – for example, all one-              such as structured generic assumptions (e.g. the existence
+ way permutations – suﬃces to directly bypass Simon’s                   of claw-free pairs of permutations) or the hardness of
+ impossibility result.                                                  speciﬁc problems (e.g. computing discrete logarithms or
+                      I. Introduction                                   ﬁnding approximately short vectors on lattices). Even
+                                                                        worse, there are strong negative results on the prospect
+    Cryptographically secure hash functions are a funda-                of constructing CRHFs from arbitrary OWFs in the form
+ mental building block in cryptography. Some of their most              of black-box impossibility results. The ﬁrst such result is
+ ubiquitous applications include the construction of digital            due to Simon [14].
+ signature schemes [2], eﬃcient CCA-secure encryption [3],
+ succinct delegation of computation [4], and removing in-               Theorem I.2 ([14], informal). There is an oracle relative
+ teraction from protocols [5]. In their most general form,              to which no collision-resistant hash functions exist, but
+ hash functions can be modeled as “random oracles” [3],                 exponentially secure one-way permutations exist.
+
+
+2575-8454/18/$31.00 ©2018 IEEE                                    850
+DOI 10.1109/FOCS.2018.00085
+  In fact, CRHFs have proved to be an extremely frus-                           •     More generally, for every k, we construct hash fami-
+trating primitive in theoretical cryptography, as they have                           lies H that are “k-ary output intractable” (inspired
+evaded attempts to describe a hierarchy of cryptographic                              by a related deﬁnition of Zhandry [23]). Loosely
+primitives (with “weaker” objects implied by the existence                            speaking, given H ← H, it is computationally
+of “stronger” objects). In a stark demonstration of this                              hard to ﬁnd distinct inputs X1 , . . . , Xk such that
+problem, Asharov and Segev [15] proved that CRHFs                                     (H(X1 ), . . . , H(Xk )) satisfy any ﬁxed sparse relation
+are not even implied (in a black box1 way) by one-way                                 R. The quantitative hardness that we achieve again
+functions and the extremely powerful notion of indistin-                              matches that of a random oracle.
+guishability obfuscation [16], [17].                                             We are able to construct even stronger hash families
+                                                                              if we additionally assume sub-exponentially secure indis-
+Theorem I.3 ([15], informal). There is an oracle relative
+                                                                              tinguishability obfuscation. This construction allows for
+to which no collision-resistant hash functions exist, but
+                                                                              applications including an instantiation of the Fiat-Shamir
+exponentially secure one-way permutations and indistin-
+                                                                              heuristic [5] for a natural class of interactive proofs.
+guishability obfuscation exist.
+                                                                                 Our main results and contributions are, in more detail,
+  These negative results indicate substantial barriers to                     as follows.
+building CRHFs from OWFs (or OWPs, or indeed from                                1) Deﬁning OWPFs: We introduce the notion of a fam-
+any of the vast array of primitives implied by IO and                         ily of one-way k-product functions (k-OWPFs), which is a
+OWPs). Collision resistance is also just one desirable                        family of k-tuples of functions (f1 , . . . , fk ) that are jointly
+property of random oracles, and our question above is a                       “extremely one-way”. Such a family is most interesting
+special case of the following more ambitious question.                        when the hardness of inversion exceeds that of any individ-
+                                                                              ual fi . For simplicity, suppose that each fi is injective. In
+Question I.4. Which random oracle properties can be                           this case, we consider the assumption that no polynomial-
+guaranteed under standard cryptographic assumptions, and                                                                     i.i.d.
+                                                                              time algorithm can recover X1 , . . . , Xk ← {0, 1}n given
+how weak can these assumptions be made?                                       (f1 (X1 ), . . . , fk (Xk )) with probability better than δ. Ide-
+   It is known that some random oracle properties are                         ally, this could be true for δ as large as 2−(k−o(k))n . We
+not realizable in the standard model [18], [19]. However,                     call this a δ-hardness assumption of batch inversion for
+there has been a recent line of work [20]–[22] showing that                   (f1 , . . . , fk ).
+under strong assumptions, many random oracle properties                          The existence of such a family would follow from the
+(speciﬁcally in the context of “single input correlation                      following two conditions:
+                                                                                 • A δ          -secure injective one-way function f , and
+                                                                                            1/k
+intractability”) can be realized, and Question I.4 in its
+full generality remains wide open.                                               • An optimal parallel repetition theorem for the hard-
+                                                                                      ness of f , i.e. one which states that if a function f is
+A. Our Contributions                                                                  (s, δ)-hard to invert, then its k-wise repetition f k is
+                                                                                      (s, δ k )-hard to invert.
+   In this work, we make progress on all of the above
+                                                                              While such a dream parallel repetition property likely does
+questions by deﬁning a natural strengthening of exponen-
+                                                                              not hold for general f [24], the counterexample presented
+tially secure OWFs2 that suﬃces for building CRHFs and
+                                                                              therein does not preclude a similar result for a broad class
+more. An “uber” version of our assumption – which we
+                                                                              of functions f .
+state for the purpose of intuition but is quantitatively
+                                                                                 In fact, the parallel repetition framework described
+and qualitatively much stronger than what we actually
+                                                                              above yields a special kind of OWPF family: one in which
+require – states that for every k = poly(n), there ex-
+                                                                              all k functions f1 , . . . , fk are equal. We say that such
+ists an injective (polynomial-time computable) function
+                                                                              OWPF families are symmetric. Another special case of
+f : {0, 1}∗ → {0, 1}∗ with the following “batch one-
+                                                                              interest, which we call a one-way power family, is a OWPF
+wayness” property: For every polynomial-size adversary A,
+                                                                              family of the form F k , meaning that the k functions
+the probability that A(f (X1 ), . . . , f (Xk )) = (X1 , . . . , Xk )
+                    i.i.d.                                                    f1 , . . . , fk are sampled independently at random from a
+for X1 , . . . , Xk ← {0, 1}n is bounded by 2−kn · poly(n).                   ﬁxed family F.
+   Based on various signiﬁcant weakenings of this uber-                          Our constructions (that do not require obfuscation)
+assumption, we construct:                                                     are based directly on symmetric injective OWPFs as a
+  •   Collision-resistant hash families whose security                        building block rather than general OWPFs. We augment
+      against polynomial-time adversaries matches that of                     these constructions by providing generic transformations
+      a random oracle.                                                        between diﬀerent notions of OWPFs, including construc-
+                                                                              tions of (weaker) symmetric OWPFs from (stronger) gen-
+  1 “Black box” usage of IO and one-way functions is formalized
+                                                                              eral OWPFs, and constructions of injective k-OWPFs from
+through the notion of obfuscation for oracle-aided circuits. We refer
+the reader to [15] for details.
+                                                                              arbitrary k-OWPFs (with some security loss).
+  2 Actually, OWFs where any polynomial-time algorithm can invert                One of our main contributions in this work is initiating
+with only exponentially small probability                                     the study of OWPFs and establishing their basic proper-
+
+
+
+                                                                        851
+ties. We expect that OWPFs will prove useful in future                        model [27]. In particular, [26] show that (in our language)
+work.                                                                         k-batch inversion is nearly 2−kn -hard for polynomial-time
+   On Extreme Hardness Ampliﬁcation: For all of our                           generic-group algorithms.
+constructions without obfuscation, we actually rely on                           2) Constructions from OWPFs: Our ﬁrst application of
+symmetric OWPF families. That is, we want a fam-                              OWPFs is a construction of a collision-resistant hash fam-
+ily F = {Fn } such that if we sample f ← Fn and                               ily from suitably secure symmetric 2-OWPFs. Informally,
+x1 , . . . , xk ← {0, 1}n , it is δ k -hard to simultaneously invert          we prove
+f (x1 ), . . . , f (xk ). Clearly a necessary condition for this is
+that F is a δ-secure one-way function family. But is this                     Theorem I.5. Suppose that there exist symmetric injec-
+suﬃcient? The answer in general is no, as we discuss next.                    tive 2-OWPFs with security 2−n−ω(log n) . Then, there exists
+   First of all, this type of attempted hardness ampliﬁ-                      a collision-resistant hash family.
+cation fails for any family whose functions have short                           This type of OWPF does not follow in a black-box way
+trapdoors that enable polynomial-time inversion. Given                        from even exponentially-hard one-way permutations; this
+f, f (x1 ), . . . , f (xk ), an adversary can simply guess the                is how we avoid the [14], [15] impossibility results.
+trapdoor for f , succeed with some small probability that                        Through one of our generic transformations of OWPFs,
+does not depend on k, and conditioned on guessing cor-                        we also obtain a construction that does not assume injec-
+rectly can eﬃciently invert f (x1 ), . . . , f (xk ).                         tivity:
+   It is natural to next consider functions (or ensembles of
+functions {fn : {0, 1}n → {0, 1}∗ }n indexed only by input                    Theorem I.6. Suppose that there exist symmetric 2-
+length) that are secure against non-uniform adversaries,                      OWPFs with security 2−(1.6+)n . Then, there exists a
+and in particular do not have any trapdoors. However,                         collision-resistant hash family.
+[24] present an example of a single one-way function f for
+                                                                                 Optimality and Implications of Theorem I.5: While we
+which it is as easy to invert f (x1 ), . . . , f (xk ) as it is to
+                                                                              have explained how our result is not captured by the
+invert a single f (x). Although their counterexample heav-
+                                                                              [14], [15] framework, one could question the necessity
+ily relies on the fact that there are multiple permissible
+                                                                              of this new OWPF assumption. For example, [15] only
+solutions to each instance x, there is also evidence that
+                                                                              rules out black-box constructions of CRHFs from 2−n -
+parallel repetition sometimes fails to increase the security
+                                                                              secure IO and one-way permutations (for  = 50          1
+                                                                                                                                        in
+of injective one-way functions [25].
+                                                                              particular), and [14] proves a quantitatively similar impos-
+   Despite the above negative results, we emphasize that                      sibility. What about assuming only 2−n/2 -secure OWPs,
+symmetric OWPFs only require direct products to amplify                       which are weaker and more standard than our symmetric
+hardness for speciﬁc functions, rather than broad classes of                  OWPFs? As a complementary result, we show that these
+functions. Moreover, one-way product functions may exist                      are insuﬃcient – we strengthen the Asharov-Segev analysis
+even if parallel repetition does not amplify the hardness of                  to rule out black box constructions from IO and even 2−n -
+any function f beyond negligible. In particular, f1 , . . . , fk              secure one-way permutations.
+may not all be the same function, and may be sampled
+from a joint distribution on k-tuples of functions. These                     Theorem I.7 (Extension of [15] Theorem 1.1, informal).
+observations leave us with at least two promising avenues                     There is no black-box construction of CRHFs from sub-
+towards constructing OWPF candidates:                                         exponentially secure IO, sub-exponentially secure OWPs,
+  1) Given the contrived nature of known counterex-                           and OWPs that ppt algorithms A can invert with probabil-
+     amples to one-way function parallel repetition, any                      ity at most size(A)c · 2−n for some absolute constant c.
+     “natural” δ-secure injective OWF family also serves                         Theorem I.7 indicates a sharp limit on directly improv-
+     as a candidate one-way power family with security                        ing Theorem I.5; in the latter, we show that injective 2-
+     roughly δ k .                                                            OWPFs that are 2−n · negl(n)-hard to invert suﬃce for
+  2) It may be possible to “fortify” any one-way function                     constructing CRHFs from IO, while the former result says
+     family F into a related family F  whose security does                   that improving the 2−n · negl(n) to negl(n)   2−n
+                                                                                                                                 is impossible
+     amplify to an extreme degree, yielding symmetric                         for black-box constructions. In particular, for black-box
+     OWPFs.                                                                   constructions, exponentially secure one-way permutations
+   Finally, we mention a concrete candidate symmetric                         (in the usual sense) are insuﬃcient.
+OWPF family based on the multiple discrete logarithm                             Extension to Output Intractability: Theorem I.5
+problem. That is, in some group Gn of order |Gn | ≈ 2n ,                      can be substantially generalized beyond collision-
+the problem is to simultaneously compute k discrete loga-                     resistance. In particular, given a 2k-ary relation, we
+                       i.i.d.
+rithms X1 , . . . , Xk ← [2n ] given input (g, g X1 , . . . , g Xk ),         consider the problem of ﬁnding X1 , . . . , Xk such that
+where g is a generator for Gn . In [26], evidence for the                     (X1 , . . . , Xk , H(X1 ), . . . , H(Xk )) ∈ R for H ← Hn . If
+hardness of computing multiple discrete logarithms is                         this problem is hard, then H is said to be multi-input
+given in the form of lower bounds in the generic group                        correlation intractable for R, a notion due to [18].
+
+
+
+                                                                        852
+Collision-resistance is the special case when k = 2 and                           3) Combining OWPFs with Indistinguishability Obfus-
+                                                                               cation: Our results above, Theorem I.5 and Theorem I.8,
+       R = {(x1 , x2 , y1 , y2 ) : (x1 = x2 ) ∧ (y1 = y2 )} .                 are constructions of cryptographic hash families from
+   Random oracles are correlation intractable for any                          (symmetric) OWPFs alone, and hence (partially) address
+sparse relation R – that is, as long as for every x =                          the question of what hash families can be constructed from
+(x1 , . . . , xk ), PrY←({0,1}n−1 )k [(x, Y) ∈ R] ≤ negl(n). In                assumptions in the realm of one-wayness.
+many applications, this correlation-intractability is the                         We additionally consider which hash families can be
+crucial property of a random oracle, and a fundamental                         constructed in the plain model under stronger assump-
+theoretical question is whether it can be achieved by                          tions. Namely, we combine OWPFs with the powerful
+concrete hash families.                                                        notion of indistinguishability obfuscation [16], [17]. This
+   Despite the initial negative result of [18], which ruled out                line of reasoning yields another construction of CRHFs,
+correlation intractability for arbitrary (e.g., unbounded-                     and more generally a construction of multi-input corre-
+arity) relations, there has been substantial work on con-                      lation intractable hash functions for a broader class of
+structing hash families that are correlation intractable for                   relations than achieved by Theorem I.8. In our IO-based
+“bounded” single-input/output relations [20]–[22] as well                      construction, we are able to handle relations R which
+as hash families that are “output intractable” [23], that                      depend on both the input variables x and the output
+is, correlation intractable with respect to relations of the                   variables y, as long as the relation R is eﬃciently locally
+form “(xi = xj for all i = j) ∧ R(y1 , . . . , yk ) = 1.”3                   samplable. Informally, we need to be able to eﬃciently
+   Using suitably secure k-OWPFs, we construct hash                            sample a random output Y such that (x, Y) ∈ R such that
+families that are output intractable for all sparse output                     each output Yi is sampled only knowing the corresponding
+relations (with known bounded arity). The quantitative                         input xi (with arbitrary preprocessed shared randomness
+intractability that we prove depends on the sparsity of                        “between the variables”).
+the relation, similarly to the situation for a true random                        Moreover, our construction is extremely simple and
+oracle. Equivalently, we rely on weaker assumptions to                         conﬁrms typical intuition about obfuscation: our hash
+show correlation-intractability of sparser relations.                          family is an obfuscated (puncturable) PRF O(Fs (·)). We
+   A simpliﬁed version of our result is as follows.                            only require the existence of suitably secure OWPFs in
+                                                                               the security proof; they are not needed in the construc-
+Theorem I.8 (informal). Suppose that there exists a                            tion. This result extends the framework of [20], [21] on
+family of symmetric injective k-OWPFs with security                            constructing strong hash functions from obfuscation (and
+(s + poly(n), δ), let m = m(n) denote any output length,                       additional assumptions).
+and let p = p(n) denote any sparsity. Then, there exists a                        Our main result utilizing obfuscation is proved by view-
+hash family H = {Hn,m(n) } that is output intractable, with                    ing OWPFs themselves as a (weak) form of obfuscation:
+security (s, δ · p · 2kn ), with respect to all k-ary relations of             an injective k-OWPF (f1 , · · · , fk ) allows us to obfuscate
+sparsity p.                                                                    multi-point functions, i.e., programs of the form
+                                                                                                            
+   In particular, if the k-OWPF family has optimal (2−kn )                                                   i x = xi for some i
+security, then the hash family constructed in Theorem I.8                                 Px1 ,...,xk (x) =
+                                                                                                             0 otherwise.
+has output intractability matching that of a random ora-
+cle.                                                                              Since this construction is oblivious to whether or not the
+   As an interesting special case, we note that Theorem I.8                    OWPF family F is symmetric, this yields a construction of
+gives a construction of k-multi-collision resistant hash                       correlation intractable hash families (and in particular, of
+functions (formally introduced in [28] and further stud-                       CRHFs) relying on weaker OWPF assumptions, at the cost
+ied in [29]–[31]) from symmetric injective k-OWPFs with                        of additionally assuming IO. That is, the assumptions on
+security 2−n−k log(k) · negl(n), an assumption that (up to                     asymmetric OWPFs required here are quantitatively (and
+a lower order term in the exponent) becomes weaker as k                        even qualitatively) weaker than those required without
+                                n
+increases from 2 to any o( log(n)   ). As any multi-collision-                 obfuscation, as we avoid the cost of converting asymmetric
+resistant hash family implies the existence of constant                        OWPFs into symmetric OWPFs.
+round statistically hiding commitments [29], [31], this                           As an interesting special case, the notion of correla-
+yields constant round statistically hiding commitments                         tion intractability that we achieve is powerful enough
+from 2−n · negl(n)-secure (injective and symmetric) k-                         to capture nontrivial cases of the Fiat-Shamir paradigm
+OWPFs for any k = o( log(n)   n
+                                  ). Unlike the assumptions                    for converting (constant round, public-coin) interactive
+required for collision resistance, this assumption would fol-                  proof systems into non-interactive argument systems. We
+low from optimal parallel repetition for any polynomially                      elaborate on one such formal result in the full version
+secure (injective) one-way function.                                           of this paper, but the main intuition is that we can
+                                                                               instantiate the Fiat-Shamir transform for any proof system
+ 3 [23] considers a slightly diﬀerent notion of output intractability.         that has the property that a malicious prover can eﬃ-
+We elaborate on this in the full version of this paper [1].                    ciently determine which veriﬁer messages he can cheat on.
+
+
+
+                                                                         853
+This captures protocols that follow the “commit-challenge-                          b) Extremely Lossy Functions: [23] introduces the
+response” framework. This approach yields a construction                     notion of an extremely lossy function (ELF). In [23], ELFs
+of NIZK argument schemes (in the common reference                            are used as a central building block to construct several
+string model) through the Fiat-Shamir transform whose                        hash families with strong security properties. In particular,
+security relies on IO and the existence of exponentially                     they can be used to construct hash functions satisfying a
+secure one-way functions – no OWPF assumptions are                           notion of output intractability that is incomparable to we
+needed in this case.                                                         achieve. Informally, [23] considers the more general setting
+                                                                             of k + 1-ary relations R(y1 , . . . , yk , w) with the property
+B. Related Work
+                                                                             that for random (y1 , . . . , yk ), it is computationally hard
+     a) Multi-Instance Security: There are a few other                       to ﬁnd a witness w for which R(y1 , . . . , yk , w) = 1 (where
+cryptographic constructions in the literature that are se-                   our notion would correspond to the case that for random
+cure assuming a strong form of hardness ampliﬁcation for                     (y1 , . . . , yk ), no such witness exists), and constructs hash
+one-way functions, or more generally some notion of multi-                   functions that are correlation intractable for such relations
+instance security. Several notable examples, although not                    R that are eﬃciently decidable.
+a comprehensive listing, are as follows.
+                                                                               The only current construction of ELFs relies on an ex-
+  • In the context of password-based cryptography,
+                                                                             ponentially strong DDH assumption. An interesting open
+     [32] study the multi-instance security of encryption                    question is whether OWPFs imply the existence of ELFs,
+     schemes and key derivation functions. Their work is                     or even ordinary (i.e. moderately) lossy one-way functions.
+     motivated by the common practice of “salting”, which
+     is intended to insure that the running time required                         c) CRHFs from Extremely Strong LPN: Two recent
+     for an adversary to compromise k users scales linearly                  works [36], [37] give constructions of CRHFs from the
+     with k.                                                                 Learning Parity with Noise (LPN) problem in parameter
+  • In the context of chosen ciphertext security, [33]                       settings that resemble an exponential hardness assump-
+     consider the problem of simultaneously inverting                        tion. We note that one of the same works [37] proves
+     (f (x1 ), . . . , f (xk )) where (x1 , . . . , xk ) are sampled         that these particular LPN assumptions imply hardness in
+     from a joint distribution (rather than i.i.d.). In con-                 the complexity class BPPSZK , placing this construction on
+     trast to our work, they only ask that the inversion                     similar complexity-theoretic ground as prior constructions
+     probability should be negl(λ); that is, they do not                     from discrete logarithm and SIS. The LPN-based CRHFs
+     ask for hardness to amplify. They show that trapdoor                    are also provably broken in quasi-polynomial time, while
+     functions satisfying certain security properties of this                our CRHF is plausibly as collision-resistant as a random
+     ﬂavor suﬃce to construct CCA-secure public key                          oracle.
+     encryption.
+                                                                                   d) Single-Input Correlation Intractability: Correla-
+  • Inspired by Merkle puzzles, [34] construct a public-
+                                                                             tion intractability [18] is a clean but powerful property
+     key encryption scheme that allows for adversaries
+                                                                             of random oracles that has drawn considerable interest,
+     that run in time at most quadratically larger than
+                                                                             particularly for its relevance to the Fiat-Shamir transform
+     that of the honest parties. They prove the security
+                                                                             [3], [5]. Circumventing the negative results of [18], [19],
+     of their scheme under the assumption that there is a
+                                                                             [38], there has been a recent line of work [20]–[22] on
+     injective one-way function f , a polynomial k = k(n),
+                                                                             constructing (single input) correlation intractable hash
+     a constant 0 < δ < 12 , and a (randomized) “multi-
+                                                                             functions and instantiating the Fiat-Shamir heuristic in
+     source hard-core predicate” H such that for random
+                                                                             the standard model, under strong assumptions. We build
+     x1 , . . . , xk ← {0, 1}n , every algorithm running        in
+                                                                             on this line of work, particularly the work of [21], to
+     time 2(1−δ)n on input f (x1 ), . . . , f (xk ), r success-
+                                                                             achieve results for special cases of multi-input correlation
+     fully guesses H(x1 , . . . , xk , r) with advantage at most
+                                                                             intractability under weaker or incomparable assumptions
+     2−ω(n) .
+                                                                             than are required in these previous works.
+  • In concurrent and independent work, Bitansky and
+     Lin [35] introduce the notion of an ampliﬁable one-                          e) CRHFs from IO and SZK-hardness: [39] con-
+     way function. Roughly speaking, a one-way function                      structs CRHFs from indistinguishability obfuscation and
+     f is (sub-exponentially) ampliﬁable if for all k =                      any average-case hard problem in the complexity class
+     poly(n) there exists a hard-core predicate hcb for f                    SZK0,1 . We consider SZK-hardness to be a “structured
+     and an eﬃciently computable combiner C such that                        assumption” which makes it diﬀerent from (even very
+                                                           
+     given (y1 = f (x1 ), . . . , yk = f (xk )) it is 2−k -hard (for         strong) assumptions on injective one-way functions; in-
+       n
+     2 -time algorithms) to predict the combined hard-                       deed, the same work proves an Asharov-Segev-like im-
+     core bit C(hcb(x1 ), . . . , hcb(xk )). The work [35] shows             possibility result for constructing (even worst-case) hard
+     that such a one-way function is useful in the con-                      SZK instances from IO and OWPs. A fascinating open
+     struction of a one message non-malleable commitment                     question is whether OWPFs (with or without IO) imply
+     scheme.                                                                 SZK-hardness of any form.
+
+
+
+                                                                       854
+C. Technical Overview                                                       if {fn } is extremely secure to begin with, we can construct
+    We now outline some of our constructions in more detail.                a family of functions which is statistically injective, and
+In order to clearly demonstrate the power of OWPFs                          still nearly as secure.
+and our techniques, we focus on the following two special                      For simplicity, we illustrate this transformation for one-
+cases: constructing CRHFs from symmetric 2-OWPFs, and                       way functions. Suppose that {fn } is δ(n)-hard to invert for
+constructing CRHFs from IO and (asymmetric) injective                       polynomial-time adversaries (think of δ(n) = 2−(1−o(1))n ,
+2-OWPFs.                                                                    although such extreme parameters are not necessary).
+    1) Construction of CHRFs: For simplicity, we ﬁrst                       We ﬁrst observe that {fn } cannot be “extremely” non-
+assume that we have an ensemble of one-way permutations                     injective; if one independently samples X1 ← {0, 1}n and
+{fn : {0, 1}n → {0, 1}n }, where for every constant c > 0,                  X2 ← {0, 1}n , then the probability that fn (X1 ) = fn (X2 )
+double inversion is 2−n · n−c hard for size-nc adversaries.                 must be at most δ (otherwise one could break the security
+In this case, we construct a particularly simple CRHF:                      of fn by random guessing). This can be leveraged to
+to sample a collision-resistant H : {0, 1}n → {0, 1}n−1 ,                   obtain a fully injective function (with some small error
+ﬁrst sample P : {0, 1}n → {0, 1}n−1 from a pairwise                         probability), as follows.
+independent hash family P 4 . H = P ◦ fn . This and similar                    Set n to be any function of n (think of n(n ) = 3n ).
+constructions have proved very useful in prior works [2],                   Then deﬁne the ensemble of function families F = {Fn }
+[23], [40].                                                                 as follows. To sample a function f ← Fn , sample P :
+                                                                                    
+    We now sketch the proof of security. Assume for con-                    {0, 1}n → {0, 1}n from a pairwise independent hash
+tradiction that some poly-size algorithm A ﬁnds collisions                  family, and deﬁne f˜n = fn ◦P . A simple pairwise indepen-
+in H with probability  = (n). We show how to use A                        dence argument shows that F is statistically injective, with
+                                                                                                              
+to simultaneously ﬁnd X1∗ = fn−1 (Y1∗ ) and X2∗ = fn−1 (Y2∗ )               failure probability at most 22n · δ(n) (with the suggested
+                                                                                                                      
+with probability roughly  · 2−n , given uniformly random                   parameters in mind, this is 2−(1−o(1))n ).
+          i.i.d.
+Y1∗ , Y2∗ ← {0, 1}n . Speciﬁcally, we will invoke A not on                     Security of F follows from observing that if an adversary
+a uniformly sampled H = P ◦ fn , but on a diﬀerently                        cannot invert fn (X) with probability better than δ when
+deﬁned H = Pplant ◦ fn , where Pplant is sampled from P                     sampling X ← {0, 1}n , then for any subset X ⊆ {0, 1}n ,
+conditioned on Pplant (Y1∗ ) = Pplant (Y2∗ ).                               the adversary cannot invert fn (X  ) with probability better
+                                                                                      2n                   
+    Intuitively, we now argue (by a purely statistical ar-                  than δ· |X  | when sampling X ← X . With good probability
+                                                                                                                                      
+gument) that (X1∗ , X2∗ ) looks suﬃciently like a uniformly                 (1 − 22n −n , or with our suggested parameters 1 − 2−n ),
+                                                                                                       
+random collision of H that A must output that exact                         it holds that P : {0, 1}n → {0, 1}n is actually injective,
+collision with probability roughly  · 2−n . To make this                   so that inverting fn ◦ P corresponds to inverting fn when
+intuition rigorous, suppose ﬁrst that we ignore Y1∗ and Y2∗ ,               inputs are drawn from the uniform distribution on Img(P ).
+                                                                                                                               
+and simply invoke A on a randomly sampled H = P ◦ fn .                      The above discussion shows that this is δ · 2n−n -hard (or
+                                                                                                                          
+Then with probability , A will ﬁnd a collision (X1 , X2 )                  with our suggested parameters 2−(1−o(1))n -hard) even for
+in H. Conditioned on this event, (X1 , X2 ) will be equal to                adversaries that are given arbitrary advice about P .
+(X1∗ , X2∗ ) with probability 2−2n , for a total probability of                While the above description refers to the case of one-
+ · 2−2n that both events occur. But (X1∗ , X2∗ ) is a collision            way functions (i.e. 1-OWPFs), similar arguments can be
+in H with probability only 2−(n−1) . Thus, conditioning                     made for arbitrary OWPFs (with diﬀerent quantitative
+on this event (i.e., sampling H = Pplant ◦ fn instead                       tradeoﬀs).
+of H = P ◦ fn ) boosts the probability that A outputs                          2) Constructions Using Obfuscation: We now outline
+(X1∗ , X2∗ ) to  · 2−2n · 2n−1 =  · 2−n−1 .                               our general proof strategy – which we informally refer
+    Therefore, the CRHF we constructed satisﬁes the stan-                   to as the planting technique – for all of our constructions
+dard notion of security: every polynomial-size adversary                    based on IO, using collision resistance as an example. The
+ﬁnds collisions with probability that is negligible in n.                   planting technique is inspired by the recent work of Kalai,
+From stronger hardness assumptions on {fn }, i.e. that                      Rothblum, and Rothblum [21] on instantiating the Fiat-
+double-inversion is δ(n)-hard for size-s(n) adversaries, one                Shamir heuristic using obfuscation.
+obtains a correspondingly more secure CRHF.                                    For simplicity, we focus on hash functions that shrink by
+    The above argument actually does not rely in any way                    a single bit. Our construction is then simply an obfuscation
+on fn being a permutation. It is, however, important that                       def
+                                                                            H = O(FS ) of a puncturable pseudorandom function FS :
+fn is injective, so that all collisions in P ◦ fn are due to                {0, 1}n → {0, 1}n−1 , where O is an indistinguishability
+P , and thus in some sense are randomly distributed.                        obfuscator. Recall that we also assume the existence of
+    We also show that the injectivity requirement can be                    an injective but not necessarily symmetric 2-OWPF that
+traded oﬀ against a stronger hardness assumption. In fact,                  cannot be inverted in polynomial time with probability
+  4 We also require that the hash family is programmable at any two
+                                                                            better than 2−n−ω(log n) .
+points, meaning that it is possible to sample a uniformly random               The proof of security then proceeds as follows. Assume
+p ← P subject to the condition that p(y1 ) = z1 and p(y2 ) = z2 .           for contradiction that some ppt algorithm A ﬁnds a colli-
+
+
+
+                                                                      855
+sion (X1 , X2 ) of H with non-negligible5 probability . We                    D. Conclusions and Questions
+then consider the behavior of A on an obfuscation of a                            In this work, we have introduced a new family of com-
+diﬀerent program Hplant which overrides the functionality                      putational assumptions – namely, the existence of various
+of FS with a hard-coded planted collision Hplant (X1∗ ) =                      ﬂavors of one-way product functions (OWPFs). We ﬁnd
+Hplant (X2∗ ) = Y ∗ , for independent and uniformly random                     these assumptions to be clean, plausible, and useful.
+X1∗ , X2∗ , and Y ∗ . That is, the functionality of Hplant is                     In terms of power, OWPFs allow the construction of
+                                                                              hash families that achieve several elusive random oracle-
+                    def  Y∗       if x = X1∗ or x = X2∗                        like properties. In particular, our black-box construction of
+        Hplant (x) =
+                         FS (x) otherwise.                                     CRHFs shows that OWPFs are more powerful than black
+                                                                               box usage of exponentially-secure one-way functions.
+  We then prove two contradictory claims.                                         OWPFs are also extremely plausible. Depending on s,
+  1) The probability that A outputs (X1∗ , X2∗ ) is approx-                    δ, and k, we view (s, δ)-secure k-OWPFs as somewhere
+     imately  · 2−n−1 , i.e. 2−n−O(log n) .                                   between standard and exponentially-secure one-way func-
+     This claim is argued as follows.                                          tions. The plausibility is supported by a concrete candi-
+       a) If A is given an obfuscation of a program Hpunc                      date instantiation – the discrete log problem, which is
+           that (in contrast to Hplant ) overrides FS with                     provably a nearly optimal OWPF in the generic group
+           hard-coded mappings X1∗ → Y1∗ and X2∗ → Y2∗                         model.
+           for independent uniform Y1∗ , Y2∗ ← {0, 1}n−1 ,                        Indeed, this particular combination of plausibility and
+           then the probability that A successfully pro-                       usefulness gives us some hope that CRHFs can be con-
+           duces a collision and that collision is (X1∗ , X2∗ )                structed solely based on exponentially strong one-way
+           is very nearly  · 2−2n by the security of O and                    functions. More generally, our results suggest a possible
+           FS .                                                                blueprint for circumventing black-box impossibility results
+       b) (X1∗ , X2∗ ) is only a valid collision of Hpunc when                 from OWFs:
+           Y1∗ = Y2∗ , so the probability that A outputs                          1) Build OWPFs from OWFs (using necessarily non-
+           (X1∗ , X2∗ ) conditioned on Y1∗ = Y2∗ is approx-                           black-box techniques).
+           imately  · 2−2n · 2n−1 =  · 2−n−1 . But the                          2) Build primitives in a black-box way from OWPFs.
+           distribution of Hpunc conditioned on Y1∗ = Y2∗                      One bonus of this approach is that it could result in
+           is exactly the distribution of Hplant .                             constructions that are non-black-box only in the security
+  2) The probability that A outputs (X1∗ , X2∗ ) is                            proof, and thus has the potential for practical eﬃciency.
+     2−n−ω(log n) .                                                               Independently, OWPFs satisfy several desirable proper-
+     Since IO is the “best-possible” obfuscation [41],                         ties for a cryptographic assumption. For example, for any
+     it suﬃces for there to exist some obfuscation of                          family F, the assumption “F is a k-OWPF” is a search
+     Hplant that hides (X1∗ , X2∗ ). This would follow from                    complexity assumption [45]: for some eﬃciently sampleable
+     a “special-purpose” obfuscator O for membership                          distribution D and eﬃciently checkable relation R, the
+     testing in two-element sets (in our case {X1∗ , X2∗ }).                   assumption is equivalent to requiring that on input x ∼ D,
+     The security property we need is that every                               every bounded-time algorithm has bounded probability of
+     ppt algorithm recovers (X1∗ , X2∗ ) from O ({X1∗ , X2∗ })                ﬁnding y such that (x, y) ∈ R.
+     with probability bounded by 2−n−ω(log n) .                                   There remain many intriguing questions about the pre-
+     This is a variant of “point function obfuscation”, a                      cise power of OWPFs. In particular:
+     notion which was studied by [42]–[44]. Our variant                           • What are the complexity-theoretic implications of
+     (with uniformly random X1∗ , X2∗ ) admits a particu-                            OWPFs? For example, do they imply hardness in
+     larly easy construction from injective 2-OWPFs – the                            SZK? We emphasize that all prior constructions
+     obfuscation is (W1∗ = f1 (X1∗ ), W2∗ = f2 (X2∗ )), and is                       of CRHFs have been from assumptions that imply
+     evaluated on an input x as                                                      (average-case) SZK hardness, but CRHFs themselves
+                                                                                    are not known to imply any sort of SZK hardness.
+                  1 if f1 (x) = W1∗ or f2 (x) = W2∗                               • What implies OWPFs? Is it possible to construct
+                  0 otherwise.                                                       non-trivial k-OWPFs from previously studied cryp-
+                                                                                     tographic assumptions? Above we outlined an ap-
+      There are conceivably other ways to obtain this                                proach to generically constructing OWPFs, but it is
+      point function obfuscation, but for this particular                            also possible that OWPFs can be based on concrete,
+      construction, security is equivalent to the hardness                           structured assumptions.
+      of batch inverting (f1 , f2 ).
+                                                                                                 Acknowledgements
+  5 In fact, our approach readily generalizes to obtain exponentially-
+secure CRHFs, at the cost of quantitatively stronger computational
+                                                                                 We thank Zvika Brakerski, Yael Kalai, Omer Paneth,
+assumptions.                                                                   and Vinod Vaikuntanathan for helpful discussions and
+
+
+
+                                                                         856
+comments. We also thank the anonymous FOCS reviewers                          [16] B. Barak, O. Goldreich, R. Impagliazzo, S. Rudich, A. Sahai,
+                                                                                   S. Vadhan, and K. Yang, “On the (im) possibility of obfuscating
+for their useful feedback.                                                         programs,” in Annual International Cryptology Conference –
+   This work was done in part while the authors were vis-                          CRYPTO 2001.          Springer, 2001, pp. 1–18, journal version
+iting the Weizmann Institute of Science in January 2018,                           appears in JACM 2012.
+                                                                              [17] S. Garg, C. Gentry, S. Halevi, M. Raykova, A. Sahai,
+supported by the Binational Science Foundation (Grants                             and B. Waters, “Candidate Indistinguishability Obfuscation
+No. 2016726, 2014276) and European Union Horizon 2020                              and Functional Encryption for all Circuits,” in Foundations
+Research and Innovation Program via ERC Project RE-                                of Computer Science (FOCS), 2013 IEEE 54th Annual
+                                                                                   Symposium on, 2013, pp. 40–49. [Online]. Available: https:
+ACT (Grant 756482) and Project PROMETHEUS (Grant                                   //eprint.iacr.org/2013/451.pdf
+780701).                                                                      [18] R. Canetti, O. Goldreich, and S. Halevi, “The random oracle
+   JH was supported in part by NSF Grant CNS-1413920.                              methodology, revisited,” Journal of the ACM (JACM), vol. 51,
+                                                                                   no. 4, pp. 557–594, 2004.
+AL was supported in part by NSF Grants CNS-1350619
+                                                                              [19] S. Goldwasser and Y. T. Kalai, “On the (in) security of the ﬁat-
+and CNS-1414119, and by the Defense Advanced Research                              shamir paradigm,” in Foundations of Computer Science, 2003.
+Projects Agency (DARPA) and the U.S. Army Research                                 Proceedings. 44th Annual IEEE Symposium on. IEEE, 2003,
+Oﬃce under contracts W911NF-15-C-0226 and W911NF-                                  pp. 102–113.
+                                                                              [20] R. Canetti, Y. Chen, and L. Reyzin, “On the correlation in-
+15-C-0236.                                                                         tractability of obfuscated pseudorandom functions,” in Theory
+                                                                                   of Cryptography Conference. Springer, 2016, pp. 389–415.
+                          References                                          [21] Y. T. Kalai, G. Rothblum, and R. Rothblum, “From
+                                                                                   Obfuscation to the Security of Fiat-Shamir for Proofs,” in
+ [1] J. Holmgren and A. Lombardi, “Cryptographic hashing                           Advances in Cryptology - CRYPTO 2017, 2016. [Online].
+     from strong one-way functions,” 2018. [Online]. Available:                    Available: https://eprint.iacr.org/2016/303.pdf
+     https://eprint.iacr.org/2018/385                                         [22] R. Canetti, Y. Chen, L. Reyzin, and R. Rothblum, “Fiat-
+ [2] M. Naor and M. Yung, “Universal one-way hash functions and                    shamir and correlation intractability from strong kdm-secure
+     their cryptographic applications,” in Proceedings of the twenty-              encryption,” in Annual International Conference on the Theory
+     ﬁrst annual ACM symposium on Theory of computing. ACM,                        and Applications of Cryptographic Techniques – EUROCRYPT
+     1989, pp. 33–43.                                                              2018. Springer, 2018.
+ [3] M. Bellare and P. Rogaway, “Random oracles are practical: A              [23] M. Zhandry, “The magic of elfs,” in Proceedings, Part I, of the
+     paradigm for designing eﬃcient protocols,” in Proceedings of the              36th Annual International Cryptology Conference on Advances
+     1st ACM conference on Computer and communications security.                   in Cryptology—CRYPTO 2016-Volume 9814. Springer-Verlag
+     ACM, 1993, pp. 62–73.                                                         New York, Inc., 2016, pp. 479–508.
+ [4] J. Kilian, “On the complexity of bounded-interaction and non-            [24] Y. Dodis, A. Jain, T. Moran, and D. Wichs, “Counterexam-
+     interactive zero-knowledge proofs,” in Foundations of Computer                ples to hardness ampliﬁcation beyond negligible,” in Theory of
+     Science, 1994 Proceedings., 35th Annual Symposium on. IEEE,                   Cryptography Conference. Springer, 2012, pp. 476–493.
+     1994, pp. 466–477.                                                       [25] D. Wichs, personal communication, April 2018.
+ [5] A. Fiat and A. Shamir, “How to prove yourself: Practical solu-           [26] H. Corrigan-Gibbs and D. Kogan, “The discrete-logarithm prob-
+     tions to identiﬁcation and signature problems,” in Conference                 lem with preprocessing,” in Annual International Conference
+     on the Theory and Application of Cryptographic Techniques.                    on the Theory and Applications of Cryptographic Techniques –
+     Springer, 1986, pp. 186–194.                                                  EUROCRYPT 2018, 2018.
+ [6] I. Damgård, “Collision free hash functions and public key                [27] V. Shoup, “Lower bounds for discrete logarithms and related
+     signature schemes,” in EUROCRYPT, ser. Lecture Notes in                       problems,” in International Conference on the Theory and Ap-
+     Computer Science, vol. 304. Springer, 1987, pp. 203–216.                      plications of Cryptographic Techniques.      Springer, 1997, pp.
+ [7] J. Håstad, R. Impagliazzo, L. A. Levin, and M. Luby, “A                       256–266.
+     pseudorandom generator from any one-way function,” SIAM                  [28] I. Komargodski, M. Naor, and E. Yogev, “White-box vs. black-
+     Journal on Computing, vol. 28, no. 4, pp. 1364–1396, 1999.                    box complexity of search problems: Ramsey and graph property
+ [8] O. Goldreich, S. Goldwasser, and S. Micali, “How to construct                 testing,” in Foundations of Computer Science (FOCS), 2017
+     random functions,” J. ACM, vol. 33, no. 4, pp. 792–807, 1986.                 IEEE 58th Annual Symposium on. IEEE, 2017, pp. 622–632.
+ [9] J. Rompel, “One-way functions are necessary and suﬃcient for             [29] I. Berman, A. Degwekar, R. D. Rothblum, and P. N. Vasudevan,
+     secure signatures,” in STOC. ACM, 1990, pp. 387–394.                          “Multi collision resistant hash functions and their applications,”
+[10] M. Naor, “Bit commitment using pseudorandomness,” Journal                     in Annual International Conference on the Theory and Ap-
+     of cryptology, vol. 4, no. 2, pp. 151–158, 1991.                              plications of Cryptographic Techniques – EUROCRYPT 2018.
+[11] O. Goldreich, S. Micali, and A. Wigderson, “Proofs that yield                 Springer, 2018.
+     nothing but their validity or all languages in np have zero-             [30] N. Bitansky, Y. T. Kalai, and O. Paneth, “Multi-collision resis-
+     knowledge proof systems,” Journal of the ACM (JACM), vol. 38,                 tance: A paradigm for keyless hash functions,” in STOC, 2018.
+     no. 3, pp. 690–728, 1991.                                                [31] I. Komargodski, M. Naor, and E. Yogev, “Collision resistant
+[12] A. C.-C. Yao, “How to generate and exchange secrets,” in Foun-                hashing for paranoids: Dealing with multiple collisions,” in An-
+     dations of Computer Science, 1986., 27th Annual Symposium                     nual International Conference on the Theory and Applications
+     on. IEEE, 1986, pp. 162–167.                                                  of Cryptographic Techniques – EUROCRYPT 2018. Springer,
+[13] Y. Lindell and B. Pinkas, “A proof of security of yaoâĂŹs                     2018.
+     protocol for two-party computation,” Journal of Cryptology,              [32] M. Bellare, T. Ristenpart, and S. Tessaro, “Multi-instance se-
+     vol. 22, no. 2, pp. 161–188, 2009.                                            curity and its application to password-based cryptography,” in
+[14] D. R. Simon, “Finding collisions on a one-way street: Can                     CRYPTO, ser. Lecture Notes in Computer Science, vol. 7417.
+     secure hash functions be based on general assumptions?” in                    Springer, 2012, pp. 312–329.
+     International Conference on the Theory and Applications of               [33] A. Rosen and G. Segev, “Chosen-ciphertext security via cor-
+     Cryptographic Techniques. Springer, 1998, pp. 334–345.                        related products,” in Theory of Cryptography Conference.
+[15] G. Asharov and G. Segev, “Limits on the Power of                              Springer, 2009, pp. 419–436.
+     Indistinguishability Obfuscation and Functional Encryption,”             [34] E. Biham, Y. J. Goren, and Y. Ishai, “Basing weak public-
+     in 2015 IEEE 56th Annual Symposium on Foundations                             key cryptography on strong one-way functions,” in TCC, ser.
+     of Computer Science, 2015. [Online]. Available: https:                        Lecture Notes in Computer Science, vol. 4948. Springer, 2008,
+     //eprint.iacr.org/2015/341.pdf                                                pp. 55–72.
+
+
+
+
+                                                                        857
+[35] N. Bitansky and H. Lin, “One-message zero knowledge
+     and non-malleable commitments,” 2018. [Online]. Available:
+     https://eprint.iacr.org/2018/613
+[36] Y. Yu, J. Zhang, J. Weng, C. Guo, and X. Li, “Learning parity
+     with noise implies collision resistant hashing,” 2017, https://
+     eprint.iacr.org/2017/1260.pdf.
+[37] Z. Brakerski, V. Lyubashevsky, V. Vaikuntanathan, and
+     D. Wichs, “Cryptographic hashing and worst-case hardness
+     for lpn via code smoothing,” 2018. [Online]. Available:
+     https://eprint.iacr.org/2018/279
+[38] N. Bitansky, D. Dachman-Soled, S. Garg, A. Jain, Y. T. Kalai,
+     A. López-Alt, and D. Wichs, “Why âĂĲﬁat-shamir for proof-
+     sâĂİ lacks a proof,” in Theory of Cryptography. Springer, 2013,
+     pp. 182–201.
+[39] N. Bitansky, A. Degwekar, and V. Vaikuntanathan, “Structure
+     vs. hardness through the obfuscation lens,” in Annual Interna-
+     tional Cryptology Conference – CRYPTO 2017. Springer, 2017,
+     pp. 696–723.
+[40] C. Peikert and B. Waters, “Lossy trapdoor functions and their
+     applications,” SIAM Journal on Computing, vol. 40, no. 6, pp.
+     1803–1844, 2011.
+[41] S. Goldwasser and G. N. Rothblum, “On best-possible obfusca-
+     tion,” in Theory of Cryptography Conference. Springer, 2007,
+     pp. 194–213.
+[42] R. Canetti, “Towards realizing random oracles: Hash functions
+     that hide all partial information,” IACR Cryptology ePrint
+     Archive, vol. 1997, p. 7, 1997.
+[43] R. Canetti, D. Micciancio, and O. Reingold, “Perfectly one-way
+     probabilistic hash functions (preliminary version),” in STOC.
+     ACM, 1998, pp. 131–140.
+[44] H. Wee, “On obfuscating point functions,” in Proceedings of the
+     thirty-seventh annual ACM symposium on Theory of computing.
+     ACM, 2005, pp. 523–532.
+[45] S. Goldwasser and Y. T. Kalai, “Cryptographic assumptions:
+     A position paper,” in Theory of Cryptography Conference.
+     Springer, 2016, pp. 505–522.
+
+
+
+
+                                                                       858
+

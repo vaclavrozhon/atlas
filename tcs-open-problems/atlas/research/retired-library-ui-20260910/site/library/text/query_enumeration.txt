@@ -1,0 +1,494 @@
+     Constant delay enumeration for conjunctive queries
+
+                                                 Luc Segoufin
+                                            INRIA and ENS Cachan
+
+
+
+
+ABSTRACT                                                     as an enumeration problem, has deserved some at-
+We survey some of the recent results about enumerat-         tention over the last few years. In this vein, the
+ing the answers to queries over a database. We focus         best that one can hope for is constant delay, i.e.,
+on the case where the enumeration is performed with a        the delay depends only on the size of q (but not
+constant delay between any two consecutive solutions,        on the size of D). A number of query evaluation
+after a linear time preprocessing.                           problems have been shown to admit constant de-
+   This cannot be always achieved. It requires restricting   lay algorithms, usually preceded by a preprocessing
+either the class of queries or the class of databases.       phase that is linear in the size of the database. We
+   We consider conjunctive queries and describe several      survey some of these results in this paper.
+scenarios when this is possible.                                This imposes drastic constraints. In particular,
+                                                             the first answer is output after a time linear in the
+                                                             size of the database and once the enumeration starts
+1.   INTRODUCTION                                            a new answer is being output regularly at a speed
+   The evaluation of queries is a central problem in         independent from the size of the database. Alto-
+database management systems. Given a query q                 gether, the set q(D) is entirely computed in time
+and a database D the evaluation of q over D con-             f (q)(||D|| + |q(D)|) for some function f depending
+sists in computing the set q(D) of all answers to q on       only on q and not on D. In particular boolean
+D. The complexity of this problem has been widely            queries can be evaluated in time linear in the size
+studied. However most of the complexity bounds               of the database. However, as shown in [5], the fact
+are extrapolated from the boolean case (aka the              that evaluation of boolean queries is easy does not
+model checking problem) and expressed as a func-             guarantee the existence of such efficient enumer-
+tion of the sizes of q and D. For non boolean queries        ation algorithms in general: under some reason-
+it may be not satisfactory enough to express com-            able complexity assumption, there is no constant
+plexity results just in terms of the sizes of D and q.       delay algorithm with linear preprocessing enumer-
+A simple observation shows that the set q(D) may             ating the answers of acyclic conjunctive queries, al-
+be huge, even larger than the database itself, as it         though it is well-known that the model-checking
+can have a number of elements of the form ||D||l ,           of boolean acyclic queries can be done in linear
+where ||D|| is the size of the database and l the ar-        time [29].
+ity of the query. The fact that the solution set q(D)           We stress that our study is theoretical. If most
+may be of size exponential in the query is intuitively       of the algorithms we will mention here are linear
+not sufficient to make the problem hard, and al-             in the size of the database, the multiplicative fac-
+ternative complexity measures had to be found for            tors are often very big, making any implementation
+query answering. For instance one could consider             difficult. However, we believe that the index struc-
+output-sensitive complexity measures expressed as            tures designed for making these algorithms work are
+a function of the sizes of q, D but also q(D). In            interesting and, with extra assumptions, could pos-
+this direction, one way to define tractability is to         sibly be turned into something practical.
+assume that tuples of the query result can be gen-              In this paper we concentrate on conjunctive que-
+erated one by one with some regularity, for example          ries, possibly with negated atoms. We will see how
+by ensuring a fixed delay between two consecutive            various forms of acyclicity play here a crucial role.
+outputs once a necessary precomputation has been             Modulo reasonable complexity assumptions, we are
+done to construct a suitable index structure.                actually able to characterize precisely those acyclic
+   This approach, that considers query answering
+
+10                                                                SIGMOD Record, March 2015 (Vol. 44, No. 1)
+conjunctive queries that can be enumerated with            arity of the query. A query is boolean if its arity is
+constant delay.                                            0. The query is then either true or false on D and
+   There are many related problems. Typically one          defines a property of D. A query is unary if its arity
+could imagine computing the top-` most relevant            is 1. If q is a query and ā is in the image of q on D,
+answers relative to some ranking function or to pro-       then we write D |= q(ā). Finally we set
+vide a sampling of q(D) relative to some distribu-
+                                                                         q(D) = {ā | D |= q(ā)}.
+tion. One could also imagine computing only the
+number of solutions |q(D)| or providing an efficient       Note that the size of q(D) may be exponential in the
+test for whether a given tuple belongs to q(D) or          arity of q. A query language is a class of queries.
+not. It is not clear a priori how these problems are       Typically it is defined as a logical formalism such
+related to constant delay enumeration. However, it         as CQ (for conjunctive queries), FO (for first-order
+turns out that in the scenarios where constant de-         queries), MSO (for monadic second-order queries)
+lay enumeration can be achieved, one can often also        and so on. As usual, |q| denotes the size of q.
+count the number of solutions in time linear in the
+size of the database and, after linear time prepro-
+                                                           2.2   Model of computation
+cessing on the database, one can test in constant             We use Random Access Machines (RAM) with
+time whether a given tuple is part of the answers          addition and uniform cost measure as a model of
+set.                                                       computation, cf. [1]. Our algorithms will take as
+   This survey is by no means exhaustive. It is            input a query q of size k and a database D of size
+only intended to survey the major theoretical re-          n. We then say that an algorithm runs in linear
+sults concerning conjunctive queries and enumera-          time if it ends within f (k)n steps, for some function
+tion. Hopefully it will convince the reader that this      f . It runs in quasi-linear time if it ends within
+is an important subject for research that still con-       f (k)n log n steps. It runs in constant time if it ends
+tains many interesting and challenging open prob-          in f (k) steps.
+lems.                                                         Given an n ⇥ n matrix, and two numbers i, j  n
+   Enumeration in general, and constant delay enu-         the RAM model returns the content to the entry
+meration in particular, is a well identified subfield      (i, j) of the matrix in constant time. Therefore
+of algorithmics, and many non trivial enumeration          when given the adjacency matrix of a graph it can
+algorithms exist for problems over graphs (like enu-       test in constant time where two given nodes are
+merating all spanning trees, all connected compo-          adjacent or not. However our databases are en-
+nents, all cycles etc. . . ) We will not discuss those     coded by the list of their tuples and we therefore do
+results at all here.                                       not have access to the adjacency matrix. Testing
+                                                           whether a tuple belongs to a relation may therefore
+2.    PRELIMINARIES                                        require more than a constant time.
+                                                              In the sequel we assume that the input database
+2.1   Database and queries                                 comes with a linear order on the domain. If not, we
+                                                           use the one induced by the encoding of the database
+  In this paper a database is a finite relational struc-   as an input to the RAM. Whenever we iter-
+ture. A relational signature is a tuple                    ate through all nodes of the domain, the iteration
+                    = (R1 , · · · , Rl ),                  is with respect to the initial linear order.
+                                                              An important observation is that the RAM model
+each Ri being a relational symbol of arity ri . A          can sort m elements of size O(log m) in time
+relational structure over is a tuple                       O(m log m) [18]. In particular, we can sort lexico-
+               D = D, R1D , . . . , RlD ,                  graphically the tuples of a relation in linear time.
+                                                           As a consequence, a simple merge-sort algorithm
+where D is the domain of D and RiD is a subset of          we can compute the relation {x̄ȳ | R(x̄ȳ) ^ S(x̄)} in
+Dri . We define the size of D as                           time linear in the sizes of R and S.
+                               X
+           ||D|| = | | + |D| +   |RiD |ri .                2.3 Parametrized complexity
+                                  Ri
+                                                             The database D and the query q play di↵erent
+It corresponds to the size of a reasonable encoding        roles as input of our problems. It is often assumed
+of D. The number of elements in the domain of D            that |D| is large while |q| is small. Hence it is use-
+is denoted by |D|.                                         ful to distinguish them in the input of the query
+   A query takes as input a database of a given sig-       answering problem. Parametrized complexity is a
+nature and returns a relation of a fixed arity, the        suitable framework for analyzing such situations.
+
+SIGMOD Record, March 2015 (Vol. 44, No. 1)                                                                     11
+We only provide here the basics of parametrized                 Before we proceed with the technical presentation
+complexity needed for understanding this paper.              of the results, it is worth spending some time with
+The interested reader is referred to the mono-               examples.
+graph [17].
+   We view the problem of boolean query evalua-                 Example 1. Consider a database schema con-
+tion as a parametrized problem where the input is            taining a binary relational symbol R and the query
+a database D and a boolean query q, the parameter                             q(x, y) := ¬R(x, y).
+is |q| and the problem asks whether D |= q.
+                                                             On input database D, the following simple algorithm
+   A parametrized problem is Fixed Parameter
+                                                             enumerates q(D):
+Tractable, i.e. can be solved in FPT, if it can
+be solved in time f (q)||D||c for some suitable com-
+                                                                       Go through all pairs (a, b);
+putable function f and constant c. The idea behind
+                                                                       test if it is a fact of RD ;
+this definition is that it is often preferable to have
+                                                                       if so skip this pair;
+an algorithm working in 2|q| ||D||2 rather than ||D|||q| .
+                                                                       otherwise output it.
+   In parametrized complexity there is also a suit-
+able notion of reduction, called FPT-reduction.
+FPT is closed under FPT-reductions and there are             However, a simple complexity analysis shows that
+some hard classes of parametrized problems, closed           the delay between any two outputs is not constant.
+under FPT-reductions, containing problems with               There are two reasons for this. First, arbitrarily
+no known FPT algorithms and that are believed                long sequences of pairs can be skipped. Second, it
+to be di↵erent from FPT.                                     is not obvious how to test whether (a, b) 2 RD in
+   We distinguish two important hard classes de-             constant time (i.e. without going through the whole
+noted W[1] and AW[⇤]. W[1] plays in parametrized             relation RD ). In order to enumerate this query with
+complexity the role of NP in classical complexity.           constant delay it is necessary to perform a prepro-
+A typical problem which is complete for W[1] is              cessing computing an index structure that can be
+the parametrized boolean query evaluation problem            used for enumeration. This is done as follows.
+for CQ [24]. AW[⇤] plays in parametrized complex-               We first decide on an arbitrary linear order on the
+ity the role of PSpace in classical complexity. A            domain of D. We then order all RD according to
+typical problem which is complete for AW[⇤] is the           the lexicographical order. Recall that with the RAM
+parametrized boolean query evaluation problem for            model this can be done in time linear in ||D||.
+FO [24].                                                        We then compute for each tuple ū of RD the tu-
+                                                             ples v̄ = f (ū) and v̄ 0 = g(ū) such that v̄ is the
+2.4     The enumeration class CD Lin                         smallest (relative to the lexicographical order) ele-
+   Let L be a query language and C be a class of             ment not in RD that is bigger than ū (hence all tu-
+databases. We say that the enumeration problem               ples between ū and v̄ are in RD ) and v̄ 0 is the small-
+for L over C can be solved with constant delay after         est (relative to the lexicographical order) element in
+linear preprocessing (is in CD Lin), if it can be            2 RD that is bigger than v̄. These functions can be
+solved by a RAM algorithm which, on input q 2 L              computed in time linear in ||D|| by a simple pass on
+and D 2 C, can be decomposed into two phases:                the ordered list of RD from its last element to the
+                                                             first one.
+     • a preprocessing phase that is performed in time          This concludes the preprocessing phase, the index
+       linear in the size of the database, and               consists in those precomputed functions. Note that
+     • an enumeration phase that outputs q(D) with           the RAM model is such that once a function h is
+       no repetition and a delay depending only on           computed, on input ū, h(ū) is returned in constant
+       q between any two consecutive outputs. The            time.
+       enumeration phase has full read access to the            Using the precomputed functions, the enumera-
+       output of the preprocessing phase and can use         tion phase is now simple. We maintain two pairs
+       extra memory whose size depends only on q.            of elements of D: one is initialized with the small-
+                                                             est pair according to the lexicographical order, the
+  The definition of CD Lin requires a preprocess-            other one with the smallest pair in RD . The second
+ing time linear in ||D|| and a delay not depending           pair will always be pointing to an element of RD .
+on D. There are hidden multiplicative factors that           Assuming the current pairs are hū, v̄i, we then do
+are functions on the size of the query. These factors        the following until ū is maximal.
+may be huge. We will refer to them in the sequel as             If ū = v̄ then we move to hf (v̄), g(v̄)i. Note that
+the multiplicative factors.                                  f and g are such that for all v̄, f (v̄) 6= g(v̄).
+
+12                                                                 SIGMOD Record, March 2015 (Vol. 44, No. 1)
+   If ū 6= v̄ we output ū and replace it by its succes-   3.    CONJUNCTIVE QUERIES AND ENU-
+sor in the lexicographical order without changing v̄.             MERATION
+   This algorithm is constant delay as an output is
+                                                              In this section we consider the evaluation of con-
+performed at least every other step and each step
+                                                            junctive queries with possibly negated atoms. We
+can be performed in constant time as all the relevant
+                                                            start with the case with no negated atoms.
+functions have been precomputed. All output tuples
+are clearly not in RD and the reader can check that
+                                                            3.1    Conjunctive queries
+all skipped tuples are in RD .
+                                                               Recall that a conjunctive query (CQ) is a query
+  Example 2. Same schema but the query is now               of the form
+computing the pairs of nodes at distance 2:                                                   ^
+                                                                       q(x̄) := 9y1 · · · 9yl   Ri (z̄i )
+           q(x, y) := 9zR(x, z) ^ R(z, y).                                                         i
+
+                                                            where Ri (z̄i ) is an positive atom of q, Ri being a
+We will see in Section 3 that it is likely that this
+                                                            relational symbol and z̄i containing variables from
+query cannot be enumerated with constant delay.
+                                                            x̄ or ȳ.
+However, if we assume that R has degree bounded
+                                                               A typical example is the distance 2 query of Ex-
+by d, then for any node u of the graph, at most d2
+                                                            ample 2. Another example is the query returning
+nodes v are at distance 2 from u. Moreover, it is
+                                                            all triangles in a graph.
+easy to see that we can compute in time linear in
+                                                               As evaluating boolean conjunctive queries is hard
+||D|| the function f (u) associating to u the list of its
+                                                            for W[1], we restrict our attention to acyclic con-
+nodes at distance 1. An extra linear pass based on
+                                                            junctive queries that can be evaluated in time |q| ·
+the function f computes the function g(u) associ-
+                                                            ||D|| · |q(D)| [29]. We will see that it is very unlikely
+ating to u the list of its nodes at distance 2. From
+                                                            that constant delay enumeration can be done even
+there the enumeration algorithm with constant delay
+                                                            for acyclic conjunctive queries. It is only achieved
+is trivial.
+                                                            for a subset of them called free-connex. We start
+                                                            with the necessary definitions.
+  Remark 1. Notice that if the enumeration prob-               To a conjunctive query q, we associate an hy-
+lem for L over C is in CD Lin, then all answers can         pergraph H(q) = (V, S) whose vertices V are the
+be output in time O(||D|| + |q(D)|) and the first out-      variables of q and whose hyperedges S are the set
+put is computed in time linear in ||D||. In particular      of variables occurring in a single atom of q, i.e.
+the evaluation problem for boolean queries of L is          S = {{x1 , · · · , xp } | R(x1 , · · · , xp ) is an atom of q}.
+in FPT. Hence unless FPT = W[1] any language
+L whose evaluation problem for boolean queries is             A join tree of q 2 CQ is a tree T whose nodes are
+hard for W[1] cannot be enumerated in CD Lin.               atoms of q and such that
+In particular this holds for CQ and FO.
+                                                              (i) each atom of q is the label of exactly one node
+   Notice that if the arity of q is less or equal to 1,           of T ,
+then |q(D)|  |D|  ||D||. It is then plausible that         (ii) for each variable x of q, the set of nodes of T
+the whole set of answers can be computed in time                  in which x occurs is connected.
+linear in ||D||. If this is the case then we have a sim-
+ple constant delay algorithm that precomputes all              A conjunctive query q is said to be acyclic if it
+answers during the precomputation phase and then            has a join tree. In graph theoretical terms this is
+scans the set of answers and outputs them one by            equivalent to saying that the hypergraph H(q) is
+one during the enumeration phase. Hence enumer-             ↵-acyclic.
+ation often becomes relevant when the arity of q is            A boolean query associated to a join tree can
+at least 2. In this case q(D) can be quadratic in ||D||     be evaluated in time linear in ||D|| using a simple
+and hence can certainly not be computed within the          bottom-up traversal of the join tree. If the query is
+linear time constraint of the precomputation phase.         non boolean, the possible valuations of the free vari-
+The index structure built during the preprocessing          ables need to be stored at each step, hence a mul-
+phase is then a non trivial object. One can also            tiplicative extra factor of |q(D)|. The result of [29]
+view this index structure as a compact (of linear           follows.
+size) representation of the set q(D) (that can be of           An acyclic conjunctive query q(x̄) is said to be
+polynomial size) and the enumeration algorithm as           free-connex if the query q(x̄) ^ R(x̄) is also acyclic,
+an output streaming decompression algorithm.                where x̄ are the free variables of q and R is a new
+
+SIGMOD Record, March 2015 (Vol. 44, No. 1)                                                                              13
+symbol of appropriate arity1 . Note that all boolean            1. q is free-connex
+acyclic queries are free-connex.                                2. q can be enumerated in CD Lin
+  For example the acyclic conjunctive query
+                                                                3. q can be evaluated in time O(||D|| + |q(D)|).
+        q(x, y) := 9u, v S(x, y, u) ^ T (x, y, v)
+                                                              In particular the distance 2 query cannot be enu-
+is free-connex because the following join tree shows          merated with constant delay after linear time pre-
+acyclicity of the extended query:                             processing unless boolean matrix multiplication can
+                                                              be done in quadratic time.
+                            R(x, y)                              With a stronger hypothesis we can even show that
+                                                              acyclicity itself is necessary for having constant de-
+                   S(x, y, u)     T (x, y, v)                 lay enumeration. This hypothesis requires that it
+                                                              is not possible to test the existence of a triangle in
+                                                              a hypergraph of n vertices in time O(n2 ) and that
+    However the distance 2 query
+                                                              for any k testing the presence of a k-dimensional
+            q(x, y) := 9z S(x, z) ^ S(z, y)                   tetrahedron cannot be tested in linear time (see [9]
+                                                              for precise definitions).
+is acyclic but not free-connex as the query
+            9z S(x, z) ^ S(z, y) ^ R(x, y)                      Theorem 3. [9] If the above hypothesis is true
+                                                              then the following are equivalent for q 2 CQ:
+is clearly cyclic.
+   Free-connexity implies the existence of a join               1. q is acyclic free-connex
+tree where all the free variables occur at the root.            2. q can be enumerated in CD Lin
+Hence the bottom-up traversal of the join tree can
+be performed without having to remember the val-
+uations of the free variables until the last steps.           3.2   Signed conjunctive queries
+The multiplicative factor of |q(D)| then become an
+                                                                We are now interested in evaluating signed con-
+additive factor. With little extra e↵ort this can
+                                                              junctive queries. Those extend the syntax of con-
+be turned into a constant delay enumeration algo-
+                                                              junctive queries by allowing negated atoms. In other
+rithm.
+                                                              words they are of the form
+  Theorem 1. [5] The enumeration for free-connex                         q(x̄) := 9ȳ   q + (x̄ȳ) ^ q (x̄ȳ)
+acyclic conjunctive queries is in CD Lin.
+                                                              where q + is a conjunction of positive atoms while
+   We stress that the multiplicative factors involved         q is a conjunction of negated atoms.
+in Theorem 1 are polynomial in the query size.                   When q is empty we have seen in the previous
+   The result of Theorem 1 also holds if the queries          section that q can be enumerated with constant de-
+contain inequalities. In this case atoms with in-             lay after a linear preprocessing as soon as H(q + ) is
+equalities are not involved when building the (gen-           ↵-acyclic and q + free-connex. When q + is empty it
+eralized) join trees. In the presence of inequalities,        has been shown in [8, 9] that constant delay enu-
+the multiplicative factors are now exponential in the         meration can be achieved if H(q ) is -acyclic and
+query size.                                                   q free-connex. -acyclicity is the hereditary ex-
+   It turns out that free-connexity characterizes ex-         tension of ↵-acyclicity. It requires that the hy-
+actly those acyclic queries that can be enumerated            pergraph and all its subhypergraphs are ↵-acyclic.
+in constant delay, assuming boolean matrix multi-             When neither q + nor q are empty then a notion
+plication cannot be done in quadratic time. Boolean           of signed-acyclicity was introduced in [9]. It yields
+matrix multiplication is the problem of given two             ↵-acyclicity and -acyclicity in the corresponding
+n ⇥ n matrices with boolean entries M, N to com-              limit cases. It also allows for tractable enumeration
+pute their product M N . The best known algo-                 algorithms.
+rithms so far (based on the Coppersmith–Winograd
+algorithm [11]) require more than n2.37 steps.                   Theorem 4. [9] The enumeration for free-connex
+                                                              signed-acyclic conjunctive queries can be done with
+  Theorem 2. [5] If boolean matrix multiplication             constant delay after a preprocessing time of the form
+cannot be done in quadratic time then the following           ||D||(log ||D||)|q| .
+are equivalent for acyclic conjunctive queries q:                The enumeration for free-connex signed-acyclic
+1
+ This is not the initial definition of free-connex as given   conjunctive queries can be done with logarithmic de-
+in [5]. This presentation is from Brault-Baron [9]            lay after a quasi-linear time preprocessing.
+
+14                                                                  SIGMOD Record, March 2015 (Vol. 44, No. 1)
+   The multiplicative factors are exponential in the       Counting the number of solutions.
+size of the query for the constant delay result but           Given a query q and a database D, the counting
+polynomial in the logarithmic delay result. As in          problem is to compute |q(D)|.
+the previous section, modulo complexity hypothe-              Given a query language L, we say that the count-
+sis, typically that testing the existence of a trian-      ing problem of L is solvable in time f (n) if for any
+gle cannot be done in O(n2 log n) time on a graph          q 2 L and any database D, |q(D)| can be computed
+of size n, the signed-acyclicity hypothesis and the        in time g(q)f (||D||) for some computable function g.
+free-connexity hypothesis cannot be avoided [9].           Note that f does not depend on q. If f is poly-
+                                                           nomial then the associated parametrized computa-
+3.3   Longer delay                                         tional problem is in the class FPT.
+  We could consider enumeration algorithms allow-             For conjunctive queries, actually even for acyclic
+ing for non constant delay.                                conjunctive queries, counting the number of solu-
+                                                           tions of a query is a hard problem. Already for
+Delay linear in the size of the database. In this set-     acyclic conjunctive queries the combined complex-
+ting, the preprocessing phase remains linear in the        ity is #P -complete [25] and only the quantifier free
+size of the database but the delay between any two         acyclic conjunctive queries can be solved in time lin-
+consecutive outputs is now linear in the size of the       ear in ||D|| [3]. Adding just one quantifier already
+database. Notice that linear delay still implies that      make already the problem hard [26].
+the associated model checking problem is in FPT,              For this reason, [14] introduced a new parame-
+hence CQ cannot be enumerated with linear delay            ter named quantified-star size. It measures “how
+unless W[1] =FPT.                                          the free variables are spread in the formula” and
+   One can then consider restricting the class of          bounding this parameter yields tractable counting
+databases. A class of databases, called X-databases,       problem for acyclic conjunctive queries.
+has been exhibited such that CQ can be enumerated
+over it with linear delay. We will not define X-             Theorem 7. [14] For each number s, the count-
+databases in this note. Typical examples are grids         ing problem for acyclic conjunctive queries of
+and trees with all XPath axis.                             quantified-star size bounded by s can be solved in
+  Theorem 5. [4]. The enumeration for CQ over              time polynomial in both the size of the query and of
+X-structures can be done with linear delay.                the database.
+
+For acyclic conjunctive queries linear delay enumer-          It turns out that this parameter characterizes ex-
+ation can be obtained with no restriction on the           actly the class of acyclic conjunctive queries having
+databases.                                                 a tractable counting problem. If a class of acyclic
+ Theorem 6. [5]. The enumeration for acyclic               conjunctive query does not have a bounded
+CQ over all databases can be done with linear delay.       quantified-star size, then its associated counting
+                                                           problem is #W[1]-hard [14]. In particular, it cannot
+                                                           be solved in FPT.
+Polynomial delay. One could also allow polynomial
+                                                              It is possible to perform counting efficiently be-
+precomputation and polynomial delay. This notion
+                                                           yond acyclic conjunctive queries. For instance it is
+is maybe less relevant in the database context. In-
+                                                           known that the boolean case is tractable for CQ
+deed, the degree of the polynomial could depend on
+                                                           having bounded width for various notions of width.
+the size of the query and in this case the preprocess-
+                                                           In order to capture also non boolean queries the no-
+ing phase can often precompute all solutions. This
+                                                           tion of quantified-star size was extended for various
+notion is however relevant when considering first-
+                                                           notions of width [13]. Based on this definition for
+order queries with free second-order variables. In
+                                                           hypertreewidth, the result reads as follows:
+this case, for ⌃1 -queries, polynomial delay enumer-
+ation can be achieved [16].
+                                                              Theorem 8. [13] Let C be a class of CQ of
+4.    NEARBY PROBLEMS                                      bounded generalized hypertreewidth.
+                                                              Assuming W[1] 6= FPT the following are equiva-
+  It turns out that the index structures build for         lent:
+enumeration can be used with little modifications
+for solving several related problems, like counting          1. The counting problem for queries in C is solv-
+the number of solutions, or in the presence of an or-           able in polynomial time
+der, directly pointing to the j th -solution. We briefly
+survey those results here.                                   2. C has bounded quantified-star size
+
+SIGMOD Record, March 2015 (Vol. 44, No. 1)                                                                    15
+  If the schema is not part of the input, or more          and enumerate conjunctive queries with the “bag se-
+generally if we assume a bound on the arity of the         mantics”, i.e. each answer occurs as many times as
+predicates used in queries of C, they building on [19]     there are valuations witnessing it. This has not been
+we get the following stronger result that also shows       investigated and is clearly relevant for database
+that the bounded treewidth hypothesis is necessary:        queries with aggregate predicates.
+                                                              The situation of the lower bounds mentioned in
+  Theorem 9. [13] Let C be a class of CQ using             this paper is not completely satisfactory as they are
+predicates of bounded arity. Assuming W[1] 6= FPT          based on complexity or algorithmics hypothesis. Of
+the following are equivalent:                              course one can construct artificial problems, based
+     1. The counting problem for queries in C is solv-     on the fact that there exist quadratic but not linear
+        able in polynomial time                            problems, that do not admit constant delay enu-
+                                                           meration algorithms. For the queries mentioned in
+     2. C has bounded treewidth and bounded                this note, like the distance 2 one, the lower bounds
+        quantified-star size                               requires an assumption. It is plausible (i.e. there
+                                                           are no known drastic consequences in complexity
+5.     DISCUSSION                                          theory nor in algorithmic) that the non existence
+                                                           of constant delay enumeration algorithms could be
+5.1     More expressive queries                            proved with no assumptions. We believe this is an
+                                                           interesting and challenging question.
+   In order to be able to enumerate more expres-
+sive queries, one need restrictions on the class of
+databases under consideration. Several restrictions        7.   REFERENCES
+have been investigated, like bounded degree [20, 12],       [1] A. V. Aho, J. E. Hopcroft, and J. D. Ullman.
+bounded expansion [21] and low degree [15] for FO               The Design and Analysis of Computer
+queries, bounded tree-width [2, 22] for MSO queries             Algorithms. Addison-Wesley, 1974.
+and XPath queries over data trees [7]. The inter-           [2] G. Bagan. MSO Queries on Tree
+ested reader is referred to [27, 28] for a more detailed        Decomposable Structures Are Computable
+overview of these results.                                      with Linear Delay. In Conf. on Computer
+5.2     The impact of order                                     Science Logic (CSL), pages 167–181, 2006.
+                                                            [3] G. Bagan. Algorithmes et complexité des
+   The definition of CD Lin presented here does                 problèmes d’énumération pour l’évaluation de
+not specify the order in which the answers are out-             requêtes logiques. PhD thesis, Université de
+put. One could require a specific order, relevant to            Caen, 2009.
+the context in which the query is evaluated. For            [4] G. Bagan, A. Durand, E. Filiot, and
+instance, if there is a linear order on the domain of           O. Gauwin. Efficient Enumeration for
+the database, one could require that the tuples of              Conjunctive Queries over X-underbar
+the result are output in lexicographical order. An-             Structures. In Conf. on Computer Science
+other typical example is when there is a relevance              Logic (CSL), pages 80–94, 2010.
+measure associated to each tuple and one would like         [5] G. Bagan, A. Durand, and E. Grandjean. On
+the answers to the query to be output in the order              Acyclic Conjunctive Queries and Constant
+of their relevance.                                             Delay Enumeration. In Conf. on Computer
+   Requiring a specific order when outputting the               Science Logic (CSL), pages 208–222, 2007.
+answers to a query may have a dramatic impact on            [6] G. Bagan, A. Durand, E. Grandjean, and
+the existence of constant delay algorithms. This is             F. Olive. Computing the jth solution of a
+not surprising as the index built during the prepro-            first-order query. RAIRO Theoretical
+cessing phase is designed for a particular order.               Informatics and Applications, 42(1):147–164,
+                                                                2008.
+6.     CONCLUSIONS                                          [7] M. Bojańczyk and P. Parys. XPath evaluation
+   We mentioned several results concerning constant             in linear time. J. of the ACM, 58(4), 2011.
+delay enumeration of conjunctive queries. We hope           [8] J. Brault-Baron. A Negative Conjunctive
+that we succeeded to convince the reader that this              Query is Easy if and only if it is Beta-Acyclic.
+is a very interesting topic. We conclude with several           In Conf. on Computer Science Logic (CSL),
+research directions.                                            pages 137–151, 2012.
+   One could for instance consider relaxing the “no         [9] J. Brault-Baron. De la pertinence de
+duplicate” constraint during the enumeration phase              l’énumération : complexité en logiques
+
+16                                                              SIGMOD Record, March 2015 (Vol. 44, No. 1)
+     propositionnelle et du premier ordre. PhD                2008.
+     thesis, Université de Caen, 2013.                  [24] C. H. Papadimitriou and M. Yannakakis. On
+[10] T. Colcombet. A Combinatorial Theorem for                the Complexity of Database Queries. J. on
+     Trees. In Intl. Coll. on Automata, Languages             Computer and System Sciences (JCSS),
+     and Programming (ICALP), pages 901–912,                  58(3):407–427, 1999.
+     2007.                                               [25] R. Pichler and S. Skritek. Tractable Counting
+[11] D. Coppersmith and S. Winograd. Matrix                   of the Answers to Conjunctive Queries. In
+     Multiplication via Arithmetic Progressions. J.           Alberto Mendelzon Intl. Workshop on
+     on Symbolic Computation, 9(3):251–280, 1990.             Foundations of Data Management (AMW),
+[12] A. Durand and E. Grandjean. First-order                  2011.
+     queries on structures of bounded degree are         [26] R. Pichler and S. Skritek. Tractable counting
+     computable with constant delay. ACM Trans.               of the answers to conjunctive queries. J.
+     on Computational Logic (ToCL), 8(4), 2007.               Comput. Syst. Sci., 79(6):984–1001, 2013.
+[13] A. Durand and S. Mengel. Structural                 [27] L. Segoufin. Enumerating with constant delay
+     tractability of counting of solutions to                 the answers to a query. In Intl. Conf. on
+     conjunctive queries. In Intl. Conf. on                   Database Theory, pages 10–20, 2013.
+     Database Theory, pages 81–92, 2013.                 [28] L. Segoufin. A glimpse on constant delay
+[14] A. Durand and S. Mengel. On Polynomials                  enumeration. In Intl. Symp. on Theoretical
+     Defined by Acyclic Conjunctive Queries and               Aspects of Computer Science (STACS), pages
+     Weighted Counting Problems. J. on                        13–27, 2014.
+     Computer and System Sciences (JCSS),                [29] M. Yannakakis. Algorithms for Acyclic
+     80(1):277–296, 2014.                                     Database Schemes. In Intl. Conf. on Very
+[15] A. Durand, N. Schweikardt, and L. Segoufin.              Large Databases (VLDB), pages 82–94, 1981.
+     Enumerating first-order queries over databases
+     of low degree. In Symp. on Principles of
+     Database Systems (PODS), 2014.
+[16] A. Durand and Y. Strozecki. Enumeration
+     Complexity of Logical Query Problems with
+     Second-order Variables. In Conf. on Computer
+     Science Logic (CSL), pages 189–202, 2011.
+[17] J. Flum and M. Grohe. Parameterized
+     Complexity Theory. Springer, 2006.
+[18] E. Grandjean. Sorting, Linear Time and the
+     Satisfiability Problem. Annals of Mathematics
+     and Artificial Intelligence, 16:183–236, 1996.
+[19] M. Grohe, T. Schwentick, and L. Segoufin.
+     When is the evaluation of conjunctive queries
+     tractable? In Symposium on Theory of
+     Computing (STOC), pages 657–666, 2001.
+[20] W. Kazana and L. Segoufin. First-order query
+     evaluation on structures of bounded degree.
+     Logical Methods in Computer Science
+     (LMCS), 7(2), 2011.
+[21] W. Kazana and L. Segoufin. Enumeration of
+     first-order queries on classes of structures with
+     bounded expansion. Symp. on Principles of
+     Database Systems (PODS), 2013.
+[22] W. Kazana and L. Segoufin. Enumeration of
+     monadic second-order queries on trees. ACM
+     Transactions on Computational Logic, 14(4),
+     2013.
+[23] S. Lindell. A Normal Form for First-Order
+     Logic over Doubly-Linked Data Structures.
+     Int. J. Found. Comput. Sci., 19(1):205–217,
+
+
+SIGMOD Record, March 2015 (Vol. 44, No. 1)                                                               17
+

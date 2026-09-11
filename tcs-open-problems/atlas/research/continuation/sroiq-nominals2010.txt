@@ -1,0 +1,3032 @@
+Journal of Artificial Intelligence Research 39 (2010) 429-481          Submitted 02/10; published 10/10
+
+
+
+
+     Nominals, Inverses, Counting, and Conjunctive Queries
+                or: Why Infinity is your Friend!
+
+Sebastian Rudolph                                                                rudolph@kit.edu
+AIFB, Karlsruhe Institute of Technology, DE
+Birte Glimm                                                      birte.glimm@comlab.ox.ac.uk
+Oxford University Computing Laboratory, UK
+
+
+                                                    Abstract
+         Description Logics are knowledge representation formalisms that provide, for example,
+     the logical underpinning of the W3C OWL standards. Conjunctive queries, the standard
+     query language in databases, have recently gained significant attention as an expressive
+     formalism for querying Description Logic knowledge bases. Several different techniques for
+     deciding conjunctive query entailment are available for a wide range of DLs. Nevertheless,
+     the combination of nominals, inverse roles, and number restrictions in OWL 1 and OWL 2
+     DL causes unsolvable problems for the techniques hitherto available. We tackle this problem
+     and present a decidability result for entailment of unions of conjunctive queries in the DL
+     ALCHOIQb that contains all three problematic constructors simultaneously. Provided
+     that queries contain only simple roles, our result also shows decidability of entailment of
+     (unions of) conjunctive queries in the logic that underpins OWL 1 DL and we believe
+     that the presented results will pave the way for further progress towards conjunctive query
+     entailment decision procedures for the Description Logics underlying the OWL standards.
+
+
+1. Introduction
+
+We present a decidability result for entailment of unions of conjunctive queries in the very
+expressive Description Logic ALCHOIQb. The article is an extended version of the con-
+ference paper Status QIO: Conjunctive Query Entailment is Decidable, Proceedings of the
+12th International Conference on the Principles of Knowledge Representation and Reason-
+ing (KR 2010), May 09–13, 2010 (Glimm & Rudolph, 2010).
+    Description Logics (DLs) are a family of logic based knowledge representation formalisms
+(Baader, Calvanese, McGuinness, Nardi, & Patel-Schneider, 2003). Most DLs correspond
+to the function-free two variable fragment of First-Order Logic (FOL) often extended with
+counting quantifiers (e.g., ∀x∃≤n y(R(x, y))) and DLs are also closely related to the (2-
+variable) guarded fragment since DL formulae naturally result in guarded formulae when
+translated into FOL. In line with the restriction to 2 variables, DL formulae contain only
+unary and binary predicates, which are called concepts and roles in DLs. The constructors
+for building complex expressions are usually chosen such that the key inference problems,
+such as concept satisfiability, are decidable. A DL knowledge base (KB) consists of a TBox,
+which contains intensional knowledge such as concept definitions and general background
+knowledge (essentially a FOL theory), and an ABox, which contains extensional knowledge
+and is used to describe individuals (a set of ground facts). Using a database metaphor, the
+TBox corresponds to the schema, and the ABox corresponds to the data. In contrast to
+
+c 2010 AI Access Foundation. All rights reserved.
+                                    Rudolph & Glimm
+
+
+
+
+databases, however, DL knowledge bases, as FOL in general, adopt an open world semantics,
+i.e., they represent information about the domain in an incomplete way.
+     Standard DL reasoning services include testing concepts for satisfiability and retrieving
+certain instances of a given concept. The latter retrieves, for a knowledge base consist-
+ing of an ABox A and a TBox T , all (ABox) individuals that are instances of the given
+(possibly complex) concept expression C, i.e., all those individuals a such that T and A
+entail that a is an instance of C. The underlying reasoning problems are well-understood,
+and the computational complexity of the standard reasoning tasks given a knowledge base
+as input range from PTime-complete for DLs with limited expresivity such as DL-Lite
+(Calvanese, De Giacomo, Lembo, Lenzerini, & Rosati, 2005), EL (Baader, 2003), and ELP
+(Krötzsch, Rudolph, & Hitzler, 2008) to 2-NExpTime-complete for very expressive DLs
+such as SROIQ (Kazakov, 2008).
+     Despite the high worst case complexity of the standard reasoning problems for very
+expressive DLs such as SROIQ, there are highly optimized implementations available,
+e.g., FaCT++ (Tsarkov & Horrocks, 2006), Pellet (Sirin, Parsia, Cuenca Grau, Kalyan-
+pur, & Katz, 2007), and HermiT (Motik, Shearer, & Horrocks, 2009). These systems
+are used in a wide range of applications, e.g., biology (Sidhu, Dillon, Chang, & Sidhu,
+2005), bio informatics (Wolstencroft, Brass, Horrocks, Lord, Sattler, Turi, & Stevens, 2005),
+medicine (Golbreich, Zhang, & Bodenreider, 2006), information integration (Calvanese,
+De Giacomo, Lenzerini, Nardi, & Rosati, 1998b), geography (Goodwin, 2005), geology (Jet
+Propulsion Laboratory, 2006), defense (Lacy, Aviles, Fraser, Gerber, Mulvehill, & Gaskill,
+2005), and configuration (McGuinness & Wright, 1998). Most prominently, DLs are known
+for their use as a logical underpinning of ontology languages, e.g., OIL, DAML+OIL, the
+W3C standard OWL 1 (Bechhofer, van Harmelen, Hendler, Horrocks, McGuinness, Patel-
+Schneider, & Stein, 2004), and its successor OWL 2 (W3C OWL Working Group, 2009).
+There are three species of OWL 1: OWL Lite, OWL DL, and OWL Full. OWL 2 extends
+OWL 1 and adds three further sublanguages (called OWL 2 profiles): OWL EL, OWL QL,
+and OWL RL. OWL Lite corresponds to the DL SHIF in which the standard reasoning
+tasks are ExpTime-complete, OWL 1 DL corresponds to the DL SHOIN , in which the
+standard reasoning tasks are NExpTime-complete, and OWL 2 DL extends this to the DL
+SROIQ. For OWL Full the standard reasoning tasks are no longer decidable. The new
+QL, EL, and RL profiles are more restrictive than OWL DL and each of the profiles trades
+off different aspects of OWL’s expressive power in return for different computational and/or
+implementational benefits. OWL EL corresponds to the DL EL ++ (Baader, Brandt, &
+Lutz, 2005) and the basic reasoning problems can be performed in time that is polynomial
+with respect to the size of the input knowledge base. OWL 2 QL is based on the DL-Lite
+family of Description Logics, where the data complexity of conjunctive query entailment is
+in AC0 . Thus, conjunctive query answering can be implemented using standard relational
+database technology. OWL 2 RL enables the implementation of polynomial time reasoning
+algorithms using rule-extended database technologies.
+     In data-intensive applications, querying KBs plays a central role. Instance retrieval
+is, in some aspects, a rather weak form of querying: although possibly complex concept
+expressions are used as queries, we can only query for tree-like relational structures, as
+a DL concept cannot express arbitrary cyclic structures. This property is known as the
+tree model property and is considered an important reason for the decidability of most
+
+                                             430
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+Modal and Description Logics (Grädel, 2001; Vardi, 1997) and we also heavily exploit a
+variant of this property to establish our decidability result. Conjunctive queries (CQs)
+and unions of conjunctive queries (UCQs) are well known in the database community and
+constitute an expressive query language with capabilities that go well beyond standard
+instance retrieval. In FOL terms, CQs and UCQs are formulae from the positive existential
+fragment. Free variables in a query (not bound by an existential quantifier) are also called
+answer variables or distinguished variables, whereas existentially quantified variables are
+called non-distinguished.
+
+    If the query contains no distinguished variables, the query answer is just true or false
+and the query is called a Boolean query. Given a knowledge base K and a Boolean UCQ
+q, the query entailment problem is deciding whether q is true or false w.r.t. K, i.e., we
+have to decide whether each model of K provides for a suitable assignment for the variables
+in q. For a query with distinguished variables, the answers to the query are those tuples
+of individual names (constants) for which the knowledge base entails the query that is
+obtained by replacing the free variables with the individual names in the answer tuple.
+These answers are also called certain answers. The problem of finding all answer tuples is
+known as query answering. We present a decidability result for query entailment, which is
+a decision problem, but this is no restriction since query answering can easily be reduced
+to query entailment as we illustrate in more detail in Section 3.
+
+
+1.1 Related Work
+
+Conjunctive queries have been first mentioned in the context of Description Logics (DLs) by
+Levy and Rousset (1996). The first account of conjunctive queries as main topic is given by
+Calvanese, De Giacomo, and Lenzerini (1998a). In particular in recent years, the problem of
+decidability of conjunctive query entailment and the complexity of the problem in different
+logics has gained significant attention. For the DLs SHIQ and SHOQ decidability and
+2-ExpTime-completeness of the problem is known (Glimm, Horrocks, Lutz, & Sattler,
+2008a; Glimm, Horrocks, & Sattler, 2008b; Lutz, 2008; Eiter, Lutz, Ortiz, & Simkus,
+2009). Conjunctive query entailment is already 2-ExpTime-hard in the relatively weak
+DL ALCI (Lutz, 2008), which was initially attributed to inverse roles. Recently, it was
+shown, however, that also transitive roles together with role hierarchies as in the DL SH
+make conjunctive query entailment 2-ExpTime-hard (Eiter et al., 2009). The techniques by
+Glimm et al. for SHIQ and SHOQ (Glimm et al., 2008a, 2008b) reduce query entailment
+to the standard reasoning task of knowledge base satisfiability checking in the DL extended
+with role conjunctions. An alternative technique is the so-called knots technique (Ortiz,
+Simkus, & Eiter, 2008b), which is an instance of the mosaic technique originating in Modal
+Logic. This technique also gives worst-case optimal algorithms for SHIQ and several of its
+sub-logics. Further, there are automata-based decision procedures for positive existential
+path queries (Calvanese, Eiter, & Ortiz, 2007, 2009). Positive existential path queries
+generalize unions of conjunctive queries and, therefore, decision procedures for this kind of
+query also provides decision procedures for unions of conjunctive queries. In particular the
+most recent extension (Calvanese et al., 2009) is very close to a conjunctive query entailment
+decision procedure for OWL 2, which corresponds to the DL SROIQ, because it covers
+
+                                             431
+                                    Rudolph & Glimm
+
+
+
+
+SRIQ, SROQ, and SROI. The use of the three problematic constructors for nominals,
+inverses, and number restrictions is, however, not covered.
+    Regarding data complexity, i.e., the complexity with respect to the ABox (the data)
+only, CQ entailment is usually coNP-complete for expressive logics. For example, for DLs
+from ALE up to SHIQ this is the case (Glimm et al., 2008a) and this holds also for CQ
+entailment in the two variable guarded fragment with counting (Pratt-Hartmann, 2009).
+The latter work is quite closely related since many Description Logics can be translated into
+the two variable guarded fragment with counting, i.e., the results of Pratt-Hartmann also
+hold for SHIQ with only simple roles (roles that are not transitive and have no transitive
+subrole) in the query. Given the same restriction on the query, also SHOQ and SHOI
+were shown to have coNP-complete data complexity w.r.t. conjunctive query entailment
+(Ortiz, Calvanese, & Eiter, 2008a).
+    Query entailment and answering have also been studied in the context of databases
+with incomplete information (Rosati, 2006b; van der Meyden, 1998; Grahne, 1991). In this
+setting, DLs can be used as schema languages, but the expressivity of the considered DLs is
+usually much lower than the expressivity of the DL ALCHOIQb that we consider here and
+reasoning in them is usually tractable. For example, the constructors provided by logics of
+the DL-Lite family (Calvanese, De Giacomo, Lembo, Lenzerini, & Rosati, 2007) are chosen
+such that the standard reasoning tasks are in PTime regarding combined complexity and
+query entailment is in AC0 with respect to data complexity. Thus, TBox reasoning can be
+done independently of the ABox and the ABox can be stored and accessed using a standard
+database SQL engine. Another tractable DL is EL (Baader, 2003). Conjunctive query
+entailment in EL is, however, not tractable as the complexity increases to coNP-complete
+(Rosati, 2007b). Moreover for EL++ (Baader et al., 2005), a still tractable extension of EL,
+query entailment is even undecidable (Krötzsch, Rudolph, & Hitzler, 2007). This is mainly
+because in EL++ , one can use unrestricted role compositions. This allows for encoding
+context-free languages, and conjunctive queries can then be used to check the intersection
+of such languages, which is known to be an undecidable problem. Since the logics used in
+databases with incomplete information are considerable less expressive than ALCHOIQb,
+the techniques developed in that area do not transfer to our setting.
+    Given that query entailment is a (computationally) harder task than, for example,
+knowledge base satisfiability, it is not very surprising that decidability of the latter task
+does not necessarily transfer to the problem of CQ entailment. Most of the undecidabil-
+ity results can be transferred from FOL since many DLs can directly be translated into
+an equivalent FOL theory. For example, it is known that conjunctive query entailment
+is undecidable in the two variable fragment of First-Order Logic L2 (Rosati, 2007a), and
+Rosati identifies a relatively small set of constructors that cause the undecidability (most
+notably role negation axioms, i.e., axioms of the form ∀x, y (¬R(x, y) → P (x, y)) for R, P
+binary predicates). Pratt-Hartmann (2009) recently established decidability for CQ entail-
+ment in the two variable guarded fragment with counting (GC2 ). It is worth noting that
+Pratt-Hartmann assumes that the background theory (that is the knowledge base in our
+case) is constant free and formulae of the form ∃=1 x(P (x)), which can be used to sim-
+ulate constants/nominals, are not considered guarded. His result covers, therefore, only
+the DL ALCHIQb and is not applicable to the case, when the input knowledge base (the
+background theory) contains nominals (individual constants).
+
+                                            432
+                  Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+    Most of the implemented DL reasoners, e.g., KAON2,1 Pellet, and RacerPro,2 provide
+an interface for conjunctive query answering, although KAON2 and RacerPro consider only
+named individuals in the ABox for the assignments of variables. Under that restriction
+queries do no longer have the standard FOL semantics and decidability is obviously not an
+issue since conjunctive query answering with this restriction can be reduced to standard
+instance retrieval by replacing the variables with individual names from the ABox and then
+testing entailment of each conjunct separately. Pellet goes beyond that and also provides an
+interface for conjunctive queries with FOL semantics under the restriction that the queries
+have a kind of tree shape. Under this restriction decidability is known since CQs can then
+be expressed as normal concepts (possibly by adding role conjunctions).
+
+1.2 Contributions and Overview
+
+Given all these results, which show a great interest in the problem of conjunctive query en-
+tailment over expressive DLs, it is very interesting that for the DLs SHIF, SHOIN , and
+SROIQ that underpin the widely adopted standards OWL Lite, OWL 1 DL, and OWL 2
+DL, respectively, decidability of conjunctive query entailment has only been established for
+OWL Lite. The main obstacle in devising a decision procedure is the combination of inverse
+roles (I), nominals (O), and number restrictions/counting quantifiers (F stands for func-
+tionality, N for unqualified number restrictions, and Q for qualified number restrictions).
+The complications arising from the combination of these constructors caused also a major
+hurdle in the development of implementable algorithms for knowledge base satisfiability in
+SHOIN and extensions thereof, but Horrocks and Sattler (2005) devised a tableau-based
+decision procedure that has since been extended to SROIQ. Meanwhile also alternative
+approaches such as resolution (Kazakov & Motik, 2008), and hypertableau-based procedures
+(Motik et al., 2009) are available and implemented.
+    The key obstacle in establishing a decision procedure is the existence of potentially
+infinitely many new nominals, i.e., elements that are uniquely identifiable in any model of
+a KB. For an example, consider the KB K given in Fig. 1. A concept of the form {o}
+has to be interpreted as a singleton set, containing only the interpretation of the constant
+o. For simplicity, we assume for now that a constant is always interpreted as itself, e.g.,
+the interpretation of o is o. An axiom of the form {o1 } v ∃f.∃s.∃f − .{o2 } can then be
+understood as follows: For the constant o1 , there must be two elements, say d1 and d2 , such
+that f (o1 , d1 ), s(d1 , d2 ), and f (o2 , d2 ) holds. Note that o2 occurs as the first element in
+f (o2 , d2 ) since an inverse role (f − ) is used. Thus, an interpretation for the KB must contain
+the three elements o1 , o2 , and o3 , which must be interconnected in the following way: paths
+              f     s   f
+of the shape → · → · ← have to lead from o1 to o2 as well as from o2 to o3 and from o3 to
+o1 . Moreover, the role f is defined to be functional, meaning that every element can have
+at most one f -successor. This also applies to all individuals oi , which forces the existence of
+an s-cycle. Observe that a cyclic Boolean query such as {s(x, y), s(y, z), s(z, x)} that checks
+for the existence of such a cycle cannot be answered by applying standard techniques such
+as replacing variables with individual names (oi ) or rewriting the query into an equivalent
+
+1. http://kaon2.semanticweb.org
+2. http://www.racer-systems.com
+
+
+                                               433
+                                      Rudolph & Glimm
+
+
+
+
+                                                         f        s           f
+              {o1 } v ∃f.∃s.∃f − .{o2 }         {o1 }                             {o2 }
+              {o2 } v ∃f.∃s.∃f − .{o3 }                      s            s
+              {o3 } v ∃f.∃s.∃f − .{o1 }                               f
+               func(f )                                   {o3 }
+
+Figure 1: Example knowledge base K and a representation for a model, where the three
+          elements in the s-cycle are so-called new nominals.
+
+
+
+tree-shaped query. The elements in the cycle behave as if they were nominals, but we do
+not have names for them.
+    We tackle the problem of conjunctive query entailment in a very expressive DL that con-
+tains all the three problematic constructors simultaneously and prove decidability of (unions
+of) conjunctive queries. The most challenging part is to establish finite representability of
+countermodels in case the query given as input is not entailed by the knowledge base. Our
+results also hold for SHOIQ knowledge bases, i.e., with some roles declared as transitive,
+provided that the queries contain only simple roles (roles that are neither transitive nor
+have a transitive subrole). This is essentially the same restriction that is placed on roles
+that can occur in number restrictions since otherwise the standard reasoning tasks become
+undecidable. Under this restriction, we can use standard techniques for eliminating tran-
+sitivity (Kazakov & Motik, 2008). Hence, we also show decidability of conjunctive query
+entailment in OWL DL, for queries with only simple roles.
+    We believe that our work is also valuable for understanding, in general, the structure of
+models in DLs that contain nominals, inverse roles, and number restrictions. Furthermore,
+we devise non-trivial extensions of standard techniques such as unraveling, which we believe
+will prove useful when working with such expressive DLs.
+    The paper is organized as follows: in Section 2, we give a bird’s-eye view of the techniques
+and ideas used to establish decidability. In Section 3, we give the necessary definitions and
+introduce standard notations. In Sections 4, 5, and 6 we present the main results that we
+then use in Section 7 to show how models that do not satisfy the query can be finitely
+represented before we conclude in Section 8.
+
+2. The Big Picture
+Before going into the technical details, we will describe our overall line of argumentation
+establishing decidability of conjunctive query entailment in ALCHOIQb.
+
+2.1 Decidability via Finitely Representable Countermodels
+Let K be an ALCHOIQb knowledge base and let q be the conjunctive query in question,
+i.e., we aim to determine whether
+                                   K |= q.
+Clearly, as ALCHOIQb is a fragment of first-order predicate logic with equality, K can be
+translated into a FOL sentence F OL(K). Likewise we find a FOL sentence F OL(q) for
+
+                                              434
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+q being just an existentially quantified formula. Hence, checking the above entailment is
+equivalent to determining whether the first-order theory F OL(K) entails F OL(q). As a
+result of the completeness theorem for FOL (Gödel, 1929), the consequences of a finite FOL
+theory are recursively enumerable, which provides us with a procedure that terminates if
+K |= q. Hence, we can establish decidability by providing another algorithm that terminates
+iff the entailment above does not hold – i.e., if there is a so-called countermodel being a
+model I of K for which I 6|= q.
+     We will provide such an algorithm by showing that, whenever such a countermodel I
+exists at all, there is also a countermodel I that is finitely representable. More precisely,
+I can be encoded into a word Rep(I) of finite length over a finite alphabet, whereby the
+encoding Rep has the property that for every such finite word it can be effectively checked
+whether it represents a countermodel for a given knowledge base and query.
+     As a consequence thereof, we can create the desired algorithm that enumerates all words,
+checks each for being a countermodel, and terminates as soon as it has found one.
+
+2.2 Finite Representability by Bounding Nominals and Blocking
+We now outline how we are going to show that there is always a finitely representable
+countermodel, if there is one at all. We do this by taking an arbitrary countermodel and
+cautiously transforming it into a countermodel that is finitely representable. Cautiously
+means that we have to make sure that the transformation does preserve the two properties
+of 1) being a model of the underlying knowledge base K and 2) not entailing the considered
+query q.
+    The result of the overall transformation is going to be a regular model, i.e., a structure
+where substructures are being in a certain sense periodically repeated. It is common practice
+in DL theory to construct this kind of models from arbitrary ones by blocking techniques,
+whereby certain element configurations occurring twice in the original model are detected
+and the new model is generated by infinitely stringing together the same finite substructure
+that is delimited by those two configurations.
+    In the case we consider, this technique cannot be applied directly to the original coun-
+termodel. This is due to an intricate interplay of nominals, inverse roles and cardinality
+constraints by which an arbitrary – even an infinite – number of domain elements can be
+forced to “behave” like nominals; this is why those elements are usually referred to as new
+nominals in a DL setting. In FOL, nominals are often called kings and the new nominals
+are called the court. In our case, the presence of infinitely many new nominals in the model
+may prevent the existence of repeated configurations needed for blocking.
+    We overcome this difficulty by first applying a transformation by means of which the
+original countermodel is converted into a countermodel with only finitely many new nomi-
+nals. This guarantees that the subsequent blocking-based transformation is applicable and
+will yield the desired regular (and thus finitely representable) model.
+
+2.3 Bounding Nominals by Transformations of Forest Quasi-Models
+For our argumentation, we introduce the notion of forest quasi-models. These are structures
+not satisfying the originally considered knowledge base but a weakened form of it. In
+
+                                             435
+                                     Rudolph & Glimm
+
+
+
+
+return to this concession, they exhibit a proper forest structure that is easier to handle and
+manipulate.
+    We employ two techniques to turn “proper” models into forest quasi-models and vice
+versa: a model can be unraveled yielding a forest quasi-model. A forest quasi-model can be
+collapsed to obtain a “proper” model. Both techniques preserve certain structural proper-
+ties.
+    Our strategy to construct a countermodel with finitely many nominals consists of the
+following three steps:
+
+   • Take an arbitrary countermodel and unravel it.
+
+   • Transform the obtained forest quasi-model by substituting critical parts by well-
+     behaved ones,
+
+   • Collapse the obtained structure into a (proper) model.
+
+    The mentioned “critical parts” are those giving rise to new nominals. They have to
+be – at least largely – avoided (we do not care about a finite set of those critical parts
+remaining).
+    The central question is: where do these mysterious well-behaved substitutes come from?
+Fortunately, the plethora of critical parts brings about its own remedy. We can use infinite
+sets of critical parts to construct well-behaved ones in an infinite approximation process
+(this is why infinity is your friend). We thereby obtain parts which have not been present
+in our structure before, but are well compatible with it and can hence be used for its
+reorganization.
+   After having informally introduced our main line of argumentation, we now move on to
+the technical details.
+
+3. Preliminaries
+We first define the syntax and semantics of roles, and then go on to SHOIQb-concepts,
+individuals, and knowledge bases. We do not actually use the full expressivity of SHOIQb,
+but it is a convenient umbrella for all DLs we are working with and we can define less
+expressive DLs of interest as restrictions of SHOIQb.
+
+Definition 1 (Syntax of SHOIQb). Let NC , NR , and NI be countable, infinite, and
+pairwise disjoint sets of concept names, role names, and individual names, respectively. We
+call S = (NC , NR , NI ) a signature. The set rol(S) of SHOIQb-roles over S (or roles for
+short) is NR ∪ {r− | r ∈ NR }, where roles of the form r− are called inverse roles. A role
+inclusion axiom is of the form r v s with r, s roles. A transitivity axiom is of the form
+trans(r) for r a role. A role hierarchy H is a finite set of role inclusion and transitivity
+axioms.
+    For a role hierarchy H, we define the function inv over roles as inv(r) := r− if r ∈ NR and
+inv(r) := s if r = s− for a role name s ∈ NR . Further, we define vH as the smallest transitive
+reflexive relation on roles such that r v s ∈ H implies r vH s and inv(r) vH inv(s). We
+write r ≡H s if r vH s and s vH r. A role r is transitive w.r.t. H (notation r+ vH r) if a
+
+                                             436
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+role s exists such that r vH s, s vH r, and trans(s) ∈ H or trans(inv(s)) ∈ H. A role s is
+called simple w.r.t. H if there is no role r such that r is transitive w.r.t. H and r vH s.
+    For r ∈ rol(S) a simple role, a Boolean role expressions U is defined as follows:
+                                 U ::= r | ¬U | U u U | U t U.
+We use ` to denote standard Boolean entailment between a set of roles R ⊆ rol(S) and role
+expressions. Let r ∈ rol(S), and U a Boolean role expression over R. We inductively define:
+   • R ` r if r ∈ R, and R 6` r otherwise,
+   • R ` ¬U if R 6` U , and R 6` ¬U otherwise,
+   • R ` U u V if R ` U and R ` V , and R 6` U u V otherwise,
+   • R ` U t V if R ` U or R ` V , and R 6` U t V otherwise.
+A Boolean role expression U is safe if ∅ 6` U .
+   Given a signature S = (NC , NR , NI ), the set of SHOIQb-concepts (or concepts for
+short) over S is the smallest set built inductively over symbols from S using the following
+grammar, where o ∈ NI , A ∈ NC , n ∈ IN0 , s is a simple role, and U is a role or a safe
+Boolean role expression:
+                       C ::= > | ⊥ | {o} | A | ¬C | C1 u C2 | C1 t C2 |
+                               ∀U.C | ∃U.C | ⩽ n s.C | ⩾ n s.C.                           4
+    Alternatively, safeness can be characterized as follows: a Boolean role expression U is
+safe if, after transforming it into disjunctive normal form, each disjunct contains at least
+one non-negated role. Intuitively, this implies that a safe role expression can never relate
+individuals that are not in a direct role relation with each other.
+Definition 2 (Semantics of SHOIQb-concepts). An interpretation I = (∆I , ·I ) consists
+of a non-empty set ∆I , the domain of I, and a function ·I , which maps every concept name
+A ∈ NC to a subset AI ⊆ ∆I , every role name r ∈ NR to a binary relation rI ⊆ ∆I × ∆I ,
+and every individual name a ∈ NI to an element aI ∈ ∆I . For each role name r ∈ NR ,
+                                            I
+the interpretation of its inverse role (r− ) consists of all pairs hδ, δ 0 i ∈ ∆I × ∆I for which
+hδ 0 , δi ∈ rI .
+       The semantics of SHOIQb-concepts over a signature S is defined as follows:
+         (¬r)I = ∆I × ∆I \ rI         (r1 u r2 )I = r1I ∩ r2I         (r1 t r2 )I = r1I ∪ r2I
+             I
+            > = ∆  I                             I
+                                               ⊥ =∅                       ({o})I = {oI }
+        (¬C)I = ∆I \ C I              (C u D)I = C I ∩ DI             (C t D)I = C I ∪ DI
+             I         I          0      I          0
+      (∀U.C) = {δ ∈ ∆ | if hδ, δ i ∈ U , then δ ∈ C }    I
+
+      (∃U.C)I = {δ ∈ ∆I | there is a hδ, δ 0 i ∈ U I with δ 0 ∈ C I }
+    (⩽ n s.C)I = {δ ∈ ∆I | ](sI (δ, C)) ≤ n}
+    (⩾ n s.C)I = {δ ∈ ∆I | ](sI (δ, C)) ≥ n}
+where ](M ) denotes the cardinality of the set M and sI (δ, C) is defined as
+                             {δ 0 ∈ ∆I | hδ, δ 0 i ∈ sI and δ 0 ∈ C I }.
+A concept C is in negation normal form (NNF) if negation occurs only in front of concept
+names and we use nnf(C) to denote the negation normal form of a concept C.            4
+
+                                                437
+                                         Rudolph & Glimm
+
+
+
+
+   Any concept can be transformed in linear time into an equivalent one in NNF by pushing
+negation inwards, making use of de Morgan’s laws and the duality between existential and
+universal restrictions, and between at-most and at-least number restrictions of the form
+⩽ n r.C and ⩾ n r.C respectively (Horrocks, Sattler, & Tobies, 2000).
+
+Definition 3 (Syntax and Semantics of Axioms and Knowledge Bases). A functionality
+restriction is an expression func(f ) for f a role. For C, D concepts, a general concept
+inclusion (GCI) is an expression C v D. We introduce C ≡ D as an abbreviation for
+C v D and D v C. A finite set of GCIs and functionality restrictions is called a TBox. An
+                                                                                  .           .
+(ABox) assertion is an expression of the form C(a), r(a, b), ¬r(a, b), a = b, or a =         6 b, where
+C is a concept, r is a role, and a, b ∈ NI are individual names. An ABox is a finite set of
+assertions. A knowledge base K is a triple (T , H, A) with T a TBox, H a role hierarchy,
+and A an ABox.
+    We use con(K), rol(K), and nom(K) to denote, respectively, the set of concept names,
+roles (including inverses), and individual names occurring in K. The closure cl(K) of K
+is the smallest set containing nnf(¬C t D) if C v D ∈ T ; D if D is a sub-concept of C
+and C ∈ cl(K); and nnf(¬C) if C ∈ cl(K). A role f is functional in K if K contains the
+functionality axiom func(f ) and it is inverse functional in K if K contains the functionality
+axiom func(inv(f )).
+    Let I = (∆I , ·I ) be an interpretation. Then I satisfies a role inclusion axiom r v s if
+rI ⊆ sI , I satisfies a transitivity axiom trans(r) if rI is a transitive binary relation, and a role
+hierarchy H if it satisfies all role inclusion and transitivity axioms in H. The interpretation
+I satisfies a functionality restriction func(f ) if, for each δ ∈ ∆I , ]({δ 0 | hδ, δ 0 i ∈ f I }) ≤ 1; I
+satisfies a GCI C v D if C I ⊆ DI ; and I satisfies a TBox T if it satisfies each functionality
+restriction and each GCI in T . The interpretation I satisfies an assertion C(a) if aI ∈ C I ,
+                                                             .                       .
+r(a, b) if haI , bI i ∈ rI , ¬r(a, b) if haI , bI i ∈
+                                                    / rI , a = b if aI = bI , and a =
+                                                                                    6 b if aI 6= bI ; I
+satisfies an ABox if it satisfies each assertion in A. We say that I satisfies K if I satisfies
+T , H, and A. In this case, we say that I is a model of K and write I |= K. We say that K
+is consistent if K has a model.                                                                        4
+
+     If the knowledge base K is clear from the context, we simply say that a role f is (inverse)
+functional instead of saying f is (inverse) functional in K.
+     The names of DLs indicate which constructors are supported. The basic DL ALC
+supports Boolean concept constructors and GCIs, but no role hierarchies, functionality
+restrictions et cetera. If transitivity axioms are added, we use S instead of ALC. Inverse
+roles are indicated by the letter I, role inclusion axioms by H, nominals, i.e., concepts of
+the form {o} for o ∈ NI , by O, functionality restrictions by F, qualified number restrictions,
+i.e., concepts of the form ⩽ n s.C and ⩾ n s.C, by Q, and safe Boolean role expressions by
+b. If number restrictions are limited to concepts of the form ⩽ n s.> and ⩾ n s.>, we use
+the letter N .
+     We mostly refer to a few particular DLs in this paper: the DL SHOIQ is obtained from
+SHOIQb by disallowing Boolean role expressions. The DLs SHIQ, SHOQ, and SHOI
+are obtained from SHOIQ by disallowing nominals, inverse roles, and number restrictions
+(incl. functionality restrictions), respectively. Finally, the DL ALCOIFb is obtained from
+SHOIQb by disallowing transitivity axioms (we use ALC instead of S in the name of the
+DL to indicate this), role inclusion axioms, and concepts of the form ⩽ n s.C and ⩾ n s.C.
+
+                                                  438
+                 Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+3.1 Conjunctive Queries and Unions of Conjunctive Queries
+We now introduce Boolean conjunctive queries since they are the basic form of queries we
+are concerned with. We later also define non-Boolean queries and show how they can be
+reduced to Boolean queries. Finally, unions of conjunctive queries are just a disjunction of
+conjunctive queries.
+
+Definition 4 (Syntax and Semantics of Conjunctive Queries). Let S = (NC , NR , NI ) be
+a signature and NV a countably infinite set of variables disjoint from NC , NR , and NI .
+A term t is an element from NV ∪ NI . Let A ∈ NC be a concept name, r ∈ NR a role
+name, and t, t0 terms. An atom is an expression A(t) or r(t, t0 ) and we refer to these two
+types of atoms as concept atoms and role atoms respectively. A Boolean conjunctive query
+q is a non-empty set of atoms. We use var(q) to denote the set of (existentially quantified)
+variables occurring in q and term(q) to denote the set of variables and individual names
+occurring in q. As usual, we use ](q) to denote the cardinality of q, which is simply the
+number of atoms in q, and we use |q| for the size of q, i.e., the number of symbols necessary
+to write q.
+    Let I = (∆I , ·I ) be an interpretation. A total function π : term(q) → ∆I is an evaluation
+if π(a) = aI for each individual name a occurring in q. For A(t), r(t, t0 ) atoms, we write
+
+   • I |=π A(t) if π(t) ∈ AI ;
+
+   • I |=π r(t, t0 ) if (π(t), π(t0 )) ∈ rI .
+
+If, for an evaluation π, I |=π At for all atoms At ∈ q, we write I |=π q. We say that I
+satisfies q and write I |= q if there exists an evaluation π such that I |=π q. We call such a
+π a match for q in I.
+     Let K be a knowledge base and q a conjunctive query. If I |= K implies I |= q, we say
+that K entails q and write K |= q.                                                          4
+
+   The query entailment problem is defined as follows: given a knowledge base K and a
+query q, decide whether K |= q.
+
+Definition 5 (Unions of Conjunctive Queries). A union of Boolean conjunctive queries is
+a formula q1 ∨ . . . ∨ qn , where each disjunct qi is a Boolean conjunctive query.
+    A knowledge base K entails a union of Boolean conjunctive queries q1 ∨ . . . ∨ qn , written
+as K |= q1 ∨ . . . ∨ qn , if, for each interpretation I such that I |= K, there is some i such that
+I |= qi and 1 ≤ i ≤ n.                                                                           4
+
+    We now clarify the connection between query entailment and query answering. For
+query answering, let the variables of a conjunctive query be typed: each variable can either
+be existentially quantified (also called non-distinguished ) or free (also called distinguished
+or answer variables). Let q be a query in n variables (i.e., ](var(q)) = n), of which v1 , . . . , vm
+(m ≤ n) are answer variables. The answers of K to q are those m-tuples (a1 , . . . , am ) of
+individual names such that, for all models I of K, I |=π q for some π that satisfies π(vi ) = aIi
+for all i with 1 ≤ i ≤ m. Recall that we use nom(K) to denote the set of individual names
+occurring in K (in the form of nominals or ABox individuals). It is not hard to see (cf.
+Chandra & Merlin, 1977) that the answers of K to q can be computed by testing, for each
+
+                                                439
+                                        Rudolph & Glimm
+
+
+
+
+(a1 , . . . , am ) ∈ nom(K)m , whether the query q[v1 ,...,vm /a1 ,...,am ] obtained from q by replacing
+each occurrence of vi with ai for 1 ≤ i ≤ m is entailed by K. The set of certain answers
+to q is then the set of all m-tuples (a1 , . . . , am ) for which K |= q[v1 ,...,vm /a1 ,...,am ] . Let
+k = ](nom(K)) be the number of individual names occurring in K. Since K is finite, clearly
+k is finite. Hence, deciding which tuples belong to the set of answers can be checked with
+at most k m entailment tests.
+     The algorithm that we present in this paper decides query entailment. The reasons
+for devising a decision procedure for query entailment instead of query answering are two-
+fold: first, query answering can be reduced to query entailment as shown above; second, in
+contrast to query answering, query entailment is a decision problem and can be studied in
+terms of complexity theory.
+
+3.2 Simplifying Assumptions
+In the following, we make several assumptions that are without loss of generality, but
+simplify the presentation of the decision procedure.
+
+3.2.1 From SHOIQ and ALCHOIQb to simplified ALCOIFb Knowledge Bases
+In the following, we only work with ALCOIFb knowledge bases. Nevertheless, our results
+also hold for SHOIQ knowledge bases and queries with only simple roles in the query and
+for ALCHOIQb knowledge bases, i.e., when the knowledge base contains safe Boolean role
+expressions, but no transitivity. The restriction to ALCOIFb is without loss of generality,
+as we show now.
+      Provided the query contains only simple roles, we can use the elimination techniques for
+transitivity (Kazakov & Motik, 2008) to reduce a SHOIQ knowledge base to an ALCHOIQ
+knowledge base with extended signature. We can further eliminate qualified number restric-
+tions and role inclusion axioms by transforming an ALCHOIQb knowledge base into an
+ALCOIFb knowledge base that is equivalent to the original one up to an extension of the
+signature (Rudolph, Krötzsch, & Hitzler, 2008). We do not repeat a formal proof here, but
+rather give an informal argument as to how this reduction works.
+      We assume that the knowledge base is in negation normal form, i.e., all GCIs are of
+the form > v C with C a concept in NNF. Now, consider a concept expression of the form
+⩾ n r.C with r a role and C a concept. This means that there are at least n distinct r-
+neighbors satisfying C. However, this situation can be enforced by introducing n new roles
+r1 , . . . , rn each of which is deemed to have r as a superrole (ri v r) and which are pairwise
+disjoint (> v ∀(ri u rj ).⊥). Under those “side conditions”, the above concept expression
+can be replaced by ∃r1 .C u . . . u ∃rn .C.
+      A somewhat dual argumentation is possible for concept expressions of the form ⩽ n r.C
+restricting the number of r-neighbors satisfying C to at most n. Again we extend the
+signature by introducing new roles r1 , . . . , rn , but this time, we let them “cover” all outgoing
+r-links in the following sense: whenever an r-link leads to some domain element δ which
+satisfies C, then one of the roles r1 , . . . , rn also leads there. Indeed, safe Boolean role
+expressions allow for expressing this correspondence via the concept description ∀(r u ¬r1 u
+. . . u ¬rn ).¬C. It is now easy to see, that this concept expression can replace the above if
+we additionally demand all roles r1 , . . . , rn to be functional.
+
+                                                  440
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+                          {o} v ∃r.A           A v ∃r.A               A v ∃s.B
+
+                          func(f − )           func(g − )             B vC tD
+
+                          C v ∃f.E             D v ∃g.E               E v B t {o}
+
+                                       A   r   A    r   A     r   A     r   A r
+                                r                                                     ···
+                          {o}       s          s        s         s         s
+                           E
+                                                                                      ···
+                                f          g        f         g         f         g
+                                     B         B         B        B          B
+                                    C E        DE       C E       DE        C E
+
+
+
+Figure 2: Knowledge base for our running example and a representation of a model for the
+          knowledge base.
+
+
+
+    Finally consider a role hierarchy statement r v s, stating that whenever two domain
+elements δ1 and δ2 are connected by role r, they are also interconnected via s. Clearly, this
+statement can be reformulated as: there are no two domain elements connected by r and
+by ¬s. This, in turn, can be equivalently rephrased by saying that no domain element has
+an r u ¬s-neighbor or, expressed as GCI, > v ∀(r u ¬s).⊥.
+    These transformations can be applied to an ALCHOIQb knowledge base, whereby all
+cardinality constraints and role inclusion axioms are eliminated. This leaves us with an
+equivalent ALCOIFb knowledge base up to an extension of the signature.
+    Figure 2 displays an ALCOIFb knowledge base and an according model, which we will
+refer to as a running example throughout the paper.
+
+    Furthermore, we assume that the ABox is internalized (e.g., C(a) is replaced by the
+equivalent GCI {a} v C, r(a, b) by {a} v ∃r.{b}, etc.). Thus, we effectively decide query
+entailment with respect to a TBox only since knowledge bases in this setting have an empty
+ABox.
+    For T an ALCOIFb TBox, it is always possible to transform T into an equivalent TBox
+T 0 up to signature extension such that all GCIs in T 0 have one of the following simplified
+forms:
+              l       G
+                 Ai v    Bj | A ≡ {o} | A v ∀U.B | A v ∃U.B | func(f ),                  (1)
+
+where A(i) and B(j) are concept names, o is andindividual name, U is a safe Boolean   F role
+expression, and f is a role. If i = 0, we interpret Ai as > and if j = 0, we interpret Bj as
+⊥. An ALCOIFb knowledge base K = (T , A) is simplified if T is simplified and A is empty.
+Every ALCOIFb knowledge base, which is not in this form, can be transformed in poly-
+nomial time into the desired form by using the standard structural transformation, which
+iteratively introduces definitions for compound sub-concepts (Kazakov & Motik, 2008).
+Thus, we assume in the remainder that any knowledge base is rewritten into a simplified
+ALCOIFb knowledge base.
+
+                                                    441
+                                         Rudolph & Glimm
+
+
+
+
+3.2.2 Connected and Constant-free Queries
+We assume that queries are connected. More precisely, let q be a conjunctive query. We
+say that q is connected if, for all t, t0 ∈ term(q), there exists a sequence t1 , . . . , tn such that
+t1 = t, tn = t0 and, for all 1 ≤ i < n, there exists a role name r such that r(ti , ti+1 ) ∈ q or
+r(ti+1 , ti ) ∈ q. A collection q1 , . . . , qn of queries is a partitioning of q if q = q1 ∪ . . . ∪ qn ,
+term(qi ) ∩ term(qj ) = ∅ for 1 ≤ i < j ≤ n, and each qi is connected.
+
+Lemma 6. Let K be a knowledge base, q a conjunctive query, and q1 , . . . , qn a partitioning
+of q. Then K |= q iff K |= qi for each i with 1 ≤ i ≤ n.
+
+    A proof is given by Tessaris (2001) and, with this lemma, it is clear that the restriction
+to connected queries is indeed without loss of generality since entailment of q can be decided
+by checking entailment of each qi at a time. In what follows, we therefore assume queries
+to be connected without further notice.
+    In unions of conjunctive queries, we assume that the variable names in each disjunct are
+different from the variable names in the other disjuncts. This can always be achieved by
+naming variables apart. We further assume that each disjunct in a UCQ is a connected con-
+junctive query. This is without loss of generality since a UCQ which contains unconnected
+disjuncts can always be transformed into conjunctive normal form; we can then decide en-
+tailment for each resulting conjunct separately and each conjunct is a union of connected
+conjunctive queries (Glimm et al., 2008a). Note that, due to the transformation into con-
+junctive normal form, the resulting number of unions of connected conjunctive queries for
+which we have to test entailment can be exponential in the size of the original query.
+    We further assume that queries do not contain constants (individual names) to occur in
+the position of variables. In the presence of nominals this is without loss of generality: for
+each individual name a occurring in q, we extend the knowledge base K with the axioms
+{a} ≡ Na for Na ∈ NC a fresh concept name, and replace each occurrence of a in q with a
+fresh variable xa ∈ NV and add a concept atom Na (xa ) to q.
+
+3.2.3 General Notation
+Throughout this paper, concept names and role expressions are written in upper case, while
+roles and individual names are written in lower case. Unless stated otherwise, we use A
+and B for concept names; C and D for possibly complex concepts; r and s for roles, f
+for functional or inverse functional roles; U and V for safe Boolean role expressions; and o
+for nominals that are used in TBox axioms or that occur in complex concepts. Sub- and
+superscripts might be appended if necessary. If not stated otherwise, we use q (possibly
+with subscripts) for a connected Boolean conjunctive query, K for a simplified ALCOIFb
+knowledge base, I for an interpretation (∆I , ·I ), and π, µ for evaluations.
+
+4. Model Construction
+In this section, we introduce interpretations and models that have a kind of forest shape.
+The main notion of a forest is, however, very weak since we do also allow for arbitrary
+relations between tree elements and roots. Without such relations, we call the result a
+strict forest. We exploit the nice properties of trees and forests in the following sections,
+
+                                                   442
+                Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+when we replace parts in interpretations that give rise to an infinite number of new nominals.
+Since even models of an ALCOIFb knowledge base that have a kind of forest shape are not
+really forests, we also introduce “approximations” of models in which nominals are no longer
+interpreted as singleton sets. We call these structures quasi-interpretations or quasi-models
+and such interpretations can have the form of real forests. Further, we provide a way of
+“unraveling” an arbitrary model into a forest that is a quasi-model for the knowledge base
+and a way of “collapsing” such forest quasi-models back into real models of the knowledge
+base that still have a kind of forest shape.
+Definition 7 (Forest (Quasi-)Interpretations and (Quasi-)Models). A tree T is a non-
+empty, prefix-closed subset of IN∗ . For w, w0 ∈ T , we call w0 a successor of w if w0 = w · c
+for some c ∈ IN, where “·” denotes concatenation. We call w0 a predecessor of w if w = w0 · c
+for some c ∈ IN, and w0 is a neighbor of w if w0 is a successor of w or vice versa. The empty
+word ε is called the root of the tree. We use |w| to denote the length of w.
+      A forest F is a subset of R ×IN∗ , where R is a countable, possibly infinite set of elements
+such that, for each ρ ∈ R, the set {w | (ρ, w) ∈ F } is a tree. Each pair (ρ, ε) ∈ F is called
+a root of F . For (ρ, w), (ρ0 , w0 ) ∈ F , we call (ρ0 , w0 ) a successor of (ρ, w) if ρ0 = ρ and w0
+is a successor of w; (ρ0 , w0 ) is a predecessor of (ρ, w) if ρ0 = ρ and w0 is a predecessor of w;
+(ρ0 , w0 ) is a neighbor of (ρ, w) if (ρ0 , w0 ) is a successor of (ρ, w) or vice versa. A node (ρ, w)
+is an ancestor of a node (ρ0 , w0 ) if ρ = ρ0 and w is a prefix of w0 and it is a descendant if
+ρ = ρ0 and w0 is a prefix of w.
+      A forest interpretation of a knowledge base K is an interpretation I = (∆I , ·I ) that
+satisfies the following conditions:
+ FI1 ∆I is a forest with roots R;
+
+ FI2 there is a total and surjective function λ : nom(K) → R × {ε} such that λ(o) = (ρ, ε)
+     iff oI = (ρ, ε);
+
+ FI3 for each role r ∈ rol(K), if h(ρ, w), (ρ0 , w0 )i ∈ rI , then either
+
+       (a) w = ε or w0 = ε, or
+       (b) (ρ, w) is a neighbor of (ρ0 , w0 ).
+
+If I |= K, we say that I is a forest model for K. If ∆I has a single root, we call I a tree
+interpretation and a tree model for K, respectively.
+    Let K be an ALCOIFb knowledge base. With nomFree(K), we denote the ALCIFb
+knowledge base obtained from K by replacing each nominal concept {o} with o ∈ nom(K)
+with a fresh concept name No . A forest quasi-interpretation for K is an interpretation
+J = (∆J , ·J ) of nomFree(K) that satisfies the following properties:
+FQ1 ∆J is a forest with roots R;
+
+FQ2 there is a total and surjective function λ : nom(K) → R × {ε} such that λ(o) = (ρ, ε)
+    iff (ρ, ε) ∈ NoJ
+
+FQ3 for each role r ∈ rol(K), if h(ρ, w), (ρ0 , w0 )i ∈ rI , then either
+
+       (a) w = ε or w0 = ε, or
+
+                                                 443
+                                           Rudolph & Glimm
+
+
+
+
+       (b) (ρ, w) is a neighbor of (ρ0 , w0 ).
+
+Note that condition FQ2 allows for elements (ρ, w) ∈ ∆J with w 6= ε such that (ρ, w) ∈ NoJ .
+We call J strict if in condition FQ3, only FQ3(b) is allowed. If J |= nomFree(K) we say
+that J is a forest quasi-model for K.
+   The branching degree d(w) of a node w in a tree T is the number of successors of w. Let
+I = (∆I , ·I ) be a forest (quasi) interpretation for K. If there is a k such that d(w) ≤ k for
+each (ρ, w) ∈ ∆I , then we say that I has branching degree k.                                4
+    In the remainder, when we use the concept name No , we mean the fresh concept name
+that was introduced in nomFree(K) for the nominal concept {o} with o ∈ nom(K). Elements
+in the extension of a concept No are called nominal placeholders. Please note that, in a
+forest quasi-interpretations J , we can have several elements (ρ, w) with w 6= ε such that
+(ρ, w) ∈ NoJ .
+    In the following, we define a notion of isomorphism between forest interpretations. Note
+that we demand not only structural identity w.r.t. concepts and roles but also w.r.t. the
+successor relation.
+Definition 8 (Isomorphism between Forest Interpretations). Let I, I 0 be two forest inter-
+                                                  0
+pretations of K with δ1 , δ2 ∈ ∆I , δ10 , δ20 ∈ ∆I . The pairs hδ1 , δ2 i, hδ10 , δ20 i are isomorphic
+w.r.t. K, written hδ1 , δ2 i ∼
+                             =K hδ10 , δ20 i iff
+                                       0
+   1. hδ1 , δ2 i ∈ rI iff hδ10 , δ20 i ∈ rI for each r ∈ rol(K),
+                               0
+   2. δi ∈ AI iff δi0 ∈ AI for i ∈ {1, 2} and each A ∈ con(K),
+                           0
+   3. δi = oI iff δi0 = oI for i ∈ {1, 2} and each o ∈ nom(K).
+We say that I and I 0 are isomorphic w.r.t. K, written: I =∼K I 0 , if there is a bijection
+                0
+ϕ : ∆I → ∆I such that, for each δ1 , δ2 ∈ ∆I , hδ1 , δ2 i ∼
+                                                          =K hϕ(δ1 ), ϕ(δ2 )i and δ1 is a
+successor of δ2 iff ϕ(δ1 ) is a successor of ϕ(δ2 ).                                     4
+    If clear from the context, we omit the subscript K of ∼=K . We extend the above definition
+in the obvious way to forest quasi-interpretations, i.e., by omitting condition 3 and defining
+the isomorphism with respect to K0 = nomFree(K).
+    Forest quasi-models have, intuitively, the purpose of an intermediate step between arbi-
+trary models of K and forest models of K. When identifying each δ in the interpretation of
+a concept No in the knowledge base K0 with a root that is in the interpretation of No , we
+obtain an interpretation that would be a model for K apart from functionality restrictions
+for some nominals that might be violated. We show later how we can eliminate those re-
+lations from the forest back to the roots that violate functionality restrictions and how we
+can eventually obtain a forest model from a forest quasi-model.
+    Another useful property of quasi-interpretations is that, for simplified ALCIFb knowl-
+edge bases, it can be checked locally whether an interpretation I is actually a model of
+K.
+Definition 9 (Local K-consistency). Let I = (∆I , ·I ) be an interpretation for a simplified
+ALCIFb knowledge base K with δ ∈ ∆I . We define local satisfaction for δ and concepts
+that can occur in simplified ALCIFb axioms as follows:
+
+                                                    444
+                 Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+   1. for A1 , . . . , An ∈ con(K):
+
+                         Ai if δ ∈ AIi for each i with 1 ≤ i ≤ n; I, δ 6|=
+                     d                                                       d
+       (a) I, δ |=                                                         Ai otherwise;
+                         Ai if δ ∈ AIi for some i with 1 ≤ i ≤ n; I, δ 6|= Ai otherwise;
+                     F                                                    F
+       (b) I, δ |=
+
+   2. for U a safe Boolean role expression over rol(K), A ∈ con(K):
+
+       (a) I, δ |= ∃U.A if there is some δ 0 ∈ ∆I such that hδ, δ 0 i ∈ U I and I, δ 0 |= A;
+           I, δ 6|= ∃U.A otherwise;
+       (b) I, δ |= ∀U.A if, for each δ 0 ∈ ∆I such that hδ, δ 0 i ∈ U I , I, δ 0 |= A; I, δ 6|= ∀U.A
+           otherwise;
+
+   3. for f ∈ rol(K), I, δ |= func(f ) if ]({δ 0 ∈ ∆I | hδ, δ 0 i ∈ f I }) ≤ 1; I, δ 6|= func(f )
+      otherwise.
+
+An element δ ∈ ∆I locally satisfies a GCI C v D with C, D ALCIFb-concepts if I, δ |= C
+implies I, δ |= D. It locally satisfies a functionality restriction func(f ) if I, δ |= func(f ). An
+element δ ∈ ∆I is locally K-consistent if it locally satisfies each axiom in K.                    4
+
+
+
+Lemma 10. Let K be a simplified ALCIFb knowledge base and I = (∆I , ·I ) an interpre-
+tation for K. Then I is a model for K iff each element δ ∈ ∆I is locally K-consistent.
+
+
+
+Proof. For simplified ALCIFb knowledge bases, only axioms of the form A v ∀U.B and
+A v ∃U.B involve checking neighbors of an element δ and, since B is a concept name in
+simplified knowledge bases, it is immediate that satisfaction of B can be checked locally for
+the neighbor of δ in question.
+
+
+    For a knowledge base K with nominals, we can also use local K-consistency, but we
+need an additional global condition that ensures that nominals are interpreted as singleton
+sets. The following is an immediate consequence of Lemma 10 and the extra condition 2
+for nominals:
+
+Proposition 11. Let K be a simplified ALCOIFb knowledge base and I = (∆I , ·I ) an
+interpretation for K. Then I is a model for K iff
+
+  1. each element δ ∈ ∆I is locally K-consistent and,
+
+  2. for each o ∈ nom(K), there is exactly one element δ ∈ ∆I such that oI = δ.
+
+
+
+                                                  445
+                                        Rudolph & Glimm
+
+
+
+
+   We now show how we can obtain a forest quasi-model from a model of K by using an
+adapted version of unraveling.
+
+Definition 12 (Unraveling). Let K be a consistent ALCOIFb knowledge base and I =
+(∆I , ·I ) a model for K. Let choose be a function that returns, for a concept C = ∃U.B ∈
+cl(K) and an element δ ∈ (∃U.B)I an element δC,δ ∈ ∆I such that hδ, δC,δ i ∈ U I and
+δC,δ ∈ B I .
+     Without loss of generality, we assume that, for all δ ∈ ∆I and concepts C1 = ∃U1 .B1 , C2 =
+∃U2 .B2 ∈ cl(K) such that δ ∈ C1I ∩ C2I , if choose(C1 , δ) = δ1 , choose(C2 , δ) = δ2 , and
+hδ, δ1 i ∼
+         = hδ, δ2 i, then δ1 = δ2 .
+     An unraveling for some element δ ∈ ∆I , denoted as ↓(I, δ), is an interpretation that
+is obtained from I and δ as follows: we define the set S ⊆ (∆I )∗ of sequences to be the
+smallest set such that
+
+   • δ is a sequence;
+
+   • δ1 · · · δn · δn+1 is a sequence, if
+
+         – δ1 · · · δn is a sequence,
+         – if n > 2 and hδn , δn−1 i ∈ f I for some functional role f , then δn+1 6= δn−1 ,
+         – δn+1 = choose(C, δn ) for some C = ∃U.B ∈ cl(K).
+
+Now fix a set F ⊆ {δ} × IN∗ and a bijection λ : F → S such that
+
+  (i) F is a forest,
+
+ (ii) λ(δ, ε) = δ,
+
+(iii) if (δ, w), (δ, w · c) ∈ F with w · c a successor of w, then λ(δ, w · c) = λ(δ, w) · δn+1 for
+      some δn+1 ∈ ∆I .
+
+Such a forest F and bijection λ exist because S is a prefix-closed set with root δ. Thus, we
+just map from the notion of sequences to that of forests.
+    For each o ∈ nom(K), let No ∈ NC be a fresh concept name. For each (δ, w) ∈ F , set
+Tail(δ, w) = δn if λ(δ, w) = δ1 · · · δn . Now, we define the unraveling for δ as the interpretation
+J = (∆J , ·J ) with ∆J = F and, for each (δ, w) ∈ ∆J , we define the interpretation of
+concept and role names as follows:
+
+ (a) for each o ∈ nom(K), NoJ = {(δ, w) ∈ ∆J | Tail(δ, w) ∈ oI };
+
+ (b) for each concept name A ∈ con(K), AJ = {(δ, w) ∈ ∆J | Tail(δ, w) ∈ AI };
+
+ (c) for each role name r ∈ rol(K), h(δ, w), (δ, w0 )i ∈ rJ iff w0 is a neighbor of w, and
+     hTail(δ, w), Tail(δ, w0 )i ∈ rI .
+
+   Let R be the subset of ∆I that contains exactly those δ ∈ ∆I such that oI = δ for some
+o ∈ nom(K). Let U be a set containing an unraveling of I starting from each δ ∈ R. The
+union of all interpretations from U is called an unraveling for I, denoted as ↓(I), where
+unions of interpretations are defined in the natural way.                              4
+
+                                                446
+                 Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+                                                                                          No E
+                                                                                      r
+                                                                                  A
+                                                                              r
+                                                                         A            s    BC
+                                                                                             E
+                                                                     r
+                                                                 A            s   BD
+                                                                                                f
+                                                                                    E               No E
+                                                             r
+                                                        A                BC                BC       ..
+                                                                     s                g                .
+                                                                           E                 E
+                                                    r
+                                                A            s   BD               BD
+                                                                              f                 f
+                                                                   E                E               No E
+                                            r
+                                        A               BC               BC                BC       ..
+                                                    s                g                g                .
+                                    r                     E                E                 E
+                                            s   BD               BD               BD
+                                                             f                f                 f
+                                .
+
+                                                   E                E                E              No E
+                               ..
+
+
+
+                                                 g                g                g                ..
+                                                                                                       .
+                                                        ..               ..                ..
+                                                             .                .                 .
+
+
+
+
+                   Figure 3: Unraveling of the model displayed in Figure 2.
+
+
+    Figure 3 shows the unraveling for our example knowledge base and model. The dotted
+lines under the non-root elements labeled No indicate that a copy of the whole tree should
+be appended since we do not stop unraveling at nominal placeholders.
+    It might be helpful to think of the function Tail as a homomorphism (up to signature
+extension) from the elements in the unraveling J to elements in the original model I.
+Indeed, Tail satisfies the following properties: For each (δ, w), (δ 0 , w0 ) ∈ ∆J ,
+
+   • Tail(δ, w) = oI iff (δ, w) ∈ NoJ , for all o ∈ nom(K),
+
+   • Tail(δ, w) ∈ AI iff (δ, w) ∈ AJ , for all A ∈ con(K), and
+
+   • hTail(δ, w), Tail(δ 0 , w0 )i ∈ rI iff h(δ, w), (δ 0 , w0 )i ∈ rJ , for all r ∈ rol(K).
+
+    Unravelings are the first step in the process of transforming an arbitrary model of K
+into a forest model since the resulting model is a forest quasi-model of K, as we show in the
+next lemma.
+
+Lemma 13. Let K be a consistent ALCOIFb knowledge base and I = (∆I , ·I ) a model of
+K. Then J = (∆J , ·J ) = ↓(I) is a strict forest quasi-model for K.
+
+
+Proof. Let K0 = nomFree(K). By construction, J satisfies conditions FQ1 and FQ3 of
+forest quasi-models and the strictness condition. Since J is obtained from a model I of
+K, by definition of unravelings as starting from each δ ∈ ∆I such that oI = δ for some
+o ∈ nom(K), and by condition (a) of unravelings, there is, for each o ∈ nom(K), one root
+(δ, ε) ∈ ∆J such that (δ, ε) ∈ NoJ . Thus, J satisfies also property FQ2 and J is a forest
+quasi-interpretation for K. We show that J is a model of K0 by demonstrating that each
+(δ, w) ∈ ∆J is locally K0 -consistent. Since we assume all knowledge bases to be simplified,
+we only have to consider axioms of form (1).
+
+                                                                 447
+                                        Rudolph & Glimm
+
+
+
+
+                                                                        that (δ, w) ∈ ( Ai )J . By
+                                         d        F                                      d
+    Let Ax be an axiom of the form Ai v Bj and assume
+condition (b) of unravelings, we have δw = Tail(δ, w) ∈ ( Ai )I and, since I |= K, we have
+                                                                 d
+δw ∈ BjI for some j. Again by condition (b) of unravelings, we then have (δ, w) ∈ BjJ as
+required.
+    Axioms of the form A ≡ {o} in K are rewritten into A ≡ No in K0 . We consider A v No
+and No v A separately. Let Ax be of the form A v No for o ∈ nom(K) and assume that
+(δ, w) ∈ AJ . By condition (b), we have that δw = Tail(δ, w) ∈ AI and, since I |= K,
+we have δw ∈ {oI }. By condition (a) of unravelings, we then have that (δ, w) ∈ NoJ as
+required. For No v A with o ∈ nom(K), assume that (δ, w) ∈ NoJ . By condition (a), we
+have δw = Tail(δ, w) ∈ {oI } and, since I |= K, we have δw ∈ AI . By condition (b) of
+unravelings, we then have (δ, w) ∈ AJ as required.
+    Let Ax be an axiom of the form A v ∀U.B and assume that (δ, w) ∈ AJ . By condi-
+tion (b), we have δw = Tail(δ, w) ∈ AI and, since I |= K, we have each δw0 ∈ ∆I such
+that hδw , δw0 i ∈ U I is such that δw0 ∈ B I . Let (δ 0 , w0 ) be such that h(δ, w), (δ 0 , w0 )i ∈ U J
+and (δ 0 , w0 ) ∈
+                / B J . By condition (c) of unravelings, we then have that hδw , δw0 i ∈ U I for
+δw0 = Tail(δ 0 , w0 ) and by condition (b) that δw0 ∈
+                                                    / B I , which is a contradiction.
+    Let Ax be an axiom of the form A v ∃U.B and assume that (δ, w) ∈ AJ . By condi-
+tion (b), we have δw = Tail(δ, w) ∈ AI and, since I |= K, we have there is at least one
+δw0 ∈ ∆I such that hδw , δw0 i ∈ U I and δw0 ∈ B I . In case there is more than one such
+element, let δw0 be such that δw0 = choose(C, δw ). Then, by definition of sequences, there is
+some neighbor (δ, w0 ) of (δ, w) with Tail(δ, w0 ) = δw0 . Let λ(δ, w) = δ1 · · · δn , i.e., δn = δw .
+We distinguish two cases:
+
+   1. The element δw0 is such that δw0 = δn−1 . By definition of the bijection λ, w =
+      w0 · c, by definition of J from I (condition (c)) and since hδw , δw0 i ∈ U I , we have
+      h(δ, w), (δ, w0 )i ∈ U J . Then, since B is a concept name and δw0 ∈ B I , we have by
+      condition (b) that (δ, w0 ) ∈ B J , which proves the claim.
+
+   2. The element δw0 is such that δw0 6= δn−1 . By definition of sequences and the bijection
+      λ, we have that λ(δ, w0 ) = δ1 · · · δn · δw0 . Now, by definition of J from I (in particular
+      properties (b) and (c)), we have h(δ, w), (δ, w0 )i ∈ U J and, again since B is a concept
+      name, (δ, w0 ) ∈ B J , which proves the claim.
+
+    Let Ax be an axiom of the form func(r) for r ∈ rol(K). Assume, to the contrary
+of what is to be shown, that (δ, w) has two distinct neighbors (δ, w1 ), (δ, w2 ) such that
+h(δ, w), (δ, w1 )i, h(δ, w), (δ, w2 )i ∈ rJ . Since the function λ introduced in the unraveling is a
+bijection, there are two distinct sequences s1 and s2 such that λ(δ, w1 ) = s1 and λ(δ, w2 ) = s2
+and Tail(δ, w1 ) = δ1 , Tail(δ, w2 ) = δ2 with δ1 6= δ2 . Since h(δ, w), (δ, w1 )i, h(δ, w), (δ, w2 )i ∈
+rJ we get, due to condition (c), that hTail(δ, w), δ1 i, hTail(δ, w), δ2 i ∈ rI , which is a contra-
+diction since I |= K.
+    Since (δ, w) was arbitrarily chosen, we have that each element in the domain of J is
+locally K0 -consistent as required and J |= K0 by Lemma 10.
+
+Lemma 14. Let K be a consistent ALCOIFb knowledge base, I = (∆I , ·I ) a model of K,
+and J = (∆J , ·J ) = ↓(I) an unraveling for I. Then J has a branching degree bounded in
+|cl(K)|.
+
+
+                                                  448
+                Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+Proof. Let m be the number of axioms in K. Each axiom of a simplified knowledge base
+can contain at most one existential restriction and, due to the definition of the function
+choose used in the unraveling, there are, for each sequence s ∈ S, at most m elements
+δ1 , . . . , δm ∈ ∆I such that s · δi with 1 ≤ i ≤ m is a sequence in S. Since the mapping λ
+from the forest ∆J to sequences is a bijection, ∆J is a forest with branching degree m.
+
+    In the following steps, we traverse a forest quasi-model in an order in which elements
+with smaller tree depth are always of smaller order than elements with greater tree depth.
+Elements with the same tree depth are ordered lexicographically. The bounded branching
+degree of unravelings then guarantees that, after a finite number of steps, we go on to
+the next level in the forest and process all nodes eventually. Further, we can merge nodes
+such that, finally, all nominal placeholders (in the extension of some No ) can be interpreted
+as nominals without violating functionality restrictions. In fact, we do not only have to
+merge nominal placeholders, but also elements that are related to a nominal placeholder
+by an inverse functional role since, by definition of the semantics, these elements have to
+correspond to the same element in a model. In order to identify such elements, we define
+the notion of backwards counting paths as follows:
+
+Definition 15 (Paths and BCPs). Let I = (∆I , ·I ) be an interpretation. We call δ1 · . . . · δn
+a path from δ1 to δn if, for each i with 1 ≤ i < n, hδi , δi+1 i ∈ riI for some role ri ∈ rol(K).
+The length |p| of a path p = δ1 · . . . · δn is n − 1. Each element δ ∈ ∆I is a path of length
+                U        Un−1
+0. We write δ1 →1 δ2 . . . → δn to denote a path from δ1 to δn such that hδi , δi+1 i ∈ UiI for
+each 1 ≤ i < n and Ui a safe Boolean role expression.
+    Let K be an ALCOIFb knowledge base and I = (∆I , ·I ) a forest model (a forest quasi-
+model) of K. A path p = δ1 ·. . .·δn in I is a descending path if there is some root (ρ, ε) ∈ ∆I
+such that, for each i with 1 ≤ i ≤ n, δi = (ρ, wi ) and, for 1 ≤ i < n, |wi | < |wi+1 |. The
+path p is a backwards counting path (BCP) in I if δn = oI (δn ∈ NoI ) for some nominal
+o ∈ nom(K) and, for each i with 1 ≤ i < n, hδi , δi+1 i ∈ fiI for some inverse functional role
+fi ∈ rol(K). The path p is a descending BCP if it is a BCP and a descending path. Given a
+               f1       fn
+BCP p = δ1 → δ2 . . . → δn+1 with δn+1 ∈ oJ (δn+1 ∈ NoJ ), we call the sequence f1 · · · fn o
+a path sketch of p.                                                                       4
+
+     Please note that an element δ in the domain of J already counts as a (descending) BCP
+if δ ∈ oJ (NoJ ) for some o ∈ nom(K).
+     We now define the order that guarantees that in an iterative parsing process, we not only
+process all nodes, but also that we can merge nodes as required so that, finally, all nominal
+placeholders can be interpreted as nominals without violating functionality restrictions.
+
+Definition 16 (Ordering). For convenience and without loss of generality, we assume that
+the set of individual names NI is ordered. Let K be a consistent ALCOIFb knowledge
+base and J a forest quasi-interpretation for K. We extend the order to elements in ∆J
+                                                                     ∗                ∗
+as follows: let w1 = wp · c11 · · · cn1 , w2 = wp · c12 · · · cm
+                                                               2 ∈ IN where wp ∈ IN is the longest
+common prefix of w1 and w2 , then w1 < w2 if either n < m or both n = m and c11 < c12 . For
+(ρ1 , ε), (ρ2 , ε) ∈ ∆J , let o1 ∈ nom(K) be the smallest nominal such that (ρ1 , ε) ∈ NoJ1 and
+o2 ∈ nom(K) the smallest nominal such that (ρ2 , ε) ∈ NoJ2 . Now (ρ1 , w1 ) < (ρ2 , w2 ) if either
+(i) |w1 | < |w2 | or (ii) |w1 | = |w2 | and o1 < o2 or (ii) |w1 | = |w2 |, o1 = o2 and w1 < w2 .
+
+                                               449
+                                       Rudolph & Glimm
+
+
+
+
+    In the following, we are merging elements in an unraveling and, in this process, create
+new roots of the form (ρw, ε) from elements of the form (ρ, w) and elements of the form
+(ρw, w0 ) from (ρ, ww0 ). We extend, therefore, the order to elements of this form as follows:
+(ρ1 w1 , w10 ) < (ρ2 w2 , w20 ) if (ρ1 , w1 w10 ) < (ρ2 , w2 w20 ).                         4
+
+    Roughly speaking, we proceed as follows in order to transform a quasi-forest model
+J into a forest model I: we work our way downwards the trees level by level along the
+descending BCPs and use the above defined order for this purpose. By definition of the
+semantics, elements that start the same descending BCP or, more precisely, that start
+BCPs with identical path sketches, have to correspond to the same element in the forest
+model I that we produce. During the traversal of the forest quasi-model, we distinguish
+two situations: (i) we encounter an element (ρ, w) that starts a descending BCP and we
+have not seen another element before that starts a descending BCP with the same path
+sketch. In this case, we promote (ρ, w) to become a new root node of the form (ρw, ε) and
+we shift the subtree rooted in (ρ, w) with it; (ii) we encounter a node (ρ, w) that starts a
+descending BCP, but we have already seen a node (ρ0 , w0 ) that starts a descending BCP
+with that path sketch and which is now a root of the form (ρ0 w0 , ε). In this case, we delete
+the subtree rooted in (ρ, w) and identify (ρ, w) with (ρ0 w0 , ε). If (ρ, w) is an f -successor of
+its predecessor for some inverse functional role f , we delete all f − -successors of (ρ0 w0 , ε) and
+their subtrees in order to satisfy the functionality restriction. We use a notion of collapsing
+admissibility to characterize models in which the predecessor of (ρ, w) satisfies the same
+atomic concepts as the deleted successor of (ρ0 , w0 ), which ensures that local consistency is
+preserved. By virtue of this notion, we can characterize forest quasi-models that can be
+collapsed into proper models irrespective of whether they have been obtained by unraveling
+of a model or not.
+    In order to keep the domain as a forest when promoting an element (ρ, w) to a new root,
+we build the new domain with elements of the form (ρw, ε) for (ρ, w) and elements of the
+form (ρw, w0 ) for descendants (ρ, ww0 ) of (ρ, w).
+
+Definition 17 (Equivalence Relation ∼ and Collapsings). Let K be an ALCOIFb knowl-
+edge base, K0 = nomFree(K), and J = (∆J , ·J ) a forest quasi-interpretation of K. We
+define ∼ as the smallest equivalence relation on ∆J that satisfies δ1 ∼ δ2 if δ1 , δ2 start
+descending BCPs with identical path sketches.
+     Let J be a strict forest quasi-interpretation for K, J0 = (∆J0 , ·J0 ) = J and (ρ0 , w0 ) ∈
+  J
+∆ the smallest element with w0 6= ε that starts a descending BCP. We call J0 an initial
+    0
+
+collapsing for J and (ρ0 , w0 ) the focus of J0 .
+     Let Ji be a collapsing for J and (ρi , wi ) ∈ ∆Ji the focus of Ji . We obtain a collapsing
+Ji+1 = (∆Ji+1 , ·Ji+1 ) with focus (ρi+1 , wi+1 ) for J from Ji according to the following two
+cases:
+
+   1. There is no element (ρ, ε) ∈ ∆Ji such that (ρ, ε) is smaller than the focus (ρi , wi ) and
+      (ρ, ε) ∼ (ρi , wi ). Then Ji+i is obtained from Ji by renaming each element (ρi , wi wi0 ) ∈
+      ∆Ji to (ρi wi , wi0 ).
+
+   2. There is an element (ρ, ε) ∈ ∆Ji such that (ρ, ε) is smaller than the focus (ρi , wi ) and
+      (ρ, ε) ∼ (ρi , wi ). Let (ρ, ε) be the smallest such element.
+
+                                                450
+                Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+       (a) ∆Ji+1 = ∆Ji \ ({(ρi , wi wi0 ) | wi0 ∈ IN∗ } ∪ {(ρ, w) | w = c · w0 , c ∈ IN, w0 ∈
+           IN∗ , (ρi , wi ) has a predecessor (ρi , wi0 ) such that h(ρi , wi0 ), (ρi , wi )i ∈ f Ji for an
+           inverse functional role f in rol(K) and h(ρ, c), (ρ, ε)i ∈ f Ji });
+       (b) for each concept name A ∈ con(K) and (ρ, w) ∈ ∆Ji+1 , (ρ, w) ∈ AJi+1 iff (ρ, w) ∈
+           AJi ;
+       (c) for each role name r ∈ rol(K) and (ρ1 , w1 ), (ρ2 , w2 ) ∈ ∆Ji+1 , h(ρ1 , w1 ), (ρ2 , w2 )i ∈
+           rJi+1 iff
+              i. h(ρ1 , w1 ), (ρ2 , w2 )i ∈ rJi or
+             ii. (ρ1 , w1 ) is the predecessor of (ρi , wi ) in Ji (i.e., ρ1 = ρi and wi = w1 · c for
+                 some c ∈ IN), (ρ2 , w2 ) = (ρ, ε), and h(ρ1 , w1 ), (ρi , wi )i ∈ rJi .
+
+The focus (ρi+1 , wi+1 ) in Ji+1 is the smallest descending BCP with (ρi , wi ) < (ρi+1 , wi+1 ).
+    For a collapsing Ji , let safe(Ji ) be the restriction of Ji to elements (ρ, w) such that
+(ρ, w) ∈ Jj for all j ≥ i. With Jω we denote the non-disjoint union of all interpretations
+safe(Ji ) obtained from subsequent collapsings Ji for J . The interpretation obtained from
+Jω by interpreting each o ∈ nom(K) as (ρ, ε) ∈ NoJω is denoted by collapse(J ) and called a
+purified interpretation with respect to J. If collapse(J ) |= K, we call collapse(J ) a purified
+model of K.                                                                                   4
+
+     In Figures 4 to 7 we illustrate the first collapsing steps for the unraveling depicted in
+Figure 3. Apart from the nominal placeholder concepts, the concept interpretations are
+not shown in the figures, but are assumed to be as indicated in Figure 3. The edges for
+descending BCPs are shown in red color, and the dashed lines in Figure 4 indicate the levels
+of the tree because, within a tree, the order in which the nodes are processed depends firstly
+on their level. Within a level, we assume that the order increases from left to right. The
+numbers next to nodes in Figure 4 indicate, which elements are used as focus element in
+a collapsing step and their order. For the initial collapsing (Figure 4) the focus is on the
+first non-root element that starts a BCP, which we indicate with a black border around the
+node and a black triangle pointing to the focus.
+     In the first collapsing step we just rename elements to promote the focus from Figure 4
+to a root. Because the focus element highlighted in Figure 5 starts a BCP with path sketch
+different from the ones started by smaller elements, we again only rename elements to
+obtain a new root (Figure 6). Now, the focus is on a nominal placeholder and since nominal
+placeholder are BCPs, we have a root with the same path sketch and use the second case
+of Definition 17. The resulting collapsing is depicted in Figure 7.
+     Finally, we obtain a collapsing for the unraveling shown in Figure 3 as the one depicted
+in Figure 8.
+     We can now show that the collapsing of an unraveling results in a forest model for
+K. Our aim is, however, to show something more general. We want to collapse not only
+unravelings into forest models, but also forest quasi-models which have been obtained in
+another way. Unfortunately, it is not the case that the collapsing of any forest quasi-model
+results in a forest model for K since the elements that we merge in the collapsing process
+do not necessarily satisfy the same atomic concepts. We define, therefore, the following
+admissibility criterion that characterizes forest quasi-models that can be collapsed into
+forest models.
+
+                                                   451
+                                                                        Rudolph & Glimm
+
+
+
+                 No                                                                             No
+                                                                                                                               No
+                 r                                                                              r                     f
+                                                                                                            s                       ···
+                             H
+                 r s                  1 No                                                      r
+                                  f              3
+                                                    ···                                                     H
+                 r s               2                                                            r s
+                                  g              5 No                                                            g                  No
+                                            f                                                                              f
+                 r s                  4                         ···                             r s                                       ···
+                                  f                                                                              f
+                                            g             ···                                                              g        ···
+                 r s                                                                            r s
+                                 g         ···                                                                  g         ···
+                 ···
+
+
+
+
+                                                                                                ···
+ Figure 4: An initial collapsing for the un- Figure 5: In the first collapsing step we just
+           raveling depicted in Figure 3.              rename elements to promote the
+                                                       focus from Figure 4 to a root.
+
+           No                                                                             No    f
+
+          r                  f                  g                                         r                                    g
+                     s                      ···                  No                                 s                                      No
+                                       N
+                             s                             f                                                s                        f
+                                                                      ···                                                                       ···
+          r                                                                               r
+
+
+          r                                                                               r
+                                                                                                    H
+          r s                                                                             r s
+                         f                                                                              f
+                                  g        ···                                                                   g        ···
+          r s                                                                             r s
+                     g           ···                                                                g           ···
+           ···
+
+
+
+
+                                                                                          ···
+
+
+
+
+ Figure 6: A collapsing obtained from the Figure 7: A collapsing obtained by using
+           one depicted in Figure 5.                the second case of Definition 17
+                                                    on the collapsing from Figure 6.
+
+
+Definition 18 (Collapsing-admissibility). Let J be a forest quasi-interpretation for some
+ALCOIFb knowledge base K. Then J is collapsing-admissible if there exists a function
+ch : (cl(K) × ∆J ) → ∆J such that
+  1. for each concept C = ∃U.B ∈ cl(K) and each δ ∈ C J , we have hδ, ch(C, δ)i ∈ U J and
+     ch(C, δ) ∈ B J . Moreover, if there is no functional role f for which hδ, ch(C, δ)i ∈ f J
+     then ch(C, δ) is a successor of δ,
+  2. for each concept C = ∃U.B ∈ cl(K) and elements δ, δ 0 ∈ C J that start descending
+     BCPs with identical path sketches, we have hδ, ch(C, δ)i ∼
+                                                              = hδ 0 , ch(C, δ 0 )i.
+                                                                                     4
+
+Lemma 19. Let K be an ALCOIFb knowledge base. Any unraveling J of a model I for
+K is collapsing-admissible.
+
+                                                                              452
+                 Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+                                       B     B     B     B     B
+                              {o} E f C E g D E f C E g D E f C E g
+                                                                         ···
+                                r
+                                         s
+                              A
+                                r            s
+
+                              A                  s
+                                r
+                                                     s
+                              A
+                                r                          s
+
+                              A
+                                r
+                              A
+                               r
+                                    ..
+                                     .
+
+
+
+
+Figure 8: Result of collapsing the unraveling from Fig. 3. The infinitely many new root
+          elements are displayed in the top line.
+
+
+
+Proof. We define a function ch directly from the function choose used in the unravel-
+ing as follows: for each C ∈ cl(K) and (ρ, w) ∈ ∆J with λ(ρ, w) = δ1 · . . . · δn and
+choose(C, Tail(ρ, w)) = {δ 0 }, we set ch(C, (ρ, w)) = (ρ, w0 ) for (ρ, w0 ) = λ− (δ1 · . . . · δn · δ 0 )
+if δ1 · . . . · δn · δ 0 is a sequence in S and (ρ, w0 ) = λ− (δ1 · . . . · δn−1 ) otherwise. This is
+well-defined since the function λ in unravelings is total and bijective and it is as required
+for admissibility since elements that start BCPs with identical path sketches are always
+generated from the same element in I. The first condition of collapsing-admissibility holds
+since in unravelings, we always add δ1 · . . . · δn · δ 0 to the set of sequences unless the pair
+hδn , δn−1 i is in the interpretation of some functional role. In that case, the function ch uses
+the predecessor instead of the successor, which is still admissible.
+
+Lemma 20. Let K be a consistent ALCOIFb knowledge base, J = (∆J , ·J ) a strict forest
+quasi-model for K with branching degree b that is collapsing-admissible. Then collapse(J )
+is a forest model for K with branching degree b.
+
+
+Proof. Let K0 = nomFree(K). Since J is a forest quasi-model of K by assumption, J |= K0 .
+    We first show that each collapsing Ji for J is a forest quasi-model for K, i.e., Ji |= K0 .
+We then show that each collapsing Ji+1 produced from an admissible collapsing Ji is again
+collapsing-admissible. Finally, we show that, for each o ∈ nom(K), there is exactly one
+node in Jω of the form (ρ, ε) such that (ρ, ε) ∈ NoJω , which implies by Proposition 11 that
+collapse(J ) is a forest model for K.
+    We start with the first claim: For the initial collapsing this is immediate since J is a
+forest quasi-model for K. In particular, J0 is locally K0 -consistent. Assume that Ji is a
+locally K0 -consistent collapsing and (ρi , wi ) is the focus in Ji . We show that Ji+1 is locally
+
+                                                     453
+                                         Rudolph & Glimm
+
+
+
+
+K0 -consistent. Since K0 is simplified by assumption, we only have to consider axioms of
+form (1).
+     If Ji+1 is obtained according to the first case of Definition 17, we only rename elements
+of the domain in order to create a new root node and local K0 -consistency is immediate.
+We assume, thus, that Ji+1  d is obtained  according to the second case of Definition 17.
+     Axioms of the form Ai v Bj and A ≡ {o} (rewritten into A ≡ No in K0 ) hold
+                                    F
+immediately due to condition 2.b of collapsings.
+     Let Ax be an axiom of the form A v ∀U.B and assume that (ρ, w) ∈ AJ . The only
+interesting elements are the predecessor (ρi , wi0 ) of the focus (ρi , wi ) and (ρ, ε). However,
+(ρi , wi ) ∼ (ρ, ε) and, since J is collapsing-admissible, (ρi , wi ) and (ρ, ε) satisfy the same
+atomic concepts with respect to con(K). Further, the interpretation of atomic concepts is
+not changed due to 2.b, which again implies local K0 -consistency for this kind of axioms.
+     Let Ax be an axiom of the form A v ∃U.B and assume that (ρ, w) ∈ AJi+1 . We concen-
+trate on the three interesting cases where the direct neighborhoods of elements change:
+  1. We start with the case where the focus (ρi , wi ) is the corresponding U -successor of
+     (ρ, w), i.e., ρi = ρ, wi = w·c for some c ∈ IN, h(ρ, w), (ρi , wi )i ∈ U Ji , and (ρi , wi ) ∈ B Ji .
+     Since (ρ, ε) and (ρi , wi ) are in the same equivalence class for ∼ by assumption, (ρ, ε)
+     starts a BCP with the same path sketch as (ρi , wi ) and both (ρ, ε) and (ρi , wi ) satisfy
+     the same atomic concepts with respect to con(K). Then condition 2.(c)ii. ensures that
+     (ρ, ε) is the required U -successor for (ρ, w) in Ji+1 .
+
+  2. Assume that (ρ, w) = (ρ, ε), h(ρ, ε), (ρ, c)i ∈ U Ji , (ρ, c) ∈ B Ji , (ρ, c) ∈       / ∆Ji+1 , and
+     (ρ, ε) ∈/ (∃U.B)     J i+1 . Due to 2.a, the focus (ρi , wi ) has a predecessor (ρi , wi0 ) such that
+     h(ρi , wi ), (ρi , wi )i ∈ f Ji for an inverse functional role f ∈ rol(K) and h(ρ, ε), (ρ, c)i ∈
+             0
+
+     (f − )Ji . Since f is inverse functional and Ji is, by assumption, locally K0 -consistent,
+     there is no successor (ρi , wi · ci ) of (ρi , wi ) such that h(ρi , wi ), (ρi , wi · ci )i ∈ (f − )Ji .
+     Similarly, there is no element (ρ0 , w0 ) such that h(ρ, ε), (ρ0 , w0 )i ∈ (f − )Ji . Then,
+     since Ji is collapsing-admissible, we have that (ρi , wi0 ) ∈ ch(∃U.B, (ρi , wi )), (ρ, c) ∈
+     ch(∃U.B, (ρ, ε)), and h(ρi , wi ), (ρi , wi0 )i ∼
+                                                     = h(ρ, ε), (ρ, c)i since (ρi , wi ) and (ρ, ε) start
+     descending BCPs with identical path sketches. In particular, h(ρi , wi ), (ρi , wi0 )i ∈ U Ji
+     and (ρi , wi0 ) ∈ B Ji . Then, by condition 2.(c)ii., h(ρ, ε), (ρi , wi0 )i ∈ U Ji+1 , by condi-
+     tion 2.b, (ρi , wi0 ) ∈ B Ji+1 , and, thus, (ρ, ε) ∈ (∃U.B)Ji+1 as required.
+
+  3. We assume that (ρi , wi ) has a predecessor (ρi , wi0 ) such that h(ρi , wi0 ), (ρi , wi )i ∈ f Ji
+     for an inverse functional role f in rol(K) and h(ρ, c), (ρ, ε)i ∈ f Ji , causing the deletion
+     of (ρ, c) and its descendants, one of which, say (ρ, v) is connected to some (ς, ε), such
+     that h(ς, ε), (ρ, v)i ∈ U Ji and (ρ, v) ∈ B Ji . Now, if there is no inverse functional role
+     g for which h(ς, ε), (ρ, v)i ∈ g Ji , then the strictness and collapsing-admissibility of Ji
+     ensure the existence of a c0 ∈ IN for which h(ς, ε), (ς, c)i ∈ U Ji and (ς, c) ∈ B Ji and,
+     consequently, also h(ς, ε), (ς, c)i ∈ U Ji+1 and (ς, c) ∈ B Ji+1 . If h(ς, ε), (ρ, v)i ∈ g Ji
+     for some inverse functional role g, then strictness of the initial collapsing implies that
+     (ρ, v) itself started a descending BCP and, due to the defined order, it must have
+     been a focus before and now be a root itself. This contradicts, however, the initial
+     assumption that (ρ, v) is a descendant of (ρ, ε) and we are done.
+In all cases, the elements in ∆Ji+1 have the required successors.
+
+                                                   454
+                  Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+    Let Ax be an axiom of the form func(f ) for f ∈ rol(K). We concentrate on relations
+between the predecessor (ρi , wi0 ) of the focus and (ρ, ε) since otherwise local K0 -consistency
+is immediate. A predecessor exists for the focus since we process elements in ascend-
+ing order starting with non-root nodes. Assume h(ρi , wi0 ), (ρi , wi )i ∈ f Ji , in which case
+h(ρi , wi0 ), (ρ, ε)i ∈ f Ji+1 due to 2.(c)ii. and assume (ρ, ε) has a successor (ρ, c) in Ji such
+that h(ρ, c), (ρ, ε)i ∈ f Ji . In this case, (ρ, c) ∈/ ∆Ji+1 according to 2.a and together with
+local K -consistency of Ji , this implies that (ρi , wi0 ) is the only element in ∆Ji+1 such that
+           0
+
+h(ρi , wi0 ), (ρ, ε)i ∈ f Ji+1 .
+    We now show that each Ji+1 produced from an admissible collapsing Ji is again ad-
+missible for collapsing. By assumption, the initial collapsing is admissible, so let Ji be an
+admissible collapsing and chi the required function. We distinguish two cases:
+
+   1. Let Ji+1 be produced according to the first case of collapsings. We define a function
+      chi+1 for Ji+1 as follows: For each C ∈ cl(K) and δ ∈ ∆Ji+1 , we set chi+1 (C, δ) = δ 0
+      for δ 0 = (ρi wi , w10 ) if chi (C, δ) = (ρi , wi wi0 ) for (ρi , wi ) the focus in Ji and δ 0 = chi (C, δ)
+      otherwise. Since we just change the names of the elements and leave the interpretation
+      of concepts and roles as before, the function is as required for admissibility.
+
+   2. Let Ji+1 be produced according to the second case of collapsings. We define a function
+      chi+1 for Ji+1 as follows: For each C ∈ cl(K),
+
+       (a) for each δ ∈ ∆Ji+1 ∈   / {(ρi , wi0 ), (ρ, ε)} with (ρi , wi0 ) the predecessor of the focus
+           (ρi , wi ), we set chi+1 (C, δ) = δ 0 for δ 0 such that δ 0 ∈ ∆Ji+1 and δ 0 = chi (C, δ);
+           this is well-defined since only successors of (ρ, ε) and (ρi , wi0 ) are deleted in Ji+1 .
+       (b) for δ = (ρ, ε) and (ρi , wi0 ) the predecessor of the focus, chi+1 (C, δ) = δ 0 for
+           δ 0 = (ρi , wi0 ) if chi (C, δ) = (ρ, c) and (ρ, c) ∈
+                                                               / ∆Ji+1 and δ 0 = chi (C, δ) otherwise;
+        (c) for δ = (ρi , wi0 ) the predecessor of the focus, we set chi+1 (C, δ) = δ 0 for δ 0 = (ρ, ε)
+            if chi (C, δ) = (ρi , wi ) and δ 0 = chi (C, δ) otherwise.
+
+      For elements apart from the predecessor of the focus (ρi , wi0 ) and the root (ρ, ε)
+      that replaces (ρi , wi ), the interpretation of concepts and roles remains as before
+      by properties 2.b and 2.c and the function is as required. For (ρi , wi0 ), we change
+      the function so that in cases where (ρi , wi ) was returned, (ρ, ε) is returned. Since
+      (ρi , wi ) ∼ (ρ, ε), this is admissible. Similarly, if a successor (ρ, c) of (ρ, ε) is not con-
+      tained in ∆Ji+1 , then (ρi , wi0 ) is used instead. This is admissible since, in this case,
+      h(ρi , wi ), (ρi , wi0 )i ∼
+                                = h(ρ, ε), (ρ, c)i as argued above for axioms of the form A v ∃U.B.
+
+    We now show that, for each o ∈ nom(K), there is exactly one node in Jω of the form
+(ρ, ε) such that (ρ, ε) ∈ NoJω . Nominal placeholders are descending BCPs by definition and,
+when a nominal placeholder becomes the focus, it is merged into a root that is in the same
+equivalence class of ∼ and which is by definition of lower order. Such a root exists because
+of property FQ2 of forest quasi-interpretations.
+    The interpretation Jω is obtained by building the non-disjoint union of the “safe” parts
+for all collapsings, which contain only elements which will neither be renamed nor deleted.
+Thus, Jω does not contain nominal placeholders as required. Considering any one element
+(ρ, w) ∈ ∆Jω , we find that there is an i ∈ IN such that all successors and all root neighbors
+
+                                                      455
+                                     Rudolph & Glimm
+
+
+
+
+of (ρ, w) in Ji are the same as in Jω . As we have shown, Ji is locally K0 -consistent and
+therefore (ρ, w) has a consistent neighborhood. Hence Jω is a forest quasi-model of K.
+    Now, when interpreting each o ∈ nom(K) as {(ρ, ε) ∈ ∆Jω | (ρ, ε) ∈ NoJω } in collapse(J ),
+we obtain a forest model for K, where the set of roots is {(ρ, ε) | (ρ, ε) ∈ ∆Jω }.
+    The bounded branching degree is an immediate consequence of the construction since
+we never add successors during the construction and the starting forest quasi-interpretation
+J has a bounded branching degree by assumption.
+
+    Since unravelings of a model I for K are strict forest quasi-models of K with branch-
+ing degree bounded in |cl(K)| by Lemma 13, and unravelings are collapsing-admissible by
+Lemma 19, it is an immediate consequence of Lemma 20 that the collapsing of an unraveling
+yields a forest model branching degree bounded in |cl(K)|.
+Corollary 21. Let K be an ALCOIFb knowledge base and I an interpretation such that
+I |= K, then the purified interpretation collapse(↓(I)) is a forest model for K with branching
+degree b bounded in |cl(K)|.
+    Since the number of roots might still be infinite in purified models, we could, up to
+now, have obtained the same result by unraveling an arbitrary model, where we take all
+elements on BCPs as roots instead of taking just the nominals and creating new roots
+in the collapsing process. In the next sections, however, we show how we can transform
+an unraveling of a counter-model for the query such that it remains collapsing-admissible
+and such that it can in the end be collapsed into a forest model with a finite number of
+roots that is still a counter model for the query. For this transformation it is much more
+convenient to work with real (strict) trees and forests, which is why we use (strict) forest
+quasi-interpretations.
+    In the next sections, we also use the following alternative characterization of the result
+of a collapsing, which comes in handy for the subsequent proofs.
+    We start by defining the so-called pruning of a forest quasi-interpretation, which is,
+roughly speaking, the structure obtained by just deleting all the nodes, which will be erased
+in the course of the collapsing process anyway.
+Definition 22 (Pruning). Let J be a strict forest quasi-model for an ALCOIFb knowledge
+base K that is collapsing-admissible and let J0 , J1 , . . . , Jω be as defined in Definition 17.
+The pruning of J (written prune(J )) is obtained by restricting J to a set Γ ⊆ ∆J which
+is defined as follows: Γ contains all hρw1 , w2 w3 i ∈ ∆J for which hρw1 w2 , w3 i ∈ ∆Jω or
+hρw1 w2 , w3 i is the focus in some Ji .                                                       4
+    We again use the equivalence relation ∼ for elements that start descending BCPs with
+identical path sketches from Definition 17 and construct an interpretation from a pruning
+by identifying equivalent nodes, also known as factorization.
+Definition 23 (Factorization). Let K be an ALCOIFb knowledge base, J a strict forest
+quasi-interpretation for K that is collapsing-admissible, and L = prune(J ).
+   The factorization of L by ∼ (denoted by L/∼ ) is now defined as the forest quasi-inter-
+pretation M = (∆M , ·M ) with
+   • ∆M = {[δ]∼ | δ ∈ ∆L };
+
+                                              456
+                Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+   • for each A ∈ con(K), AM = {[δ]∼ | δ ∈ AL },
+
+   • for each r ∈ rol(K), rM = {h[δ]∼ , [δ 0 ]∼ i | hδ, δ 0 i ∈ rL }, and
+
+   • for each o ∈ nom(K), oM = [δ]∼ for δ ∈ NoL .
+                                                                                               4
+
+    Note that the interpretation of nominals in M is well defined as, by definition, all
+No -instances are in the same ∼-equivalence class.
+    Now we are ready to establish the wanted correspondence: the collapsing of a forest
+quasi-interpretation can essentially be obtained by first pruning and then factorizing it.
+
+Lemma 24. Let J be a strict forest quasi-model for an ALCOIFb knowledge base K and
+let J be collapsing-admissible. Then collapse(J ) ∼
+                                                  = prune(J )/∼ . Moreover the new roots in
+collapse(J ) correspond to those ∼-equivalence classes that contain J -elements which start
+descending BCPs in J .
+
+
+Proof. Considering the first claim, note that by definition of the collapsing procedure, for
+every (ρw, w0 ) ∈ ∆collapse(J ) there is exactly one pair w1 , w2 with w = w1 w2 such that
+(ρw1 , w2 w0 ) ∈ ∆prune(J ) . Moreover, case 1 of the construction assures that ∆collapse(J ) con-
+tains one element from every ∼-equivalence class from ∆prune(J )/∼ . Hence the mapping
+ϕ : ∆collapse(J ) → ∆prune(J )/∼ with ϕ(ρw, w0 ) = [(ρw1 , w2 w0 )]∼ is a bijection and, as a con-
+sequence of the construction, an isomorphism.
+    The second claim is also a direct consequence of the construction of the collapsing.
+
+5. Quasi-Entailment in Quasi-Models
+In this section, we will provide a characterization for forest quasi-models that mirrors query
+entailment for the corresponding “proper models”. In our further argumentation, we will
+talk about the initial part of a tree, i.e., the part that is left if branches are cut down to a
+fixed length. For a forest interpretation I = (∆I , ·I ) and an n ∈ IN, we therefore denote
+with cutn (I) the interpretation obtained from I by restricting ∆I to those pairs (ρ, w) for
+which |w| ≤ n.
+    The following lemma ensures that in the case of purified models, we find only finitely
+many unraveling trees of depth n that “look different”.
+
+Lemma 25. Let K be a consistent ALCOIFb knowledge base. Then there is a purified
+interpretation I such that I |= K and, for every n ∈ IN, there are only finitely many
+non-isomorphic trees of depth n.
+
+
+Proof. Since K has a model by assumption, Corollary 21 guarantees that there is some
+purified model I of K. In particular, I is a forest model with the branching degree bounded
+in the size of cl(K).
+    We now compute the maximal number of non-isomorphic trees of depth n over the
+domain of I. We denote this bound by Tn . The argumentation is close to the one used by
+Levy and Rousset (1998) for their definition of tree blocking.
+
+                                                  457
+                                     Rudolph & Glimm
+
+
+
+
+    Let c = |cl(K)| and r = |rol(K)|. We first consider trees of depth n = 0. We have 2c
+choices for the different subsets of concepts in cl(K). For n > 0, each concept at level 0
+can trigger the generation of a new successor and we can have any number of successors
+between 0 and c. Assume, for now, that we have only a single role name r ∈ rol(K) and
+that each node in a level smaller than n is the root of a tree with depth n − 1 with exactly
+c successors for each node. In this case, there are O(2c Tn−1
+                                                            c ) non-isomorphic sub-trees of
+
+depth n. Taking into account that a node does not necessarily have c successors, but we can
+choose any number between 0 and c, we get a bound of O(2c cTn−1  c ) for the number of non-
+
+isomorphic sub-trees of depth n. Finally, since we have not only one but a choice of r roles,
+we get a bound of O(2c (cTn−1
+                            c )r ). We now abbreviate 2c cr with x and rc with a and rewrite
+                                                                                 n−1      n
+the obtained bound as Tn = O(x(Tn−1 )a ). Unfolding yields Tn = O((x1+a+...+a )(T0 )a )
+                             n      n            n
+which is bounded by O((xa )(2c )a ) = O((x2c )a ). By expanding the abbreviated symbols,
+                                          n
+we obtain a bound for Tn of O((2c cr )(rc) ).
+
+   For our further considerations, we introduce the notion of “anchored n-components”.
+These are meant to be certain substructures of forest quasi-interpretations. In the first
+place, these substructures contain a connected set of nodes W 0 which are situated “closely
+together” in the original structure, this closeness being witnessed by the fact that all ele-
+ments of W 0 are descendants of some node δ and have a distance ≤ n to δ. Moreover for
+each of those nodes δ 0 from W 0 , the anchored n-component may (but does not need to)
+contain a finite number of descending BCPs starting from δ 0 .
+
+Definition 26 (Anchored Components). Let J be a forest quasi-interpretation and δ ∈ ∆J .
+An interpretation C will be called anchored n-component of J with witness δ if C can be
+created by restricting J to a set W ⊆ ∆J obtained as follows:
+
+   • Let Jδ be the subtree of J that is started by δ and let Jδ,n := cutn (Jδ ). Select a
+     subset W 0 ⊆ ∆Jδ,n that is closed under predecessors.
+
+   • For every δ 0 ∈ W 0 , let P be a finite set (possibly empty) of descending BCPs p starting
+     from δ 0 and let Wδ0 contain all nodes from all p ∈ P .
+
+   • Set W = W 0 ∪ δ0 ∈W 0 Wδ0 .
+                     S
+                                                                                             4
+
+    Now think of a forest quasi-model J and some query q. The following definition and
+lemma employ the notion of anchored n-components to come up with the notion of quen-
+tailment (short for quasi-entailment), a criterion that reflects query-entailment in the world
+of forest quasi-models.
+
+Definition 27 (Quentailment). Let q be a conjunctive query with ](q) = n and J some
+forest quasi-model of an ALCOIFb knowledge base K. We say that J quentails q (written
+J |≈ q) if, for V = var(q), J contains connected anchored n-components C1 , . . . , C` and there
+                                      C
+are according functions µi : V → 2∆ i such that the following hold:
+
+ Q1 For every x ∈ V , there is at least one Ci , such that µi (x) 6= ∅
+
+ Q2 For all A(x) ∈ q, we have µi (x) ⊆ AJ for all i.
+
+                                              458
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+ Q3 For every r(x, y) ∈ q there is a Ci such that there are δ1 ∈ µi (x) and δ2 ∈ µi (y) such
+    that hδ1 , δ2 i ∈ rJ .
+
+ Q4 If, for some x ∈ V , there are connected anchored n-components Ci and Cj with δ ∈
+    µi (x) and δ 0 ∈ µj (x), then there is
+
+        • a sequence Cn1 , . . . , Cnk with n1 = i and nk = j and
+        • a sequence δ1 , . . . , δk with δ1 = δ and δk = δ 0 as well as δm ∈ µnm (x) for all
+          1 ≤ m < k,
+
+      such that, for every m with 1 ≤ m < k, we have that
+
+        • Cnm contains a descending BCP p1 started by δm ,
+        • Cnm+1 contains a descending BCP p2 started by δm+1 ,
+        • p1 and p2 have the same path sketch.
+
+    For a union of conjunctive queries u = q1 ∨ . . . ∨ qh , we say that J quentails u (written
+J |≈ u) if J |≈ q for a q ∈ {q1 , . . . , qh }.                                              4
+    Note that an anchored component may contain none, one or several instantiations of a
+variable x ∈ V . Intuitively, the definition ensures, that we find matches of query parts which
+when fitted together by identifying BCP-equal elements yield a complete query match.
+Lemma 28. Let u = q1 ∨ . . . ∨ qh be a union of conjunctive queries and K an ALCOIFb
+knowledge base. Then
+  1. For any model I of K, ↓(I) |≈ u implies I |= u.
+
+  2. For any strict forest quasi-model J of K that is collapsing-admissible, collapse(J ) |= u
+     implies J |≈ u.
+
+Proof.     1. Let q be a disjunct of u such that ↓ (I) |≈ q, V = var(q), and C1 , . . . , C` the
+      connected anchored n-components witnessing the quentailment. We use the function
+      Tail from Definition 12 and exploit its properties as a homomorphism. Note that Tail
+      maps nodes in ↓(I) to the same individual in I, if they start descending BCPs with
+      the same path sketches. Due to condition Q4 from Definition 27, this implies, for
+      every x ∈ V and every δ1 ∈ µi (x) and δ2 ∈ µj (x), that Tail(δ1 ) = Tail(δ2 ). Hence, the
+      total function µ : V → ∆I defined by letting µ(x) = γ whenever Tail(δ) = γ for some
+      δ ∈ µi (x) and some i with 1 ≤ i ≤ `, is well-defined. We now show that µ is a query
+      match for q in I by examining the atoms of q:
+
+        • For every unary atom A(x), the definition of quentailment ensures that there
+          exist a Ci and a δ ∈ ∆Ci with δ ∈ µi (x) and δ ∈ AJ . Then, by definition of Tail,
+          it follows that µ(x) = Tail(δ) ∈ AI .
+        • Likewise, for every binary atom r(x, y), the definition of quentailment ensures
+          that there exists a Ci and δ1 , δ2 ∈ ∆Ci such that δ1 ∈ µi (x) and δ2 ∈ µi (y) as
+          well as hδ1 , δ2 i ∈ rJ . Again, by definition of Tail, it follows that hµ(x), µ(y)i =
+          hTail(δ1 ), Tail(δ2 )i ∈ rI .
+
+                                              459
+                                 Rudolph & Glimm
+
+
+
+
+2. To prove this, we employ the alternative characterization of collapsings as established
+                                0   0                                    0
+   in Lemma 24. Let I 0 = (∆I , ·I ) = prune(J )/∼ and let µ : V → ∆I be a match for
+   q in I 0 . We use µ to construct the anchored n-components and functions needed to
+   show that J quentails q.
+  Let V ∗ ⊆ V contain those variables that µ maps to a singleton ∼-equivalence class.
+  We now define V = {V1 , . . . , Vm } as the finest partitioning on V ∗ such that, for any
+  x, y ∈ V ∗ , x and y are in the same partition whenever r(x, y) ∈ q for some r ∈ rol(K).
+  Next, we assign to every partition V 0 ∈ V the set QV 0 of query atoms containing
+  variables from V 0 . We now construct for every V 0 an anchored n-component CV 0 and
+  a function µV 0 (initialized as yielding ∅ for all inputs) as follows:
+
+     • For every x ∈ V 0 , let CV 0 contain the J -element δ for which µ(x) = {δ}. Note
+               0
+       that ∆I consists of the ∼-equivalence classes over elements from J , i.e., {δ} is
+                                                  0
+       one of the ∼-equivalence classes from ∆I . Moreover, set µV 0 (x) = µV 0 (x) ∪ {δ}.
+     • For every r(x, y) ∈ QV 0 with y 6∈ V 0 and µ(x) = {δ}, let CV 0 contain an addi-
+       tional element δ 0 ∈ µ(y) for which hδ, δ 0 i ∈ rJ (existence assured by definition
+       of collapsing via factorization) and all elements from some descending BCP in
+       prune(J ) starting from δ (existence assured since [δ 0 ]∼ is not a singleton class).
+       Moreover set µV 0 (y) = µV 0 (y) ∪ {δ 0 }.
+     • Likewise, for every r(x, y) ∈ QV 0 with x 6∈ V 0 and µ(y) = {δ}, let CV 0 contain an
+       additional element δ 0 ∈ µ(x) for which hδ 0 , δi ∈ rJ (existence assured by defini-
+       tion of collapsing via factorization) and all elements from the shortest descending
+       BCP in prune(J ) starting from δ 0 (existence assured since [δ 0 ]∼ is not a singleton
+       class). Moreover set µV 0 (x) = µV 0 (x) ∪ {δ 0 }.
+
+  We furthermore construct, for each query atom a that contains no variables from V ∗ ,
+  its own anchored n-component Ca and function µa (again initialized to always return
+  ∅) as follows:
+
+     • If a = r(x, y), let Ca contain two nodes δ1 and δ2 for which δ1 ∈ µ(x) and
+       δ2 ∈ µ(y) and hδ1 , δ2 i ∈ rJ (existence assured by definition via factorization)
+       as well as some prune(J )-descending BCP starting from δ1 and the shortest
+       prune(J )-descending BCP starting from δ2 .
+     • If a = A(x), let Ca contain a node δ for which δ ∈ µ(x) and δ ∈ AJ (existence
+       assured by definition via factorization) as well as the shortest prune(J )-descen-
+       ding BCP starting from δ.
+
+  Let C contain all CV 0 and Ca defined so far. Note that C already satisfies the conditions
+  Q1-Q3 of Definition 27. We now have to add some more anchored n-components in
+  order to satisfy condition Q4 as well. Let C0 be initially empty. For any x ∈ V where
+  µ(x) is a non-singleton equivalence class and any two Cα , Cβ ∈ C with δ ∈ µα (x) and
+  δ 0 ∈ µβ (x), we have that, since δ and δ 0 are in the same ∼-equivalence class µ(x),
+  there is a sequence δ1 , . . . , δk of J -nodes with δ = δ1 and δ 0 = δk and every δi and
+  δi+1 start a descending BCP having the same path sketch. We enhance C0 by one
+  anchored component per δi which contains just δi and the corresponding descending
+
+                                          460
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+                                     µ(x1 )              µ(x2 )             µ(x5 )
+                             r                       r                 r                   r            r                 r
+                                                                                                                                ···
+                                         A               A                   A                 A                 A
+                  {o}                    s               s                   s                 s                 s
+                   E                         BC                   BD             BC                BD                    BC
+                                             E                     E             E                  E                    E
+                            f                                                                                                   ···
+                                                     g                                     g            f                 g
+                                                         µ(x3 ) f           µ(x4 )
+                                                                                                        No E
+
+                                                                                                   r
+                                                                             C1                A
+                                                                                   µ1 (x1 )
+                                                                                     r
+                                                                                  A           s             BC
+                                                         C2                  r
+                                                                                     µ1 (x2 )                 E
+
+                                                                       A              s      BD                      f
+                                                                            µ2 (x5 )µ1 (x3 )   E                              No E
+                                                                  r                                                           ..
+                                                                                                   g                             .
+                                                         A                   s      BC                      BC
+                                                                           µ2 (x4 )   E                       E
+                                                 r
+                                             A                    s    BD              f      BD                     f
+                                                                         E           µ2 (x3 )   E                             No E
+                                     r                                                                                        ..
+                                                 s                           g                     g                             .
+                                 A                       BC                       BC                        BC
+                                                           E                        E                         E
+                        r
+                                     s       BD                   f    BD                  f   BD                    f
+                    .
+
+
+
+
+                                               E                         E                       E                            No E
+                   ..
+
+
+
+
+                                                                                                                              ..
+                                                 g                          g                      g                             .
+                                                         ..                       ..                        ..
+                                                              .                        .                         .
+
+
+            Figure 9: Correspondence between entailment and quentailment.
+
+
+     BCPs. Then, by construction, the elements of C∪C0 constitute the necessary anchored
+     n-components to justify that J quentails q and, thus, J quentails u.
+
+
+   As an example for the correspondence between (query) entailment and quentailment,
+consider the conjunctive query
+
+                            q = {r(x1 , x2 ), s(x2 , x3 ), f (x4 , x3 ), s(x5 , x4 )}.
+
+A match µ for this query into our example model from Figure 2 is displayed in the upper
+part of Figure 9, which witnesses I |= q. In the lower part, the anchored components C1
+and C2 and according functions µ1 and µ2 establish ↓(I) |≈ q.
+
+6. Limits and Forest Transformations
+Before introducing the following constructions in detail, we will try to provide some high-
+level explanation to convey the intuition behind the subsequent steps. As mentioned before,
+one of the major obstacles for a decision procedure for conjunctive query entailment is that
+
+                                                                           461
+                                       Rudolph & Glimm
+
+
+
+
+for DLs including inverses, nominals, and cardinality restrictions (or alternatively function-
+ality), there are potentially infinitely many so-called “new nominals”: domain elements
+which can be identified by being linked to a “proper nominal” via a BCP.
+    However, we will show that for every model of a knowledge base that does not satisfy a
+conjunctive query (i.e., for every countermodel), there is a “nice” countermodel with only
+finitely many new nominals (in the subsequent section, we will then argue that this ensures
+the existence of a procedure that terminates when the query is not entailed by the knowledge
+base in question). We provide a construction which transforms an arbitrary countermodel
+into a “nice” one by first unraveling it into a quasi forest model, then substituting new
+nominals by uncritical elements and finally collapsing the result back into a proper model.
+For doing this, we have to find appropriate substitutes for most of the new nominals. Those
+substitutes have to fit in their environment without themselves introducing new nominals.
+    Due to the global cardinality constraints that BCPs impose on their elements, the ex-
+istence of infinitely many new nominals implies that their “witnessing” BCPs must get
+longer and longer, such that by just looking at some finite-distance neighborhood, most
+of those new nominals just look like non-nominal domain elements. This state of affairs
+can be exploited by essentially constructing new domain elements as “environment-limits”.
+In a way, those new domain elements are characterized by the property that they can be
+approximated with arbitrary precision by already present domain elements – possibly with-
+out themselves being present in the domain.3 We will see in the following that those new
+domain elements can serve as the substitutes we are looking for.
+
+Definition 29 (Limits of a Model). Let I = (∆I , ·I ) with δ ∈ ∆I be some model of an
+ALCOIFb knowledge base K. A tree interpretation J is said to be generated by δ (written:
+J C δ), if it is isomorphic to the restriction of ↓(I, δ) to elements of {(δ, cw) | (δ, cw) ∈
+∆↓(I,δ) , c 6∈ H} for some H ⊆ IN.
+    The set of limits of I (written lim I) is the set of all tree interpretations J such that
+for every k ∈ IN, there are infinitely many δ ∈ ∆I such that cutk (L) ∼   = cutk (J ) for some
+L C δ.                                                                                      4
+
+   Figure 10 displays one limit element of our example model.
+   The following lemma gives some useful properties of limits. Besides some rather ob-
+vious compatibility considerations with respect to knowledge base satisfaction, claim 3 of
+Lemma 30 provides us with the as pleasant as useful insight that the root node of a limit
+can never be part of a BCP at all.
+
+Lemma 30. Let K be an ALCOIFb knowledge base, K0 = nomFree(K), I a purified model
+of K, and n some fixed natural number. Then the following hold:
+
+  1. Let L0 be a tree interpretation such that there are infinitely many δ ∈ ∆I with L0 ∼   =
+     cutn (L) for some LCδ. Then, there is at least one limit J ∈ lim I such that cutn (J ) ∼
+                                                                                            =
+     L0 .
+
+  2. Every J ∈ lim I is locally K0 -consistent apart from its root (ρ, ε).
+3. As an analogy, consider the fact that any real number can be approximated by a sequence of rational
+   numbers, even if it is itself irrational.
+
+
+                                                462
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+                                                                A
+                                                            r
+                                                        A            s    BC
+                                                                            E
+                                                    r
+                                               A            s   BD              BD
+                                                                           f
+                                                                  E               E
+                                           r
+                                       A            s   BC           g    BC         g   BC
+                                                          E                 E              E
+                                   r
+                               A           s   BD               BD              BD             BD
+                                                            f              f              f
+                           r                     E                E               E              E
+                                   s   BC           g   BC           g    BC         g   BC         g   BC
+                       .
+                      ..
+                                         E                E                 E              E              E
+                                       f                f                 f              f              f
+                                               ..               ..              ..             ..             ..
+                                                    .                .               .              .              .
+
+
+                      Figure 10: One limit for the model from Fig. 2
+
+  3. For every J ∈ lim I it holds that its root (ρ, ε) has no BCP to any (ρ, w) ∈ ∆J .
+  4. If J ∈ lim I contains a node δ starting two backwards counting paths with path sketches
+     s1 and s2 , then for any element δ ∗ in any unraveling holds: if the direct neighborhood
+     of δ ∗ is isomorphic to that of δ and δ ∗ starts a descending BCP with path sketch s1
+     then it also starts a descending BCP with path sketch s2 .
+  5. Every J ∈ lim I is collapsing-admissible.
+
+Proof.     1. Let b be the branching degree of I, let Dn be the (by assumption infinite) set
+      of all δ ∈ ∆I such that L0 ∼= cutn (L) for some L C δ, and let Jn contain all those L.
+      Starting with k = n, we now iteratively increase k and construct sets Jk and Dk and
+      tree interpretations Lk . On our way, we inductively prove some properties.
+      By induction hypothesis we know that Dk is infinite and there is some Lk with Lk ∼  =
+     cutk (M) for all M ∈ Jk . By Lemma 25, there are only finitely many non-isomorphic
+     tree interpretations of depth k + 1 with branching degree b, and we can partition
+     Jk into finitely many sets Jk,1 , . . . , Jk,m such that every two M, M0 from any Jk,i
+     satisfy cutk+1 (M) ∼= cutk+1 (M0 ). Likewise, we can define classes Dk,1 , . . . , Dk,m with
+     Dk = Dk,1 ∪ . . . ∪ Dk,m such that δ ∈ Dk,i if there is an L C δ with L ∈ Jk,i . Now,
+     as Dk is infinite, one of the Dk,i must be infinite as well and we can set Dk+1 = Dk,i
+     and Jk+1 = Jk,i . Hence, we know that Dk+1 is infinite and there is some Lk+1 with
+     Lk+1 ∼= cutk+1 (M) for all M ∈ Jk+1 .
+     Thus, we have established an infinite sequence Ln , Ln+1 , . . . with Li ∼
+                                                                              = cuti (Lj ) for all
+     j > i. Without loss of generality, we can assume that isomorphic nodes are named
+     identically, i.e., we even have Li = cuti (Lj ) for all j > i. Now we can define J as the
+     (non-disjoint) union of all Li . This way we have established the structure J for which
+     cutk (J ) = Lk and we know that for every k there are infinitely many δ (namely all
+     elements from Dk ) such that cutk (L) ∼ = Lk for some L C δ. Hence this J is the limit
+     element with the desired properties.
+  2. Let (ρ, w) with w 6= ε be a node in J . Now choose a δ ∈ ∆I such that cut|w|+1 (L) ∼=
+     cut|w|+1 (J ) for some L C δ (by definition, there are even infinitely many such δs to
+
+                                                                    463
+                                      Rudolph & Glimm
+
+
+
+
+     choose from). Then L contains a node δ ∗ whose direct neighborhood is isomorphic to
+     that of (ρ, w). However, as L is contained in ↓(I, δ) and I |= K by assumption, it is
+     locally K0 -consistent and hence δ ∗ is. Therefore (ρ, w) is locally K0 -consistent in J .
+
+  3. Assume the contrary, i.e., that some J ∈ lim I has a BCP from the root (ρ, ε) to some
+     (ρ, w) ∈ ∆J with (ρ, w) ∈ NoJ for some o ∈ nom(K). Since we have only functionality
+     and by definition of BCPs, a BCP uniquely identifies one domain individual. By
+     definition of lim I, however, there are infinitely many δ ∈ ∆I satisfying cut|w| (L) ∼
+                                                                                          =
+     cut|w| (J ) for some J C δ and we have an infinite number of individuals with the same
+     counting path to oI . This is a contradiction.
+
+  4. Choose k to be the maximum length of the two BCPs. By definition of the limit,
+     I contains an element γ such that cut|w|+k (L) ∼     = cut|w|+k (J ) for some L C γ. Now,
+     let δ 0 ∈ ∆L be the element that (with respect to this isomorphism) corresponds to
+     δ ∈ ∆J . Then, δ 0 is the origin of two descending BCPs with path sketches s1 and
+     s2 . Let Tail(δ 0 ) = γ 0 . Since path sketches of descending BCPs uniquely identify one
+     domain individual, every node δ ∗ in any unraveling that starts a descending BCP
+     with path sketch s1 must have been caused by γ 0 as well. Furthermore (as their
+     direct neighborhoods are isomorphic and by the specific design of the choose function
+     from Definition 12 which renders all successors non-isomorphic), all successors of δ ∗
+     uniquely correspond to neighbors of γ 0 and in turn to successors of δ 0 .
+     This in turn implies that, for every successor of δ ∗ , one finds a successor of δ 0 with
+     isomorphic direct neighbourhood. Yet, this synchronicity argument can be inductively
+     applied and thereby iterated down the BCP. Thus, we obtain that δ ∗ also starts a
+     descending BCP with path sketch s2 .
+
+  5. We define the function ch : (cl(K) × ∆J ) → ∆J essentially like in the proof of
+     Lemma 19, namely by referring to the function choose. For a given element δ ∈ ∆J
+     that starts a BCP of length ` in J , choose a δ 0 ∈ ∆I such that cut|δ|+` (L) ∼
+                                                                                   = cut|δ|+` (J )
+     for some L C δ 0 . As L is contained in ↓(I, δ 0 ), we can now proceed and define ch(C, δ)
+     as demonstrated in the proof of Lemma 19.
+
+
+    Having defined limit elements as convenient building blocks for restructuring forest
+quasi-interpretations, the following definition provides the first hints on where inside such
+a structure one existing node (and all its successors) can safely be exchanged by a limit
+element.
+
+Definition 31 (n-Secure Replacement). Let K be an ALCOIFb knowledge base, I a model
+for K, J some forest quasi-model for K with δ ∈ ∆J . A strict tree quasi-interpretation
+J 0 ∈ lim I is called an n-secure replacement for δ if
+
+   • cutn (↓(J , δ)) is isomorphic to cutn (J 0 ),
+
+   • for every anchored n-component of J 0 with witness δ 0 , there is an isomorphic anchored
+     n-component of J with witness δ.
+
+                                                464
+                         Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+                                                                                                                                                                           No E
+                                                                                                                                                                       r
+                                                                                                                                                                   A
+                                                                                                                                                               r
+                                                                                                                                                          A            s    BC
+                                                                                                                                              δ                               E
+                                                                                                                                                      r
+                                                          A                                                                                       A                BD
+
+
+
+                                                                                        ∼
+                                                                                                                                                               s                 f
+                                                                                                                                                                     E               No E
+                                                      r                                                                                   r
+                                                  A                BC                                                                A                    BC                BC       ..
+
+
+
+                                                                                        =
+                                                               s                                                                                      s                g                .
+                                                                     E                                                                                      E                 E
+                                              r                                                                                  r
+                                         A            s   BD             BD                                                  A            s       BD               BD
+                                                                    f                                                                                          f                 f
+                                                            E              E                                                                        E                E               No E
+                                     r                                                                                   r
+                                 A                BC               BC             BC                                 A               BC                   BC                BC       ..
+                                              s                g              g                                                  s                    g                g                .
+                                                    E                E              E                            r                     E                    E                 E
+                             r
+                         A           s   BD               BD             BD             BD                               s   BD                   BD               BD
+                                                      f             f              f                                                      f                    f                 f
+
+
+
+
+                                                                                                             .
+                     r                     E                E              E              E                                     E                    E                E              No E
+
+
+
+
+                                                                                                        ..
+                                 BC               BC               BC             BC              BC                          g                    g                g                ..
+                             s                g                g              g              g                                                                                          .
+                .
+
+
+
+
+                                   E                E                E              E               E                                ..                   ..                ..
+                ..
+
+
+
+
+            /                                                                                                                             .                    .                 .
+                                 f                f                f              f                f
+                                         ..               ..             ..             ..              ..
+                                              .                .              .              .               .
+
+
+
+  Figure 11: Forest quasi-model (right) and according 3-secure replacement for δ (left).
+
+
+If a δ ∈ ∆J has an n-secure replacement in lim I, we call δ n-replaceable w.r.t. I, otherwise
+we call δ n-irreplaceable w.r.t. I.                                                        4
+
+   Figure 11 displays a 3-secure replacement in the considered unraveling of our example
+model.
+   After having defined which elements of a forest quasi-model are eligible for being replaced
+by a limit element, we have to make sure that not too many elements (actually defined in
+terms of the original model) are exempt from being replaced.
+
+Lemma 32. Every purified model I of an ALCOIFb knowledge base K contains only
+finitely many distinct elements that start a BCP and are the cause for n-irreplaceable nodes
+in the unraveling of I.
+
+
+Proof. Assume the converse: let a purified model I of K contain an infinite set D of elements
+giving rise to n-irreplaceable nodes in ↓(I). Then there must be an L0 such that there is an
+infinite set D0 ⊆ D such that every d0 ∈ D0 generates an L for which cutn (L) ∼  = L (since by
+Lemma 25, there are only finitely many non-isomorphic choices for L0 ). This set D0 can be
+used to guide the construction of a specific limit element J ∈ lim I according to Lemma
+30.1. Now, for an element (ρ, w) from J starting a BCP, let l(ρ,w) ∈ IN be the length of
+the shortest such BCP starting from (ρ, w). Then, let k be the maximum over all l(ρ,w) of
+individuals (ρ, w) from J that start a BCP and for which |w| ≤ n. By construction, D0
+contains one element d00 generating an L with cutk (L) ∼
+                                                       = cutk (J ) (actually infinitely many).
+By the choice of k and Lemma 30.4, we can conclude that J is an n-secure replacement for
+the irreplaceable ↓(I)-node caused by d00 which contradicts the fact that d00 ∈ D.
+
+   Now we know, which elements of a forest quasi-model can be replaced by a suitable limit
+element. The following definition exactly tells us, how such a replacement is carried out:
+the respective element and all its successors are deleted and the limit element (together
+with its successors) is inserted at the same position.
+
+                                                                                                 465
+                                                 Rudolph & Glimm
+
+
+
+
+                                                                                                No E
+                                                                                            r
+                                                                                       A
+                                                                                   r
+                                                                               A            s    BC
+                                                                                                   E
+                                                                           r
+                                                                      A            s   BD
+                                                                                                  f
+                                                                                         E                      No E
+                                                              r
+                                                          A                    BC                BC             ..
+                                                                           s                g                      .
+                                                                                 E                 E
+                                                      r
+                                                 A            s       BD               BD
+                                                                                   f              f
+                                                                        E                E                      No E
+                                             r
+                                         A                BC                   BC                BC             ..
+                                                      s                    g                g                      .
+                                                            E                    E                 E
+                                     r
+                                 A           s   BD                   BD               BD              BD
+                                                              f                    f              f
+                             r                     E                    E                E               E
+                                     s   BC           g   BC               g   BC           g    BC         g     BC
+                         .
+
+
+
+
+                                           E                E                    E                 E                E
+                        ..
+
+
+
+
+                                         f                f                    f                  f                f
+                                                 ..                   ..               ..              ..               ..
+                                                      .                    .                .               .                .
+
+
+
+Figure 12: Result of replacing the element δ by the 3-secure replacement depicted in Fig-
+           ure 11. The inserted component is highlighted.
+
+
+
+Definition 33 (Replacement Step). Let K be an ALCOIFb knowledge base, I a model
+of K, and J a forest quasi-model of K, i.e., J |= K0 = nomFree(K). Let (ρ, w) ∈ ∆J be
+n-replaceable w.r.t. I and J 0 an according n-replacement for (ρ, w) from lim I with root
+(ς, ε).
+     We define the result of replacing (ρ, w) by J 0 as the interpretation R where
+                                                                  0
+   • ∆R = ∆J            00        00    J        J       J         0      0
+           red ∪ {(ρ, ww ) | (ς, w ) ∈ ∆ } with ∆red = (∆ \ {(ρ, ww ) | |w | > 1})
+                                                                                                                                 0
+   • for each A ∈ con(K0 ), AR = (AJ ∩ ∆J              0         0     J
+                                        red ) ∪ {(ρ, ww ) | (ς, w ) ∈ A }
+
+   • for each r ∈ rol(K0 ), rR = (rJ ∩∆J     J             0         00          0        00
+                                       red ×∆red )∪{h(ρ, ww ), (ρ, ww )i | h(ς, w ), (ς, w )i ∈
+        0
+     rJ }
+                                                                                             4
+
+    Figure 12 displays the result of carrying out this replacement step on our example.
+    The following lemma assures that during a replacement as described above, no new
+anchored n-components are introduced, instead all anchored n-components present after an
+n-secure transformation were present before or completely contained in the inserted limit
+element.
+
+Lemma 34. Let K be an ALCOIFb knowledge base, I a model for K, J a forest quasi-
+model for K, i.e., J |= K0 = nomFree(K), and let (ρ, w) ∈ ∆J be n-replaceable w.r.t. I. Let
+J 0 be an n-replacement for (ρ, w) with root (ς, ε) and R be the result of replacing (ρ, w) by
+J 0 . Then the following hold:
+
+  1. cutn (↓(J , (ρ, w))) is isomorphic to cutn (↓(R, (ρ, w))).
+
+                                                                  466
+                Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+  2. If n ≥ 1, then R is locally K0 -consistent.
+
+  3. Whenever R contains an anchored n-component C, then one of J or J 0 contains an
+     anchored n-component isomorphic to C.
+
+Proof.    1. This is a direct consequence from Definitions 31 and 33.
+
+  2. We make a case distinction when element-wise investigating local consistency of R
+     (note that K and K0 are simplified and that local consistency of a node (ρ, v) ∈ ∆R
+     depends only on this node and its direct neighbors):
+
+         • v = ww0 for some w0 6= ε: then the direct neighborhood of (ρ, v) in R is isomor-
+           phic to the direct neighborhood of (ς, w0 ) in J 0 (recall that (ς, ε) is the root of
+           J 0 ). By Lemma 30.2, J 0 is locally K0 -consistent except possibly for (ς, ε). Hence
+           also (ρ, v) is locally K0 -consistent in R.
+         • v 6= ww0 for any w0 , i.e., (ρ, v) was not affected by the replacement: then the
+           direct neighborhood of (ρ, v) has not changed by the replacement and, therefore,
+           the neighborhoods of (ρ, v) in J and R coincide. As J is locally K0 -consistent
+           by assumption, so is (ρ, v) in R.
+         • v = w: in that case, the direct neighborhood of (ρ, v) has changed but remained
+           isomorphic. This follows from the preceding statement (34.1).
+
+  3. Let (ρ0 , w0 ) be the witness of C. We distinguish three cases:
+
+         • ρ0 = ρ and w is a prefix of w0 . Then, clearly C is completely contained in J 0 .
+         • ρ0 = ρ and w0 is a prefix of w. Let C 0 be the structure obtained by restricting C
+           to all elements of the form (ρ, ww00 ) and then renaming every element (ρ, ww00 )
+           to (ς, w00 ), where (ς, ε) is the root of J 0 . Then C 0 is an anchored n-component
+           in J 0 with witness (ς, ε). Now, by definition of replacing, J must contain an
+           isomorphic copy of C 0 with witness (ρ, w). Since the other part of C (consisting
+           of those nodes (ρ0 , w0 ) such that w is not a prefix of w0 ) has not been altered by
+           the replacement, we can conclude that J must contain an isomorphic copy of C.
+         • Neither of the above. Then, (ρ0 , w0 ) and the subtree rooted in (ρ0 , w0 ) is contained
+           in J as this part of J has not been affected by the replacement. Then, clearly
+           also C is contained in J .
+
+
+    We are now ready for defining the whole process of restructuring a forest quasi-model
+essentially by substituting as many nodes as possible by appropriate limit elements.
+
+Definition 35 (n-Secure Transformation). Let I be a model of some ALCOIFb knowledge
+base K and J an unraveling for I. An interpretation J 0 is called an n-secure transformation
+of J if it is obtained by (possibly infinitely) repeating the following step:
+    Choose one unvisited and w.r.t. tree-depth minimal node (ρ, w) that is n-replaceable
+w.r.t. I. Replace (ρ, w) with one of its n-secure replacements from lim I and mark (ρ, w)
+as visited.                                                                               4
+
+                                               467
+                                                     Rudolph & Glimm
+
+
+
+
+                                                                                                   B     B
+                                                                                           No E f C E g D E
+                                                                                       r
+                                                                                  A
+                                                                              r                  s
+                                                                          A
+                                                                                                     s
+                                                                      r
+                                                                 A
+                                                             r
+                                                         A            s   BC
+                                                                            E
+                                                     r
+                                                A            s   BD               BD
+                                                                              f
+                                                                   E                E
+                                            r
+                                        A            s   BC           g   BC           g    BC
+                                                           E                E                 E
+                                    r
+                                A           s   BD               BD               BD                 BD
+                                                             f                f              f
+                            r                     E                E                E                  E
+                                    s   BC           g   BC           g   BC           g    BC            g   BC
+                        .
+
+
+
+
+                                          E                E                E                 E                 E
+                       ..
+
+
+
+
+                                        f                f                  f                f                f
+                                                ..               ..               ..                 ..             ..
+                                                     .                .                .                  .              .
+
+
+
+
+      Figure 13: Result of collapsing the forest quasi-model displayed in Figure 12.
+
+
+    Note that this is well-defined as every node is visited at most once and no formerly
+irreplaceable node ever becomes replaceable. Hence for every k ∈ IN, the “initial segment”
+cutk (J ) of the current intermediate structure J is already isomorphic to the initial segment
+cutk (J 0 ) of J 0 after a bounded number of replacement steps, due to the fact that all involved
+structures have bounded branching degree.
+    By now, the whole effort might still look a bit contrived and pointless, however, the
+following lemma establishes a bunch of properties that in the end allow us to deduce the
+existence of a very well-behaved countermodel whenever there is any at all.
+    We show that the process of unraveling, n-secure transformation and collapsing pre-
+serves the property of being a model of a knowledge base and (with the right choice of n)
+also preserves the property of not entailing a conjunctive query. Moreover, this model con-
+version process ensures that the resulting model contains only finitely many new nominals
+(witnessed by a bound on the length of BCPs). Figure 13 illustrates these properties for our
+example model. Note that only two new nominals are left whereas collapsing the original
+unraveling yields infinitely many.
+
+Lemma 36. Let I be a purified model of some ALCOIFb knowledge base K, J an unrav-
+eling of I, and J 0 an n-secure transformation of J . Then the following hold:
+
+  1. J 0 is a strict forest quasi-model for K.
+
+  2. J 0 is collapsing-admissible.
+
+  3. collapse(J 0 ) is a model of K.
+
+  4. There is a natural number m such that J 0 does not contain any node whose shortest
+     descending BCP has a length greater than m.
+
+                                                                      468
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+  5. If J 0 contains an anchored n-component C, then J contains an anchored n-component
+     isomorphic to C.
+
+  6. If, for some union of conjunctive queries u = q1 ∨ . . . ∨ qh , we have J |6≈ u and n >
+     maxq∈{q1 ,...,qh } ](q), then J 0 |6≈ u.
+
+  7. If, for some union of conjunctive queries u = q1 ∨ . . . ∨ qh , we have I 6|= u and
+     n > maxq∈{q1 ,...,qh } ](q), then collapse(J 0 ) 6|= u.
+
+
+Proof.     1. Let K0 = nomFree(K). Due to Lemma 13, J is a strict forest quasi-model
+      for K. By Lemma 34.2, each replacement step preserves local K0 -consistency and re-
+      sults, thus, in a forest quasi-model for K. Since each n-replacement is a strict tree
+      quasi-interpretation also strictness is preserved. By induction it follows that every in-
+      terpretation produced in the n-secure transformation procedure is a strict forest quasi-
+      model for K. For every node in J 0 , its direct predecessor and direct successors have
+      not changed any more after finitely many replacement steps and local K0 -consistency
+      depends solely on those neighbors. Hence J 0 is also locally K0 -consistent.
+
+  2. By Lemma 19, J is collapsing-admissible, by Lemma 30.5 every limit of I is. More-
+     over, as is obvious from the proofs of both propositions, it is possible to define the
+     respective ch-functions recurring to the original choose-function on I, hence every
+     two elements from (even different) unravelings or limits that start descending BCPs
+     with identical path sketches correspond to the very same element in I whence the
+     separate ch-functions are compatible with each other. Therefore, replacing an ele-
+     ment in the unraveling yields a strict forest quasi-model that is collapsing-admissible.
+     Applying the same argument inductively yields that every intermediate strict forest
+     quasi-model during the n-secure transformation is collapsing-admissible. Finally, as
+     the according ch-function stabilizes after finitely many replacement steps (together
+     with the neighborhood of the considered elements), also J 0 is collapsing-admissible.
+
+  3. This follows from the two previous facts (36.1 and 36.2) together with Lemma 20.
+
+  4. Consider the set D of all δ ∈ ∆I causing n-irreplaceable nodes in J . By Lemma 32,
+     D is finite. We obtain D0 by removing all δ from D that do not start any descending
+     BCPs.
+     For δ ∈ D0 , let dBCP(δ) denote the set of descending BCPs starting in δ and choose
+                                                                 
+                                     m := max0       min       |p|
+                                           δ∈D     p∈dBCP(δ)
+
+
+     Now assume there were a δ 0 ∈ ∆I having a shortest descending BCP of length greater
+     than m. Obviously, as δ 0 6∈ D0 , there must be a (ρ, w) generated by δ 0 that is n-
+     replaceable. However, during the n-secure transformation all n-replaceable elements
+     have been replaced by elements that do not start any descending BCPs at all due to
+     Lemma 30.3.
+
+                                             469
+                                      Rudolph & Glimm
+
+
+
+
+  5. We prove this by induction on the replacement steps of the n-secure transformation
+     process by showing that this is true for every intermediate replacement result R0 .
+     The claim for J 0 then follows from the fact that, for every considered C (which is
+     always finite), only a finite part cut` (J 0 ) is relevant and that for every `, there is a
+     bounded number of replacement steps after which we have cut` (R0 ) = cut` (J 0 ) for
+     every further intermediate R0 .
+     As base case (zero replacement steps carried out), we find that for R0 = J , the claim
+     is trivially true.
+     Now assume that the claim has been established for R and has to be shown for R0
+     that is created by replacing (ρ, w) in R with some J 00 . By Lemma 34.3, we then know
+     that one of the following is the case:
+
+        • R contains C. Yet, we can apply the induction hypothesis and conclude that also
+          J contains C as claimed.
+        • J 00 contains C. But, since C is finite, it is already contained in cutk (J 00 ) for some
+          k ∈ IN and, as J 00 is a limit element, we find one δ ∈ ∆I with cutk (↓(I, δ)) =
+          cutk (J 00 ). Since I is purified, we find a (ρ, w) ∈ ∆J that corresponds to δ, i.e.,
+          J contains an isomorphic copy of ↓(I, δ) which in turn contains an isomorphic
+          copy of C.
+
+  6. This is actually a straightforward consequence from the preceding proposition and the
+     definition of quentailment.
+     For the indirect proof, we suppose J |6≈ u and n > maxq∈{q1 ,...,qh } ](q) and J 0 |≈ u, the
+     latter witnessed by J 0 |≈ q for a q ∈ {q1 , . . . , qh }. By definition, the latter assures the
+     existence of adequate anchored n-components in J 0 . Then, applying the preceding
+     proposition (36.5), we obtain that isomorphic copies of all those anchored n-compo-
+     nents are contained in J which, by definition, just means J |≈ q and, therefore, J |≈ u.
+     Hence, we have a contradiction, which proves the claim.
+
+  7. We prove this indirectly, so assume I 6|= u, n > maxq∈{q1 ,...,qh } ](q), and collapse(J 0 ) |=
+     u, witnessed by collapse(J 0 ) |= q for a q ∈ {q1 , . . . , qh }.
+     Then, from Lemma 28.2, it follows that J 0 |≈ q. By the previous proposition (36.6),
+     we conclude J |≈ q, which in turn implies I |= q by Lemma 28.1. This implies I |= u,
+     a contradiction.
+
+
+
+   Now we are able to establish our first milestone on the way to showing finite repre-
+sentability of countermodels.
+
+Theorem 37. For every ALCOIFb knowledge base K with K 6|= u, there is a forest model
+I of K with finitely many roots such that I 6|= u. Moreover, I has bounded branching degree.
+
+
+
+                                               470
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+Proof. Let u = q1 ∨ . . . ∨ qh . Since an inconsistent knowledge base entails every query, we
+can assume that K is consistent and, since K 6|= u, there is a model I of K with I 6|= u.
+Choose an n > maxq∈{q1 ,...,qh } ](q) and let J 0 be obtained by carrying out an n-secure
+transformation on ↓(I) and let I 0 = collapse(J 0 ). We know that I 0 is a model of K (via
+Lemma 36.3) and that I 0 6|= u (by Lemma 36.7).
+     By Lemma 36.4, we know that there is a fixed natural number m such that the shortest
+descending BCP started by any node in J 0 is shorter than m. Note that there are only
+finitely many path sketches of length ≤ m. This means that every node in J 0 that starts
+a descending BCP at all can be assigned to one such path sketch. However, this entails
+that there are only finitely many elements (i.e., ∼-equivalence classes) in I 0 that contain
+J 0 -elements starting descending BCPs in J 0 . This implies, via Lemma 24, that I 0 contains
+only finitely many roots.
+     The fact that I 0 has bounded branching degree is a direct consequence from the fact
+that the initial unraveling has bounded branching degree, that replacement do not change
+the branching degree nor do collapsings as assured by Lemma 20.
+
+
+7. Finite Representations of Models
+In this section, we show how we can construct a finite representation of a forest model
+of a knowledge base that has only a finite number of roots. We then show that these
+finite representations can be used to check query entailment. In order to do this, we use a
+technique that is very similar to the blocking techniques used in tableau algorithms (see, e.g.,
+Horrocks & Sattler, 2007). A tableau algorithm builds a so-called completion graph that is
+a finite representation of a model. A completion graph has essentially the same structure
+as our forest quasi-models. It contains root nodes for the nominals occurring in the input
+knowledge base plus further root nodes for new nominals that start BCPs. Each (new and
+old) nominal is the root of a tree, and relations only occur between direct neighbors within a
+tree, between elements within a tree and a root, or between the roots. An initial completion
+graph contains only nodes for the nominals occurring in the input knowledge base. Concepts
+are expanded according to a set of expansion rules, and new nodes are added to the graph
+when expanding existential restrictions. New nominals are added by the so-called NN-rule
+whenever an element from within a tree has a relationship with an inverse functional role
+to a root node that represents a nominal from the input knowledge base, i.e., when a BCP
+is created. In order to obtain a finite representation, tableau algorithms usually employ
+some cycle detection mechanism, called blocking. Otherwise the depth of the trees and
+the number of new nominals might grow infinitely. For logics as expressive as ALCOIFb,
+blocking usually requires two pairs of elements. In our notation, a (non-root) node n with
+predecessor n0 blocks a node m with predecessor m0 , if hn0 , ni ∼   = hm0 , mi. In order to
+obtain a real model from the finite representation, the part between n and m is copied
+and appended infinitely often. We use a similar technique to obtain a finite representation
+for a forest model. Since we want to preserve non-entailment, working with just pairs of
+elements is not sufficient. Instead, we take the length n of the query into account and use
+isomorphic trees of depth n to define blocking. This technique has first been employed for
+deciding query entailment in ALCN with role conjunctions (Levy & Rousset, 1998) and
+has recently been extended to the logics ALCHIQ, ALCHOQ, and ALCHOI (Ortiz, 2008;
+
+                                              471
+                                       Rudolph & Glimm
+
+
+
+
+Ortiz et al., 2008a) and extends, as our result, to the DLs SHIQ, SHOQ, and SHOI (i.e.,
+with transitivity) as long as the query contains only simple roles.
+    As for forest quasi-interpretations, we use isomorphisms between forest interpretations
+or parts of them.
+Definition 38 (Isomorphism between Forest Interpretations). Let K be an ALCOIFb
+                                                  0  0
+knowledge base and I = (∆I , ·I ), I 0 = (∆I , ·I ) two forest interpretations of K. Without
+loss of generality, we assume from now on that each root δ = (ρ, ε) ∈ ∆I is in the extension
+of a unique concept Nδ that does not occur in con(K). Then I and I 0 are called isomorphic
+                                                                   0
+w.r.t. K, written: I ∼=K I 0 , iff there is a bijection ϕ : ∆I → ∆I such that:
+   • δ1 is a successor of δ2 iff ϕ(δ1 ) is a successor of ϕ(δ2 ) for all δ1 , δ2 ∈ ∆I ,
+                                            0
+   • hδ1 , δ2 i ∈ rI iff hϕ(δ1 ), ϕ(δ2 )i ∈ rI for all δ1 , δ2 ∈ ∆I and r ∈ rol(K),
+                                0
+   • δ ∈ AI iff ϕ(δ) ∈ AI for all δ ∈ ∆I and A ∈ con(K) ∪ {Nδ | δ = (ρ, ε) ∈ ∆I }.
+                            0
+   • δ = oI iff ϕ(δ) = oI for all δ ∈ ∆I and o ∈ nom(K).
+                                                                                                  4
+   Usually, we omit the subscript K from ∼
+                                         =K and assume that it is clear from the context.
+Definition 39 (n-Blocking). Let n ∈ IN be a fixed natural number and I = (∆I , ·I ) with
+(δ, w) ∈ ∆I , w 6= ε a forest interpretation for some ALCOIFb knowledge base K. An
+n-blocking-tree w.r.t. (δ, w), denoted blocknI (δ, w), is the interpretation obtained from I by
+restricting I to elements in {(δ, ww0 ) | |w0 | ≤ n} ∪ {(ρ, ε) | (ρ, ε) ∈ ∆I }. An n-blocking-tree
+blocknI (δ, w) n-blocks an n-blocking-tree blocknI (δ, ww0 ) if
+   1. blocknI (δ, w) and blocknI (δ, ww0 ) have disjoint domains except for root elements,
+
+   2. there is a bijection ϕ from elements in blocknI (δ, w) to elements in blocknI (δ, ww0 ) that
+      witnesses blocknI (δ, w) ∼
+                               = blocknI (δ, ww0 ), and
+   3. for each descendant (δ, wv) of (δ, w), there is no inverse functional role f and root
+      (ρ, ε) ∈ ∆I such that h(δ, wv), (ρ, ε)i ∈ f I .
+    A node (δ, v) ∈ ∆I is n-blocked, if (δ, v) is either directly or indirectly n-blocked ; (δ, v) is
+indirectly n-blocked, if one of its ancestors is n-blocked; (δ, v) is directly n-blocked if none
+of its ancestors is n-blocked and (δ, v) is a leaf of some n-blocking-tree blocknI (δ, ww0 ) in I
+that is n-blocked; in this case we say that (δ, v) is (directly) n-blocked by ϕ− (δ, ww0 ) for ϕ
+the bijection witnessing ∼=.
+    Without loss of generality, we assume that the n-blocking-trees used above are minimal
+w.r.t. the order of elements in ∆I (cf. Definition 16).
+    A forest interpretation I = (∆I , ·I ) for K is an n-representation of K if
+   1. ∆I is finite,
+
+   2. ∆I contains no indirectly n-blocked nodes,
+
+   3. for each o ∈ nom(K), there is one element of the form (ρ, ε) ∈ ∆I such that oI =
+      (ρ, ε)I ,
+
+                                                472
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+  4. each element that is not directly n-blocked is locally K-consistent.
+                                                                                             4
+
+    Note that n = 1 is more restrictive than standard pairwise blocking since two trees
+of depth one need to be isomorphic before blocking occurs, whereas standard blocking
+already occurs for two isomorphic pairs of nodes. For DLs as expressive as ALCOIFb,
+however, n has to be greater than 0 (at least trees of depth 1) if we want to transform
+n-representations into models of the knowledge base. We now show that each knowledge
+base has an n-representation for some fixed n ∈ IN and, afterwards, that we can use an
+n-representation to build a model for the knowledge base.
+
+Lemma 40. Let K be a consistent ALCOIFb knowledge base and u = q1 ∨ . . . ∨ qh a union
+of conjunctive queries and n a fixed natural number greater than max1≤i≤h |qi |. If K 6|= u,
+then there is an n-representation of K that does not satisfy u.
+
+Proof. By assumption, K is consistent and K 6|= u. Then, by Theorem 37, there is a forest
+model I of K with finitely many roots and branching degree bounded in |cl(K)|, and for all
+q ∈ {q1 , . . . , qh } holds I 6|= q. We show that we can find an n-representation R for I.
+    We use a similar argumentation as in Lemma 25 to show that there are only finitely many
+non-isomorphic n-blocking trees. We again denote this bound by Tn . Let c = |cl(K)|, r =
+|rol(K)|, and m the (finite) number of roots in I. Each root ρ ∈ ∆I is annotated with a
+special concept Nρ by assumption. For n = 0, we again have 2c choices. For n > 0, each
+element can have between 0 and c successors and between 0 and m relations with roots.
+For roots we have 2c+m choices for the concepts. We use 2cm as bound for the choice of
+concepts for roots and this clearly bounds the choice for non-roots as well. Each non-root
+node in a level smaller than n is the root of a tree with depth n − 1 and each node in the
+sub-tree can again have up to m relations to a root. Assuming that we have only a single
+role name r ∈ rol(K), we get a bound of O(2c cmTn−1       cm ) for the number of non-isomorphic
+
+sub-trees of depth n with relations to the at most m roots. Since we have not only one
+but a choice of r roles, we get a bound of O(2c (cmTn−1      cm )r ). We now abbreviate 2c (cm)r
+
+with x and cmr with a and rewrite the obtained bound as Tn = O(x(Tn−1 )a ). Unfolding
+                                  n−1      n                             n      n             n
+yields Tn = O((x1+a+...+a )(T0 )a ) which is bounded by O((xa )(2c )a ) = O((x2c )a ).
+                                                                                            n
+By expanding the abbreviated symbols, we obtain a bound for Tn of O((2c (cm)r )(cmr) ).
+    Together with the fact that I is obtained from a collapsing and relations from elements
+within a tree to a root in collapsings are never for inverse functional roles, this shows
+that there is an n-representation of I because for each tree rooted in a node (δ, ε) ∈ ∆I
+with depth greater than Tn , there are two nodes (δ, w) and (δ, ww0 ) such that blocknI (δ, w)
+n-blocks blocknI (δ, ww0 ), and we can simply discard indirectly n-blocked nodes from I to
+obtain the desired n-representation.
+    Since I 6|= q and the n-representation is a restriction of I, non-entailment of q is clearly
+preserved.
+
+    Please note that we would not obtain such a bound if we had not fixed a bound on the
+number of new nominals (roots) beforehand and that we cannot use the standard tableau
+algorithms to obtain this result. The reason for this is that the number of new nominals
+(roots) in the tableau algorithms depends on the length of the longest path before blocking
+
+                                              473
+                                          Rudolph & Glimm
+
+
+
+
+occurs. For our n-blocking-trees, however, we also have to consider relations back to the
+roots, which means that blocking occurs the later the more roots we have. On the other
+hand, delaying blocking may lead to the introduction of more and more new roots. Due to
+this cyclic argument, termination cannot be guaranteed for the tableau algorithms unless
+we have fixed a bound on the number of new nominals beforehand. This is also the reason
+why the tableau algorithm for entailment of conjunctive queries with only simple roles in the
+query of Calvanese et al. (2009) is sound, complete, and terminating on SHIQ, SHOQ,
+and SHOI knowledge bases, but is not guaranteed to terminate on SHOIQ knowledge
+bases (transitivity, i.e., having a DL with S instead of ALC does not have any impact on
+this).
+    We now show, how we can obtain a model for a knowledge base K from some n-
+representation of K. We use a technique that is directly inspired from tableau algorithms
+and resembles the process of building a tableau from a complete and clash-free completion
+graph. In particular the tableau algorithm by Ortiz et al. (Ortiz, 2008; Ortiz et al., 2008a)
+is very similar as it also uses tree blocking.
+Definition 41 (Models for n-Representations). Let R = (∆R , ·R ) be an n-representation
+                                              δ0          0
+of some ALCOIFb knowledge base K. Let s = δ11 , . . . , δδm
+                                                          m
+                                                            be a sequence of pairs of elements
+from ∆ . With |s| we denote the length m of s. For such a sequence s, we set last∗ (s) = δm
+       R                                                                                    0
+                                δ0                                δ0   0   δ0
+                             m+1
+and last∗ (s) = δm . By s | δm+1 we denote the sequence δ11 , . . . , δδm , m+1 .
+                                                                        m δm+1
+   The set of R-induced elements, denoted elem(R), is inductively defined as follows:
+   • If δ = (ρ, ε) ∈ ∆R , then δδ ∈ elem(R).
+   • If s ∈ elem(R), δ = (ρ, w) ∈ ∆R , δ is not n-blocked, and δ is a successor of last∗ (s),
+     then s | δδ ∈ elem(R).
+   • If s ∈ elem(R), δ = (ρ, w) ∈ ∆R , δ is directly n-blocked by some δ 0 ∈ ∆R , and δ is a
+                                        0
+     successor of last∗ (s), then s | δδ ∈ elem(R).
+   We define the interpretation I = (∆I , ·I ) induced by R as follows:
+   • ∆I = elem(R),
+   • for each s ∈ ∆I and A ∈ con(K), s ∈ AI iff last∗ (s) ∈ AR ,
+   • for each s ∈ ∆I and o ∈ nom(K), s = oI iff last∗ (s) = oR ,
+   • for each s, s0 ∈ ∆I and r ∈ rol(K), rI =
+                            0
+       {hs, s0 i | s0 = s | δδ and hlast∗ (s), last∗ (s0 )i ∈ rR }∪
+                            0
+       {hs, s0 i | s = s0 | δδ and hlast∗ (s), last∗ (s0 )i ∈ rR }∪
+       {hs, s0 i | s0 = δδ and hlast∗ (s), δi ∈ rR }∪
+       {hs, s0 i | s = δδ and hδ, last∗ (s0 )i ∈ rR }.
+                                                                                           4
+    The interpretation of nominals is well-defined since n-representations are forest inter-
+pretations for K (hence, there is a unique root for each nominal) and pairs δδ with δ = (ρ, ε)
+are never appended to sequences in elem(R).
+
+                                                    474
+                Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+Lemma 42. Let K be a consistent ALCOIFb knowledge base, u = q1 ∨ . . . ∨ qh a union of
+conjunctive queries, and n ≥ 1 a fixed natural number greater than max1≤i≤h |qi |. If R is
+an n-representation of K such that R 6|= u, then there is a model I of K such that I 6|= u.
+
+   The proof is essentially as the one by Ortiz et al. (2008a), but adapted to our case, where
+we work completely on interpretations. Our n-representations correspond to completion
+graphs and our models to tableaux in their case.
+
+Proof. Let I be an interpretation induced by R. Since n-representations do not contain
+relations from an element within a tree to a root for an inverse functional role by definition,
+functionality restrictions are not violated in I. Further, since K is simplified and R is a forest
+interpretation for K such that all elements apart from (directly) n-blocked ones are locally
+K-consistent, it is quite straightforward that each element in the induced interpretation is
+locally K-consistent. Together with the restriction on nominals (property 3), this implies
+that I is a model for K. This is essentially the same principle as the one used to prove that
+tableaux constructed from completion graphs are proper representations of models of the
+input knowledge base.
+     Assume, to the contrary of what is to be shown, that I |= u. Then there is a disjunct
+q ∈ {q1 , . . . , qh } and a match µ for q such that I |=µ q. We use µ to construct a match π for
+q in R by “shifting” the mapping for variables into parts that have no direct counterpart
+in R upwards.
+     We define the match graph G for q in I as an undirected graph containing a node s for
+each s ∈ ∆I such that µ(x) = s for some x ∈ var(q) and containing an edge hs, s0 i for each
+s, s0 ∈ ∆I such that there is an atom r(x, y) ∈ q, µ(x) = s, and µ(y) = s0 . We call nodes of
+G that correspond to roots in ∆I root nodes of G (i.e., nodes s such that s = δδ ) and we
+call all other nodes tree nodes. Note that the restriction of G to tree nodes is a set of trees
+that we refer to as G1 , . . . , Gk and that each such tree has a depth smaller than n.
+     For each x ∈ var(q) such that µ(x) = δδ ( δδ is a root node in G), we set π(x) = last∗ ( δδ ).
+Note that δ is a root node in R.
+     For each Gi ∈ {G1 , . . . , Gk }, we distinguish two situations:
+
+   1. Gi contains a node s such that last∗ (s) 6= last∗ (s) (i.e., Gi contains a path from within
+      an n-blocking tree to a copy of the path starting from the node that blocks). Due
+      to the use of n-blocking, a single tree Gi can never cover more than one n-blocking
+      tree and it can use at most nodes from two n-blocking trees (leaving one and then
+      entering the next one in less than n steps). For each node s0 in Gi such that |s0 | < |s|
+      and x ∈ var(q) such that µ(x) = s0 , we set π(x) = ϕ(last∗ (s0 )). For each s0 in Gi with
+      |s0 | ≥ |s| and x ∈ var(q) such that µ(x) = s0 , we set π(x) = last∗ (s0 ).
+
+   2. Gi contains no node s such that last∗ (s) 6= last∗ (s) (i.e., Gi contains a path that lies
+      completely within an n-blocking tree or from a path outside of an n-blocking-tree into
+      an n-blocking-tree). For each node s in Gi and x ∈ var(q) such that µ(x) = s, we set
+      π(x) = last∗ (s).
+
+   By definition of π, I as an induced model of R, and n-blocking, we immediately have
+that, for each A(x) ∈ q, π(x) ∈ AR . We show that, for each r(x, y) ∈ q, hπ(x), π(y)i ∈ rR ,
+which proves R |= q. We distinguish three cases:
+
+                                               475
+                                        Rudolph & Glimm
+
+
+
+
+  1. µ(x) = δδ for some δ ∈ ∆R . Then π(x) = δ = (ρ, ε) ∈ ∆R . We distinguish three cases
+     for µ(y):
+                     0
+      (a) µ(y) = δδ0 is also a root, then π(y) = δ 0 = (ρ0 , ε) ∈ ∆R and, since µ is a match
+          for q in I and by definition of I as an induced interpretation of R, we have that
+          hπ(x), π(y)i = hδ, δ 0 i ∈ rR .
+                                                                          0
+      (b) µ(y) is a successor of µ(x) in I, i.e., µ(y) = s = δδ | δδ0 . Then s is not n-blocked
+          and π(y) = δ 0 = (ρ0 , c) ∈ ∆R for c ∈ IN. Again, since µ is a match for q
+          in I and by definition of I as an induced interpretation of R, we have that
+          hπ(x), π(y)i = hδ, δ 0 i ∈ rR .
+                                                 0
+      (c) µ(y) is neither a root (µ(y) 6= δδ0 for any δ 0 ∈ ∆R ) nor a successor of µ(x) in I
+                          0
+          (µ(y) 6= δδ | δδ0 for any δ 0 ∈ ∆R ). Then µ(y) belongs to some graph match compo-
+          nent Gi and π(y) = last∗ (µ(y)) or π(y) = ϕ− (last∗ (µ(y))). Since the isomorphism
+          between n-blocking trees also takes the relations to root nodes into account and
+          other parts have direct counterparts in R, we have that hπ(x), π(y)i ∈ rR .
+                                                                              0
+  2. µ(x) = s 6= δδ for any δ ∈ ∆R . The cases when µ(y) = δδ0 for some δ 0 ∈ ∆R is as
+     above. We assume, therefore, that µ(y) = s0 with |s0 | > 1. By definition of I, this
+     means that either s = s0 | δδ0 or s0 = s| δδ0 for some δ, δ 0 ∈ ∆R . We assume s0 = s| δδ0 . The
+     opposite case is analogous. By definition of the match graph G, there is a component
+     Gi of G that contains both s and s0 . We distinguish two cases:
+
+      (a) The component Gi contains a node s̄ such that last∗ (s̄) 6= last∗ (s̄). The most
+          interesting case is when last∗ (µ(y)) 6= last∗ (µ(y)), i.e., s̄ = s0 . Then π(x) =
+          ϕ− (last∗ (s)) and π(y) = last∗ (s0 ). Since last∗ (s0 ) 6= last∗ (s0 ), we have that last∗ (s0 )
+          is the node that directly n-blocks last∗ (s0 ) and, by definition of the bijection
+          ϕ, which witnesses the isomorphism, we have that π(x) = ϕ− (last∗ (s)) is the
+          predecessor of π(y) = last∗ (s0 ) and, by definition of I from R, that hπ(x), π(y)i ∈
+          rR .
+      (b) The component Gi contains no node s̄ such that last∗ (s̄) 6= last∗ (s̄). Then π(x) =
+          last∗ (µ(x)) and π(y) = last∗ (µ(y)). By definition of I from R, we immediately
+          have that hπ(x), π(y)i ∈ rR .
+
+In any case, we have that hπ(x), π(y)i ∈ rR , which implies R |=π q contradicting the initial
+assumption.
+
+    Now Lemma 40 guarantees that, in case K 6|= q, there is always a finite n-representation
+R for K such that R 6|= q and Lemma 42 guarantees that R can be transformed into a
+model I of K such that I 6|= q. This suffices to show that we can enumerate all (finite)
+n-representations for K and check whether they entail a disjunct of the union of conjunctive
+queries. Together with the semi-decidability result for FOL, we get the following theorem.
+
+Theorem 43. Let K be an ALCOIFb knowledge base and u = q1 ∨ . . . ∨ qh a union of
+conjunctive queries. The question whether K |= u is decidable.
+
+
+                                                     476
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+8. Conclusions
+We have solved the long-standing open problem of deciding conjunctive query entailment in
+the presence of nominals, inverse roles, and qualified number restrictions. We have shown
+that the problem is decidable by providing a decision procedure and proving its correctness.
+Since the approach is purely a decision procedure, the computational complexity of the
+problem remains open.
+    Our result also shows decidability of entailment of unions of conjunctive queries in
+SHOIQ and SROIQ (underlying OWL DL and OWL 2) if we disallow non-simple roles
+as binary query predicates. We thereby have reached a first important milestone towards
+tackling the problem of conjunctive queries for OWL 1 DL and OWL 2 DL.
+    Entailment of unions of conjunctive queries is also closely related to the problem of
+adding rules to a DL knowledge base, e.g., in the form of Datalog rules. Augmenting a
+DL KB with an arbitrary Datalog program easily leads to undecidability (Levy & Rousset,
+1998). In order to ensure decidability, the interaction between the Datalog rules and the
+DL knowledge base is usually restricted by imposing a safeness condition. The DL+log
+framework (Rosati, 2006a) provides the least restrictive integration proposed so far and
+Rosati presents an algorithm that decides the consistency of a DL+log knowledge base
+by reducing the problem to entailment of unions of conjunctive queries. Notably, Rosati’s
+results (2006a, Thm. 11) imply that the consistency of an ALCHOIQb knowledge base
+extended with (weakly-safe) Datalog rules is decidable if and only if entailment of unions
+of conjunctive queries in ALCHOIQb is decidable, which we have established.
+
+Corollary 44. The consistency of ALCHOIQb+log-knowledge bases (both under FOL
+semantics and under non-monotonic semantics) is decidable.
+
+    Another related reasoning problem is query containment. Given a schema (or TBox) S
+and two queries q and q 0 , we have that q is contained in q 0 w.r.t. S iff every interpretation
+I that satisfies S and q also satisfies q 0 . It is well known that query containment w.r.t.
+a TBox can be reduced to deciding entailment for unions of conjunctive queries w.r.t.
+a knowledge base (Calvanese et al., 1998a). Decidability of unions of conjunctive query
+entailment in ALCHOIQb implies, therefore, also decidability of query containment w.r.t.
+an ALCHOIQb TBox.
+    There are two obvious avenues for future work. We will embark on extending our
+results in order to allow non-simple roles as query predicates. This is a non-trivial task
+as our current approach heavily relies on a certain locality of query matches, which has
+to be relinquished when considering non-simple roles. On the other hand, we are eager to
+determine the associated computational complexities and provide techniques that can form
+the basis for implementable algorithms.
+
+Acknowledgments
+During his stay in Oxford where our collaboration started, Sebastian Rudolph was supported
+by a scholarschip of the German Academic Exchange Service (DAAD). Continuative work on
+the subject was enabled by funding through the ExpresST project of the German Research
+Foundation (DFG).
+
+                                              477
+                                    Rudolph & Glimm
+
+
+
+
+    Birte Glimm was supported by EPSRC in the project HermiT: Reasoning with Large
+Ontologies.
+    We thank the three anonymous reviewers for their numerous helpful comments.
+    We thank Ian Pratt-Hartmann for (unknowingly) smashing our graphomata, Maria Mag-
+dalena Ortiz de la Fuente for establishing the competitive atmosphere, Yevgeny Kazakov
+for breath-taking discussions on black holes, Boris Motik for his motivating considerations
+on the value of the academic life, and last not least God for providing us with extraordinary
+weather and – most notably – infinity.
+
+References
+Baader, F. (2003). Terminological cycles in a description logic with existential restrictions.
+     In Proceedings of the 18th International Joint Conference on Artificial Intelligence
+     (IJCAI 2003), pp. 325–330.
+Baader, F., Brandt, S., & Lutz, C. (2005). Pushing the EL envelope. In Proceedings of the
+     19th International Joint Conference on Artificial Intelligence (IJCAI 2005). Morgan
+     Kaufmann, Los Altos.
+Baader, F., Calvanese, D., McGuinness, D. L., Nardi, D., & Patel-Schneider, P. F. (2003).
+     The Description Logic Handbook. Cambridge University Press.
+Bechhofer, S., van Harmelen, F., Hendler, J., Horrocks, I., McGuinness, D. L., Patel-
+     Schneider, P. F., & Stein, L. A. (2004). OWL web ontology language reference. Tech.
+     rep., World Wide Web Consortium. http://www.w3.org/TR/2004/REC-owl-ref-20040210/.
+Calvanese, D., De Giacomo, G., Lembo, D., Lenzerini, M., & Rosati, R. (2005). DL-Lite:
+     Tractable description logics for ontologies. In Veloso, M. M., & Kambhampati, S.
+     (Eds.), Proceedings of the 20th National Conference on Artificial Intelligence (AAAI
+     2005), pp. 602–607. AAAI Press/The MIT Press.
+Calvanese, D., De Giacomo, G., Lembo, D., Lenzerini, M., & Rosati, R. (2007). Tractable
+     reasoning and efficient query answering in description logics: The DL-Lite family.
+     Journal of Automated Reasoning, 39 (3), 385–429.
+Calvanese, D., De Giacomo, G., & Lenzerini, M. (1998a). On the decidability of query
+     containment under constraints. In Proceedings of the 17th ACM SIGACT SIGMOD
+     Symposium on Principles of Database Systems (PODS 1998), pp. 149–158. ACM Press
+     and Addison Wesley.
+Calvanese, D., De Giacomo, G., Lenzerini, M., Nardi, D., & Rosati, R. (1998b). Description
+     logic framework for information integration. In Proceedings of the 6th International
+     Conference on the Principles of Knowledge Representation and Reasoning (KR 1998).
+Calvanese, D., Eiter, T., & Ortiz, M. (2007). Answering regular path queries in expres-
+     sive description logics: An automata-theoretic approach. In Proceedings of the 22th
+     National Conference on Artificial Intelligence (AAAI 2007).
+Calvanese, D., Eiter, T., & Ortiz, M. (2009). Regular path queries in expressive description
+     logics with nominals. In Proceedings of the 21st International Joint Conference on
+     Artificial Intelligence (IJCAI 2009), pp. 714–720. AAAI Press/The MIT Press.
+
+                                             478
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+Chandra, A. K., & Merlin, P. M. (1977). Optimal implementation of conjunctive queries
+    in relational data bases. In Proceedings of the 9th ACM Symposium on Theory of
+    Computing (STOC 1977), pp. 77–90. ACM Press and Addison Wesley.
+Eiter, T., Lutz, C., Ortiz, M., & Simkus, M. (2009). Query answering in description logics
+      with transitive roles. In Proceedings of the 21st International Joint Conference on
+      Artificial Intelligence (IJCAI 2009), pp. 759–764. AAAI Press/The MIT Press.
+Glimm, B., Horrocks, I., Lutz, C., & Sattler, U. (2008a). Conjunctive query answering for
+    the description logic SHIQ. Journal of Artificial Intelligence Research, 31, 151–198.
+Glimm, B., Horrocks, I., & Sattler, U. (2008b). Unions of conjunctive queries in SHOQ.
+    In Proceedings of the 11th International Conference on the Principles of Knowledge
+    Representation and Reasoning (KR 2008). AAAI Press/The MIT Press.
+Glimm, B., & Rudolph, S. (2010). Status QIO: Conjunctive query entailment is decidable.
+    In Proceedings of the 12th International Conference on the Principles of Knowledge
+    Representation and Reasoning (KR 2010), pp. 225–235. AAAI Press/The MIT Press.
+Gödel, K. (1929). Über die Vollständigkeit des Logikkalküls. Ph.D. thesis, Universität Wien.
+Golbreich, C., Zhang, S., & Bodenreider, O. (2006). The foundational model of anatomy in
+     OWL: Experience and perspectives. Journal of Web Semantics, 4 (3).
+Goodwin, J. (2005). Experiences of using OWL at the ordnance survey. In Proceedings
+    of the 1st OWL Experiences and Directions Workshop (OWLED 2005), Vol. 188 of
+    CEUR Workshop Proceedings. CEUR (http://ceur-ws.org/).
+Grädel, E. (2001). Why are modal logics so robustly decidable?. In Paun, G., Rozenberg,
+      G., & Salomaa, A. (Eds.), Current Trends in Theoretical Computer Science, Entering
+      the 21th Century, Vol. 2, pp. 393–408. World Scientific.
+Grahne, G. (1991). Problem of Incomplete Information in Relational Databases. Lecture
+    Notes in Computer Science. Springer-Verlag.
+Horrocks, I., & Sattler, U. (2005). A tableaux decision procedure for SHOIQ. In Proceedings
+     of the 19th International Joint Conference on Artificial Intelligence (IJCAI 2005).
+Horrocks, I., & Sattler, U. (2007). A tableau decision procedure for SHOIQ. Journal of
+     Automated Reasoning, 39 (3), 249–276.
+Horrocks, I., Sattler, U., & Tobies, S. (2000). Reasoning with Individuals for the Description
+     Logic SHIQ. In McAllester, D. (Ed.), Proceedings of the 17th Conference on Auto-
+     mated Deduction (CADE 2000), No. 1831 in Lecture Notes in Artificial Intelligence,
+     pp. 482–496. Springer-Verlag.
+Jet Propulsion Laboratory, C. I. o. T. (2006). Semantic web for earth and environmental
+     terminology (SWEET).. http://sweet.jpl.nasa.gov/.
+Kazakov, Y. (2008). RIQ and SROIQ are harder than SHOIQ. In Proceedings of the
+     11th International Conference on the Principles of Knowledge Representation and
+     Reasoning (KR 2008). AAAI Press/The MIT Press.
+Kazakov, Y., & Motik, B. (2008). A resolution-based decision procedure for SHOIQ.
+     Journal of Automated Reasoning, 40 (2–3), 89–116.
+
+                                              479
+                                    Rudolph & Glimm
+
+
+
+
+Krötzsch, M., Rudolph, S., & Hitzler, P. (2007). Conjunctive queries for a tractable fragment
+      of OWL 1.1. In Proceedings of the 7th International Semantic Web Conference (ISWC
+      2007), Vol. 4825 of Lecture Notes in Computer Science, pp. 310–323. Springer-Verlag.
+Krötzsch, M., Rudolph, S., & Hitzler, P. (2008). ELP: Tractable rules for OWL 2. In
+      Proceedings of the 8th International Semantic Web Conference (ISWC 2008), Vol.
+      5318 of Lecture Notes in Computer Science, pp. 649–664. Springer-Verlag.
+Lacy, L., Aviles, G., Fraser, K., Gerber, W., Mulvehill, A., & Gaskill, R. (2005). Experiences
+      using OWL in military applications. In Proceedings of the 1st OWL Experiences and
+      Directions Workshop (OWLED 2005). CEUR (http://ceur-ws.org/).
+Levy, A. Y., & Rousset, M.-C. (1996). CARIN: A representation language combining horn
+      rules and description logics. In Proceedings of the 12th European Conference on Ar-
+      tificial Intelligence (ECAI 1996), pp. 323–327.
+Levy, A. Y., & Rousset, M.-C. (1998). Combining horn rules and description logics in
+     CARIN. Artificial Intelligence, 104 (1–2), 165–209.
+Lutz, C. (2008). The complexity of conjunctive query answering in expressive description
+      logics. In Proceedings of the International Joint Conference on Automated Reasoning
+      (IJCAR 2008), pp. 179–193. Lecture Notes in Computer Science.
+McGuinness, D. L., & Wright, J. R. (1998). An industrial strength description logic-based
+    configuration platform. IEEE Intelligent Systems, 13 (4).
+Motik, B., Shearer, R., & Horrocks, I. (2009). Hypertableau reasoning for descrip-
+     tion logics. Submitted to a journal. http://www.hermit-reasoner.com/publications/
+     msh08hypertableau-journal.pdf.
+
+Ortiz, M. (2008). Extending CARIN to the description logics of the SH family. In Pro-
+      ceedings of Logics in Artificial Intelligence, European Workshop (JELIA 2008), pp.
+      324–337. Lecture Notes in Artificial Intelligence.
+Ortiz, M., Calvanese, D., & Eiter, T. (2008a). Data complexity of query answering in
+      expressive description logics via tableaux. Journal of Automated Reasoning, 41 (1),
+      61–98.
+Ortiz, M., Simkus, M., & Eiter, T. (2008b). Conjunctive query answering in sh using
+      knots. In Proceedings of the 2008 Description Logic Workshop (DL 2008). CEUR
+      (http://ceur-ws.org/).
+Pratt-Hartmann, I. (2009). Data-complexity of the two-variable fragment with counting
+     quantifiers. Forthcoming in Information and Computation. http://arxiv.org/abs/0806.
+     1636.
+
+Rosati, R. (2006a). DL+log: Tight integration of description logics and disjunctive datalog.
+     In Proceedings of the 10th International Conference on the Principles of Knowledge
+     Representation and Reasoning (KR 2006), pp. 68–78.
+Rosati, R. (2006b). On the decidability and finite controllability of query processing in
+     databases with incomplete information. In Proceedings of the 25th ACM SIGACT
+     SIGMOD Symposium on Principles of Database Systems (PODS 2006), pp. 356–365.
+     ACM Press and Addison Wesley.
+
+                                             480
+               Nominals, Inverses, Counting, and Conjunctive Queries
+
+
+
+
+Rosati, R. (2007a). The limits of querying ontologies. In Proceedings of the 11th Interna-
+     tional Conference on Database Theory (ICDT 2007), Vol. 4353 of Lecture Notes in
+     Computer Science, pp. 164–178. Springer-Verlag.
+Rosati, R. (2007b). On conjunctive query answering in EL. In Proceedings of the 2007
+     Description Logic Workshop (DL 2007). CEUR Workshop Proceedings.
+Rudolph, S., Krötzsch, M., & Hitzler, P. (2008). Terminological reasoning in SHIQ with
+     ordered binary decision diagrams. In Proc. 23rd National Conference on Artificial
+     Intelligence (AAAI 2008), pp. 529–534. AAAI Press/The MIT Press.
+Sidhu, A., Dillon, T., Chang, E., & Sidhu, B. S. (2005). Protein ontology development using
+     OWL. In Proceedings of the 1st OWL Experiences and Directions Workshop (OWLED
+     2005), Vol. 188 of CEUR Workshop Proceedings. CEUR (http://ceur-ws.org/).
+Sirin, E., Parsia, B., Cuenca Grau, B., Kalyanpur, A., & Katz, Y. (2007). Pellet: A practical
+       OWL-DL reasoner. Journal of Web Semantics, 5 (2).
+Tessaris, S. (2001). Questions and answers: Reasoning and querying in Description Logic.
+     PhD thesis, University of Manchester.
+Tsarkov, D., & Horrocks, I. (2006). FaCT++ description logic reasoner: System description.
+     In Proceedings of the International Joint Conference on Automated Reasoning (IJCAR
+     2006), Vol. 4130 of Lecture Notes in Computer Science, pp. 292 – 297. Springer-Verlag.
+van der Meyden, R. (1998). Logical approaches to incomplete information: A survey. In
+     Logics for Databases and Information Systems, pp. 307–356. Kluwer Academic Pub-
+     lishers.
+Vardi, M. Y. (1997). Why is modal logic so robustly decidable?. In Descriptive Complexity
+     and Finite Models: Proceedings of a DIMACS Workshop, Vol. 31 of DIMACS: Series
+     in Discrete Mathematics and Theoretical Computer Science, pp. 149–184. American
+     Mathematical Society.
+W3C OWL Working Group (2009).       OWL 2 web ontology language document
+   overview. Tech. rep., World Wide Web Consortium. http://www.w3.org/TR/2009/
+   REC-owl2-overview-20091027/.
+
+Wolstencroft, K., Brass, A., Horrocks, I., Lord, P., Sattler, U., Turi, D., & Stevens, R.
+     (2005). A Little Semantic Web Goes a Long Way in Biology. In Proceedings of the
+     5th International Semantic Web Conference (ISWC 2005).
+
+
+
+
+                                            481
+

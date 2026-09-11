@@ -1,0 +1,2428 @@
+                                            An Overview of Capacity Results for Synchronization Channels
+                                                                           Mahdi Cheraghchi∗                   João Ribeiro†
+
+
+                                                                                                Abstract
+                                                  Synchronization channels, such as the well-known deletion channel, are surprisingly harder to analyze
+                                               than memoryless channels, and they are a source of many fundamental problems in information theory
+arXiv:1910.07199v2 [cs.IT] 8 Nov 2019
+
+
+
+
+                                               and theoretical computer science.
+                                                  One of the most basic open problems regarding synchronization channels is the derivation of an exact
+                                               expression for their capacity. Unfortunately, most of the classic information-theoretic techniques at our
+                                               disposal fail spectacularly when applied to synchronization channels. Therefore, new approaches must
+                                               be considered to tackle this problem. This survey gives an account of the great effort made over the past
+                                               few decades to better understand the (broadly defined) capacity of synchronization channels, including
+                                               both the main results and the novel techniques underlying them. Besides the usual notion of channel
+                                               capacity, we also discuss the zero-error capacity of synchronization channels.
+
+
+                                        1      Introduction
+                                        Synchronization channels are communication channels that induce a loss of synchronization between sender
+                                        and receiver. In general, this means that there is memory between different outputs of the channel, even
+                                        if the inputs to the channel are independent and identically distributed (i.i.d.). As a result, synchroniza-
+                                        tion channels appear much more difficult to analyze than memoryless channels like the Binary Symmetric
+                                        Channel (BSC) and the Binary Erasure Channel (BEC). Indeed, most of the techniques we have developed
+                                        in classical information theory are tailored for memoryless channels, and fail spectacularly when applied to
+                                        synchronization channels.
+                                            It is not hard to come up with examples of synchronization channels. Arguably, the simplest such model is
+                                        the deletion channel. This channel receives a string of bits as input, and deletes each input bit independently
+                                        with some deletion probability d. The resulting output is a subsequence of the input string, and the loss
+                                        of synchronization stems from the fact that the receiver, upon observing the j-th output bit, is uncertain
+                                        about its true position i in the input string.
+                                            The deletion channel seems similar to the BEC, with the only difference being the fact that deleted bits are
+                                        not replaced by a special symbol in the former (Figure 1 illustrates the differences between the two models).
+                                        However, despite their similarities, it is much easier to analyze the BEC than the deletion channel. In fact,
+                                        although the capacity of the BEC with erasure probability has been known to equal 1 − d for more than 70
+                                        years [1] (achieved by a uniform input distribution), the capacity of the deletion channel is still unknown,
+                                        although it is trivially upper bounded by 1 − d by a reduction that removes erased symbols incurred by a
+                                        BEC. As an example of the inadequacy of current information-theoretic techniques for understanding the
+                                        deletion channel, we remark that a uniformly random codebook, which works very well for a large class of
+                                        memoryless channels (including the BSC and BEC), performs badly under i.i.d. deletions (save for the low
+                                        deletion probability regime, as we will see later).
+                                            Other well-studied synchronization errors include replications, where an input bit is replaced by several
+                                        copies of its value. Depending on the setting, the number of replications may be picked adversarially or
+                                        independently according to some distribution over the integers (e.g., geometric or Poisson replications). A
+                                        class of synchronization errors that does not fit in the two families already discussed are insertions. In this
+                                        case, a uniformly random symbol is added after the input symbol in the string. These types of errors and
+                                        associated channels are discussed in a more rigorous way in Section 1.1.
+                                            ∗ EECS Department, University of Michigan. Email: mahdich@umich.edu
+                                            † Department of Computing, Imperial College London. Email: j.lourenco-ribeiro17@imperial.ac.uk
+
+
+
+
+                                                                                                     1
+                                  deletion channel                    erasure channel
+
+
+                              1    0     1    1 0                1     0      1 1          0
+
+
+                                   1     1 0                     1      ? 1            ?   0
+Figure 1: Comparison between the deletion and binary erasure channels. Circled bits are deleted or erased.
+
+
+    Besides being a source of fundamental open problems in information theory and theoretical computer
+science, channels with deletions, replications, and insertions appear naturally in several practical scenar-
+ios. These include magnetic and optical data storage [2, 3], multiple sequence alignment in computa-
+tional biology [4, 5, 6], document exchange [7, 8, 9], and, more recently, DNA-based data storage sys-
+tems [10, 11, 12, 13, 14, 15], racetrack memories [16, 17, 18, 19], and bit-patterned magnetic recording [20, 21].
+    Moreover, other than the direct applications above, the capacity of synchronization channels is also
+intimately connected to other problems in information theory and theoretical computer science. Examples
+include the complexity of estimating the edit (also known as Levenshtein) distance between two strings
+in several settings [22, 23], low-distortion embeddings of edit distance into other norms [24], estimates on
+the expected length of the longest common subsequence between two random strings [25], the number of
+subsequences generated by deletion patterns [26, 27], and cryptography [28].
+    The study of the fundamental limits of, and codes for, synchronization channels began with the seminal
+works of Gallager [29], Levenshtein [30, 31], Dobrushin [32], Ullman [33], and Zigangirov [34]. This included
+both channels with i.i.d. and adversarial deletions, replications, and insertions. The main focus of this survey
+lies on the fundamental limits of communication through channels with deletions, insertions, and replications
+with a constant rate of (both i.i.d. and adversarial) errors, and both in the regimes of vanishing and zero
+decoding error probability. We present not only the main results in each specific topic, but also give a bird’s
+eye (sometimes at different altitudes) of the ideas and techniques behind most results. Some of the results
+we cover here can also be found in Mitzenmacher’s survey [35]. After more than a decade past [35], many
+new results and techniques have appeared. We discuss these new contributions, and attempt to give a novel
+perspective on older results.
+    Although we do not discuss explicit constructions of codes robust against synchronization errors in detail,
+we remark that this is still a very active research area. Indeed, even in the very basic case with a small
+number of adversarial deletions, first studied by Levenshtein [30], many important problems, with connections
+to combinatorics and number theory, remain open. Sloane’s survey [36] provides a great overview of this
+elegant setting. Furthermore, a very complete account of coding schemes developed for various models with
+synchronization errors can be found in the survey by Mercier, Bhargava, and Tarokh [37].
+
+1.1    Some types of synchronization channels
+In this section, we give a more careful overview of some types of synchronization channels that we will be
+focusing on in this survey.
+
+Repeat channels Repeat channels are a natural generalization of the deletion channel. These are channels
+that replicate each input symbol xi a total of Ri times consecutively in the output (where Ri = 0 means xi
+is deleted), where Ri are i.i.d. according to some replication distribution R over {0, 1, 2, . . . }. Observe that
+the deletion channel can be seen as a replication channel with R = Ber1−d , where Ber1−d denotes a Bernoulli
+distribution with success probability 1 − d. In other words, Pr[R = 0] = d and Pr[R = 1] = 1 − d.
+    Other notable repeat channels that introduce deletions which have been studied in the literature include
+the Poisson-repeat channel and the geometric deletion channel. For the Poisson-repeat channel we have
+R = Poiλ , where Poiλ denotes a Poisson distribution with mean λ. In this case, we have
+
+                                                     e−λ λr
+                                       Pr[R = r] =          ,   r = 0, 1, 2, . . . ,
+                                                       r!
+
+                                                          2
+                              0     1      1      1         0         0       1        0     0
+
+
+                                          1      3         2         1        2
+                            Figure 2: The run-length encoding of a binary string.
+
+
+and the deletion probability is Pr[R = 0] = e−λ . For the geometric deletion channel we have R = Geomp ,
+where Geomp denotes a geometric distribution with success probability p. In this case,
+
+                                    Pr[R = r] = (1 − p)r p,           r = 0, 1, 2, . . . ,
+
+and the deletion probability is Pr[R = 0] = p.
+   Throughout this work, we will denote the capacity of a repeat channel with replication distribution R
+by C(R). In the special case of the deletion channel with deletion probability d, we denote its capacity by
+C(d). We remark that C(R) is not known for any non-trivial replication distribution R.
+
+Sticky channels and run-length encoding Repeat channels that do not introduce deletions (i.e., Pr[R =
+0] = 0) are called sticky channels. In a sense, sticky channels are the easiest type of repeat channels to analyze,
+and they are also connected to practical applications (e.g., see [38, 39]). Widely studied examples of such
+channels include the duplication channel, which independently duplicates each input bit with probability
+p (i.e., R = 1 + Berp ), and the geometric sticky channel, which independently replicates each input bit
+according to R = 1 + Geomp . In both cases, we call p the replication parameter.
+    We proceed to explain why sticky channels are the easiest repeat channels. First, in general it is useful to
+represent the input to a repeat channel by its run-length encoding. More precisely, suppose our input string
+for the repeat channel is
+                                                 x = 0`1 1`2 0`3 . . . ,
+where the different 0`i and 1`j are called runs of x. Then, the run-length encoding of x is
+
+                                                (0, `1 , `2 , `3 , . . . ).
+
+For the particular application of studying the capacity of repeat channels, we may without loss of generality
+assume that every input string x starts with a 0. This does not affect the capacity of the channel, and allows
+to use the simpler run-length encoding
+                                                (`1 , `2 , `3 , . . . )
+for x, with the understanding that odd numbered runs correspond to 0’s and even numbered runs correspond
+to 1’s. Figure 2 depicts the run-length encoding of a particular string.
+    The behavior of repeat channels under run-length encoding is easy to describe. Observe that each input
+run of length ` is independently mapped to an output run of length
+
+                                                             X̀
+                                                  R(`) =            Ri ,
+                                                              i=1
+
+where the Ri are i.i.d. according to R. Output runs of length 0 are simply omitted from the output. Under
+some choices of R, the sum R(`) has a nice structure. For example, if R = Ber1−d , as is the case for the
+deletion channel, then R(`) = Bin`,1−d , where Bin`,1−d denotes a binomial distribution with ` trials and
+success probability 1 − d. Moreover, if R = Geomp , then R(`) = NB`,p , where
+                                                 
+                                           y+`−1
+                             NB`,p (y) =             (1 − p)` py , y = 0, 1, 2, . . .
+                                             y
+
+                                                            3
+is the negative binomial distribution with ` failures and success probability p.
+    For the special case of the sticky channels, we have Pr[R(`) = 0] = 0 for every ` ≥ 1. In other words, no
+input run is ever deleted. This has significant implications. Notably, in order to determine the capacity of
+a sticky channel with replication distribution R, it suffices to understand the Discrete Memoryless Channel
+(DMC) that maps integers ` ≥ 1 to R(`) . Observe that a sticky channel is memoryless between runs and we
+“pay” ` (out of total input length) to send a run of length ` through the DMC. Therefore, the capacity of
+this sticky channel, C(R), is equal to the capacity per unit cost of the DMC Ch0 that outputs R(`) on input
+` ∈ {1, 2, . . . }. In other words, we have
+
+                                                                I(L; R(L) )
+                                             C(R) = max                     ,                                    (1)
+                                                        L         E[L]
+
+where the maximum is taken over all distributions L supported on {1, 2, . . . }. The relationship in (1) makes
+sticky channels easier to study. Nevertheless, determining the exact capacity of any non-trivial sticky channel
+is still an interesting open problem.
+
+Insertion channels An insertion error occurs when a random bit is inserted into the string after a given
+input bit. Observe that these are different errors than replications, where the inserted bits are copies of
+the input bit. One may also think of insertions as complementary to deletions, in the sense that a deletion
+followed by an insertion makes a substitution error (i.e., a bit-flip). Moreover, as we shall see, substitution
+errors are harder to decode from than deletions or insertions.
+    With a bit more care, we say there is a single insertion after input bit xi if xi is replaced in the input string
+by xi 0 with probability 1/2 and xi 1 with probability 1/2. An insertion channel with insertion probability pi
+independently corrupts each input bit with an insertion error with probability pi . We note that some works
+have considered channels that insert several random bits after an input bit (dictated by some distribution
+over the non-negative integers), and also channels that combine deletions, replications, and insertions.
+
+1.2    Organization
+This survey is organized as follows: In Section 2, we discuss the equality of the channel and information
+capacities for synchronization channels, along with related results. Sections 3 and 4 are dedicated to capacity
+lower and upper bounds for synchronization channels, respectively. The regimes of small and high deletion
+probabilities for the deletion channel are discussed in Section 5. The capacity of synchronization channels
+affected by memoryless errors is discussed in Section 6. In Section 7, we consider the multi-use setting for the
+deletion channel. Finally, in Section 8 we study the zero-rate threshold for some adversarial synchronization
+channels.
+
+1.3    Notation
+Random variables are usually denoted by uppercase letters such as X, Y , and Z, and we may confuse a
+random variable with its distribution where appropriate. The support of a random variable X is denoted
+by supp(X). We write X → Y → Z to say that X, Y , and Z form a Markov chain (in this order). We
+may also write X ← S to mean that X is sampled uniformly at random from the set S. We denote the
+base-2 logarithm by log and the binary entropy function by h(p) = −p log p − (1 − p) log(1 − p). The natural
+logarithm is denoted by ln. The (Shannon) entropy of a random variable X is denoted by H(X), and I(X; Y )
+denotes the mutual information between X and Y . The Kullback-Leibler (KL) divergence between X and
+Y is denoted by DKL (X||Y ). Unless otherwise stated, capacities are presented in bits/channel use. Given a
+string x ∈ Σn , we say a string y ∈ Σm is a subsequence of x if there exist indices 1 ≤ i1 < i2 < · · · < im ≤ n
+such that xij = yj . Moreover, we say y is a substring of x if ij = i1 + j − 1 for all j = 1, . . . , m. A run of
+length ` in a string x ∈ Σn is a substring y = s` for some s ∈ Σ that cannot be extended. Given a vector or
+string x, we denote its length by |x|. For two strings x and y, we say z is a common subsequence of x and
+y if it appears as a subsequence in both x Sand y. We denote by LCS(x, y) the length of the longest common
+                                             ∞
+subsequence of x and y. We denote Σ∗ = n=0 Σn , where Σ0 contains only the empty string.
+
+
+
+
+                                                            4
+Discrete channels In this survey, we will be dealing solely with discrete channels. Such a channel Ch
+maps elements of X ∗ to elements of Y ∗ , and is characterized by a conditional probability distribution p(·|x)
+for every x ∈ X ∗ . We call X and Y the input and output alphabets of Ch, respectively. We denote the
+output distribution of Ch given input x ∈ X ∗ by Yx . Then, we have Pr[Yx = y] = p(y|x). For an input
+distribution X,Pwe denote its corresponding output distribution under Ch by YX . In other words, YX satisfies
+Pr[YX = y] = x∈X Pr[X = x] · Pr[Yx = y].
+    We say such a channel Ch with associated conditional probability distribution p is a Discrete Memoryless
+Channel (DMC) if it maps X n to Y n and
+                                                                             n
+                                                                             Y
+                                    p(y1 , . . . , yn |x1 , . . . , xn ) =         p(yi |xi ).
+                                                                             i=1
+
+As a result, in order to analyze a DMC Ch, it suffices to study its behavior on inputs x ∈ X . Well-known
+examples of DMC’s include the Binary Symmetric Channel (BSC) and the Binary Erasure Channel (BEC).
+We stress that synchronization channels are not DMC’s.
+
+
+2    A Shannon-type theorem for the channel capacity
+The focus of this survey lies on the capacity of synchronization channels. Here, we mostly mean capacity
+in the usual sense: The supremum of all rates at which reliable transmission is possible (i.e., with vanishing
+error probability as the block length increases). More precisely, we have the following definition.
+Definition 1 (Achievable rate and capacity of a channel). Given a channel Ch with input alphabet X and
+output alphabet Y, we say a real number R ≥ 0 is an achievable rate for Ch if for every n large enough there
+exists a codebook C ⊆ X n of size |C| = d|X |Rn e and a function Dec : Y ∗ → C such that
+
+                                           Pr[Dec(Yx ) = x] ≥ 1 − λ(n)
+
+for some λ(n) → 0 and all x ∈ C, where Yx denotes the output distribution of Ch on input x.
+    Then, the capacity of Ch, denoted by Cap(Ch), is given by
+
+                          Cap(Ch) = sup{R ≥ 0 : R is an achievable rate for Ch}.
+
+   In his seminal work, Shannon [1] proved the noisy channel coding theorem: If Ch is a discrete memoryless
+channel (DMC), then its capacity allows the following characterization.
+Theorem 2 ([1]). Suppose Ch is a DMC. Then, the capacity of Ch satisfies
+
+                                                   I(X (n) ; YX (n) )
+                            Cap(Ch) = lim max                         = max I(X; YX ).                     (2)
+                                         n→∞ X (n)        n              X
+
+
+In the middle expression of (2), the maximum inside the limit is taken over all distributions X (n) over X n ,
+and YX (n) is the corresponding output distribution. The maximum in the right-hand side expression is taken
+over all distributions X over X , and YX is the associated output distribution of Ch with input X.
+
+    In fact, it is possible to prove a strong converse to Shannon’s noisy channel coding theorem [40]: If we
+attempt to communicate at rates exceeding capacity, then not only is the error probability bounded away
+from 0, but it actually converges to 1 as the block length n increases.
+    Synchronization channels, however, are not memoryless. Therefore, it is not clear whether an analogue
+of (2) holds for them. This was settled by Dobrushin [32], who showed that this is the case for a large
+class of synchronization channels which includes repeat channels with well-behaved replication distributions.
+Consider a synchronization channel Ch with input and output alphabets X = [a] and Y = [b]∗ . When x ∈ X ∗
+is sent through Ch, each input symbol xi ∈ X is independently mapped to yi ∈ Y according to a conditional
+probability distribution p(·|xi ), and the yi ’s are then concatenated (note that some yi ’s may be the empty
+string, which represents a deletion). The following holds.
+
+
+                                                               5
+Theorem 3 ([32]). Let Ch be a synchronization channel such that for real constants 0 < c1 ≤ c2 it holds
+that                                       X
+                                     c1 ≤      |y| · p(y|x) ≤ c2                                    (3)
+                                                 y∈Y
+
+for all x ∈ X . Then, we have
+                                                           I(X (n) ; YX (n) )
+                                      Cap(Ch) = lim max                       ,                            (4)
+                                                 n→∞ X (n)        n
+where the maximum is taken over all X (n) supported on X n , and YX (n) is the associated output distribution.
+Moreover, the capacity is achieved by a stationary ergodic input source.
+   The characterization in (4) does not seem to be very helpful in determining the exact capacity of syn-
+chronization channels. Nevertheless, it has been useful in the derivation of good capacity lower bounds for
+such channels. Moreover, the fact that we can restrict ourselves to stationary ergodic input sources has been
+crucial in the derivation of capacity upper bounds.
+   Analogously to the memoryless case, a strong converse to Theorem 3 was independently proved by
+Ahlswede and Wolfowitz [41] and Kozglov [42] under a different assumption than (3). Namely, the strong
+converse requires that there exists a constant M such that
+
+                                p(y|x) > 0 holds for some x ∈ X only if |y| ≤ M .                          (5)
+
+In particular, repeat channels with replication distributions having unbounded support, such as the geometric
+sticky channel and the Poisson-repeat channel, do not satisfy this constraint. Ahlswede and Wolfowitz [41]
+go farther and also prove strong converses for other models, such as synchronization channels with feed-
+back. Although not our main focus, we note that Theorem 3 has been generalized to continuous channels
+by Stambler [43], and to channels with timing errors and inter-symbol interference by Zeng, Mitran, and
+Kavčić [44].
+    When attempting to bound or approximate the capacity of a synchronization channel Ch, it is useful to
+consider the relationship between Cap(Ch) and the capacity at “finite block length" Capn (Ch), defined as
+                                                      1
+                                       Capn (Ch) =      max I(X (n) ; YX (n) ),                            (6)
+                                                      n X (n)
+
+where the maximum is taken over all distributions X (n) supported on X n . Theorem 3 states that
+
+                                           Cap(Ch) = lim Capn (Ch).
+                                                        n→∞
+
+However, one can prove a stronger statement via Fekete’s lemma for subadditive sequences (an )∞
+                                                                                              n=1 of real
+numbers, which satisfy am+n ≤ am + an for all m, n ≥ 1.
+Lemma 4 (Fekete’s lemma [45]). Suppose (an )∞
+                                            n=1 is a subadditive sequence of real numbers. Then, we have
+
+                                                   an       an
+                                                lim   = inf    .
+                                               n→∞ n     n n
+
+   Fekete’s lemma can be used to prove the following result.
+Theorem 5. We have
+                                            Cap(Ch) = inf Capn (Ch).
+                                                          n
+
+In particular, it holds that Capn (Ch) ≥ Cap(Ch) for all n ≥ 1.
+
+   By Fekete’s lemma, it suffices to prove that the sequence (n · Capn (Ch))∞
+                                                                            n=1 is subadditive. For arbitrary
+m, n ≥ 1, consider the modified channel Ch0 obtained by adding a marker between the first n outputs of
+Ch and the remaining m outputs. It holds that Ch is a degraded version of Ch0 (obtained by removing the
+marker).
+
+
+
+                                                          6
+    Consider an arbitrary input source X over X n+m . Let X1 denote its restriction to the first n symbols,
+and X2 its restriction to the last m symbols. If Yi denotes the output of Ch under input Xi for i = 1, 2 and
+Y , Y 0 denote the output of Ch and Ch0 under input X, respectively, we have
+
+                                      I(X; Y ) ≤ I(X; Y 0 )
+                                               ≤ I(X1 ; Y1 ) + I(X2 ; Y2 ).
+
+Subadditivity follows easily from this inequality by noting that X is arbitrary.
+    The rate at which Capn (Ch) converges to Cap(Ch) has also been characterized for synchronization chan-
+nels. Taking into account Theorem 5, it is known [32] that
+
+                                             log(n + 1)
+                               Capn (Ch) −              ≤ Cap(Ch) ≤ Capn (Ch)                              (7)
+                                                 n
+for all n ≥ 1. Moreover, it has also been shown that the left-hand side inequality in (7) is tight up to a
+multiplicative constant [41]. As we discuss later on in Section 4, one could possibly use (7) coupled with
+numerical algorithms to potentially derive good capacity bounds for synchronization channels. However, this
+turns out to be computationally infeasible for decent values of n.
+
+Capacity per unit cost As already mentioned in Section 1.1, we will also need to work with the capacity
+per unit cost of DMC’s with real-valued input later on. We proceed to define it.
+Definition 6 (Capacity per unit cost). Given a DMC Ch with input and output alphabets X ⊆ R and Y,
+respectively, its capacity per unit cost with cost function c, denoted by Capc (Ch), is given by
+
+                                                              I(X; YX )
+                                         Capc (Ch) = max                ,
+                                                        X      E[c(X)]
+
+where the maximum is over all possible input distributions X over X , and YX denotes the associated output
+distribution.
+    If c(x) = x for all x, we simply write Cap(Ch) for the capacity per unit cost of Ch.
+
+
+3    General capacity lower bounds for synchronization channels
+In this section, we give an account of the development of capacity lower bounds for synchronization channels
+(mainly for repeat channels) and the underlying techniques. Some of these bounds have already been
+discussed by Mitzenmacher [35]. However, the topic has developed since then, and we discuss some more
+recent work. For the sake of clarity, we will center our exposition mainly around the (often simpler) deletion
+channel. We remark, however, that this will not always be the case, as some techniques are tailored for other
+types of repeat channels (in particular, the tight lower bounds for sticky channels).
+    The first capacity lower bound for the deletion channel was derived by Gallager [29] and Zigangirov [34]
+(who also considered a channel combining deletions with geometric insertions) by considering the performance
+of convolutional codes under synchronization errors. They showed that
+
+                                               C(d) ≥ 1 − h(d),                                            (8)
+
+where C(d) denotes the capacity of the deletion channel with deletion probability d. Ullman [33] studied the
+zero-error capacity of the deletion channel, and derived a capacity lower bound in that setting. However,
+given that the zero-error setting is much more demanding than the vanishing error setting we consider in
+most of this survey, his lower bound is generally more pessimistic than (8).
+    There is an alternative and simpler proof of (8) that fits our current perspective on capacity lower
+bounds for synchronization channels better. When attempting to lower bound the capacity of a repeat
+channel, it is natural to consider the rate achieved by a uniformly random codebook (i.e., a uniform channel
+input distribution) with an appropriate decoder. Using this approach, Diggavi and Grossglauser [46] re-
+derived (8). The decoder considered is simple: Given the output y of the deletion channel, the receiver
+
+
+                                                       7
+verifies whether y is a subsequence of only one codeword, and outputs that codeword. If this is not the case,
+then the receiver simply declares an error.
+    While (8), which we saw is achieved by a random codebook, turns out to behave well for small d (this
+is discussed in more detail in Section 5.1), it degrades quickly as d increases, and is trivial for d ≥ 1/2.
+This is not surprising, considering that deletions are not memoryless errors. Therefore, one expects that
+a good input distribution for the deletion channel should also have memory. One reasonable way to take
+this into account is to consider Markov chains as input distributions. This was done as early as 1968, when
+Vvedenskaya and Dobrushin [47] estimated the rates achieved over the deletion channel by Markov chains
+of order at most 2 via numerical simulations, although their results cannot be assumed to be reliable [48].
+Exploiting Monte-Carlo methods, these rates were later estimated again via numerical simulations by Kavčić
+and Motwani [49] (also for channels with insertions). We remark that both these works do not yield rigorous
+bounds, as their reported results are simulation-based. Nevertheless, they provide a good picture of the true
+achievable rates, and they strongly suggest Markov input sources behave significantly better than a uniform
+input.
+    Using an arbitrary Markov chain of order 1 as input and the same simple decoding procedure detailed
+above, Diggavi and Grossglauser [46] derived an analytical lower bound that improves on (8). More precisely,
+they showed that
+                                    1
+                           C(d) ≥       ·   sup [−(1 − d) ln((1 − q)A + qB) − γ],                         (9)
+                                   ln 2 γ>0,0<p<1
+                                          −γ                   2 −2γ
+                  1−p
+where q = 1 − 1+d(1−2p)  , A = (1−p)e
+                                1−pe−γ , and B =
+                                                  (1−p) e
+                                                    1−pe−γ   + pe−γ . Intuitively, we obtain (9) by optimizing
+the achievable rate over order 1 Markov chains over {0, 1} with transition probability 1 − p from 0 to 1 and
+vice-versa. A uniform input distribution corresponds to p = 1/2. Observe that we may think of a Markov
+chain of order 1 as an input distribution with runs following a geometric distribution (starting at 1).
+    The lower bound in (9) was improved by Drinea and Mitzenmacher [48, 50], and the approach was
+generalized to other repeat channels. They also consider Markov chains of order 1 as input distributions
+(equivalently, input distributions with i.i.d. geometric runs), but use a more careful decoding procedure,
+which they term jigsaw decoding. The main ideas behind jigsaw decoding are described extremely well in
+Mitzenmacher’s survey [35].
+    Notably, Mitzenmacher and Drinea [51] exploit jigsaw decoding-based capacity lower bounds for the
+Poisson-repeat channel, where each input bit is replicated according to a Poiλ distribution, and a connection
+between this channel and the deletion channel to derive the simple-looking lower bound
+                                                                          1−d
+                                               C(d) ≥ 0.1185(1 − d) >
+                                                                           9
+for all d. This bound is especially relevant in settings where d is close to 1. We discuss it in more detail in
+Section 5.2.
+     A radically different approach towards capacity lower bounds was proposed by Kirsch and Drinea [52],
+although with some ties to ideas used in [48, 50]. Instead of considering a codebook generated by some
+distribution and the rate achieved under a specific decoding algorithm, they undertake a purely information-
+theoretic approach using Dobrushin’s characterization of the capacity of repeat channels ( recall Theorem 3).
+In other words, for given input distributions Xn over n-bit inputs, n = 1, 2, . . . , Kirsch and Drinea directly
+lower bound the information rate
+                                                   I(X (n) ; YX (n) )
+                                              lim                     ,
+                                             n→∞          n
+where X (n) is supported on {0, 1}n . Any such lower bound directly yields a capacity lower bound for the
+repeat channel under consideration. In particular, they consider n-bit input distributions X (n) generated by
+i.i.d. runs with arbitrary run-length distribution P ,1 and show that
+                              I(X (n) ; YX (n) )
+                           lim                   = [rate achieved by jigsaw decoding] + P ,
+                          n→∞        n
+   1 To sample the input string X (n) , runs are generated according to P until there are at least n bits in the string. Then,
+
+the last run is truncated so that |X (n) | = n. Observe that this introduces dependencies between different input run-lengths.
+However, we may assume that all runs in X (n) are i.i.d., as this will have no effect on the rate when n → ∞ (assuming P is
+well-behaved).
+
+
+                                                              8
+where P is a positive term that depends on the input run-length distribution P . This term has the nice
+added property that
+                                            P = lim P,m
+                                                        m→∞
+
+for a positive, non-decreasing, bounded sequence (P,m )m=1,2,... . Therefore, it suffices to approximate (or
+even lower bound) P,m for some m appropriately to derive improved capacity lower bounds. However, naive
+computation of P,m requires dealing with many nested summations [52], which makes this task infeasible in
+practice.
+    Summing up, on the positive side the strategy from [52] yields computable lower bounds that potentially
+beat (or match) any lower bound obtained by considering codebooks generated by distributions with i.i.d.
+runs. On the other hand, as discussed above, it is currently practically infeasible to numerically approximate
+or lower bound P appropriately. Therefore, Kirsch and Drinea resort to simulation-based techniques to
+estimate it for some range of parameters. Their results strongly suggest (although without rigorous proof)
+that considering the extra term P in the lower bound leads to significantly improved lower bounds when
+compared to jigsaw decoding. The main ideas behind this result have been described extremely well in [35],
+and we refrain from doing so here.
+    Later, improved explicit lower bounds on the capacity of channels with deletions and insertions were
+derived by Venkataramanan, Tatikonda, and Ramchandran [53]. First, they only consider order-1 Markov
+chains as input distributions as in [48, 50] (instead of any distribution with i.i.d. runs as in [52]). However,
+similarly to the work of Kirsch and Drinea [52], they work directly with the mutual information, and split
+the information capacity as
+
+                              I(X (n) ; YX (n) )
+                           lim                   = [rate of sub-optimal decoder] + P ,                      (10)
+                          n→∞        n
+where P is a positive term that depends on the runlength distribution P (which, in this case, follows a
+geometric distribution) used to generate the X (n) . Intuitively, if X is the input distribution and Y is the
+corresponding output distribution, this sub-optimal decoder (which is not explicit) is induced by enforcing
+that a certain random process S (correlated with X and Y ) must be output as side information by the
+decoder. In other words, on input Y the decoder must recover both X and S with high probability, and
+the first term on the right-hand side of (10) is the rate achieved by the best decoder under this additional
+constraint. We remark that a globablly optimal decoder does not necessarily have to be able to recover the
+side information S besides X.
+    The strategy above allows the authors to lower bound each term on the right-hand side of (10) (and
+hence the rate achieved by order-1 Markov chains) by an expression that can be numerically computed in
+practice. As a result, they improve upon the lower bounds from [48, 50] for deletion probability d ≤ 0.3. We
+note that they also apply the same high-level strategy to derive capacity lower bounds for the insertion and
+ins/del channels.
+    We proceed to sketch the main ideas behind the result of [53] for the deletion channel. For a fixed n,
+let X = X (n) be the n-bit input distribution to the deletion channel and Y = YX its corresponding output
+distribution with M bits. Then, consider the tuple of integers S = (S1 , S2 , . . . , SM +1 ) where Si denotes the
+number of runs in X that are deleted between the input bits corresponding to Yi−1 and Yi (S1 denotes the
+number of runs deleted before Y1 , and SM +1 denotes the number of runs deleted after YM ). Then, using
+basic information-theoretic equalities, we have
+
+                                      H(X|Y ) = H(X, S|Y ) − H(S|X, Y ).
+
+Renaming the tuple (X, Y, S) in the discussion above as (X (n) , Y (n) , S (n) ), we conclude that
+
+                 I(X (n) ; Y (n) )              H(X (n) |Y (n) )
+              lim                  = h(p) − lim
+             n→∞       n                   n→∞       n
+                                                H(X (n) , S (n) |Y (n) )       H(S (n) |X (n) , Y (n) )
+                                   = h(p) − lim                          + lim                          ,    (11)
+                                           n→∞            n               n→∞            n
+where p is such that runs of X (n) are generated i.i.d. according to 1 + Geom(p) (thus h(p) is the entropy
+rate of the Markov process). Remarkably, the middle term in (11) has an analytical expression. Therefore,
+
+
+                                                          9
+to obtain a good computable capacity lower bound, it suffices to find an appropriate lower bound for the
+right-hand side term of (11). This turns out to be doable with significant effort by carefully restricting the
+averaging in the conditional entropy term H(S (n) |X (n) , Y (n) ) with respect to (X (n) , Y (n) ) to certain terms
+(X (n) = x, Y (n) = y) for which the distribution (S (n) |X (n) = x, Y (n) = y) can be more easily understood.
+    Fertonani and Duman [54] presented a simple approach that yields numerical capacity lower bounds
+for the deletion channel. These bounds are close to, but do not improve upon, the bounds from [50, 53].
+Nevertheless, we discuss it here both due to its simplicity, and also because their strategy is the basis for
+the work of Castiglione and Kavčić [55] where the current best simulation-based capacity lower bounds for
+the deletion channel are derived (they analyze a more general class of channels too). These simulation-based
+results are obtained by carefully estimating the rate achieved by Markov chains of order 3 under the deletion
+channel. We stress that these are not true lower bounds, in the sense that there is no rigorous proof.
+    The strategy of Fertonani and Duman [54] will also be discussed from a slightly different perspective in
+Section 4. In fact, its main goal was the derivation of good numerical capacity upper bounds for the deletion
+channel.
+    The bound in [54] is derived by adding undeletable markers to the input after every ` bits, for some
+constant `. More precisely, we can consider the following random process V : Let X be an n-bit input
+distribution for the deletion channel and Y its associated output distribution. For some constant ` of our
+choice, partition X into n/` consecutive blocks X [1] , X [2] , . . . , X [n/`] of ` bits each, and let Y [i] denote the
+part of Y coming from X [i] . Then, we can define Vi = |Y [i] | and set V = (V1 , . . . , Vn/` ). This process is
+illustrated in Figure 3. Revealing V as side information to the receiver and using basic information-theoretic
+inequalities immediately leads to the bounds
+
+                                   I(X; Y, V ) ≥ I(X; Y ) ≥ I(X; Y, V ) − H(V ).                                   (12)
+
+Since the Vi are i.i.d., we conclude that
+                                            1          1
+                                              H(V ) = H(V1 ).                                          (13)
+                                            n          `
+Note that the right-hand side of (13) is very easy to compute. In fact, V1 follows a Bin`,1−d distribution.
+Moreover, from the pair (Y, V ) we can fully determine all Y [i] . As a result, the channel X 7→ (Y, V ) is
+equivalent to n/` independent copies of the channel X [1] 7→ Y [1] . Therefore, we have
+                                            1                     1
+                                      max     I(X; Y, V ) = max I(X [1] ; Y [1] )                                  (14)
+                                        X   n               X [1] `
+
+for every n. Denoting the capacity of the channel that maps X [1] to Y [1] with fixed input length ` (i.e., the
+right-hand side of (14)) by C` , it follows from (14), (13), and (12) that
+
+                                                  I(X (n) ; YX (n) )       1
+                                  C` ≥ lim max                       ≥ C` − H(V1 )                                 (15)
+                                        n→∞ X (n)        n                 `
+for all constants `. By Theorem 3, we conclude from (15) that
+                                                            1
+                                            C` ≥ C(d) ≥ C` − H(V1 ),                                               (16)
+                                                            `
+recalling C(d) denotes the capacity of the deletion channel with deletion probability d. If ` is a small enough
+constant, then C` can be approximated numerically to great accuracy in a suitable amount of time with
+recourse to the Blahut-Arimoto algorithm [56, 57] (in [54], the authors go up to ` = 17).
+   To finalize, we remark that, instead of following the reasoning above, one could attempt to directly
+exploit the well-known general relationship between Cn (d) = n1 maxX (n) I(X (n) ; YX (n) ) (where X (n) is an
+n-bit input distribution to the deletion channel and YX (n) is the corresponding output) and C(d) to obtain
+capacity bounds. Recalling (7), we have
+                                                                    log(n + 1)
+                                       Cn (d) ≥ C(d) ≥ Cn (d) −                                                    (17)
+                                                                        n
+for every n. Observe that Cn (d) can potentially be computed with the help of the Blahut-Arimoto algorithm.
+However, this approach is computationally infeasible whenever n is not very small.
+
+
+                                                          10
+                                       1     1    0       1       0       0       1   0   1
+
+
+                                        0    1    0       1       0       0       1   0   1
+
+
+                                                      1       0       0       1
+                                              V1 = 1 V2 = 2                   V3 = 1
+
+Figure 3: Adding undeletable markers to the input at regular intervals, and the resulting random process V .
+Circled bits are deleted.
+
+
+Capacity lower bounds for sticky channels Several works have focused on obtaining capacity lower
+bounds for sticky channels. These channels appear to have a simpler structure than channels with deletions.
+In fact, studying the capacity of a sticky channel boils down to analyzing the capacity per unit cost of a
+certain DMC over the positive integers. This opens the door to lower bound techniques that are not available
+or are harder to realize for channels with deletions and insertions. Consequently, previous efforts in this topic
+have resulted in tight numerical lower bounds for many sticky channels.
+    As previously discussed in Section 1.1, sticky channels, first studied on their own by Mitzenmacher [58],
+replicate each input bit independently according to a replication distribution R over the positive integers.
+This means that no input bit is deleted. In particular, it easily follows that the capacity of a sticky channel
+Ch, denoted Cap(Ch), equals the capacity per unit cost (with costs c(x) = x) of a DMC Ch0 over the positive
+integers. In other words, recalling Definition 6 we have
+                                                              I(X; YX )
+                                       Cap(Ch) = max                    = Cap(Ch0 ),                                  (18)
+                                                      X         E[X]
+
+where we maximize over all input distributions X supported on {1, 2, . . . }, and YX denotes the output
+distribution of Ch0 with input X. Two notable examples of sticky channels are the duplication channel,
+where R = 1 + Berp , and the geometric sticky channel, where R = 1 + Geomp . For both these channels,
+the equivalent DMC over the positive integers has a nice form. Indeed, the “equivalent” DMC Ch0 for the
+duplication channel maps integers x > 0 to x + Binx,p , and the channel Ch0 for the geometric sticky channel
+maps integers x > 0 to x + NBx,p .
+    Mitzenmacher [58] exploited the equivalence in (18) to derive numerical capacity lower bounds for both
+the duplication and geometric sticky channels. The capacity per unit cost of DMC’s with finite input and
+output alphabets and positive symbol costs can be numerically computed using a variant of the Blahut-
+Arimoto algorithm due to Jimbo and Kunisawa [59]. As a by-product, the Jimbo-Kunisawa algorithm also
+outputs the capacity-achieving distribution. However, here we have to deal with a DMC Ch0 with infinite
+input and output alphabets. Nevertheless, this is easily dealt with if we are aiming for good lower bounds
+only. Indeed, it suffices to consider a modified DMC Ch0a,b obtained by truncating the input and output
+alphabets of Ch0 . More precisely, Ch0a,b behaves exactly like Ch0 , but only accepts inputs x ≤ a and, if the
+output y of Ch0 satisfies y > b, then Ch0a,b outputs a special symbol ⊥ instead of y.2 It follows easily from
+the definition of Ch0a,b that
+                                            Cap(Ch0a,b ) ≤ Cap(Ch0 ).
+We can then apply the Jimbo-Kunisawa algorithm to compute Cap(Ch0a,b ) numerically for sufficiently small
+a and b.
+   2 Observe that we do not need the second constraint (truncation of output alphabet) when dealing with the duplication
+
+channel, since in that case any truncation of the input alphabet induces a finite output alphabet. However, the same is not
+true for the geometric sticky channel.
+
+
+                                                               11
+    As determined by Mitzenmacher [58] and later Mercier, Tarokh, and Labeau [60], it turns out the simple
+strategy above already yields tight numerical capacity lower bounds for both the duplication and geometric
+sticky channels over the full range of the replication parameter p. Moreover, as evidenced in [60], codebooks
+generated by low-order Markov chains are already enough to get close to the capacity of sticky channels.
+Interestingly, these numerical lower bounds strongly suggest (although they do not provide a rigorous proof)
+that the capacity of the geometric sticky channel is bounded away from 0 when the replication parameter
+p → 1 (i.e., when the expected number of replications grows to infinity).
+    Although the numerical methods described above yield tight capacity lower bounds for the duplication
+and geometric sticky channels for fixed values of the replication parameter p and provide some intuition
+about various properties of the capacity curve, they only provide a limited mathematical understanding of
+the behavior of these channels. For example, these techniques give no rigorous insight about their behavior
+in limiting regimes, such as when p → 0 or p → 1. Overall, it is unclear whether a numerical approach
+can get us closer to determining an exact expression for the capacity of synchronization channels, which is
+arguably one of the main final goals of the study of such channels.
+    As a result, there is a natural need for analytical capacity bounds for synchronization channels. A few
+such lower bounds have already been presented in this section for the deletion channel, and more analytical
+bounds will be discussed in detail in later sections. With respect to capacity lower bounds for sticky channels,
+both Drinea and Mitzenmacher [50] and Iyengar, Siegel, Wolf [61] give analytical expressions for the rate
+achieved by an arbitrary order-1 Markov chain under both the duplication and geometric sticky channels
+(their approach can be generalized with some effort to Markov chains of higher orders). The numerical
+bounds suggest that these analytical lower bounds are close to the true capacity, since we know that low-
+order Markov chains behave well under sticky channels.
+    Exploiting these analytical bounds, Iyengar, Siegel, and Wolf [61] give a simple lower bound for the
+capacity of the geometric sticky channel with replication parameter p, which we denote by C(Geomp ),
+specialized for the p → 0 regime. More precisely, they show that
+                                    C(Geomp ) ≥ 1 + p log p + cp − O(p2 ),
+where c ≈ 0.8458 is an explicit constant. This lower bound is achieved by a uniform input distribution, and
+suggests that the geometric sticky channel behaves like a BSC for small replication parameter. The same
+qualitative statement is known to hold true for the deletion channel with small deletion probability, as we
+shall see in Section 5.1.
+
+Lower bounds in the large alphabet setting All lower bounds we have seen thus far in this section
+have been presented for synchronization channels with binary input alphabet. We remark that some of
+them can be generalized to synchronization channels with a Q-ary input alphabet. The question of how
+the capacity of a Q-ary synchronization channel scales as Q grows is natural, and it turns out to be more
+approachable than understanding the capacity of its binary counterpart.
+   For the capacity of the Q-ary deletion channel, which we denote by CQ (d), Mercier, Tarokh, and
+Labeau [60] observe that lower bounds obtained by Diggavi and Grossglauser [46] imply that
+                                  (1 − d) log Q − 1 ≤ CQ (d) ≤ (1 − d) log Q.                              (19)
+As a result, we conclude that
+                                            CQ (d) ∼ (1 − d) log Q
+when Q → ∞. Note that the right-hand side of (19) is the capacity of the Q-ary erasure channel. Therefore,
+for large Q the Q-ary deletion channel behaves essentially like an erasure channel. Remarkably, this turns
+out to also be true to a certain extent for large enough constant-sized alphabets against worst-case deletions:
+Synchronization strings, introduced by Haeupler and Shahrasbi [62], can be used to transform a code robust
+against worst-case erasures into one robust against worst-case deletions (with good parameters) with only a
+constant blow-up on the alphabet size. Such strings have found plenty of applications so far.
+    We note that Mercier, Tarokh, and Labeau [60] derive large-alphabet capacity lower bounds for other
+types of synchronization channels too. As an example, for an arbitrary sticky channel with replication
+distribution R they show the bounds
+                                         log Q − 1 ≤ CQ (R) ≤ log Q,                                       (20)
+
+
+                                                      12
+where CQ (R) denotes the capacity of the Q-ary sticky channel under consideration. From (20), we conclude
+that
+                                             CQ (R) ∼ log Q
+for every replication distribution R. The upper bound in (20) is trivial. The lower bound is obtained by
+considering codewords x ∈ [Q]n for which no two consecutive symbols are the same, i.e., xi 6= xi+1 for
+all i = 1, . . . , n − 1. Such codewords can be easily decoded with zero error probability by removing all
+consecutive duplicates of a symbol in the output. Note that, by the discussion above, the bounds in (20)
+can also be easily seen to apply to the zero-error capacity of any sticky channel.
+
+
+4    General capacity upper bounds for synchronization channels
+In this section, we present the main ideas and techniques behind several capacity upper bounds for many types
+of synchronization channels. These include the deletion channel, sticky channels, and channels combining
+deletions and replications. In the first part of this section, we will focus mostly on the deletion channel for
+the sake of clarity. Then, we move on to other types of synchronization channels.
+    Although non-trivial capacity lower bounds for the deletion channel have been known since the 1960’s [29,
+34], the first true non-trivial capacity upper bounds only appeared 40 years later [63]. Prior this, Ullman [33]
+derived upper bounds for the zero-error capacity of the deletion channel, and Dolgopolov [64] obtained an
+upper bound on the rate achieved by a uniform input distribution under the deletion channel, assuming an
+unproven combinatorial conjecture. However, none of these works yields capacity upper bounds in the i.i.d.
+deletions regime we are interested in.
+    In general, capacity upper bounds are obtained by revealing some extra side information about the input
+to the receiver (what is sometimes a genie-aided argument). This immediately leads to a modified channel
+with a higher capacity. If the side information is chosen carefully, then the modified channel has a more
+approachable structure, and it is possible to determine or upper bound its capacity with known techniques.
+    The first non-trivial capacity upper bound for the deletion channel (i.e., better than the trivial 1−d upper
+bound from the BEC) was derived by Diggavi, Mitzenmacher, and Pfister [63]. They consider a modified
+deletion channel that adds undeletable markers between input runs. As a result, the receiver now knows
+which output bits come from each input run. Figure 4 illustrates the modified channel with added markers.
+The key property Diggavi, Mitzenmacher, and Pfister use is that the new channel is memoryless between
+different input runs. Moreover, by the behavior of the deletion channel, the modified channel transforms
+input runs of length u into output runs of length
+
+                                                Vu = Binu,1−d .                                            (21)
+
+We call the channel u 7→ Vu = Binu,1−d the binomial channel.
+    Given what we have observed so far, we can relate the modified deletion channel to the binomial channel.
+Roughly speaking, since the modified channel is memoryless between input runs, we may essentially focus
+only on input distributions with i.i.d. run-lengths. Let U be the run-length distribution of a given input
+distribution to the modified deletion channel. Then, we expect to spend E[U ] bits of the input to the modified
+deletion channel in each use of the binomial channel. Therefore, our achievable rate for the modified deletion
+channel under run-length distribution U should be
+                                                   I(U ; VU )
+                                                              ,
+                                                     E[U ]
+where VU = BinU,1−d is the output of the binomial channel. Since the capacity of the deletion channel is
+trivially upper bounded by the capacity of the modified deletion channel, it follows that
+                                                   I(U ; VU )
+                                     C(d) ≤ max               =: CapBin (d).                               (22)
+                                               U     E[U ]
+In words, the capacity of the deletion channel is upper bounded by the capacity per unit cost of the binomial
+channel under the cost function c(u) = u (recall Definition 6), which we denote by CapBin (d). Note that the
+binomial channel is a DMC, and hence we expect it to be much easier to handle than the deletion channel.
+
+
+                                                       13
+                                         1      1       0       1        0       0      1
+
+
+                                         1      1       0       1        0       0      1
+
+
+                                                    1       1        0       0
+                                                deleted run                      deleted run
+
+
+             Figure 4: The deletion channel with undeletable markers. Circled bits are deleted.
+
+
+   All it remains now is to obtain a good upper bound for the capacity per unit cost of the binomial
+channel, CapBin (d). In order to do this, Diggavi, Mitzenmacher, and Pfister make use of the following result
+of Abdel-Ghaffar [65], which allows one to upper bound the capacity per unit cost of a DMC for arbitrary
+cost functions.
+Lemma 7 ([65]). Consider a DMC Ch with discrete input alphabet U ⊆ R, discrete output alphabet V, and
+conditional output distribution Vu . Then, for any distribution Z over V and any positive cost function c we
+have
+                                           I(U ; V )        DKL (Vu ||Z)
+                                      max            ≤ max               .                              (23)
+                                        U E[c(U )]     u∈U     c(u)
+    If we wish to apply Lemma 7 to the binomial channel in view of (22), we must deal with a maximization
+over an infinite input alphabet U = {1, 2, . . . }. This turns out to be difficult to work with directly. If we
+could truncate the input alphabet of the binomial channel up to a finite threshold m, then we would reduce
+the right-hand side of (23) to a finite maximization problem over u ∈ {1, 2, . . . , m}. For a given choice of
+Z, this maximum could be easily computed. However, this does not work directly, as truncating the input
+alphabet of the binomial channel decreases its capacity. Instead, Diggavi, Mitzenmacher, and Pfister show
+how to carefully instantiate Z in Lemma 7 so that (i) the infinite maximization problem is reduced to a
+finite one (which can be solved with computer assistance), and (ii) it leads to good upper bounds. At a
+high level, Z is constructed as follows: First, one determines the capacity-achieving output distribution for
+the truncated binomial channel (with some small threshold m) via the Blahut-Arimoto algorithm. This is
+a distribution with finite support. Then, a carefully chosen geometrically distributed tail is added to this
+finitely supported distribution to obtain Z. This approach yields numerical capacity upper bounds for the
+deletion channel that improve upon the trivial 1 − d upper bound for d < 0.9.
+    Later, Fertonani and Duman [54] studied other types of side information, and improved upon the capacity
+upper bounds from [63]. At a high level, their strategy is to reduce the task of upper bounding (and even
+lower bounding) the capacity of the deletion channel to that of determining the capacity of a binary channel
+with fixed, finite input length. The latter task can be accomplished with computer assistance via the Blahut-
+Arimoto algorithm, provided that the input length considered is small.
+    The approach that leads to an improved capacity upper bound for the largest range of d (actually, for
+0.05 < d < 0.83) has already been discussed in Section 3. To improve upon the upper bound from [63]
+and the trivial upper bound 1 − d for d ≥ 0.83, Fertonani and Duman [54] consider another type of side
+information. We proceed to describe the main idea. They considered a genie that reveals to both sender
+and receiver a random process W = (W1 , W2 , . . . ) that works as follows: Fix some integer r,3 and suppose
+  3 As a small technicality, it must be assumed that the output length is a multiple of r + 1. This does not affect the capacity
+
+
+
+
+                                                                14
+                                     1    1    0       1       0     0 1      0   1
+
+
+                                      0   1    0       1       0 0        1   0   1
+
+
+                                                   1       0        0 1
+                                      r=1:         W1 = 5           W2 = 9 − 5 = 4
+
+             Figure 5: An example of the random process W with r = 1. Circled bits are deleted.
+
+
+x and y are the input and output, respectively, of the deletion channel. Then, W1 denotes the index of the
+(r + 1)-th received bit, yr+1 , in x. For i > 1, Wi denotes the difference between the indices in x of y(r+1)i
+and y(r+1)(i−1) . Note that revealing W to sender and receiver can only increase the capacity, and splits the
+deletion channel into several independent channels, the i-th channel having Wi input bits and r + 1 output
+bits (see Figure 5 for an example with r = 1). With a little effort, one can write the capacity of the modified
+channel in terms of the distribution of Wi and the capacity C`,r of the exact deletion channel that receives
+` bits and randomly deletes exactly ` − r bits. Two key observations then allow one to obtain a good upper
+bound on the capacity of the modified channel for all deletion probabilities d: First, Wi follows a negative
+binomial distribution, and hence many quantities that appear in the bound simplify considerably. Second,
+for small input length `, it is computationally feasible to apply the Blahut-Arimoto algorithm to numerically
+approximate C`,r . It turns out this upper bound is also useful in the high deletion limiting regime d → 1, as
+we shall see in Section 5.2.
+    As discussed in Section 3, we can also obtain capacity upper bounds for the deletion channel directly
+from the well-known relationship (recall (7) and (17))
+
+                                                   Cn (d) ≥ C(d).
+
+For small n, the quantity Cn (d) can be computed using the Blahut-Arimoto algorithm. However, this
+approach is prohibitive if n is not very small.
+   The capacity upper bound obtained by Fertonani and Duman [54] is not convex for deletion probabilities
+d ≥ 0.65. Exploiting this, Rahmati and Duman [66] were able to improve on it for all d ≥ 0.65. This is done
+by proving a “convexification” result for the capacity of the deletion channel C(d). More precisely, Rahmati
+and Duman [66] proved that
+                                           C(λd? + 1 − λ) ≤ λC(d? )                                     (24)
+for all λ, d? ∈ [0, 1]. In particular, setting λ = 1−d
+                                                    1−d
+                                                       ? for d ≥ d , we obtain
+                                                                  ?
+
+
+                                                           1−d
+                                              C(d) ≤              C(d? )                                  (25)
+                                                           1 − d?
+for any d ≥ d? . As a result, we conclude that any upper bound for C(d? ) can be extended linearly to every
+d ≥ d? . Considering (25) with d? = 0.65 and replacing C(0.65) by the best capacity upper bound for this
+deletion probability immediately improves upon the capacity upper bound of Fertonani and Duman [54].
+    In fact, Rahmati and Duman proved a stronger result relating C(λd1 + (1 − λ)d2 ) with λC(d1 ) and
+(1 − λ)C(d2 ) for arbitrary λ, d1 , d2 ∈ [0, 1]. However, the special case presented in (24) (which corresponds
+to d2 = 1) is the one that currently leads to improved capacity upper bounds.
+    The inequality in (24) is proved via what Rahmati and Duman call channel fragmentation. Consider
+the following deletion process: There are two independent deletion channels Ch1 and Ch2 with deletion
+probabilities d1 and d2 , respectively. Each input bit is sent through Ch1 with probability λ or through Ch2
+of the channel.
+
+
+                                                               15
+             replication
+          which            distributions
+                   is an easier              having
+                                  quantitysuch         full support
+                                               to understand            over
+                                                                     than Xthe(r+1)positive
+                                                                            the zero-error    integers   is 0.is An
+                                                                                                                 stilladversary   canWe
+                                                                                                                                      insert
+                                                                                                                                         notereplication
+                                                                                               1.capacity,              unknown.               that this
+                                                                                       j 1
+          theerrors
+               zero-error   capacity
+                      to make    all theofruns   of channels.
+                                                     0’s and 1’s have thex same      r      = across
+                                                                                         size          all the codewords of any candidate code.
+          characterization can be extended to larger alphabets                      and   tandem     replications      [102].
+             This means
+          Theorem        20 the   only The
+                             ([102]).    information
+                                               zero-error we can gather   j=1from the channel output is the number of runs of 0’s and 1’s
+              We conclude      this section     with a fewcapacity         of the
+                                                                  significant       stickyopen
+                                                                                related     channel     with replication distribution R as above
+                                                                                                   problems:
+             in the input codeword. The case where the replication distribution R satisfies Pr[R = i] > 0 if and only if
+          equals In   contrastwhere
+                   log(1/⇢),             ⇢ is the20,
+                                 to Theorem         unique     real solution
+                                                        we recall     that eventothe the zero-rate
+                                                                                          equation threshold of adversarial binary deletions,
+             1•Isi the   for some integer
+                      r zero-rate     thresholdr isfor
+                                                      considerably
+                                                          adversarial    more   challenging.
+                                                                           deletions    equal to  Kovačević
+                                                                                                    1/2? is[102]        was able to fully characterize
+             which    is an easier quantity      to understand         than   the zero-error      capacity,       still unknown. We note that this
+             the zero-error capacity of such channels. X                  1
+             characterization can be extended to larger alphabets              (r+1) and
+                                                                                     j  1 tandem replications [102].
+              • What is the expected length of the LCS of xtwo rindependent,               = 1.       uniformly random strings?
+                 We    conclude    this   section  with
+             Theorem 20 ([102]). The zero-error capacity   a  few   significant
+                                                                             of the stickyopen
+                                                                                  related           problems:
+                                                                                              channel   with replication distribution R as above
+                                                   deletion channel      j=1
+              • aaaaaaaaaa
+             equals   log(1/⇢), where
+                                    1       ⇢ is the
+                                                   del.unique
+                                                        prob. d1 real solution to the equation
+                 • Is the zero-rate threshold for adversarial deletions equal to 1/2?
+              In contrast to Theorem 20, we recall that even                      the zero-rate threshold of adversarial binary deletions,
+          which •is What
+                      an easier
+                            is theX  i
+                                  quantity
+                                     expected  to  understand
+                                                  length    of   the than
+                                                                      LCS X1
+                                                                            the
+                                                                            of    zero-error= 1.capacity,
+                                                                               x rindependent,
+                                                                               two
+                                                                                 (r+1)j 1
+                                                                                                             is stillrandom
+                                                                                                       uniformly        unknown.     We note that this
+                                                                                                                                strings?
+          References
+          characterization can be extended         deletion channel
+                                                        to  larger    alphabets     and   tandem     replications      [102].
+                        aaaaaaaaaa
+              We• conclude              1
+                                this section
+                                                   del. prob. d 2         j=1
+                                                with a few significant related open problems:
+
+                                                 ⋮
+            [1] C. Shannon, “A mathematical theory of communication,” Bell System Technical Journal, vol. 27, no. 3,
+                  In contrast to Theorem 20, we recall that even the zero-rate threshold of adversarial binary deletions,
+                 pp.the
+              • Is     379–423,
+                          zero-rate1948.
+                                       threshold
+             which    is an
+             References     easier quantity       to for  adversarial
+                                                      understand       thandeletions    equal tocapacity,
+                                                                              the zero-error        1/2? is still unknown. We note that this
+             characterization
+            [2]  A. V. isKuznetsov
+              • What
+                [1]      Shannon,
+                 constrained
+                                   can
+                            the expected
+                  WeC.conclude     this
+                                         be  extended
+                                           andlength
+                                      “Asection
+                                 channels,”
+                                                 A. J. of to
+                                                          H.thelarger
+                                                                Vinck,
+                                                   with Transactions
+                                           mathematical
+                                                IEEE       a few
+                                                              theory
+                                                   deletion channel
+                                                                        alphabets
+                                                                    LCS “A
+                                                                    significant
+                                                                             on
+                                                                               coding
+                                                                          of two
+                                                                                     and
+                                                                                             Y
+                                                                                           tandem
+                                                                                          scheme for
+                                                                                    independent,
+                                                                                  related openBell
+                                                                        of communication,”
+                                                                                  Information
+                                                                                                      replications
+                                                                                                    problems:
+                                                                                                        System
+                                                                                                    Theory,
+                                                                                                                        [102].
+                                                                                                          single peak-shift
+                                                                                                      uniformly
+                                                                                                                   Technical
+                                                                                                                vol.  39,  no.
+                                                                                                                                  correction in (d, k)-
+                                                                                                                      random strings?
+                                                                                                                                Journal,
+                                                                                                                               4,         vol. 27, no.
+                                                                                                                                   pp. 1444–1450,      3,
+                                                                                                                                                    July
+              • 1993.aaaaaaaaaa
+                     pp. 379–423,1 1948.           del. prob. d 1
+                  • Is the zero-rate threshold for adversarial deletions equal to 1/2?
+                  • What is the   Xiexpected
+                [2] A. V. Kuznetsov          and A. J. H. Vinck, “A coding scheme for single peak-shift correction in (d, k)-
+                                                  length of the LCS of two independent, uniformly random strings?
+          References constrained     channels,”             Transactions on Information Theory, vol. 39, no. 4, pp. 1444–1450, July
+                                                   IEEE channel
+                                                   deletion
+                     1993.
+                  • aaaaaaaaaa 1                   del. prob. d 2
+                                                                                   34
+
+
+                                                 ⋮
+            [1] C. Shannon, “A mathematical theory of communication,” Bell System Technical Journal, vol. 27, no. 3,
+                 pp. 379–423, 1948.
+             References
+             [2] A. V. Kuznetsov and A. J. H. Vinck, “A coding       34 scheme for single peak-shift correction in (d, k)-
+                [1] C. Shannon,  “A  mathematical  theory  of communication,”
+                 constrained channels,” IEEE Transactions on InformationBell        System
+                                                                                Theory,   vol.Technical Journal,
+                                                                                               39, no. 4,        vol. 27, no.
+                                                                                                          pp. 1444–1450,      3,
+                                                                                                                           July
+Figure 6: A fragmented deletion channel. This channel is equivalent to a deletion channel with deletion
+                    pp.
+                 1993.  379–423,  1948.
+probability λd1 + (1 − λ)d2 .
+                [2] A. V. Kuznetsov and A. J. H. Vinck, “A coding scheme for single peak-shift correction in (d, k)-
+                    constrained channels,” IEEE Transactions on Information Theory, vol. 39, no. 4, pp. 1444–1450, July
+with probability 1 −1993.
+                     λ. Figure 6 illustrates the behavior of this channel. Of course, this channel is equivalent
+                                                                    34
+to a deletion channel with deletion probability λd + (1 − λ)d . Nevertheless,    this “fragmented” view of the
+                                                            1               2
+deletion channel naturally leads to good capacity upper bounds.
+    For the case d1 = d? and d2 = 1, Rahmati and Duman obtain (24) via a simple argument. Suppose
+X is the n-bit input to the fragmented deletion channel described34in the previous paragraph with d1 = d?
+and d2 =1, and denote the corresponding output by Y . Furthermore, let X [1] denote the input bits that go
+through the channel Ch1 , with Y [1] = Y being the corresponding output. Since X → X [1] → Y [1] = Y is a
+Markov chain, by the data processing inequality we have
+
+                                                  I(X; Y ) ≤ I(X [1] ; Y [1] ).                                                  (26)
+
+Observe that |X [1] | follows a Binn,λ distribution, and so |X [1] | is close to its expected value λn with high
+probability. If |X [1] | = λn, then we could immediately upper bound I(X [1] ; Y [1] ) as (recall (6))
+
+                                             I(X [1] ; Y [1] ) ≤ λn · Capλn (Ch1 ).
+
+While the assumption above is not true, the fact that |X [1] | is nevertheless close to λn with high probability
+means leads to the inequality
+                                 I(X [1] ; Y [1] ) ≤ λn · Capλn (Ch1 ) + o(n).                             (27)
+Therefore, (24) follows by combining (26) and (27), dividing everything by n, and taking the limit n → ∞.
+    A similar “channel fragmentation” techniques was also used by Rahmati and Duman [67] to derive capacity
+upper bounds for the 2Q-ary deletion channel directly from any capacity upper bound for the binary deletion
+channel. This approach is useful because adapting the strategies discussed above to the 2Q-ary alphabet
+setting is not feasible from a computational perspective. This is because the complexity of the Blahut-
+Arimoto-type algorithms used in the works above grows quickly with the alphabet size.
+    Note that all capacity upper bounds discussed so far are obtained by first reducing the (hard) optimiza-
+tion problem of determining the capacity of the deletion channel to a finite optimization problem which is
+amenable to off-the-shelf numerical methods. Analogously to what was discussed in Section 3, although such
+a strategy results in very good numerical upper bounds on the capacity of the deletion channel for fixed
+deletion probabilities and aids our intuition, it provides limited rigorous insight into the actual behavior of
+the capacity curve. This suggests that we may need a new approach if we hope to get a more complete
+understanding of the capacity of synchronization channels.
+
+
+                                                                16
+    Motivated by this, Cheraghchi [68] focused on obtaining analytical capacity upper bounds for the deletion
+channel (among other repeat channels) that require as little computer assistance to be derived as possible.
+Nevertheless, his capacity upper bounds also improve upon previous ones for d ≤ 0.02. Besides what
+has been said above, analytical capacity bounds open the door to a mathematically rigorous approach to
+synchronization channels. In particular, by analyzing an analytical capacity bound, one may hope to prove
+good asymptotic results about the capacity curve, or obtain sharp closed form bounds on the capacity.
+Moreover, this approach leaves the door open for a derivation of the exact capacity of a synchronization
+channel.
+    The strongest upper bounds in [68] are given by maximums of concave smooth functions (given by sums of
+explicit exponentially decaying sequences) over [0, 1]. As a result, this maximization problem can be solve to
+the desired accuracy efficiently. Moreover, the amount of computer assistance required can be reduced further
+by replacing the concave smooth functions above (given in terms of infinite sums) by sharp upper bounds in
+terms of elementary and special functions. Notably, in some cases the resulting maximization problem can be
+solved analytically, leading to non-trivial capacity upper bounds with human-readable proofs. A particular
+example of this is the capacity upper bound
+                                                           log ϕ
+                                               C(1/2) ≤          ,                                         (28)
+                                                             2
+              √
+where ϕ = 1+2 5 is the golden ratio.
+    The starting point for Cheraghchi [68] is, similarly to previous works, the addition of carefully chosen
+side information to obtain a suitable upper bound. For the special case of the deletion channel, he obtains
+
+                                                          Capµ (Bin1−d )
+                                     C(d) ≤ (1 − d) · sup                ,                                 (29)
+                                                      µ≥0    1+µ
+
+where Capµ (Bin1−d ) denotes the capacity of the binomial channel with mean constraint µ and success prob-
+ability 1 − d. This is a channel that behaves like the binomial channel already discussed above in the context
+of the upper bounds obtained by Diggavi, Mitzenmacher, and Pfister [63], but which only accepts input
+distributions U such that E[U ] = µ.
+     Note that (29) looks similar to (22) from [63] where C(d) is upper bounded by the capacity per unit cost
+of the binomial channel. This is not a coincidence, and indeed the right-hand side of (29) can be expressed
+as a capacity per unit cost. One may wonder whether it would be feasible to obtain good analytical capacity
+upper bounds for the deletion channel by considering (22) and applying Lemma 7 with a carefully chosen
+Z given by an analytical expression. This turns out to be very complicated, even for simple cost functions
+like c(u) = u. The change of perspective to mean-limited channels in (29) is performed to enable a similar
+approach to actually work.
+     The second step in [68] is to establish a good way of obtaining analytical upper bounds for Capµ (Bin1−d ),
+i.e., the capacity of a mean-limited channel. This is accomplished by casting the problem of determining the
+capacity as a convex program, and employing techniques from convex duality and the Karush-Kuhn-Tucker
+(KKT) conditions. One then obtains the following result.
+Lemma 8 ([68], specialized). Suppose there is a distribution Z over V and constants a, b ∈ R such that
+
+                                           DKL (Vu ||Z) ≤ aE[Vu ] + b
+
+for every u ∈ U, where recall Vu = Binu,1−d . Then, it follows that
+
+                                            Capµ (Bin1−d ) ≤ aµ + b
+
+for every µ ≥ 0. Moreover, we have Capµ (Bin1−d ) = aµ + b if and only if:
+
+  1. Z is a valid output distribution of the mean-limited binomial channel with some associated input dis-
+     tribution U 0 ;
+  2. We have DKL (Vu ||Z) = aE[Vu ] + b for all u ∈ supp(U 0 ).
+
+
+                                                      17
+                                      1.0
+                                                                           Analytical lower bound [50, 53]
+                                                                           Simulation-based lower bound [55]
+                                      0.8
+                                                          1−d              Numerical upper bound [63, 54, 66]
+                                                                           Analytical upper bound [68]
+
+
+                   bits/channel use
+                                      0.6
+
+
+
+                                      0.4
+
+
+
+                                      0.2     1 − h(d)
+
+
+                                      0.0
+                                        0.0         0.2         0.4          0.6              0.8               1.0
+                                                            deletion probability
+
+
+Figure 7: Capacity bounds for the deletion channel. The light gray lines depict the capacities of the BEC
+and the BSC. The circle marks where the analytical capacity upper bound from [68] beats the numerical
+capacity upper bound from [63, 54, 66].
+
+
+    We remark that Lemma 8 gives both a way of computing capacity upper bounds for mean limited channels
+and also a way of checking whether one has obtained an exact expression for the channel capacity. Results
+of this type are well-known in the information theory literature, and have been used to study the capacity
+of several different channels (e.g., see [69, 70, 71, 72, 73]).
+    Coupling (29) with Lemma 8 and careful choices of Z, Cheraghchi was able to derive several analytical
+capacity upper bounds. An example of a good choice of Z obtained through a convexity-based argument is
+the so-called inverse binomial distribution InvBinq defined as
+                                                 
+                                              y/p y
+                          InvBinq (y) = y0          q exp(−yh(p)/p), y = 0, 1, 2, . . . ,
+                                               y
+
+where p = 1 − d, y0 is the normalization factor, and q ∈ (0, 1) is a free constant. The inverse binomial
+distribution leads to good analytical capacity upper bounds for the deletion channel. Furthermore, it is
+possible to sharply bound it in terms of both elementary functions and standard special functions such as
+the Lerch transcendent. A particularly notable case is when d = 1/2. Then, the inverse binomial distribution
+becomes a negative binomial distribution. In this case, the resulting maximization problem in the capacity
+upper bound can be solved without computer assistance, leading to the fully explicit bound in (28).
+    Cheraghchi constructed various candidate distributions Z not only for the deletion channel, but also for
+the Poisson-repeat channel. However, we note that none of the distributions considered in [68] satisfy either
+of the two conditions required for optimality in Lemma 8.
+    Li [74] also uses optimization techniques to derive maximum likelihood upper bounds for information
+stable channels, and, among other things, specializes his approach for the deletion channel. He reduces
+upper bounding the capacity of the deletion channel to solving a certain combinatorial problem over {0, 1}n .
+Namely, this problem asks to, given an output string y from the deletion channel, to find x ∈ {0, 1}n such
+that the number of deletion patterns that transform x into y is maximized. Although this combinatorial
+problem is hard to tackle directly, Li considers more efficient ways of approximating its solution.
+    Figure 7 collects the best analytical and simulation-based lower bounds along with the best analytical
+and numerical upper bounds on the capacity of the deletion channel.
+
+Capacity upper bounds for sticky channels As already discussed in Section 3, the capacity of a sticky
+channel Ch equals the capacity per unit cost of a certain DMC Ch0 over the positive integers with cost
+function c(x) = x (recall Definition 6 and (18)). In particular, when Ch is the duplication channel, then Ch0
+
+
+                                                                      18
+maps x ∈ {1, 2, . . . } to Yx = x + Binx,p for some replication parameter p. Moreover, if Ch is the geometric
+sticky channel, then Ch0 maps x ∈ {1, 2, . . . } to Yx = x + NBx,p , where recall NBx,p denotes a negative
+binomial distribution with x failures and success probability p.
+    This observation suggests a clear approach towards obtaining numerical capacity upper bounds for sticky
+channels. Namely, similarly to what was done by Diggavi, Mitzenmacher, and Pfister [63] for the deletion
+channel, one can exploit Lemma 7 with a careful choice of Z to derive upper bounds on the capacity per
+unit cost of DMC’s. This was the strategy originally undertaken by Mitzenmacher [58]. As was done in [63],
+Mitzenmacher constructs Z by combining a capacity-achieving input distribution for the truncated DMC
+Ch0 with a suitable geometric tail. This leads to tight numerical capacity upper bounds for the duplication
+channel. However, he was not able to derive capacity upper bounds for the geometric sticky channel.
+    Later, Mercier, Tarokh, and Labeau [60] used the same high-level strategy from the previous paragraph to
+derive tight capacity upper bounds for the geometric sticky channel (and other similar channels). However,
+their low-level approach differs from that of Mitzenmacher [58], as they construct a distribution Z using
+different weights for small inputs (instead of using the output distribution associated to the capacity-achieving
+input distribution for the truncated DMC) along with a geometric tail.
+    Cheraghchi and Ribeiro [75], building on techniques from [68], derived tight analytical capacity upper
+bounds for the duplication and geometric sticky channels. As before, these bounds are maximums of concave
+smooth functions over [0, 1], and hence can be computed efficiently to any desired accuracy. Moreover,
+besides being analytical, these upper bounds improve upon on the previous numerical bounds [58, 60] for
+some choices of the replication parameter p. Similarly to the connection between the capacity of sticky
+channels and the capacity per unit cost of certain DMC’s, we may also write
+                                                                  Capµ (Ch0 )
+                                              Cap(Ch) = λ sup                 ,
+                                                              µ≥λ     µ
+
+where Ch is a sticky channel with replication distribution R, λ = E[R], and Capµ (Ch0 ) is the capacity of a
+certain DMC Ch0 over the integers with mean constraint µ. Therefore, it suffices to apply Lemma 8 with
+a careful choice of the candidate distribution Z to obtain good capacity upper bounds for sticky channels.
+Cheraghchi and Ribeiro are able to construct a family of distributions Z such that
+
+                                                DKL (Vu ||Z) = aE[Vu ] + b                                                  (30)
+
+for every u, where Vu denotes the output distribution of the DMC Ch0 on input u. Intuitively, this is one
+of the reasons for the high quality of the resulting analytical capacity upper bounds. Observe that (30)
+means Condition 2 for the optimality of Z in Lemma 8 is automatically satisfied. However, they were not
+able to find a Z in the family satisfying Condition 1 for optimality. If such a Z is found (either directly or
+by adapting the techniques), then one obtains an exact expression for the capacity of the underlying sticky
+channel. Figures 8 and 9 plot the best capacity upper bounds for the duplication and geometric sticky
+channels.
+
+Capacity upper bounds for channels with replications and deletions Some works also study
+the capacity of channels combining deletions and replications. Mercier, Tarokh, and Labeau [60] adapt
+their approach towards obtaining capacity upper bounds for sticky channels to channels with deletions and
+replications by considering extra side information such as undeletable markers, as in [63]. Cheraghchi [68]
+obtained analytical capacity upper bounds for the Poisson-repeat channel using the high-level approach
+discussed above for the deletion channel (but using a very different low-level analysis). Techniques developed
+in [68] were later adapted to yield a better understanding of the capacity of the discrete-time Poisson
+channel [76], which is an important channel in optical communications. Finally, Cheraghchi and Ribeiro [75]
+studied the geometric deletion channel, which independently replicates bits according to a Geomp distribution.
+They obtain analytical capacity upper bounds for this channel, and notably give a fully analytical proof that
+the capacity of this channel is at most 0.73 bits/channel use (hence bounded away from 1) in the limit p → 1
+(which corresponds to the expected number of replications growing to infinity).4 Thus far, this is the only
+non-trivial capacity upper bound for any repeat channel in the “many replications” regime.
+  4 We note this is not obvious for repeat channels with infinitely supported replication distributions. In fact, the capacity of
+
+the Poisson-repeat channel converges to 1 when the expected number of replications grows to infinity [75].
+
+
+                                                              19
+                                        1.0
+
+
+
+                                        0.8
+                    bits/channel use
+
+                                        0.6
+
+
+
+                                        0.4
+
+
+
+                                        0.2
+                                                                            Numerical upper bound [58]
+                                                                            Analytical upper bound [75]
+                                        0.0
+                                          0.0   0.2     0.4           0.6               0.8               1.0
+                                                      replication parameter
+
+
+Figure 8: Tight capacity upper bounds for the duplication channel. The circle indicates where the analytical
+upper bound from [75] beats the numerical upper bound from [58].
+
+
+
+
+                                        1.0
+                                                                            Numerical upper bound [60]
+                                                                            Analytical upper bound [75]
+                                        0.8
+                     bits/channel use
+
+
+
+
+                                        0.6
+
+
+
+                                        0.4
+
+
+
+                                        0.2
+
+
+
+                                        0.0
+                                          0.0   0.2     0.4           0.6               0.8               1.0
+                                                      replication parameter
+
+Figure 9: Tight capacity upper bounds for the geometric sticky channel. The circle indicates where the
+analytical upper bound from [75] beats the numerical upper bound from [60].
+
+
+
+
+                                                              20
+5      The deletion channel capacity in limiting regimes
+Since determining the deletion channel capacity appears to be very difficult, significant attention has been
+directed at characterizing this capacity in the regimes where the deletion probability d approaches either 0
+or 1. The case where d → 0 is solved (up to lower order terms), while the gap between upper and lower
+bounds in the d → 1 setting is still considerable. This section aims to provide an account of the results and
+techniques used in these limiting regimes.
+
+5.1      Low deletion probability
+In this section, we discuss of the concurrent efforts that succeeded in determining the high-order terms of
+the capacity of the deletion channel in the limit d → 0 [77, 78]. Notably, both works use radically different
+approaches.
+    Our starting point is the basic lower bound on C(d) [29, 34, 46],
+                                                       C(d) ≥ 1 − h(d).
+As discussed in Section 3, the result is obtained by considering a uniform input distribution. This bound
+is quite bad for d not too small (in particular, for d close to 1/2). However, as we shall see, this bound is
+essentially optimal for small d. Intuitively, this seems to make sense. In fact, the uniform input distribution
+is trivially capacity-achieving at d = 0. Therefore, one expects that it should also behave quite well for
+small deletion probability. Kalai, Mitzenmacher, and Sudan [77] gave a rigorous basis to this intuition using
+an interesting counting argument, and Kanoria and Montanari [78] provided a tighter asymptotic analysis,
+leading to the result below.
+Theorem 9 ([77, 78]). For every constant  > 0, it holds that
+                                        C(d) = 1 − h(d) + c1 d + c2 d2 + O(d3− ),
+where c1 ≈ 1.1542 and c2 ≈ 1.6781. This rate is achieved by:
+     • The uniform input distribution, to within O(d2− ) [79];
+     • An input distribution with i.i.d. runs, to within O(d3− ).
+    Observe that Theorem 9 shows that the deletion channel with small deletion probability d behaves almost
+like a BSC with error probability d.
+    Kalai, Mitzenmacher, and Sudan [77] determined the weaker expansion
+                                                  C(d) = 1 − h(d) + O(d).
+Their approach is based on a different way of looking at capacity upper bounds: Suppose that for the deletion
+channel there is a decoder that, with decent probability, is able to recover both the input and the positions
+of the deletions applied by the channel from the channel output. Then, this leads to a good capacity upper
+bound. In fact, consider, for the sake of clarity, the exact deletion channel Deln,q that receives n input bits
+and deletes exactly q of them at random5 . This exact channel has also been considered in other works on
+deletion capacity bounds discussed before. For an input x ∈ {0, 1}n to Deln,q , the output y =∈ {0, 1}n−q
+can be written as y = xp for a deletion pattern p ∈ {0, 1}n with pi = 1 if and only if xi is deleted. Suppose
+there exist a code C ⊆ {0, 1}n and a deterministic decoder Dec : {0, 1}n−q → {0, 1}n × {0, 1}n such that
+                                                 Pr     [Dec(XP ) = (X, P )] ≥ γ.                                           (31)
+                                            X←C,P ←P
+                                                                     
+The inequality in (31) means there are at least γ·|C|·|P| = γ·|C|· nq pairs (x, p) such that Dec(xp ) = (x, p). On
+the other hand, each such good pair is mapped to a different channel output in {0, 1}n−q . This immediately
+leads to the bound                                      
+                                                        n
+                                             γ · |C| ·     ≤ 2n−q ,                                            (32)
+                                                        q
+    5 For large input blocklength, it is easy to translate results between the exact deletion channel with q = ddne deletions and
+
+the usual deletion channel with deletion probability d via standard concentration arguments.
+
+
+                                                               21
+which implies, by setting q = ddne and using the standard equality
+                                            
+                                            n
+                                       log     = n · h(d)(1 + o(1)),
+                                            q
+the following upper bound on the rate of C:
+                                           
+                      log |C|      q 1     n   1                      1
+                              ≤ 1 − − log     − log γ ≈ 1 − d − h(d) − log γ.
+                        n          n n     q   n                      n
+Therefore, if we come up with a decoder whose success probability γ is not too small, then we obtain the
+desired 1 − h(d) + O(d) upper bound.
+   Remarkably, when applied to simpler channels such as the BSC and the BEC, this approach easily yields
+the correct upper bounds on their capacities. In both channels, any decoder that succeeds in recovering the
+input x from the output xp (where in the error pattern one now replaces deletions with bit-flips or erasures)
+automatically recovers p correctly too. This means we can set the success probability γ = 1 − o(1). With
+respect to the BSC, there are 2n possible output sequences, and so one obtains, analogously to (32),
+                                                            
+                                                            n
+                                        (1 − o(1)) · |C| ·     ≤ 2n .
+                                                            q
+
+Setting q = ddne, this implies the correct capacity upper bound
+
+                                           log |C|
+                                                   ≤ 1 − h(d) + o(d)
+                                             n
+for the BSC with error probability d. For the BEC, the only difference is that the number of possible output
+sequences is 2n−q · nq , which leads to the correct bound (via (32) with q = ddne)
+
+                                             log |C|
+                                                     ≤ 1 − d + o(1)
+                                               n
+for the BEC with erasure probability d.
+    Going back to the deletion channel, in view of (31) and (32) all that is required now is to show that all
+sufficiently large codes C that can be decoded with high probability also have a decoder Dec that successfully
+decodes the channel output and recovers the correct deletion pattern with decent probability γ. However,
+this is not as simple as for the BSC and BEC, since many deletion patterns may yield the same output for
+a fixed input string, and all of them are equally likely. Given this, the natural strategy (followed in [77]) is
+to show that for most codewords of C few deletion patterns lead to the same output, provided the deletion
+probability is small. This means the most obvious choice of Dec works: Fix C ⊆ {0, 1}n that can be decoded
+with probability 1 − o(1) via some decoder Dec0 : {0, 1}n−q → {0, 1}n , and let Y = XP for X ← C and
+P ← P. Consider Dec : {0, 1}n−q → {0, 1}n × {0, 1}n that on input Y computes X̂ = Dec0 (Y ), and then
+finds the first pattern (say, in lexicographic order) of q deletions P̂ ∈ {0, 1}n such that X̂P̂ = Y . If such
+pattern exists, the output of Dec is Dec(Y ) = (X̂, P̂ ). Provided that for most choices of X there are few
+patterns p such that Xp = Y , then, if X̂ = X (which happens with high probability), it follows that P̂ = P
+with decent probability, since all possible deletion patterns are equally likely.
+    Using a different approach, Kanoria and Montanari [78] determined the remaining low-order terms of the
+capacity in Theorem 9. We remark that this requires more refined upper and lower bounds on the capacity:
+The basic lower bound using a uniform input distribution is not strong enough. Nevertheless, similarly to
+what was mentioned before, given that a uniform input distribution is trivially capacity-achieving at d = 0,
+it makes sense that the true capacity-achieving distribution for small d is a slight perturbation of the uniform
+input distribution.
+    An initially non-rigorous argument assuming that consecutive runs experience very few deletions (due
+to the small deletion probability) suggests that a certain input distribution with i.i.d. runs and run-length
+distribution P satisfying Pr[P = `] ≈ 2−` should achieve nearly optimal rate in the small deletion probability
+regime (observe that a run in the uniform input distribution has length ` with probability exactly 2−` ). The
+achievability part of Theorem 9 is obtained by directly estimating the rate of this explicit input distribution.
+
+
+                                                      22
+We note that an alternative proof of the achievability part of Theorem 9 was given by Iyengar, Siegel, and
+Wolf [61]. At a high level, the proof of the converse follows by showing that (i) the capacity is achieved by a
+stationary ergodic process, (ii) every such process with high entropy rate (necessary to improve on the rate
+achieved of the explicit input distribution with i.i.d. runs) must have run-length distribution very close in
+statistical distance to that of the uniform input distribution, and (iii) one may indeed consider a modified
+deletion process where deletions are forced to be far apart (a bit more precisely, there can be at most two
+deletions per input run) with only an O(d3 ) error in the true capacity.
+    To conclude this section, we note that Ramezani and Ardakani [80] applied techniques similar to those
+used in [78] to the duplication channel with small duplication probabilty. In that setting, they also conclude
+that the duplication channel behaves close to a BSC.
+
+5.2    High deletion probability
+As we have seen before, the deletion capacity in the small deletion probability regime is very well understood
+(up to low-order terms). Given this, it is natural to look at the opposite limiting regime and study the
+deletion capacity when the deletion probability is close to 1 instead. There, our knowledge still has some
+large gaps.
+    We start with the basic connection between the deletion channel and the BEC. As discussed before, the
+simple observation that a deletion is harder to handle than an erasure leads to the upper bound
+
+                                                       C(d) ≤ 1 − d,
+
+where 1 − d is the capacity of the BEC with erasure probability d. A natural question arises: We know that
+the deletion channel is a harder channel than the BEC, but is it significantly harder? A bit more precisely,
+is it true that C(d) = o(1 − d) when d → 1?
+     Mitzenmacher and Drinea [51] showed that the answer to this question is negative: The deletion channel
+and the BEC are always of comparable difficulty, in the sense that there exists a constant c > 0 such that
+C(d) ≥ c(1 − d) for all d.
+
+Theorem 10. For every d, we have 0.1185(1 − d) ≤ C(d) ≤ 1 − d.
+   The ideas behind this lower bound are very well covered in Mitzenmacher’s survey [35]. For completeness,
+we present an outline of their proof. At the basis of their approach lies the following observation: Suppose we
+generate a run of length distributed according to Poi λ , and send it through a deletion channel with deletion
+                                                       1−d
+probability d. Then, the length of the output is distributed according to Poiλ . This suggests the following
+reduction from the deletion channel to the Poisson-repeat channel: Sending a bit-string x ∈ {0, 1}n through
+the Poisson-repeat channel with mean λ is equivalent to first replicating each bit of x independently according
+to Poi λ , and then sending the resulting string x0 through a deletion channel with deletion probability d.
+      1−d
+Suppose we have a codebook CPoi of rate R for the Poisson-repeat channel where each bit is replicated Poi λ
+                                                                                                                     1−d
+
+times. Then, ignoring some technicalities6 and recalling that each bit is replicated 1−d
+                                                                                      λ
+                                                                                         times in expectation,
+applying the replication process to every codeword in CPoi leads to a good codebook for the deletion channel
+with rate
+                                                 (1 − d)R
+                                                           .
+                                                      λ
+Since the reduction above works for every d and λ, we have the inequality
+
+                                                       C(d)        Cλ
+                                                 inf         ≥ sup    .                                             (33)
+                                               d∈(0,1) 1 − d   λ>0 λ
+
+The desired lower bound in Theorem 10 follows by numerically lower bounding the right-hand side of (33)
+with recourse to the jigsaw decoding procedure from [50] applied to the Poisson-repeat channel with several
+different values of λ.
+   6 In particular, the failure probability of the decoder for C                        c
+                                                                 Poi must be at most 1/n for some c > 1/2, where n is the
+blocklength.
+
+
+
+
+                                                            23
+    Given Theorem 10, it is natural to wonder what is the correct scaling of C(d) with respect to 1 − d when
+d is close to 1. In other words, we are interested in the quantity
+                                                               C(d)
+                                                  c? = lim            .                                    (34)
+                                                       d→1− 1 − d
+
+For a complete proof of the existence of the limit on the right hand side of (34), see [81]. Theorem 10 implies
+that
+                                               0.1185 ≤ c? ≤ 1.                                           (35)
+   The lower bound in (35) is still the state-of-the-art. However, a significant effort was made to improve on
+the trivial upper bound. The first improvement on the upper bound was achieved by Diggavi, Mitzenmacher,
+and Pfister [63], who showed that
+                                                  c? ≤ 0.7918.
+    This result is obtained by coupling a marker-based approach analogous to the random process V from [54]
+already discussed in Section 3 with numerical optimization methods. For deletion probability d, consider a
+modified deletion channel with markers inserted every ` = 1−dλ
+                                                                bits which are never deleted, where λ is some
+constant (recall Figure 3 for an example). The markers can only increase the capacity, and this allows one
+to focus solely on the deletion channel with fixed input length `. Observe that the output length L of this
+new channel follows a binomial distribution Bin(`, 1 − d) with mean λ. In the limit d → 1, this means L
+follows a Poiλ distribution. The goal now is to numerically upper bound the capacity of this channel. Then,
+any numerical upper bound u one obtains immediately yields the capacity upper bound for the standard
+deletion channel,
+                                                    u    (1 − d)u
+                                            C(d) ≤ =              .
+                                                    `        λ
+Hence, we conclude that c? ≤ u/λ.
+    To numerically upper bound the capacity of the new channel, one wishes to apply Lemma 7. In order to
+do this, however, additional modifications must be applied to the channel. First, the output of the channel
+must be truncated to strings of length at most k, where k is some free constant. This truncation incurs
+an additive penalty in the capacity upper bound, stemming from the fact that the output length L may be
+larger than k, at which point one may trivially upper bound the mutual information. More precisely, if X is
+the channel input and Y is the corresponding channel output, then
+
+                        I(X; Y ) = I(X; Y |L)
+                                   X∞
+                                 =    Pr[L = `] · I(X; Y |L = `)
+                                     `=1
+                                     k
+                                     X                                    ∞
+                                                                          X
+                                 ≤         Pr[L = `] · I(X; Y |L = `) +           Pr[L = `] · `.
+                                     `=1                                  `=k+1
+                                                                P∞
+Using the fact that L is Poiλ , one can easily control the `=k+1 Pr[L = `] · ` term and make it a small
+enough constant with appropriate choices of λ and k. As desired, this allows one to consider only the
+channel with output length at most k with a small penalty. Second, given this bound of k on the output
+length, it is possible to show that it suffices to consider input `-bit sequences with at most k runsPto achieve
+                                                                                                      k
+capacity. This means it is possible to represent the input string as a vector (q1 , . . . , qk ) with i=1 qi = 1
+and qi ≥ 0, where qi represents the relative length of the i-th run. These two observations combined with a
+careful implementation of the optimization algorithm with α = 2 and k = 6 leads to the desired bound via
+Lemma 7.
+   Later, using a different genie-aided argument, Fertonani and Duman [54] were able to improve the upper
+bound on c? to
+                                                     c? ≤ 0.49.
+To prove this bound, they consider the random process W defined in Section 4 as side information to both
+sender and receiver in order to obtain a capacity upper bound. It is then possible to take the limit of the
+resulting bound (normalized by 1 − d) as d → 1 to derive the desired upper bound on c? .
+
+
+                                                          24
+   Not long afterwards, Dalai [81] presented yet another improved upper bound on c? , which has not been
+improved upon since.
+Theorem 11 ([81]). We have 0.1185 ≤ c? ≤ 0.4143.
+   Interestingly, the upper bound in Theorem 11 is not obtained via a direct genie-aided argument. Instead,
+Dalai shows how to directly transform the current best upper bounds on C(d) for general d into an upper
+bound on c? . More precisely, the main result in [81] is the following.
+Theorem 12 ([81]). We have
+                                                               C(d)
+                                                c? = inf                .
+                                                        d∈(0,1) 1 − d
+
+    Theorem 11 is obtained from Theorem 12 by considering the best numerical capacity upper bound for
+the deletion channel [54] at d = 0.65. Observe that any new improvements on upper bounds for C(d) may
+directly yield an improved upper bound on c? . In order to prove Theorem 12, Dalai uses the intuitive (and
+already mentioned) fact that, for large input length, the deletion channel with deletion probability d is well-
+approximated by the exact deletion channel that deletes exactly ddne bits. Recall that the exact deletion
+channel already played a key role in the approach of Fertonani and Duman [54]. Then, Dalai exploits a
+known relationship between the exact deletion channel and c? from [54]. Namely, recalling from Section 4
+that C`,r denotes the capacity of the exact deletion channel that receives ` bits as input and deletes exactly
+` − r bits at random, for every ` ≥ r it holds that
+                                                        ` · C`,r + 1
+                                                 c? ≤                .
+                                                            r+1
+   We remark that Theorem 11 can be also obtained as a corollary of the more general “convexification”
+result for the deletion channel capacity curve proved by Rahmati and Duman [66] which we discussed in
+Section 4. For the sake of exposition and completeness, we chose to present Dalai’s original approach to the
+d → 1 setting here. In fact, recall that Rahmati and Duman proved that
+
+                                            C(λd + (1 − λ)) ≤ λC(d)                                          (36)
+
+for all d, λ ∈ [0, 1]. For all fixed d? ∈ [0, 1] and d ≥ d? (setting λ = 1−d? ), this readily implies that
+                                                                          1−d
+
+
+                                                 C(d)   C(d? )
+                                                      ≤        .                                             (37)
+                                                 1−d    1 − d?
+Analogously to the previous approach, setting d? = 0.65 and using the best known upper bound for that
+value leads to Theorem 11. Note, however, that this is a stronger result than the general upper bound
+obtained via Theorem 12 as it holds for all d ≥ d? , not only in the limit d → 1.
+    A common feature of all previous bounds on c? is that they crucially depend on heavy numerical compu-
+tations. However, by combining (37) with results derived in [68], it is possible to obtain upper bounds on c?
+that can be derived without computer assistance. For example, starting with the fully explicit upper bound
+                                                               log φ
+                                                 C(1/2) ≤
+                                                                 2
+from [68], where φ ≈ 1.618 denotes the golden ratio, we conclude that
+
+                                                   c? ≤ 0.6942
+
+without computer assistance, improving on the first non-trivial bound on c? from [63].
+   Collecting the state-of-the-art results on c? , we have
+
+                                              0.1185 ≤ c? ≤ 0.4143.
+
+This suggests some natural open problems:
+
+
+                                                          25
+                            X          deletion channel
+                                                            Z              DMC
+                                                                                     Y
+            Figure 10: The channel obtained by concatenating a deletion channel with a DMC.
+
+
+    • Narrow the gap between lower and upper bounds for c? ;
+    • Both state-of-the-art bounds require computer assistance to be determined. With this in mind, it
+      would be interesting to get close (or even surpass) both bounds with a completely explicit approach;
+
+    • All the results presented guarantee only with existential results for codebooks. It would be interesting
+      to construct efficiently encodable and decodable codes with rates close to the best known lower bound
+      on c? for large deletion probability.
+
+Is the deletion channel capacity curve convex? A natural and seemingly more approachable conjec-
+ture put forth by Dalai [81] about the deletion channel capacity is that this curve is convex in the interval
+[0, 1]. Such a result would not only lead to a new qualitative understanding of the deletion channel, but
+it would also allow us to immediately extend numerical upper bounds beyond specific, isolated values of d
+to all d ∈ [0, 1] (with small loss in the quality of the bound for d close to the points at which the original
+bound was computed). Some known results support this conjecture. Namely, Theorem 12 by Dalai and the
+convexification result obtained by Rahmati and Duman are necessary (but not sufficient) conditions for C(d)
+to be convex. We remark also that the capacity bounds we currently have for the deletion channel are also
+convex (recall Figure 7).
+     Interestingly, this conjecture turns out to be false in the finite blocklength regime. Let Cn (d) denote the
+capacity of the deletion channel with fixed input length n. As observed by Dalai [81], as n increases it can be
+experimentally observed that Cn (d) is convex in a neighborhood of d = 0 of increasing size, but it is always
+concave in a neighborhood of d = 1.
+
+
+6     Synchronization channels concatenated with memoryless chan-
+      nels
+Several works have considered communication under the joint effect of synchronization loss and memoryless
+errors, such as substitutions (“bit-flips”), erasures, and Additive White Gaussian Noise (AWGN). Here, we
+focus our exposition mainly on the concatenation of a deletion channel with a DMC. Figure 10 illustrates
+the resulting channel.
+    We remark that the works discussed below also present results for more general synchronization channels.
+Moreover, although the channels considered here do not fall directly into the class considered in Section 2,
+a similar argument guarantees a result analogous to Theorem 3. Namely, their capacity is also given by
+
+                                                        I(X (n) ; YX (n) )
+                                               lim max                     ,
+                                              n→∞ X (n)        n
+
+where the maximum is taken over all distributions X (n) supported on X n .
+    This setting was first studied by Gallager [29], who introduced a channel (over a binary alphabet) where
+bits are first deleted with probability pd or replaced by two random bits with probability pi . Bits which
+are neither deleted nor replaced by two random bits (which happens with probability 1 − pd − pi ) are then
+flipped with probability pe . Using convolutional coding techniques, Gallager [29] showed that the capacity
+of this channel is lower bounded by
+
+                           1 + pd log pd + pi log pi + pe log pe + pc log pc + pf log pf                    (38)
+
+with the understanding that 0 log 0 = 0, where pc = (1 − pd − pi )(1 − pe ) is the probability of correct
+transmission and pf = (1 − pd − pi )pe is the probability a bit survives the first stage but is flipped in the
+second stage. Observe that when pi = 0 this channel corresponds to the concatenation of a deletion channel
+
+
+                                                           26
+with deletion probability pd and a BSC with error probability pe , which we call the deletion-BSC channel.
+Denoting the capacity of this channel by C(pd , pe ), from (38) we obtain the capacity lower bound
+
+                                       C(pd , pe ) ≥ 1 − h(pd ) − (1 − pd ) · h(pe ).                                   (39)
+
+    A more general approach was later undertaken by Diggavi and Grossglauser [46], who considered the
+concatenation of a deletion channel and an arbitrary DMC. Using a uniform input distribution combined
+with a typicality argument similar to that used to derive (8), they show that the capacity of the concatenation
+of a deletion channel with probability d and a DMC Ch, which we denote by C(d, Ch), satisfies
+
+                                        C(d, Ch) ≥ 1 − h(d) − (1 − d)H(Z|Y ),
+
+where Z is a uniform input to the DMC and Y is the output distribution of the DMC on input Z. If the
+DMC is symmetric (in particular, the capacity of such DMC’s is achieved by a uniform input distribution),
+then we have
+                              C(d, Ch) ≥ 1 − h(d) − (1 − d)(1 − Cap(Ch)).
+In particular, if Ch is a BSC, we recover (39). As another example, if Ch is a BEC with erasure probability
+, we conclude that
+                                       C(d, Ch) ≥ 1 − h(d) − (1 − d).                                (40)
+On the other hand, one also has the straightforward upper bound
+
+                                               C(d, Ch) ≤ (1 − d)Cap(Ch)
+
+obtained by considering a genie that reveals the positions of all deleted bits to the receiver.
+   There is a simple, general observation exploited by Rahmati and Duman [82] that opens the door to
+improved lower bounds. Suppose X is the n-bit input distribution to a concatenation of a deletion channel7
+with a DMC Ch. Let Z be the output of the deletion channel on input X, and Y the output of Ch on input
+Z (as in Figure 10). Then, if we have the inequality
+
+                                                I(X; Y ) ≥ I(X; Z) − an
+
+for every such tuple X → Z → Y and a fixed constant a, it easily follows that
+
+                                                 Cap(d, Ch) ≥ C(d) − a.
+
+This approach allows one to directly leverage the best lower bounds for the deletion channel to obtain good
+lower bounds for its concatenation with DMC. For example, instantiating Ch as a BSC with error probability
+, it holds that [82]
+                                    I(X; Y ) ≥ I(X; Z) − n(1 − d) · h()
+for every n-bit input distribution X. As per the discussion above, this means that
+
+                                            C(d, ) ≥ C(d) − (1 − d) · h().
+
+This inequality immediately leads to improved capacity lower bounds when compared to (39), both numerical
+(by using the state-of-the-art lower bounds from [66]), or analytical (since there are better analytical lower
+bounds on C(d) than 1 − h(d), see [46, 83]). Rahmati and Duman [82] successfully apply the observation
+above to obtain lower bounds beyond what we present here. In fact, they reduce the task of deriving capacity
+lower bounds for general synchronization channels concatenated with DMC’s combining erasures and bit-flips
+and AWGN to that of obtaining good lower bounds for the underlying synchronization channel.
+    Although we have been focusing solely on capacity lower bounds thus far, capacity upper bounds also
+exist for some channels of this type. Fertonani, Duman, and Erden [84], based on techniques from [54]
+already discussed in Section 3, derived numerical capacity upper and lower bounds for concatenations of a
+deletion/insertion channel and a BSC. Recall the random process V discussed in Section 3. Then, for any
+   7 The argument that follows works with any synchronization channel, but in this section we pay particular attention to the
+
+deletion channel.
+
+
+                                                             27
+fixed integer `, one can follow an analogous reasoning to the one behind the derivation of (16) to obtain the
+bounds
+                                                             1
+                                        C`0 ≥ C(d, ) ≥ C`0 − H(V1 ).
+                                                             `
+The only difference with respect to the derivation of (16) in Section 3 is that instead we have
+                                                               1
+                                                   C`0 = max I(X [1] ; Y [1] )
+                                                         X [1] `
+
+for X [1] supported over {0, 1}` and Y [1] its corresponding output through the deletion-BSC channel with
+deletion probability d and bit-flip probability  (instead of the deletion channel as before). If ` is a small
+constant, then C`0 can be directly approximated to good accuracy with computer assistance via the Blahut-
+Arimoto algorithm (in [84], the authors go up to ` = 8). We remark that this approach yields good numerical
+capacity upper bounds for a concatenation of a deletion channel with many DMC’s, and not just a BSC.
+    The capacity upper bound for the deletion-BSC channel derived in [84] is not convex for deletion prob-
+ability d ≥ 0.6. Rahmati and Duman [66] show that their “convexification” result for the standard deletion
+channel obtained via channel fragmentation (discussed in Section 4) can be extended to the deletion-BSC
+channel. In particular, they proved that
+
+                                               C(λd? + 1 − λ, ) ≤ λC(d? , )
+
+holds for all λ, d? ∈ [0, 1] and  ∈ [0, 1/2]. Setting λ = 1−d? yields the capacity upper bound
+                                                            1−d
+
+
+                                                               1−d
+                                                   C(d, ) ≤          C(d? , )                                                (41)
+                                                               1 − d?
+for every d ≥ d? . Intuitively, the inequality in (41) means that every capacity upper bound for fixed d? can
+be linearly extended to all d ≥ d? . This allows Rahmati and Duman to improve upon the upper bounds
+from [84] for d > 0.6 by considering the upper bound obtained in [84] at d? = 0.6 and applying (41) for all
+d ≥ 0.6.
+    We remark that synchronization channels concatenated with DMC’s have also been studied in the context
+of nanopore sequencing of DNA strands by Mao, Diggavi, and Kannan [85]. This topic recently found close
+connections to portable DNA-based data storage [12, 13]. In [85], the authors consider a channel model
+combining inter-symbol interference, deletions, and memoryless errors. They prove an analogue of Theorem 3
+for their setting, and, using techniques similar to those presented above, derive capacity bounds.
+    Finally, besides the capacity bounds discussed above, we note that some works have also derived simulation-
+based capacity bounds for several types of synchronization channels with memoryless errors [86, 87, 60].
+Similarly to the case of synchronization channels without memoryless errors discussed in Sections 3 and 4,
+these works consider Markov input sources and estimate their information rate.
+
+The large alphabet setting Similarly to what has been discussed in Sections 3 and 4, although binary
+synchronization channels concatenated with DMC’s are hard to handle, the problem of how the capacity
+scales with input alphabet size is more approachable. For example, Mercier, Tarokh, and Labeau [60]
+showed that the capacity of the Q-ary deletion channel with deletion probability d concatenated with a
+Q-SC channel8 with error probability , which we denote by CQ (d, ), behaves like
+
+                                               CQ (d, ) ∼ (1 − d)(1 − ) log Q
+
+as Q increases. Moreover, this optimal scaling is achieved by a uniform input distribution. They also
+determine the exact scaling of the capacity with respect to the alphabet size for other (more complex) types
+of synchronization channels combining deletions, geometric insertions and duplications, and memoryless
+errors.
+    8 A Q-SC channel is a generalization of the BSC to a Q-ary alphabet. For every q, q 0 ∈ [Q] such that q 6= q 0 , an input symbol
+                                        
+q is corrupted to q 0 with probability Q−1 , and is transmitted correctly with probability 1 − .
+
+
+
+
+                                                                28
+7    Multi-use synchronization channels
+Although we have been studying settings where an input string is sent through a synchronization channel
+only once, it is of both practical and theoretical interest to analyze the case where one is allowed to send a
+string several times through a channel.
+     The multi-use setting for synchronization channels, in particular for channels with deletions and inser-
+tions, is practically motivated by the read process in portable DNA-based data storage systems [12, 13].
+In DNA-based storage, data is encoded into DNA strands. To read the data off a given strand, portable
+systems make use of so-called nanopore sequencers. Roughly speaking, the DNA strand in question is sent
+through several pores, and each pore produces a noisy read of its content, inducing deletions, insertions, and
+substitutions. Therefore, it is important to understand the fundamental limits of reliable communication
+with a given number of noisy reads.
+     The multi-use deletion channel is also closely related to the problem of trace reconstruction, first studied
+by Levenshtein [4, 5] from a combinatorial perspective and Batu, Kannan, Khanna, and McGregor [6] for
+i.i.d. errors, motivated by applications in computational biology, phylogeny, and sequence alignment. The
+differences between the two problems are that in trace reconstruction the number of channel uses is not
+constant (it may grow with the blocklength), and the input string is either arbitrary or uniformly random.
+We note, however, that the problem of coding for the multi-use deletion channel with non-constant number
+of uses has been recently considered [88, 14, 15], again with connections to DNA-based data storage.
+     From a purely information-theoretic viewpoint, it is also interesting to compare how the capacity of
+synchronization channels behaves with respect to the number of uses versus the same scaling for DMC’s.
+The multi-use capacity of many DMC’s can be easily bounded, while the same cannot be said for similar
+channels with memory. For example, consider the multi-use BEC. Using the simple observation that a
+BEC with erasure probability d and t uses is equivalent to a BEC with erasure probability dt , it follows
+immediately that its t-use capacity equals 1 − dt . However, the situation for its close neighbor, the deletion
+channel, appears to be much more complex, since we do not know of any simple connection between the
+single-use and multi-use versions.
+     Haeupler and Mitzenmacher [89] studied the multi-use deletion channel in the regime of small deletion
+probability. Namely, they were able to determine the first-order term of the capacity in this regime under
+a uniform codebook, i.e., when all codewords are chosen uniformly at random. Interestingly, this quantity is
+close to the capacity of the t-use BSC, extending the close connection between the single-use deletion channel
+and the BSC in the small deletion probability regime discussed in Section 5.1 to multiple uses.
+
+Theorem 13 ([89]). For any integer t > 0, the capacity C(t, d) of the t-use deletion channel with deletion
+probability d under a random codebook satisfies
+
+                                   C(t, d) = 1 − A(t) · dt log(1/d) − O(dt ),
+
+where
+                                                      ∞
+                                                      X
+                                             A(t) =         2−j−1 tj t .
+                                                      j=1
+
+    As described in [89], the idea behind the proof of Theorem 13 comes from a simple strategy towards
+bounding the capacity of the multi-use BSC. Note that we cannot immediately reduce the multi-use BSC to
+the single-use case as we did for the BEC. However, such a reduction works if we first resolve some of the
+errors with a genie-based argument. First, observe that we can always tell whether some input bit was flipped
+in some of the t BSC outputs provided that it was not flipped in every use of the channel. If this exception
+happens, then we cannot detect that any bit flips occurred, and hence one calls this an undetectable error.
+Clearly, if the bit-flip probability is d, an undetectable error occurs at a given position with probability dt .
+If these were the only errors we had to worry about, then the resulting channel would be equivalent to a
+single-use BSC with bit-flip probability dt , whose capacity we know. Although this is not exactly the case,
+one can show that the capacity of the true multi-use BSC is close to the capacity of the channel with only
+undetectable errors whenever the bit-flip probability d is small enough. To see this, consider the t-use BSC
+equipped with a genie that, for each detectable error that occurs, tells the receiver if at least t/2 bit-flips
+occurred. The information from the genie allows the receiver to correct every detectable error, leading to
+
+
+                                                       29
+                               1     0    1     1     0
+                               1     0    1     1     0               1     1    0
+                               1     0    1     1     0
+Figure 11: A set of undetectable deletions. Circled bits are deleted. Note that every set of errors that leads
+to the same output is undetectable.
+
+
+the desired channel with only undetectable errors. To show the capacities are close for small d, it is now
+enough to argue that, on average, the genie must reveal very few bits of side information. If this holds, then
+the addition of the genie affects only lower-order terms of the capacity. In the BSC case this is easy to show,
+since a standard concentration argument shows the probability that more than t/2 bit-flips occur (at which
+point the genie must tell the receiver) in a given position is small enough with respect to d and t.
+    The idea used by Haeupler and Mitzenmacher [89] for the deletion channel is similar to that described
+in the paragraph above. However, more care is needed. First, the set of undetectable errors is not as simple
+as for the BSC. Analogously to the BSC, the situation where the i-th bit is deleted in all t uses leads to
+an undetectable error. However, other deletion patterns may also lead to undetectable errors (see Figure 11
+for an example). At a high level, Haeupler and Mitzenmacher [89] proceed by characterizing the set of
+undetectable errors, showing that they occur with probability O(dt ), and finally showing that, on average,
+the genie must reveal only O(dt ) bits of side information per input bit to resolve all other errors. This allows
+one to effectively approximate the t-use deletion channel by the channel that inflicts only undetectable errors
+when the deletion probability d is small enough. Determining the capacity of the latter turns out to be
+approachable.
+    We note that the multi-use setting for sticky channels has been considered by Magner, Duda, Szpankowski,
+and Grama [39]. This is motivated by nanopore sequencing, which, as mentioned before, has recently found
+connections to DNA-based data storage [12, 13]. However, they do not study the capacity directly, and their
+focus lies on the case with non-constant number of channel uses (i.e., the trace reconstruction problem [6]).
+Notably, they show that for well-behaved replication distributions log n channel uses suffice for reliable
+reconstruction of typical sequences, where n is the input block length.
+    We conclude this section with a list of open problems:
+    • Obtain non-trivial capacity bounds for the t-use deletion channel beyond the small deletion probability
+      regime;
+    • Consider channels that introduce more types of errors (e.g., insertions and deletions) on top of deletions;
+    • Design good codes for the multi-use deletion channel.
+
+
+8     Zero-rate threshold of adversarial synchronization channels
+In contrast with previous sections, the current section deals with reliable information transmission under
+adversarial synchronization errors. The main focus will be on adversarial binary deletions, although the
+effect of insertions and replications over a binary alphabet will also be considered.
+    In an adversarial setting, the most relevant notion is that of zero-error capacity. More precisely, we
+consider a setting where an adversary is allowed to corrupt a codeword of length n with at most dn syn-
+chronization errors (with 0 ≤ d < 1), and we are interested in the size of the largest codebook that allows
+for decoding with zero probability of error under this model. More precisely, one wishes to determine the
+supremum of all rates R ≥ 0 such that for large enough n there is a codebook C ⊆ X n of size |C| = |X |Rn
+coupled with a decoder Dec : Y ∗ → X n satisfying the property that, if c ∈ C and c0 ∈ Y ∗ can be obtained by
+corrupting c with at most pn synchronization errors, then Dec(c0 ) = c.
+
+
+
+                                                       30
+    Determining the zero-error capacity of the adversarial binary deletion channel with respect to the fraction
+of deletions d, which we denote by Cadv,del (d), for non-trivial d is a very challenging problem. Therefore,
+previous works have focused mostly on the easier problem of understanding zero-rate threshold for the
+adversarial deletion channel. More precisely, we seek to determine the fraction d? such that Cadv,del (d) > 0
+for all d < d? , and Cadv,del (d) = 0 for all d > d? .
+    We begin our discussion with a simple remark, which is an immediate consequence of the fact that, if we
+allow at least n/2 adversarial deletions, then an adversary can force the channel to output either all 0’s or
+all 1’s.
+Remark 14. The zero-rate threshold of the adversarial deletion channel, d? , satisfies d? ≤ 1/2.
+    It is also not clear at first whether d? > 0. This was established by Schulman and Zuckerman [90], who
+constructed a code with positive rate handling some constant fraction of adversarial deletions and insertions
+(besides another type of errors not relevant for our discussion). Notably, their code not only achieves
+positive rate, but also supports efficient (i.e., running in time polynomial in the blocklength of the code)
+encoding and decoding. Their construction is based on code concatenation. The outer code is a slightly
+modified Reed-Solomon code where codeword symbols consist in evaluation points concatenated with their
+evaluation under the message polynomial. The binary inner code has logarithmic block length, and hence
+can be constructed in a greedy manner to satisfy the desired properties (codewords should be sufficiently far
+apart in edit distance, and should have at least half 1’s in every block of even length) efficiently in the final
+blocklength.
+    Improved bounds on d? were derived by Kash, Mitzenmacher, Thaler, and Ullman [91] by relating d? with
+the expected length of the longest common subsequence (LCS) of two independent, uniformly random n-bit
+strings, denoted by Ln . Observe that a code cannot be zero-error decoded from dn adversarial deletions if
+and only if there exist two codewords whose longest common subsequence has length at least (1 − d)n. This
+suggests the following approach towards showing the existence of a code that can be zero-error decoded from
+at most dn adversarial deletions: Consider the graph Gn,d with vertices in {0, 1}n and an edge between x
+and y whenever the length of the LCS between x and y, denoted by LCS(x, y), satisfies LCS(x, y) ≥ (1 − d)n.
+Then, every independent set of Gn,d yields a code with the desired property. If Gn,d has a large enough
+independent set for all n large enough, then we obtain the lower bound d ≤ d? .
+    Suppose that 1 − d > γ, where
+                                                            Ln
+                                                  γ = lim      .                                            (42)
+                                                      n→∞ n
+
+Intuitively, γ is the relative expected length of the longest common subsequence of two uniformly random
+n-bit strings for large n. Recall that our goal is to show the existence of a large enough independent set in
+Gn,d . One way to do this is to first show that Gn,d has few edges. Then, we can apply Turán’s theorem [92] to
+show existence of the desired independent set9 . This idea is easy to realize: First, for large n and uniformly
+random strings X and Y , it holds that LCS(X, Y ) is well-concentrated around γn. More precisely, a standard
+concentration argument shows that all but an exponentially small fraction of pairs of strings x and y satisfy
+
+                                          |LCS(x, y) − γn| < (1 − d)n − γn.
+
+As a result, since there
+                         is an edge between x and y only when LCS(x, y) ≥ (1 − d)n, the number of edges in
+Gn,d is at most n2 2−cn for some constant c > 0 depending only on d. Turán’s theorem then guarantees the
+                                                                      0
+existence of an independent set in Gn,d , and hence a code, of size 2c n for some constant c0 > 0. Since this
+code has rate at least c > 0, we have the following result.
+                         0
+
+
+Theorem 15 ([91]). It holds that d? ≥ 1 − γ.
+
+Remark 16. The limit on the right hand side of (42) can be shown to exist via subadditivity and Fekete’s
+lemma (see Lemma 4).
+   Deriving good upper bounds on γ is a challenging problem in combinatorics. The best result, due to
+Lueker [93], shows that γ ≤ 0.8263. This leads to the following corollary of Theorem 15.
+  9 Turán’s theorem states that any graph with n vertices and e edges contains an independent set of size at least    n2
+                                                                                                                     2e+n
+                                                                                                                          .
+
+
+
+                                                             31
+Corollary 17 ([91]). It holds that d? ≥ 0.1737.
+    We briefly discuss the limitations of the approach undertaken in [91]. The best lower bound known for γ
+is 0.788 [93]. This means that the best lower bound on d? one may hope to prove with the approach above
+is d? ≥ 0.222. Nevertheless, as considered in [91], it is possible to generalize the previous connection and
+relate d? to the expected length of the LCS of two strings generated by independent copies of any first-order
+Markov chain. Although no rigorous bounds are known for this quantity, numerical simulations suggest that
+one should be able to derive a lower bound close to 0.25 for d? with this generalized approach.
+    It is instructive to compare the observations in the paragraph above with known results for channels
+with adversarial bit flips. In this error model, it is known that the zero-error capacity against dn bit-flips is
+zero for d > 0.25. This leads to the following natural question: Is the zero-rate threshold for the adversarial
+deletion channel also d? = 0.25? This turns out not to be the case. A significant improvement on the lower
+bound from Corollary 17 was obtained by Bukh, Guruswami, and Håstad [94] using different techniques.
+Interestingly, they showed that the adversarial deletion channel is significantly easier to handle than the
+adversarial binary symmetric channel. More precisely, they proved the following.
+                                           √
+Theorem 18 ([94]). It holds that d? ≥ 2 − 1 ≈ 0.4142.
+   We proceed to give a high-level description of a construction from [94] that achieves the lower bound in
+Theorem 18. Although the code we present is not efficiently encodable nor decodable, we remark that the
+lower bound can in fact be achieved with a family of efficiently encodable and decodable codes [94].
+   Recall that, for any d ∈ (0, 1), we are aiming to show the existence of a binary code C with positive rate
+which ensures that LCS(c, c0 ) < (1 − d)n for all distinct codewords c, c0 ∈ C. This leads to the lower bound
+d ≤ d? . The starting point of the construction from [94] is the observation that if we allow the alphabet size
+Q to be large enough, then a standard probabilistic argument shows that a uniformly random code C ⊆ [Q]n
+with positive rate satisfies LCS(c, c0 ) ≤ γn for any c, c0 ∈ C and γ much smaller than 1 − d. We now want to
+transform this large-alphabet code with strong guarantees into a binary code with a good enough constraint
+on the LCS between any two distinct codewords. This is achieved by concatenating C with an appropriate
+binary inner code.
+   The starting point towards defining the correct inner code is a family of codes first introduced and studied
+by Bukh and Ma [95]. The Bukh-Ma codes [95] correspond to sets of codewords of the form
+                                                         n
+                                              {(0r 1r ) 2r : r ∈ R},                                        (43)
+
+where R ⊆ N is a finite set of integers sufficiently far apart. At a high level, this is required to ensure that
+the LCS between any two distinct codewords is not very large. Combining a Bukh-Ma inner code with the
+random outer code already leads to the non-trivial lower bound d? ≥ 1/3, improving upon Theorem 15.
+However, to improve the lower bound on d? , one needs to consider a modified version of the Bukh-Ma codes
+where long runs of 0’s are periodically interspersed with short runs of 1’s and vice-versa. More specifically,
+for a constant 0 ≤ c < 1, let                                     r
+                                              0r,a = (0a 1ca ) (1+c)a
+and                                                               r
+                                              1r,a = (0ca 1a ) (1+c)a .
+Then, the modified Bukh-Ma code is defined as
+                                                     n
+                                         {(0r,a 1r,a ) 2r : r ∈ R, a ∈ A},
+
+where both R and A are finite sets of integers appropriately far apart. Note that the original Bukh-Ma
+codes are a special case of these codes obtained by setting c = 0. Adding periodic short runs (of sufficiently
+different lengths between any two distinct codewords) allows to decrease
+                                                                       √ the length of the LCS between any
+two distinct codewords, improving the lower bound on d? from 1/3 to 2 − 1.
+
+The zero-rate threshold for larger alphabets Although we have focused on the binary setting only,
+we note that some works also studied the zero-rate threshold of the adversarial deletion channel over larger
+alphabets. For an alphabet of size Q, denote its zero-rate threshold by d?Q . Then, similarly to the binary
+
+
+                                                         32
+setting, the upper bound d?Q ≤ 1 − 1/Q is immediate – simply delete all occurrences of the most common
+symbol in the codeword. The constructions of Bukh, Guruswami, and Håstad [94] can be generalized to
+larger alphabets to show that d?Q ≥ 1 − Q+2√Q for all Q ≥ 2. In particular, this shows that the zero-rate
+threshold asymptotically scales
+                             √ like 1 − Θ(1/Q). This improves on the previous best lower bound for large
+alphabets of d?Q ≥ 1 − O(1/ Q). As remarked by Guruswami and Wang [96], this worse bound can be
+obtained by combining the approach √used in [91] with the fact that the length of the LCS between two
+random strings in [Q]n scales like 2n/ Q proved in [25].
+
+The zero-rate threshold of list-decoding from deletions and insertions In the remainder of this
+section, we focus on the zero-rate threshold in relaxed settings. The first such relaxation consists in requiring
+only that the desired code C ⊆ {0, 1}n be L-list-decodable from a combination of synchronization errors
+(namely deletions and insertions), where L = poly(n).10 This stands in contrast with the unique decodability
+requirement in our previous discussion. Another departure from previous sections consists in the fact that
+we will be considering both (adversarial) deletions and insertions.
+    We begin by considering the deletion-only list-decoding setting first. Denote the zero-rate threshold for
+Q-ary codes in this case by d?Q,L . Then, our first simple observation is that the 1−1/Q upper bound from the
+unique decoding deletion-only setting also extends to list-decoding. In other words, we have d?Q,L ≤ 1 − 1/Q.
+This readily implies, given our previous results on the zero-rate threshold under unique decoding, that
+d?Q,L = 1 − Θ(1/Q). However, this does not tell us much about threshold for small alphabets. In particular,
+when Q = 2, can we prove stronger results about d?2,L than what we know about d? ?
+    Before we consider this question, we briefly discuss the zero-rate threshold in the case of insertions only.
+Note that unique decoding from insertions only is equivalent to unique decoding from deletions. This is
+due to the fact that a code corrects d adversarial deletions if and only if it corrects the same number of
+insertions [30]. As a result, the zero-rate threshold is the same in both cases. However, this equivalence does
+not extend to the list-decoding setting. The first progress on the zero-rate threshold for list-decoding from
+insertions was made by Hayashi and Yasunaga [97], who showed that the codes from [94] already used to prove
+Theorem 18 are also (L = poly(n))-list-decodable from a 0.707-fraction of adversarial insertions. Denoting
+the zero-rate threshold from insertions in the list-decoding setting (with binary alphabet) by d?2,L,ins , this
+implies that d?2,L,ins ≥ 0.707. We note also that the upper bound d?2,L,ins ≤ 1 is easy to prove. Indeed, it is
+enough to observe that n insertions suffice to transform any n-bit string into the 2n-bit string 0101 . . . 01.
+We are then left with question of where d?2,L,ins lies between 0.707 and 1.
+    Recently, Guruswami, Haeupler, and Shahrasbi [98] answered both questions above in full. Notably,
+besides these results, they settle the zero-rate threshold of list-decoding from a combination of deletions and
+insertions for all alphabet sizes Q (for polynomial list-size). We present their result for Q = 2 only.
+
+Theorem 19 ([98]). For any  > 0 and all n, there exists an efficiently encodable and decodable code
+C ⊆ {0, 1}n with positive rate that is poly(n)-list-decodable from a δ-fraction of deletions and a γ-fraction of
+insertions whenever 2δ + γ ≤ 1 − . In particular, we have d?2,L = 1/2 and d?2,L,ins = 1.
+    Interestingly, the analogous result for general alphabet size Q is not an easy generalization of the statement
+above. It is straightforward to check that Theorem 19 is tight, i.e., no such positive-rate codes exist when
+2δ + γ ≥ 1.
+    Theorem 19 is proved via code concatenation. As the outer code, Guruswami, Haeupler, and Shahrasbi
+choose one of the high-rate codes from [99] which are list-decodable from an appropriately large fraction of
+deletions and insertions with alphabet size dpeending only on these two fractions. Using this outer code
+reduces the problem at hand to showing the existence of arbitrarily large (though not necessarily positive-
+rate) binary codes with very good list decoding properties against deletions and insertions. This is established
+through a careful analysis of the list-decoding properties of the Bukh-Ma codes defined in (43) and already
+discussed above in the context of Theorem 18. We recall that plain Bukh-Ma inner codes were not enough
+to prove Theorem 18, leading only to the (already non-trivial) lower bound d? ≥ 1/3, although they turn
+out to be enough in the list-decoding setting.
+  10 A code C is said to be L-list-decodable from pn synchronization errors if for every pair (c, c0 ) such that c ∈ C and c0 is
+
+obtained from c by introducing at most pn errors, it holds that there are at most L codewords ĉ ∈ C that could lead to output
+c0 after the introduction of at most pn errors.
+
+
+
+                                                              33
+The zero-rate threshold under relaxed adversarial models Guruswami and Li [100] considered
+zero-rate thresholds for error models between random deletions (under which positive rate communication
+with vanishing error probability is possible for any fraction of deletions d < 1) and adversarial deletions.
+Namely, they show that if one requires only vanishing average decoding error probability against adversarial
+deletions, then the zero-rate threshold is 1, matching the result for random deletions. Here, “vanishing
+average decoding error probability against adversarial deletions” means that under any deletion pattern of
+up to dn deletions, all but a vanishing fraction of codewords can be correctly recovered from the channel
+output. They also considered online deletions, under which the adversary decides whether to delete or keep
+the i-th input bit xi (up to a budget of dn deletions) based only on the values of x1 , x2 , . . . , xi (instead of
+having access to the whole input string as in the standard adversarial setting). They show that the zero-rate
+threshold for online deletions (under vanishing error probability) is closely related to the zero-rate threshold
+for adversarial deletions. In fact, one is below 1/2 if and only if the other one is too.
+
+The zero-rate threshold for sticky channels As the last topic in this section, we will discuss some
+results regarding the zero-error capacity of sticky channels. Unsurprisingly, since sticky errors appear to be
+easier to handle than deletions and insertions, much more is known about their zero-rate thresholds and
+zero-error capacities. The zero-error capacity of channels with replication errors was considered first by Jain,
+Farnoud, Schwartz, and Bruck [101]. However, their main focus was on tandem duplications (where blocks
+of input bits, instead of single bits, are replicated) and on replication distributions with unbounded support
+over the positive integers. Sticky channels as considered in this survey correspond to channels that replicate
+blocks of size 1 only.
+    It is easy to see, as observed by Kovačević [102], that the zero-error capacity of sticky channels with
+replication distributions having full support over the positive integers is 0. An adversary can insert replication
+errors to make all the runs of 0’s and 1’s have the same size across all the codewords of any candidate code.
+This means the only information we can gather from the channel output is the number of runs of 0’s and 1’s
+in the input codeword. The case where the replication distribution R satisfies Pr[R = i] > 0 if and only if
+1 ≤ i ≤ r for some integer r is considerably more challenging. Kovačević [102] was able to fully characterize
+the zero-error capacity of such channels.
+
+Theorem 20 ([102]). The zero-error capacity of the sticky channel with replication distribution R as above
+equals log(1/ρ), where ρ is the unique real solution to the equation
+                                                ∞
+                                                X         (r+1)j −1
+                                                      x       r       = 1.
+                                                j=1
+
+   In contrast to Theorem 20, we recall that even the zero-rate threshold of adversarial binary deletions,
+which is an easier quantity to understand than the zero-error capacity, is still unknown. We note that this
+characterization can be extended to larger alphabets and tandem replications [102].
+   We conclude this section with a few significant related open problems:
+
+   • Is the zero-rate threshold for adversarial deletions equal to 1/2?
+   • What is the expected length of the LCS of two independent, uniformly random strings?
+
+
+References
+  [1] C. Shannon, “A mathematical theory of communication,” Bell System Technical Journal, vol. 27, no. 3,
+      pp. 379–423, 1948.
+  [2] A. V. Kuznetsov and A. J. H. Vinck, “A coding scheme for single peak-shift correction in (d, k)-
+      constrained channels,” IEEE Transactions on Information Theory, vol. 39, no. 4, pp. 1444–1450, July
+      1993.
+  [3] A. H. Bours, “Construction of fixed-length insertion/deletion correcting runlength-limited codes,” IEEE
+      Transactions on Information Theory, vol. 40, no. 6, pp. 1841–1856, Nov 1994.
+
+
+                                                            34
+ [4] V. I. Levenshtein, “Efficient reconstruction of sequences,” IEEE Transactions on Information Theory,
+     vol. 47, no. 1, pp. 2–22, Jan 2001.
+ [5] V. I. Levenshtein, “Efficient reconstruction of sequences from their subsequences or supersequences,”
+     Journal of Combinatorial Theory, Series A, vol. 93, no. 2, pp. 310 – 332, 2001.
+
+ [6] T. Batu, S. Kannan, S. Khanna, and A. McGregor, “Reconstructing strings from random traces,” in
+     Proceedings of the 15th Annual ACM-SIAM Symposium on Discrete Algorithms (SODA), 2004, pp.
+     910–918.
+ [7] A. Orlitsky, “Interactive communication: balanced distributions, correlated files, and average-case
+     complexity,” in Proceedings 32nd Annual Symposium of Foundations of Computer Science (FOCS),
+     Oct 1991, pp. 228–238.
+ [8] B. Haeupler, “Optimal document exchange and new codes for insertions and deletions,” arXiv e-prints,
+     p. arXiv:1804.03604, Apr 2018.
+ [9] K. Cheng, Z. Jin, X. Li, and K. Wu, “Deterministic document exchange protocols, and almost optimal
+     binary codes for edit errors,” in 2018 IEEE 59th Annual Symposium on Foundations of Computer
+     Science (FOCS), Oct 2018, pp. 200–211.
+[10] G. M. Church, Y. Gao, and S. Kosuri, “Next-generation digital information storage in
+     DNA,” Science, vol. 337, no. 6102, pp. 1628–1628, 2012. [Online]. Available:   https:
+     //science.sciencemag.org/content/337/6102/1628
+
+[11] S. M. H. T. Yazdi, H. M. Kiah, E. Garcia-Ruiz, J. Ma, H. Zhao, and O. Milenkovic, “DNA-based
+     storage: Trends and methods,” IEEE Transactions on Molecular, Biological and Multi-Scale Commu-
+     nications, vol. 1, no. 3, pp. 230–248, Sep. 2015.
+[12] S. H. T. Yazdi, R. Gabrys, and O. Milenkovic, “Portable and error-free DNA-based data storage,”
+     Scientific reports, vol. 7, no. 1, p. 5011, 2017.
+
+[13] L. Organick, S. D. Ang, Y.-J. Chen, R. Lopez, S. Yekhanin, K. Makarychev, M. Z. Racz, G. Kamath,
+     P. Gopalan, B. Nguyen et al., “Random access in large-scale DNA data storage,” Nature biotechnology,
+     vol. 36, no. 3, p. 242, 2018.
+[14] M. Cheraghchi, R. Gabrys, O. Milenkovic, and J. Ribeiro, “Coded trace reconstruction,” arXiv e-prints,
+     p. arXiv:1903.09992, Mar 2019.
+
+[15] J. Brakensiek, R. Li, and B. Spang, “Coded trace reconstruction in a constant number of traces,” arXiv
+     e-prints, p. arXiv:1908.03996, Aug 2019.
+[16] L. Thomas, See-Hun Yang, Kwang-Su Ryu, B. Hughes, C. Rettner, Ding-Shuo Wang, Ching-Hsiang
+     Tsai, Kuei-Hung Shen, and S. S. P. Parkin, “Racetrack memory: A high-performance, low-cost, non-
+     volatile memory based on magnetic domain walls,” in 2011 International Electron Devices Meeting,
+     Dec 2011, pp. 24.2.1–24.2.4.
+[17] Y. M. Chee, H. M. Kiah, A. Vardy, V. K. Vu, and E. Yaakobi, “Coding for racetrack memories,” IEEE
+     Transactions on Information Theory, vol. 64, no. 11, pp. 7094–7112, Nov 2018.
+[18] Y. M. Chee, R. Gabrys, A. Vardy, V. K. Vu, and E. Yaakobi, “Reconstruction from deletions in
+     racetrack memories,” in 2018 IEEE Information Theory Workshop (ITW), Nov 2018, pp. 1–5.
+[19] J. Sima and J. Bruck, “Correcting deletions in multiple-heads racetrack memories,” in 2019 IEEE
+     International Symposium on Information Theory (ISIT), July 2019, pp. 1367–1371.
+[20] A. R. Krishnan and B. Vasic, “Coding for correcting insertions and deletions in bit-patterned media
+     recording,” in 2011 IEEE Global Telecommunications Conference - GLOBECOM 2011, Dec 2011, pp.
+     1–5.
+
+
+                                                   35
+[21] T. R. Albrecht, H. Arora, V. Ayanoor-Vitikkate, J. Beaujour, D. Bedau, D. Berman, A. L. Bogdanov,
+     Y. Chapuis, J. Cushen, E. E. Dobisz, G. Doerk, H. Gao, M. Grobis, B. Gurney, W. Hanson, O. Hellwig,
+     T. Hirano, P. Jubert, D. Kercher, J. Lille, Z. Liu, C. M. Mate, Y. Obukhov, K. C. Patel, K. Rubin,
+     R. Ruiz, M. Schabes, L. Wan, D. Weller, T. Wu, and E. Yang, “Bit-patterned magnetic recording:
+     Theory, media fabrication, and recording performance,” IEEE Transactions on Magnetics, vol. 51,
+     no. 5, pp. 1–42, May 2015.
+[22] A. Andoni and R. Krauthgamer, “The computational hardness of estimating edit distance,”
+     SIAM Journal on Computing, vol. 39, no. 6, pp. 2398–2429, 2010. [Online]. Available:
+     https://doi.org/10.1137/080716530
+[23] D. Chakraborty, D. Das, E. Goldenberg, M. Koucky, and M. Saks, “Approximating edit distance within
+     constant factor in truly sub-quadratic time,” in 2018 IEEE 59th Annual Symposium on Foundations
+     of Computer Science (FOCS), Oct 2018, pp. 979–990.
+[24] R. Ostrovsky and Y. Rabani, “Low distortion embeddings for edit distance,” J. ACM, vol. 54, no. 5,
+     Oct. 2007. [Online]. Available: http://doi.acm.org/10.1145/1284320.1284322
+
+[25] M. Kiwi, M. Loebl, and J. Matoušek, “Expected length of the longest common subsequence for
+     large alphabets,” Advances in Mathematics, vol. 197, no. 2, pp. 480 – 498, 2005. [Online]. Available:
+     http://www.sciencedirect.com/science/article/pii/S0001870804003536
+[26] H. Mercier, M. Khabbazian, and V. K. Bhargava, “On the number of subsequences when deleting
+     symbols from a string,” IEEE Transactions on Information Theory, vol. 54, no. 7, pp. 3279–3285, July
+     2008.
+
+[27] Y. Liron and M. Langberg, “A characterization of the number of subsequences obtained via the deletion
+     channel,” IEEE Transactions on Information Theory, vol. 61, no. 5, pp. 2300–2312, May 2015.
+[28] Y. Dodis, R. Ostrovsky, L. Reyzin, and A. Smith, “Fuzzy extractors: How to generate strong keys
+     from biometrics and other noisy data,” SIAM Journal on Computing, vol. 38, no. 1, pp. 97–139, 2008.
+     [Online]. Available: https://doi.org/10.1137/060651380
+[29] R. G. Gallager, “Sequential decoding for binary channels with noise and synchronization errors,” MIT
+     Lexington Lincoln Laboratory, Tech. Rep., 1961.
+[30] V. I. Levenshtein, “Binary codes capable of correcting deletions, insertions, and reversals,” in Doklady
+     Akademii Nauk, vol. 163, no. 4. Russian Academy of Sciences, 1965, pp. 845–848.
+
+[31] V. Levenshtein, “Binary codes capable of correcting spurious insertions and deletions of ones,” Russian
+     Problemy Peredachi Informatsii, vol. 1, pp. 12–25, 1965.
+[32] R. L. Dobrushin, “Shannon’s theorems for channels with synchronization errors,” Problemy Peredachi
+     Informatsii, vol. 3, no. 4, pp. 18–36, 1967.
+
+[33] J. Ullman, “On the capabilities of codes to correct synchronization errors,” IEEE Transactions on
+     Information Theory, vol. 13, no. 1, pp. 95–105, 1967.
+[34] K. Zigangirov, “Sequential decoding for a binary channel with drop-outs and insertions,” Problemy
+     Peredachi Informatsii, vol. 5, no. 2, pp. 23–30, 1969.
+
+[35] M. Mitzenmacher, “A survey of results for deletion channels and related synchronization channels,”
+     Probability Surveys, vol. 6, pp. 1–33, 2009.
+[36] N. J. A. Sloane, “On single-deletion-correcting codes,” arXiv e-prints, p. math/0207197, Jul 2002.
+[37] H. Mercier, V. K. Bhargava, and V. Tarokh, “A survey of error-correcting codes for channels with
+     symbol synchronization errors,” IEEE Communications Surveys Tutorials, vol. 12, no. 1, pp. 87–96,
+     First Quarter 2010.
+
+
+                                                    36
+[38] F. Farnoud, O. Milenkovic, and N. P. Santhanam, “Small-sample distribution estimation over sticky
+     channels,” in 2009 IEEE International Symposium on Information Theory (ISIT), 2009, pp. 1125–1129.
+[39] A. Magner, J. Duda, W. Szpankowski, and A. Grama, “Fundamental bounds for sequence recon-
+     struction from nanopore sequencers,” IEEE Transactions on Molecular, Biological and Multi-Scale
+     Communications, vol. 2, no. 1, pp. 92–106, June 2016.
+
+[40] J. Wolfowitz, “The coding of messages subject to chance errors,” Illinois Journal of Mathematics, vol. 1,
+     no. 4, pp. 591–606, 1957.
+[41] R. Ahlswede and J. Wolfowitz, “Channels without synchronization,” Advances in Applied Probability,
+     vol. 3, no. 2, pp. 383–403, 1971.
+
+[42] O. Kozlov, “A strong converse of Shannon’s theorem for memoryless channels with synchronization
+     errors,” Problemy Peredachi Informatsii, vol. 7, no. 1, pp. 102–105, 1971.
+[43] S. Stambler, “Memoryless channels with synchronization errors: The general case,” Problemy Peredachi
+     Informatsii, vol. 6, no. 3, pp. 43–49, 1970.
+
+[44] W. Zeng, P. Mitran, and A. Kavčić, “On the information stability of channels with timing errors,” in
+     2006 IEEE International Symposium on Information Theory, July 2006, pp. 1885–1889.
+[45] M. Fekete, “Über die Verteilung der Wurzeln bei gewissen algebraischen Gleichungen mit ganzzahligen
+     Koeffizienten,” Mathematische Zeitschrift, vol. 17, no. 1, pp. 228–249, Dec 1923.
+[46] S. Diggavi and M. Grossglauser, “On information transmission over a finite buffer channel,” IEEE
+     Transactions on Information Theory, vol. 52, no. 3, pp. 1226–1237, March 2006.
+[47] N. D. Vvedenskaya and R. L. Dobrushin, “The computation on a computer of the channel capacity of
+     a line with symbol drop-out,” Problemy Peredachi Informatsii, vol. 4, no. 3, pp. 92–95, 1968.
+[48] E. Drinea and M. Mitzenmacher, “On lower bounds for the capacity of deletion channels,” IEEE
+     Transactions on Information Theory, vol. 52, no. 10, pp. 4648–4657, Oct 2006.
+[49] A. Kavčić and R. Motwani, “Insertion/deletion channels: reduced-state lower bounds on channel ca-
+     pacities,” in International Symposium on Information Theory, 2004. ISIT 2004. Proceedings., June
+     2004, pp. 229–.
+[50] E. Drinea and M. Mitzenmacher, “Improved lower bounds for the capacity of iid deletion and duplication
+     channels,” IEEE Transactions on Information Theory, vol. 53, no. 8, pp. 2693–2714, 2007.
+[51] M. Mitzenmacher and E. Drinea, “A simple lower bound for the capacity of the deletion channel,”
+     IEEE Transactions on Information Theory, vol. 52, no. 10, pp. 4657–4660, 2006.
+[52] A. Kirsch and E. Drinea, “Directly lower bounding the information capacity for channels with i.i.d.
+     deletions and duplications,” IEEE Transactions on Information Theory, vol. 56, no. 1, pp. 86–102, Jan
+     2010.
+[53] R. Venkataramanan, S. Tatikonda, and K. Ramchandran, “Achievable rates for channels with deletions
+     and insertions,” IEEE Transactions on Information Theory, vol. 59, no. 11, pp. 6990–7013, 2013.
+[54] D. Fertonani and T. M. Duman, “Novel bounds on the capacity of the binary deletion channel,” IEEE
+     Transactions on Information Theory, vol. 56, no. 6, pp. 2753–2765, 2010.
+[55] J. Castiglione and A. Kavčić, “Trellis based lower bounds on capacities of channels with synchronization
+     errors,” in 2015 IEEE Information Theory Workshop - Fall (ITW), Oct 2015, pp. 24–28.
+[56] S. Arimoto, “An algorithm for computing the capacity of arbitrary discrete memoryless channels,”
+     IEEE Transactions on Information Theory, vol. 18, no. 1, pp. 14–20, January 1972.
+
+
+
+                                                     37
+[57] R. Blahut, “Computation of channel capacity and rate-distortion functions,” IEEE Transactions on
+     Information Theory, vol. 18, no. 4, pp. 460–473, July 1972.
+[58] M. Mitzenmacher, “Capacity bounds for sticky channels,” IEEE Transactions on Information Theory,
+     vol. 54, no. 1, pp. 72–77, 2008.
+
+[59] M. Jimbo and K. Kunisawa, “An iteration method for calculating the relative capacity,” Information
+     and Control, vol. 43, no. 2, pp. 216 – 223, 1979.
+[60] H. Mercier, V. Tarokh, and F. Labeau, “Bounds on the capacity of discrete memoryless channels
+     corrupted by synchronization and substitution errors,” IEEE Transactions on Information Theory,
+     vol. 58, no. 7, pp. 4306–4330, 2012.
+
+[61] A. R. Iyengar, P. H. Siegel, and J. K. Wolf, “On the capacity of channels with timing synchronization
+     errors,” IEEE Transactions on Information Theory, vol. 62, no. 2, pp. 793–810, 2016.
+[62] B. Haeupler and A. Shahrasbi, “Synchronization strings: Codes for insertions and deletions
+     approaching the Singleton bound,” in Proceedings of the 49th Annual ACM SIGACT Symposium on
+     Theory of Computing, ser. STOC 2017. New York, NY, USA: ACM, 2017, pp. 33–46. [Online].
+     Available: http://doi.acm.org/10.1145/3055399.3055498
+[63] S. Diggavi, M. Mitzenmacher, and H. D. Pfister, “Capacity upper bounds for the deletion channel,” in
+     2007 IEEE International Symposium on Information Theory (ISIT), 2007, pp. 1716–1720.
+[64] A. S. Dolgopolov, “Capacity bounds for a channel with synchronization errors,” Problemy Peredachi
+     Informatsii, vol. 26, no. 2, pp. 27–37, 1990.
+[65] K. A. S. Abdel-Ghaffar, “Capacity per unit cost of a discrete memoryless channel,” Electronics Letters,
+     vol. 29, no. 2, pp. 142–144, 1993.
+[66] M. Rahmati and T. M. Duman, “Upper bounds on the capacity of deletion channels using channel
+     fragmentation,” IEEE Transactions on Information Theory, vol. 61, no. 1, pp. 146–156, 2015.
+
+[67] M. Rahmati and T. M. Duman, “An upper bound on the capacity of non-binary deletion channels,” in
+     2013 IEEE International Symposium on Information Theory, July 2013, pp. 2940–2944.
+[68] M. Cheraghchi, “Capacity upper bounds for deletion-type channels,” J. ACM, vol. 66, no. 2, pp. 9:1–
+     9:79, Mar. 2019.
+
+[69] J. G. Smith, “The information capacity of amplitude- and variance-constrained scalar gaussian
+     channels,” Information and Control, vol. 18, no. 3, pp. 203 – 219, 1971. [Online]. Available:
+     http://www.sciencedirect.com/science/article/pii/S0019995871903469
+[70] S. Shamai (Shitz), “Capacity of a pulse amplitude modulated direct detection photon channel,” IEE
+     Proceedings I (Communications, Speech and Vision), vol. 137, no. 6, pp. 424–430, 1990.
+
+[71] I. C. Abou-Faycal, M. D. Trott, and S. Shamai, “The capacity of discrete-time memoryless Rayleigh-
+     fading channels,” IEEE Transactions on Information Theory, vol. 47, no. 4, pp. 1290–1301, 2001.
+[72] A. Martinez, “Spectral efficiency of optical direct detection,” JOSA B, vol. 24, no. 4, pp. 739–749, 2007.
+[73] A. Lapidoth and S. M. Moser, “On the capacity of the discrete-time Poisson channel,” IEEE Transac-
+     tions on Information Theory, vol. 55, no. 1, pp. 303–322, 2009.
+[74] T. Li, “Maximum likelihood upper bounds on the capacities of discrete information stable channels,”
+     in 2018 IEEE Information Theory Workshop (ITW), Nov 2018, pp. 1–5.
+[75] M. Cheraghchi and J. Ribeiro, “Sharp analytical capacity upper bounds for sticky and related channels,”
+     IEEE Transactions on Information Theory, 2019, DOI: 10.1109/TIT.2019.2920375.
+
+
+
+                                                     38
+[76] ——, “Improved upper bounds and structural results on the capacity of the discrete-time Poisson
+     channel,” IEEE Transactions on Information Theory, vol. 65, no. 7, pp. 4052–4068, July 2019.
+[77] A. Kalai, M. Mitzenmacher, and M. Sudan, “Tight asymptotic bounds for the deletion channel with
+     small deletion probabilities,” in 2010 IEEE International Symposium on Information Theory (ISIT),
+     2010, pp. 997–1001.
+
+[78] Y. Kanoria and A. Montanari, “Optimal coding for the binary deletion channel with small deletion
+     probability,” IEEE Transactions on Information Theory, vol. 59, no. 10, pp. 6192–6219, 2013.
+[79] Y. Kanoria and A. Montanari, “On the deletion channel with small deletion probability,” in 2010 IEEE
+     International Symposium on Information Theory, June 2010, pp. 1002–1006.
+
+[80] M. Ramezani and M. Ardakani, “On the capacity of duplication channels,” IEEE Transactions on
+     Communications, vol. 61, no. 3, pp. 1020–1027, 2013.
+[81] M. Dalai, “A new bound on the capacity of the binary deletion channel with high deletion probabilities,”
+     in 2011 IEEE International Symposium on Information Theory (ISIT), 2011, pp. 499–502.
+
+[82] M. Rahmati and T. M. Duman, “Achievable rates for noisy channels with synchronization errors,”
+     IEEE Transactions on Communications, vol. 62, no. 11, pp. 3854–3863, 2014.
+[83] ——, “Bounds on the capacity of random insertion and deletion-additive noise channels,” IEEE Trans-
+     actions on Information Theory, vol. 59, no. 9, pp. 5534–5546, 2013.
+[84] D. Fertonani, T. M. Duman, and M. F. Erden, “Bounds on the capacity of channels with insertions,
+     deletions and substitutions,” IEEE Transactions on Communications, vol. 59, no. 1, pp. 2–6, 2011.
+[85] W. Mao, S. N. Diggavi, and S. Kannan, “Models and information-theoretic bounds for nanopore
+     sequencing,” IEEE Transactions on Information Theory, vol. 64, no. 4, pp. 3216–3236, April 2018.
+[86] Wei Zeng, J. Tokas, R. Motwani, and A. Kavčić, “Bounds on mutual information rates of noisy channels
+     with timing errors,” in Proceedings. International Symposium on Information Theory, 2005. ISIT 2005.,
+     Sep. 2005, pp. 709–713.
+[87] J. Hu, T. M. Duman, M. F. Erden, and A. Kavčić, “Achievable information rates for channels with
+     insertions, deletions, and intersymbol interference with i.i.d. inputs,” IEEE Transactions on Commu-
+     nications, vol. 58, no. 4, pp. 1102–1111, April 2010.
+
+[88] M. Abroshan, R. Venkataramanan, L. Dolecek, and A. Guillén i Fàbregas, “Coding for deletion channels
+     with multiple traces,” arXiv e-prints, p. arXiv:1905.08197, May 2019.
+[89] B. Haeupler and M. Mitzenmacher, “Repeated deletion channels,” in Information Theory Workshop
+     (ITW), 2014 IEEE, 2014, pp. 152–156.
+
+[90] L. J. Schulman and D. Zuckerman, “Asymptotically good codes correcting insertions, deletions, and
+     transpositions,” IEEE Transactions on Information Theory, vol. 45, no. 7, pp. 2552–2557, Nov 1999.
+[91] I. A. Kash, M. Mitzenmacher, J. Thaler, and J. Ullman, “On the zero-error capacity threshold for
+     deletion channels,” in 2011 Information Theory and Applications Workshop, Feb 2011, pp. 1–5.
+[92] P. Turán, “Eine Extremalaufgabe aus der Graphentheorie,” Mat. Fiz. Lapok, vol. 48, pp. 436–452, 1941.
+
+[93] G. S. Lueker, “Improved bounds on the average length of longest common subsequences,” J. ACM,
+     vol. 56, no. 3, pp. 17:1–17:38, May 2009. [Online]. Available: http://doi.acm.org/10.1145/1516512.
+     1516519
+[94] B. Bukh, V. Guruswami, and J. Håstad, “An improved bound on the fraction of correctable deletions,”
+     IEEE Transactions on Information Theory, vol. 63, no. 1, pp. 93–103, Jan 2017.
+
+
+
+                                                    39
+ [95] B. Bukh and J. Ma, “Longest common subsequences in sets of words,” SIAM Journal
+      on Discrete Mathematics, vol. 28, no. 4, pp. 2042–2049, 2014. [Online]. Available: https:
+      //doi.org/10.1137/140975000
+ [96] V. Guruswami and C. Wang, “Deletion codes in the high-noise and high-rate regimes,” IEEE Trans-
+      actions on Information Theory, vol. 63, no. 4, pp. 1961–1970, April 2017.
+
+ [97] T. Hayashi and K. Yasunaga, “On the list decodability of insertions and deletions,” in 2018 IEEE
+      International Symposium on Information Theory (ISIT), June 2018, pp. 86–90.
+ [98] V. Guruswami, B. Haeupler, and A. Shahrasbi, “Optimally resilient codes for list-decoding from inser-
+      tions and deletions,” arXiv e-prints, p. arXiv:1909.10683, Sep 2019.
+
+ [99] B. Haeupler, A. Shahrasbi, and M. Sudan, “Synchronization strings:            List decoding for
+      insertions and deletions,” in 45th International Colloquium on Automata, Languages, and
+      Programming (ICALP 2018), ser. Leibniz International Proceedings in Informatics (LIPIcs),
+      I. Chatzigiannakis, C. Kaklamanis, D. Marx, and D. Sannella, Eds., vol. 107. Dagstuhl, Germany:
+      Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik, 2018, pp. 76:1–76:14. [Online]. Available:
+      http://drops.dagstuhl.de/opus/volltexte/2018/9080
+[100] V. Guruswami and R. Li, “Coding against deletions in oblivious and online models,” in Proceedings
+      of the Twenty-Ninth Annual ACM-SIAM Symposium on Discrete Algorithms, ser. SODA ’18.
+      Philadelphia, PA, USA: Society for Industrial and Applied Mathematics, 2018, pp. 625–643. [Online].
+      Available: http://dl.acm.org/citation.cfm?id=3174304.3175311
+
+[101] S. Jain, F. Farnoud Hassanzadeh, M. Schwartz, and J. Bruck, “Duplication-correcting codes for data
+      storage in the DNA of living organisms,” IEEE Transactions on Information Theory, vol. 63, no. 8,
+      pp. 4996–5010, Aug 2017.
+[102] M. Kovačević, “Zero-error capacity of duplication channels,” IEEE Transactions on Communications,
+      vol. 67, no. 10, pp. 6735–6742, Oct 2019.
+
+
+
+
+                                                    40
+

@@ -1,0 +1,2805 @@
+                                            Geometric optimization for quantum communication
+                                                             Chengkai Zhu 1 , Hongyu Mao2 , Kun Fang ∗2 , and Xin Wang †1
+                                                                        1
+                                                                       Thrust of Artificial Intelligence, Information Hub,
+                                                The Hong Kong University of Science and Technology (Guangzhou), Guangdong 511453, China
+                                            2
+                                              School of Data Science, The Chinese University of Hong Kong, Shenzhen, Guangdong, 518172, China
+arXiv:2509.15106v2 [quant-ph] 14 Oct 2025
+
+
+
+
+                                                                                        October 15, 2025
+
+
+
+                                                                                              Abstract
+                                                      Determining the ultimate limits of quantum communication, such as the quantum capacity
+                                                  of a channel and the distillable entanglement of a shared state, remains a central challenge
+                                                  in quantum information theory, primarily due to the phenomenon of superadditivity. This
+                                                  work develops Riemannian optimization methods to establish significantly tighter, computable
+                                                  two-sided bounds on these fundamental quantities. For upper bounds, our method systematically
+                                                  searches for state and channel extensions that minimize known information-theoretic bounds. We
+                                                  achieve this by parameterizing the space of all possible extensions as a Stiefel manifold, enabling
+                                                  a universal search that overcomes the limitations of ad-hoc constructions. Combined with an
+                                                  improved upper bound on the one-way distillable entanglement based on a refined continuity
+                                                  bound on quantum conditional entropy, our approach yields new state-of-the-art upper bounds
+                                                  on the quantum capacity of the qubit depolarizing channel for large values of the depolarizing
+                                                  parameter, strictly improving the previously best-known bounds. For lower bounds, we introduce
+                                                  Riemannian optimization methods to compute multi-shot coherent information. We establish
+                                                  lower bounds on the one-way distillable entanglement by parameterizing quantum instruments
+                                                  on the unitary manifold, and on the quantum capacity by parameterizing code states with a
+                                                  product of unitary manifolds. Numerical results for noisy entangled states and different channels
+                                                  demonstrate that our methods successfully unlock superadditive gains, improving previous results.
+                                                  Together, these findings establish Riemannian optimization as a principled and powerful tool for
+                                                  navigating the complex landscape of quantum communication limits. Furthermore, we prove
+                                                  that amortization does not enhance the channel coherent information, thereby closing a potential
+                                                  avenue for improving capacity lower bounds in general. This result can be of independent interest.
+
+
+
+
+                                            ∗
+                                                kunfang@cuhk.edu.cn
+                                            †
+                                                felixxinwang@hkust-gz.edu.cn
+
+
+                                                                                                  1
+Contents
+1 Introduction                                                                                         2
+  1.1 Main results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   4
+  1.2 Structure of the paper . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     5
+
+2 Preliminaries                                                                                        6
+
+3 Upper bounds on quantum communication                                                             6
+  3.1 Extensions of quantum states and channels . . . . . . . . . . . . . . . . . . . . . . . 6
+  3.2 Upper bounds on the one-way distillable entanglement . . . . . . . . . . . . . . . . . 9
+  3.3 Upper bounds on the quantum capacity . . . . . . . . . . . . . . . . . . . . . . . . . 18
+  3.4 Improved upper bounds on isotropic states and depolarizing channels . . . . . . . . . 20
+  3.5 Further examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+
+4 Lower bounds on quantum communication                                                                24
+  4.1 Lower bounds on the one-way distillable entanglement . . . . . . . . . . . . . . . . .           25
+  4.2 Lower bounds on the quantum capacity . . . . . . . . . . . . . . . . . . . . . . . . .           28
+  4.3 Superadditivity in one-way entanglement distillation . . . . . . . . . . . . . . . . . .         34
+  4.4 Superadditivity in channel coherent information . . . . . . . . . . . . . . . . . . . . .        35
+  4.5 Amortization does not enhance channel coherent information . . . . . . . . . . . . .             39
+
+5 Concluding remarks                                                                                   42
+
+
+1    Introduction
+Since its inception, a central goal of quantum information theory has been to determine the ultimate
+physical limits on processing and transmitting information encoded in quantum systems. This
+pursuit extends Shannon’s classical theory to the quantum realm [Wil11,Wil13], where the principles
+of superposition and entanglement introduce fundamentally new challenges and opportunities.
+Entanglement, in particular, has been identified as the key resource in quantum information
+processing protocols [HHHH09], e.g., quantum teleportation [BBC+ 93], superdense coding [BW92],
+and quantum key distribution [Eke91, Ren05]; and it underpins the potential advantages of quantum
+communication over classical methods [BSST02]. Consequently, two of the most vital problems
+in the field are quantifying the usable entanglement in a bipartite state ρAB and determining the
+ultimate capacity of a quantum channel NA→B to transmit it.
+    The operational measures for these tasks are the distillable entanglement D(ρAB ) [BBP+ 96,
+BBPS96], and the quantum capacity Q(NA→B ) [Smi10], respectively. The former quantifies the
+ultimate rate at which maximally entangled states can be extracted from independent and identically
+distributed (i.i.d.) copies of ρAB through local operations and classical communication (LOCC).
+When only one-way communication from Alice to Bob is allowed, we have the so-called one-
+way distillable entanglement D→ (·). The latter quantifies the ultimate rate for reliable quantum
+communication through a channel NA→B . These quantities are inextricably linked, as the quantum
+capacity could also be understood as the rate at which entanglement can be generated between a
+sender and receiver by using the channel.
+
+
+
+                                                   2
+   Despite their fundamental importance, computing D→ (·) and Q(·) for general states and channels
+remains a notoriously difficult problem. Both quantities are proved to be given via a regularization
+over many copies of the resource, i.e.,
+                               1 (1) ⊗n                                 1 (1) ⊗n
+               D→ (ρAB ) = lim  D (ρAB ),       and    Q(NA→B ) = lim     Q (NA→B ),                (1)
+                           n→∞ n →                                  n→∞ n
+
+         (1)
+where D→ (·) and Q(1) (·) are single-shot quantities based on the coherent information. The regular-
+ization can be removed, making D→ (·) and Q(·) solvable, for classes of degradable states [LDS18]
+                                           (1)
+and degradable channels [DS05] whose D→ (·) and Q(1) (·) are shown to be additive. However, it is
+necessary in general because of the phenomenon of superadditivity, where the coherent information
+of a joint state or channel can be strictly greater than the sum of its parts [LLS18, LL18, LTAL19,
+NPJ20, SG21, LLS+ 23, WZM25]. This non-additivity makes the direct computation of the limits
+intractable. The computation of D→ (·) and Q(·), even for qubit isotropic states and depolarizing
+channels, still remains a long-standing open problem in quantum information theory. Thereby,
+research has bifurcated into two threads:
+
+   • deriving upper bounds that prove fundamental limits on performance;
+
+   • establishing lower bounds by constructing explicit coding schemes.
+
+   For upper bounds, a prominent one on the distillable entanglement is the Rains bound [Rai01],
+which has inspired related information-theoretic upper bounds on the quantum capacity, including
+the Rains information [TWW17], max-Rains information [WFD19], and geometric-Rains infor-
+mation [FF21]. Another major line of research leverages the concept of degradability. Since the
+quantum capacity of a degradable channel (and correspondingly, one-way distillable entanglement of
+a degradable state) is known, which is a single-letter coherent information, continuity bounds based
+on approximate degradability have been established for both one-way distillable entanglement and
+quantum capacity [SSWR17, LDS18, JD24]. A related approach, which has also yielded competitive
+upper bounds, is to decompose a state or channel into a convex combination of a degradable and an
+antidegradable part [LDS18, ZZW24].
+   Moreover, another intuitive and powerful strategy for deriving upper bounds is based on the
+construction of state or channel extensions. This approach relies on the principle that for any
+extension ρ̂ABF of a state ρAB , or N
+                                    bA→BF of a channel NA→B , the monotonicity
+
+                     D→ (ρAB ) ≤ D→ (ρ̂ABF ),    and    Q(NA→B ) ≤ Q(N
+                                                                     bA→BF )                        (2)
+
+must hold. This follows directly from the data processing inequality, as the receiver can freely discard
+the auxiliary system F . The challenge thus shifts to finding an optimal extension that minimizes
+D→ (·) or Q(·) of the extended object. A leading technique for this purpose is the so-called flag
+extension method [LDS18, Wan21, FKG20, KFG22], which has proven highly effective for structured
+channels, e.g., Pauli channels [KFG22]. Notably, the state-of-the-art (SOTA) upper bounds on
+the quantum capacity of depolarizing channels are given by the flag extension method in [KFG22].
+However, the flag extension method faces a fundamental optimization bottleneck. The construction
+is tied to a specific convex decomposition of the state or channel (e.g., a Kraus representation), and
+the subsequent optimization is performed over a chosen ansatz for the ‘flag’ states. The efficacy
+of the method is therefore highly dependent on these initial choices, for which no systematic a
+
+
+                                                   3
+priori guidelines exist. It has been unclear how to unlock the full potential of the extension-based
+approach in a general, systematic manner.
+                                                                          (1)
+    For lower bounds, on the other hand, the most well-known ones on D→ (·) and Q(1) (·) are given
+by the coherent information of a state [DW05] or a channel [BDSW96], known as the hashing
+bounds. Particularly, a positive lower bound on the quantum capacity is a constructive proof that
+quantum communication is possible, i.e., there exists a quantum error correction code for the noise
+modeled by that channel. Due to the superadditivity, one needs to calculate the n-shot coherent
+information to pursue the ultimate performance for a blocklength of n, where the optimization
+is over all possible input code states. Historically, techniques in quantum error correction have
+been used to design highly structured codes [SS96, DSS98, SS07, FW08]. For certain channels,
+e.g., Pauli channels, exploiting the symmetries of these codes can make the coherent information
+calculation tractable [BL21]. More recently, some permutation-invariant code states have been
+proposed to achieve a large blocklength evaluation of the coherent information and an improved
+capacity threshold [BL25]. However, these methods are often tailored to specific symmetries and code
+families. Other approaches have also been explored using neural network states as an ansatz [BL20]
+to find code states.
+    In this work, we directly tackle the challenges in computing D→ (·) and Q(·) by introducing
+a comprehensive framework based on Riemannian optimization. We develop distinct but philo-
+sophically aligned geometric approaches to obtain computable upper and lower bounds on these
+quantities. An overview of our results is illustrated in Figure 1 below.
+
+
+                        Opt. state      V ∈ St(n, p)     RGD with FD grad +             SOTA upper bounds
+      Upper bounds      & channel
+                                                          improved bounds                 on depolarizing
+                        extensions
+
+
+
+       Bounding                                                              Amortization collapse: Ic(     ) = IcA( )
+  Q( ) and D→(ρ)     Riemannian Opt.
+
+
+                                                                  U∈   (n)
+                                                Q (1)(   ⊗n
+                                                              )              RGD + improved                  Stronger
+                          Opt. multi-                                           bounds                    superadditivity
+      Lower bounds      shot coherent
+                         information
+                                                                  U∈   (n)                                   Stronger
+                                                D→  (ρ )
+                                                 (1) ⊗n                      RGD + improved
+                                                                                bounds                    superadditivity
+
+
+
+
+Figure 1: An overview of our geometric optimization methods for computing two-sided bounds on
+the quantum capacity and the one-way distillable entanglement.
+        𝒩
+        𝒩𝒰                              𝒩
+         𝒩
+1.1      Main results
+For upper bounds, we reframe the search for optimal state and channel extensions as a tractable
+Riemannian optimization problem. By characterizing the space of all valid extensions as a complex
+Stiefel manifold, our method systematically discovers the tightest possible bounds, moving beyond
+
+
+                                                         4
+the limitations of previous ad-hoc flag constructions. We further enhance this framework by
+incorporating a recently improved continuity bound for conditional entropy [ABD+ 24, BLT25]
+to derive a tighter bound on one-way distillable entanglement in terms of a state’s approximate
+degradability (cf. Theorem 1), a result analogous to the upper bound on quantum capacity in [BLT25,
+Proposition 10]. We analyze the continuity property of the target objective function in our
+optimization, and use a finite-difference scheme to implement the Riemannian gradient descent
+(RGD) algorithm to optimize our bounds (cf. Section 3.2.1).
+    The synergy between our optimization framework and the continuity bounds yields a powerful
+methodology for computing the tightest known upper bounds on D→ (·) and Q(·). For the qubit
+isotropic state, our method produces an upper bound on one-way distillable entanglement that is
+strictly tighter than the best previously known result reported in [KFG22], thereby establishing an
+SOTA upper bound for the quantum capacity of the qubit depolarizing channel (cf. Section 3.4).
+We demonstrate the versatility of our approach on other noisy states and channels, consistently
+achieving tighter estimates than existing methods.
+    For lower bounds on the one-way distillable entanglement, we formulate the computation of
+  (1)
+D→ (·) as an optimization problem over the complex unitary manifold (cf. Section 4.1). Then, we
+                                            (1)
+develop an RGD algorithm to estimate D→ (·) for a multi-copy of a target state to obtain tighter
+lower bounds on D→ (·) than the hashing bound. Our numerical results demonstrate the efficacy of
+                                                              (1)
+our algorithm, which clearly shows the superadditivity of D→ (·) for various bipartite states.
+    For lower bounds on the quantum capacity, we propose a scalable parameterization of the input
+code states using an interleaved local unitary ansatz. This transforms the optimization problem
+from a search over an exponentially large sphere to a tractable optimization over a product of
+low-dimensional unitary manifolds (cf. Section 4.2). We develop an RGD algorithm to optimize
+the channel coherent information (cf. Corollary 13), which allows for the efficient exploration of
+entangled input states. Numerical results show that our methods can reveal stronger superadditivity
+of the channel coherent information compared to previous code state constructions. Finally, we prove
+that amortization of the underlying channel coherent information does not enhance the original
+channel coherent information (cf. Theorem 2), closing a potential pathway for improving single-letter
+lower bounds.
+    All implementations of Riemannian algorithms in this work are based on a MATLAB toolbox
+Manopt [Inc22,BMAS14], together with the software CVX [GB14] and QETLAB [Joh16]. The numerical
+experiments are performed on a 2.4 GHz AMD EPYC 7532 32-core Processor with 256 GB RAM
+under MATLAB R2024a. All MATLAB codes used to obtain numerical results, as well as all data,
+are publicly available at [Zhu25].
+
+1.2   Structure of the paper
+The remainder of this paper is organized as follows. In Section 2, we introduce some notation we
+used. We first develop the framework for upper bounds in Section 3, beginning with our unified
+framework on state and channel extensions in Section 3.1. Section 3.2 presents upper bounds on
+the one-way distillable entanglement by combining the improved continuity bound with the state
+extension method. Section 3.3 presents upper bounds on the quantum capacity using the channel
+extension method. Section 3.4 establishes our improved upper bound on the quantum capacity of
+qubit depolarizing channels, and Section 3.5 includes further examples on states and channels.
+   Then, we tackle the lower bounds in Section 4. Section 4.1 introduces our Riemannian optimiza-
+
+
+                                                 5
+tion method for computing lower bounds on the one-way distillable entanglement of bipartite states.
+Section 4.2 introduces our Riemannian optimization method for computing lower bounds on the
+quantum capacity. Section 4.3 and Section 4.4 present numerical results on demonstrating concrete
+superadditivity for states and channels, respectively, via our proposed methods. Section 4.5 presents
+the result on amortized channel coherent information. Finally, Section 5 provides concluding remarks
+and outlooks.
+
+
+2     Preliminaries
+A quantum system, denoted by a capital letter such as A, is modeled by a finite-dimensional Hilbert
+space HA . The dimension of this space is denoted by |A|. The sets of linear operators and positive
+semidefinite operators on HA are denoted by L(A) and P(A), respectively. The set of quantum
+states on system A is denoted as D(A) := {ρ ∈ P(A) : Tr ρ = 1}. A sub-normalized state is a
+positive semidefinite operator with trace no greater than one. The√ identity operator on system A
+is denoted√by 1A . The trace norm of X is given by ∥X∥1 := Tr X † X, and its Frobenius norm   √     is
+∥X∥F := Tr X † X. The operator norm ∥X∥∞ is defined as the maximum eigenvalue of X † X.
+The support of a Hermitian operator X is denoted by supp(X).
+     The von Neumann entropy of a quantum state is defined as H(ρ) := − Tr(ρ log ρ) where all
+logarithms in this work are taken in base two. The coherent information of a bipartite quantum
+state ρAB is defined by I(A⟩B)ρ := H(ρB ) − H(ρAB ) and the conditional entropy by H(A|B)ρ :=
+−I(A⟩B)ρ . For p ∈ [0, 1], the binary entropy is defined by h(p) := −p log p − (1 − p) log(1 − p) and
+the bosonic entropy is defined by g(p) := (1 + p) h (p/(1 + p)).
+     A quantum channel NA→B is a completely positive and trace-preserving (CPTP) linear map
+from L(A) to L(B). A subchannel MA→B is a completely positive and trace non-increasing linear
+map from L(A) to L(B). We denote by CP(A : B) the set of completely positive (CP) maps from
+A to B, and by CPTP(A : B) the set of all CPTP maps. The diamond norm of a linear map
+is defined by ∥E∥⋄ := supρ∈D(RA) ∥EA→B (ρRA )∥1 . We will drop the identity map I and identity
+operator 1 if they are clear from the context. The ChoiP matrix of a linear map NA →B is defined
+                                                                                       ′
+
+as JN = (IA ⊗ NA′ →B )(|Γ⟩⟨Γ|A′ A ), where |Γ⟩A′ A = i |i⟩A′ |i⟩A is the unnormalized maximally
+entangled state. For every quantum channel NA→B , there exists an isometry V : HA → HB ⊗ HE
+such that N (ρ) = TrE (V ρV † ) where HE is an environment space and V is called a Stinespring
+isometry. The complementary channel of N is denoted by N c ∈ CPTP(A : E) that acts as
+N c (ρ) = TrB (V ρV † ). The action of a quantum channel also has a Kraus representation, i.e.,
+N (·) = i Ki (·)Ki† with i Ki† Ki = 1.
+        P                 P
+
+
+3     Upper bounds on quantum communication
+In this section, we develop Riemannian optimization methods for estimating upper bounds on the
+one-way distillable entanglement and the quantum capacity. First, we introduce our methods for
+constructing states and channel extensions.
+
+3.1   Extensions of quantum states and channels
+A common strategy for constructing extensions of states or channels is referred to as the flag extension
+method, which relies on a convex decomposition of the state or channel [LDS18, Wan21, FKG20,
+
+
+                                                   6
+                                                                                     P      (i)
+KFG22]. For a given bipartite quantum state ρAB , one first decomposes it into ρAB = i pi ωAB
+          (i)
+where {ωAB }i are normalized states. An extension is then constructed by appending an auxiliary
+              (i)      (i)
+flag state τF to each ωAB , i.e.,
+                                                   (i)    (i)
+                                            X
+                                   ρ̂ABF :=    pi ωAB ⊗ τF .                                (3)
+                                               i
+
+By construction, tracing out the flag system F recovers the original state. A similar
+                                                                                  P procedure
+applies to a quantum channel NA→B . Using a Kraus representation NA→B (·) = i pi Ki (·)Ki† ,
+one can define an extended channel where the action of each Kraus operator is correlated with a
+corresponding flag state, i.e.,
+
+                                               pi Ki (·)Ki† ⊗ τF .
+                                                               (i)
+                                             X
+                                bA→BF (·) :=
+                                N                                                           (4)
+                                                i
+
+It is clear that TrF NbA→BF (ρA ) = NA→B (ρA ) for any input state ρA . The central challenge of this
+                                                                              (i)
+method is that the subsequent optimization over the flag state ensemble {τF }i is fundamentally
+tied to the initial choice of decomposition. To establish a more general framework that avoids this
+dependency, we begin by formally defining state and channel extensions.
+
+Definition 1 (State extension). For any given bipartite quantum state ρAB , a quantum state
+ρ̂ABF ∈ D(ABF ) is called an extended state of ρAB if TrF ρ̂ABF = ρAB .
+
+Definition 2 (Channel extension). For any given quantum channel N ∈ CPTP(A : B), a quantum
+        b ∈ CPTP(A : BF ) is called an extended channel of N if
+channel N
+                                              b (ρ), ∀ρ ∈ D(A).
+                                  N (ρ) = TrF N                                                   (5)
+
+   After direct observation, we can gather the following facts about any state or channel extension.
+
+
+Fact 1. For any bipartite quantum state ρAB , ρ̂ABF is an extended state of ρAB if and only if there
+is an environment system R and an isometry V : HE → HR ⊗ HF such that ρ̂ABF = TrR (V |ϕ⟩⟨ϕ|V † )
+where |ϕ⟩ABE is a purification of ρAB .
+
+
+Proof. For the if-part, assume ρ̂ABF = TrR (V |ϕ⟩⟨ϕ|V † ) where V : HE → HR ⊗ HF . We can check
+that
+                    TrF ρ̂ABF = TrRF (1AB ⊗ V )|ϕ⟩⟨ϕ|(1AB ⊗ V † )
+                                                                   
+                                                                                            (6)
+                              = TrE (1AB ⊗ V † V )|ϕ⟩⟨ϕ| = TrE |ϕ⟩⟨ϕ| = ρAB .
+                                                          
+
+For the only if-part, assume ρ̂ABF is an extension of ρAB , i.e., TrF ρ̂ABF = ρAB . Let |ϕ⟩ABE and
+|ψ⟩ABF R be purifications of ρAB and ρ̂ABF , respectively. The fact that TrF R |ψ⟩⟨ψ|ABF R = ρAB
+means that |ψ⟩ABF R is also a purification of ρAB . Then there must exist an isometry V : HE →
+HF ⊗ HR such that |ψ⟩ABF R = (1AB ⊗ V )|ϕ⟩ABE . Hence, it is obvious to express ρ̂ABF as
+ρ̂ABF = TrR (V |ϕ⟩⟨ϕ|V † ) which completes the proof.                                            ⊔
+                                                                                                 ⊓
+
+
+
+
+                                                    7
+Fact 2. For any given quantum channel N ∈ CPTP(A : B), a quantum channel Nb ∈ CPTP(A : BF )
+is an extended channel of N if and only if there is an environment system R and an isometry
+V : HE → HR ⊗ HF such that W = (1B ⊗ V )U is a Stinespring isometry of N  b where U : HA →
+HB ⊗ HE is a Stinespring isometry of N .
+
+
+Proof. The if-part is again a direct calculation. Assume N
+                                                         bA→BF has an Stinespring isometry
+W = (1B ⊗ V )U . We have that
+
+                        b (ρ) = TrF R (1B ⊗ V )U ρU † (1B ⊗ V † )
+                                                                
+                    TrF N
+                                                                                                  (7)
+                              = TrE (1B ⊗ V † V )U ρU † = TrE [U ρU † ] = N (ρ).
+                                                      
+
+
+For the only if-part, assume N b ∈ CPTP(A : BF ) is an extended channel of N which has an isometry
+UN : HA → HB ⊗ HE , and UNb : HA → HB ⊗ HR ⊗ HF is an isometry of N                b . We have that
+N (ρ) = TrF R [UNb ρU †b ] which shows UNb is an isometry of N as well. Then there exists an isometry
+                      N
+V : HE → HR ⊗ HF such that UNb = (1B ⊗ V )UN , which completes the proof.                           ⊓
+                                                                                                    ⊔
+
+3.1.1   Riemannian optimization for extensions
+Based on the two facts above, the key insight of our work is that the space of all valid extensions
+for a given state or channel can be endowed with a Riemannian manifold structure. Consequently,
+the problem of optimizing a chosen figure of merit over this space can be cast as a Riemannian
+optimization problem, allowing for the direct application of its powerful numerical tools; see
+Ref. [AMS08] for an overview.
+    Taking the state extension as an example, for a given bipartite quantum state ρAB , suppose the
+figure of merit we are interested in is to minimize a function f (ρABF ) where ρABF is any extension
+of ρAB . Then using Fact 1, for any fixed |F |, |R| ∈ N+ , taking ρABF = TrR (V |ϕ⟩⟨ϕ|V † ) into the
+objective, the problem
+                                               min      f (V )                                    (8)
+                                         V ∈St(|F R|,|E|)
+
+reduces to a constrained optimization problem over the isometries. The feasible region of these
+isometries is the complex Stiefel manifold
+
+                           St(|F R|, |E|) := V ∈ C|F R|×|E| : V † V = 1 ,
+                                            
+                                                                                            (9)
+
+a well-studied Riemannian manifold [AT60]. This naturally leads us to the framework of Riemannian
+optimization, which leverages the geometric structure of the manifold to generate iterates that remain
+within the feasible set [AMS08]. Optimization problems on Riemannian manifolds have appeared in
+various areas of quantum information sciences (see, e.g., Refs. [LRFO21, COT24, KBHM24, HKY+ 24,
+ZZAZ25, LSM25, ZPGW25, LHZ+ 25] as a very incomplete list).
+    A central element of many Riemannian optimization methods, e.g., Riemannian gradient descent
+(RGD) [Bon13], is the Riemannian gradient. This gradient provides the direction of steepest ascent
+in the tangent space at a given point on the manifold, guiding the optimization process. However, a
+key challenge in many problems we would encounter is that the objective function f (V ) is inherently
+
+
+                                                   8
+non-smooth, meaning its gradient may not be defined at all points. This necessitates the use
+of optimization techniques suited for non-smooth problems, such as subgradient or gradient-free
+methods. We will further see details in Section 3.2.1.
+
+3.2    Upper bounds on the one-way distillable entanglement
+In this section, we first establish an improved continuity bound on the one-way distillable entan-
+glement based on the recently improved continuity bound on the quantum conditional entropy as
+shown in Lemma 2. Then, we apply the Riemannian optimization methods for searching extensions
+of a given state to give tighter upper bounds on the one-way distillable entanglement, combining
+with the continuity bound.
+    For the task of entanglement distillation from n i.i.d. copies of a bipartite state ρAB , the objective
+is to transform the initial state ρ⊗n
+                                   AB into m copies of a Bell state Φ via LOCC, such that the fidelity
+with the target state Φ⊗m approaches one in the asymptotic limit (n → ∞). When the classical
+communication is restricted from Alice to Bob, the protocol class is known as one-way LOCC. The
+corresponding optimal rate of distillation is the one-way distillable entanglement, denoted D→ (ρA|B ),
+where the notation A|B emphasizes that the restricted communication direction (only from A to B
+is possible). A seminal work by Devetak and Winter [DW05] provides a characterization of this
+quantity via a regularized formula
+                                                      1 (1) ⊗n
+                                    D→ (ρA|B ) = lim   D (ρA|B ),                                     (10)
+                                                  n→∞ n →
+
+         (1)
+where D→ (ρA|B ) can be expressed as
+
+                                  (1)
+                                 D→   (ρA|B ) = max I(A′ ⟩BM )T (ρAB ) .                              (11)
+                                                  T
+
+Here T is a quantum instrument, i.e.,
+                                                            m
+                                                            X
+                                        ′
+                            T : A → A M,       T (ρA ) :=             Tj (ρA ) ⊗ |j⟩⟨j|,              (12)
+                                                                j=1
+
+where for each j, Tj ∈ CP(A : A′ ) and j Tj ∈ CPTP(A : A′ ), and M is a classical system to store
+                                      P
+measurement results with |M | = m. Equivalently, Eq. (11) can be expressed as
+                                                          m
+                                                          X
+                                   (1)
+                                  D→   (ρA|B ) = max            λj I(A′ ⟩B)ρj ,                       (13)
+                                                  T
+                                                          j=1
+
+where λj is equal to the probability of outcome j, i.e., λj = Tr[Tj (ρAB )], ρj = 1/λj Tj (ρAB ) is the
+state after measurement with outcome j.
+    A bipartite state ρAB is termed degradable if there exists a quantum channel MB→E such that
+MB→E (ρAB ) = TrB |ϕ⟩⟨ϕ|ABE , where |ϕ⟩ABE is a purification of ρAB [LDS18]. The significance of
+this property is that the coherent information is additive for any degradable state, which simplifies
+the regularized expression for one-way distillable entanglement, i.e., D→ (ρAB ) = I(A⟩B)ρ [LDS18].
+In the same work, the approximate degradability was introduced as follows.
+
+
+
+                                                      9
+     Definition 3 (Degradability parameter of bipartite states [LDS18]). Let ρ ∈ D(AB) be a bipartite
+     quantum state with purification |ρ⟩ABE , where E denotes the environment system. We say that ρ is
+     ε-degradable if there exists a quantum channel M ∈ CPTP(B : E ′ ) such that E ∼= E ′ and
+                                     1
+                                        ρAE − MB→E ′ (ρAB ) 1 ≤ ε.                             (14)
+                                     2
+     The channel M is referred to as an ε-degrading channel of ρAB . The degradability parameter of
+     ρAB is defined as
+                                                          1
+                              dg(ρ) :=        min           ρAE − MB→E ′ (ρAB ) 1 .                   (15)
+                                         M∈CPTP(B:E ′ )   2
+         Notably, the degradability parameter of a given state can be efficiently computed via semidefinite
+     programming (SDP) [LDS18, Lemma 2.10]. Based on the approximate degradability, an efficiently
+     computable upper bound on the one-way distillable entanglement was established in [LDS18, Theorem
+     2.12]. We remark that this upper bound is essentially also based on the continuity bound of the
+     conditional entropy, known as the Alicki-Fannes inequality [AF04], and was improved by Winter
+     later [Win16]. Recently, this continuity bound has been further improved with an additional marginal
+     restriction on the considered states in [ABD+ 24, Theorem 5] and [BLT25, Theorem 5].
+     Lemma 1 (Continuity of the conditional entropy [Win16]). For any two quantum states ρ, σ ∈
+     D(AB), if 12 ∥ρ − σ∥1 ≤ ε ≤ 1, it holds that
+                                 |H(A|B)ρ − H(A|B)σ | ≤ ε log(|A|2 ) + g(ε).                          (16)
+     Lemma 2 (Continuity of the conditional entropy [ABD+ 24, BLT25]). For two quantum states
+     ρ, σ ∈ D(AB) with equal marginals ρB = σB and 12 ∥ρ − σ∥1 = ε for some ε ∈ [0, 1], it holds that
+
+                               |H(A|B)ρ − H(A|B)σ | ≤ ε log(|A|2 − 1) + h(ε).                         (17)
+     In Figure 2, we can observe the difference between the two continuity bounds through a numerical
+     experiment (|A| = 4).
+         Building upon the improved continuity bound on conditional entropy, we improve the upper
+     bound on the one-way distillable entanglement in Theorem 1. A parallel result for the upper bound
+     on quantum capacity has been shown in [BLT25, Proposition 10]. Before stating it, we introduce a
+     modified version of the coherent information, which mimics the similar definition for channels used
+     in [SSWR17, Proposition 3.2].
+
+                                              A
+                                                      ℳ
+                                             B                  E′
+                                    ρ
+                                                                 G
+                                                                               ε
+                                             E
+
+     Figure 3: Schematic illustration of an ε-degradable state ρAB and its ε-degrading channel M, along
+     with their respective Stinespring dilations V(·) = V (·)V † .
+
+
+                                                          10
+
+
+
+
+𝒱￼
+                          6
+                                       Lemma 1
+                                       Lemma 2
+                          5
+
+
+                          4
+
+
+                          3
+
+
+                          2
+
+
+                          1
+
+
+                          0
+                              0     0.1   0.2    0.3    0.4     0.5       0.6     0.7   0.8   0.9   1
+                                                                 ε
+
+                              Figure 2: Continuity bounds comparison, |A| = 4.
+
+
+Definition 4. Let ρ ∈ D(AB) be an ε-degradable state with an ε-degrading channel M ∈ CPTP(B :
+E ′ ). Let V : HB → HE ′ ⊗ HG be a Stinespring isometry of M. Then we define
+
+                           UM (ρA|B ) := H(G|E ′ )σ             where           σAE ′ G = V ρAB V † .          (18)
+
+
+
+Theorem 1 (Improved upper bound on the one-way distillable entanglement). Let ρ ∈ D(AB) be an
+ε-degradable quantum state with ε-degrading channel M ∈ CPTP(B : E ′ ). Let V : HB → HE ′ ⊗ HG
+be a Stinespring isometry of M with E ′ ∼
+                                        = E. It satisfies that
+
+                                  D→ (ρA|B ) ≤ UM (ρA|B ) + ε log(|E|2 − 1) + h(ε).                            (19)
+
+
+
+Proof. The argument here closely follows the proof of [LDS18, Theorem 2.12], leveraging Lemma 2.
+Let |ρ⟩ABE be a purification of ρAB . Consider n copies of the state ρ⊗n               n   ′
+                                                                      AB and let Tn : A → A M be
+an instrument with isometric extension
+                                                   X
+                        Tn : An → A′ M N, Tn =         Kj ⊗ |m⟩M ⊗ |m⟩N ,                    (20)
+                                                                      m
+
+where {Kj } are Kraus operators. For t = 1, . . . , n, define the pure states
+
+              |ψ t ⟩An Bt+1 ...Bn E1′ ...Et′ G1 ...Gt E1 ...En := VB1 →E1′ G1 ⊗ · · · ⊗ VBt →Et′ Gt |ρ⟩⊗n
+                                                                                                       ABE ,   (21)
+              |θt ⟩A′ M N Bt+1 ...Bn E1′ ...Et′ G1 ...Gt E1 ...En := Tn |ψ t ⟩,                                (22)
+
+where VBi →Ei′ Gi are Stinespring isometries for the ε-degrading channels.
+
+
+                                                               11
+                                                                                                         A′
+                                                      n                                                  M
+                                                  A                                         n
+                                                                                                         N
+                                                           ℳ⊗n
+                                                      n
+                                                  B                     E′n
+                                           ⊗n
+                                       ρ                     ⊗n
+                                                                        Gn
+
+                                                  En
+
+            It was shown in [LDS18, Eq. (2.27)] that
+                                                                  n
+                                                                  X
+            I(A′ ⟩M B n )Tn ρ⊗n T † = H(Gn |M E ′n )θn +             H(Et′ |M E<t
+                                                                               ′                     ′
+                                                                                                              
+                                                                                  E>t )θt − H(Et |M E<t E>t )θt ,            (23)
+                                   n
+                                                                  t=1
+
+        where X<t := X1 · · · Xt−1 (with X<1 the trivial system) and X>t is defined analogously. In [LDS18],
+        it is shown that the trace distance between θMt                          t
+                                                        E ′ ...E ′ Et ...En and θM E ′ ...E ′ Et+1 ...En is bounded as
+                                                                        1      t−1                   1   t
+
+
+                                           1 t
+𝒱
+𝒯
+    ￼
+    ￼
+                                                                      t
+                                             θ ′ ′                 − θM E1′ ...Et′ Et+1 ...En   ≤ ε.                         (24)
+                                           2 M E1 ...Et−1 Et ...En                            1
+                           t
+        Notice that TrEt′ θM                               t                                                       ′ E
+                             E ′ ...E ′ Et+1 ...En = TrEt θM E ′ ...E ′
+                                  1    t                           1        t−1 Et+1
+                                                                                       , i.e., the marginals on M E<t >t coincide.
+        Thus, by applying Lemma 2, the second term in Eq. (23) can be bounded as
+                      n
+                      X
+                            H(Et′ |M E<t
+                                      ′                     ′
+                                                               E>t )θt ≤ n ε log(|E|2 − 1) + h(ε) .
+                                                                                               
+                                         E>t )θt − H(Et |M E<t                                                               (25)
+                      t=1
+
+        It follows that
+
+                            I(A′ ⟩M B n )Tn ρ⊗n T † ≤ H(Gn |M E ′n )θn + n ε log(|E|2 − 1) + h(ε)
+                                                                                                 
+                                                                                                                             (26)
+                                                 n
+
+                                                    ≤ H(Gn |E ′n )ψn + n ε log(|E|2 − 1) + h(ε)
+                                                                                               
+                                                                                                                             (27)
+                                                    = nH(G|E ′ )ψ + n ε log(|E|2 − 1) + h(ε) ,
+                                                                                             
+                                                                                                                             (28)
+
+        where the second inequality uses the data-processing inequality for conditional entropy under partial
+        trace, and the last equality uses the additivity of conditional entropy for tensor product states as in
+        Eq. (21). Since the above holds for any instrument Tn , optimizing over all such instruments and
+        dividing both sides by n, then taking the limit n → ∞ completes the proof.                            ⊔
+                                                                                                              ⊓
+
+        Remark 1 Using the same idea to bound H(Gn |E ′n )ψn through I(A⟩B)ρ⊗n as that in [LDS18,
+        Eq. (2.30)], we can also have
+
+                                       D→ (ρA|B ) ≤ I(A⟩B)ρ + 2ε log(|E|2 − 1) + 2h(ε).                                      (29)
+
+
+             Based on Theorem 1 and the framework of Riemannian optimization for state extensions
+        (cf. Section 3.1.1), we further have the following upper bound on the one-way distillable entanglement.
+
+                                                                        12
+                                                             P √
+                               state ρAB , let |ϕ⟩ABE = i pi |ψi ⟩AB ⊗ |ei ⟩E be the canonical
+Corollary 3. For any bipartite P
+purification of ρAB where ρAB = i pi |ψi ⟩⟨ψi |AB is the spectral decomposition. It holds that
+
+                                                             b 2 − 1) + h(dg(ρA|BF ))
+              D→ (ρA|B ) ≤ inf UM (ρA|BF ) + dg(ρA|BF ) log(|E|
+                              s.t. V ∈ St(|F R|, |E|), |F |, |R| ∈ N+ ,                           (30)
+                                      ρABF = TrR (V |ϕ⟩⟨ϕ|V † ),
+
+where M is the dg(ρA|BF )-degrading channel for ρA|BF and E
+                                                          b is the auxiliary system for the
+purification of ρABF .
+
+
+Proof. The bound directly follows from Fact 1 with Theorem 1 applying to ρA|BF .                    ⊔
+                                                                                                    ⊓
+
+   As mentioned in Section 3.1.1, for any fixed |F |, |R| ∈ N+ , taking ρABF = TrR (V |ϕ⟩⟨ϕ|V † ) into
+the objective in Eq. (30), the problem reduces to
+
+                        min           f (V ) := UM (V ) + dg(V ) log(η 2 − 1) + h(dg(V )).        (31)
+                   V ∈St(|F R|,|E|)
+
+Here in Eq. (31), St(|F R|, |E|) is the complex Stiefel manifold, UM (V ) and dg(V ) are shorthand for
+UM (ρA|BF (V )) and dg(ρA|BF (V )), respectively, and η = |ABF |. This is because full-rank matrices
+are dense in D(AB), i.e., the probability of an iterative point landing on a full-rank point is 1
+under the Lebesgue measure. The primary obstacle to solving this problem is that deriving an
+analytical expression for the Riemannian gradient of f (V ) is intractable. This difficulty arises
+because the degradability parameter, dg(ρA|BF ), and ε-degrading channel M themselves are the
+solution to an SDP [LDS18, Lemma 2.10], making Eq. (31) a bilevel optimization problem [CMS07].
+To obtain an analytical gradient, in principle, one may try to use implicit differentiation of the
+Karush-Kuhn-Tucker (KKT) conditions [VB96] of the inner SDP for dg(ρA|BF ), and analyze the
+gradient of purification function since we also need ρAE for calculating dg(ρA|BF ). This approach is
+exceptionally complex to implement and requires solving a large, potentially ill-conditioned linear
+system at each iteration. For these practical reasons, we adopt a numerical finite difference scheme,
+which we will explain in detail in Section 3.2.1.
+
+3.2.1   Numerical gradient approximation on the manifold
+Since our primary goal is to establish a method that can be practically implemented to compute
+upper bounds for a wide range of quantum states and channels, we prioritize a pragmatic approach
+to optimization. We utilize an RGD algorithm but replace the intractable analytical gradient with
+a numerical approximation via a finite-difference scheme, a well-adopted approach in derivative-free
+optimization [Miz73, CK00, Kel11, NS17, SXON21], and has been shown effective in some bilevel
+problems [SJL22]. To apply gradient-based optimization to the objective function in Eq. (31) (or
+Eq. (29)), we will show that the following objective function is actually locally Lipschitz continuous.
+
+                      f (V ) = I(A⟩BF )ρ(V ) + 2 dg(V ) log(η 2 − 1) + 2h(dg(V )).                (32)
+
+
+
+                                                        13
+For the first term I(A⟩B)ρ , we note that the von Neumann entropy H(ρ) is continuously differentiable
+with respect to ρ at any point where ρ is full-rank, i.e., ∇H(ρ) = −(log ρ + 1). Therefore, I(A⟩B)ρ
+is also continuously differentiable on the full rank density matrices, which means that ρ 7→ I(A⟩B)ρ
+is locally Lipschitz continuous. The binary entropy term h(·) is also locally Lipschitz. For the
+second term, the degradability parameter, we have the following results.
+
+
+Lemma 4. The degradability parameter dg(·) is a Hölder continuous function on the set of
+bipartite quantum states D(AB) with respect to the trace distance. Specifically, for any two states
+ρAB , σAB ∈ D(AB) such that 12 ∥ρAB − σAB ∥1 ≤ ε ≤ 1, it holds that
+                                                             √
+                                 | dg(ρAB ) − dg(σAB )| ≤        2ε + ε.                         (33)
+
+
+
+Proof. Let ρAB and σAB be two bipartite states on HA ⊗ HB . Choose |ϕρ ⟩ABE and |ϕσ ⟩ABE to be
+purifications of ρAB and σAB on a common system HE with |E| ≥ dim(HA ) dim(HB ), such that
+they saturate the fidelity bound in Uhlmann’s theorem, i.e.,
+
+                                     F (ρAB , σAB ) = |⟨ϕρ |ϕσ ⟩|2 ,                             (34)
+                   √ √
+where F (ρ, σ) := ∥ ρ σ∥21 is the fidelity between ρ and σ. The complementary states are given by
+ρAE = TrB |ϕρ ⟩⟨ϕρ | and σAE = TrB |ϕσ ⟩⟨ϕσ |. Let us define the function fM (ρAB ) as
+                                          1
+                           fM (ρAB ) :=     ρAE − (IA ⊗ MB→E )(ρAB ) 1 .                         (35)
+                                          2
+Consider that
+                                 1
+       fM (ρAB ) − fM (σAB ) =        ρAE − (IA ⊗ M)(ρAB ) 1 − σAE − (IA ⊗ M)(σAB ) 1
+                                 2
+                                 1
+                               ≤    ρAE − (IA ⊗ M)(ρAB ) − σAE + (IA ⊗ M)(σAB ) 1                (36)
+                                 2
+                                 1                                         
+                               ≤     ∥ρAE − σAE ∥1 + (IA ⊗ M)(ρAB − σAB ) 1                      (37)
+                                 2
+                                 1                               
+                               ≤     ∥ρAE − σAE ∥1 + ∥ρAB − σAB ∥1 .                             (38)
+                                 2
+Here, in Eq. (36), we used the reverse triangle inequality for the trace norm, i.e., ∥X∥1 − ∥Y ∥1 ≤
+∥X − Y ∥1 . We used ∥X − Y ∥1 ≤ ∥X∥1 + ∥Y ∥1 in Eq. (37) and used ∥(IA ⊗ MB→E )(ρAB − σAB )∥1 ≤
+∥ρAB − σAB ∥1 in Eq. (38). Recall the Fuchs–van de Graaf inequalities
+                        p                1               p
+                   1−    F (ρAB , σAB ) ≤ ∥ρAB − σAB ∥1 ≤ 1 − F (ρAB , σAB ).                    (39)
+                                         2
+We have that
+                                                                p
+                  ∥ρAE − σAE ∥1 ≤ ∥|ϕρ ⟩⟨ϕρ | − |ϕσ ⟩⟨ϕσ |∥1 = 2 1 − F (ρAB , σAB ),             (40)
+
+
+
+
+                                                   14
+where the first inequality is due to the monotonicity of the trace distance under partial trace, the
+equality is thanks to Eq. (34) and the fact that any pair of pure states saturates the upper bound
+in Eq. (39). Notice that
+                 p                      q     p                    p
+                   1 − F (ρAB , σAB ) = (1 + F (ρAB , σAB ))(1 − F (ρAB , σAB ))
+                                        q      p
+                                      ≤ 2(1 − F (ρAB , σAB ))                                   (41)
+                                        p
+                                      ≤ ∥ρAB − σAB ∥1 ,
+
+where the first inequality is because F (ρAB , σAB ) ≤ 1 and the second inequality is followed from
+Eq. (39). Plugging into Eq. (40), we get
+                                                    p
+                                ∥ρAE − σAE ∥1 ≤ 2 ∥ρAB − σAB ∥1 .                               (42)
+
+   Now, let Mρ be a CPTP map that achieves the minimum for dg(ρAB ), and let Mσ be one that
+achieves the minimum for dg(σAB ). By definition, we have
+
+                          dg(ρAB ) = fMρ (ρAB ), dg(σAB ) = fMσ (σAB ).
+
+Since Mρ is optimal for ρAB , we have dg(ρAB ) ≤ fD (ρAB ) for any map D, including Mσ . This
+leads to
+
+                 dg(ρAB ) − dg(σAB ) ≤ fMσ (ρAB ) − fMσ (σAB )                                 (43)
+                                      ≤ |fMσ (ρAB ) − fMσ (σAB )|                              (44)
+                                        1 p                              
+                                      ≤    2 ∥ρAB − σAB ∥1 + ∥ρAB − σAB ∥1 ,                   (45)
+                                        2
+where we used Eq. (38) and Eq. (42) for the last inequality. By swapping the roles of ρAB and σAB ,
+the same argument yields
+                                            1 p                             
+                 dg(σAB ) − dg(ρAB ) ≤        2 ∥ρAB − σAB ∥1 + ∥σAB − ρAB ∥1 .                (46)
+                                            2
+Combining these two inequalities gives
+                                            1 p                             
+                 | dg(ρAB ) − dg(σAB )| ≤     2 ∥ρAB − σAB ∥1 + ∥ρAB − σAB ∥1 .                (47)
+                                            2
+                                                                                                  ⊔
+                                                                                                  ⊓
+
+
+Lemma 5. For any bipartite state ρAB , let |ϕ⟩ABE be a purification of ρAB , V : HE → HR ⊗ HF
+be an isometry and denote ρABF (V ) = TrR (V |ϕ⟩⟨ϕ|V † ). It holds that
+
+                             ∥ρABF (V ) − ρABF (V ′ )∥1 ≤ 2∥V − V ′ ∥F .                       (48)
+
+
+
+
+                                                  15
+Proof. Let V, V ′ ∈ St(|F R|, |E|) be two isometries and ρ ≡ ρABF (V ), ρ′ ≡ ρABF (V ′ ). Consider that
+
+           ∥ρ − ρ′ ∥1 = TrR V |ϕ⟩⟨ϕ|V † − V ′ |ϕ⟩⟨ϕ|V ′† 1
+                                                         
+
+                      ≤ V |ϕ⟩⟨ϕ|V † − V ′ |ϕ⟩⟨ϕ|V ′† 1
+                      = (V − V ′ )|ϕ⟩⟨ϕ|V † + V ′ |ϕ⟩⟨ϕ|(V − V ′ )† 1
+                      ≤ (V − V ′ )|ϕ⟩⟨ϕ|V † 1 + V ′ |ϕ⟩⟨ϕ|(V − V ′ )† 1                               (49)
+                      ≤ ∥V − V ′ ∥∞ · ∥|ϕ⟩⟨ϕ|∥1 · ∥V † ∥∞ + ∥V ′ ∥∞ · ∥|ϕ⟩⟨ϕ|∥1 · ∥V − V † ∥∞
+                      = 2∥V − V ′ ∥∞
+                      ≤ 2∥V − V ′ ∥F ,
+
+where we used the data processing inequality in the second line, the triangle inequality in the fourth
+line, and the Hölder inequality twice in the fifth line, the fact that ∥V ∥∞ = ∥V † ∥∞ = 1 for an
+isometry in the second line from the bottom, and the fact that ∥X∥∞ ≤ ∥X∥F for any normal
+matrix X in the last inequality.                                                                     ⊔
+                                                                                                     ⊓
+
+
+Corollary 6. For any bipartite state ρAB , let |ϕ⟩ABE be a purification of ρAB , V : HE → HR ⊗ HF
+be an isometry and denote ρABF (V ) = TrR (V |ϕ⟩⟨ϕ|V † ). It holds that
+
+                             dg(ρABF (V )) − dg(ρABF (V ′ )) ≤ 2∥V − V ′ ∥F .                         (50)
+
+
+
+Proof. According to the argument in Lemma 4, we have that
+                                         1                                                      
+     dg(ρA|BF (V )) − dg(ρA|BF (V ′ )) ≤    ∥ρAR (V ) − ρAR (V ′ )∥1 + ∥ρABF (V ) − ρABF (V ′ )∥1 ,
+                                         2
+where                                   h                                i
+                         ρAR (V ) = TrBF (1AB ⊗ V )|ϕ⟩⟨ϕ|ABE (1AB ⊗ V † ) .                           (51)
+
+Similar to Eq. (49), we have that
+
+          ∥ρAR (V ) − ρAR (V ′ )∥1 ≤ 2∥V − V ′ ∥F , ∥ρABF (V ) − ρABF (V ′ )∥1 ≤ 2∥V − V ′ ∥F .       (52)
+
+Therefore, it follows that
+
+                             dg(ρA|BF (V )) − dg(ρA|BF (V ′ )) ≤ 2∥V − V ′ ∥F .                       (53)
+
+                                                                                                        ⊔
+                                                                                                        ⊓
+
+    Lemma 4 establishes the Hölder continuity of the degradability parameter dg(·) with respect to
+states. More importantly, Lemma 5 and Corollary 6 demonstrate that the degradability parameter
+dg(·) is Lipschitz continuous with respect to isometries V . Consequently, the overall objective
+function f (V ) in Eq. (32) is locally Lipschitz continuous. This property is the theoretical cornerstone
+of our optimization approach. Specifically, although f (V ) may be nondifferentiable, its local Lipschitz
+nature justifies the use of concepts from nonsmooth optimization, namely the subgradient [LCD+ 21].
+In this context, our finite-difference scheme (cf. Eqs. (60)-(62)) serves as a reliable method to
+
+                                                    16
+approximate a subgradient, as the local Lipschitz condition guarantees its truncation error is
+rigorously bounded linearly by O(Lh), where L is the local Lipschitz constant and h is the tunable
+step size [JKL+ 25]. Therefore, our algorithm acts as a practical implementation of a (inexact)
+Riemannian subgradient method, a principled approach known to converge to the set of Clarke
+stationary points [BLO05,BKM14,HU17]. Based on the above, we explain the optimization algorithm
+as follows.
+
+Riemannian gradient descent. Our RGD algorithm, shown in Algorithm 1, leverages standard
+tools from the field of Riemannian optimization. To ensure our presentation is self-contained, we
+briefly recall the essential definitions for the complex Stiefel manifold, which are well-established
+concepts. We refer the reader to [Bou23] for a comprehensive treatment. The Riemannian gradient,
+denoted grad f (V ), is a tangent vector in the tangent space TV M at a point V on the manifold
+M . It is defined by the relation
+
+                              grad f (V ), V̇ V = Df (V )[V̇ ], ∀V̇ ∈ TV M ,                           (54)
+
+where V̇ is any tangent vector, ⟨·, ·⟩V is the Riemannian metric on the tangent space, and Df (V )[V̇ ]
+is the directional derivative of f at V along V̇ .
+    Specifically, for the complex Stiefel manifold St(n, p) := {V ∈ Cn×p : V † V = 1}, its tangent
+space is given by
+                            TV St(n, p) = V A : A ∈ Cn×n , A† + A = 0 .
+                                            
+                                                                                                 (55)
+The Riemannian metric on TV St(n, p) we use is given by
+
+                  ⟨·, ·⟩V : TV St(n, p) × TV St(n, p) → R,        ⟨X, Y ⟩V = Tr(X † Y ).               (56)
+
+The projection onto the tangent space at any point V ∈ St(n, p) reads
+                                                               V †X − X †V
+                             ProjV (X) = (1 − V V † )X + V                 .                           (57)
+                                                                    2
+The Riemannian gradient is then given by
+
+                                      grad f (V ) = ProjV ∇f¯(V ) ,
+                                                                 
+                                                                                                       (58)
+
+where ∇f¯(V ) is the gradient of an extension f¯ of f on Euclidean space. When doing an optimization
+on a manifold, in order to move in the direction of a tangent vector while staying on the manifold,
+we also need a retraction mapping [AMS08, Section 4]. There are different retractions for the Stiefel
+manifold, a standard one, and the one we used in Section 4.2 is the retraction based on the QR
+decomposition, i.e.,
+                                        RV (X) := qf(V + X),                                    (59)
+where qf(X) denotes the Q factor of the decomposition of X as X = QR where Q ∈ St(n, p) and R
+is an p × p upper triangular with nonnegative diagonal entries.
+    To optimize Eq. (32), since we cannot compute the gradient analytically, we approximate the
+directional derivative using a first-order finite difference. For a small step t, the directional derivative
+is approximated as
+                                                   f (RV (tV̇ )) − f (V )
+                                    Df (V )[V̇ ] ≈                        .                             (60)
+                                                              t
+To compute the full gradient vector grad f (V ), we can compute the following steps:
+
+                                                    17
+Algorithm 1 Riemannian Gradient Descent (RGD) for upper bounds on D→ (·)
+Input: A bipartite state ρAB and a purification |ϕ⟩ABE ; Initial guess V (0) ∈ St(n, p).
+ 1: while the stopping criteria are not satisfied do
+ 2:   Approximate V̇ (t) = − grad f (Vk ) using the finite-difference scheme as described in Eqs. (60)-
+      (62).
+ 3:   Compute a stepsize s(t) .
+      Update V (t+1) = RV (t) s(t) V̇ (t) by Eq. (59); t = t + 1.
+                                         
+ 4:
+ 5: end while
+ 6: Compute the upper bound dupp in Eq. (30) using the optimal V ∗ .
+Output: V ∗ , dupp .
+
+
+  i). Define an orthonormal basis {ζi }di=1 for the tangent space TV M , where d = dim(TV M ).
+
+ ii). For each basis vector ζi , compute the approximate directional derivative using the finite-
+      difference formula
+                                                      f (RV (tζi )) − f (V )
+                                  ci = Df (V )[ζi ] ≈                        .              (61)
+                                                                t
+ iii). The Riemannian gradient is then constructed by combining these components
+                                                           d
+                                                           X
+                                           grad f (V ) =         ci ζi .                          (62)
+                                                           i=1
+
+
+This process requires d + 1 function evaluations to compute a single gradient. While computationally
+intensive, it bypasses the need for any analytical derivatives.
+
+3.3   Upper bounds on the quantum capacity
+In this section, we apply the Riemannian optimization methods for searching extensions of a target
+channel to obtain upper bounds on the quantum capacity. The Lloyd–Shor–Devetak theorem
+shows that the quantum capacity of a channel N is equal to the regularized channel coherent
+information [SN96, Llo97, BKN00, Sho02, Dev05],
+                                                    1
+                                     Q(N ) = lim        Q(1) (N ⊗n ),                             (63)
+                                              n→∞ n
+
+where the channel coherent information is defined as Q(1) (N ) := maxρ∈D Ic (ρ, N ) (also denoted as
+Ic (N )) with
+                               Ic (ρ, N ) := H(N (ρ)) − H(N c (ρ)).                             (64)
+    A quantum channel NA→B is said to be degradable if there exists a channel M ∈ CPTP(B : E)
+such that N c = M ◦ N , where N c is the complementary channel of N . The primary utility of
+this property is that the coherent information of a degradable channel is additive. Consequently,
+the regularization in Eq. (63) becomes unnecessary, leading to Q(N ) = Q(1) (N ). However, non-
+degradable channels generally exhibit non-additive coherent information [DSS98, LLS18], making
+the regularization essential. This non-additivity can be so pronounced that an unbounded number
+of channel uses may be required to detect capacity [CEM+ 15].
+
+                                                  18
+       This sharp dichotomy between degradable and non-degradable channels motivates a more
+    nuanced approach for channels that, while not strictly degradable, are close to being so. To
+    formalize this, Sutter et al. introduced the ε-degradable channel [SSWR17], defined as follows.
+    Definition 5. Let N ∈ CPTP(A : B) be a quantum channel with complementary channel N c ∈
+    CPTP(A : E), where E denotes the environment system. We say that N is ε-degradable if there
+    exists a quantum channel M ∈ CPTP(B : E ′ ) such that E ′ ∼
+                                                              = E and
+                                        1
+                                           N c − M ◦ N ⋄ ≤ ε,                                 (65)
+                                        2
+    where ∥ · ∥⋄ denotes the diamond norm. The channel M is referred to as an ε-degrading channel.
+    The degradability parameter of N is defined as1
+                                                               1
+                                     dg(N ) :=         inf       Nc − M ◦ N           ⋄
+                                                                                          .                          (66)
+                                                   M∈CPTP(B:E) 2
+
+       This framework provides bounds on the quantum capacity of a channel based on the approximate
+    degradability [SSWR17, Theorem 3.4], and the degradability parameter can be computed via an
+    SDP:
+             dg(N ) = inf ∥ TrE Z∥∞         s.t.   Z ≥ JN c − JM◦N , Z ≥ 0, JM ≥ 0, TrE JM = 1B .                    (67)
+       Recently, building upon the improved continuity bound on conditional entropy, the quantum
+    capacity upper bound based on the approximate degradability has been improved in [BLT25,
+    Proposition 10] as follows.
+    Proposition 7 (Improved quantum capacity upper bound [BLT25]). Let N ∈ CPTP(A : B) be an
+    ε-degradable channel with an ε-degrading channel M ∈ CPTP(B : E ′ ). It satisfies that
+                                      Q(N ) ≤ UM (N ) + ε log(|E|2 − 1) + h(ε).                                      (68)
+    Here, UM (N ) is defined as
+                                         n                                           o
+                           UM (N ) := max H(G|E ′ )σ : σE ′ G = V N (ρ)V † , ρ ∈ D(A) ,                              (69)
+
+    where V : HB → HE ′ ⊗ HG is the Stinespring isometry of M.
+        Similarly to Corollary 3 for the state case, by combining Fact 2 and Proposition 7, we have the
+    following upper bound on the quantum capacity through channel extensions.
+
+
+    Corollary 8. Let N ∈ CPTP(A : B) be a quantum channel with a Stinespring isometry U :
+    HA → HB ⊗ HE and V : HE → HR ⊗ HF be an arbitrary isometry. Consider the channel
+    b ∈ CPTP(A : BF ) whose Stinespring isometry is given by W = (1B ⊗ V )U . Then it holds that
+    N
+
+                             Q(N ) ≤ inf UM (N        b ) log(|E ′ |2 − 1) + h(dg(N
+                                             b ) + dg(N                           b ))
+                                        s.t. V ∈ St(|F R|, |E|), |F |, |R| ∈ N+ ,                                    (70)
+                                             b (·) = TrR (1B ⊗ V )U (·)U † (1B ⊗ V † ).
+                                             N
+
+
+1
+    Compared with the definition in [SSWR17], the definition here includes an additional factor of 12 to unify the results
+    in the subsequent text.
+
+
+                                                             19
+Remark 2 In principle, our state and channel extension methods can be combined with any upper
+bound on the target state’s one-way distillable entanglement or channel’s capacity. However, the
+method provides no improvement for ‘meta-converse’ bounds, e.g., the geometric-Rains informa-
+tion [FF21, Theorem 12]. Such bounds are always defined via a minimization of a divergence D over
+a set of free channels F, i.e., minM∈F(A:B) D(NA→B ∥MA→B ). By the data-processing inequality, if
+F is closed under partial trace on the output, i.e., MA→BF ∈ F(A : BF ) =⇒ MA→B ∈ F(A : B),
+the value of the bound is invariant under channel extensions, i.e.,
+
+                    min     D(NA→B ∥MA→B ) =             min        D(N
+                                                                      bA→BF ∥M
+                                                                             cA→BF ).           (71)
+                 M∈F(A:B)                           M∈F(A:BF
+                                                    c        )
+
+In contrast, the non-monotonicity of the continuity bound in Eq. (19) and Eq. (68) makes them
+an ideal testbed for the extension method. Moreover, in Eq. (30) and Eq. (70), we are essentially
+searching for a degradable extension with the tail terms in the continuity bound serving as a proper
+regularization term.
+
+
+3.4   Improved upper bounds on isotropic states and depolarizing channels
+In this section, we establish improved upper bounds on the one-way distillable entanglement of
+isotropic states using our proposed methods. As a consequence, we obtain the SOTA upper bounds
+on the quantum capacity of qubit depolarizing channels.
+    For a local dimension d, the isotropic state is defined by
+                                                    1−f
+                                Id (f ) := f Φ+ +         (1 2 − Φ+ ),                          (72)
+                                                    d2 − 1 d
+where Φ+ is the d × d maximally entangled state and f ∈ [0, 1]. It is also known as the Choi state
+of the qudit depolarizing channel
+                                               p  X
+                       Dp (·) = (1 − p)(·) + 2           X i Z j (·)(X i Z j )† ,             (73)
+                                            d −1
+                                                     0≤i,j≤d−1
+                                                     (i,j)̸=(0,0)
+
+where p = 1 − f and X, Z are the generalized Pauli operators defined by
+
+                   X|k⟩ := |k + 1(mod d)⟩,     Z|k⟩ := ω k |k⟩,       ω = exp(2πi/d).           (74)
+
+    First, we directly compare our bound in Theorem 1 with that given in [LDS18, Theorem 2.12].
+The numerical results are shown in Figure 4. The green solid line is the coherent information of
+states, which gives a lower bound on D→ (Id (f )). The red solid line and the blue solid line are the
+upper bound given by Theorem 1 and [LDS18, Theorem 2.12], respectively. We can observe that a
+considerably tighter upper bound can be obtained by refining the continuity estimate via Lemma 2
+and by removing an additional approximation step through the additivity of conditional entropy. In
+particular, the refined continuity bound exhibits a more favorable scaling behavior, maintaining
+its effectiveness especially for relatively large degradability parameters (when p goes large), where
+previous bounds tend to become very loose.
+
+
+
+
+                                                    20
+                       1
+
+
+
+                    0.84
+
+
+
+                    0.68
+
+
+
+                    0.52        Hashing bound
+                                [LDS18, Theorem 2.12]
+                                Theorem 1
+                    0.36
+                           0     0.02        0.04         0.06   0.08     0.1
+                                                     3
+                                                     4p
+
+
+Figure 4: Bounds on the one-way distillable entanglement of the qubit isotropic states. The x-axis
+is the parameter 3/4p = 1 − f ∈ [0, 0.1] of the state I2 (f ).
+
+
+                    0.5
+
+
+                    0.4
+
+
+                    0.3
+
+
+                    0.2
+
+                               Hashing bound
+                    0.1
+                               [KFG22, Proposition 5.1]
+                               Corollary 3
+
+                      0.09       0.11       0.13          0.15   0.17    0.19
+                                                    3
+                                                    4p
+
+
+Figure 5: Bounds on the quantum capacity of the qubit depolarizing channel. The x-axis is the
+parameter 3/4p = 1 − f ∈ [0.0925, 0.1875] of the qubit depolarizing channel Dp .
+
+    Notably, the quantum capacity of a teleportation-simulable channel is equal to the one-way
+distillable entanglement of its Choi state [BBC+ 93, BDSW96, BK98], i.e., Q(D1−f ) = D→ (Id (f )).
+Therefore, the upper bound on D→ (Id (f )) also gives an upper bound on the quantum capacity of
+depolarizing channels, Q(D1−f ). The previously best-known upper bound on Q(Dp ) is given by the
+flagged extension method [KFG22, Proposition 5.1 and Figure 1]. Here, based on Corollary 3 and
+the numerical optimization method on a Stiefel manifold as described in Section 3.2.1, we obtained
+
+                                                    21
+SOTA upper bounds on the quantum capacity of qubit depolarizing channels. Specifically, for qubit
+isotropic states, we have |E| = 4 and choose |R| = 4, |F | = 2 in our numerical experiments. Thereby,
+we are performing optimization over St(8, 4) for the extensions of isotropic states ρABF , with a
+qubit extension system F . The comparison of our bound with the best-known ones is presented
+in Figure 5. The red dashed line is the upper bound given by the optimized extensions of the
+isotropic states, according to Corollary 3. The blue solid line corresponds to the upper bound given
+by [KFG22, Proposition 5.1], using flag extensions. We can observe a notable improvement in the
+given noise range.
+    We emphasize that all our numerical experiments leverage high-precision solvers where the
+primal-dual gap for all semidefinite programs is consistently driven below 10−14 , and all other
+entropy function calculations are performed at standard double-precision machine epsilon (≈ 10−16 ).
+This high degree of accuracy ensures that the reported gains are significant and reliable. All state
+extensions as well as corresponding isometries (cf. Fact 1) we have obtained for the qubit isotropic
+states, which yield the SOTA upper bounds, can be found in [Zhu25].
+
+3.5   Further examples
+To demonstrate the efficacy of our method, we conduct numerical experiments on more general
+bipartite states and quantum channels to estimate upper bounds on their one-way distillable
+entanglement and quantum capacity, respectively.
+
+Quantum states. Suppose Alice and Bob share some maximally entangled states affected by
+local noises, i.e.,
+                         ρA′ B ′ := NA→A′ ⊗ MB→B ′ (ΦAB ).                          (75)
+A canonical model for physical processes such as spontaneous emission is the amplitude damping
+channel (AD) Ap (·) [NC10], which is defined by
+
+                                    Ap (·) = K1 (·)K1† + K2 (·)K2† ,                            (76)
+                      √                   √
+where K1 = |0⟩⟨0| + 1 − p|1⟩⟨1|, K2 = p|0⟩⟨1| are Kraus operators. Set NA→A′ as the qubit
+amplitude damping channel A0.1 and MB→B ′ as the qubit depolarizing channel Dp . In Figure 6,
+we compare our continuity bound in Theorem 1 and the bound optimized through Corollary 3 with
+previous bounds. The green line represents the Rains bound [Rai01], and the blue line represents the
+bound in [ZZW24, Corollary 2] based on decomposing the state into degradable and antidegradable
+parts [LDS18], which was reported as the best-known bound for this family of noisy states. We can
+observe that the optimized upper bound following Corollary 3 outperforms all previous ones and
+can provide tighter estimations on such noisy states.
+
+Quantum channels. For channels, to numerically demonstrate the efficacy of Proposition 7
+and Corollary 8, we conduct numerical experiments on several examples. Specifically, we consider
+damping-dephasing channel and damping-erasure channel, which are compositions of an AD channel
+Ap (·) with a dephasing channel Zp (·), or an erasure channel Ep (·), respectively. The dephasing
+channel and the erasure channel are defined as
+
+                     Zp (·) = (1 − p)(·) + pZ(·)Z † , Ep (·) = (1 − p)(·) + p|e⟩⟨e|,            (77)
+
+
+                                                   22
+        0.8
+                                                                             Hashing bound
+                                                                             Theorem 1
+                                                                             [ZZW24, Corollary 2]
+        0.6                                                                  Rains bound [Rai01]
+                                                                             Corollary 3
+
+
+        0.4
+
+
+
+        0.2
+
+
+
+         0
+         0.15      0.16      0.17      0.18     0.19      0.2      0.21
+                                        p
+
+Figure 6: Bounds on the one-way distillable entanglement of maximum entangled states affected
+by Dp and A0.1 . Select p ∈ [0.15, 0.22] as the plot range. The result includes a comparison
+between Theorem 1, Ref. [ZZW24, Corollary 2], Rains bound [Rai01], Corollary 3 and the hashing
+bound [DW05] given by the state’s coherent information.
+
+
+where |e⟩ is the quantum state orthogonal to original quantum system, Z = diag(1, −1) is the Pauli
+Z matrix. We will abbreviate
+
+                          ZAg,p (·) := Zp ◦ Ag (·), and EAg,p (·) := Ep ◦ Ag (·)                    (78)
+
+as the damping-dephasing and the damping-erasure channel, respectively, where the first parameter
+in the subscript denotes the noise parameter of the first composited channel. In particular, the
+damping-dephasing channel is argued as a natural and important noise model in [GFG12]. To use
+Proposition 7 and Corollary 8, a central challenge is to calculate UM (N    b ) for any parameterized
+extended channel in the optimization iterations. Notice that after calculating dg(N b ) and ε-degrading
+channel M via Eq. (67), the overall channel M◦ N b is fixed, and the quantity UM (N ), i.e., maximizing
+the conditional entropy with a specified channel, can be computed via an SDP [FF18]. However,
+the SDP formulation [FF18] is still time-consuming, considering our need to estimate the gradient
+through a finite-difference scheme. Therefore, we opt to employ an alternative numerical technique
+during our implementation as follows.
+    Note that the Choi matrix of the above channel is real. Thus, if we set the transformation V to
+be restricted to a real unitary matrix, then the Choi matrix of the extended channel is also real.
+We argue that the Choi matrix of the optimal ε-degrading channel M in Eq. (67) can be taken as a
+real matrix by convexity. That is, if σ is a maximizing input state, then its conjugate σ ∗ is also a
+maximizing state due to symmetry. Therefore ρ = 12 (σ + σ ∗ ) is also a maximizing state, leading
+to ρ is real. Finally, we can argue that the optimal solution of UM (N ) can be restricted to real
+matrices when the Choi matrix of N is real. Thus to find the optimal value UM (N ) we can simply
+
+
+
+
+                                                   23
+     1                                                          1
+
+    0.9
+                                                               0.9
+    0.8
+
+    0.7
+              Hashing bound                                    0.8       Hashing bound
+              Proposition 7                                              Proposition 7
+    0.6       Geometric Rényi [FF21]                                    Geometric Rényi [FF21]
+              Corollary 8                                                Corollary 8
+    0.5                                                        0.7
+          0   1       2       3         4         5                  0   1       2       3         4         5
+                          p                   −2                                     p                   −2
+                                            ·10                                                        ·10
+(a) Bounds on the quantum capacity of the damping-         (b) Bounds on the quantum capacity of the damping-
+dephasing channel ZAp,p (·).                               erasure channel EAp,p (·).
+
+Figure 7: Bounds on the quantum capacity of damping-dephasing channels and damping-erasure
+channels. The x-axis represents the parameter p ∈ [0, 0.05] for all channels. The results include a
+comparison between Proposition 7, Ref. [FF21, Theorem 12] and Corollary 8. The green solid line
+represents the coherent information of the channel’s Choi state.
+
+
+scan all possible feasible solutions
+                               
+                       a     b                            p         p        
+                 ρ=               , where a ∈ [0, 1], b ∈ − a(1 − a), a(1 − a) .                              (79)
+                       b 1−a
+The accuracy can be controlled by adjusting the scanning step size. Typically, a step size of 0.005 is
+chosen, which provides sufficient precision compared to convex optimization results while reducing
+computation time. After the optimization is terminated, we can then calculate the upper bound in
+Proposition 7 with the optimized extended channel.
+    The numerical results are shown in Figure 7. The red dashed line corresponds to the upper bound
+provided by Corollary 8 combined with our optimization method, where we choose |F | = 2 and
+|R| = |E|. The purple solid line corresponds to the upper bound given by Rα (N  b ) [FF21, Theorem
+12], which is the best-known SDP computable upper bound for general quantum channels, according
+to the best of our knowledge. Specifically, Rα (Nb ) is computed by an SDP [FF21, Proposition 13]
+                                         −10
+and we set the parameter to α = 1 + 2 . The green solid line shows the coherent information
+of the channel’s Choi state, which serves as the hashing lower bound on its one-way distillable
+entanglement and is therefore a lower bound on the quantum capacity. We can observe that our
+method can achieve significantly tighter upper bounds than previous ones. Notably, in Figure 7b
+for the damping-erasure channel, our upper bound nearly meets the lower bound, providing a sharp
+estimate of the channel’s quantum capacity.
+
+
+4    Lower bounds on quantum communication
+In this section, we develop Riemannian optimization methods for estimating lower bounds on the
+one-way distillable entanglement and the quantum capacity.
+
+                                                      24
+4.1     Lower bounds on the one-way distillable entanglement
+Recall that the regularized formula of the one-way distillable entanglement is
+                                      1 (1) ⊗n            1
+                  D→ (ρAB ) = lim D→        (ρAB ) = lim max I(A′ ⟩B n M )T (ρ⊗n ) ,               (80)
+                               n→∞ n                 n→∞ n T                   AB
+
+where the maximization    is over all quantum instruments T : A → A′ M on Alice’s system. It is
+defined by T (·) = j Tj (·) ⊗ |j⟩⟨j|, where {|j⟩}m−1
+                  P
+                                                   P is an orthonormal basis for the classical register,
+                                                 j=0
+each Tj is a completely positive map such that j Tj is a CPTP. Note that it suffices to consider
+instrument T where each map Tj consists of only one Kraus operator [KW24, Section 13.2.5], i.e.,
+                                                    m−1
+                                                           Kj (·)Kj† ⊗ |j⟩⟨j|.
+                                                    X
+                                          T (·) =                                                             (81)
+                                                     j=0
+
+The one-way distillable entanglement is an operational quantity of great interest in entanglement
+                                             (1)
+theory. Due to the superadditivity of D→ (·), to obtain a lower bound on D→ (ρAB ), a direct
+                                               (1)
+approach is to tackle the calculation of D→ (ρ⊗n   AB ) for as large n as possible. To this end, we
+formulate the problem as a Riemannian optimization over the unitary manifold as follows. For any
+fixed |M | = m and any j = 0, 1, ..., m − 1, construct
+                                     Kj := (1A ⊗ ⟨j|M )UAM (1A ⊗ |0⟩M ),                                      (82)
+where UAM is a unitary operator. It lies in U(|AM |) = St(|AM |, |AM |), the unitary manifold, a
+special case of the Stiefel manifold. This parameterization is nothing but the Stinespring dilation
+theorem. One can check that
+                        m−1              m−1
+                              Kj† Kj =                    †
+                        X                X
+                                               (1A ⊗ ⟨0|)UAM (1A ⊗ |j⟩⟨j|)UAM (1A ⊗ |0⟩)
+                        j=0              j=0
+                                                   †
+                                    = (1A ⊗ ⟨0|M )UAM UAM (1A ⊗ |0⟩M ) = 1A ,
+which shows {Kj } is a set of Kraus operators. Taking Eq. (82) into Eq. (81), for any fixed n, m ∈ N+ ,
+For a quantum state ρA|B , let us define the coherent information cost function ρA|B as
+                                         cohρA|B (UAM ) = −I(A′ ⟩BM )σ ,                                      (83)
+where
+              m−1
+                                                                   †
+              X
+  σA|BM =           (1AB ⊗ ⟨j|M )(1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M )(1B ⊗ UAM )(1AB ⊗ |j⟩M ) ⊗ |j⟩⟨j|M . (84)
+              j=0
+
+
+
+Lemma 9. For a bipartite quantum state ρAB and a system M with |M | = m ∈ N+ , the Euclidean
+gradient of cohρAB (UAM ) with respect to UAM is given by
+                         m−1
+                          X                                                                              
+                                            (j)      (j) 
+  ∇cohρAB = 2 TrB                 1A ⊗ log σB − log σAB ⊗ |j⟩⟨j|M               (1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M ) , (85)
+                          j=0
+
+        (j)                                                †                                        (j)       (j)
+where σAB = (1AB ⊗ ⟨j|M )(1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M )(1B ⊗ UAM )(1AB ⊗ |j⟩M ) and σB = TrA σAB .
+
+
+
+                                                            25
+Proof. For any unitary UAM , let’s construct Kj = (1A ⊗ ⟨j|M )UAM (1A ⊗ |0⟩M ) as that in Eq. (82).
+We introduce some notations
+                                                                      †
+                             ρU
+                              ABM = (1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M )(1B ⊗ UAM )                         (86)
+
+and
+                                       (j)
+                            σAB = (1AB ⊗ ⟨j|M )ρUABM (1AB ⊗ |j⟩M ).                        (87)
+                                            †
+Then the output state T (ρ) = m−1
+                              P
+                                j=0 Kj ρAB Kj ⊗ |j⟩⟨j|M and its marginal can be written as
+
+                                   m−1                                   m−1
+                                              (j)                                  (j)
+                                   X                                     X
+                    σABM =                   σAB ⊗ |j⟩⟨j|M   and σBM =         σB ⊗ |j⟩⟨j|M ,      (88)
+                                   j=0                                   j=0
+
+respectively. Now, we express the coherent information cost function ρA|B as
+                                                                            
+                   cohρA|B (UAM ) = Tr σBM log σBM − Tr σABM log σABM ,                            (89)
+
+and will calculate the gradient of it with respect to UAM , i.e., dcohρA|B = Re Tr[(∇U cohρA|B )† dU ] .
+                                                                                                      
+
+Notice that for block-diagonal matrices, we have that
+                         m−1
+                         X                                         m−1
+                                                                     X           
+                                            (j)                               (j)
+            log σABM =                 log σAB ⊗ |j⟩⟨j|M , log σBM =     log σB ⊗ |j⟩⟨j|M .        (90)
+                             j=0                                             j=0
+
+It follows that
+
+                   m−1
+                     X  (j)        (j)
+                                                       m−1
+                                                          X  (j)       (j)
+                                                                            
+  Tr σABM log σABM =    Tr σAB log σAB , Tr σBM log σBM =    Tr σB log σB . (91)
+                              j=0                                                        j=0
+
+and
+                                                 m−1                               
+                                                           (j)    (j)     (j)     (j)
+                                                 X
+                    cohρA|B (UAM ) =                   Tr σB log σB − Tr σAB log σAB .             (92)
+                                                 j=0
+
+                                                                       (j)
+Using the fact that d Tr(X log X) = Tr[(log X +1)dX] and dσAB = (1AB ⊗⟨j|M )dρU
+                                                                              ABM (1AB ⊗|j⟩M ),
+we can deduce that
+                       m−1                                   
+                                   (j)    (j)       (j)     (j)
+                       X
+         dcohρA|B =          d Tr σB log σB − d Tr σAB log σAB
+                       j=0
+                       m−1         h
+                       X                    (j)    (j) i  h
+                                                                 (j)      (j) i
+                   =         Tr        log σB + 1B dσB − Tr log σAB + 1AB dσAB
+                       j=0                                                                         (93)
+                       m−1         h                                                          i
+                                                 (j)      (j) 
+                       X
+                   =         Tr        1A ⊗ log σB − log σAB (1AB ⊗ ⟨j|M )dρU
+                                                                            ABM (1AB ⊗ |j⟩ M )
+                       j=0
+                                 
+                   = Tr YABM dρU
+                               ABM ,
+
+
+
+
+                                                             26
+where in the last equality we defined
+                                    m−1
+                                                    (j)      (j) 
+                                    X
+                         YABM :=          1A ⊗ log σB − log σAB ⊗ |j⟩⟨j|M .                        (94)
+                                    j=0
+
+
+Note the differential of ρU
+                          ABM is given by
+
+                                         †                                    †
+ dρU
+   ABM = (1B ⊗dUAM )(ρAB ⊗|0⟩⟨0|M )(1B ⊗UAM )+(1B ⊗UAM )(ρAB ⊗|0⟩⟨0|M )(1B ⊗dUAM ). (95)
+
+We can plug it into Eq. (93) to obtain
+                              h                                               i
+                                                                        †
+                dcohρA|B = Tr YABM (1B ⊗ dUAM )(ρAB ⊗ |0⟩⟨0|M )(1B ⊗ UAM    )
+                                h                                                 i
+                                                                          †
+                           + Tr YABM (1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M )(1B ⊗ dUAM      )
+                              h                                            i                     (96)
+                                                         †
+                         = Tr TrB (ρAB ⊗ |0⟩⟨0|M )(1B ⊗ UAM  )YABM dUAM
+                                h                                              i
+                                                                           †
+                           + Tr TrB YABM (1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M ) dUAM          .
+
+Therefore, we can identify the gradient
+                     m−1
+                      X                                                                     
+                                       (j)      (j) 
+  ∇cohρAB = 2 TrB            1A ⊗ log σB − log σAB ⊗ |j⟩⟨j|M       (1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M ) . (97)
+                      j=0
+
+                                                                                                     ⊔
+                                                                                                     ⊓
+
+   The Riemannian gradient is then given as follows.
+
+
+Corollary 10. For a bipartite quantum state ρAB and a system M with |M | = m ∈ N+ , the
+Riemannian gradient of cohρAB (UAM ) with respect to UAM is given by
+                             m−1
+                              X                                                                        
+                                              (j)      (j) 
+gradcohρAB (UAM ) = TrB             1A ⊗ log σB − log σAB ⊗ |j⟩⟨j|M        (1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M )
+                             j=0
+                                          m−1
+                                           X                                 
+                                      †                  (j)      (j) 
+     − UAM TrB (ρAB ⊗ |0⟩⟨0|M )(1B ⊗ UAM )     1A ⊗ log σB − log σAB ⊗ |j⟩⟨j|M UAM .
+                                                 j=0
+                                                                                                   (98)
+       (j)                                                 †                      (j)      (j)
+where σAB = (1AB ⊗ ⟨j|M )(1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M )(1B ⊗ UAM )(1AB ⊗ |j⟩M ) and σB = TrA σAB .
+
+
+
+Proof. For the unitary manifold, according to Eq. (57), the projection onto the tangent space is
+given by
+                                              1
+                                  ProjV (X) = (X − V X † V ).                               (99)
+                                              2
+
+
+
+                                                  27
+Algorithm 2 RGD algorithm for lower bounds on the one-way distillable entanglement
+Input: A quantum state ρAB , m ∈ N+ ; Initial guess U (1) ∈ U(|AM |).
+ 1: while the stopping criteria are not satisfied do
+ 2:   Compute U̇ (t) = − grad cohρAB (U (t) ) by Eq. (98).
+ 3:   Compute a stepsize s(t) .
+      Update U (t+1) = RU (t) s(t) U̇ (t) by Eq. (59); t = t + 1.
+                                         
+ 4:
+ 5: end while
+ 6: Compute Ilow = − n1
+                        cohρAB (U ∗ )
+           ∗
+Output: U , Ilow .
+
+
+Therefore, by Lemma 9, we have that
+                            m−1
+                             X                                                                         
+                                             (j)      (j) 
+gradcohρAB (UAM ) = TrB            1A ⊗ log σB − log σAB ⊗ |j⟩⟨j|M         (1B ⊗ UAM )(ρAB ⊗ |0⟩⟨0|M )
+                             j=0
+                                           m−1
+                                            X                                 
+                                       †                  (j)      (j) 
+      − UAM TrB (ρAB ⊗ |0⟩⟨0|M )(1B ⊗ UAM )     1A ⊗ log σB − log σAB ⊗ |j⟩⟨j|M UAM .
+                                                 j=0
+                                                                                                  (100)
+                                                                                                     ⊔
+                                                                                                     ⊓
+
+   Equipped with the Riemannian gradient, we can thereby apply the standard RGD algorithm as
+                                  (1)
+shown in Algorithm 2 to estimate D→ (ρ⊗n
+                                      AB ) for a fixed bipartite state ρAB and a fixed n ∈ N+ .
+
+
+4.2    Lower bounds on the quantum capacity
+A key challenge in determining a channel’s quantum capacity, Q(N ), is the superadditivity of
+its underlying coherent information, i.e., entangled input state across multiple channel uses N ⊗n
+can strictly improve the coherent information compared with strategies that use the channels
+independently. Consequently, the standard approach to establishing lower bounds is to compute
+ 1 (1)   ⊗n ) for large n, a quantity that becomes progressively tighter as the blocklength n increases.
+n Q (N
+Recall that the n-shot channel coherent information is given by
+
+                               Q(1) (N ⊗n ) := max I(R⟩B)N ⊗n (ψRAn ) ,                           (101)
+                                              ψRAn          A→B
+
+
+where the optimization is with respect to all code states |ψ⟩RAn and we abbreviate |ψ⟩⟨ψ| as ψ. One
+key strategy to obtaining a tight lower bound is to restrict the search to code state families with
+high symmetry [BL21, BL25]. This approach can render the entropy computation manageable even
+for large blocklengths, enabling a more accurate assessment of superadditive gains. A notable recent
+success in this method is the use of permutation-invariant codes [BL25], which have led to improved
+capacity thresholds for several important channel models. Another strategy moves away from rigid
+symmetries and instead utilizes highly expressive, general-purpose ansatz. A key example is to
+utilize a neural network state ansatz to estimate lower bounds on quantum capacity [BL20].
+    In fact, it is straightforward to see that Eq. (101) is an optimization on the complex unit sphere
+of the corresponding Hilbert space, a canonical example of a Riemannian manifold. Thereby, we can
+
+
+                                                  28
+apply Riemannian optimization algorithms to compute Eq. (101). The tangent space of a complex
+unit sphere S|A| is given by T|ψ⟩ S|A| = {|ψ̇⟩ ∈ C|A| : ⟨ψ|ψ̇⟩ = 0}, the projection onto which is
+
+                                    Proj|ψ⟩ (|v⟩) = (1 − |ψ⟩⟨ψ|)|v⟩, ∀|v⟩ ∈ C|A| .                          (102)
+
+Then we can use the RGD algorithm to compute Eq. (101) once we can obtain the Riemannian
+gradient. To this end, we first calculate the Euclidean gradient of the objective function as follows.
+
+
+Lemma 11. For a quantum channel NA→B and a system R, let fN (ψRA ) = −I(R⟩B)NA→B (ψRA ) .
+The Euclidean gradient of fN (ψRA ) at |ψ⟩RA is given by
+                n             h                     i      h                io
+                         †                               †
+    ∇|ψ⟩ fN = 2 1R ⊗ NB→A       log TrR NA→B (ψRA ) − NB→A   log NA→B (ψRA ) |ψ⟩RA . (103)
+
+
+                         P
+Proof. Since TrR XRA = j (⟨j|R ⊗ 1A )(XRA )(|j⟩R ⊗ 1A ), by denoting the Kraus operators of
+NA→B as {Kk }k , we can express the function fN (ψRA ) := I(R⟩B)NA→B (ψRA ) as
+                   hX                                                 X                               i
+  fN (ψRA ) = Tr              (⟨j|R ⊗ Kk )|ψ⟩⟨ψ|(|j⟩R ⊗ Kk† ) log       (⟨j|R ⊗ Kk )|ψ⟩⟨ψ|(|j⟩R ⊗ Kk† )
+                        k,j                                             k,j
+                                                    X                                                     (104)
+                              ⟨ψ|(1R ⊗ Kk† ) log      (1R ⊗ Kk )|ψ⟩⟨ψ|(1R ⊗ Kk† ) (1R ⊗ Kk )|ψ⟩.
+                        X
+                   −
+                         k                                  k
+
+In order to compute the derivatives, we introduce the following argument
+                               ∂                       ∂
+                                   ⟨ψ|W(|ψ⟩)|ψ⟩ = ⟨ψ|      W(|ψ⟩)|ψ⟩ + 2⟨ℓ|W(|ψ⟩)|ψ⟩,                       (105)
+                              ∂|ℓ⟩                    ∂|ℓ⟩
+
+that computes the directional derivative of the function ⟨ψ|W(|ψ⟩)|ψ⟩ along a vector |ℓ⟩ ∈ Cn , where
+W : Cn → Cn×n is a mapping. Denote the first term and the second term in Eq. (104) as
+             hX                         X                                                      i
+      (1)
+    fN = ⟨ψ|       (|j1 ⟩R ⊗ Kk†1 ) log     (⟨j2 |R ⊗ Kk2 )|ψ⟩⟨ψ|(|j2 ⟩R ⊗ Kk†2 ) (⟨j1 |R ⊗ Kk1 ) |ψ⟩
+                k1 ,j1                             k2 ,j2
+              hX                           X                                        i
+     (2)
+    fN = ⟨ψ|            (1R ⊗ Kk†1 ) log     (1R ⊗ Kk2 )|ψ⟩⟨ψ|(1R ⊗ Kk†2 ) (1R ⊗ Kk1 ) |ψ⟩.
+                   k1                         k2
+
+     (1)
+For fN , according to Eq. (105), we can calculate the directional derivative along the state |ℓ⟩ as
+                                           X                                    
+        (1)
+                       (|j1 ⟩ ⊗ Kk†1 ) log    (⟨j2 | ⊗ Kk2 )|ψ⟩⟨ψ|(|j2 ⟩ ⊗ Kk†2 ) (⟨j1 | ⊗ Kk1 )|ψ⟩
+                     X
+ ⟨∇|ψ⟩ fN |ℓ⟩ = 2⟨ℓ|
+                         k1 ,j1                        k2 ,j2
+                                                                                                            (106)
+                 ∂ X                     X                                    
+           +⟨ψ|      (|j1 ⟩ ⊗ Kk†1 ) log    (⟨j2 | ⊗ Kk2 )|ψ⟩⟨ψ|(|j2 ⟩ ⊗ Kk†2 ) (⟨j1 | ⊗ Kk1 )|ψ⟩.
+                ∂|ℓ⟩
+                          k1 ,j1                        k2 ,j2
+
+
+
+
+                                                                 29
+The second term can be calculated by
+        ∂ X                            X                                         
+   ⟨ψ|             (|j1 ⟩ ⊗ Kk†1 ) log         (⟨j2 | ⊗ Kk2 )|ψ⟩⟨ψ|(|j2 ⟩ ⊗ Kk†2 ) (⟨j1 | ⊗ Kk1 )|ψ⟩
+       ∂|ℓ⟩
+            k1 ,j1                      k2 ,j2
+                                X                                                    
+                            †
+                                       (⟨j2 | ⊗ Kk2 )(|ℓ⟩⟨ψ| + |ψ⟩⟨ℓ|)(|j2 ⟩ ⊗ Kk†2 ) σ −1 (⟨j1 | ⊗ Kk1 )|ψ⟩
+           X
+    = ⟨ψ|       (|j1 ⟩ ⊗ Kk1 )
+            k1 ,j1                            k2 ,j2
+           X h X                                                                                                        i
+    = Tr                           (⟨j2 | ⊗ Kk2 )(|ℓ⟩⟨ψ| + |ψ⟩⟨ℓ|)(|j2 ⟩ ⊗ Kk†2 ) σ −1 (⟨j1 | ⊗ Kk1 )|ψ⟩⟨ψ|(|j1 ⟩ ⊗ Kk†1 )
+           k1 ,j1         k2 ,j2
+           X                                                               
+    = Tr                 (⟨j2 | ⊗ Kk2 )(|ℓ⟩⟨ψ| + |ψ⟩⟨ℓ|)(|j2 ⟩ ⊗ Kk†2 )
+             k2 ,j2
+           X                                                     
+    = Tr                 (|ℓ⟩⟨ψ| + |ψ⟩⟨ℓ|)(|j2 ⟩⟨j2 | ⊗ Kk†2 Kk2 )
+             k2 ,j2
+
+    = 2⟨ℓ|ψ⟩.
+                                                                                                                         (107)
+                (2)
+Similarly, for fN , we have
+                                                               X                           
+              (2)
+                                             (1 ⊗ Kk†1 ) log     (1 ⊗ Kk2 )|ψ⟩⟨ψ|(1 ⊗ Kk†2 ) (1 ⊗ Kk1 )|ψ⟩
+                                      X
+     ⟨∇|ψ⟩ fN |ℓ⟩ = 2⟨ℓ|
+                                       k1                        k2
+                                                                                                                         (108)
+                           ∂ X                 X                             
+                     +⟨ψ|      (1 ⊗ Kk†1 ) log    (1 ⊗ Kk2 )|ψ⟩⟨ψ|(1R ⊗ Kk†2 ) (1R ⊗ Kk1 )|ψ⟩.
+                          ∂|ℓ⟩
+                                        k1                        k2
+
+The second term can be calculated by
+          ∂ X                    X                              
+     ⟨ψ|         (1 ⊗ Kk†1 ) log      (1 ⊗ Kk2 )|ψ⟩⟨ψ|(1 ⊗ Kk†2 ) (1 ⊗ Kk1 )|ψ⟩
+         ∂|ℓ⟩
+              k1                   k2
+                          X                                           
+               (1 ⊗ Kk†1 )       (1 ⊗ Kk2 )(|ℓ⟩⟨ψ| + |ψ⟩⟨ℓ|)(1 ⊗ Kk†2 ) σ −1 (1 ⊗ Kk1 )|ψ⟩
+            X
+      = ⟨ψ|
+                    k1                        k2
+            X h X                                                                       i
+       = Tr       (1 ⊗ Kk2 )(|ℓ⟩⟨ψ| + |ψ⟩⟨ℓ|)(1 ⊗ Kk†2 ) σ −1 (1 ⊗ Kk1 )|ψ⟩⟨ψ|(1 ⊗ Kk†1 )                                (109)
+               k1              k2
+              Xh                                i
+       = Tr     (|ℓ⟩⟨ψ| + |ψ⟩⟨ℓ|)(1 ⊗ Kk†2 Kk2 )
+               k2
+                          
+       = Tr |ℓ⟩⟨ψ| + |ψ⟩⟨ℓ|
+       = 2⟨ℓ|ψ⟩.
+
+Combining Eqs. (106) (107) (108) (109), we have that
+                            (1)                (2)
+ ∇|ψ⟩ fN = ∇|ψ⟩ fN − ∇|ψ⟩ fN
+            nX                                                           h             io
+                  (|j1 ⟩ ⊗ Kk†1 ) log TrR NA→B (ψ) (⟨j1 | ⊗ Kk1 ) − NB→A
+                                                                     †
+                                                 
+         =2                                                                log NA→B (ψ) |ψ⟩
+                                                                                                                         (110)
+                      k1 ,j1
+              n         h                 i       h             io
+                    †                         †
+           = 2 1 ⊗ NB→A   log TrR NA→B (ψ) − NB→A   log NA→B (ψ) |ψ⟩.
+
+                                                                                                                              ⊔
+                                                                                                                              ⊓
+
+                                                                       30
+                       R
+                       A1    U (1)                                          U (5)
+
+                ∣ ϕ⟩   A2               U (2)                 U (4)
+
+                       A3                         U (3)
+
+                                                                                    | ψ⟩
+                                               ⊗3
+Figure 8: An example of estimating 13 Q(1) (NA→B   ) using a product of unitary manifolds. Five local
+unitaries are interleaved to parameterize an input code state |ψ⟩RA1 A2 A3 for 3 copies of the channel.
+
+
+    Based on Lemma 11 and the projection given in Eq. (102), we can obtain the Riemannian
+gradient and use the standard RGD method to tackle the problem in Eq. (101). However, this
+   𝒩𝒩𝒩
+formulation faces a significant scalability challenge. As the blocklength n increases, the dimension
+of this sphere grows exponentially, quickly rendering the problem computationally intractable. To
+circumvent this curse of dimensionality, we reformulate the problem as an optimization over a
+product of unitary manifolds in the manner described below.
+    To illustrate our method, we consider an example of computing the average 3-shot coherent
+                       ⊗3
+information, 13 Q(1) (NA→B ). Let the three input systems be denoted by A1 , A2 , A3 , where Ai ∼
+                                                                                                = A,
+and let their joint system be A   3 := A1 A2 A3 . We parameterize the input state |ψ⟩RA3 with an
+auxiliary system R as
+              (5)              (4)              (3)                   (2)                  (1)
+ |ψ⟩RA3 = (URA1 ⊗1A2 A3 )(UA1 A2 ⊗1RA3 )(UA2 A3 ⊗1RA1 )(URA2 ⊗1A1 A3 )(URA1 ⊗1A2 A3 )|ϕ⟩RA3 , (111)
+                                                          3
+where |ϕ⟩RA3 is a fixed initial state, e.g., |0⟩⊗|R||A| , and each U (i) is a unitary operator acting on a
+specific subsystem, creating an interleaved structure as depicted in Figure 8. We call such a circuit
+an interleaved local unitary ansatz. Similar ideas have been adopted to optimize quantum circuits
+for Hamiltonian simulation, e.g., using a brick wall circuit ansatz and then applying Riemannian
+optimization [KBHM24, LSM25]. Then the optimization is over a product of unitary manifolds
+
+                            U(|RA|) × U (|A|2 ) × · · · × U(|A|2 ) × U (|RA|).                      (112)
+
+The key insight of this method is to interleave local unitaries to avoid the curse of dimensionality
+while maintaining expressivity of the parameterized input state. If |R| is a fixed constant, then
+each constituent manifold has a fixed dimension that does not scale with n, ensuring the problem
+remains manageable even for large blocklengths. Even if we want to make |R| increase dependent
+on n, e.g., |R| = |A|n , we can alternatively divide R into local subsystems and construct a similar
+manageable local structure.
+   Formally, for n-copy uses of a quantum channel N , let us define the coherent information cost
+function of n-shot N as
+                                cohN ,n (Un ) = −I(R⟩B)N ⊗n (ψ(Un )) ,                         (113)
+                                                                 A→B
+
+where
+               Un = (U (1) , U (2) , · · · , U (2n−1) ) ∈ U (|RA|) × U(|A|2 ) × · · · × U(|RA|),    (114)
+                                                          |               {z                  }
+                                                                            2n−1
+
+
+                                                      31
+and
+                          ←−2n−1                                ←−n 
+                                                                Y                        
+                                        (k)                               (k)
+                          Y
+           |ψ(U)⟩RAn =                US2n−1−k S2n−k ⊗ 1S (k)            USk−1 Sk ⊗ 1S (k) |0⟩RAn .   (115)
+                              k=n+1                         c     k=1                  c
+
+                     ←
+                     Q−
+Here, the notation       denotes the ordered product of operators, arranged from left to right in
+descending order of the index. We set S0 = R, Sj = Aj and denote the corresponding complementary
+subsystem by                (
+                             S1 S2 · · · Sn \ Sk−1 Sk ,       for 1 ≤ k ≤ n,
+                   Sc(k) :=                                                                 (116)
+                             S1 S2 · · · Sn \ S2n−1−k S2n−k , for n < k ≤ 2n − 1.
+The tangent space of the product manifold is given by
+
+                         TU (1) U(|RA|) × TU (2) U(|A|2 ) × · · · TU (2n−1) U(|RA|),                  (117)
+
+where each local tangent space is defined in Eq. (55). The Riemannian gradient is given by
+                                                                                          
+          grad cohN ,n (U) = ProjU (1) ∂U (1) coh(U) , · · · , ProjU (2n−1) ∂U (2n−1) coh(U) , (118)
+
+where ProjU k (·) is the projection onto the tangent space as defined in Eq. (57) and coh : C|RA|×|RA| ×
+    2    2
+C|A| ×|A| × · · · C|RA|×|RA| → R is an extension function of coh that coincide with the later on the
+product of unitary manifolds. The retraction map is given in Eq. (59).
+    Since such an ansatz (cf. Eq. (114) and Figure 8) is not guaranteed to express all possible input
+states, we have the relation
+                                    Q(1) (N ⊗n ) ≥ − min cohN ,n (Un ),                            (119)
+                                                       Un
+
+to give a valid lower bound on Q(1) (N ⊗n ), thus a lower bound on Q(N ). Then Eq. (119) is the main
+optimization we are concerned with, which we utilize the RGD algorithm to solve. The Riemannian
+gradient can be calculated as follows.
+
+
+Lemma 12. For a quantum channel NA→B and its n-shot coherent information cost function
+                                                    ←
+                                                    −k
+cohN ,n (U), denote V (k) = U (k) ⊗ 1S (k) , |ϕk ⟩ = j=1 V (j) |0⟩RAn , and |ψ⟩RAn = |ϕ2n−1 ⟩. Then the
+                                                    Q
+                                            c
+partial derivative of cohN ,n (U) at U (k) is given by
+                                           h                               †           i
+                   ∂U (k) cohN ,n = TrS (k) V (2n−1) V (2n−2) · · · V (k+1) |Gψ ⟩⟨ϕk−1 | ,            (120)
+                                        c
+
+
+for k = 1, 2, · · · , 2n − 1, where |Gψ ⟩ = ∂|ψ⟩ fN is given in Lemma 11.
+
+
+
+Proof. Based on Lemma 11, we can use the chain rule to obtain the desired partial derivative.
+Denote the gradient vector with respect to a state |ψ⟩RAn as |Gψ ⟩. We have
+                                                                          
+                 dfN = Re ⟨Gψ |d|ψ⟩ , dcohN ,n = Re Tr (∇U cohN ,n )† dU .
+                                     
+                                                                                       (121)
+
+We will calculate the gradient with respect to a single, arbitrary unitary U (k) . To this end, we
+consider the change dcohN ,n that results only from an infinitesimal change dU (k) , while all other
+
+                                                     32
+U (j) for j =
+            ̸ k are held constant. This is equivalent to taking a partial derivative. In this case,
+dV  (j) = 0 for all j ̸= k. Using the fact that
+
+                                d|ψ⟩|U (k) = V (2n−1) V (2n−2) · · · V (k+1) dV (k) |ϕk−1 ⟩,                                        (122)
+
+we can deduce
+                               h                                                    i
+                 dcohN ,n = Re Tr |ϕk−1 ⟩⟨Gψ |V (2n−1) V (2n−2) · · · V (k+1) dV (k)
+                               h                                                            i
+                          = Re Tr |ϕk−1 ⟩⟨Gψ |V (2n−1) V (2n−2) · · · V (k+1) (dU (k) ⊗ 1Sk )                                       (123)
+                               h                                                           i
+                          = Re Tr TrSk |ϕk−1 ⟩⟨Gψ |V (2n−1) V (2n−2) · · · V (k+1) dU (k) .
+                                                                                      
+
+
+Compared with Eq. (121), we find that
+                                    h                               †           i
+               ∇U (k) cohN ,n = TrSk V (2n−1) V (2n−2) · · · V (k+1) |Gψ ⟩⟨ϕk−1 | .                                                 (124)
+
+                                                                                                                                       ⊔
+                                                                                                                                       ⊓
+
+    The Riemannian gradient is then given as follows.
+
+
+
+Corollary 13. For a quantum channel NA→B and a unitary ensemble {U (k) }2n−1       k=1 , the Riemannian
+gradient of the n-shot coherent information cost function at U = (U , U , · · · , U (2n−1) ) is given
+                                                                          (1)  (2)
+
+by
+
+                             1          ←−2n−1
+                                      Y             †                          ←−2n−1
+                                                                                  Y            
+                                                  (j)                                      (j)
+                       
+        grad cohN ,n (U) k = TrS (k)            V        |Gψ ⟩⟨ϕk−1 | − |ϕk ⟩⟨Gψ |       V         (125)
+                             2    c       j=k+1                                     j=k
+
+for k = 1, 2, · · · , 2n − 1.
+
+
+Proof. For the unitary manifold, according to Eq. (57), the projection onto the tangent space is
+given by
+                                              1
+                                  ProjV (X) = (X − V X † V ).                              (126)
+                                              2
+Therefore, by Lemma 12 and Eq. (118), we have that
+
+                                  1
+                                                            ←−2n−1
+                                                           Y                         †               
+                                                                                 (j)
+                            
+             grad cohN ,n (U) k =           TrS (k)                          V              |Gψ ⟩⟨ϕk−1 |
+                                  2               c               j=k+1
+                                                                             ←−2n−1
+                                                                             Y                   
+                                                           (k)                         (j)     (k)
+                                      − TrS (k) U                |ϕk−1 ⟩⟨Gψ |        V       U
+                                              c                                              j=k+1
+
+                                    1                   ←−2n−1
+                                                      Y                          †                            ←−2n−1
+                                                                                                                 Y            
+                                                                             (j)                                          (j)
+                                   = TrS (k)                             V              |Gψ ⟩⟨ϕk−1 | − |ϕk ⟩⟨Gψ |       V       .
+                                    2   c                        j=k+1                                              j=k
+
+                                                                                                                                       ⊔
+                                                                                                                                       ⊓
+
+
+
+                                                                     33
+Algorithm 3 RGD algorithm for lower bounds on the quantum capacity
+Input: A quantum channel NA→B , |R|, n ∈ N+ ; Initial guess (U (1) , U (2) , · · · , U (2n−1) ).
+ 1: while the stopping criteria are not satisfied do
+ 2:   Compute U̇(t) = − grad cohN ,n (U(t) ) by Eq. (125).
+ 3:   Compute a stepsize s(t) .
+      Update U(t+1) = RU(t) s(t) U̇(t) by Eq. (59); t = t + 1.
+                                      
+ 4:
+ 5: end while
+                      1
+ 6: Compute qlow = − n  cohN ,n (Un )
+Output: |ψ(Un )⟩, qlow .
+
+
+    Equipped with the Riemannian gradient, we have Algorithm 3 to optimize a code state for
+a given channel N and a positive integer n, thereby establishing a lower bound on the quantum
+capacity.
+Remark 3 Regarding Algorithm 2 for computing lower bounds on the one-way distillable entangle-
+ment, we can also formulate the problem on a product of unitary manifolds by constructing a local
+unitary ansatz like Figure 8. It should be noted, however, that while our ansatz circumvents the
+curse of dimensionality in the parameter space, the evaluation of the coherent information objective
+function remains a computational bottleneck. This challenge arises from the need to compute the
+logarithm of density matrices in a Hilbert space whose dimension grows exponentially with n.
+
+
+4.3    Superadditivity in one-way entanglement distillation
+To demonstrate the efficacy of our method on computing lower bounds on the one-way distillable
+entanglement, we apply Algorithm 2 to a class of noisy bipartite states.
+
+Generalized amplitude damping channel. Similar to Eq. (75), we consider a pair of Bell state
+|Φ+ ⟩ = √12 (|00⟩ + |11⟩) shared between Alice and Bob is affected by a local generalized amplitude
+damping channel (GADC) [KSW20] channel. As a generalization of the AD channel, it is defined by
+                                                      4
+                                                            Ai (·)A†i ,
+                                                      X
+                                         Aγ,N (·) =                                                (127)
+                                                      i=1
+
+where the Kraus operators {Ai }4i=1 are given by
+                                     √                p           
+                              A1 = 1 − N |0⟩⟨0| + 1 − γ|1⟩⟨1|                                      (128)
+                                     p
+                              A2 = γ(1 − N )|0⟩⟨1|                                                 (129)
+                                     √ p                        
+                              A3 = N        1 − γ|0⟩⟨0| + |1⟩⟨1|                                   (130)
+                                     p
+                              A4 = γN |1⟩⟨0|,                                                      (131)
+
+with γ, N ∈ [0, 1]. When N = 0, it reduces to the AD channel. Thereby, we are interested in
+the Choi state of the GADC, i.e., ρAB ′ = (I ⊗ Aγ,N )(Φ+ ). For a fixed number of copies n = 2, 4,
+                               (1)
+we compute lower bounds on D→ (ρ⊗n  AB ) by optimizing a feasible one-way LOCC protocol using
+Algorithm 2, with a fixed dimension of the classical register to |M | = 2. The optimization is
+
+                                                      34
+terminated when the norm of the Riemannian gradient falls below 10−7 . To mitigate convergence
+to local optima, each data point is the result of 200 independent optimization runs with random
+initial unitaries.
+    The results of our numerical experiments are presented in Figure 9. The green solid line
+represents the coherent information as a lower bound. The blue and red dashed lines show our
+improved multi-copy bounds for n = 2, 4, respectively, which are given by the quantity
+                                                   1
+                                                     I(A′ ⟩B n M )T ∗ (ρ⊗n ) .                                         (132)
+                                                   n                    AB
+
+
+These bounds were calculated using the instrument T ∗ , which was optimized via Algorithm 2
+through the parameterization of the output unitary U ∗ . It demonstrates that for all tested noise
+parameters, the calculated lower bounds for multi-copy cases are strictly greater than the single-
+shot coherent information, which confirms that multi-copy protocols unlock additional distillable
+entanglement. The fluctuations observed in the dashed lines are attributed to the nature of the
+numerical optimization Algorithm 2. As the channel parameter is varied, the algorithm may settle
+into different local solutions, causing small variations in the resulting lower bound. Because we
+set |M | = 2 for all experiments, and the issue of local minima, there may be cases where a 4-copy
+average rate is smaller than a 2-copy average rate in Figure 9b. We can adjust the dimension of
+the classical system M to further optimize the lower bounds. Overall, the results highlight the
+effectiveness of our Riemannian optimization framework in discovering the non-trivial quantum
+instruments required to reveal these superadditive effects, even with a small measurement dimension.
+
+          ·10−3                                                             ·10−3
+      4                                                               3.2
+                                     Hashing bound                                                    Hashing bound
+                                     2-copy average                                                   2-copy average
+                                                                      2.6
+                                     4-copy average                                                   4-copy average
+      3
+                                                                        2
+
+                                                                      1.4
+      2
+                                                                      0.8
+
+    1                                                                 0.2
+   4.570          4.573      4.576       4.579      4.582              4.368     4.371   4.374       4.377   4.380 4.383
+                               γ                 ·10−1                                           γ                ·10−1
+                           (a) Aγ,0.05                                                   (b) Aγ,0.1
+
+Figure 9: Distillable entanglement lower bound on the Choi state of GADC by optimizing
+1    ′  n
+n I(A ⟩B M )T (ρ⊗n ) .AB
+
+
+
+4.4       Superadditivity in channel coherent information
+To demonstrate the efficacy of our method on computing lower bounds on the quantum capacity,
+we apply Algorithm 3 to different channels of interest.
+
+
+
+                                                              35
+Generalized amplitude damping channel. First, we consider the GADC as defined in Eq. (127).
+We compute lower bounds on the quantum capacity, n1 Q(1) (A⊗n   γ,N ), for blocklength n = 3, 4, 5 using
+our interleaved unitary ansatz with a reference system of dimension |R| = 2, and choose the same
+parameters as that in [BL20, Appendix A.2]. For each channel with fixed parameters, we execute
+Algorithm 3 200 times from random initial points to thoroughly explore the optimization landscape,
+selecting the highest coherent information rate achieved. The algorithm is terminated when the
+norm of the Riemannian gradient falls below 10−7 .
+    The resulting rates for the optimized code states, n1 Q(1) (ψ(Un ), A⊗nγ,N ), are then compared to
+the results in Ref. [BL20]. Finding a rate that exceeds the single-shot coherent information demon-
+strates the superadditive nature of the channel, where a larger value signifies a more pronounced
+superadditive effect for that blocklength. In Table 1 to 5, we present the results for the GADC
+with different parameters (γ, N ). We can see that our method achieves an improvement over the
+results in Ref. [BL20] even with a small, 2- or 3-dimensional auxiliary system R. This shows that
+our method is highly effective at discovering complex entangled code states, allowing us to reveal
+stronger superadditivity in the channel coherent information.
+
+Dephrasure channel. The dephrasure channel is defined by the composition of a dephasing
+channel and an erasure channel, i.e.,
+                                                             
+                     EZp,q (·) := (1 − q) (1 − p)(·) + pZ(·)Z + q Tr(·)|e⟩⟨e|,    (133)
+
+where |e⟩ is an erasure flag orthogonal to the input space. In Table 6 to 9, we present our numerical
+results for the dephrasure channels with different parameters (p, q) using Algorithm 3. We compare
+the coherent information yielded by our optimized code states with the ones given by the permutation-
+invariant code states in [BL25, Table 4]. We observe that our code states can achieve higher rates
+with only 3 or 4 copy uses, compared with the 9-copy uses in Ref. [BL25].
+
+Damping-dephasing channel. Another channel of particular interest is the damping-dephasing
+channel ZAg,p (·), as introduced in Section 3.5, which has been shown to have a non-additive coherent
+information [SAJOS24]. It has Kraus operators
+                                       p                p           
+                                 O1 = 1 − p |0⟩⟨0| + 1 − g|1⟩⟨1|                                (134)
+                                       √
+                                 O2 = g|0⟩⟨1|                                                   (135)
+                                       √            p           
+                                 O3 = p |0⟩⟨0| − 1 − g|1⟩⟨1| ,                                  (136)
+
+where p, g ∈ [0, 1]. The optimized rates n1 Q(1) (ψ, ZA⊗n
+                                                       g,p ) for n = 2, 3, 4, 5 are shown in Table 10,
+where they are compared with the results from [BL25, Table 3]. For an auxiliary system of
+dimension |R| = 2 or |R| = 3, our optimized code states can provide higher rates, indicating a
+stronger superadditivity. It is worth noting that the primary focus of Ref. [BL25] is on improving
+capacity thresholds in the high-noise regime using permutation-invariant codes, an approach that is
+not necessarily optimized for maximizing rates at small blocklengths. Nevertheless, this comparison
+serves to highlight the superadditive gains that our method can unlock even with very few channel
+uses and small auxiliary dimensions.
+
+
+
+
+                                                  36
+                                          (γ, N ) = (0.44035, 0.1)
+                                   This work (cf. Alg. 3)            Ref. [BL20]
+                    n copy
+                                |R| = 2             |R| = 3            |R| = 2n
+                       3      1.7515 · 10−3       1.7515 · 10−3      5.7598 · 10−4
+                       4      2.0657 · 10−3       2.0657 · 10−3      1.2683 · 10−3
+                       5      1.9124 · 10−3       1.9116 · 10−3      9.1537 · 10−4
+
+Table 1: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, A⊗nγ,N ) with an optimized
+code state |ψ⟩, for a GADC with (γ, N ) = (0.44035, 0.1). The increasing value as a function of n
+demonstrates strong superadditivity of the coherent information.
+
+                                          (γ, N ) = (0.41488, 0.2)
+                                   This work (cf. Alg. 3)            Ref. [BL20]
+                    n copy
+                                |R| = 2             |R| = 3            |R| = 2n
+                       3      2.4565 · 10−3       2.4565 · 10−3      1.6923 · 10−3
+                       4      2.4633 · 10−3       2.4188 · 10−3      1.4132 · 10−3
+                       5      2.5366 · 10−3       2.5245 · 10−3      9.8025 · 10−4
+
+Table 2: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, A⊗n
+                                                                       γ,N ) with an optimized code
+state |ψ⟩, for a GADC with (γ, N ) = (0.41488, 0.2).
+
+                                          (γ, N ) = (0.40102, 0.3)
+                                   This work (cf. Alg. 3)            Ref. [BL20]
+                    n copy
+                                |R| = 2             |R| = 3            |R| = 2n
+                       3      2.8213 · 10−3       2.8213 · 10−3      2.1889 · 10−3
+                       4      2.7973 · 10−3       2.7921 · 10−3      7.3635 · 10−4
+                       5      2.8460 · 10−3       2.7500 · 10−3            -
+
+Table 3: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, A⊗n
+                                                                       γ,N ) with an optimized code
+state |ψ⟩, for a GADC with (γ, N ) = (0.40102, 0.3).
+
+                                          (γ, N ) = (0.39392, 0.4)
+                                   This work (cf. Alg. 3)            Ref. [BL20]
+                    n copy
+                                |R| = 2             |R| = 3            |R| = 2n
+                       3      2.8517 · 10−3       2.8517 · 10−3      2.3456 · 10−3
+                       4      2.8377 · 10−3       2.8340 · 10−3      1.7592 · 10−3
+                       5      2.8458 · 10−3       2.7590 · 10−3            -
+
+Table 4: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, A⊗n
+                                                                       γ,N ) with an optimized code
+state |ψ⟩, for a GADC with (γ, N ) = (0.39392, 0.4).
+
+
+                                                  37
+                                            (γ, N ) = (0.39169, 0.5)
+                                     This work (cf. Alg. 3)               Ref. [BL20]
+                     n copy
+                                  |R| = 2              |R| = 3             |R| = 2n
+                        3       2.7901 · 10−3       2.7901 · 10−3        2.3948 · 10−3
+                        4       2.7491 · 10−3       2.7365 · 10−3        1.7913 · 10−3
+                        5       2.7222 · 10−3       2.1595 · 10−3        1.3393 · 10−3
+
+Table 5: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, A⊗n
+                                                                       γ,N ) with an optimized code
+state |ψ⟩, for a GADC with (γ, N ) = (0.39169, 0.5).
+
+                                               (p, q) = (0.32, 0.1)
+                                     This work (cf. Alg. 3)            Ref. [BL25]
+                       n copy
+                                     |R| = 2           |R| = 3           |R| = 2
+                            3     7.4634 · 10−5     1.1178 · 10−4            -
+                            4     8.6365 · 10−5     7.9767 · 10−5            -
+                            9           -                 -            5.2223 · 10−5
+
+                                                                          ⊗n ) with an optimized code
+Table 6: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, EZp,q
+state |ψ⟩, for a dephrasure channel with (p, q) = (0.32, 0.1). The increasing value as a function of n
+demonstrates strong superadditivity of the coherent information.
+
+                                               (p, q) = (0.24, 0.2)
+                                     This work (cf. Alg. 3)            Ref. [BL25]
+                       n copy
+                                     |R| = 2           |R| = 3           |R| = 2
+                            3     6.1854 · 10−6     4.5631 · 10−6            -
+                            4     1.2144 · 10−5     3.4223 · 10−6            -
+                            9           -                 -            1.3181 · 10−6
+
+                                                                        ⊗n ) with an optimized code
+Table 7: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, EZp,q
+state |ψ⟩, for a dephrasure channel with (p, q) = (0.24, 0.2).
+
+                                               (p, q) = (0.16, 0.3)
+                                     This work (cf. Alg. 3)            Ref. [BL25]
+                       n copy
+                                     |R| = 2           |R| = 3           |R| = 2
+                            3     3.9674 · 10−5     3.3592 · 10−5            -
+                            4     1.5026 · 10−5     2.5206 · 10−5            -
+                            9           -                 -            2.3103 · 10−5
+
+                                                                        ⊗n ) with an optimized code
+Table 8: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, EZp,q
+state |ψ⟩, for a dephrasure channel with (p, q) = (0.16, 0.3).
+
+
+                                                     38
+                                                (p, q) = (0.08, 0.4)
+                                      This work (cf. Alg. 3)            Ref. [BL25]
+                        n copy
+                                      |R| = 2             |R| = 3         |R| = 2
+                          3       4.7900 · 10−5      1.3663 · 10−6            -
+                          4       8.1678 · 10−7      7.5609 · 10−5            -
+                          9             -                  -            5.4524 · 10−5
+
+                                                                        ⊗n ) with an optimized code
+Table 9: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, EZp,q
+state |ψ⟩, for a dephrasure channel with (p, q) = (0.08, 0.4).
+
+                                     (p, g) = (0.16, 0.20)
+                              This work (cf. Alg. 3)                     Ref. [BL25]
+               n copy
+                           |R| = 2              |R| = 3             |R| = 2         |R| = 3
+                 2      1.9987 · 10−2      2.0105 · 10−2             -                -
+                 3      2.0978 · 10−2      2.1637 · 10−2             -                -
+                 4      2.0083 · 10−2      2.2073 · 10−2             -                -
+                 5      1.8714 · 10−2      2.1816 · 10−2       1.4707 · 10−2    1.9899 · 10−2
+
+Table 10: Lower bounds on the n-shot coherent information, n1 Q(1) (ψ, ZA⊗n g,p ) with an optimized
+code state |ψ⟩, for a damping-dephasing channel with (p, g) = (0.16, 0.20).
+
+
+4.5   Amortization does not enhance channel coherent information
+It is known that the channel coherent information, and thus the quantum channel capacity, can
+be expressed in terms of a quantum channel divergence and its regularization [FGW25, Section
+5]. One natural idea for obtaining potentially tighter lower bounds is to consider the amortized
+channel divergence [WBHK20], where different input states are allowed for the two channels
+being distinguished. We introduce the notion of amortized channel coherent information and
+show that it is sandwiched between the channel coherent information and the regularized channel
+coherent information, suggesting a possible improvement over the single-letter lower bound by the
+channel coherent information. However, we subsequently prove that the amortized channel coherent
+information always coincides with the channel coherent information, thereby ruling out the potential
+enhancement of the quantum capacity lower bound via amortization.
+
+Definition 6. Let D be a general quantum divergence. For any N ∈ CPTP(A : B) and M ∈
+CP(A : B), the unstabilized channel divergence is defined by
+                                                               
+                          D(N ∥M) := sup D NA→B (ρ)∥MA→B (ρ) ,                   (137)
+                                           ρ∈D(A)
+
+where the supremum is taken over all quantum states ρ on system A. The regularized and unstabilized
+channel divergence is defined by
+                                       1                   1
+                 Dreg (N ∥M) := lim      D N ⊗n ∥M⊗n = sup D N ⊗n ∥M⊗n ,
+                                                                     
+                                                                                                (138)
+                                   n→∞ n               n∈N n
+
+
+
+                                                      39
+where the second equality is followed by the super-additivity of unstabilized channel divergence D.
+The amortized and unstabilized channel divergence is defined by
+
+                  DA (N ∥M) := sup
+                                                                               
+                                           D (NA→B (ρ)∥MA→B (σ)) − D(ρ∥σ) ,                   (139)
+                                  ρ,σ∈D(A)
+
+where the supremum is taken over all quantum states ρ and σ on system A.
+
+    See the definition of the amortized channel divergence in [WBHK20, Definition 3]. A common
+choice of D(·∥·) is the Umegaki relative entropy (also called quantum relative entropy) [Ume62],
+defined by
+                                (
+                                  Tr[ρ(log ρ − log σ)]  if supp(ρ) ⊆ supp(σ),
+                      D(ρ∥σ) :=                                                            (140)
+                                  +∞                    otherwise.
+
+for any quantum states ρ and semidefinite operator σ. It was shown in [FGW25, Theorem 34] that
+the coherent information of a quantum channel can be expressed as the unstabilized channel relative
+entropy as follows.
+
+Lemma 14 ([FGW25]). For any N ∈ CPTP(A : B), it holds that
+
+                      Ic (N ) = D IE ⊗ NA→B ∥R1E ⊗ NA→B ,
+                                                         
+                                                                                             (141)
+                            Q(N ) = Dreg IE ⊗ NA→B ∥R1E ⊗ NA→B ,
+                                                                        
+                                                                                             (142)
+
+where E is isomorphic to A and R1E (·) = TrE (·)1E is a CP map that always outputs the identity
+operator 1E .
+
+   Then, we introduce the amortized channel coherent information as follows.
+
+Definition 7 (Amortized channel coherent information). For any N ∈ CPTP(A : B), the amortized
+channel coherent information IcA (N ) is defined by
+
+                           IcA (N ) := DA IE ⊗ NA→B ∥R1E ⊗ NA→B ,
+                                                                 
+                                                                                        (143)
+
+where DA (·) is the amortized unstabilized channel relative entropy.
+
+Remark 4 Following the convention of defining an amortized entanglement measure for quantum
+channels, e.g., the amortized entanglement [KW17, Section 2], one could also define another variant
+of the amortized channel coherent information as
+
+                       IcA (N ) = max I(A′ ⟩BB ′ )NA→B (ρA′ AB′ ) − I(A′ A⟩B)ρ ,             (144)
+                                 ρA′ AB ′
+
+which is different from our consideration here.
+   Followed by Lemma 14, we have the following chain inequalities for any quantum channel N .
+
+
+Lemma 15. For any N ∈ CPTP(A : B) it holds that Ic (N ) ≤ IcA (N ) ≤ Q(N ).
+
+
+
+                                                  40
+Proof. Since D(·∥·) ≤ DA (·∥·), we have Ic (N ) ≤ IcA (N ). On the other hand, by the chain rule of
+quantum relative entropy [FFRS20, Theorem 2], we have
+                           IcA (N ) = DA IE ⊗ NA→B R1E ⊗ NA→B
+                                                                     
+                                                                                              (145)
+                                    ≤ Dreg IE ⊗ NA→B R1E ⊗ NA→B
+                                                                       
+                                                                                              (146)
+                                          = Q(N ),                                                (147)
+where we used Lemma 14 for the second equality.                                                      ⊔
+                                                                                                     ⊓
+    Lemma 15 indicates that the amortized channel coherent information could potentially provide
+a tighter lower bound on quantum capacity. However, we show that the amortized channel coherent
+information in fact equals the channel coherent information for any channel N .
+
+
+Theorem 2. For any N ∈ CPTP(A : B) it holds that IcA (N ) = Ic (N ).
+
+
+Proof. Combining (143) and (139), we have
+                               h                                      i
+             IcA (N ) =  sup     D IE ⊗ NA→B (ρ)∥R1E ⊗ NA→B (σ) − D(ρ∥σ) .                        (148)
+                              ρ,σ∈D(EA)
+
+By denoting ρEB = IE ⊗ NA→B (ρ) and ρB = TrE ρEB , we can consider
+                   h                                          i
+  IcA (N ) = sup    D IE ⊗ NA→B (ρ)∥R1E ⊗ NA→B (σ) − D(ρ∥σ)
+             ρ,σ∈D(EA)
+                         h                                                            i
+         =     sup           Tr(ρEB log ρEB ) − Tr[ρEB log(1E ⊗ TrE σEB )] − D(ρ∥σ)
+             ρ,σ∈D(EA)
+                         h
+         =     sup           Tr(ρEB log ρEB ) − Tr[ρEB log(1E ⊗ TrE ρEB )]
+             ρ,σ∈D(EA)
+                                                                                              i
+                         + Tr[ρEB log(1E ⊗ TrE ρEB )] − Tr[ρEB log(1E ⊗ TrE σEB )] − D(ρ∥σ)       (149)
+                         h                                  
+         =     sup        D IE ⊗ NA→B (ρ) ∥R1E ⊗ NA→B (ρ)
+             ρ,σ∈D(EA)
+                                                                    i
+                         + Tr[ρB log ρB ] − Tr[ρB log σB ] − D(ρ∥σ)
+                         h                                                    i
+         =     sup        D IE ⊗ NA→B (ρ) ∥R1E ⊗ NA→B (ρ) + D (ρB ∥σB ) − D(ρ∥σ) ,
+             ρ,σ∈D(EA)
+
+where the second equality follows from the definition of quantum relative entropy, in the third
+equality we add and subtract the term Tr[ρEB log(1E ⊗ TrE ρEB )], and the fourth equality follows
+from the fact that log(A ⊗ B) = log A ⊗ 1 + 1 ⊗ log B. Notice that
+                  D (ρB ∥σB ) = D (TrE ⊗NA→B (ρ)∥ TrE ⊗NA→B (σ)) ≤ D (ρ∥σ) ,                      (150)
+where TrE (·) is the partial trace over the system E, and the inequality follows from the monotonicity
+of the quantum relative entropy under CPTP maps. Then we have that
+                                    h                                    i
+                  (149) ≤ sup        D IE ⊗ NA→B (ρ) ∥R1E ⊗ NA→B (ρ) = Ic (N ),                 (151)
+                              ρ∈D(EA)
+
+where the equality follows from Lemma 14.                                                            ⊔
+                                                                                                     ⊓
+
+                                                     41
+5    Concluding remarks
+In this work, we have developed a comprehensive framework based on Riemannian optimization to
+derive improved, computable two-sided bounds on the one-way distillable entanglement and the
+quantum capacity.
+    Our main technical contributions are twofold. First, for upper bounds, we transformed the search
+for state and channel extensions that can minimize information-theoretic bounds into a tractable
+optimization over the Stiefel manifold. This method, when combined with a refined continuity
+bound for conditional entropy, delivers strictly tighter upper bounds than previously known records
+for large values of the depolarizing parameter [KFG22]. We can also obtain improved upper bounds
+for different states and channels of interest. Second, for lower bounds, we transform the problem to
+optimizations over unitary manifolds. Our algorithm for states and channels can be flexibly used to
+explore the superadditivity in the one-way entanglement distillation rate and the channel coherent
+information. We demonstrate improved lower bounds on both quantities for various states and
+channels of interest, compared to previous results. Our methods may also serve as a guide for the
+design of entanglement distillation protocols and quantum error correction codes. Furthermore,
+we proved that amortization of the underlying channel divergence does not enhance the channel
+coherent information. This result excludes the amortization as a pathway to obtain a tighter lower
+bound on the quantum capacity, and can be of independent interest.
+    The methods presented here open several avenues for future research. For the upper-bound
+framework, it would be of great interest to see if the structure of the optimal isometries found
+via optimization can inspire new analytical insights or closed-form bounds for specific channel
+families. The computational cost of the finite-difference gradient approximation could be reduced
+by exploring more advanced non-smooth or bilevel optimization techniques tailored to the Stiefel
+manifold [SJL22, DCS24, HMJT25]. For the lower-bound approach, the key bottleneck of computing
+the entropy function remains unsolved in our methods, which limits the scalability of our algorithms.
+It would be interesting to explore new manifolds with a symmetry structure that can aid in the
+calculation of the entropy function, combined with the idea of permutation-invariant codes [BL25].
+It would also be interesting and potentially impactful to explore geometric optimization for other
+quantum resource theories [CG19,LRWW23,KDWW19,GA15,WWS19,WWS20,LRW+ 18,RFWA18,
+WFD19, TR19, WJZ23] and quantum information–processing tasks [DTW16, DMHB13, ZLZW24,
+CH17, CLM+ 14, ZZW+ 21], both to establish fundamental limits and to discover better protocols or
+lower bounds of achievable rates.
+
+Acknowledgments. C. Z. thanks Bin Gao, Renfeng Peng, and Yan Yang for insightful discussion
+and consultation on Riemannian optimization. K. F. thanks Haonan Zhang for bringing his attention
+to the improved continuity bound during his visit at CUHK-Shenzhen. X. W. and C. Z. acknowledge
+the support from the National Key R&D Program of China (Grant No. 2024YFB4504004), the
+National Natural Science Foundation of China (Grant. No. 12447107), the Guangdong Provincial
+Quantum Science Strategic Initiative (Grant No. GDZX2403008, GDZX2403001), the Guangdong
+Provincial Key Lab of Integrated Communication, Sensing and Computation for Ubiquitous Inter-
+net of Things (Grant No. 2023B1212010007), the Quantum Science Center of Guangdong-Hong
+Kong-Macao Greater Bay Area, and the Education Bureau of Guangzhou Municipality. K. F.
+is supported by the National Natural Science Foundation of China (grant No. 92470113 and
+12404569), the Shenzhen Science and Technology Program (grant No. JCYJ20240813113519025),
+
+
+                                                 42
+the Shenzhen Fundamental Research Program (grant No. JCYJ20241202124023031), the 1+1+1
+CUHK-CUHK(SZ)-GDST Joint Collaboration Fund (grant No. GRD P2025-022), and the University
+Development Fund (grant No. UDF01003565).
+
+
+References
+[ABD+ 24]   Koenraad Audenaert, Bjarne Bergh, Nilanjana Datta, Michael G. Jabbour, Ángela
+            Capel, and Paul Gondolf. Continuity bounds for quantum entropies arising from a
+            fundamental entropic inequality, December 2024.
+
+[AF04]      R Alicki and M Fannes. Continuity of quantum conditional information. Journal of
+            Physics A: Mathematical and General, 37(5):L55–L57, January 2004.
+
+[AMS08]     P-A Absil, Robert Mahony, and Rodolphe Sepulchre. Optimization algorithms on
+            matrix manifolds. Princeton University Press, 2008.
+
+[AT60]      MF Atiyah and JA Todd. On complex stiefel manifolds. In Mathematical Proceedings of
+            the Cambridge Philosophical Society, volume 56, pages 342–353. Cambridge University
+            Press, 1960.
+
+[BBC+ 93]   Charles H. Bennett, Gilles Brassard, Claude Crépeau, Richard Jozsa, Asher Peres, and
+            William K. Wootters. Teleporting an unknown quantum state via dual classical and
+            einstein-podolsky-rosen channels. Physical Review Letters, 70:1895–1899, Mar 1993.
+
+[BBP+ 96]   Charles H Bennett, Gilles Brassard, Sandu Popescu, Benjamin Schumacher, John A
+            Smolin, and William K Wootters. Purification of Noisy Entanglement and Faithful
+            Teleportation via Noisy Channels. Physical Review Letters, 76(5):722–725, jan 1996.
+
+[BBPS96]    Charles H Bennett, Herbert J Bernstein, Sandu Popescu, and Benjamin Schumacher.
+            Concentrating partial entanglement by local operations. Physical Review A, 53(4):2046–
+            2052, apr 1996.
+
+[BDSW96]    Charles H. Bennett, David P. DiVincenzo, John A. Smolin, and William K. Wootters.
+            Mixed-state entanglement and quantum error correction. Physical Review A, 54(5):3824–
+            3851, November 1996.
+
+[BK98]      Samuel L. Braunstein and H. J. Kimble. Teleportation of continuous quantum variables.
+            Physical Review Letters, 80:869–872, Jan 1998.
+
+[BKM14]     Adil Bagirov, Napsu Karmitsa, and Marko M Mäkelä. Introduction to Nonsmooth
+            Optimization: theory, practice and software, volume 12. Springer, 2014.
+
+[BKN00]     Howard Barnum, Emanuel Knill, and M.A. Nielsen. On quantum fidelities and channel
+            capacities. IEEE Transactions on Information Theory, 46(4):1317–1329, jul 2000.
+
+[BL20]      Johannes Bausch and Felix Leditzky. Quantum codes from neural networks. New
+            Journal of Physics, 22(2):023005, feb 2020.
+
+[BL21]      Johannes Bausch and Felix Leditzky. Error thresholds for arbitrary pauli noise. SIAM
+            Journal on Computing, 50(4):1410–1460, 2021.
+
+                                               43
+[BL25]      Sujeet Bhalerao and Felix Leditzky. Improving quantum communication rates with
+            permutation-invariant codes, 2025.
+
+[BLO05]     James V Burke, Adrian S Lewis, and Michael L Overton. A robust gradient sampling
+            algorithm for nonsmooth, nonconvex optimization. SIAM Journal on Optimization,
+            15(3):751–779, 2005.
+
+[BLT25]     Mario Berta, Ludovico Lami, and Marco Tomamichel. Continuity of entropies via
+            integral representations. IEEE Transactions on Information Theory, 71(3):1896–1908,
+            March 2025.
+
+[BMAS14]    Nicolas Boumal, Bamdev Mishra, P-A Absil, and Rodolphe Sepulchre. Manopt, a
+            Matlab toolbox for optimization on manifolds. The Journal of Machine Learning
+            Research, 15(1):1455–1459, 2014.
+
+[Bon13]     Silvere Bonnabel. Stochastic gradient descent on riemannian manifolds. IEEE Trans-
+            actions on Automatic Control, 58(9):2217–2229, September 2013.
+
+[Bou23]     Nicolas Boumal. An introduction to optimization on smooth manifolds. Cambridge
+            University Press, 2023.
+
+[BSST02]    C.H. Bennett, P.W. Shor, J.A. Smolin, and A.V. Thapliyal. Entanglement-assisted
+            capacity of a quantum channel and the reverse Shannon theorem. IEEE Transactions
+            on Information Theory, 48(10):2637–2655, oct 2002.
+
+[BW92]      Charles H Bennett and Stephen J Wiesner. Communication via one- and two-particle
+            operators on Einstein-Podolsky-Rosen states. Physical Review Letters, 69(20):2881–
+            2884, nov 1992.
+
+[CEM+ 15]   Toby Cubitt, David Elkouss, William Matthews, Maris Ozols, David Perez-Garcia,
+            and Sergii Strelchuk. Unbounded number of channel uses may be required to detect
+            quantum capacity. Nature Communications, 6(1):6739, dec 2015.
+
+[CG19]      Eric Chitambar and Gilad Gour. Quantum resource theories. Reviews of Modern
+            Physics, 91(2):025001, apr 2019.
+
+[CH17]      Earl T. Campbell and Mark Howard. Unified framework for magic state distillation and
+            multiqubit gate synthesis with reduced resource cost. Physical Review A, 95(2):022316,
+            feb 2017.
+
+[CK00]      T. D. Choi and C. T. Kelley. Superlinear convergence and implicit filtering. SIAM
+            Journal on Optimization, 10(4):1149–1162, 2000.
+
+[CLM+ 14]   Eric Chitambar, Debbie Leung, Laura Mančinska, Maris Ozols, and Andreas Winter.
+            Everything You Always Wanted to Know About LOCC (But Were Afraid to Ask).
+            Communications in Mathematical Physics, 328(1):303–326, may 2014.
+
+[CMS07]     Benoı̂t Colson, Patrice Marcotte, and Gilles Savard. An overview of bilevel optimization.
+            Annals of operations research, 153(1):235–256, 2007.
+
+
+
+                                                44
+[COT24]     Miguel Casanova, Kentaro Ohki, and Francesco Ticozzi. Finding quantum codes via
+            riemannian optimization, 2024.
+
+[DCS24]    Sanchayan Dutta, Xiang Cheng, and Suvrit Sra. Riemannian bilevel optimization,
+           2024.
+
+[Dev05]     Igor Devetak. The Private Classical Capacity and Quantum Capacity of a Quantum
+            Channel. IEEE Transactions on Information Theory, 51(1):44–55, jan 2005.
+
+[DMHB13] Nilanjana Datta, Milan Mosonyi, Minhsiu Min-Hsiu Hsieh, and Fernando G S L Brandao.
+         A smooth entropy approach to quantum hypothesis testing and the classical capacity
+         of quantum channels. IEEE Transactions on Information Theory, 59(12):8014–8026,
+         dec 2013.
+
+[DS05]     Igor Devetak and Peter W Shor. The Capacity of a Quantum Channel for Simultaneous
+           Transmission of Classical and Quantum Information. Communications in Mathematical
+           Physics, 256(2):287–303, jun 2005.
+
+[DSS98]     David P. DiVincenzo, Peter W. Shor, and John A. Smolin. Quantum-channel capacity
+            of very noisy channels. Physical Review A, 57(2):830–839, feb 1998.
+
+[DTW16]    Nilanjana Datta, Marco Tomamichel, and Mark M Wilde. On the second-order asymp-
+           totics for entanglement-assisted communication. Quantum Information Processing,
+           15(6):2569–2591, jun 2016.
+
+[DW05]     Igor Devetak and Andreas Winter. Distillation of secret key and entanglement from
+           quantum states. Proceedings of the Royal Society A: Mathematical, Physical and
+           Engineering Sciences, 461(2053):207–235, January 2005.
+
+[Eke91]    Artur K. Ekert. Quantum cryptography based on bell’s theorem. Physical Review
+           Letters, 67:661–663, Aug 1991.
+
+[FF18]     Hamza Fawzi and Omar Fawzi. Efficient optimization of the quantum relative entropy.
+           Journal of Physics A: Mathematical and Theoretical, 51(15):154003, 2018.
+
+[FF21]     Kun Fang and Hamza Fawzi. Geometric Rényi Divergence and its Applications in
+           Quantum Channel Capacities. Communications in Mathematical Physics, 384(3):1615–
+           1677, June 2021.
+
+[FFRS20]    Kun Fang, Omar Fawzi, Renato Renner, and David Sutter. Chain rule for the quantum
+            relative entropy. Physical Review Letters, 124:100501, Mar 2020.
+
+[FGW25]     Kun Fang, Gilad Gour, and Xin Wang. Towards the ultimate limits of quantum channel
+            discrimination and quantum communication. SCIENCE CHINA Information Sciences,
+            68(8), July 2025.
+
+[FKG20]    Marco Fanizza, Farzad Kianvash, and Vittorio Giovannetti. Quantum flags, and new
+           bounds on the quantum capacity of the depolarizing channel. Physical Review Letters,
+           125(2):020503, July 2020.
+
+
+
+                                             45
+[FW08]      Jesse Fern and K. Birgitta Whaley. Lower bounds on the nonzero capacity of Pauli
+            channels. Physical Review A, 78(6):062335, dec 2008.
+
+[GA15]      Rodrigo Gallego and Leandro Aolita. Resource Theory of Steering. Physical Review X,
+            5(4):41008, 2015.
+
+[GB14]      Michael Grant and Stephen Boyd. CVX: Matlab software for disciplined convex
+            programming, version 2.1. http://cvxr.com/cvx, March 2014.
+
+[GFG12]     Joydip Ghosh, Austin G. Fowler, and Michael R. Geller. Surface code with decoherence:
+            An analysis of three superconducting architectures. Physical Review A, 86:062318,
+            December 2012.
+
+[HHHH09]    Ryszard Horodecki, Pawel Horodecki, Michal Horodecki, and Karol Horodecki. Quan-
+            tum entanglement. Reviews of Modern Physics, 81(2):865–942, June 2009.
+
+[HKY+ 24]   Ming-Chien Hsu, En-Jui Kuo, Wei-Hsuan Yu, Jian-Feng Cai, and Min-Hsiu Hsieh.
+            Quantum state tomography via nonconvex riemannian gradient descent. Physical
+            Review Letters, 132:240804, Jun 2024.
+
+[HMJT25]    Andi Han, Bamdev Mishra, Pratik Jawanpuria, and Akiko Takeda. A framework for
+            bilevel optimization on riemannian manifolds. In Proceedings of the 38th International
+            Conference on Neural Information Processing Systems, NIPS ’24, Red Hook, NY, USA,
+            2025. Curran Associates Inc.
+
+[HU17]      Seyedehsomayeh Hosseini and André Uschmajew. A riemannian gradient sampling
+            algorithm for nonsmooth optimization on manifolds. SIAM Journal on Optimization,
+            27(1):173–189, 2017.
+
+[Inc22]     The MathWorks Inc. Matlab version: 9.13.0 (r2022b), 2022.
+
+[JD24]      Michael G Jabbour and Nilanjana Datta. Tightening continuity bounds for entropies
+            and bounds on quantum capacities. IEEE Journal on Selected Areas in Information
+            Theory, 2024.
+
+[JKL+ 25]   Michael I. Jordan, Guy Kornowski, Tianyi Lin, Ohad Shamir, and Manolis Zampetakis.
+            Deterministic nonsmooth nonconvex optimization, 2025.
+
+[Joh16]     Nathaniel Johnston. QETLAB: A MATLAB toolbox for quantum entanglement, version
+            0.9. https://qetlab.com, Jan 2016.
+
+[KBHM24] Ayse Kotil, Rahul Banerjee, Qunsheng Huang, and Christian B Mendl. Riemannian
+         quantum circuit optimization for hamiltonian simulation. Journal of Physics A:
+         Mathematical and Theoretical, 57(13):135303, March 2024.
+
+[KDWW19] Eneet Kaur, Siddhartha Das, Mark M. Wilde, and Andreas Winter. Extendibility
+         Limits the Performance of Quantum Processors. Physical Review Letters, 123(7):070502,
+         aug 2019.
+
+[Kel11]     Carl T Kelley. Implicit filtering. SIAM, 2011.
+
+
+                                               46
+[KFG22]     Farzad Kianvash, Marco Fanizza, and Vittorio Giovannetti. Bounding the quantum
+            capacity with flagged extensions. Quantum, 6:647, February 2022.
+
+[KSW20]     Sumeet Khatri, Kunal Sharma, and Mark M. Wilde. Information-theoretic aspects of
+            the generalized amplitude-damping channel. Physical Review A, 102(1), July 2020.
+
+[KW17]      Eneet Kaur and Mark M Wilde. Amortized entanglement of a quantum channel and
+            approximately teleportation-simulable channels. Journal of Physics A: Mathematical
+            and Theoretical, 51(3):035303, December 2017.
+
+[KW24]      Sumeet Khatri and Mark M. Wilde. Principles of quantum communication theory: A
+            modern approach, 2024.
+
+[LCD+ 21]   Xiao Li, Shixiang Chen, Zengde Deng, Qing Qu, Zhihui Zhu, and Anthony Man-Cho So.
+            Weakly convex optimization over stiefel manifold using riemannian subgradient-type
+            methods. SIAM Journal on Optimization, 31(3):1605–1634, 2021.
+
+[LDS18]     Felix Leditzky, Nilanjana Datta, and Graeme Smith. Useful states and entanglement
+            distillation. IEEE Transactions on Information Theory, 64(7):4689–4708, July 2018.
+
+[LHZ+ 25]   Ze-Tong Li, Xin-Lin He, Cong-Cong Zheng, Yu-Qian Dong, Tian Luan, Xu-Tao Yu,
+            and Zai-Chen Zhang. Quantum comb tomography via learning isometries on stiefel
+            manifold. Physical Review Letters, 134:010803, January 2025.
+
+[LL18]      Youngrong Lim and Soojoon Lee. Activation of the quantum capacity of gaussian
+            channels. Physical Review A, 98:012326, Jul 2018.
+
+[Llo97]     Seth Lloyd. Capacity of the noisy quantum channel. Physical Review A, 55(3):1613–
+            1622, March 1997.
+
+[LLS18]     Felix Leditzky, Debbie Leung, and Graeme Smith. Dephrasure channel and superaddi-
+            tivity of coherent information. Physical Review Letters, 121:160501, Oct 2018.
+
+[LLS+ 23]   Felix Leditzky, Debbie Leung, Vikesh Siddhu, Graeme Smith, and John A. Smolin.
+            Generic nonadditivity of quantum capacity in simple channels. Physical Review Letters,
+            130:200801, May 2023.
+
+[LRFO21]    Ilia Luchnikov, Alexander Ryzhov, Sergey Filippov, and Henni Ouerdane. Qgopt:
+            Riemannian optimization for quantum technologies. SciPost Physics, 10(3), March
+            2021.
+
+[LRW+ 18]   Ludovico Lami, Bartosz Regula, Xin Wang, Rosanna Nichols, Andreas Winter, and
+            Gerardo Adesso. Gaussian quantum resource theories. Physical Review A, 98(2):022335,
+            aug 2018.
+
+[LRWW23] Ludovico Lami, Bartosz Regula, Xin Wang, and Mark M. Wilde. Upper bounds on the
+         distillable randomness of bipartite quantum states. In 2023 IEEE Information Theory
+         Workshop (ITW), pages 203–208. IEEE, apr 2023.
+
+[LSM25]     Isabel Nha Minh Le, Shuo Sun, and Christian B. Mendl. Riemannian quantum circuit
+            optimization based on matrix product operators. Quantum, 9:1833, August 2025.
+
+                                               47
+[LTAL19]   Youngrong Lim, Ryuji Takagi, Gerardo Adesso, and Soojoon Lee. Activation and su-
+           peractivation of single-mode gaussian quantum channels. Physical Review A, 99:032337,
+           Mar 2019.
+
+[Miz73]    Hisao Mizumoto. A finite-difference method on a riemann surface. Hiroshima Mathe-
+           matical Journal, 3(2):277–332, 1973.
+
+[NC10]     Michael A Nielsen and Isaac L Chuang. Quantum computation and quantum information.
+           Cambridge university press, 2010.
+
+[NPJ20]    Kyungjoo Noh, Stefano Pirandola, and Liang Jiang. Enhanced energy-constrained
+           quantum communication over bosonic gaussian channels. Nature Communications,
+           11(1), January 2020.
+
+[NS17]     Yurii Nesterov and Vladimir Spokoiny. Random gradient-free minimization of convex
+           functions. Foundations of Computational Mathematics, 17(2):527–566, 2017.
+
+[Rai01]    E.M. Rains. A semidefinite program for distillable entanglement. IEEE Transactions
+           on Information Theory, 47(7):2921–2933, 2001.
+
+[Ren05]    Renato Renner. Security of quantum key distribution. Ph.D. thesis, 1, ETH Zurich
+           2005.
+
+[RFWA18]   Bartosz Regula, Kun Fang, Xin Wang, and Gerardo Adesso. One-shot coherence
+           distillation. Physical Review Letters, 121(1):010401, July 2018.
+
+[SAJOS24] Vikesh Siddhu, Dina Abdelhadi, Tomas Jochym-O’Connor, and John Smolin. Entan-
+          glement sharing across a damping-dephasing channel. In 2024 IEEE International
+          Symposium on Information Theory (ISIT), pages 1432–1437, 2024.
+
+[SG21]     Vikesh Siddhu and Robert B. Griffiths. Positivity and nonadditivity of quantum
+           capacities using generalized erasure channels. IEEE Transactions on Information
+           Theory, 67(7):4533–4545, 2021.
+
+[Sho02]    Peter W Shor. The quantum channel capacity and coherent information. In lecture
+           notes, MSRI Workshop on Quantum Computation, 2002.
+
+[SJL22]    Daouda Sow, Kaiyi Ji, and Yingbin Liang. On the convergence theory for hessian-free
+           bilevel algorithms, 2022.
+
+[Smi10]    Graeme Smith. Quantum channel capacities. In 2010 IEEE Information Theory
+           Workshop, pages 1–5, 2010.
+
+[SN96]     Benjamin Schumacher and Michael A Nielsen. Quantum data processing and error
+           correction. Physical Review A, 54(4):2629–2635, oct 1996.
+
+[SS96]     Peter W. Shor and John A. Smolin. Quantum error-correcting codes need not completely
+           reveal the error syndrome, 1996.
+
+[SS07]     Graeme Smith and John A. Smolin. Degenerate Quantum Codes for Pauli Channels.
+           Physical Review Letters, 98(3):030501, jan 2007.
+
+                                             48
+[SSWR17]   David Sutter, Volkher B Scholz, Andreas Winter, and Renato Renner. Approxi-
+           mate Degradable Quantum Channels. IEEE Transactions on Information Theory,
+           63(12):7832–7844, dec 2017.
+
+[SXON21]   Hao-Jun Michael Shi, Melody Qiming Xuan, Figen Oztoprak, and Jorge Nocedal. On
+           the numerical performance of derivative-free optimization methods based on finite-
+           difference approximations. arXiv preprint arXiv:2102.09762, 2021.
+
+[TR19]     Ryuji Takagi and Bartosz Regula. General Resource Theories in Quantum Mechanics
+           and Beyond: Operational Characterization via Discrimination Tasks. Physical Review
+           X, 9(3):031053, sep 2019.
+
+[TWW17]    Marco Tomamichel, Mark M Wilde, and Andreas Winter. Strong converse rates for
+           quantum communication. IEEE Transactions on Information Theory, 63(1):715–727,
+           2017.
+
+[Ume62]    Hisaharu Umegaki. Conditional expectation in an operator algebra. IV. Entropy and
+           information. Kodai Mathematical Seminar Reports, 14(2):59–85, 1962.
+
+[VB96]     Lieven Vandenberghe and Stephen Boyd. Semidefinite programming. SIAM review,
+           38(1):49–95, 1996.
+
+[Wan21]    Xin Wang. Pursuing the fundamental limits for quantum communication. IEEE
+           Transactions on Information Theory, 67(7):4524–4532, 2021.
+
+[WBHK20] Mark M. Wilde, Mario Berta, Christoph Hirche, and Eneet Kaur. Amortized channel
+         divergence for asymptotic quantum channel discrimination. Letters in Mathematical
+         Physics, 110(8):2277–2336, June 2020.
+
+[WFD19]    Xin Wang, Kun Fang, and Runyao Duan. Semidefinite Programming Converse Bounds
+           for Quantum Communication. IEEE Transactions on Information Theory, 65(4):2583–
+           2592, apr 2019.
+
+[Wil11]    Mark M Wilde. From classical to quantum shannon theory.            arXiv preprint
+           arXiv:1106.1445, 2011.
+
+[Wil13]    Mark M Wilde. Quantum information theory. Cambridge university press, 2013.
+
+[Win16]    Andreas Winter. Tight Uniform Continuity Bounds for Quantum Entropies: Conditional
+           Entropy, Relative Entropy Distance and Energy Constraints. Communications in
+           Mathematical Physics, 347(1):291–313, October 2016.
+
+[WJZ23]    Xin Wang, Mingrui Jing, and Chengkai Zhu. Computable and Faithful Lower Bound
+           for Entanglement Cost. arXiv preprint arXiv:2311.10649, nov 2023.
+
+[WWS19]    Xin Wang, Mark M Wilde, and Yuan Su. Quantifying the magic of quantum channels.
+           New Journal of Physics, 21(10):103002, oct 2019.
+
+[WWS20]    Xin Wang, Mark M Wilde, and Yuan Su. Efficiently Computable Bounds for Magic
+           State Distillation. Physical Review Letters, 124(9):090505, mar 2020.
+
+
+                                            49
+[WZM25]     Zhen Wu, Qi Zhao, and Zhihao Ma. Super-additivity of quantum capacity in simple
+            channels, 2025.
+
+[Zhu25]     Chengkai Zhu. Geometric optimization for quantum communication. https://github.
+            com/Chengkai-Zhu/qcapacity-rieopt, 2025.
+
+[ZLZW24]    Chengkai Zhu, Zhiping Liu, Chenghong Zhu, and Xin Wang. Limitations of Classically
+            Simulable Measurements for Quantum State Discrimination. Physical Review Letters,
+            133(1):010202, jul 2024.
+
+[ZPGW25] Chengkai Zhu, Renfeng Peng, Bin Gao, and Xin Wang. Riemannian optimization for
+         holevo capacity, 2025.
+
+[ZZAZ25]    Xuanran Zhu, Chao Zhang, Zheng An, and Bei Zeng. Unified framework for calculating
+            convex roof resource measures. npj Quantum Information, 11(1), April 2025.
+
+[ZZW+ 21]   Xuanqiang Zhao, Benchi Zhao, Zihe Wang, Zhixin Song, and Xin Wang. Practical
+            distributed quantum information processing with LOCCNet. npj Quantum Information,
+            7(1):159, dec 2021.
+
+[ZZW24]     Chengkai Zhu, Chenghong Zhu, and Xin Wang. Estimate distillable entanglement and
+            quantum capacity by squeezing useless entanglement. IEEE Journal on Selected Areas
+            in Communications, 42(7):1850–1860, July 2024.
+
+
+
+
+                                             50
+

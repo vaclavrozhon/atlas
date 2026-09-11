@@ -1,0 +1,2631 @@
+               Electronic Colloquium on Computational Complexity, Revision 1 of Report No. 30 (2025)
+
+
+
+
+          Stronger Cell Probe Lower Bounds via Local PRGs
+            Oliver Korten†,§               Toniann Pitassi‡,§            Russell Impagliazzo¶,§
+
+
+
+                                                   Abstract
+        In this work we observe a tight connection between three topics: NC0 cryptography, NC0
+    range avoidance, and static data structure lower bounds. Using this connection, we leverage tech-
+    niques from the cryptanalysis of NC0 PRGs to prove state-of-the-art results in the latter two sub-
+    jects. Our main result is an improvement to the best known static data structure lower bounds,
+    breaking a barrier which has stood for several decades. Prior to our work, the best known lower
+                                                                                1            1
+    bound for any explicit problem with M inputs and N queries was S ≥ N t (log M )1− t for any
+    setting of the word length w (where S = space and t = time) [Sie89]. We prove, for the same
+    class of explicitproblems considered in [Sie89],
+                                                     a quadratically stronger space lower bound of
+                        2              2
+    the form S ≥ Ω̃ N t · (log M )1− t · 2−O(w) for all even t > 0. Second, for the restricted class of
+    nonadaptive bit probe data structures, we improve on this lower bound polynomially: for all odd
+    constants t > 1 we give an explicit problem with N queries and M ≤ N O(1) inputs and prove a
+                            2
+    lower bound S ≥ Ω(N t +ϵt ) for some constant ϵt > 0. Our results build off of an exciting body
+    of work on refuting semi-random CSPs (e.g., [AGK21, GKM22, HKM23]).
+        We then utilize our explicit cell probe lower bounds to obtain the best known unconditional
+    algorithms for NC0 range avoidance: we can solve any instance with stretch n 7→ m in polynomial
+                        t
+    time once m >> n 2 when t is even; with the aid of an NP oracle we can solve any instance with
+           t
+    m > n 2 −ϵt for ϵt > 0 when t is odd. Finally, using our main correspondence we establish some
+    barrier results for obtaining significant improvements to our cell probe lower bounds: (i) near-
+    optimal space lower bounds for an explicit problem with t = 4, w = 1 implies EXPNP ̸⊆ NC1 ;
+    (ii) under the widely-believed assumption that polynomial-stretch NC0 PRGs exist, there is no
+    natural proof of a lower bound of the form S ≥ N Ω(1) when t = ω(1), w = 1.
+
+
+
+
+∗
+  Department of Computer Science, Columbia University. oliver.korten@columbia.edu
+†
+  Department of Computer Science, Columbia University. tonipitassi@gmail.com
+‡
+  Department of Computer Science, University of San Diego. rimpagliazzo@ucsd.edu
+§
+  Supported by NSF AF:Medium 2212136.
+
+
+                                                         1
+                                                                                                       ISSN 1433-8092
+1    Introduction
+We start by briefly introducing the three main subjects of the work: static data structure lower
+bounds, NC0 pseudorandom generators, and range avoidance for NC0 circuits.
+
+Static Data Structure Lower Bounds: The cell probe model of data structures introduced
+in [EF75, Yao81] is a fundamental computational model in which to study tradeoffs between stor-
+age space and access time for information retrieval problems. In the static cell probe model, a data
+structure problem F : [N ] × [M ] → {0, 1} is fixed, where [M ] is an abstract set of “datapoints,”
+[N ] is an abstract set of “queries” one might wish to make about a data point, and F (x, y) is
+the correct answer to the xth query about the datapoint y. The goal is to preprocess any given
+datapoint y ∈ [M ] into a data structure E(y) ∈ ΣS consisting of S “cells,” each cell holding a
+character from some finite alphabet Σ, so that later we may answer different queries x ∈ [N ] about
+y by reading at most t cells from the data structure E(y). S is called the “space complexity,” t the
+“time complexity,” and w = log |Σ| the “word-length” (number of bits to store the contents of a
+single cell). As a prototypical example (which our main lower bounds will apply to), let d ≤ n be
+                        n
+given, N = 2n , M = 2(≤d) . Identifying [N ] with Fn , and [M ] with the set of degree ≤ d multilinear
+                                                   2
+polynomials over Fn2 , we can define the polynomial evaluation problem F2 -Evaldn : [N ]×[M ] → {0, 1}
+with F2 -Evaldn (x, p) = p(x); in this case to solve the data structure problem, we want a method for
+preprocessing polynomials p into small space data structures E(p), so that upon any query x ∈ Fn2
+we may evaluate the polynomial p at the point x by querying only a few cells of the data structure.
+    The basic problem in static data structure lower bounds is to prove, for a particular problem F ,
+that any data structure solution for F must use a large amount of either space, time, or word length
+(word length is generally of secondary importance). For any explicit problem F : [N ]×[M ] → {0, 1},
+the best lower bound provable by techniques known prior to this work, for any t > 1 and any setting
+of the word length w, is at best:
+                                               1             1
+                                        S ≥ N t · (log M )1− t                                    (1)
+Lower bounds of this kind were first achieved by [Sie89] using a method that was rediscovered in
+later work and which is now known as cell sampling. In the special case of nonadaptive bit probe
+data structures (queries chosen nonadaptively, word length w = 1), a lower bound exceeding (1)
+has been shown in two recent works. First, [Vio19] achieved a near-maximal space lower bound
+S ≥ N2 in the case t = 2 for a problem with M ≤ poly(N ) datapoints. Subsequent work of [GGS23]
+improved this to S ≥ (1 − ϵ)N for arbitrarily small ϵ > 0 (the lower bound is for a different explicit
+problem), and for all larger t > 2 proved a bound like 1 with the exponent 1t replaced with (t−1) 1
+                                                                                                     .
+In Section 1.5 we will discuss these works, as well as the broader history of static data structure
+lower bounds, in some more detail.
+
+NC0 Pseudorandom Generators: A prominent line of work initiated in [Gol00, CM01] has stud-
+ied the existence of cryptographic PRGs in NC0 . An NC0t -PRG is function G : {0, 1}n → {0, 1}m ,
+m > n, so that: (1) each output depends on only t inputs, and (2) G is a cryptographic pseudo-
+random generator: no polynomial time algorithm can distinguish a random output of G from a
+truly random m bit string. We say that G is an NC0 generator if it is NC0t for some t = O(1). The
+existence of such PRGs has been the subject of a great deal of work over the past two decades; we
+refer the reader to a comprehensive survey [App16] and the references therein.
+    An important parameter is the stretch of the generator, which denotes the relation between n, m.
+We say that G has nontrivial stretch if m > n, and polynomial stretch if m ≥ n1+Ω(1) . NC0 gener-
+ators with nontrivial stretch can be shown to exist under standard number theoretic cryptographic
+
+                                                   2
+assumptions [AIK06], however their utility has so far been limited. On the other hand, NC0 genera-
+tors with polynomial stretch are not known to exist under any more standard hardness assumptions,
+but have been found to have a wide range of advanced cryptographic applications [IKOS08], most
+notably in the construction of Indistinguishability Obfuscation [JLS21, JLS22]. For this reason, a
+great deal of work has gone into studying the existence of polynomial stretch NC0 PRGs as a foun-
+dational assumption in its own right, and various algorithmic methods for distinguishing such PRGs
+have been studied. The current state of the art shows that an NC0t generator G : {0, 1}n → {0, 1}m
+                                                 t
+can be broken in polynomial time once m >> n 2 ([MST03, AOW15, AGK21]).
+
+NC0 Range Avoidance: We finally turn to our third main subject of study, NC0 range avoidance.
+The object in question here is the same as above: an NC0t generator G : {0, 1}n → {0, 1}m with
+m > n and t = O(1). However, instead of trying the distinguish the output of G from random,
+our goal now is to solve the range avoidance problem for G: output a string y ∈ {0, 1}m such
+that y ∈/ range(G). The range avoidance problem (for general G : {0, 1}n → {0, 1}m computed
+by polynomial size circuits) was introduced in [KKMP21], and shown in [Kor21] to be intimately
+connected to derandomization and to the problem of proving circuit lower bounds for exponential
+time classes. In all cases, it is already of great interest to develop algorithms for this problem
+that use an NP oracle. [RSW22] was the first to investigate the range avoidance problem for NC0
+circuits, and showed that a PNP algorithm for this problem would imply the breakthrough circuit
+lower bound EXPNP ̸⊆ NC1 . The same question of stretch arises here: the aforementioned result of
+[RSW22] requires us to solve instances with barely nontrivial stretch. On the other hand uncondi-
+                                                                                                     t−1
+tional algorithms have been given once the stretch is sufficiently large, in particular once m >> nlog n
+([GLW22, GGNS23]). An important question posed in [RSW22] is whether unconditional PNP al-
+gorithms for NC0 range avoidance can be found in the general polynomial stretch regime.
+
+The Main Correspondence: The starting point of our work is the observation that the 3 prob-
+lems discussed above are tightly related to one another. The relation between NC0 PRGs and NC0
+range avoidance is rather obvious (although still insufficiently explored prior to this work), and so
+the key point is the relation we observe between these two topics pertaining to NC0 circuits on the
+one hand, and the project of proving cell probe lower bounds on the other. This relationship follows
+directly from the definitions of the objects in question, and is more appropriately understood as a
+perspective shift rather than a new result.
+    To state the connection in its simplest form, we focus our attention for now on a special setting
+of the cell probe model: the word length is 1 (i.e. Σ = {0, 1}, often called the bit probe model), and
+the data structures in question are nonadpative. Here, nonadpative means that the data structure
+will decide which cells to probe as a function only of the query, in contrast to a general adaptive
+data structure which may decide on the next cell to probe based on the outcomes of previous
+probes. In this setting we have:
+Observation. Let F : [N ] × [M ] → {0, 1} be a data structure problem, which we interpret as a
+matrix F ∈ {0, 1}N ×M with N rows and M columns below. The following are equivalent:
+  1. F has does not have nonadaptive bit probe data structures with space complexity S and time
+     complexity t.
+  2. The columns of F are a set of M strings F ⊆ {0, 1}N , |F| = M , such that for any NC0t
+     generator G : {0, 1}S → {0, 1}N , there exists a string f ∈ F with f ∈
+                                                                          / range(G).
+Proof. Say that F has nonadaptive bit probe data structures of space S and time t. Then, to
+every y ∈ [M ] we may associate an encoding Ey ∈ {0, 1}S , so that for every x ∈ [N ] we may
+
+                                                   3
+determine F (x, y) by probing (nonadaptively) t bits of Ey . Considering the y th column of F as a
+string fy ∈ {0, 1}N , we see that there is a NC0t function G : {0, 1}S → {0, 1}N so that G(Ey ) = fy
+for every y ∈ [M ]; in particular, the xth output of G runs the data structure’s nonadaptive query
+procedure corresponding to the query x. The same reasoning applies in the reverse direction.
+
+    In other words, finding an explicit data structure problem F : [N ]×[M ] → {0, 1} which requires
+large space for time t in the nonadaptive bit probe model is exactly equivalent to constructing
+explicit list-solutions for NC0t range avoidance. By a list-solution, we mean a list of candidate
+strings, so that for any instance of NC0t range avoidance G (with appropriate parameters), one of
+the strings in this list must be a range avoidance solution for G. We emphasize that an analogous
+connection exists for the general cell probe model (adaptive and with arbitrary word length), which
+is explained formally in Section 2.2. The problem of finding list-solutions for NC0 range avoidance
+was considered already in [GLW22]. Indeed, via the above correspondence the results of [GLW22]
+recover a nonadaptive bit-probe lower bound of [GGS23] in a certain range of parameters.
+    The connection between NC0 -PRGs and cell probe lower bounds is more difficult to state for-
+mally, but even more central to our main results. In one direction, we will show how to use the
+best known methods for distinguishing NC0 PRGs to achieve state of the art lower bounds in the
+cell probe model; this is the most significant contribution in this work, and after stating our main
+results below we will describe this methodology in more detail in Section 1.3 (“Our Techniques”).
+In the other direction we will use the conjectured security of various NC0 PRGs to exhibit a natural
+properties barrier for data structure lower bounds, in the spirit of Razborov-Rudich [RR97].
+    We note that connections of a similar flavor have been utilized in the literature on sampling lower
+bounds initiated by Viola [Vio12]. Connections between restricted variants of range avoidance and
+data structures were first observed in [GLW22], who used a cell probe data structure from [Pat08]
+to develop more efficient reductions to range avoidance; this proof was our original inspiration to
+explore more deeply the connections between NC0 range avoidance and the cell probe model.
+
+1.1   Our Results
+State of the Art Cell Probe Lower Bounds: Using the perspective shift introduced above,
+we are able to break a decades-old barrier in static data structure complexity, and prove cell probe
+lower bounds for a explicit problems which are quadratically better for space as a function of time
+than all previous methods. Our first lower bound holds any data structure problem supporting
+a k-wise independent distribution; this is the class same problems originally considered by [Sie89]
+and in various follow up works (including [PTW10, Lar12]), and we are able to obtain tight lower
+bounds across essentially the entire range of values k ≤ N , provided the time complexity t is an
+even number:
+Theorem 1. Let F : [N ] × [M ] → {0, 1} be a data structure problem such that there exists a k-wise
+independent distribution supported on its columns. Let S, t, w ∈ N be given with t an even number
+and assume k > tw + 1. Then, for any space S, time t, word length w cell probe data structure
+solving F we must have:
+           N  2  k 1− 2                                                           t
+                                      · t−1 2−O(w) for all t log N ≤ k ≤ N 2−O(tw) t− 2
+                   t                t
+   1. S ≥             ·
+           log N          log N
+           N  11 2
+                         k · t−1 2−O(w) for all tw + 1 ≤ k ≤ t log N
+                   t( 2 + )
+   2. S ≥
+           log N
+   Remember that we often interpret F : [N ] × [M ] → {0, 1} as a boolean matrix with N rows
+and M columns, which explains our use of the phrase “the columns of F .” If t is an odd number,
+
+                                                  4
+the above lower bound holds with t + 1 in place of t; hence this lower bound gives a polynomial
+improvement (for space as a function of time) over previous methods for all t > 3, gives a near-
+quadratic improvement for all even t, and approaches a quadratic improvement for large odd values
+of t. Using any of the various explicit examples of k-wise independent distributions with support size
+N O(k) (e.g. univariate polynomials over F2n ), we obtain explicit problems F : [N ] × [M ] → {0, 1}
+satisfying the lower bound                2           1− 2 −O(w) 
+                                  S ≥ Ω̃ N t · log M       t
+                                                             ·2
+
+across essentially the entire spectrum of nontrivial values M ∈ {1, . . . , 2N }. We thus achieve a near-
+quadratic improvement in the state of the art explicit cell probe lower bounds across this entire
+spectrum of relations between M, N . We emphasize that, in addition to giving a quadratic space
+improvement over the cell sampling bound (the first improvement of any kind), our lower bound is
+also the first to achieve any polynomial improvement over the much simpler communication bound
+        1
+S ≳ N t for a problem with N queries and M ≤ exp(N o(1) ) datapoints (by setting k = log N in
+the above); this is discussed further in the Section 1.5.
+    By known constructions [Sie89, Sie04] (see also [LPS97]), the lower bound in Theorem 1 is tight
+up to log N factors and the factors depending only on w provided t is not too large. Hence, for all
+small enough even values of t and small enough w, we essentially completely resolve the cell probe
+complexity of representing k-wise independent distributions. The almost-matching upper bounds
+are nonconstructive, relying on unbalanced bipartite graphs with very strong unique-expansion
+properties; they yield data structures which are nonadaptive and have word length w = 1, so the
+tightness of Theorem 1 holds even in this restricted setting of nonadaptive bit probe data structures.
+    Our lower bound for k-wise independent problems is actually a bit stronger than stated above,
+as we are able to establish the same bound for problems which only exhibit γ-almost k-wise in-
+dependence, for a nontrivially large value of γ. The stronger form (which is the form which will
+appear as Theorem 1 in Section 3.2) is as follows:
+Theorem (Theorem 1, Strengthened To Almost Independence). Let F : [N ] × [M ] → {0, 1} be a
+data structure problem such that there exists a γ-almost k-wise independent distribution supported
+on its columns. Then the same lower bound as in the first presentation of Theorem 1 (above) holds
+for F provided γ ≤ N t 2−O(ktw) .
+   An important consequence of this improvement is that, using known constructions of almost
+independent distributions [NN90], in the case t, w = O(1) we can set k = O(log N ), γ = N −O(1)
+and obtain an explicit problem F : [N ] × [M ] → {0, 1} with M ≤ poly(N ) and satisfying the lower
+                 2
+bound S ≥ Ω̃(N t ). This improvement will be necessary later on for obtaining polynomial time
+range avoidance algorithms with minimum possible stretch.
+   We next establish a lower bound that improves on the previous theorems in the special setting of
+nonadaptive bit probe data structures; remember that “bit probe” denotes the word length setting
+w = 1. For this lower bound, the hardness property of our data structure problems is small bias
+[NN90]: a distribution over {0, 1}N is γ-biased if it fools all parity functions with error ≤ γ2 .
+Theorem 2. Let t > 1, t = O(1) be a fixed odd number. Let F : [N ] × [M ] → {0, 1} be a
+data structure problem such that there exists a N −c -biased distribution supported on its columns,
+for c = O(1) a sufficiently large constant (depending on t). Then any nonadaptive bit probe data
+structure for F with space S and time t must satisfy:
+                                                    1
+                                                t − t−2           2
+                                     S ≥ Ω̃(N 2    2(t+2)   ) ≥ N t +ϵt
+where ϵt > 0 is a positive constant depending only on t.
+
+                                                    5
+   Using explicit constructions of small bias probability spaces (again [NN90]), we obtain explicit
+                                                                                  2
+problems F : [N ] × [poly(N )] → {0, 1} which satisfy the lower bound S ≥ N t +ϵt for every odd
+constant t, where ϵt > 0 depends only on t. Small bias probability spaces were first used as a hard
+data structure problem in [Vio19] to obtain near-maximal space lower bounds for nonadaptive bit
+probe data structures making t = 2 queries. We emphasize that, because of the optimality of the
+bound in Theorem 1 (there is an upper bound almost matching the bound in Theorem 1 even in
+the nonadaptive bit probe setting and even for odd values of t), the above Theorem 2 is provably
+unattainable using only limited independence. More formally, to construct any data structure prob-
+                                                             2
+lem F : [N ] × [M ] → {0, 1} satisfying a lower bound S ≥ N t +ϵ for any constants t > 1, ϵ > 0, and
+M ≤ exp(N o(1) ), we provably cannot use k-wise independence as our only hardness property for
+the problem F . This result is therefore of special interest, as it the first example of a cell probe
+lower bound that is provably stronger than the best bound provable using limited independence
+alone: all of the previous best lower bound methods [Sie89, PTW10, Lar12, Vio19, GGS23]1 can
+be carried out using limited independence as the sole hardness condition.
+
+NC0 Range Avoidance Algorithms: In Section 5 we give the best known unconditional al-
+gorithms for NC0 range avoidance. Using our primary observation connecting range avoidance to
+data structure lower bounds together with known constructions of limited independence and small
+bias spaces [NN90], we can immediately obtain state of the art PNP algorithms for NC0 range
+avoidance using our new cell probe lower bounds as a black box. In the case of Theorem 2 we get:
+
+Theorem 3. Let t = O(1) be a fixed odd number. There is a polynomial time algorithm which
+outputs a list of strings in {0, 1}m , such that for any NC0t generator G : {0, 1}n → {0, 1}m with
+                                                            t      t−2
+                                                                − 2(t+2)
+                                              m ≥ Õ(n 2                   )
+
+one of the strings in the list must be a range-avoidance solution for G. In particular, there is a
+polynomial time NP-oracle algorithm for range avoidance on instances of the above form.
+
+    For our lower bound in Theorem 1, we are able to analyse it more effectively (rather than
+applying it as a black box) and remove the use of an NP oracle in the associated range avoidance
+algorithm:
+                                                                               2
+Theorem 4. Let t, n be given with t even. There is a mO(t ) -time algorithm which solves range
+avoidance given any NC0t generator G : {0, 1}n → {0, 1}m with
+                                                    t               t
+                                            m ≥ n 2 log n · t 2 +o(t)
+
+More generally, the algorithm works if each output of G is computed by a depth t decision tree.
+
+    We emphasize the last point; not only do we decrease the required stretch quadratically for
+NC0t functions compared to previous results [GLW22, GGNS23], but our algorithm also works in
+the more general setting that every output of G is a depth t decision tree over the inputs. The
+full statement of Theorem 4 is more general in two other ways which we didn’t highlight above.
+First, it solves the harder remote point problem for G: for any constant ϵ > 0, our algorithm will
+output a string which is ( 21 − ϵ)-far in relative hamming distance from every string in the range of
+G. Second, it works if G is of the form G : Σn → {0, 1}m for some nonboolean alphabet |Σ| > 2,
+   1
+     Viola’s lower bound for t = 2 nonadaptive bit probe data structures [Vio19] does no use k-wise independence,
+but k-wise independence was shown to achieve the same quantitative lower bound in the follow up work of [GGS23].
+
+
+                                                        6
+and each output is computable by an adaptive decision tree querying at most t input symbols.
+
+Small Bias Generators in NC0 : In [MST03] it was shown that, if G : {0, 1}n → {0, 1}m is
+an NC0t generator such that G(x) is poly(n)−1 biased when x is uniformly distributed on {0, 1}n ,
+                               t                                  t
+then we must have m ≤ O(2t n⌈ 2 ⌉ ); in other words, once m >> n⌈ 2 ⌉ there is an F2 -linear test that
+can distinguish G(x) from random. Our Theorem 2 improves this result for all odd values of t; in
+particular, as an immediate corollary we obtain:
+
+Corollary 1. For every odd constant t there is ϵt > 0, so that every NC0t generator G : {0, 1}n →
+                                                                                   t
+{0, 1}m is distinguished with poly(n)−1 advantage by an F2 -linear test once m ≥ n 2 −ϵt .
+
+    We note that Theorem 2 in fact implies something much stronger, that G(x) can be distin-
+guished from uniform by linear tests for any distribution of x ∈ {0, 1}n . The original result in
+[MST03] is specially tailored to the case where the random “seed” x is uniformly distributed on
+{0, 1}n , and hence cannot be used to give a lower bound in the bit probe model. An interesting
+feature of this is the following: because F2 -linear tests can be performed by polynomial-size circuits,
+our result implies that every NC0t PRG can be distinguished efficiently by nonuniform algorithms
+                                 t
+in the stretch regime n 7→ n 2 −ϵt . However, in the typical approach to NC0 PRG constructions
+pioneered by Goldreich [Gol00], the generator G is sampled at random from a distribution of large
+(≈ m) entropy; in particular, such a cryptographic primitive does not consist of a single NC0 PRG,
+but rather a sampleable ensemble of NC0 PRGs. Since our Corollary 1 gives no indication as to
+how to find the linear distinguisher for G given the description of G, we seemingly cannot use it
+                                                                 t
+to attack Goldreich’s generator in the stretch regime n 7→ n 2 −ϵt , even if we allow nonuniformity in
+our attacker.
+
+Complexity-Theoretic Barriers to Higher Cell Probe Lower Bounds: Next, in Section 6
+we use our main correspondence between cell probe lower bounds and local generators to establish
+barrier results for improving state of the art cell probe lower bounds. Our focus here is on the
+bit probe model (word length w = 1), and on nonadaptive data structures with time complexity
+t = O(1). We show the following two barrier-type results:
+
+Theorem 5 (Consequences of Explicit Data Structure Lower Bounds).
+
+  1. If there is an explicit data structure problem F : [N ] × [M ] → {0, 1} with M ≤ exp(N o(1) )
+     which requires space S ≥ N − N o(1) for data structures making 4 nonadaptive bit probes, then
+     EXPNP ̸⊆ NC1 .
+
+  2. If there is a universal constant ϵ > 0 and an explicit data structure problem F : [N ] × [M ] →
+     {0, 1} with M = poly(N ) requiring space S ≥ N ϵ for nonadaptive data structures making
+     O(1) bit probes, then there is a polynomial time NP oracle algorithm for NC0 range avoidance
+     with polynomial stretch.
+
+    The conclusion in (1) above would be a monumental breakthrough in complexity theory and
+is considered extremely hard. The conclusion in (2) above was directly posed in [RSW22] as an
+important direction in unconditional range avoidance algorithms. We note that (1) of Theorem 5
+has a strong similarity to results in [Vio19] and [DGW19]. [Vio19] shows that improved data static
+data structure lower bounds imply breakthrough circuit lower bounds for multi-output functions.
+The implied circuit lower bounds are of two kinds: lower bounds against low-depth circuits over
+a complete basis of large fan-in gates, and lower bounds against linear size log-depth circuits with
+bounded fan-in gates. On the other hand, [DGW19] shows that improved data structure lower
+
+                                                   7
+bounds (of a different kind) imply breakthrough constructions of rigid matrices; these results are
+specific to linear data structures rather than general data structures as considered in this work and
+in [Vio19].
+    Next, we turn toward a different and more novel kind of barrier in the realm of data structure
+lower bounds, based on the natural proofs paradigm of Razborov and Rudich [RR97]. Following
+Razborov-Rudich, we define a natural data structure lower bound to be some efficiently testable
+property of functions F : [N ] × [M ] → {0, 1}, so that random functions have the property, and
+any function with the property satisfies a corresponding cell probe lower bound (see Section 6.2
+for a formal definition). We argue in Section 6.2 that the strongest lower bound methods in the
+cell probe model known prior to this work can be made natural in this sense. This continues to
+hold for our new lower bound in Theorem 1. On the other hand, we show that under two widely
+believed cryptographic assumptions, certain lower bounds in the bit probe model are unachievable
+using proofs of this nature:
+
+Theorem 6 (Natural Proofs Barriers for Data Structure Lower Bounds).
+
+  1. Assume the existence of NC1 PRGs. Then there is no natural proof of a space lower bound
+     S ≥ N − N 0.99 for data structures making 4 nonadaptive bit probes solving a problem F :
+     [N ] × [poly(N )] → {0, 1}.
+
+  2. Assume existence of polynomial stretch NC0 PRGs. Then for every ϵ > 0 there is t ∈ N
+     so that no natural proof can establish a lower bound S ≥ N ϵ for data structures making t
+     nonadaptive bit probes solving a problem F : [N ] × [poly(N )] → {0, 1}.
+
+    As mentioned above our lower bound in Theorem 1 can be made natural, as well as all lower
+bounds proven prior using the cell sampling method or communication arguments. However, in-
+terestingly, we do not know if the lower bound for small bias distributions in Theorem 2 can. It
+is therefore unclear at the moment whether or not the “natural properties barrier” for data struc-
+tures, according to the definitions used above, has already been broken by the new results in this
+paper. Regardless, we argue in Section 6.2 that the lower bound in Theorem 2 is still “natural” in
+a weaker and less formal sense, and that significantly stronger lower bounds will probably have to
+differ from it in this regard assuming the nonuniform security of NC0 PRGs. We discuss further
+the question of the “naturalness” of Theorem 2 in Section 5.
+
+Approaches to Stronger Lower Bounds via Communication Complexity: Finally, in
+Section 6.3 we discuss possible approaches to proving lower bounds in the nonadaptive bit probe
+model of the form S ≥ N ϵ for time t = O(1), where ϵ > 0 is a fixed universal constant not de-
+pending on t; this corresponds precisely to the regime in which the existence of cryptographically
+secure polynomial-stretch NC0 PRGs yields a natural proofs barrier. We formulate cell probe lower
+bounds in this regime in terms of an equivalent communication model, reminiscent of PIR schemes,
+in which a single party Alice holding an input x ∈ X communicates with a council of t Bobs hold-
+ing a shared input y ∈ Y . We discuss an approach to analyzing this model based on “lifting” a
+query complexity measure investigated by [HR15, LRT22], and relate this model to other high end
+communication complexity classes such as PHcc .
+
+1.2   Subsequent Developments:
+After the posting of an initial preprint of this work, two improvements to Theorem 2 were commu-
+nicated to us by Weiqiang Yuan [Yua]:
+
+
+                                                 8
+                                              1
+                                         t    t−2
+                                         2 − 2(t+2)
+   1. Our lower bound S ≥ Ω̃(N            ) for small bias problems can be extended to hold for
+      adaptive bit probe data structures.
+
+   2. In the case of nonadaptive bit probe data structures, the lower bound for small bias problems
+                                                       2
+      can be strengthened quantitatively to S ≥ Ω̃(N t−1 ).
+
+In both cases, it is required as in Theorem 2 that t = O(1) is an odd constant.
+
+1.3    Our Techniques: Derandomizing Semirandom CSP Refutations
+We now discuss at a high level our approach to proving our main cell probe lower bound for k-wise
+independent problems (Theorem 1). We will narrow down our discussion in three respects: (1)
+we focus on the case t = O(1) and ignore multiplicative factors depending on t in our space lower
+bound, (2) we restrict attention to nonadaptive bit probe data structures, and (3) we focus on
+                                                      2
+achieving a lower bound of the form S ≥ Ω̃(N t ) for k-wise independent problems in the special
+case k = O(log N ).
+    In this setting, using our main observation connecting NC0 generators and data structures,
+we need to show that any O(log N )-wise independent random variable f pseud ∈ {0, 1}N has the
+                                                                                   2
+following property: for any NC0t generator G : {0, 1}S → {0, 1}N with S = õ(N t ), with nonzero
+probability f pseud ∈/ range(G). Say for a moment that we view a candidate generator G with
+the above parameters as a cryptographic PRG. In this case, a body of work dedicated to the
+cryptanalysis of NC0 PRGs has shown that any such G can be distinguished by polynomial time
+algorithms; more strongly, there is a polynomial time algorithm which can generate certificates of
+the fact f unif ∈
+                / range(G) with very high probability when f unif ∈ {0, 1}N is a uniformly random
+       2
+vector . Our goal is to look at the certificates generated by these algorithms, and argue that they
+will still be produced with high probability when we replace the truly random vector f unif with
+the pseudorandom vector f pseud .
+                                  / range(G) for a worst case NC0t generator G is a special case of
+    The task of certifying f unif ∈
+semirandom CSP refutation. In particular, given an NC0t generator G : {0, 1}S → {0, 1}N and any
+f ∈ {0, 1}N , we may define a t-CSP instance with S variables and N constraints, which is satisfiable
+if and only if f ∈ range(G): for each x ∈ [N ] with Gx depending on input cells i1x , . . . , itx ∈ [S], we
+add the constraint
+                                      Gx (E(i1x ), . . . , E(itx )) = fx
+where E(1), . . . , E(S) are boolean-valued variables. If G is fixed and f unif is uniformly random, we
+end up with a random distribution of t-CSP instances, where the left hand side of each constraint
+is fixed (worst-case), while the right hand side is sampled uniformly at random (average case). If
+we can give an efficient refutation algorithm which, with high probability over this distribution,
+outputs a certificate that the given CSP is unsatisfiable, then we can use it to distinguish the
+generator G: for a uniformly random right hand side the refutation algorithm will typically output
+“UNSAT,” while for f ∈ range(G) the algorithm can never output “UNSAT.”
+     This hybrid worst-case/average-case model is known as the semirandom CSP model3 . This
+model was first introduced in [Fei07] and has been the subject of many followups including [Fei07,
+AOW15, AGK21, GKM22] (see the theses of Witmer and Manohar [Wit17, Man19] for a more in
+   2
+     Some NC0 cryptanalysis techniques, e.g. Theorem 6 in [MST03], do not yield certificates f ∈     / range(G), and
+only give statistical distinguishers which rely crucially on the fact that the seed of G is generated uniformly; such
+techniques seem to have little relavance to cell probe lower bounds.
+   3
+     The semirandom CSP model is more general than the “random right hand side” variant introduced here, see e.g.
+[AGK21] for a general definition and comparison to the special case presented here.
+
+
+                                                         9
+depth literature review). State of the art semirandom refutation algorithms ([AGK21, GKM22,
+HKM23]) can certify f unif ∈   / range(G) for an NC0t generator G : {0, 1}n → {0, 1}m whenever
+                                                                                        2
+          t/2
+m ≥ ω̃(n ). Taking m = N , n = S this is precisely the parameter regime S ≤ õ(N t ) we aim to
+investigate in our cell probe lower bound for O(log N )-wise independent problems. It is considerably
+easier to carry out the arguments in [AGK21, GKM22, HKM23] in the case t is even; we will only
+prove lower bounds for even values of t in this work and hence avoid the technical difficulties that
+arise for odd t.
+    In the case t is even, the refutation procedures in [AGK21, GKM22, HKM23] can be divided
+into roughly three steps:
+  1. Generate from G a second NC0t generator G′ : {0, 1}O(S) → {0, 1}N which is F2 -linear (each
+     output of G′ XORs together t inputs); reduce the task of certifying f ∈   / range(G) for an
+                 0
+     arbitrary NCt PRG G, to certifying that f is ( 2 −ϵ) far in Hamming distance from range(G′ )4
+                                                    1
+
+     for some small constant ϵ > 0. This is referred to as strong XOR refutation.
+  2. Generate from G′ a sequence of real matrices A1 , . . . , AN ∈ Rm×m for some m = poly(N );
+     reduce the the task of certifying that f is far from range(G′ ) (strong XOR refutation) to
+     certifying that the ∞ → 1 norm of the matrix
+                                               X
+                                       A[f ] =     (2fx − 1)Ax
+                                                      x∈[N ]
+
+        is small. The reader unfamiliar with the ∞ → 1 norm should think of it for now as close rela-
+        tive of the spectral norm which can be approximated in polynomial time (a formal definition
+        is in Section 2.1).
+  3. Show that the ∞ → 1 norm of A[f unif ] is small with high probability where f unif is uniformly
+     distributed on {0, 1}N .
+    To carry out our lower bound, we need to modify the final point, and prove that it continues
+to hold with high probability when we replace the truly random f unif with our pseudorandom
+f pseud . This is argued in Section 3.3 and consists of two steps. The first is a reweighting trick
+from [GKM22], which replaces the A1 , . . . , AN with a second sequence B1 , . . . , BN so that for any
+f ∈ {0, 1}N , whenever A[f ] has a large ∞ → 1 norm, B[f ] has a large spectral norm (B[f ] is
+defined analogously to A[f ]). We then need to prove that B[f pseud ] has small spectral norm with
+high probability. For this we use the fact that, for any matrix D in m dimensions and any even
+number k, ∥D∥ is approximated by the trace-moment polynomial tr((D⊤ D)k/2 )1/k within a factor
+m1/k . Since in our case B[f ] lies in Rm×m with m ≤ poly(N ) and k = O(log N ), we have that
+tr((B[f ]⊤ B[f ])k/2 )1/k approximates the spectral norm of B[f ] to within a constant factor. Since
+tr((B[·]⊤ B[·])k/2 )1/k is (the k th root of) a degree k polynomial, we can argue that its distribution
+with respect to f pseud and f unif will be similar which will complete the proof.
+    There are several technical difficulties that we are leaving out of our discussion. First, to make
+our lower bound work in the setting of a general locally computable generator G (with larger word
+length and adaptive decision trees at its outputs) we need a more involved argument in place of (1)
+above. Second, we need to exercise a bit more care in our analysis of the value of the trace moment
+polynomial tr((B[f ]⊤ B[f ])k/2 )1/k to achieve the same bounds in the case that our distribution on f
+is only N −O(1) -wise O(log N )-wise independent, rather than perfectly O(log N )-wise independent.
+Finally, to deal with the case k >> log N we need to generalize (2) above, using another construction
+from semirandom CSP refutation called the “Kikuchi Matrix” [WEAM19, GKM22].
+  4
+      We actually need both f and ¬f to be far in Hamming distance from the range.
+
+
+                                                       10
+                                                                                                 t
+    We will not sketch in any detail our proof of Theorem 2 which gives a lower bound N 2 +Ω(1)
+for odd constants t in the nonadaptive bit probe model, however we note that it follows the same
+overall form: we take a semirandom refutation procedure (in this case, the refutations in Section
+9 of [GKM22] based on earlier work of [FKO06]), and show that we can still find the associated
+certificates in the pseudorandom case, for some appropriate notion of pseudorandomness. In this
+case we rely instead on small bias (fooling parity functions) as our pseudorandom property in place
+of k-wise independence. As mentioned earlier in the introduction, it is provably necessary to move
+beyond k-wise independence to achieve a lower bound of this form.
+
+1.4   Open Problems
+We present here three potentially tractable open problems we believe are of particular interest. We
+start with the (seemingly) most accessible problem:
+
+Problem 1. Extend the bound in Theorem 1 to hold for odd values of t, and the bound in Theorem 2
+to hold for even values of t.
+
+    The natural approach here is to utilize the CSP refutation procedures for odd order CSPs
+developed in [AGK21, GKM22] and analyze them in the “pseudorandom case” as we have done for
+even order CSPs. It seems likely that a solution to the first part of Problem 1 would automatically
+solve the second part (see the discussion at the end of Section 4).
+    Our second problem relates to Theorem 2. While our lower bounds for k-wise independent data
+structure problems are known to be optimal up to lower order terms (for even t), our nonadaptive
+bit probe lower bounds for ϵ-biased distributions have no matching upper bound. We highlight
+closing this gap as an important open problem:
+
+Problem 2. For t ∈ N, determine the largest constant δt > 0 so that, in the nonadaptive bit probe
+model, we have the lower bound S ≥ N δt −o(1) for any data structure problem F : [N ] × [M ] → {0, 1}
+which supports an exp(−N o(1) )-biased distribution on its columns.
+                                                            −1
+   Our Theorem 2 yields the lower bound δt ≥ 2t − 2(t+2)t−2
+                                                                 , in particular δt > 2t , for every odd
+value t ≥ 3. Theorem 1 (the second form described above) also implies δt ≥ 2t for even values of t
+since ϵ-almost k-wise independence is a special case of ϵ-biasedness; this latter lower bound holds
+in the more general adaptive setting and with larger word lengths. Both of these lower bounds hold
+even if we only aim to achieve bias poly(N )−1 (rather than exp(−N o(1) ) as stated above).
+                                                                                      q     On the
+                                                                                            1
+other hand a construction of [MST03] implies that lim δt = 0, in particular δt ≤ O(         t ). Closing
+                                                       t→∞
+this gap in either direction remains an intriguing open problem.
+    Finally, we highlight two closely related problems: removing the NP oracle in Theorem 3 and
+removing the nonuniformity in Corollary 1:
+
+Problem 3. For NC0t generators G : {0, 1}n → {0, 1}m :
+
+ (a) for any t ≥ 3, ϵ > 0, give a subexponential time deterministic algorithm that solves range
+                                     t
+     avoidance for G whenever m ≥ n 2 −ϵ
+
+ (b) for any t ≥ 5, ϵ > 0, give a subexponential time uniform algorithm that distinguishes G with
+                                                t
+     subexponential advantage whenever m ≥ n 2 −ϵ
+
+   One approach to this problem is to prove an algorithmically constructive variant of the hyper-
+graph Moore bound of [GKM22, HKM23]. Such an algorithm would also improve the best known
+
+                                                  11
+polynomial time refutation algorithm for random t-CSPs, and has been an open problem (in the
+case t = 3) since the original work of [FKO06]; there appears to be some significant possibility that
+no such algorithm exists. A different approach, tailored specifically to (b), is to show that the lower
+bound in Theorem 2 can be made natural in the sense of Razborov-Rudich. More specifically, it
+would actually be sufficient to develop an efficient algorithm with the following behavior: for some
+absolute constant c ∈ N, the algorithm takes as input a uniformly random set A ⊆ Fn2 , |A| = nc ,
+and with nonnegligble probability must output a certificate that A is a 41 -biased probability space.
+See Section 5 for more details.
+
+1.5    Prior Work on Data Structure Lower Bounds
+We give here a slightly more involved historical account of lower bound techniques that can prove
+the strongest lower bounds in the static cell probe model for some explicit problem5 . As mentioned
+earlier, the best known lower bound for general static data structures (for any t > 1 and any
+                                     1            1
+w) prior to our work was S ≥ N t (log M )1− t , first achieved by [Sie89] for k-wise independent
+                                                            1
+problems (M ≈ N k ). Lower bounds of the form S ≳ N t can be established by a direct reduction
+to deterministic two party communication complexity. A more precise communication complexity
+analysis (keeping track of the number of rounds and the number of bits sent by each party in each
+round) developed in [Mil94, MNSW98] gives a similar but more precise lower bound in various
+settings. To achieve a lower bound which includes the extra factor ≈ log M requires techniques
+more specially adapted to the cell probe model. This can be achieved either by expansion-based
+arguments known as cell sampling ([Sie89, Sie04, PTW10, Lar12]), or in some cases by a more
+involved communication complexity argument using direct sum theorems [PT06].
+    In the special setting of nonadaptive bit probe data structures (the setting in which our Theo-
+rem 2 applies), two works have achieved lower bounds improving on the cell sampling bound. In
+[Vio19], when the time is t = 2 a near-maximal space lower bound S ≥ N2 is shown for a problem
+with M ≤ N O(1) datapoints. The lower bound applies to any F : [N ] × [M ] → {0, 1} whose
+columns support a γ-biased distribution for γ a sufficiently small constant. In subsequent work
+                                                    1           1
+of [GGS23], a lower bound of the form S ≳ N t−1 (log M )1− t−1 is obtained for k-wise independent
+problems (M ≈ N k ). Their method is a deterministic variant of cell sampling, and they prove
+that the given lower bound is essentially the best that cell-sampling type methods can achieve.
+[GGS23] also improves quantitatively Viola’s bound for t = 2, showing a lower bound S ≥ (1 − ϵ)N
+for any N −O(1) -almost O(log N )-wise independent problem where ϵ > 0 is any constant (and the
+O(·) terms hide linear dependencies on ϵ). The results in [GGS23] can be applied to larger word
+lengths w > 1 provided we transition to data structure problems with nonboolean output, of the
+form F : [N ] × [M ] → {0, 1}w .
+    Observe that, in the setting where M is not much larger than N , e.g. M ≤ exp(poly log N ),
+                      1                                                         1           1
+the factor (log M )1− t has negligible effect on the cell sampling bound S ≥ N t (log M )1− t . In this
+setting, no previously known method (even cell sampling) gives a lower bound significantly stronger
+                                                                   1
+than the direct communication reduction, which yields S ≳ N t . We explain this reduction here
+since it is so simple. Say F has a time t space S data structure with word length w. Consider
+a protocol in which Alice holds x, Bob holds y; Bob constructs the data structure encoding E(y),
+Alice simulates the query procedure on x, requesting cells of E(y) from Bob who responds with
+their contents. Alice sends log S bits in each round to request a cell, Bob sends w bits to reveal the
+cell’s contents, and communication lasts t rounds, so the overall communication is t log S + tw. For
+   5
+    A great deal of work in the field is dedicated to adapting these techniques to prove the best possible lower bounds
+for particular natural problems of interest, which we will not cover here.
+
+
+                                                          12
+any problem F with maximal two party communication complexity, e.g. F : [N ] × [N ] → {0, 1}
+given by F (x, y) = 1{x = y}, we then have t log S + tw ≥ log N , i.e. S ≥ N t · 2−w .
+                                                                               1
+
+
+    Finally it is important to keep in mind that for non-explicit problems, counting arguments show
+that most functions F : [N ] × [N ] → {0, 1} require space very close to N or time very close to
+log N [Mil93]. The situation here is similar to many other areas in complexity; a nonconstructive
+counting argument implies that random functions exhibit an extremely high lower bound, and the
+heart of the subject is to prove similar bounds for explicit (and ideally natural) problems.
+
+
+2     Preliminaries
+We introduce some basic notation and definitions which will be used throughout. We strongly
+encourage the reader not to skip Section 2.2 which defines our notation for locally computable
+generators and cell probe data structures, and establishes the connection between them which will
+be used in the rest of the paper.
+
+2.1   Basics
+For a natural number N use [N ] = {1, . . . , N }. For a finite set V and integer k we use Vk to denote
+                                                                                             
+
+the setPof subsets of V of size k. If X is a finite set, ϕ : X → R we write Ex∈X ϕ(x) as shorthand for
+|X| −1
+         x∈X ϕ(x). We will use boldface variables e.g. v exclusively for random variables. When v
+is a random variable and A is a set, we write v ∈ A to indicate that the support of v is contained
+in A. When an expression references only a single random variable v we will use E ϕ(v) for some
+ϕ : supp(v) → R to mean that the expectation is taken with respect to v; this is in contrast to the
+notation Ex∼X ϕ(x) above, where we always include the subscript. At one point we will use the set
+theoretic operator ∆ denoting symmetric difference a∆b = (a \ b) ∪ (b \ a). For a collection of sets
+(aj )j∈J we define ∆ aj in the natural way using the commutativity/associativity of ∆ as a binary
+                  j∈J
+operation.
+   In Section 3.2 we will deal with various vector and matrix norms, whose (standard) definitions
+we review here:
+Definition 1 (Vector and Matrix Norms). For a vector u ∈ Rm we use ∥u∥ to denote the euclidean
+(L2 ) norm of u, and ∥u∥∞ to denote its L∞ norm. For a matrix A ∈ Rn×n , we will use ∥A∥ to
+denote the spectral norm given by
+                                       ∥A∥ =     max       |u⊤ Av|
+                                               ∥u∥,∥v∥≤1
+
+and use ∥A∥∞→1 to denote the ∞ → 1 operator norm given by
+                         ∥A∥∞→1 =        max         |u⊤ Av| =     max       |u⊤ Av|
+                                     ∥u∥∞ ,∥v∥∞ ≤1               u,v∈{±1}m
+
+    We now define the notions of limited independence and small-bias probability spaces which we
+will use extensively. In our main lower bounds we will work over the signed hypercube {±1}N ,
+and we present the following definitions in this setting; each definition has an equivalent form over
+{0, 1}N via the natural correspondence {0, 1} ↔ {±1}.
+Definition 2. Let f ∈ {±1}N be a random variable, γ ∈ (0, 1), k ≤ N . We say that f is γ-almost
+k-wise independent if, for all X ⊆ [N ], |X| = k and all g ∈ {±1}X we have
+                                  Pr[f |X = g] ∈ [2−k − γ, 2−k + γ]
+We say that f is k-wise independent if it is 0-almost k-wise independent.
+
+                                                     13
+   In other words, a distribution over {±1}N is γ-almost k-wise independent if its projection to
+any k coordinates is γ-close to the uniform distribution on {±1}k in L∞ distance; the statement
+applies without change in the {0, 1}N basis. Turning our attention to small bias distributions:
+
+Definition 3 ([NN90]). Let f ∈ {±1}N be a random variable, γ ∈ (0, 1), k ≤ N . We say that f
+(γ, k)-biased if, for all X ⊆ [N ], |X| ≤ k we have
+                                             Y
+                                           E    fx ∈ [−γ, γ]
+                                            x∈X
+
+We say that f is γ-biased if it is (γ, N )-biased.
+
+    In the {0, 1}Lbasis, the property of being γ-biased    has
+                                                             Pthe following interpretation: for any
+                              N → {0, 1} given by
+                                                  L
+parity function
+              L X    : {0, 1}                       X (f ) =   x∈X fx mod 2 for some ∅ ≠ X ⊆ [N ],
+                                1    γ
+we have | Pr[ X (f ) = b] − 2 | ≤ 2 for each b ∈ {0, 1}. In other words a γ-biased distribution
+over {0, 1}N fools all parity functions to within error γ2 . We will use the following well-known
+relationship:
+
+Lemma 1 ([NN90]). If f is (γ, k)-biased than it is γ-almost k-wise independent.
+
+   Finally, we rely on the following construction of explicit small-bias probability spaces:
+
+Theorem ([NN90]). For every γ, k, N there exists an explicit distribution on {±1}N with support
+size ( k log
+           γ
+             N O(1)
+              )     .
+
+    We elaborate on our notion of explicit: for the purposes of our range avoidance algorithms in
+Section 5, we can take explicit to mean, there is a uniform algorithm which, given k, N, ϵ will run in
+time poly(N, k, 1ϵ ) and output a list of strings in {±1}N , such that the uniform distribution on these
+strings is (γ, k)-biased. The distributions in [NN90] are also explicit in the more standard/informal
+sense, being supplied by a direct construction.
+
+2.2   Generators and Data Structures
+We now define the two main objects of study in our work: the cell probe model of static data
+structures on the one hand, and locally-computable generators on the other. We then state the
+tight connection between them, giving some more detail than was supplied in the introduction.
+Broader implications of this connection will be explored in more depth in Section 6.
+
+Definition 4 (Cell Probe Model). Let F : [N ] × [M ] → {0, 1}, which we refer to as a “data
+structure problem.” Elements x ∈ [N ] are referred to as “queries,” y ∈ [M ] as “datapoints.” We
+say that F has cell probe data structures with space complexity S, time complexity t, and word
+length w if there exist procedures of the following form:
+
+  1. (Encoding:) A computationally-unbounded encoding procedure which, given y ∈ [M ], prepro-
+     cesses it into a data structure E(y) ∈ ΣS , |Σ| ≤ 2w
+
+  2. (Query Procedure:) A computationally-unbounded t-query algorithm Q which, given x ∈ [N ]
+     and some encoding E ∈ ΣS , queries t indices (“cells”) of E and outputs a bit Q(x, E) ∈ {0, 1}
+
+The data structure correctly solves the problem F if, for all (x, y) ∈ [N ]×[M ], Q(x, E(y)) = F (x, y).
+We say the data structure is nonadaptive if the query procedure decides ahead of time, as a function
+only of x, on the set of t cells which it will query.
+
+
+                                                     14
+   As mentioned in the introduction, for a problem F : [N ]×[M ] → {0, 1}, we will interchangeably
+view it as a matrix F ∈ {0, 1}N ×M and refer to its set of columns; the columns of F consist of the
+vectors of the form Fy = (F (x, y))x∈[N ] ∈ {0, 1}N for each y ∈ [M ].
+   Next we turn to the formal definition of locally-computable generators:
+
+Definition 5 (Locally-Computable Generators). We say that G : ΣS → {0, 1}N is a locally-
+computable generator with time complexity t and space complexity S, provided that each output
+(Gx )x∈[N ] is computed by a depth t decision tree Tx over the alphabet Σ. The word length of the
+generator is ⌈log |Σ|⌉. We will refer to strings E ∈ ΣS as “encodings” which are decoded to G(E) by
+the generator G. Each index i ∈ [S] is referred to as a “cell,” and for an encoding E the contents of
+the ith cell is E(i). If the decision trees (Tx )x∈X are nonadaptive, we refer to G as a non-adaptive
+generator. In the case Σ = {0, 1} and G is nonadaptive, we also refer to G as an NC0t generator.
+
+    We emphasize that in the literature on cryptographic NC0 generators, the word “local generator”
+typically refers to the special case of nonadaptive generators. We use the term “locally-computable”
+to refer to the more general notion based on decision tree depth, and always use the qualifier “non-
+adaptive” to refer to the special case of nonadaptive decision trees, or else NC0t in the nonadaptive
+case when Σ = {0, 1}.
+    We now arrive at the observation at the heart of our investigations, whose proof is a matter of
+definitional manipulation:
+
+Observation 1. Let F : [N ] × [M ] → {0, 1} be a data structure problem, interpreted also as a
+matrix F ∈ {0, 1}N ×M below. The following are equivalent:
+
+    1. F has time t, space S, word length w cell probe data structures (resp. nonadaptive)
+
+    2. There is a (resp. nonadaptive) locally-computable generator G : ΣS → {0, 1}N with |Σ| ≤ 2w
+       and time complexity t, such that every column of F lies in range(G)
+
+    The proof is essentially identical to that of the special case discussed in the introduction.
+
+Proof. Say that F has nonadaptive bit probe data structures of space S and time t. Then, to every
+y ∈ [M ] we may associate an encoding Ey ∈ {0, 1}S , so that for every x ∈ [N ] we may determine
+F (x, y) by probing (resp. nonadaptively probing) t bits of Ey . Considering the y th column of F
+as a string fy ∈ {0, 1}N , we see that there is a (resp. nonadaptive) locally-computable function
+G : {0, 1}S → {0, 1}N with time complexity t, so that G(Ey ) = fy for every y ∈ [M ]. In particular,
+the xth output of G runs the data structure’s query procedure corresponding to the query x. Every
+step in this argument in fact utilized a direct equivalence between premise and conclusion; reading
+it in reverse yields a proof for the other direction.
+
+
+3     Cell Probe Lower Bounds via CSP-Pseudorandomness
+Using our main observation from the previous section (Observation 1), proving cell probe lower
+bounds for a data structure problem F : [N ] × [M ] → {0, 1} is equivalent to showing that, for
+the set cols(F ) = {(F (x, y))x∈[N ] | y ∈ [M ]} ⊆ {0, 1}N consisting of the columns of F , there
+does not exist a locally-computable generator G : ΣS → {0, 1}N whose range contains every
+vector f ∈ cols(F ). If we instead interpret a given locally-computable generator G : ΣS →
+{0, 1}N as a candidate pseudorandom generator, a series of works on semirandom CSP refuta-
+tion [Fei07, AOW15, AGK21, GKM22, HKM23] have developed techniques which can efficiently
+                        / range(G) for randomly chosen f ∼ {0, 1}N . In this section, we show how
+generate certificates f ∈
+
+                                                  15
+to apply these techniques to pseudorandom vectors f ∼ F ⊆ {0, 1}N with F being a distribu-
+tion with suitable limited independence properties. This will imply that if cols(F ) supports such
+a pseudorandom distribution, then we can argue cols(F ) ̸⊆ range(G) for any generator G with
+appropriate parameters, which will yield a cell probe lower bound.
+    For the remainder of the section it will be more convenient to work over {±1} rather than {0, 1};
+hence our data structure problems will be of the form F : [N ] × [M ] → {±1} and our generators of
+the form G : ΣS → {±1}N .
+
+3.1   From Locally-Computable Generators to XOR Schemes
+The first step in the semirandom refutation procedures of [Fei07, AGK21, GKM22] is a reduction
+from refuting arbitrary t-CSPs to refuting max-t-XOR CSPs. We prove a kind of analogue of this
+argument for locally-computable generators. For any time t, space S locally-computable generator
+G and any f ∈ {±1}N , we will associate a system of N different t-XOR equations over ≈ S
+variables. This system of equations will have one part with depends only on G, and another which
+depends only on f . We will argue that, in the case f ∈ range(G), the system of equations will
+be “moderately satisfiable,” in the sense that there is some assignment which satisfies signficantly
+more than half of the equations, or else falsifies significantly more than half. In subsequent sections,
+we will show that if f is sampled from a distribution with suitable limited independence properties,
+any such CSP arising from G, f will not be moderately satisfiable in this sense, which will give us
+our lower bound.
+    The above discussion leaves out some complications of the argument; for a given G, f we will
+actually construct a small collection of t-XOR CSPs, and can only guarantee that one of them
+has a large value in the case f ∈ range(G). To obtain good parameters in our main reduction
+(Theorem 7) we also need some additional arguments more specially tailored to the cell probe
+model which do not seem to have a direct analogue in the CSP-refutation literature.
+
+Definition 6. We define a “t-XOR scheme” C = (X, V, c) to consist of the following components:
+
+  1. A finite “index set” X and a finite “variable set” V
+
+  2. c : X → Vt identifies each x ∈ X with a set of variables (“constraint”) cx ⊆ V , |cx | = t.
+                 
+
+We say that C = (X, V, c) is “indexed by X.” For a sign-pattern f : X → {±1} and assignment
+R ∈ {±1}V to the underlying variables, we define
+                                                      Y
+                                Val(C, f, R) := E fx     R(i)
+                                                    x∈X
+                                                            i∈cx
+
+In some cases, we will have a ground set [N ], and a subset X ⊆ [N ] with an XOR scheme C
+indexed by X; in this case, for f ∈ {±1}N and an assignment R, we define Val(C, f, R) to equal
+Val(C, f ′ , R), where f ′ is the restriction of f to the coordinates in X.
+   Finally, for an XOR scheme C and sign pattern f , we define
+
+                                  OPT(C, f ) :=    max Val(C, f, R)
+                                                  R∈{±1}V
+
+    As foreshadowed in the discussion preceding this definition, the name “XOR scheme” stems from
+an interpretation in terms MAX-t-XOR CSPs. For a scheme C = ([N ], V, c) and some f ∈ {±1}N ,
+we may think of the pair (C, f ) as representing a t-XOR CSP in the following way. Under the
+
+
+
+                                                   16
+natural identification ({±1}, ×) ↔ (F2 , +), consider the system of N linear equations over F2 -
+valued variables {vi | i ∈ V }, given by
+                                 X
+                               (    vi = fx mod 2) for each x ∈ [N ]
+                                i∈cx
+
+We then see that OPT(C, f ) is the maximum, over all assignments of the variables to values in F2 ,
+of the difference between the fraction of satisfied and unsatisfied equations. In particular, if some
+assignment can satisfy (resp. falsify) every equation the value is 1; if the value is small, then every
+assignment will have close to the same number of equations being satisfied/unsatisfied. If we fix
+C, then we are fixing the left-hand sides of the above system of equations, and as we range over f ,
+we range over different possible right hand sides which may cause the system to be more or less
+satisfiable. This is the source of the word scheme: a single scheme C defines a family of 2N different
+t-XOR CSP instances as we range over the 2N possible values of the “right hand side” f ∈ {±1}N .
+    Returning to the {±1} viewpoint, observe that we may extend the definition of Val(C, f, R) to
+any R ∈ RV . In this view, Val(C, f ) defines a multilinear polynomial in |V | many real variables,
+such that the absolute value of the polynomial on any assignment R ∈ RV is equal to Val(C, f, R).
+This leads to the following;
+Observation 2. For any C, f ,
+                  max       Val(C, f, R) =     max       Val(C, f, R) ≥    max Val(C, f, R)
+                R∈{−1,1}V                    R∈[−1,1]V                    R∈{0,1}V
+
+Proof. The second inequality is trivial ({0, 1} ⊆ [−1, 1]). The first is a standard consequence of
+multilinearity. To confirm it, we may start with any assignment R ∈ [−1, 1]V achieving a value
+δ ∈ [0, 1], and replace it by an assignment in {±1}V achieving value ≥ δ by iterating over i ∈ V
+and greedily replacing each R(i) by an element in {±1} which does not decrease the value. At a
+given step, we have
+
+                        Val(C, f, R) = R(i) · P ((R(j))j̸=i ) + Q((R(j))j̸=i )
+
+for some polynomials P, Q depending only on (R(j))j̸=i . This is the absolute value of a linear
+function in R(i) whose maximum is achieved at the boundary of [−1, 1].
+
+    The right-hand side in Observation 2 may be seen as a kind of hypergraph discrepancy param-
+eter. Viewing (cx )x∈X as a t-uniform (multi-)hypergraph over vertex set V with hyperedges indexed
+by X, we may think of f ∈ {±1}X as assigning a sign to each hyperedge. Then maxR∈{0,1}V Val(C, f, R)
+is the maximum, over all subsets of vertices U ⊆ V , of the sum of the values fx with x ranging
+over hyperedges in the sub-hypergraph induced by U . The smallness of maxR∈{0,1}V Val(C, f, R)
+indicates that every large induced subhypergraph has its edges colored by f in an approximately
+balanced way.
+    We now show that, for any locally-computable generator over output space {±1}N , we can
+associate a small collection of XOR schemes indexed by [N ] (or by large subsets X ⊆ [N ]), so that
+for any f ∈ range(G), we have that OPT(C, f ) is large for one of the schemes C in our collection.
+Theorem 7. Let G : ΣS → {±1}N be a locally-computable generator with time complexity t, word
+length w = log |Σ|. There exists a collection of sets (Xj ⊆ [N ])j≤2tw+1 , |Xj | ≥ 2−tw−1 N , and a
+collection of t-XOR schemes (Cj )j≤2tw+1 , with Cj a t-XOR scheme indexed by Xj and having ≤ tS
+variables, so that for every f ∈ range(G) there exists j ≤ 2tw+1 with Val(Cj , f ) ≥ 2−tw−1 . In
+particular, if f ∈ {±1}N is a random variable supported on range(G), then there exists an XOR
+scheme C over some X ⊆ [N ], |X| ≥ 2−tw−1 N , so that Pr[OPT(C, f ) ≥ 2−tw−1 ] ≥ 2−tw−1 .
+
+                                                         17
+Proof. By definition, for every x ∈ [N ], Gx : ΣS → {±1} is computed by a decision tree Tx of
+depth t over the alphabet Σ. We develop here some more detailed notation to describe the trees
+(Tx )x∈[N ] . Let L(Tx ) denote the leaves of Tx and I(Tx ) denote the internal nodes. Each internal
+node v ∈ I(Tx ) is associated with a cell pvx ∈ [S] which it probes, i.e. if Tx reaches the internal
+node v at some point in its computation on the input E ∈ ΣS , then it will query E(pvx ) next and
+then take a corresponding step down the tree Tx . Each leaf ℓ ∈ L(Tx ) corresponds uniquely to an
+element π ∈ Σt , where π is the label of the unique path from the root to ℓ: the first cell queried
+by Tx on input E ∈ ΣS has value π1 , the second has value π2 , and so on. Thus overall, Tx (E) will
+follow the unique path π that is consistent with E to the leaf ℓ. Finally, each π ∈ Σt is labeled
+by a value ϕx (π) ∈ {±1}, so that if Tx reaches the leaf ℓ ∈ L(Tx ) associated with π on input
+                                                                                              (π,1)     (π,t)
+E ∈ ΣS , then Gx (E) = ϕx (π). For a given value π ∈ Σt , define the sequence qx , . . . , qx                  ∈ [S]
+as follows: let v1 , . . . , vt ∈ I(Tx ) be the internal nodes found on the root to leaf path in Tx with
+                                         (π,j)     v
+leaf corresponding to π, and set qx            = pxj .
+    Using the structure of the generator G we now define the collection of XOR schemes guaranteed
+in the Theorem statement. Let V 1 , . . . , V t be sets of size S, each associated canonically with [S],
+                                                                                            (π,t)            (π,j)
+and V = V 1 ∪ · · · ∪ V t . For each x ∈ [N ], π ∈ Σt , let cπx = {q (π,1) , . . . , qx }, where qx                is
+                                  j                     t
+considered to live inside V . For each π ∈ Σ and each b ∈ {±1} let X                   (π,b)  = {x | ϕx (π) = b}.
+For each π, b, we define the XOR scheme C (π,b) = (X (π,b) , V, cπ ); we will ignore any C (π,b) with
+|X (π,b) | < 2−tw−1 |X|. We emphasize that the variables V in our XOR schemes are {±1}-valued
+(as per the definition of XOR schemes) rather than Σ-valued, despite being derived from some
+correspondence to the domain of G, whose cells are Σ-valued.
+    Now, let f ∈ range(G), and choose some canonical preimage Ef with G(Ef ) = f . Then there
+                                                f
+exists π f ∈ Σt so that, for the set X̃ (π ,f ) consisting of all x ∈ [N ] such that Tx (Ef ) reaches the
+                                                 f
+leaf corresponding to π f , we have |X̃ (π ,f ) | ≥ 2−tw N . There must then exist a value bf ∈ {±1}
+                 f             f f                                f f
+such that |X̃ (π ,f ) ∩ X (π ,b ) | ≥ 2−tw−1 N ; clearly |X (π ,b ) | ≥ 2−tw−1 N as well.
+    At this point, we have
+
+                        1{Ef (qx(π,j) ) = πjf } = |X̃ (π ,f ) ∩ X (π ,b ) | ≥ 2−tw−1 N ≥ 2−tw−1 |X (π ,b ) |
+                                                        f           f f                              f f
+             X Y
+
+       x∈X (π ,b ) j≤t
+              f   f
+
+
+
+Now define the boolean assignment Rf ∈ {0, 1}V , where for i ∈ V j ⊆ V , we set Rf (i) = 1{Ef (i) =
+                                                                  j≤t 1{Ef (qx
+                                          Q                     Q            (π,j)
+πj }. In this new notation we have              (π f ) Rf (i) =                    ) = πj } for every x. Recall
+                                             i∈cx
+also that Gx (Ef ) = bf , and hence fx = bf , whenever j≤t 1{Ef (qx ) = πj } = 1, x ∈ X (π ,b ) .
+                                                                 Q             (π,j)                      f f
+
+
+So overall we conclude
+                  f f                   f f
+                                                         X          Y
+          Val(C (π ,b ) , f, Rf ) =|X (π ,b ) |−1 ·             fx       Rf (i)
+                                                           f   f         (π f )
+                                                    x∈X (π ,b )        i∈cx
+
+                                                                           1{Ef (qx(π,j) ) = πjf } ≥ 2−tw−1
+                                         f   f
+                                                           X           Y
+                                 =|X (π ,b ) |−1 · bf
+                                                        x∈X (π ,b ) j≤t
+                                                               f   f
+
+
+
+Using Observation 2, we may replace the boolean assignment Rf ∈ {0, 1}V by a {±1}-assignment
+                                                                                          f f
+R̃f ∈ {±1}V achieving a value at least as large, so overall we conclude that OPT(C (π ,b ) , f ) ≥
+2−tw−1 . This concludes the proof of the initial claim in the theorem. The last sentence of the
+Theorem (“in particular...”) follows from the first part by taking a union bound over j ≤ 2tw+1 .
+
+   We focus our attention on the “in particular” clause at the end of the statement of Theorem 7.
+For a data structure problem F : [N ] × [M ] → {±1}, we have reduced the problem of proving cell
+
+                                                         18
+probe lower bounds for F to the following: find a random vector f ∈ {±1}N supported on the
+columns of F , so that for any t-XOR scheme C defined over a large subset of [N ], we have that
+OPT(C, f ) is very small with very high probability. This may be seen as a specialized notion of
+pseudorandomness; in particular we may define:
+
+Definition 7 (CSP-Pseudorandomness). Let f ∈ {±1}N be a random variable. We say that f is
+“(N, K, δ, ϵ)-CSP-Pseudorandom” if, for any XOR scheme C indexed by [N ] with K variables, we
+have
+                                    Pr[OPT(C, f ) ≥ δ] < ϵ
+
+     We will not use this extra notation in our formal arguments later on, and will instead refer
+directly to Theorem 7, but we isolate the definition here for the purpose of discussion. We may
+think of each C indexed by [N ] with K variables and each δ as defining a “statistical test” T :
+{±1}N → {0, 1}, with T (f ) = 1{OPT(C, f ) < δ}. Provided K << N and δ is not too small, we
+can easily argue that a truly random f will pass the test with overwhelming probability (chernoff
+bound + union bound over {±1}K ); our goal is then to define a pseudorandom distribution which
+is similar to the uniform distribution with respect to passing this class of tests. This is a standard
+way to define a notion of pseudorandomness in terms of a class of statistical tests which it “fools.”
+Many examples of such distributions have been constructed in the case that the family of tests in
+question are of very low computational complexity. However, in this case the statistical test defining
+T is NP hard to compute in general: it references the optimal value of a CSP defined by f . For this
+reason, analyzing this class of tests directly and constructing a suitable pseudorandom distribution
+appears extremely difficult. This is precisely where efficient CSP refutation algorithms come in to
+play: if we can come up with a more tractable test T ′ , so that T ′ (f ) → T (f ) and still T ′ happens
+with high probability for a random f , we may reduce the task at hand to fooling the simpler test T ′ .
+Technically speaking the notions of “tractability” needed here vs. in the setting CSP refutation are
+quite different. For us, it is neither necessary nor sufficient that T ′ be computable in polynomial
+time; rather we would like the proof of the statement “a random f satisfies T ′ (f ) = 1” to hold over
+some pseudorandom distribution with significantly smaller entropy.
+     We make a final note on the discrepancy between Definition 7 and Theorem 7: in Theorem 7 we
+may have to pass to some large subset X ⊆ [N ] and define an XOR scheme indexed only by X, while
+in Definition 7 we refer only to XOR schemes over the original set of indices [N ]. This distinction
+will be essentially irrelevant to us, since we will deal with notions of pseudorandomness for vectors
+f ∈ {±1}N which are preserved under passing to subsets of indices X ⊆ [N ]. Hence, for most of
+the following we will state results in terms of XOR schemes indexed by [N ] and random vectors in
+                                                                                                       ′
+{±1}N , with the understanding that we may have started with some original [N ′ ], f ′ ∈ {±1}N ,
+passed to X ⊆ [N ′ ] of size N , and then identified X with [N ] in some canonical way. We will then
+remember that this “passing to a subset” operation has occured only when we get to our ultimate
+proof of the lower bound in Theorem 1, where the density of the subset we passed to will have some
+mild effect on the parameters.
+
+3.2   CSP-Pseudorandomness via Limited Independence
+In this section we prove that if f ∈ {±1}N satisfies suitable limited independence properties, then
+for any t-XOR scheme C with suitable parameters, OPT(C, f ) will be very small with very high
+probability. In the terminology of Definition 7, we aim to prove that limited independence implies
+CSP-pseudorandomness (within a certain regime of parameters).
+    We accomplish this in the following way: starting with any t-XOR scheme C indexed by [N ],
+we construct a certain ensemble of matrices indexed by [N ], which has the property that whenever
+
+                                                  19
+we take a signed sum of these matrices using f as a signing, we have that the ∞ → 1 norm of the
+resulting matrix is lower bounded by OPT(C, f ). We then prove that, when f is chosen from a
+pseudorandom distribution with suitable limited-independence properties, the operator norm of a
+random matrix sum signed by f will be small with high probability. The proof of this latter claim
+is delayed to the next subsection (Section 3.3). We start with the definition of a matrix ensemble:
+Definition 8. A matrix ensemble A = (Ax ∈ Rm×m )x∈[N ] is a collection of matrices of the same
+dimension; we say that A lives in dimension m and is indexed by the set [N ]. For f ∈ {±1}N , we
+define the matrix                              X
+                                       A[f ] =    fx Ax
+                                                     x∈[N ]
+
+If each matrix Ax is a subpermutation matrix (boolean with at most one nonzeroPentry per row and
+column), we say that A is a permutation ensemble, and we define d(A) = m−1 x,i,j Ax (i, j) to be
+the “average degree” of the ensemble.
+    We will construct matrix ensembles from XOR schemes via the “Kikuchi-Matrix Method” pi-
+oneered by [WEAM19] and developed further in [GKM22]. We describe first a special case of the
+construction, which will suffice for our lower bound on k-wise independent problems in the impor-
+tant case k ≈ log N . The idea is simple: we create a new “meta variable” for each t/2-tuple of
+original variables, and each original t-ary constraint cx = {i1 , . . . , it } becomes a 2-ary constraint
+c′x = {(i1 , . . . , it/2 ), (it/2+1 . . . , it )} over the new variables. This reduces things to the case of a
+2-XOR scheme, while blowing up the number of variables by an exponent of t/2. For 2-ary XOR
+schemes, the optimization problem associated with OPT(C, f ) can be interpreted as maximizing
+the quadratic form of some matrix over the signed hypercube; this optimization problem is precisely
+captured by the ∞ → 1 norm. In the proof below we will cut out the intermediate step of defining
+a 2-CSP, and construct the relevant matrices directly from the original t-CSP.
+Lemma 2. Let C = ([N ], V, c) be a t-XOR scheme with |V | = K and t even. There exists a matrix
+ensemble A = (Ax )x∈[N ] so that:
+                                       K
+  1. Each Ax lives in Rm×m for m = t/2
+                                         
+                                           , and has exactly 1 nonzero entry with value 1
+                   t
+   2. d(A) ≥ K − 2 · N
+   3. For any f ∈ {±1}N , we have ∥A[f ]∥∞→1 ≥ d(A)m · OPT(C, f )
+                                       V
+                                                         t
+Proof. Associate [m] with t/2              , so m ≤ K 2 . For x ∈ [N ], write its associated constraint in C
+as cx = {i1x , . . . , itx } ⊆ V with its variables ordered in some canonical way. We define our matrix
+ensemble by
+                              Ax (a, b) = 1{a = {i1x , . . . , it/2           t/2+1
+                                                                x } and b = {ix     , . . . , itx }}
+Observe that each Ax has exactly one nonzero entry with value one, and hence d(A) = m−1 N ≥
+    t
+K − 2 · N . Now, let f ∈ {±1}N be given, and let R ∈Q{±1}V be such that OPT(C, f ) = Val(C, f, R).
+Consider the vectors R̃ ∈ {±1}m , given by R̃(a) = i∈a R(i). Then
+                                 X                               X        X             Y        Y
+   ∥A[f ]∥∞→1 ≥ R̃⊤ A[f ]R̃ =           R̃(a)R̃(b)A[f ](a, b) =        fx     Ax (a, b)     R(i)     R(j)
+                                    V
+                              a,b∈(t/2)                         x∈[N ]    a,b           i∈a      j∈b
+                           X     Y
+                        =     fx      R(i) = N · Val(C, f, R) = N · OPT(C, f )
+                           x∈[N ]   i∈cx
+
+In other words ∥A[f ]∥∞→1 ≥ d(A)m · OPT(C, f ).
+
+                                                      20
+     Now, say that we started with a time-t generator G : ΣS → {0, 1}N with t = O(1), S =
+           2
+o( logNN ) t , and had some random vector f ∈ {±1}N supported on the range of G which is O(log N )-
+wise independent. Applying Theorem 7 followed by Lemma 2 above, we would obtain a matrix
+ensemble A indexed by some large subset X ⊆ [N ], |X| ≥ Ω(N ) with the following properties: the
+ensemble lives in Rm×m for m = N O(1) , has average degree ω(log N ) = ω(log m), and with high
+probability ∥A[f ]∥∞→1 ≥ Ω(N ). In the following we will argue that for any f which is O(log N )-
+wise independent, we will have ∥A[f ]∥ = o(N ) for any A in dimension m = N O(1) and with
+                                                                                                 2
+d(A) = ω(log N ); we would then reach a contradiction with our initial assumption S ≤ o( logNN ) t ,
+                                                                    2
+which would give us the desired cell probe lower bound S ≥ Ω̃(N t ) for O(log N )-wise independent
+problems.
+   In the case k >> log N we need a generalization of the construction in Lemma 2 from [WEAM19,
+GKM22]. We will reproduce the proof (in the appendix) since our notation is somewhat different.
+The parameter “L” occurring in this Theorem is called the “Kikuchi level” of the construction,
+and we will set it to be ≈ k in our subsequent arguments when proving lower bounds for k-wise
+independent problems for larger values of k:
+
+Theorem 8 ([WEAM19, GKM22]). Let C = ([N ], V, c) be a t-XOR scheme, |V | = K, and t even.
+For any t ≤ L ≤ K8 , we may associate with C a permutation ensemble A indexed by [N ] with the
+following properties:
+
+   1. A lives in Rm×m for m = K
+                                 
+                               L
+
+               L t/2
+                 
+  2. d(A) ≥    K     N
+
+  3. For any f ∈ {±1}N , we have ∥A[f ]∥∞→1 ≥ d(A)m · OPT(C, f )
+
+   The construction is a straightforward generalization of that in Lemma 2: identifying [m] with
+ V
+ L , we set Ax (a, b) =   1{cx = a∆b} where ∆ denotes symmetric difference. The proof is also
+essentially identical to that of the special case Lemma 2 and so we relegate it to the appendix
+(Section A). From now on we will refer only to the more general Theorem 8 and leave behind the
+special case Lemma 2.
+    It remains to show that if A is a permutation ensemble with sufficiently small dimension and
+large average degree, then for any random vector f exhibiting suitable limited independence proper-
+ties, we will have ∥A[f ]∥∞→1 small with high probability. We defer the proof to the next subsection
+(Section 3.3), but state the bounds here:
+
+Theorem 9. Let A be a permutation ensemble in Rm×m indexed by [N ], let f ∈ {±1}N be a
+random vector which is γ-almost k-wise independent for k even, and let δ > 0 be sufficiently small.
+Assume the following relations are satisfied:
+
+  1. d(A) ≥ C δ12 log( 1δ )m2/k (k + log m) for a sufficiently large universal constant C
+
+  2. γ ≤ 2−2k−1 δ k m−1
+
+Then we have the tail bound:
+                                   Pr[∥A[f ]∥∞→1 ≥ δmd] ≤ 2−k
+
+   Using Theorem 8 we may directly translate this to a statement about XOR schemes:
+
+
+
+
+                                                  21
+Theorem 10. Let C = ([N ], V, c) be a t-XOR scheme, |V | = K, t even, L ∈ N with t ≤ L ≤ K8 , and
+say that f ∈ {±1}N is γ-almost k-wise independent, k ≤ L log N . Then for any δ > 0 sufficiently
+small we have
+                                    Pr[OPT(C, f ) ≥ δ] ≤ 2−k
+                                     t   2L   t
+provided that logNN ≥ C δ12 log 1δ K 2 + k ·L1− 2 where C is a universal constant, and γ ≤ 2−2k−1 δ k m−1 .
+
+   Finally applying the above Theorem together with Theorem 7, we obtain our main cell probe
+lower bound:
+
+Theorem (Theorem 1 restated). Let F : [N ] × [M ] → {±1} be a data structure problem such that
+there exists a γ-almost k-wise independent random vector f ∈ {±1}N supported on the columns of
+F . Let S, t, w ∈ N be given with t an even number and assume k > tw + 1. Then, for any space S,
+time t, word length w cell probe data structure solving F , we must have:
+            N  2  k 1− 2                                                            t
+                              · t−1 2−(6−o(1))w for all t log N ≤ k ≤ N 2−(3−o(1))tw t− 2
+                  t         t
+  1. S ≥            ·
+            log N     log N
+            N  11 2
+                        k · t−1 2−(6−o(1))w for all t ≤ k ≤ t log N ,
+                  t( 2 + )
+  2. S ≥
+            log N
+
+provided γ ≤ N −t 2−O(ktw) in each case.
+
+
+Proof. Set δ = 2−tw−1 . Say that F has a time t, space S data structure with t even. Fix some L ∈ N
+satisfying t ≤ L ≤ tS                                                                  −L 2−2k−1 δ −k .
+                    8 and k ≤ L log N to be specified later, and assume that γ ≤ (tS)
+Applying Theorem 7 we may find X ⊆ [N ] of size |X| ≥ δN and an XOR scheme C = (X, V, c),
+|V | = K := tS indexed by X so that, with probability at least δ over f , OPT(C, f ) ≥ δ. Applying
+Theorem 10 and using the fact that 2−k < δ (since k > tw + 1), this is only possible provided
+
+                                   N       |X|       1    1 t 2L         t
+                             δ         ≤         < C 2 log K 2 + k · L1− 2
+                                 log N   log |X|    δ     δ
+
+We have C δ13 log 1δ ≤ 23tw+o(tw) . We also may safely assume S ≤ Nt and log K ≤ log N . Plugging
+in these estimates and tS in place of K we obtain the bound:
+                                                   t
+                                  N  t 12L      2 −1
+                                                 t + 2L
+                              S>        2 +
+                                            k · L k · t−1 2−(6−o(1))w
+                                                 2                                                     (2)
+                                  log N
+
+To finish the proof, we set L = logkN in case (1) and L = t in case (2); in both cases the condition
+t ≤ L ≤ tS                                  −L 2−2k−1 δ −k will hold provided γ ≤ N −t 2−Cktw for a
+           8 will be satisfied, and γ ≤ (tS)
+sufficiently large constant C.
+
+
+3.3    Proof of Theorem 9
+We now prove Theorem 9 which is reproduced below for convenience:
+
+Theorem (Theorem 9, restated). Let A be a permutation ensemble in Rm×m indexed by [N ], let
+f ∈ {±1}N be a random vector which is γ-almost k-wise independent for k even, and let δ > 0 be
+sufficiently small. Assume the following relations are satisfied:
+
+
+                                                    22
+  1. d(A) ≥ C δ12 log( 1δ )m2/k (k + log m) for a sufficiently large universal constant C
+
+  2. γ ≤ 2−2k−1 δ k m−1
+
+Then we have the tail bound:
+                                         Pr[∥A[f ]∥∞→1 ≥ δmd] ≤ 2−k
+
+    The first half of our proof will follow a strategy of [HKM23]: we will pass from A to a second
+matrix ensemble B over the same index set [N ] so that whenever ∥A[f ]∥∞→1 is large, ∥B[f ]∥ is
+large, where ∥ · ∥ denotes the spectral norm. We then prove that limited independence fools the
+spectral norm. For this we use a standard technique, which approximates the spectral norm of a
+matrix by the trace of a suitable matrix power; the trace of this power will be low degree polynomial
+in the underlying variables {fx | x ∈ [N ]}, and hence takes on a similar value when f is chosen
+truly uniformly, or chosen from distribution with limited independence. We remark that a similar
+argument is made in passing in the introduction of [dT22] in the context of refuting fully-random
+CSPs. Finally, it remains to prove that the spectral norm of B[f ] is low when f is truly uniform; for
+this we rely on matrix concentration inequalities as in various prior works on semirandom refutation
+[AGK21, GKM22].
+    We start with some additional definitions and inequalities necessary for the proof:
+
+Definition 9. For a matrix A and even integer k, define A▷◁k := (A⊤ A)k/2 . For a matrix ensemble
+B = (Bx )x∈[N ] , let
+                       X                                X
+        νrow (B) = ∥         Bx⊤ Bx ∥,   νcol (B) = ∥       Bx Bx⊤ ∥,   ν(B) = max{σrow (B), σcol (B)}
+                         x                              x
+
+and let χ(B) = max ∥Bx ∥.
+                x∈[N ]
+
+   We need the following well-known fact:
+
+Lemma 3 (Trace/Norm Inequality). For A ∈ Rm×m and any even k,
+
+                            m−1/k · tr(A▷◁k )1/k ≤ ∥A∥ ≤ tr(A▷◁k )1/k
+                                        p
+Proof. For the PSD matrix A▷◁2 , we have λmax (A▷◁2 ) = ∥A∥, and λmax ((A▷◁2 )k/2 ) = (λmax (A▷◁2 ))k/2 ,
+hence overall we have ∥A∥ = λmax ((A▷◁2 )k/2 )1/k = λmax (A▷◁k )1/k . On the other hand for any PSD
+matrix D ∈ Rm×m we have m−1 tr(D) ≤ λmax (D) ≤ tr(D); apply this to D = A▷◁k and take k th
+roots.
+
+   As described above, the first step in our proof is to pass from a permutation ensemble A to
+another ensemble B, so that the spectral norm of B[f ] controls the ∞ → 1 norm of A[f ]. For this
+we use a strategy laid out in the introduction of [HKM23], which multiplies each Ax (i, j) by some
+global scaling factors wi · wj so as to normalize the total entry weight lying in each row and column.
+
+Lemma 4. Let A = (Ax )x∈[N ] be a permutation ensemble in Rm×m . Then there exists an ensemble
+B = (Bx )x∈[N ] of the same dimensions, so that
+                                     1
+  1. For every f ∈ {±1}N , we have 2md(A) ∥A[f ]∥∞→1 ≤ ∥B[f ]∥
+
+  2. ν(B), χ(B) ≤ d(A)−1
+
+  3. tr(B ▷◁k ) ≤ m for all even integers k, where B =
+                                                                 P
+                                                                    x∈[N ] Bx
+
+
+                                                        23
+  4. ∥B[f ]∥ ≤ 1 for all f ∈ {±1}N
+                                                    P
+Proof. Let d = d(A). For each i ∈ [m] let drow (i) = x,j Ax (i, j) and let Γi = d + drow (i); we define
+dcol (j), Λj symmetrically w.r.t. rows and columns. Define the ensemble B = (Bx )x∈[N ] by
+                                                                            −1/2       −1/2
+                                                      Bx (i, j) = Γi               Λj         Ax (i, j)
+
+Let u, v ∈ [−1, 1]m be such that ∥A[f ]∥∞→1 = |u⊤ A[f ]v|. Define
+                                                              1/2                                       1/2
+                                         û = (u(i) · Γi )i∈[m] ,                  v̂ = (v(j) · Λj )j∈[m]
+
+Then we have |û⊤ B[f ]v̂| = |u⊤ A[f ]v| = ∥A[f ]∥∞→1 , and hence
+
+               |ũ⊤ B[f ]ṽ|                X               −1/2  X               −1/2 ∥A[f ]∥
+                                                                                                   ∞→1
+ ∥B[f ]∥ ≥                   ≥ ∥A[f ]∥∞→1 ·    (drow (i) + d)          (dcol (j) + d)     =
+                ∥û∥ · ∥v̂∥                                                                   2md
+                                                             i≤m                                   j≤m
+
+                                                                               −1/2       −1/2
+which gives (1). For (2), we have χ(B) ≤ maxi,j |Γi    Λj | ≤ d−1 since the spectral norm of each
+Bx , being a reweighted subpermutation matrix, is bounded above by the magnitude P    of its largest
+entry. For ν(B), note that Bx⊤ Bx is a diagonal matrix with (i, i)th entry equal to j Bx (i, j)2 .
+Hence x Bx⊤ Bx is diagonal as well, with spectral norm equal to the magnitude of its largest entry,
+       P
+in particular:
+                                       X                   X
+                        νrow (B) = max    Bx (i, j)2 = max   Γi Λj Ax (i, j)                     (3)
+                                                       i                                  i
+                                                              x,j                                x,j
+                                                             X Ax (i, j)                1     drow (i)   1
+                                         ≤ max Γ−1
+                                                i                                  =      max          ≤                                        (4)
+                                             i                          d               d  i    Γi       d
+                                                             x,j
+
+The same argument applies to columns,
+                                 P        and P  we conclude ν(B) ≤ d−1 . Next we verify (3). Let 2k
+be an even integer and let B = x Bx , A = x Ax . We argue here exactly as in the introduction
+of [HKM23]. Expanding the definition of tr(B ▷◁2k ):
+
+                                                                           B(ik+1 , jk )1{ik+1 = i1 }
+                     XX                X                   X             X
+       tr(B ▷◁2k ) =       B(i1 , j1 )   B(i2 , j1 ) · · ·   B(ik , jk )
+                          i1        j1                  i2                          jk                  ik+1
+                           −1/2 −1/2                              −1/2 −1/2                                          −1/2     −1/2
+                                                                                                                                     1{ik+1 = i1 }
+     XX                                       X                                                 X
+ =             A(i1 , j1 )Γi1 Λj1                     A(i2 , j1 )Γi2 Λj1 · · ·                         A(ik+1 , jk )Γi1     Λ jk
+     i1   j1                                     i2                                             ik+1
+
+                                                                                                          A(ik+1 , jk )1{ik+1 = i1 }
+                   X          X                            X                                       X
+               =        Γ−1
+                         i1         A(i1 , j1 )Λ−1
+                                                j1                A(i2 , j1 )Γ−1         −1
+                                                                              i2 · · · Λ jk
+                   i1          j1                            i2                                    ik+1
+                                                                        X
+                                                                    ≤         1≤m
+                                                                         i1
+
+where the domain of each summand        P i, j is [m], and in the second to last inequality we are using
+the fact that for any i we have Γ−1 i      j A(i, j) ≤ 1 (and symmetrically for columns, Λj ). Finally for
+(4), observe that since tr(B[f ] ▷◁2k ) is a polynomial in the variables {fx | x ∈ [N ]} with nonnegative
+coefficients, (3) implies that tr(B[f ]▷◁2k ) ≤ m for all f and all k. Applying the Trace/Norm
+inequality (Lemma 3) we have that ∥B[f ]∥2k ≤ m for arbitrarily large k, hence ∥B[f ]∥ ≤ 1.
+
+   We now wish to argue that, for the kind of matrix ensemble B obtained in the last lemma, the
+upper tail of ∥B[fˆ]∥ is controlled by that of ∥B[f ]∥, where fˆ and f are k-wise independent and
+
+                                                                              24
+truly uniform vectors respectively. This follows directly from the trace norm inequality and the fact
+that tr(B[·]▷◁k ) is a degree k polynomial. If we assume only that fˆ is γ-almost k-wise independent,
+for γ > 0, some error term involving γ and the total monomial weight of the associated polynomial
+will be introduced. In the end we get:
+Lemma 5. Let B = (Bx )x∈[N ] be a matrix ensemble in Rm×m such that ∥B[f ]∥ ≤ 1 for all f ∈
+{±1}N and let k > 3 be an even integer. Say that f , fˆ ∈ {±1}N are random variables, with f
+uniform on {±1}NPand fˆ sampled from a γ-almost k-wise independent distribution. Then for any
+δ > 0 with γ · tr(( x Bx )▷◁k ) ≤ 2−2k−1 δ k we have:
+                   Pr[∥B[fˆ]∥ ≥ δ] ≥ 2−k −→ Pr[∥B[f ]∥ ≥ δ(8m)−1/k ] ≥ 2−k−2 δ k m−1
+Proof. Set ϵ := 2−k , r := tr(( x Bx )▷◁k ). Say that Pr[∥B[fˆ]∥ ≥ δ] ≥ ϵ, hence Pr[∥B[fˆ]∥k ≥ δ k ] ≥ ϵ
+                                P
+and therefore E ∥B[fˆ]∥k ≥ ϵδ k . By the trace/norm inequality, we know that for all f , tr(B[f ]▷◁k ) ≥
+∥B[f ]∥k , hence we have E tr(B[fˆ]▷◁k ) ≥ ϵδ k . Since tr(B[·]▷◁k ) is a degree k polynomial with total
+monomial weight ≤ r, we have that | E tr(B[fˆ]▷◁k ) − E tr(B[f ]▷◁k )| ≤ γr2k , hence E tr(B[f ]▷◁k ) ≥
+ϵδ k − γr2k ≥ 21 ϵδ k and therefore, applying the other side of the trace/norm inequality, E∥B[f ]∥k ≥
+ϵδ k                   k   ϵδ k   ϵδ k
+2m . Thus Pr[∥B[f ]∥ ≥ 4m ] ≥ 4m (we use here that ∥B[f ]∥ ≤ 1 probability 1), and so Pr[∥B[f ]∥ >
+                k
+δ( 4m  ) ] ≥ ϵδ
+     ϵ 1/k                             −k        ϵ 1/k
+                                                       = δ(8m)1/k .
+              4m . Recall that ϵ = 2 , so δ( 4m )
+
+    It then remains only to argue that, for the ensemble B arising in our argument, ∥B[f ]∥ has a
+suitably decaying upper tail when f is a uniformly random signing. For this we rely on the Matrix
+Bernstein inequality.
+Theorem 11 (Matrix Bernstein [Tro12]). Let B = (Bx )x∈X be an ensemble in Rm×m and f ∈
+{±1}X a uniformly random sign vector. For any α > 0 we have
+                                                        1      α2
+                              Pr[∥B[f ]∥ ≥ α] ≤ 2m exp(− ·             )
+                                                        6 ν(B) + αχ(B)
+   We are now ready to prove Theorem 9:
+Proof of Theorem 9. Let A = (Ax )x∈[N ] be a permutation ensemble in Rm×m with average degree
+d = d(A), let δ > 0 be sufficiently small. Let f , fˆ ∈ {±1}X be random vectors, with f uniform
+and fˆ γ-almost k-wise independent for some even k, and assume γ ≤ 2−2k−1 δ k m−1 . Assume
+that Pr[∥A[fˆ]∥∞→1 ≥ δmd] > 2−k ; we then wish to establish that d ≤ C δ12 log( 1δ )m2/k log m for
+a suitably large constant
+                        P C. ▷◁k Applying Lemma 4, we construct from A an ensemble B, so that
+ν(B), χ(B) ≤ d , tr(( x Bx ) ) ≤ m, ∥B[f ]∥ ≤ 1 for all f , and ∥B[f ]∥ ≥ (2md)−1 ∥A[f ]∥∞→1 for
+                 −1
+
+all f . In particular this implies
+                                  δ
+                      Pr[∥B[fˆ]∥ ≥ ] ≥ Pr[∥A[fˆ]∥∞→1 ≥ δmd] > 2−k
+                                  2
+We then apply Lemma 5 and conclude that:
+                                            δ
+                                Pr[∥B[f ]∥ ≥ (8m)−1/k ] ≥ 2−2k−2 δ k m−1
+                                            2
+Now setting α := 2δ (8m)−1/k , from the Bernstein inequality we know that
+                                         1   α2              α2 d            α2 d
+               Pr[∥B[f ]∥ ≥ α] ≤ 2m exp(− · 1 α ) ≤ 2m exp(−      ) ≤ 2log m− 12
+                                         6 d+d               12
+                       α2 d
+We then have 2log m− 12 ≥ 2−2k−1 δ k m−1 , which implies d ≤ C δ12 log 1δ m2/k (k + log m) for C a
+suitable absolute constant and δ sufficiently small.
+
+                                                  25
+3.4     Lower Bounds for Concrete Problems
+We may apply the lower bound in Theorem 1 to any problem F : [N ] × [M ] → {0, 1} exhibiting
+suitable limited independence properties. If our goal is simply to minimize M as a function of N ,
+subject to proving the best quantitative bound and subject to F being explicit, our best course
+of action is to use any explicit construction of γ-almost k-wise independent distributions with
+minimum possible support size (i.e. minimum seed length), for example [NN90] or any of its
+subsequent improvements. However, it is also of interest to prove lower bounds for natural problems
+which have some more concrete interpretation as an information retrieval task. We highlight here
+two such natural problems to which we can apply the lower bound in Theorem 1. Both pertain to
+evaluating low degree polynomials of some kind over a finite field.
+
+3.4.1    Evaluating Univariate Polynomials over a large field F
+The first problem we discuss is standard in data structure complexity (e.g. [Lar12, GGS23]): the
+evaluation of low degree univariate polynomials over a large finite field. The k-wise independence
+properties of this problem are well known and this lower bound does not require much elaboration.
+We define the polynomial evaluation problem formally below.
+Definition 10. For any finite field F and d ∈ N we define the data structure problem F-Evald .
+Datapoints are univariate polynomials p of degree ≤ d over F; queries are elements x ∈ F; the correct
+answer is the evaluation of p on x, i.e. F-Evald (x, p) = p(x). For any function χ : F → {0, 1},
+define the restricted problem χ-F-Evald , which has the same datapoints and queries, but the required
+answer is only the bit χ(p(x)).
+    Note that the problem F-Evald does not have a boolean output, however it is clearly at least
+has hard as the boolean-valued problem χ-F-Evald for any χ. A typical choice of χ is as follows:
+say that F = F2n is identified with {0, 1}n under some natural encoding (e.g. x ∈ F is interpreted
+as a degree ≤ n − 1 univariate polynomial over F2 modulo some fixed irreducible and is coded by
+its vector of coefficients), and set χ(x) to be the first bit of x’s encoding. We then have, as an
+immediate consequence of Theorem 1 and the well known d-wise independent properties of degree
+d polynomials:
+Theorem 12. Let F be a finite field of characteristic 2 and let χ : F → {0, 1} be any function
+which is balanced, i.e. |χ−1 (0)| = |χ−1 (1)|. Let d, S, t, w ∈ N be given with t an even number and
+assume d > tw + 1. Then, for any space S, time t, word length w cell probe data structure solving
+χ-F-Evald we must have:
+           |F|  2  d 1− 2                                                                      t
+                                      · t−1 2−(6−o(1))w for all t log |F| ≤ d ≤ |F|2−(3−o(1))tw t− 2
+                     t              t
+   1. S ≥              ·
+            log |F|      log |F|
+            |F|  1 1 2
+                          k · t−1 2−(6−o(1))w for all t ≤ d ≤ t log |F|,
+                    t( 2 + )
+  2. S ≥
+            log |F|
+
+3.4.2    Evaluating Multivariate Polynomials over F2
+The second and perhaps less known problem we highlight pertains to evaluating low degree multi-
+variate polynomials p : Fn2 → F2 , defined formally below:
+Definition 11. For any d ≤ n we define the data structure problem F2 -Evaldn . Datapoints are
+multilinear polynomials p : Fn2 → F2 of degree ≤ d; queries are elements x ∈ Fn2 ; the correct answer
+is the evaluation of p on x, i.e. F2 -Evaldn (x, p) = p(x).
+
+                                                    26
+    We use the following result of [Raz88], improved quantitatively by [Sav95]:
+
+Lemma 6 ([Raz88, Sav95]). Let k ≤ n. There exists a random function variable f : {0, 1}n →
+{0, 1} which is k-wise independent, so that with probability 1 f is computed by a degree ≤ log k + 1
+polynomial p : Fn2 → F2 (under the natural correspondence F2 ↔ {0, 1}).
+
+    The above statement does not occur explicitly in [Raz88, Sav95]; rather, [Sav95] shows that
+for every k, γ > 0, there exists a random function f : {0, 1}n → {0, 1} which is γ-almost k-wise
+independent and computed (with probability 1) by a formula of the form:
+                                         M ^          M
+                                  ϕ(x) =                    ℓi,j,u                           (5)
+                                                 i≤m j≤log k+1 u≤2n+2
+
+for m = 2 log( γ1 ) log k, where each ℓi,j,u is a literal in {x1 , . . . , xn , ¬x1 , . . . , ¬xn , 0, 1}. Clearly such
+a formula is representable by a polynomial of degree at most log k + 1 regardless of the value of
+γ; taking γ suitably small (below the granularity of the implied distribution, which is bounded
+away from zero by a function of only n, k) we obtain the desired result. Combining Lemma 6 and
+Theorem 1 we arrive at the following cell probe lower bound for F2 -Evaldn :
+
+Theorem 13. Let n, d, t, w be given, and assume that d lies in the range:
+
+                             log n + log t + log w + O(1) ≤ d ≤ n − O(wt log t)
+
+Then the problem F2 -Evaldn satisfies the space/time/word length tradeoff
+                                          2         1− 2
+                                                             · t−1 2−(6−o(1))w
+                                            t              t
+                               S ≥ 2n−log n · 2d−log n
+
+   We make some observations about this lower bound. Consider the setting w, t = O(1) and
+d = log n + O(1) and let F be the data structure problem F = F2 -Evaldn . Then F is of the form
+                                                          log n+O(1)                 O(log log N )2
+F : [N ] × [M ] → {0, 1} for N = 2n , M = 2n              , i.e. M = 22             which is close to
+polynomial in N (we may say that it is quasi-quasi-polynomial). This problem F satisfies the (new
+as of this paper) strongest known cell probe lower bound for any problem with this relation between
+                                   2
+M, N : we require space S ≥ Ω̃(N t ) for time t, word length w data structures. On the other hand,
+                                                      2
+we can observe that F has rank at most 2O(log log N ) over F2 , which is very close to logarithmic in
+the number of queries N ; this is because the columns of F are spanned by the nlog n+O(1) monomials
+of degree ≤ d. In the language of communication complexity, this places F in the communication
+class ⊕ Pcc . This is of some interest in relation to our later discussions in Section 6.3, where we
+relate cell probe complexity to other “high-end” communication complexity classes such as PHcc
+and (PH[⊕p ])cc
+    Second, we note that we could have defined directly an “evaluation problem” for depth 3 AC0 [⊕]
+formula of the form occuring in (5) above. For an appropriate setting of γ and using our bounds
+for almost k-wise independence we would obtain a problem F : {0, 1}n × {0, 1}poly(n) → {0, 1}
+satisfying the new state of the art time space tradeoff, which in addition has the property that
+F (x, y) is computable by a poly(n)-size AC0 [⊕] formula.
+
+
+4     Beating the Limited Independence Bound
+As discussed in the introduction, the lower bounds in the previous section are essentially tight for
+k-wise independent data structure problems, even in the special case of nonadaptive bit probe data
+
+                                                          27
+structures and even when t is odd6 . In particular for any constant t > 1, if we wish to obtain a
+data structure problem F : [N ] × [M ] → {±1} with M ≤ exp(N o(1) ) and satisfying a space/time
+                 2
+tradeoff S > N t +ϵ for some absolute constant ϵ > 0 (again, even for nonadaptive bit probe data
+structures), we provable cannot rely solely on k-wise independence as our hardness property for
+the problem F . In this section we achieve lower bounds of this kind for every t ∈ N which is an
+odd number using a method from t-CSP refutation developed by [FKO06] in the case t = 3 and
+generalized to all t by [GKM22]. To establish the lower bounds here, we will have to pass from
+k-wise independent distributions to small-bias probability spaces.
+    For starters, we will need a variant of Theorem 7 which is specialized to nonadaptive generators
+with word length 1; remember from Section 2.2 that such generators, with time complexity t, are
+referred to as NC0t generators. The proof of this theorem more or less follows arguments in Section
+9 of [GKM22], adapted to the setting of NC0t generators (in fact the argument becomes simpler in
+this setting):
+                                                                                                                      t
+Theorem 14. Let G : {±1}S → {±1}N be an NC0t generator. Then there is X ⊆ [N ], |X| ≥ 2−2 N ,
+and a collection of 2t different XOR schemes indexed by X, (Cu )u⊆[t] so that:
+
+   1. Each XOR scheme has ≤ tS variables, and Cu is a |u|-XOR scheme.
+
+   2. For every f ∈ range(G) we have                   max        Val(Cu , f ) ≥ (1 − Val(C[t] , f ))2−t
+                                                    u⊆[t],|u|<t
+
+Proof. For each x ∈ [N ], Gx : {±1}S → {±1} depends on t input cells which we list in some fixed
+order p1x , . . . , ptx . For each x there is a predicate hx : {±1}t → {±1} so that if, on input E ∈ {±1}S ,
+Gx (E) sees the query outcomes ξ1 = E(p1x ), . . . , ξt = E(ptx ), then Gx (E) = hx (ξ). Hence there
+                                                                                                       −t
+exists h : {±1}t → {±1} so that, for the set X = {x ∈ [N ] | hx = h} we have |X| ≥ 22 N . Fix
+this choice X, h for the remainder of the proof.
+    Let V 1 , . . . , V t be copies of [S]. For each u ⊆ [t], we define the XOR scheme Cu = (X, V u , cu )
+indexed by X with variable set V u = ∪j∈u V j and constraints cux = {pjx | j ∈ u} where pjx is
+considered to live inside V j ; note that this is well-defined even for u = ∅, in which case we get a
+0-XOR scheme C∅ over         P 0 variablesQwith OPT(C∅ , f ) = Ex∈X fx . The function h may be expressed
+uniquely as h(ξ) =              u⊆[t] ĥ(u) · j∈u ξj , where (ĥ(u))u⊆[t] are its Fourier coefficients. Now let
+f ∈ range(G) with encoding Ef , we have:
+                                                                            X         Y
+                    1 = E fx · h(Ef (p1 (x)), . . . , Ef (pt (x))) = E fx       ĥ(u)   Ef (pj (x))
+                     x∈X                                                   x∈X
+                                                                                      u⊆[t]       j∈u
+                     X                           Y                       X                          Y
+                 ≤           |ĥ(u)| · | E fx          Ef (pj (x))| =            |ĥ(u)| · | E fx          Efu (i)|
+                                      x∈X                                                 x∈X
+                     u⊆[t]                       j∈u                     u⊆[t]                      i∈cu
+                                                                                                       x
+                                        X                                  X
+                                    ≤           |ĥ(u)| · Val(Cu , f ) ≤           Val(Cu , f )
+                                        u⊆[t]                              u⊆[t]
+
+
+where, in the second to last line, we use Efu to denote the vector in {0, 1}Vu obtained from Ef by
+setting Efu (i) = Ef (i) for every i ∈ V j ⊆ Vu (Ef∅ is the empty vector ∅ 7→ {0, 1}).
+
+    Using Theorem 14, we obtain from any NC0t generator a sequence of r-XOR schemes with various
+orders r ≤ t. We will deal with the schemes (Cu )|u|<t of order < t using limited independence as
+in Section 3.2; for these we can hope to obtain upper bounds on Val(Cu , f ) which approach 0 at
+   6
+   We cannot really say “tight” in the case t is odd since we have not proven the lower bound in this case; what we
+mean is that there is an upper bound matching the form of Theorem 1 even for odd values of t.
+
+
+                                                                  28
+                                                    2
+a reasonably fast rate, provided S << N (t−1) . For the highest order scheme C[t] , we will only be
+able to obtain an upper bound on Val(C[t] , f ) that is somewhat bounded away from one; however,
+if these two upper bounds match up correctly, we still have room to complete the lower bound
+according to Theorem 14.
+    The highest order term is dealt with using a technique developed in [FKO06, GKM22]. The
+main technical ingredient is the following theorem:
+
+Theorem 15 ([GKM22]). Let t > 1, t = O(1) be fixed. Let e : [N ] → [K]
+                                                                                      
+                                                                                    t   be a t-uniform
+                                                                            K
+multi-hypergraph with N edges and K vertices, and let L ∈ {t, . . . , 8 }, such that N ≥ C ·
+     t −1
+        2
+K K  L      log4t+1 K for some constant C (depending on t). Then there exist a collection of dis-
+                                                      t
+                                                          2
+joint nonempty sets E1 , . . . , Er ⊆ [N ], r ≥ Ω(L−1 K
+                                                      L     log4t K), so that for every j ≤ r we have
+  ∆ ex = ∅, where ∆ denotes the symmetric difference operator.
+x∈Ej
+
+   In [FKO06] a somewhat similar bound is obtained in the special case t = 3. We now use
+Theorem 15 to give a nontrivial upper bound on OPT(C, f ) when f has small bias:
+
+Theorem 16. Fix t > 1, t = O(1). Let C = ([N ], V, c) be a t-XOR scheme, |V | = K, and L be
+                                                         t
+                                                           −1
+any integer with t ≤ L ≤ K8 . Assume that N ≥ C · K( KL)
+                                                         2    log4t+1 K for a constant C and that
+K is sufficiently large. Let f ∈ {±1}N be a random vector which is 41 -biased. Then
+                                                                   t
+                                                                 K 2 log4t K             1
+                                Pr[OPT(C, f ) ≤ 1 − Ω(                    t       )] ≥
+                                                                  NL      2
+                                                                            +1           5
+
+Proof. For R ∈ {±1}V , let Sat(C, f, R) = Pr [fx =
+                                                                  Q
+                                                                       i∈c(x) R(i)],         Sat(C, f ) = max Sat(C, f, R).
+                                                   x∼[N ]                                                  R
+Then we have Val(C, f, R) = |Sat(C, f, R)−Sat(C, −f, R)| for every R. We will show that Pr[Sat(C, f ) >
+                         t     4t
+1 − δ] ≤ 25 for δ = ϵ · K logt +1K for a sufficiently small constant ϵ > 0 depending on t. Since the
+                         2
+
+                             10N L 2
+property of being γ-biased is invariant under negation, the same bound will hold for −f and so the
+theorem will follow by a union bound. By Theorem 15, there exists a collection of disjoint nonempty
+                                              t
+                                                  4t
+sets E1 , . . . , Er ⊆ [N ], r ≥ ϵ · L−1 ( K
+                                           L ) log K, such that for each j ≤ r we have ∆ cx = ∅ where
+                                              2
+                                                                                                        x∈Ej
+∆ denotes the symmetric
+                      Q difference operator. We now observe, as in [FKO06, GKM22], the fol-
+lowing: for any f , if x∈Ej fx = −1, then for every R ∈ {±1}V , there exists x ∈ Ex so that
+     Q
+fx ̸= i∈cx R(i). This follows since
+                              Y Y                       Y                   Y
+                                          R(i) =                 R(i) =           R(i) = 1
+                              x∈Ej i∈cx            i∈( ∆ cx )               i∈∅
+                                                        x∈Ej
+
+
+
+Hence, if we define v(f ) = j≤r 1{ x∈Ej fx = −1}, then for every f we have Sat(C, f ) ≤ 1 − v(f        )
+                           P       Q
+                                                                                                     N .
+We will show that with probability at least 52 , we have v(f ) ≥ 10
+                                                                  r
+                                                                    , in which case we have Sat(C, f ) ≤
+     r                                                  1
+1 − 10N
+     Q and the theorem is proven. Now let γ = 4 and            define the random vector g ∈ {±1}r ,
+                                                          r
+gj = x∈Ej fx . Observe that g is γ-biased inside {±1} : for any ∅ =      ̸ u ⊆ [r] we have
+                              Y              Y Y                       Y
+                          E         gj = E              fx = E                   fx ∈ [−γ, γ]
+                              j∈u            j∈u x∈Ej            x∈∪j∈u Ej
+
+
+
+
+                                                            29
+using in
+       P the last step that f is γ-biased. So it suffices to show that, for γ-biased g ∈ {±1}r , we
+                   8r
+have | j∈r gj | ≤ 10  with high probability. This is standard and can be verified by inspecting the
+second moment:
+       X        8r      8r      X            8r    X                100               100          2
+  Pr[|    gj | > ] ≤ ( )−2 E(       gj )2 = ( )−2       E gj gj ′ ≤     2
+                                                                          (γr2 + r) =     + 9r−1 ≤
+                10      10                   10       ′
+                                                                    64r               256          5
+        j                             j                   j,j
+
+Where the final inequality follows provided r is sufficiently large, which in turn follows provided K
+is sufficiently large.
+
+    We also need the following easy fact:
+Observation 3. Let C = ([N ], V, c) be a t-XOR scheme. Then for any t′ ≥ t there is a t′ -XOR
+scheme C ′ = ([N ], V ′ , c′ ) with |V ′ | ≤ |V | + (t′ − t) so that OPT(C, f ) ≤ OPT(C ′ , f ) for every
+f ∈ {±1}X .
+Proof. Let r = t′ − t and set V ′ = V ∪ {1, . . . , r}, c′x = cx ∪ {1, . . . , r}.
+
+    Observe that the above argument is valid even in the degenerate case t = 0. Finally we obtain:
+Theorem (Theorem 2, restated). Let t > 2, t = O(1) be a fixed odd number. Let F : [N ] × [M ] →
+{±1}, be a data structure problem whose columns support a distribution which is γ-almost log N -
+wise independent and 41 -biased, for γ1 ≥ N O(1) . Then any nonadaptive bit probe data structure for
+F with space S and time t must satisfy:
+                                                              1
+                                                          t − t−2
+                                              S ≥ Ω̃(N 2     2(t+2)   )
+                                                                                                  t
+                                   t−2
+    Observe that for every t > 2, 2(t+2) > 0, hence we obtain lower bounds of the form S ≥ N 2 +Ω(1)
+for every odd t. Recall also Lemma 1 from Section 2.1 in the preliminaries, which says that
+if a distribution is γ-biased then it is also γ-almost k-wise independent for any k. So we may
+strengthen our assumption on F to the simpler statement that its columns support an N −O(1) -
+biased distribution. Our proof here will follow very closely the arguments in Section 9 of [GKM22].
+
+Proof. Assume F has a data structure of space S and time t = O(1), and let f be the random
+vector supported on the columns of F which is 14 -biased and N −c -almost log N -wise independence
+                                                                                     t
+for c a suitably large constant. By Theorem 14 we may find X ⊆ [N ], |X| ≥ 2−2 N , and XOR
+schemes (Cu )u⊆[t] all indexed by X, each having O(S) variables, so that Cu is a |u|-XOR scheme,
+and max Val(Cu , f ) ≥ (1 − Val(C[t] , f ))2−t for every column f of F . Using Observation 3 we
+     u⊆[t],|u|<t
+may assume, up to increasing the number of variables of each XOR scheme by at most t, that Cu is
+                                                   1
+                                                                                    t
+                                                                                    S 2
+a (t − 1)-XOR scheme for every |u| < t. Set L = S t+2 , and assume that N = Õ(1) · L   L where
+Õ(1) is some sufficiently large poly log N term. Applying Theorem 16, with probability at least 15 ,
+we have
+                                                          S t/2
+                            1 − OPT(C[t] , f ) ≥ Õ(1) ·   t = Õ(1) · L−1
+                                                          S 2
+                                                          L     L
+On the other hand, using the fact that f is γ-almost log N -wise independent and supported on the
+columns of F , with γ ≤ 2−O(tk) = N −O(1) , we conclude using Theorem 10 (and the fact that t − 1
+is even) that for every |u| < t we have:
+                                                                             1    1 t−1
+            Pr[OPT(Cu , f ) ≥ δ] ≤ N −1 << 2O(t) ,           provided N ≥ ω( 2 log S 2 log N )
+                                                                            δ     δ
+
+                                                        30
+                                                                            t−1
+Plugging in δ = Õ(1) · 2−t · L−1 , and using the fact N = ω(L2 S 2 log N ) as per our setting of L,
+there is a positive probability that
+                       1 − OPT(C, f ) ≥ Õ(1) · L−1 > 2−t · max Val(Cu , f )
+                                                                      0<|u|<t
+
+                                                                                 t
+                                                                                  S   2
+and we reach a contradiction. Hence we cannot have N ≥ Õ(1) ·                    L       L, which by our setting of
+L yeilds the lower bound
+                                                       1
+                                                   t − t−2
+                                         S ≥ Ω̃(N 2   2(t+2)      )
+
+
+    The only reason we needed to assume t is odd is in our application of Theorem 10; if this
+theorem could be generalized to odd-arity XOR schemes (which seems attainable using methods
+for odd-arity CSPs, e.g. [GKM22]), the results here would be valid for all t > 2.
+
+
+5     Algorithmic Implications of Our Lower Bounds
+5.1   Range Avoidance
+As referenced in the introduction, our main correspondence (Observation 1) immediately implies
+that explicit cell probe lower bounds yield NP oracle algorithms for range avoidance. We give a
+more formal version of this statement here:
+Lemma 7. Let G : ΣS → {0, 1}N be a locally computable generator (resp. nonadaptive) with word
+length w = ⌈log |Σ|⌉ and time complexity t. There is a polynomial time NP oracle algorithm which,
+given G and a data structure problem F ∈ {0, 1}N ×M which does not have space S, time t, word
+length w (resp. nonadaptive) data structures, solves the range avoidance problem for G.
+Proof. By Observation 1, the data structure lower bound for F implies that one of its columns
+must lie outside the range of G. We may use a NP oracle to test each column in order and find the
+lexicographically first which lies outside the range of G.
+
+    Hence, our new explicit cell probe lower bounds immediately imply new polynomial time NP-
+oracle algorithms for range avoidance in a completely black box sense. For one of our lower bounds
+(Theorem 1), we will be able to analyze the argument in a non black box way and remove the NP
+oracle. For Theorem 2 we are unable to make such an improvement. We start with this latter
+result, where using known constructions of small bias probability spaces ([NN90]) we get:
+Theorem (Theorem 3, restated). Let t = O(1) be a fixed odd number. There is a polynomial time
+algorithm which outputs a list of strings in {0, 1}m , such that for any NC0t generator G : {0, 1}n →
+{0, 1}m with
+                                                   t      t−2
+                                                       − 2(t+2)
+                                         m ≥ Õ(n 2               )
+one of the strings in the list must be a range-avoidance solution for G. In particular, there is a
+polynomial time NP-oracle algorithm for range avoidance on instances of the above form.
+    We now move on to our first lower bound from Theorem 1, which applies to more general
+adaptive generators with larger word lengths. Compared to Theorem 3, we will be able to remove
+the use of an NP oracle, and we will also be able to solve even the remote point problem for G,
+finding a string which is ( 12 − ϵ)-far in relative hamming distance from every string in the range of
+G for an arbitrarily small constant ϵ.
+
+                                                 31
+Theorem (Theorem 4, restated). Let t, w, n be given with log n > tw + 1 and t even, and let
+                                      2
+ϵ ∈ (0, 21 ] be given. There is a mO(t w) -time algorithm which, given any time-t locally-computable
+generator G : [2w ]n → {0, 1}m with
+                                                 t           t                    1
+                                           m ≥ n 2 log n · t 2 2(3+o(1))tw · poly( )
+                                                                                  ϵ
+outputs a string in {0, 1}m which is ≥ ( 21 − ϵ)-far in relative hamming distance from every string
+in the range of G.
+    We will set N = m, S = n in the following, where m, n are as above. To obtain the hamming
+distance bound we require a strengthening of Theorem 7. Recall that Theorem 7 showed how to
+construct from a generator G : ΣS → {0, 1}N a small collection of XOR schemes indexed by large
+subsets of [N ], so that whenever f ∈ range(G), f will induce a large value in one of the CSPs.
+The following strengthening will give us a similar conclusion under the weaker assumption that
+f is close in hamming distance to range(G). In the following, for two strings f, g ∈ {±1}N and
+X ⊆ [N ], we use CorX (f, g) = | Ex∼X fx gx |; by default Cor(·, ·) = Cor[N ] (·, ·).
+
+Theorem 17 (Correlation Variant of Theorem 7). Let G : ΣS → {±1}N be a locally-computable
+generator with time complexity t, word length w = log |Σ|. There exists a collection of sets (Xj ⊆
+[N ])j≤2tw+1 , |Xj | ≥ ϵ2−tw−1 N , and a collection of t-XOR schemes (Cj )j≤2tw+1 , with Cj a t-XOR
+scheme indexed by Xj and having ≤ tS variables, so that for every f, g ∈ {±1}N with g ∈ range(G),
+Cor(f, g) ≥ ϵ, there exists j ≤ 2tw+1 with Val(Cj , f ) ≥ ϵ2−tw−1 .
+Proof of Theorem 17. We follow the proof of Theorem 7 and indicate only those parts which need
+to change. The definitions of C (π,b) , X (π,b) remain as before; in this case we discard any such pair
+with |X (π,b) | < ϵ2−tw−1 N . Let f, g be as in the statement of the theorem, and let Eg be a canonical
+preimage of g under G. For each π let X̃ (π,g) ⊆ [N ] consist of those x such that Tx (Eg ) reaches the
+leaf corresponding to π. These sets (ranging over π ∈ Σt ) partition [N ] and so we have
+                                          X |X̃ (π,g) |                              X |X̃ (π,g) |
+                      ϵ ≤ Cor(f, g) = |                         E        fx gx | ≤                   CorX̃ (π,g) (f, g)
+                                                  N       x∼X̃ (π,g)                        N
+                                          π∈Σt                                       π∈Σt
+
+                                                   (π f,g ,g)
+There must then exist π f,g so that |X̃ N | CorX̃ (πf,g ,g) (f, g) ≥ ϵ2−tw , in particular |X̃ (π ,g) | ≥
+                                                                                                                          f,g
+
+
+ϵ2−tw N and CorX̃ (πf,g ,g) (f, g) ≥ ϵ2−tw . We take π f,g in place of “π f ” from the previous proof and
+        f,g ,g)                   f
+X̃ (π             in place of “X̃ (π ,f ) ,” and and otherwise carry out essentially the same argument.
+
+
+    Using this in conjunction with the main ideas in Section 3.2 we can now prove Theorem 4.
+
+Proof of Theorem 4. Given the generator G, we may apply Theorem 17 to compute a list of 2tw+1
+XOR schemes, so that whenever a string in {0, 1}m ↔ {±1}m makes the value of all XOR schemes
+< ϵ2−tw−1 , it must be ( 21 −ϵ)-far in relative hamming distance from range(G). We will use [NN90] to
+construct a polynomial size list of candidate strings, such that one of them must make all such values
+small simultaneously which will guarantee that it is far form range(G). To make our algorithm
+run in polynomial time, we need to certify that one of these strings from the list accomplishes
+this goal. To perform this certification, we transform the XOR schemes into matrix ensembles
+using Theorem 8 followed by Lemma 4, and then compute the associated spectral norms. We can
+observe easily that each of the transformations prescribed in Theorems 7 and 8 and in Lemma 4
+can be performed efficiently. Using [NN90] as indicated above, we can construct in time 2O(ktw) a
+
+                                                                    32
+list of ≤ mO(tw) strings which support a 2−O(ktw) -almost k-wise distribution for k = t log N . By
+Theorem 10, one of the strings in this list will pass all of the 2tw+1 spectral tests define above; our
+algorithm outputs the first such string.
+
+5.2     Linear Attacks on Local PRGs
+Here we state formally our improvement to an old result of [MST03] on ϵ-biased generators in NC0
+referenced in the introduction:
+                                                                                              t       t−2
+                                                                                                  −
+Corollary (Corollary 1, restated). Let t = O(1) be a fixed odd number. If m ≥ Õ(n 2 2(t+2) ), then
+for any NC0t generator G : {0, 1}n → {0, 1}m and any random variable x ∈ {0, 1}n , G(x) fails to
+be γ-biased for some γ ≥ n−O(1) .
+
+   This is simply a reparameterization of Theorem 2 and does not require any further argument.
+Corollary 1 implies that for any odd t = O(1) and any candidate NC0t PRG G : {0, 1}n →
+         t −ϵ
+             t
+{0, 1}n 2 , there exists a nonuniform distinguisher for G, computable by a single parity gate,
+where ϵt > 0 is a positive constant depending only on t. However, as noted in the introduction,
+our proof does not indicate how to find such a linear distinguisher, and hence has no bearing on
+                                                                 t
+the security of Goldreich’s PRG in the stretch regime n 7→ n 2 −ϵt (even against nonuniform adver-
+saries). It is therefore of interest to determine whether we can use our methods to find a uniform
+distinguisher for NC0t PRGs in this stretch regime.
+    One approach is to use the natural proofs paradigm suggested in Section 6.2. In particular, if
+we can define a uniformly computable natural property which proves nonadaptive bit probe lower
+                               t
+bounds of the form S ≥ N 2 −ϵt , we could use this in conjunction with a hybrid argument as in
+Lemma 9 to uniformly distinguish such generators7 . In particular, we showed that for any odd
+t = O(1), if F supports a distribution which is N −O(1) -almost O(log N )-wise independent and 14
+                                                                   t
+biased, than it must satisfy a lower bound of the form S ≥ N 2 −ϵt . For M = poly(N ) sufficiently
+large, we can easily certify the property of N O(1) -almost O(log N )-wise independence with all but
+negligable probability for a random F : [N ] × [M ] → {0, 1} in quasipolynomial time (iterate over
+every subset of O(log N ) variables). Hence a natural proof (computable uniformly in poly(N ) time)
+that a matrix F : [N ]×[N O(1) ] → {0, 1} is 14 biased would yield a distinguisher. If we are a bit more
+careful in our argument, computing spectral norms of matrices depending on the given generator
+G as in the proof of Theorem 4 instead of naively certifying limited independence by brute force,
+we arrive at:
+
+Lemma 8. Say that there is a constant c and a polynomial time algorithm which can certify with
+nonnegligble probability that a random F : [N ] × [N c ] → {0, 1} supports a 14 -biased distribution.
+Then there is a uniform polynomial time distinguisher for NC0t generators G : {0, 1}n → {0, 1}m
+                               t
+whenever t is odd and m ≥ n 2 −ϵt for some ϵt > 0 depending only on t. In particular, Goldreich’s
+generator is insecure in this parameter regime.
+
+
+6       Towards Stronger Lower Bounds
+In this section we discuss some of the broader implications of Observation 1 connecting locally-
+computable generators to cell probe lower bounds. Our focus here will be on the setting of nonadap-
+tive bit probe data structures with time complexity t = O(1), which correspond via Observation 1
+    7
+     We proved Lemma 9 for nonuniform distinguishers, however the hybrid argument is also valid in the uniform
+setting (with randomized distinguishers).
+
+
+                                                     33
+to the class of NC0 generators. More specifically, we are interested in the problem of obtaining lower
+bounds of two kinds, which we refer to as strong and super-strong respectively. In each setting, our
+goal is to construct lower bounds for a problem F with N queries; N will be the main complexity
+parameter. We seek lower bounds on the space as a function of N and the time t; subject to
+obtaining such a lower bound and the problem being explicit, we’d like to minimize the number of
+datapoints M of our problem as a function of N . We will parameterize each goal by a growth rate
+M (N ), where the goal gets more difficult the slower M grows:
+
+Goal 1 (Strong Lower Bounds with M (N ) Datapoints). Exhibit an explicit data structure problem
+F : [N ] × [M (N )] → {0, 1}, and some universal constant ϵ > 0, so that for any t = O(1), F requires
+space S ≥ N ϵ for time-t nonadaptive bit probe data structures.
+
+Goal 2 (Super-Strong Bit Lower Bounds with M (N ) Datapoints). Exhibit an explicit data structure
+problem F : [N ] × [M (N )] → {0, 1} so that F requires space S ≥ N − N o(1) for data structures
+making 4 nonadaptive bit probes.
+
+   In the most ambitious case we aim for M (N ) = poly(N ), and in the most general case we
+aim for M (N ) = exp(N o(1) ). We observe that nonconstructive counting arguments imply that
+Goal 1 is achievable by a nonexplicit problem once M ≥ O(t log N ), while Goal 2 is achievable by a
+nonexplicit problem once M ≥ O(tN log N ), so even in the ambitious regime M = poly(N ) neither
+goal is vacuous in an information-theoretic sense. Note that our main lower bounds in Sections 3
+and 4 are of the form S ≥ N δt where lim δt = 0 and hence they do not achieve either of these
+                                         t→∞
+goals. In this section we discuss some barriers and approaches to achieving lower bounds of these
+kinds, and connect these problems to other topics in complexity theory. More specifically we will
+discuss barriers for both problems, while our “approaches” will only apply to the first (Goal 1); we
+will see shortly that super-strong lower bounds (Goal 2) are likely to be completely out of reach of
+current mathematical methods.
+    Before proceeding, we make a note of our use of the word explicit; for the rest of this section,
+we will use this word in the following formal sense:
+
+Definition 12. We say that a sequence of strings (xn )n∈N is explicit if there is a uniform al-
+gorithm which, given 1n as input, will print xn in time poly(n, |xn |). In particular, if (FN :
+[N ] × [M (N )] → {0, 1})N ∈N is a family of data structure problems, we say that FN is explicit if
+there is a poly(N, M (N )) time algorithm which, given 1N , produces the truth table of FN , i.e. the
+N × M (N ) matrix consisting of all values F (x, y).
+
+     In this more formal terminology, our statement of Goal 1 should be interpreted as follows: define
+an explicit family of problems FN : [N ] × [M (N )] → {0, 1} for each N , so that M (N ) ≤ exp(N o(1) ),
+and FN requires space Ω(N ϵ ) for time t data structures, where ϵ, t are as in the statement of Goal 1,
+and N goes to infinity after these are fixed. In all of our main results here, we may replace the
+assumption that F is defined for all N by the assumption it is defined only for N of some special
+forms, e.g. prime numbers, powers of 2, etc., provided this class of allowable values is efficiently
+recognizable, and not too sparse as a subset of N. We stick to the above definition which requires
+the lower bound to hold for all N only for the purpose of simplicity.
+     As has been observed repeatedly in complexity theory, this formal notion of explicitness is
+perhaps overly broad compared to the typical informal use of the word; indeed, in many places
+it is preferred to use the more stringent notion of explicitness, requiring F (x, y) to be computable
+uniformly in poly(log N, log M ) time, which still captures apparently every data structure problem
+in the literature for which an interesting cell probe lower bound is currently known.
+
+
+                                                  34
+6.1   Consequences of Explicit Bit Probe Lower Bounds
+Recall Lemma 7 from the previous section, which was a direct corollary of our main correspondence
+(Observation 1): every explicit data structure lower bound yields a NP oracle range avoidance
+algorithm for locally computable generators with corresponding parameters. We apply this as
+follows:
+
+Theorem (Theorem 5, restated).
+
+  1. If explicit super-strong bit probe lower bounds with subexponentially many datapoints (Goal 2,
+     M = exp(N o(1) )) are achievable, then EXPNP ̸⊆ NC1 .
+
+  2. If explicit strong bit probe lower bounds with polynomially many datapoints (Goal 1, M =
+     poly(N )) are achievable, then there is a polynomial time NP oracle algorithm for NC0 range
+     avoidance with polynomial stretch.
+
+Proof. (1) If Goal 2 with M (N ) = exp(N o(1) ) is achievable than we can solve NC0t range avoidance
+in the stretch regime n 7→ n + no(1) in subexponential time with an NP oracle using Lemma 7. By
+[RSW22], this implies the separation EXPNP ̸⊆ NC1 .
+    (2) By well known composition reductions (see [Kor21]), we may reduce any NC0 range avoidance
+                      1+Ω(1)                                                 c
+G : {0, 1}n → {0, 1}n        to a second NC0 instance G′ : {0, 1}n → {0, 1}n where c = O(1) is an
+arbitrarily large constant in polynomial time with an NP oracle. If Goal 1 is achievable than by
+Lemma 7 we can solve range avoidance in this regime using an NP oracle in polynomial time.
+
+    In (2) above, if we instead achieved Goal 1 with M = exp(poly log N ) we would obtain a
+quasipolynomial time algorithm; if we achieved it with M = exp(N o(1) ) we would obtain a subex-
+ponential time algorithm. Obtaining PNP algorithms for NC0 range avoidance in the polynomial
+stretch regime was explicitly posed as an open problem in [RSW22].
+
+6.2   Natural Bit Probe Lower Bounds Break NC0 PRGs
+We present here a natural proofs barrier to both “strong” and “super-strong” bit probe lower
+bounds. The natural proofs paradigm, introduced in the seminal work of Razborov and Rudich
+[RR97], identified the following pattern in all preceeding known lower bounds in complexity theory.
+For a lower bound problem, we have in mind in some resource-bounded computational model
+C for computing boolean valued functions f : U → {0, 1}, where U is a finite set with some
+structure (e.g. U = {0, 1}n or U = [N ] × [N ]). We would like to present an explicit function
+fexplicit : U → {0, 1} which we can unconditionally prove requires a large amount of resources for
+computations in the class C. Razborov and Rudich observed that, in those cases where we can prove
+such an explicit lower bound, the proof can be extended (with only minimal-to-moderate additional
+work) to have the following features: (1) the proof defines an efficiently decidable “property of
+functions f : U → {0, 1}” so that fexplicit has the property, and whenever f has this property it is
+hard for the class C, and (2) not only does fexplicit have this property, but so does a uniformly random
+function f : U → {0, 1} (with high probability). The “property of functions” referenced above is
+called a natural property in [RR97], and by “efficiently” we mean time polynomial/subexponential
+in the description size of f , which in this case is |U |. Razborov and Rudich then went on to show:
+
+  1. All previously known lower bounds are natural.
+
+  2. Assuming widely believed cryptographic assumptions, no natural proof can give superpoly-
+     nomial lower bounds on circuit size.
+
+                                                  35
+Together these results give a strong indication that, to prove f ∈  / P/poly for some explicit function
+          n
+f : {0, 1} → {0, 1}, we must develop methods of a fundamentally different nature than all results
+known up to the point of [RR97]. The situation has not changed much since the publication of
+[RR97], and this barrier is still considered to be of great significance in complexity theory. We now
+define formally the corresponding notion of natural proofs for the bit probe complexity measure:
+
+Definition 13 (Natural Bit Probe Lower Bounds). A (N, M, S, t) natural property is an algorithm
+A which takes as input the description of a data structure problem F : [N ] × [M ] → {0, 1}, and
+outputs a value in {Hard, ?}, such that:
+
+  1. If A(F ) = Hard, then F requires space ≥ S or time > t for nonadaptive bit probe data
+     structures.
+
+  2. If F is chosen uniformly at random amongst all functions [N ] × [M ] → {0, 1}, then with
+     probability at least (N M )−O(1) , A(F ) = Hard.
+
+     We are interested in the existence of natural properties A which are computable by circuits of
+size << 2N , i.e. poly(N ) or exp(N o(1) ). In our discussion we will have N as our main asymptotic
+complexity parameter, t fixed, and S = S(N ), M = M (N ) growing as a function of N . We will
+then refer to a (N, M (N ), S(N ), t)-natural property in plain english as a “natural proof of a space
+lower bound ≥ S(N ) against time t data structures for a problem with M (N ) datapoints.” If the
+natural property is computable by size k circuits, we say that it is a “k size computable” natural
+proof.
+     In the following, we will say that a cryptographic PRG G : {0, 1}n → {0, 1}m has “hardness λ”
+if circuits of size ≤ λ fail to distinguish G with advantage better than λ−1 .
+
+Lemma 9. Say that G : {0, 1}S → {0, 1}N is a cryptographic NC0t PRG with hardness λ. Then
+there does not exist an (N, M, S, t) natural property computable by circuits of size k unless λ ≤
+k · poly(N M ).
+
+Proof. Let G be a cryptographic NC0t PRG with hardness λ. Consider the generator G⊗M :
+{0, 1}S·M → {0, 1}N ·M given by G(E1 , . . . , EM ) = (G(E1 ), · · · , G(EM )). A standard application
+of the hybrid argument implies that G⊗M is also a cryptographic PRG with hardness M −1 λ. On
+the other hand, consider any string in the range of G⊗M . Interpreted as data structure problem
+F : [N ] × [M ] → {0, 1}, this problem has time t nonadaptive bit probe data structures of space
+≤ S: if G⊗M (E1 , . . . , EM ) = F , then E1 , . . . , EM exhibit preimages under G for each column of F .
+     Say there existed a (N, M, S, t) natural property A computed by circuits of size k. Then A out-
+puts Hard on a random N ·M bit string with probability ≥ (N M )−O(1) over the uniform distribution,
+and with probability zero over the range of our generator G⊗M . Hence k −1 (N M )−O(1) λ ≤ O(1),
+i.e. λ ≤ k(N M )O(1) .
+
+     To establish our natural properties barriers we need two results from NC0 cryptography. The
+first is folklore and follows from standard PRG composition:
+
+Lemma 10. If there exists an NC0 PRG G : {0, 1}n → {0, 1}m with arbitrary polynomial stretch
+                                                                                                  c
+(m ≥ n1+Ω(1) ) and hardness λ, then for every c ∈ N there exists an NC0 PRG G′ : {0, 1}n → {0, 1}n
+with hardness ≥ n−O(1) λ.
+
+   Hence, from the existence of polynomial stretch NC0 PRGs with superpolynomial hardness we
+                                                                     ϵ
+obtain NC0 PRGs with superpolynomial hardness of the form G : {0, 1}N → {0, 1}N for arbitrarily
+small constants ϵ > 0. We also need the following from [AIK06]:
+
+                                                   36
+Lemma 11. If there exists an NC1 PRG with hardness λ then there exists an NC04 PRG G :
+                   0.99
+{0, 1}m → {0, 1}m+m     for some m ≤ poly(n) with hardness ≥ n−O(1) λ.
+
+      Combining these two lemmas with our Lemma 9 we arrive at:
+
+Theorem (Theorem 6, restated: Natural Proofs Barriers for Bit Probe Lower Bounds).
+
+  1. If NC1 PRGs with superpolynomial hardness exist, then there is no polynomial-size computable
+     natural proof of a lower bound S ≥ N − N 0.99 against bit probe data structures making 4
+     nonadaptive bit probes for a problem with M ≤ poly(N ) datapoints.
+
+  2. If NC0 generators with superpolynomial hardness exist, then for every ϵ there exists t so that
+     there is no polynomial-size computable natural proof of a lower bound S ≥ N ϵ for against
+     time t bit probe data structures for a problem with M ≤ poly(N ) datapoints.
+
+    As in the last section, if we increase the hardness parameter in our cryptographic assumptions
+we obtain stronger conclusions in terms of the runtime of our natural proofs and the allowable
+number of datapoints M . In both cases it is plausible that the stated PRGs exists with hardness
+λ = exp(N Ω(1) ), in which case we conclude that natural proofs computable by circuits of size
+exp(N o(1) ) cease to exist already in the regime M = exp(N o(1) ).
+    As in [RR97], to give a convincing argument that this “barrier” ought to be taken seriously we
+need some indication that the known lower bound techniques have not already broken it. To this
+end we consider known techniques that can prove the strongest lower bounds for explicit problems
+F : [N ] × [M ] → {0, 1} with M ≤ exp(N o(1) ) in the regime t = O(1).
+                                                                                                1
+    First we consider the communication bound, which can prove a space lower bound S ≥ Ω(N t )
+already in the regime M ≤ poly(N ). This lower bound holds provided F has maximal (log N )
+deterministic communication complexity, so it suffices to give a natural proof of strong communi-
+cation lower bounds. For this we can use as our natural property “F has full rank” where the rank
+is measure either over R or F2 . This property is computable in polynomial time, equals N for a
+random F with nonnegligable (actually very high) probability, and yields a maximal lower bound
+log N on the communication complexity of F . We make a note that lower bounds for stronger
+complexity measures for two party communication, including randomized and nondeterministic
+communication, can be made natural as well using the discrepency bound and related techniques.
+The original work of [RR97] proves this for the standard discrepancy bound which lower bounds
+both randomized and nondeterministic complexity. In the case of randomized communication one
+can use the more precise γ2∞ -norm instead to obtain natural lower bounds with stronger parameters,
+see [LS07].
+    Next we turn to the cell sampling method used in [Sie89, Sie04, PTW10, Lar12] and our new
+                                   2
+lower bounds of the form S ≥ N t from Section 3. Note that in the regime M ≤ exp(N o(1) ) the cell
+sampling bound does not give a significant improvement over the communication bound so it does
+not really require a separate treatment. Nonetheless, for both the cell sampling bound and our
+Theorem 1, the property we may use for the problem F is the following: the uniform distribution
+on columns of F is N −c -almost c log N -wise independent for some constant c depending on t.
+Setting M = N O(c) , we can certify this property for a random F with high probability in time
+N O(log N ) by iterating over every subset of c log N rows of F . Note that this natural property
+runs in quasipolynomial time (rather than polynomial), however this is still interesting as the
+cryptographic assumptions in question are widely believed to have quasipolynomial (and much
+higher) hardness8 .
+  8
+      Actually, we only need to assume that our cryptographic PRGs require super-quasipolynomial size circuits to be
+
+
+                                                         37
+                                                                                                               1
+    Finally we get to the nonadaptive bit probe lower bounds in Section 4 of the form S ≥ N 2 +ϵt ;
+here we actually do not know whether the lower bound in question can be made natural in the strict
+sense of Definition 13; this question is discussed further in Section 5. Nonetheless the lower bound
+in Theorem 2 still has the following form: for any random f which is fools F2 linear tests, we have
+f∈ / range(G) with nonzero probability, for any NC0t generator G with large enough stretch. Stated
+                                                                                                 t/2−ϵt
+contrapositively, we conclude that for any candidate NC0t generator G : {0, 1}n → {0, 1}n               ,
+there exists a F2 -linear test distinguishing its output from random, so in particular G cannot be
+secure as a PRG (this was Observed in Corollary 1 of the previous section). In other words, our
+lower bound still yields as a byproduct a method for distinguishing the associated PRGs, although
+in this case the existence of a distinguisher is shown nonconstructively. For this reason it seems that
+the lower bounds in Section 4 still have a degree of algorithmic content which cannot be present
+in any lower bound achieving Goals 1 and 2 (assuming the corresponding cryptographic generators
+exist).
+
+6.3    Approaches to Strong Lower Bounds via Communication Complexity
+Here we discuss some possible approaches to Goal 1: proving space lower bounds for time t = O(1)
+nonadaptive bit probe data structures of the form S ≥ N ϵ , where ϵ is a universal constant not
+depending on t. The reader may observe that we would have arrived at an equivalent problem if we
+had used adaptive in place of nonadaptive bit probe data structures: any adaptive bit probe data
+structure with time complexity t can be converted into a nonadaptive data structure with time
+complexity 2t by unrolling each query decision tree. We will make another simplifying assumption
+on our data structures, having no effect on Goal 1, which will streamline some of our arguments:
+
+Definition 14. We say that an NC0t generator is homogeneous if there is a single predicate
+h : {0, 1}t → {0, 1}, so that each output Gx : {0, 1}S → {0, 1}N is of the form Gx (E) =
+h(E(p1x ), . . . , E(ptx )) for some nonadaptive probe sequence p1x , . . . , ptx ∈ [S]. We say that F has
+homogeneous data structures with time t and space S if there exists a homogeneous NC0t generator
+whose range contains every column of F .
+
+    Just as the distinction between adaptive and nonadaptive data structures is irrelevant with
+respect to lower bounds achieving Goal 1, so too is the distinction between general and homogeneous
+data structures:
+
+Lemma 12. Let F be any data structure problem, t ∈ N. There exist constants t′ , c depending only
+on t, so that if F has space S time t bit probe data structures, then F has space c · S and time t′
+homogeneous data structures.
+
+   We will therefore focus specifically on homogeneous data structures with time t = O(1). Homo-
+geneous data structures have a rather appealing formulation in terms of communication complexity:
+
+Definition 15 (Parallel Channel Model). Let F : X × Y → {0, 1} be a two-party communication
+problem. We say that F has a (t, k)-parallel protocol if it can be computed in the following way:
+
+   1. Alice receives x ∈ X; a council of t Bobs B1 , . . . , Bt receive (the same input) y ∈ Y ; a referee
+      Charlie receives no input.
+
+   2. (Round 1:) Alice sends a different k-bit message privately to each Bob
+distinguished with polynomial advantage for a natural proof with these parameters to contradict their security, since
+M = poly(N ).
+
+
+                                                         38
+   3. (Round 2:) Each Bob sends 1 bit to Charlie
+
+   4. (Round 3:) Charlie outputs the answer F (x, y).
+
+   The equivalence of this model (up to minor quantitative losses) to the homogeneous data struc-
+ture model is a matter of definitional translation; the relation closely mirrors that between locally
+decodable codes and private information retrieval schemes:
+
+Observation 4. If F has homogeneous bit probe data structures with space S and time t, then
+F has a (t, log S)-parallel protocol. Conversely, if F has a (t, k)-parallel protocol then it has a
+homogeneous data structure with time t and space t · 2k .
+
+   We refer to this as equivalence, since w.r.t. Goal 1 the difference between a space lower bound
+S and tS is irrelevant.
+
+Proof. We prove only the first direction. Let G : {0, 1}S → {0, 1}N be a homogeneous NC0t generator
+whose range covers the columns of F . Prior to communication, all of the Bobs prepare the data
+structure encoding Ey for y. Alice sends to Bj the message pjx ∈ [S] which costs log S bits. After
+receiving this value, Bj sends Charlie the bit Ey (Bj ). Charlie, upon receiving bits b1 , . . . , bt from
+the t Bobs, outputs h(b1 , . . . , bt ).
+
+   We can then restate Goal 1 as follows:
+
+Goal 3 (Strong Parallel Communication Lower Bounds for a problem with M Columns). Exhibit
+an explicit F : {0, 1}n × [M ] → {0, 1} and some universal constant ϵ > 0, so that F does not have
+(O(1), ϵn)-parallel protocols.
+
+    In this setting we will set M = 2m for some m, and identify [M ] with {0, 1}m . In this case,
+achieving m ≤ O(n) for Goal 3 is equivalent to our most ambitious goal of achieving M ≤ poly(N )
+for Goal 1; we would also be happy with m ≤ 2o(n) in Goal 3, which corresponds to our most
+general acceptable form of Goal 1 with M ≤ exp(N o(1) ).
+    While our primary intention in investigating the parallel channel model is as an avenue through
+which to derive new cell probe lower bounds, using Observation 4 we can use our lower bounds
+from Sections 3 and 4 to derive new lower bounds in this communication model, for example:
+
+Lemma 13. Let t = O(1) be an even number. Consider the following communication problem:
+Alice recieves x ∈ Fn2 , and t Bobs receive a polynomial p : Fn2 → F2 of degree log n + log log n;
+their goal is to compute p(x). In the parallel channel model, Alice must send some Bob at least
+2n
+ t − O(log n) bits to solve this problem.
+
+   We now discuss two avenues for approaching strong lower bound in the parallel channel model
+with O(1) channels.
+
+6.3.1   A Lifting-Based Approach To the Parallel Channel Model
+For starters, we consider a restricted form of (t, k)-parallel protocol for a problem F : {0, 1}n ×
+{0, 1}m → {0, 1}, which we call a projection protocol. A (t, k) projection protocol is a special kind
+of (t, k)-parallel protocol, in which Alice is restricted to chose in advance sets I1 , . . . , It ⊆ [n] with
+|Ij | ≤ k, and upon input x, she will always send the j th Bob the values x|Ij = (xi )i∈Ij . In other
+words, instead of sending the j th Bob an arbitrary k-bit message depending on x, she is restricted
+to sending him some fixed set of k coordinates of x. For protocols of this form, we may observe the
+following:
+
+                                                     39
+Claim 1. If F has (t, k) projection protocols then every column of f : {0, 1}n → {0, 1} of F is
+expressible in the form f (x) = h(g1 (x), . . . , gt (x)) where h : {0, 1}t → {0, 1} and gj depends on at
+most k variables amongst {x1 , . . . , xn }.
+
+    Boolean functions expressible in this way have been studied in [HR15, LRT22]. In particular,
+the minimum value t such that f can be expressed as f = h(g1 , . . . , gt ) for gj depending on ≤ k
+variables is referred to as Ck2 (f ) in [HR15]. The “2” in the superscript refers to the interpretation
+of Ck2 (f ) as the smallest top-fanin of a depth 2 circuit with arbitrary gates and bottom fanin k
+computing f . Intriguingly, strong lower bounds on Ck2 (f ) for explicit functions f were proved
+unconditionally in [HR15]. For example, as a direct corollary of a classical result in [CFL83] on the
+number-on-forehead complexity of threshold functions, they observe:
+                                            2
+Lemma ([CFL83, HR15]). For any constant γ, C(1−γ)n (MAJn ) = ω(1).
+
+    We are using MAJn to denote the n bit majority function. Quantitatively stronger lower
+bounds on Ck2 (·) in the same regime k = (1 − γ)n are derived in [HR15] for other more complicated
+explicit functions. In addition, an optimal lower bound on Ck2 (MAJn ) is derived in [LRT22] in
+a quite different parameter regime k ≤ n1−ϵ . The above result implies that even the problem
+F : {0, 1}n × {0, 1}0 → {0, 1}, given by F (x, ∅) = Majn (x) is hard for (O(1), 0.99n) projection
+protocols. This lower bound quantitatively matches (and in fact exceeds) the kind sought in
+Goal 3. Obviously in the general parallel channel model we cannot hope to obtain a lower bound
+for a problem F with a single column (Alice could precompute f (x) in this case); nonetheless we
+believe this toy model presents a promising avenue towards lower bounds for general protocols, via
+the machinery of query-to-communication-lifting.
+    Lifting is a powerful method used to obtain lower bounds in communication complexity (see
+[GPW20] for a prototypical example). The central idea is to start with an arbitrary base function,
+and “lift it” via function composition to get a new composed function whose communication com-
+plexity is essentially the same as the query complexity of the original base function. Proofs of lifting
+theorems typically involve a simulation theorem, showing from any protocol for the composed func-
+tion, how to extract a simple protocol for the base function. Thus lifting simulation theorems give
+a constructive proof that the most efficient communication for the composed problem is essentially
+the protocol that simply mimics the optimal simple protocol, implying that separating the sim-
+pler query classes is not only necessary but also sufficient for proving the stronger communication
+separation.
+    We define here a standard lifting setup where the inner “gadget” function is the index function.
+
+Definition 16 (Lifting with Index). Let f : {0, 1}n → {0, 1} and ℓ be given. Let X = [ℓ]n ,
+Y = ({0, 1}ℓ )n . We define the lifted function f ◦ Indℓn : X × Y → {0, 1} by f ◦ Indℓn (x, y) =
+f (y1 (x1 ), . . . , yn (xn )).
+
+    With this definition, it is natural to view the parallel-channel model as the “communication
+analogue” of the complexity measure Ck2 (·). In particular, we can observe that F is computed by
+a (t, k) parallel protocol if and only if we can express it in the form:
+
+                                  F (x, y) = h(g1 (x, y), . . . , gt (x, y))
+
+where h : {0, 1}t → {0, 1} and g1 , . . . , gt : X × Y → {0, 1} have one way communication complexity
+(rows speaking to columns) ≤ k. Compare this to the definition of Ck2 (f ) ≤ t, which means f can
+be expressed as:
+                                         f (x) = h(g1 (x), . . . , gt (x))
+
+                                                     40
+with gj : {0, 1}n → {0, 1} depending on at most k variables, i.e. gj having nonadaptive decision
+tree depth at most k. Prior work has established that one-way communication complexity can be
+naturally viewed as a communication complexity analogue of “nonadaptive decision tree depth,”
+and in particular very strong lifting theorems have been established (by quite simple arguments)
+which transfer nonadaptive decision tree lower bounds to one way communication lower bounds
+[MSS21]. This intuition leads us to make the following conjecture:
+
+Conjecture 1 (Lifting Ck2 To Parallel Channel Complexity). There is a fixed constant ϵ > 0 and
+some ℓ = poly(n) so that the following holds. For any f : {0, 1}n → {0, 1}, if C(1−o(1))n
+                                                                                2         (f ) = ω(1),
+            n
+then f ◦ Indm requires communication ≥ ϵn log ℓ in the parallel model with O(1) Bobs.
+
+    The above conjecture would imply a lower bound achieving Goals 1/3 for the specific explicit
+problem MAJn ◦ Indnℓ , ℓ ≤ poly(n). In this parameter setting, we would have a problem with
+N = ℓn = 2O(n log n) rows and M = 2poly(n) columns, i.e. M is at most quasipolynomial in N . It
+would be reasonable to strengthen the conjecture, so that under the same assumption we conclude
+stronger lower bound (1 − o(1))n log m on communication; we state it in the weaker form above so
+as not to be too greedy.
+
+6.3.2   Communication with Alternation and Modular Counting
+Here we discuss two more standard complexity measures arising in two party communication com-
+plexity which provably capture the parallel-channel model; in principle, good enough lower bounds
+on either of these measures would be sufficient to achieve Goal 1. Via the natural properties con-
+nection in Section 6.2, this also implies that there is a natural proofs barrier to obtaining strong
+lower bounds for either of these complexity measures. The first measure we examine is a subclass
+of the communication polynomial hierarchy PHcc defined in [BFS86], which captures alternating
+protocols with two levels of alternation:
+
+Definition 17. For F : {0, 1}n × {0, 1}m → {0, 1}, we define Σcc2 (F ) as the minimal value k1 + k2
+such that                                _ ^
+                              F (x, y) =          Li,j (x) ∨ Ri,j (y)
+                                              i≤2k1 j≤2k2
+
+for some Li,j : {0, 1}n → {0, 1}, Ri,j : {0, 1}m → {0, 1}
+
+Lemma 14. If F : {0, 1}n × {0, 1}m has (t, k)-parallel protocols then Σcc
+                                                                       2 (F ) ≤ k + t + log t
+
+Proof. Say that F (x, y) = h(g1 (x, y), . . . , gt (x, y)) with gj having one way communication complex-
+ity at most k. So gj (x, y) = Rj (Πj (x), y) for some Πj : {0, 1}n → {0, 1}k , Rj : {0, 1}k × {0, 1}n →
+{0, 1}. Hence
+                                                       1{Πj (x) ̸= z} ∨ 1{R(z, y) = ξj }
+                                   _           ^
+                     F (x, y) =
+                                ξ∈h−1 (1)     j≤t,
+                                            z∈{0,1}k
+
+
+
+
+   This means that any explicit problem F satisfying Σcc
+                                                       2 (F ) ≥ Ω(n) would automatically achieve
+Goal 1. This also yields, via Lemma 9, a natural properties barrier for the measure Σcc
+                                                                                     2 (·):
+
+Lemma 15. Assuming the existence of polynomial stretch NC0 generators, there is no natural proof
+of a lower bound Σcc                          n        n
+                  2 (F ) ≥ Ω(n) for F : {0, 1} × {0, 1} → {0, 1}.
+
+
+
+
+                                                       41
+    We note that it is a notorious open problem to prove even a lower bound Σcc   2 (F ) ≥ ω(log n) for
+                              n        n
+an explicit problem F : {0, 1} × {0, 1} → {0, 1}. It is also an open problem to prove lower bounds
+of the form 2Ω(n) for depth 3 AC0 circuits computing n variable functions, which lower bounds of
+the above form would also imply. These facts gives some indication that proving Ω(n) lower bounds
+on Σcc
+     2 complexity may far overshoot Goal 1 in terms of difficulty. We make an additional note
+that, using basically the same proof as above, it is also possible to strengthen Lemma 14 to general
+adaptive data structures with arbitrary word length:
+Lemma 16 (Strengthening of Lemma 14). If F has general data structures with time t, wordsize
+w, and space S, then Σcc
+                       2 (F ) ≤ log S + tw + log t
+                                                              cc                  √
+                                             √ lower bound Σ2 (F ) ≥ (3 + Ω(1)) n for a problem
+    With this strengthening, it follows that any
+F : {0, 1}n × {0, 1}m → {0, 1} with m ≤ 2o( n) would yield a new state of the art bit probe lower
+                                                                       √
+bound for general adaptive data structures in the setting w = 1, t = n; this is a very different
+setting then Goal 1 and we do not know of a natural properties barrier which applies in such a
+regime. Nonetheless the cell probe lower bound would still be of interest in its own right.
+    Next we discuss a complexity measure associated to a subclass of (AC0 [⊕p ])cc :
+Definition 18. Let p be a prime number and F ∈ {0, 1}N ×M a boolean matrix. Define r-rankp (F ),
+the “replacement-rank of F over Fp ,” to be the least rank of a matrix F̃ ∈ FN ×M such that
+                                                                             p
+
+                                          F (x, y) = ϕ(F̃ (x, y))
+
+for some ϕ : Fp → {0, 1}.
+   In other words, r-rankp (F ) ≤ r if and only if there is a rank ≤ r matrix F̃ ∈ FN ×M such that
+                                                                                    p
+the value of F (x, y) is completely determined by the value F̃ (x, y).
+Lemma 17. Say that F ∈ {0, 1}N ×M has (O(1), log S) parallel protocols. Then there exists a prime
+p ≤ 2t+2 so that r-rankp (F ) ≤ tS.
+Proof. Say that F (x, y) = h(g1 (x, y), . . . , gt (x, y)) with gj ∈ {0, 1}N ×M having one way communi-
+cation complexity ≤ log S. Choose p > 2t+1 prime and consider each gj to live in FN          ×M . Then g
+                                                                                           p            j
+                                                                                 N ×M by F̃ = j≤t 2j ·gj .
+                                                                                              P
+has at most S distinct rows, and hence its rank is at most S. Define F̃ ∈ Fp
+Then rankFp (F̃ ) ≤ j rankFp (gj ) ≤ tS. On the other hand for any ξ ∈ {0, 1}t , j 2j ξj completely
+                   P                                                                   P
+
+determines ξ (here we use that p > 2t+1 ).
+
+    Hence, exhibiting an explicit matrix F ∈ {0, 1}N ×M satisfying r-rankp (F ) ≥ N ϵ for some fixed
+ϵ > 0 and all primes p = O(1) would solve Goal 1. Currently the best lower bound we know of
+for r-rankp (·) is via the inequality r-rankp (A) ≤ p · rank(A)(p−1) which follows by expressing the
+predicate ϕ : Fp → {0, 1} as a degree p − 1 polynomial over Fp using Fermat’s little theorem; this
+                                      1
+never gives a bound better than N p−1 which is clearly insufficient for our purposes. As in the case
+of Σcc
+    2 complexity, combining Lemma 17 with Lemma 9 yields a natural properties barrier for lower
+bounding r-rankp (F ).
+
+
+Acknowledgment
+The authors would like to give a special thanks to Pravesh Kothari, who, after hearing about
+a preliminary version of this work, made various suggestions which dramatically simplified and
+improved our core lower bound results in Section 3. The authors would also like to thank the
+Simons Institute for the Theory of Computation where some portions of this work were completed.
+
+                                                    42
+References
+ [AGK21] Jackson Abascal, Venkatesan Guruswami, and Pravesh K. Kothari. Strongly refuting all semi-random
+         boolean csps. In Proceedings of the Thirty-Second Annual ACM-SIAM Symposium on Discrete Algo-
+         rithms, SODA ’21, page 454–472, USA, 2021. Society for Industrial and Applied Mathematics.
+  [AIK06] Benny Applebaum, Yuval Ishai, and Eyal Kushilevitz. Cryptography in ncˆ0. SIAM Journal on Com-
+          puting, 36(4):845–888, 2006.
+ [AOW15] Sarah R Allen, Ryan O’Donnell, and David Witmer. How to refute a random csp. In 2015 IEEE 56th
+         Annual Symposium on Foundations of Computer Science, pages 689–708. IEEE, 2015.
+  [App16] Benny Applebaum.      Cryptographic hardness of random local functions.          Comput. Complex.,
+          25(3):667–722, September 2016.
+  [BFS86] László Babai, Peter Frankl, and Janos Simon. Complexity classes in communication complexity theory.
+          In 27th Annual Symposium on Foundations of Computer Science (sfcs 1986), pages 337–347. IEEE, 1986.
+  [CFL83] Ashok K Chandra, Merrick L Furst, and Richard J Lipton. Multi-party protocols. In Proceedings of the
+          fifteenth annual ACM symposium on Theory of computing, pages 94–99, 1983.
+  [CM01] Mary Cryan and Peter Bro Miltersen. On pseudorandom generators in nc 0. In Mathematical Founda-
+         tions of Computer Science 2001: 26th International Symposium, MFCS 2001 Mariánské Lázne, Czech
+         Republic, August 27–31, 2001 Proceedings 26, pages 272–284. Springer, 2001.
+[DGW19] Zeev Dvir, Alexander Golovnev, and Omri Weinstein. Static data structure lower bounds imply rigidity.
+        In Proceedings of the 51st Annual ACM SIGACT Symposium on Theory of Computing, STOC 2019,
+        page 967–978, New York, NY, USA, 2019. Association for Computing Machinery.
+   [dT22] Tommaso d’Orsi and Luca Trevisan. A ihara-bass formula for non-boolean matrices and strong refuta-
+          tions of random csps. arXiv preprint arXiv:2204.10881, 2022.
+   [EF75] Peter Elias and Richard A. Flower. The complexity of some simple retrieval problems. J. ACM,
+          22(3):367–379, July 1975.
+   [Fei07] Uriel Feige. Refuting smoothed 3cnf formulas. In 48th Annual IEEE Symposium on Foundations of
+           Computer Science (FOCS’07), pages 407–417. IEEE, 2007.
+ [FKO06] Uriel Feige, Jeong Han Kim, and Eran Ofek. Witnesses for non-satisfiability of dense random 3cnf
+         formulas. In 2006 47th Annual IEEE Symposium on Foundations of Computer Science (FOCS’06),
+         pages 497–508, 2006.
+[GGNS23] Karthik Gajulapalli, Alexander Golovnev, Satyajeet Nagargoje, and Sidhant Saraogi. Range Avoid-
+         ance for Constant Depth Circuits: Hardness and Algorithms. In Nicole Megow and Adam Smith,
+         editors, Approximation, Randomization, and Combinatorial Optimization. Algorithms and Techniques
+         (APPROX/RANDOM 2023), volume 275 of Leibniz International Proceedings in Informatics (LIPIcs),
+         pages 65:1–65:18, Dagstuhl, Germany, 2023. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+ [GGS23] Alexander Golovnev, Tom Gur, and Igor Shinkar. Derandomization of cell sampling. In Symposium on
+         Simplicity in Algorithms (SOSA), pages 278–284, 2023.
+ [GKM22] Venkatesan Guruswami, Pravesh K. Kothari, and Peter Manohar. Algorithms and certificates for boolean
+         csp refutation: smoothed is no harder than random. In Proceedings of the 54th Annual ACM SIGACT
+         Symposium on Theory of Computing, STOC 2022, page 678–689, New York, NY, USA, 2022. Association
+         for Computing Machinery.
+ [GLW22] Venkatesan Guruswami, Xin Lyu, and Xiuhan Wang. Range avoidance for low-depth circuits and con-
+         nections to pseudorandomness. In Approximation, Randomization, and Combinatorial Optimization.
+         Algorithms and Techniques (APPROX/RANDOM 2022). Schloss-Dagstuhl-Leibniz Zentrum für Infor-
+         matik, 2022.
+  [Gol00] Oded Goldreich. Candidate one-way functions based on expander graphs. Cryptology ePrint Archive,
+          Paper 2000/063, 2000.
+ [GPW20] Mika Göös, Toniann Pitassi, and Thomas Watson. Query-to-communication lifting for bpp. SIAM
+         Journal on Computing, 49(4):FOCS17–441, 2020.
+ [HKM23] Jun-Ting Hsieh, Pravesh K. Kothari, and Sidhanth Mohanty. A simple and sharper proof of the hyper-
+         graph Moore bound, pages 2324–2344. 2023.
+   [HR15] Pavel Hrubes and Anup Rao. Circuits with medium fan-in. In 30th Conference on Computational
+          Complexity (CCC 2015), pages 381–391. Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2015.
+
+
+
+                                                     43
+ [IKOS08] Yuval Ishai, Eyal Kushilevitz, Rafail Ostrovsky, and Amit Sahai. Cryptography with constant computa-
+          tional overhead. In Proceedings of the fortieth annual ACM symposium on Theory of computing, pages
+          433–442, 2008.
+   [JLS21] Aayush Jain, Huijia Lin, and Amit Sahai. Indistinguishability obfuscation from well-founded assump-
+           tions. In Proceedings of the 53rd annual ACM SIGACT symposium on theory of computing, pages 60–73,
+           2021.
+   [JLS22] Aayush Jain, Huijia Lin, and Amit Sahai. Indistinguishability obfuscation from lpn over f p, dlin, and
+           prgs in nc 0. In Annual International Conference on the Theory and Applications of Cryptographic
+           Techniques, pages 670–699. Springer, 2022.
+[KKMP21] Robert Kleinberg, Oliver Korten, Daniel Mitropolsky, and Christos Papadimitriou. Total Functions in
+         the Polynomial Hierarchy. In James R. Lee, editor, 12th Innovations in Theoretical Computer Science
+         Conference (ITCS 2021), volume 185 of Leibniz International Proceedings in Informatics (LIPIcs), pages
+         44:1–44:18, Dagstuhl, Germany, 2021. Schloss Dagstuhl–Leibniz-Zentrum für Informatik.
+   [Kor21] Oliver Korten. The hardest explicit construction. In 62nd Annual Symposium on Foundations of Com-
+           puter Science, 2021.
+   [Lar12] Kasper Green Larsen. Higher cell probe lower bounds for evaluating polynomials. In Proceedings of
+           the 2012 IEEE 53rd Annual Symposium on Foundations of Computer Science, FOCS ’12, page 293–301,
+           USA, 2012. IEEE Computer Society.
+  [LPS97] Hanno Lefmann, Pavel Pudlák, and Petr Savicky. On sparse parity check matrices. Designs, Codes and
+          Cryptography, 12(2):107–130, 1997.
+  [LRT22] Victor Lecomte, Prasanna Ramakrishnan, and Li-Yang Tan. The composition complexity of majority.
+          arXiv preprint arXiv:2205.02374, 2022.
+    [LS07] Nati Linial and Adi Shraibman. Lower bounds in communication complexity based on factorization
+           norms. In Proceedings of the thirty-ninth annual ACM symposium on Theory of computing, pages 699–
+           708, 2007.
+  [Man19] Peter Manohar. New Spectral Techniques in Algorithms, Combinatorics, and Coding Theory: The Kikuchi
+          Matrix Method. PhD thesis, Weizmann Institute, 2019.
+   [Mil93] Peter Bro Miltersen. The bit probe complexity measure revisited. In STACS 93: 10th Annual Symposium
+           on Theoretical Ascpects of Computer Science Würzburg, Germany, February 25–27, 1993 Proceedings
+           10, pages 662–671. Springer, 1993.
+   [Mil94] Peter Bro Miltersen. Lower bounds for union-split-find related problems on random access machines.
+           In Proceedings of the Twenty-Sixth Annual ACM Symposium on Theory of Computing, STOC ’94, page
+           625–634, New York, NY, USA, 1994. Association for Computing Machinery.
+[MNSW98] Peter Bro Miltersen, Noam Nisan, Shmuel Safra, and Avi Wigderson. On data structures and asymmetric
+         communication complexity. Journal of Computer and System Sciences, 57(1):37–49, 1998.
+  [MSS21] Nikhil S Mande, Swagato Sanyal, and Suhail Sherif. One-way communication complexity and non-
+          adaptive decision trees. arXiv preprint arXiv:2105.01963, 2021.
+  [MST03] Elchanan Mossel, Amir Shpilka, and Luca Trevisan. On epsilon-biased generators in ncˆ 0. In Annual
+          Symposium on Foundations of Computer Science, volume 44, pages 136–145. Citeseer, 2003.
+   [NN90] J. Naor and M. Naor. Small-bias probability spaces: efficient constructions and applications. In Proceed-
+          ings of the Twenty-Second Annual ACM Symposium on Theory of Computing, STOC ’90, page 213–223,
+          New York, NY, USA, 1990. Association for Computing Machinery.
+   [Pat08] Mihai Patrascu. Succincter. In 2008 49th Annual IEEE Symposium on Foundations of Computer Science,
+           pages 305–313. IEEE, 2008.
+   [PT06] Mihai Patrascu and Mikkel Thorup. Time-space trade-offs for predecessor search. In Symposium on the
+          Theory of Computing, 2006.
+ [PTW10] Rina Panigrahy, Kunal Talwar, and Udi Wieder. Lower bounds on near neighbor search via metric
+         expansion. In 2010 IEEE 51st Annual Symposium on Foundations of Computer Science, pages 805–814.
+         IEEE, 2010.
+   [Raz88] Alexander Razborov. Bounded-depth formula over {AND,XOR} and some combinatorial problems (rus-
+           sian). Problems of Cybernetics. Complexity Theory and Applied Mathematical Logic, pages 149–166,
+           1988.
+   [RR97] Alexander A Razborov and Steven Rudich. Natural proofs. Journal of Computer and System Sciences,
+          55(1):24–35, 1997.
+
+
+                                                       44
+  [RSW22] Hanlin Ren, Rahul Santhanam, and Zhikun Wang. On the range avoidance problem for circuits. In 2022
+          IEEE 63rd Annual Symposium on Foundations of Computer Science (FOCS), pages 640–650, 2022.
+    [Sav95] Petr Savickỳ. Improved boolean formulas for the ramsey graphs. Random Structures & Algorithms,
+            6(4):407–415, 1995.
+     [Sie89] A. Siegel. On universal classes of fast high performance hash functions, their time-space tradeoff, and
+             their applications. In 30th Annual Symposium on Foundations of Computer Science, pages 20–25, 1989.
+     [Sie04] Alan Siegel. On universal classes of extremely random constant-time hash functions. SIAM J. Comput.,
+             33(3):505–543, March 2004.
+    [Tro12] Joel A. Tropp. User-friendly tail bounds for sums of random matrices.          Found. Comput. Math.,
+            12(4):389–434, August 2012.
+    [Vio12] Emanuele Viola. The complexity of distributions. SIAM Journal on Computing, 41(1):191–218, 2012.
+    [Vio19] Emanuele Viola. Lower bounds for data structures with space close to maximum imply circuit lower
+            bounds. Theory of Computing, 15(1):1–9, 2019.
+[WEAM19] Alexander S Wein, Ahmed El Alaoui, and Cristopher Moore. The kikuchi hierarchy and tensor pca. In
+         2019 IEEE 60th Annual Symposium on Foundations of Computer Science (FOCS), pages 1446–1468.
+         IEEE, 2019.
+    [Wit17] David Witmer. Refutation of random constraint satisfaction problems using the sum of squares proof
+            system. PhD thesis, PhD thesis, Carnegie Mellon University, 2017.
+    [Yao81] Andrew Chi-Chih Yao. Should tables be sorted? J. ACM, 28(3):615–628, July 1981.
+      [Yua] Weiqiang Yuan. Personal communication.
+
+
+
+A      Kikuchi Method
+We prove here Theorem 8 from Section 3. This argument occurs in [WEAM19, GKM22] and we
+only need to adapt things to our notation:
+
+Theorem 18 (Theorem 8). Let C = ([N ], V, c) be a t-XOR scheme, |V | = K, and t even. For any
+t ≤ L ≤ K8 , we may associate with C a permutation ensemble A indexed by [N ] with the following
+properties:
+
+   1. A lives in Rm×m for m = K
+                                   
+                                 L
+
+                 L t/2
+                   
+    2. d(A) ≥    K     N
+
+    3. For any f ∈ {±1}N , we have ∥A[f ]∥∞→1 ≥ d(A)m · OPT(C, f )
+
+Proof. Let C = ([N ], V, c) be t-XOR scheme, |V | = K, t even. Let m = K
+                                                                                    
+                                                                                  L   , and identify [m] with
+ V                                                               m×m  , given by Ax (a, b) = 1{a∆b = cx }
+   
+ L canonically. We define a permutation ensemble in R
+where a∆b denotes the symmetric difference of a, b as elements of X
+                                                                             
+                                                                           L   . Observe that by symmetry,
+                                                                                           t
+P                                                                                             K−t 
+   a,b Ax (a, b) is the same value for all x; call this value r. Indeed we have r = 2 t/2 L−t/2 . To see
+this, note that if if |a| = |b| = L, a∆b = c, |c| = t then we must have a = (w ∪ u), b = (w ∪ v) for
+                                                              t
+some |w| = L − t, |u| = |v| = 2t , u, v ⊆ c. There are t/2       ways to choose disjoint subsets u, v ⊆ cx ,
+               t        K−t                         V \{u∪v}
+|u| = |v| = 2 , and L− t ways to choose w ∈ L−t/2 . Since we will count (a, b), (b, a) separately
+                          2
+we must add in a factor of 2.
+     Now, let f ∈ {±1}N and let R : V → {±1} be such that OPT(C, f ) = Val(C, f, R). Define
+
+
+
+
+                                                        45
+                      V
+R̃ ∈ {±1}m = {±1}( L ) , with R̃(a) =
+                                               Q
+                                                 i∈a R(i). Then
+                             X                                    X         X                  Y            Y
+           R̃⊤ A[f ]R̃ =                R̃(a)R̃(b)A[f ](a, b) =        fx          Ax (a, b)         R(i)         R(j)
+                                V
+                            a,b∈(   )                              x        a,b                i∈a          j∈b
+                                L
+                X X                       Y          X       Y
+            =               Ax (a, b) f (x)   R(i) = r   f (x)   R(i) = rN · OPT(C, f )
+                x∈X   a,b                      i∈cx            x            i∈cx
+
+
+Now, observe that d(A) = N m−1 r, in other words r = d(A)N −1 m, so we have the bound
+∥A[f ]∥∞→1 ≥ d(A)m · OPT(C, f ). It remains to lower bound d(A), for which we observe
+                                              t
+                                                 K−t 
+                                          2 t/2   L−t/2
+                                                             L t/2
+                       d(A) = N m−1 r ≥          K
+                                                       N ≥          N
+                                                 L
+                                                             K
+
+provided t ≤ L ≤ K8 , where the final inequality follows from standard manipulations of binomial
+coefficients (see [HKM23]).
+
+
+
+
+                                                                                                ECCC                          ISSN 1433-8092
+                                                          46
+                                                                                                https://eccc.weizmann.ac.il
+

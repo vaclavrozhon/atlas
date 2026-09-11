@@ -1,0 +1,1351 @@
+                                          Compressing Dynamic Fully Indexable Dictionaries in Word-RAM
+                                                                               Gabriel Marques Domingues∗
+
+
+
+                                                                                            Abstract
+                                                   We study the problem of constructing a dynamic fully indexable dictionary (FID) in the
+arXiv:2603.23119v1 [cs.DS] 24 Mar 2026
+
+
+
+
+                                               Word-RAM model using space close to the information-theoretic lower bound. A FID is a data-
+                                               structure that encodes a bit-vector B of length u and answers, for b ∈ {0, 1}, rankb (B, x) =
+                                               |{y ≤ x | B[y] = b}| and selectb (B, r) = min{0 ≤ x < u | rankb (B, x) = r} (−1 if empty). A
+                                               dynamic FID supports updates that modify a single bit of B, i.e., B[i] ← b.
+                                                   We work in the Word-RAM model with w-bit words, assuming w ≥ lg u. Integer multiplica-
+                                               tion takes O(1) time. Our memory model is MB , allowing access to a fixed precomputed table
+                                               of τ = polylog(w) words, which can be computed in O(wτ ) time.
+                                                   In this paper, we show a dynamic FID based on the famous fusion-tree data-structure of
+                                               Pătraşcu and Thorup [FOCS 2014], modified to use fewer bits and to support select0 . Let n
+                                               denote the number of ones in B. We describe a parametric construction: for every ϵ ≤ 1/2,
+                                               there is a dynamic FID using           
+                                                                                       u
+                                                                                  lg     + O(nwϵ /ϵ) bits
+                                                                                       n
+                                               taking O(1/ϵ + logw (n)) time for rank0 /rank1 /select0√and updates, and O(logw (n)) timefor
+                                               select1 . All time bounds are worst-case. For ϵ = 1/ lg w, we reduce the space to lg nu +
+                                               O(n log w) bits. For ϵ = Θ(1), the running time matches the lower bound of Fredman and Saks
+                                               [STOC 1989]. This √ is the first deterministic dynamic FID in the standard Word-RAM model
+                                               that achieves o(n w) bits of redundancy in MB (e.g., ϵ = 1/4), and optimal worst-case time.
+
+
+
+
+                                            ∗
+                                              gm@mail.tau.ac.il. School of Electrical Engineering, Tel Aviv University. This research was supported by the
+                                         Israel Science Foundation, grant No. 1948/21.
+1        Introduction
+In this paper, we consider deterministic data-structures in the Word-RAM model with w-bit words.
+Supporting rank/select in Word-RAM is a widely studied problem [Jac88, CM96, Cla96, RRS07,
+Gol07, GGG+ 07, Păt08, GORR09, GORR14, LLYZ23a, LZ25, KLZ26], especially for implementing
+predecessor search [FW90, FW93, AMT99, AT07, PT14, CFHK15, NRL20].
+    A fully indexable dictionary (FID) is a data-structure that encodes a bit-vector B ∈ {0, 1}u and
+supports the following operations [RRS07, GGG+ 07, GRR08, GORR09, GORR14, NS14]:
+
+ (1) rankb (B, x) = |{y ≤ x | B[y] = b}|, and
+
+ (2) selectb (B, r) = min{0 ≤ x < u | rankb (B, x) = r} (−1 if empty).
+
+A dynamic FID supports writes to B, that is, updating a bit at position i with value b (B[i] ← b).
+Note that rank0 (B, i) = i + 1 − rank1 (B, i); from now on, we shall use rank interchangeably with
+rank1 . In general, implementing select0 based on rank and select1 in the dynamic setting is
+non-trivial, as it usually requires more space [GORR09, NS14, NN14]. See [RRS07, NS14] for
+applications of select0 .1
+     An equivalent description of a FID is to consider the set S = {0 ≤ x < u | B[x] = 1}. In this
+view, a FID encodes a set S of n elements in [u] = {0, 1, · · · , u − 1}, supporting rank(S, x) =
+|{y ∈ S | y ≤ x}| and select0 /select1 operations as before. A dynamic FID supports insertions
+into S and deletions from S. Membership and predecessor queries to S can be answered by com-
+puting select1 (S, rank(S, x)). For further details on predecessor data-structures, see the survey
+of [NRL20].
+     We focus on the density-sensitive case, where the data-structure knows both u and n = |S|
+(i.e., the number of ones of B) [GORR09, GORR14]. We seek a FID that uses space close          to
+the information-theoretic lower bound to encode B (equivalently S), which is given by lg nu bits.
+For the running time, a lower bound is given in [FS89, PT14] and states that at least one of
+rank1 /select1 /update must take Ω(logw (n)) time. The first deterministic dynamic structure with
+worst-case O(logw (n)) time using O(nw) space is the dynamic fusion tree of [PT14].
+     For dynamic memory allocation, we use the MB memory model [RR03, ADS16, LLYZ23a].
+In this model, the space occupied by a dynamic data-structure equals the highest address in
+memory that it uses. Dynamically maintaining space near lg nu is generally difficult in this
+model [LLYZ23a]. Specifically, if two dynamic data-structures using s1 and s2 bits, respectively, are
+concatenated, the resulting space may exceed s1 + s2 bits after multiple updates [LLYZ23a]. Stan-
+dard techniques for concatenating dynamic memory segments [RR03, NN14, ADS16, LLYZ23a,
+KLZ26] require either a fixed number of memory segments based on u [LLYZ23a], or a rebuild
+whenever n changes significantly [KLZ26].
+     Designing a space-efficient dynamic FID with O(logw n) worst-case time operations has been
+a challenge. Apart from [PT14], most deterministic structures are either amortized, require large
+precomputed tables, or rely on periodically rebuilding of static indices [NS14,
+                                                                             NRL20, LLYZ23a,
+Nav25]. Our main result is a deterministic dynamic FID that uses lg nu + O(nwϵ ) space (for
+any constant ϵ < 1) and has worst-case O(logw n) time operations, while only using O(polylog w)
+precomputed words. See Table 1 for a list of recent relevant results and the results presented in
+this paper.
+    1
+        [Păt08, PT14, LLYZ23a, LZ25, KLZ26] do not address select0 explicitly.
+
+
+
+
+                                                          1
+        Reference       Dyn.           Redundancy                  Table               Time
+         [PT14]          ✓               O(nw)                   polylog(w)          O(log
+                                                                                       w (n))
+                                                                     √                              
+         [NS14]          ✓       O(u log log u/ log u)                 u             O logloglogu u
+                                 √                      1/5
+                                                                                                  
+        [LLYZ23a]        ✓     O u w/2(log u/ log log u)         2polylog(u)         O logloglogu u
+                                                                    √                              
+         [Nav25]         ✓†         O(n log log(u/n))                  u             O logloglogn n
+                                                 1/3
+                                                      
+         [KLZ26]         ✓†        O nw/2(logw n)                polylog(u)         Oexp (logw (n))
+                                                     1/3
+                                                          
+  Lemma 1+[KLZ26]        ✓       O n + nw/2(logw (n))            polylog(u)         Oexp (logw (n))
+   Ours (Theorem 1)      ✓              O(nwϵ /ϵ)                polylog(w)        O(1/ϵ + logw (n)) 
+                                                                                   √
+   Ours (Theorem 3)      ✓              O(n log w)               polylog(w)    O     log w + logw (n)
+
+Table 1: Survey of recent results on dynamic FIDs and rank/select1 data-structures. Rows
+marked “✓” for “Dyn.” are dynamic, and marked “✓† ” have amortized updates. A FID with
+redundancy r uses lg nu + r bits, seen in the “Redundancy” column. The “Table” column is the
+space used for lookup tables. The “Time” column is for rank and updates. Note that [KLZ26] is
+a randomized data-structure; running times in expectation are denoted by Oexp .
+
+
+1.1     Contributions
+In this section, we list our contributions and give an overview of our techniques. Recall that a
+dynamic FID encodes a set S of n elements of [u] = {0, 1, · · · , u − 1} and supports rank/select
+and updates. We employ the standard Word-RAM model with w-bit words and O(1) time mul-
+tiplication, and use the MB memory model, expressing the space in bits. We assume w ≥ lg u.
+All results use a precomputed table of polylog(w) words. A FID is said to have redundancy r if it
+uses lg nu + r bits, for all u and n (the redundancy depends on u and n). All running times are
+worst-case and all data-structures are deterministic. We prove the following theorem.
+Theorem 1 (Dynamic FID). For every ϵ ≤ 1/2, there is a dynamic FID with O(nwϵ /ϵ) redundancy
+that takes O(1/ϵ + logw (n)) time for rank/select0 /updates and O(logw (n)) time for select1 .
+
+We divide the proof of this result into two parts: (1) reducing the problem to a small FID, and
+(2) implementing a small FID by constructing separate data-structures for each operation.
+
+1.1.1    Cardinality reduction
+We prove the following general lemma for managing memory in MB to reduce the problem to a
+FID for small set. The idea is to construct a tree with degree wO(1) , with FIDs at the leaves.
+Observe that n is not known a priori. This lemma replaces previous memory management tricks
+for FIDs [NN14, LLYZ23a, KLZ26], allowing for a dynamic number of leaves and with worst-case
+time guarantees.
+Lemma 1. For any N ≥ 1 and r = O(N w), suppose that there is a dynamic FID for a set
+O(N ) elements using O(r) redundancy.
+                               √      Then, for any n, there is a dynamic FID for a set of n
+elements with O(n + nr/N + nw/ N ) redundancy and the running time of each operation increases
+by O(logw (n)) additively.
+
+De-amortizing previous results. This lemma is general and can be applied to previous con-
+structions. For example, we describe how to de-amortize [KLZ26]. The construction of [KLZ26],
+
+                                                  2
+called a compressed tabulation-weighted treap, is a dynamic rank/select data-structure for N ele-
+ments, using O(w) redundancy and taking Oexp (log3 N ) time for the operations. Applying Lemma 1
+to this tabulation-weighted                     2(logw (n)1/3 , yields a dynamic rank/select data-
+                           √ treap for N = 2
+structure with O(n + nw/ N ) redundancy, and Oexp (logw (n)) time operations. When N doubles
+(resp. halves), we lazily merge neighboring leaves (resp. split leaves), increasing the space by O(n)
+bits during this lazy procedure.
+
+1.1.2   Indices and dictionaries
+At the leaves, we construct a FID for n = wO(1) elements, using lg nu + nwΘ(1) bits. Our FID uses
+                                                                     
+
+a lookup table of only polylog(w) words. Following the ideas of [GORR09, PT14, CFHK15], we
+divide the problem of constructing a small dynamic FID into implementing three data-structures:
+
+ (1) A select1 dictionary encodes a set S ⊆ [u] and supports select1 and update (i.e., inser-
+     tion/deletion of elements of S).
+
+ (2) A rank index is given O(1) time access to the select1 dictionary (i.e., assuming select1 takes
+     O(1) time) and supports rank and updates (i.e., updates the index upon insertion/deletion
+     of elements to and from S).
+
+ (3) A select0 index is given O(1) time access to the select1 dictionary and supports select0
+     and updates.
+
+   To our knowledge, the best deterministic rank index is the dynamic fusion-node of [PT14]. It is
+a rank index for at most w1/4 elements using Θ(w) bits and taking O(1) time for rank and update.
+We define the following notation for a rank index.
+
+Definition 1. For parameters N , r, and t, a rank index for a set of n ≤ N elements, using O(nr)
+bits and taking O(t) time for rank and update, is called a ⟨N, r, t⟩-index.
+
+    We describe a select1 dictionary for n = wO(1) elements with O(logw (n)) = O(1) time op-
+erations and lg nu + O(n log w) bits. Furthermore, we show how to use a given rank index to
+implement a select0 index, with only O(n log w) additional bits (c.f. Lemma 6). As in Lemma 1,
+we reduce the problem of rank indices to just w elements. We show the following central lemma.
+
+Lemma 2. Given a ⟨w, r, t⟩-index, there is a dynamic FID for a set of n = wO(1) elements,
+with O(nr + n log w) redundancy, taking O(t) time for rank/select0 /updates, and O(1) time for
+select1 .
+
+   Lastly, we improve the rank index of [PT14], by introducing a space-time trade-off with pa-
+                                                                        √
+rameter ϵ. For ϵ = 1/4, this is the first (dynamic) rank index using o(n w) bits with O(1) time
+operations, answering this previously open question [KLZ26]. The rank index is as follows.
+
+Theorem 2. For every ϵ ≤ 1/2, there is a ⟨w, O(wϵ /ϵ), O(1/ϵ)⟩-index in standard Word-RAM.
+This index queries the select1 dictionary O(log(1/ϵ)) times.
+
+   Putting these results together, we prove Theorem 1.
+
+Proof of Theorem 1. Applying Lemma 2 together     with Lemma 1, with N = w2 and given a ⟨w, r, t⟩-
+index, yields a dynamic FID occupying lg nu + O(nr + n log w) bits, taking O(t + logw (n)) time
+                                              
+
+for rank/select0 and updates and O(logw (n)) time for select1 . Using the index of Theorem 2
+with this result concludes the proof, observing wϵ /ϵ = Ω(log w) for any ϵ.
+
+                                                 3
+    The proof of Theorem 2 consists of two non-trivial steps. First, we modify the rank index
+of [PT14] to use less space, yielding a ⟨wϵ , O(wϵ /ϵ), O(1/ϵ)⟩-index (Corollary 3). Second, we build
+the index of Theorem 2 using an exponential tree [AT07], where the leaves use this index and each
+node in level i√uses the ⟨wϵi , O(wϵi /ϵi ), O(1/ϵi )⟩-index where ϵi = 1/2i+1 .
+    For ϵ = 1/ lg w, we exploit binary search to improve the space. This yields a rank index that
+uses o(n) space and o(log n) time for n = O(w) elements.
+                                       √            √
+Theorem 3. There is a ⟨w, 1/2O(     √
+                                         log w) , O( log w)⟩-index in standard Word-RAM. This index
+
+queries the select1 dictionary O( log w) times.
+
+1.2    Organization
+In Section 2, we define the computational and memory model that we will use and outline relevant
+techniques. In Section 3, we describe the cardinality reduction and show Lemma 1. In Section 4,
+we show Lemma 2, reducing the dynamic FID problem to a small rank index. In Section 5, we
+show the small dynamic rank index of Theorem 2 in the Word-RAM with multiplication, which
+proves Theorem 1, and further show Theorem 3, In Section 6, we discuss other Word-RAM models,
+and analyze the static case. In Section 7, we summarize our results and discuss open problems.
+
+
+2     Preliminaries
+Terminology. For a FID, we only consider updates that add or remove an element from the set
+S. For a sequence, updates that change its length are called indels: insertion of an element between
+index i − 1 and i, so it becomes the new element at index i, and deletion of the element at index
+i, so that the index i + 1 becomes the element at index i. A write to an entry of the sequence can
+be implemented as a deletion followed by an insertion.
+
+Notation. Let [u] = {0, · · · , u − 1}. Denote the size of a set S by |S|. We denote an ordered set
+by {a0 < a1 < · · · < an−1 }. Denote by lg n ≜ ⌈log2 n⌉. We denote the concatenation of x and y
+by juxtaposition xy and denote x repeated n times by xn . Our notation always writes the most-
+significant bit first. For an array A, we denote the range A[i], A[i + 1], · · · , A[j] by A[i : j]. In a
+tree, the degree of node ν, i.e., the number of children, is denoted deg(ν).
+
+2.1    Computational model
+We employ the Word-RAM model, where the memory is an array of 2w words of w-bits. Memory
+reads and writes of a single word take O(1) time. We assume w ≥ lg u.
+
+Instruction set. The standard AC0 operations2 of a w-bit word take O(1) time, namely addition,
+bit-shifts (≪ and ≫), and bit-wise operations: AND (∧), OR (∨), XOR (⊕), and NOT (¬) [FW90,
+FW93, AMT99]. We consider the “standard” Word-RAM model that has constant-time integer
+multiplication [FW90, HMP01, PT14]. Other operations, such as most-significant bit (msb), least-
+significant bit (lsb), Hamming-weight/popcount (wt), and integer division by a constant, can all
+be implemented in terms of multiplication [FW90, GM94, PT14]. We note that operations can be
+restricted to b bits by computing x 7→ x ∧ 0w−b 1b after every operation. In Section 6.1, we consider
+other instruction sets.
+  2
+    An AC0 circuit has constant depth and polynomial size, using NOT gates at the input and unbounded fan-in
+ANDs and ORs [AMT99].
+
+
+                                                     4
+Constants. We allow √   access
+                            √   to at most polylog(w) words of precomputed constants that depend
+only on w (e.g., (0   w−1     w
+                          1) ), without accounting for it in the space, as long as each word is
+computable in O(w) time [Ruž08, PT14]. A common use for this is to store a lookup table, e.g.,
+                                                                          i        i
+an array encoding a function f : [polylog(w)] → {0, 1}w (e.g., f (i) = (02 −1 1)w/2 ).
+
+2.1.1   Packed arrays
+Often, we reinterpret a word as an array of k ≤ w/b blocks of b bits, which we call a k × b packed
+array. We denote the i-th block by x[i | b] = x[i × b : i × b + b − 1]. When b is implied, we omit b
+and write x[i].
+     The usefulness of a packed array of O(w) bits resides in the fact that many array opera-
+tions (which usually take linear time) can be implemented on it in O(1) time in standard Word-
+RAM [FW90, FW93, PT14]. Namely, the following operations can be computed O(1) time:
+(i) element-wise operations z[i | b] = x[i | b] ⋄ y[i | b] for ⋄ ∈ {+, ∧, ∨, ⊕}, (ii) broadcast operations
+z[i | b] = x[i | b]⋄α for a constant α and ⋄ ∈ {≪, ≫, ×}, and (iii) parallel comparisons z[i | b] = 0b−1 1
+iff x[i | b] ≤ y[i | b] and 0b otherwise. Some care is required for operations that can overflow (see
+the proof of Lemma 8). Using lsb, we extend these to perform element search (find i such that
+x[i | b] = e) and, if the elements are sorted, compute rank, all in O(1) time.
+     We are also able to apply an operation to only a few entries if we have a mask for those
+entries. For example, range indexing x[i : j | b] and comparison indexing x[i | b] where x[i | b] ≤ e.
+Concretely, for a function q : [k] → {0, 1}, consider a conditional write, x[i | b] ← v[i | b] if q(i) = 1,
+and x[i | b] ← x[i | b] otherwise. If we have the mask M [i | b] = q(i)b , the conditional write is
+implemented by x ← (x ∧ ¬M ) ⊕ (v ∧ M ). More commonly, we have a mask M ′ [i | b] = 0b−1 q(i),
+but it can be converted in O(1) time by M [i | b] = ¬(¬M ′ [i | b] + 1), or equivalently, M = M ′ × 1b .
+     With these techniques, we support indels on a packed array in O(1) time. We cite the following
+trick used in [PT14] to extend this idea to support indels for a small sequence.
+Lemma 3 ([PT14]). For a sequence A of length k = O(w/ log w), we support indels into A in O(1)
+time using O(k log w) additional bits.
+Proof. We store A out of order, denoted A∗ , and a k × O(log w) packed array P such that A[i] =
+A∗ [P [i]]. Note that P fits in O(1) words, thus indels in P are O(1) time. An insertion of x at position
+i adds x to the end of A∗ and inserts its index at position i in P (i.e., P [i + 1 : k] ← P [i : k − 1] and
+P [i] ← k). A deletion at position i moves the element A∗ [k − 1] to position P [i], updates at position
+i∗ where P [i∗ ] = k−1 into P [i∗ ] ← i and deletes at position i in P (i.e., P [i : k−2] ← P [i+1 : k−1]).
+Note i∗ can be found in O(1) time by element search.
+
+2.1.2   Multiply-shift
+Another relevant technique is the multiply-and-shift [PT14]. For x, µ ∈ {0, 1}kb and s = {si }k−1
+                                                                                              i=0 ,
+consider the following expression:
+                                                k−1
+                                                X                           
+                                   Λµ,s (x) =         (x ∧ µ)[i | b] ≪ si                              (1)
+                                                i=0
+
+We require (µ[i | b] ≪ si ) ∧ (µ[j | b] ≪ sj ) = 0, for every i ̸= j, so that the terms of the sum do not
+overlap. If the mask µ and the shift values s obey certain further conditions, we will show how to
+implement Λµ,s in O(1) time in standard Word-RAM. The idea is that multiple left shifts that do
+not overlap can be implemented by a single multiplication with a precomputed value. We claim
+the following lemma.
+
+                                                       5
+Lemma 4. Let δ ≥ maxi (i × b − si ), so that si + δ ≥ i × b for all i. If for every i ̸= j,
+(µ ≪ (si + δ − i × b)) ∧ (µ ≪ (sj + δ − j × b)) = 0, then Λµ,s can be computed in O(1) time.
+Proof. Note that this condition implies that the terms of Λµ,s do not interfere, i.e., (µ[i | b] ≪ si ) ∧
+(µ[j | b] ≪ sj ) = 0. Let δi = si + δ. Given this, we perform the following transformations to Λµ,s (x).
+          k−1
+          X                           k−1
+                                    X                                       
+                (x ∧ µ)[i | b] ≪ δi =     ((x ∧ µ) ≫ (i × b)) ∧ µ[i | b] ≪ δi
+          i=0                          i=0
+                                       k−1
+                                       X                                             
+                                   =           (x ∧ µ) ≪ (δi − i × b) ∧ µ[i | b] ≪ δi
+                                       i=0
+                                         k−1                                     k−1
+                                                                         !                                 !
+                                         X                                      X                     
+                                   =           (x ∧ µ) ≪ (δi − i × b)        ∧         µ[i | b] ≪ δi           ,   (2)
+                                        i=0                                      i=0
+
+where the last equality follows by the required condition on µ. Let α0 = k−1
+                                                                               P
+         Pk−1                                                                    i=0 (1 ≪ (δi − i × b))
+and α1 = i=0 (µ[i | b] ≪ δi ), and therefore Λµ,s (x) = (((x ∧ µ) × α0 ) ∧ α1 ) ≫ δ.
+
+    This construction uses values that are precomputed from the mask and the sequence of shifts.
+In Section 5, we will need to update these values. For example, in Lemma 4, modifying a single si
+that maintains the condition on µ and s, then α0 and α1 can be updated in O(1) time.
+
+2.2     Memory model
+We define the space used by a data-structure to be the highest address it uses in the memory array
+of words. That is, even if we do not use some intermediate cells, the last used cell is what matters
+in the memory usage. This is the MB model of [RR03]. To measure the space in bits, we account
+for the number of bits used in the highest-addressed word. See Figure 1. All results in this paper
+are in MB .
+
+                           0                                                 2w − 1
+                                              ···            ···
+                                s bits = ⌊s/w⌋ cells
+                                         + partial word of (s − w⌊s/w⌋) bits
+
+Figure 1: Depiction of memory and space usage in the MB model. Cells in use are marked gray.
+
+    The main difficulty of this model is concatenating two or more dynamic data-structures. This
+issue is studied in detail in [LLYZ23a]. Next, we provide lemmas that will suffice for most of our
+uses. A more delicate approach is necessary to prove Lemma 1.
+
+2.2.1    Linear-space structures
+In this section, we describe procedures for concatenating data-structures increasing the space by a
+constant, which we call linear space. Here, a data-structure (an array, a FID, a dictionary, a tree,
+etc.) has its own view of an array of cells in MB . We assume that the data-structure operations
+allocate/de-allocate O(w) bits per operation.
+    We present the following lemma to append a linear data-structure to an existing structure. This
+lemma can be applied repeatedly to concatenate at most O(1) linear data-structures.
+
+                                                        6
+Lemma 5. Given a data-structure D1 that uses s1 bits and another data-structure D2 that uses s2
+bits. Then, we can concatenate them to use s1 + O(s2 ) bits, increasing O(1) time for operations.
+
+Proof. Re-parameterize so that D1 and D2 allocate/de-allocate at most w bits. We store D1 , then a
+free space of O(s2 ) bits, then D2 , and at the end another space of O(s2 ) bits. In s2 /(2w) operations,
+D1 and D2 have new sizes s′1 and s′2 , respectively. Because the sizes change by at most w bits per
+operation, we have s1 − s2 /2 ≤ s′1 ≤ s1 + s2 /2 and s2 /2 ≤ s′2 ≤ 3s2 /2. We pad D2 with s2 /2 bits
+to allow it to grow as needed. There is enough time to keep a copy of D2 in the free space and in
+the end space. If the free space has more than 2s2 bits, we keep the free space copy and discard
+the others, and if the free space has less than s2 /2 bits, we keep the end space copy. Note that the
+concatenation allocates/de-allocates O(1) words for every word that each structure allocates.
+
+    Lastly, we consider data-structures Dn with a parameter n, with operations that change n by at
+most 1. We outline the standard trick to avoid rebuilding a data-structure when n changes. This
+idea is also useful for de-amortization, especially for data-structures that have computed values that
+strongly depend on n (e.g. Theorem 7). The idea is to allocate space for D2k for 0 ≤ k ≤ 2 + lg n.
+The data-structure in use is stored in k = 1 + lg n. We keep a copy of the data-structure in each
+k = 2 + lg n and k = lg n (only a partial copy of the smaller). If n doubles, we start allocating the
+next power-of-two, and if n halves, we de-allocate the last one. We summarize with this observation.
+
+Observation 1. Suppose that, for any parameter N , Dn uses O(N s) bits if n = Θ(N ). Then, we
+can de-amortize Dn to use O(ns) bits for any n, adding O(1) time to the operations.
+
+
+3     Cardinality reduction
+In this section, we show a general procedure for reducing the FID problem to small sets. This is
+often referred to as cardinality reduction (see [NRL20, §3.2] for details). The key idea is to use a
+leaf-oriented tree [Die89, Wil00, AT07, BCC+ 18] where all leaves are at the same distance to the
+root, and to employ auxiliary data-structures in the internal nodes to reduce the operations of rank
+and select to a single leaf.
+
+3.1   Partial-sums
+The main data-structure we will need to navigate the leaf-oriented tree is called a searchable partial-
+sum (SPS) [Fre82, Die89, PD04a, PD06, ADS16, BCC+ 18]. An SPS encodes a sequence A ⊆ [σ]k ,
+supporting the following operations.
+
+   • sum(A, i) = ij=0 A[j], and
+                  P
+
+    • search(A, z) = max{i ∈ [k] | z ≥ sum(A, i)} (−1 if empty).
+
+For a given parameter 1 ≤ δ ≤ lg σ, a dynamic SPS supports updates of the form A[i] ← A[i] ± ∆
+for ∆ ∈ [2δ ]. We will also support insertions/deletions in Z[i] = sum(A, i). That is, a deletion at
+Z[i] replaces A[i] and A[i + 1] with A[i] + A[i + 1], and an insertion of z at Z[i] replaces A[i] with
+z −sum(A, i) and sum(A, i+1)−z = A[i]−(z − sum(A, i)). The result of [BCC+ 18] states that there
+is an SPS using O(kw) bits with O(logw/δ (k)) operations. We shall describe this data-structure in
+detail and refine the space bound in Section 4.1.
+
+
+
+
+                                                   7
+3.2   Leaf-oriented trees
+In a leaf-oriented tree, all leaves are at the same level (i.e., distance to the root), and all nodes in
+the same level have around the same degree, up to a constant factor. Concretely, there is a sequence
+of integers {di }ℓ−1
+                 i=0 such that di ≤ deg(ν) ≤ 4di for every internal node ν at level i (except perhaps
+the root). These are a generalization of B + -trees [Com79], (a, b)-trees [HM82], y-fast trees [Wil83],
+and exponential trees [AT07]. For example, a (d, 4d)-tree has di = d, and an exponential tree has
+          i
+di = d1/2 . The internal nodes store data-structures that are used to navigate to a leaf.
+    The general idea is to reduce an array A to a smaller size. The internal nodes of the tree maintain
+a set of “splitters” {zi }Λ−1
+                           i=0 that divide the array. The leaf λ represents the array A[zλ : zλ+1 − 1],
+where z−1 = 0 and zΛ is the length of A. For traversing the tree, each node maintains its own smaller
+set of splitters for the smaller array that subtree represents. Formally, for a node ν with degree
+d = deg(ν) it divides the array at positions {zi }d−1
+                                                    i=0 . Each node stores auxiliary data-structures to
+reach the correct leaf. For example, to index the array A at position j, we use an SPS for an array
+R where sum(R, i) = zi , and we compute A[j] = (A[zi : zi+1 − 1])[j − zi ], where i = search(R, j).
+    When inserting/deleting a child into/from a node ν, if the degree of ν becomes too large, we
+split it into two even parts, and if it becomes too small, we merge with a sibling into either a
+single node or two nodes (updating the parent of ν accordingly). We show in Section 3.3 how to
+lazily perform merges and splits, using O(1) updates to the data-structures in node ν to get worst-
+case update times. For pointers, we support merging and splitting as indels in an array pointers,
+using Lemma 3 (we always assume di = O(w/ log w)). Usually, we also employ merges/splits to
+the leaves to keep the size of the array between N and 4N , for a given parameter N , so that the
+number of splitters is Λ = Θ(n/N ).
+    We apply this structure to reduce the FID to a small set. In this case, we consider the bit-vector
+A[0 : u − 1], and the splitters divide the universe. However, instead of every array A[zλ : zλ+1 − 1]
+having a similar size, we want them to have a similar weight wt(A[zλ : zλ+1 − 1]) = Θ(N ). The
+leaf λ stores the set Sλ = {y − zλ | y ∈ S, zλ ≤ y < zλ+1 } ⊆ [zλ+1 − zλ ] with zΛ = u. Employing
+merges/splits, we guarantee N ≤ |Sλ | ≤ 4N . We emphasize that zλ are not necessarily in S; this
+is important to keep the universe size fixed (before merging/splitting).
+    We detail how to compute rank and select. Consider a node with degree d that divides the set
+S at positions {zi }d−1
+                     i=0 . The i-th subtree represents the set Si = {y − zi | y ∈ S, zi ≤ y < zi+1 }. The
+node stores the elements {zi }d−1i=0 sorted, supporting indels with Lemma 3. We store two searchable
+partial-sums Nb in the node, where sum(Nb , i) = rankb (S, zi ) (δ = 1 and σ ≥ n). Updates to S
+are ±1 updates to the partial-sums. To compute selectb for a rank r, let i = search(Nb , r) and
+ri = rankb (S, zi ) = sum(Nb , i). Hence, we reduce the problem to Si as follows.
+
+       selectb (S, r) = selectb ({y ∈ S | zi ≤ y < zi+1 }, r − ri ) = zi + selectb (Si , r − ri ) .   (3)
+
+For rank, we store in the node a dynamic rank index for the set of splitters (select1 is O(1) time
+by accessing the sorted array). Merges and splits, respectively, delete and insert splitters, updating
+the rank index. To compute the rank of x ∈ [u], let i = rank({zi }d−1i=0 , x) − 1, therefore:
+
+                    rank(S, x) = rank(S, zi ) + rank({y ∈ S | zi ≤ y < zi+1 }, x)                     (4)
+                                = rank(S, zi ) + rank(Si , x − zi ) .                                 (5)
+
+    Using the SPS of [BCC+ 18] and the rank index of [PT14], the internal nodes have degree
+di = w1/4 and use O(di w) bits. Therefore, the internal nodes use O(Λw) = O(nw/N ) bits and take
+O(logw (n)) time to navigate to a leaf.
+
+
+                                                    8
+3.3    De-amortization
+Let us describe the de-amortization procedures for merging and splitting nodes. We show how to
+perform merges and splits in a lazy fashion to get worst-case update time. These are standard
+techniques: see [Wil00, AT07]. Further, we show that lazily merging/splitting two FIDs uses only
+O(n) additional bits. The goal is that the lazy operations have completed the merge/split by the
+time that any of the merged/split sets later decide to further merge/split.
+     A node holds between N and 4N elements. The lazy operations will be completed in N steps.
+The parent node stores the intermediate state of the lazy operations. Note that in the interim,
+there are at most N insertions/deletions. We describe the procedure for general leaf-oriented trees,
+working with internal nodes or leaves, where leaves can represent arrays or FIDs.
+     If the node reaches 4N elements, we split into two nodes ν1 and ν2 , each holding 2N elements.
+In detail, ν is the ν1 node, and we create a new ν2 node. We move the last 5 elements from ν to
+ν2 , so that within at most (N + 4N )/5 = N operations, the procedure is completed. For merging
+two nodes ν1 and ν2 , with n1 ≤ 2N and n2 ≤ 2N elements respectively, create a new node ν. We
+move the last 3 elements from ν1 and the first 3 elements from ν2 to ν, so that within at most
+(N + 4N )/6 ≤ N operations, the procedure is completed. If n1 ≥ 2N , we combine both merging
+and splitting into two nodes of at most 3N elements.
+     The space for the interior nodes is still O(nw/N      ) bits. For  the leaves      representing    FIDs, the
+space used when splitting is bounded by log2 ut1 + log2 ut2 + log2 un−2t              1 +u2
+                                                                                               ≤ log2 2(u1n+u2 ) =
+                                                                                            
+                                                                                                          P
+log2 u1 +u                                                                                 ui             Pi ui and
+                                                                              P                              
+          n
+             2
+                 +  O(n)   bits, where  we use the  following inequalities:       i log 2 ni    ≤ log 2      n
+                                                                                                           i i
+log2 2u               u                                                   u1                 u2            u1 +u2
+                                                                                                              
+        n   ≤   log 2     + O(n).     When merging,  the space is log 2  n1 −t   +  log 2  n2 −t  + log 2           ≤
+       2(u1 +u2 )
+                   n        u1 +u2
+                                                                                                            2t
+log2 n1 +n2 = log2 n1 +n2 + O(n1 + n2 ) bits.
+     With this, update times are guaranteed worst-case. Recall that each term also has some re-
+dundancy, but we may simply increase the constant in the redundancy of the underlying FID.
+Therefore, an additional O(n) space is incurred by the de-amortization.
+
+3.4    Managing memory
+We describe how to implement a leaf-oriented tree in MB . We will separately manage the internal
+nodes and the leaves, that dominate the space.
+    For the internal nodes, we use the de-amortization of linear structures as described in Obser-
+vation 1 to maintain linear space and worst-case times for arbitrary n. For N ≤ n ≤ 4N , for some
+parameter N , we pre-allocate the space for each level with a large enough constant so that the
+nodes in each level can be allocated as needed, then concatenate them. This technique works even
+if we use O(log w)-bit pointers, say, for a tree that fits in wO(1) bits.
+    We now prove Lemma 1. Conceptually, each leaf FID has a view of its own MB array. The
+challenge is to provide a view of linear memory to each leaf FID all in a single array and without
+incurring a lot of additional space. The memory management we use is similar to the techniques
+used in [RR03, LLYZ23a, KLZ26], with the main difference being that we exploit the leaf-oriented
+tree to allocate/de-allocate memory per leaf. This seemingly small change guarantees worst-case
+times in our case where the number of leaves can change.
+
+Lemma 1. For any N ≥ 1 and r = O(N w), suppose that there is a dynamic FID for a set
+O(N ) elements using O(r) redundancy.
+                               √      Then, for any n, there is a dynamic FID for a set of n
+elements with O(n + nr/N + nw/ N ) redundancy and the running time of each operation increases
+by O(logw (n)) additively.
+
+
+
+                                                         9
+Proof. We use a leaf-oriented tree where each leaf λ handles a set Sλ of Θ(N ) elements. Let {zλ }Λ−1
+                                                                                                  λ=0
+be the splitters, as described in Section 3.2, let uλ = zλ+1 − zλ , where z−1 = 0 and zΛ = u, and let
+nλ = |Sλ |. The space used by the leaves is:
+            Λ−1
+            X                        P                     
+                     uλ                     λ uλ                 u
+                  lg          + O(r) ≤ lg P        + O(Λr) = lg     + O(nr/N ) bits.               (6)
+                     nλ                    λ nλ                  n
+            λ=0
+                                                                   P
+As shown in the previous sections, the leaves incur additional λ O(nλ + r) = O(n + nr/N ) bits
+to the redundancy, considering merging/splitting nodes.                 √
+    For managing the memory of the FIDs, we use     chunks of s = Θ(w N ) bits;√they are stored first
+in the memory array. There are at most (lg nuλλ + O(r))/s = O(N w)/s = O( N ) chunks per leaf
+                                                 
+                                                                                            √
+λ. For each leaf λ, we keep an array of pointers Pλ to its chunks. This array takes O( N w) bits,
+which we store in an additional chunk. Accessing an address a in the FID of leaf λ translates into
+reading address Pλ [⌊a/s⌋] + (a mod s). We round s to a power-of-two to simplify this expression.
+Each leaf wastes O(1) chunks and O(w) bits.
+   √We cannot use Lemma 5 directly because an operation may need to allocate a new chunk          √ of
+O( N w) bits. We exploit the fact that when a leaf allocates a new chunk, it will take O( N )
+operations until it asks for another (and similarly, until it frees another chunk).   After
+                                                                                         t insertions,
+                                                                          u
+                                                                               − log2 nu = log2 u−n
+                                                                                                   
+the space changes by at most O(tr) bits for the redundancy and log2 n+t                          t    −
+      n+t          u
+                   
+log2 t ≤ log2 t ≤ t lg u bits for the main term. Hence, a leaf may need a new chunk only after
+                                 √
+s/(lg u + O(r)) ≥ s/O(w) = Ω( N ) insertions. Deletions are analogous.                   √
+    Leveraging this observation, after the chunks, we maintain a free space of O(nw/ N ) bits, and
+only after that, the internal nodes (O(nw/N ) bits) using Lemma 5. When a new chunk is allocated
+in the free space, we allocate an additional word at every operation. There is room for O(1) unused
+chunks for each leaf in the free space, and hence allocation of a chunk takes O(1) time. At the cost
+of adding O(w) bits to s, we keep a free-list of unused chunks and lazily move the last used chunk
+in the free space to the oldest
+                          u
+                                unused chunk in the
+                                                   √ free-list. This addsu
+                                                                            O(1) chunks per leaf,√and
+hence this FID uses lg n + O(n + nr/N ) + O(w N ) · O(n/N ) = lg n + O(n + nr/N + nw/ N )
+bits.
+
+
+4     Small FIDs
+In this section, we construct a dynamic FID given only a rank index. First, we show how to
+construct a select0 index using almost the same redundancy as the rank index. Next, we show a
+dynamic select1 dictionary for n = wO(1) elements using lg nu + O(n log w) bits. Together, this
+proves Lemma 2.
+
+4.1   Succinct partial-sum
+Before we construct our small FID, we first describe a searchable partial-sum that will be used in
+the next sections. The details of this construction will be useful to implement the select0 index.
+We provide a version of the construction of [PD04b, PD06], with the adaptions of [BCC+ 18] to
+support indels in the sum. We assume that σ is fixed with lg σ ≤ w, and that we are allowed O(1)
+words of constants that depend on lg σ and w. We claim the following theorem.
+Theorem 4 (Based on [PD06, §8] and [BCC+ 18, §3]). For k = O(w/(δ + log w)), given a ⟨w, r, t⟩-
+index, there is a searchable partial-sum for a sequence A ∈ [σ]k using k lg σ + O(kr + k log w) bits,
+with O(1) time sum and O(t) time search, updates, and indels in the sum.
+
+                                                  10
+                      δ+2 2
+Proof. Let b = 2lg lg(2 k ) ≤ 2 lg(2δ+2 k 2 ) = O(δ + log w). We store a k × b packed array T and an
+array D of k lg(σw)-bit elements (lg(σw) = lg σ + O(log w)), such that sum(A, i) = D[i] + T [i].
+    To aid with the search operation, we define the set of representative positions of the array
+A. Let {r0 < r1 < · · · < rm−1 } ⊆ [k] such that A[ri ] ≥ 2δ+1 k, and store the set in a packed array
+R of k × lg w bits. The array D maintains D[ri ] = D[ri + 1] = · · · = D[ri+1 − 1]. This implies
+that the sequence T [ri : ri+1 − 1] is non-decreasing. We guarantee 2δ k ≤ T [ri ] ≤ 2δ+1 k for every
+position ri ∈ R; which implies 2δ k ≤ T [i] ≤ 2δ+1 k 2 + 2δ k for any i. Use the given rank index
+for D[R], i.e., the set {D[r0 ], · · · , D[rm−1 ]}. For search(A, z), let i = rank(D[R], z − 1), i.e.,
+D[ri ] < z ≤ D[ri+1 ]. Observe z > D[ri ] = sum(A, ri ) − T [ri ] ≥ sum(A, ri ) − 2δ+1 k ≥ sum(A, ri−1 ),
+thus we do not need to check indices below ri−1 . If z = sum(A, ri+1 ), or z = sum(A, ri ), we
+are done, otherwise, if z < sum(A, ri ), let j = i − 1, and, if z ≥ sum(A, ri ), let j = i; return
+rj + rank(T [rj : rj+1 − 1], z − D[rj ]).
+    All updates are handled through T in O(1) time: for A[i] ← A[i] ± ∆, compute T ← T ±
+((0b−1 1)k ≪ (i × b)) × ∆. We want to maintain 2δ k ≤ T [i] ≤ 2δ+1 k 2 + 2δ k (unless D[i] = 0), so that
+after k operations, it does not overflow or underflow. To rebuild lazily, we keep an index t and update
+D[t] and T [t], advancing t; this is repeated 4 times per update. We keep two copies of R and the
+index of D[R], for A[0 : t − 1] and A[t : k − 1]. If A[t] ≥ 2δ+1 k, set T [t] = min{D[t] + T [t], 2δ k} and
+D[t] = max{D[t] + T [t] − 2δ k, 0}, and update R and D[R] accordingly. Otherwise, D[t] = D[t − 1]
+and T [t] ← D[t] + T [t] − D[t − 1], and update each R and D[R]. Note that R can be updated
+in O(1) time using a conditional write, when adding and removing representatives. Updating the
+rank index takes an additional O(t) time.
+    Indels in the sum can be supported as follows. Because k = O(w/ log w), we implement indels
+in D as before, storing it out of order and using a permutation, represented as a packed array of
+k ×lg w bits. After an indel, at most two elements of A change, and thus at most two representative
+elements need updating (to insert or delete from D[R]). We update T , R, and the rank index of
+D[R] analogously to partial-sum updates. We use Lemma 5 to concatenate D with the other
+structures.
+
+Corollary 1. For k = O(w/(log σ + log w)), there is an SPS that uses k lg σ + O(k log w) bits and
+all operations take O(1) time.
+
+Proof. We only need the packed array T of k × lg(σw) bits, where T [i] = sum(A, i). Therefore,
+search(A, z) = rank(T, z) and as T fits in a word, all operations are O(1) time.
+
+    The important observation that we will need in the next section is the following. If the array
+Z[i] = sum(A, i) is already stored and up-to-date, then, we do not need to store D and instead can
+rewrite all reads of D[i] into Z[i] − T [i], and ignore all updates to D.
+
+4.2    Extending indices
+Given a ⟨w, r, t⟩-index for rank1 , it still remains to solve select0 for a small set S of n = wO(1)
+elements. Using a leaf-oriented tree, we reduce a set of n = wO(1) element to O(w/ lg w) elements,
+using an additional O(nw/(w/ log w)) = O(n log w) bits and O(1) time. Consider n = O(w/ lg w).
+    We use the following idea, first presented in [GORR09, §2] for the static case. We keep an SPS
+for an array M such that sum(M, i) = select1 (S, i) − i, encoded with Theorem 4 using the given
+rank index. Then, select0 (S, i) = i + search(M, i) and an update of S is an indel to the sum of
+M , followed by an update. That is, to insert xi into S, we insert (in the sense of indel) xi into the
+sum of M . However, after this insertion, all ranks after i must decrease by 1, which we fix with an
+update of ∆ = −1 into M . Deletion is analogous.
+
+
+                                                    11
+    We already have access to a select1 dictionary for S that is up-to-date. In the notation used
+in the proof of Theorem 4, we have an array D with D[i] = select1 (S, i) − i − T [i]. The crucial
+point is that we do not need to store D at all, as computing D[i] takes O(1) time using the select1
+dictionary and T . Thus, we only need O(nr + n log w) additional bits to compute select0 (S, i).
+We summarize with the following lemma.
+
+Lemma 6. Given a ⟨w, r, t⟩-index there is a select0 index for a set of n = wO(1) elements using
+O(nr + n log w) bits and taking O(t) time for select0 and update.
+
+4.3   Constructing the dictionary
+Next, we implement a select1 dictionary using lg nu + O(n log w) bits, for a set of n = wO(1)
+                                                   
+
+elements. We also describe how to manage the memory of this dictionary, together with rank and
+select0 indices, to prove Lemma 2.
+
+Lemma 2. Given a ⟨w, r, t⟩-index, there is a dynamic FID for a set of n = wO(1) elements,
+with O(nr + n log w) redundancy, taking O(t) time for rank/select0 /updates, and O(1) time for
+select1 .
+
+Proof. The operations rank/select0 and update are as in Section 4.2, using the given rank index;
+this takes O(nr + n log w) bits and O(t) time for n = O(w). For n = wO(1) , we use a leaf-oriented
+tree, increasing the time by a constant factor. The internal nodes have degree w and use the same
+rank index, further incurring O(nw/w) = O(n) bits.
+    Denote S = {x0 < x1 < · · · < xn−1 } ⊆ [u]. To build the select1 dictionary, we store the
+array V = {xi }n−1
+                i=0 , using n lg u bits. Indels are supported in V as follows, extending Lemma 3 to
+n = wO(1) . We store V out of order, denoted V ∗ , with only append/remove at the end, and store
+an array P such that V [i] = V ∗ [P [i]]. We use a leaf-oriented tree with leaves partitioning P into
+Θ(w/ lg w) elements. As mentioned, a packed array representing Θ(w/ lg w) elements of P can be
+maintained using O(w) bits and O(1) time for operations. Similarly, internal nodes have degree
+Θ(w/ lg w) and employ the construction of Corollary 1 for navigation. To support deletion, we store
+the maximum of each subtree for every internal node. Updating position i∗ where P [i∗ ] = n − 1
+simply requires walking down the tree following the maximum, which can be computed and updated
+in O(1) time per node. The leaves of P take O(n log w) bits and, accounting for the pointers, the
+internal nodes for P incur another O(nw/(w/ log w)) = O(n log w) bits
+    We use Lemma 5 to concatenate         ∗
+                                   u
+                                      V with P and the rank and selectu0 indices. The space used
+is n lg u + O(nr + n log w) = lg n + O(n log n) + O(nr + n log w) = lg n + O(nr + n log w) bits,
+recalling that n = wO(1) .
+
+Corollary 2. For n = wO(1) , there is a select1 dictionary using lg nu + O(n log w) bits with O(1)
+                                                                         
+
+time for all operations.
+
+
+5     Small indices
+In this section, we first describe a rank index that stores n ≤ wϵ/2 using O(nwϵ /ϵ) bits of space with
+O(1/ϵ) time for rank and update in standard Word-RAM, for any given parameter ϵ ≤ 1/2. That
+is, we construct a ⟨wϵ/2 , O(wϵ /ϵ), O(1/ϵ)⟩-index. This is a modification based on the index given
+in [PT14] to use fewer bits. We then extend this index to n = O(w), √      keeping the space and time
+complexity, proving Theorem 2. By exploiting binary search for ϵ = 1/ lg w, we prove Theorem 3.
+
+
+
+                                                  12
+5.1   Compressed keys
+We present a systematization and generalization of the construction of [PT14]. The main idea
+within a small index is to first compute rank on a compressed key, which uses only the most
+significant bits that differentiate elements in the set. There are at most n significant bits for a set
+of n elements. We do not allow for unused zero bits in the compressed key, as in [PT14], differing
+from [FW93].
+Definition 2. Given a set S of n w-bit values, define the set of significant bit-positions to be
+{c0 < c1 < · · · < ck−1 } = {msb(x ⊕ y) | x, y ∈ S}. Importantly, k ≤ n. For x ∈ {0, 1}w , a com-
+pressed keyP x̂ ∈ {0, 1}k is a k-bit value such that x̂[i] = x[ci ], for every i ∈ [k]. Equivalently, we
+define x̂ = k−1i=0 (x[ci ] ≪ i).
+
+     We represent the set of significant bits by a packed array C. For an array C of n bit positions,
+                   Pn−1
+denote ΠC (x) =      i=0 (x[C[i]] ≪ i). A compression is a procedure that computes ΠC (x), and
+thus, computes a compressed key. An update to S will insert or delete at most a single significant
+bit-position, and thus updates are indels into C. We remark that there is a non-standard AC0
+operation that is input C and x and computes ΠC (x) [AMT99]. However, this is not possible in
+the standard Word-RAM model, and thus we will need to use ancillary values, similar to Lemma 4.
+We carefully consider that a compression must update those values according to the updates to C.
+     Given a compression, it suffices to construct a rank index over the set of compressed keys
+{x̂ | x ∈ S}. In [CFHK15], it is argued that any such index can be used to solve the weak prefix
+problem [BBPV10], which was shown to require Ω(n log w) bits. We cite the following theorem
+that implements this index using a packed array while supporting updates.
+                                                                                                √
+Theorem 5 ([PT14, §3]). Suppose we are given a compression for a set of at most n = O( w)
+elements using O(s) ancillary bits and taking O(t) time for compression and update. Then, there is
+a rank index using O(n2 +n log w +s) bits and taking O(t) time for rank and update, and accessing
+the select1 dictionary O(1) times.
+Proof Sketch. Assume that n is a power-of-two. Let x̂ = ΠC (x). For i ∈ [n], let φi ∈ {0, 1}n be such
+that φi [j] = 1 iff cj = msb(xi ⊕ z) for some z ∈ S \ {xi }; and 0 otherwise. Store an n × lg w packed
+                                                          2
+array C with C[i] = ci , and two masks B, F ∈ {0, 1}n where F [i | n] = ¬φi and B[i | n] = x̂i ∧ φi .
+Define match(x) = rank(B ∨ (x̂n ∧ F ), x̂), which takes O(t) time, due to the compression.
+    For rank(S, x), we compute i = match(x) and j = msb(xi ⊕ x). To get xi , we access the
+select1 dictionary. Then, rank(S, x) is: i if x = xi , match(x ∧ (1w−j 0j )) − 1 if x < xi , and
+match(x ∨ (0w−j 1j )) if x > xi . Updates to B and F also take O(t) time, as one must first match
+the inserted/deleted element.
+
+    The compression of [PT14] for n ≤ w1/4 stored Θ(w) ancillary bits that depend on C, which
+dominates the O(n2 + n log w) term. If we insist on storing fewer bits, we must change the com-
+pression, as even a mask of the significant bits takes w bits. As in [FW93, PT14], we will use
+multiplication as the main workhorse for our compression.
+    Let us describe a version of the compression given in [PT14, §3] that works for a b-bit value
+and uses only b-bit operations. First, we show that we can permute n bits arbitrarily, as long as
+they are already packed into O(w/n) bits, using the same techniques as Lemma 4. We will use this
+result again in the next section.
+Lemma 7. Given b and n where n ≤ b and 2bn ≤ w, and an array C of n bit positions, the
+function ΠC : {0, 1}b → {0, 1}n can be computed in O(1) time using O(b) ancillary bits that depend
+on C.
+
+                                                  13
+                     b
+Proof. Let µ ∈ {0, 1}  where µ[C[i]] = 1 for i ∈ [n]; 0 otherwise. Define
+                    Pn−1                                              Pn−1the following   functions on b-
+                                                                                    2b−1 1)n )[i | 2b] ≪ i ,
+                                                                                                          
+bit values: Λ0 (x) = i=0 (x ∧ µ)[C[i]] ≪ (i × 2b) , and Λ1 (x) = i=0 (x ∧ (0
+so that ΠC (x) = Λ1 (Λ0 (x)). We use Lemma 4 for Λ1 ,P   and for Λ0 we follow a similar procedure to get
+Λ0 (x) = (((x ∧ µ) × α) ≫ b) ∧ (02b−1 1)n , where α = n−1  i=0 (1 ≪ (i × 2b + b − C[i])) ∈ {0, 1}
+                                                                                                    2bn
+                                                                                                        .
+
+   The final trick is to show that one can pack n significant bits into O(n2 ) bits in O(1) time. We
+provide the full proof here for completeness and to make explicit some properties of the compression
+that we will need later. This is a slight generalization as it allows C to be any array of bit positions,
+not just representing a set.
+
+Theorem 6 (Generalization of [PT14, §3]). For b ≤ w and an array C of n bit positions, where
+n ≤ min{b1/3 , w1/4 }, the function ΠC : {0, 1}b → {0, 1}n can be computed in O(1) time using O(b)
+ancillary bits that depend on C. An update to C takes O(1) time to update the ancillary bits.
+
+Proof. Assume that n = Θ(min{b1/3 , w1/4 }) and that n is a power-of-two. Due to rounding, we
+can divide C into two halves and compute the compression in each separately. This increases the
+number of ancillary bits and the time by at most a constant.
+     Let C ∗ be the unique and sorted bit positions of C. We represent C and C ∗ by n × lg b packed
+arrays, and we maintain a permutation P such that C[i] = C ∗ [P [i]]. Thus, ΠC (x) = ΠP (ΠC ∗ (x)),
+where ΠP uses Lemma 7. Updates to C take O(1) time to update C ∗ and P using packed array
+operations. Concretely, to insert c into C at position i, we first compute j = rank(C ∗ , c). If
+C ∗ [j] ̸= c, we insert c into C ∗ at position and add 1 to all indices i∗ with P [i∗ ] ≥ j. This computation
+takes O(1) time using a parallel comparison followed by a conditional write (c.f. Section 2.1.1).
+Then, insert j into P at position i. To update ΠP , let αP be the ancillary multiplier of ΠP
+of Lemma 7, i.e., αP [i∗ | 2n] = 1 ≪ (n − P [i∗ ]). To account for the change in P , we shift by 1 all
+entries in αP with αP [i∗ | 2n] ≤ 1 ≪ (n − j) (using a parallel comparison and a conditional write),
+then insert 1 ≪ (n − j) at position i. Deletion is analogous. We now assume C = C ∗ .
+     Let d = n2 /2. First, we prove this general procedure to pack blocks into O(d) bits without
+overlap. Given u ∈ {0, 1}d and v ∈ {0, 1}2d where wt(u) + wt(v) ≤ n, there is a shift value
+0 ≤ s ≤ d/2 such that (u ≪ s) ∧ v = 0. Observe ((u ≪ s) ∧ v)[i] = 1 iff v[i] = 1 and u[i − s] = 1.
+For a pair v[i] = u[j] = 1, the shift s = i − j yields an overlap in position i. Then, there
+are at most wt(u) × wt(v) ≤ (n/2)2 = d/2 shift values that yield overlaps, and hence at least
+one 0 ≤ s ≤ d/2 yields no overlaps, as there are d/2 + 1 options. To compute s, we compute
+                                                     Pd/2                                   2
+z = (u × αS ) ∧ (v × (02d−1 1)d ), where αS = s=0 (1 ≪ (s + s × 2d)) ∈ {0, 1}2d . This value fits in
+a word, as 2d2 = 2n4 /4 ≤ w. A shift value s is good iff z[s | 2d] = 0, and we find it in O(1) time
+using element search in a packed array.
+     Let µ ∈ {0, 1}b where µ[C[i]] = 1 for i ∈ [n]; 0 otherwise. Updates to µ also take O(1) time. Let
+k = ⌈b/d⌉ and let {si }k−1 i=0 be definedP  recursively as follows. For every i ∈ [k], we apply the previous
+procedure with u = µ[i | d] and v = i−1      j=0 (µ[j | d] ≪ sj ) to find the shift value 0 ≤ si ≤ d/2. Define:
+
+                                         k−1
+                                         X
+                                Υ(x) =       ((x ∧ µ)[i | d] ≪ si ) ∈ {0, 1}2d .                              (7)
+                                          i=0
+
+We compute Υ with a variation of Lemma 4. Let α = k−1                                            b
+                                                      P
+                                                        i=0 (1 ≪ (si + (k − 1 − i) × d)) ∈ {0, 1} . To
+avoid overlap between blocks in the multiplication, we mask the even and odd blocks. To this end,
+denote xe = x ∧ E and xo = (x ≫ d) ∧ E, where E = (0d 1d )k . Therefore, we compute as follows:3
+   3
+   This expression is corrected from [PT14] for even n, as the shifts corresponding to the even indices are in the
+odd positions of α.
+
+
+                                                       14
+Υ(x) = (((x ∧ µ)e × αo ) ⊕ ((x ∧ µ)o × αe )) ≫ ((k − 2) × d). After each multiplication, there may
+be overlap on all but the last block. However, it does not overflow to the neighboring even block,
+as lg(n × 0d 1d ) ≤ 3d/2, and thus the expression correctly computes Υ.
+    The value Υ(x) ∈ {0, 1}2d has the relevant bits in some order: Υ(x)[D[i]] = x[C[i]]. Namely,
+D[i] = C[i] ∧ 1lg(d) + sC[i]≫lg(d) . We now permute the n significant bits to the correct order. That is,
+we compute ΠD (z) = n−1                                                                           3
+                        P
+                            i=0 (z[D[i]] ≪ i) so that ΠC (x) = ΠD (Υ(x)). Because 2(n/2) · 2d = n ≤ b,
+we apply Lemma 7 separately to D[0 : n/2 − 1] and D[n/2 : n − 1], then concatenate the resulting
+(n/2)-bit values.
+    We briefly discuss updates in C. Recall that C is sorted. When adding a bit-position c to C, we
+compute the new shift value for the block i = c ≫ lg(d) by repeating the packing procedure with
+u = µ[i | d] and v = Υ(µ). Then, update D and the multiplier of Υ. The ancillary values used in
+ΠD , namely its multiplier αD , can be updated by shifting the segments associated with the range
+of indices contained in the i-th block. We compute this range by applying rank to the packed array
+C. This step requires that C is sorted so that there is a contiguous range of bit positions for the
+i-th block. Deletions just need to update ΠD . This concludes the compression.
+
+5.2    Using fewer bits
+We present our compression. Our idea is to divide the word into blocks of b = Θ(nwϵ ) bits, and
+show that we can compress all blocks in parallel in O(1) time using O(b) ancillary bits. After
+gathering the blocks using an instance of Lemma 4, we get a packed array of wn/b = Θ(w1−ϵ ) bits
+containing all significant bits (in some order). After repeating O(1/ϵ) times, all significant bits fit
+within a block and thus can be sorted to get the compressed key (using Lemma 7). We define the
+following class of functions that we will show that can be parallelized. That is, that can be applied
+to many elements in a packed array, taking the same time.
+
+Definition 3. For b ≤ w, a function f : {0, 1}b → {0, 1}b that can be computed in O(1) time is
+simple if it is of the form:
+                            
+                            
+                            x
+                                             for α ∈ {0, 1}b
+                            
+                            α
+                            
+                            
+                            
+                     f (x) = g(x) × α        for g simple, α ∈ {0, 1}b                     (8)
+                            
+                             g(x) ⋄ α        for g simple, α ∈ [b], ⋄ ∈ {≪, ≫}
+                            
+                            
+                            
+                            
+                            
+                             g1 (x) ⋄ g2 (x) for g1 , g2 simple, ⋄ ∈ {+, ∧, ∨, ⊕} .
+                            
+
+All operations are restricted to b bits. Equivalently, a function is simple if it uses at most O(1)
+operations and all multiplications and shifts are by a constant.
+
+   The storage of f is defined by the space used by the ancillary values α. Recall that values that
+only depend on w can be stored in lookup tables so as not to take any storage. We prove that we
+can parallelize a simple function without additional storage.
+
+Lemma 8. For b ≤ w and k ≤ w/b, let f : {0, 1}b → {0, 1}b be a simple function. Then, there is
+a simple function f k : {0, 1}kb → {0, 1}kb , where f k (x)[i | b] = f (x[i | b]) for every x ∈ {0, 1}b and
+i ∈ [k], and that uses the same ancillary values as f .
+
+Proof. We define f recursively. For a constant f (x) = α, let f k (x) = α × (0b−1 1)k = αk , i.e., α
+repeated k times. Otherwise, we must handle possible overflow. We define the naı̈ve extension
+f (k) (x) = g k (x) ⋄ α or f (k) (x) = g1k (x) ⋄ g2k (x). For ⋄ ∈ {∧, ∨, ⊕}, we take f k = f (k) . The other
+
+                                                    15
+operations yield at most b additional bits of overflow, thus we mask out the even b-bit blocks. Let
+E = (0b 1b )⌈k/2⌉ ∧ 1kb . Define f k (x) = (f (k) (x ∧ E) ∧ E) ⊕ ((f (k) ((x ≫ b) ∧ E) ∧ E) ≪ b). This
+procedure increases the number of operations by at most a constant factor, keeping time O(1).
+Note that E and (0b−1 1)k only depend on b and k and are stored in a lookup table.
+
+   Note that Lemma 4 shows that some compressions can be implemented by a simple function.
+The main observation is the following.
+
+Observation 2. The compression of Theorem 6 is a simple function.
+
+    Note that we do not need the updates to the ancillary bits to be simple functions. Apply-
+ing Lemma 8, we compress each b-bit block separately in parallel, using the same compression and
+storing only O(b) bits. Now, we need to gather the blocks, which we state next.
+
+Lemma 9. For any a ≥ 1 and k ≤ w/(an), there exist a function Γ : {0, 1}kan → {0, 1}kn and a
+permutation γ : [k] → [k] that can be computed in O(1) time in standard Word-RAM, such that
+Γ(x)[γ(i) | n] = x[i | an] ∧ 1n , for i ∈ [k].
+
+Proof. Let b = an, we divide x into k b-bit blocks. Assume that k is a multiple of a, otherwise, divide
+into the first a × ⌊k/a⌋ blocks and the remaining blocks (at most a) and handle each separately.
+To gather all blocks, P
+                      we interlace super-blocks of kn bits that   contain k/a b-bit blocks. Concretely,
+                         a−1        b−n n k
+we compute Γ(x) = i=0 (x ∧ (0 1 ) )[i | kn] ≪ (i × n) , using Lemma 4. Hence, the block at
+index i = i0 + i1 × k/a in x is mapped to index i1 + i0 × a = i × a − (k − 1) × i1 in Γ(x), and thus the
+permutation is γ(i) = ia−(k−1)×⌊ia/k⌋.
+                                   Pk−1      Its inverse is γ −1 (i) = i×k/a−(k−1)×⌊i/a⌋.     For k < a,
+                                                  b−n  n k
+                                                                             
+let γ(i) = i and compute Γ(x) = i=0 (x ∧ (0 1 ) )[i | an] ≪ (i × n) using Lemma 4.
+
+    For b ≥ n3 , the big idea is to pack w bits to wn/b bits, in some order, and repeat t times until
+w · (n/b)t ≤ b, which can be packed in the correct order to get the compressed key. We have the
+following theorem.
+
+Theorem 7. For every ϵ ≤ 1/2, for n ≤ wϵ/2 , there is a compression taking O(1/ϵ) time in
+standard Word-RAM for compression and update, storing O(nwϵ /ϵ) ancillary bits.
+
+Proof. First, we store an array C of the significant bits, taking n × lg w bits. Updates to C
+maintaining sorted order take O(1) time.          √
+    If ϵ ≤ lg lg w/ lg w, it holds that wϵ/2
+                                           Pn−1≤ lg w = O(1/ϵ). In this case, for n ≤ wϵ/2 the
+compression is computed naı̈vely: x̂ =        i=0 (x[C[i]] ≪ i); and it takes O(n) = O(1/ϵ) time,
+requiring only to store and update the packed array C of significant bit-positions. Recall wϵ /ϵ =
+Ω(log w), thus the upper bound holds.
+    Otherwise, define b = nwϵ , assume n and b are powers-of-two. To avoid rebuilding when n
+changes, we de-amortize as described in Observation 1. Observe n3 ≤ nwϵ = b, thus Theorem 6
+applies. We proceed as follows: each block of b bits is compressed into n bits in parallel in the
+same way, then all blocks are compressed to w · (n/b) bits. Apply this t = O(⌈1/ϵ⌉) times, until we
+get w · (n/b)t ≤ b remaining bits. We allow the compression in each step to permute the significant
+bits. This will be important for updates, as we will see. In the last step, we compress into n bits
+and correct the ordering.
+    Let us consider the first iteration. We maintain an array R of n distinct elements from [b] such
+                                                                      w/b
+that {C[i] mod b}n−1             n−1
+                   i=0 ⊆ {R[i]}i=0 . Using Lemma 8, we construct ΠR (x) that packs every block
+in parallel, using only O(b) ancillary bits. For an update, we will change at most one entry of R,
+which are reflected in the ancillary bits of ΠR , as per Theorem 6.
+
+
+                                                  16
+     To complete the step, let Γ be the function from Lemma 9 for k = w/b and a = b/n = wϵ . Then,
+              w/b
+Λ(x) = Γ(ΠR (x)) packs x into wn/b = w1−ϵ bits, preserving the significant bits. Concretely, the
+                                                                                            w/b
+significant bit at position c = R[i] + j × b, moves to position i + j × b by ΠR , then moves to
+position i + γ(j) × n, where γ is the permutation from Lemma 9 of Γ. The resulting position is
+thus c′ = i + γ(j) × n where i is the index of c mod b in R and j = ⌊(c − R[i])/b⌋, all computed
+in O(1) time. The original P        significant bit positions C are moved to some new set of positions C ′ .
+Essentially, Λ(x) computes n−1                            ′
+                                       i=0 (x[C[i]] ≪ C [i]).
+     To insert or delete position c, we update the current C and R, and we need to ensure that only
+c′ needs to be updated in C ′ . To this end, we store a packed array F ∈ {0, 1}n of unused positions.
+That is, F [i] = 1 iff R[i] ∈    / {C[j] mod b}n−1 j=0 ; otherwise, F [i] = 0. Deletion is lazy: when deleting
+position c, we set F [i] = 1 only if there is exactly one entry in C with remainder R[i] = c mod b.
+Namely, the entry corresponds to c, found by element search in a packed array. When inserting
+position c, if c mod b is not in R, we find an unused position j = lsb(F ), and set F [j] = 0 and
+R[j] = c mod b. Hence, we modify R without changing the permutation of the other bits, and
+therefore the next iteration C ′ needs to insert/delete at most one bit.
+     Let Cs and Rs be the respective C and R at step s ∈ [t], where Cs′ = Cs+1 . Each step
+                                                                             w/b
+stores O(b + n log w + n) = O(nwϵ ) bits. Define Λs (x) = Γs (ΠRs (x)), where Γs is the function
+from Lemma 9 for k = (w/b) · (n/b) blocks and a = b/n = wϵ . As Γs only depends on lg n,
+                                               s
+
+lg b, s, and w, we may store its ancillary bits as a constant lookup table (O(log3 w) words). Let
+x̃ = Λt−1 (· · · Λ1 (Λ0 (x)) · · ·). We packed x into b bits: x̃ ∈ {0, 1}b . At this point, Ct encodes the
+positions of the significant bits after packing, i.e., x̃[Ct [i]] = x[C[i]]. Finally, the compression is
+x̂ = ΠCt (x̃) = ΠCt (Λt−1 (· · · Λ1 (Λ0 (x)) · · ·)) using Lemma 7.
+
+   Applying Theorem 5 using the compression of Theorem 7, gives a ⟨wϵ/2 , O(wϵ /ϵ), O(1/ϵ)⟩-index,
+as O(n2 + n log w + nwϵ /ϵ) = O(nwϵ/2 + nwϵ /ϵ) = O(nwϵ /ϵ).
+
+5.3    Leveraging trees
+Next, we show how to use leaf-oriented trees to increase the number of elements that a rank
+index can store up to w elements, with the same space per element. First, we need to refine the
+construction of Section 3 to use less space for the internal nodes and manage memory.
+    Looking in detail in Section 3.2, to compute rank, the internal nodes store a set of split-
+ters {zi }d−1
+          i=0 , and stores a rank index for it and an SPS N1 where sum(N1 , i) = rank(S, zi ). We
+use Corollary 1 to implement the SPS with σ = O(w). To avoid storing zi , we require zi ∈ S and
+use Equation (4) instead of Equation (5). Thus, zi = select1 (S, sum(N1 , i)). This requires replac-
+ing zi if it is deleted from S, say by the minimum of its corresponding subset. The consequence of
+this change is that all rank indices must be over the same universe [u]. Finally, we use O(log w)-bit
+pointers, and therefore, an internal node of degree d for this tree uses O(d log w) bits, plus the
+space for its rank index. We use the technique described Section 3.4 to maintain linear space even
+when using O(log w)-bit pointers.
+    Given these constructions, we now build leaf-oriented trees for rank. An immediate application
+of this is to use a two-level (wϵ/2 , 4wϵ/2 )-tree with the ⟨wϵ/2 , O(wϵ /ϵ), O(1/ϵ)⟩-index resulting from
+Theorems 5 and 7, to get the following.
+
+Corollary 3. For every ϵ ≤ 1/2, there is a ⟨wϵ , O(wϵ /ϵ), O(1/ϵ)⟩-index.
+
+   We are now able to prove Theorem 2. For this construction, we√use exponential trees [AT07],
+where the degree decreases exponentially with the level, i.e., di+1 = di , so that we achieve O(1/ϵ)
+time. Here, we exploit the fact that our index of Corollary 3 is parameterized.
+
+                                                     17
+Theorem 2. For every ϵ ≤ 1/2, there is a ⟨w, O(wϵ /ϵ), O(1/ϵ)⟩-index in standard Word-RAM.
+This index queries the select1 dictionary O(log(1/ϵ)) times.
+
+Proof. We construct a leaf-oriented exponential tree with O(lg(1/ϵ)) levels. We use leaves of degree
+wϵ using the ⟨wϵ , O(wϵ /ϵ), O(1/ϵ)⟩-index of Corollary 3, and use O(nwϵ /ϵ) bits and take O(1/ϵ)
+time. For 0 ≤ i ≤ log(1/ϵ) − 1, let ϵi = 1/2i+1 . We use internal nodes of degrees di = wϵi , where
+each level i uses the ⟨wϵi , O(wϵi /ϵi ), O(1/ϵi )⟩-index. There are O(n/wϵ ) leaves (at level lg(1/ϵ)),
+                                                                  √          √
+and by induction, level i has O(n/wϵi−1 ) nodes. Note that n/ w = O( w), and hence the root can
+use the ϵ = 1/2 index. Therefore, level i uses (n/wϵi−1 ) · O(w ϵi    ϵi
+                                                             P · w /ϵi ) =    O(n/ϵi ) bits, and thus the
+                                  Plog(1/ϵ)−1                    log(1/ϵ)−1   i
+space used by internal nodes is i=0            O(n/ϵi ) = O      i=0        n2 = O(n/ϵ). The internal
+                                            ϵ
+pointers and partial-sums take O((n/w )log w) = O(n/ϵ)         bits. Lastly, the time to navigate the
+                  Plog(1/ϵ)−1                  Plog(1/ϵ)−1 i 
+internal nodes is i=0         O(1/ϵi ) = O        i=0      2 = O(1/ϵ). Note that this index accesses
+the select1 dictionary O(log(1/ϵ)) times, O(1) times per level.
+
+5.4    Super-constant time
+We investigate 1/ϵ = ω(1) to achieve o(n log w) bits for the rank index. The main trick we use is
+the following. For indices that take O(t) = ω(1) time, we repeat a binary search in the select1
+dictionary so that the tree only stores n/2O(t) elements. This modification does not change the
+time (still O(t)),                                        O(t) .
+               √ but reduces the space by a factor of 2
+    For ϵ = 1/ lg w, we can also replace the index on the leaves
+                                                              √ of Theorem 2, which dominates
+                                                                                         √ the
+                                                      ϵ
+space, with a binary search. This uses O(1/ϵ+log w ) = O( log w) time and O(n/ϵ) = O(n log w)
+bits. Furthermore, repeating the binary search in the leaves O(1) additional times yields the
+following.
+                                    √            √
+Theorem 3. There is a ⟨w, 1/2O(    √
+                                      log w) , O( log w)⟩-index in standard Word-RAM. This index
+
+queries the select1 dictionary O( log w) times.
+
+    If we want to reduce the number of accesses to the select1 dictionary, as in [CFHK15], re-
+call that for ϵ ≤ lg lg w/ lg w, the construction of Theorem 7 does not require ancillary values to
+achieve O(1/ϵ) time. That is, it is a ⟨wϵ , O(log w), O(1/ϵ)⟩-index. Using an exponential tree as
+in Theorem 2, the space is O(n/ϵ) + O(n log w) = O(n log w) bits, and the time is O(1/ϵ). That is
+a ⟨w, O(log w), O(log w/ log log w)⟩-index. This index queries the select1 dictionary O(log log w)
+times. Applying binary search only increasing O(log log w) accesses, reduces the space by a factor
+of 2O(log log w) = (log w)O(1) .
+                            D                          E
+Corollary 4. There is a w, 1/(log w)O(1) , O logloglogww -index in standard Word-RAM. This index
+queries the select1 dictionary O(log log w) times.
+
+
+6     Extensions
+In this section, we extend our technique to other cases of interest, namely, different instruction sets
+and the static case.
+
+6.1    Other computational models
+The implementation of a rank index heavily depends on the available O(1) time instructions of the
+model. All models we discuss allow for standard AC0 operations. In the “cell-probe” model, any
+
+
+                                                    18
+     Reference        Dyn.        Model         N       Space/N           Time          Accesses
+                                                w
+     [AFK84]           ✓        Cell-probe     lg w     O(log w)          O(1)            O(1)
+      [FW93]           ✗      Multiplication   w1/6      O(w5/6 )         O(1)            O(1)
+     [BBV10]           ✓      Multiplication    −       O(log w)       Oexp (log w)     Oexp (1)
+                                                w
+    [CFHK15]           ✗      Standard AC0     lg w     O(log w)        O(log w)          O(1)
+      [PT14]           ✓      Multiplication   w1/4      O(w3/4 )         O(1)            O(1)
+ [PT14]+[AMT99]        ✓      [AMT99] AC0       wϵ        O(wϵ )          O(1)            O(1)
+ Ours (Corollary 3)    ✓      Multiplication    wϵ       O(wϵ /ϵ)        O(1/ϵ)           O(1)
+ Ours (Theorem 2)      ✓      Multiplication    w        O(w√ϵ /ϵ)       O(1/ϵ)        O(log(1/ϵ))
+                                                                          √               √
+                                                       1/2O( log w)
+                                                                                  
+ Ours (Theorem 3)      ✓      Multiplication    w                      O log w       O( log w)
+                                                                             log w
+ Ours (Corollary 4)     ✓     Multiplication    w      1/(log w)O(1)   O   log log w   O(log log w)
+ Ours (Corollary 5)     ✓     [AMT99] AC0       w     O(wϵ + log w)    O(log(1/ϵ))     O(log(1/ϵ))
+ Ours (Corollary 5)     ✓     [AMT99] AC0       w      1/(log w)O(1)   O(log log w)    O(log log w)
+
+Table 2: Survey of rank indices. Some rows use a parameter ϵ ≤ 1/2. “Accesses” is the number
+of accesses to select1 dictionary. “N ” is the maximum number of elements in the index. Some
+indices, namely [FW93, CFHK15, PT14], always take O(w) bits, regardless of N . Note the time
+bounds of [BBV10] are randomized.
+
+
+operation in O(1) words takes O(1) time. The AC0 model of [AMT99] adds a set of non-standard
+AC0 operations in O(1) time. See Table 2 for a list of results.
+    Our general construction in Lemma 2 is also applicable to Word-RAM models with different
+instruction sets. Note that we will also need to replace the rank index of [PT14] in the internal
+nodes of leaf-oriented trees of Lemma 1.
+    In the cell-probe model [AFK84], where any computation on O(1) words takes O(1) time, there
+is a ⟨w/ log w, O(log w), O(1)⟩-index, storing a compressed trie as described in [AFK84, PT14,
+CFHK15]. Applying Lemmas 1 and 2 in this model, we get a dynamic FID with O(n log w)
+redundancy that takes O(logw (n)) time for all operations.
+    In the non-standard AC0 model of [AMT99], a compression, that is, compress(x, C) = ΠC (x),
+can be computed O(1) time. Hence, there is a compression using O(n log w) bits, and thus there
+is a ⟨wϵ , O(wϵ + log w), O(1)⟩-index for any ϵ ≤ 1/2, using Theorem 5. In the proof of Theorem 4
+and Lemma 6, we use multiplication to replicate a O(log w)-bit value k times, but this AC0 model
+includes a replicate(x, k) = xk operation in O(1) time. Applying exponential trees analogously
+to Theorem 2 to this parameterized index yields the following. For ϵ = ω(1), we use binary search
+as in Section 5.4.
+
+Corollary 5. In the AC0 model of [AMT99], there is a ⟨w, O(wϵ + log w), O(log(1/ϵ))⟩-index. For
+ϵ = lg lg w/ lg w, this is a ⟨w, O(log w), O(log log w)⟩-index. Binary search reduces the space by a
+factor of 2O(log log w) = (log w)O(1) , which yields a ⟨w, 1/(log w)O(1) , O(log log w)⟩-index.
+
+    The ideas of Lemmas 1 and 2 also apply, using the index with ϵ = 1/4 as a replacement
+for [PT14]. Thus, we are able to construct FIDs corresponding to these rank indices.
+
+6.2   Static case
+In the static case, there are several improvements we can make to our construction. First, we cite
+the lower bound of [PT06, PT14] for the optimal time for predecessor search. The predecessor over
+
+
+                                                19
+a set of n elements using O(nw) space takes Ω(OPT(u, n)) time, where:
+                                                                                
+                                                     u  log log (u) 
+                                                                          w
+                   OPT(u, n) = min logw (n), log logw       ,                   .               (9)
+                                                       n     log   log logw (u) 
+                                                                    log logw (n)
+
+
+In [PT06], there is a static structure achieving this bound. For polynomial universes (u = n1+Θ(1) ),
+this lower bound is OPT(u, n) = Θ(log log u), and a static solution with optimal time and redundancy
+is known [LZ25]. We explore our construction for the remaining regimes.
+    We replace the internal nodes of the leaf-oriented tree (see Section 5.3) with this optimal prede-
+cessor data-structure for the splitters {zλ }Λ−1
+                                             λ=0 , where Λ = O(n/N ), using O(Λw) bits and OPT(u, Λ)
+time to navigate to the correct leaf for rank. For N = w2 , we get OPT(u, Λ) = Θ(OPT(u, n)). This
+predecessor data-structure can also be used to implement search in a searchable partial-sum to
+navigate to the correct leaf for select0 .
+    We also use the trick of [GORR09] in the static setting (which we adapt in Section 4.2 for the
+dynamic setting) to reduce select0 to predecessor search. In the static case, we can remove the
+O(n log w) term in Lemma 6. Next, [GORR09] describes a static select1 dictionary, for any set of
+n elements, using O(n) redundancy, taking O(1) time for select1 . Combining this with our rank
+indices yields the following.
+
+Corollary 6 (Static FID). For every ϵ ≤ 1/2, there is a static FID with O(nwϵ /ϵ) redundancy,
+                                                                                        √
+taking O(1/ϵ + OPT(u, n)) time for rank/select0 , and O(1) time for select1 . For ϵ = 1/ log w,
+the redundancy is O(n).
+
+
+7    Conclusion and open problems
+In this paper, we describe dynamic FID that use lg nu +O(nwϵ /ϵ) bits. Updates and rank/select0
+                                                      
+
+take O(1/ϵ + logw (n)) time, and select1 takes O(logw (n)) time. For ϵ = 1/4, this is the first
+                                                                           √
+deterministic dynamic FID in the standard Word-RAM model with o(n w) bits of redundancy,
+optimal time for all operations, and worst-case times.
+    With our generic reductions of Lemmas 1 and 2, further research may focus on building more
+space-efficient rank indices. Alternatively, different constructions of small FIDs such as [KLZ26]
+also fit into our framework, where we provide a general procedure to manage memory with worst-
+case update times. We cite a few remaining open questions.
+
+Lower bounds. The best lower bound is for the static case [PV10] that requires n/wO(t) re-
+dundancy for O(t) time FID. A recent lower bound [LLYZ23b] holds for a polynomial universe
+(u = n1+Θ(1) ) and w = Θ(log u), and states that any dynamic dictionary (that is, storing a dynamic
+set and supporting membership) with O(n) redundancy requires Ω(log∗ (w)) time for membership,
+where log∗ is the iterated logarithm. Considering Lemma 1, a time lower bound for a dynamic FID
+of N = wO(1) elements and O(n) redundancy in the standard Word-RAM model is an interesting
+open question.
+
+Indices and dictionaries. Our results of Lemmas 2 and 6 have an additive term of O(n log w)
+bits for the dynamic setting. These are the dominating terms for FIDs using the rank indices
+of Theorem 3 and Corollaries 4 and 5. For polynomial universes, there are some results achieving
+O(n) redundancy with ω(1) time select1 [PV17, PV20]. We leave for further work to improve
+these results.
+
+                                                  20
+Acknowledgments
+This research was supported by the Israel Science Foundation, grant No. 1948/21. I wish to
+thank Guy Even and Boaz Patt-Shamir for their helpful comments and advice, and the anonymous
+reviewers for their remarks.
+
+
+References
+  [ADS16] Diego Arroyuelo, Pooya Davoodi, and Srinivasa Rao Satti. Succinct dynamic cardinal
+          trees. Algorithmica, 74(2):742–777, 2016.
+
+ [AFK84] Miklós Ajtai, Michael L. Fredman, and János Komlós. Hash functions for priority
+         queues. Information and Control, 63(3):217–225, 1984.
+
+ [AMT99] Arne Andersson, Peter Bro Miltersen, and Mikkel Thorup. Fusion trees can be imple-
+         mented with AC0 instructions only. Theoretical Computer Science, 215(1-2):337–344,
+         1999.
+
+   [AT07] Arne Andersson and Mikkel Thorup. Dynamic ordered sets with exponential search
+          trees. Journal of the ACM (JACM), 54(3):13–es, 2007.
+
+[BBPV10] Djamal Belazzougui, Paolo Boldi, Rasmus Pagh, and Sebastiano Vigna. Fast prefix
+         search in little space, with applications. In European Symposium on Algorithms, pages
+         427–438. Springer, 2010.
+
+ [BBV10] Djamal Belazzougui, Paolo Boldi, and Sebastiano Vigna. Dynamic z-fast tries. In
+         International Symposium on String Processing and Information Retrieval, pages 159–
+         172. Springer, 2010.
+
+[BCC+ 18] Philip Bille, Anders Roy Christiansen, Patrick Hagge Cording, Inge Li Gørtz, Fred-
+          erik Rye Skjoldjensen, Hjalte Wedel Vildhøj, and Søren Vind. Dynamic relative
+          compression, dynamic partial sums, and substring concatenation. Algorithmica,
+          80(11):3207–3224, 2018.
+
+[CFHK15] Sarel Cohen, Amos Fiat, Moshik Hershcovitch, and Haim Kaplan. Minimal indices for
+         predecessor search. Information and Computation, 240:12–30, 2015.
+
+   [Cla96] David Clark. Compact pat trees. PhD thesis, University of Waterloo Canada, 1996.
+
+   [CM96] David R Clark and J Ian Munro. Efficient suffix trees on secondary storage. In Pro-
+          ceedings of the seventh annual ACM-SIAM symposium on Discrete algorithms, pages
+          383–391, 1996.
+
+  [Com79] Douglas Comer. Ubiquitous B-tree. ACM Computing Surveys (CSUR), 11(2):121–137,
+          1979.
+
+   [Die89] Paul F Dietz. Optimal algorithms for list indexing and subset rank. In Workshop on
+           Algorithms and Data Structures, pages 39–46. Springer, 1989.
+
+   [Fre82] Michael L Fredman. The complexity of maintaining an array and computing its partial
+           sums. Journal of the ACM (JACM), 29(1):250–260, 1982.
+
+
+                                             21
+    [FS89] Michael L Fredman and Michael Saks. The cell probe complexity of dynamic data
+           structures. In Proceedings of the twenty-first annual ACM symposium on Theory of
+           computing, pages 345–354, 1989.
+  [FW90] Michael L Fredman and Dan E Willard. Blasting through the information theoretic
+         barrier with fusion trees. In Proceedings of the twenty-second annual ACM symposium
+         on Theory of Computing, pages 1–7, 1990.
+  [FW93] Michael L Fredman and Dan E Willard. Surpassing the information theoretic bound
+         with fusion trees. Journal of computer and system sciences, 47(3):424–436, 1993.
+[GGG+ 07] Alexander Golynski, Roberto Grossi, Ankur Gupta, Rajeev Raman, and Satti Srinivasa
+          Rao. On the size of succinct indices. In European Symposium on Algorithms, pages
+          371–382. Springer, 2007.
+  [GM94] Torbjörn Granlund and Peter L Montgomery. Division by invariant integers using
+         multiplication. In Proceedings of the ACM SIGPLAN 1994 conference on Programming
+         language design and implementation, pages 61–72, 1994.
+   [Gol07] Alexander Golynski. Optimal lower bounds for rank and select indexes. Theoretical
+           Computer Science, 387(3):348–359, 2007.
+[GORR09] Roberto Grossi, Alessio Orlandi, Rajeev Raman, and S Srinivasa Rao. More haste, less
+         waste: Lowering the redundancy in fully indexable dictionaries. In 26th International
+         Symposium on Theoretical Aspects of Computer Science (2009), pages 517–528. Schloss
+         Dagstuhl–Leibniz-Zentrum für Informatik, 2009.
+[GORR14] Alexander Golynski, Alessio Orlandi, Rajeev Raman, and S Srinivasa Rao. Optimal
+         indexes for sparse bit vectors. Algorithmica, 69(4):906–924, 2014.
+ [GRR08] Alexander Golynski, Rajeev Raman, and S Srinivasa Rao. On the redundancy of suc-
+         cinct data structures. In Scandinavian Workshop on Algorithm Theory, pages 148–159.
+         Springer, 2008.
+   [HM82] Scott Huddleston and Kurt Mehlhorn. A new data structure for representing sorted
+          lists. Acta informatica, 17(2):157–184, 1982.
+ [HMP01] Torben Hagerup, Peter Bro Miltersen, and Rasmus Pagh. Deterministic dictionaries.
+         Journal of Algorithms, 41(1):69–85, 2001.
+   [Jac88] Guy Joseph Jacobson. Succinct static data structures. Carnegie Mellon University,
+           1988.
+  [KLZ26] William Kuszmaul, Jingxun Liang, and Renfei Zhou. Succinct dynamic rank/select:
+          Bypassing the tree-structure bottleneck. In Proceedings of the 2026 Annual ACM-SIAM
+          Symposium on Discrete Algorithms (SODA), pages 3760–3804. SIAM, 2026.
+[LLYZ23a] Tianxiao Li, Jingxun Liang, Huacheng Yu, and Renfei Zhou. Dynamic “succincter”.
+          In 2023 IEEE 64th Annual Symposium on Foundations of Computer Science (FOCS),
+          pages 1715–1733. IEEE, 2023.
+[LLYZ23b] Tianxiao Li, Jingxun Liang, Huacheng Yu, and Renfei Zhou. Tight cell-probe lower
+          bounds for dynamic succinct dictionaries. In 2023 IEEE 64th Annual Symposium on
+          Foundations of Computer Science (FOCS), pages 1842–1862. IEEE, 2023.
+
+                                             22
+ [LZ25] Jingxun Liang and Renfei Zhou. Optimal static fully indexable dictionaries. In 52nd
+        International Colloquium on Automata, Languages, and Programming (ICALP 2025),
+        pages 114–1. Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2025.
+
+[Nav25] Gonzalo Navarro. (Worst-case) optimal adaptive dynamic bitvectors. Theory of Com-
+        puting Systems, 69(3):30, 2025.
+
+ [NN14] Gonzalo Navarro and Yakov Nekrich. Optimal dynamic sequence representations. SIAM
+        Journal on Computing, 43(5):1781–1806, 2014.
+
+[NRL20] Gonzalo Navarro and Javiel Rojas-Ledesma. Predecessor search. ACM Computing
+        Surveys (CSUR), 53(5):1–35, 2020.
+
+ [NS14] Gonzalo Navarro and Kunihiko Sadakane. Fully functional static and dynamic succinct
+        trees. ACM Transactions on Algorithms (TALG), 10(3):1–39, 2014.
+
+ [Păt08] Mihai Pătraşcu. Succincter. In 2008 49th Annual IEEE Symposium on Foundations of
+          Computer Science, pages 305–313. IEEE, 2008.
+
+[PD04a] Mihai Pătraşcu and Erik D Demaine. Lower bounds for dynamic connectivity. In
+        Proceedings of the thirty-sixth annual ACM symposium on Theory of computing, pages
+        546–553, 2004.
+
+[PD04b] Mihai Pătraşcu and Erik D Demaine. Tight bounds for the partial-sums problem. In
+        SODA, volume 4, pages 20–29, 2004.
+
+ [PD06] Mihai Pătraşcu and Erik D Demaine. Logarithmic lower bounds in the cell-probe model.
+        SIAM Journal on Computing, 35(4):932–963, 2006.
+
+ [PT06] Mihai Pătraşcu and Mikkel Thorup. Time-space trade-offs for predecessor search. In
+        Proceedings of the thirty-eighth annual ACM symposium on Theory of computing, pages
+        232–240, 2006.
+
+ [PT14] Mihai Pătraşcu and Mikkel Thorup. Dynamic integer sets with optimal rank, select, and
+        predecessor search. In 2014 IEEE 55th Annual symposium on foundations of computer
+        science, pages 166–175. IEEE, 2014.
+
+ [PV10] Mihai Pătraşcu and Emanuele Viola. Cell-probe lower bounds for succinct partial
+        sums. In Proceedings of the twenty-first annual ACM-SIAM symposium on Discrete
+        Algorithms, pages 117–122. SIAM, 2010.
+
+ [PV17] Giulio Ermanno Pibiri and Rossano Venturini. Dynamic Elias-Fano representation. In
+        28th Annual symposium on combinatorial pattern matching (CPM 2017), pages 30–1.
+        Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2017.
+
+ [PV20] Giulio Ermanno Pibiri and Rossano Venturini. Succinct dynamic ordered sets with
+        random access. arXiv preprint arXiv:2003.11835, 2020.
+
+ [RR03] Rajeev Raman and Satti Srinivasa Rao. Succinct dynamic dictionaries and trees. In
+        International Colloquium on Automata, Languages, and Programming, pages 357–368.
+        Springer, 2003.
+
+
+
+                                            23
+[RRS07] Rajeev Raman, Venkatesh Raman, and Srinivasa Rao Satti. Succinct indexable dic-
+        tionaries with applications to encoding k-ary trees, prefix sums and multisets. ACM
+        Transactions on Algorithms (TALG), 3(4):43–es, 2007.
+
+[Ruž08] Milan Ružić. Uniform deterministic dictionaries. ACM Transactions on Algorithms
+         (TALG), 4(1):1–23, 2008.
+
+[Wil83] Dan E Willard. Log-logarithmic worst-case range queries are possible in space Θ (N).
+        Information Processing Letters, 17(2):81–84, 1983.
+
+[Wil00] Dan E Willard. Examining computational geometry, van emde boas trees, and hashing
+        from the perspective of the fusion tree. SIAM Journal on Computing, 29(3):1030–1049,
+        2000.
+
+
+
+
+                                           24
+

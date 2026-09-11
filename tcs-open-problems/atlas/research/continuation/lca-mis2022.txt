@@ -1,0 +1,1249 @@
+                                                       Local Computation of Maximal Independent Set
+                                                                                    Mohsen Ghaffari∗
+                                                                                            MIT
+                                                                                      ghaffari@mit.edu
+arXiv:2210.01104v1 [cs.DS] 3 Oct 2022
+
+
+
+
+                                                                                         Abstract
+                                                  We present a randomized Local Computation Algorithm (LCA) with query complexity
+                                              poly(∆) · log n for the Maximal Independent Set (MIS) problem. That is, the algorithm de-
+                                              termines whether each node is in the computed MIS or not using poly(∆) · log n queries to the
+                                              adjacency lists of the graph, with high probability, and this can be done for different nodes
+                                              simultaneously and independently. Here ∆ and n denote the maximum degree and the number
+                                              of nodes. This algorithm resolves a key open problem in the study of local computations and
+                                              sublinear algorithms (attributed to Rubinfeld).
+
+
+
+
+                                           ∗
+                                             Supported in part by funding from the European Research Council (ERC), under the European Union’s Horizon
+                                        2020 research and innovation program (grant agreement 853109).
+1        Introduction and Related Work
+When dealing with massive data, even linear time algorithms might be too slow. A natural and
+useful paradigm in the area of sublinear algorithms, especially when dealing with problems where
+the output may be large (and thus computing or even storing the entire output may be infeasible),
+is that of local computations. Here, the algorithm should be able to compute any particular part
+of the output in sublinear time. In this paper, we study local computation algorithms for the
+well-studied Maximal Independent Set (MIS) problem. Before describing our contribution, let us
+review the background of the problem, including the model and the known results.
+
+1.1       Background: Prior Work and Model
+We review the prior work on local computations of MIS in two categories, after recalling the formal
+model. We note that the results in the first category were obtained before the introduction of the
+formal model (and technically, provide a weaker expected-per-vertex query complexity guarantee).
+Local Computation Algorithms. As introduced by Rubinfeld et al. [RTVX11] and Alon et
+al. [ARVX12], a Local Computation Algorithm (LCA) has query access to the graph where each
+query (v, i) returns the ith neighbor of vertex v (or ∅, if there is no such neighbor). The algorithm
+also has access to a string of randomness. In the case of the MIS problem, when questioned about
+a vertex v, the algorithm performs a number of queries to the graph (and the string of randomness)
+and outputs a YES/NO answer indicating whether v is in the MIS or not. These outputs are
+independent of the questions to the algorithm, and indeed, one can question the algorithm about
+different vertices simultaneously and independently. The measure of complexity is the worst-case
+number of queries the algorithm performs to answer any single question. We use n and ∆ to denote
+the number of vertices and the maximum degree, and the focus is generally on graphs where ∆ ≪ n.
+See [RTVX11, ARVX12] for related work, motivations, and applications, and [LM17] for a survey.
+See also Lovasz’s book on large networks and graph limits [Lov12, Section 22.3], which discusses
+such local computations and connections to distributed local algorithms.
+
+Category I (Expected Query Complexity Per Vertex). Nguyen and Onak [NO08], as
+the core technical ingredient of their celebrated sublinear time approximation algorithms work,
+developed the first local algorithm for MIS. Their algorithm simulates the Randomized Greedy
+MIS (RGMIS) algorithm, in the sense that the YES/NO answers to the questions of whether a
+vertex v is in the MIS or not are the same as those of one execution of RGMIS. In RGMIS, we
+process the vertices according to a random order π and add each vertex to the MIS if and only if
+none of its neighbors that appeared earlier in the order π have been added to the MIS. Nguyen
+and Onak’s local algorithm answers each question in expected 2O(∆) queries to the graph, where
+the expectation is over the randomness of the order π.
+    Nguyen and Onak used this approach as a local computation for maximal matching1 . Through
+this, they directly obtained a sublinear-time approximation algorithm for the size of maximal match-
+ing (and some other related problems such as approximate minimum vertex cover), by invoking the
+local computation on a small number of randomly selected vertices and determining what fraction
+of them are matched. It is worth noting that this itself was inspired by, and an improvement on,
+the insightful work of Parnas and Ron [PR07], who had developed a sublinear time approximation
+algorithm for the size of minimum vertex cover by devising a local computation procedure for it
+(via simulating a local distributed algorithm of that problem).
+
+    1
+        Maximal matching is a special (and simpler) case of the maximal independent set problem, on line graphs.
+
+
+                                                           1
+    Yoshida, Yamamoto, and Ito [YYI09] provided an ingenious analysis for a variant of the ap-
+proach of Nguyen and Onak, which improved the bound to expected O(∆), though in a certain
+weaker sense: for a random permutation π used in RGMIS and for a random vertex v, the expected
+query complexity to determine whether v is in the MIS or not is O(∆). This bound holds also if
+one replaces ∆ with average degree ∆. ¯ However, for some vertices, even under a random permu-
+tation, the expected number of queries to answer the question might be much larger. This weaker
+guarantee was still sufficient for the sublinear-time approximation application because there one
+deals with questions about random vertices. See [ORRR12,Beh21] for other improvements on these
+sublinear-time size approximation algorithms.
+
+Category II (Query Complexity For All Vertices). The algorithms discussed in the first
+category have bounds on the expected query complexity of each node (or just a random node). A
+stronger notion, which is indeed the prevalent measure of interest in the study of LCAs, is to have
+an upper bound on the query complexity of all nodes. This bound itself may hold in expectation,
+or even better, with high probability2 . Notice that the naive bound that follows directly from the
+per-vertex expected query complexity, via Markov’s inequality and a union bound over all vertices,
+includes an n factor, and is thus uninteresting in the area of sublinear algorithms3 .
+    Rubinfeld et al. [RTVX11] and Alon et al. [ARVX12], in their work that introduced the model,
+provided an MIS LCA with query complexity of ∆O(∆ log ∆) poly(log n). The algorithm is based on
+Luby’s classic parallel/distributed MIS algorithm [Lub85]. This LCA also uses a random string of
+the same length (and no other memory, besides these). Concretely, when questioned about any
+vertex v, the algorithm performs only ∆O(∆ log ∆) poly(log n) queries to the input graph (and the
+randomness), with high probability. A natural question that has remained open since then, and was
+raised frequently by Rubinfeld (e.g., her 2016 TCS+ talk https://youtu.be/R8J61RYaaDw?t=2164,
+her 2017 CICS Distinguished Lecture https://youtu.be/fczTaR-KSd8, and her Keynotes Talks at
+ICALP 2017 and PODC 2019) and others (see, e.g., [MRVX12, LRY17, GU19, Beh21]) is this:
+                     Is there an LCA for MIS with poly(∆ log n) query complexity?
+
+    There has been a sequence of improvements. The complexity was improved to 2O(∆) poly(log n)
+by Vardi and Reinhold [RV16], by showing that a variant of the Nguyen-Onak algorithm has this
+query complexity (for all vertices); that is, the query complexities are concentrated around the
+2O(∆) expected bound shown by Nguyn and Onak. Later, the bound was improved by devis-
+ing new algorithms: Levi, Rubinfeld and Yodpinyanee [LRY17] achieved a query complexity of
+      2
+∆O(log ∆) poly(log n); Ghaffari achieved a query complexity of ∆O(log ∆) poly(log n); and finally
+Ghaffari and Uitto [GU19] improved the query complexity to ∆O(log log ∆) poly(log n).
+    However, all these bounds remain quite far from the poly(∆ log n) target. Indeed, to the best of
+our knowledge, even the simpler question of whether one can obtain a local MIS algorithm that, for
+each questioned vertex, has expected query complexity poly(∆)—instead of “for a random vertex”,
+as provided by Yoshida et al. [YYI09]—has remained open.
+Side Remark. If we limit ourselves to graphs with constant or slightly super constant degrees,
+and focus instead on the dependency on n, then a better bound follows from the algorithm of
+   2
+      We use the phrase with high probability (w.h.p.) to indicate that an event takes place with probability at least
+1 − 1/nc for a fixed constant c ≥ 2, which can be set desirably large by adjusting other constants.
+    3
+      Here, unlike standard centralized computations, we cannot simply re-run the algorithm for O(log n) iterations,
+stopping each iteration after say twice the expected time, and use this to turn our expected complexity into a bound
+that holds with probability 1 − 1/n. This is because, which of those O(log n) executions would be used is a non-local
+decision and depends on the questioned vertex, and if we do not fix one choice for all vertices, the output at different
+vertices could be inconsistent.
+
+
+                                                           2
+                                                                             2
+Even, Medina, and Ron [EMR18], which has a query complexity of ∆O(∆ ) log∗ n, later improved
+to ∆O(∆) log∗ n [LM17]. These bound are sublinear in n only for graphs with ∆ = o(log n/ log log n).
+
+1.2   Our Contribution
+We present a randomized local computation algorithm that resolves the aforementioned question
+and achieves a poly(∆ log n) query complexity. We also note that the expected query complexity
+for each questioned vertex is poly(∆).
+
+Theorem 1.1. There is a Local Computation Algorithm that computes an MIS such that, when
+questioned about any vertex v, it answers whether v is in the MIS or not using expected poly(∆)
+queries, and at most poly(∆ log n) with probability at least 1 − 1/ poly(n). More concretely, for any
+ε > 0 and any vertex v, with probability at least 1 − ε, the algorithm uses at most poly(∆) · log(1/ε)
+queries to answer the question about v (if asked). Furthermore, the algorithm can be transformed
+into one with poly(∆ log n) query complexity and using only poly(∆ log n) bits of randomness.
+
+    We remark that the constant in the exponent of our current bound poly(∆) is not small. We
+did not attempt to optimize that constant in this writing. We instead prioritized the simplicity
+of the algorithm and its analysis. It remains an interesting question whether one can achieve a
+better—e.g., linear or quadratic—dependency on ∆.
+    MIS’s centrality in this area is in part due to the fact that many other problems can be easily
+reduced to it. Using well-known reductions, we get local computation algorithms with the same
+asymptotic complexity for maximal matching, 2-approximate vertex cover, (∆ + 1) vertex coloring,
+and even its strengthening to (deg + 1) list coloring where each node v should choose its color from
+a prescribed list of degree(v) + 1 many colors, and of course its special case of (2∆ − 1) edge (list)
+coloring.
+
+1.3   A High-Level Outline of Our Method
+Similar to many of the prior work in local computation algorithms, and following a connection first
+used by Paras and Ron [PR07] (see also Lovasz [Lov12, Section 22.3]), the core ingredient of our
+LCA is to simulate a local distributed algorithm for (nearly) maximal independent set. Let us first
+explain this connection. In a distributed algorithm, initially, nodes do not know the topology of
+the graph, and per round each node of the graph talks to all of its neighbors. Because of this, it
+can be shown that a node’s behavior after T rounds is a function of only the information initially
+available to the nodes within its distance T . Since the number of the latter nodes is at most ∆T ,
+this indicates that any T -round local distributed algorithm can be turned into an LCA with query
+complexity ∆T .
+    This connection, per se, is insufficient for obtaining a poly(∆) query LCA. By a celebrated
+lower bound of Kuhn, Moscibroda, and Wattenhofer [KMW16], any distributed algorithm for MIS
+needs round complexity Ω(log ∆/ log log ∆). Hence, by only following the Parnas-Ron principle
+of directly simulating a distributed algorithm in a black-box fashion, we cannot obtain a query
+complexity below ∆Ω(log ∆/ log log ∆) .
+    To obtain our LCA, we use an adaptation of the local distributed algorithm of [Gha16] to
+compute a near-maximal independent set (the adjustment to an MIS is easy and standard). We
+adapt the algorithm in such a way that, while maintaining its T = Θ(log ∆) round complexity,
+it has additional properties that allow us to simulate it using an LCA with query complexity of
+∆ · 2Θ(T ) . We emphasize that this is a deterministic guarantee; the probabilistic aspects are in the
+near-maximality of the computed independent set. To describe the key new property, let us use an
+
+
+                                                  3
+informal definition of (causal) influence: let us say node u is causally influenced by node v if node
+u reads a message of node v or if u reads a message of another node w who is influenced by node
+v. The former is a direct influence and the latter is an indirect influence. The reason for the naive
+∆T bound in LCA simulations of T -round distributed local algorithms is that per round each node
+reads the messages of (up to) ∆ neighbors, and these factors multiply over different rounds. To
+reach a query complexity of poly(∆), we adapt the local distributed algorithm in such a way that
+in “most” of the rounds (this is an oversimplification, but provides the right intuition), each node
+reads the messages of only few neighbors. Ideally, this would have been reading the messages of
+only Θ(1) neighbors per round. But we do not achieve that. Instead, our adaptation is such that
+if in a given round a node needs to read the messages of many, say 2Θ(k) neighbors, this is needed
+only for messages that were sent some Θ(k) rounds earlier. Because of this, in a sense, we can
+amortize the high 2Θ(k) increase factor in the influence to the elapsed Θ(k) time. This allows us to
+show that overall, each node is influenced by only ∆ · 2Θ(T ) other nodes. The LCA will be able to
+simulate the local algorithm basically by (adaptively) tracing which messages need to be read, and
+that brings the query complexity down to ∆ · 2Θ(T ) = poly(∆).
+     We note that the best previously known query complexity ∆O(log log ∆) poly(log n) [GU19] also
+was based on a (different) adaptation of the algorithm of [Gha16]. Moreover, somewhat similar
+properties turned out to be useful for parallel algorithms [GU19, GH21]. The LCA of [GU19]
+simulated the local distributed algorithm by breaking the Θ(log ∆) rounds of the local algorithm
+into batches and ensuring that the simulation is done in such a way that the degree per batch drops
+to at most exponential in the batch√length. For instance, in the basic√ version of the algorithm where
+there is only one scale, we have Θ( log ∆) batches
+                                                 √    each  of length  log ∆ rounds, and the simulation
+ensures that the degree per batch drops to 2   Θ(  log ∆) . However, this approach comes at a cost and
+the best achievable query complexity is ∆O(log log ∆) . In particular, even in the most efficient version,
+which includes Θ(log log ∆) scales of batches, where the ith scale batches are of length 2i , we lose
+a ∆ factor in the query complexity per scale. That leads to the query complexity of ∆O(log log ∆) .
+To achieve a poly(∆) algorithm, here, we directly design the distributed local algorithm in such a
+way that each node is influenced (through chains of read messages) by at most poly(∆) nodes.
+     We are hopeful that techniques similar to our approach can be developed for other graph
+problems, by devising local distributed algorithms that read only few messages in most rounds and
+thus have much lower causal influence per node than the naive ∆T bound. This would provide
+a (hopefully general) recipe for achieving (centralized) local computation algorithms with small
+query complexity, well below the Parnas-Ron direct simulation principle [PR07].
+     Finally, we note that there is some superficial similarity between one numerical aspect of our
+analysis and that of a matching approximation of Kapralov et al. [KMNFT20] in the streaming
+model and the local computation algorithms model. Very roughly speaking, in both places, we
+effectively make the number of neighbors on which a recursion is invoked to be a constant (in an
+amortized sense). To the best of our understanding, the similarity stops at this level. In particular,
+the algorithm of Kapralov et al. [KMNFT20] provides no solution for the MIS problem, and not
+even for the much simpler special case of MIS on line graphs, i.e., the maximal matching problem.
+The strict maximality requirement makes the MIS problem much harder technically.
+
+1.4   Preliminaries
+Distributed LOCAL model [Lin92]. Consider an undirected graph G = (V, E) with n = |V |
+where there is one processor on each node of the graph. Each processor/node has a unique identifier
+in {1, . . . , n10 }. Initially, each node knows only its neighbors. Per round, each node can send one
+arbitrary-size message to all of its neighbors and receives their messages (we discuss which messages
+
+
+                                                    4
+are read, soon). In the end, each node v should know its own part of the output. For instance, in
+the MIS problem, node v should know whether v in the computed MIS or not.
+Reading Messages Selectively, and Influence. In this paper, in order to devise a LOCAL-model
+algorithm suitable for efficient LCA simulation, we take some extra care in how the communications
+of the LOCAL model are performed. Per round, each node sends its message to all of its neighbors.
+However, on the receiving end, each node will choose which of the received messages it reads. In
+particular, each node will have a set of “relevant neighbors” for each round (which was determined in
+earlier rounds) and it will read only the content of messages received from those relevant neighbors.
+So, the node discards the content of the messages from other neighbors and even ignores whether
+any of the other neighbors sent a message or not in that round. If a node v has read a message of
+a neighbor u, we say that u has influenced v (directly). If node v reads a message of a neighbor u
+who is influenced by a node w, we say node v is influenced by node w.
+Notations. We use Γ(v) to denote the set of neighbors of node v in graph G, and Γr (v) for r ≥ 1
+to denote the set of all nodes within distance at most r from v. Notice that Γ1 (v) = Γ(v) ∪ {v}.
+We also use Γ(I) for a set I ⊂ V of vertices to indicate all vertices that have a neighbor in I, i.e.,
+Γ(I) = ∪v∈I Γ(v). For a positive integer T , we use [T ] as a shorthand for {1, 2, . . . , T }.
+
+
+2     The Algorithm
+In Section 2.1, we first describe a near-maximal independent set algorithm in the LOCAL model of
+distributed computing. Then, in Section 2.2, we discuss some observations and properties of this
+algorithm. Afterward, in Section 2.3, we discuss how, thanks to these properties, the algorithm can
+be simulated efficiently in a sequential manner, in the setting of Local Computation Algorithms.
+Then, in Section 2.4, we present the analyses which prove this efficiency and that the algorithm
+indeed computes a near-maximal independent set. We conclude in Section 2.5 by discussing how
+this algorithm can be turned into a maximal independent set algorithm.
+
+2.1   The LOCAL Algorithm
+
+General Outline. As the core ingredient, we describe a randomized algorithm that computes a
+near-maximal independent set I. The near-maximality is in the sense that if we remove set I and
+its neighbors Γ(I) from the graph, with probability 1 − 1/ poly(n), in the subgraph induced by the
+remaining vertices V \ (I ∪ Γ(I)), each connected component has at most poly(∆) log n vertices.
+Moreover, each node v is in this remaining part with probability at most 1/ poly(∆). Because of
+the former property, it will be easy to turn this near-maximal independent set algorithm into a
+maximal independent set algorithm, with only a factor of poly(∆) log n increase in the number of
+queries, simply by identifying the remaining component of the questioned vertex and using the
+deterministic greedy MIS procedure on this small component. This is explained in Section 2.5. In
+fact, for each vertex v and any ε > 0, with probability 1 − ε, the component of v has size at most
+poly(∆) log(1/ε). Thus, for each vertex v, with probability 1 − ε, the query complexity of the LCA
+when questioning vertex v is at most poly(∆) log(1/ε).
+    To provide the aforementioned near-maximal independent set algorithm, we present a T -round
+randomized algorithm in the LOCAL model of distributed computing that computes a near-
+maximal independent set with the same guarantees as mentioned above, where T = Θ(log ∆).
+The base of this algorithm is an adaptation of Ghaffari’s T -round algorithm [Gha16]. The differ-
+ences will be in how we adapt the algorithm so that it can be simulated with only poly(∆) query
+
+
+
+                                                  5
+complexity in the LCA model, unlike the ∆Θ(log ∆) query complexity of the algorithm of [Gha16].
+We will discuss those differences later, after reviewing the common and basic ingredients.
+   The basic operation in both algorithms is a probabilistic marking process, which determines the
+nodes that attempt to join the independent set in one round. We next discuss this basic marking
+process and mention how we will determine all the randomness used for this process at the very
+beginning of the algorithm. We will then discuss how our algorithm departs from that of [Gha16]
+and leads to a poly(∆) query complexity in the LCA model.
+Marking process. The basic operation in each round of the algorithm is a randomized marking
+process, which determines the nodes that attempt to join the independent set I. Concretely, per
+round t each node v is marked with a certain probability pt (v). Then, in that round, if node v is
+marked and none of its neighbors is marked, node v gets added to the independent set I, and we
+remove node v and all of its neighbors from the graph.
+      Each node v starts with a marking probability p1 (v) = 1/2⌈log ∆⌉+1 ; this is the marking prob-
+ability in the first round. During the algorithm, in each round t ∈ [1, T ], we will set either
+pt+1 (v) ← pt (v)/2 or pt+1 (v) ← min{2pt (v), 1/2}. We will later discuss how this decision is done,
+in the main body of the algorithm. Let us now remark a smoothness property of this probability:
+the probability pt (v) changes by at most a 2 factor per round, and concretely, for any two rounds
+                                                           ′
+t, t′ ∈ [T ] where t′ ≤ t − 1, we have pt (v) ≤ pt′ · 2(t−t ) .
+      Next, we explain our way of viewing the randomness used in this marking process, and how we
+fix it at the beginning of the algorithm.
+Fixing the randomness of marking. At the beginning of the algorithm, for each node v ∈ V
+and each round t ∈ [1, T ], we choose a uniformly random number ρt (v) ∈ [0, 1], independently of all
+other vertices and all other rounds. We note that a random number with Θ(log ∆) bits of precision
+suffices. The interpretation is this: suppose we want to mark node v with a given probability
+pt (v) ∈ [0, 1] in round t. Then, we consider v marked in round t if and only if ρt (v) ≤ pt (v). We fix
+all the randomness at the beginning of the algorithm. Furthermore, this is the only randomness that
+we will use in the algorithm. Intuitively, having fixed all the randomness at the beginning, we are
+dealing with a deterministic process. This determinism is helpful when we want to devise an LCA
+simulation of this LOCAL algorithm and discuss that the LCA performs the same computation
+and outputs the same independent set.
+
+Intuitive discussions—query complexity in LCA simulation of the LOCAL algorithm.
+As mentioned before, our near-maximal independent set algorithm is a T -round process in the
+LOCAL model. We devise the algorithm in such a way that it can be simulated efficiently in the
+LCA model, with query complexity poly(∆) ≪ ∆T . We emphasize that this query complexity
+statement is deterministic. The probabilistic aspect will be only in the near-maximality guarantee.
+    Concretely, we want that the behavior of each node depends on only poly(∆) other nodes; this
+allows us to simulate the algorithm in the LCA model with a poly(∆) query complexity. Recalling
+the definition of influence from Section 1.3 and Section 1.4, the new T -round algorithm is devised
+such that each node is influenced by only ∆·2Θ(T ) other nodes. Informally, the 2Θ(T ) factor accounts
+for an increase of a constant factor per round, which comes roughly from each node being influenced
+directly by constant many of its neighbors. The ∆ factor is the influence in the very first round, as
+in that round each node checks all the messages received from all of the neighbors (e.g., to initialize
+the sets of “relevant neighbors”, which we will discuss soon).
+    In particular, unlike in the original algorithm [Gha16] where each node reads the messages of
+all of its up to ∆ neighbors in each round, we would like to make nodes read messages of only few
+neighbors per round. As mentioned above, this would be ideally just a constant number of neighbors
+
+
+                                                   6
+per round, with the exception of the very first round where we allow reading messages of all the
+up to ∆ neighbors. We do not achieve this exact property, but we get it in a certain amortized
+sense: The new distributed algorithm is devised such that if v has to read many messages in round
+t, say 2Θ(k) many messages for some number k, then these should be messages that were sent much
+earlier, in rounds before t − Θ(k). Said differently and informally, the algorithm is devised such
+that, if there are many neighbors of node v, say 2Θ(k) that are attempting to join the independent
+set in a given round, then node v can sleep for Θ(k) rounds without reading their messages. The
+concrete way through which we achieve this is by building a certain set Nt (v) of relevant neighbors
+for round t, which is initialized to include all nodes that might get marked in round t and then
+refined over time as we get closer to round t, to smaller and smaller sets. If at some point Nt (v)
+is “too large” compared to the related size threshold, then node v sleeps for a number of rounds
+including round t.
+    Next, we describe the algorithm. Afterward, in Section 2.2, we present some observations
+regarding the size of Nt (v) and the number of messages read in each given round sent in each
+earlier round. These observations formalize the above intuitive statements. We later use these
+properties in Section 2.3 to argue that we can develop an LCA simulation of the near-maximal
+indepdendent set algorithm of the LOCAL model with query complexity poly(∆).
+
+The Algorithm—Initialization. We next describe the LOCAL algorithm for a near-maximal
+independent set. We first discuss round 1 which involves a special initial preparation for all the
+future rounds [1, T ]. We comment that, in round 1, each node v sends and receives messages to
+and from all of its up to ∆ neighbors, and reads all the received messages.
+
+  Initialization (in round 1)–Determining Relevant Neighbors for Future Rounds.
+  In each round of the algorithm, each node v will read the messages sent by only a selected
+  subset of its neighbors. In the beginning of round 1, node v creates a set of relevant neighbors
+  Nt (v) for each future round t ∈ [1, T ]. In particular, in round 1, we build the set Nt (v) for
+  each round t ∈ [1, T ] as follows: Each node u sends ρt (u) for each round t ∈ [1, T ] to each
+  of its neighbors. Each node reads all received messages in this round. So, each node v learns
+  ρt (u) for each neighbor u ∈ Γ(v) and for each round t ∈ [1, T ]. Then, node v includes each
+                                                                                  t−1
+  neighbor u ∈ Γ(v) in the set Nt (v) if and only if ρt (u) ≤ p1 (u) · 2(t−1) ≤ 22∆ . Notice that
+  since pt (u) ≤ p1 (u) · 2(t−1) , and given how we use the random numbers ρt (u) for the marking
+  decision, this preliminary set Nt (v) includes all neighbors of v that can be marked in round t.
+       By default, we would think that node v is allowed to read messages from all neighbors in
+  Nt (v) during round t. However, these sets Nt (v) might be too large and that would require
+  node v to read messages from many neighbors (e.g., to see whether any of them is marked). To
+  circumvent that, we do as follows: for each round t ∈ [1, T ], if we have |Nt (v)| > 25(t−1) + K,
+  then let z be the greatest integer such that |Nt (v)| > 25(t+z−1) + K. In that case, we declare
+  node v sleeping for rounds [t, t + z]. Here, δ ∈ (0, 0.01) is a desirably small positive constant
+  and K = 20 log(1/δ) is a large constant.
+  Comment 1: We see later how sleeping affects the algorithm. For now, consider this intuition:
+  a node sleeping in a given round will not attempt to be added to the independent set. Therefore,
+  it also does not need to read in that round whether its neighbors are marked (the node will
+  read this information later, once it is not sleeping anymore, to see if any of those neighbors
+  joined the independent set or not).
+  Comment 2: In the course of the algorithm, until we reach round t, we will further refine the
+
+
+
+                                                 7
+ set Nt (v) in a gradual manner. This will be explained soon in the main body of the algorithm.
+ Also, this will happen for all such sets Nt (v) for different t simultaneously. We emphasize that
+ we will never add any new vertex to the set Nt (v), but we may remove vertices from it.
+
+
+The Algorithm—Main Body. We next describe the main part of the algorithm, which happens
+during rounds 1 to T . Some intuition or remarks are provided in the footnotes.
+
+ Main body of the near-maximal independent set algorithm (rounds 1 to T ). Let
+ δ ∈ (0, 0.01) be a desirably small positive constant, and K = 20 log 2 (1/δ); intuitively, we think
+ of K as a large enough constant. We describe the process in a round t ∈ [1, T ] for a node v,
+ which involves four steps. All vertices perform the process of round t simultaneously.
+    • Step 1: Suppose that v is not sleeping in round t. If node v was sleeping for rounds
+      [t′ , t − 1] and is not sleeping in round t, then node v reads the messages sent by its
+      neighbors in Nr (v) for any r ∈ [t′ , t − 1]. If any such neighbor w ∈ Nr (v) had joined
+      the independent set I, then v is considered dead, it stops participating in the rest of the
+      algorithm and sends a message to all of its neighbors describing that v is dead.
+    • Step 2: In round t, for each round t′′ ∈ [t, T ] such that v has not been declared sleeping
+      in round t′′ , we do as followsa (sequentially, going over different rounds t′′ one by one):
+
+             – For each earlier round r from t−2(t′′ −t) to t−(t′′ −t)−1, node v does the followingb
+               (sequentially, going over different rounds r one by one):
+                  ∗ Node v reads the messages that were sent during round r by the neighbors
+                    in the set Nt′′ (v). We emphasize that this is done only if node v has not been
+                    declared sleeping for this round t′′ , so we know that Nt′′ (v) cannot be too large—
+                    the exact bounds are discussed later. Then, node v checks and refines Nt′′ (v)
+                    by keeping in Nt′′ (v) only vertices u such that u is not dead and for which
+                                           ′′
+                    ρt′′ (u) ≤ pr (u) · 2(t −r) .
+                     In the end of processing all messages sent by neighbors in Nt′′ (v) during round
+                                                           ′′
+                     r, if we still have |Nt′′ (v)| > 25(t −r) + K, then we declare node v sleeping in
+                     rounds [t′′ , t′′ + (t′′ − r)] and we end this for loop, thus proceeding to the next
+                     value of t′′ . Otherwise, we proceed to the next value of r.
+
+    • Step 3: Suppose that node v is sleeping in round t. Then, we call it marked in this round
+      iff ρt (u) ≤ pt (v). Moreover, we set pt+1 (v) ← pt (v)/2, send pt+1 (v) to the neighbors, and
+      proceed to the next round, thus skipping step 4.
+    • Step 4: Suppose that node v is not sleeping in round t. Then, we consider node v marked
+      in round t iff ρt (v) ≤ pt (v). Node v sends a message declaring whether it is marked or
+      not to its neighbors. If node v is marked and no neighbor in Nt (v) is marked, then node
+      v joins the independent set I and sends a message to all of its neighbors describing that v
+      joined the independent set I. Suppose v did not join the independent set I (either because
+      it was not marked, or because it had a marked neighbor). Then, if any neighbor in Nt (v)
+      was marked, we set pt+1 (v) ← pt (v)/2, and otherwise we set pt+1 (v) ← min{2pt (v), 1/2}.
+      Node v sends a message to its neighbors describing the value of pt+1 (v).
+    a
+        We emphasize that this this step happens even if node v is declared sleeping for the current round t.
+    b
+        The reason for the choice of this [t − 2(t′′ − t), t − (t′′ − t) − 1] interval will become clearer when we discuss
+
+
+
+                                                             8
+  the size of the relevant neighbor set in Claim 2.1; we use this to bound the number of messages that a node
+  reads in Claim 2.2, and later in the simulation of the algorithm in the LCA model, in Lemma 2.3. Intuitively,
+  we need that this interval has length Θ(t′′ − t), so that the guarantee that we have about the size of Nt′′ (v) from
+  checks in earlier rounds (as v is not declared sleeping for round t′′ ) allows us to read all messages sent in these
+                                                           ′′
+  rounds while having a bound on |Nt′′ (v)| that is 2O(t −t) + K. On the other hand, we could end the interval
+  somewhat later, e.g., in round t − 1, but we would not gain anything asymptotically, because even after reading
+                                                                                                            ′′
+  messages sent in round t − 1, the best bound that we would have on the size of |Nt′′ (v)| would be 25(t −t) + K.
+
+
+
+
+2.2    Observations regarding the number of messages read per round
+The following two observations capture a crucial property of the algorithm, which is one of the
+key reasons for the perhaps strange design of the LOCAL algorithm. Informally, they show that
+the only time that a node needs to read many messages in a particular round t, say 2Θ(k) many
+messages, is when it is reading messages of a much earlier round t − Θ(k). Said differently, in a
+round t, we need to reach only constant messages from the previous round, or indeed the previous
+O(1) rounds, and more generally at most 2Θ(k) messages from an earlier round t−Θ(k). Notice that
+this is quite different than usual LOCAL algorithms, where per round t, each node should read up
+to all the ∆ messages sent by the neighbors even in round t − 1 (and tracing those messages naively
+suggest that, in round t, the node is influenced by up to ∆t nodes overall, directly or indirectly).
+One can see that, because of the new bound, the number of nodes that influence each particular
+node can be bounded by poly(∆) · 2Θ(T ) . Instead of formally discussing this point, we later see how
+these observations allow us to obtain an LCA with poly(∆) · 2Θ(T ) query complexity for simulating
+the above T round algorithm.
+
+Claim 2.1. At the end of round t, the set of relevant neighbors Nt′′ (v) for a future round t′′ > t + 1
+                      ′′
+has size at most 210(t −t+1) + K, unless v has been declared sleeping for round t′′ . We emphasize
+that this statement is deterministic.
+
+Proof. In round t, node v examines the messages sent by nodes in Nt′′ (v) during rounds [t − 2(t′′ −
+t), t − (t′′ − t) − 1], round by round, and refines Nt′′ (v) accordingly. In particular, if at the end,
+                                                          ′′               ′′
+in round r = t − (t′′ − t) − 1, we have |Nt′′ (v)| > 25(t −r) + K = 210(t −t+1) + K, then node v is
+declared sleeping for rounds [t′′ , t′′ + (t′′ − r)].
+
+Claim 2.2. In any round t ∈ [T ], for any past round t′ ≤ t − 1, any node v reads the messages of
+               ′
+at most 225(t−t +1) + K(t − t′ ) neighbors sent during round t′ .
+
+Proof. In round t, node v needs to read the message sent by a neighbor u in round t′ ≤ t − 1 for two
+purposes: (A) to perform step 1, which requires knowing whether u joined the independent set I
+in round t′ or not for u ∈ Nt′ (v), and (B) to perform step 2, which requires, for every future round
+t′′ ≥ t, knowing the marking probability of node u ∈ Nt′′ (v) in each round r ∈ [t−2(t′′ −t), t−(t′′ −t)].
+We discuss these two cases separately.
+   • Part (A), messages of step 1. Suppose that v is not sleeping in round t, as otherwise it
+     reads no messages in step 1. Then, for the earlier round t′ ≤ t − 1, during step 1 of round t,
+     node v will read messages sent in round t′ by nodes in Nt′ (v) to see if any of them joined the
+     independent set I during round t′ . Since the set Nt′ (v) does not grow over time, it suffices
+     that node v reads the message of each neighbor u sent during round t′ only if u ∈ Nt′ (v)
+     in the earlier round q = t′ − (t − t′ ). Notice that t′ − q = t − t′ . We have two cases: (I)
+     Suppose q ≥ 1, which means t′ > t/2. Since node v was not declared sleeping for round
+     t by the end of round q, by Claim 2.1, we get that in the of round q we must have had
+
+
+                                                           9
+                              ′                  ′
+      |Nt′ (v)| ≤ 210(t −q+1) + K = 210(t−t +1) + K. (II) Suppose that q ≤ 0, which means t′ ≤ t/2.
+      Notice that in this case talking about an event that happened in round q is meaningless as
+      q ≤ 0. But here we can rely on the initialization performed at the beginning of round 1.
+      In particular, if at that point we had |Nt′ (v)| > 25(t−1) + K, then node v would have been
+      declared sleeping for rounds [t′ , t] which includes round t. Since v is not sleeping in round t,
+      we must have had |Nt′ (v)| ≤ 25(t−1) + K. We have t′ ≤ t/2 which means (t − t′ ) ≥ t/2. Hence,
+                                                ′
+      we can conclude that |Nt′ (v)| ≤ 210(t−t +1) + K.
+   • Part (B), messages of step 2. During step 2 of round t, mode v might read the messages
+     sent in a past round t′ ≤ t − 1, by neighbors in Nt′′ (v) for different future rounds t′′ ≥ t.
+     First, let us discuss a fixed future round t′′ ≥ t. Suppose that t′′ was not declared a sleeping
+     round for v in the rounds before t, as otherwise we do not process any messages from Nt′′ (v)
+     in step 2 of round t. Let q = t − (t′′ − t). If q ≤ 1, then there are no messages from
+     rounds [t − 2(t′′ − t), t − (t′′ − t) − 1] to be checked in step 2 of round t for future round
+     t′′ , because t − (t′′ − t) − 1 = q − 1 ≤ 0 and there is no such round. Suppose q ≥ 1. Node
+     v was not declared sleeping in round t′′ when we refined Nt′′ (v) during step 2 of the earlier
+     round q = t − (t′′ − t). Hence, by Claim 2.1, in the end of round q, we must have had
+                       ′′                  ′′
+     |Nt′′ (v)| ≤ 210(t −q+1) + K ≤ 220(t −t+1) + K. Thus, also in the beginning of round t (even
+                                                                         ′′               ′′
+     before performing any of its steps), we must have |Nt′′ (v)| ≤ 210(t −q+1) +K ≤ 220(t −t+1) +K.
+      In round t, we read messages from neighbors in Nt′′ (v) sent during rounds [t − 2(t′′ − t), t −
+      (t′′ − t) − 1], and we gradually filter Nt′′ (v) accordingly. In this lemma, we are interested in
+      how many messages sent in the particular round t′ are read in round t. So, support t′ is a
+      round in this interval [t − 2(t′′ − t), t − (t′′ − t) − 1] for which we read during round t the
+      messages that were sent by nodes in Nt′′ (v) during round t′ . Since we have upper bounded
+                        ′′                  ′′
+      |Nt′′ (v)| ≤ 210(t −q+1) + K ≤ 220(t −t+1) + K at the beginning of round t, the number of
+      messages read during round t sent during earlier round t′ by neighbors in Nt′′ (v) is at most
+            ′′
+      220(t −t+1) + K.
+      Now, we can sum the above over different choices of t′′ . Notice that in the above, t′′ was a
+                                  ′)
+      round in the interval [ (t−t
+                                2    + t, (t − t′ ) + t]. Hence, the total number of messages that node v
+      will read during round t sent at the earlier round t′ ≤ t − 1, summed up over all the relevant
+      choices of future rounds t′′ ≥ t, is at most
+           (t−t′ )+t
+                                  ′′                      ′                            ′
+                 X
+                          (220(t −t+1) + K) ≤ 2 · 220(t−t +1) + K · (t − t′ ) ≤ 225(t−t +1) + K(t − t′ ).
+                 (t−t′ )
+         t′′ =     2
+                         +t
+
+
+2.3   LCA Simulation
+We devise a (recursive) LCA that allows us to simulate the above LOCAL procedure, so that we can
+determine each node’s status at the end of the algorithm using poly(∆) queries. We first provide
+an intuitive discussion and then present the formal result.
+What needs to be done in a simulation. For any t ∈ [1, T ], let us use Q(t) to denote the
+subroutine (or oracle) that receives a node v as an input and simulates its behavior for rounds
+[1, t]. Slightly abusing notation, we also use |Q(t)| to refer to (the worst case over all vertices v of)
+the number of queries during the run of Q(t) called on node v. When Q(t) is called upon node v,
+we need to perform three things: (1) Simulate node v in rounds [1, t − 1], which can be done by
+calling Q(t − 1) on v. (2) For each round r ∈ [1, t − 1], simulate neighbors Nr (v) and see if any of
+them joins the independent set I in round r, which would mean we declare node v dead by round
+
+
+                                                         10
+t (note that it is possible that a neighbor has joined the independent set I in a much earlier round
+r ≪ t and node v reads that message only in round t, because v was sleeping before that). (3) We
+also need to simulate some of the neighbors of v for rounds [1, t − 1]; these are neighbors that may
+influence node v in round t. For the intuitive discussion, let us focus on only this third part. This
+part itself can turn out to be too expensive in terms of query complexity, if not done right.
+Intuitive discussion of the naive simulation. For this third part, the question is which
+neighbors should be simulated for rounds [1, t − 1] and how many such neighbors are there? Let us
+simplify the problem for now and ignore that in round t we also do some refinement work for future
+rounds t′′ . So, for now, we are just interested in the marking process and the independent set that
+is created up to (and including) round t, ignoring the preparation work for the future rounds.
+    Consider the procedure Q(t). Before the beginning of round 1, we have read the randomness
+of all the up to ∆ neighbors of node v and have formed the initial set Nt (v) of neighbors that
+can influence node v in round t. At that point, all that we know is that this set has size at
+most 25t + K, as otherwise we would have put v to sleep in round t and thus it would not read
+the messages of its neighbors for the sake of the marking process of round t. Naively, we would
+think of calling Q(t − 1) on each of those neighbors. However, this would lead to the recursive
+complexity |Q(t)| = ∆ + (25t + K) · |Q(t − 1)| > 25t · |Q(t − 1)|. The solution to this recursion
+                    2
+is |Q(T )| ≥ 2Θ(T ) . That is, to simulate the T = Θ(log ∆) round algorithm, this would have
+                          2
+query complexity 2Θ(log ∆) = ∆Θ(log ∆) , which is well beyond our target complexity of poly(∆),
+and essentially no better than a naive simulation of any Θ(log ∆) round algorithm.
+Remedy (intuitive but imprecise explanation). Let us instead use the guarantees of the
+LOCAL algorithm, and in particular the observations described in Section 2.2. These allow us to
+gradually filter out Nt (v). Suppose we simulate this initial set of 25t + K neighbors in Nt (v) for 1
+round. At this point, the set Nt (v) of relevant neighbors should shrink to 25(t−1) + K or otherwise
+we would declare node v sleeping in round t and thus would not need to simulate it. More generally,
+if we have simulated the previous set Nt (v) of relevant neighbors for t′ many rounds, the remaining
+                                      ′
+set size should drop to at most 25(t−t ) + K, as otherwise we would declare node v sleeping in round
+t. Using this, we get the following recursion
+
+                                                                                                   
+                        5t                  5(t−1)                            10
+      |Q(t)| = ∆ + (2 + K) · |Q(1)| + (2             + K) · |Q(2)| + · · · + (2    + K) · |Q(t − 1)| .
+
+Recall that K is a large constant. The solution is |Q(T )| ≤ ∆ · exp(Θ(T )), as can be proved by
+induction. Once we set T = Θ(log ∆), this gives the overall query complexity of poly(∆) for (this
+partial) simulation the T -round LOCAL algorithm on any single node v. This discussion ignores
+some of the other computations that have to be performed for each node in a round, but provides
+the right intuition for the overall complexity. We next present the formal statement and analysis.
+Lemma 2.3. There is a local computation algorithm that simulates the above LOCAL algorithm.
+When questioned about any single node v, it performs poly(∆) queries to the graph, and poly(∆)
+computations, and answers whether v ∈ I or v ∈ Γ(I) or v ∈
+                                                         / (I ∪ Γ(I)). Here, I is the independent
+set computed in the course of the LOCAL algorithm.
+Proof of Lemma 2.3. For any t ∈ [1, T ], let us use Q(t) to denote the LCA subroutine that receives
+any node v as an input and simulates its behavior for rounds [1, t]. Slightly abusing notation, we
+also use |Q(t)| to refer to the number of queries during Q(t) (worst case over all vertices v).
+    Furthermore, again with some abuse of notation, let us use Q(0) to indicate the subroutine that
+includes all the initialization steps that a node performs before even the first round: setting its
+
+                                                     11
+p1 (v), forming the initial neighbor sets Nt (v) for all t ∈ [T ] by checking the neighbors u (concretely
+their random values ρt (u)) and declaring v sleeping in rounds [t, z] if Nt (v) > 25(t+z−1) + K. Notice
+that all of these can be performed using only ∆ queries to the graph (to determine the neighbors).
+Hence, we will use |Q(0)| = ∆ as our base case.
+    When Q(t) is called upon node v, we first call Q(t − 1) on node v. This takes care of simulating
+node v for rounds 1 to t − 1. What remains is to simulate node v for round t, for all the four steps of
+the algorithm in that round. Of course, this will incur simulating some of the neighbors that may
+influence node v in round t for some of the previous rounds. We discuss this next, by examining
+each of the steps of the LOCAL algorithm separately.
+Simulating Step 1. Let us first discuss step 1 of round t. If node v is sleeping in round t (indicated
+because of the simulation of v for rounds 1 to t − 1), nothing needs to be done. Suppose this is
+not the case. Then, for each earlier round r ∈ [1, t − 1], we need to process Nr (v) and determine
+whether any of those nodes joined the independent set I, which would thus make us declare node
+v dead (i.e., it cannot join I). We divide this range into two parts of [1, ⌊t/2⌋] and [⌊t/2⌋ + 1, t − 1].
+   • The First Half. For each r ∈ [1, ⌊t/2⌋], we do as follows: from the simulation of rounds up
+     to t − 1, which includes Q(0), we know that v has identified the initial set of Nr (v) in round
+     1. Notice that if Nr (v) > 25(t−1) + K, then node v would have been declared sleeping for
+     rounds [r, t]. Hence, we conclude that we must have Nr (v) ≤ 25(t−1) + K. Then, we simply
+     call Q(r) on all of these at most 25(t−1) + K neighbors that are in Nr (v) in round 1. This
+     costs (25(t−1) + K) · |Q(r)| queries for each round r ∈ [1, ⌊t/2⌋].
+   • The Second Half. For each r ∈ [⌊t/2⌋ + 1, t − 1], we do as follows: from the simulation
+     of rounds up to t − 1, which includes Q(0), we know that v has identified the initial set of
+     Nr (v) in round 1. Then, for each round s from 1 to r − (t − r), we call Q(s) on the set
+     Nr (v) of neighbors remaining after we have processed the neighbors in Nr (v) up to round s.
+     Notice that if |Nr (v)| > 25(r−s) + K, we would declare node v sleeping in round [r, r + (r − s)],
+     which includes round t. The latter is because s ≤ r − (t − r) = 2r − t, which implies
+     r + (r − s) ≥ 2r − (2r − t) = t. Hence, we must have had |Nr (v)| ≤ 25(r−s) + K after having
+     processed messages of rounds up to s. Hence, in total, for each round r ∈ [⌊t/2⌋ + 1, t − 1],
+                                        Pr−(t−r) 5(r−s+1)
+     the query complexity is at most s=1        (2         + K) · Q(s).
+Summarized over all rounds of both halves, the query complexity to perform step 1 is at most
+
+                     ⌊t/2⌋
+                      X                                     t−1
+                                                          X          r−(t−r)
+                                                                        X                                 
+                                  5(t−1)                                          5(r−s+1)
+                              (2           + K) · |Q(r)| +                       (2          + K) · |Q(s)|
+                       r=1                                   r=⌊t/2⌋    s=1
+                    ⌊t/2⌋
+                     X                                     r−1
+                                                         X                          
+                               10(t−r)                            5(t−s)
+        ≤                    (2            + K) · |Q(r)| +     2(2       + K) · |Q(s)|
+                     r=1                                     s=1
+                    r−1
+                   X                              
+                              10(t−s)
+        ≤                  3(2        + K) · |Q(s)|                                                           (1)
+                     s=1
+
+Simulating Step 2. Let us now discuss step 2 of round t. Here, the algorithm involves a separate
+process for each t′′ ≥ [t, T ] that has not been declared sleeping for node v. Let us focus on
+one of these rounds. Let q = t − (t′′ − t). If q ≤ 1, then there are no messages from rounds
+[t − 2(t′′ − t), t − (t′′ − t) − 1] to be checked in step 2, as there is no such round. This is also the
+case if t′′ = t, in which case the interval is also empty. Hence, suppose q ≥ 1 and t′′ ≥ t + 1. Notice
+that at the end of round q, when we read messages from rounds up to r = t − 2(t′′ − t) − 1, node
+
+                                                        12
+                                                                                                                   ′′
+v was not declared sleeping for round t′′ , which means we must have had Nt′′ (v) ≤ 25(t −r) + K =
+      ′′
+25(3(t −t)+1) + K. Next, for each earlier round t′ from t − 2(t′′ − t) to t − (t′′ − t) − 1, the algorithm
+refines Nt′′ (v) sequentially. If after processing messages of round t′ ∈ [t − 2(t′′ − t), t − (t′′ − t) − 1]
+                       ′′  ′
+we have Nt′′ (v) > 25(t −t ) + K, then we declare node v sleeping in rounds [t′′ , t′′ + (t′′ − t′ )] and thus
+we do not need to continue this process for that future round t′′ (in this current round t). Notice
+                                                                   ′)
+that writing the relation in terms of t′′ , we can say t′′ ∈ [ (t−t
+                                                                 2    + t, (t − t′ ) + t]. Hence, the number
+                                                                                            ′′ ′
+of messages to be read after we have processed round t is at most Nt′′ (v) ≤ 25(t −t ) . Because of
+                                                            ′
+
+this, we can upper bound the query complexity of processing the messages related to Nt′′ (v) by
+
+                                                                          t−(t′′ −t)−1
+            5(3(t′′ −t)+1)                                                                      ′′ ′
+                                                                                X
+                             + K) · |Q(t − 2(t′′ − t))| +                                  (25(t −t ) + K) · |Q(t′ )| .
+                                                                                                                     
+         (2                                                                                                               (∗)
+                                                                       t′ =t−2(t′′ −t)+1
+
+   Notice also that we need to calculate the summation of (∗) over different t′′ . Let us examine the
+summation of the above bound over different t′′ , by analyzing each of the two terms of (∗) separately.
+By setting s = t−2(t′′ −t), the first term in (∗) can be simply upperPbounded as (220(t−s) +K)·Q(s).
+Hence, the summation over different t can be upper bounded by t−1
+                                         ′′
+                                                                        s=1 (2
+                                                                              20(t−s) + K) · Q(s).
+
+   For the second term in (∗), for each particular t′ ≤ t − 2, the summation over different t′′ is
+upper bounded by
+                  (t−t′ )+t
+                                       ′′   ′                                   ′
+                     X
+                                  (25(t −t ) + K) · |Q(t′ )| ≤ (2 · (210(t −t) ) + K(t − t′ )) · |Q(t′ )|.
+                         ′
+                t′′ = (t−t
+                        2
+                           )
+                             +t
+
+Therefore, overall, the query complexity of step 2 of round t can be upper bounded by
+                                            t−1
+                                            X
+                                                  2 · (220(t−s) + K(t − s)) · |Q(s)|.                                     (2)
+                                            s=1
+
+
+Simulating Step 3. This step happens only when node v has been declared sleeping for round
+t and in this case node v is does not read any messages of the neighbors in this round, and thus
+there is no extra query needed.
+Simulating Step 4. This step happens only when v is not sleeping in round t. In that case, we
+determine whether v is marked or not, i.e., whether it attempts to join the independent set I in
+round t or not. The only message that needs to be read from the neighbors is whether any neighbor
+in Nt (v) also got marked or not. Since node v was not declared sleeping for round t in the earlier
+round t − 1, we know that at that point we must have had Nt (v) ≤ 210 + K. Hence, the query
+complexity of this step is simply calling Q(t − 1) on each of these at most 210 + K neighbors, which
+is upper bounded by (25 + K) · |Q(t − 1)|.
+    Overall, we can thus upper bound the query complexity of simulating v up to round t as
+                                                         t−1
+                                                        X                                          
+                                                                      20(t−s)
+                        |Q(t)| ≤ |Q(t − 1)| +                   10(2            + K(t − s)) · |Q(s)|
+                                                          s=1
+
+   Recall the base Q(0) = ∆. Using a simple induction, one can show that the solution to the
+recursion is bounded as Q(T ) ≤ ∆ ·2CT , where C is a sufficiently large constant. Hence, to simulate
+each node’s behavior in the LOCAL algorithm that has round complexity T = Θ(log ∆), the query
+complexity is poly(∆).
+
+                                                                 13
+2.4     Analysis of the LOCAL Algorithm
+
+Intuitive Discussion. The general idea in the analysis is to show that despite the changes in
+the LOCAL algorithm (which are the whole reason that we can now achieve the poly(∆) query
+complexity), we can follow an analysis roughly along the lines of that of the original algorithm
+of [Gha16]. Let us provide an intuitive outline. We comment this intuition is quite imprecise and
+inaccurate; the precise statements needs many definition and are presented after this intuition. We
+will show that, unless an unlikely event of probability at most 1/ poly(∆) happens, there will be
+a constant fraction of rounds that are good for v, in the sense that in each such round, either v
+joins the MIS or a neighbor of v joins the MIS. In particular, we will show that with probability
+1 − 1/ poly(∆), all except a negligible minority of the decisions of a node to sleep are correct,
+meaning that the size of the neighborhood that was going to be marked in round t was too large,
+and in the normal course of the algorithm the node would have not been able to join the independent
+set in this round. Having shown that, we use the dynamic of the algorithm to argue that in rounds
+where many neighbors of v are attempting to join, either we are in a good round and there is a
+constant probability that at least one of them will succeed to join the independent set, or we are
+in such a round that the number of those attempting neighbor will shrink considerably. This will
+allow us to say that there cannot be a large fraction of rounds where too many of the neighbors
+of v are attempting (and still none of them joins the independent set). Because of this, we will be
+able to show that unless there are a constant fraction of good rounds where neighbors of v have
+a constant probability per round of joining I, there should be a constant fraction of good rounds
+such that v has a considerable probability of attempting to join in this round and such that with
+constant probability no neighbor will block it.
+    We next proceed to the analysis. For that, we first need to define a set of terminologies and
+notations. Afterward, we present a number of key claims about the behavior of the algorithm, and
+at the end, in Lemma 2.13 and Lemma 2.14, we show that each connected component of the graph
+induced by the remaining vertices V \ (I ∪ Γ(I)) has size poly(∆) log n, with high probability.
+
+2.4.1   Terminology and Round Classification
+                        P
+Let us define dt (v) = u∈Γ(v) pt (v). For each node v, we classify the rounds into a few different
+(not necessarily disjoint) possibilities:
+   • Sleeping Mistake Rounds: Recall that if in a round t′ and for a node v, we have |Nt (v)| >
+            ′
+     25(t−t ) + K for some future round t ≥ t′ + 1, then we declare      Pnode v sleeping for ′rounds
+     [t, t + (t − t′ )]. We say this was a mistake if at time t′ we had u∈Γ(v) pt′ (u) ≤ 24(t−t ) . And
+     in this case we have created t − t′ + 1 rounds where node v would be sleeping by mistake. If
+     this mistake happens, we call the time interval [t′ + 1, t + t − t′ ] a sleeping mistake period for
+     node v, or simply a mistake period for v, and each round in this interval a mistaken round
+     for v. Any round that is not mistaken is called an intact round.
+        Similarly, before the beginning of round 1, we examine Nt (v) and if |Nt (v)| > 25(t−1) + K,
+        we will put v to sleep for some rounds. Let z be the greatest integer such that |Nt (v)| >
+        25(t+z−1) +PK. Then, we put v to sleep for rounds [t, t + z]. Noting that in round 1 we must
+                                           1
+        have had u∈Γ(v) p1 (u) ≤ ∆ · 2∆       = 12 and as pt (u) ≤ 2t−1 p1 (u), any such event for z ≥ 1
+        is a mistake (i.e., significant deviation from the expectation of |Nt (v)|, and we consider the
+        interval [t, t + z] as a mistake period, and each of its rounds as a mistaken round for v.
+   • Sleeping Round: We say node v is sleeping in round t if v has been put to sleep in round
+     t in one of the earlier rounds t′ ≤ t − 1 (either correctly or by mistake).
+
+
+                                                   14
+    • Heavy Round: We say node v is heavy    Pin round t if v is not sleeping in this round and
+      when we reach round t, we have dt (v) = u∈Γ(v) pt (v) ≥ Cδ = log(1/δ).
+    • Light Round: We say node v is light
+                                        P in round t if v is not sleeping in this round and when
+      we reach round t, we have dt (v) = u∈Γ(v) pt (v) ≤ δ.
+    • Moderate Round: We say node v is moderate in round t if v is not sleeping in this round
+      and when we reach round t, we have dt (v) ∈ (δ, Cδ ).
+    • Wrong Down Move: If in an intact round t, node v is light but sets pt+1 (v) ← pt (v)/2, we
+      call this a wrong down move.
+    • Wrong Up Move: If in an intact round t where dt (v) ≥ δ and t is not a good type-2 round
+      for v, we have dt+1 (v) > 0.7dt (v), we call this a wrong up move for v.
+    • Type-1 Good Round: We call a round t a good round of type-1 if this is a light or moderate
+      round for v, but not a sleeping round, and we have pt (v) = 1/2.
+    • Type-2 Good Round: Let Ht (v) ⊆ Γ(v) be the neighbors of v that are heavy or sleeping
+      in round v. Then, we call round t a good round of type-2 for v if dt (v) ≥ δ and we have
+      P                    19
+         u∈Ht (v) pt (v) ≤ 20 dt (v). Notice that node v might be sleeping in such a round.
+
+
+2.4.2    Key Lemmas
+Claim 2.4. The probability of each round t being a mistaken round for v is at most δ5 . Moreover,
+with probability 1 − 1/ poly(∆), the total number of mistaken rounds (which includes rounds in
+which node v is sleeping by mistake) is at most δT for a small constant δ ∈ (0, 0.01). Furthermore,
+this holds independent of the randomness of nodes V \ Γ(v).
+Proof. We first discuss the probability that each round t is a sleeping mistake and upper bound
+this by δ5 . Then, we argue that the total number of mistakes is at most δT , with probability
+1 − 1/ poly(∆). We note that the latter does not follow immediately from the former as there are
+some dependencies.
+Sleeping Mistake Probability Per Round. We first consider sleeping decisions made before
+the beginning of round 1. Choose a round t′ ≤ t and let us first consider the creation of Nt′ (v)
+before the beginning of round 1, and the sleeping rounds it may cause, if Nt′ (v) is too large. Recall
+                                                                 1
+for that for each neighbor u ∈ Γ(v), we have p1 (u) ≤ 2∆           . Moreover, we include in Nt′ (v) neighbor
+                                         t′ −1                                 ′
+u if and only if we have ρt′ (u) ≤ 2           p1 (u). Hence, E[|Nt′ (v)|] ≤ 2t −2 . We put v to sleep for round
+                                                                     ′
+t′ , and some rounds after, only if we have |Nt′ (v)| > 25(t −1) + K, where K = 20 log(1/δ). If z is
+                                                       ′
+the greatest integer such that |Nt′ (v)| > 25(t +z−1) + K, then we put v to sleep for rounds [t′ , t′ + z].
+Moreover, whether a neighbor u is in Nt′ (v) or not simply depends on its own randomness ρt′ (u)
+and is independent of all other neighbors. Hence, by Chernoff bound, the probability of this event
+                              ′                                                ′
+is at most 2 · exp(−(25(t +z−1) + 20 log(1/δ))/3) ≤ δ5 exp(−Θ(25(t +z−1) )) ≤ δ5 exp(−(24(t+z−1) )).
+This means the probability that we put v to sleep for round t because of a particular prior round
+t′ ≤ t is at most δ5 exp(−(24(t−1) )). Hence, by a union bound over all t′ ∈ [1, t], we get that the
+probability that we put v to sleep for round t′ is at most δ5 · t · exp(−(24(t−1) )) ≤ δ5 .
+      Next, let us consider sleeping decisions made in the course of the algorithm, in some round
+t′ ≥ 1. Consider a future round t ≥ t′ + 1. We declare v sleeping for rounds                             ′
+                                                                                         P [t, t + (t − t )](t−t
+                                                                                                              if in
+         ′                      5(t−t′)                                                                          ′)
+round t we had |Nt | > 2                + K. Notice that in this round E[|Nt |] ≤ u∈Γ(v) pt′ (v) · 2                .
+Moreover, whether a neighbor u is in Nt (v) or not simply depends on its own randomness ρt (u)
+and
+P is independent3(t−t  of all other neighbors. Hence, by Chernoff, the probability that we actually had
+                          ′)
+           p
+    u∈Γ(v) t ′ (v) ≤ 2       and made this mistake of putting v into sleep for rounds [t, t + (t − t′)] is at
+                        ′                             ′
+most 2 · exp(−(25(t−t ) + K)/3) ≤ δ5 2−(4(t−t )) , given that K = 20 log 1/δ. Hence, by a union bound
+
+                                                         15
+          ′ ∈ [1, t − 1], we get that the probability that round t was a mistaken round for node v is
+over all tP
+at most t−1        5 −(4(t−t′ )) ≤ δ 5 .
+            t′ =1 δ 2
+The Total Number of Sleeping Mistakes. Let us consider a round t′ and the set Nt′ (v) that
+we build for it and gradually refine it. Notice that, as discussed above, if Nt′ (v) crosses a certain
+threshold, then we put node v into sleep for round t′ as well as a number of rounds after it. Notice
+also that this can happen only once; that is, only one time because of Nt′ (v) we put node v into
+sleep for some rounds that includes round t′ , and from that point on we do not refine Nt′ (v). Let
+   ′
+Rt (v) be the number of rounds that we put v into sleep because of |Nt′ (v)| crossing a threshold in
+any previous round t′′ ≤ t′ . As discussed above, before the beginning of round 1, we put v into sleep
+for z + 1 rounds — that is, the period [t′ , t′ + z]— with probability at most δ5 exp(−(24(t+z−1) )).
+If that happened, v is sleeping in round t′ and we do not create any additional sleeping because of
+|Nt′ (v)|. Otherwise, in each later round r ∈ [1, t′ ], we put v into sleep for t′ − r + 1 rounds —that
+is, the period [t′ , t′ + (t′ − r)]—with probability at most δP5 2−(4(t′ −r)) .
+                                    ′                                     ′
+     We can conclude that E[Rt (v)] ≤ δ/2. Therefore, E[ Tt′ =1 Rt (v)] ≤ δT /2. Furthermore, the
+                                           ′
+distribution of the random variable Rt (v) is stochastically dominated by a geometric distribution.
+                                                   ′
+More precisely, for any k ≥ 1, we have Pr[Rt (v) = k] ≤ δ2 · 2−(2k) . Since the random variables
+   ′
+Rt (v) are all independent for different values of t′ , and as each is from a distribution stochastically
+dominating by a geometric distribution,      using standard concentration arguments [Doe18, Theorem
+                                      PT     t′
+1.10.32], we can conclude that t′ =1 R (v) is concentrated around its expectation and we thus
+          PT         ′
+have Pr[ t′ =1 Rt (v) ≥ δT ] ≤ exp(−Θ(δT )) = 1/ poly(∆).
+     Finally, notice that in this argument, we only examined the random variables that impact
+whether a neighbor u ∈ Γ(v) is in Nt (v) or not. Hence, the guarantee holds independent of the
+randomness of nodes V \ Γ(v).
+
+     We will sometimes make use of the following elementary helper lemma (very much like a union
+bound) to say that conditioning on an event that happens with probability almost 1 does not change
+the probabilities too much. In particular, the latter for us will be the event that a particular round
+is intact, which we know happens with probability at least 1 − δ5 , from Claim 2.4.
+
+Lemma 2.5. Consider an event E ′ which happens in round t with probability Pr[E ′ ]. Also, let EI
+be another event, in our particular case, the event that round t is intact for node v. Then, we have
+Pr[E ′ |EI ] ≥ Pr[E ′ ] − (1 − Pr[EI ]).
+
+Proof. We have Pr[E ′ |EI ] ≥ Pr[E ′ ∩ EI ] ≥ Pr[E ′ ] − Pr[E ′ ∩ E¯I ] ≥ Pr[E ′ ] − (1 − Pr[EI ]).
+
+Claim 2.6. In each intact round t where v is light, with probability at least 1 − 2δ, we have
+pt+1 (v) ← min{2pt (v), 1/2}. In other words, the probability of each round being a wrong down
+move is at most 2δ. This statement holds independent of the randomness of nodes V \ Γ(v).
+
+                                           P we have dt (v) ≤ δ. Hence, the probability that any of
+Proof. In an intact round t where v is light,
+the neighbors of v is marked is at most u∈Γ(v) pt (u) = dt (u) ≤ δ. Therefore, with probability at
+least 1 − δ, no neighbor is marked. This proves the claim, because if node neighbor gets marked,
+we set pt+1 (v) ← min{2pt (v), 1/2}. Finally, we note that we should condition on that round t is
+an intact round and v was not mistakenly put to sleep for round t. Each round is an intact round
+with probability at least 1 − δ5 , as shown in Claim 2.4. Hence, by Lemma 2.5, the probability that
+no neighbor is marked remains at least 1 − δ − δ5 ≥ 1 − 2δ.
+
+Claim 2.7. In each intact round t where v is heavy, with probability at least 1 − δ, we have
+pt+1 (v) ← pt (v)/2. This statement holds independent of the randomness of nodes V \ Γ(v).
+
+
+                                                        16
+Proof. In an intact round t where v is heavy, we have dt (v) ≥ Cδ = log2 (1/δ). Notice that each
+neighbor u ∈ Γ(v) is marked with probability pt (v), and regardless of whetherQu is sleeping in this
+round or not. Thus, the probability that no neighbor of v is marked is at most u∈Γ(v) (1 − pt (u)) ≤
+  P
+e− u∈Γ(v) pt (u) = e−dt (v) ≤ δ/2. Hence, with probability at least 1 − δ/2, at least one neighbor is
+marked. Finally, we note that we should condition on that round t is an intact round and v was
+not mistakenly put to sleep for round t. Each round is an intact round with probability at least
+1 − δ5 , as shown in Claim 2.4. Hence, by Lemma 2.5, even conditioning on round t being an
+intact round for v, we know that the probability that some neighbor of v is marked is at least
+1 − δ/2 − δ5 ≥ 1 − δ. Thus, with probability at least 1 − δ, some neighbor of v is marked and node
+v sets pt+1 (v) ← pt (v)/2.
+
+Claim 2.8. In each intact round t where v is sleeping, we have pt+1 (v) ← pt (v)/2.
+
+Proof. Follows directly and deterministically, because the algorithm sets pt+1 (v) ← pt (v)/2 in step
+3 of each sleeping round.
+
+Claim 2.9. In each intact round t where dt (v) ≥ δ but t is not a good type-2 round for v, with
+probability at least 1 − 10δ, we have dt+1 (v) ≤ 0.7dt (v). In other words, the probability of each
+round being a wrong up move is at most 10δ. This statement holds independent of the randomness
+of nodes V \ Γ2 (v).
+    Moreover, a similar statement holds for sleeping rounds that are not good type-2 rounds, in an
+amortized sense: consider a node v that is put to sleep in a round t′ for the period [t, t + (t − t′ )],
+and this was not a mistake. We have two cases:
+   • Either each round r ∈ [t, t + (t − t′ )] has dr (v) ≥ δ, in which case either r is a good type-2
+     round or, with probability at least 1 − 10δ, we have dr+1 (v) ≤ 0.7dr (v). Here, the statement
+     depends only on the randomness of round r.
+                                                                                                ′′   ′
+   • Otherwise—if there is at least one round r such that dr (v) ≤ δ—we have dt′′ (v) ≤ (0.7)t −t dt′ (v)
+     where t′′ = t + (t − t′ ).
+
+Proof. Consider
+              P a round t in which   dt (v) ≥ δ. Suppose that this is not a good type-2 round for v,
+                                19
+which means u∈H(v) pt (v) ≤ 20 dt (v) where H(v) ⊆ Γ(v) is the neighbors of v that are heavy or
+sleeping in round t. Let us call each neighbor w ∈ H(v) who sets pt+1 (w) ← {2pt (w), 1/2} wrong.
+By Claim 2.7, any neighbor w ∈ H(v) will set pt+1 (w) ← pt (w)/2 with probability at least 1 − δ.
+Thus, each neighbor in w ∈ H(v) is wrong with probability at most δ. Let W ⊂ H(v) be those
+that were wrong. Hence, we have
+                                   X                       X
+                               E[         pt+1 (w)] ≤ 2δ ·     pt (w).
+                                  w∈W (v)                 w∈H(v)
+                                                                             P
+Therefore, by Markov’s inequality, with probability at least 1 − 10δ, we have w∈W (v) pt+1 (w) ≤
+ 1   P                                 ′                              ′       ′
+10 ·   w∈H(v) pt (w). Every neighbor w ∈ H(v) \ W (v) sets pt+1 (w ) = pt (w )/2. Hence, with
+
+
+
+
+                                                  17
+probability at least 1 − 10δ, we have
+                          X
+              dt+1 (v) =       pt+1 (w)
+                          w∈Γ(v)
+                             X                        X                          X
+                      =                 pt+1 (w) +             pt+1 (w) +                    pt+1 (w)
+                          w∈Γ(v)\H(v)                w∈W (v)                w∈(H(v)\W (v))
+                               X                     1    X                       X
+                      ≤2                 pt (w) +       ·   pt (w) +                          pt (w)/2
+                                                     10
+                           w∈Γ(v)\H(v)                  w∈H(v)               w∈(H(v)\W (v))
+                           2   X          1    X         1  X
+                      ≤      ·   pt (w) +    ·   pt (w) + ·   pt (w)
+                          20              10             2
+                              w∈H(v)                   w∈H(v)                  w∈H(v)
+
+                      = 0.7dt (v)
+
+Let us now consider the second part of the claim, where a node v is put to sleep in a round t′ for
+                   (t − t′ )], and this was not by a mistake. The latter part means that at time t′ ,
+the period [t, t + P
+                                               ′
+we had dt′ (v) = u∈Γ(v) pt′ (v) ≥ 23(t−t ) . We have already analyzed rounds r in this period in
+which we have dr (v) ≥ δ. In the complementary case, suppose that there is at least one round
+r in the interval during which we have dr (v) ≤ δ. Then at the end of the interval, we have
+               ′               ′                 ′′ ′
+dr (v) ≤ δ2(t−t ) ≤ (0.5)2(t−t ) dt′ (v) = (0.5)t −t dt′ (v).
+
+Claim 2.10. With probability 1 − 1/ poly(∆), the total number of wrong moves for a node v is at
+most 20δT . Moreover, this holds independent of the randomness of nodes V \ Γ2 (v).
+
+Proof. By Claims 2.6 and 2.9, the probability of each intact round being a wrong down move or a
+wrong up move is at most 10δ. Furthermore, whether an intact round is a wrong up or down move
+depends only on the randomness used in the marking of that round, and is independent of other
+rounds. Hence, by Chernoff bound, With probability 1 − 1/ poly(∆), the total number of wrong
+moves for a node v is at most 20δT . In determining whether a round is a wrong up or down move,
+we only examined the randomness of v, its neighbors and the neighbors of its neighbors. Hence,
+the statement holds independent of the randomness of nodes V \ Γ2 (v).
+
+Claim 2.11. In each intact good round of type-1, with probability at least δ2 /3, node v joins the
+independent set I. This statement holds independent of the randomness of nodes V \ Γ(v).
+
+Proof. In an intact good round of type-1, we have dt (v) ≥ Cδ = log(1/δ) and pt (v) = 1/2. In this
+round, node v is marked with probability 1/2 and independentPof that, the probability that none
+of its neighbors is marked is at least u∈Γ(v) (1 − pt (u)) ≥ 4− u∈Γ(v) pt (u) = δ2 . Finally, we had
+                                      Q
+
+conditioned on t being an intact round. Since any round is intact with probability at least 1 − δ5 ,as
+shown in Claim 2.4, we conclude that the probability that node v joins the independent set I is at
+least δ2 /2 − δ5 ≥ δ2 /3.
+
+Claim 2.12. In each intact good round of type-2, with probability at least δ3 /50, one of the neighbors
+of node v joins the independent set I. This statement holds independent of the randomness of nodes
+V \ Γ2 (v).
+
+Proof. Let H(v) ⊆ Γ(v) be the neighborsP of v that are 19
+                                                        heavy in roundPt or sleeping. In an intact
+round of type-2, we have dt (v) ≥ δ and u∈H(v) pt (v) ≤ 20 dt (v). Thus, u∈(Γ(v)\H(v)) pt (v) ≥ δ/20.
+We scan the neighbors in (Γ(v)\H(v)) one by one until we find the first marked neighbor.
+                                                                                P          The prob-
+                                                   Q                           − u∈(Γ(v)\H(v)) pt (v)
+ability that we find no marked neighbor is at most u∈Γ(v)\H(v) (1 − pt (u)) ≤ e                       ≤
+
+                                                       18
+e−δ/20 ≥ 1 − δ/40. In other words, with probability at least δ/40 we find a marked neigh-
+bor in (Γ(v) \ H(v)). Let w be such a neighbor. Notice that w is not sleeping and we have
+dt (w) ≤ Cδ = log(1/δ). Hence,
+                           P    the probability that none of the neighbors of w marked is at least
+                          − u∈Γ(w) pt (u)
+                                          = δ2 . Therefore, with probability at least δ3 /40, at least
+Q
+   u∈Γ(w) (1 − pt (u)) ≥ 4
+one of the neighbors of v joins the independent set I. Finally, we had conditioned on t being an
+intact round. Since any round is intact with probability at least 1 − δ5 , as shown in Claim 2.4,
+we conclude that the probability that a neighbor of node v joins the independent set I is at least
+δ3 /40 − δ5 ≥ δ3 /50.
+
+2.4.3   Proof of the Main Statement
+Lemma 2.13. In the T = Θ(log ∆) round algorithm, for each node v, with probability 1 −
+1/ poly(∆), we have v ∈ (I ∪ Γ(I)). Moreover, this statement holds independent of the random-
+ness of nodes V \ Γ2 (v).
+
+Proof. To prove the lemma, we show that with probability at least 1 − 1/ poly(∆), we have at least
+0.1T good rounds for v (in fact, without examining the marking outcome of the good rounds).
+Then, we use Claim 2.11 and Claim 2.12 to argue that with probability at least 1 − 1/ poly(∆), we
+must have v ∈ (I ∪ Γ(I)).
+    First, note that by Claim 2.10 and Claim 2.4, we have at most 25δT rounds that are wrong
+moves or mistakenly sleeping. Recall also that δ is a constant that we adjust to be desirably small.
+    Next, consider the set of all moderate, heavy, and sleeping rounds for v. Each such round is
+either a good type-2 round or a round t in which we have dt+1 ≤ 0.7 · dt (v), or else it is either a
+wrong up move round or a mistakenly sleeping round (we separated the latter two kind as they are
+a tunably-small fraction, by decreasing δ). Suppose we have less than 0.1T good rounds of type
+2, as otherwise we are done. In round 1, we have dt (v) ≤ 1/2. In any round (and as particularly
+relevant in this argument, any good type-2 round or any wrong or mistaken round), we know that
+dt+1 (v) ≤ 2dt (v). We have at most 0.1T +25δT such 2-factor increases during moderate, heavy, and
+sleeping rounds. Any remaining round among moderate, heavy, and sleeping rounds is a decrease
+by an 0.7 factor, i.e., where we have dt+1 ≤ 0.7 · dt (v). Since any increase round increases d(v) by
+at most a 2 factor and any decrease round reduces d(v) by a factor of at most 0.7, and given that
+(0.7)2 ≤ 1/2, we can have at most 0.3T + 75δT rounds in which v is moderate, heavy, or sleeping.
+    What remains are light rounds for v, and a tunably-small minority of wrong or mistaken rounds
+(namely at most 25δT ). So, we must have at least 0.7T − 100δT light rounds. Each light round is
+                                                                                               1
+either a wrong down move or we have pt+1 (v) = min{2·pt (v), 1/2}. We start with p1 (v) = 2∆      and in
+each light round that is not a wrong down move, we have pt+1 (v) = min{2·pt (v), 1/2}. In each other
+round, we have pt+1 (v) ≥ pt /2. Hence, in at least (0.7T −100δT )−(log ∆+1+0.3T +75δT ) ≥ 0.1T
+light rounds, node v is not sleeping and we have pt (v) = 1/2. Here, we have used that δ < 0.001.
+These are good rounds of type 2.
+    In conclusion, node v has at least 0.1T good rounds, with probability 1 − 1/ poly(∆). By
+Claim 2.11 and Claim 2.12, in each good round, node v joins the independent set I or has a
+neighbor join I with probability at least δ3 /50. Hence, the probability that v ∈    / (I ∪ Γ(I)) is at
+most (1 − δ3 /50)0.1T ≤ 1/ poly(∆), where we use that the constant in the length T = Θ(log ∆) is
+chosen large enough (e.g., greater than 1000/δ3 , where δ itself was a small constant fixed earlier).
+
+Lemma 2.14. Let I be the independent set computed in Lemma 2.13. Let H be the subgraph of G
+induced by the subset V \(I ∪ Γ(I)) of vertices. Then, with probability 1− 1/ poly(n), each connected
+component of H has at most O(∆4 log n) vertices. Furthermore, for each node v and for any ε > 0,
+the connected component of v in H has size at most O(∆4 log(1/ε)).
+
+                                                  19
+Proof Sketch. This is a standard proof, which is sometimes called a shattering proof, and the first
+version of it appeared in Beck’s breakthrough algorithm for Lovasz Local Lemma [Bec91]. See,
+e.g., [RTVX11, Lemma 4.6] or [Gha16, lemma 4.2] for applications of this in the case of the MIS
+problem. To be self-contained, we provide a short and informal (and slightly imprecise) sketch.
+    By Lemma 2.13, each node v is in H with probability at most 1/∆20 . We note that any
+probability 1/∆c , for any constant c, would be achievable in Lemma 2.13, by adjusting the constant
+in the round complexity T = Θ(log ∆) of the LOCAL algorithm. The bound of 1/∆20 will suffice
+for our argument in this lemma. Also, for any two nodes that are 5 or more hops apart, this
+statement holds independently, as for each of them it depends only on the randomness of nodes
+within its distance 2. Let T be a tree embedded in G1 0 such that any two neighbors in T have
+distance at most 10 in G and any two nodes in T have distance at least 5 in G. The probability
+that all vertices of T are in H is at most ( ∆120 )|T | . On the other hand, there are at most n(4∆10 )|T |
+many trees of size |T | that can be embedded in graph G10 . Namely, there are n places as the
+root, 4|T | different tree topologies, and at most ∆10 ways to choose each node in the tree once its
+parent has been chosen, among the less than ∆10 nodes within 10 hops of its parent. Therefore,
+for |T | = Θ(log n), with probability at least 1 − 1/ poly(n), there is no such tree in H. Hence, with
+probability at least 1 − 1/ poly(n), there is no connected component of size exceeding Θ(∆4 log n)
+in H, because any such component includes all the vertices of a tree of size Θ(log n) embedded in
+G10 with the aforementioned properties (as can be seen by a greedy argument of taking any vertex
+in the component of H and removing others within its distance 4, which are at most Θ(∆4 ) many).
+    Also note that if we fix node v itself and we are only interested in the component of v, we have
+already fixed the root of the tentative embedding of |T |. Then, by setting |T | = Θ(log 1/ε), we get
+that with probability 1 − ε, the component of v has at most Θ(∆4 log n) vertices.
+
+Corollary 2.15. There is a local computation algorithm that, when queried on any single node v,
+performs poly(∆) computation and answers whether v ∈ I, v ∈ Γ(I), or v ∈     / (I ∪ Γ(I)). Moreover,
+letting H be the subgraph of G induced by the subset V \(I ∪Γ(I)) of vertices. Then, with probability
+1 − 1/ poly(n), each connected component of H has at most O(∆4 log n) vertices.
+
+Proof. Follows directly from Lemma 2.3, Lemma 2.13, and Lemma 2.14.
+
+2.5   The Complete LCA Algorithm for MIS
+Theorem 2.16. There is a local computation algorithm that, when queried on any single node v,
+performs poly(∆) log n computation and answers whether v ∈ I ′ or not, where I ′ is a maximal
+independent set, with probability 1 − 1/ poly(n). Furthermore, for each node v, the expected query
+complexity to answer this question is poly(∆), and for any ε > 0, with probability at least 1 − ε,
+the query complexity is at most poly(∆) log(1/ε).
+
+Proof. When queried on each node v, we first call the LCA of Corollary 2.15 which uses poly(∆)
+queries and answers whether v ∈ I, v ∈ Γ(I), or v ∈   / (I ∪ Γ(I)). If v ∈ I or v ∈ Γ(I), we are done
+and we terminate. Otherwise, we perform more queries to reveal the connected component of v
+in the subgraph H induced by the subset V \ (I ∪ Γ(I)). From Corollary 2.15, we know that for
+each ε > 0, with probability at least 1 − ε, the size of the connected component of v is at most
+poly(∆) log(1/ε), and, with probability at least 1 − 1/ poly(n), this size is at most poly(∆) log n.
+    Suppose that v ∈ / (I ∪Γ(I)). We perform a breadth first search, using the LCA of Corollary 2.15,
+to reveal all the nodes in the component of v in H. Concretely, we first call the LCA of Corollary 2.15
+on each of the neighbors of v. Then, we repeat the same procedure for all neighbors u ∈   / (I ∪ Γ(I)),
+calling the LCA of all of their neighbors, and similarly repeat it on each of their neighbors that turn
+
+
+                                                    20
+out to be in V \(I ∪Γ(I)), and so on. This BFS will reveal all the nodes in the connected component
+of the subgraph induced by V \ (I ∪ Γ(I)) that contains v, at the expense of poly(∆) queries per
+each node in this component. From Corollary 2.15, we know that any connected component of H
+has at most O(∆4 log(1/ε)) vertices, with probability at least 1 − ε. Hence, the number of queries
+needed to produce the component (i.e., determining all of its nodes and edges) is O(∆4 log(1/ε))
+with probability at least 1−ε, and in particular O(∆4 log n) with probability at least 1−1/ poly(n).
+    Once the component of v is determined, we augment I to be a maximal independent set I ′ by
+adding to I a maximal independent set of this connected component of H. This can be computed in
+any arbitrary fixed manner (in a way that is independent of the questioned vertex v). For instance,
+we use the lexicographically-first greedy MIS, which processes the vertices of the component one
+by one according to an increasing ordering of their identifiers and adds to I ′ any vertex for which
+we have not added any of its neighbors to I ′ before. This part does not add any new queries to the
+computation as we have already revealed all of the nodes and edges of the component.
+
+    Finally, we comment that by a technique of Alon et al. [ARVX12] one can transform the
+above algorithm into one with poly(∆ log n) query complexity that uses only poly(∆ log n) bits
+of randomness—the base observation is that poly(∆ log n)-wise independence suffices for our anal-
+ysis.
+
+
+References
+[ARVX12]     Noga Alon, Ronitt Rubinfeld, Shai Vardi, and Ning Xie. Space-efficient local computa-
+             tion algorithms. In Proceedings of the ACM-SIAM Symposium on Discrete Algorithms
+             (SODA), pages 1132–1139, 2012.
+
+[Bec91]      József Beck. An algorithmic approach to the lovász local lemma. i. Random Structures
+             & Algorithms, 2(4):343–365, 1991.
+
+[Beh21]      Soheil Behnezhad. Time-optimal sublinear algorithms for matching and vertex cover.
+             In Proceedings of the Symposium on Foundations of Computer Science (FOCS), pages
+             to appear, arXiv:2106.02942, 2021.
+
+[Doe18]      Benjamin Doerr. Probabilistic tools for the analysis of randomized optimization
+             heuristics. arXiv preprint arXiv:1801.06733, 2018.
+
+[EMR18]      Guy Even, Moti Medina, and Dana Ron. Best of two local models: Centralized local
+             and distributed local algorithms. Information and Computation, 262:69–89, 2018.
+
+[GH21]       Mohsen Ghaffari and Bernhard Haeupler. A time-optimal randomized parallel al-
+             gorithm for mis. In Proceedings of the 2021 ACM-SIAM Symposium on Discrete
+             Algorithms (SODA), pages 2892–2903. SIAM, 2021.
+
+[Gha16]      Mohsen Ghaffari. An improved distributed algorithm for maximal independent set.
+             In ACM Symposium on Discrete Algorithms (SODA), pages 270–277, 2016.
+
+[GU19]       Mohsen Ghaffari and Jara Uitto. Sparsifying distributed algorithms with ramifications
+             in massively parallel computation and centralized local computation. In Proceedings
+             of the ACM-SIAM Symposium on Discrete Algorithms (SODA), pages 1636–1653,
+             2019.
+
+
+
+                                                21
+[KMNFT20] Michael Kapralov, Slobodan Mitrović, Ashkan Norouzi-Fard, and Jakab Tardos. Space
+          efficient approximation to maximum matching size from uniform edge samples. In
+          Proceedings of the ACM-SIAM Symposium on Discrete Algorithms (SODA), pages
+          1753–1772, 2020.
+
+[KMW16]     Fabian Kuhn, Thomas Moscibroda, and Roger Wattenhofer. Local computation:
+            Lower and upper bounds. Journal of the ACM (JACM), 63(2):1–44, 2016.
+
+[Lin92]     Nathan Linial. Locality in distributed graph algorithms. SIAM Journal on Computing
+            (SICOMP), 21:193–201, 1992.
+
+[LM17]      Reut Levi and Moti Medina. A (centralized) local guide. Bulletin of EATCS, 2(122),
+            2017.
+
+[Lov12]     László Lovász. Large networks and graph limits, volume 60. American Mathematical
+            Soc., 2012.
+
+[LRY17]     Reut Levi, Ronitt Rubinfeld, and Anak Yodpinyanee. Local computation algorithms
+            for graphs of non-constant degrees. Algorithmica, 77(4):971–994, 2017.
+
+[Lub85]     Michael Luby. A simple parallel algorithm for the maximal independent set problem.
+            In Proceedings of the seventeenth annual ACM symposium on Theory of computing
+            (STOC), pages 1–10, 1985.
+
+[MRVX12]    Yishay Mansour, Aviad Rubinstein, Shai Vardi, and Ning Xie. Converting online
+            algorithms to local computation algorithms. In Proceedings of the International Col-
+            loquium on Automata, Languages, and Programming (ICALP), pages 653–664, 2012.
+
+[NO08]      Huy N Nguyen and Krzysztof Onak. Constant-time approximation algorithms via
+            local improvements. In Proceedings of the Symposium on Foundations of Computer
+            Science (FOCS), pages 327–336, 2008.
+
+[ORRR12]    Krzysztof Onak, Dana Ron, Michal Rosen, and Ronitt Rubinfeld. A near-optimal
+            sublinear-time algorithm for approximating the minimum vertex cover size. In Pro-
+            ceedings of the ACM-SIAM Symposium on Discrete Algorithms (SODA), pages 1123–
+            1131, 2012.
+
+[PR07]      Michal Parnas and Dana Ron. Approximating the minimum vertex cover in sublinear
+            time and a connection to distributed algorithms. Theoretical Computer Science, 381(1-
+            3):183–196, 2007.
+
+[RTVX11]    Ronitt Rubinfeld, Gil Tamir, Shai Vardi, and Ning Xie. Fast local computation
+            algorithms. In Innovations in Theoretical Computer Science (ITCS), pages 223–238,
+            arxiv:1104.1377, 2011.
+
+[RV16]      Omer Reingold and Shai Vardi. New techniques and tighter bounds for local com-
+            putation algorithms. Journal of Computer and System Sciences, 82(7):1180–1200,
+            2016.
+
+[YYI09]     Yuichi Yoshida, Masaki Yamamoto, and Hiro Ito. An improved constant-time ap-
+            proximation algorithm for maximum matchings. In Proceedings of the Symposium on
+            Theory of Computing (STOC), pages 225–234, 2009.
+
+
+                                              22
+

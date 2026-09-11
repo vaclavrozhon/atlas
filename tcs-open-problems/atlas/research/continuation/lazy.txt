@@ -1,0 +1,2191 @@
+Towards Lazy B-Trees∗
+Casper Moldrup Rysgaard #
+Aarhus University, Denmark
+
+Sebastian Wild #
+Philipps-University Marburg, Germany, and University of Liverpool, UK
+
+arXiv:2507.00277v2 [cs.DS] 16 Dec 2025
+
+Abstract
+Lazy search trees (Sandlund & Wild FOCS 2020, Sandlund & Zhang SODA 2022) are sorted
+dictionaries whose update and query performance smoothly interpolates between that of efficient
+priority queues and binary search trees – automatically, depending on actual use; no adjustments
+are necessary to the data structure to realize the cost savings. In this paper, we design lazy B-trees,
+a variant of lazy search trees suitable for external memory that generalizes the speedup of B-trees
+over binary search trees wrt. input/output operations to the same smooth interpolation regime.
+A key technical difficulty to overcome is the lack of a (fully satisfactory) external variant of
+biased search trees, on which lazy search trees crucially rely. We give a construction for a subset of
+performance guarantees sufficient to realize external-memory lazy search trees, which we deem of
+independent interest.
+2012 ACM Subject Classification Theory of computation → Data structures design and analysis
+Keywords and phrases B-tree, lazy search trees, lazy updates, external memory, deferred data
+structures, database cracking
+Funding Casper Moldrup Rysgaard: Independent Research Fund Denmark, grant 9131-00113B.
+Sebastian Wild: EPSRC grant EP/X039447/1.
+
+1
+
+Introduction
+
+We introduce the lazy B-tree data structure, which brings the adaptive performance guarantees
+of lazy search trees to external memory.
+The binary search tree (BST) is a fundamental data structure, taught in every computer
+science degree and widespread in practical use. Wherever rank-based operations are needed,
+e.g., finding a kth smallest element in a dynamic set or determining the rank of an element
+in the set, i.e., its position in the sorted order of the current elements, augmented BSTs
+are the folklore solution: binary search trees using one of the known schemes to “balance”
+them, i.e., guarantee O(log N ) height for a set of size N , where we additionally store the
+subtree size in each node. On, say, AVL-trees, all operations of a sorted dictionary, i.e., rank,
+select, membership, predecessor, successor, minimum, and maximum, as well as insert, delete,
+change-key, split, and merge can all be supported in O(log N ) worst case time, where N is
+the current size of the set.
+From the theory of efficient priority queues, it is well known that much more efficient
+implementations are possible if not all of the above operations have to be supported: When
+only minimum, insert, delete, decrease-key, and meld are allowed, all can be supported to
+run in constant time, except for O(log N ) delete. Lazy search trees [44, 46] (LSTs) show that
+we can get the same result with full support for all sorted-dictionary operations, so long as
+∗
+
+Erratum: After the publication of the MFCS proceedings, we noticed that the costs of keeping external
+pointers to elements in the data structure are not fully taken into account in our analysis (see Section 1.4
+for details). Therefore, the use of Lazy B-Trees as external-memory priority queue with decrease-key is
+not currently known to be as favorable as claimed in the conference version. Specifically, for the worst
+case of having to maintain pointers to all elements, the I/O cost of delete-min in a straight-forward
+implementation increases to O(log N ) I/Os.
+
+2
+
+Towards Lazy B-Trees
+
+∆2
+∆6
+
+∆1
+∆5
+
+∆8
+
+∆3
+
+∆7
+∆4
+
+∆1
+r0
+
+∆2
+
+∆3 ∆4 ∆ 5
+
+r1
+
+r2
+
+r3 r4
+
+∆6
+r5
+
+∆7
+r6
+
+∆8
+r7
+
+r8
+
+∆2
+
+I2,1 I2,2
+
+I2,3
+
+I2,4
+
+I2,5
+
+I2,6 I2,7 I2,8
+
+Figure 1 Schematic view of the original lazy search tree data structure [44].
+
+they are not used. When they do get used, lazy search trees give the optimal guarantees of
+any comparison-based data structure for the given query ranks, gracefully degrading from
+priority-queue performance to BST performance, as more and more queries are asked. They
+therefore serve as a versatile drop-in replacement for both priority queues and BSTs.1
+The arguably most impactful application of sorted dictionaries across time is the database
+index. Here, economizing on accesses to slow secondary storage can outweigh any other
+costs, which gave rise to external-memory data structures; in particular B-trees and their
+numerous variants. They achieve a log2 (B)-factor speedup over BSTs in terms of input/output
+operations (I/Os), for B the block size of transfers to the external memory, for scanningdominated operations such as a range query, even a factor B speedup can be achieved.
+Much ingenuity has been devoted to (a) write-optimized variants of B-trees [3, 15], often
+with batched queries, and (b), adaptive indices [31], or more recently learned indices [36] that
+try to improve query performance via adapting to data at hand. Deferred data structuring –
+known as database cracking in the systems community – is a special case of (b) that, like
+lazy search trees, refines a sorted order (of an index) successively upon queries. Yet in the
+past, these two approaches often remained incompatible, if not having outright conflicting
+goals, making either insertions or queries fast. Lazy search trees are a principled solution
+to get both (as detailed in Section 1.2); unfortunately, standard lazy search trees are not
+
+1
+
+We point out that a related line of work on “deferred data structures” also adapts to the queried
+ranks in the way LSTs do, but all data structures prior to LSTs had Ω(log N ) insertion time (with
+the assumption that any insertion is preceded by a query for said element). These data structures are
+therefore inherently unable to function as an efficient priority queue. Further related work is discussed
+in Section 1.3.
+
+C. M. Rysgaard, S. Wild.
+
+competitive with B-trees in terms of their I/O efficiency, thus losing their adaptive advantages
+when data resides on secondary storage.
+In this paper, we present lazy B-trees, an I/O-efficient variant of the original lazy search
+trees [44].2 Lazy search trees consist of three layers (see Figure 1). The topmost layer consists
+of a biased search tree of gaps (defined in Section 1.2), weighted by their size. The second
+layer consists, for each gap ∆i , of a balanced binary search tree of O(log |∆i |) intervals Ii,j .
+Intervals are separated by splitter elements (pivots as in Quicksort), but are unsorted within.
+The third layer represents intervals as a simple unordered list.
+A key obstacle to external-memory variants of lazy search trees – both for the original
+version [44] and for optimal lazy search trees [46] – is the topmost layer. As discussed in
+Section 1.3, none of the existing data structures fully solves the problem of how to design a
+general-purpose external-memory biased search tree – and we likewise leave this as an open
+problem for future work. However, we show that for a slightly restricted set of performance
+guarantees sufficient for lazy search trees, a (to our knowledge) novel construction based on
+partitioning elements by weight with doubly-exponentially increasing bucket sizes provides
+an I/O-efficient solution. This forms the basis of our lazy B-trees, which finally bring the
+adaptive versatility of lazy search trees to external memory.
+
+1.1
+
+The External-Memory Model
+
+In this paper we study the sorted dictionary problem in a hierarchical-memory model, where
+we have an unbounded external memory and an internal memory of capacity M elements,
+and where data is transferred between the internal and external memory in blocks of B
+consecutive elements. A block transfer is called an I/O (input/output operation). The I/O
+cost of an algorithm is the number of I/Os it performs. Aggarwal and Vitter [2] introduced
+this as the external-memory model (and proved, e.g., lower bounds for sorting in the model).
+
+1.2
+
+Lazy Search Trees
+
+In this section we briefly describe lazy search trees [44]. Lazy search trees support all
+operations of a dynamic sorted dictionary (details in [44]). We consider the following
+operations (sufficient to base a full implementation on):
+Construct(S): Constructs the data structure from the elements of set S.3
+Insert(e): Adds element e to the set.
+Delete(ptr): Deletes the element at pointer ptr from the set.
+ChangeKey(ptr, e′ ): Changes the element e at pointer ptr to e′ .
+QueryElement(e): Locates the predecessor e′ to element e in the set, and returns rank
+r of e′ , and a pointer to e′ .
+QueryRank(r): Locates the element e with rank r in the set, and returns a pointer to e.
+Lazy search trees maintain the elements of the set partitioned into G “gaps”, ∆1 , . . . , ∆G .
+All elements in ∆i are weakly smaller than all elements in ∆i+1 , but the gaps are otherwise
+treated as unsorted bags. Boundaries between gaps (and new gaps) are introduced only
+via a query; initially we have a single gap ∆1 . Every query is associated with its query
+2
+
+The follow-up work [46] replaces the second and third layer using selectable priority queues; we discuss
+why these are challenging to make external in Section 1.4.
+3
+Construct and iterative insertion have the same complexity in internal memory, but in external
+memory, the bulk operation can be supported more efficiently.
+
+3
+
+4
+
+Towards Lazy B-Trees
+
+Table 1 Overview of results on Search Trees and Priority Queues for both the internal- and
+external-memory model. For the internal model the displayed time is the number of RAM operations
+performed, while for the external model the displayed time is the number of I/Os performed.
+Amortized times are marked by “am.” and results doing batched updates and queries are marked by
+“batched”. For priority queues, query is only for the minimum. All results use linear space.
+Insert
+
+Query
+
+Internal-Memory
+Balanced BST [1, 26]
+
+O(log N )
+
+O(log N )
+
+Priority Queue [14, 19]
+Lazy Search Tree [44]
+
+O(1)
+
+N
+O log |∆i | + log log N
+
+O(log N )
+O(log N + x log c) am.
+
+Optimal LST [46]
+External-Memory
+B-tree [8]
+ε
+
+N
+O log |∆
+i|
+
+
+
+O(log N + x log c) am.
+
+O(logB N )
+1
+
+
+
+B -tree [15]
+
+O εB 1−ε logB N am.
+
+Buffer Tree [3, 4]
+
+
+O B1 logM/B N
+batched
+B 
+1
+N
+O B log2 B am.
+
+1
+N
+
+I/O-eff. heap [37]
+x-treap heap [28]
+This paper, LST
+(Theorem 1)
+This paper, PQ
+(Corollary 2)
+
+O B logM/B B
+
+
+
+
+
+
+
+am.
+
+N
+O logB |∆
++ logB logB |∆i |
+i|
+
+O(logB logB N )
+
+O(logB N )
+1
+O ε logB N am.
+O B1 logM/B N
+batched
+B
+1
+N
+O B log2 B am.
+ε
+O MB log2M/B N
+am.
+B
+1
+O logB min {N, q} + B log2 |∆i |
++ logB logB |∆i | + B1 x log2 c am.
+
+
+
+
+
+
+
+O B1 log2 N + logB logB N am.
+
+rank r [45, §4], i.e., the rank of its result, and splits an existing gap into two new gaps,
+such that its query rank is the largest rank in the left one of these gaps. After queries with
+ranks r1 < r2 < · · · < rq , we thus obtain the gaps ∆1 , . . . , ∆q+1 where |∆i | = ri − ri−1 upon
+setting r0 = 0 and rq+1 = n.
+Lazy search trees support insertions landing in gap ∆i in O(log(N/ |∆i |) + log log |∆i |)
+(worst-case) time and queries in O(x log c + log n) amortized time, where the query splits
+a gap into new gaps of sizes x and cx for some c ≥ 1. Deletions are supported in O(log n)
+(worst-case) time. To achieve these times, gaps are further partitioned into intervals, with an
+amortized splitting and merging scheme (see Section 3 for details).
+
+1.3
+
+Related Work
+
+We survey key prior work in the following; for a quick overview with selected results and
+comparison with our new results, see also Table 1.
+(External) Search trees. Balanced binary search trees (BSTs) exist in many varieties,
+with AVL trees [1] and red-black trees [26] the most widely known. When augmented with
+subtree sizes, they support all sorted dictionary operations in O(log N ) worst-case time.
+Simpler variants can achieve the same via randomization [47, 39] or amortization [48]. In
+external memory, B-trees [8], often in the leaf-oriented flavor as B+ -trees and augmented
+with subtree sizes, are the benchmark. They support all sorted-dictionary operations in
+O(logB N ) I/Os. By batching
+queries, buffer trees [3, 4] substantially reduce the cost to
+
+amortized O B1 logM/B N
+I/Os,
+but are mostly useful in an offline setting due to the long
+B
+delay from query to answer. Bε -trees [15] avoid this with a smaller buffer of operations per
+
+C. M. Rysgaard, S. Wild.
+
+
+
+node to achieve amortized O εB11−ε logB N I/Os for updates and O 1ε logB N I/Os for
+queries (with immediate answers), where ε ∈ (0, 1] is a parameter.
+Dynamic Optimality. The dynamic-optimality conjecture for Splay trees [48] resp. the
+GreedyBST [38, 41, 21] algorithm posits that these methods provide an instance-optimal
+binary-search-tree algorithm for any (long) sequence of searches over a static set of keys
+in a binary search tree. While still open for Splay trees and GreedyBST, the dynamic
+optimality of data structures has been settled in some other models: it holds for a variant
+of skip lists [13], multi-way branching search trees, and B-trees [13]; it has been refuted for
+tournament heaps [42]. As in lazy search trees, queries clustered in time or space allow a
+sequence to be served faster. Unlike in lazy search trees, insertions can remain expensive
+even when no queries ever happen close to them. A more detailed technical discussion of
+similarities and vital differences compared to lazy search trees appears in [44, 45].
+(External) Priority Queues. When only minimum-queries are allowed, a sorted dictionary
+becomes a priority queue (PQ) (a.k.a. “heap”). In internal memory, all operations except
+delete-min can then be supported in O(1) amortized [25] or even worst-case time [14, 19].
+In external memory, developing efficient PQs has a long history. For batch use, buffer-tree
+PQs [4] and the I/O-efficient heap of [37] support k operations of insert and delete-min in
+k
+N
+O B
+logM/B M
+I/Os, with N denoting the maximum number of stored keys over the k
+operations. The same cost per operation can be achieved in
+ a worst-case sense [16] (i.e., B
+N
+subsequent insert/delete-min operations cost O logM/B M I/Os).
+None of these external-memory PQs supports decrease-key. The I/O-efficient tournament
+trees of [37] support a sequence of insert, delete-min, and decrease-key with O B1 log2 N
+B
+I/Os per operation. A further log log N factor can be shaved off [32] (using randomization),
+but that, surprisingly, is optimal [23]. A different trade-off is possible: insert and decrease-key
+are possible in O B1 logM/B N
+I/Os at the expense of driving up the cost for
+B amortized
+
+2
+Mε
+N
+delete/delete-min to O B logM/B B [28].
+(External) Biased Search Trees. Biased search trees [9] maintain a sorted set, where each
+W
+element e has a (dynamic) weight w(e), such that operations in the tree spend O log w(e)
+P
+time, for W the total weight, W = e w(e). Biased search trees can be built from heightbalanced trees ((2, b)-globally-biased trees [9]) or weight-balanced trees (by representing
+high-weight elements several times in the tree [40]), and Splay trees automatically achieve
+the desired time in an amortized sense [48, 40].
+None of the original designs are well suited for external memory. Feigenbaum and
+Tarjan [24] extended biased search trees to (a, b)-trees for that purpose. However, during
+the maintenance of (a, b)-trees, some internal nodes may have a degree much smaller than
+a (at least 2), which means that instead of requiring O(N/B) blocks to store N weighted
+elements, they require O(N ) blocks in the worst case.4 The authors in [24] indeed leave it
+as an open problem to find a space-efficient version of biased (a, b)-trees. Another attempt
+at an external biased search tree data structure is based on deterministic skip lists [5]. Yet
+again, the space usage seems to be Ω(N ) blocks of memory.5
+
+4
+
+In particular, in [24], they distinguish internal nodes between minor and major, minor being the nodes
+that have degree < a or have a small rank. All external nodes are major.
+5
+Unfortunately, it remains rather unclear from the description in the article exactly which parts of
+the skiplist “towers” of pointers of an element are materialized. Unlike in the unweighted case, an
+
+5
+
+6
+
+Towards Lazy B-Trees
+
+
+W
+To our knowledge, no data structure is known that achieves O logB w(e)
+I/Os for a
+dynamic weighted set in external memory while using O(N/B) blocks of memory.
+Deferred Data Structures & Database Cracking. Deferred data structuring refers to the
+idea of successively establishing a query-driven structure on a dataset. This is what lazy
+search trees do upon queries. While the term is used more generally, it was initially proposed
+in [35] on the example of a (sorted) dictionary. For an offline sequence of q queries on a given
+(static) set of N elements, their data structure uses O(N log q + q log N ) time. In [20], this
+is extended to allow update operations in the same time (where q now counts all operations).
+The refined complexity taking query ranks into account was originally considered for the
+(offline) multiple selection problem: when
+q ranks r1 < · · · < rq are sought, leaving gaps
+
+Pq+1
+∆1 , . . . , ∆q+1 , Θ
+comparisons
+are necessary and sufficient [22, 33]. For
+|∆
+|
+log(N/∆
+)
+i
+i
+i=1
+
+Pq+1 |∆i |
+N
+multiple selection in external memory, Θ
+i=1 B logM/B |∆i | I/Os are necessary and
+sufficient [7, 17], even cache-obliviously [17, 18].
+Closest to lazy search trees is the work on online dynamic multiple selection by Barbay
+et al. [6, 7], where online refers to the query ranks arriving one by one. As pointed out
+in [44], the crucial difference between all these works and lazy search trees is that the analysis
+of dynamic multiple selection assumes that every insertion is preceded by a query for the
+element, which implies that insertions must take Ω(log N ) time. (They assume a nonempty
+set of elements to initialize the data structure with, for which no pre-insertion queries are
+performed.) Barbay et al. also consider online dynamic multiple selection in external memory.
+By maintaining a B-tree of the pivots for partitioning, they can support updates – again,
+implicitly preceded by a query – at a cost of Θ(logB N ) I/Os each.
+In the context of adaptive indexing of databases, deferred data structuring is known
+under the name of database cracking [30, 29, 27]. While the focus of research is on systems
+engineering, e.g., on the partitioning method [43], some theoretical analyses of devised
+algorithms have also appeared [50, 49]. These consider the worst case for q queries on N
+elements similar to the original works on deferred data structures.
+
+1.4
+
+Contribution
+
+Our main contribution, the lazy B-tree data structure, is summarized in Theorem 1 below.
+▶ Theorem 1 (Lazy B-Trees). There exists a data structure over an ordered set, that supports
+Construct(S) in worst-case O(|S| /B) I/Os,
+
+N
+Insert in worst-case O logB |∆
++ logB logB |∆i | I/Os,
+i|
+
+N
+Delete in amortized O logB |∆
++ B1 log2 |∆i | + logB logB |∆i | I/Os,
+i|
+
+ChangeKey in worst-case O logB logB |∆i | I/Os if the element is moved towards the
+nearest queried element but not past it, and amortized O B1 log2 |∆i | + logB logB |∆i |
+I/Os otherwise, and
+QueryElement and QueryRank in amortized
+
+O logB min {N, q} + B1 log2 |∆i | + logB logB |∆i | + B1 x log2 c I/Os.
+Here N denotes the size of the current set, |∆i | denotes the size of the manipulated gap, q
+denotes the number of performed queries, and x and cx for c ≥ 1 are the resulting sizes of
+
+input could have large and small weight alternating, with half the elements of height ≈ logb W . Fully
+materializing the towers would incur Ω(n logb W ) space; otherwise this seems to require a sophisticated
+scheme to materialize towers on demand, e.g., upon insertions, and we are not aware of a solution.
+
+C. M. Rysgaard, S. Wild.
+
+the two gaps produced by a query. The space usage is O(N/B) blocks. All results ignore the
+cost of keeping external pointers to elements in the data structure up to date.
+From the above theorem, the following corollary can be derived, which states the performance of lazy B-trees when used as a priority queue.
+▶ Corollary 2 (Lazy B-Trees as external PQ). A lazy B-tree may be used as a priority queue,
+to support, within O(N/B) blocks of space, the operations
+Construct(S) in worst-case O(|S| /B) I/Os,
+Insert in worst-case O(logB logB N ) I/Os,
+
+Delete in amortized O B1 log2 N + logB logB N I/Os,
+DecreaseKey in worst-case O(logB logB N ) I/Os, and
+
+Minimum in amortized O B1 log2 N + logB logB N I/Os.
+All results ignore the cost of keeping external pointers to elements in the data structure up to
+date.
+The running times of lazy B-trees when used as a priority queue are not competitive with
+heaps targeting sorting complexity (such as buffer trees [3, 4]); however these data structures
+do not (and cannot [23]) support decrease-key efficiently. By contrast, for very large N , lazy
+B-trees offer exponentially faster decrease-key and insert than previously known external
+priority queues, while only moderately slowing down delete-min queries.
+Our key technical contribution is a novel technique for partially supporting external
+biased search tree performance, formally stated in Theorem 3 below. In the language of
+a biased search tree, it supports searches (by value or rank) as well as incrementing or
+decrementing6 a weight w(e) by 1 in O(logB (W/w(e))) I/Os for an element e or weight
+w(e); inserting or deleting an element, however, takes O(logB N ) I/Os irrespective of weight,
+where N is the number of elements currently stored. Unlike previous approaches, the space
+usage is the O(N/B) blocks throughout. A second technical contribution is the streamlined
+potential-function-based analysis of the interval data structure of lazy search trees.
+We mention three, as yet insurmountable, shortcomings of lazy B-trees. The first one
+is the log log N term we inherit from the original Lazy search trees [44]. This cost term is
+in addition to the multiple-selection lower bound and thus not necessary. Indeed, it was in
+internal memory subsequently removed [46], using an entirely different representation of gaps,
+which fundamentally relies on soft-heap-based selection on a priority queue [34]. The route to
+an external memory version of this construction is currently obstructed by two road blocks.
+First, we need an external-memory soft heap; the only known result
+√ in this direction [11]
+M/2(B+ M/B)
+only gives performance guarantees when N = O B(M/B)
+and hence seems
+not to represent a solution for the general problem. Second, the selection algorithm from [46]
+requires further properties of the priority queue implementation, in particular a bound on
+the fanout; it is not clear how to combine this with known external priority queues.
+The second shortcoming is that – unlike for comparisons – we do not get close to the
+I/O-lower bound for multiple-selection with lazy B-trees. Doing so seems to require a way
+of buffering as in buffer trees, to replace our fanout of B by a fanout of M/B. This again
+seems hard to achieve since an insertion in the lazy search tree uses a query on the gap data
+structure, and a query on the lazy search tree entails an insertion into the gap data structure
+(plus a re-weighting operation).
+
+6
+
+General weight changes are possible in that time with w(e) the minimum of the old and new weight.
+
+7
+
+8
+
+Towards Lazy B-Trees
+
+Third, the above running times do not include the cost to keep external pointers to
+elements (as used for Delete or DecreaseKey) up to date. When splitting or fusing nodes
+of the blocked-linked list representing intervals (as described in detail in Appendix A), we
+have to update pointers to elements that have moved between blocks. Since these external
+pointers may reside scattered across memory, we may have to pay one I/O per pointer, which
+increases the worst-case cost contribution B1 x log2 c in queries to x log2 c.
+Outline. The remainder of the paper is structured as follows. Section 2 describes the
+gap data structure (our partial external biased search tree) and key innovation. Section 3
+sketches the changes needed to turn the interval data structure from [44] into an I/O-efficient
+data structure; the full details, including our streamlined potential function, appear in
+Appendix A. In Section 4, we then show how to assemble the pieces into a proof of our main
+result, Theorem 1. We conclude in Section 5 with some open problems. To be self-contained,
+we include proofs of some technical lemmas used in the analysis in Appendix B.
+
+2
+
+The Gap Structure: A New Restricted External Biased Search Tree
+
+In this section we present a structure on the gaps, which allows for the following operations.
+Let N denote the total number of elements over all gaps and G denote the number of gaps.
+Note that G ≤ N , as no gaps are empty. We let ∆i denote the ith gap when sorted by
+element, and |∆i | denote the number of elements contained in gap ∆i .
+GapByElement(e) Locates the gap ∆i containing element e.
+GapByRank(r) Locates the gap ∆i containing the element of rank r.
+GapIncrement(∆i ) / GapDecrement(∆i ) Changes the weight of gap ∆i by 1.
+GapSplit(∆i , ∆′i , ∆′i+1 ) Splits gap ∆i into the two non-overlapping gaps ∆′i and ∆′i+1 ,
+s.t. the elements of ∆i are equal to the elements of ∆′i and ∆′i+1 .
+For the operations, we obtain I/O costs, as described in the theorem below.
+▶ Theorem 3 (Gap Data Structure). There exists a data structure on a weighted ordered set,
+that supports GapByElement, GapByRank, GapIncrement and GapDecrement in
+N
+O logB |∆
+I/Os, and GapSplit in O(logB G) I/Os. Here N denotes the total size of all
+i|
+gaps, |∆i | denotes the size of the touched gap and G denotes the total number of gaps. The
+space usage is O(G/B) blocks.
+▶ Remark 4 (Comparison with biased search trees). A possible solution would be an externalmemory version of biased search trees, but as discussed in the introduction, no fully satisfactory such data structure is known. Instead of supporting all operations of biased trees in full
+generality, we here opt for a solution solving (just) the case at hand. The solution falls short
+of a general biased search trees, as the insertion or deletion costs are not a function of the
+weight of the affected gap, but the total number G of gaps in the structure. Moreover, we
+only describe how to change the weight of gaps by 1; however, general weight changes could
+be supported, with the size of the change entering the I/O cost, matching what we expect
+from a general biased search tree.
+Note that the gaps in the structure are non-overlapping, and that their union covers
+the whole element range. The query for an element contained in some gap is therefore a
+predecessor query on the left side of the gaps, however, as their union covers the entire
+element range, the queries on the gap structure behave like exact queries: we can detect
+
+C. M. Rysgaard, S. Wild.
+
+early
+
+b0
+
+9
+
+b1
+
+b2
+
+∆4 ∆9 ∆7 ∆2 ∆ 8 ∆6 ∆3 ∆5 ∆1
+0
+
+1
+
+2
+
+3
+
+4
+
+5
+
+6
+
+7
+
+∆i
+...
+
+8
+
+late buckets
+
+ℓ
+
+...
+
+heavy
+
+early
+
+Figure 2 The conceptual list of the gaps. The gaps are sorted by decreasing weight, with the
+heaviest gap (largest weight), ∆4 at index 0. Gap ∆i with weight wi is stored at index ℓ ≤ W/wi in
+the list. The gaps are split into buckets b0 , b1 , b2 , . . . of doubly exponential size.
+
+∆4
+
+b0
+
+gap weight
+
+∆9
+∆7
+∆2
+∆8
+
+b1
+
+∆6
+∆3
+
+b2
+
+small
+
+element value
+
+late
+
+light
+
+∆5
+∆1
+
+large
+
+Figure 3 Two dimensional view of the first gaps of Figure 2 represented by rectangles, with
+the width of the rectangle denoting the weight (size) of the gap. The horizontal axis sorts gaps by
+element value; the vertical axis by weight. Dashed lines show bucket boundaries.
+
+whether we have found the correct gap and can then terminate the search. (By definition,
+there are no unsuccessful searches in our scenario, either.)
+For consistency with the notation of biased search trees, we write in the following wi = |∆i |
+P
+and W = i wi . Note that W = N . Consider a conceptual list, where the gaps are sorted
+decreasingly by weight, and let gap ∆i be located at some index ℓ in this list. This conceptual
+list is illustrated in Figure 2, and Figure 3 gives a two-dimensional view of the list, which
+considers both the gap weight as well as the gaps ordered by element. As the total weight
+before index ℓ in the conceptual list is at most W and the weight of each gap before index ℓ
+W
+is at least wi , then it must hold that ℓ ≤ w
+. If we were to search for a gap of known
+i
+
+W
+weight, it can therefore be found with an exponential search [10] in time O(log ℓ) = O log w
+.
+i
+However, searches are based on element values (and, e.g., for insertions, without knowing
+the target gap’s weight), so this alone would not work.
+
+2.1
+
+Buckets by Weight and Searching by Element
+
+Instead, the gaps are split into buckets bj , s.t. the weight of all gaps in bucket bj is greater
+than or equal to the weight of all gaps in bucket bj+1 . We further impose the invariant
+j
+that the size of (number of gaps in) bucket bj is exactly B 2 for all but the last bucket,
+which may be of any (smaller) size. Each bucket is a B-tree containing the gaps in the
+bucket, sorted by element value.
+ The time to search for a given element in bucket bj is
+j
+therefore O(logB (|bj |)) = O 2 I/Os. For consistent wording, we will in the following
+always use smaller/larger to refer to the order by element values, lighter/heavier for gaps of
+smaller/larger weight/size, and earlier/later for buckets of smaller/larger index. Note that
+earlier buckets contain fewer, but heavier gaps.
+
+10
+
+Towards Lazy B-Trees
+
+GapByRank. A search for a gap proceeds by searching in buckets b0 , b1 , b2 , . . . until
+the desiredgap is found
+ in some bucket bk . To search in all buckets up until bk requires
+Pk
+j
+k
+O
+2
+=
+O
+2
+I/Os, which is therefore up to constant factors the same cost as
+j=0
+searching in only bucket bk . Consider some gap ∆i , which has the ℓth heaviest weight, i.e., it
+is located at index ℓ, when sorting all gaps decreasingly by weight. By the invariant, the
+buckets are sorted decreasingly by the weight of their internal elements. Let the bucket
+containing ∆i be bk . It must then hold that the sizes of the earlier buckets does not allow
+for ∆i to be included, but that bucket bk does. Therefore,
+k−1
+X
+
+|bj | < ℓ ≤
+
+j=0
+
+k
+X
+
+|bj | .
+
+j=0
+j
+
+As |bj | = B 2 , the sums are asymptotically equal to the last term of the
+sum up to constant
+k−1 
+k
+factors (Lemma 10 in Appendix B). It then holds that ℓ = O B 2 and ℓ = Ω B 2
+=
+
+k
+2k 1/2
+Ω (B )
+. Thus logB (ℓ) = Θ(log
+B |bk |), and conversely 2 = Θ(logB ℓ). The gap ∆i can
+
+W
+thus be found using O logB w
+I/Os,
+concluding the GapByElement operation.
+i
+
+2.2
+
+Updating the Weights
+
+Both explicit weight changes in GapIncrement/GapDecrement as well as the GapSplit
+operation require changes to the weights of gaps. Here, we have to maintain the sorting of
+buckets by weight.
+GapIncrement/GapDecrement. When performing GapIncrement on gap ∆i ,
+the weight is increased by 1. In the conceptual list, this may result in the gap moving to an
+earlier index, with the order of the other gaps the same. This move is made in the conceptual
+list (Figure 2) by swapping ∆i with its neighbor. As the buckets are ordered by element
+value, swapping with a neighbor (by weight) in the same bucket does not change the bucket
+structure. When swapping with a neighbor in an earlier bucket, however, the bucket structure
+must change to reflect this. Following the conceptual list (Figure 2), this gap is a lightest
+(minimum-weight) gap in bucket bk−1 . This may then result in ∆i moving out of its current
+bucket bk , into some earlier bucket. As the gap moves to an earlier bucket, some other gap
+must take its place in bucket bk . Following the conceptual list, it holds that this gap is a
+lightest (minimum-weight) gap in bucket bk−1 , and so on for the remaining bucket moves.
+When performing GapDecrement, the gap may move to a later bucket, where the
+heaviest gap in bucket bk+1 is moved to bucket bk .
+In both cases, a lightest gap in one bucket is swapped with a heaviest gap in the
+neighboring (later) bucket. To find lightest or heaviest gaps in a bucket, we augment the
+nodes of the B-tree of each bucket with the values of the lightest and heaviest weights in the
+subtree for each of its children. This allows for finding a lightest or heaviest weight gap in
+bucket bj efficiently, using O(logB |bj |) I/Os. Further, this augmentation can be maintained
+under insertions and deletions.
+Upon a GapIncrement or GapDecrement
+operation, the desired gap ∆i can be located
+
+W
+in the structure using O logB w
+I/Os,
+and
+the
+weight is adjusted. We must then perform
+i
+swaps between the buckets, until the invariant that buckets are sorted decreasingly by weight
+holds. This swapping may be performed on all buckets up to the last touched bucket. For
+GapIncrement the swapping only applies to earlier buckets
+as the weight of ∆i increases, and
+
+W
+the height of the tree in the latest bucket is O logB w
+.
+For
+GapDecrement the swapping
+i
+is performed into later buckets, but only up to the final landing place for weight wi − 1. If
+
+11
+
+early
+
+C. M. Rysgaard, S. Wild.
+
+heavy
+
+∆13
+∆18
+
+b0
+∆11
+∆21
+
+gap weight
+
+b1
+
+b2
+
+small
+
+element value
+
+late
+
+light
+
+b3
+large
+
+Figure 4 Illustration of “holes”. The figure shows the two-dimensional view of gaps described in
+Figure 3 (gap widths not to scale). The hole between ∆11 and ∆21 in bucket b1 , marked by the
+dotted line, contains the total weight of all gaps marked in gray. These are precisely the gaps that
+fall both (a) between ∆11 and ∆21 by element value and (b) in later buckets by (lighter) weight.
+Note specifically that ∆13 and ∆18 are not counted in the hole, as they reside in an earlier bucket.
+
+
+
+W
+wi ≥ 2, the height of the tree in the last touched bucket is O logB wW
+= O 1 + logB w
+.
+i −1
+i
+If wi = 1, gap ∆i is to be deleted. The gap isswapped untilit is located in the last bucket,
+W
+from where it is removed. We have O logB w
+= O logB W , as wi = 1, whereas the height
+i
+of the last bucket is O(logB G) = O(logB W ), as G ≤ W . Therefore both GapIncrement
+W
+and GapDecrement can be performed using O logB w
+I/Os.
+i
+GapSplit. When GapSplit is performed on gap ∆i , the gap is removed and replaced
+by two new gaps ∆′i and ∆′i+1 , s.t. |∆i | = |∆′i | + |∆′i+1 |. In the conceptual list, the new gaps
+must reside at later indexes than ∆i . As the sizes of the buckets are fixed, and the number
+of gaps increases, some gap must move to the last bucket. Similarly to GapIncrement
+and GapDecrement, the order can be maintained by performing swaps of gaps between
+consecutive buckets: First, we replace ∆i (in its spot) by ∆′i ; if this violates the ordering of
+weights between buckets, we swap ∆′i with the later neighboring bucket, until the correct
+bucket is reached. Then we insert ∆′i+1 into the last bucket and swap it with its earlier
+neighboring bucket until it, too, has reached its bucket. Both processes touch at most all
+logB log2 G buckets and spend a total of O(logB G) I/Os.
+
+2.3
+
+Supporting Rank Queries
+
+The final operation to support is GapByRank. Let the global rank of a gap ∆i , r(∆i ) =
+|∆1 | + · · · + |∆i−1 |, denote the rank of the smallest element located in the gap, i.e., the
+number of elements residing in gaps of smaller elements. The local rank of a gap ∆i in bucket
+bj , rj (∆i ), denotes the rank of the gap among elements located in bucket bj only.
+Computing the rank of a gap. To determine the global rank of a gap ∆i , the total weight
+of all smaller gaps must be computed. This is equivalent to the sum of the local ranks of ∆i
+
+12
+
+Towards Lazy B-Trees
+
+P
+over all buckets: r(∆i ) = j rj (∆i ). First we augment the B-trees of the buckets, such that
+each node contains the total weight of all gaps in the subtree. This allows us to compute the
+local rank rj (∆i ) of a gap ∆i inside a bucket bj using O(logB |bj |) I/Os. The augmented
+values can be maintained under insertions and deletions in the tree within the stated I/O
+cost. When searching for the gap ∆i , the local rank rj (∆i ) of all earlier buckets bj up to the
+W
+bucket bk , which contains ∆i , can then be computed using O logB w
+I/Os in total.
+i
+It then remains to compute the total size of gaps smaller than ∆i in all buckets after bk ,
+i.e., the sum of the local ranks rℓ (∆i ) for all later buckets bℓ , ℓ > k, to compute in total the
+global rank r(∆i ). As these buckets are far bigger, we cannot afford to query them. Note
+that any gaps in these later buckets must fall between two consecutive gaps in bk , as the gaps
+are non overlapping in element-value space. Denote the space between two gaps in a bucket
+as a hole. We then further augment the B-tree to contain in each hole of bucket bj the total
+size of gaps of later buckets contained in that hole, and let each node contain the total size of
+all holes in the subtree. See Figure 4 for an illustration of which gaps contributes to a hole.
+This then allows computing the global rank r(∆i ) of gap ∆i , by first computing the local
+rank rj (∆i ) in all earlier buckets bj , i.e., for all j ≤ k, and then adding the total size of all
+smaller holes in bk . The smaller holes in bk exactly sum to the local ranks rℓ (∆i ) for all later
+P
+buckets bℓ for ℓ > k. As this in total computes j rj (∆i ), then by definition, we obtain the
+global rank r(∆i ) of the gap ∆i .
+GapByRank. For a GapByRank operation, some rank r is given, and the gap ∆i is to
+be found, s.t. ∆i contains the element of rank r, i.e., the global rank r(∆i ) ≤ r < r(∆i+1 ).
+The procedure is as follows. First, the location of the queried rank r is computed in the
+first bucket. If this location is contained in a gap ∆i of the bucket, then ∆i must be the
+correct gap, which is then returned. Otherwise, the location of r must be in a hole. As the
+sizes of the gaps contained in the first bucket is not reflected in the augmentation of later
+buckets, the value of r is updated to reflect the missing gaps of the first bucket: we subtract
+from t the local rank r0 (∆i ) of the gap ∆i immediately after the hole containing the queried
+rank r. This adjusts the queried rank r to be relative to elements in gaps of later buckets.
+Put differently, the initial queried rank r is the queried global rank, which is the sum local
+ranks; we now remove the first local rank again. This step is recursively applied to later
+buckets, until the correct gap ∆i is found in some bucket bk , which contains the element of
+the initially queried global rank r. As the correct gap ∆imust be found in the bucket bk
+W
+containing it, the GapByRank operation uses O logB w
+I/Os to locate it.
+i
+Maintaining hole sizes. The augmentation storing the sizes of all holes in a subtree can be
+updated efficiently upon insertions or deletions of gaps in the tree, or upon updating the size
+of a hole. However, computing the sizes of the holes upon updates in the tree is not trivial.
+If a gap is removed from a bucket, the holes to the left resp. right of that gap are merged
+into a single hole, with a size equal to the sum of the previous holes. If the removed gap
+is moved to a later bucket, the hole must now also include the size of the removed gap. A
+newly inserted gap must, by the non-overlapping nature of gaps, land within a hole of the
+bucket, which is now split in two. If the global rank of the inserted gap is known, then the
+sizes of the resulting two holes can be computed, s.t. the global rank is preserved.
+In the operations on the gap structure, GapByElement or GapByRank do not
+change the sizes of gaps, so the augmentation does not change. Upon a GapIncrement or
+GapDecrement operation, the size of some gap ∆i changes. This change in size can be
+W
+applied to all holes containing ∆i in earlier buckets using O logB w
+I/Os in total. Then
+i
+
+C. M. Rysgaard, S. Wild.
+
+swaps are performed between neighboring buckets until the invariant that buckets are sorted
+by weight, holds again. During these swaps, the sizes of gaps do not change, which allows for
+computing the global rank of the gaps being moved, and update the augmentation without
+any overhead in the asymptotic number of I/Os performed. The total number of I/Os to
+perform a GapIncrement or GapDecrement
+operation does not increase asymptotically,
+
+W
+and therefore remains O logB wi .
+When a GapSplit is performed, a single gap ∆i is split. As the elements in the two new
+gaps ∆′i and ∆′i+1 remain the same as those of the old gap ∆i , there cannot be another gap
+between them. The value in all smaller holes therefore remains correct. Moving ∆′i+1 to
+the last bucket then only needs updating the value of the holes of the intermediate buckets,
+which touches at most all logB log2 G buckets spending O(logB G) I/Os in total. Swaps are
+then performed, where updating the augmentation does not change the asymptotic number
+of I/Os performed.
+Space Usage. To bound the space usage, note that the augmentation of the B-trees at
+most increase the node size by a constant factor. Since the space usage of a B-tree is linear
+in the number of stored elements, and since each gap is contained in a single bucket, the
+space usage is O(G/B) blocks in total. This concludes the proof of Theorem 3.
+
+3
+
+The Interval Structure
+
+A gap ∆i contains all elements in the range the gap covers. Note that by Theorem 1, a
+query on the gap for an element must be faster for elements closer to the border of a gap;
+information-theoretically speaking, such queries reveal less information about the data. It is
+therefore not sufficient to store the elements in the gap in a single list.
+External memory interval data structure. We follow the construction of Sandlund and
+Wild [44], in their design of the interval structure. In this section we present the construction,
+and argue on the number of I/Os this construction uses. The main difference from the
+original construction is in the speed-up provided by the external-memory model; namely that
+scanning a list is faster by a factor B, and that B-trees allows for more efficient searching.
+These differences are also what allows for slightly improving the overall I/O cost of the
+original construction, when moving it to the external-model. Due to space constraints, the
+full analysis can be found in Appendix A.
+We allow for the following operations:
+IntervalsInsert(e): Inserts element e into the structure.
+IntervalsDelete(ptr): Deletes the element e at pointer ptr from the structure.
+IntervalsChange(ptr, e′ ): Changes the element e at pointer ptr to the element e′ .
+IntervalSplit(e) or IntervalSplit(r): Splits the set of intervals into two sets of
+intervals at element e or rank r.
+A gap has a “sidedness”, which denotes the number of sides the gap has had a query.
+Denote a side as a queried side, if that rank has been queried before (cf. [44]). If there have
+been no queries yet, the (single) gap is a 0-sided gap. When a query in a 0-sided gap occurs,
+two new gaps are created which are both 1-sided. Note that “1-sided” does not specify which
+side was queried – left or right. When queries have touched both sides, the gap is 2-sided.
+We obtain the following I/O costs for the above operations.
+
+13
+
+14
+
+Towards Lazy B-Trees
+
+▶ Theorem 5 (Interval Data Structure). There exists a data structure on an ordered set,
+maintaining a set of intervals, supporting
+IntervalsInsert in worst-case O(logB logB |∆i |) I/Os,
+
+IntervalsDelete in amortized O B1 log2 |∆i | + logB logB |∆i | I/Os,
+IntervalsChange in worst-case O(logB logB |∆i |) I/Os, if the element
+is moved towards
+
+the nearest queried side or amortized O B1 log2 |∆i | + logB logB |∆i | I/Os otherwise, and
+
+IntervalSplit in amortized O B1 log2 |∆i | + logB logB |∆i | + B1 x log2 c I/Os.
+Here |∆i | denotes the number of elements contained in all intervals, and x and cx for c ≥ 1
+are the resulting sizes of the two sets created by a split. The space usage is O(|∆i | /B) blocks.
+Intervals in external memory. Let the gap ∆i contain multiple non-overlapping intervals
+Ii,j , which contain the elements located in the gap. The elements of the intervals are sorted
+between intervals, but not within an interval. Intervals therefore span a range of elements
+with known endpoints. Each such interval is a blocked-linked-list containing the elements
+of the interval. Additionally, we store an augmented B-tree over the intervals, allowing for
+efficiently locating the interval containing a given element (using O(logB (#intervals)) I/Os).
+The B-tree is augmented to hold in each node the total sizes of all intervals in the subtrees
+of the node, which allows for efficient rank queries.
+By packing all intervals into a single blocked-linked-list, and noting that there can be no
+more intervals than there are elements, the space usage of the intervals and the augmented
+B-tree over the intervals is O(|∆i | /B) blocks.
+Intuition of interval maintenance of [44]. Intuitively, there is a trade-off in maintaining
+intervals: having many small intervals reduces future query costs since these are typically
+dominated by the linear cost of splitting one interval; but it increases the time to search
+for the correct interval upon insertions (and other operations). Lazy search trees handle
+this trade-off as follows. To bound the worst case insertion costs, we enforce a hard limit of
+O(log2 |∆i |) on the number of intervals in a gap ∆i , implemented via a merging rule. To
+amortize occasional high costs for queries, we accrue potential for any intervals that have
+grown “too large” relative to their proximity to a gap boundary.
+Given the logarithmic number of intervals, the best case for queries would be to have
+interval sizes grow exponentially towards the middle. This makes processing of intervals close
+to the boundary (i.e., close to previous queries) cheap; for intervals close to the middle, we
+can afford query costs linear in ∆i . It can be shown that for exponentially growing intervals,
+the increase of the lower bound from any query allows us to precisely pay for the incurred
+splitting cost. However, the folklore rule of having each interval, say, 2–4 times bigger than
+the previous interval seems too rigid to maintain. Upon queries, it triggers too many changes.
+Merging & Potential. We therefore allow intervals to grow bigger than they are supposed
+to be, but charge them for doing so in the potential. By enforcing the merging rule when
+the number of elements in the gap decreases, we maintain the invariant that the number
+of intervals is O(log2 |∆i |), which allows for locating an interval using O(logB log2 |∆i |) =
+O(logB logB |∆i |) I/Os. Enforcing the merging rule is achieved by scanning the intervals
+using the B-tree, and it can be shown that this operation uses amortized O B1 log2 |∆i |
+I/Os. Merging intervals takes O(1) I/O, but by adding extra potential to intervals, this step
+of the merge can be amortized away.
+Upon this, we can show that IntervalsInsert uses O(logB logB |∆i |) I/Os, and that
+IntervalsDelete uses amortized O B1 log2 |∆i | + logB logB |∆i | I/Os. When performing
+
+C. M. Rysgaard, S. Wild.
+
+IntervalsChange, moving the element from one interval to another uses O(log
+ B logB |∆i |)
+1
+I/Os. However, the potential function causes an increase of O B log2 |∆i | I/Os in the
+amortized cost when an element is moved away from the closest queried side of the gap.
+When a query occurs, an interval Ii,j is split around some element or rank. The interval can
+be located using the B-tree over intervals on either element or rank in O(logB logB |∆i |) I/Os.
+For splitting around an element, the interval is scanned and partitioned using O(|Ii,j | /B) I/Os.
+For splitting around a rank, deterministic selection [12] is applied, which uses O(|Ii,j | /B) I/Os
+(see, e.g., [17, 18]). In both cases the number of I/Os grows with the interval size. Analyzing
+the change in the potential function upon this split, we
+ can show that IntervalSplit uses
+amortized O B1 log2 |∆i | + logB logB |∆i | + B1 x log2 c I/Os.
+This (together with the details from Appendix A) concludes the proof of Theorem 5.
+
+4
+
+Lazy B-Trees
+
+In this section, we combine the gap structure of Section 2 and the interval structure of
+Section 3, to achieve an external-memory lazy search-tree. Recall our goal, Theorem 1.
+▶ Theorem 1 (Lazy B-Trees). There exists a data structure over an ordered set, that supports
+Construct(S) in worst-case O(|S| /B) I/Os,
+
+N
++ logB logB |∆i | I/Os,
+Insert in worst-case O logB |∆
+i|
+
+N
+Delete in amortized O logB |∆
++ B1 log2 |∆i | + logB logB |∆i | I/Os,
+i|
+
+ChangeKey in worst-case O logB logB |∆i | I/Os if the element is moved towards the
+nearest queried element but not past it, and amortized O B1 log2 |∆i | + logB logB |∆i |
+I/Os otherwise, and
+QueryElement and QueryRank in amortized
+
+O logB min {N, q} + B1 log2 |∆i | + logB logB |∆i | + B1 x log2 c I/Os.
+Here N denotes the size of the current set, |∆i | denotes the size of the manipulated gap, q
+denotes the number of performed queries, and x and cx for c ≥ 1 are the resulting sizes of
+the two gaps produced by a query. The space usage is O(N/B) blocks. All results ignore the
+cost of keeping external pointers to elements in the data structure up to date.
+We use the I/O bounds shown in Theorems 3 and 5 to bound the cost of the combined
+operations. These operations are performed as follows.
+A Construct(S) operation is performed by creating a single gap over all elements in S,
+and in the gap create a single interval with all elements. This can be done by a single scan
+of S, and assuming that S is represented compactly/contiguously, this uses O(|S| /B) I/Os.
+To perform an Insert(e) operation, GapByElement is performed to find the gap ∆i
+containing element e. Next, IntervalsInsert is performed to insert e into the interval
+structure of gap ∆i . Finally, GapIncrement is performed
+ on ∆i , as the size has increased.
+N
+In total this uses worst-case O logB |∆
++
+log
+log
+|∆
+|
+I/Os.
+i
+B
+B
+i|
+Similarly, upon a Delete(ptr) operation, IntervalsDelete is performed using ptr, to
+remove the element e at the pointer location. Next GapDecrement is performed
+on the
+
+N
+1
+gap ∆i . In total this uses amortized O logB |∆
++
+log
+|∆
+|
++
+log
+log
+|∆
+|
+I/Os.
+i
+i
+2
+B
+B
+B
+i|
+A ChangeKey operation may only change an element, s.t. it remains within the same
+gap (otherwise we need to use Delete and Insert). This operation therefore does not need
+to perform operations on the gap structure, but only on the interval structure of the relevant
+gap. The operation is therefore performed directly using the IntervalsChange operation.
+
+15
+
+16
+
+Towards Lazy B-Trees
+
+The QueryElement and QueryRank operations are performed in similar fashions.
+First, GapByElement or GapByRank is performed to find the relevant gap ∆i containing the queried element. Next IntervalSplit is performed on the interval structure, which yields two new gaps ∆′i and ∆′i+1 , which is updated into the gap structure using GapSplit. Note that the number of gaps is bounded by the number of elements N , but also by the number of queries q performed, as only queries introduce
+new gaps. In total, the QueryElement and QueryRank
+ operations uses amortized
+O logB min {N, q} + B1 log2 |∆i | + logB logB |∆i | + B1 x log2 c I/Os.
+The space usage of the gap structure is O(G/B) = O(N/B) blocks. For gap ∆i , the space
+usage of the interval structure is O(|∆i | /B) blocks. If |∆j | = O(B), for some ∆j , we cannot
+simply sum over all the substructures. By instead representing all such “lightweight” gaps
+in a single blocked-linked-list, we obtain that the space usage over the combined structure
+is O(N/B) blocks. The gaps are located in the combined list using the gap structure, and
+updates or queries to the elements of the gap may then be performed using O(1) I/Os,
+allowing the stated time bounds to hold. Similarly, an interval structure may be created for
+a gap, when it contains Ω(B) elements using O(1) I/Os. The stated time bounds therefore
+still applies to the lightweight gaps.
+This concludes the proof of Theorem 1.
+Priority Queue Case. When a lazy B-tree is used a priority queue, the queries are only
+performed on the element of smallest rank, and this element is deleted before a new query is
+performed. If this behavior is maintained, we first note that the structure only ever has a
+single 1-sided gap of size N , with the queried side to the left. This allows for Insert to be
+performed in worst-case O(logB logB N ) I/Os, as the search time in the gap structure reduces
+
+to O(1). Similarly, Delete is performed using amortized O B1 log2 N + logB logB N I/Os.
+To perform the DecreaseKey operation, a ChangeKey operation is performed. As the
+queried side is to the left, this must move the element towards the closest queried side,
+leading to a DecreaseKey operation being performed using worst-case O(logB logB N )
+I/Os. Finally, Minimum is performed as a QueryRank(r) with r = 1. As this must
+split the gap at x = 1 and
+ cx = N − 1, the operation is performed using amortized
+1
+O B log2 N + logB logB N I/Os. This concludes the proof of Corollary 2.
+
+5
+
+Open Problems
+
+The internal lazy search trees [44] discuss further two operations on the structure; Split
+and Merge, which allows for splitting or merging disjoint lazy search tree structures around
+some query element or rank. These operations are supported as efficient as queries in the
+internal-model. In the external-memory case, the gap structure designed in this paper,
+however, does not easily allow for splitting or merging the set of gaps around an element
+or rank, as the gaps are stored by element in disjoint buckets, where all buckets must be
+updated upon executing these extra operations. By sorting and scanning the gaps, the
+operations may be supported, but not as efficiently as a simple query, but instead in sorting
+time relative to the number of gaps. It remains an open problem to design a gap structure,
+which allows for efficiently supporting Split and Merge.
+In the external-memory model, bulk operations are generally faster, as scanning consecutive elements saves a factor B I/Os. One such operation is RangeQuery, where a range
+of elements may be queried and reported at once. In a B-tree, this operation is supported
+in O(logB N + k/N ) I/Os, when k elements are reported. The lazy B-tree designed in this
+
+C. M. Rysgaard, S. Wild.
+
+paper allows for efficiently reporting the elements of a range in unsorted order, by querying
+the endpoints of the range, and then reporting all elements of the gaps between the endpoints. Note that for the priority-queue case, this allows reporting the k smallest elements in
+1
+O B1 k log2 N
+k + B log2 N + logB logB N I/Os. If the elements must be reported in sorted
+order, sorting may be applied to the reported elements. However, this effectively queries
+all elements of the range, and should therefore be reflected into the lazy B-tree. As this
+introduces many gaps of small size, the I/O cost increases over simply sorting the elements
+of the range. It remains an open problem on how to efficiently support sorted RangeQuery
+operations, while maintaining the properties of lazy B-trees.
+In the internal-memory model, an optimal version of lazy search trees was constructed [46],
+which gets rid of the added log log N term on all operations. It remains an open problem to
+similarly get rid of the added logB logB N term for the external-memory model.
+Improvements on external-memory efficient search trees and priority queues use buffering
+of updates to move more data in a single I/O, thus improving the I/O cost of operations.
+The first hurdle to overcome in order to create buffered lazy B-trees is creating buffered
+biased trees used for the gap structure. By buffering updates to the gaps, it must then hold
+that the weights are not correctly updated, which imposes problems on searching; both by
+element and rank. It remains an open problem to overcome this first hurdle as a step towards
+buffering lazy B-trees.
+References
+1
+2
+
+3
+
+4
+5
+6
+
+7
+
+8
+9
+10
+
+11
+
+Georgy M. Adelson-Velsky and Evgenii M. Landis. An algorithm for the organization of
+information. Proceedings of the USSR Academy of Sciences (in Russian), 146:263–266, 1962.
+Alok Aggarwal and Jeffrey S. Vitter. The input/output complexity of sorting and related
+problems. Communications of the ACM, 31(9):1116––1127, September 1988. doi:10.1145/
+48529.48535.
+Lars Arge. The buffer tree: A new technique for optimal I/O-algorithms. In Workshop
+on Algorithms and Data Structures (WADS), page 334–345. Springer, 1995. doi:10.1007/
+3-540-60220-8_74.
+Lars Arge. The buffer tree: A technique for designing batched external data structures.
+Algorithmica, 37(1):1–24, 2003. doi:10.1007/S00453-003-1021-X.
+Amitabha Bagchi, Adam L Buchsbaum, and Michael T Goodrich. Biased skip lists. Algorithmica, 42:31–48, 2005.
+Jérémy Barbay, Ankur Gupta, Srinivasa Rao Satti, and Jon Sorenson. Dynamic online
+multiselection in internal and external memory. In WALCOM: Algorithms and Computation,
+pages 199–209. Springer, 2015. doi:10.1007/978-3-319-15612-5_18.
+Jérémy Barbay, Ankur Gupta, Srinivasa Rao Satti, and Jon Sorenson. Near-optimal online
+multiselection in internal and external memory. Journal of Discrete Algorithms, 36:3–17, 2016.
+WALCOM 2015.
+Rudolf Bayer and Edward M. McCreight. Organization and maintenance of large ordered
+indices. Acta Informatica, 1:173–189, 1972. doi:10.1007/BF00288683.
+Samuel W. Bent, Daniel D. Sleator, and Robert E. Tarjan. Biased search trees. SIAM Journal
+on Computing, 14(3):545–568, 1985.
+Jon Louis Bentley and Andrew Chi-Chih Yao. An almost optimal algorithm for unbounded
+searching. Information Processing Letters, 5(3):82–87, 1976. doi:10.1016/0020-0190(76)
+90071-5.
+Alka Bhushan and Sajith Gopalan. External Memory Soft Heap, and Hard Heap, a Meldable Priority Queue, page 360–371. Springer Berlin Heidelberg, 2012. doi:10.1007/
+978-3-642-32241-9_31.
+
+17
+
+18
+
+Towards Lazy B-Trees
+
+12
+
+Manuel Blum, Robert W. Floyd, Vaughan R. Pratt, Ronald L. Rivest, and Robert Endre
+Tarjan. Time bounds for selection. J. Comput. Syst. Sci., 7(4):448–461, 1973. doi:10.1016/
+S0022-0000(73)80033-9.
+
+13
+
+Prosenjit Bose, Karim Douïeb, and Stefan Langerman. Dynamic optimality for skip lists and
+B-trees. In Symposium on Discrete Algorithms (SODA), pages 1106–1114. SIAM, 2008.
+
+14
+
+Gerth Stølting Brodal. Worst-case efficient priority queues. In Symposium on Discrete
+Algorithms (SODA), 1996.
+
+15
+
+Gerth Stølting Brodal and Rolf Fagerberg. Lower bounds for external memory dictionaries. In
+Proceedings of the Fourteenth Annual ACM-SIAM Symposium on Discrete Algorithms, pages
+546––554. Society for Industrial and Applied Mathematics, 2003.
+
+16
+
+Gerth Stølting Brodal and Jyrki Katajainen. Worst-case efficient external-memory priority
+queues. In Stefan Arnborg and Lars Ivansson, editors, Algorithm Theory — SWAT’98, pages
+107–118, Berlin, Heidelberg, 1998. Springer Berlin Heidelberg. doi:10.1007/BFb0054359.
+
+17
+
+Gerth Stølting Brodal and Sebastian Wild. Funnelselect: Cache-oblivious multiple selection. In
+Inge Li Gørtz, Martin Farach-Colton, Simon J. Puglisi, and Grzegorz Herman, editors, European
+Symposium on Algorithms (ESA), pages 25:1–25:17, 2023. doi:10.4230/LIPIcs.ESA.2023.25.
+
+18
+
+Gerth Stølting Brodal and Sebastian Wild. Deterministic cache-oblivious funnelselect. In
+Scandinavian Symposium on Algorithm Theory (SWAT), 2024. arXiv:2402.17631, doi:
+10.4230/LIPIcs.SWAT.2024.17.
+
+19
+
+Gerth Stølting Brodal, George Lagogiannis, and Robert E. Tarjan. Strict fibonacci heaps. In
+Symposium on Theory of Computing (STOC), STOC’12, page 1177–1184. ACM, May 2012.
+doi:10.1145/2213977.2214082.
+
+20
+
+Yu-Tai Ching, Kurt Mehlhorn, and Michiel H.M. Smid. Dynamic deferred data structuring.
+Information Processing Letters, 35(1):37 – 40, 1990.
+
+21
+
+Erik D. Demaine, Dion Harmon, John Iacono, Daniel Kane, and Mihai Pǎtraşcu. The geometry
+of binary search trees. In Symposium on Discrete Algorithms SODA 2009, pages 496–505.
+SIAM, 2009.
+
+22
+
+David Dobkin and J. Ian Munro. Optimal time minimal space selection algorithms. Journal
+of the Association for Computing Machinery, 28(3):454–461, 1981.
+
+23
+
+Kasper Eenberg, Kasper Green Larsen, and Huacheng Yu. Decreasekeys are expensive for
+external memory priority queues. In Symposium on Theory of Computing (STOC), page
+1081–1093. ACM, June 2017. doi:10.1145/3055399.3055437.
+
+24
+
+Joan Feigenbaum and Robert E Tarjan. Two new kinds of biased search trees. Bell System
+Technical Journal, 62(10):3139–3158, 1983.
+
+25
+
+Michael L. Fredman and Robert Endre Tarjan. Fibonacci heaps and their uses in improved
+network optimization algorithms. Journal of the ACM, 34(3):596–615, July 1987. doi:
+10.1145/28869.28874.
+
+26
+
+Leonidas J. Guibas and Robert Sedgewick. A dichromatic framework for balanced trees. In
+19th Annual Symposium on Foundations of Computer Science, Ann Arbor, Michigan, USA,
+16-18 October 1978, pages 8–21. IEEE Computer Society, 1978. doi:10.1109/SFCS.1978.3.
+
+27
+
+Felix Halim, Stratos Idreos, Panagiotis Karras, and Roland H. C. Yap. Stochastic database
+cracking: towards robust adaptive indexing in main-memory column-stores. Proceedings of the
+VLDB Endowment, 5(6):502–513, February 2012. doi:10.14778/2168651.2168652.
+
+28
+
+John Iacono, Riko Jacob, and Konstantinos Tsakalidis. External memory priority queues with
+decrease-key and applications to graph algorithms. In European Symposium on Algorithms
+(ESA). Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2019. doi:10.4230/LIPICS.ESA.
+2019.60.
+
+29
+
+Stratos Idreos. Database Cracking: Towards Auto-tuning Database Kernels. PhD thesis, 2010.
+
+30
+
+Stratos Idreos, Martin L. Kersten, and Stefan Manegold. Database cracking. In Conference
+on Innovative Data Systems Research (CIDR), 2007.
+
+C. M. Rysgaard, S. Wild.
+
+31
+
+Stratos Idreos, Stefan Manegold, and Goetz Graefe. Adaptive indexing in modern database
+kernels. In International Conference on Extending Database Technology (EDBT), EDBT ’12,
+page 566–569. ACM, March 2012. doi:10.1145/2247596.2247667.
+
+32
+
+Shunhua Jiang and Kasper Green Larsen. A faster external memory priority queue with
+decreasekeys. In Symposium on Discrete Algorithms (SODA), page 1331–1343. Society for
+Industrial and Applied Mathematics, January 2019. doi:10.1137/1.9781611975482.81.
+
+33
+
+Kanela Kaligosi, Kurt Mehlhorn, J. Ian Munro, and Peter Sanders. Towards optimal multiple
+selection. In International Colloquium on Automata, Languages and Programming (ICALP),
+pages 103–114. Springer, 2005. doi:10.1007/11523468_9.
+
+34
+
+Haim Kaplan, László Kozma, Or Zamir, and Uri Zwick. Selection from heaps, row-sorted
+matrices, and x + y using soft heaps. In Symposium on Simplicity in Algorithms (SOSA).
+Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2019. doi:10.4230/OASICS.SOSA.2019.5.
+
+35
+
+Richard M. Karp, Rajeev Motwani, and Prabhakar Raghavan. Deferred data structuring.
+SIAM Journal on Computing, 17(5):883–902, 1988.
+
+36
+
+Tim Kraska, Alex Beutel, Ed H. Chi, Jeffrey Dean, and Neoklis Polyzotis. The case for learned
+index structures. In International Conference on Management of Data, SIGMOD/PODS ’18,
+page 489–504. ACM, May 2018. doi:10.1145/3183713.3196909.
+
+37
+
+Vijay Kumar and Eric J. Schwabe. Improved algorithms and data structures for solving graph
+problems in external memory. In Proceedings of the Eighth IEEE Symposium on Parallel
+and Distributed Processing, SPDP 1996, New Orleans, Louisiana, USA, October 23-26, 1996,
+pages 169–176. IEEE Computer Society, 1996. doi:10.1109/SPDP.1996.570330.
+
+38
+
+Joan M. Lucas. Canonical forms for competitive binary search tree algorithms. Technical
+Report DCS-TR-250, Rutgers University, 1988.
+
+39
+
+Conrado Martínez and Salvador Roura. Randomized binary search trees. J. ACM, 45(2):288–
+323, 1998. doi:10.1145/274787.274812.
+
+40
+
+Kurt Mehlhorn. Data Structures and Efficient Algorithms, Volume 1: Sorting and Searching.
+Springer, 1984.
+
+41
+
+J. Ian Munro. On the competitiveness of linear search. In ESA 2000, pages 338–345. Springer,
+2000. doi:10.1007/3-540-45253-2_31.
+
+42
+
+J. Ian Munro, Richard Peng, Sebastian Wild, and Lingyi Zhang. Dynamic optimality refuted – for tournament heaps. working paper, 2019. URL: https://www.wild-inter.net/
+publications/unordered-dynamic-optimality, arXiv:1908.00563.
+
+43
+
+Holger Pirk, Eleni Petraki, Stratos Idreos, Stefan Manegold, and Martin Kersten. Database
+cracking: fancy scan, not poor man’s sort! In International Workshop on Data Management
+on New Hardware (DaMoN), SIGMOD/PODS’14, page 1–8. ACM, June 2014. doi:10.1145/
+2619228.2619232.
+
+44
+
+Bryce Sandlund and Sebastian Wild. Lazy search trees. In Sandy Irani, editor, 61st IEEE
+Annual Symposium on Foundations of Computer Science, FOCS 2020, Durham, NC, USA,
+November 16-19, 2020, pages 704–715. IEEE, 2020. doi:10.1109/FOCS46700.2020.00071.
+
+45
+
+Bryce Sandlund and Sebastian Wild. Lazy search trees, 2020. arXiv:2010.08840.
+
+46
+
+Bryce Sandlund and Lingyi Zhang. Selectable heaps and optimal lazy search trees. In
+Proceedings of the 2022 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA),
+pages 1962–1975, 2022. doi:10.1137/1.9781611977073.78.
+
+47
+
+Raimund Seidel and Cecilia R. Aragon. Randomized search trees. Algorithmica, 16(4/5):464–
+497, 1996. doi:10.1007/BF01940876.
+
+48
+
+Daniel Dominic Sleator and Robert Endre Tarjan. Self-adjusting binary search trees. Journal
+of the ACM, 32(3):652–686, 1985. doi:10.1145/3828.3835.
+
+49
+
+Yufei Tao. Maximizing the optimality streak of deferred data structuring (a.k.a. database
+cracking). In International Conference on Database Theory (ICDT). Schloss Dagstuhl –
+Leibniz-Zentrum für Informatik, 2025. doi:10.4230/LIPICS.ICDT.2025.10.
+
+19
+
+20
+
+Towards Lazy B-Trees
+
+50
+
+Fatemeh Zardbani, Peyman Afshani, and Panagiotis Karras. Revisiting the theory and practice
+of database cracking. In International Conference on Extending Database Technology (EDBT).
+OpenProceedings.org, 2020. doi:10.5441/002/EDBT.2020.46.
+
+C. M. Rysgaard, S. Wild.
+
+A
+
+The Interval Structure
+
+In this appendix, we give the full description and detailed analysis of the interval data
+structure outlined in Section 3. We follow the construction of Sandlund and Wild [44], in
+their design of the interval structure, with some improvements for external memory. To give
+a self-contained analysis of the number of I/Os used by all operations, we reproduce the
+analysis from [44, 45] and spell out all cases explicitly.
+Note that we neglect the cost for keeping external pointers to elements up to
+date. When splitting or fusing nodes of the blocked-linked list, we have to update pointers to
+elements that have moved between blocks. Since these external pointers may reside scattered
+across memory, we may have to pay one I/O per pointer, which increases the worst-case cost
+of splits by a factor of B (using potential 1 + max {|Ii,j | − o(Ii,j ), 0}} for Φi,j ).
+A gap ∆i contains all elements in the range the gap covers. Recall that a query on the
+gap for an element must be faster for elements closer to the border of a gap. We allow for
+the following operations:
+IntervalsInsert(e): Inserts element e into the structure.
+IntervalsDelete(ptr): Deletes the element e at pointer ptr from the structure.
+IntervalsChange(ptr, e′ ): Changes the element e at pointer ptr to the element e′ .
+IntervalSplit(e) or IntervalSplit(r): Splits the set of intervals into two sets of
+intervals at element e or rank r.
+A gap has a “sidesness”, which denotes the number of sides the gap has had a query.
+Denote a side as a queried side, if that rank has been queried before (cf. [44]). If there have
+been no queries yet, the (single) gap is a 0-sided gap. When a query in a 0-sided gap occurs,
+two new gaps are created which are both 1-sided. Note that both gaps which have a single
+query on either the left or right side is called 1-sided. When queries have touched both sides,
+the gap is 2-sided.
+We obtain the following I/O costs for the above operations.
+▶ Theorem 6. There exists a data structure on an ordered set, that maintains a set of
+intervals, supporting
+IntervalsInsert in worst-case O(logB logB |∆i |) I/Os,
+
+IntervalsDelete in amortized O B1 log2 |∆i | + logB logB |∆i | I/Os,
+IntervalsChange in worst-case O(logB logB |∆i |) I/Os, if the element
+is moved towards
+
+the nearest queried side or amortized O B1 log2 |∆i | + logB logB |∆i | I/Os otherwise, and
+IntervalSplit in amortized O B1 log2 |∆i | + logB logB |∆i | + B1 x log2 c I/Os.
+Here |∆i | denotes the number of elements contained in all intervals, and x and cx for c ≥ 1
+are the resulting sizes of the two sets produced by a split. The space usage is O(|∆i | /B) blocks.
+The structure is as follows. Let the gap ∆i contain multiple non-overlapping intervals
+Ii,j , which contains the elements located in the gap. The elements of the intervals are sorted
+between intervals, but not within an interval. Intervals therefore span a range of elements
+with known endpoints. Each such interval is a blocked-linked-list containing the elements
+of the interval. Additionally, we store an augmented B-tree over the intervals, allowing for
+efficiently locating the interval containing a given element (using O(logB (#intervals)) I/Os).
+The B-tree is augmented to hold in each node the total size of all intervals in the subtree of
+the node, which allows for efficient rank queries.
+By packing all intervals into a single blocked-linked-list, and noting that there can be no
+more intervals than there are elements, the space usage of the intervals and the augmented
+B-tree over the intervals is O(|∆i | /B) blocks.
+
+21
+
+22
+
+Towards Lazy B-Trees
+
+A.1
+
+Invariants and Potential
+
+Intuitively, there is a trade-off in maintaining intervals: having many small intervals reduces
+future query costs (typically dominated by the linear cost of splitting one interval), but
+increases the time to search for the correct interval upon insertions (and other operations).
+Lazy search trees handle this trade-off as follows. To bound the worst case insertion costs,
+we enforce a hard limit number on the number of intervals via a merging rule. To amortize
+occasional high costs for queries, we accrue potential (Φi,j below) for any intervals that are
+“too large” relative to their proximity of a gap boundary.
+Moreover, for queries we would like to have interval sizes grow exponentially towards
+the middle, as this allows for efficiently manipulating the intervals closest to the edge. This
+folklore rule seems too rigid to maintain upon queries, though, as many changes can be
+necessary.
+
+A.1.1
+
+Merging Intervals
+
+We maintain the following invariant on the number of intervals:
+Invariant (#Int): For a gap ∆i , the number of intervals Ii,j is at most 4 log2 |∆i | + 2.
+This allows for locating an interval using O(logB log2 |∆i |) = O(logB logB |∆i |) I/Os.
+This I/O cost also applies to recomputing the sizes of subtrees when updating an interval.
+To bound the I/O cost of the operations, we define the following for the analysis. Let o(Ii,j ),
+the “outside (elements) of Ii,j ”, denote the number of elements between interval Ii,j and a
+queried side of the gap; if both sides have been queries, o(Ii,j ) is the towards the closest side.
+We denote an interval to be left if the closest edge is to the left and right otherwise. Note
+for a 0-sided gap, the outside is always 0. For a 1-sided gap with a query on the left (resp.
+right), all intervals are left (resp. right).
+When an insertion occurs in the gap, the interval containing the inserted element is
+located, and the inserted element is appended to the list of the interval. This increases |∆i |
+by one, but does not create any new intervals, so (#Int) remains satisfied.
+When a deletion occurs, |∆i | decreases, which may invalidate (#Int). We therefore need a
+way to reduce the number of intervals, which we do by simply merging two adjacent intervals.
+Recall that elements within intervals are not sorted, so merging two intervals effectively just
+means “forgetting” about the pivot element currently separating them; here, we need to
+concatenate the list of elements. The rule in lazy search trees is as follows, using the outside
+as a measure for how close to the middle an interval is:
+Merge Rule (M): If |Ii,j | + |Ii,j+1 | < o(Ii,j ), merge Ii,j and Ii,j+1 .
+This rule only applies between intervals of the same type; a left interval is never merged
+with a right interval.
+That is, an interval Ii,j is merged with its inner neighbor, if they combined contain fewer
+elements than outside of the intervals; they are therefore intuitively “too small” for where
+they reside in the gap. Note that we do not treat this rule as an invariant; we do not require
+it to be true at all times, but only use it to reduce the number of intervals when explicitly
+invoked in operation IntervalsMerge.
+Suppose that IntervalsMerge has just merged all interval pairs that satisfy (M). We
+then obtain bounds on the number of intervals as stated in the following two lemmas.
+
+C. M. Rysgaard, S. Wild.
+
+23
+
+▶ Lemma 7 (The Merge rule on one side yields logarithmic internals). Let a set of N elements
+partitioned in intervals that satisfy rule (M). Let further I be one of the intervals and k = o(I)
+be its number of outside elements. Then there are at most max{1, 2 log2 N
+k + 2} intervals
+inside of I and on the same side as I.
+Proof. The proof goes by induction in N . When N = 1, there can be at most one interval.
+If N < k, there can be at most one interval, as the merge rule would otherwise be violated.
+In both cases, the claim is satisfied.
+For N ≥ k, we may assume the induction hypothesis on all smaller values of N . If
+there are less than three intervals, the bound holds from the additive constant. Otherwise,
+let a, b and c be the size of the first three intervals in order. By the merge rule, it holds
+that a + b ≥ k. By definition o(Ic ) = k + a + b ≥ 2k. The number of intervals is then
+the two intervals a and b, and the number of intervals from c, which by induction is
+−a−b
+N
+≤ 2 + 2 log2 No(I
++ 2 ≤ 2 log2 2k
++ 4 = 2 log2 N
+◀
+k + 2. This concludes the proof.
+c)
+▶ Lemma 8 ((M) implies (#Int)). Let a gap ∆i adhere to rule (M) on intervals. Then there
+are at most 4 log2 |∆i | + 2 intervals.
+Proof. The proof goes by case analysis on the sidesness of ∆i . If the gap is 0-sided, there
+must be one interval. If the gap is 1-sided, the first interval has size at least 1, and there
+must then be at most 2 log ∆i + 2 remaining intervals by Lemma 7. In both cases the bound
+holds.
+Otherwise, the gap must be 2-sided, and the merge rule holds from both left and right.
+The outermost intervals have size at least 1. Let L and R denote the number of elements in
+left and right intervals respectively. By Lemma 7, the number of intervals is at most
+2 + (2 log2 L + 2) + (2 log2 R + 2) = 6 + 2 log2 (L · R) ≤ 6 + 2 log2
+
+A.1.2
+
+∆2i
+= 4 log2 ∆i + 2 .
+4
+
+◀
+
+Potential
+
+When a query occurs, an interval Ii,j is split around some element or rank. The interval can
+be located using the B-tree over intervals on either element or rank in O(logB logB |∆i |) I/Os.
+For splitting around an element, the interval is scanned and partitioned using O(|Ii,j | /B) I/Os.
+For splitting around a rank, deterministic selection [12] is applied, which uses O(|Ii,j | /B)
+I/Os (see, e.g., [17, 18]). In both cases the number of I/Os grows with the interval size.
+We therefore need a potential function, which balances the time to split an interval with
+how close to the border it is, which is defined using the outside of an interval. For 1-sided
+gaps, the outside however only measures toward one side of the gap, and we therefore need
+further potential for the 1-sided intervals. Let N01 be the number of elements contained in
+total in 0- and 1-sided gaps. Further, we need potential to efficiently merge intervals in a
+scan.
+We let the potential be
+X
+1
+Φ = N01 +
+Φi,j
+B
+i,j
+and let
+1
+max {|Ii,j | − o(Ii,j ), 0} .
+B
+Using this potential function, we can analyze the amortized I/O cost of applying the
+merge rule on all intervals, which we denote as the IntervalsMerge operation. This
+operation uses that scanning all keys of a B-tree can be done efficiently.
+Φi,j = 1 +
+
+24
+
+Towards Lazy B-Trees
+
+▶ Lemma 9 (Merging runtime). Let the number of intervals contained in the gap ∆i be k.
+Then IntervalsMerge uses amortized O(k/B) I/Os.
+Proof. When IntervalsMerge is performed, first o(Ii,j ) is computed for each Ii,j in
+O(k/B) I/Os, by scanning the B-tree. The B-tree may then be scanned again, to perform
+the merges on the intervals, and finally a new B-tree over the resulting intervals can be built.
+As the number of intervals can only decrease, the B-tree can be build using O(k/B) I/Os.
+Let Ii,j and Ii,j+1 be a pair of intervals which are merged during the operation. It must
+hold that |Ii,j | + |Ii,j+1 | < o(Ii,j ). The merge is performed by following the pointers to the
+intervals and concatenating the lists, using O(1) I/O. Let Ii,j ′ be the resulting interval of
+the merge. The potential then decreases by Φi,j and Φi,j+1 , and increases by Φi,j ′ . From
+the merge rule and the definition of the outside, it follows that
+1
+max {|Ii,j | − o(Ii,j ), 0}
+=1
+B
+1
+Φi,j+1 = 1 + max {|Ii,j+1 | − (o(Ii,j ) + |Ii,j |), 0} = 1
+B
+1
+Φi,j ′ = 1 + max {(|Ii,j | + |Ii,j+1 |) − o(Ii,j ), 0} = 1 .
+B
+Φi,j
+
+=1+
+
+The difference in potential is therefore ∆Φ = −1, which covers the I/Os performed by the
+merge, which concludes the proof.
+◀
+
+A.2
+
+Updating Elements of the Intervals
+
+Upon an IntervalsInsert operation, a new element e is added to the gap ∆i . The interval
+Ii,j containing e can be located using the B-tree, and the size of the interval incremented by 1
+using O(logB logB |∆i |) I/Os. As previously discussed, the intervals need not be merged, as
+the invariant on the interval count is satisfied. In the potential function Φ, the outside of all
+inner intervals grows by 1, which does not increase the value of Φ. The size of Ii,j grows by
+1, and N01 grows by at most 1, which in total increases Φ by at most B2 . IntervalsInsert
+can therefore be performed in both amortized and worst-case O(logB logB |∆i |) I/Os.
+When an IntervalsDelete operation occurs, a pointed to element is removed from
+some interval Ii,j . The size is then decremented by 1, and the B-tree must be updated
+to reflect so. If this decreases the size to 0, the interval is removed, which in total uses
+O(logB logB |∆i |) I/Os. In contrast to the IntervalsInsert operation, upon removing an
+element, the outside of all inner intervals decreases, which makes the potential function Φ
+grow by at most B1 for each such interval, of which there are O(log2 |∆i |). In addition, the
+number of elements decreases without the number of intervals decreasing, which may leading
+to breaking the invariant on the bound on the number of intervals. Note that merging a
+single interval is enough to ensure that the number of intervals stays bounded, and even so,
+only after linearly many deletes, the merge
+ of a single interval needs to occur. However, as
+the potential increases by O B1 log2 |∆i | , and the IntervalsMerge uses the same amount
+of amortized I/Os, it is efficient enough to run IntervalsMerge after
+every delete. In total,
+
+IntervalsDelete uses amortized O B1 log2 |∆i | + logB logB |∆i | I/Os.
+When IntervalsChange(ptr, e′ ) in performed, the element e at pointer ptr is changed
+to element e′ . This new element must then be placed in the correct interval, which can be
+done using the B-tree over intervals using O(logB logB |∆i |) I/Os. This then changes the
+size of at most two intervals, with one increasing and the other decreasing, which increases
+the potential by at most B1 . This may also change the outside size of intervals. If the
+element is moved towards the closest queried side, then the outside may increase, which does
+
+C. M. Rysgaard, S. Wild.
+
+25
+
+Query point
+
+x
+
+cx
+
+Figure 5 The query splits the gap in two, where some side contains x elements and the other
+contains cx elements, for some c ≥ 1.
+
+Interval before query:
+Ii,j
+
+Query point
+Intervals after query:
+
+Left side, size ℓ
+
+ℓ/2
+
+ℓ/4
+
+Right side, size r
+
+ℓ/4
+
+r/4
+
+r/4
+
+r/2
+
+Figure 6 A query in interval Ii,j splits the interval into six new intervals.
+
+not increase the potential. Otherwise, the outside may grow by one, for each interval
+the
+
+element is moved past, which increases the potential by at most O B1 log2 |∆i | . In total,
+IntervalsChange uses worst-case O(logB logB |∆i |) I/Os, if the element is moved
+ towards
+the closest queried side, and otherwise amortized O B1 log2 |∆i | + logB logB |∆i | I/Os.
+
+A.3
+
+Splitting the Intervals
+
+When a query occurs in gap ∆i , the gap is split at the query element into two new gaps ∆′i
+and ∆′i+1 . Let the resulting gap sizes be x and cx for some c ≥ 1 (see Figure 5). We assume
+here and throughout that the left resulting gap has size x; the other case is symmetric.
+Upon a IntervalSplit operation, the interval Ii,j containing the query element must be
+split, and the remaining intervals distributed into the two new gaps. First, IntervalsMerge
+is applied on gap ∆i , to ensure structure on the intervals. Then interval Ii,j is split around
+the query element into a left and right side of elements with respectively smaller and larger
+elements. Let ℓ be the number of elements on the left side. Using deterministic selection, the
+left side is partitioned into three intervals of sizes ℓ/2, ℓ/4 and ℓ/4, such that the sizes are
+doubling from the query point and outwards. The right side is similarly split, resulting in six
+new intervals covering the elements of Ii,j . See Figure 6 for an illustration of this split. From
+these new intervals, along with the remaining intervals of gap ∆i , two new gaps ∆′i and ∆′i+1
+are created, containing the intervals to the left and right side of the query point respectively.
+To finally ensure invariant (#Int) on the two new gaps, we lastly apply IntervalsMerge
+on them both, which concludes the steps of the IntervalSplit operation.
+We next analyze the amortized I/O cost of IntervalSplit. The interval Ii,j can be
+located using the B-tree in O(logB logB |∆i |) I/Os. Splitting the interval is done using a constant number of scans and deterministic selections on the interval, which uses O B1 |Ii,j | I/Os
+in total. When performing IntervalsMerge on ∆i , ∆′i , and ∆′i+1 , then by Lemma 9, the
+
+26
+
+Towards Lazy B-Trees
+
+invariant on the number of intervals (#Int), and that splitting interval
+Ii,j creates O(1) new
+
+1
+intervals, it holds that these merges uses amortized O B log2 |∆i | I/Os in total. Note that
+these costs is independent on where Ii,j resides in the structure, and the sidesness of gap ∆i .
+The change in potential however depends heavily on these properties. We shall therefore use
+case analysis for the change in potential. These cases are on if the split interval is on the
+left or right, and on the sidesness of the gap ∆i . We only analyze the difference in potential
+under the splitting of interval Ii,j , as the IntervalsMerge operation already is amortized.
+
+A.3.1
+
+Gap ∆i is 2-sided.
+
+The split must result in two new 2-sided gaps. Therefore, N01 is unchanged, and can be
+disregarded for the potential difference. As the gap is 2-sided, o(Ii,j ) is the smaller distance
+to the two sides of the gap. It holds that Ii,j overlaps the query point, and therefore the
+distance to the left side (in ∆i ) is at most x, and the distance to the right side (in ∆i ) is at
+most cx. Therefore, o(Ii,j ) ≤ x.
+There are three types of intervals: the intervals resulting from splitting Ii,j , the intervals
+to the left of Ii,j in ∆i , and the intervals to the right of Ii,j in ∆i . Let us first consider the
+potential on the intervals resulting from splitting Ii,j . We denote this change in potential as
+∆ΦI . The potential on Ii,j is Φi,j , which is removed. Then six new intervals are introduced.
+Consider the intervals created on the left side of the query point, and let the total number of
+elements in these three intervals be ℓ. The rightmost one of these intervals is next to a query
+point in the new gap, and thus its outside is 0. The potential on this interval is therefore
+1
+B ℓ/4. The middle interval has the right interval as its outside, and as they are both of size
+ℓ/4, there is no potential on this interval. The leftmost interval may have either side as its
+outside; in the worst-case, it has a potential of B1 ℓ/2. This holds symmetrically for the new
+intervals on the right. As the size of the left and right in total is |Ii,j |, the total worst-case
+potential on the new intervals is 34 B1 |Ii,j |. In total, the change in potential on the intervals
+created from Ii,j is
+∆ΦI ≤ 5
+1
+max {|Ii,j | − o(Ii,j ), 0}
+B
+31
++
+|Ii,j |
+4B
+−
+
+The number of intervals created vs removed
+Removing Ii,j
+Introducing new intervals
+
+To simplify this, we distinguish cases on the size of Ii,j , and compare it to the I/O
+cost of splitting the interval. If |Ii,j | ≤ x, then ∆Φ ≤ 5 + 34 B1 x = O B1 x . Otherwise,
+∆Φ ≤ 5 + B1 x − 41 B1 |Ii,j |. The amortized
+ cost of the split, including only the potential on
+the intervals of Ii,j , is therefore O B1 x I/Os. The total amortized cost must also cover the
+remaining intervals.
+For the intervals to the left of Ii,j , let the change in potential be denoted as ∆ΦL . In
+total there are at most x elements located on the left side. As there is no new intervals
+introduced, the potential function on the left intervals is therefore bounded by the number
+of elements, and thus ∆ΦL ≤ B1 x. For the change in potential for the intervals on the right
+of Ii,j , denoted ∆ΦR , we must further distinguish whether Ii,j is a left or right interval.
+Case 1: Ii,j is a left interval. We partition the intervals on the right into three categories:
+the intervals that were a left interval in ∆i and remain a left interval in ∆′i+1 (LL), the
+intervals that were right intervals in ∆i and become left intervals in ∆′i+1 (RL), and the
+intervals that were right intervals in ∆i and remain right intervals in ∆′i+1 (RR). Note that
+
+C. M. Rysgaard, S. Wild.
+
+27
+
+∆i
+Ii,j
+
+x
+
+Query point
+
+∆′i
+
+LL
+
+RL
+
+RR
+
+cx
+
+∆′i+1
+
+Figure 7 The categories of intervals upon splitting a 2-sided gap, with Ii,j being a left interval.
+
+there cannot be any intervals that were left and became right, as the number of elements
+to the left decreases; if this was the side with the fewer elements before, it must remain so.
+These categories are illustrated on Figure 7.
+First note that the number of intervals and their sizes do not change from ∆i to ∆′i+1 .
+The only change is in the size of the outsides. For the intervals in RR, their outside does not
+change, and therefore their potential does not change.
+Note that IntervalsMerge was performed before the split, and therefore rule (M) is
+satisfied on the intervals in ∆i . Also note that splitting another interval does not alter the
+outside values of other intervals. Therefore, for the intervals in LL, x elements are removed
+from their outside in ∆′i+1 . We must then bound the number of intervals in LL, to bound
+the change in the potential. As the outside of the leftmost interval in LL has an outside of
+at least x in ∆i , and there are at most cx elements in LL, as they are all contained in ∆′i+1 ,
+then by Lemma 7, the number of intervals in LL is at most 2 log2 cx
+x + 2 = O(log2 c). The
+potential increase of LL is therefore bounded by O B1 x log2 c .
+For the intervals in RL, as they were a right interval before in ∆i , but become a left
+interval in ∆′i+1 due to x elements being removed from the left, their outside can decrease
+by at most x, when moved to ∆′i+1 . Consider all but the rightmost interval of RL. As these
+are left intervals of ∆′i+1 without the last left interval, it must hold that they are contained
+entirely in the left half of the cx elements of ∆′i+1 . As they are right intervals in ∆i , then
+their old outside is to the right in ∆i , and therefore the outside of the last considered interval
+is in ∆i at least the right half of the cx elements. By Lemma 7, the number of intervals in
+RL, including the rightmost interval, is bounded by 2 log2 cx/2
+cx/2 + 2 + 1 = 3. The potential
+3
+increase of RL is therefore bounded by B x.
+
+In total, ∆ΦR = O B1 x log2 c .
+Case 2: Ii,j is a right interval. As there are more elements to the left of Ii,j than to the
+right in ∆i , there are at most x elements remaining to the right of Ii,j . As there are no new
+intervals introduced, the potential function on the right intervals is therefore bounded by the
+number of elements, and thus ∆ΦR ≤ B1 x.
+
+A.3.2
+
+Gap ∆i is 0-sided.
+
+As there have been no queries to the left or right of the gap, then there can only be a single
+interval in ∆i , which is Ii,j . The bottom of Figure 6 therefore illustrates this case. Upon
+splitting this interval, two 1-sided gaps are created. All elements are moved into these gaps
+from ∆i , and therefore N01 is unchanged, and can be disregarded for ∆Φ. For both gaps,
+
+28
+
+Towards Lazy B-Trees
+
+∆i
+Ii,j
+
+x
+
+LL
+
+cx
+
+Query point
+
+∆′i
+
+∆′i+1
+
+Figure 8 The categories of intervals upon splitting a 1-sided gap, with left queried side.
+
+∆i
+Ii,j
+
+x
+
+Query point
+
+∆′i
+
+RL
+
+RR
+
+cx
+
+∆′i+1
+
+Figure 9 The categories of intervals upon splitting a 1-sided gap, with right queried side.
+
+the queried side is at the query point. Therefore, the outside of each interval in ∆′i and ∆′i+1
+is towards the middle. Following the analysis of ∆ΦI in the 2-sided case, it holds that the
+new potential is 14 B1 |Ii,j |, as the outside of the outermost intervals is towards the middle,
+and therefore ∆Φ = 5 − 34 B1 |Ii,j |.
+
+Gap ∆i is 1-sided.
+As before, we assume for the current query, that the left resulting new gap has size x. If in
+∆i , the queried side was the left side, then gap ∆′i becomes a 2-sided gap, and ∆′i+1 remains
+a 1-sided gap, with the queried side on the left. This case is illustrated on Figure 8. The
+outside of Ii,j in ∆i remains bounded by x, and the analysis on the change in potential of
+Ii,j remains
+the same as in the 2-sided gap analysis, which bounds the potential increase by
+
+O B1 x . For the intervals on the left, the potential may be at most B1 x, as in the 2-sided
+case. However, N01 decreases by x, which bounds the increase in potential on the left to at
+most 0. For the intervals on the right, it must hold that they were all left intervals in ∆i and
+that they remain left intervals in ∆′i+1 . Following the argument for
+ LL from the 2-sided gap
+case above, the increase in potential is bounded by O B1 x log2 c .
+The case when the queried side in ∆i is to the right is illustrated on Figure 9. In this
+case, the outside of Ii,j is no longer bounded by x, but by cx. However, all elements on the
+right leave the 1-sided gap ∆i , and enter the 2-sided gap ∆′i+1 ; therefore N01 decreases by
+cx, and so the potential decreases by B1 cx. The intervals on the right must have been right
+intervals in ∆i , and may be both left or right intervals in ∆′i+1 . Using the same analysis
+as in the 2-sided case for the RL and RR intervals, it holds that the potential on the right
+interval increase by at most B3 x. The intervals to the left spans at most x elements, and the
+
+C. M. Rysgaard, S. Wild.
+
+29
+
+potential on these are at most B1 x, as in the 2-sided case. In total
+∆Φ ≤ 5
+
+The number of intervals created vs removed
+
+1
+max {|Ii,j | − o(Ii,j ), 0}
+B
+31
++
+|Ii,j |
+4B
+1
+− cx
+B
+3
+1
++ x+ x
+B
+B
+−
+
+Removing Ii,j
+Introducing new intervals
+Elements removed from 1-sided gap
+Potential change on the remaining intervals
+
+Recall that o(Ii,j ) ≤ cx. We then case analysis on the size
+ of Ii,j . If |Ii,j | ≤ cx, then
+∆Φ ≤ 5 − 14 B1 cx +B4 x. As splitting the interval uses O B1 |Ii,j | I/Os, the amortized cost of
+this case is O B1 x I/Os. Otherwise, if |Ii,j | > cx, then ∆Φ ≤ 5 − 14 B1 |Ii,j | + B4 x, and the
+amortized cost of this case is therefore also O B1 x I/Os.
+
+A.3.3
+
+Total I/O Cost
+
+In total, the increase in potential on the intervals, and therefore also the amortized I/O cost
+of the split, is bounded by O B1 x log2 c . The IntervalSplit operation, which includes
+searching for the query point and the IntervalsMerge
+operations, therefore uses amortized
+
+O B1 log2 |∆i | + logB logB |∆i | + B1 x log2 c I/Os in total.
+This concludes the proof of Theorem 6.
+
+B
+
+Supporting Lemmas
+
+▶ Lemma 10 (Bounding the Sum of Double Exponential Function). Let a, b ≥ 2. Then
+n
+X
+
+ n
+i
+ab = Θ ab .
+
+i=0
+
+Proof. The proof proceeds by showing the lower and upper bound separately. For the lower
+bound, as all terms of the sum is positive, then the sum is bounded below by the last term
+of the sum. To show the upper bound, it is shown by induction in n that
+n
+X
+
+i
+
+n
+
+ab ≤ 2ab .
+
+i=0
+
+For n = 0 the inequality holds, as there is only one term which is equal to a.
+n
+X
+i=0
+
+i
+
+ab =
+
+0
+X
+
+i
+
+0
+
+0
+
+n
+
+ab = ab = a ≤ 2a = 2ab = 2ab .
+
+i=0
+
+For the induction step, let n = n′ + 1, and let the inequality hold by induction for n′ . Then
+ ′
+
+n
+n
+ n′ b
+X
+X
+i
+i
+n′ +1
+n′
+ab = 
+ab  + a b
+≤ 2ab + ab
+i=0
+
+i=0
+
+From here, the goal bound is twice that of the last term in the sum. It can therefore be
+n′
+shown by proving that the second term bounds the first. For simplicity, let k = ab . Then it
+holds that
+2k ≤ k b ⇐⇒ logk (2k) ≤ b ⇐⇒ logk (2) + 1 ≤ b .
+
+30
+
+Towards Lazy B-Trees
+
+As a, b ≥ 2 and n′ ≥ 0, then logk (2) ≤ 1, and the above inequality holds. It therefore holds
+that
+ n′ b
+ n ′ b
+n′
+n
+2ab + ab
+≤ 2 ab
+= 2ab ,
+Concluding the proof.
+
+◀
+
+

@@ -1,0 +1,2116 @@
+                                          A Discrete and Bounded Envy-free Cake Cutting Protocol
+                                          for Any Number of Agents
+                                          HARIS AZIZ, Data61, CSIRO and UNSW Australia
+                                          and SIMON MACKENZIE, Carnegie Mellon University, USA
+
+
+                                          We consider the well-studied cake cutting problem in which the goal is to find an envy-free allocation
+                                          based on queries from n agents. The problem has received attention in computer science, mathematics,
+                                          and economics. It has been a major open problem whether there exists a discrete and bounded envy-free
+                                          protocol. We resolve the problem by proposing a discrete and bounded envy-free protocol for any number
+                                                                                                                          nn
+                                                                                                                     nn
+                                          of agents. The maximum number of queries required by the protocol is nn           . We additionally show that
+                                                                                                                           n
+                                          even if we do not run our protocol to completion, it can find in at most n3 (n2 ) queries a partial allocation
+                                          of the cake that achieves proportionality (each agent gets at least 1/n of the value of the whole cake) and
+arXiv:1604.03655v12 [cs.DS] 27 Aug 2017
+
+
+
+
+                                                                                                                                                       n
+                                          envy-freeness. Finally we show that an envy-free partial allocation can be computed in at most n3 (n2 )
+                                          queries such that each agent gets a connected piece that gives the agent at least /3n of the value of the
+                                                                                                                               1
+                                          whole cake.
+                                          Categories and Subject Descriptors: F.2.2 [Analysis of Algorithms and Problem Complexity]: Nonnumerical Algorithms
+                                          and Problems—Computations on discrete structures; I.2.11 [Artificial Intelligence]: Distributed Artificial Intelligence—Multi-
+                                          agent Systems; J.4 [Computer Applications]: Social and Behavioral Sciences—Economics
+                                          General Terms: Algorithms, Economics, Theory
+                                          Additional Key Words and Phrases: Fair Division, Elicitation Protocols, Multiagent Resource Allocation, Cake cutting, Commu-
+                                          nication Complexity.
+
+                                          1. INTRODUCTION
+                                                “Despite intense efforts over decades, up to this date no one has succeeded in finding a finite
+                                                bounded cake cutting protocol that guarantees envy-freeness for any number of players.”—
+                                                Lindner and Rothe [Lindner and Rothe 2015].
+                                             The existence of a discrete and bounded envy-free cake cutting protocol has remained a major open
+                                          problem for at least two decades. In this paper, we settle the problem by presenting a general discrete
+                                          envy-free protocol for any number of agents. The protocol is for the cake cutting setting that is a versa-
+                                          tile mathematical model for allocation of a heterogeneous divisible good among multiple agents with
+                                          possibly different preferences over different parts of the cake. The main applications of cake cutting are
+                                          fair scheduling, resource allocation, and conflict resolution [Deng et al. 2012]. Cake cutting has been
+                                          extensively studied within computer science [Procaccia 2016] and the social sciences [Thomson 2007].
+                                          Since various important divisible resources such as time and land can be captured by cake cutting,
+                                          the problem of fairly dividing the cake is a fundamental one within the area of fair division and mul-
+                                          tiagent resource allocation [Brams and Taylor 1996; Guo 2015; Procaccia 2013; Robertson and Webb
+                                          1998; Stewart 1999; Su 1999; Thomson 2007].
+                                             A cake is represented by an interval [0, 1] and each of the n agents has a valuation function over
+                                          pieces of the cake that specifies how much that agent values a particular subinterval. The main goal is
+                                          to divide the cake fairly. Among various fairness concepts proposed by social scientists, a prominent one
+                                          is envy-freeness. An allocation is envy-free if no agent would prefer to take another agent’s allocation
+                                          instead of his own. Although an envy-free allocation is guaranteed to exist even with n − 1 cuts [Su
+                                          1999]1 , finding an envy-free allocation is a challenging problem which has been termed “one of the
+                                          most important open problems in 20th century mathematics” by Garfunkel [Garfunkel 1988].
+                                             Motivation and Contribution. Since the valuations of agents over the cake can be complex, eliciting
+                                          each agent’s complete valuations function over the cake is computationally infeasible. A natural ap-
+                                          proach in cake cutting protocols is to query agents about their valuations of different portions of the
+                                          cake and based on these queries propose an allocation. A cake cutting protocol is envy-free if each agent
+                                          is guaranteed to be non-envious if he reports his real valuations. If a protocol is envy-free, then an hon-
+                                          est agent will not be envious even if other agents misreport their valuations. For the case of two agents,
+                                          the problem has a well known solution in the form of the Divide and Choose protocol: one agent is asked
+
+                                          1 Su [Su 1999] pointed out that the existence of an envy-free cake allocation can be shown via an interesting connection with
+                                          Sperner’s Lemma.
+
+                                          Emails: haris.aziz@data61.csiro.au, simonm@andrew.cmu.edu
+
+
+                                                                                                                                                           Report: August 2017.
+2                                                                                          Aziz and Mackenzie
+
+to cut the cake into equally preferred pieces and the other agent is asked to choose the preferred piece.
+For the case of three agents, an elegant and bounded protocol was independently discovered by John L.
+Selfridge and John H. Conway around 1960 [Brams and Taylor 1996]. Since then, an efficient general
+envy-free protocol for any number of agents has eluded mathematicians, economists, and computer
+scientists.
+   In 1995, Brams and Taylor [Brams and Taylor 1995] made a breakthrough by presenting an envy-
+free protocol for any number of agents [Hively 1995]. Although the protocol is guaranteed to termi-
+nate in finite time, there is one drawback of the protocol: the running time or number of queries
+and even the number of cuts required is unbounded even for four agents. In other words, the
+number of queries required to identify an envy-free allocation can be arbitrarily large for certain
+valuations functions. Procaccia [Procaccia 2016] terms unboundedness as a “serious flaw”. Brams
+and Taylor were cognizant of their protocol’s drawback and explicitly mentioned the problem of
+proposing a bounded envy-free protocol even for n = 4. Lindner and Rothe [Lindner and Rothe
+2009] write that “the development of finite bounded envy-free cake cutting protocols still appears
+to be out of reach, and a big challenge for future research.” The problem has remained open and
+has been highlighted in several works [Barbanel and Taylor 1995; Brams and Taylor 1995, 1996;
+Busch et al. 2005; Edmonds and Pruhs 2006; Segal-Halevi et al. 2015; Kurokawa et al. 2013; Procaccia
+2013, 2016; Lindner and Rothe 2015; Robertson and Webb 1998; Saberi and Wang 2009]. Saberi and
+Wang [Saberi and Wang 2009] term the problem as “one of the most important open problems in the
+field”. Procaccia [Procaccia 2013] goes one step further and calls it an interesting challenge within
+theoretical computer science: “Since the 1940s, the computation of envy-free cake divisions has baffled
+many great minds across multiple disciplines. Settling this problem once and for all is an important
+challenge for theoretical computer science.” In recent work, Aziz and Mackenzie [Aziz and Mackenzie
+2016] proposed a bounded and discrete envy-free protocol for n = 4. Despite this progress, the general
+problem for any number of agents had remained unaddressed.
+   In this paper, we present a discrete envy-free protocol for any number of agents that requires a
+bounded number of queries and hence a bounded numbers of cuts of the cake thereby closing the central
+                                                                                               n
+                                                                                          nn
+                                                                                     nn
+open problem in the field of cake cutting. The bound for the number of queries is n        . Previously, no
+discrete protocol was known that even uses a bounded number of cuts. Apart from using some classic
+ideas in cake-cutting, our protocol requires some radically different techniques. Since only three gen-
+eral finite and discrete cake cutting protocols have been presented in the literature [Brams and Taylor
+1995; Robertson and Webb 1997; Pikhurko 2000], our protocol is another addition to the list of finite
+envy-free protocols and is of interest even if boundedness is not a critical property. More generally,
+the protocol provides a new constructive argument for existence of envy-free allocations. Our result is
+surprising because leading experts in the area have conjectured that a bounded and discrete envy-free
+protocol does not exist: “It is natural to ask whether the envy-free cake cutting problem is inherently
+difficult: Is it provably impossible to design a bounded envy-free cake cutting algorithm?”[Procaccia
+2016]. Previously, mathematician Ian Stewart had commented that “However, no discrete procedure
+with a bounded number cuts (however large) is known for four players, and such schemes probably
+don’t exist”[Stewart 2006].
+  We additionally show that even if we do not run our protocol to completion, it can find in at most
+        n
+n3 (n2 ) queries a partial allocation of the cake that achieves proportionality (with respect to the whole
+cake) and envy-freeness. Finally, we show that even if we do not run our protocol to completion, it can
+                                       n
+be tweaked to find in at most n3 (n2 ) queries an envy-free partial allocation of the cake in which each
+agent gets a connected piece that gives the agent 1/3n of the value of the whole cake. For the additional
+two results, we only need one of our subprotocols called the SubCore Protocol that we define later.
+  Apart from introducing new techniques, our protocol relies on some ideas from previous protocols.
+At the heart of our protocol is the idea of domination or ‘irrevocable advantage’ [Brams and Taylor
+1995]. An agent i dominates another agent j if he is not envious of j even if the unallocated cake is
+given to j. Note that if agents in subset S ⊂ N dominate all the agents in N \ S, then agents in S can
+simply let the agents in N \ S worry about the remaining cake since they will not be envious if a single
+agent in N \ S got all the remaining unallocated cake. Our protocol uses some high level ideas from our
+previous protocol for 4 agents: (i) We use a ‘Core Protocol’ over the unallocated cake (aka residue) with
+one agent as the specified cutter that results in an envy-free partial allocation and a smaller residue.
+The Core Protocol is called repeatedly on the latest residue so as to make the residue even smaller.
+As the new calls to the Core Protocol are made, the partial allocation remains envy-free. (ii) Every
+time agents make trims or evaluate pieces of cake, we do not lose such information and in fact keep
+track of it. (iii) We make agents exchange some parts of their already allocated pieces to obtain new
+
+
+                                                                                                   Report: August 2017.
+                                                                                                              3
+
+dominations. The exchange was referred to as a permutation in [Aziz and Mackenzie 2016]. In some
+steps, our protocol also uses a simple fact: envy-freeness implies proportionality with respect to the
+allocated cake (i.e., each agent gets at least 1/n value of the allocated cake).
+   Throughout the overall protocol, we have cake that has been allocated and some cake that is the
+unallocated residue. During the protocol, we ensure that the cake that has been allocated to the agents
+has been done so in an envy-free manner. Overall, our envy-free protocol (Main Protocol) takes as input
+the cake and a set of agents and returns an envy-free allocation of the whole cake. In order to obtain the
+envy-free allocation, the Main Protocol calls three other protocols. It repeatedly calls the Core Protocol
+a bounded number of times. The Core Protocol is the work-horse of the overall protocol that is called
+repeatedly to further allocate unallocated cake in any envy-free manner. The other protocols—GoLeft
+and Discrepancy are used to make one set of agents dominate the others so that the problem reduces
+to finding an envy-free allocation for fewer agents and the Main Protocol can be called again for this
+sub-problem.
+   After calling the Core Protocol many times, if there is still some unallocated cake and there is suffi-
+cient difference in the estimation of the value of a cake piece between some agents, then the Discrep-
+ancy Protocol is called by the Main Protocol. The goal of the Discrepancy Protocol is to either exploit
+the difference in valuations or else to ensure that on a very rough scale, agents have similar valuations.
+If after calling the Discrepancy Protocol, the cake still has not been allocated in an envy-free way, the
+GoLeft Protocol is called by the Main Protocol. The GoLeft Protocol is used to reallocate pieces of the
+cake among the agents after additionally adding some crumbs from the residue. The reallocation is
+useful to obtain new dominations until one set of agents dominate the remaining agents which means
+that we have reduced the problem to allocating the remainder of the cake among the dominated agents.
+The different protocols that we present are summarized in Figure 1.
+
+
+                               Main
+                            Protocol (Al-
+                             gorithm 3)
+
+
+                                Core                   Discrepancy                   GoLeft
+                            Protocol (Al-              Protocol (Al-              Protocol (Al-
+                             gorithm 1)                 gorithm 4)                 gorithm 5)
+
+
+
+                              SubCore
+                            Protocol (Al-
+                             gorithm 2)
+
+Fig. 1: The envy-free protocol for n agents relies on various protocols. A protocol points to another
+protocol if it calls the other one. A protocol has a self-loop if it calls itself recursively. The Main Protocol
+is called to get an envy-free allocation.
+
+
+  Next, we informally summarize what input each protocol takes as a blackbox and then what it
+outputs.
+— Main Protocol
+  — Input: Cake R and a set of agents N .
+  — Output: An envy-free allocation that completely allocates R among agents in N .
+— Core Protocol
+  — Input: Specified cutter agent, agent set N and unallocated cake R.
+  — Output: An envy-free allocation of cake R′ ⊂ R for agents in N and updated unallocated cake
+     R \ R′ .
+— SubCore Protocol
+  — Input: Cake R cut into n pieces to be allocated among agents in set N ′ ⊂ N with n′ = |N ′ |.
+     Additionally, each agent i ∈ N ′ has a benchmark value bi .
+
+ Report: August 2017.
+4                                                                                                     Aziz and Mackenzie
+
+  — Output: An envy-free partial allocation of R for agents in N ′ in which each agent j ∈ N ′ gets a
+     piece of value at least bj .
+— Discrepancy Protocol
+  — Input: Residue R, a specific piece in R, a specific value given by agent u, a set of pieces of cake
+     other than R, and a set of agents N .
+  — Output: Possibly modified residue R, a Boolean value called DISCREPANCY, and a partition of
+     N into sets D′ and D′′ .
+— GoLeft Protocol
+  — Input: A set N , a set of ‘snapshots’ (disjoint envy-free allocation for the agents), a set of corre-
+     sponding ‘extracted pieces’ for each piece in the disjoint allocations, and residue R.
+  — Output: A set of agents A ⊂ N such that all agents in N \ A dominate all agents in A.
+  New Techniques and Ideas. Despite some high level similarities with the approach of the recent
+protocol for four agents [Aziz and Mackenzie 2016], our general protocol requires a number of new
+concepts and techniques. These concepts and techniques will be formalized and explained in the later
+sections but we mention them briefly and informally.
+  We define the notion of a significant advantage or bonus that informally means that an agent i feels
+his absolute advantage over another agent is of a high enough fraction of his value of the unallocated
+cake. We then make use of our Core Protocol that not only reduces the size of the unallocated residue
+but also guarantees that a given agent has a significant advantage over someone else. The Core Pro-
+tocol can be used to further allocate the residue so that an agent’s significant advantage over another
+agent translates into dominance in a bounded number steps. This approach is one of the key ideas for
+obtaining a bounded protocol rather than simply a finite protocol.
+  We rely on a notion of discrepancy that is based on the idea of how differently agents view a piece of
+cake. It is well known in fair division that the more different the agents’ valuations are, the easier it is
+to achieve fairness. We try to use the structure of agents that have similar valuations at a very coarse
+level. In case they have high enough discrepancy in valuations over two parts of the unallocated cake,
+then we simply break the problem into two subproblems where we divide each part in any envy-free
+manner among those agents who value it highly compared to the other part.
+  Another key idea to achieve a bounded protocol is that we run the Core Protocol enough times to
+ensure there are a sufficient number of Core Protocol allocation snapshots (allocation outcomes of
+various calls of the Core Protocol) that are isomorphic.2 We will keep track of these snapshots to later
+make more agents dominate each other.
+  Further operations such as exchanges of allocated pieces are then implemented on such isomorphic
+Core snapshots by exploiting their structure. In order to achieve boundedness of the protocol, we also
+define and work with four carefully chosen bounds that are functions of the number of agents. The
+biggest of the four bounds is the maximal number of query operations required to complete the protocol.
+  We use a new technique called extraction whereby part of the residue is systematically trimmed off so
+that it can potentially be combined with some agent’s allocation in the Core Protocol. When a particular
+extracted piece of cake is given to an agent in addition to his allocated piece in a single snapshot of
+the Core Protocol, we refer to this as attachment. Attachment is helpful to systematically enable more
+agents to exchange each others’ pieces in snapshots of the Core Protocol without causing any agent
+to be envious. The exchange of pieces consequently allows for ‘permutations’ and helps achieve agents
+dominate each other.
+  In order to methodically track the possible permutations/exchanges, we keep track of a permutation
+graph in which nodes correspond to agents and an agent i points to agent j if i is willing to replace
+his allocation in a subset of isomorphic snapshots of the Core Protocol with j’s allocated piece plus
+a tiny bit more cake without causing envy. The tiny bit more cake to attract agent i can in principle
+cause agents to be envious so we have to compensate the other agents elsewhere so that envy is not
+introduced. The attachments and exchanges take place in the GoLeft Protocol. The interplay between
+the permutation graph and the working set of isomorphic Core snapshots is technically one of the most
+interesting parts of the overall protocol and is the central part of the GoLeft Protocol.
+  Related Work. Cake cutting problems originated in the 1940’s when famous mathematicians such
+as Banach, Knaster, and Steinhaus initiated serious mathematical work on the topic of fair divi-
+sion.3 Since then, the theory of cake cutting algorithms has become a full-fledged field with at least
+
+2 The notion of isomorphic snapshots will be defined later.
+3 Hugo Steinhaus presented the cake cutting problems to the mathematical and social science communities on Sep. 17, 1947, at
+a meeting of the Econometric Society in Washington, D.C. [Robertson and Webb 1998; Steinhaus 1948].
+
+
+                                                                                                         Report: August 2017.
+                                                                                                                    5
+
+three books written on the topic [Barbanel 2005; Brams and Taylor 1996; Robertson and Webb 1998].
+The central problem within cake cutting is finding an envy-free allocation [Gamow and Stern. 1958;
+Stewart 1999].
+  Since the earliest works, mathematicians have been interested in the complexity of cake cutting.
+Steinhaus [Steinhaus 1948] wrote that “Interesting mathematical problems arise if we are to deter-
+mine the minimal number of cuts necessary for fair division.” When formulating efficient cake cutting
+protocols, a typical goal is to minimize the number of cuts while ignoring the number of valuations
+queried from the agents. In principle, the actual complexity of a problem or a protocol depends on the
+number of queries. When considering how efficient a protocol is, it is useful to have a formal query
+model for cake cutting protocols. Robertson and Webb [Robertson and Webb 1998] formalized a simple
+query model in which there are two kinds of queries: Evaluation and Cut. In an Evaluation query, an
+agent is asked how much he values a subinterval. In a Cut query, an agent is asked to identify an
+interval, with a fixed left endpoint, of a particular value. Although, the query model of Robertson and
+Webb [Robertson and Webb 1998] is very simple, it is general enough to capture all known protocols
+in the literature. Note that if the number of queries is bounded, it implies that the number of cuts is
+bounded in the Robertson and Webb model. The protocol that we present in this paper uses a bounded
+number of queries in the Robertson and Webb model.
+  There are various notions of fairness in the cake-cutting literature. Two of the most prominent ones
+are envy-freeness and proportionality. Proportionality requires that each agent gets at least 1/n value
+of the whole cake. An envy-free allocation of the whole cake also satisfies proportionality. Finding
+a proportional allocation is an easier task than finding an envy-free allocation. There exists a gen-
+eral discrete protocol for finding a proportional allocation with connected pieces that takes O(n log n)
+queries [Even and Paz 1984].
+  There is not too much known about the existence of a bounded envy-free protocol for gen-
+eral n except that any envy-free cake cutting algorithm requires Ω(n2 ) queries in the Robertson-
+Webb model [Procaccia 2009, 2016]. Also, for n ≥ 3, there exists no finite envy-free cake
+cutting algorithm that outputs contiguous allocations in which each agent gets a connected
+piece with no gaps [Stromquist 2008]. Brams et al. [Brams et al. 1997] and Barbanel and
+Brams [Barbanel and Brams 2004] presented envy-free protocols for four agents that require 13
+and 5 cuts respectively. However, the protocols are not only unbounded but also not finite since
+they are continuous protocols that require the notion of a moving knife. An alternative ap-
+proach is to consider known bounded protocols and see how well they perform in terms of envy-
+freeness [Lindner and Rothe 2009]. Apart from the unbounded Brams and Taylor envy-free protocol
+for n agents, there are other general envy-free protocols by Robertson and Webb [Robertson and Webb
+1997] and Pikhurko [Pikhurko 2000] that are also unbounded. Gasarch [Gasarch 2015] compared the
+complexity of the three general unbounded envy-free protocols in the literature. Aziz and Macken-
+zie [Aziz and Mackenzie 2016] proposed a bounded and discrete envy-free protocol for n = 4. We use
+similar ideas but generalizing to the case of any number of agents requires novel subroutines and
+significantly more abstract arguments.
+  There are positive algorithmic results concerning envy-free cake cutting when agents have restricted
+valuations functions [Branzei 2015; Cohler et al. 2011; Deng et al. 2012] or when some part of the
+cake is left unallocated [Segal-Halevi et al. 2015; Saberi and Wang 2009]. There has also been work on
+strategyproof cake cutting protocols for restricted valuation functions [Aziz and Ye 2014; Chen et al.
+2013; Maya and Nisan 2012] as well as strategic aspects of protocols [Branzei and Miltersen 2015].
+
+2. PRELIMINARIES
+   Model. We consider a cake which is represented by the interval [0, 1]. A piece of cake is a finite union
+of disjoint subintervals of [0, 1]. We will assume the standard assumptions in cake cutting. Each agent
+in the set of agents N = {1, . . . , n} has his own valuation over subintervals of the interval [0, 1]. We
+denote by Vi (x, y) the value agent i has for interval [x, y]. The valuations are (i) non-negative: Vi (Y ) ≥ 0
+for any subinterval Y ; (ii) additive: for all disjoint subintervals Y, Y ′ , Vi (Y ∪ Y ′ ) = Vi (Y ) + Vi (Y ′ ); and
+(iii) divisible, i.e., for every subinterval Y and 0 ≤ λ ≤ 1, there exists Y ′ ⊆ Y with Vi (Y ′ ) = λVi (Y ). It
+follows from the divisibility property that the valuations are non-atomic i.e., Vi (x, x) = 0.
+   We will typically denote an allocation by X = (X1 , . . . , Xn ) where Xi is the cake allocated to agent i.
+Two main criteria of fairness are envy-freeness and proportionality.
+
+   Definition 2.1 (Envy-free allocation). An allocation X = (X1 , . . . , Xn ) is envy-free if Vi (Xi ) ≥ Vi (Xj )
+for each i, j ∈ N .
+
+Report: August 2017.
+6                                                                                            Aziz and Mackenzie
+
+    Definition 2.2 (Proportional allocation). An allocation X = (X1 , . . . , Xn ) is proportional if Vi (Xi ) ≥
+1
+n Vi ([0, 1]) for each i ∈ N .
+  In order to ascertain the complexity of a protocol, Robertson and Webb presented a computational
+framework in which two kinds of queries can be made to the agents: (1) for given x ∈ [0, 1] and r ∈ R+ ,
+a C UT query asks an agent to return a point y ∈ [0, 1] such that Vi ([x, y]) = r (2) for given x, y ∈ [0, 1],
+E VALUATE query asks an agent to return a value r ∈ R+ such that Vi ([x, y]) = r. A cake cutting
+protocol specifies how agents interact with queries and cuts. All well known cake cutting protocols
+can be analyzed in terms of the number of queries required to return a fair allocation. A cake cutting
+protocol is bounded if the number of queries required to return a solution is bounded by a function of
+n irrespective of the valuations of the agents.
+  Terms and Conventions. We now define some terms and conventions that we will use in the paper.
+An allocation is partial if it does not necessarily allocate the whole cake. Given an envy-free partial
+allocation X of the cake and an unallocated residue R, we say that agent i dominates agent j if i does
+not become envious of j even if all of R were to be allocated to j:
+                                           Vi (Xi ) ≥ Vi (Xj ) + Vi (R).
+  We say that an agent gets a piece partially, if he does not necessarily get it completely. In the cake
+cutting protocols that we will describe, an agent may be asked to trim a piece of cake so that its value
+equals the value of a less valuable piece. Agents will be asked to trim various pieces of the cake to
+make a given piece equal to the value of another piece. In Figure 2, we outline the idea of trimming
+a piece to equal the value of another piece. When an agent trims a piece of cake, he will trim it from
+the left side: the main piece (albeit trimmed) will be on the right side. The piece minus the trim will
+be called the partial main piece. When we say that an agent is guaranteed to get his second/third/etc.
+most favoured piece, this guarantee is based on the ordinal preferences of the agents over the pieces.
+By ordinal, we mean that agents simply give a weak ordering over the pieces but do not tell the exact
+cardinal utility difference between two pieces. If an agent is indifferent between the top three pieces,
+then we will still say that the agent is guaranteed to get his third most valued piece.
+
+                                                                               1 2 3
+                                 1 2
+                                  γ
+
+                                       2                      1            3
+                                            Initially allocated cake
+Fig. 2: Example of a trim. Agents 1 and 2 trim their most preferred piece (the left most piece) to the
+value equal to that of their second most preferred piece. In this instance, agent 2 trims more than agent
+1, hence his trim is to the right of agent 1’s trim. Let us assume agent 1 and 3 each get a complete piece
+with 1 getting his second most preferred piece. Agent 2 is not envious of other agents if he gets the
+right side of the trimmed piece up till his trim. If agent 2 gets the part to the right of agent 1’s trim
+instead of his own trim, then he is even happier. Agent 1 is still not envious of agent 2 if 2 gets γ. The
+reason is that agent 1 thinks that his advantage over agent 2 is of value that is equal to his value for
+γ.
+
+
+3. THE PROTOCOL
+The overall protocol we present is essentially the Main Protocol that calls other protocols. Some proto-
+cols such as the SubCore Protocol and the Main Protocol recursively call themselves. The overall idea
+of the protocol is as follows. We make an agent (the cutter) divide the cake into n equally preferred
+pieces. The cake is then allocated to the agents with each agent getting a part of one of the pieces. The
+subroutine will be referred to as the Core Protocol. The Core Protocol itself relies on recursively apply-
+ing the SubCore Protocol. When running the Core Protocol, if all the cake is already allocated, we are
+done. Otherwise, the Core Protocol is run repeatedly on the left-over cake. If some cake is still unallo-
+cated, we repeat it with another agent as cutter. After the Core Protocol has been run repeatedly, it is
+checked whether agents have discrepancy on a part of the cake. Discrepancy implies that agents have
+radically different valuations over two segments of the cake. This works to our advantage because we
+
+                                                                                               Report: August 2017.
+                                                                                                                                                7
+
+can run the Discrepancy Protocol in which we let the differing agents concentrate on the segments they
+prefer much more which reduces our problem to envy-free cake cutting for a smaller number of agents.
+Otherwise, we exchange some parts of the cake that certain agents hold using the GoLeft Protocol in
+a systematic way to obtain further dominations between agents. After the GoLeft Protocol has been
+implemented, some agents dominate all other agents. At this point, we have decomposed the problem
+into a smaller problem with less number of agents. Hence the envy-free algorithm can be called recur-
+sively on the unallocated cake to divide the cake among the specified subset of agents. We first present
+the Core Protocol that is the work-horse of the overall Main Protocol.
+3.1. Core Protocol
+We first present the Core Protocol that calls the SubCore Protocol. The Core Protocol is helpful in
+allocating additional residue in an envy-free manner. The main challenge is that just by running the
+Core Protocol repeatedly on the residue, there is no guarantee that the cake will be allocated completely
+in a bounded or even finite number of steps. Hence, we will introduce other protocols in addition to the
+Core protocol that help us allocate the whole cake in an envy-free manner.
+
+Algorithm 1 Core Protocol
+Input: Specified cutter (say agent i ∈ N ), agent set N such that i ∈ N , and unallocated cake R.
+Output: An envy-free allocation of cake R′ ⊂ R for agents in N and updated unallocated cake R \ R′ .
+ 1: Generate the tie-breaking values that will be used to break all ties as described in Section 3.1.1.
+ 2: Ask agent i to cut the cake R into n equally preferred pieces.
+ 3: Run SubCore Protocol on the n pieces with agent set N \ {i} with each agent having a benchmark value as zero. The call gives an allocation
+    to the agents in N \ {i} such that one of the n pieces is untrimmed and unallocated.
+ 4: Give i one of the unallocated untrimmed pieces from the previous step.
+ 5: return envy-free partial allocation (in which each agent gets a connected piece) as well as the unallocated cake.
+
+
+
+
+Algorithm 2 SubCore Protocol
+Input: Cake cut into n′′ pieces (with n′′ ≤ n) to be allocated among agents in set {1, . . . , n′ } = N ′ ⊆ N with n′ = |N ′ | and a benchmark
+  value bj for each j ∈ N ′ .{We only call SubCore if the benchmark values are such that there exists an envy-free allocation of agents in N ′
+  where each agent gets at most one of the pieces giving him at least the specified benchmark value.}
+Output: A neat envy-free partial allocation for agents in N ′ in which each agent j ∈ N ′ gets a connected piece of value at least bj .
+ 1: for m = 1 to n′ do
+ 2: if the piece agent m preferred at the launch of the protocol is still unallocated then
+ 3:     we tentatively give agent m that piece and go to the next iteration of the ‘for’ loop.
+ 4: else
+      — the first m agents are contesting for the same m − 1 tentatively allocated pieces. We call them the contested pieces.
+      — For each agent j, set b′j to be the maximum of bj and agent j’s value of the most preferred uncontested piece.
+      — Then each agent in [m] is asked to place a trim on all contested pieces of high enough value so that the contested piece on the right
+          hand side of his trim is of the same value as b′j
+ 5:     Set W to be the set of agents who trimmed most (had the rightmost trim) in some piece.
+ 6:     while |W | < m − 1 do
+ 7:        Ignore the previous trims of agents in W from now on and forget the previous allocation.
+ 8:        Run SubCore Protocol on the contested pieces with W as the target set of agents (with b′j as their benchmark value input) and for
+    each contested piece, the part to the left side of the right-most trim by an agent in [m] \ W is ignored. {The result of the recursive call of
+    SubCore is an allocation that gives a (partial) contested piece to each of the agents in W .}
+ 9:        Take any unallocated contested piece a. The current left margin (beyond which the piece is ignored) is by agent i ∈ [m] \ W .
+
+
+                                                                  W ←− W ∪ {i}.
+    At this point the current allocation of agents in W is tentative and not permanently made. {An agent from m \ W has been added to W . For
+    the updated W , each agent in W gets a partial contested piece and no agent envies an unallocated piece. Recall that for each piece, the left
+    side of the right-most trim by an agent in [m] \ W is ignored.}
+10:         Update the value b′j of each agent j in W to equal the value of the piece that they have been tentatively allocated.
+11:      end while
+12:      Run SubCore on all agents in W and the set of contested pieces, where we ignore the part to the left of the trim made by the agent in
+    [m] \ W . The benchmark of each j ∈ W is b′j . {At this point |W | = m − 1 and each agent in W has a tentatively allocated contested piece}
+13:      The only agent j remaining in [m] \ W is tentatively given his most preferred uncontested piece.
+14: end if
+15: end for
+16: return envy-free partial cake for agents in N ′ (such that each agent gets a connected piece that is on the right hand side of the original
+    piece he trimmed most) as well as the unallocated cake.
+
+
+
+  The Core Protocol asks a specified agent termed as the cutter to cut the unallocated cake into n
+equally preferred pieces. It then calls the SubCore Protocol that allocates to each of the agents one of
+the pieces (possibly partially) in an envy-free manner. No agent is given cake from any other piece.
+
+ Report: August 2017.
+8                                                                                           Aziz and Mackenzie
+
+  The name of the protocol is the same as the Core Protocol used by Aziz and Macken-
+zie [Aziz and Mackenzie 2016] for the case of 4 agents which returns an envy-free partial allocation in
+which one agent cuts the cake into four equally preferred pieces and the cutter as well as at least one
+other agent gets one of these four pieces. The new Core Protocol can be considered as a useful general-
+ization of Core Protocol for the four-agent algorithm of Aziz and Mackenzie [Aziz and Mackenzie 2016].
+Unlike the Core Protocol for the four-agent case, the new Core Protocol requires a more sophisticated
+recursive SubCore Protocol. The SubCore Protocol results in an allocation that satisfies some ‘neat’
+properties.
+   Definition 3.1 (Neat Allocation). Consider a cake divided into n pieces and m < n agents. An allo-
+cation of the cake into m agents is neat if (i) each agent’s allocation is a (not necessarily whole) part of
+one of the pieces; (ii) at least one piece is unallocated; (iii) no agent prefers an unallocated piece over
+his allocation; and (iv) no agent prefers another agent’s allocation over his allocation.
+   We can prove that the Core Protocol results in an envy-free partial allocation in which the cutter
+cuts the cake into n pieces, each agent gets a part of exactly one of the pieces, at least one non-cutter
+agent gets a complete piece and at least one piece is unallocated which no non-cutter agent envies over
+his allocation (Lemma 4.5). Since two agents get full pieces, from the cutter’s perspective, at least 2/n
+of the cake is allocated after an iteration of the Core Protocol.
+   Most of the technical work in the Core Protocol is done when it calls the SubCore Protocol. The
+SubCore Protocol takes as input agents and pieces of cake where the number of pieces is at least as
+much as the number of agents. Each agent is given a part of exactly one piece. The SubCore Protocol
+also takes as input the benchmark value for each agent. When we call SubCore for the first time
+during the Core Protocol, the benchmark value of each agent is zero. The benchmark value of an agent
+indicates the minimum value an agent expects in an envy-free allocation returned by the SubCore
+Protocol.
+   In the SubCore Protocol, the main idea is that we start from a single agent and gradually grow the
+number of agents in a specified order while making sure that a neat allocation exists for the growing
+set of agents {1, . . . , m} in which at least one agent gets a full piece. We denote {1, . . . , m} by [m]. All
+the allocations encountered during the course of the SubCore Protocol are considered tentative until
+the final step. If the next agent m in the specified order most prefers a piece that is not currently
+(tentatively) allocated, we can easily handle the new agent as he can get the unallocated piece without
+causing envy for anyone. Otherwise, we have to do more work to ensure that the previously handled
+agents as well as the new agent can simultaneously get a neat allocation in which at least one agent
+gets a full piece. This includes calling the SubCore Protocol recursively for a smaller number of agents.
+   In the SubCore Protocol, if the m-th agent is also interested in one of the m − 1 tentatively assigned
+pieces, we refer to the m − 1 allocated pieces as the contested pieces. Each agent in [m] is asked to trim
+pieces among the m − 1 contested pieces that are of higher value than his most preferred piece outside
+the m − 1 allocated pieces so that the value of the former is the same as the value of the latter. The
+value is referred to as the benchmark value of the agent. The rationale for asking all the m agents to
+trim up to their benchmark value is as follows. If m − 1 agents each get a part of a contested piece, then
+one of the m agents who does not get a contested piece can get a most preferred uncontested piece. By
+asking all agents to place trims according to their benchmark values, the agent j who is forced to get
+an uncontested piece will not be envious of other agents because each other agent gets a piece to the
+right of j’s trim on that piece. Note that in order to set the benchmark value of an agent we not only
+consider the uncontested pieces in that call of the SubCore but also implicitly consider other pieces
+that were part of the input of the root call to the SubCore. This ensures that agents are not envious
+or interested in pieces that are unallocated. The set of agents who have the rightmost trim in some
+piece is referred to as W . Note that W is the set of agents who are guaranteed to have an envy-free
+allocation where each agent gets a piece that he trimmed most. If |W | = m − 1, then if agents are given
+the piece they win up till their trim, then the corresponding allocation is envy-free for agents in W and
+gives each agent in W their benchmark value. Nonetheless, we call SubCore recursively on W and the
+contested pieces with the left aside of trim the agent in [m] \ W ignored. Doing this ensures that agents
+in W get as much of the contested pieces as possible without causing envy. The remaining agent in
+[m] \ W is considered to be ‘kicked out’ of the contested pieces and has to make do with a piece outside
+the contested pieces. He is given the most preferred uncontested piece.
+   We may not be lucky and the number of agents who win some piece may not be m − 1, i.e., some
+agent may have the rightmost trim in multiple contested pieces. The protocol then increases the size of
+W one by one. W is expanded as follows. The previous trims of agents in W are ignored. The SubCore
+Protocol is called recursively with W as the target set of agents and for each piece, the left side of the
+
+                                                                                               Report: August 2017.
+                                                                                                             9
+
+right-most trim by an agent in [m] \ W is ignored. Note that by ignoring the trims of agents in W , we
+have more cake that could potentially be allocated than the allocation where the trims of agents in W
+are not ignored but each agent in W gets the right hand side of the piece where he had the rightmost
+trim. In case |W | < m − 1, we can continue increasing the size of W while ensuring that agents in W
+can get an envy-free allocation by getting a partial piece each from among the contested pieces. Take
+any unallocated contested piece a for which the current left margin (beyond which the piece is ignored)
+is by agent i ∈ [m] \ W . We can add such an i to W . As we increase the size of W , we are able to clear
+more space for some piece since the non-winner because of which we were ignoring the left part of
+some piece is now a winner, so we an ignore his previous trim. When |W | = m − 1, we have ensured
+that all the contested pieces have been partially allocated to one agent each from W . In that case the
+remaining agent in [m] \ W can then be given the most preferred uncontested piece.
+   Note that for n = 2, the Core Protocol coincides with the well-known Divide and Choose protocol.
+Next, we further explain the SubCore Protocol with the help of an example.
+   Example 3.2 (SubCore Protocol). In order to illustrate how the SubCore Protocol works, let us ex-
+plain the SubCore Protocol when n′ = 3 and there are n = 4 pieces a, b, c, d.
+   In the for loop, when m = 2, if agent 2 has the same most preferred piece as agent 1’s tentative piece
+a, then piece a is the contested piece. Both agents place trim on that piece to equal the value of the
+second most preferred piece. Let us assume that 2’s trim is to the right of 1’s trim. In that case the
+cake in a to the left of 1’s trim is ignored temporarily as if the cake to the left did not exist. Agent 1
+can take a full unallocated piece b that is at least as preferred by him as 2’s tentative piece. Agent 1 is
+considered being kicked out of his piece and gets a piece of exactly his benchmark value. Since there
+is exactly one contested piece and the piece is ‘won’ by agent 2, we call SubCore on piece a and agent 2
+with the cake to the left of a’s trim ignored. Hence agent 2 gets a up till 1’s trim.
+   We now increment m to handle agent 3. If agent 3’s most preferred piece among the four pieces is
+not one currently held (even partially) by 1 and 2, then we can simply give 3 that piece. Otherwise, all
+agents 1, 2, 3 are asked to place a trim over the contested pieces among {a, b} to make the value equal
+to the most preferred piece among c and d. Let us assume that 3 places the rightmost trim over b and
+over a. In that case, W = {3}. The fact that 3 is in W means that there exists a neat allocation for the
+agent in W = {3} where he can get one of the pieces which are contested. We now ignore the trims
+of agent 3 on pieces a and b and ignore the left side of the rightmost trim by agents in {1, 2}. We call
+SubCore Protocol on the pieces a, b with the left side of 1 and 2’s trims ignored and with agent W = {3}
+as input. It returns a neat allocation (with respect to the current left margins on pieces beyond which
+they are ignored) for agent 3 where 3 will be assigned one of the pieces a or b up to the non-winner (not
+in W ) agent’s rightmost trim. Let us say 3 gets piece a. Since the allocation is neat (with respect to the
+current left margins), 3 does not envy any of the other pieces up to the non-winner’s trims, meaning a
+new agent can be allocated a contested piece. Let us say this agent is agent 1, and that 1 is now the
+rightmost trimmer of piece b and his trim coincided with the current left margin of b beyond which b is
+ignored. 1 is added to W and 1 is allocated b up till the current left margin. Since now |W | = m − 1, we
+can make one last recursive call for agents 1 and 3 with the left part of the trims by agent 2 is ignored.
+This allocates piece a to 3 and piece b to 1. The uncontested pieces c and d are untrimmed. Agent 2
+can be seen as having been ‘kicked out’ of the contest, and therefore is left with his most preferred
+uncontested ‘benchmark’ piece, let us say c. Piece d has remained unallocated and untrimmed. At this
+point the allocation of the SubCore Protocol is returned.
+   3.1.1. Dealing with ties. To avoid having to mention the special case of ties in each argument concerning
+the Core/SubCore protocol, we will deal with them in a modular way.
+   To this end we introduce what we will call imaginary values. Each agent has a list of such values.
+Each agent’s values are on a different scale (for example agent 2’s values are much smaller than agent
+1’s). Our aim is to define those values so that no agent is indifferent between 2 pieces, and so that
+agents never place trims on the exact same location (where locations with different imaginary values
+are distinct). We do so whilst ensuring that when agents equalise pieces of cake, they still prefer the
+pieces that were trimmed to the one they used as a benchmark to equalise.
+                                                          n
+   To do so generate for each agent j E = n3 (n2 ) values ǫj1 , ǫj2 . . . ǫjE with the properties that ǫji <<
+E × ǫji+1 and ǫjE << E × ǫj+1  1 . Let Lj be j’s list of these epsilon values ordered from largest to smallest.
+   The protocol now internally represents each piece of cake as a number with a physical part and
+imaginary part. All the cuts that are actually made on the cake are in reality only dependent on the
+physical part of the value. The imaginary part is used internally by the protocol to break ties in a
+consistent way. Agents only look at the imaginary value of a piece of cake when required to break a tie
+on the physical part. Agents do not disagree on the imaginary value of a piece. This means that if we
+
+Report: August 2017.
+10                                                                                         Aziz and Mackenzie
+
+query agent l and j on a piece, they might disagree on the physical value of the piece, but will agree on
+the imaginary value.
+  Let us now explain how those imaginary values are associated with the pieces generated by the
+protocol. When the Core protocol asks the cutter to cut n equal pieces, the cutter will add the ǫ from
+the top of his list L every-time he creates a new piece and then discard that ǫ from L. Every other
+agent also adds ǫ values to the pieces. In the SubCore protocol, agents generate new pieces of cake
+when placing trims on larger pieces to make them equal to a smaller piece. When an agent is asked
+to make larger pieces equal to a smaller piece b, he will add the epsilon value at the top of his list L
+to the piece he least preferred before the trim (excluding b), then discard that value from L. He then
+proceeds to add the second value to the second least preferred piece, and so on until he reaches the
+most preferred piece that he trimmed. This ensures that while the physical value of the pieces becomes
+the same from the agent’s perspective, the actual order of the pieces remains unchanged.
+   C LAIM 1. Agents have a strict order on the pieces that were generated by the cutter. The order
+between two pieces a >i b can only change if i’s valuation of the physical part of a becomes strictly less
+than his valuation of the physical part of b.
+   P ROOF. New pieces are generated in the SubCore protocol when an agent j is asked to equalise
+pieces c1 . . . cl to a piece cz . The pieces will now have equal physical value from the perspective of agent
+j but since the former larger pieces are allocated bigger imaginary values, the order is preserved.
+  C LAIM 2. When taking into account both the physical and imaginary part of the valuation of pieces
+an agent cannot have the same value for 2 pieces. Moreover, 2 agents cannot place a trim on the same
+point (they may place on the same physical point but the imaginary value breaks the tie). In other words,
+with imaginary values taken into account, ties do not happen in the protocol.
+  P ROOF. Each ǫ value is unique and cannot be obtained by recombining the others through addition
+and subtraction, which are the only operations available to the protocol.
+    Example 3.3. Imagine that agent j is asked to equalise piece a to equal b. Let us have vj (a) = 0.2
+and vj (a) = 0.1 + 0.001i where i just represents the fact that it is an imaginary value. j will trim
+a so that it is equal to 0.1 + 0.001i, then add the next ǫ value ǫl on top of its list to piece a so that
+vj (a) = 0.1 + (0.001 + ǫl )i.
+   Definition 3.4 (Snapshots). When we run the Core Protocol we end up with an envy-free partial
+allocation of the cake and a residue. We call the partial allocation a snapshot or a core snapshot.
+The algorithm will keep track of certain snapshots which we will label pj with j ∈ {1, . . . , C ′ }. The
+pieces allocated in each snapshot pj are labelled cjk where k ∈ {1, . . . , n} indicates which agent got
+the piece. Since the allocation in each snapshot is envy-free, each agent thinks he got at least as much
+value for his piece as any other allocated piece. Therefore each agent thinks he has some (possible
+zero or more) bonus value over another agent in the Core snapshot. Our protocol will make use of
+these bonuses. In our protocol, we repeatedly call the Core Protocol over the resultant residue thereby
+making the residue smaller until the set of snapshots have enough structure that we will exploit later.
+3.2. Groundwork for the Main Protocol
+  Parameters. We will use four parameters to represent the bounds we work with. These are
+                                            C ≪ C ′ ≪ B ≪ B′.
+These are constant once n is fixed, however they are dependent on n. Since the Main Protocol calls
+                                                                   ′
+itself on a strict subset of the agents, we will use the notation Bn−1 to label the bound on the Main
+Protocol run on n − 1 agents. The bounds correspond to the following concepts.
+— C ′ is the number of snapshots generated by the main algorithm that we label and keep track of. All
+  subsequent partial allocations generated by runs of the Core Protocol simply serve the purpose of
+  making the residue smaller from the cutter’s perspective. Once the main algorithm has extracted
+  all the pieces it needs from the residue and if a discrepancy has not been successfully exploited, the
+  GoLeft Protocol will be run.
+— When we run GoLeft we look at a subset of C isomorphic snapshots from the C ′ total snapshots.
+— The value B ′ corresponds to the total number of queries required to run the whole protocol.
+— B is used to define what we call significant pieces or values. Running the Core Protocol guarantees
+  that a piece of cake is made smaller from the perspective of the cutter. The value B is a bound on
+  the number of times the algorithm allows us to run the Core Protocol to make the residue smaller.
+
+                                                                                             Report: August 2017.
+                                                                                                                11
+
+
+                           ejkl′    ...    ejk2     ejk1       cjk : piece allocated to agent k
+
+Fig. 3: For any allocated piece in some Core snapshot, we consider extracted pieces to be attached to
+the piece. In the figure, piece cjk is allocated to agent k in snapshot pj . The pieces ejk1 , ejk2 , . . . , ejkl′
+are extracted from the residue and are in consideration for attachment to the piece cjk in the order
+ejk1 , ejk2 , . . . , ejkl′ .
+
+  For the sake of achieving our boundedness results, the following values of the parameters work.
+                                                                           n
+                                n              nn                     nn
+           nn          ′   nn             nn               ′     nn
+(i) C = n (ii) C = n        (iii) B = n     (iv) B = n       . We have not optimized the values of the
+bounds so we expect that our general algorithmic approach works for better bounds.
+   In the protocol we often want to make a piece of cake (the residue) smaller. To do so we run the Core
+Protocol on it. To make descriptions more succinct we define a function which converts the number of
+times we run the Core Protocol on a piece of cake to how much smaller it is from the cutter’s perspective.
+Note that when the Core Protocol is run, at least 2/n value of the cake is allocated to the agents because
+the cutter cuts the cake into n equally preferred pieces and at least two pieces are fully allocated. By
+                                                                                                 B
+running the Core Protocol B times with the same cutter, the cutter thinks only f (B) = ( n−2  n ) value of
+the cake is unallocated.
+                                                                  B
+  Definition 3.5 (Bound function f ). Let f (B) = ( n−2
+                                                     n ) .
+  For any piece of cake c in a given snapshot, each agent has a bonus value which corresponds to how
+much more cake he thinks he got in that snapshot than he would have got had he been allocated c
+instead.
+  Definition 3.6 (Bonus value). An agent i’s bonus value on piece of cake cjk in snapshot pj is the
+value Vi (cji ) − Vi (cjk ), where cji is the piece that was allocated to agent i in pj by the Core Protocol.
+  In a Core snapshot, a bonus value is significant for an agent if we can make the residue smaller than
+that value from the agent’s perspective in a bounded number of steps. Note that the significance of a
+piece of cake does not depend on the absolute value that an agent ascribes to it but it is relative to the
+value of the unallocated cake (residue).
+   Definition 3.7 (Significant value). An agent i thinks a value is significant if the value is more than
+or equal to Vi (R)f (B) where R is the unallocated residue. A piece is significant for an agent if it has
+significant value for him.
+  Note that if an agent i finds a piece of cake significant, he will still find it significant if the residue
+becomes smaller than before. We also observe the following about the Core Protocol and the cutter
+getting a significant advantage over at least one other agent.
+    Remark 3.8. Note that when the Core Protocol is run once, the cutter has a significant bonus over
+at least one agent (the agent who gets the smallest valued piece from the cutter’s perspective). This
+bonus results in a domination of the cutter over the agent in k = (log n)( n−2  n ) + 1 iterations of the
+Core Protocol on the residue with same cutter. The reason is that the cutter i has advantage at least
+Vi (R)/(n − 2) over the agent who gets the smallest valued piece from i’s perspective. This is the worst
+case when equal value of residue comes from each of the maximum of n − 2 trimmed off pieces. In k
+                                                                                                k
+iterations of the Core Protocol with i as cutter, agent i’s value of the residue is Vi (R)( n−2
+                                                                                             n ) which is
+less than Vi (R)/(n − 2).
+   If we run the Core Protocol repeatedly with the same agent as cutter and we are lucky that the cutter
+has a significant advantage over each agent in some snapshot, then in (log n)( n−2
+                                                                                n ) + 1 extra iterations
+of the Core Protocol with the same cutter, we can make the cutter dominate each agent. This simplifies
+our problem, because we now only need to allocate the remaining cake among the dominated agents in
+an envy-free manner. In general, we may not be so lucky that the cutter dominates all other agent due
+to which we have to do more work to ensure that a set of agents dominates the other agents. In this
+additional work, the process of extraction is crucial:
+  Extraction. For each piece allocated in each of the Core snapshots and for each agent, the Main
+Protocol tries to associate a piece of the cake extracted from the residue. For the C ′ snapshots, there
+are C ′ n pieces allocated to the agents. For each of the pieces, other agents who do not get the piece
+extract corresponding pieces from the residue that is the unallocated cake. Take for example, a piece c
+
+Report: August 2017.
+12                                                                                                         Aziz and Mackenzie
+
+                                                                                     1 2 3 4
+                                                     1        2       3       4
+
+
+
+
+                                        R
+
+                                 24 3
+              Agents first make trims so that left side of the trim is of same value as their bonus over agent 1.
+                                                                                     1 2 3 4
+                                                     1        2       3       4
+
+
+
+
+                                        R
+
+                                 24 3
+                 The trims of the agents on the residue result in a partition of the residue into small pieces.
+                                                                                     1 2 3 4
+                                                     1        2       3       4
+
+
+
+
+                                        R
+
+       The pieces resulting from the trims are extracted from the residue and associated with the corresponding piece.
+             Fig. 4: Process of extraction for piece allocated to agent 1 in the Core snapshot
+
+allocated to some agent (say agent 1) in a snapshot. In the snapshot in which c is allocated to 1, each
+agent i gets a piece that is of value (according to i) at least as much as c. In the residue, each agent
+i is asked to put a trim so that the cake from the left extreme of the residue to the trim is of value
+equal to i’s value of his piece minus his value for c. The trims of the agents on the residue give rise
+to pieces of cake corresponding to the agents’ bonus value over piece c. These pieces are extracted (cut
+away from the residue) and associated with c (kept in consideration with piece c). When agents make
+trim marks on the residue in accordance with their bonus (over a piece in a snapshot), each pair of
+successive trim marks gives rise to a separate piece that can be extracted. For piece cjk in snapshot
+pj , we will denote by ejk1 , ejk2 , . . . , ejkl′ the set of pieces that are extracted in the same order with ejk1
+extracted first (see Figure 3). We say that a piece ejkl is extracted by agent i if the right hand extreme
+of the piece coincided with the trim of agent i on the residue. Note that l′ ≤ n − 1 because for each
+allocated piece in a snapshot, at most n − 1 other agents can put trim marks on the residue so as to
+obtain at most n − 1 extracted pieces. Each extracted piece has a clear corresponding allocated piece in
+a Core snapshot with which it is associated. Note that it can be the case that not all n − 1 agents place
+a trim we allow extraction only for agents whose bonus values are not significant.
+   In our protocol, pieces are extracted from the residue only if each agent finds the pieces not signifi-
+cant. The reason is that we want to keep sufficient residue to do further extractions on the residue as
+well as maintain structure.
+
+   Example 3.9. Figure 4 illustrates the process of extraction and association. We focus on a single
+Core snapshot in which each of the four agents are allocated a piece. Since the Core allocation is envy-
+free, each of agents 2, 3, 4 think they got at least as much value as the piece that 1 got. Now agents 2, 3,
+and 4 are asked to place a trim mark each on the residue to indicate that the residue to the left of their
+trim mark is equal to their advantage over agent 1. The trim marks result in three slices of cake that
+are extracted. Among the extractions, since 2 has the leftmost trim, his piece is extracted first, then
+4 and then 3. The extracted pieces are associated with 1’s allocated piece in the snapshot. In case the
+pieces will be added to 1’s piece, the piece extracted by agent 2 will be attached first, then the piece by
+agent 4 and then 3.
+
+  Later on, the extracted pieces may be attached to c so that piece c is now attractive to other agents
+because of the additional extracted pieces combined with c. We clarify that when pieces are extracted
+and associated with a given piece in a Core snapshot, such extracted pieces have not yet been allocated
+
+                                                                                                              Report: August 2017.
+                                                                                                            13
+
+
+                                                                        1 2
+                                           R
+
+                               R                         1                      2          snapshot 1
+
+                       R               1       2                                           snapshot 2
+
+                 R         1       2                                                       snapshot 3
+
+             R                                                                            final residue
+Fig. 5: Snapshots with extracted pieces. The Core Protocol is called thrice resulting in three snapshots.
+The Core Protocol is always called on the residue—cake that has not yet been allocated. Since the
+example involves only two agents, it is not the order of trims in extraction but only whether a trim
+induces a significant piece or not which determines isomorphism. Snapshot 1 and 3 are isomorphic
+since for each allocated piece in the snapshots, the other agent was able to extract a piece from the
+final residue to reflect his bonus/advantage. For the second snapshot a piece was not extracted because
+agent 2’s bonus value was significant. The extracted pieces present and the order in which they were
+extracted is the same for snapshot 1 and 3, making them isomorphic. Note that this figure is just
+to demonstrate isomorphism. In reality, for two agents, the Core Protocol coincides with Divide and
+Choose which means that there is no residue.
+
+to any particular agent. Extracted pieces can only be allocated after they are officially attached to their
+associated piece.
+  For the protocol we need to restrict our focus on a subset of the snapshots where the same set of
+agents extracted pieces in the same order:
+   Definition 3.10 (Isomorphic snapshots/snapshot pieces/ extracted pieces).
+  We call two snapshots pj and pj ′ isomorphic to each other if for each agent i ∈ N and for any two
+pieces cji and cj ′ i allocated to agent i in the corresponding snapshots pj and pj ′ , the set of agents who
+extracted cake from the residue and associated to cji and cj ′ i is the same and the agents in the set
+extracted pieces in the same order.
+  We extend this notion to allocated pieces in snapshots. Two allocated pieces of cake belonging to two
+isomorphic snapshots are isomorphic if they were allocated to the same agent.
+  We also extend the notion of isomorphism to extracted pieces. We say that for two isomorphic snap-
+shots pj and pj ′ , two extracted pieces ejkl and ej ′ kl are isomorphic if they are associated respectively to
+isomorphic pieces cjk and cj ′ k and that ejkl and ej ′ kl were extracted by the same agent.
+  In Figure 5, we illustrate isomorphic snapshots.
+  Our protocol will keep track of a set of isomorphic snapshots, progressively discarding (not changing)
+some so that we can make manipulations on the ones we keep in an envy-free way. The pieces of cake
+we are working with are labelled cjk for allocated pieces or ejkl for extracted pieces. Suppose that the
+given set of snapshots is S. We use the notation ck , S and ekl , S to denote the set of pieces of cake
+cjk or ejkl in snapshots in S. Abusing the notation, we will simply say ck or ekl to mean the set of
+pieces which are in the snapshots we are working with. Note that we will generally use index j for the
+snapshot number, k for the piece number in a given snapshot, and l for the l-th extracted piece.
+3.3. The Main Protocol
+The Main Protocol is the engine which runs our overall envy-free protocol. It is responsible for allocat-
+ing the whole cake among all the agents in an envy-free manner. The Main Protocol works recursively.
+If the number of agents is four or less, a previously known bounded envy-free algorithm can directly
+be called. Otherwise, the Main Protocol divides part of the cake in an envy-free manner and identifies
+a set of agents N \ A that all dominate agents in A with respect to the cake that is unallocated. The
+Main Protocol then recursively calls itself to divide the remaining cake among agents in A.
+   If the number of agents is more than four, the Main Protocol (Algorithm 3) calls the Core Protocol
+sequentially on the updated residue so that the residue becomes smaller than before after each call of
+the Core Protocol. The repeated calls of the Core Protocol help generate a number of snapshots each
+containing n pieces of cake. In each snapshot, each agent has been allocated a piece of cake. Envy-
+
+Report: August 2017.
+14                                                                                                                         Aziz and Mackenzie
+
+
+Algorithm 3 Main Protocol
+Input: Cake R and a set of agents N with n = |N |.
+Output: An envy-free allocation that completely allocates R among agents in N .
+
+  Base Case
+ 1: if |N | ≤ 4 then
+ 2: allocate the residue among the agents in N in an envy-free allocation by using one of the known constant-time envy-free protocols for
+      |N | ≤ 4.
+ 3: else
+  Generate Core Snapshots
+ 4:  for all j : 1 . . . C ′ do
+ 5:    For some i ∈ N who has acted as cutter in the Core Protocol the least number of times, run Core protocol(i, N , R); Update R to the cake
+   that is unallocated. The Core Protocol allocation gives us snapshot pj and n pieces of cake cjk with k : 1, . . . , n.
+ 6: end for {We have now generated C ′ Core snapshots. After generating the first n snapshots, we already have an envy-free allocation in
+   which each agent gets 1/n value of the original cake.}
+                                                                                                        1
+ 7:    while for agent i ∈ N and some piece cjk , Vi (R)f (B)2 < Vi (cji ) − Vi (cjk ) < Vi (R)f (B) 2 do {We ensure that the bonus values are
+    either larger than significant or smaller than significant by a large factor dependent on our bound B.}
+ 8:      Run Core Protocol(i, N , R).
+ 9: end while
+10: if some set of agents N \ A dominates all agents in set A then Call Main Protocol(R, A) to divide the unallocated cake R.
+11:      return allocation of the cake to the agents.
+12: end if
+  Extraction
+13: Define Boolean a and set it to 0 {This Boolean is used to reset the whole trimming process when running the Discrepancy Protocol causes a
+    bonus value to become significant}
+14: while a = 0 do
+           {We now attempt to extract pieces corresponding to the non-significant bonus values from the residue, resetting the whole process when
+    a discrepancy in agents’ valuations has forced us to shrink the residue}
+15:      Set a to 1.
+16:      for all pieces of cake cjk do
+17:         for all agents i do
+18:           if i’s bonus value is not significant on piece cjk then
+19:              Ask i to place a trim on the residue such that the piece stretching from the left of the residue to the trim is equal to the agent’s
+    bonus value for that piece, which we will label bic .
+                                                      jk
+20:           end if
+21:        end for
+22:        Label from left to right the pieces delimited by those trims with labels ejkl with l : 1, . . . , m where m is the number of agents who
+    placed a trim on the residue (did not have significant bonus) and j and k are used as previously {if two or more agents’ trims coincide we
+    break ties lexicographically and ascribe empty cake to the latter agents’ extractions.}
+          {For a given piece of cake cjk the m agents with non-significant bonus value have now delimited a piece of cake corresponding to that
+    value from the residue, and those pieces have been labelled.}
+23:        for all l : 1, . . . , m do
+24:           if no agent thinks the piece ejkl is significant then { Everyone agrees piece is insignificant}
+25:              Extract piece ejkl from the residue, associate it to piece cjk and update R to R − ejkl {See Figure 4}.
+26:           end if
+  Discrepancy
+27:           if some agents think ejkl is significant but others do not (agents think the piece is discrepant) then
+          {There is a large discrepancy between agents’ valuation, this causes a problem because some agents might think we are taking too much
+    away from the residue. However discrepancy can be exploited or eliminated.}
+28:              Run Discrepancy(ejkl ,buc  ,{ejkl },R) with the discrepant piece ejkl , the bonus value buc   of the agent u who made the rightmost
+                                         jk                                                                 jk
+    trim delimiting the piece, the set of previously extracted pieces of cake {ejkl } and the residue R as input. This will return the Boolean value
+    DISCREPANCY and when that value is 1 the protocol also returns two sets D ⊂ N and D′ ⊂ N such that D and D′ partition N .
+29:            if DISCREPANCY= 1 then {The discrepancy can be exploited}
+30:               Main Protocol(ejkl , D).
+31:               Main Protocol(R, D′ ).
+32:               return allocation of the cake to the agents.
+33:            else{The discrepancy cannot be exploited but bu  c    is now a significant bonus value.}
+                                                                 jk
+34:               Add ejkl to R and Set a to 0.
+35:             end if
+36:           end if
+37:         end for
+38:      end for
+39:    end while
+  GoLeft
+40: Run GoLeft(N, {pj }, {cjk }, {ejkl }, R) Protocol with the set of labelled snapshots {pj }, the set of allocated pieces of cake {cjk }, the set
+    of extracted pieces {ejkl } and the residue R as input. The output of GoLeft is a set A ⊂ N .
+41: for all agents i do
+42:      Run Core Protocol(i,N ,R) 2B times each time on the updated smaller residue R.
+43: end for
+           {The previous for loop converts significant bonus values into dominance with respect to the residue R.}
+  Recursion of the Main Protocol
+44: Call Main Protocol(R, A ⊂ N ), that is the Main Protocol on a subset of agents A ⊂ N output by the GoLeft Protocol and with R as the
+    input cake.
+45: end if
+46: return allocation of the cake to the agents.
+
+
+
+                                                                                                                               Report: August 2017.
+                                                                                                          15
+
+freeness is maintained throughout for the allocated cake, and in the Core Protocol each agent thinks
+he got the highest value piece.
+
+   Remark 3.11. When we call the Core Protocol n times each time with a different cutter, we argue
+that we get an envy-free allocation in which agents get at least 1/n value of the original cake.
+   Suppose an agent i is the cutter is the j ≤ n-th call of the Core Protocol. Then in the first j − 1 calls
+of the Core Protocol, i gets 1/n value of the allocated cake. This follows from the envy-freeness of the
+allocated cake. For the remaining cake, i again gets 1/n value of the unallocated cake in the j-th call
+because i is the cutter. Hence i gets 1/n value of the original cake. Since the cake is always allocated
+via Core, it is allocated in an envy-free manner. Hence after the Main Protocol has made the first n
+calls of the Core Protocol, we have an envy-free allocation in which agents get at least 1/n value of the
+original cake.
+
+  After the first n calls to the Core Protocol, the Main Protocol does not stop making calls to the
+Core Protocol if there is still some unallocated cake. After calling the Core Protocol C ′ times, C ′ Core
+snapshots are obtained. The Core Protocol may be further called (in the while loop in step 7) to make
+the residue even smaller. This ensures that each agent considers each piece in the first C ′ snapshots
+significant or smaller than significant by a large factor dependent on our bound B.
+  For each piece of cake c in the C ′ snapshots, agents can ascribe what we refer to as a bonus value,
+which corresponds to how much more value they got in that snapshot than their value for piece c. In
+the Main Protocol, for each piece of cake c in the snapshots, we ask all agents with a non-significant
+bonus value to make a cut on the residue equal to their bonus value. The pieces obtained from these
+cuts are then taken from the residue and associated (but not yet attached) to piece of cake c. We refer
+to this process as extraction. A piece is extracted only if all agents find it insignificant. The extracted
+pieces will potentially be attached to their associated piece of cake c in the GoLeft Protocol. Most of
+them however will be sent back to the residue or shared amongst a subset of agents in an envy-free
+way. The process of attaching the extracted pieces to their associated piece in the GoLeft Protocol is
+designed to make that piece desirable to the agent whose bonus value was used to extract the piece
+from the residue. The Main Protocol also calls the Discrepancy Protocol in case there is some piece in
+consideration for extraction that some agents consider significant and others do not. The goal of the
+Discrepancy Protocol is to exploit any such discrepancy and to ensure that when the GoLeft Protocol is
+called by the Main Protocol, then there is no discrepancy in how the extracted pieces are viewed, i.e.,
+no actually extracted piece is considered significant by some agent.
+
+3.4. Discrepancy Protocol
+When pieces are being extracted from the residue during the Main Protocol, it may be the case that
+one of the pieces ejkl in consideration for extraction is significant for some agent. In that case, the piece
+is not extracted and the Discrepancy Protocol (Algorithm 4) is called in line 28 that either exploits or
+‘eliminates’ this discrepancy. The discrepant piece ejkl is kept aside from the residue. On the other
+hand, all previously extracted pieces are added back to the residue. Since the difference between a
+piece that is just above significant or just below significant can be arbitrarily small, the Core Protocol
+is used to create a gap so that the discrepant piece either has value at least Vi (R)n or value at most
+Vi (R)/n. This gap is highly useful because the goal of the Discrepancy Protocol is to either ensure that
+(1) everyone thinks that the discrepant piece is significant or (2) the problem of finding an envy-free
+allocation can be broken into two sub-problems where some agents D are allocated the discrepant piece
+and the rest D′ are allocated the residue. In this, we use the fact mentioned earlier that envy-freeness
+implies proportionality.
+   In case of (1), the process of extraction in the Main Protocol is reset and the discrepant piece as
+well as all the pieces that had been extracted are sent back to the residue. This may appear to be a
+waste of work but when we do this, we have ensured that at least one agent has significant advantage
+over another’s piece for a given snapshot. This ‘setback’ can only happen C ′ n2 times before each agent
+dominates each other agent in which case the remaining cake can be allocated arbitrarily without
+causing envy.
+   We note that Discrepancy makes the residue smaller as it calls the Core Protocol. When the residue
+becomes smaller, it may be that a piece of cake that was not significant for an agent becomes significant
+because significance is defined with respect to the residue. Hence any agent i who thinks that Vi n(R) ≤
+Vi (ejkl ) ≤ Vi (R)n will eventually think that Vi (ejkl ) ≥ Vi (R)n when the Core Protocol has been run to
+reduce the residue.
+
+Report: August 2017.
+16                                                                                                                         Aziz and Mackenzie
+
+
+Algorithm 4 Discrepancy Protocol
+Input:     Residue R, discrepant piece ejkl , bonus value bu
+                                                           c       on cjk of the agent u who wanted to extract the discrepant piece (but could not
+                                                              jk
+    extract), set of extracted pieces of cake {ejkl : extracted pieces} , agent set N .
+Output: Possibly modified residue R, Boolean value called DISCREPANCY, set of agents D, set of agents D′ .
+ 1: Take out the discrepant piece ejkl from R; Reinsert all the extracted pieces back into the residue, relabel the aggregate piece R.
+  Run Core
+ 2: Run Core Protocol(i, N , R) for every agent i B times iteratively on the updated residue R
+ 3: while for some agent i, it is the case that Vin(R) ≤ Vi (ejkl ) ≤ Vi (R)n do
+           {The piece might be discrepant but agents who do not classify the piece the same might have arbitrarily close valuation of the piece if
+    they are lying next to the bound. This while loop ensures that there is a gap between agents who think the piece is significant and others}
+ 4: Run Core Protocol(i, N , R) B times iteratively on the updated residue R.
+ 5: end while
+  Exploit Discrepancy
+ 6: if ejkl still has some agents consider it significant and others not then {In this case we can exploit the discrepancy and ‘separate’ the agents}
+ 7: Set D to {i ∈ N : Vi (ejkl ) ≥ Vi (R)n}.
+                                           Vi (R)
+ 8:      Set D′ to {i ∈ N : Vi (ejkl ) ≤     n    }.
+                                                                             V (R)
+            { Because of the while loop line 3, we have no agents satisfying in ≤ Vi (ejkl ) ≤ Vi (R)n; these inequalities come from proportion-
+    ality. We want to ensure that agents sharing the residue think that even if someone else gets all of the discrepant piece (or residue), they will
+    still be better off by getting their proportional share of the residue (or discrepant piece). Note that N = D ∪ D′ .}
+ 9: Set DISCREPANCY to 1.
+10: return R, DISCREPANCY, D and D′ .
+11: else
+  Cannot Exploit Discrepancy — but all agents now on the same page
+    { This means that we cannot exploit a discrepancy but now all agents think that the bonus value of whoever made the trim delimiting the
+    discrepant piece is significant, including agent u who made the trim}
+12: Set DISCREPANCY to 0.
+            {bu
+              c k is now considered significant by agent u}
+                j
+13: return R and DISCREPANCY.
+14: end if
+
+
+
+
+3.5. Groundwork for the GoLeft Protocol
+The GoLeft Protocol is the heart of our overall protocol and is crucial to allocate the cake that is still
+not allocated. All the other steps in the Main Protocol can be viewed as preparing the ground for
+the GoLeft Protocol to work. By calling the Core Protocol a sufficient number of times in the Main
+Protocol, enough C ′ Core snapshots are obtained that are helpful to identify C isomorphic snapshots
+in the GoLeft Protocol (these isomorphic snapshots constitute the working set of snapshots over which
+the GoLeft Protocol operates). Moreover, by calling Discrepancy before GoLeft, it is ensured that all
+agents are on the same page: all agents consider all the extracted pieces as insignificant.
+  The GoLeft Protocol (Algorithm 5) is called by the Main Protocol. The goal of the GoLeft Protocol is
+to identify a set of agents N \ A that dominate agents in A. This means that the remaining residue
+can be allocated among agents in A in an envy-free manner without worrying about agents in N \ A
+envying them. The goal of the GoLeft protocol is achieved by attaching extracted pieces to the pieces in
+the working set of snapshots in a methodical manner while maintaining envy-freeness of the allocated
+cake. In order to maintain envy-freeness, the working set of snapshots is modified in various ways.
+When all extracted pieces for the working set of snapshots have been attached, we will show that
+we obtain a set of agents that all dominate the other agents. For example, if we end up with Core
+snapshots in which for one isomorphic allocated piece, there are a total of less than n − 1 extracted
+pieces that have all been attached and are held by a certain agent i, then agents who did not manage
+to extract pieces corresponding to the main piece have a significant advantage over i as well as all
+other agents who extracted pieces before i for that main piece. This significant advantage translates
+into dominance.
+  The GoLeft protocol operates on a working set of isomorphic snapshots. The main operations of
+the GoLeft Protocol are to attach extracted pieces to the Core snapshot allocation and to implement
+exchanges in which there is a sequence of agents ao , a1 , . . . , ak−1 where each agent ai in the sequence
+gets the pieces of agent ai+1 mod k . When operations such as attachments and exchanges happen, the
+isomorphic snapshots change but remain isomorphic nonetheless.
+  Before we give an overview of the steps of the GoLeft Protocol, we establish some concepts and
+mathematical structures we will work with. The two key structures are the working set S of isomorphic
+snapshots and the permutation graph that is defined with respect to the working set of isomorphic
+snapshots. During the GoLeft Protocol, each structure gets updated based on the information on the
+other structure. The algorithm makes progress when agents exchange their pieces with each other.
+
+                                                                                                                               Report: August 2017.
+                                                                                                                                                   17
+
+
+Algorithm 5 GoLeft Protocol
+Input: Set N , Set C ′ of snapshots pj , set of corresponding pieces {cjk }, the set of extracted pieces {ejkl }, and residue R.
+Output: A set of agents A ⊂ N such that all agents in N \ A dominate all agents in A.
+
+   Isomorphic Snapshots and build Permutation Graph
+ 1: Select from the C ′ snapshots a set of size C of isomorphic snapshots ( this follows by Claim 3 which uses a pigeon-hole argument).
+ 2: Relabel the C snapshots pj with j now ranging from 1 to C.
+ 3: Declare set S in which we add all C snapshots {pj : j ∈ {1, . . . , C}}. {Out of all the snapshots that the Main Protocol generated, we
+    will focus on isomorphic snapshots. The isomorphic snapshots that are selected are put in a set S which will shrink in size as the algorithm
+    proceeds.}
+ 4: Build the permutation graph with nodes corresponding to the agents. Throughout the algorithm, we maintain two sets: (1) T (set of
+    nodes/agents such that the isomorphic pieces held by them in S have not had n − 1 attachments) and (2) T ′ (set of nodes/agents such
+    that the isomorphic pieces held by them in S have had n − 1 attachments). T and T ′ partition the nodes. Initially, (1) all nodes are placed
+    in T so that T ′ is empty; (2) each node points to itself in the permutation graph (3) each agent owns his originally allocated set of pieces
+    allocated in the Core snapshots in the working set S. Thus each node has the following associated information: agent and his allocation in
+    snapshots in S. {The permutation graph will keep track of which permutation we can do next in order to make the protocol progress. If the
+    allocated pieces associated with a node have had n − 1 attachments, the node is moved from T to T ′ .}
+ 5: while there is a node in T do
+  Cycle and Exchange
+ 6: Find a cycle in the permutation graph which involves a node from T . {Since nodes in T all have in-degree exactly 1 and each node points to
+    each node in T ′ , such a cycle exists as proved in Claim 4}.
+ 7: For the agents in the cycle, exchange the allocation of the agents in the snapshots in S as follows: if i points to j, give i the pieces of cake
+    that j was currently allocated in snapshots S.
+ 8: If i points to j in the selected cycle, do as follows. Transfer all in-edges of j to i. Replace j in set T or T ′ by i. { This update reflects the
+    permutation of the allocation. At this point, each node that was in the cycle has a self-loop. }.
+ 9: Take a node/agent i in the cycle that is from T .
+  Separation - the only way the while loop exits
+10: if there is a node in the located cycle that is from T (has had less than n − 1 attachments) but has no extracted pieces to be attached then
+11:       {Found a separation of agents where one set dominates the other. The reason no extracted piece is present is because all agents who
+    have not had their corresponding extracted piece attached have a significant advantage over agents who already have had an extracted piece
+    attached}. Focus on the set of isomorphic pieces C associated with the node. All agents who have been given an element of C are placed in
+    A.
+12:       return A.
+13: else we now know that there is an agent i that was in the cycle from T that holds pieces in S that still have extracted pieces to be attached.
+    We focus on this agent i in the attachment phase.
+14: end if
+  Attachment — (to be done in a subset of the snapshots)
+    {The next part of the protocol will attach in a subset of the snapshots the set of isomorphic extracted pieces in ek(l+1) to the set of pieces
+    ck , thus making pieces in set ck desirable to the agent who extracted pieces in ek(l+1) . The set of pieces ck and its current attachments are
+    currently owned by agent i. At this point for each isomorphic piece ck , associated pieces up till i’s trim have already been attached.}
+15: Index the agents in the order which they extracted the pieces associated to ck so that 1 originally got ck , 2 made the next
+    extraction and so on. In doing so, we index agent i as l.
+16: Declare S ′ ← ∅.
+  Attachment — making it agreeable for agents from l + 1 to n
+17: for agent i ranging from l + 1 to n do {Ask agent i who does not (so far) find pieces in ck desirable to discard enough snapshots where
+    being allocated ck instead of whichever piece he is holding would be most disadvantageous. In other words, he reserves advantage over agents
+    in {1, . . . , l}.}
+                             |S|
+18:       Ask i to choose n−l+1     snapshots from S for which i values the difference between his bonus value for ck and the extracted pieces
+    currently attached to ck the most.
+19:       Remove the chosen snapshots from S and add them to S ′ .
+20: end for
+21: All extracted pieces that have not been attached from snapshots in S ′ are put back into the residue R. The new aggregate piece is labelled
+    R. { The pieces that were associated to a piece in a discarded snapshot but not attached will never be attached, we therefore send them back
+    to the residue. The fact that they were not significant means that the size of the residue is hardly affected by this}
+  Attachment — making it agreeable for agents from 1 to l
+22: for all agents i ranging from 1 to l do { In this part we ensure that agents i ∈ {1, . . . , l} will not be envious of agent l + 1 even if l + 1 is
+    allocated ck with the additional ek(l+1) as well as the intermediate attachments}.
+                               |S|n
+23:      Ask i to choose the ln+1   snapshots from S for which he values the piece ek(l+1) the most.
+24:      Remove the chosen snapshots from S and add them to S ′′ .
+25:    end for
+26:    All extracted pieces that have not been attached from snapshots in S ′′ are put back into the residue R. The new aggregate piece is labelled
+    R. {Again extracted pieces that will never be attached are sent back to the residue}
+27: All pieces ek(l+1) in snapshots in S ′′ are aggregated into a piece a.
+28: Run Main Protocol(a, {1, . . . , l}).
+29: S ′′ ← ∅.
+  Attachment — now happening
+30: We now attach the piece of cake ek(l+1) to ck in the snapshots still in S, meaning that if agent l + 1 were to move to piece ck , he would
+    also get ek(l+1) . In other words ck is now desirable to l + 1 because of the attachments. However in snapshots where we keep agent l as the
+    agent allocated piece ck , the piece ek(l+1) is sent back to the residue, as it could not be given to l in an envy-free way { This update reflects
+    that we made a set of allocated pieces desirable to a new agent}.
+31: Remove the self-loop of i. Replace it with an edge going from the agent who extracted the piece that the protocol just attached to cjk .
+32: If the pieces held by i have had n − 1 attachments, delete i from T and place it in T ′ and make every node point to i.
+33: end while
+
+
+
+ Report: August 2017.
+18                                                                                                                                       Aziz and Mackenzie
+
+  Working Set of Isomorphic Snapshots. During the course of the GoLeft Protocol, the isomorphic snap-
+shots in S get changed in the following way: (1) some subset of S is removed from S (2) agents exchange
+their pieces and (3) extracted pieces are attached to pieces in the snapshots in S.
+  When we update S, we maintain isomorphism and other invariant properties as follows. If an agent
+holds a piece cjk , he holds the whole set ck of isomorphic pieces in set of snapshots S. Note that we are
+abusing notation here as ck refers to a set of pieces allocated to agent k in the working set of snapshots
+S. If an agent holds an extracted piece ejkl , he holds the whole set ekl of isomorphic extracted pieces
+associated with S as well. When we implement an exchange, we are essentially making |S| exchanges –
+one in each of the snapshots. These are exchanges that not only involve the pieces in the snapshots but
+also involve those extracted pieces that have been attached to the pieces. When we attach an extraction
+to a piece in a snapshot in S, we simultaneously attach isomorphic extractions to the corresponding
+isomorphic allocated piece in each of the snapshots.
+  We also ensure that the extracted pieces are attached in the appropriate order so that each associated
+piece gets attached after the previous associated pieces have been attached. For example, if we were
+focussing on snapshot in Figure 4, the extracted associated piece due to agent 3 will get attached after
+the extracted associated piece due to agent 4. Note that if we attach an extracted piece ejkl to an
+allocated piece cjk (along with its previously attached extracted pieces) in a snapshot in the working
+set S, we perform a similar attachment for all such isomorphic extracted pieces in the set ekl to their
+corresponding pieces in set ck . Also, if an agent i currently holds an extracted piece, he also holds all
+earlier extracted pieces as well.
+  We make a crucial point about a consistency condition that we enforce.
+
+   Remark 3.12. We enforce a consistency condition whereby an agent cannot hold extracted pieces
+beyond the extraction he himself made. Therefore, when we attach an extracted piece to agent j’s piece
+in a snapshot to attract agent i to it, agent j does not actually hold the latest attachment because it
+is beyond j’s extraction. However in an exchange, if i were to get j’s piece along with its attachments,
+then i will also get the latest attachments that were originally extracted by i himself.
+
+   In the GoLeft Protocol, we operate on an increasingly small set of isomorphic snapshots. The goal
+is to reach a set of isomorphic snapshots that can be used to find a set of agents who all dominate
+other agents. As the GoLeft Protocol proceeds, we discard snapshots to allow us to focus on others
+where extracted pieces from E have been ‘attached’ in an envy-free way to the allocated pieces in
+C to which they were associated. The set of isomorphic snapshots S becomes smaller when a set of
+isomorphic extractions ek(l+1) are attached to set of isomorphic pieces ck in the snapshots S with each
+particular extracted piece in ek(l+1) getting attached to its corresponding piece in ek . By discarding a
+set of Core snapshots, we mean that these snapshots and their allocations are not further worked upon
+and their associated unattached extracted pieces are sent back to the residue. Intuitively, the purpose
+of discarding snapshots will be to preserve the remaining advantages of agents over other agents.
+   The GoLeft procedure gradually attaches the extracted pieces to the allocated pieces in the working
+set of snapshots. The reason we call the protocol ‘go left’ is because we can visualize that for each
+piece in the set of snapshots we work with, we want to add the next extracted pieces to the isomorphic
+allocated pieces that are kept to the left of the isomorphic allocated pieces (see Figure 6). By attaching
+the next extracted pieces, we are ‘going left’.
+
+
+
+                            ...             ...     ejl+1     ejl       ...       ej2       ej1       cj1 : piece allocated to Agent 1
+
+
+                  n   n−1         k+2 k+1         l+2   l+1         l         3         2         1
+
+Fig. 6: Illustration of the GoLeft Protocol on a particular piece of cake that is originally allocated to
+agent 1 and in which the pieces were extracted in this particular case by agents in set {2, . . . , k + 1}
+and in order 2, . . . , k + 1. The piece cj1 was originally allocated to agent 1 in snapshot pj . When we refer
+to ‘extractions up till agent l’s extracted piece we will mean extracted pieces ej1 , . . . , ej(l−1) . During the
+course of the GoLeft protocol, the pieces extracted by the agents 2, 3, . . . , k + 1 will be attached to cj1 .
+This attachment can be viewed as going left. Agents k+2 to n will not go left (have corresponding pieces
+extracted/attached) and are the prospective dominators because they find the shaded space between
+the trims of k+2 and k+1 significant. If during the course of the GoLeft Protocol, all the extracted pieces
+are successfully attached, then agents in {k + 2, . . . , n} will dominate agents in set A = {1, . . . , k + 1}.
+
+
+                                                                                                                                           Report: August 2017.
+                                                                                                       19
+
+  How do we know which set of isomorphic pieces in S can have their next extraction? Which set of
+agents can exchange their currently held isomorphic pieces along with their current attachments? For
+this we work in tandem with the permutation graph.
+  Permutation Graph. The permutation graph keeps track of which agent is willing to move to which
+piece in the snapshots. The high level idea is that nodes of the permutation graph correspond to the
+agents and an agent i points to another agent j if he will be as happy taking j’s allocated pieces along
+with the attachments on those pieces.
+   Definition 3.13 (Permutation graph). The permutation graph is a directed graph where the set of
+nodes correspond to the set of agents. Hence when we refer to the graph, we will use agents and nodes
+interchangeably. The arcs of the permutation graph depend on the current state of the working set of
+isomorphic snapshots S. In particular, they depend on which extracted pieces have been attached to
+the originally allocated pieces in the isomorphic snapshots in S. Agent i points to agent j if j holds
+isomorphic pieces in S that have had all attachments up till i’s extracted pieces. We build the initial
+permutation graph with each node pointing only to itself. Throughout the protocol, we ensure that
+each node in the permutation graph has in-degree at least one.
+   The permutation graph itself gets updated when isomorphic extractions are attached to a isomor-
+phic pieces in S. The process of extracted pieces being attached to an allocated piece results in the
+aggregated piece becoming attractive to a new agent who then wants to point to the agent holding that
+piece (see Figures 7 and 8).
+   The permutation graph also suggests a natural way to exchange pieces. It has a similar idea as
+the trading graph used in top trading cycles algorithm for housing markets. If there is a cycle in
+the graph, we have the possibility of exchanging the allocations of agents in the cycle by giving an
+agent the piece of the agent he points to [Sönmez and Ünver 2011]. The permutation graph is more
+intricate because updates on the permutation graph reflect simultaneous updates on the working set
+of isomorphic snapshots S. Also by Remark 3.12, an agent in an exchange does not offer what he holds
+but can offer more because of the additional attachments beyond his own extraction.
+
+
+                                          Update
+     1          2          3       4                    1         2        3         4
+
+
+
+Fig. 7: Update on the permutation graph after the leftover isomorphic pieces of cake associated with
+node 1 and held by agent 1 have had their first associated piece of cake attached, making the pieces
+desirable to agent 2.
+
+
+
+
+                                       Update
+ 1          2          3       4                    1         2        3         4
+
+
+
+Fig. 8: Update on the permutation graph after the leftover isomorphic pieces of cake associated with
+node 2 and held by agent 2 have had their first associated piece of cake attached, making the piece
+desirable to agent 1. This results in a non-trivial cycle that allows for agents 1 and 2 to exchange their
+currently held pieces.
+
+
+3.6. The GoLeft Protocol
+Now that we have established the important ideas in the GoLeft Protocol, let us tie up the ideas
+and give an overview of how the protocol works. When the GoLeft Protocol starts, it first identifies a
+working set S of C Core snapshots from out of the C ′ Core snapshot that we focus on. The protocol
+then constructs a permutation graph corresponding to the working set of isomorphic snapshots.
+  In the permutation graph, each node i corresponds to an agent i who holds a set of isomorphic pieces
+along with their attached extracted pieces in the working set of isomorphic snapshots S. We divide
+the nodes of the permutation graph into sets T and T ′ . Set T is the set of nodes/agents such that the
+isomorphic pieces held by them in S have not had n − 1 attachments). T ′ is the set of nodes/agents such
+that the isomorphic pieces held by them in S have had n − 1 attachments.
+
+Report: August 2017.
+20                                                                                           Aziz and Mackenzie
+
+   The protocol identifies a cycle in the permutation graph that includes at least one node i from T .
+Such a cycle always exists. In each of the working set S of isomorphic snapshots, we implement an
+exchange of pieces held by agents in the cycle: each agent in the cycle is given the piece corresponding
+to the node that the agent points to in the cycle. After implementing the exchange, the permutation
+graph is updated to reflect the exchange. If in the exchange, if an agent gets an inferior piece, he always
+gets the additional extracted pieces associated with the inferior piece up till the agent’s extractions.
+Hence in each snapshot in S, each agent’s value from his allocation in the snapshot is preserved even
+if he gets a different piece than in the original Core snapshot. For any agent i, as long as no agent gets
+extracted pieces beyond i’s extraction, i will not be envious. In the GoLeft protocol, it can be the case
+that some agent j gets extracted pieces beyond i’s extracted pieces but before any such attachments in
+the last part of the GoLeft protocol, we ensure that no envy arises.
+   After implementing the cycle, we focus on a node i ∈ T that was in the cycle. For agent/node i we
+know that for all snapshots in the working set S, agent i has been allocated the original isomorphic
+pieces ck as well as all associated pieces up till i’s extracted piece. If the piece of cake agent i is currently
+allocated in the snapshots S has no more extracted pieces left to attach to it, but it has not had n − 1
+attachments, this means that all agents who have not had their corresponding piece extracted/attached
+have a significant advantage over agents who have had an extracted piece attached. In this case, the
+GoLeft Protocol returns the set of dominated agents to the Main Protocol and we are left with a smaller
+envy-free allocation problem because it involves less number of agents.
+   In case node i does not lead to an exit from the GoLeft Protocol, we know that there are associated
+pieces that can still be attached to the isomorphic pieces held by i in the working set of Core snapshots
+S. We focus on the next set of associated pieces ek(l+1) that we are interested to attach to the pieces
+ck that have already had associated pieces ek2 , ek3 , . . . , ekl attached in their corresponding main pieces
+ck . Additionally attaching pieces ek(l+1) to pieces ck is useful in making the agent who extracted them,
+interested in the pieces ck because of the additional ek(l+1) as well as the previous attachments. How-
+ever, naively attaching the pieces can be problematic and spoil the envy-freeness of the allocation that
+we maintain. We deal with the issue as follows.
+
+— The agents who did not extract pieces associated with the ck pieces as well as agents who extracted
+  pieces that have not been attached are asked to ‘reserve’ a big enough subset S ′ ⊂ S of snapshots in
+  which they value the difference between their bonus value for ck and the extracted pieces currently
+  attached to ck the most. These snapshots S ′ are removed from S and their remaining unattached
+  associated pieces sent back to the residue. By maintaining the advantages in the snapshots S ′ , such
+  agents will not be envious even if some agent in {1, . . . , l} additionally gets all other extracted pieces
+  ek(l+1) in the remaining snapshots in S. The advantages reserved due to the discarded snapshots in
+  S ′ are crucial for the next phase where agents in {1, . . . , l} get extracted pieces ek(l+1) from subset
+  S ′′ of the working set.
+— The agents indexed from 1 to l who have all already had their extracted pieces attached to ck are
+  asked to choose a high enough fraction of the snapshots in S in which they value the ek(l+1) pieces.
+  We call these snapshots S ′′ . The ek(l+1) pieces from S ′′ are bunched together and the Main Protocol
+  is called to divide this cake in an envy-free way among the agents indexed from 1 to l where l is
+  strictly less than n. Since envy-freeness implies proportionality, they derive enough value that they
+  will not be envious if the agent indexed l + 1 gets all other pieces in set ek(l+1) . The corresponding
+  set of snapshots S ′′ are then discarded.
+
+   Hence each time we attach isomorphic extracted pieces ek(l+1) to isomorphic pieces ck , we discard
+snapshots S ′ ∪ S ′′ from the working set S and still maintain an envy-free allocation. Note that in
+the snapshots that remain in S, agents may currently hold a different isomorphic piece than they
+previously did, but since they also hold the corresponding attachments associated with the isomorphic
+piece, each agent’s total value in each isomorphic snapshot in S stays the same. In Figure 9, we show
+the states of the permutation graph and the corresponding representative Core snapshot as well as
+the corresponding extracted pieces.
+   When the protocol attaches extracted pieces ek(l+1) to allocated pieces ck currently held by agent l,
+it deletes the incoming edge of node/agent l and replaces it by an edge coming from agent l + 1 who
+extracted pieces in ek(l+1) . Intuitively, l + 1 is now willing to be allocated c and its attached pieces
+instead of his current pieces in S. We delete previous edges to ensure that until termination, nodes in
+T have in-degree strictly 1 which guarantees that no matter the cycle involving a node in T found by
+the protocol, we will make progress towards termination. By attaching enough extracted pieces in the
+appropriate order, the GoLeft Protocol finally arrives at a point, where there is some isomorphic set of
+
+                                                                                                Report: August 2017.
+                                                                                                        21
+
+pieces ck in the set S for which all possible associate pieces have been attached but there is some set of
+agents N \A who do not have associated pieces. The reason agents in N \A could not extract such pieces
+is because they had a unanimous significant advantage over the agent indexed 1 who got the pieces
+ck . By gradually attaching (unanimously insignificant) associated piece to pieces ck and ensuring that
+all agents who did extract corresponding pieces do get some isomorphic piece in ck (along with the
+associated insignificant attachments), we make sure that agents in N \ A now dominate agents in A.
+At this point, we can return from the GoLeft Protocol.
+   Example 3.14 (GoLeft Protocol). In Figure 9, we demonstrate how the permutation graph along
+with the working set of isomorphic snapshots changes in the GoLeft Protocol. Note that even when
+the representative snapshot changes, there still exist snapshots isomorphic to the previous represen-
+tative snapshots but these snapshots have been discarded from the working set of snapshots. The
+coloured/shaded pieces represent the pieces given by the Core Protocol to each player. The small pieces
+on the left of the coloured pieces are extracted pieces, each labelled by the agent who extracted it. At
+first the extracted pieces are associated with a specific allocated piece. Then they are attached to it
+(represented by the dotted lines). Finally, when a coloured/shaded piece is reallocated to a new agent,
+the extracted pieces attached to it are also allocated to the new agent (in the diagram we now aggre-
+gate the extracted piece to the main piece). In the second state of the isomorphic snapshot, agent 2
+points to agent 1 because the piece extracted by agent 2 has been attached to 1’s held piece. In the
+third state of the isomorphic snapshot, agent 3 points to agent 2 because the piece extracted by agent
+3 has been attached to 2’s held piece. In the fourth state of the isomorphic snapshot, agent 1 points to
+agent 3 because the piece extracted by agent 1 has been attached to 3’s held piece. In the fifth state, the
+agents 1, 2, 3 exchange their currently held piece and are allocated cake up to their extracted piece. In
+the fifth (last) state of the isomorphic snapshot, agent 1 holds a piece up till his extraction but neither
+agent 2 or 4 extracted pieces for the piece that agent 1 holds. This means that agents 2 and 4 have a
+significant advantage over agent 1. Initially the piece was held by 3 and still is in discarded isomorphic
+snapshots. This implies significant advantage of 2 and 4 over 3. Therefore agent 2 and 4 can be made
+to dominate 1 and 3.
+
+4. ARGUMENT FOR BOUNDEDNESS AND ENVY-FREENESS
+In the previous section, we presented the Main Protocol that relies on a few other protocols. We will
+now argue why it is bounded and envy-free.
+
+4.1. Argument for Boundedness
+We first show that the Main Protocol is bounded.
+                                                        n+1
+  L EMMA 4.1. The Core Protocol is bounded by (n2 )           .
+   P ROOF. The protocol can execute each of the steps without encountering a problem. In the Core
+Protocol, the cutter makes n − 1 trims, and the other agents are asked to make at most one trim on the
+pieces. This takes n2 queries. The most costly procedure is having to call at most 2n times the SubCore
+Protocol for less than n number of agents. The recursion tree has at most n2 branches and a depth of n.
+                               n
+Hence there are at most n(n2 ) nodes in the tree with each node requiring n2 steps. Hence the overall
+                                                n
+time of the Core Protocol is bounded by n3 (n2 ) .
+                                                                        n
+  L EMMA 4.2. The Discrepancy Protocol is bounded by Bn × n3 (n2 ) .
+   P ROOF.
+   The Discrepancy Protocol can execute each of its steps without encountering a problem. Since at
+least one agent finds the discrepant piece significant and since we call the Core Protocol B times
+before the while loop with each agent as cutter, at least one agent i thinks that the discrepant piece is
+of at least as much value as R. Hence after the while loop, such an agent i thinks that the discrepant
+piece is of value at least n times the value of R. The while loop from line 3 to line 5 will run at most
+once for each agent. If an agent values the piece within the gap delimited by the inequality, running
+the Core Protocol with the agent as cutter B times will ensure that the residue is small enough for the
+piece to be on the right hand side of the inequality. Therefore the while loop is bounded by Bn × Core
+where Core is the number of operations required to run the Core Protocol. The rest of the Discrepancy
+                                                                                                        n
+Protocol does not make any queries. The Discrepancy Protocol is therefore bounded by Bn × n3 (n2 )
+              n
+where n3 (n2 ) is the bound on the Core protocol as proved by Lemma 4.1.
+                                                 ′
+  L EMMA 4.3. The GoLeft Protocol is bounded by Bn−1 + 2Cn3 + 2n2 + C ′ .
+
+Report: August 2017.
+22                                                                                 Aziz and Mackenzie
+
+
+
+
+       1                    2                   3                   4
+
+432        1         413        2           1       3         132       4
+
+
+
+
+       1                    2                   3                   4
+
+43 2       1         413        2          1        3         132       4
+
+
+
+
+       1                    2                   3                   4
+
+43 2       1         41 3       2          1        3         132       4
+
+
+
+
+       1                    2                   3                   4
+
+43 2       1         41 3       2           1       3         132       4
+
+
+
+
+       1                    2                   3                   4
+
+       1   1         43 2       2         41 3      3         132       4
+
+
+
+Fig. 9: Permutation graph along with corresponding state of an allocation snapshot representative of
+the working set of isomorphic snapshots.
+
+
+
+
+                                                                                     Report: August 2017.
+                                                                                                         23
+
+   P ROOF. First let us show that the GoLeft Protocol can execute all steps. The two steps which might
+be problematic are finding isomorphic snapshots in line 1 and finding a cycle in line 6. We handle the
+two cases by a couple of claims.
+
+   C LAIM 3. Out of the C ′ snapshots generated, the GoLeft procedure can find C isomorphic snapshots
+in line 1.
+   P ROOF. For this we use a simple counting argument. The isomorphism is entirely dependent on
+the order and existence of the extracted pieces. For each allocated piece of cake , there could be up
+to n − 1 extracted pieces. Each extracted piece might be extracted by any agent or not exist. This
+gives us (n + 1)n−1 possibilities for each allocated piece. Since a snapshot has n allocated pieces, this
+              2                                                       nn                                n
+gives (n + 1)n −n different possible configurations. We are given nn snapshots and desire to find nn
+                                                nn                 n
+isomorphic snapshots. For n > 4 we have nn > (n + 1)n−1 nn , which implies we can find a set of
+isomorphic snapshots of size C.
+Therefore isomorphic snapshots can always be found.
+  We now argue that a cycle in line 6 can be found.
+  C LAIM 4. In the permutation graph, at each step of the GoLeft Protocol, there exists a cycle contain-
+ing at least one node from T .
+   P ROOF. We observe that the permutation graph always contains a cycle since each node has in-
+degree at least 1. For each node s we can travel to the node t pointing to it. This process of backtracking
+can occur at most as many times as the number of nodes until we cycle.
+  We now show that it always contains a cycle with at least one node from T . Recall that each node in
+the graph points to nodes in T ′ if T ′ is non-empty. Each node in T has in-degree exactly 1 whereas each
+node in T ′ has in-degree n − 1. We start from any node in T and backtrack according to the incoming
+arc. In case we only encounter nodes from T , we will eventually cycle so that we have found a cycle
+consisting of nodes only from T . Otherwise, we may reach a node t′ from T ′ . Since the node t ∈ T from
+which we started backtracking points to each node in T ′ and hence to t′ , we have again found a cycle
+consisting of node t ∈ T .
+
+
+  Now that we handled the two possibly problematic parts of the GoLeft Protocol, let us go over the
+other steps. The isomorphic snapshots can be found in C ′ steps. The while loop from line 5 to line 33
+runs until a node in T is found such that it has had less than n − 1 attachments but has no extracted
+pieces to be attached (the if condition in step 10 is true). To make sure this happens, we require
+that there always be a node in T so that either we make progress in terms of attaching new sets of
+extractions or we already encounter the separation condition (Step 10). We prove this as follows:
+  C LAIM 5. T ′ cannot include all nodes.
+   P ROOF. A node being in T ′ means the agent associated with the node holds a piece of cake with no
+significant bonus. At least one piece of cake must have a significant bonus from the cutter’s perspective
+(see e.g., Remark 3.8).
+
+  Each time the loop runs, either we get a separation of the agents given that the if condition in
+step 10 is true or a new set of extracted pieces is attached to a set of allocated pieces. There are only
+Cn2 extracted pieces in the isomorphic snapshots that we are considering.
+  The for loop ranging from line 17 to line 20 just goes through a subset of the agents and therefore
+cannot run more than n times.
+  The for loop ranging from line 22 to line 25 also goes through a subset of the agents and therefore
+cannot run more than n times.
+  The while loop contains the two for loops and therefore its overall complexity is (Cn2 + n) × 2n.
+  Finally the call to the Main Protocol in line 28 calls the Main Protocol on a strict subset of the agents
+                               ′
+and is therefore bounded by Bn−1   .
+                                                            ′
+  This gives an overall complexity of (Cn2 + n) × 2n + Bn−1    + C′.
+                                                                   nn
+                                                              nn
+  T HEOREM 4.4. The Main Protocol is bounded by B ′ = nn                Robertson and Webb operations.
+  P ROOF. We first establish the following claim.
+
+Report: August 2017.
+24                                                                                          Aziz and Mackenzie
+
+   C LAIM 6. When the agents are asked to place a trim on the residue in line 19, they are always asked
+to delimit a value which is (much) smaller than their valuation of the residue.
+    P ROOF. For the first extractions this is straightforward, seeing as we only ask an agent to place a
+trim if he thinks his bonus value is not significant. However as we extract pieces, the residue could
+become much smaller. This does not happen due to the bounds set in place. A non-significant piece of
+cake is valued to be less than ( n−2   B                                  ′
+                                   n ) of the residue. We extract for C snapshots and there are only
+C ′ n2 pieces that could potentially be extracted. C ′ n2 ( n−2
+                                                             n )
+                                                                B
+                                                                  ≪ 1, hence extracting the pieces barely
+affects the residue, and we can therefore always extract a non-significant value from it.
+The protocol can therefore always execute line 19.
+   The initial statement in line 7 runs the Core Protocol C ′ times. It is therefore upper bounded by
+              n                n
+C ′ × n3 (n2 ) where n3 (n2 ) is the complexity of the Core Protocol, as proved by Lemma 4.1.
+   The while loop from line 7 to 9 checks that each agent values a piece outside a certain gap. The gap
+is based on the residue and if an agent values a piece within that gap, by running the Core Protocol B
+times with the agent as cutter we can ensure that the piece will never be in that gap again. The while
+loop will therefore run a maximum of BnC ′ n times. Its complexity is therefore bounded by BnC ′ n ×
+        n
+n3 (n2 ) .
+   The while loop from line 14 to 39 runs at most once for each bonus value piece since every time
+it repeats it labels a new bonus value as significant and a value can never be made to no longer be
+significant. Therefore the number of times it runs is bounded by C ′ n2 .
+   The for loop going from line 16 to 38 simply goes through all the pieces of cake and therefore runs
+C ′ n times. The for loop from line 17 to 21 goes through all the agents and therefore runs n times. The
+for loop from line 23 to 37 goes through all the agents and therefore runs n times. The statement of line
+28 is bounded by the complexity of the Discrepancy Protocol which according to Lemma 4.2 is bounded
+                  n
+by Bn × n3 (n2 ) .
+   The Main Protocol calls in line 30 and in line 31 each are on a strict subset of the agents and by
+                                   ′
+assumption are bounded by Bn−1        .
+   We therefore have a while loop running C ′ n2 with each run of the loop taking C ′ n × (n + n × (Bn ×
+        n      ′
+n3 (n2 ) + Bn−1   )) steps, upper bounding the complexity of that while loop by C ′ n2 × (C ′ n × (n + n ×
+          3 2 n       ′
+(Bn × n (n ) + Bn−1       )))
+   The call to GoLeft in line 40 is bounded by the complexity of the GoLeft Protocol which by Lemma 4.3
+                    ′
+is bounded by Bn−1      + 2Cn3 + 2n2 . The call to the Main Protocol in line 44 is on a strict subset of the
+                                         ′                                                          n
+agents and therefore is bounded by Bn−1      . This gives us an overall complexity of C ′ × n3 (n2 ) + BnC ′ n ×
+        n                                           n
+n3 (n2 ) + C ′ n2 × (C ′ n × (n + n × (Bn × n3 (n2 ) + Bn−1
+                                                         ′         ′
+                                                            ))) + Bn−1 + 2Cn3 + 2n2 + Bn−1 ′
+                                                                                                which for n > 4
+can be verified to be less than B ′ .
+
+4.2. Argument for Envy-freeness
+We now argue for envy-freeness.
+   L EMMA 4.5. The Core Protocol results in an envy-free partial allocation in which the cutter cuts
+the cake into n pieces, each agent gets a part of one of the pieces, and the cutter as well as at least one
+non-cutter agent gets a complete piece.
+   P ROOF. It is sufficient to prove that the SubCore for n − 1 agents results in a neat allocation in
+which one agent gets a full piece. The cutter can take the last unallocated piece. No non-cutter agent
+i is envious of a cutter agent because i’s piece is at least as preferred as any unallocated piece. The
+cutter is indifferent among all pieces so is not envious of any non-cutter agent.
+
+  In order to prove the statement, it is sufficient to prove by induction the following statement. Suppose
+there are m agents and at least m + 1 pieces and there exists an envy-free allocation of the m agents
+where each agent partially gets one of the pieces giving him at least the specified benchmark value,
+then the SubCore will find a neat allocation for m agents where at least one of the m agents gets a full
+piece. When we call the SubCore for the first time, the benchmark values are zero, so there does exist
+an envy-free allocation in which each agent i gets a piece of value at least bi .
+
+   Base Case. If there is exactly one agent, he can be given the most preferred piece among the pieces.
+If there are multiple most preferred pieces, he is given the most preferred piece with the lowest index.
+The value achieved by the agent is at least bi .
+
+                                                                                               Report: August 2017.
+                                                                                                           25
+
+  Induction. Suppose we get a neat allocation for m − 1 agents where one agent gets a full piece. If
+the m-th agent most prefers an unallocated piece, then we are already done. No agent is envious of
+another. Since the first m − 1 agents already achieved their benchmark values, they still achieve their
+benchmark value. As for agent m, he gets a most preferred piece so he trivially achieves his benchmark
+value because the benchmark value of an agent is either zero or a value of the one of the pieces.
+
+  If agent m is not interested in any of the contested pieces, the induction follows easily. This is because
+m’s most preferred piece is outside of the allocated pieces so far, and by giving m his most preferred
+piece we preserve neatness and the condition that one agent gets a full piece.
+
+  Now suppose that agent m is also interested in one of the m − 1 contested pieces. In that case, each
+agent in [m] is asked to trim the highly valued contested pieces to equal the value of the most preferred
+uncontested piece (this value is kept track of by b′j ). Thus for each agent in [m] the most preferred
+uncontested piece provides a benchmark value that they expect to get in any envy-free allocation of
+the agents in [m].
+  We first claim that each of the m − 1 contested pieces has at least one trim even if the trim is on
+the extreme left margin. Suppose a contested piece a has no trim not even on the left margin. This
+means that each agent in [m] considers some uncontested piece more preferred than piece a. But this
+contradicts our hypothesis that the allocation for agents [m − 1] agents is neat.
+
+  When each agent in [m] is asked to trim the contested pieces to the value of his most preferred
+uncontested piece, we distinguish between two cases: (1) we do not get multiple winners in W i.e., each
+contested piece has one designated winner and the the number of designated winners for the contested
+pieces is n − 1 and (2) some agent in W is a multiple winner, i.e., he is the designated winner with the
+rightmost trim on more than one contested piece. We can ensure thanks to claim 2 that each piece has
+exactly one designated winner.
+
+   We first deal with (1) which is the easier case. Suppose we do not get multiple winners so that
+|W | = m−1. Each agent in W gets the benchmark value if he gets the piece where he had the rightmost
+trim. The allocation is also envy-free for agents in W . Nonetheless we call SubCore recursively on
+agents in W and the contested pieces. By the induction hypothesis, we get an envy-free allocation in
+which each agent in W gets a piece of at least benchmark value. The only remaining agent in [m] \ W
+can be given a most preferred uncontested piece which is a full piece because it was never trimmed.
+All the agents get their benchmark value so the value achieved is at least bi .
+   No agent i who is a winner of a contested piece envies another winner j of a contested piece because
+i’s trim on j’s piece is not on the right of j’s trim on j’s piece. No agent i who is a winner of a contested
+piece envies any uncontested piece because i’s benchmark value was exactly the value of the most
+preferred uncontested piece. Finally agent j who is given an uncontested piece is not envious of any
+winner i of a contested piece because j’s trim on i’s piece is not on the right of i’s trim on i’s piece. Also
+j is not envious of an unallocated uncontested piece because j got a most preferred uncontested piece.
+
+  We now deal with (2). Suppose there is at least one agent who wins multiple pieces. In that case
+|W | < m − 1. Note that if an agent in W gets the right side of the piece where he trimmed the most, he
+gets his benchmark value — the value of his most preferred uncontested piece. Since the agents in [m]
+were asked to trim the contested pieces, agents in W only have trims on the contested pieces.
+
+  We now show that when |W | < m − 1, we can always increase W by one by adding an agent i from
+[m] \ W and still ensure that W ∪ {i} admits a neat allocation (with respect to the current left margins)
+in which each agent gets a partial contested piece. When |W | becomes m − 1, we give the remaining
+agent in [m] \ W the most preferred uncontested piece.
+  Suppose that |W | < m − 1 which means that there are multi-winners from W in the contested pieces.
+   C LAIM 7. The SubCore protocol run on the contested pieces with the set of contested pieces, agents
+in W and values b′j as input will return a neat allocation where each agent j in W gets at least value b′j
+   P ROOF. The SubCore protocol would fail to run only if an agent cannot get a piece of value equal
+to his benchmark value. However we know from the previous tentative allocation that as long as each
+agent gets at least his benchmark value, they all have a piece they are guaranteed to get in an envy-free
+manner.
+
+Report: August 2017.
+  26                                                                                          Aziz and Mackenzie
+
+     Since |W | ≤ m − 1, by the induction hypothesis, the SubCore will result in a neat allocation (with
+  respect to the current left margins beyond which the left part of the piece is ignored) of the contested
+  pieces. Since the allocation is neat (with respect to the current left margins), this means the current
+  left margin coincides with a trim of some non-winner.
+
+
+    Each of the agents in W got a contested piece because SubCore was only called on W and the con-
+  tested pieces. We now argue the following claim
+       C LAIM 8. After we run SubCore on line 12, an additional agent from [m] \ W can be added to W .
+     P ROOF. We focus on an arbitrary unallocated contested piece a. We only consider that part of a that
+  can be allocated and not the left part which is supposed to be ignored left of the rightmost non-winner’s
+  trim mark.
+Case 1 Contested unallocated piece a has a marginal trim (on the current left margin) by a non-winner
+       i ∈ [m] \ W . In that case i can be given a. We add i to W and W will still admit a neat (with
+       respect to the current left margins) allocation in which each agent gets a contested piece.
+Case 2 Contested unallocated piece a has no marginal trim (on the current left margin) by a non-winner.
+       Let us refer to the current call of the SubCore protocol as SubC. We want to show that Case 2
+       cannot happen when we call a new SubCore protocol referred to as Sub1 on a set of contested
+       pieces C1 and agents W1 . Let a be the contested piece satisfying the conditions of Case 2. Since
+       a is in C1 either a is one of the agents in W1 ’s most preferred piece or at some previous call of
+       the SubCore protocol i was ‘kicked out’ from contested pieces and given piece a, thus making a a
+       contested piece. Let us call this previous call Sub2. Let us say that Sub2 was called on agents W2
+       and contested pieces C2 such that a 6∈ C2 ⊂ C1 . We will now argue that in Sub1 i must get piece a,
+       showing that Case 2 cannot happen. First observe that for any piece b in C1 but not in C2 , agent i
+       prefers a to b. This follows from him being kicked out to a rather than b. Therefore Sub1 will not
+       allocate b to i. For any remaining piece c both in C1 and C2 , we will now show that i cannot get c.
+       To show this, look at the agent j0 who got c in Sub2. When we call Sub1, either j0 is in W1 or is
+       not. If he is not, then he is a non-winner, and has placed a trim on c which must be to the right of
+       or on the part of c he was allocated in Sub2. This follows from the fact that if j0 is a non-winner
+       he is asked to equalise c to his most preferred uncontested piece, which will be worse than the
+       part of c j0 got in Sub2 (else neatness breaks). Agent i was not envious of the lesser trimmed c
+       when allocated a, and if indifferent ties were broken in favour of a through the placement of the
+       imaginary values. This means that if he is allocated c in Sub1, he would rather get a. Finally, let
+       us imagine j0 is in W1 . For i to get c, j0 must get a different piece. If j0 gets a piece outside of C2 ,
+       then this is a contradiction since previously his most preferred piece outside of C2 caused j0 to
+       place a trim on c that was to the right of i’s trim corresponding to i’s valuation of a. If j0 is getting
+       a piece in C2 , he must be taking the piece that was allocated to another agent j1 in Sub2. This
+       is only possible if j1 is in W1 . This means that in Sub1, j1 must be getting another piece. We can
+       continue this argument until we reach an agent jk who gets a piece outside of C2 , and therefore
+       must have been kicked out by agent jk−1 placing their trim the same place or to the left of where
+       it was in Sub2. This is a contradiction since in Sub2, jk got the aforementioned piece trimmed to
+       the left of his most preferred piece outside of C2 . This concludes the argument that i cannot get a
+       piece c in C2 . Since i also cannot get a piece b different from a outside of C2 , i must get allocated
+       a by Sub1.
+  This proves the claim.
+
+  Hence, we can always grow the set W until its size is m − 1. Previously we were maintaining a set
+  W that had a neat envy-free allocation with respect to the current left margins and with respect to
+  the contested pieces. The allocation was not necessarily a globally neat allocation because we were
+  ignoring the left-side of the rightmost non-winner’s trims and also uncontested pieces. However, when
+  |W | becomes m − 1, the contested pieces have all been allocated so there is no unallocated piece for
+  which some left part is ignored. The agents who get contested pieces get at least their benchmark
+  value which is the value of the most preferred uncontested piece. Hence the agents who get contested
+  pieces are not envious of any uncontested piece. The only remaining agent in [m] \ W can be given the
+  highest value uncontested piece that also happens to be a full piece because uncontested pieces remain
+  untrimmed.
+    This completes the proof.
+
+                                                                                                Report: August 2017.
+                                                                                                         27
+
+   Example 4.6. We will now walk through the critical part of the SubCore protocol to convey the
+structure of the proof and make the intuition clearer. Imagine that we have 5 agents. A cutter agent
+has cut the cake into 5 pieces. The SubCore protocol iteratively introduces each agent with the for loop
+line 1, until all agents have been allocated a piece and the allocation is neat. We will show through
+this example how introducing a new agent works. Let us say that so far 3 agents have been introduced
+and a neat allocation computed for them. We are now adding a 4th . The situation can be visualised in
+Figure 10.
+
+
+
+                                                     4
+
+            1                      2                 3
+            a                      b                 c                 d                     e
+                                                     Fig. 10
+
+
+   Each agent trims most the piece that they are tentatively holding. In the diagram the trims are of the
+colour of the agent who placed them. We now query agent 4 as to which piece he prefers. The easy case
+is if he prefers piece d or e since then we could give him that piece and neatness would still be satisfied.
+We therefore dwell on the case where he prefers either a, b or c. In such a scenario, a, b and c will be
+referred to as the contested pieces. As we will see each, one agent will get ‘kicked out’ of these pieces
+and be forced to pick either d or e. However, since only one is kicked out , all agents are guaranteed
+to get their full preferred piece out of {d, e}. This gives us a lower bound (as long as the assumption
+made above that only one agent gets kicked out holds) for the value each agent is guaranteed to get.
+The value an agent is guaranteed j to get is kept track of by the variable b′j in the protocol. In line 4,
+we ask each agent to place a trim on the contested pieces so that they are equal to this lower bound.
+This may look as so as in Figure 11.
+   In this diagram all the trims have been placed, and the agents who placed the rightmost trims are
+said to ‘win’ the piece. Their trims are highlighted in the diagram. These agents are added to the set
+W in line 5. If each trim had been won by a separate agent, we end up in an easy case of the protocol
+since each agent except one wins a separate piece, and the one who does not gets kicked out. However,
+in the situation depicted by the diagram, agent 1 has won both pieces a and b and agent 4 won c. We
+therefore do not know who gets kicked out between 2 and 3. However we do know that if we were to
+continuously make agent 1 and 4’s trims move left in an envy-free way, we could eventually ensure that
+a piece is won by someone new. Of course the protocol cannot move the trims continuously, but it is
+nonetheless possible to ensure that a new agent gets a contested piece. This is done in line 8 when we
+call the protocol recursively. This is what the recursive call would look like in the following situation
+(Figure 12):
+   The greyed out pieces of cake are not called as part of the input. Only the winner agents are called
+as part of the input (agent 1 and 4). We keep track of the value they are guaranteed to get through the
+inputs b1 and b4 . This is important since pieces d and e are no longer part of the input. Now there are
+two concerns which we may have from this recursive call: 1) Does it actually manage to return a neat
+
+                                       1   2         3     4
+b′2   b′1              b′3   b′1               b′4
+
+
+
+
+            a            b′2       b       b′3       c                 d                     e
+                                                     Fig. 11
+
+
+Report: August 2017.
+28                                                                                                    Aziz and Mackenzie
+
+
+                                          1                      4
+      b1                      b1                     b4
+
+
+
+
+           a                       b                      c                       d                       e
+                                                          Fig. 12
+
+allocation, 2) Does the allocation returned allow us to expand the set W of winners. 1) is addressed by
+Claim 7. 2) is addressed by claim 8. Once the protocol returns, the situation may look like (Figure 13).
+
+
+                                          1       2′      3       4
+b′1                         b′1                    b4
+
+
+
+
+           a                       b                      c                       d                       e
+                                                          Fig. 13
+
+
+  The recursive call allocated a to 1 and c to 4, leaving b unallocated and with agent 2’s trim to the
+right of agent 1’s updated b′i value. This means that we can now add agent 2 to the set of winners.
+  L EMMA 4.7. Assuming envy-freeness is preserved the Core Protocol, envy-freeness is preserved in the
+Discrepancy Protocol.
+  P ROOF. Discrepancy does not make allocations but simply distinguishes between 2 cases. Therefore
+as long as envy-freeness is preserved in the Core Protocol it is also preserved in the Discrepancy
+Protocol.
+   L EMMA 4.8. Assuming envy-freeness is preserved in the Core Protocol and the Main Protocol with
+n − 1 or less agents, envy-freeness is preserved in the GoLeft Protocol.
+   P ROOF. GoLeft performs a series of operations allowing us to attach a set of extracted piece ekl to
+a set of allocated piece ck in a subset S (which gets smaller and smaller as the algorithm progresses)
+of the snapshots and then permutes the allocation on these snapshots. The first part of the protocol
+uses the permutation graph to find what permutation is permissible in an envy-free way, and what
+extracted piece to attach next to allow further permutations. It updates the permutation graph to
+reflect what permutations will be allowed and desirable after the operation of attaching ekl to ck has
+been executed. Let us first show that the operations to attach the extracted piece to the allocated piece
+do not break envy-freeness, and second that the permutation graph is correct, that is that on the subset
+of snapshots where the piece was attached, we can permute agents in a cycle of the permutation graph
+without breaking envy-freeness.
+      (i) Assume we are trying to attach pieces ek(l+1) to the corresponding pieces in ck which implies that
+          pieces ekm with m ≤ l have already been attached to ck . To do this we take the following two
+          steps.
+          (a) Make sure that for each agent o ∈ {l + 1, . . . , n}, even if all remaining extraction up till o’s
+              extractions ek(l+1) , . . . , eko are given to some agent z ∈ {1, . . . , l + 1}, o will not be envious of z.
+              We do so in phase ‘Attachment — making it agreeable for agents from l + 1 to n’ of the GoLeft
+              Protocol.
+              Note that if all el(l+1) pieces are given to agent l + 1, agents in {l + 2, . . . , n} will not be envious
+              of l + 1 in any case because the pieces reflect a part of their advantage over l + 1. Essentially,
+              we want to ensure something weaker: that agent o ∈ {l + 1, . . . , n} will not be envious if the
+              remaining el(l+1) pieces are given to some agent z ∈ {1, . . . , l}.
+
+                                                                                                         Report: August 2017.
+                                                                                                                29
+
+                                                                                |S|
+          We achieve the above goal by asking all agents o to choose n−l+1           snapshots where they value
+          the difference between their bonus value and the extracted pieces which have so far been
+                                                                               |S|
+          attached to ck (let us call this value b) most. This leaves n−l+1         in S \ S ′ (which is relabelled
+          S). In any snapshot j and piece of cake cjk , for any agent o, b is greater than the sum of all
+          Vo (ejkp ) with p ∈ {l+1, . . . , o}. Since we ask agent o to discard as many snapshots with highest
+          value b as are snapshots left in S \ S ′ , the advantage accumulated in the discarded snapshots
+          amounts to more than the sum of all extracted pieces ekp in the remaining snapshots. Hence,
+          even if some agent z ∈ {1, . . . , l} takes all the ek(l+1) pieces, the discarding agent will not be
+          envious.
+      (b) Ensure that for each agent r ∈ {1, . . . , l}, even if the remaining pieces in the set of pieces
+          ek(l+1) are given to some agent z ∈ {l + 1, . . . , n}, r will not be envious of z. We do so in phase
+          ‘Attachment — making it agreeable for agents from 1 to l’ of the GoLeft Protocol. To do this
+                                  |S|n
+          we ask r to choose ln+1      snapshots j for which Vj (ek(l+1) ) is greatest and add them to a piece
+          a which will then be shared amongst all agents in {1, . . . , l}. This is possible in an envy-free
+          way because agents in {l + 1, . . . , n} are willing to give all pieces ek(l+1) to agent r due to the
+          above argument. These snapshots are discarded and once all agents in {1, . . . , l} have chosen
+                                |S|
+          we are left with ln+1      snapshots in S \ S ′′ . Since r gets at least 1/n value of piece a, and that
+          the ejk(l+1) pieces he values most were added in a, even if agent l + 1 gets all pieces ek(l+1)
+          in S \ S ′′ , r will not be envious of him as these do not sum up to what he got from a. This
+          means we can attach ek(l+1) to ck and that agent l + 1 can be allocated ck in the snapshots
+          in S \ S ′′ (which will be relabelled S) without envy-freeness being broken. When ek(l+1) pieces
+          are attached to ck , then ck is equally desirable to l + 1 as l + 1’s current allocation in S.
+ (ii) Each edge in the permutation graph corresponds to moving some agent i from ck to c′k without
+      changing his value in any of the isomorphic snapshots in S. Hence, when an exchange happens,
+      each agent in the cycle gets exactly as good an allocation as before. Some agent j may possibly
+      get envious because some other agent got extra attached pieces beyond j’s extraction. However,
+      we have already argued above why agents are not envious because of additional extractions that
+      are attached.
+  These arguments ensure that we end up with snapshots where some extracted pieces have been
+attached or shared by a subset of agents and for which agents’ allocations have been shifted around,
+but for which envy-freeness is always preserved.
+   L EMMA 4.9. The subset of agents A returned by GoLeft can be made to be dominated with respect
+to R by agents in N \ A in 2B steps.
+  P ROOF. In order to prove the lemma, we prove a couple of claims.
+   C LAIM 9. For any agent i, once the residue has reached a value R, the protocol will never add cake
+to the residue in such a way that it becomes of value bigger than (1 + n1 )R.
+    P ROOF. All extracted pieces which are attached to a piece of cake in one of the snapshots are seen
+as non-significant by all agents. This means that for all agents i and each extracted piece ejkl , we have
+vi (ejkl ) ≤ f (B)vi (R). In the protocol, once the residue is made smaller (either through discrepancy or
+in the main protocol after running GoLeft), all pieces that had previously been extracted from it can
+no longer be reattached to it (in the case of discrepancy they are reattached before making the residue
+smaller, and in the second case the protocol no longer reattaches anything extracted from the residue).
+This means that when pieces that were extracted from the residue are reattached to it, each agent
+considers the pieces to satisfy the above inequality. Since there are at most Cn3 such pieces, then for
+                 P
+each agent i, ejkl vi (ejkl ) ≤ f (B)vi (R)Cn3 ≤ vi (R)
+                                                     n .
+
+   C LAIM 10. Once an agent i has been allocated a piece cjk by the GoLeft procedure, agents with
+a significant bonus value on cjk can be made to dominate i with respect to R in 2B calls to the Core
+protocol.
+  In other words the significant advantage obtained is maintained.
+    P ROOF. Before the GoLeft procedure works on the working set of isomorphic snapshots they are all
+envy-free. When the GoLeft procedure gives some of the extracted cake to an agent (either by attaching
+it to an allocated piece of cake (line 30) or by sharing it amongst a subset of agents (line 28), the extra
+amount of cake given to the agent is much smaller than a significant value from the perspective of all
+
+Report: August 2017.
+30                                                                                      Aziz and Mackenzie
+
+agents (line 7 in the Main Protocol). The values are such that when an agent has a significant bonus
+value over another, no matter what happens in the GoLeft procedure, the significant bonus cannot be
+diminished enough for the protocol to not be capable of making the residue smaller than that value in
+2B calls to the Core protocol. To be more precise, the gap enforced by line 7 ensures that the following
+                                                                   1
+inequality holds: n(extracted pieces)≤ nVi (R)f (B)2 < Vi (R)f (B) 2 ≤ significant bonus.
+  The GoLeft routine terminates when the permutation graph is deleted. This means that there exists
+a set of isomorphic pieces of cake ck such that all agents who extracted a piece from the residue and
+attached it to ck have been allocated an element of ck at least once, whilst at least one other agent had
+a significant bonus on ck . According to Lemma 10, the agents with a significant bonus on elements of
+ck can be made to dominate any agent having been allocated a member of ck in 2B steps.
+   L EMMA 4.10. Assuming the Main Protocol with n − 1 or less agents is envy-free, that the Core
+protocol, the Discrepancy Protocol and the GoLeft Protocol are envy-free, envy-freeness is preserved in
+the Main Protocol.
+   P ROOF. The Main Protocol does not make allocations without calling a sub-protocol. Assuming that
+all the sub-protocols it calls are envy-free, the fact that it calls them on all agents preserves overall
+envy-freeness. The Main Protocol also calls itself on a subset of the agents sharing either the residue
+or some discrepant piece. The two possible instances where this may occur are
+  (i) The GoLeft Protocol has terminated, the Core Protocol has been run enough times to ensure that
+      significant bonus values have been converted into domination on the residue R, and a subset of
+      agents N \ A dominate agents in subset A with respect to the residue R. We then run the Main
+      Protocol with the residue and A as input. Since according to Lemma 4.9 agents in N \ A dominate
+      agents in A, they are willing to give all the residue to either agents in A, therefore no matter how
+      agents in A share R, agents in N \ A will not be envious.
+ (ii) The Discrepancy Protocol has been called and a discrepant piece can be exploited. In that case
+      the Main Protocol will call 2 instances of itself. First on the discrepant pieces and agents who
+      think it is significant (set D). Second on the residue and agents who think the discrepant piece
+      is small (set D′ ). Each agent i ∈ D thinks that the discrepant piece ejkl is at least n times bigger
+      than R. This means that if they think an agent s gets all of R but none of ejkl , they will not be
+      envious of him since i is guaranteed n1 value of ejkl . Therefore the agents sharing ejkl are not
+      envious of those sharing R. The same argument applies the other way around.
+
+
+  Based on the lemmata above, we have given the overall argument for envy-freeness. In each recur-
+sive call of the Main Protocol, the number of agents among which the cake is to be allocated decreases
+by at least one. Hence when the number of agents is four or less, we can use a known bounded envy-free
+protocol to allocate the residue in an envy-free manner.
+     T HEOREM 4.11. The Main Protocol allocates all the cake in an envy-free manner.
+5. PARTIAL ALLOCATIONS
+In Remark 3.11, we gave an argument that the first n calls of the Core Protocol in the Main Protocol
+ensure that we obtain a partial allocation that is envy-free and gives each agent 1/n value of the whole
+cake. As a result we answer an open problem posed by Segal-Halevi et al. [Segal-Halevi et al. 2015]
+whether there exists a bounded algorithm that returns a proportional and envy-free partial allocation.
+We also note the following.
+  L EMMA 5.1. If the SubCore Protocol runs in time f (n), then there exists an algorithm that returns a
+proportional and envy-free partial allocation, and takes O(nf (n)) time.
+   Note that the partial allocation may give disconnected pieces to the agents. We now give an addi-
+tional result concerning partial allocation of the cake in which agents get connected pieces.
+   It is possible to use the SubCore Protocol to obtain envy-free partial allocations guaranteeing
+that each agent receives a connected piece of value 1/3n of the original cake. We specify Algorithm 6
+that achieves this objective. Previously, Segal-Halevi et al. [Segal-Halevi et al. 2015] showed that in
+bounded time, one can obtain an envy-free partial allocation in which each agent gets a connected piece
+of value 1/2n−1 of the whole cake. Note that our guarantee of O(1/n) is optimal up to a constant factor.
+   In each iteration of the for loop in the algorithm, at least one agent who was not holding any piece
+now holds a piece. In particular agent i who is asked to make divisions of value 1/3n can get one of
+
+                                                                                           Report: August 2017.
+                                                                                                                                                  31
+
+
+Algorithm 6 ConnectedPieces Protocol
+Input: Agent set N , unallocated cake R.
+Output: An envy-free partial allocation of cake for agents in N guaranteeing each agent 1/3n of the cake and a connected piece.
+  1: for each agent i ∈ N do
+  2: if i is currently not holding a piece then
+  3:      for each connected piece cj in the residue R do
+  4:        Ask i to decompose cj into pieces of value 1/3n and some leftover piece αj of value less than 1/3n. {This does not change the cake
+     except that it has trim marks on it. It is still the same cake with possibly some gaps in it because of agents in the previous iterations holding
+     a piece.}
+  5:      end for
+  6:      Pick n of the pieces of value 1/3n and call the set of those n pieces R′
+  7:      Run SubCore(R′ , N \ {i}) and give i one of the unallocated pieces.
+  8:      Agent i believes the allocation he got from the previous step is of value 1/3n, if another agent believes that the previous step gave him
+     a bigger piece than what he was previously holding and bigger than 1/3n then he keeps that piece, returning any previous piece he was
+     previously holding to the residue. If an agent does not keep the piece given by the SubCore protocol, the piece is returned to the residue R.
+  9: end if
+            {At any point of the algorithm, there are agents who do not hold any cake and agents who hold exactly one connected piece. At the
+     start no one holds a piece. Agents who hold a connected piece will keep holding a connected piece. They may exchange their current connected
+     piece with a more preferred connected piece later on. }
+ 10: end for
+ 11: return envy-free partial allocation (in which each agent gets a connected piece)
+
+
+the pieces. At any point in the algorithm we should view the cake as having at most k < n gaps
+or discontinuities as a result of k agents holding connected pieces from the cake. When a new agent i
+makes trims to create pieces of value 1/3n, this does not change the cake or the gaps in it. The algorithm
+has n calls of the SubCore Protocol.
+  We observe that for any agent holding a piece of cake, he already gets value 1/3n of the original cake.
+For any agent not holding a piece of cake, he thinks that no agent who is holding a piece has a piece of
+value 1/3n. Hence, he thinks that at least 2/3 value of the cake is unallocated.
+  T HEOREM 5.2. The ConnectedPieces Protocol allocates the cake partially in an envy-free way such
+that each agent has a connected piece of value at least 1/3n of the original cake.
+    P ROOF. We show that the algorithm proceeds correctly and terminates with each agent holding one
+connected piece. The algorithm iteratively calls SubCore with n pieces created by each agent. The only
+reason why the algorithm may not proceed is if an agent i cannot produce n divisions of value 1/3n of
+the original cake. When a new agent i is asked to make n divisions of value exactly 1/3n, we want to
+show he can make these divisions by appropriate trim marks. Assume that at this point k agents are
+holding a piece of cake which means that there are k gaps (discontinuities) in the cake. So for an agent
+i who wants to create divisions of value 1/3n, there can be two problems: (1) too much value of the cake
+is allocated and (2) the pieces that are allocated lead to discontinuities which prevents the agent from
+creating n divisions of value 1/3n. For the first case, less than k/3n value of the cake is allocated from
+i′ s perspective. Hence at least 2/3 value of the cake is still unallocated for i. This means that there is
+enough cake to generate n pieces of value 1/3n. For the second case, the discontinuities result in at most
+k+1/3n of the cake not being used. This is because the k gaps divide R into at most k + 1 pieces and
+less than 1/3n of cake can be lost per piece due to non-divisibility by 1/3n of the value of each connected
+piece. This means that there is still more than 1/3 of the cake that can be used for the divisions. Since
+we require n divisions each of value 1/3n, there is enough cake to obtain these divisions.
+
+  We now argue that the final allocation is envy-free. At some point an agent i gets a piece to hold.
+He thinks this piece is strictly more preferred than any piece that was held in previous iterations by
+any agent. In the same iteration i thinks he got at least as valuable a piece as any piece allocated
+in the iteration because of envy-freeness of SubCore. So i thinks he has a best piece. In case at a
+latter iteration, he thinks someone got a better piece than his own currently held piece, then due to
+envy-freeness of SubCore, i can get at least preferred a piece as well.
+   We also note the following.
+   L EMMA 5.3. If the SubCore Protocol runs in time f (n), then there exists an algorithm that takes
+O(nf (n)) time and allocates the cake partially in an envy-free way such that each agent has a connected
+piece of value at least 1/3n of the original cake.
+
+6. DISCUSSION
+In this paper we presented the first general discrete and bounded envy-free protocol. Now that bound-
+edness has been established, the paper opens the door to new work on finding the optimal bound.
+
+ Report: August 2017.
+32                                                                                       Aziz and Mackenzie
+
+Getting a clearer understanding of the complexity of envy-freeness in terms of the number of queries
+is an interesting direction for future work.
+   The Core Protocol we defined can be used as an oracle in other envy-free protocols that allocate
+a large enough part of the cake. If the Core Protocol is called n times on the updated residue each
+time with a different agent as cutter, then we obtain an envy-free allocation in which each agent gets
+1/n of the total value of the cake. Hence, after the first n calls of the Core Protocol, our Main Protocol
+already identifies an allocation that satisfies proportionality (with respect to the whole cake) and envy-
+freeness. If the Main Protocol is taking too much time, it can be timed out and still give an envy-free
+allocation with the proportionality guarantee.
+   It will also be interesting to use the new techniques presented in the paper for finding fair allocations
+for other notions of fairness.
+
+Acknowledgments
+The authors thank Sajid Aziz, Simina Brânzei, Omer Lev, Abdallah Saffidine, Erel Segal-Halevi, Xin
+Huang, Jade Tan-Holmes, Tommaso Urli, and the reviewers of FOCS 2016 for comments. They also
+thank Steven Brams and Ariel Procaccia for pointers to the literature. Haris Aziz is supported by a
+Julius Career Award. He thanks Ulle Endriss for introducing the subject to him at the COST-ADT
+Doctoral School on Computational Social Choice, Estoril, 2010.
+
+REFERENCES
+A ZIZ , H. AND M ACKENZIE , S. 2016. A discrete and bounded envy-free cake cutting protocol for four
+  agents. In Proceedings of the 48th Annual ACM Symposium on Theory of Computing (STOC). ACM
+  Press, 454–464.
+A ZIZ , H. AND Y E , C. 2014. Cake cutting algorithms for piecewise constant and piecewise uniform
+  valuations. In Proceedings of the 10th International Workshop on Internet and Network Economics
+  (WINE). 1–14.
+B ARBANEL , B. AND T AYLOR , A. D. 1995. Preference relations and measures in the context of fair
+  division. American Mathematical Monthly 123, 7, 2061–2070.
+B ARBANEL , J. B. 2005. The Geometry of Efficient Fair Division. Cambridge University Press.
+B ARBANEL , J. B. AND B RAMS, S. J. 2004. Cake division with minimal cuts: envy-free procedures for
+  three persons, four persons, and beyond. Mathematical Social Sciences 48, 3, 251–269.
+B RAMS, S. J. AND T AYLOR , A. D. 1995. An envy-free cake division protocol. The American Mathemat-
+  ical Monthly 102, 1, 9–18.
+B RAMS, S. J. AND T AYLOR , A. D. 1996. Fair Division: From Cake-Cutting to Dispute Resolution.
+  Cambridge University Press.
+B RAMS, S. J., T AYLOR , A. D., AND Z WICKER , W. S. 1997. A moving-knife solution to the four-person
+  envy-free cake division. Proceedings of the American Mathematical Society 125, 2, 547–554.
+B RANZEI , S. 2015. A note on envy-free cake cutting with polynomial valuations. Information Process-
+  ing Letters 115, 2, 93–95.
+B RANZEI , S. AND M ILTERSEN, P. B. 2015. A dictatorship theorem for cake cutting. In Proceedings of
+  the 23rd International Joint Conference on Artificial Intelligence (IJCAI). AAAI Press, 482–488.
+B USCH , C., K RISHNAMOORTHY, M. S., AND M AGDON -I SMAIL , M. 2005. Hardness results for cake
+  cutting. Bulletin of the EATCS 86, 85–106.
+C HEN, Y., L AI , J. K., PARKES, D. C., AND P ROCACCIA , A. D. 2013. Truth, justice, and cake cutting.
+  Games and Economic Behavior 77, 1, 284–297.
+C OHLER , Y. J., L AI , J. K., PARKES, D. C., AND P ROCACCIA , A. D. 2011. Optimal envy-free cake
+  cutting. In Proceedings of the 25th AAAI Conference on Artificial Intelligence (AAAI). AAAI Press,
+  626—631.
+D ENG, X., Q I , Q., AND S ABERI , A. 2012. Algorithmic solutions for envy-free cake cutting. Mathematics
+  of Operations Research 60, 6, 1461–1476.
+E DMONDS, J. AND P RUHS, K. 2006. Cake cutting really is not a piece of cake. In Proceedings of the
+  17th Annual ACM-SIAM Symposium on Discrete Algorithms (SODA). 271–278.
+E VEN, S. AND PAZ , A. 1984. A note on cake-cutting. Discrete Applied Mathematics 7, 285—296.
+G AMOW, G. AND S TERN., M. 1958. Puzzle-math. Macmillan.
+
+                                                                                            Report: August 2017.
+                                                                                                       33
+
+G ARFUNKEL , S. 1988. For all practical purposes social choice. COMAP.
+G ASARCH , W. 2015. Which unbounded protocol for envy free cake cutting is better? Tech. Rep.
+   arXiv:1507.08497, arXiv.org.
+G UO, R. 2015. Cross-Border Management: Theory, Method and Application. Springer.
+H IVELY, W. 1995. Dividing the spoils. Discover Magazine March.
+K UROKAWA , D., L AI , J., AND P ROCACCIA , A. D. 2013. How to cut a cake before the party ends. In
+   Proceedings of the 27th AAAI Conference on Artificial Intelligence (AAAI). AAAI Press, 555–561.
+L INDNER , C. AND R OTHE , J. 2009. Degrees of guaranteed envy-freeness in finite bounded cake-cutting
+   protocols. In Proceedings of the 5th International Workshop on Internet and Network Economics
+   (WINE). Lecture Notes in Computer Science (LNCS) Series, vol. 5929. Springer-Verlag, 149–159.
+L INDNER , C. AND R OTHE , J. 2015. Cake-cutting: Fair division of divisible goods. In Economics and
+   Computation: An Introduction to Algorithmic Game Theory, Computational Social Choice, and Fair
+   Division, J. Rothe, Ed. Springer-Verlag, Chapter 7.
+M AYA , A. AND N ISAN, N. 2012. Incentive compatible two player cake cutting. In Proceedings of the
+   8th International Workshop on Internet and Network Economics (WINE). Lecture Notes in Computer
+   Science (LNCS) Series, vol. 7695. Springer-Verlag, 170–183.
+P IKHURKO, O. 2000. On envy-free cake division. The American Mathematical Monthly 107, 8, 736–
+   738.
+P ROCACCIA , A. D. 2009. Thou shalt covet thy neighbor’s cake. In Proceedings of the 21st International
+   Joint Conference on Artificial Intelligence (IJCAI). AAAI Press, 239–244.
+P ROCACCIA , A. D. 2013. Cake cutting: Not just child’s play. Communications of the ACM 56, 7, 78–87.
+P ROCACCIA , A. D. 2016. Cake cutting algorithms. In Handbook of Computational Social Choice,
+   F. Brandt, V. Conitzer, U. Endriss, J. Lang, and A. D. Procaccia, Eds. Cambridge University Press,
+   Chapter 13.
+R OBERTSON, J. M. AND W EBB, W. 1997. Near exact and envy-free cake division. Ars Combinator-
+   ica 45, 97–108.
+R OBERTSON, J. M. AND W EBB, W. A. 1998. Cake Cutting Algorithms: Be Fair If You Can. A. K. Peters.
+S ABERI , A. AND WANG, Y. 2009. Cutting a cake for five people. In Proceedings of the 5th Interna-
+   tional Conference on Algorithmic Aspects in Information and Management (AAIM). Lecture Notes in
+   Computer Science (LNCS). Springer-Verlag, 292–300.
+S EGAL -H ALEVI , E., H ASSIDIM , A., AND AUMANN, Y. 2015. Waste makes haste: Bounded time proto-
+   cols for envy-free cake cutting with free disposal. In Proceedings of the 14th International Conference
+   on Autonomous Agents and Multi-Agent Systems (AAMAS). IFAAMAS, 901–908.
+S ÖNMEZ , T. AND Ü NVER , M. U. 2011. Matching, allocation, and exchange of discrete resources. In
+   Handbook of Social Economics, J. Benhabib, M. O. Jackson, and A. Bisin, Eds. Vol. 1. Elsevier, Chap-
+   ter 17, 781–852.
+S TEINHAUS, H. 1948. The problem of fair division. Econometrica 16, 101–104.
+S TEWART, I. 1999. Division without envy. Scientific American.
+S TEWART, I. 2006. How to cut a cake : and other mathematical conundrums. Oxford University Press.
+S TROMQUIST, W. 2008. Envy-free cake divisions cannot be found by finite protocols. The Electronic
+   Journal of Combinatorics 15, R11.
+S U, F. E. 1999. Rental harmony: Sperner’s lemma in fair division. American Mathematical Monthly 10,
+   930–942.
+T HOMSON, W. 2007. Children crying at birthday parties. Why? Economic Theory 31, 501–521.
+
+
+
+
+Report: August 2017.
+

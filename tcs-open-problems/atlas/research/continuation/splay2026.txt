@@ -1,0 +1,3405 @@
+Splay trees are almost dynamically optimal
+Petr Chmel1
+chmel@iuuk.mff.cuni.cz
+Michal Koucký1
+koucky@iuuk.mff.cuni.cz
+
+Bernhard Haeupler2,3
+bernhard.haeupler@insait.ai
+Antti Roeyskoe2
+aroeyskoe@inf.ethz.ch
+
+arXiv:2607.18498v1 [cs.DS] 20 Jul 2026
+
+Ondřej Sladký2
+ondra.sladky@gmail.com
+
+Richard Hladı́k2
+rihl@rihl.cz
+
+Václav Rozhoň1
+vaclavrozhon@gmail.com
+
+Robert E. Tarjan4
+ret@cs.princeton.edu
+
+Abstract
+Sleator and Tarjan [ST85b] conjectured that splay trees are dynamically optimal – that on
+every access sequence, they perform within a constant factor of the optimal offline dynamic
+binary search tree. Despite four decades of work, no o(log n) competitive ratio was known.
+We prove that splay trees are O(log log n · log2 log log n) = Õ(log log n)-competitive.
+
+1
+
+Introduction
+
+Binary search trees are among the most fundamental data structures for maintaining an ordered set
+of n elements. A binary search tree consists of nodes arranged in a tree; each node stores one key,
+with all smaller keys in its left subtree and all larger keys in its right subtree. By only comparing
+elements and navigating among the nodes, binary search trees are able to support a wide range of
+operations on the ordered set such as membership queries, inserts, deletes, or predecessor queries.
+There are techniques which ensure the tree is balanced – having depth of Θ(log n), which implies
+that the operations work in Θ(log n) worst-case time [AL62; GS78]. In the worst case, this is the
+best possible – any comparison-based procedure requires Ω(log n) time to perform an access in the
+worst case.
+While this is optimal in the worst case, there are access sequences which are easy to resolve faster
+than in logarithmic time per access. For example, if the accessed elements are drawn from a fixed
+distribution, one can perform the accesses in time proportional to the entropy of the distribution
+using Huffman trees [Huf52]. If the accessed elements have high locality – for instance, if they are
+accessed sequentially – constant time per access suffices. In these and many more cases, worst-case
+optimality fails to capture that on many instances of interest one can do much better than the
+Θ(log n)-time access guaranteed by balanced binary search trees.
+1
+
+Charles University
+ETH Zurich
+3
+INSAIT, Sofia University “St. Kliment Ohridski”
+4
+Princeton University
+2
+
+1
+
+Dynamic optimality is a much stronger guarantee than worst-case optimality. A data structure
+is dynamically optimal if, on any sufficiently long access sequence, its performance is asymptotically
+the same as the optimal tree tailored to the particular access sequence even with the advantage of
+knowing the whole sequence in advance. In other words, a dynamically optimal binary search tree
+is constant-competitive with the optimal search tree for any sufficiently long sequence. In some
+sense, dynamic optimality is the strongest guarantee possible in terms of time complexity. Up to
+constant factors, one cannot perform better on any sequence of accesses than a dynamically optimal
+binary search tree.
+While no binary search tree algorithm is known to be dynamically optimal [Iac13; Rus19;
+Koz16], there are two main candidates – splay trees [ST85b] and GREEDY [Luc88; Mun00;
+Dem+09]. In fact, the whole concept of dynamic optimality originated with splay trees. Prior
+to this work, no o(log n) competitive ratio was known for either of them. Their O(log n) competitive ratios follow from the fact that accesses in both take amortized time O(log n) [ST85b; Fox11],
+as is also true for any balanced binary search tree. Several binary search tree algorithms are known
+to achieve O(log log n)-competitiveness; the first was the Tango tree [Dem+07], followed by a line of
+work using similar proof ideas [WDS06; Geo08; Bos+10]. All of these track the so-called interleave
+lower bound on the optimal tree [Wil89], but since this lower bound can be separated from the
+optimal tree by a factor of Ω(log log n), this line of analyses cannot prove dynamic optimality. For
+Tango trees specifically, the Θ(log log n) analysis is tight.
+Splay trees, which were introduced in 1985 by Sleator and Tarjan [ST85b], are binary search
+trees that, unlike other trees, are not balanced by a set of static rules, but adjust themselves after
+every operation based on which element was accessed. In particular, after an access, the accessed
+element is moved to the root by a series of rotations and double-rotations, which are called zig-zigs
+and zig-zags. Intuitively, this is a sensible strategy: first, frequently accessed elements need to be
+close to the root; second, the strategy of putting an element at the front is constant-competitive for
+linked lists [ST85a]. Much of the evidence for why splay trees are conjectured to be dynamically
+optimal is that they are known to perform well on a range of restricted families of access sequences.
+First, Tarjan and Sleator showed that splay trees are up to a constant factor as good as any other
+static binary search tree, i.e., a tree that is not allowed to modify its structure [ST85b]. Next,
+Tarjan [Tar85] showed that on sequential accesses, splay trees take amortized time Θ(1) per access.
+Furthermore, splay trees are known to perform well on a family of pre-order and post-order traversal
+sequences [LT19] and if the updates happen on the extremes as in a deque, each operation takes
+nearly-constant time [Pet08]. For other related problems, splay trees are conjectured to behave
+asymptotically optimally. One example is the split conjecture, which states that any sequence of
+splits in a splay tree takes total linear time. However, prior to this work, no competitive ratio
+beyond O(log n) was known for splay trees.
+Here, we give the first o(log n) competitive ratio for splay trees, showing that splay trees are
+Õ(log log n)-competitive, which, ignoring log log log n factors, matches the best currently known
+competitive binary search trees. While there are already binary search trees known to achieve
+this competitive ratio, this is the first time such a ratio is given for a binary search tree that is
+conjectured to be dynamically optimal.
+Unlike existing proofs of sublogarithmic competitiveness for other binary search trees [Dem+07;
+WDS06], we do not charge against a lower bound on the work of the optimal tree, which is known to
+2
+
+be non-tight [LW20]. Instead, we charge directly to the optimal tree, circumventing the non-trivial
+gap between this lower bound and the optimum.
+The first step of our proof extends the original proof of static optimality: besides charging work
+to a static tree, we build structures that allow us to analyze splay trees even when the optimal
+tree performs rotations. In fact, the core of our argument – defining the rank of a node by its
+depth in the optimal tree and defining heavy paths in the splay tree to lead towards vertices closest
+to the root of the optimal tree – can be seen as an alternative to the ranks used in the original
+static-optimality analysis and can also be used to rederive static optimality. The proof then has
+three more core ingredients. First, we introduce lazy intervals, which allow us to absorb changes
+in the ranks after a tree rotates. Second, we observe that the structure of heavy paths after a
+splay changes similarly to a pairing heap after a delete-min. This lets us use recent progress in
+the analysis of multi-pass and pure pairing heaps [ST25; TX26] to help bound the total number
+of zig-zigs performed. Third, we show that we can assume a normal form on the optimal tree,
+which restricts it to certain properties while slowing it down only by a constant factor. With this,
+we show that the number of zig-zags can be asymptotically bounded by the number of zig-zigs by
+observing how the structure of heavy paths changes.
+Finally, we apply the same techniques to prove the split conjecture for splay trees up to a
+Õ(log log n) factor.
+
+2
+
+Setting the stage
+
+In this section, we set up the basics needed to state our result: we define the model in which the
+time complexity of binary search trees is measured and introduce splay trees.
+
+2.1
+
+Problem setup
+
+BST model. Formally, this is the BST model: we have to dynamically maintain a binary search
+tree (BST) T . This is an n-node binary tree where every node has a unique key from U = {1, . . . , n};
+this is without loss of generality because elements are only compared, so only their order matters.
+T must at all times satisfy the ordering property: for any node u, its key is larger than all keys
+in the left subtree of u and smaller than all keys in the right subtree of u. The tree undergoes a
+sequence of accesses x1 , . . . , xm (with xi ∈ U ). Upon each access, we can repeatedly perform the
+following operation on the nodes of the tree:
+• rotate(x). Change the tree locally around x. If x is the left child of y, y now becomes the
+right child of x, the formerly right child of x becomes the new left child of y, and x becomes
+a child of y’s parent. The case where x is the right child is analogous.
+After each access, the node being accessed must be in the root. The cost of an access is 1 plus the
+number of rotations performed. The total cost of a BST data structure T on the access sequence
+X = x1 , . . . , xm is denoted by cost(T, X).
+Note that this differs from the more standard BST model by requiring that the accessed element
+end up at the root. We show the equivalence of these models in Section B.
+
+3
+
+x
+
+x
+
+(a) Initial tree state.
+
+(b) Rotating x up by single rotations, which is the
+same as zig-zagging in splay.
+
+Figure 1: Result of repeatedly rotating x on a path with alternating left and right edges.
+x
+
+x
+
+x
+
+(a) Initial tree state.
+
+(b) Rotating x up by single rota- (c) Splaying x by repeated zig-zigs.
+tions.
+
+Figure 2: Comparison of repeatedly rotating x upward using single rotations and splaying x on a
+path with left edges only.
+Relating to the optimal tree. For a fixed access sequence X = x1 , . . . , xm , the optimal tree
+TXOPT is a dynamic BST that, among all possible BSTs, incurs the smallest cost on the given access
+sequence while knowing the whole sequence in advance. We will often write just T OPT when the
+access sequence is clear from the context. By T , we denote an online BST algorithm that we
+compare to T OPT . In our case, T always denotes the splay tree. For the analysis, we serialize the
+two executions so that, for access xi , the optimal tree first performs its access and all rotations
+needed to bring xi to the root. Then, while T OPT is fixed, the splay tree performs its splay of
+xi . Thus, during the splay-tree part of the access, xi is already the root of T OPT . Furthermore,
+the initial configuration for T OPT is assumed to be the optimal one, whereas for the splay tree we
+assume that we have no control over the initial configuration.
+
+2.2
+
+Splay trees
+
+Splay trees [ST85b] are binary search trees that adjust themselves with the aim of performing well
+on any sequence. The first main idea behind the design is that once a node is accessed, it is moved
+to the root by a series of rotations. The intuition for this is twofold. First, the same move-to-front
+heuristic turns out to be dynamically optimal in the setting where the data structures are linked
+
+4
+
+z
+
+x
+
+y
+
+y
+D
+
+x
+
+A
+
+C
+A
+
+z
+y
+z
+
+y
+
+A
+C
+
+D
+
+A
+B
+
+(a) Zig-zig
+
+z
+
+D
+
+x
+
+B
+
+B
+
+x
+
+B
+
+C
+
+D
+
+C
+
+(b) Zig-zag
+
+Figure 3: The zig-zig and zig-zag splay steps.
+lists instead of binary search trees [ST85a]. Second, if an element is accessed often, it is better for
+it to be at or near the root, as otherwise the competing tree pays a lot while the optimal tree pays
+only a little.
+The simplest strategy that moves the accessed element to the root is to rotate the accessed
+element by single rotations all the way to the root [AM78]. If the path to the accessed element
+alternates between left and right edges, the structural changes to the tree look reasonable: the
+path is split into two of roughly equal length – see Figure 1. However, if the path to the accessed
+element encounters a long left or a long right path, these paths remain essentially unchanged and
+thus can be traversed unnecessarily many times, rendering this strategy inefficient. For example,
+on a sequential access starting from a long path this algorithm has total cost Θ(n2 ) and so average
+cost per access of Θ(n), much worse than constant cost per access which is possible for such a
+sequence. Splay trees do the next simplest thing; the splay procedure is such that whenever a long
+path of only left or only right edges is encountered, it is at least partially rebalanced. The difference
+between these two approaches is illustrated in Figure 2.
+More precisely, splaying a node x to the root works through the following sequence of double
+rotations and rotations, depending on the local structure around x.
+• If x and its parent are either both left children or both right children, then a zig-zig is
+performed by rotating first the parent of x and then x. Unlike two rotations of x, this ensures
+rebalancing of the path.
+• If x is a right child and its parent is a left child, or vice versa, a zig-zag is performed by
+rotating x twice.
+• Right below the root, x might not have a grandparent. In this case a zig is performed by
+only rotating x.
+Zig-zig and zig-zag operations are illustrated in Figure 3.
+Since each step in the splay algorithm moves x one level closer to the root while performing at
+most 2 rotations, the cost of accessing the element x is O(depthT (x)).
+
+5
+
+3
+
+Warm-up: static optimality
+
+In this section, we sketch a re-proof of static optimality for sufficiently long sequences using the
+elementary combinatorial elements used in the proof of dynamic optimality. This section helps the
+reader understand the basics of splay trees and become acquainted with our notation in a familiar
+setting. The combinatorial elements introduced in this section are largely variations on existing
+concepts. We further remark that the re-proof of static optimality is not fully rigorous, as the main
+aim of this section is to familiarize the reader with the concepts rather than to give a full proof.
+Ternary view of splay trees for simpler proofs. First, to make all proofs substantially
+simpler and avoid multiple corner cases, we impose the following ternary view on splay trees. For
+every node v, we create an additional middle value child that stores the original value of v, and we
+keep its left and right subtrees. In addition, for nodes that are missing a left or right child, we add
+a null node. We assign dummy values to null nodes in a way consistent with the tree structure. We
+imagine that the static optimal tree contains these nodes as well – in fact, their place is uniquely
+determined – and we define the ranks of null nodes analogously to other nodes. The newly added
+nodes are called external, while all other nodes are called internal. Overall, in the ternary view,
+all internal nodes are hollow and have exactly three children, and their structure exactly matches
+that of the original tree. The external nodes are new, and each stores a real or dummy value. The
+transition to the ternary view is illustrated in Figure 4a. Rotations happen on internal nodes, and
+all value nodes always remain attached to their internal parent; see Figure 4b.
+Relating the splay tree to the optimal tree through ranks and heavy paths. As in the
+dynamic case, the re-proof of the static case starts by relating the splay tree to an optimal tree
+OPT . For every node v in the splay tree T , we define its rank to be its depth in T OPT . Consider
+Tstatic
+static
+an edge (u, v) with u being the parent of v. The minimum rank among the nodes in the subtree
+of u is less than or equal to the minimum rank among the nodes in the subtree of v. If it is equal,
+we call the edge heavy, otherwise it is light. An important property of the ranks is that, since they
+are defined by depths in a tree, in every subtree of T there is only one node that minimizes the
+rank. This builds upon a folklore result that every consecutive interval of nodes has a unique node
+minimizing the depth in the optimal tree, which we prove in Lemma 4. Thus, for each internal
+node, exactly one of its three children is connected to it via a heavy edge. This decomposes the tree
+into a collection of heavy paths and light edges, with each light edge connecting paths of different
+ranks. For an internal node, the rank of the bottom-most node on the same heavy path plays a
+role analogous to that of the rank in the original access-lemma analysis of splay trees, where the
+rank was the logarithm of the sum of weights.
+
+6
+
+5
+1
+
+6
+
+5
+⊥0
+
+3
+2
+
+⊥5
+
+1
+
+4
+
+⊥6
+
+6
+
+3
+⊥1
+
+⊥2
+
+2
+
+⊥3
+
+⊥4
+
+4
+
+(a) Transition to the ternary view with null nodes.
+
+x
+
+y
+
+x
+
+v
+
+u
+C
+
+u
+A
+
+y
+
+A
+
+v
+
+B
+
+B
+
+C
+
+(b) An example of a left rotation in the ternary view of BSTs.
+
+4
+2
+
+5
+
+6
+
+r=2
+
+1
+⊥0
+
+3
+⊥1 ⊥2
+
+⊥6
+
+5
+⊥3 ⊥4
+
+⊥0
+
+⊥5
+
+1
+
+r=3
+
+r=2
+
+⊥5
+
+⊥6
+
+6
+
+r=3
+
+r=1
+
+r=2
+
+3
+r=2
+
+T OPT
+
+⊥1
+
+2
+
+r=3
+
+r=1
+
+⊥2
+
+r=3
+
+⊥3
+
+r=3
+
+4
+r=0
+
+⊥4
+
+r=3
+
+(c) The ranks of external nodes are based on their depth in the example optimal tree T OPT . Based on these
+ranks, the tree is decomposed into heavy paths (thick) which are connected by light edges (dashed). The
+heavy path corresponding to value 4 has rank 0 so it contains the root. The parent of external node 1 is the
+only bend on this heavy path.
+
+Figure 4: An overview of the concepts for splay-tree analysis.
+The ternary view, in particular, makes the structure of heavy paths nice. Every heavy path
+now ends in an external node and there is exactly one such external node on each heavy path. We
+can therefore associate each heavy path with this external node, which is its bottom-most node,
+
+7
+
+and say the rank of the heavy path is the rank of this bottom-most node. In addition, if we imagine
+that the external nodes connected by light edges have degenerate heavy paths consisting of a single
+node, then every external node also has its own heavy path. See also Figure 4c.
+Potential via gaps. We now have almost everything needed to prove static optimality. As in
+the original proof of static optimality, where rank differences along edges were central, we define
+the gap of a heavy path P as the difference between the rank of P and the rank of the heavy path
+to which it is connected by a light edge. We also associate the gap of a heavy path with the light
+edge to its top-most node. The gap of the root heavy path, which contains the root, is 0. The sum
+of the gaps of all heavy paths will serve as a potential: we show that each operation over heavy
+edges decreases the potential, and we bound the increases caused by operations over light edges,
+thus concluding that the splay tree cannot do too much work.
+Operations over light edges. When a node x is accessed, the splay tree rotates it to the root
+via a series of zig-zigs and zig-zags and possibly one zig. The first case to consider is when an
+operation happens over a light edge. By this we mean that, if x◦ denotes the internal parent of the
+accessed external node and y ◦ denotes the parent of x◦ , then x◦ or y ◦ is connected to its parent by
+a light edge.
+To bound this case, first observe that there cannot be too many light edges on the path from
+x to the root. In fact, there are at most rank(x) such edges, as every light edge decreases the
+rank by at least one. Second, if the operation happens over a light edge with gap t, the sum of
+gaps increases by at most O(t). To prove this fact, one would have to verify it in many different
+situations based on how exactly the light and heavy edges are positioned. On the path from x to
+the root, the gaps on the light edges sum to exactly the rank of x. Thus, the operations over light
+edges for one access increase the sum of gaps by at most the rank of x.5
+Zig-zigs on heavy edges decrease gaps. Next, we show that every zig-zig over heavy edges
+decreases the sum of gaps by at least one. It suffices to consider a right zig-zig, as the situation
+with a left zig-zig is analogous. Define x◦ and y ◦ as above, and let z ◦ be the parent of y ◦ . Let z be
+the middle child of z ◦ and y + the least-rank node in the right subtree of y ◦ ; define z + analogously.
+During a zig-zig, z ◦ is shifted downward and y + , z, z + are the new least-rank vertices in the
+respective child subtrees of z ◦ . The one with the least rank – let us analyze the case where this is
+y + – acquires z ◦ . For the other two nodes, z and z + , the heavy path relative to which their gaps
+are measured changes from the previous one – consider the case where it was x – to y + . Before
+the operation, y + was connected by a light edge to y ◦ because we assumed that the operation was
+over heavy edges, so its gap was measured with respect to x. Therefore, it had higher rank, which
+implies that the gaps of z and z + decrease by at least one, since the rank of the reference node in
+the definition of the gap increases. See Figure 5 for an illustration of this case. It can be checked
+that this holds in the other cases as well and that, for the other nodes, the ranks do not increase.
+5
+
+This case never occurs in the dynamic setting. There, we can assume that the optimal tree always accesses the
+root, which is the only external node with rank 0, so there are only heavy edges on the path from it to the root. In
+the static case, we cannot make this assumption without making the optimal tree dynamic.
+
+8
+
+gap(z + )
+gap(y + )
+
+gap(y + )
+z+
+
+gap(z + ) − gap(y + )
+x+
+
+y+
+x+
+
+y+
+
+z+
+
+Figure 5: The situation after a zig-zig over two heavy edges in one particular configuration, assuming
+the rank of y + is smaller than the rank of z + . gap(·) denotes the gap before the zig-zig. The gap
+of z + decreases as before it was computed based on x+ and after it is computed based on y + which
+has higher rank.
+Concluding static optimality for sufficiently long sequences. Similarly, a zig-zag over
+two heavy edges can be shown to decrease the potential by one. Therefore, for every splay, the
+potential can increase by at most asymptotically the rank of the accessed node. There can be
+at most rank(x) zig-zigs or zig-zags over light edges, where x is the splayed vertex. Since every
+other zig-zig or zig-zag decreases the potential by at least one, the amortized number of rotations
+is O(rank(x)), possibly plus 1 for the final zig.
+As rank(x) is the depth of x in the static optimal tree and 1 + rank(x) is the access cost, and
+OPT )).
+since the initial potential is at most O(n2 ), the total work done by splay trees is O(n2 +cost(Tstatic
+With a slightly improved potential, the dynamic analysis reduces the O(n2 ) factor to Õ(n log log n).
+
+4
+
+Technical overview
+
+Having concluded a warm-up proof of static optimality, let us focus on dynamic optimality. In this
+section, we provide intuition for our proof and an overview of all the important concepts.
+Just as the static optimality of splay trees is proved by charging the work done by splay trees
+to that done by an optimal static tree, our argument charges the work done by splay trees to an
+optimal tree that changes over time.
+As in the warm-up section, the proof builds upon the concepts used to sketch static optimality.
+We impose the ternary view on the splay tree, define node ranks based on their depths in the
+optimal tree, define heavy paths, and consider their gaps. The proof itself will rely on a deeper
+understanding of these combinatorial concepts.
+Heap view of heavy paths. Imagine contracting every heavy path into the bottom-most node
+and keeping all the children of nodes on the heavy path as children of the contracted node. In this
+contracted tree, there are only light edges and thus the ranks increase with every edge. Hence,
+9
+
+this contracted tree is heap-ordered on the ranks, meaning that a node has lower rank than all
+its children, and we call this the heap view of heavy paths; see Figure 6. To distinguish between
+the children in the tree itself and in the heap view, we call the children and parents in the heap
+view the heap-children and heap-parents, respectively. Heap-children whose values precede that of
+the heap-parent in symmetric order are called left heap-children; right heap-children are defined
+analogously.
+5
+
+⊥0
+
+r=3
+
+1
+r=2
+
+2
+
+r=2
+
+r=1
+
+1
+
+⊥1
+
+5
+
+r=3
+
+⊥2
+
+r=3
+
+r=0
+
+2
+
+r=2
+
+⊥5
+r=1
+
+3
+
+r=1
+
+⊥5
+
+r=0
+
+r=1
+
+⊥0
+r=3
+
+3
+
+⊥1
+r=3
+
+⊥2
+r=3
+
+4
+
+r=3
+
+r=2
+
+⊥3
+
+r=4
+
+4
+r=3
+
+⊥4
+
+⊥3
+r=4
+
+r=4
+
+⊥4
+r=4
+
+Figure 6: Left: an example splay tree and its heavy-path decomposition. Right: the heap view
+obtained from the tree on the left, where heap-children are ordered as in the symmetric order and
+the dashed line separates left and right heap-children.
+Lazy intervals for handling gap changes caused by rotations. The straightforward idea
+of using the sum of gaps as a potential while allowing rotations of the optimal tree does not work.
+A rotation in the optimal tree can change up to Θ(n) ranks and gaps, which would yield a useless
+O(n)-competitiveness proof. Although a rotation changes the ranks of many nodes, the affected
+nodes form a consecutive interval [i, j] in symmetric order, as they correspond to subtrees in the
+optimal tree. Therefore, we can group consecutive heap-children of each heavy path into so-called
+lazy intervals. Instead of updating the gaps, we simply record the amount by which all gaps in an
+interval are shifted. The amount by which the whole interval is shifted is called an interval gap
+and the gaps without this shift are called point gaps. The important property of lazy intervals is
+that, for zig-zigs occurring within a lazy interval, the interval gap cancels out of the corresponding
+changes to the gaps. Thus, the point gaps behave as if they were the gaps themselves; see Figure 7.
+In other words, it does not matter whether we first update the gaps and then perform zig-zigs, or
+we perform the zig-zigs and only later update the gaps lazily when needed. Thus we can track the
+sum of point gaps instead of the sum of gaps and every rotation can then be handled by creating
+O(1) new lazy intervals.
+Contracting gaps to bound the number of zig-zigs. The remaining difficulty is posed by
+boundary zig-zigs, which affect heap-children from two different lazy intervals. To simplify the
+discussion of zig-zigs, recall that a zig-zig takes three consecutive heap-children and hangs the two
+
+10
+
+gap(z2+ ) − gI
+
+gap(y2+ ) − gI
+
+gap(y2+ ) − gI
+z2+
+
+gap(z2+ ) − gap(y2+ )
+
+gap(z1+ ) − gI
+y2+
+
+gap(y1+ ) − gI
+
+y2+
+
+z2+
+
+gap(y1+ ) − gI
+
+z1+
+
+gap(z1+ ) − gap(y1+ )
+
+y1+
+
+x
+
++
+
+x+
+y1+
+
+z1+
+
+Figure 7: The change of point gaps after two consecutive zig-zigs over heavy edges in one particular
+configuration with all heap-children in the same lazy interval I. We use gI as a shorthand for
+intervalgap(I). gap(·) denotes the gap before the zig-zigs. Note that for the resulting gap of zi+ ,
+the interval gaps cancel.
+with higher rank in a lazy interval of the one with lower rank. We decompose this event into two
+pairings, in each of which one heap-child is hung below another heap-child with lower rank. In
+this terminology, the problem lies with boundary pairings, where the two heavy paths are not from
+the same lazy interval. An attempt to resolve this would be to modify the optimal tree so that it
+always has logarithmic depth and thus logarithmic ranks while incurring only constant slowdown.
+But even when charging to this modified tree, each boundary pairing can increase the sum of point
+gaps by up to Θ(log n). This again could not be used to prove an o(log n) competitive ratio.
+The solution is to contract the point gaps by passing them through an integer-valued logarithmic
+function. As a potential, we then sum the contracted point gaps instead of the point gaps. As
+a result, each boundary pairing increases the sum of contracted point gaps by O(log log n), so we
+can hope for Õ(log log n)-competitiveness. The contraction, however, complicates matters, as a
+decrease in a point gap does not imply a decrease in the corresponding contracted point gap, so
+not all internal pairings decrease the sum of contracted point gaps. The internal pairings where
+the point gaps are of the same magnitude, which we call good, still decrease the sum of contracted
+point gaps. This is because decreasing the input of the logarithm by a constant fraction decreases
+its output by a constant. We are able to bound good pairings by the total increase in the sum
+of contracted point gaps. The other internal pairings are called bad, and bounding them requires
+more work. See also Figure 8.
+The next step is to show that there are not too many boundary pairings. Some occur at the
+11
+
+⌈log(128)⌉ = 7
+
+⌈log(32)⌉ = 5
+
+⌈log(32)⌉ = 5
+z2+
+
+⌈log(128 − 32)⌉ = 7
+
+⌈log(128)⌉ = 7
+y2+
+
+⌈log(96)⌉ = 7
+
+y2+
+z1+
+
+z2+
+
+⌈log(96)⌉ = 7
+⌈log(128 − 96)⌉ = ⌈log(32)⌉ = 5
+
+y1+
+
+x+
+
+x+
+y1+
+
+z1+
+
+Figure 8: The change to contracted point gaps after two consecutive zig-zigs over heavy edges with
+corresponding heap-children in the same lazy interval. The pairing (y1+ , z1+ ) is good as the two
+heap-children had point gaps of the same magnitude, so the contracted point gap of z1+ decreases.
+The pairing (y2+ , z2+ ) is bad as the point gaps are of different magnitude, therefore the contracted
+point gap of z2+ is not guaranteed to decrease. Note that in reality we use ⌈1 + log(1 + x)⌉ for the
+contracted gap, to avoid edge cases. We use ⌈log(x)⌉ in this figure instead for simplicity. In both,
+the logarithms are binary.
+boundaries of very large lazy intervals, and their effects can be subsumed by internal pairings. We
+call these pairings unimportant. On the other hand, important pairings cannot happen too often
+within any one lazy interval, and since we do not create too many lazy intervals, their total number
+is bounded.
+Once we also bound the number of bad pairings, we can relate the number of zig-zigs to the
+work done by the optimal tree: the number of zig-zigs exceeds the cost of the optimal tree by at
+most a factor of Õ(log log n), plus an additional factor of Õ(n log log n) for initialization.
+Relating splaying to pairing heaps and using the core of pairing heap analysis to bound
+bad pairings. To bound the bad pairings, we recall the heap view of heavy paths and realize
+that splaying behaves similarly to how delete-min behaves in pairing heaps.
+In pairing heaps, delete-min works by first removing the minimum. Afterwards, the individual
+children are correctly heap-ordered, but in separate heaps.
+Next, we perform a pairing step: we partition the child list into consecutive pairs, and for
+each pair, the lower-value child is kept in the list while the higher-value child is rehung below it.
+
+12
+
+Finally, the assembly step makes the least-value child the new root [Fre+86]. In splay trees, the
+splayed vertex is not deleted but moved to the root. Among its heap-children on the right, every
+consecutive triplet is combined through two pairings: the heap-child with the lowest rank becomes
+the heap-parent of the other two. The right heap-child with the least rank remains a heap-child of
+the splayed vertex. An analogous process occurs to the left of the splayed vertex. Hence, the core
+process on either side of the splayed vertex is nearly the same as that of delete-min in pairing heaps.
+Therefore, we abstract the core of the analysis of the amortized complexity of pairing heaps [ST25;
+TX26] into an interface that also applies to splay trees. We show that, by modifying lazy intervals
+in a controlled way through a few allowed operations, the lazy intervals can be mapped to this
+interface. This allows us to bound the number of bad internal pairings in terms of the numbers
+of good internal pairings and boundary pairings, which is the last ingredient needed to bound the
+number of zig-zigs.
+Bounding the number of zig-zags by bends and by normalizing the optimal tree. The
+last part is to bound the zig-zags. Unlike in the static case, the contraction does not allow us
+to bound zig-zags by the sum of contracted point gaps. We bound them by introducing another
+combinatorial element – bends. A bend is an internal node where the heavy path “turns” – it is a
+left child, but the heavy path continues to the right, or vice versa. To charge zig-zags to bends and
+ensure that each splay creates only a controlled number of bends, we require, among other things,
+that the optimal tree be ribless, i.e., that two vertices that are close in symmetric order also have
+similar heights in the tree. We show that we can impose these assumptions on the optimal tree
+while slowing it down by only a constant factor. Then, every optimal-tree rotation creates O(1)
+bends, and every splay creates O(1) bends plus one for each zig-zig. Every zig-zag removes one
+bend, so the total number of zig-zags can be asymptotically bounded by the number of zig-zigs,
+the cost of the optimal tree, and the maximum initial number n of bends.
+Overall, these ingredients suffice to prove Õ(log log n)-competitiveness for sequences of length
+Ω̃(n log log n). The same techniques can also be used to prove the split conjecture within a factor
+of Õ(log log n) (Section D).
+
+5
+
+Proof of splay tree competitiveness
+
+In this section, we prove that the splay tree is O(log log n · log2 log log n)-competitive; that is, we
+prove Theorem 1. Note that we also formally define and re-introduce the concepts introduced
+informally in previous sections.
+Theorem 1. Assume a set U of n elements and an access sequence X = x1 , . . . , xm , with xi ∈ U.
+Let T be the splay tree and let cost(T, X) be the time complexity in the BST model of the splay
+tree, starting from an arbitrary configuration, when it performs accesses as in X. Furthermore,
+let TXOPT be the optimal tree for the sequence X, i.e., the dynamic tree that incurs the lowest cost
+among all trees. Then cost(T, X) = O((cost(TXOPT , X) + n) · log log n · log2 log log n).
+We remark that at least an additional additive term of O(n) is necessary because we do not
+assume any initial structure for the splay tree. Thus, the first access itself can require Ω(n) time,
+while the optimal tree can still serve it in constant time.
+13
+
+The o(n log n) additive term in Theorem 1 makes it possible to apply our techniques to the split
+conjecture for splay trees as well. There, the goal is to match the Θ(n) cost of the optimal tree, so
+any large additive factor would hinder this application. We prove the split conjecture with total
+cost O(n log log n log2 log log n) in Section D.
+Ternary tree view of the splay tree. To simplify all proofs later on, we consider the following
+ternary view of the splay tree that ensures that only leaves store values, and furthermore, every
+non-leaf has exactly three children. To obtain it from the standard binary view, for every node v,
+we add an additional middle child where v’s original value is moved, so internal vertices no longer
+hold any value. The nodes added this way are called value nodes. We keep v’s original left and
+right child.
+Furthermore, to ensure that every node has exactly three children, we add n + 1 null nodes
+⊥0 , ⊥1 , · · · ⊥n , where ⊥i falls in between i and i + 1 in the symmetric order, ⊥0 is left of 1 and
+⊥n is right of n. Observe that for any tree, there is a unique position of the null nodes. One can
+imagine the null node ⊥i corresponding to value i+1/2. Null nodes and value nodes are collectively
+called external nodes, while all other nodes are called internal. An illustration of the ternary view
+is in Figure 4a. The splays of the tree work the same way as in the binary view, never detaching
+the value node from its parent internal node. Since the null nodes are never accessed, rotations
+corresponding to the splay never attach any children to null nodes. A rotation in the ternary view
+is depicted in Figure 4b.
+Similarly as for T , we add the null nodes ⊥i to the optimal tree T OPT . However, we do not
+impose the ternary view on the optimal tree.
+
+5.1
+
+Restrictions on the optimal tree
+
+Our proof of the competitiveness of splay trees proceeds by relating the splay tree to the optimal
+tree. However, we require several properties of the tree used in this comparison. Therefore, we do
+not relate the splay tree to the optimal tree T OPT itself, but rather to a nearly optimal tree T ∗
+whose complexity is only a constant factor larger than that of T OPT and which has the following
+properties simultaneously at all times.
+1. T ∗ is ribless, meaning that all paths that go only to left children, as well as all paths that
+go only to right children, have length O(1), except possibly for the two spines from the root
+toward the left-most and right-most elements.
+2. All rotations in T ∗ happen within constant depth of the root.
+3. The depth of T ∗ is O(log n).
+The existence of such a tree T ∗ is implied by Theorem 2 and is proved in Section C.
+Theorem 2. For any access sequence X = x1 , . . . , xm from U = [n], there exists a sequence of
+trees T0 , T1 , . . . , Tℓ and a sequence of times t1 < · · · < tm ∈ [ℓ], where ℓ = O(cost(TXOPT )), such that
+1. For all i ∈ [ℓ], Ti is a binary search tree on [n] that is ribless of depth O(log n),
+14
+
+2. For all i ∈ [ℓ], Ti is obtained from Ti−1 by a single rotation at depth at most O(1),
+3. For all j ∈ [m], Ttj has root xj .
+Theorem 2 guarantees the existence of the nearly optimal tree T ∗ without null nodes. However,
+we can always add null nodes to T ∗ while increasing both the depth and the length of every rib by
+only one. Therefore, T ∗ is guaranteed to exist with null nodes as well. From now on, we relate the
+splay tree to this nearly optimal tree T ∗ .
+The need for riblessness is explained by the following lemma, which we later use to bound the
+number of operations on the splay tree.
+Corollary 3. The depths of x, ⊥x−1 , and ⊥x , in T ∗ differ only by O(1) for any x.
+Proof. Fix x, and let xL be the left child of x. If xL =⊥x−1 , the claim follows immediately.
+Otherwise, ⊥x−1 is the largest element in the subtree of xL , so there can be no left edge on the
+path from xL to ⊥x−1 . Hence, this path contains only right edges and therefore forms a right rib
+or a spine. Since x lies to the right of this rib, it cannot be a spine to the maximum and hence is a
+proper rib. By riblessness, the path to the parent of ⊥x−1 cannot be longer than O(1). Therefore,
+the depths of x and ⊥x−1 differ by at most O(1). The argument for ⊥x is analogous: it is the
+smallest element in the subtree of the right child of x, so the path to it uses only left edges and can
+be only an additive O(1) deeper.
+
+5.2
+
+Heavy paths and lazy intervals
+
+In order to prove the competitiveness of splay trees, we need several combinatorial structures
+defined on the splay tree with respect to the state of the optimal tree at any given moment. The
+principal structure is a decomposition of the splay tree into heavy paths, where each heavy path
+always leads to the element closest to the root in the optimal tree (Section 5.2.1). The heavy
+paths are used to define gaps, which are at the core of explaining why splay operations can be
+paid for. Since these gaps can change for many heavy paths upon a rotation in the optimal tree,
+lazy intervals are defined to handle these global changes (Section 5.2.2). Lazy intervals are central
+to our bound on the operations performed by a splay tree. We define allowed operations on lazy
+intervals (Section 5.2.3) and, in later sections, use them to show that every zig-zig performs at least
+one such operation and that the total number of these operations is small.
+5.2.1
+
+Decomposition into heavy paths and light edges
+
+For every external node v of T , we define its rank as its depth in the nearly optimal tree T ∗ , i.e.,
+rank(v) = depthT ∗ (v). In particular, since the depth of T ∗ is logarithmic by Theorem 2, the ranks
+themselves are in O(log n). Based on the ranks, we classify all edges as heavy or light. An edge uv
+is heavy if the minimum rank in the subtree of v is the same as the minimum rank in the subtree
+of u; otherwise, it is light. We define heavy paths as the connected components that remain after
+all light edges are removed. The heavy path that contains the root is called the root heavy path.
+For an illustration of ranks and heavy paths, see Figure 4c. The following folklore observation is
+crucial to ensure that heavy paths are indeed paths.
+15
+
+Lemma 4. For any tree T ∗ and any consecutive interval of external nodes of the splay tree in the
+symmetric order [a, b], there is a unique node v ∈ [a, b] with minimum rank.
+Proof. The external nodes of the splay tree correspond to all nodes of the optimal tree. We prove
+the claim by induction on the number of elements in the optimal tree. Consider some tree T ∗ and
+an interval [a, b]. If T ∗ has only a single vertex, or if the root of T ∗ is contained in the interval,
+then it is the unique minimizer. Otherwise, the interval is contained entirely in either the left
+subtree or the right subtree. Let T ′ be the subtree. The ranks of nodes in T ′ are exactly one larger
+than they would be if T ′ were the whole tree, which preserves uniqueness of the minimum. By the
+induction hypothesis, any interval in T ′ has a unique minimizer, so the corresponding interval in
+the respective subtree does as well.
+Corollary 5. For every internal node of T , there is exactly one outgoing heavy edge.
+Proof. The subtree of every internal node z corresponds to an interval in the symmetric order.
+Hence, by Lemma 4, there is exactly one external node minimizing the rank. Since the child
+subtrees of z partition the interval into disjoint subintervals, exactly one of them contains the
+minimum-rank node. Thus, there is exactly one outgoing heavy edge, and it goes to this child.
+Corollary 5 has several important implications. First, heavy paths are indeed paths. Second,
+since the bottom-most node of a heavy path cannot be an internal node, the bottom-most node of
+every heavy path is an external node. This is the only external node on this path, since external
+nodes have no outgoing edges. Therefore, there is a bijection between external nodes and heavy
+paths. For a heavy path P ending in an external node v, we denote path(v) := P and bottom(P ) :=
+v. When it is clear from the context, for convenience, we sometimes use the heavy path and the
+bottom-most vertex interchangeably. Furthermore, let top(P ) denote the topmost node of P . We
+say that the rank of a heavy path is the rank of its bottom-most node. Note that some heavy paths
+may contain no internal nodes and consist solely of their corresponding external node. The concept
+of heavy paths and light edges is illustrated in Figure 4c.
+Relations between heavy paths. Every light edge connects two different heavy paths with
+bottom-most vertices vtop and vbottom , with the top one having strictly smaller rank than the
+bottom one. Thus, if we imagine another tree in which every light edge induces an edge from vtop
+to vbottom , this new tree is heap-ordered by the ranks of the heavy paths. We call this tree the
+heap view of the heavy paths and it is illustrated in Figure 6. We say that vtop is the heap-parent
+of vbottom and that vbottom is a heap-child of vtop . It is a left heap-child if vbottom is left of vtop in
+the symmetric order, and a right heap-child otherwise. For simplicity, we also say that heavy paths
+are heap-children and heap-parents when we mean that their bottom-most nodes are heap-children
+and heap-parents. Equivalently, left heap-children are those that are connected by a light edge to
+its heap-parent at an internal node, where the heavy path goes to the right or if the light edge is
+left in case the heavy path goes via the middle edge; vice versa for right heap-children. As a heavy
+path is connected as a heap-child only from its topmost node, every heavy path has exactly one
+heap-parent except for the root heavy path, which has no heap-parent. A heavy path can have
+multiple heap-children. We denote by HeapParent(P ) the heap-parent of the heavy path P , and by
+16
+
+LeftHeapChildren(P ), RightHeapChildren(P ), and HeapChildren(P ) the sets of its left, right, and
+all heap-children, respectively. We consider the left, right, and all heap-children to be ordered topdown by the order in which they hang off P , with heap-children connected through middle edges
+considered closer to the bottom than those connected through left or right edges. On each side,
+top-down order is monotone in symmetric order: for left heap-children it agrees with increasing
+symmetric order, while for right heap-children it agrees with decreasing symmetric order. Hence a
+consecutive interval of left or right heap-children is still consecutive in symmetric order.
+Definition 6 (Gap). We define the gap of a non-root heavy path P as gap(P ) = rank(P ) −
+rank(HeapParent(P )) and gap(P ) = 0 if P is the root heavy path.
+Next, we define heap-descendants of a node as itself, all its heap-children and all the heapchildren of the heap-children and so on. The heap-descendants of P are all the bottom-most
+vertices of heavy paths corresponding to the external nodes within the subtree rooted at top(P ).
+Likewise, we define heap-ancestors of P as all the heavy paths that have P as their heap-descendant.
+Heap-descendants are the descendants in the heap view, while heap-ancestors are the ancestors in
+this view; see Figure 6. There is one important property of heap-ancestors. A heavy path of rank
+R has at most R + 1 heap-ancestors, because moving from a heap-child to its heap-parent strictly
+decreases rank, and ranks are integral and nonnegative.
+Bends. The last structural elements of a heavy path that we need are bends. A node is called a
+bend if it is not the top-most node of the heavy path on which it lies and either it is the right child
+of its parent and the heavy path continues to its left child, or it is the left child of its parent and
+the heavy path continues to its right child. Note that only internal nodes can be bends, as external
+nodes do not have children. Later, we use the total number of bends ever created to argue that the
+number of zig-zags is small.
+5.2.2
+
+Lazy intervals
+
+Consider a heavy path P . A left lazy interval is a subset I ⊆ LeftHeapChildren(P ) that is consecutive in the top-down ordering. I is consecutive within LeftHeapChildren(P ) but might be
+non-consecutive in HeapChildren(P ) if there is a right heap-child between two left heap-children
+in I. If this is the case, we call the lazy interval broken. A right lazy interval is defined analogously. Although a lazy interval may be broken in the full top-down order of all heap-children, it
+is still consecutive in symmetric order: all left heap-children of P lie left of bottom(P ), all right
+heap-children lie right of it, and within each side the top-down order is monotone in symmetric
+order. Therefore, as heap-descendants of a heavy path are a consecutive interval in the symmetric
+order, the union of heap-descendants over a lazy interval also always forms a consecutive interval
+in symmetric order.
+Each heavy path P maintains a partition of its heap-children into lazy intervals. Denote their
+set by intervals(P ). For each I ∈ intervals(P ), we call P its owner. Each non-root heavy path P
+belongs to exactly one lazy interval, denoted by I(P ). We have I(P ) ∈ intervals(HeapParent(P )).
+The top-most left and top-most right intervals on each heavy path are called growing and they
+can be empty. All other lazy intervals are called shrinking. We additionally maintain the invariant
+17
+
+I3R
+I2L
+
+I2R
+
+I1L
+I1R
+
+Figure 9: A possible partition of heap-children into lazy intervals. Each lazy interval covers a
+contiguous segment of either the left heap-children (intervals denoted by L) or the right heapchildren (intervals denoted by R). I2L and I3R are the growing lazy intervals; note that I3R is empty.
+All other intervals are shrinking. I1L is the only broken lazy interval. There are multiple valid
+decompositions into lazy intervals.
+
+18
+
+that there is no heap-child in a growing lazy interval that would appear lower in the top-down
+ordering of heap-children than some other heap-child from a shrinking interval.
+The concept of lazy intervals is illustrated in Figure 9.
+Definition 7 (Decomposition of gaps). The interval gap of a shrinking lazy interval I is defined
+as intervalgap(I) = minP ∈I gap(P ). The interval gap of a growing lazy interval is always 0. The
+point gap of a heavy path P is defined as pointgap(P ) = gap(P ) − intervalgap(I(P )). For the root
+heavy path, the point gap is defined to be 0. This decomposes each gap into two components.
+Throughout the analysis, we use a contracted version of the point gap, called the contracted
+point gap.
+Definition 8 (Contracted point gap). We define the contracted point gap of a heavy path P as
+⌈1 + log(1 + pointgap(P ))⌉.6
+Furthermore, we define G = maxt ⌈1 + log(2 + depth(Tt∗ ))⌉, which is an upper bound on any
+contracted point gap at any time.
+5.2.3
+
+Operations on lazy intervals
+
+After every splay and every rotation of the optimal tree, we are free to choose the precise structure
+of the intervals, as long as it is consistent with the definitions.
+We do not, however, want to recreate the lazy intervals. The strategy of our proof relies on the
+fact that each zig-zig modifies the structure in a particular way and on bounding the zig-zigs by
+the total number of modifications to the structure. For this, we need the changes of intervals to
+be controllable. If an interval has the same heap-children with the same heap-parent before and
+after operations, we simply say that this is the same lazy interval. If the lazy intervals are not the
+same, we argue that we can get from one setup to the other via the following operations. Before
+presenting the allowed operations on lazy intervals, we define pairings, the central operation: we
+later show that every zig-zig can be decomposed into two pairings.
+Definition 9 (Pairing). A pairing takes two right or two left heap-children with the same heapparent and different ranks that appear consecutively in the top-down ordering of the heap-children.
+The heap-child v with the smaller rank remains in its lazy interval, while the heap-child w with
+the higher rank leaves its lazy interval and joins the left growing lazy interval of v if it is to the left
+in the symmetric order; otherwise, it joins the right growing interval of v. v is called the winner of
+the pairing, while w is the loser.
+We further define the following classification of pairings:
+• If v and w originally belonged to the same lazy interval, i.e., I(v) = I(w), the pairing is
+called internal.
+– If the contracted point gaps of v and w were the same, the internal pairing is called good.
+– Otherwise, the internal pairing is called bad.
+6
+
+All logarithms in this work are binary.
+
+19
+
+• If v and w originally belonged to different lazy intervals, i.e., I(v) ̸= I(w), the pairing is
+called boundary.
+– If the loser’s lazy interval is not broken and is large enough, i.e., |I(w)| ≥ κG log(G),
+where κ is a constant that we set later, the boundary pairing is called unimportant.
+– Otherwise, the boundary pairing is called important.
+Note that the contracted point gap of the winner of any pairing never changes. The important
+property of internal pairings is that the contracted point gap of the loser does not increase. Furthermore, if the pairing is good, the loser’s contracted point gap decreases, which will later allow
+us to bound good pairings by the total increase in contracted point gaps.
+Lemma 10. Let (v, w) be an internal pairing. Then the contracted point gap of w does not increase.
+If the internal pairing (v, w) is good, the contracted point gap of w decreases by at least 1.
+Proof. Denote by I the lazy interval in which the internal pairing happens, and let u be the owner
+of I, hence the heap-parent of v and w before the pairing. Denote by x and x′ the point gaps of w
+before and after the pairing, respectively, and let y be the point gap of v, which does not change.
+Then, since a growing lazy interval has zero interval gap, the following identity holds:
+x′ = rank(w)−rank(v) = rank(w)−rank(u)−intervalgap(I)−(rank(v)−rank(u)−intervalgap(I)) = x−y
+It follows that
+⌈1 + log(1 + x′ )⌉ = ⌈1 + log(1 + x − y)⌉
+and since y is non-negative,
+⌈1 + log(1 + x′ )⌉ = ⌈1 + log(1 + x − y)⌉ ≤ ⌈1 + log(1 + x)⌉
+which shows that the contracted point gap of w cannot increase.
+If (v, w) is a good pairing, let k = ⌈1 + log(1 + x)⌉ = ⌈1 + log(1 + y)⌉ their contracted point
+gap before the pairing.
+We must have k ≥ 2, as otherwise x = y = 0, contradicting the distinct ranks of w and v. Next,
+since x, y ∈ Z,
+2k−2 ≤ x, y ≤ 2k−1 − 1
+1 + x − y ≤ 1 + (2k−1 − 1) − 2k−2 = 2k−2
+1 + log(1 + x − y) ≤ k − 1
+By the identity at the beginning of the proof, x′ = x − y, and
+1 + log(1 + x′ ) = 1 + log(1 + x − y) ≤ k − 1
+Since k − 1 is an integer, the ceiling operation cannot increase the value above it.
+⌈1 + log(1 + x′ )⌉ ≤ k − 1.
+This shows that for good internal pairings, the contracted point gap decreases from k to at most
+k − 1.
+20
+
+Pair-up Delete
+Paid operation?
+Creates new lazy interval(s)?
+Can increase contracted point gaps?
+Can add heap-child below shrinking intervals?
+
+no
+no
+no
+no
+
+no
+no
+no
+no
+
+Insert
+
+Split Convert Transfer
+
+yes
+no
+by ≤ G
+no
+
+no
+yes
+no
+no
+
+no
+yes
+no
+no
+
+no
+yes
+no
+no
+
+Heap-child-exchange
+yes
+no
+no
+yes, but keeps structure
+
+Table 1: Summary of allowed operations on lazy intervals and their properties.
+With pairings in hand, we define the following allowed operations on lazy intervals.
+• Pair-up performs the effect of an internal pairing on a shrinking interval.
+• Delete removes a heap-child from a shrinking lazy interval.
+• Insert inserts a heap-child on top of a growing lazy interval. The inserted heap-child has to be
+higher in the top-down ordering of heap-children than all other heap-children from shrinking
+lazy intervals.
+• Split splits a shrinking lazy interval into two lazy intervals with consecutive heap-children.
+• Convert converts a growing lazy interval into a shrinking interval and immediately creates a
+new growing interval on the same side.
+• Transfer changes the owner of a shrinking lazy interval (all heap-children in it change their
+heap-parent). All the heap-children in the transferred lazy interval have to end up higher
+on the heavy path than the heap-children that were there before – it is possible to transfer
+multiple lazy intervals at the same time so that the transferred lazy intervals do not have to
+satisfy this condition relative to one another; and a transfer of one or multiple lazy intervals
+immediately converts the growing lazy intervals to shrinking and creates new growing lazy
+intervals above the transferred lazy intervals.
+• The last operation is heap-child-exchange. The bottom-most vertex of a heap-child heavy
+path may change, thereby changing the identity of the heap-child while the upper part of the
+heavy path remains unchanged. In this case, we allow a heap-child-exchange, in which one
+heap-child is deleted from a lazy interval and another is simultaneously inserted into it. A
+valid heap-child-exchange requires that the exchanged heap-child be in a singleton shrinking
+lazy interval and that the light edge connecting the heap-child to the heap-parent heavy path
+have the same endpoints before and after the exchange.
+Throughout the proof, we ensure that we do not modify lazy intervals differently than through
+these operations. Furthermore, we ensure that no contracted point gap of any heap-child changes
+other than through these operations. For instance, if we need to change contracted point gaps of a
+few heap-children in some lazy interval due to their changes in gaps, we need to resolve it by the
+above operations, for instance, by splitting the lazy interval so that the heap-children for which the
+gaps change are in their own lazy interval so that the interval gap captures the difference.
+21
+
+With pair-ups, we will be able to do internal pairings. For boundary pairings, there is no explicit
+operation, hence we will have to cover their effects with a delete followed by an insert. Whenever
+pair-up or delete removes the last heap-child of a shrinking interval, we simply delete that interval.
+Note that, except for heap-child-exchange, all operations ensure that new heap-children appear
+only above shrinking lazy intervals, so they do not interfere with the subpaths corresponding to
+shrinking intervals. Heap-child-exchange is the only operation that allows adding new heap-children
+into shrinking lazy intervals, but due to its requirements, it is guaranteed that it does not affect
+the structure of the heavy path.
+Next, as elements are always inserted only to growing lazy intervals whose interval gap is
+defined to be zero and lazy intervals are never merged, no operation can increase the point gap of
+any existing heap-child. In particular, splits and converts only decrease the contracted point gaps
+of heap-children in the lazy intervals and transfer changes the rank of the new heap-parent, but
+this gets absorbed in the interval gap, so the point gap and contracted point gap remain the same.
+This is true also for heap-child-exchange as it happens only on singleton shrinking lazy intervals,
+so the new heap-child has the lowest possible contracted point gap of 1.
+Operations on lazy intervals requiring attention. There will be several operations and
+properties that we need to track. In Table 1, we summarize all these operations, including their
+properties that we care about.
+First, we need to bound the total number of inserts and heap-child-exchanges. This not only
+gives an upper bound on the number of boundary pairings but, as we later show, also bounds the
+number of pair-ups and hence the number of bad internal pairings. Furthermore, since inserts are
+the only operations that can increase a contracted point gap, we use their number to bound both
+the total increase in contracted point gaps and the total number of good internal pairings. We say
+that inserts and heap-child-exchanges are paid operations, while all other operations are free.
+Second, we need to track the total number of lazy intervals created by converts and splits. This
+will be crucial for bounding the total number of inserts, as we will need to perform a certain number
+of inserts per lazy interval.
+Finally, we need to keep track of every bend that we create on heavy paths, as we will use the
+total number of bends created to bound the total number of zig-zags.
+5.2.4
+
+Adjusting lazy intervals to small changes in heavy paths
+
+When the structure of the heavy paths needs to be modified only in a few places, we can describe
+the process in terms of the differences between the heavy-path structures before and after the
+modification. At certain internal nodes, we need to split the old heavy path and concatenate two
+pieces of the new heavy path. We call such an event a heavy path junction. Formally, a junction
+occurs at an internal node z whose outgoing heavy edge changes, equivalently, when the minimumrank external node in the subtree of z changes from v ′ to v; see Figure 10.
+A junction might require modifications of lazy intervals so that it is true that a lazy interval
+contains only heap-children with the same heap-parent and that each heavy path has two growing
+lazy intervals. We resolve this by the following sequence of operations on lazy intervals.
+
+22
+
+Iu′′
+
+Iu
+
+Iu′
+
+Iu
+
+u
+
+u
+IL′
+′
+IR
+
+IL
+
+z
+
+z
+IR
+IL
+
+IR
+
+v
+
+v
+
+v′
+
+v′
+
+Figure 10: All the lazy interval splits associated with a heavy path junction at node z. The lazy
+interval Iu containing v ′ is split so that v ′ is in a singleton lazy interval Iu′ , making heap-childexchange possible. IL and IR – the left and right intervals of v ′ that in top-down order contain the
+′ along with all other lazy
+internal node z are split at the height of z. The upper halves IL′ and IR
+′
+intervals of v above z are transferred to v. The other halves along with the remaining lazy intervals
+stay with v ′ . Except for these splits, the three heap-children that descend from z, including v ′ and
+v, are resolved by inserts, deletes and the heap-child-exchange of v ′ for v.
+1. The growing lazy intervals of v ′ are converted.
+2. The new lowest-rank node v in the subtree of z is deleted from the lazy intervals of the former
+lowest-rank node v ′ in the subtree of z. The other heap-child that was connected via a light
+edge to z is also deleted.
+3. We split the lazy intervals with owner u, the former heap-parent of v ′ , that contained v ′ by
+two splits into a singleton lazy interval, converting it to shrinking if needed.
+4. We do a heap-child-exchange from v ′ to v. Since the lazy interval containing v ′ is a singleton
+after the previous step and the top nodes of the heavy paths of v ′ before the junction and of
+v after it are the same, this satisfies the requirements of heap-child-exchange. If v ′ was the
+root heavy path, this step is skipped, as v will now be the root heavy path and thus correctly
+belongs to no lazy interval.
+23
+
+5. The growing lazy intervals of v are converted.
+6. The node v ′ and the other heap-child that was connected via a light edge to z are inserted
+into the appropriate growing intervals of v in the appropriate order. After each insertion, the
+growing lazy interval is converted into a shrinking interval, ensuring that it is a singleton.
+7. The at most two lazy intervals of v ′ that contained heap-children both above and below z in
+the top-down order are split at z.
+8. All lazy intervals of v ′ above z are transferred to v.
+This procedure correctly resolves the relationships between v, v ′ , and u, and transfers all heapchildren above z from v ′ to v as this part of the heavy path is now part of the heavy path of v.
+Updates on lazy intervals related to a heavy path junction are depicted in Figure 10.
+There is one more important aspect to this junction resolution and that is that the former
+heap-parent v ′ ends up in a singleton shrinking lazy interval. This is important since when we
+need to apply these modifications of lazy intervals we will not be able to atomically ensure that at
+the same time we perform these junctions and change the ranks. Due to this, after the junction,
+the gap of v ′ could temporarily be negative. However, its contracted point gap is always 1 as the
+interval gap resolves this, so this will be correct.
+Lemma 11. A heavy-path junction creates O(1) bends; the lazy intervals can be adjusted using
+O(1) paid operations and creating O(1) new lazy intervals.
+Proof. New bends can be created only at the node z and at the node immediately below z on the
+path to the new minimum v. At every other internal node, there is no new heavy edge going to or
+from it. At most 4 lazy intervals are split and O(1) new growing intervals are created; this totals
+O(1) new lazy intervals. We perform one heap-child-exchange and O(1) inserts, for a total of O(1)
+paid operations.
+
+5.3
+
+Handling rotations of the nearly optimal tree
+
+Whenever the nearly optimal tree T ∗ rotates, the structure of heavy paths changes, which in turn
+necessitates a modification of lazy intervals. We first show that, after a rotation of the optimal
+tree near its root, the structure of the heavy paths changes in only a constant number of places,
+creating O(1) bends. Next, we show that we can adjust the lazy intervals to these changes using
+only O(1) paid operations and creating O(1) new lazy intervals.
+5.3.1
+
+Changes in heavy paths due to rotations in the nearly optimal tree
+
+In this part, assume that a node x in T ∗ is rotated. Denote by y the parent of x. Additionally,
+denote by pL the lowest ancestor of y with y in its right subtree, and analogously by pR the lowest
+ancestor with y in its left subtree.
+We define the following segments of nodes that are consecutive in the symmetric order of nodes;
+see also Figure 11.
+
+24
+
+pR
+pL
+y
+x
+
+∆rank =
+
+SL
+
+Sx
+
+SM
+
+Sy
+
+SR
+
+0
+
+−1
+
+0
+
+1
+
+0
+
+Figure 11: Changes in ranks due to a left-edge rotation of x in T OPT .
+• SL consists of all nodes that are not in the subtree of y and are left of y in the symmetric
+order. This corresponds to the segment [⊥0 , pL ] and may be empty if pL does not exist. Nodes
+in SL do not change their rank during the rotation.
+• Analogously, SR consists of all nodes that are not in the subtree of y and are right of y in
+the symmetric order. This corresponds to the segment [pR , ⊥n ] and may be empty if pR does
+not exist. As with SL , nodes in SR do not change their rank.
+• Sy consists of y and the subtree of y not containing x. If this is a rotation on a left edge,
+these are [y, pR ), otherwise (pL , y]. In case pR or pL do not exist, these are instead [y, ⊥n ],
+respectively [⊥0 , y]. These nodes increase their rank by 1.
+• Sx consists of x and the subtree of x that remains a subtree of x after the rotation. If this is
+a rotation on a left edge, these are (pL , x], otherwise [x, pR ). Again, in case pL or pR do not
+exist, these are instead [⊥0 , x], respectively [x, ⊥n ]. These nodes decrease their rank by 1.
+• SM consists of the nodes in the other subtree of x. If this is a rotation on a left edge, these
+are (x, y), otherwise (y, x). Their rank is not modified.
+A pair of consecutive vertices belonging to different segments is called a border. The node of a
+border with the lower rank is called a border node.
+Lemma 12. Every border node has rank O(1).
+Proof. There are at most 4 borders, and each of them contains at least one node from {x, y, pL , pR }.
+The node x has rank O(1) by Theorem 2, as rotations occur only at constant depth from the root.
+Moreover, y, pL , and pR have smaller ranks because they are ancestors of x in the optimal tree.
+25
+
+z
+
+v′
+
+z
+
+v′
+
+v
+rank ∈ O(1)
+
+S′
+
+v
+rank ∈ O(1)
+
+S′
+
+S
+
+S
+
+Figure 12: A heavy path junction at node z due to optimal tree rotations. v ′ is the node containing
+z in its heavy path before and v is the node after. Since their relative ranks changed, they must
+come from different segments S ′ and S. Before rotation v ′ was a heap-ancestor of v and a heapancestor of a border node with rank O(1); after v is a heap-ancestor of both v ′ and the border
+node.
+Thus, all these nodes have rank O(1). Since every border contains a node with rank O(1), the
+border node corresponding to that border has to have rank O(1).
+Lemma 13. There are O(1) heavy-path junctions due to a rotation of the nearly optimal tree T ∗ .
+As a consequence, each such rotation creates O(1) bends.
+Proof. We count the number of internal nodes z where a junction happens. This happens whenever
+there was a node v ′ containing z in its heavy path before the rotation and a different node v
+containing z in its heavy path after the rotation. Each such pair (v ′ , v) uniquely determines the
+internal node z where it can cause a junction: the point where their paths to the root diverge,
+namely, the lowest common ancestor of v ′ and v. Above the lowest common ancestor, the heavy
+path would lead to the same node, so this pair cannot cause a junction there. Below it, one of the
+two nodes is not in the subtree, so the pair cannot cause a junction there either.
+As v is in the subtree of z, prior to the rotation v ′ was a heap-ancestor of v; and after the
+rotation, v is a heap-ancestor of v ′ . In particular, this means that v ′ and v must have been in
+different segments as otherwise their ranks would change in the same way. Therefore the subtree
+of z contains a border and hence at least one border node. Therefore, v ′ must have been a heapancestor of the heavy path of a border node before the rotation and v a heap-ancestor after the
+rotation. The situation is depicted in Figure 12.
+There are at most 4 different border nodes, and each has rank O(1) before the rotation by
+Lemma 12. Since a node of rank R can have at most R + 1 heap-ancestors, there are only O(1)
+possible nodes v ′ whose heavy paths were heap-ancestors of a border node before the rotation.
+Similarly, after the rotation each border node has rank O(1) as ranks change only by a constant
+
+26
+
+during the rotation. Therefore, there are only O(1) possible nodes v whose heavy paths are heapancestors of a border node after the rotation. Hence, there are O(1) × O(1) = O(1) pairs of vertices
+(v ′ , v) and thus only O(1) heavy-path junctions. The two O(1) factors come from the fact that the
+nearly optimal tree T ∗ does rotations only at constant depth. Each junction creates O(1) bends by
+Lemma 11.
+5.3.2
+
+Adjusting lazy intervals to rotations
+
+Since the structure of the heavy paths changes, the lazy intervals must be updated. However, there
+is one more issue to settle. We cannot directly modify the contracted point gaps of heap-children.
+Instead, we must either ensure that the contracted point gaps do not change or absorb the changes
+through operations on lazy intervals, so that the contracted point gaps remain unchanged once
+these operations and the rank updates are complete.
+Lemma 14. There are O(1) lazy intervals containing heap-children from at least two different
+segments.
+Proof. We know that all heap-descendants in any lazy interval are consecutive in the symmetric
+order. This implies that if a lazy interval contains heap-children from two different segments, then
+it contains a border node as a heap-descendant. In particular, the owner of the lazy interval is a
+heap-ancestor of the border node.
+There are 4 border nodes, each having O(1) heap-ancestors, and for each such heap-ancestor,
+there is at most one lazy interval containing the border node as a heap-descendant. Therefore there
+are O(1) such lazy intervals.
+Our strategy for updating the lazy intervals to handle a rotation is as follows. We first perform
+the necessary updates to the lazy intervals so that the structure of the heavy paths can change.
+We then perform certain splits and converts. Finally, we observe that, because of how we split the
+intervals, no heap-child changes its contracted point gap due to the rank changes.
+Lemma 15. Whenever the nearly optimal tree T ∗ rotates, the lazy intervals can be updated by O(1)
+paid operations and by creating O(1) new lazy intervals.
+Proof. First, we adjust the lazy intervals to the changes in the heavy paths. By Lemma 13, changes
+occur in only O(1) places. The heavy-path junctions can be handled using O(1) paid operations
+and creating O(1) new lazy intervals by Lemma 11. Note that we first perform the changes due to
+junctions and then apply the rank changes. For a short while the former heap-parents could have
+negative gaps, but since they are in shrinking singleton lazy intervals, their contracted point gaps
+are always 1, so this is correct.
+If a shrinking lazy interval lies entirely within a segment, the gaps of all heap-children in it
+change by the same amount. Therefore, the interval gap also changes by exactly this amount, and
+the point gaps remain unchanged.
+By Lemma 14, there are only O(1) intervals not fully contained in a single segment. We can split
+them into O(1) parts, each fully contained in one segment. We do this using free splits, preceded
+by converts if the lazy interval being split was growing. This creates only O(1) new lazy intervals.
+27
+
+Next, we need to bound non-empty growing lazy intervals that are fully within a single segment.
+If the owner of the lazy interval is in the same segment, then all ranks change by the same amount,
+so all the gaps and also contracted point gaps of heap-children within the lazy interval remain the
+same. The problematic intervals are those for which all heap-children of a growing lazy interval are
+in the same segment but the owner is in a different segment. Since the interval gap of a growing
+lazy interval is defined to be zero, it does not capture this shift. We resolve the issue by converting
+the interval into a shrinking interval, which absorbs the rank update so that the contracted point
+gaps do not change. However, we need to argue that this cannot happen too often. Consider a
+heap-child v in the lazy interval and its heap-parent u. Since they are in different segments, it
+means that there is a border node between v and u in the symmetric order; in particular, u is
+a heap-ancestor of this border node. Each of the O(1) border nodes has only O(1) such heapancestors, and each heap-ancestor has only 2 growing lazy intervals. Therefore, this creates only
+O(1) new lazy intervals.
+In total, by creating O(1) new lazy intervals and using O(1) paid operations, we ensure that no
+contracted point gap changes due to the rank update, except for decreases already caused by free
+interval operations.
+
+5.4
+
+Handling splays
+
+To be able to argue about the cost of splaying, we first observe how the structure of the splay tree
+changes when we splay some node x to the root. The main idea is to use these structural changes
+to bound zig-zigs and zig-zags. Roughly speaking, we bound the total number of changes needed to
+maintain the lazy intervals and show that each zig-zig makes at least one such change. For zig-zags,
+we observe that each removes a bend, which allows us to relate their number to the zig-zigs that
+create bends.
+We analyze these changes in three phases. First, we observe how splaying changes the structure
+of heavy paths. We then show how to adjust the lazy intervals while creating only a few new ones.
+Finally, we show how to perform these changes on the interface with only a few operations; the
+crucial step is to decompose the effects of zig-zigs into pairings.
+5.4.1
+
+Structural changes to heavy paths due to splaying
+
+Because the accessed element is at the root of the nearly optimal tree T ∗ before the splay tree
+changes, it has rank 0 and is always the bottom-most node on the root heavy path.
+When the parent internal node of x, denoted by x◦ , is splayed, x and x◦ are progressively
+moved towards the root by zig-zigs and zig-zags, possibly ending with a zig. Each zig-zig and
+zig-zag removes two internal nodes from the heavy path of x, while a zig removes one; we call these
+nodes hit by the corresponding operation. Except for the hit nodes, the structure of the heavy
+path of x remains exactly the same as before the operation. Additionally, we say that a heap-child
+is hit by an operation if the light edge connecting it to its heap-parent is incident to a hit internal
+node.
+Our aim is to determine what happens during a splay to heavy paths other than the root heavy
+path. Towards that goal, let x− denote the node with the lowest rank in the subtree of the left child
+
+28
+
+xL of x◦ before the splay. Since ⊥x−1 is in this subtree, rank(x− ) ≤ rank(⊥x−1 ). By Corollary 3,
+the rank of ⊥x−1 is O(1), and hence so is the rank of x− . Analogously, x+ is defined as the node
+with the lowest rank in the subtree of xR , and its rank is also O(1) because the rank of ⊥x is O(1).
+To be able to reason about the effects of a splay on the structure of heavy paths, we do the
+following trick. We imagine that before the splay, the ranks of both x− and x+ lie between x’s
+rank of 0 and the ranks of all other nodes; think of them as having rank 0.5. Before the splay, this
+does not affect the structure of the heavy paths: both x+ and x− are heap-children of the lowerrank node x, and they are already the least-rank nodes within their respective subtrees. Although
+general artificial rank changes could cause a subtree to contain two different least-rank nodes, this
+particular change is safe: after the splay, x− and x+ are the least-rank vertices in the left and right
+subtrees, respectively, and subtrees containing neither of them are unaffected.
+In the following lemma, we analyze how the structure of heavy paths changes after a splay
+under these assumptions. Later, we show that omitting these assumptions requires only a small
+adjustment to the analysis.
+Lemma 16. Assume that x− and x+ are the least-rank nodes to the left and right of x, respectively,
+in symmetric order. After a splay of x◦ with value node x, the structure of the heavy paths changes
+as follows.
+• After the splay, x− is the only left heap-child of x and x+ is the only right heap-child of x.
+Furthermore, x contains only a single internal node, x◦ , in its heavy path.
+• All internal nodes except for x◦ on the former heavy path of x are hit by some zig-zig/zigzag/zig and so are all former heap-children of x except for x− and x+ . No internal node and
+no heap-child are hit by more than one operation.
+• For every zig-zig, among its four hit heap-children, the bottom-most one in the top-down order
+is skipped and the remaining three form a consecutive triplet. Denote by w the heap-child in
+the triplet with the least rank and call it the winner. The other two heap-children in the
+triplet, the losers, become heap-children of w, and w acquires the upper internal node hit by
+that zig-zig into its heavy path.
+• All hit right heap-children that are not losers of a triplet—that is, heap-children touched by
+zig-zags or zigs, heap-children skipped by a zig-zig, and winners of a triplet—become right
+heap-children of x+ . All hit left heap-children that are not losers become left heap-children of
+x− . All internal nodes that are either hit by a zig-zag or zig, or are the lower node hit by a
+zig-zig, become internal nodes of the heavy path of either x− or x+ .
+Proof. Once x is splayed, it still has rank 0 so it is the root heavy path and x◦ is the root and the
+only internal node on the heavy path. The node x− is assumed to be the lowest-rank node in the
+left subtree of the root, so it is still a left heap-child of x. Since there is only one internal node on
+the heavy path of x, it is the only left heap-child. Similarly, x+ is the lowest-rank node in the right
+subtree of the root, and for the same reason, it is the only right heap-child of x.
+For the second property, every operation hits two internal nodes, which are removed from the
+heavy path of x. Therefore, no internal node can be hit twice, and neither can any heap-child.
+29
+
+Since, after the splay, the heavy path of x has no internal node other than x◦ , every other internal
+node on its former heavy path must have been hit by some operation.
+Next, consider a particular zig-zig and the structure preceding this zig-zig. At this point, x is
+still the bottom-most node of the root heavy path with everything above as before the splay, whereas
+everything below is exactly as after the splay, since rotations only affect the local neighborhood.
+All three cases distinguished below are depicted in Figure 13a.
+Let y ◦ be the parent of x◦ and z ◦ the parent of y ◦ —these are the two internal nodes hit by this
+zig-zig. Let y and z denote the value children of y ◦ and z ◦ , respectively. First, we consider the
+case where x◦ and y ◦ are both left children. Let y + be the lowest-rank node in the right subtree of
+y ◦ and similarly define z + . Prior to the zig-zig, x had four heap-children that were connected via
+light edges to either y ◦ or z ◦ – these were y, y + , z, and z + . These are exactly the heap-children hit
+by the zig-zig and they appear consecutively in the top-down ordering of heap-children. After the
+zig-zig, y ◦ and z ◦ are no longer on the heavy path of x, with y ◦ being a right child of x◦ . Since x+
+is the least-rank node right from x, y ◦ is on the heavy path of x+ and hence all y, y + , z, and z + are
+no longer heap-children of x. y becomes a heap-child of x+ since it is a child of an internal node on
+its heavy path. Similarly, the node that contains in its heavy path z ◦ becomes a heap-child of x+
+– this is the one from y + , z, and z + with the least rank. The other two are connected via a light
+edge to z ◦ , so they become heap-children of the least-rank one from y + , z, and z + . Hence, y + ,
+z, and z + are the consecutive triplet considered in the statement and y along with the least-rank
+node from the triplet become heap-children of x+ . No other heap-children are changed, since these
+are the only nodes hit by the zig-zig. The situation when x◦ and y ◦ are right children is exactly
+the same, just with x− instead of x+ .
+To see the last part of the claim, we first need to show that all other operations move former
+heap-children of x to become heap-children of x− or x+ . For zig-zigs, we have already shown that
+the remaining heap-children become heap-children of either x− or x+ , so we need to show this for
+zigs and zig-zags.
+For a simple rotation of x, first consider that x◦ is a left child. As above, y ◦ becomes part of
+the heavy path of x+ , so both y and y + become heap-children of x+ . The case where x◦ is a right
+child is analogous, with x− in place of x+ . Zigs are one such rotation and zig-zags are two such
+rotations one after another. Therefore the heap-children and internal nodes hit by them behave as
+described above. The effect of the rotation of x on the heavy paths is illustrated in Figure 13b.
+This shows that every remaining former heap-child of x becomes a heap-child of either x− or
+x+ . All former right heap-children of x are in the right subtree, so they must become heap-children
+of x+ . Furthermore, they lie to the right of x+ in the symmetric order, as x+ is the bottom-most
+and hence left-most right heap-child of x; thus, they all become right heap-children of x+ . By the
+same reasoning, all left heap-children become left heap-children of x− .
+See also Figure 14 for an illustration of how the heavy paths change after splaying.
+However, as mentioned above, the assumption that x− and x+ have the next-lowest ranks need
+not hold. We therefore need to consider what changes when we adjust their ranks to their true
+values. We now want to argue that this requires only O(1) heavy path junctions. First, consider
+x− . Prior to its rank adjustment, it was the bottom of the root heavy path of the left subtree of x◦ .
+In the left subtree of x◦ , increasing the rank of x− can create junctions only on this heavy path, as
+30
+
+no other internal node contains x− and no other external node’s rank changes. After the update
+to its correct rank, its rank is O(1) by the riblessness of the optimal tree, as proved in Corollary 3.
+In particular there can be at most O(1) light edges on the path from x− to the root as every light
+edge decreases the rank by at least 1. Since each heavy-path junction on the heavy path of x−
+creates one such light edge, there can be only O(1) heavy-path junctions. The same holds for x+
+as the situation is identical.
+Since we now know how the structure of heavy paths changes, we can bound the number of
+bends created and moreover show that each zig-zag removes at least one bend.
+Lemma 17. The number of bends created by a splay is at most O(1) + #zig-zigs; the number of
+bends removed by a splay is at least #zig-zags.
+Proof. Let xR be the top-most node of the heavy path of x+ before the splay, i.e., the former right
+child of x◦ . By Lemma 16, x+ is the sole right heap-child of x. Since the subtree of xR is the
+left-most one right of x, all edges on the path to xR (which is the new prefix of the heavy path to
+x+ ) are left and hence no internal node above xR on the heavy path of x+ becomes a bend. The
+heavy path below xR remains the same, so possibly only xR could have become a new bend on the
+heavy path of x+ . Similarly, all edges to analogously defined xL are only right edges, hence xL is
+the only node that could have become a bend on the heavy path of x− .
+Next, by Lemma 16, for every zig-zig there is one node w—the winner of the triple—whose
+heavy path acquires a new internal node. Consequently, the former top-most internal node on the
+heavy path of w could become a new bend, but all its other internal nodes are unaffected. This
+creates at most #zig-zigs new bends.
+The heavy path of x after the splay contains only a single internal node, hence it has no bends.
+Prior to the splay it could have had many bends, which got removed. In particular, we show that
+there were at least #zig-zags bends. In a zig-zag, the edge from the upper hit node to the lower
+hit node and the heavy edge from the lower hit node toward x◦ go in opposite directions, so the
+lower hit node must have been a bend. The hit nodes for all zig-zags are disjoint; thus, there were
+#zig-zags such bends, and all were removed.
+By Lemma 16, no other heavy paths were modified under the assumption of low ranks of x−
+and x+ , hence no other bends could have been created.
+Restoring the true ranks of x− and x+ requires O(1) heavy-path junctions, each creating O(1)
+bends by Lemma 11.
+This totals at most O(1) + #zig-zigs created bends and at least #zig-zags removed bends as
+desired.
+
+5.4.2
+
+Adjusting lazy intervals to changes after splaying
+
+Lemma 16 tells us how the structure of heavy paths changes. This change necessitates a change in
+the lazy intervals.
+As in the heavy-path analysis, we first assume that x− and x+ have the next-lowest ranks and
+therefore become the sole heap-children of x; after the splay, we remove this assumption. To make
+this assumption, we split the lazy intervals containing x− and x+ to make them singleton lazy
+31
+
+z
+y
+x
+x−
+
+x
+x−
+
+z+
+y+
+
+y
+x+
+
+z
+
+x+
+
+y+
+
+z+
+
+(a) The structure of heavy paths after a zig-zig on x (x+ is assumed to be the second least-rank node). The
+grey solid edges indicate which edges can be either light or heavy, depending on the exact ranks. The edge
+to the lowest-rank node among y + , z, and z + is heavy.
+
+y
+
+x−
+
+y+
+
+x
+
+x−
+
+x
+
+x+
+
+y
+
+x+
+
+y+
+
+(b) The effect on heavy paths after rotating x (under the assumption that x+ is the next least-rank node).
+A zig consists of one such rotation, while a zig-zag consists of two.
+
+Figure 13: The changes to the structure of heavy paths after zig/zig-zag/zig-zig of the splayed
+node.
+
+32
+
+x◦
+x
+
+x−
+
+x+
+
+x◦
+x
+x−
+
+x+
+
+Figure 14: The effect of splaying node x (under the assumption that x− and x+ are the next
+least-rank nodes). Nodes hit by the first zig-zig are red and right-diagonally hatched, nodes hit
+by the second zig-zig are blue and left-diagonally hatched, and nodes hit by the zig-zag are green
+and horizontally hatched. Note that the structure below the heavy paths to x− and x+ depends
+on the least-rank node in the triplet and can be any configuration from Figure 13a. Observe also
+that zig-zags happened exactly when the bottom-most hit internal node was a bend.
+intervals, converting them if necessary. Then, changes to the ranks of x− and x+ do not affect the
+contracted point gaps of any other heap-children of x. If we ensure that all non-empty lazy intervals
+of x− and x+ are converted to shrinking, no heap-children of x− or x+ change their contracted
+point gaps, as every change is absorbed by the interval gaps.
+Under this assumption, these two singleton lazy intervals remain the only two shrinking lazy
+intervals of x.
+Next, by Lemma 16, we have two more tasks. First, we need to account for the effects of
+zig-zigs. Second, we need to ensure that every remaining heap-child of x changes its heap-parent
+to x− or x+ . The second task is straightforward: once all heap-children moved by zig-zigs have
+been moved accordingly within the lazy intervals, all remaining right heap-children of x except for
+x+ become right heap-children of x+ . Since x+ is already in a separate lazy interval, all other
+right lazy intervals of x are transferred to x+ . Similarly, all heap-children in left lazy intervals of x
+except for the singleton one that contains x− become left heap-children of x− , which on the level
+of lazy intervals is handled by transferring the left lazy intervals of x to x− . These are all valid
+lazy-interval transfers, since the heap-children in the transferred intervals appear above the lazy
+intervals that were already owned by x− and x+ .
+The remaining part that we need to handle is the effect of zig-zigs. We show that the effect of a
+zig-zig corresponds to exactly two pairings and then explain how to perform them on lazy intervals
+using pair-ups, inserts, and deletes. This is important because we will later bound the total number
+33
+
+of pairings by bounding the total number of these operations on lazy intervals.
+Lemma 18. The effect of a zig-zig of x corresponds to two pairings assuming that afterwards the
+lazy intervals containing all the hit heap-children of x get transferred to x− /x+ .
+Proof. First, consider a right zig-zig. Let x◦ be the splayed internal node, with x as its corresponding
+value node; let y ◦ be the parent of x◦ and z ◦ the parent of y ◦ , with y and z as their respective value
+nodes. Let x− and x+ be the least-rank nodes in the left and right subtrees of x◦ , respectively, and
+let y + and z + be the least-rank nodes in the right subtrees of y ◦ and z ◦ , respectively. After the
+zig-zig, x− and x+ remain the bottom-most heap-children of x, while y is transferred to x+ since y ◦
+lies on the heavy path of x+ . The lowest-rank node among y + , z, and z + contains z ◦ in its heavy
+path and is transferred to x+ as a heap-child. The other two become top-most heap-children of the
+heavy path containing z ◦ . Therefore, we only need to show that this change can be decomposed
+into two pairings.
+The proof of this depends on which of y + , z, and z + has the lowest rank. Note that initially
+they appear in this order consecutively as the right heap-children of x. If z is the lowest-rank node,
+then y + and z + become the new top-most heap-children of z, with y + becoming the left heap-child
+and z + becoming the right heap-child. Since both pairs (z, z + ) and (y + , z) are consecutive, this
+can be performed with two pairings in either order.
+If y + has the lowest rank, then z + becomes the new top-most right heap-child of y + and z
+becomes the second top-most right heap-child of y + . Therefore, we can first pair y + and z, which
+are consecutive, and then y + and z + , which become consecutive when z is removed. This correctly
+puts z + above z among the right heap-children of y + .
+Finally, if z + has the lowest rank, then y + becomes the new top-most left heap-child of z + and
+z becomes the second top-most left heap-child of z + . Therefore, we can first pair z and z + , which
+are consecutive, and then y + and z + , which become consecutive when z is removed. This correctly
+puts y + above z among the left heap-children of z + . All three cases are illustrated in Figure 13a.
+After the splay, the losers are heap-children of the winner, so their ranks are strictly larger
+than the winner’s rank. Therefore, the requirement that the paired vertices have different ranks is
+satisfied.
+The situation for left zig-zigs is analogous: x− , y − , and z − replace x+ , y + , and z + , respectively,
+and the roles of left and right heap-children are swapped.
+Hence the effect of each zig-zig can be decoupled into two pairings that happen one after the
+other. We call the first of these a first pairing and the second a second pairing. We perform internal
+pairings using pair-ups. Boundary pairings cannot be performed by pair-ups, so we implement them
+by deleting each loser and inserting it into the winner’s lazy interval.
+Lemma 19. For a given splay, no two first pairings share a heap-child; additionally, no two second
+pairings share a heap-child.
+Proof. By Lemma 16, the sets of heap-children hit by individual zig-zigs are disjoint, therefore the
+pairings are disjoint as each comes from a different zig-zig. Analogously for second pairings.
+
+34
+
+From Lemma 19, we can perform the pair-ups / deletes and inserts for first pairings in any
+order or in parallel; the same for second pairings. This will be later important to allow us to bound
+the number of pair-ups.
+These operations on lazy intervals capture the changes to heavy paths under the assumption
+that x− and x+ are the next-lowest-rank vertices. This need not be the case, so we must also update
+the intervals at the O(1) heavy-path junctions required to remove the assumption. By Lemma 11,
+we know how to do this using O(1) paid operations and creating O(1) new lazy intervals. Since
+all transferred lazy intervals are shrinking, if any transferred element in fact has lower rank than
+x− or x+ , this difference is absorbed by the interval gap, and all point gaps remain non-negative
+throughout.
+Overall, the following sequence of operations correctly updates the lazy intervals for a splay.
+1. Convert the growing lazy intervals of x, x− , and x+ to shrinking.
+2. Split the lazy intervals containing x− and x+ so that x− and x+ are in singleton lazy intervals.
+3. For every first pairing (u, v) during a splay, in any order, do the following:
+(a) If (u, v) is a boundary pairing, delete v from its former lazy interval and insert it into
+the appropriate growing lazy interval of u.
+(b) If (u, v) is an internal pairing, perform a pair-up.
+4. For every second pairing, do steps 3a and 3b.
+5. Transfer all non-empty right intervals of x, except for the singleton interval containing x+ ,
+to x+ , and all non-empty left intervals of x, except for the singleton interval containing x− ,
+to x− . All the non-empty intervals are shrinking due to Step 1.
+6. For every junction that happens due to x− and x+ not having the next-lowest rank, update
+the lazy intervals as described in Section 5.2.4.
+We now analyze the number of paid operations needed for a splay and the number of lazy
+intervals created.
+An important step is to show that the number of internal pairings within a lazy interval after
+the first splay over it—meaning a splay for which the lazy interval was owned by the splayed vertex
+immediately before the splay—is always a constant fraction of the number of heap-children in it.
+This ensures that lazy-interval sizes decay exponentially with the number of splays over them,
+which helps us bound the boundary pairings.
+Lemma 20. Consider a lazy interval I. After the first splay over I, the interval is never broken
+again; nor is any interval obtained by splitting I.
+Proof. Consider the lazy interval I. After the first splay, I is either the singleton interval containing
+x− /x+ , or it is one of the transferred intervals to x− /x+ by Lemma 16. The newly added prefix of
+the heavy path to x− or x+ contains no bends, as it consists only of left or right edges, respectively.
+Hence I is not broken. The only way this lazy interval can become broken is for a new internal node
+35
+
+to appear on the heavy path between the internal nodes to which the top-most and bottom-most
+heap-children are attached by their light edges. This is because removing internal nodes cannot
+create bends.
+However, adding an internal node to the heavy path that owns I requires adding a new heapchild to the owner of I. Since all operations except heap-child-exchange add new heap-children
+only above shrinking intervals, and I is shrinking after the splay, these operations cannot add
+an internal vertex below the top-most heap-child of I. Heap-child-exchange is the only operation
+without this guarantee; however, because it preserves the light edge, it also preserves the structure
+of the heavy path itself and cannot add bends.
+Therefore, since no operation can add bends to a shrinking lazy interval, the interval is never
+broken again after a splay over it. In particular, splitting an interval does not create any new bends,
+so neither of the two resulting lazy intervals is broken.
+Lemma 21. For a fixed lazy interval I, unless I is broken, which can happen only during the first
+splay over it, the set of all internal pairings M from that splay has size at least |M | ≥ (|I| − 6)/2,
+where |I| is measured immediately before the splay. In particular, for the set of first internal pairings
+M1 and the set of second internal pairings M2 , |M1 |, |M2 | ≥ (|I| − 6)/4.
+For the next two lemmata, we extend the classification of internal and boundary pairings to
+zig-zigs. We say that a zig-zig is internal to I if all heap-children hit by it are from I, and that
+a zig-zig is a boundary zig-zig for I if at least one, but not all four, of the heap-children hit by it
+belong to I. Internal zig-zigs correspond only to internal pairings.
+Proof. After the first splay, I is not broken by Lemma 20. This implies that, except for the two
+top-most and the two bottom-most heap-children in I, none can be hit by a zig-zag. This holds
+because a zig-zag hits four consecutive heap-children, two of them left and two of them right. If
+other than the two top-most or bottom-most were hit, it would imply that there are heap-children
+on the other side in between in top-down order, contradicting non-brokenness. A zig can hit only
+the two top-most heap-children, as it always hits only the two top-most heap-children on the whole
+heavy path. A boundary zig-zig can hit at most the 3 top-most and 3 bottom-most heap-children
+of I, as it must contain a heap-child outside I and the heap-children hit by it must be consecutive.
+Hence, heap-children except for these at most 6 heap-children are hit by internal zig-zigs as
+they are not hit by zig-zags, zigs, nor boundary zig-zigs. Each internal zig-zig hits exactly 4 heapchildren and corresponds to one first pairing and one second pairing. Hence, |M1 | ≥ (|I| − 6)/4
+and |M2 | ≥ (|I| − 6)/4, so |M | = |M1 | + |M2 | ≥ (|I| − 6)/2.
+Lemma 22. Consider a lazy interval I. Over the lifetime of I, there are O(log G) important
+boundary pairings with I containing the loser of the pairing.
+Proof. Consider I. In one splay, there can be at most 2 boundary zig-zigs, one on each side of I,
+as the hit heap-children are consecutive. Each boundary zig-zig consists of at most 2 boundary
+pairings, and every zig-zig containing at least one boundary pairing must be a boundary zig-zig.
+Hence, during one splay, there can be at most 4 boundary pairings with a loser in I.
+We now distinguish three cases depending on the status and size of I.
+
+36
+
+• I is broken. Then after a single splay it is no longer broken by Lemma 20, so there is at most
+one such splay.
+• I has size at most 12. Then there can be at most 12 splays with at least one boundary pairing
+having a loser in I, since the loser leaves the lazy interval, so after every such splay, the size
+decreases by at least 1.
+• In all other cases, I is unbroken and |I| ≥ 12. Moreover, |I| ≤ κG log G, as otherwise the
+boundary pairings would not be important. By Lemma 21, I has at least (|I| − 6)/2 internal
+pairings, which for lazy intervals of size at least 12 is at least |I|/4. For each such internal
+pairing, the loser is removed from I, so the size of I decreases by at least |I|/4. Thus, there
+are O(log G) such splays.
+Therefore, there are O(log G) splays with at least one important boundary pairing whose loser
+is in I, and there are O(1) such boundary pairings per splay. Thus, over all splays, there are
+O(log G) boundary pairings whose loser is in I.
+Now, we bound the total number of paid operations and the total number of lazy intervals
+created during splaying.
+Lemma 23. Every splay creates O(1) new lazy intervals.
+Proof. Step 1 creates 6 new lazy intervals by conversion, and Step 2 creates O(1) more by splitting.
+4 lazy intervals are created in total for the 2 transfers in Step 5. Finally, Step 6 creates O(1)
+lazy intervals, corresponding to O(1) heavy-path junctions, each of which creates O(1) new lazy
+intervals by Lemma 11.
+Lemma 24. Let ℓ be the total number of lazy intervals ever created and u the total number of
+unimportant boundary pairings performed. The total number of paid operations over all splays is
+u + O(ℓ log G + cost(T ∗ )).
+Proof. In Step 3(a) and the analogous case in Step 4, there is one insert per boundary pairing. There
+are O(log G) important boundary pairings per lazy interval, so there are O(ℓ log G) corresponding
+inserts over all ℓ lazy intervals. There are u unimportant boundary pairings in total and hence u
+corresponding inserts.
+Step 6 uses O(1) inserts, as there are O(1) heavy-path junctions, each requiring O(1) paid
+operations by Lemma 11. The number of splays is at most cost(T ∗ ), since the nearly optimal tree
+T ∗ pays 1 for each access.
+
+5.5
+
+Bounding the total number of bad internal pairings
+
+The goal of this section is to bound the total number of bad internal pairings by the total number
+of paid operations on the lazy intervals and the total number of good internal pairings.
+Lemma 25. Let n be the number of elements, g be the total number of good internal pairings, a
+the total number of internal pairings (both good and bad), and p the total number of paid operations
+performed. Then
+a ∈ O((p + n) · G log G + g log G).
+37
+
+We prove Lemma 25 in two steps. First, we give an interface and prove a lemma on its properties that is an abstraction of the core argument in the analyses of multi-pass and pure pairing
+heaps [ST25; TX26]. We then show how to translate operations on lazy intervals into this interface
+and how to derive a bound on the number of internal pairings.
+The interface result isolates the properties needed for splay trees. It does not use the full strength
+of the proof method of [TX26]: in particular, in that method a ValueChange operation incurs a
+charge logarithmic only in the element’s current value rather than in the maximum value. On the
+other hand, our interface is more general in several respects: it includes a new Split operation,
+a more general Pass operation, and no requirement that the elements form a tree. Adapting the
+proof method to these changes does not require major new ideas.
+5.5.1
+
+An interface abstraction of pairing-heap analysis
+
+Throughout, we fix the following:
+• A set of n elements V .
+• Integer values Cgrowing , Cexempt ∈ O(1) and G ∈ Z≥2 .
+1
+• A real value γ ∈ [ O(1)
+, 21 ].
+
+State
+
+The state of the interface consists of the following:
+
+• A collection of blocks B ∈ B, each containing an ordered sequence of elements. At any time,
+each element belongs to at most one block.
+– Each block has a creator element u ∈ V and a pass count p ∈ Z≥0 .
+– Each block is either growing or shrinking.
+– At any time, for any element v ∈ V , there are at most Cgrowing growing blocks with
+creator v.
+• A value function f : V → {1, 2, . . . , G}.
+• Initially, there are no blocks, and the values f (v) are arbitrary.
+Operations
+
+The state can be modified by the following operations on the interface:
+
+• Convert(B): turn a growing block B into a shrinking block.
+• Create(v): create a new empty growing block with creator element v and pass count 0.
+(Afterward, there must be at most Cgrowing growing blocks with creator v).
+
+• Insert(B, v): given an element v not in any block and a growing block B with creator u
+satisfying f (v) ≥ f (u) + 1, add v as the leftmost element of B.
+• Delete(v): given an element v in a shrinking block B, remove v from B.
+38
+
+• Pass(B, M ): B is a shrinking block. The matching M is a set of pairing tuples (v, w, Bv ),
+where v and w are adjacent elements of B in either order and Bv is a growing block of v. The
+matching M must satisfy the following:
+– For every pairing (v, w), f (w) ≥ f (v) + 1.
+– Each element of B appears in at most one pairing in M .
+– Either |M | ≥ γ|B|, or the pass count p of B satisfies p ≤ Cexempt .
+The pass has the following effects:
+– The pass count p of B is incremented by 1.
+– For every pairing (v, w, Bv ) ∈ M , the element w is removed from B and added as the
+leftmost element of the indicated growing block Bv with creator v.
+• Split(B, k): given a shrinking block B, split it into two new shrinking blocks, one consisting
+of the prefix of length k and the other of the suffix of length |B| − k. The block B becomes
+empty. Both blocks created by a Split inherit the creator of the split block and its current
+pass count.
+• ValueChange(v, ∆): given an element v ∈ V and ∆ ∈ {−1, 1}, assign f (v) ← f (v) + ∆.
+(1 ≤ f (v) ≤ G must still hold afterward).
+
+Lemma 26. For any sequence of interface operations, define the total activity A as the sum of
+matching sizes |M | over all Pass operations. Then,
+A ≤ #Insert · O(G) + #ValueChange · O(log G),
+where #Insert and #ValueChange are, respectively, the total numbers of Insert and ValueChange
+operations in the sequence.
+To prove Lemma 26, we need one helper lemma that allows us to ignore activity from Pass
+operations on blocks with a high pass count. Intuitively, this holds because a block shrinks by at
+least a constant factor every time Pass is called on it, except possibly during the first Cexempt = O(1)
+such calls. We defer the proof of Lemma 27 to the end of this subsection.
+Lemma 27. For a threshold τ , call a Pass on a block B significant if the pass count of the block
+was strictly less than τ before the Pass. Otherwise, call the Pass insignificant.
+Let Ainsig be the sum of matching sizes |M | over all insignificant Pass operations. Then, there
+is a threshold τ = O(log G) such that, for any sequence of operations,
+Ainsig ≤
+
+1
+(A + #Insert) .
+4G
+
+With this in hand, we now prove Lemma 26.
+
+39
+
+Proof. Fix the threshold τ = O(log G) given by Lemma 27. We first introduce some notation and
+terminology.
+We call a block B a root block if it was created by a Create operation and a split block
+otherwise, that is, if it was created by a Split operation. For each split block B̃, there is a unique
+root block B from which a sequence of splits (possibly interleaved with other operations) resulted
+in the creation of B̃. We call B the root block of B̃.
+At any point during the process, we define the current time to be the total number of interface
+operations completed so far. For an element v that belonged to a root block B at some point, we
+write tvB for the time when v joined B, tB+ for the time when B was created, and tB− for the
+time when B was converted to a shrinking block, with tB− = ∞ if this never occurs. We use the
+following facts about join times:
+1. The time tvB at which an element v joins a root block B is well-defined and satisfies tB+ <
+tvB < tB− , because elements can only join growing blocks, can only leave shrinking blocks,
+and shrinking blocks cannot become growing blocks again.
+2. Since split blocks are always shrinking and elements can only join growing blocks, any element
+v ∈ B̃ in a split block B̃ must have joined the root block B of B̃ while B was growing. It is
+therefore well-defined to write tvB̃ = tvB for a split block B̃ with root block B.
+3. At any time, for any block B, the times tvB of the elements v in B are strictly decreasing
+from left (newest element) to right (oldest element). For a growing block, this follows because
+elements are always added as the leftmost element; for a shrinking block, it follows because
+no operation can reorder elements within a block.
+4. At any time, for any two distinct blocks B̃1 , B̃2 with the same root block B, the intervals of
+join times [min{v ∈ B̃ : tvB }, max{v ∈ B̃ : tvB }] of B̃1 and B̃2 are disjoint. Before Convert
+is applied to B, this holds because there is no split block with root block B. After Convert
+is applied, the property is preserved when a Split operation is performed or when elements
+leave a block with root block B through a Delete or Pass operation. No further elements
+can then enter a block with root block B.
+5. For any time t and element u, there are at most Cgrowing root blocks B with creator u satisfying
+t ∈ [tB+ , tB− ], since otherwise this would violate the definition of Cgrowing .
+We write ft for the value function at time t and abbreviate fvB := ftvB for the state of the value
+function at the moment when v joined B (or its root block).
+For a pairing (v, w, B ′ ), we refer to v (the element that remains in the block) as the winner of
+the pairing and to w (the element that joins the growing block B ′ of the winner) as the loser of
+the pairing.
+For a pairing (v, w, B ′ ) done during a Pass in a block B with creator u, define pair-rank(v, w) :=
+fvB (v) − fvB (u). Note that every pair-rank is at least 1, as whether v entered the block B (or its
+root block if B is a split block) by being Inserted or through losing a pairing to u, at that moment
+tvB , it must have held that f (v) ≥ f (u) + 1. Thus,
+X
+X
+X
+A=
+|M | ≤
+pair-rank(v, w)
+M
+
+M (v,w,B ′ )∈M
+
+40
+
+where the sums are over all matchings M made during the sequence of operations. It thus suffices to
+bound the sum of all pair-ranks. We split each pair-rank term into three terms, defined as follows,
+where u is again the creator of the block B:
+v-shift(v, w) := fvB (v) − fwB ′ (v)
+w-shift(v, w) := fwB ′ (v) − fwB (u)
+u-shift(v, w) := fwB (u) − fvB (u)
+
+By definition, pair-rank(v, w) = v-shift(v, w) + w-shift(v, w) + u-shift(v, w), as all terms but fvB (v)
+and −fvB (u) are both added and subtracted once. We now separately bound the sums of each shift
+type over all pairings.
+• v-shifts: The v-shift fvB (v) − fwB ′ (v) of the pairing (v, w, B ′ ) done inside a block B̃ with
+root block B is the change in the value −f (v) in the time interval [tvB , twB ′ ) from the time
+v joined B to the time w loses the pairing (and joins block B ′ ).
+We say that a v-shift is significant if the pairing it corresponds to was in a significant Pass
+and we call it insignificant otherwise. Since each v-shift has value at most G, the contribution
+from insignificant v-shifts is at most Ainsig · G.
+To bound the sum of significant v-shifts, consider a ValueChange operation to change
+the value f (v) at time t. We want to bound the number of pairings (v, w, B ′ ) for which
+t ∈ [tvB , twB ′ ), where B is the root block of the block B̃ the pairing is done in.
+First, we argue that if any such pairing exists, the block B is unique, and specifically, it must
+be the root block of the block v is in at time t. This must hold, as v is in a block with root
+block B at both time tvB and time twB ′ , thus by (1) it must be in a block with root block B
+in the whole time interval [tvB , twB ′ ], and t is in this time interval.
+Then, with a fixed element v and root block B, if we further fix the pass count i of the block
+B̃ right before the pass, the pairing (v, w, B ′ ) must be unique if it exists. This holds as the
+pass count of the block v is in from the time tvB to the time v is no longer in a block with
+root block B can only change when a Pass operation is performed on the block v is in, and
+this operation increments the pass count.
+Thus, each ValueChange contributes to at most τ significant v-shifts, and we obtain
+X
+X
+v-shift(v, w) ≤ Ainsig · G + #ValueChange · τ.
+M (v,w,B ′ )∈M
+
+• u-shifts: The u-shift fwB (u)−fvB (u) of the pairing (v, w, B ′ ) done inside a block B̃ with root
+block B is the change in the value f (u) in the time interval [min{tvB , twB }, max{tvB , twB })
+between v and w joining B, multiplied by −1 if w joined the block first.
+As with v-shifts, we say that a u-shift is significant if the pairing it corresponds to was in a
+significant Pass and we call it insignificant otherwise. Since each u-shift has value at most
+G, the contribution from insignificant u-shifts is at most Ainsig · G.
+41
+
+To bound the sum of significant u-shifts, consider a ValueChange operation to change
+the value f (u) at time t. We want to bound the number of pairings (v, w, B ′ ) for which
+t ∈ [min{tvB , twB }, max{tvB , twB }).
+For this to hold, B had to be a growing block of u at time t (as tB+ < tvB , twB < tB− ), thus
+by (5) there are at most Cgrowing = O(1) possible blocks B.
+Fix one such block B and, furthermore, a pass count i. We now claim that there is at most
+one pairing of the desired kind that is both done inside a block with root block B and in a
+Pass immediately before which that block B̃ had pass count i.
+For this, recall that by (3), the elements in a block B have strictly decreasing join times
+tvB . Thus, for any time t, there is at most one pair of adjacent elements v, w ∈ B such that
+tvB ≤ t < twB . Thus, there cannot be two pairings of the desired kind in a single Pass.
+Since each Pass increases the pass count of a block, if two pairings of the desired kind exist,
+they must be in distinct split blocks B̃1 , B̃2 of B. This, however, cannot occur either, as by
+(4), at any time, the join time interval of only one of those blocks can contain t, and the block
+containing the time cannot change if it exists, as elements cannot join shrinking blocks.
+Thus, each ValueChange contributes to at most O(τ ) significant u-shifts, and we obtain
+X
+X
+u-shift(v, w) ≤ Ainsig · G + #ValueChange · O(τ ).
+M (v,w,B ′ )∈M
+
+• w-shifts: The w-shift fwB ′ (v) − fwB (u) of the pairing (v, w, B ′ ) done inside a block with root
+block B is the difference between the value of the creator of the block B at the moment w
+joined it and the value of the creator of the next block B ′ that w joined, at the moment w
+joined it.
+Note that for any block B with creator u that w joins at some point, the term fwB (u)
+appears in a w-shift positively if and only if w joined B by losing a pairing (as opposed to
+being Inserted), and appears in a w-shift negatively if and only if w left a block with root
+block B by losing a pairing (as opposed to being Deleted or remaining in such a block at
+the end of the process).
+Thus, a necessary condition for the term fwB (u) to appear with multiple 1 in the sum of wshifts is that the element w was either Deleted out of a block with root block B or remained
+in B at the end of the process. Each such event contributes to the multiple of a unique term
+fwB (u), and each term fwB (u) is nonnegative and at most G. Furthermore, the number of
+Deletes plus the number of elements in a block at the end of the process is precisely the
+number of Inserts.
+Thus, we obtain the bound
+X
+M
+
+X
+
+w-shift(v, w) ≤ #Insert · G.
+
+(v,w,B ′ )∈M
+
+42
+
+With these bounds on the sums of the individual shift types, we obtain
+X
+X
+v-shift(v, w) + u-shift(v, w) + w-shift(v, w)
+A≤
+M (v,w,B ′ )∈M
+
+≤ 2Ainsig · G + #Insert · O(G) + #ValueChange · O(τ )
+1
+≤ A + #Insert · O(G) + #ValueChange · O(log G).
+2
+Subtracting A/2 from both sides and multiplying by 2 yields the desired bound.
+It remains to prove Lemma 27, which we do now.
+Proof. First, note that since A + #Insert is the total number of times elements enter blocks, it is
+an upper bound on the sum of sizes |B| of blocks over all Convert calls.
+Consider some block B at the moment Convert is called on it, and let b = |B| at that moment.
+We will bound the contribution to Ainsig from insignificant passes on blocks with root block B. To
+do this, we will specifically bound the total number of elements that at some point appear in some
+block with root block B that has pass count i. Denote this value by ci . We will show by induction
+on increasing i that
+ci ≤ b · (1 − γ)max{0,i−Cexempt } .
+For i ≤ Cexempt , the claim is simply ci ≤ b, which holds as b is the size of the block B when it is
+converted, at which point it becomes shrinking and new elements can no longer enter it.
+Suppose now that for some i > Cexempt the claim holds for i′ < i. We will show it holds for i.
+Consider some block B̃ with root block B on which Pass was called while it had pass count i − 1,
+and let SB̃ be the set of elements in B̃ right before that Pass and M the matching of the Pass.
+We have |M | ≥ γ|SB̃ | as i − 1 ≥ Cexempt , thus at least a (1 − γ)-fraction of the elements in SB̃ left
+a block with root block B as a result of the Pass, and thus cannot contribute to ci . Additionally,
+every element that contributed to ci−1 appears in at most one set SB̃ , and every element that
+contributes to ci has to appear in some set SB̃ . Thus, ci ≤ ci−1 (1 − γ) ≤ b(1 − γ)max{0,i−Cexempt } ,
+where the last inequality uses the induction
+assumption.
+l
+m
+1
+Now, selecting τ = Cexempt + log1/(1−γ) (4G) = O(log G), we have cτ ≤ 4G
+· b. Thus, for
+this threshold τ , as each pairing in an insignificant pass in a block with root block B results in an
+1
+element leaving the block, the total number of these pairings is at most 4G
+· b.
+Summing over all root blocks B at the moments Convert was called on them and applying
+1
+this inequality, we obtain Ainsig ≤ 4G
+(A + #Insert), as desired.
+5.5.2
+
+Translating operations on lazy intervals into the interface
+
+Here, we show how to map lazy intervals onto the blocks of the interface, how to translate operations
+on lazy intervals into the interface, and how to derive Lemma 25 from Lemma 26.
+We maintain the following invariants. The interface elements are the heavy paths in the splay
+tree, the blocks correspond to the lazy intervals, the creator of a growing block is its owner, and
+the function f (v) corresponds to the contracted point gap of v.
+43
+
+We maintain the invariant that there will be no more than Cgrowing = 2 + 1 growing blocks for
+each creator at a time. Two correspond to the fact that each owner has one left and one right
+growing lazy interval, while we need one additional growing block to perform heap-child-exchange.
+Note that a lazy interval can change its owner only if it is shrinking, so the creator correctly never
+changes.
+We further set G′ = G + 1, one more than the maximum contracted point gap ever.
+We now show how to map individual operations on lazy intervals while maintaining these invariants. For clarity, we use ValueIncrease for ValueChange with ∆ = 1 and ValueDecrease
+for ValueChange by −1.
+• Delete. We perform a delete by Delete. If the heap-child with minimum gap was deleted
+from a lazy interval, the block gap might increase, which decreases point gaps and might also
+decrease contracted point gaps. In such a case, the Delete is followed by ValueDecreases.
+• Insert. To satisfy the conditions of Insert, we might need to do multiple ValueIncreases
+of the value of the inserted element so that it is larger than the value of the creator of the
+growing block it is inserted into. If this would increase the value over G, we ValueDecrease by one the value of the element to which block is being Inserted, after which we
+ValueIncrease back. Then we use Insert, followed by possibly multiple ValueIncreases
+or ValueDecreases to match the new contracted point gap.
+• Split. We use Split. Afterwards, we need to update the values of elements in the respective
+blocks to match their new contracted point gaps, but since these values only decrease, we use
+multiple ValueDecreases.
+• Convert. We use Convert. This decreases the contracted point gaps of the heap-children
+in the lazy interval, which we track by ValueDecreases. Then Create is called to create
+the block corresponding to the new growing lazy interval.
+• Transfer. Since the blocks do not care about the owners except for their creators, no operation on the block is needed for the transfer itself. However, we need to track the conversion
+of the lazy intervals by Converts, ValueDecreases, and Creates.
+• Heap-child-exchange. The interface does not allow insertion into shrinking blocks. Therefore, we Delete the previous heap-child, Create a new growing block, and do an Insert of
+the new heap-child. As with inserts, we might need to do multiple ValueIncreases to satisfy the conditions of Insert. Again, the increases are correct, as we never increase to more
+than G′ = G + 1. Afterwards, the new block is Converted, and we apply ValueDecrease
+to the value of its element so that it corresponds to the new contracted point gap.
+• Pair-up. We perform pair-ups corresponding to internal pairings in batches. We know from
+Lemma 19 that no two first pairings share a node and, similarly, no two second pairings share
+a node. All internal pair-ups for one lazy interval during one splay can be split into two
+disjoint groups in which pair-ups can be performed simultaneously. Hence, we perform them
+by two Passes. Since they are disjoint, the condition of Pass that an element appears in at
+44
+
+most one pairing is satisfied. From Lemma 21, we know that, for an unbroken lazy interval
+I, if |I| ≥ 10, then there are at least (|I| − 6)/4 ≥ |I|/10 internal first pairings and internal
+second pairings for I. If |I| ≤ 10, then either there are no internal pairings or at least one,
+hence at least |I|/10. After the first splay over the lazy interval, which translates to 2 Passes
+over the corresponding block, by Lemma 20, the lazy interval is not broken. Therefore, after
+the first 2 Passes over a block, the set of pairings has size a constant fraction of the block,
+so this requirement of the Pass is satisfied. Finally, the requirement that, for every pairing,
+the value of the loser is greater than that of the winner is satisfied for bad internal pairings.
+This is not true for good internal pairings, where the values are equal—for each good internal
+pairing, before the Pass, we need to do one ValueDecrease on the winner, followed by one
+ValueIncrease after the Pass. After the Pass, the values of the losers need to be updated,
+but these can be handled by ValueDecreases as the contracted point gap after an internal
+pairing always decreases by Lemma 10.
+Lemma 28. The total number of Inserts on the interface is at most p + n, where p is the total
+number of paid operations on the lazy intervals.
+Proof. For every insert and heap-child-exchange, we do one Insert. No other operation does
+Inserts. At the very beginning, every heap-child needs to be Inserted into the block corresponding
+to its lazy interval, which necessitates at most n Inserts.
+Lemma 29. The total number of ValueIncreases on the interface is O(g + pG), where p is the
+total number of paid operations on the lazy intervals and g is the total number of good internal
+pairings.
+Proof. For every good internal pairing, we do one ValueIncrease. For every insert and heapchild-exchange, we need to do O(G) ValueIncreases to satisfy the conditions of Insert. No
+other operation does ValueIncreases.
+Lemma 30. Let r be the total number of ValueIncreases on the interface and s be the total
+number of ValueDecreases on the interface. Then s ≤ r + nG.
+Proof. The values f can never be negative. They start at values of at most G, so their sum
+is at most nG and is always nonnegative. Every ValueDecrease decreases the sum by one
+and every ValueIncrease increases the sum by one, so there can be no more than r + nG
+ValueDecreases.
+Now we are ready to bound the total number of internal pairings by proving Lemma 25.
+Proof of Lemma 25. Since every internal pairing is performed by a pair-up, and pair-ups are translated into Passes, the total activity A from Lemma 26 is exactly the total number of internal
+pairings.
+This leaves us with bounding the cost C from Lemma 26 as A ∈ O(C). The total number of
+ValueIncreases is O(g + pG) from Lemma 29 and by Lemma 30, the total number of ValueDecreases is O(g +(p+n)G). Therefore the total number of ValueChanges is also O(g +(p+n)G).
+45
+
+As the total number of inserts is O(p+n) by Lemma 28, the total cost is O((p+n)G log G+g log G).
+This is also asymptotically the total activity and the total number of internal pairings, which concludes the proof.
+
+5.6
+
+Putting everything together
+
+In this section, we bound the total number of pairings that can occur and use it to bound the work
+of the splay tree.
+Lemma 31. Let n be the number of elements. The number of lazy intervals ever created is O(n +
+cost(T ∗ )).
+Proof. At the very beginning, we need to create two lazy intervals for each of the 2n + 1 heavy
+paths, giving O(n) lazy intervals. For every splay, we create O(1) lazy intervals by Lemma 23.
+Since there are m splays, this gives O(m) lazy intervals, which is bounded by O(cost(T ∗ )). Finally,
+for every rotation of the nearly optimal tree T ∗ , we create O(1) new lazy intervals by Lemma 15.
+There are at most cost(T ∗ ) rotations, so this gives O(cost(T ∗ )) lazy intervals. Summing these terms
+gives the desired bound.
+Lemma 32. The total number of paid operations is at most u + O((n + cost(T ∗ )) log G).
+Proof. For every rotation of the nearly optimal tree T ∗ , there are O(1) paid operations by Lemma 15.
+This gives O(cost(T ∗ )) paid operations over all rotations.
+Let ℓ be the total number of lazy intervals ever created. The total number of paid operations
+for all splays is u + O(ℓ log G + cost(T ∗ )) by Lemma 24. By Lemma 31, ℓ ∈ O(n + cost(T ∗ )), which
+gives u + O((n + cost(T ∗ )) log G) paid operations over all splays and also overall.
+Lemma 33. Let u be the number of unimportant boundary pairings performed. There are at most
+uG + O((n + cost(T ∗ ))G log G) good internal pairings.
+Proof. We investigate which operations change the total contracted point gap of all heap-children.
+Deletes, splits, converts, transfers, and heap-child-exchanges either decrease the contracted
+point gaps of individual heap-children or leave them unchanged. Every pair-up corresponds to an
+internal pairing and, by Lemma 10, does not increase contracted point gaps. Inserts are the only
+operations that can increase contracted point gaps, and every insert increases them by at most
+O(G). Therefore, the total increase in the sum of contracted point gaps over the whole access
+sequence is uG + O((n + cost(T ∗ ))G log G). At the very beginning, this sum cannot be larger than
+O(nG).
+Every good pairing decreases the total contracted point gap by at least one by Lemma 10.
+Since the total contracted point gap is always non-negative, the number of good pairings is at most
+uG + O((n + cost(T ∗ ))G log G) + O(nG), which is uG + O((n + cost(T ∗ ))G log G).
+In particular, substituting the number of good internal pairings into Lemma 25 gives the following bound, where a is the total number of internal pairings and p is the total number of paid
+operations:
+a ∈ O(pG log G + (n + cost(T ∗ ))G log2 G)
+46
+
+Lemma 34. Let n be the number of elements, g the total number of good internal pairings, a the
+total number of internal pairings (both good and bad), and p the total number of paid operations.
+Let α be the proportionality constant from Lemma 25. We rewrite the bound as a ≤ α · (pG log G +
+(n + cost(T ∗ ))G log2 G) + O(1).
+Let u be the total number of unimportant pairings. Then, for κ = max(16, 32α) in the definition
+of unimportant pairings, we have αuG log G ≤ a/2 and u ≤ a.
+Proof. Consider an unimportant boundary pairing, and let I be the lazy interval of the loser. By
+the definition of unimportance, the lazy interval had at least κG log G heap-children. This is at
+least 16G log G ≥ 16 · 2 log 2 > 12 heap-children. Therefore, by Lemma 21, the number of internal
+pairings on I in this splay is at least (κG log G − 6)/2 ≥ κG log G/4. Note that, by the definition of
+unimportance, I is not broken, so the assumptions of Lemma 21 are satisfied. There are at most 4
+different unimportant pairings whose loser is in I and that correspond to the same splay, as there are
+at most 2 zig-zigs on the boundary of I, each consisting of at most 2 boundary pairings. Summing
+over all lazy intervals and all splays, we get a ≥ κG log G · u/16 = max(16, 32α)G log G · u/16.
+Hence, a/2 ≥ αuG log G and a ≥ u.
+Lemma 35. Let n be the number of elements. The total number of zig-zigs performed by the splay
+tree over the whole access sequence is O((n + cost(T ∗ )) · log log n · log2 log log n).
+Proof. Every zig-zig corresponds to two pairings; therefore, it is sufficient to bound the total number
+of pairings. We need to bound three types of pairings: important boundary pairings, unimportant
+boundary pairings, and internal pairings.
+There are only O(log G) important boundary pairings per lazy interval by Lemma 22, and there
+are O(n+cost(T ∗ )) lazy intervals ever created by Lemma 31. Thus, there are O((n+cost(T ∗ )) log G)
+important boundary pairings.
+To bound the number of internal pairings, let α be the proportionality constant from Lemma 25,
+i.e., a ≤ α · (pG log G + (n + cost(T ∗ ))G log2 G) + O(1). By Lemma 32, p, the total number of paid
+operations, is at most u + O((n + cost(T ∗ )) log G). Substituting this bound gives
+a ≤ α · (uG log G + O((n + cost(T ∗ ))G log2 G)) + O(1)
+Furthermore, by Lemma 34, αuG log G ≤ a/2, hence
+ a
+
+a≤α
++ O((n + cost(T ∗ ))G log2 G) + O(1)
+2α
+
+a/2 ≤ α O((n + cost(T ∗ ))G log2 G) + O(1)
+a ∈ O((n + cost(T ∗ ))G log2 G)
+This bounds a, the total number of internal pairings.
+By Lemma 34, the number of unimportant boundary pairings satisfies the same bound, as it is
+at most the number of internal pairings.
+Summing gives O((n + cost(T ∗ ))G log2 G) pairings, and thus also zig-zigs. Since the nearly
+optimal tree T ∗ has depth O(log n) by Theorem 2, there are at most O((n + cost(T ∗ )) · log log n ·
+log2 log log n) zig-zigs.
+47
+
+Lemma 36. Let n be the number of elements and m the length of the access sequence. The total
+number of zig-zags performed by the splay tree over the whole access sequence is O((n + cost(T ∗ )) ·
+log log n · log2 log log n).
+Proof. By Lemma 17, every splay creates O(1) + #zig-zigs bends and removes #zig-zags bends.
+Every rotation of the nearly optimal tree T ∗ creates O(1) bends by Lemma 13. Over all splays, the
+total number of bends created is the total number of zig-zigs plus O(cost(T ∗ )), and initially there
+can be at most O(n) bends. Therefore, the total number of bends created is O((n + cost(T ∗ )) ·
+log log n · log2 log log n) by Lemma 35. Since every zig-zag removes one bend and the number of
+bends is non-negative, there can be at most O((n + cost(T ∗ )) · log log n · log2 log log n) zig-zags.
+We have now bounded the numbers of zig-zigs and zig-zags, so we can put everything together
+to prove the competitiveness of splay trees.
+Proof of Theorem 1. There are at most m ∈ O(cost(T ∗ )) zigs, as they occur only once per access,
+and each performs 1 rotation. There are also O((n + cost(T ∗ )) · log log n · log2 log log n) zig-zigs
+and zig-zags, each performing O(1) rotations. Hence, the overall cost of the splay tree is O((n +
+cost(T ∗ )) · log log n · log2 log log n). This relates the cost of the splay tree to that of the nearly
+optimal tree T ∗ . To relate it to the cost of the optimal tree T OPT , we recall that by Theorem 2,
+cost(T ∗ ) ∈ O(cost(T OPT )). Therefore, the overall cost of the splay tree is O((n + cost(T OPT )) ·
+log log n · log2 log log n), which proves the main theorem.
+
+6
+
+Conclusions
+
+In this work we prove that splay trees are Õ(log log n)-competitive, giving the first o(log n) bound
+for a binary search tree that is conjectured to be dynamically optimal. Among other consequences,
+this implies that splay trees satisfy the unified bound and the lazy finger bound with a Õ(log log n)
+multiplicative factor and an additive Õ(n log log n) term; see Section A. We also show that our techniques can be used to nearly prove the split conjecture: splitting a splay tree costs Õ(n log log n),
+improving on the previously best trivial bound of O(n log n); see Section D. Our proof of competitiveness is novel in that we charge the cost of the splay tree directly to the optimal tree,
+circumventing known gaps between lower bounds and the optimum.
+Our work used several novel techniques that we believe can be useful in other contexts. First,
+the normal form we used to assume the optimal tree is ribless, has logarithmic depth, and does
+restricted rotations (Section C) can be used as a black box whenever a tree is required to have these
+properties. Second, we abstracted the core of the complexity proof of pairing heaps [ST25; TX26]
+into an interface that can be used in the analysis of other data structures beyond splay trees and
+multiple types of pairing heaps. Third, our result that all zig-zags ever done can be asymptotically
+bounded by the total number of zig-zigs can be used as a black box. Therefore, future work can
+focus on bounding the number of zig-zigs only.
+Acknowledgements. BH, RH, and AR were partially funded by the Ministry of Education
+and Science of Bulgaria’s support for INSAIT as part of the Bulgarian National Roadmap for
+
+48
+
+Research Infrastructure and partially funded through the European Research Council (ERC) under
+the European Union’s Horizon Europe research and innovation program (ERC Advanced grant
+agreement 101268062 and ERC Starting grant agreement 949272). PC, MK and VR were partially
+supported by Charles Univ. project UNCE 24/SCI/008. PC was partially supported by Charles
+Univ. GA UK project No. 70924. VR was supported by the Czech Science Foundation (GAČR),
+grant no. 26-23599M. RT’s research at Princeton was partially supported by a gift from Microsoft.
+Part of this work was done while most authors were visiting INSAIT.
+
+References
+[AL62]
+
+G. M. Adelson-Velsky and E. M. Landis. “An Algorithm for the Organization of Information”. In: Soviet Mathematics Doklady 3 (1962), pp. 1259–1263.
+
+[ABC17]
+
+Peyman Afshani, Jérémy Barbay, and Timothy M. Chan. “Instance-Optimal Geometric Algorithms”. In: Journal of the ACM 64.1 (2017), 3:1–3:38. doi: 10.1145/3046673.
+
+[AM78]
+
+Brian Allen and J. Ian Munro. “Self-Organizing Binary Search Trees”. In: Journal of
+the ACM 25.4 (1978), pp. 526–535. doi: 10.1145/322092.322094.
+
+[Băd+07]
+
+Mihai Bădoiu et al. “A Unified Access Bound on Comparison-Based Dynamic Dictionaries”. In: Theoretical Computer Science 382.2 (2007), pp. 86–96. doi: 10.1016/j.
+tcs.2007.03.002.
+
+[Bos+10]
+
+Prosenjit Bose et al. “An O(log log n)-Competitive Binary Search Tree with Optimal
+Worst-Case Access Times”. In: Scandinavian Workshop on Algorithm Theory (SWAT
+2010). Vol. 6139. Lecture Notes in Computer Science. Springer, 2010, pp. 38–49. doi:
+10.1007/978-3-642-13731-0_5.
+
+[Bos+12]
+
+Prosenjit Bose et al. “De-amortizing Binary Search Trees”. In: Automata, Languages,
+and Programming (ICALP 2012). Vol. 7391. Lecture Notes in Computer Science.
+Springer, 2012, pp. 121–132. doi: 10.1007/978- 3- 642- 31594- 7_11. url: https:
+//arxiv.org/abs/1111.1665.
+
+[BR25]
+
+Gerth Stølting Brodal and Casper Moldrup Rysgaard. “Pure Binary Finger Search
+Trees”. In: 2025 Symposium on Simplicity in Algorithms, SOSA 2025. Ed. by Ioana
+Oriana Bercea and Rasmus Pagh. SIAM, 2025, pp. 172–195. doi: 10 . 1137 / 1 .
+9781611978315.14. url: https://doi.org/10.1137/1.9781611978315.14.
+
+[CCS23]
+
+Parinya Chalermsook, Julia Chuzhoy, and Thatchaphol Saranurak. “Pinning Down
+the Strong Wilber-1 Bound for Binary Search Trees”. In: Theory of Computing 19
+(2023). doi: 10.4086/toc.2023.v019a008. url: https://theoryofcomputing.org/
+articles/v019a008/.
+
+[Cha+15a]
+
+Parinya Chalermsook et al. “Greedy Is an Almost Optimal Deque”. In: Algorithms
+and Data Structures (WADS 2015). Lecture Notes in Computer Science. 2015. doi:
+10.1007/978-3-319-21840-3_13. url: https://arxiv.org/abs/1506.08319.
+
+49
+
+[Cha+22]
+
+Parinya Chalermsook et al. Improved Pattern-Avoidance Bounds for Greedy BSTs via
+Matrix Decomposition. arXiv preprint. 2022. url: https://arxiv.org/abs/2211.
+04112.
+
+[Cha+15b]
+
+Parinya Chalermsook et al. “Pattern-Avoiding Access in Binary Search Trees”. In:
+56th Annual IEEE Symposium on Foundations of Computer Science (FOCS 2015).
+2015, pp. 410–423. doi: 10.1109/FOCS.2015.32.
+
+[Cha+24]
+
+Parinya Chalermsook et al. “The Group Access Bounds for Binary Search Trees”. In:
+51st International Colloquium on Automata, Languages, and Programming (ICALP
+2024). Vol. 297. Leibniz International Proceedings in Informatics (LIPIcs). Schloss
+Dagstuhl – Leibniz-Zentrum für Informatik, 2024, 38:1–38:18. doi: 10.4230/LIPIcs.
+ICALP.2024.38. url: https://drops.dagstuhl.de/entities/document/10.4230/
+LIPIcs.ICALP.2024.38.
+
+[Cha+16]
+
+Parinya Chalermsook et al. The landscape of bounds for binary search trees. arXiv
+preprint. 2016. url: https://arxiv.org/abs/1603.04892.
+
+[CT03]
+
+Sean Cleary and Jennifer Taback. “Bounding restricted rotation distance”. In: Inf.
+Process. Lett. 88.5 (2003), pp. 251–256. doi: 10.1016/J.IPL.2003.08.004. url:
+https://doi.org/10.1016/j.ipl.2003.08.004.
+
+[Col00]
+
+Richard Cole. “On the Dynamic Finger Conjecture for Splay Trees. Part II: The
+Proof”. In: SIAM Journal on Computing 30.1 (2000), pp. 44–85. doi: 10 . 1137 /
+S009753979732699X.
+
+[Col+00]
+
+Richard Cole et al. “On the Dynamic Finger Conjecture for Splay Trees. Part I: Splay
+Sorting log n-Block Sequences”. In: SIAM Journal on Computing 30.1 (2000), pp. 1–
+43. doi: 10.1137/S0097539797326988.
+
+[Cyg+15]
+
+Marek Cygan et al. Parameterized Algorithms. Springer, 2015.
+
+[Dag+95]
+
+Paul Dagum et al. “An Optimal Algorithm for Monte Carlo Estimation”. In: Proceedings of the 36th Annual Symposium on Foundations of Computer Science (FOCS
+1995). 1995, pp. 142–149. doi: 10.1109/SFCS.1995.492471.
+
+[Dem+13]
+
+Erik D. Demaine et al. “Combining Binary Search Trees”. In: International Colloquium on Automata, Languages, and Programming (ICALP 2013). Lecture Notes in
+Computer Science. Springer, 2013. url: https://arxiv.org/abs/1304.7604.
+
+[Dem+07]
+
+Erik D. Demaine et al. “Dynamic Optimality—Almost”. In: SIAM Journal on Computing 37.1 (2007), pp. 240–251. doi: 10.1137/S0097539705447347.
+
+[Dem+09]
+
+Erik D. Demaine et al. “The Geometry of Binary Search Trees”. In: Proceedings of
+the Twentieth Annual ACM-SIAM Symposium on Discrete Algorithms (SODA 2009).
+SIAM, 2009, pp. 496–505. url: https://erikdemaine.org/papers/BST_SODA2009/.
+
+[Der09]
+
+Jonathan C. Derryberry. “Adaptive Binary Search Trees”. PhD thesis. Carnegie Mellon University, 2009. url: https://www.cs.cmu.edu/~jonderry/thesis.pdf.
+
+50
+
+[DS09]
+
+Jonathan C. Derryberry and Daniel Dominic Sleator. “Skip-Splay: Toward Achieving
+the Unified Bound in the BST Model”. In: Algorithms and Data Structures (WADS
+2009). Vol. 5664. Lecture Notes in Computer Science. Springer, 2009, pp. 194–205.
+url: https://www.cs.cmu.edu/~jonderry/skip-splay.pdf.
+
+[DSW09]
+
+Jonathan C. Derryberry, Daniel Dominic Sleator, and Chengwen Chris Wang. Properties of Multi-Splay Trees. Tech. rep. CMU-CS-09-171. Carnegie Mellon University,
+2009. url: https://www.cs.cmu.edu/~jonderry/mst_properties.pdf.
+
+[Elm04]
+
+Amr Elmasry. “On the sequential access theorem and deque conjecture for splay trees”.
+In: Theoretical Computer Science 314.3 (2004), pp. 459–466. doi: 10.1016/j.tcs.
+2004.01.019.
+
+[FLN03]
+
+Ronald Fagin, Amnon Lotem, and Moni Naor. “Optimal Aggregation Algorithms for
+Middleware”. In: Journal of Computer and System Sciences 66.4 (2003), pp. 614–656.
+doi: 10.1016/S0022-0000(03)00026-6.
+
+[Fox11]
+
+Kyle Fox. “Upper Bounds for Maximally Greedy Binary Search Trees”. In: Algorithms
+and Data Structures (WADS 2011). Vol. 6844. Lecture Notes in Computer Science.
+Springer, 2011, pp. 411–422. url: https://arxiv.org/abs/1102.4884.
+
+[Fre99]
+
+Michael L. Fredman. “On the Efficiency of Pairing Heaps and Related Data Structures”. In: Journal of the ACM 46.4 (July 1999), pp. 473–501. doi: 10.1145/320211.
+320214. url: https://doi.org/10.1145/320211.320214.
+
+[Fre+86]
+
+Michael L. Fredman et al. “The Pairing Heap: A New Form of Self-Adjusting Heap”.
+In: Algorithmica 1.1 (1986), pp. 111–129. doi: 10.1007/BF01840439. url: https:
+//doi.org/10.1007/BF01840439.
+
+[Geo08]
+
+George F. Georgakopoulos. “Chain-splay trees, or, how to achieve and prove log log Ncompetitiveness by splaying”. In: Information Processing Letters 106.1 (2008), pp. 37–
+43. doi: 10.1016/j.ipl.2007.10.001.
+
+[Geo04]
+
+George F. Georgakopoulos. “Splay trees: a reweighing lemma and a proof of competitiveness vs. dynamic balanced trees”. In: Journal of Algorithms 51.1 (2004), pp. 64–76.
+doi: 10.1016/J.JALGOR.2003.09.004.
+
+[GZ22]
+
+Mohsen Ghaffari and Goran Zuzic. “Universally-Optimal Distributed Exact Min-Cut”.
+In: Proceedings of the 2022 ACM Symposium on Principles of Distributed Computing.
+PODC’22. Salerno, Italy: Association for Computing Machinery, 2022, pp. 281–291.
+isbn: 9781450392624. doi: 10.1145/3519270.3538429. url: https://doi.org/10.
+1145/3519270.3538429.
+
+[GG19]
+
+Navin Goyal and Manoj Gupta. “Better analysis of greedy binary search tree on decomposable sequences”. In: Theoretical Computer Science 776 (2019), pp. 19–42. doi:
+10.1016/j.tcs.2018.12.021. url: https://arxiv.org/abs/1604.06997.
+
+[GS78]
+
+Leo J. Guibas and Robert Sedgewick. “A dichromatic framework for balanced trees”.
+In: 19th Annual Symposium on Foundations of Computer Science (sfcs 1978). IEEE,
+Oct. 1978, pp. 8–21. doi: 10.1109/sfcs.1978.3. url: http://dx.doi.org/10.
+1109/SFCS.1978.3.
+51
+
+[HRG22]
+
+Bernhard Haeupler, Harald Räcke, and Mohsen Ghaffari. “Hop-Constrained Expander
+Decompositions, Oblivious Routing, and Distributed Universal Optimality”. In: Proceedings of the 54th Annual ACM Symposium on Theory of Computing (STOC 2022).
+2022, pp. 1325–1338. doi: 10.1145/3519935.3520026.
+
+[HWZ21]
+
+Bernhard Haeupler, David Wajc, and Goran Zuzic. “Universally-Optimal Distributed
+Algorithms for Known Topologies”. In: Proceedings of the 53rd Annual ACM Symposium on Theory of Computing (STOC 2021). 2021, pp. 1166–1179. doi: 10.1145/
+3406325.3451081.
+
+[Hae+25a]
+
+Bernhard Haeupler et al. “Bidirectional Dijkstra’s Algorithm is Instance-Optimal”.
+In: Symposium on Simplicity in Algorithms (SOSA 2025). 2025, pp. 202–215. doi:
+10.1137/1.9781611978315.16.
+
+[Hae+25b]
+
+Bernhard Haeupler et al. “Fast and Simple Sorting Using Partial Information”. In: Proceedings of the 2025 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA
+2025). 2025, pp. 3953–3973. doi: 10.1137/1.9781611978322.134.
+
+[Hae+24]
+
+Bernhard Haeupler et al. “Universal Optimality of Dijkstra via Beyond-Worst-Case
+Heaps”. In: IEEE 65th Annual Symposium on Foundations of Computer Science (FOCS
+2024). 2024, pp. 2099–2130. doi: 10.1109/FOCS61266.2024.00125.
+
+[HRR25]
+
+Ivor van der Hoog, Eva Rotenberg, and Daniel Rutschmann. “Simpler Universally Optimal Dijkstra”. In: European Symposium on Algorithms (ESA 2025). Leibniz International Proceedings in Informatics (LIPIcs). 2025, 71:1–71:9. doi: 10.4230/LIPIcs.
+ESA.2025.71.
+
+[Huf52]
+
+David A. Huffman. “A Method for the Construction of Minimum-Redundancy Codes”.
+In: Proceedings of the IRE 40.9 (Sept. 1952), pp. 1098–1101. doi: 10.1109/JRPROC.
+1952.273898.
+
+[Iac13]
+
+John Iacono. “In Pursuit of the Dynamic Optimality Conjecture”. In: Space-Efficient
+Data Structures, Streams, and Algorithms. Vol. 8066. Lecture Notes in Computer Science. Springer, 2013, pp. 236–250. doi: 10 . 1007 / 978 - 3 - 642 - 40273 - 9 _ 16. url:
+https://arxiv.org/abs/1306.0207.
+
+[Iac05]
+
+John Iacono. “Key-Independent Optimality”. In: Algorithmica 42.1 (2005), pp. 3–10.
+doi: 10.1007/s00453-004-1136-8.
+
+[IL16]
+
+John Iacono and Stefan Langerman. “Weighted Dynamic Finger in Binary Search
+Trees”. In: Proceedings of the Twenty-Seventh Annual ACM-SIAM Symposium on
+Discrete Algorithms (SODA 2016). SIAM, 2016, pp. 672–691. url: https://arxiv.
+org/abs/1810.01785.
+
+[Jia+24]
+
+Shunhua Jiang et al. “Hardness Amplification for Dynamic Binary Search Trees”. In:
+ISAAC 2024. Leibniz International Proceedings in Informatics (LIPIcs). 2024. doi:
+10.4230/LIPIcs.ISAAC.2024.42. url: https://arxiv.org/abs/2411.14387.
+
+[Koz16]
+
+László Kozma. “Binary Search Trees, Rectangles and Patterns”. PhD thesis. Saarland University, 2016. url: https : / / publikationen . sulb . uni - saarland . de /
+bitstream/20.500.11880/26727/1/thesis_kozma.pdf.
+52
+
+[KS16]
+
+László Kozma and Thatchaphol Saranurak. Binary Search Trees and Rectangulations.
+arXiv preprint. 2016. url: https://arxiv.org/abs/1603.08151.
+
+[KS20]
+
+László Kozma and Thatchaphol Saranurak. “Smooth Heaps and a Dual View of SelfAdjusting Data Structures”. In: SIAM Journal on Computing 49.5 (2020). doi: 10.
+1137/18M1195188. url: https://arxiv.org/abs/1802.05471.
+
+[LW20]
+
+Victor Lecomte and Omri Weinstein. “Settling the Relationship Between Wilber’s
+Bounds for Dynamic Optimality”. In: 28th Annual European Symposium on Algorithms (ESA 2020). Vol. 173. Leibniz International Proceedings in Informatics (LIPIcs).
+Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2020, 68:1–68:21. doi: 10.4230/
+LIPIcs.ESA.2020.68. url: https://drops.dagstuhl.de/entities/document/10.
+4230/LIPIcs.ESA.2020.68.
+
+[LT19]
+
+C. C. Levy and Robert E. Tarjan. “Splaying Preorders and Postorders”. In: Algorithms
+and Data Structures (WADS 2019). Lecture Notes in Computer Science. Springer,
+2019. doi: 10.1007/978-3-030-24766-9_37. url: https://oar.princeton.edu/
+bitstream/88435/pr18n80/1/SplayingPreordersPostorders.pdf.
+
+[Luc88]
+
+Joan M. Lucas. Canonical Forms for Competitive Binary Search Tree Algorithms.
+Tech. rep. DCS-TR-250. Technical Report. Rutgers University, Department of Computer Science, 1988.
+
+[Luc91]
+
+Joan M. Lucas. “On the Competitiveness of Splay Trees: Relations to the UnionFind Problem”. In: On-Line Algorithms, Proceedings of a DIMACS Workshop, New
+Brunswick, New Jersey, USA, February 11-13, 1991. Vol. 7. DIMACS Series in Discrete Mathematics and Theoretical Computer Science. DIMACS/AMS, 1991, pp. 95–
+124. doi: 10.1090/DIMACS/007/08.
+
+[Mun00]
+
+J. Ian Munro. “On the Competitiveness of Linear Search”. In: Algorithms — ESA
+2000. Vol. 1879. Lecture Notes in Computer Science. Springer, 2000, pp. 338–345.
+doi: 10.1007/3-540-45253-2_31.
+
+[Nar+24]
+
+Shyam Narayanan et al. “Instance-Optimality in I/O-Efficient Sampling and Sequential Estimation”. In: Proceedings of the 65th Annual Symposium on Foundations of
+Computer Science (FOCS 2024). 2024, pp. 658–688. doi: 10.1109/FOCS61266.2024.
+00048.
+
+[Pet08]
+
+Seth Pettie. “Splay Trees, Davenport–Schinzel Sequences, and the Deque Conjecture”.
+In: Proceedings of the Nineteenth Annual ACM-SIAM Symposium on Discrete Algorithms (SODA 2008). SIAM, 2008, pp. 1115–1124.
+
+[Pet05]
+
+Seth Pettie. “Towards a Final Analysis of Pairing Heaps”. In: Proceedings of the 46th
+Annual IEEE Symposium on Foundations of Computer Science. FOCS ’05. USA: IEEE
+Computer Society, 2005, pp. 174–183. isbn: 0769524680. doi: 10.1109/SFCS.2005.75.
+url: https://doi.org/10.1109/SFCS.2005.75.
+
+[Rou21]
+
+Tim Roughgarden. Beyond the Worst-Case Analysis of Algorithms. Cambridge University Press, 2021.
+
+53
+
+[Roz+22]
+
+Václav Rozhoň et al. “Undirected (1+eps)-Shortest Paths via Minor-Aggregates: NearOptimal Deterministic Parallel and Distributed Algorithms”. In: Proceedings of the
+54th Annual ACM SIGACT Symposium on Theory of Computing. STOC 2022. Aur Rome, Italy: Association for Computing
+thors are listed in randomized order (○).
+Machinery, 2022, pp. 478–487. isbn: 9781450392648. doi: 10.1145/3519935.3520074.
+url: https://doi.org/10.1145/3519935.3520074.
+
+[Rus19]
+
+Luı́s M. S. Russo. “A Study on Splay Trees”. In: Theoretical Computer Science (2019).
+doi: 10.1016/j.tcs.2018.12.020. url: https://arxiv.org/abs/1511.03148.
+
+[SK23]
+
+Yaniv Sadeh and Haim Kaplan. “Dynamic Binary Search Trees: Improved Lower
+Bounds for the Greedy-Future Algorithm”. In: 40th International Symposium on Theoretical Aspects of Computer Science (STACS 2023). Vol. 254. Leibniz International
+Proceedings in Informatics (LIPIcs). Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2023, 53:1–53:21. doi: 10 . 4230 / LIPIcs . STACS . 2023 . 53. url: https : / /
+arxiv.org/abs/2301.03084.
+
+[ST25]
+
+Corwin Sinnamon and Robert E. Tarjan. “Efficiency of Self-Adjusting Heaps”. In:
+ACM Trans. Algorithms 21.4 (Sept. 2025). issn: 1549-6325. doi: 10.1145/3708989.
+url: https://doi.org/10.1145/3708989.
+
+[Sle04]
+
+Daniel Dominic Sleator. Dynamic Optimality and Multi-Splay Trees. Tech. rep. CMUCS-04-171. Carnegie Mellon University, 2004. url: https://reports-archive.adm.
+cs.cmu.edu/anon/2004/CMU-CS-04-171.pdf.
+
+[ST85a]
+
+Daniel Dominic Sleator and Robert Endre Tarjan. “Amortized Efficiency of List Update and Paging Rules”. In: Communications of the ACM 28.2 (1985), pp. 202–208.
+doi: 10.1145/2786.2793.
+
+[ST85b]
+
+Daniel Dominic Sleator and Robert Endre Tarjan. “Self-Adjusting Binary Search
+Trees”. In: Journal of the ACM 32.3 (1985), pp. 652–686. doi: 10.1145/3828.3835.
+
+[Sun92]
+
+Rajamani Sundar. “On the Deque Conjecture for the Splay Algorithm”. In: Combinatorica 12.1 (1992), pp. 95–124. doi: 10.1007/BF01191208.
+
+[TX26]
+
+Robert E. Tarjan and Xiaoyang Xu. “Pure Pairing Heaps”. In: arXiv preprint to appear
+(2026).
+
+[Tar85]
+
+Robert Endre Tarjan. “Sequential Access in Splay Trees Takes Linear Time”. In:
+Combinatorica 5.4 (1985), pp. 367–378. doi: 10.1007/BF02579253.
+
+[VV17]
+
+Gregory Valiant and Paul Valiant. “An Automatic Inequality Prover and Instance
+Optimal Identity Testing”. In: SIAM Journal on Computing 46.1 (2017), pp. 429–455.
+doi: 10.1137/151002526.
+
+[VV16]
+
+Gregory Valiant and Paul Valiant. “Instance Optimal Learning of Discrete Distributions”. In: Proceedings of the 48th Annual ACM Symposium on Theory of Computing
+(STOC 2016). 2016, pp. 142–155. doi: 10.1145/2897518.2897641.
+
+54
+
+[WDS06]
+
+Chengwen Chris Wang, Jonathan C. Derryberry, and Daniel Dominic Sleator. “O(log log n)Competitive Dynamic Binary Search Trees”. In: Proceedings of the Seventeenth Annual
+ACM-SIAM Symposium on Discrete Algorithms (SODA 2006). SIAM, 2006, pp. 374–
+383. url: https://dl.acm.org/doi/10.5555/1109557.1109600.
+
+[Wil89]
+
+Robert E. Wilber. “Lower Bounds for Accessing Binary Search Trees with Rotations”.
+In: SIAM Journal on Computing 18.1 (1989), pp. 56–67. doi: 10.1137/0218004.
+
+A
+
+Related work
+
+A.1
+
+Dynamic optimality and related conjectures and properties
+
+Dynamic optimality. A BST algorithm is dynamically optimal if, on every sufficiently long access sequence, its cost is within a constant factor of that of the optimal offline BST algorithm. There
+are two main candidates which are conjectured to be dynamically optimal – splay trees [ST85b]
+and GREEDY [Luc88; Mun00; Dem+09]; see the surveys [Iac13; Rus19; Koz16]. Dynamic optimality is an example of instance optimality—the requirement that an algorithm’s cost on every
+input be within a constant factor of the best algorithm for that particular input. This notion
+was formalized by Fagin, Lotem, and Naor [FLN03] and has since become a central paradigm in
+beyond-worst-case analysis [Rou21]. Instance optimality can be seen as a subfield of parameterized
+algorithms [Cyg+15]. The closest classical analogue to BST dynamic optimality is the list update
+problem, where Sleator and Tarjan [ST85a] showed that the simple Move-to-Front rule is constantcompetitive against the offline optimum. Instance-optimality and related notions have been established across many domains: geometric algorithms [ABC17], distributed computing [HWZ21;
+HRG22; Roz+22; GZ22], sorting-related problems [Hae+24; HRR25; Hae+25b], and sublinear
+algorithms [Hae+25a; VV17; VV16; Dag+95; Nar+24].
+Splay trees and conjectures related to dynamic optimality. In 1985, Sleator and Tarjan [ST85b] introduced splay trees and stated the celebrated dynamic optimality conjecture for
+them. In restricted settings for the optimal tree, certain results on dynamic optimality are known.
+Georgakopoulos [Geo04] proved that splay trees are competitive against a class of dynamically balanced BSTs using a reweighing argument. Splay trees are also key-independently optimal [Iac05]
+– under a random relabeling of keys, they match the expected offline optimum up to a constant.
+Furthermore, much of the evidence around dynamic optimality comes from restricted input families
+where splay trees are conjectured, expected, or proved to be optimal or near-optimal.
+• static optimality: Sleator and Tarjan [ST85b] proved the access lemma for splay trees, which
+implies that splay trees are within a constant factor of any static tree, i.e., a tree that is not
+allowed to change. This also proves O(log n) amortized access time.
+• sequential access, where keys are accessed in sorted order; Tarjan proved that sorted access
+takes linear total time in splay trees, regardless of the initial tree [Tar85], and Elmasry later
+simplified the argument [Elm04].
+
+55
+
+• traversal sequences, typically preorder or postorder traversals of a BST; Levy and Tarjan
+obtained optimality of splaying for preorder and postorder sequences in special settings [LT19].
+• deque conjecture, where updates happen only at the two extremes. It is conjectured that
+a sequence of m updates takes total time O(m); Sundar showed that the total time is
+O(mα(m)) [Sun92], and Pettie improved this to O(mα∗ (m)) [Pet08], where α is the inverse
+Ackermann function and α∗ is the iterated inverse Ackermann function.
+• split conjecture, where the tree is split into two at the accessed element. It is conjectured
+that splitting all n elements takes total time O(n). Prior to this work, no bound was known
+beyond the O(n log n) bound implied by the access lemma and the O(nα(n)) bound of Lucas
+for the special case in which the initial tree is a path [Luc91].
+The GREEDY algorithm. A second major candidate for dynamic optimality is the maximallygreedy BST strategy, introduced independently by Lucas [Luc88] and Munro [Mun00] and reinterpreted via the geometric view in [Dem+09]. Progress on GREEDY includes access-lemmatype analyses [Fox11], bounds for decomposable sequences [GG19], near-optimality on deque sequences [Cha+15a], improved bounds on pattern-avoidance access families [Cha+22], and group
+access bounds [Cha+24]. However, recent work shows nontrivial limitations: the competitive ratio
+of GREEDY is at least 2, and the additive gap from OPT can be Ω(m log log n) [SK23], where m
+is the length of the accessed sequence.
+Properties implied by dynamic optimality. There are several properties of binary search
+trees that hold for any dynamically optimal binary search tree. Furthermore, if the binary search
+tree is r-competitive up to an additional factor of r′ , these hold amortized up to a multiplicative
+factor of r and initialization cost r′ . All of these are implied by the existence of other BSTs with
+these properties, which on any sequence can be related to by the dynamically optimal BST. Note
+that these are implied only if there are no insertions and deletions.
+• working-set bound : access to an element x takes time O(log(2 + wt )), where wt is the number
+of distinct elements accessed since time t and t is the time of last access to x. This property
+is proved for splay trees by Sleator and Tarjan [ST85b].
+• dynamic-finger bound : access to xi takes time O(log(2 + |xi − xi−1 |)); this was also proved
+for splay trees [Col+00; Col00].
+• unified bound [Băd+07]: a combination of the working-set bound and dynamic-finger bound:
+access to an element xi takes time O(mint<i log(2 + wt + |xt − xi |)); skip-splay trees achieve
+it amortizedly with additive O(log log n) per query [DS09], and cache-splays achieve it amortizedly [Der09].
+• lazy finger bound and weighted finger bound : both are achieved by the structure of Iacono
+and Langerman [IL16].
+A systematic landscape of BST bounds is surveyed in [Cha+16; Cha+24].
+56
+
+O(log log n)-competitive BSTs. While dynamic optimality is open, online BSTs with provably
+sublogarithmic competitive ratios do exist. Tango trees were introduced in [Dem+07] and achieve
+an O(log log n) competitive ratio by charging cost to Wilber’s interleave bound. Wang, Derryberry,
+and Sleator [WDS06; Sle04] gave multi-splay trees, also O(log log n)-competitive, that additionally retain several splay-like properties [DSW09]. Georgakopoulos [Geo08] achieved O(log log n)competitiveness via chain-splay trees, a splay-based variant that is the closest proven competitive
+guarantee to the original splay conjecture among splay-like variants. Zipper trees were introduced
+in [Bos+10], also O(log log n)-competitive, with the additional guarantee of O(log n) worst-case
+time per access. A meta-transformation in [Dem+13] combines the guarantees of multiple BST
+algorithms into a single structure within a constant factor of the best. Generic transformations can
+de-amortize essentially any BST algorithm while preserving asymptotic costs [Bos+12], implying
+that if dynamic optimality is achievable, it is achievable with worst-case O(log n) time per access.
+Lower bounds and the geometric view. Wilber [Wil89] gave two influential lower bounds
+on OPT(X). The first (interleave or alternation bound, often called Wilber-1) underlies Tango
+trees and most known o(log n)-competitive BST algorithms. The second (funnel bound, Wilber-2)
+is traditionally viewed as a more promising candidate for tightly characterizing OPT.
+The geometric interpretation of BST executions from [Dem+09] maps an access sequence to a
+planar point set and expresses OPT as a minimum arborally satisfied completion, yielding additional
+lower bounds such as the Independent Rectangle Bound (IRB) that subsumes both Wilber bounds.
+Kozma and Saranurak [KS20; KS16] connected BST bounds to rectangulations and smooth heaps
+via a duality between BSTs and heaps. Pattern-avoidance and decomposition frameworks explain
+broad subclasses of sequences where BST costs are nearly linear [Cha+15b; Cha+16].
+Recent advances clarified the relationships among these bounds. Lecomte and Weinstein [LW20]
+proved that the funnel bound dominates the alternation bound for all sequences and exhibited a
+tight Θ(log log n) separation between them. Chalermsook, Chuzhoy, and Saranurak [CCS23] showed
+that even a strengthened “Strong Wilber-1” benchmark can be Ω(log log n/ log log log n) smaller
+than OPT, while also giving O(log log n)-competitive and approximation algorithms within their
+framework. This is a barrier result: improvements in competitive ratio cannot come merely from
+tracking the alternation bound; something fundamentally different is required. Direct-sum theorems
+for Wilber’s bounds were proved in [Jia+24], which also used them for hardness amplification,
+showing as a corollary that tango trees are optimal among BST algorithms whose analyses charge
+cost to the alternation bound.
+
+A.2
+
+Pairing heaps
+
+In this section we describe pairing heaps [Fre+86] and recent breakthroughs in their analysis. While
+seemingly unrelated, we show that, when related to the optimal tree, the changes to the structure
+of splay trees due to splaying resemble what happens in pairing heaps when the root is deleted.
+In general, pairing heaps maintain a heap structure with lower-keyed values closer to the root
+and implement four operations: (i) meld, which takes two heaps and hangs the root with the higher
+key below the other root as its leftmost child; (ii) insert, which creates a singleton heap and melds
+it with the target heap; (iii) decrease-key, which takes a pointer to a node, cuts its subtree, and
+57
+
+melds the subtree with the rest of the heap; and (iv) delete-min, which removes the root and
+creates a single tree in two steps, first melding pairs of neighboring children and then assembling
+the remaining children by a series of melds. Different assembly orders yield different variants of
+pairing heaps.
+In the following variants of pairing heaps, delete-min always takes time O(log n) [Fre+86], and
+decrease-key requires Ω(log log n) amortized time on certain instances [Fre99].
+• Standard pairing heaps. The assembly is performed oldest-to-newest, with the current
+vertex always melded with the lowest-key child seen so far. Pettie
+[Pet05] proved that all
+√
+other operations except for delete-min take amortized time O(22 log log n ).
+• Pure pairing heaps. The assembly identifies the globally minimum child after the pairing
+phase and then melds all other children with it. While this discards comparisons, it is easier to analyze, and it was shown in [TX26] that decrease-key takes O(log log n log log log n)
+amortized time.
+• Multi-pass pairing heaps. Instead of an assembly similar to that in pure or standard pairing heaps, the pairing pass is repeated as long as more than one child remains. Sinnamon and
+Tarjan [ST25] proved that decrease-key in multi-pass pairing heaps takes O(log log n log log log n)
+amortized time.
+We extract from the analyses of pure and standard pairing heaps a common interface, proved
+in Section 5.5, that we also use in our analysis
+of splay trees.
+√
+2
+log
+log
+n ) analysis for standard pairing heaps [Pet05] could
+We additionally remark that the O(2
+also simplify the proof of splay-tree competitiveness,
+at the cost of worsening the resulting com√
+petitive ratio from Õ(log log n) to 2O( log log n) .
+
+B
+
+Equivalence of the root BST model to the standard BST model
+
+In this appendix, we briefly note the equivalence of the root binary search tree (BST) model and
+the standard BST model of Sleator and Tarjan [ST85b]. Another widely used pointer-based BST
+model, due to Demaine et al. [Dem+07], is also equivalent to the standard BST model [Dem+07].
+In all of these models, a tree T and an access sequence X = x1 , . . . , xm are given.
+Standard BST [ST85b]. The cost of each access xi is 1 + depthT (xi ), where the depth is
+measured at the time of access. Between accesses, the tree can perform any number of rotations,
+and each rotation costs 1.
+Root BST (used in this work). For every access, the accessed element must be the root of T ,
+and the cost of the access is 1. In addition, before each access, the tree can perform any number
+of rotations, and each rotation costs 1.
+Lemma 37. For every sequence X and every binary search tree algorithm T in the Standard
+BST model, there is a modified algorithm T ′ in the Root BST model such that costroot (T ′ , X) ≤
+58
+
+2 coststandard (T, X). Furthermore, for any binary search tree T ′ in the Root BST model, coststandard (T ′ , X) =
+costroot (T ′ , X). Here, coststandard denotes the cost in the Standard BST model and costroot the cost
+in the Root BST model.
+Proof. An algorithm that is valid in the Standard BST model might not be valid in the Root BST
+model. To fix this, we always rotate the accessed element to the root before the access in the
+Root BST model. This takes depthT (xi ) rotations. After the access, we need to restore the state
+that the tree would have had in the Standard BST model. We recover this state by undoing the
+rotations in the reverse order from that in which they were performed, as a left rotation undoes
+a right rotation. Therefore, in the Root BST model, we perform all rotations performed in the
+Standard BST model, as well as an additional 2 depthT (xi ) rotations for every accessed element.
+Hence, the cost in the Root BST model is
+X
+X
+costroot (T ′ , X) = m + #rotationsT +
+2 depthT (xi ) ≤ 2 · (m + #rotationsT +
+depthT (xi )) =
+i
+
+= 2 · (#rotationsT +
+
+X
+
+i
+
+(1 + depthT (xi ))) = 2 · coststandard (T, X)
+
+i
+
+Furthermore, every algorithm valid in the Root BST model is valid in the Standard BST model.
+Since each access to the root and each rotation costs 1 in the Standard BST model, the total costs
+are identical.
+
+C
+
+A normal form for binary search tree algorithms
+
+We shall prove that any binary search tree algorithm (henceforth, BST algorithm) can be transformed into one with three properties: (i) the tree maintained by the algorithm always has logarithmic depth, (ii) the tree maintained by the algorithm is ribless, and (iii) the algorithm performs
+only restricted rotations. By a restricted rotation, we mean a rotation that happens at depth O(1).
+The simulation incurs an O(1) amortized slowdown factor.
+Theorem 2. For any access sequence X = x1 , . . . , xm from U = [n], there exists a sequence of
+trees T0 , T1 , . . . , Tℓ and a sequence of times t1 < · · · < tm ∈ [ℓ], where ℓ = O(cost(TXOPT )), such that
+1. For all i ∈ [ℓ], Ti is a binary search tree on [n] that is ribless of depth O(log n),
+2. For all i ∈ [ℓ], Ti is obtained from Ti−1 by a single rotation at depth at most O(1),
+3. For all j ∈ [m], Ttj has root xj .
+Our result combines three known results: (i) any algorithm can be transformed into one that
+maintains logarithmic depth [Bos+12], (ii) there is a binary search tree implementation of a finger
+search tree [BR25] that is fully ribless, and (iii) any n-node binary search tree can be converted
+into any other one on the same set of nodes in at most 4n − 8 rotations. We briefly discuss these
+results and how to combine them to obtain our result.
+
+59
+
+C.1
+
+Log-depth trees of Bose et al.
+
+Bose et al. [Bos+12] give a construction that converts any binary search tree algorithm into an
+algorithm that maintains a tree of O(log n) depth, with constant-factor amortized slowdown. They
+assume the finger model of a BST algorithm: the algorithm maintains a finger at some node,
+initially the root. In one step, the algorithm can move the finger to the parent or a child of the
+indicated node, or do a rotation at the indicated node. The algorithm does an access by moving
+the finger to the node to be accessed. It is straightforward to verify that, up to constant factors,
+this model is equivalent to the rotation model and the subtree replacement model.
+The key ingredient of their construction is an implementation of a biased stack as a binary
+search tree. They call this data structure a pop-tart. A pop-tart supports O(1)-amortized-time
+push and pop operations, as well as weight-biased access: Each node x, optionally including null
+nodes, has a positive real-valued weight w(x); the depth of x is O(log min{n, W/w(x)}), where W
+is the total weight of all the nodes. The nodes must be pushed into the data structure in either
+decreasing or increasing order. In the decreasing case, the pushed node must be smaller than all the
+nodes currently in the stack. The node might also be accompanied by a subtree of nodes smaller
+than the pushed node. The pop-tart operates on such a subtree as a unit, so it does not modify its
+internal structure and treats it as a null node. The increasing case is symmetric.
+To obtain their simulation, Bose et al. partition the nodes of the binary search tree maintained
+by the algorithm into heavy paths. They replace each heavy path by a single node and a pair of
+biased stacks. They also replace the path from the root to the finger node by the finger and a pair
+of pop-tarts (biased stacks). With an appropriate choice of node weights, the overall tree depth is
+logarithmic. Simulating a rotation or a movement of the finger takes O(1) pushes and pops in the
+biased stacks. One can verify by inspecting the details of their construction that each such push
+or pop is at the top of a stack that has depth O(1) and that each such push or pop takes O(1)
+amortized time in the subtree model of BST algorithms.
+The Bose et al. simulation is the first step of our transformation.
+
+C.2
+
+Ribless trees of Brodal and Rysgaard
+
+We say that a non-root node of a binary tree is a left-rib node if it is the left child of its parent.
+The definition of right-rib nodes is symmetric. A left rib is any maximal path in T consisting only
+of left-rib nodes. A right rib is defined symmetrically. A spine is a rib that starts at a child of the
+root of the tree; all other ribs are proper ribs. When using the term rib, we will usually mean a
+proper rib unless specified otherwise. For an integer k, the tree is k-ribless if all its proper ribs are
+of size less than k. For an integer k, the tree is k-fully-ribless if all its ribs, including spines, are of
+size less than k. When k is some fixed constant, we might say that the tree is ribless or fully-ribless.
+Brodal and Rysgaard [BR25] give a fully-ribless binary search tree implementation of a finger
+search tree. Their implementation gives O(1)-time access from any node to its parent and children,
+to its predecessor and successor in symmetric order, and to the smallest and largest nodes in
+its subtree in symmetric order. It also supports the insertion of a node before or after a given
+node, or the deletion of a given node, in O(1) amortized time. One can verify by inspecting their
+construction that their implementation is a tree of depth O(log n). In our application, we only need
+
+60
+
+to perform insertions and deletions at one end of the tree, so we do not need the full power of their
+construction.
+We will obtain riblessness by replacing each rib in the tree maintained by the Bose et al.
+simulation by a Brodal and Rysgaard finger search tree. We replace a left rib by a finger search
+tree in which its increasing symmetric order corresponds to decreasing depth along the rib, and a
+right rib by a finger search tree in which its increasing symmetric order corresponds to increasing
+depth along the rib. This is the second step of our transformation. The following lemma implies
+that the tree resulting from these replacements is fully-ribless:
+Lemma 38. Let T be any tree, and let T ′ be a tree formed from T by replacing each rib and spine
+of T by a k-fully-ribless tree. Then T ′ is 3k-fully-ribless.
+Proof. The lemma follows from a simple observation. Here, by a rib, we mean a rib or spine. Let
+v1 v2 be a non-rib edge in T , let v1′ v2′ be the corresponding edge in T ′ , and let R1 and R2 be the
+ribs in T containing v1 and v2 , respectively. Let R1′ and R2′ be the replacements in T ′ of R1 and
+R2 , respectively. If v1′ v2′ is a rib edge of T ′ and this rib contains the root of R1′ , then v1′ is the
+smallest node in R1′ if v1′ v2′ is a left edge and the largest node in R1′ if v1′ v2′ is a right edge. The
+observation is true because if v1′ v2′ is a left edge, a traversal that starts at the root of R1′ in T ′ and
+follows left edges through descendants will reach the smallest node in R1′ and then traverse v1′ v2′ .
+The symmetric argument applies if v1′ v2′ is a right edge.
+We prove the lemma by a case analysis using the observation. Let R be any rib of T ′ . If R does
+not contain an edge corresponding to a non-rib edge of T , then R is entirely in the subtree replacing
+some rib of T , so R contains at most k nodes. Suppose R contains some edge v1′ v2′ corresponding
+to a non-rib edge v1 v2 in T . Choose such an edge v1′ v2′ with v2′ deepest in R. Without loss of
+generality, suppose v1 v2 is a left edge. Node v1 cannot be the root of T , since then v1′ = v1 is the
+root of T ′ , but the root of T ′ is a one-node rib of T ′ . Let v0 be the parent of v1 in T , and let v0′ v1′
+be the edge in T ′ corresponding to v0 v1 in T .
+Since v1 v2 is a left non-rib edge in T , v0 v1 is a right edge in T . Let R0 , R1 , R2 , R0′ , R1′ ,
+and R2′ be the ribs in T and the corresponding replacing subtrees in T ′ containing v0 , v1 , and v2
+respectively. If v0 v1 is a non-rib edge, R0 ̸= R1 ; if v0 v1 is a rib edge, R0 = R1 .
+The subtrees rooted at v2 in T and at v2′ in T ′ contain the same nodes, all of which are greater
+than v0 and less than v1 .
+Suppose v1′ v2′ is a right edge. By the observation, R cannot contain the root of R1′ , since if it
+did, v1′ would be the largest node in R1′ in symmetric order and v2′ would be larger than v1′ and
+hence larger than v1 , a contradiction. Hence, R contains only nodes in R1′ and R2′ . Since both R1′
+and R2′ are k-fully-ribless, R contains at most 2k nodes, making the lemma true.
+Suppose, on the other hand, that v1′ v2′ is a left edge. By the observation, R cannot contain the
+root of R0′ , since if it did, v0′ would be the smallest node in R0′ in symmetric order and v2′ would
+be smaller than v0′ and hence smaller than v0 , a contradiction. Hence, R contains only nodes in
+R0′ , R1′ , and R2′ . Since R0′ , R1′ , and R2′ are k-fully-ribless, R contains at most 3k nodes, making the
+lemma true.
+The Brodal and Rysgaard construction replaces each rib (including spines) of a red-black tree
+by a tree that is 4-fully-ribless. By Lemma 38, the resulting tree is itself 12-fully-ribless. Again by
+61
+
+Lemma 38, the tree formed by replacing each rib of a Bose et al. tree by a Brodal and Rysgaard
+tree is 36-fully-ribless.
+We also require that the rib replacement increase the tree depth by at most a constant factor.
+In any k-fully-ribless tree, the i-th smallest and i-th largest nodes in symmetric order have depth
+at most O(ki). It follows that the tree T ′ formed by replacing each rib (including spines) in a Bose
+et al. tree T by a Brodal and Rysgaard tree has O(log n) depth: if P is the path in T from the root
+to some node x, P alternates between subpaths of ribs and single non-rib edges. The corresponding
+path P ′ in T ′ alternates between subpaths within the replacements of ribs and edges corresponding
+to the rib edges on P . If a subpath of P that is within a rib contains i edges, then the corresponding
+subpath in P ′ contains O(i) edges. Thus, the replacement of the ribs of T increases the depth by
+at most a constant factor.
+We conclude that if we replace each rib of the tree T maintained by the Bose et al. simulation
+by a Brodal-Rysgaard finger search tree, the resulting tree T ′ is 36-ribless and has O(log n) depth.
+
+C.3
+
+Restricted rotations of Cleary and Taback
+
+It remains to show that we can simulate the accesses performed by the Bose et al. algorithm using
+restricted rotations in T ′ with an amortized O(1) slowdown while maintaining O(log n) depth and
+riblessness. By a restricted rotation, we mean a rotation that happens at depth at most C for some
+universal constant C > 0. For this, we use the result of Cleary and Taback [CT03] that any n-node
+binary search tree can be converted into any other on the same set of nodes in at most 4n − 8
+rotations. We need the sequence of rotations to preserve riblessness, so we re-prove their result to
+show that there is a sequence of 4n − 4 restricted rotations that transforms any n-node tree into
+any other while maintaining riblessness.
+Lemma 39. Let T and T ′ be two trees on the same set of nodes. Then T can be transformed into
+T ′ by doing at most 4n − 4 restricted rotations. If T and T ′ are both k-ribless, each tree in the
+transformation sequence is k + 1-ribless.
+Proof. Since restricted rotations are reversible, it is enough to show that 2n − 2 restricted rotations
+are enough to transform any tree into the tree R consisting only of the root and the right spine.
+Then, we can transform T into T ′ by transforming T into R, transforming T ′ into R, and reversing
+each rotation in the second transformation as well as their order.
+To transform an arbitrary tree T into R, (i) do left rotations at the right child of the root until
+no node on the right spine has a left child. Then, repeat the following two steps until the tree is R:
+(ii) do right rotations at the left child of the root until the left child of the root has a right child,
+or there is no left child of the root; (iii) repeatedly do a left rotation at the right child of the left
+child of the root until there is no right child of the left child of the root.
+After (i), no node on the right spine has a left child. Each rotation in (ii) adds a node to the
+right spine and preserves the invariant that no node on this spine has a left child. It follows that
+when the algorithm stops, the tree is R. Each rotation in (i) and (iii) adds a different node to the
+left spine; each rotation in (ii) adds a different node to the right spine. Thus the transformation of
+T into R takes at most n − 1 restricted left rotations and at most n − 1 restricted right rotations.
+
+62
+
+Suppose that T and T ′ are k-ribless. To prove that the transformation from T or T ′ to R
+maintains k + 1-riblessness, we consider the effect of rotations in (i), (ii), and (iii) on the proper
+ribs.
+Once a node is the root or is on a spine, it remains the root or on a spine.
+A rotation in (ii) rotates at the node that is the left child of the root, say node v. This has no
+effect on the proper ribs.
+A rotation in (i) rotates at the right child of the root. The rotation moves the left child of the
+right child of the root from the top of a left proper rib to the top of a right proper rib. Before the
+rotation, the top of this rib was not a right child of a node on the left spine; after the rotation, it
+is. The rotation has no other effect on the proper ribs.
+A rotation in (iii) rotates at the right child of the left child of the root, say node w. The
+rotation removes node w from the top of a right proper rib and moves it to the left spine; it makes
+the previous right child of w the right child of a node on the left spine; and it moves the previous
+left child of w from the top of a left proper rib to the top of a right proper rib, at the same time
+making this node the right child of a node on the left spine. Two proper ribs shrink. One right
+proper rib grows by one node, but at the same time its top changes from a node that was not a
+child of a node on the left spine to one that is. The rotation has no other effect on the proper ribs.
+We conclude that only right proper ribs can grow, and a right proper rib can grow by one node
+only when its top becomes a child of a node on the left spine. Once its top is a child of a node on
+the left spine, it can only shrink. The lemma follows.
+We use Lemma 39 to prove that the Bose et al. simulation can be implemented using restricted
+rotations and, in turn, that it can still be implemented using restricted rotations if we replace each
+rib (including spines) by a finger search tree. Furthermore, the latter simulation maintains O(log n)
+depth and 37-riblessness and has an O(1) amortized slowdown.
+
+C.4
+
+Proof of the normal-form theorem
+
+Proof of Theorem 2. Consider the optimal BST serving the access sequence x1 , . . . , xn . After rotating xi to the root to serve the i-th request, the tree performs a sequence of touches and rotations
+to get xi+1 into the root. We denote the tree that serves the i-th request with root xi by Ti . Let ni
+be the number of touches and rotations performed after the i-th request
+Pn−1 is served and before the
+OPT
+(i + 1)-st request is served. The cost of the BST is cost(Tx1 ,...,xn ) = i=1 ni .
+Since the touched nodes are required to form a connected subtree of Ti and all rotations involve
+only touched nodes, Ti and Ti+1 differ in a subtree of size at most ni containing the root. By
+Lemma 39, we can convert Ti into Ti+1 using at most 4ni − 4 restricted rotations. This gives
+a sequence T ′ of trees of length at most 4 cost(TxOPT
+) that serves x1 , . . . , xn and in which all
+1 ,...,xn
+rotations happen at depth at most O(1).
+This sequence of trees can be further represented by the finger trees of Bose et al. Before
+each rotation, we place the finger at the root of the current tree, move the finger to the node
+we want to rotate, perform the rotation, and move the finger back to the root. As each rotation
+happens at constant depth, this creates a sequence of finger-move and rotation operations of length
+O(cost(TxOPT
+)). The finger trees of Bose et al. maintain the depth O(log n).
+1 ,...,xn
+
+63
+
+Each finger move or rotation on the Bose et al. tree translates into a constant number of
+push/pop operations on pop-tarts. Each of the pop-tart operations is implemented using O(1)
+amortized rotations within a subtree of amortized size O(1) containing the root. In the worst case,
+each pop-tart operation uses at most O(log n) rotations within a subtree of size O(log n) containing
+the root. We simulate the changes done on the subtree using restricted rotations of Lemma 39. As
+each such subtree is of size O(log n), each intermediate tree has depth O(log n).
+Since the amortized size of the modified subtree is O(1) and the total number of operations is
+O(cost(TxOPT
+)), we obtain a sequence of trees T ′′ of length O(cost(TxOPT
+)) serving x1 , . . . , xn ,
+1 ,...,xn
+1 ,...,xn
+where each tree has depth O(log n) and is obtained from the previous tree by a restricted rotation.
+Finally, we want to make the trees in the sequence ribless. We replace each rib (including spines)
+by the finger search tree of Brodal and Rysgaard with a finger at the top of the rib. Simulating a
+restricted rotation changes the ribs of the tree being simulated. It is straightforward to check that
+a restricted rotation modifies at most four ribs, each having a top at depth O(1), by adding one
+node to the top of at most two ribs and removing at most one node from the top of at most two
+ribs. These updates are pushes and pops on the ribs. Each such push or pop can be performed in
+the corresponding finger search tree in the subtree replacement model. We extend the subtree to be
+replaced by adding the O(1) nodes from the root of the finger search tree to the root of the entire
+tree. We replace the resulting subtree by doing the sequence of rotations given by Lemma 39. Since
+a push or pop in a finger search tree takes O(1) amortized rotations, each replaced subtree has O(1)
+amortized size, so the simulation has an O(1) amortized slowdown. Furthermore, it maintains O(1)riblessness and O(log n) depth. This gives the final sequence of trees serving x1 , . . . , xn of length
+O(cost(TxOPT
+)), where each tree has depth O(log n) and is ribless, and all rotations happen at
+1 ,...,xn
+depth O(1).
+
+C.5
+
+Optimal trees for the split conjecture
+
+Let x1 , x2 , . . . , xn be any permutation of [n] which defines a sequence of splits. A static binary
+search tree T OP T achieving the minimum cost of splits for x1 , . . . , xn can be built recursively:
+make x1 the root of the optimal tree and recursively build its left subtree as an optimal splitting
+tree for the subsequence of x2 , x3 , . . . , xn of elements smaller than x1 , and its right subtree as an
+optimal splitting tree for the subsequence of elements larger than x1 . Such a splitting tree achieves
+the optimal cost O(n). After each split operation, we have a collection of binary search trees for
+disjoint intervals of [n]. To prove the splitting conjecture for splay trees, we need to maintain
+a collection of trees that have logarithmic depth and are ribless, with all rotations happening at
+constant depth. We need the total cost of the splits to be O(n) starting from some tree with those
+properties. The initial tree will be obtained from the static optimal tree T OP T for the splitting
+sequence x1 , . . . , xn by applying the transformation from the previous section. That is, we represent
+the tree using the balanced tree of Bose et al., and we represent each rib (including spines) by the
+folded red-black tree of Brodal and Rysgaard. To make changes to such a tree, we will use the
+technique of Cleary and Taback to perform all rotations at small depth. Formally, we establish the
+following theorem.
+Theorem 40. For any permutation x1 , . . . , xn of [n], there exists a sequence of forests F0 , F1 , . . . , Fℓ
+and a sequence of times t1 < · · · < tn ∈ [ℓ], where ℓ = O(n) such that
+64
+
+1. F0 consists of a single binary search tree on [n],
+2. For all i ∈ [ℓ] and any T ∈ Fi , T is a binary search tree on a sub-interval of [n], T is ribless
+of depth O(log |T |),
+3. Fℓ consists of n singleton binary search trees,
+4. For all i ∈ [ℓ] \ {t1 , . . . , tn }, Fi−1 \ Fi = {T }, Fi \ Fi−1 = {T ′ } where T ′ is obtained from T
+by a single rotation at depth at most O(1),
+5. For all j ∈ [n], Ftj −1 = Ftj and xj is a singleton tree in Ftj −1 , or Ftj −1 \ Ftj = {T }, and
+Ftj \Ftj −1 = {TL , Tx , TR } where T has root xj , TL is the left subtree of xj in T , TR is the right
+subtree, and Tx is a tree with the only node xj . (TL or TR might not exist if the corresponding
+subtrees are empty.)
+As shown next, it is straightforward to extend the technique of Bose et al. [Bos+12] to support
+splits at the root. Next, we review their construction in more detail to explain how we maintain
+our collection of trees and how we analyze the total cost of splitting.
+Bose et al. represent a binary search tree T with a finger at node f by a binary search tree T ′
+rooted at f . If mL is the largest item smaller than f on the path from the root of T to f , and mR
+is the smallest item larger than f on that path, then mL is the left child of f in T ′ and mR is the
+right child. The left subtree of f in T is represented by the right subtree of mL in T ′ ; similarly, the
+right subtree of f in T is represented by the left subtree of mR . (If mL or mR does not exist in T ,
+then the representation of the relevant subtree is directly a child of f .) The left subtree of f in T ′ ,
+rooted at mL , forms a pop-tart onto which nodes smaller than f on the path from the root to f in
+T were pushed in increasing order, so mL is the top of the pop-tart. (Each such node was pushed
+there also with its left subtree in T .) Similarly, the right subtree of f in T ′ forms a pop-tart of
+nodes on the root-to-f path in T that are larger than f .
+Each subtree of T hanging from a node on the root-to-f path in T (including subtrees of f )
+is represented using a heavy path decomposition. Here, we say that an edge is heavy if it leads to
+a heavier child of a node (or to the left child in the case of a tie). By the heavier child, we mean
+the child with a larger subtree. A maximal path consisting of heavy edges leading to a node u is
+represented in T ′ by a tree rooted at u, with the nodes leading to u organized in two pop-tarts
+that are children of u (reminiscent of the finger construction). The left pop-tart contains nodes of
+the path that are smaller than u pushed onto the pop-tart in decreasing order. The other pop-tart
+contains nodes of the path that are larger than u pushed in increasing order. Hence, higher nodes
+are at the top of the pop-tarts (as opposed to the pop-tarts of nodes leading to f in T ).
+Each subtree hanging from the heavy path ending at u is represented recursively by the same
+structure, and all those representations are stored as subtrees within the appropriate pop-tarts.
+Moving a finger down to a right child v of f in T corresponds to popping v from its pop-tart
+in the left child of mR (together with the representation of one of its children in T ), rotating it to
+the root, and pushing f , together with the representation of the left child of v, onto the pop-tart
+of mL . The representation of the right child of v stays as a left subtree of mR . Moving a finger to
+a left child of f in T is symmetric. This involves amortized O(1) rotations in the pop-tarts, all of
+which are contained within an (amortized) O(1)-size subtree of T .
+65
+
+Similar operations on the pop-tarts allow us to move the finger up or simulate a rotation in T .
+Details of those operations will not be necessary for us.
+For the split conjecture, we take the static tree that is optimal for the given splitting sequence
+x1 , . . . , xn and represent it as a Bose et al. tree with a finger at the root. In subsequent steps, we
+will maintain a collection of disjoint subtrees of T OP T , each in the Bose et al. representation with
+a finger at its root.
+Consider one such subtree T of T OP T with root f . The corresponding Bose et al. tree T ′ has f
+as its root. The left subtree of f in T ′ represents the left subtree of f in T , and the right subtree
+of f in T ′ represents the right subtree of f in T , each using the heavy path decomposition.
+To split T ′ at f , we create two identical copies of T ′ , referred to as the left and right copies. In
+the left copy of T ′ , we move the finger to the left child u of f in T . This transforms the left copy
+of T ′ into a tree rooted at u. The left child of u is the representation of the left subtree of u in T ,
+and the right child of u is f . The left child of f is the representation of the right subtree of u in T ,
+and its right child is the representation of the right child of f in T . f with its right child forms a
+pop-tart with one inserted item. We remove (and discard) f with its right-child subtree from the
+left copy of T ′ . Its left child will become the right child of u. The left copy becomes a valid Bose
+et al. representation TL′ of the subtree of u in T .
+Symmetrically, we move the finger in the right copy of T ′ to the right child v of the root f and
+remove f with its left subtree from the resulting tree. This gives a valid Bose et al. representation
+TR′ of the subtree of v in T . Notice that TL′ and TR′ are disjoint.
+The transformation of T ′ involves a constant number of pushes and pops on pop-tart structures
+of T ′ , together with a constant number of rotations of nodes near the root of T ′ . The push and
+pop operations translate into up to O(d) rotations in the affected subtrees (but O(1) amortized
+rotations, as we will see), where d is the depth of the trees.
+Every pop-tart from T ′ ends up as part of either TL′ or TR′ , and we invoke a constant number
+of push and pop operations on a constant number of them. Some of the pop-tarts might disappear
+if they become empty, and new ones containing a single element might be created. But there are
+O(1) operations on pop-tarts invoked in total during a given split.
+Each rib of each of our Bose et al. trees is represented using a folded red-black tree of Brodal
+and Rysgaard to make it ribless. The number of operations on those red-black trees corresponds to
+the number of rotations within the Bose et al. tree representation. The actual transformation of
+T ′ into TL′ and TR′ is done using the technique of Cleary and Taback (Lemma 39): T ′ with root f is
+first transformed into a tree rooted at f with left children TL′ and right children TR′ using rotations
+in constant depth and then the tree is split by removing f .
+If we use s rotations to create TL′ and TR′ from the left and right copies of T ′ , then the Cleary
+and Taback procedure uses O(s) rotations. During the procedure, the depth of T ′ is maintained at
+O(log n) (and, in fact, at O(log |T ′ |)), and the tree is ribless at all times.
+To count the overall cost of splitting our representation of T OP T according to x1 , . . . , xn , we
+make the following observations. As we already noted, each internal pop-tart undergoes pushes
+and pops and is eventually emptied completely, as the final trees are singleton vertices. We can
+trace each pop-tart through its corresponding trees. If the pop-tart contains ℓ items initially, then
+it undergoes t ≥ ℓ pop and push operations. Those operations trigger a total of O(t) rotations to
+66
+
+maintain the pop-tart. (Here we are using the fact that performing t operations on a pop-tart of
+size at most t requires O(t) rotations in total.) In total, there are O(n) push and pop operations
+in all the pop-tarts, as there are O(1) such operations per split. They trigger O(n) total rotations
+in the Bose et al. representation of all the trees.
+Similarly, each rib (including spines) of the Bose et al. representation is represented by a folded
+red-black tree of Brodal and Rysgaard. During each rebuild of the Bose et al. representation, we
+rebuild an initial segment of the rib, which corresponds to a sequence of insertions and deletions
+in the corresponding folded red-black tree. The total number of insertions and deletions on all the
+ribs during a split operation corresponds to the number of rotations performed by the Bose et al.
+representation. Each rib of T ′ ends up either in TL′ or TR′ during a split. A rib of length ℓ undergoes
+s ≥ ℓ insertion and deletion operations and eventually it completely disappears. This translates
+into O(s) rotations in total to maintain that rib.
+As there are O(n) rotations performed in the Bose et al. representation in total, we perform
+O(n) insertions and deletions on the folded red-black trees and hence O(n) rotations on them in
+total.
+Together with a constant number of other rotations done per split, the total number of rotations
+we perform is O(n). During a split with t rotations, we rebuild a subtree of size O(t) containing
+the root. Hence, the Cleary and Taback procedure increases the total number of rotations by at
+most a constant factor. Thus, the whole sequence of split operations incurs cost O(n), which is
+asymptotically optimal. Each intermediate tree has logarithmic depth and is ribless. All rotations
+happen at depth O(1).
+
+D
+
+The split conjecture
+
+Here we demonstrate that our techniques can also be applied to the split conjecture to prove that
+it holds up to a small multiplicative factor.
+The split operation. Fix a BST T on some key set S ⊆ [n], and let x ∈ S. A split at x first
+rebuilds the tree so that x becomes the root and then deletes x. After the deletion, the left and right
+subtrees of x become two independent BSTs on the key sets {y ∈ S : y < x} and {y ∈ S : y > x}.
+If we continue performing splits, each subsequent key is split inside the unique current tree that
+still contains it.
+For splay trees, we restructure the tree simply by splaying x.
+The original motivation for the split conjecture stems from the sequential access theorem [Tar85]
+and from the study of specific cases in which the optimal BST has constant amortized cost. Indeed,
+one can instead view the sequential access of the elements 1 through n as a sequence of splits. It is
+then natural to ask whether the same bound holds for an arbitrary order of splits. As previously
+observed by Lucas [Luc91], given an arbitrary tree, one can use a linear number of rotations to
+restructure it so that the root is the vertex whose key x is split first, and its children are, respectively,
+the first keys in the splitting sequence that are smaller and larger than x. The cost of each split
+in the restructured tree is constant, as whenever a key is split, it is the root of its tree; thus, the
+
+67
+
+optimum tree can achieve O(n) cost. By naturally extending the dynamic optimality conjecture to
+include splits (and potentially joins), one might expect splay trees to achieve linear cost as well.
+Split conjecture [Luc88; Pet08]. Given an arbitrary initial BST T on [n] and letting x1 , . . . , xn
+be any permutation of the keys, the cost of the operations split(x1 ), split(x2 ), . . . , split(xn ),
+starting from the tree T , is O(n) for splay trees.
+We now prove that the total cost of splitting is O(n log log n · log2 log log n), i.e., that the split
+conjecture holds up to a factor of log log n · log2 log log n.
+Handling root deletes. We imagine a split proceeding as follows: the optimal tree first accesses
+the vertex to be deleted, the splay tree then accesses it, and finally both trees delete the root.
+Thus, the only new operation, compared with those needed to handle dynamic optimality, is the
+deletion of the root, as the access is the same as if no deletion followed. After the splay, we remove
+the deleted value vertex, its corresponding parent internal vertex, and the associated lazy intervals.
+This is accounted for by applying Delete to the two heap-children in their lazy intervals. Since
+the rank of the deleted vertex was 0, the structures of the heavy paths and lazy intervals in the
+individual subtrees remain unchanged. To compensate for the deletion of the root in the optimal
+tree, all ranks decrease by one. This, however, does not affect any of the gaps, so no additional
+work is needed. In total, accounting for the deletion of the root requires only free operations on
+the interface.
+Assumptions on the optimal tree for splitting. As with the dynamic optimality conjecture,
+we need to assume that the optimal forest for splits is always ribless, has logarithmic depth, and
+performs only O(n) additional rotations at depth O(1). This is proved by Theorem 40.
+Theorem 41. Let T be a splay tree over n nodes in any configuration. The total cost of the splitting
+process of T is at most O(n log log n log2 log log n).
+Proof. Deleting a splayed vertex requires only free operations. Since the normal form still holds,
+Theorem 1 implies that the splay tree performs only O((n+cost(T OPT )) log log n log2 log log n) rotations. Since cost(T OPT ) ∈ O(n), the splay tree does O(n) root deletes and O(n log log n log2 log log n)
+rotations.
+
+68
+
+

@@ -1,0 +1,1834 @@
+                                         Towards infinite PCSP: a dichotomy for
+                                         monochromatic cliques
+                                         Demian Banakh # Ñ
+                                         Faculty of Mathematics and Computer Science, Jagiellonian University, Kraków, Poland
+                                         Doctoral School of Exact and Natural Sciences, Jagiellonian University, Kraków, Poland
+
+                                         Alexey Barsukov # Ñ
+                                         Department of Algebra, Faculty of Mathematics and Physics, Charles University, Prague, Czechia
+
+                                         Tamio-Vesa Nakajima # Ñ
+                                         Faculty of Mathematics and Informatics, Philipps University, Marburg, Hesse, Germany
+arXiv:2605.09815v1 [cs.CC] 10 May 2026
+
+
+
+
+                                               Abstract
+                                         The logic MMSNP is a well-studied fragment of Existential Second-Order logic that, from a
+                                         computational perspective, captures finite-domain Constraint Satisfaction Problems (CSPs) modulo
+                                         polynomial-time reductions. At the same time, MMSNP contains many problems that are expressible
+                                         as 𝜔-categorical CSPs but not as finite-domain ones.
+                                             We initiate the study of Promise MMSNP (PMMSNP), a promise analogue of MMSNP. We
+                                         show that every PMMSNP problem is poly-time equivalent to a (finite-domain) Promise CSP
+                                         (PCSP), thereby extending the classical MMSNP–CSP correspondence to the promise setting. We
+                                         then investigate the complexity of PMMSNPs arising from forbidding monochromatic cliques, a
+                                         class encompassing promise graph colouring problems. For this class, we obtain a full complexity
+                                         classification conditional on the Rich 2-to-1 Conjecture, a recently proposed perfect-completeness
+                                         surrogate of the Unique Games Conjecture.
+                                              As a key intermediate step which may be of independent interest, we prove that it is NP-hard,
+                                         under the Rich 2-to-1 Conjecture, to properly colour a uniform hypergraph even if it is promised
+                                         to admit a colouring satisfying a certain technical condition called reconfigurability. This proof is
+                                         an extension of the recent work of Braverman, Khot, Lifshitz and Minzer (Adv. Math. 2025). To
+                                         illustrate the broad applicability of this theorem, we show that it implies most of the linearly-ordered
+                                         colouring conjecture of Barto, Battistelli, and Berg (STACS 2021).
+
+                                         2012 ACM Subject Classification Theory of computation → Constraint and logic programming;
+                                         Theory of computation → Problems, reductions and completeness; Theory of computation → Com-
+                                         plexity theory and logic; Mathematics of computing → Combinatorics; Mathematics of computing
+                                         → Graph theory
+
+                                         Keywords and phrases Promise Constraint Satisfaction Problem, MMSNP, Approximation Al-
+                                         gorithms, Rainbow Colouring
+
+                                         Funding Demian Banakh: This research was funded in whole or in part by the National Science
+                                         Centre, Poland under the Weave-UNISONO call in the Weave programme 2021/03/Y/ST6/00171
+                                         and the Polish National Agency for Academic Exchange under Zawacka programme. For the purpose
+                                         of Open Access, the author has applied a CC-BY public copyright licence to any Author Accepted
+                                         Manuscript (AAM) version arising from this submission.
+                                         Alexey Barsukov: Funded by the European Union (ERC, POCOCOP, 101071674). Views and
+                                         opinions expressed are however those of the author(s) only and do not necessarily reflect those of
+                                         the European Union or the European Research Council Executive Agency. Neither the European
+                                         Union nor the granting authority can be held responsible for them.
+
+                                         Acknowledgements We would like to thank Andrei Krokhin and Amey Bhangale for useful discussions
+                                         and the anonymous reviewers for their valuable suggestions. Furthermore, we sincerely thank the
+                                         organisers of the 2025 CSP World Congress, where this project was initiated.
+2   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+     1       Introduction
+
+    Monotone Monadic SNP (MMSNP) is a large fragment of Existential Second-Order Logic
+    (ESO) introduced by Feder and Vardi [33], with the goal of having a P vs. NP-complete
+    dichotomy (whereas the whole logic ESO contains NP-intermediate problems assuming
+    P ≠ NP [32, 50]). Fixing a language 𝜎 consisting of relational symbols 𝑅1 , . . . , 𝑅 𝑘 , an
+    MMSNP formula is an existential second-order formula of the form
+
+         Φ = ∃𝑀1 . . . 𝑀𝑐 ∀𝑥1 . . . 𝑥 𝑛 𝜙(𝑥1 , . . . , 𝑥 𝑛 ),
+
+    which additionally satisfies the following syntactic restrictions:
+    Monotone: every 𝜎-atom 𝑅𝑖 (. . . ) within 𝜙 has an odd number of nested negations before it.
+    Monadic: every relation among 𝑀1 , . . . , 𝑀𝑐 is unary i.e. it is a set.
+    No inequality: the quantifier-free part 𝜙 does not contain = or ≠.
+
+    ▶ Example 1. The sentence
+
+                                   ( 𝐴(𝑥) ∨ 𝐵(𝑥))
+                          ©                              ª
+                          ­               ∧              ®
+                          ­                              ®
+                          ­
+                          ­      (¬𝐴(𝑥)   ∨ ¬𝐵(𝑥))       ®
+                                                         ®
+         Φ = ∃𝐴, 𝐵 ∀𝑥, 𝑦 ­­               ∧              ®
+                                                         ®
+                          ­ ( 𝐴(𝑥) ∧ 𝐴(𝑦)) ⇒ ¬𝐸 (𝑥, 𝑦) ®
+                          ­                              ®
+                          ­
+                          ­               ∧              ®
+                                                         ®
+                          « (𝐵(𝑥)  ∧  𝐵(𝑦)) ⇒ ¬𝐸  (𝑥, 𝑦) ¬
+
+    is in MMSNP. In this case, 𝜎 = {𝐸 } has one binary relation symbol, so relational 𝜎-structures
+    are directed graphs. For a digraph G, note that G ⊨ Φ (read G models Φ, or Φ is satisfied in
+    G) if and only if we can partition the vertex set 𝐺 of G into two sets 𝐴, 𝐵 so that there is no
+    edge between vertices from the same set i.e. when G is 2-colourable.
+
+        As illustrated by Example 1, there is a natural relation between MMSNP satisfiability and
+    Constraint Satisfaction Problems (CSPs). For a relational 𝜎-structure A = ( 𝐴; 𝑅1A , . . . , 𝑅 A  𝑘 ),
+    CSP(A) is a computational problem, where we are given a finite 𝜎-structure I = (𝐼; 𝑅1I , . . . , 𝑅 I𝑘 )
+    and must decide the existence of a mapping ℎ : 𝐼 → 𝐴 that preserves every relation 𝑅𝑖 ∈ 𝜎.
+    Such a mapping is called a homomorphism and is denoted by ℎ : I → A. Whenever | 𝐴| < ∞,
+    we are able to construct, similarly to Example 1, a sentence Φ in MMSNP such that I → A
+    if and only if I ⊨ Φ, for every input I.
+        Feder and Vardi showed that, although MMSNP is strictly more expressive than finite-
+    domain CSP, for every MMSNP sentence Φ there exists a finite relational structure A such
+    that MMSNP(Φ) is equivalent to CSP(A) under randomised poly-time reductions; they also
+    conjectured a P vs. NP-complete dichotomy for both classes. These reductions were later
+    derandomised by Kun [49].
+        The conjecture of Feder and Vardi about CSPs inspired an active research programme.
+    It culminated two decades later, when Bulatov and Zhuk independently proved that CSPs
+    admit a P vs. NP-complete dichotomy, using algebraic tools [25, 60, 61]. This automatically
+    implied a similar dichotomy for MMSNPs. Shortly thereafter, Bodirsky, Madelaine, and
+    Mottet [14,15] showed that the complexity of MMSNP problems also depends on the algebraic
+    properties of corresponding (𝜔-categorical) CSPs, thus confirming the conjecture of Bodirsky
+    and Pinsker [17] on MMSNP problems.
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                            3
+
+
+
+
+   Figure 1 Template F3(2) for 2-colouring a graph avoiding monochromatic triangles
+
+
+The logic of forbidden patterns
+Despite the fact that MMSNP is defined in terms of syntactic restrictions applied to ESO
+sentences, it has an equivalent “combinatorial” definition called forbidden pattern problems [52].
+Each such problem is described by a finite family F of (element-)coloured connected relational
+structures (F, 𝑓 ) called forbidden patterns, where the mapping 𝑓 : 𝐹 → [𝑐] stands for a
+colouring of the elements of F with 𝑐-many colours, for some 𝑐 ∈ N. For a given relational
+structure I, the question is to decide whether the elements of I are colourable in such a
+way that there is no (colour respecting) homomorphism from a forbidden pattern of F . A
+coloured structure that avoids a homomorphism from a forbidden pattern to itself is called
+F -free. For example, the problem of 2-colouring a graph so as to avoid all monochromatic
+triangles belongs to MMSNP; a drawing of the family F for this problem can be found
+in Figure 1. Every forbidden pattern problem is clearly in MMSNP and every problem in
+MMSNP is a finite union of forbidden pattern problems [52, Corollary 13]. Taking into
+account this equivalence and that the problems studied in this paper are much easier to
+formulate in the framework of forbidden patterns, we will stick to this notation further on.
+So, we also denote by MMSNP(F ) the forbidden pattern problem associated with F .
+
+MMSNP and finite CSP
+As mentioned above, Feder and Vardi [33] demonstrated that each MMSNP is equivalent to
+some finite-domain CSP. In fact, their construction is quite straightforward. They define the
+CSP template as follows: the domain is the set [𝑐] of colours used in F ; every forbidden
+pattern (F, 𝑓 ) ∈ F yields an |𝐹 |-ary relation in the template that consists of all colourings
+𝑔 : 𝐹 → [𝑐] that do not belong to F . The reduction from MMSNP(F ) to this CSP then
+follows in a natural way: given I, we produce I′ — an instance of our CSP — by listing, for
+each forbidden pattern (F, 𝑓 ) ∈ F , all homomorphisms from F to I.
+
+▶ Example 2 (No monochromatic triangle). Suppose that there are just two colours: 𝑏, 𝑟;
+and that F3(2) consists of two copies of K3 — one is coloured fully in 𝑏, the other fully in 𝑟
+(cf. Figure 1). The 𝜎-structure associated with F3(2) has domain {𝑏, 𝑟 } and one symmetric
+ternary relation {𝑏, 𝑟 }3 \ {(𝑏, 𝑏, 𝑏), (𝑟, 𝑟, 𝑟)}; thus the corresponding CSP template is just the
+ternary Not All Equal relation (NAE3 ). The reduction from our MMSNP to the corresponding
+CSP simply applies this constraint to every triangle (and every loop) in the input graph.
+
+    The reduction in the opposite direction relies on the Sparse Incomparability Lemma which
+states that, for every finite 𝜎-structure B and ℓ > 1, the complexity of CSP(B) remains the
+same even after restricting the input to structures without cycles of length < ℓ.
+
+MMSNP and infinite CSP
+Some sentences in MMSNP describe problems that are not finite-domain CSPs: for example,
+the triangle-free property can be expressed in MMSNP but there are triangle-free graphs
+4   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+    with arbitrarily high chromatic number. (Hence no finite CSP has as Yes instances precisely
+    the set of finite triangle-free graphs.) The whole class of CSPs of 𝜔-categorical structures is
+    too large: it contains even coNP-complete and coNP-intermediate problems [11].1 On the
+    other hand, many natural families of infinite-domain CSPs exhibit a P vs. NP-complete
+    dichotomy: reducts of (Q, <) [12], reducts of homogeneous graphs [16], reducts of the random
+    poset [46], reducts of the random tournament [55]. All these classes fall into the scope of the
+    family of reducts of finitely bounded homogeneous structures.
+        For CSPs of these structures, Bodirsky and Pinsker conjectured a P vs. NP-complete
+    dichotomy with a similar universal algebraic characterisation as for finite-domain CSPs,
+    see [17]. The name for this class of structures comes from the way they are created. It starts
+    from a finite family F of structures, called the bounds and the class Forbemb (F ) of finite
+    structures that have no substructure from F . The class Forbemb (F ) is supposed to have the
+    amalgamation property: for every B1 , B2 in Forbemb (F ) that have a common substructure A
+    witnessed by embeddings 𝑒 𝑖 : A ↩→ B𝑖 (for 𝑖 ∈ {1, 2}), there is a structure C in Forbemb (F )
+    and embeddings 𝑓𝑖 : B𝑖 ↩→ C (for 𝑖 ∈ {1, 2}) such that 𝑓1 ◦ 𝑒 1 = 𝑓2 ◦ 𝑒 2 . Then, using Fraïssé’s
+    Theorem [40, Section 6.1], we inductively construct a countably infinite structure H (called the
+    Fraïssé-limit of Forbemb (F )), whose finite substructures are exactly those from Forbemb (F )
+    and which is homogeneous: every isomorphism between finite substructures of H extends to
+    an automorphism of H. The final structure, called a (first-order) reduct of H, is obtained from
+    H by adding new first-order definable relations and then forgetting some relations. Note that
+    structures whose CSPs capture MMSNP problems are constructed similarly: for instance, the
+    class Forbemb (F3(2) ) of coloured graphs without monochromatic triangles (Figure 1) already
+    has the amalgamation property. So, it is not surprising that every MMSNP problem is
+    equivalent to a finite union of CSPs of finitely bounded homogeneous structures [14, 15], and,
+    as it was mentioned, a dichotomy for them is the special case of the conjecture of Bodirsky
+    and Pinsker.
+        In spite of this natural connection of MMSNP to infinite-domain CSPs, our techniques in
+    this paper will be concerned solely with finite-domain relational structures.
+
+    Recolouring and containment
+    In their paper [33], Feder and Vardi showed that containment for problems in MMSNP is
+    decidable. (By containment, we mean deciding whether all Yes instances of one problem are
+    also Yes instances of the other problem.) For two families F1 and F2 of forbidden patterns,
+    the containment (of the corresponding MMSNP problems) is characterised by the existence
+    of a mapping 𝑟 : [𝑐 1 ] → [𝑐 2 ] between the sets of colours that lifts up to a mapping from
+    Forbhom (F1 ) to Forbhom (F2 ) [51], where Forbhom (F ) is the set of finite vertex-coloured
+    structures that do not admit a homomorphism from any member of F . Such a mapping is
+    called a recolouring. We write F1 → F2 if a recolouring from F1 to F2 exists.
+
+    Promise MMSNP
+    In this paper, we initiate the study of a promise problem variant of MMSNP, inspired by
+    the development of Promise CSP. Namely, a Promise MMSNP (PMMSNP) over a pair of
+    MMSNP templates F , G such that F → G asks to distinguish whether the input structure
+    admits an F -free colouring, or not even a G-free one. We let PMMSNP(F , G) denote this
+
+
+    1   However, the question whether there are 𝜔-categorical structures whose CSP is NP-intermediate is still
+        open [10].
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                          5
+
+
+problem. Note that the fact that F → G implies that the Yes and No instances of this
+problem are disjoint. Taking into account that every MMSNP is a union of 𝜔-categorical
+CSPs, our research can be considered as the first step towards understanding the complexity
+of Promise CSPs of countably infinite structures.
+    We prove that every Promise MMSNP is poly-time equivalent to a Promise CSP defined
+by a suitable pair of finite structures. Recall that for a promise structure A and a target
+structure B such that A → B, PCSP(A, B) is a problem in which, given a structure I, the
+goal is to distinguish whether I → A or I ̸→ B. Here as well, the fact that A → B ensures
+that the Yes and No instances are disjoint.
+
+▶ Theorem 3. If F → G, then there exist finite structures S → T such that PMMSNP(F , G)
+and PCSP(S, T) are poly-time equivalent.
+
+    This is a direct analogue of the MMSNP–CSP correspondence of Feder and Vardi in
+the promise realm. The PCSP complexity landscape remains largely unresolved, despite
+significant progress, and even simple subclasses, like Boolean PCSPs or Approximate Graph
+Colouring, are not known to admit a full complexity classification. Therefore the dichotomy
+for all PMMSNPs is most likely out of reach for now. For that reason, we restrict our
+attention to certain particular types of families F and G.
+
+Monochromatic cliques
+Consider the naturally arising graph colouring problem of the following form: given a graph
+G, decide whether there is a 𝑐-colouring of G that avoids monochromatic 𝑘-cliques. This
+problem is readily seen to be an MMSNP, where the forbidden patterns are monochromatic
+𝑘-cliques, coloured with one of 𝑐 colours; we denote such a family with F𝑘(𝑐) . This problem
+is NP-hard when 𝑐, 𝑘 ≥ 2 and max{𝑐, 𝑘 } > 2, along the lines of Example 2; and it is in P
+otherwise.
+     Such problems also exist in the graph theory under the name of K 𝑘 -free colouring [27].
+The K 𝑘 -free chromatic number 𝜒𝑘 (G) of a graph G is the minimum number 𝑐 such that
+G has a 𝑐-colouring avoiding a monochromatic 𝑘-clique. The computational complexity of
+K 𝑘 -free colouring has already been studied; for example, in [42], the authors prove that
+MMSNP(F3(𝑐) ) is NP-complete, for every 𝑐 ≥ 2.
+     We note that the problem F𝑘(𝑐) cannot be expressed as a finite-domain CSP if 𝑘 > 2.
+Indeed, for any finite graph H, there exists a graph with girth greater than 𝑘 and chromatic
+number greater than that of H (by [31]). Any 𝑐-colouring of this graph is F𝑘(𝑐) -free, but it
+does not admit a homomorphism to H.
+     On the other hand, it is very easy to construct the infinite-domain CSP templates for
+such problems. Clearly, the class of finite F𝑘(𝑐) -free coloured graphs has the amalgamation
+property, so there is no need to add any new relations, because the Fraïssé-limit of this
+class is already a finitely bounded homogeneous structure. The graph H 𝑘(𝑐) such that
+CSP(H 𝑘(𝑐) ) = MMSNP(F𝑘(𝑐) ) is obtained from 𝑐-many disjoint copies of the universal K 𝑘 -free
+graph by connecting every two vertices from distinct copies with an edge. So, the problems
+that forbid monochromatic cliques are among the tamest MMSNP problems that are not
+finite-domain CSPs.
+     In the second part of the paper, we investigate the complexity of the promise version of
+these graph colouring problems, that is, Promise MMSNPs over a pair of families F𝑘(𝑐) and
+Fℓ(𝑑) . In this case, the following two types of relations will often appear in the corresponding
+PCSP templates obtained from Theorem 3: first, for integers 0 ≤ 𝑘 ≤ ℓ, the ℓ-ary relation
+6   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+                                                       Í
+    𝑘-in-ℓ consists of all tuples 𝑎 ∈ {0, 1}ℓ for which 𝑖 𝑎 𝑖 = 𝑘. Also, the Not All Equal relation
+    NAE𝑟(𝑑) ⊆ [𝑑] 𝑟 consists of all non-constant tuples;2 a tuple 𝑎 is constant if 𝑎 𝑖 = 𝑎 𝑗 for all 𝑖, 𝑗.
+        The following example illustrates that PMMSNPs over forbidden monochromatic cliques
+    include non-trivial interesting problems in which the promise turns an otherwise NP-complete
+    MMSNP problem into an efficiently solvable one.
+    ▶ Example 4. Let us consider the PMMSNP problem with template (F3(2) , F4(2) ). In this
+    problem, we are given a graph 𝐺 = (𝑉, 𝐸) and must decide whether it has a 2-colouring
+    that avoids monochromatic triangles, or not even a 2-colouring that avoids monochromatic
+    4-cliques. We will show that something slightly more strict is possible: if we assume the
+    input graph has a 2-colouring avoiding all monochromatic triangles, we will find a 2-colouring
+    avoiding all monochromatic 4-cliques. (Thus, if our algorithm successfully outputs a 2-
+    colouring avoiding all monochromatic 4-cliques we may answer Yes, otherwise we must answer
+    No.)
+        To do this, construct a 4-uniform hypergraph whose vertices coincide with the vertices of
+    𝐺, and whose hyperedges are given by the 4-cliques of 𝐺. Call this hypergraph 𝐻 = (𝑉, 𝐸 ′ ).3
+    The condition that 𝐺 has a 2-colouring avoiding all monochromatic triangles implies that
+    there exists a 2-colouring 𝑐 : 𝑉 → {0, 1} of 𝐻 that, for every (𝑥, 𝑦, 𝑧, 𝑡) ∈ 𝐸 ′ , colours half
+    of 𝑥, 𝑦, 𝑧, 𝑡 with 0 and the other half with 1. We must output a colouring 𝑑 : 𝑉 → {0, 1}
+    that leaves no edge of 𝐻 monochromatic. This is just the problem PCSP(2-in-4, NAE4 ),
+    well-known from the PCSP literature, which admits a poly-time solution via the Affine
+    Integer Programming (AIP) relaxation [18]. Let us quickly present this algorithm.
+        By assumption, there exists 𝑐 : 𝑉 → {0, 1} such that
+
+         ∀(𝑥, 𝑦, 𝑧, 𝑡) ∈ 𝐸 ′ :   𝑐(𝑥) + 𝑐(𝑦) + 𝑐(𝑧) + 𝑐(𝑡) = 2.                                       (1)
+
+    Of course, it is NP-hard to find this mapping; however, it is possible to solve the system of
+    equations in (1) over Z, by computing the Smith normal form [41]; suppose 𝑐˜ is our solution.
+    Now, consider any edge (𝑥, 𝑦, 𝑧, 𝑡). It is not possible that all of 𝑐˜(𝑥), 𝑐˜(𝑦), 𝑐˜(𝑧), 𝑐˜(𝑡) are ≤ 0
+    (or else the sum would be ≤ 0 < 2); nor is it possible that all are > 0 (or else the sum would
+    be at least 4 > 2). Hence, if we set 𝑣 ∈ 𝑉 to 1 or 0 depending on whether 𝑐˜(𝑣) ≥ 1 or 𝑐˜(𝑣) ≤ 0,
+    we can find the desired solution in NAE4 .
+
+    Rich 2-to-1 Conjecture
+    The Promise MMSNPs over F𝑘(𝑐) , Fℓ(𝑑) include the notorious Approximate Graph Colouring
+    (take 𝑘 = ℓ = 2) which can be viewed as a PCSP over two cliques. For example, PCSP(K3 , K6 )
+    is equivalent to PMMSNP(F2(3) , F2(6) ). The best known hardness results for the Approximate
+                                         √
+    Graph Colouring include 𝑐 vs. Θ(2𝑐 / 𝑐) for any 𝑐 ≥ 4 by [48], and 𝑐 vs. 2𝑐 − 1 by [8] for any
+    𝑐 ≥ 3. Therefore, an unconditional complexity classification for our PMMSNPs is currently
+    out of reach.
+        However, under additional inapproximability assumptions, further progress on the Ap-
+    proximate Graph Colouring problem has been achieved. Assuming the 𝑑-to-1 Conjecture
+    of [43], NP-hardness was proved for all PCSP(K𝑐 , K𝑑 ) such that 3 ≤ 𝑐 ≤ 𝑑 in [29, 39].
+    Later, [22] suggested a substantially different hardness proof under the recently proposed
+    Rich 2-to-1 Conjecture [23]. Outside of the Approximate Graph Colouring, the Rich 2-to-1
+    Conjecture was the basis of several hardness results for Boolean PCSPs [4, 20]. These (and
+
+
+    2   We sometimes omit the superscript (𝑑) if the domain is clear from the context.
+    3   Note that triangles in 𝐺 that belong to no 4-clique do not affect 𝐻.
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                          7
+
+
+other) conjectures provide a way to bypass the limitations of the unconditional sources of
+hardness, and make progress on various open inapproximability problems in order to better
+understand their underlying mathematical structure, which could, in turn, lead to new,
+stronger, unconditional sources of hardness in the future.
+     Let us briefly introduce the Rich 2-to-1 Conjecture now (for the formal definition, see
+Section 5). The (perhaps) more famous Unique Games Conjecture of Khot [43] states that
+it is NP-hard to even approximately solve an almost satisfiable instance of Unique Games
+(equivalently, a CSP instance in which each constraint is a bijection). This conjecture has
+inspired numerous influential results on hardness of inapproximability of various computa-
+tional problems [44, 45]. On the other hand, it is trivial to solve a satisfiable instance of
+Unique Games, therefore this conjecture has no use in tackling so called perfect completeness
+approximation problems, that is, problems of finding an approximate solution to satisfiable
+instances. The Rich 2-to-1 Conjecture was proposed in 2021 by [23] to overcome this issue.
+Namely, it states that it is NP-hard to approximately solve a satisfiable instance of Rich
+2-to-1 Games (equivalently, a CSP instance in which each constraint is a 2-to-1 function with
+an extra regularity property imposed). On almost satisfiable instances, the authors of [23]
+proved that this conjecture is equivalent to the Unique Games Conjecture, which makes it a
+perfect-completeness surrogate of the UGC.
+
+Our contributions
+We view the contributions of this paper as twofold. Firstly, a classification (resulting in a
+dichotomy) of all Promise MMSNP problems over forbidden monochromatic cliques.
+
+▶ Theorem 5. Let 𝑐, 𝑑, 𝑘, ℓ be positive integers such that F𝑘(𝑐) → Fℓ(𝑑) . Then
+   ℓ ≥ 𝑐(𝑘 − 1) and PMMSNP(F𝑘(𝑐) , Fℓ(𝑑) ) is solvable in polynomial time via AIP, or
+   ℓ < 𝑐(𝑘 − 1) and PMMSNP(F𝑘(𝑐) , Fℓ(𝑑) ) is NP-hard, assuming the Rich 2-to-1 Conjecture.
+
+    As the first step towards Theorem 5, we establish that every Promise MMSNP of interest
+is poly-time equivalent to a certain finite-domain Promise CSP in which both the promise and
+the target templates have a single, symmetric relation. The PCSPs of this form are readily
+seen to be expressible as certain promise hypergraph colouring problems. For concreteness,
+we deal with relations over a universe [𝑐] that consist of all tuples of length ℓ in which each
+                                                                       (𝑐)                 (2)
+𝑎 ∈ [𝑐] appears less than 𝑘 times. Such a relation is denoted with 𝑅 𝑘:ℓ   . For example, 𝑅3:3 is
+the ternary Not All Equal relation. Consequently, we show that every promise MMSNP over
+two monochromatic clique families is poly-time equivalent to a PCSP defined by a pair of
+relations of this form.
+
+▶ Lemma 6 (Special case of Theorem 3). Let 𝑐, 𝑑, 𝑘, ℓ be positive integers. If F𝑘(𝑐) → Fℓ(𝑑) ,
+then the problems PMMSNP(F𝑘(𝑐) , Fℓ(𝑑) ) and PCSP(𝑅 𝑘:ℓ
+                                                      (𝑐)    (𝑑)
+                                                          , 𝑅ℓ:ℓ ) are poly-time equivalent.
+
+   Thus, the desired dichotomy (Theorem 5) amounts to classifying all PCSPs of this form.
+
+▶ Corollary 7. Let 𝑐, 𝑑, 𝑘, ℓ be positive integers such that F𝑘(𝑐) → Fℓ(𝑑) . Then
+                               (𝑐)
+   ℓ ≥ 𝑐(𝑘 − 1) and PCSP(𝑅 𝑘:ℓ     , NAEℓ(𝑑) ) is solvable in polynomial time via AIP, or
+   ℓ < 𝑐(𝑘 − 1) and PCSP(𝑅 𝑘:ℓ , NAEℓ(𝑑) ) is NP-hard, assuming the Rich 2-to-1 Conjecture.
+                               (𝑐)
+
+
+    In fact, we will demonstrate that the complexity of a PCSP(𝑅, NAEℓ ) is governed by
+certain connectivity properties of the left-hand side relation. To formalize this notion, let us
+call a relation reconfigurable if any of its members can be obtained from any other member
+by modifying one coordinate at a time without leaving the relation at any point.
+8   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+        In particular, we prove the following hardness result for PCSPs, which is the technical
+    core and the second contribution of this paper. Let NAE𝑟(𝑑) denote the 𝑟-ary Not All Equal
+    relation on 𝑑 elements.
+
+    ▶ Theorem 8. Let ∅ ≠ 𝑅 ⊆ 𝐴𝑟 be a symmetric4 reconfigurable5 relation of arity 𝑟 ≥ 2. For
+    any 𝑑 such that 𝑅 → NAE𝑟(𝑑) , the problem PCSP(𝑅, NAE𝑟(𝑑) ) is NP-hard, assuming the Rich
+    2-to-1 Conjecture.
+
+        It is an extension of the work of [22]: they proved this theorem in the special case of
+    𝑅 = {(𝑎, 𝑏) ∈ {1, 2, 3} | 𝑎 ≠ 𝑏}, which coincides with the Approximate Graph Colouring. It
+    is worth noting that their proof in fact covers Theorem 8 for 𝑟 = 2, although the authors
+    do not mention it explicitly. As a side note, a symmetric 𝑅 ⊆ 𝐴2 (where every value in 𝐴
+    appears in 𝑅) is reconfigurable if and only if the (undirected) graph ( 𝐴; 𝑅) is connected and
+    not bipartite [48]. Thus, the Brakensiek-Guruswami conjecture [18], which postulates that
+    PCSP(𝐺, 𝐻) is NP-hard whenever 𝐺 is not bipartite and 𝐻 is loopless, already follows from
+    the case 𝑟 = 2 of Theorem 8, assuming the Rich 2-to-1 Conjecture.
+        In the language of [2], Theorem 8 states that symmetric reconfigurable relations are
+    promise-useless — the extra information about the input instance that they provide does
+    not help to find even a 𝑑-colouring that leaves no edge monochromatic (and hence cannot
+    help us find a solution to any nontrivial hypergraph colouring problem). This result builds,
+    albeit conditionally, on the hardness results of [28] (where they study PCSP templates of
+    the form (𝑅, NAE3 ) such that no tuple in 𝑅 is injective) and [21] (where they study PCSP
+    templates of the form (𝑘-in-ℓ ∪ 𝑆, NAEℓ(2) ) for some relation 𝑆 over {0, 1}).
+        Besides, the notion of reconfigurability in Theorem 8 hints towards its topological nature
+    — we elaborate on this question in the Conclusions. It is interesting to note that this notion
+    has appeared before in the Fourier-analytical research as well, e.g. Mossel [54] considers a
+    relation connected if it is reconfigurable.
+        To illustrate the power of Theorem 8, we give an example from the world of approximate
+    hypergraph colouring. Given a hypergraph 𝐻 = (𝑉, 𝐸), a Linearly Ordered (LO) 𝑐-colouring
+    is an assignment 𝑉 → [𝑐] to the vertices of 𝐻, such that in every hyperedge of 𝐻, its
+    maximum colour appears exactly once. Quite some work has been done on the hardness of
+    approximate LO colouring in uniform hypergraphs [7, 47, 56, 57]; for now, let us focus on
+    the case of 3-uniform hypergraphs. For the following, let (3, 𝑐, 𝑑)-approximate LO colouring
+    denote the problem of distinguishing whether a 3-uniform hypergraph is LO 𝑐-colourable, or
+    not even LO 𝑑-colourable. The state-of-the-art hardness result is the following.
+
+    ▶ Theorem 9 (Simple reduction from [47]). (3, 𝑐, 𝑐 + 1)-approximate LO colouring is NP-hard
+    for 𝑐 ≥ 2.
+
+       Theorem 8 completes the picture for 𝑐 ≥ 3, under the Rich 2-to-1 conjecture. Since the
+    template corresponding to LO 𝑐-colouring a 3-uniform hypergraph with 𝑐 ≥ 3 colours is
+    reconfigurable (cf. Figure 2), we deduce:
+
+    ▶ Corollary 10. (3, 𝑐, 𝑑)-approximate LO colouring is NP-hard for all 3 ≤ 𝑐 ≤ 𝑑, assuming
+    the Rich 2-to-1 Conjecture.
+
+       This confirms (except for the case 𝑐 = 2) the conjecture of Barto, Battistelli and Berg [7]
+    on approximate LO colouring of 3-uniform hypergraphs, under the Rich 2-to-1 conjecture.
+
+
+    4   A relation is symmetric if it is closed under permutations of coordinates.
+    5   In fact, the reconfigurability assumption can be relaxed (see Section 5).
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                                   9
+
+
+                            121
+
+
+                                           123
+
+
+                            131                223        113
+                                        132
+
+                                  232              213                   112
+
+                                        321      322
+                            231                           312
+
+
+                                           311
+
+
+                            211
+
+    Figure 2 Reconfiguration graph for LO3 . The tuple (𝑎, 𝑏, 𝑐) will be rendered 𝑎𝑏𝑐 for compactness.
+
+
+
+We also remark that there is an essential link between a topological proof of the hardness
+of (3, 3, 4)-approximate LO colouring [35] and our proof here: the reconfigurability is an
+essential implication of [35].
+   It is worth noting that (4, 𝑐, 𝑑)-approximate LO colouring was recently shown to be
+unconditionally NP-hard for all 3 ≤ 𝑐 ≤ 𝑑 by [56].
+
+
+
+Related work
+
+We shall mention some previous work in the context of Theorem 8: it consists in various
+rainbow/balanced hypergraph colouring inapproximability results; we will use the PCSP
+parlance for clarity.
+                            (𝑐)    (𝑑)
+    Observe that PCSP(𝑅ℓ:ℓ      , 𝑅ℓ:ℓ ) is just the approximate non-monochromatic hypergraph
+colouring problem. This problem serves as one of the key sources of hardness for PCSPs in
+general: see [8], which proves that a PCSP is NP-hard by gadget reduction from this problem
+if and only if it fails to admit an Olšák polymorphism, a condition which can be checked
+algorithmically; through this condition they were able to prove hardness of the approximate
+graph colouring PCSP(K𝑐 , K2𝑐−1 ) for 𝑐 ≥ 3.
+   In Table 1, we summarize existing hardness results for several regimes of promise hyper-
+graph colouring that are subsumed, albeit conditionally, by this work. Finally, PCSPs of our
+form were mentioned in [59] as Balanced Hypergraph Colouring problems.
+
+
+
+6 This conjecture, which is, in some sense, a hypergraph generalisation of the “fish-shaped” conjecture of
+  Dinur et al. [29], was proposed in [19].
+7 They prove it only for even 𝑐 and 𝑑 = 2, but with slight modifications to their proof, it is possible to
+
+  generalise it to any 𝑐, 𝑑 ≥ 2.
+10   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+         Table 1 A summary of hypergraph colouring hardness results. These results only hold for choices
+     of parameters where the PCSP template is valid, i.e. only when A → B for PCSP(A, B).
+
+
+                        Problem                 Parameters            Assumptions        Reference
+                          (𝑐)    (𝑑)
+                    PCSP(𝑅ℓ:ℓ , 𝑅ℓ:ℓ )      ℓ ≥ 3 and 𝑑 ≥ 𝑐 ≥ 2            —              [30, 56]
+                         (ℓ+1)    (𝑑)
+                   PCSP(𝑅3:ℓ   , 𝑅ℓ:ℓ )            ℓ, 𝑑 ≥ 3         V Label Cover6          [19]
+                       (𝑐)       (𝑑)
+                 PCSP(𝑅𝑞+𝑐:𝑐𝑞 , 𝑅𝑐𝑞:𝑐𝑞 )          𝑞, 𝑐, 𝑑 ≥ 2              —                [37]
+                       (𝑐)       (𝑑)
+                 PCSP(𝑅𝑞+𝑑:𝑐𝑞 , 𝑅𝑐𝑞:𝑐𝑞 )          𝑞, 𝑐, 𝑑 ≥ 2              —                [38]7
+                           (𝑐)    (𝑑)
+                    PCSP(𝑅 𝑘:ℓ , 𝑅ℓ:ℓ )       2 ≤ ℓ < 𝑐(𝑘 − 1)         Rich 2-to-1       This work
+
+
+
+      2      Preliminaries
+     Notation
+     We write [𝑛] for the set {1, . . . , 𝑛} and N for the set of positive integers. Given a set 𝐴, any
+     element of 𝐴𝑛 is an 𝑛-ary tuple. A tuple 𝑥 ∈ 𝐴𝑛 can be treated as a function 𝑥 : [𝑛] → 𝐴.
+     Conversely, we sometimes treat any function from a finite set to 𝐴 as a tuple, implicitly
+     enumerating the elements of this finite set. The 𝑖-th entry of a tuple 𝑥 ∈ 𝐴𝑛 is denoted by 𝑥𝑖 .
+         A (constraint) language is a set 𝜎 whose every member 𝑅 ∈ 𝜎, called a relation symbol, is
+     assigned a positive integer ar(𝑅), called the arity of 𝑅. For 𝜎 = {𝑅1 , . . . , 𝑅𝑛 }, a (relational)
+     𝜎-structure is a tuple A = ( 𝐴, 𝑅1A , . . . , 𝑅 A                                ar(𝑅𝑖 ) , for each 𝑖 ∈ [𝑘].
+                                                     𝑘 ), where 𝐴 is a set and 𝑅𝑖 ⊆ 𝐴
+                                                                                A
+
+     The set 𝐴 is called the domain of A and, for every 𝑖 ∈ [𝑘], 𝑅𝑖 is called the interpretation of
+                                                                             A
+
+     𝑅𝑖 in A or simply a relation. In this paper, all structures are to be assumed finite, unless
+     stated otherwise.
+         For two 𝜎-structures A and B, a homomorphism from A to B is a map ℎ : A → B that
+     preserves relations.
+
+     MMSNP
+     Let 𝜏 be a fixed language and F be a finite family of pairs (F, 𝑓 ), where F is a finite 𝜏-
+     structure, and 𝑓 : 𝐹 → [𝑐] for some 𝑐 ∈ N. The set [𝑐] is called the colour set of F and each
+     (F, 𝑓 ) ∈ F is called a forbidden pattern of F .
+         A 𝑐-expansion (or a 𝑐-colouring) of a 𝜏-structure I is a pair (I, 𝑔) where 𝑔 : 𝐼 → [𝑐]. If
+     the number of colours is not important, we will just write an expansion (or a colouring).
+     Conversely, the reduct of (I, 𝑔) is the 𝜏-structure I.
+         We say that an expansion (I, 𝑔) is F -free if every (F, 𝑓 ) ∈ F and every homomorphism ℎ
+     from F to I satisfies 𝑓 ≠ 𝑔 ◦ ℎ.
+
+     ▶ Definition 11 (MMSNP). Let 𝜏 be a constraint language. For a finite family F of forbidden
+     patterns over 𝜏, the problem MMSNP(F ) comes in two flavours:
+     (decision) given a 𝜏-structure I, output Yes if I has an F -free expansion, and output No
+         otherwise;
+     (search) given a 𝜏-structure I, output an F -free expansion.
+     The decision MMSNP is poly-time equivalent to the search MMSNP: it follows from the
+     poly-time equivalence of MMSNP and precoloured MMSNP [15, Corollary 6.10]. For the sake
+     of brevity, we will write F instead of MMSNP(F ) to denote the decision problem associated
+     with F .
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                       11
+
+
+   Let (I, 𝑔) be a 𝑐-expansion of I. Given a mapping 𝑟 : [𝑐] → [𝑑], any 𝑑-expansion (I, ℎ)
+that satisfies 𝑟 ◦ 𝑔 = ℎ is called an 𝑟-preimage of (I, 𝑔).
+   Let F and G be two families of forbidden patterns over the same constraint language
+with colour sets [𝑐] and [𝑑], respectively. A mapping 𝑟 : [𝑐] → [𝑑] is a recolouring from F
+to G, if no forbidden pattern of G has a F -free 𝑟-preimage. We write F → G if there is a
+recolouring from F to G.
+
+▶ Definition 12 (PMMSNP). Let 𝜏 be a constraint language. For finite families of forbidden
+patterns F and G over 𝜏 such that F → G, the problem PMMSNP(F , G) comes in two
+flavours:
+(decision) given a 𝜏-structure I, output Yes if I has an F -free expansion, and output No if I
+    even does not have a G-free expansion;
+(search) given a 𝜏-structure I promised to have an F -free expansion, output a G-free expan-
+    sion of I.
+
+CSP
+It was already mentioned that every problem in MMSNP is poly-time equivalent to a
+Constraint Satisfaction Problem (CSP) [33].
+
+▶ Definition 13. Let 𝜎 be a constraint language. For a 𝜎-structure B, the problem CSP(B)
+comes in two flavours:
+(decision) given a 𝜎-structure I, output Yes if I → B, and output No if I ̸→ B;
+(search) given a 𝜎-structure I, output a homomorphism from I to B.
+The decision CSP is poly-time equivalent to the search CSP [24, Corollary 4.9].
+
+▶ Definition 14 (PCSP). Let 𝜎 be a relational language. For any two 𝜎-structures A and B
+such that A → B, the problem PCSP(A, B) comes in two flavours:
+(decision) given a 𝜎-structure I, output Yes if I → A, and output No if I ̸→ B;
+(search) given a 𝜎-structure I promised to admit a homomorphism to A, output a homo-
+   morphism from I to B.
+The search PCSP is at least as hard as the decision PCSP, however the converse is not known.
+We provide algorithms for the search version, and proofs of hardness for the decision version.
+   “Sandwiching” is a trivial reduction technique between PCSPs:
+
+▶ Observation 15 (See [8,18]). If A → B → C → D, then PCSP(A, D) reduces to PCSP(B, C)
+in poly-time.
+
+    In the case B = C, the problem PCSP(B, C) is just a CSP, namely CSP(B) = CSP(C).
+    If 𝑅 ⊆ 𝐴𝑟 and 𝑆 ⊆ 𝐵𝑟 , we sometimes abuse the notation and write PCSP(𝑅, 𝑆) in place
+of PCSP(( 𝐴; 𝑅), (𝐵; 𝑆)) for convenience.
+
+
+ 3     Equivalence with PCSP
+In this section, we show that the problem PMMSNP(F , G) is poly-time equivalent to some
+finite-domain PCSP. The reductions generalise the ones of Feder and Vardi [33], where the
+finite-domain CSP encoded all valid colourings of the reducts of the forbidden structures.
+However, in the promise setting, the two MMSNP sentences could have different sets of
+reducts, so applying Feder and Vardi’s reduction to each MMSNP sentence would give two
+finite structures over different constraint languages. We resolve this issue.
+12   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+     ▶ Theorem 3. If F → G, then there exist finite structures S → T such that PMMSNP(F , G)
+     and PCSP(S, T) are poly-time equivalent.
+
+         We first argue that F and G can be assumed to be in certain normal form. A structure F
+     is biconnected if for every 𝑥 ∈ 𝐹, the substructure of F induced on 𝐹 \ {𝑥} is not isomorphic
+     to the disjoint union of two structures. A family F is in normal form if every F ∈ F is
+     biconnected and if F is closed under taking quotients, i.e., identifying any two elements in
+     any F ∈ F results in a structure from F . The following result allows us to assume the normal
+     form without loss of generality.
+
+     ▶ Lemma 16 (Proposition 3.3 and Lemma 4.4 in [15]). Every MMSNP problem is a finite
+     disjunction of MMSNP problems in normal form.
+
+        Further in this section, let F = F1 ∨ · · · ∨ F𝑚 and G = G1 ∨ · · · ∨ G𝑛 be two disjunctions
+     of MMSNPs in normal form such that F → G. Denote the colour set of each F𝑖 (resp. G 𝑗 )
+     by [𝑐 𝑖 ] (resp. [𝑑 𝑗 ]) for some 𝑐 𝑖 ∈ N (resp. 𝑑 𝑗 ∈ N).
+
+     ▶ Observation 17. For every 𝑖 ∈ [𝑚] there is 𝑗 ∈ [𝑛] such that F𝑖 → G 𝑗 .
+
+         We shall define S and T via a generalisation of the construction given in the Introduction.
+     Let 𝜏 be the language of both F and G. For each 𝑗 ∈ [𝑛], let G ∗𝑗 denote the set of all reducts
+     of forbidden patterns in G 𝑗 ; for each 𝑖 ∈ [𝑚], define F𝑖∗ similarly. Denote by 𝜎 the language
+     which contains, for every 𝑗 ∈ [𝑛] and every G ∈ G ∗𝑗 , a |𝐺 |-ary symbol 𝑅G . We also expand 𝜎
+     with an auxiliary binary symbol ∼. This will be the constraint language of both S and T.
+         Fix 𝑗 ∈ [𝑛]; let T 𝑗 be the 𝜎-structure with domain [𝑑 𝑗 ], where
+                                            T
+         for every G ∈ G ∗𝑗 , the relation 𝑅G𝑗 := 𝑡 : 𝐺 → [𝑑 𝑗 ] | (G, 𝑡) ∉ G 𝑗 ;
+                                                 
+                                                                            T
+         for every 𝑗 ′ ∈ [𝑛] \ { 𝑗 } and every G ∈ G ∗𝑗 ′ , the relations 𝑅G𝑗 := [𝑑 𝑗 ] 𝐺 and ∼T 𝑗 := [𝑑 𝑗 ] 2 are
+         full.
+
+        Fix 𝑖 ∈ [𝑚]; by Observation 17, F𝑖 → G 𝑗 for some 𝑗 ∈ [𝑛]. Let S𝑖 be the 𝜎-structure with
+     domain [𝑐 𝑖 ], where
+
+        for every G ∈ G ∗𝑗 , the relation 𝑅G
+                                           S𝑖
+                                              := {𝑠 : 𝐺 → [𝑐 𝑖 ] | (G, 𝑠) is F𝑖 -free};
+        for every 𝑗 ∈ [𝑛] \ { 𝑗 } and every G ∈ G ∗𝑗 ′ , the relations 𝑅G
+                     ′                                                    S𝑖
+                                                                             := [𝑐 𝑖 ] 𝐺 and ∼S𝑖 := [𝑐 𝑖 ] 2 are
+        full.
+     Finally, we define S := S1 ⊔· · ·⊔S𝑚 and T := T1 ⊔· · ·⊔T𝑛 , where ⊔ stands for the disjoint union.
+     We will argue that PMMSNP(F , G) is poly-time equivalent to PCSP(S, T), concluding the
+     proof of Theorem 3.
+
+     ▷ Claim 18. PMMSNP(F , G) poly-time reduces to PCSP(S, T).
+
+     Proof. Given an instance of PMMSNP(F , G) — a 𝜏-structure X — we construct an instance
+     of PCSP(S, T) — a 𝜎-structure which we denote by 𝜎(X). Namely, let 𝜎(X) be the structure
+     with the same domain as X in which every relation 𝑅G𝜎 (X) := Hom(G, X) is defined as the set
+     of all homomorphisms from G to X. The relation ∼ 𝜎 (X) := 𝑋 2 is full.
+         If X is a Yes instance of MMSNP(F ), then there is 𝑠 : 𝑋 → [𝑐 𝑖 ] for some 𝑖 ∈ [𝑚] such that
+     (X, 𝑠) is F𝑖 -free. It follows from the construction of 𝜎(X) and S𝑖 that 𝑠 is a homomorphism
+     from 𝜎(X) to S𝑖 .
+         Conversely, if ℎ : 𝑋 → 𝑇 is a homomorphism from 𝜎(X) to T, then the image of ℎ is
+     contained in some T 𝑗 , as ∼ 𝜎 (X) = 𝑋 2 . It follows from the construction of 𝜎(X) that ℎ colours
+     every copy of every G ∈ G 𝑗 in an allowed way, so (X, ℎ) is G-free.                             ◀
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                                      13
+
+
+    For the converse reduction, we make use of the Sparse Incomparability Lemma which
+allows us to assume no short cycles in structures on input to PCSP(S, T). We say that S has
+girth > 𝑘 if for any choice of ℓ ≤ 𝑘 relational tuples 𝑠1 , . . . , 𝑠ℓ of arities 𝑟 1 , . . . , 𝑟 ℓ in S, the
+                                                                         Í
+total number of elements appearing in the tuples is greater than ℓ𝑖=1 (𝑟 𝑖 − 1). That is, 𝑘 or
+fewer relational tuples never form a cycle.
+
+▶ Lemma 19 (Sparse Incomparability Lemma [33, 49]). Let 𝜎 be a finite relational language,
+and 𝑘, 𝑡 ∈ N. For every 𝜎-structure I there exists a poly-time constructible 𝜎-structure I′ with
+girth > 𝑘 such that for every 𝜎-structure T of size < 𝑡 the equivalence I → T ⇔ I′ → T holds.
+Moreover, I′ → I.
+
+    Furthermore, we can assume that input structures are connected, i.e. not isomorphic to
+a disjoint union of two structures. To see why this is the case, observe that A ⊔ B → S if
+and only if A → S and B → S. This implies that we can solve a disconnected instance of
+PCSP(S, T) by solving its every connected component. This means that I → S if and only if
+I → S𝑖 , for some 𝑖 ∈ [𝑚], and similarly I → T ⇔ I → T 𝑗 , for some 𝑗 ∈ [𝑛]. Since ∼T 𝑗 = 𝑇 𝑗2 is
+full, we can also assume that ∼I = 𝐼 2 is full.
+
+▷ Claim 20. PCSP(S, T) poly-time reduces to PMMSNP(F , G).
+
+Proof. Given an instance of PCSP(S, T) — a 𝜎-structure I — we construct an instance of
+PMMSNP(F , G) — a 𝜏-structure which we denote by 𝜏(I).
+    We first obtain I′ by applying Lemma 19 with parameters 𝑘 > max{|𝐺 | | G ∈ F1 ∪ · · · ∪
+                                                                                         ′
+F𝑚 ∪ G1 ∪ · · · ∪ G𝑛 } and 𝑡 > max{|𝑆|, |𝑇 |} and also taking the auxiliary relation ∼I = 𝐼 ′2 to
+be full. Denote by 𝜏(I) the 𝜏-structure with the same domain as I′ which is obtained by
+replacing every 𝑡 ∈ 𝑅G  I′ with a copy of G induced on 𝑡, for every G ∈ G ∗ . Since all F and
+                                                                             𝑗              𝑖
+G 𝑗 are in normal form and since I′ has large girth, every pair F𝑖 → G 𝑗 has the following
+property: if there is a colouring 𝑠 of 𝜏(I) that leaves every copy of G F𝑖 -free (resp. G 𝑗 -free)
+for each G ∈ G ∗𝑗 , then (𝜏(I), 𝑠) is F𝑖 -free (resp. G 𝑗 -free).
+    If I → S𝑖 , then also I′ → I → S𝑖 by Lemma 19. If ℎ is a homomorphism from I′ to S𝑖 ,
+then it colours all the copies of structures from G ∗𝑗 in 𝜏(I) such that each of them is F𝑖 -free,
+where 𝑗 is witnessing the containment F𝑖 → G 𝑗 . This implies that (𝜏(I), ℎ) is F𝑖 -free, and
+𝜏(I) is a Yes instance of MMSNP(F ).
+    Conversely, if 𝜏(I) is a Yes instance of MMSNP(G), then 𝜏(I) has a G 𝑗 -free expansion for
+some 𝑗 ∈ [𝑛], witnessed by 𝑠 : 𝐼 ′ → [𝑑 𝑗 ]. Since every copy of G in 𝜏(I) is G 𝑗 -free, for each
+G ∈ G ∗𝑗 , the same mapping 𝑠 is a homomorphism from I′ to T 𝑗 . By Lemma 19, we then have
+I → T 𝑗 → T.                                                                                    ◀
+
+     This concludes the proof of PMMSNP–PCSP correspondence.
+
+
+ 4      Forbidding monochromatic cliques
+
+In this section we provide a complete complexity classification for Promise MMSNPs defined
+by forbidding monochromatic cliques. Recall that F𝑘(𝑐) denotes the family of all 𝑘-cliques
+such that every two vertices in the same clique have the same colour out of {1, . . . , 𝑐}.
+
+▶ Theorem 5. Let 𝑐, 𝑑, 𝑘, ℓ be positive integers such that F𝑘(𝑐) → Fℓ(𝑑) . Then
+     ℓ ≥ 𝑐(𝑘 − 1) and PMMSNP(F𝑘(𝑐) , Fℓ(𝑑) ) is solvable in polynomial time via AIP, or
+     ℓ < 𝑐(𝑘 − 1) and PMMSNP(F𝑘(𝑐) , Fℓ(𝑑) ) is NP-hard, assuming the Rich 2-to-1 Conjecture.
+14   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+         Theorem 3 asserts that we can study Promise CSPs defined by suitable relations instead
+                                                                        (𝑐)
+     of Promise MMSNPs. Concretely, for 𝑐, 𝑘, ℓ ≥ 1, let 𝑅 𝑘:ℓ              ⊆ [𝑐] ℓ be the relation consisting of
+                                                                                                (𝑑)
+     all tuples (𝑎 1 , . . . , 𝑎 ℓ ) such that ∀𝑎 ∈ [𝑐] : |{𝑖 : 𝑎 𝑖 = 𝑎}| < 𝑘. Observe that 𝑅ℓ:ℓ    is isomorphic
+     to NAEℓ(𝑑) .
+         Theorem 3 applied to (F𝑘(𝑐) , Fℓ(𝑑) ) provides the structures S and T. Following the
+     construction in Section 3 (in fact, even the reasoning similar to Example 4 suffices), the
+                                                                             (𝑐)         (𝑑)
+     reader may verify that these structures correspond to 𝑅 𝑘:ℓ                  and 𝑅ℓ:ℓ   respectively — the
+     extra ∼ relation is full in both structures, and can be safely discarded without affecting the
+     complexity of PCSP(S, T).
+
+     ▶ Lemma 6 (Special case of Theorem 3). Let 𝑐, 𝑑, 𝑘, ℓ be positive integers. If F𝑘(𝑐) → Fℓ(𝑑) ,
+     then the problems PMMSNP(F𝑘(𝑐) , Fℓ(𝑑) ) and PCSP(𝑅 𝑘:ℓ
+                                                           (𝑐)    (𝑑)
+                                                               , 𝑅ℓ:ℓ ) are poly-time equivalent.
+
+         The rest of this section is organized as follows. First, we want to characterise the
+     containment F𝑘(𝑐) → Fℓ(𝑑) in terms of the relation between the numbers 𝑐, 𝑑, 𝑘, and ℓ. Next,
+     the proof of the tractability part of the dichotomy is presented. Finally, we prove the hardness
+     part, which is incidentally the most technical part: it requires a basic introduction to Fourier
+     analysis and related notions.
+
+     Understanding containment
+     ▶ Lemma 21. Let 𝑐, 𝑑, 𝑘, ℓ be positive integers. Then F𝑘(𝑐) → Fℓ(𝑑) if and only if 𝑘 ≤
+     ⌈ℓ/⌈𝑐/𝑑⌉⌉.
+
+     We call this inequality the containment condition for 𝑐, 𝑑, 𝑘, ℓ.
+
+     Proof. Suppose that 𝑘 ≤ ⌈ℓ/⌈𝑐/𝑑⌉⌉. Fix any mapping 𝑟 : [𝑐] → [𝑑] such that |𝑟 −1 (𝑖)| ∈
+     {⌊𝑐/𝑑⌋, ⌈𝑐/𝑑⌉} for every 𝑖 ∈ [𝑑]. Every 𝑟-preimage of every monochromatic Kℓ contains at
+     least ⌈ℓ/⌈𝑐/𝑑⌉⌉ vertices of the same colour, so it contains a monochromatic copy of K 𝑘 , which
+     implies that 𝑟 is a recolouring.
+         For the opposite direction, let 𝑟 : [𝑐] → [𝑑] be an arbitrary recolouring from F𝑘(𝑐) to
+     Fℓ(𝑑) . By the pigeonhole principle, there must exist 𝑖 ∈ [𝑑] such that |𝑟 −1 (𝑖)| ≥ ⌈𝑐/𝑑⌉. Every
+     𝑟-preimage of (Kℓ , 𝑣 ↦→ 𝑖) ∈ Fℓ(𝑑) contains
+         at least ⌈ℓ/⌈𝑐/𝑑⌉⌉ vertices of the same colour, and
+         a monochromatic copy of K 𝑘 , since 𝑟 is a recolouring.
+     Consequently 𝑘 ≤ ⌈ℓ/⌈𝑐/𝑑⌉⌉.                                                                    ◀
+
+         In particular, observe that if 𝑐, 𝑑, 𝑘, ℓ > 0 satisfy the containment condition, then 𝑘 ≤ ℓ.
+
+     Tractability
+     We shall prove the first part of Theorem 5.
+
+     ▶ Theorem 22. Let 𝑐, 𝑑, 𝑘, ℓ be positive integers satisfying the containment condition such
+     that ℓ ≥ 𝑐(𝑘 − 1). Then PMMSNP(F𝑘(𝑐) , Fℓ(𝑑) ) is in P.
+                                                            (𝑐)    (𝑑)
+     Proof. By Lemma 6, it suffices to prove that PCSP(𝑅 𝑘:ℓ    , 𝑅ℓ:ℓ ) is in P. If ℓ > 𝑐(𝑘 − 1), then
+     the left-hand side relation is empty, so the problem is trivially tractable. Similarly if 𝑑 = 1,
+     then the right-hand side relation is empty, so the problem is yet again trivial. Thus assume
+     that ℓ = 𝑐(𝑘 − 1) and 𝑑 ≥ 2. We will argue that
+           (𝑐)
+         𝑅 𝑘:ℓ → (𝑘 − 1)-in-ℓ → NAEℓ(2) → 𝑅ℓ:ℓ
+                                           (𝑑)
+                                               .
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                             15
+
+
+Then, tractability follows by Observation 15 from the tractability of
+                              
+   PCSP (𝑘 − 1)-in-ℓ, NAEℓ(2) ,
+
+which, in turn, follows from the techniques of [18], namely AIP. Let us therefore show the
+required homomorphisms.
+  (𝒄 )                                                                     (𝑐)
+𝑹𝒌:ℓ   → (𝒌 − 1)-in-ℓ. Since ℓ = 𝑐(𝑘 − 1), it follows that each tuple of 𝑅 𝑘:ℓ consists of exactly
+     𝑘 − 1 appearances of each of the 𝑐 colours in our domain. Mapping one fixed colour to 1
+    and the rest to 0 gives rise to a homomorphism to (𝑘 − 1)-in-ℓ.
+                                                                                       (𝑑)
+NAEℓ(2) → 𝑹ℓ:ℓ(𝒅)
+                  . Mapping 0 and 1 to any two distinct colours in the domain of 𝑅ℓ:ℓ      suffices.
+    (Such colours exist as 𝑑 ≥ 2.)                                                               ◀
+
+Hardness
+For the second part of Theorem 5, we prove the following.
+▶ Theorem 23. Let 𝑐, 𝑑, 𝑘, ℓ be positive integers satisfying the containment condition such that
+ℓ < 𝑐(𝑘 − 1). Then PMMSNP(F𝑘(𝑐) , Fℓ(𝑑) ) is NP-hard, assuming the Rich 2-to-1 Conjecture.
+    Braverman et al. [22] recently presented a yet different proof of conditional hardness for
+PCSP(K3 , Kℓ ) using their analysis of the invariance principle for multi-slices, and reducing
+from the Rich 2-to-1 Conjecture.8 We follow their approach to derive hardness for the PCSPs
+of the following form:
+▶ Theorem 8. Let ∅ ≠ 𝑅 ⊆ 𝐴𝑟 be a symmetric9 reconfigurable10 relation of arity 𝑟 ≥ 2. For
+any 𝑑 such that 𝑅 → NAE𝑟(𝑑) , the problem PCSP(𝑅, NAE𝑟(𝑑) ) is NP-hard, assuming the Rich
+2-to-1 Conjecture.
+   The proof of this result is rather technical, so we will first show how it implies Theorem 23,
+and then devote the remaining part of this paper to proving Theorem 8.
+
+Proof of Theorem 23. Fix 𝑐, 𝑑, 𝑘, ℓ such that ℓ < 𝑐(𝑘 − 1). First, note that by the contain-
+ment condition
+       &    '
+         ℓ
+   𝑘 ≤  𝑐  ≤ ℓ,
+          𝑑
+
+hence ℓ < 𝑐(𝑘 − 1) ≤ 𝑐(ℓ − 1). This means that 𝑐, 𝑑, 𝑘, ℓ ≥ 2.
+                                                     (𝑐)    (𝑑)
+    By Lemma 6, it suffices to show that PCSP(𝑅 𝑘:ℓ      , 𝑅ℓ:ℓ ) is NP-hard, assuming the Rich
+2-to-1 Conjecture. We are going to apply Theorem 8.
+               (𝑐)
+    Let 𝑅 := 𝑅 𝑘:ℓ which is a symmetric relation of arity ℓ. Since ⌈ℓ/𝑐⌉ ≤ 1 + ℓ/𝑐 < 𝑘, it is
+non-empty.
+    Recall that 𝑅 consists of all tuples of length ℓ, using only elements in [𝑐], where every
+element appears less than 𝑘 times. If we start from some arbitrary tuple of 𝑅, and replace
+(one of) the most frequent colours with (one of) the least frequent colours, we can reach any
+tuple where each colour appears either ⌊ℓ/𝑐⌋ or ⌈ℓ/𝑐⌉ times. This implies that every tuple in
+𝑅 can be reconfigured to the uniquely chosen “almost balanced” tuple in 𝑅.
+                                                                                   (𝑑)
+    Therefore 𝑅 ≠ ∅ is a symmetric reconfigurable relation. On the other hand, 𝑅ℓ:ℓ    = NAEℓ(𝑑) .
+We conclude the proof by applying Theorem 8.                                                  ◀
+
+8  Earlier, Guruswami and Sandeep [39] proved this under the weaker 𝑑-to-1 Conjecture. However, we
+   were not able to extend their techniques to our setting.
+9 A relation is symmetric if it is closed under permutations of coordinates.
+10 In fact, the reconfigurability assumption can be relaxed (see Section 5).
+16   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+      5      PCSP hardness
+
+     This section is devoted to the proof of Theorem 8. As mentioned earlier, it is a special
+     case of a more general hardness result that we prove. More precisely, the reconfigurability
+     shall be relaxed to connectedness of Braverman, Khot, Lifshitz, and Minzer [22]; we call it
+     BKLM-connectedness for clarity.11
+
+     ▶ Definition 24 (Based on [22]). Given a relation 𝑅 ⊆ 𝐴𝑟 and 1 ≤ 𝑖 < 𝑟, we define G𝑖𝑅 to be
+     the bipartite graph whose left side consists of all prefixes of tuples in 𝑅 of length 𝑖, whose
+     right side consists of all suffixes of tuples in 𝑅 of length 𝑟 − 𝑖, and where a prefix and a suffix
+     are connected if they form a tuple in 𝑅 together.
+
+
+     ▶ Theorem 25. Let ∅ ≠ 𝑅 ⊆ 𝐴𝑟 be a symmetric BKLM-connected relation of arity 𝑟 ≥ 2.
+     For any 𝑑 such that 𝑅 → NAE𝑟(𝑑) , the problem PCSP(𝑅, NAE𝑟(𝑑) ) is NP-hard, assuming the
+     Rich 2-to-1 Conjecture.
+
+        Let us first argue that Theorem 8 indeed follows from Theorem 25. This amounts to
+     proving that symmetric reconfigurable relations are BKLM-connected.
+
+     ▶ Proposition 26. Let 𝑅 ⊆ 𝐴𝑟 be a symmetric reconfigurable relation. Then 𝑅 is BKLM-
+     connected.
+
+     Proof. Fix 1 ≤ 𝑖 < 𝑟, and consider the bipartite graph G𝑖𝑅 . Since this graph has no isolated
+     vertices by construction, it is connected if and only if its line graph 12 is connected.
+         Consider now the reconfiguration graph of 𝑅: the vertices of this graph are the tuples of
+     𝑅; two tuples are connected whenever they differ in precisely one coordinate. Clearly, the
+     reconfiguration graph is a subgraph of the line graph of G𝑖𝑅 , and they have the same vertex
+     sets. Since the former is connected by the assumption, the latter must be connected as well,
+     which concludes the argument.                                                               ◀
+
+         The proof of Theorem 25 follows the strategy of [22] through which its authors proved
+     hardness of Approximate Graph Colouring, assuming the Rich 2-to-1 Conjecture. Its nature
+     is heavily analytical; in particular, it relies on the invariance principle on multislice domains
+     developed in the same paper.
+         The rest of this section is organized as follows. First we define the Rich 2-to-1 Conjecture,
+     the source of hardness for our PCSPs. Then we introduce the necessary notions from the
+     Fourier analysis. Finally, we present the proof of Theorem 25.
+
+
+     Rich 2-to-1 Conjecture
+     We will have to concede the CSP formulation of the Rich 2-to-1 Conjecture, used in the
+     Introduction, in favour of the more commonly used Label Cover one. For the following, a
+     map 𝜋 : [2𝑛] → [𝑛] is called 2-to-1 if |𝜋 −1 (𝑖)| = 2 for each 𝑖 ∈ [𝑛].
+
+
+     11 To be precise, their definition of connectedness is less restrictive, but the semantics of connectivity
+
+       remains the same.
+     12 The line graph of G 𝑅 has as vertices the edges of G 𝑅 (i.e. tuples of 𝑅), and two edges are connected
+                           𝑖                                𝑖
+       whenever one of their endpoints coincides (i.e. two tuples are connected if they agree on the prefix or on
+       the suffix).
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                                 17
+
+
+▶ Definition 27 (Rich 2-to-1 Label Cover). A Rich 2-to-1 Label Cover instance is a tuple
+(𝑈 ∪ 𝑉, 𝐸, [2𝑛], [𝑛], {𝜋𝑒 } 𝑒∈𝐸 ), where (𝑈 ∪ 𝑉, 𝐸) form a bi-regular bipartite graph, and each
+𝜋𝑒 : [2𝑛] → [𝑛] is a 2-to-1 map. Furthermore, for every fixed 𝑢 ∈ 𝑈, if we sample 𝑣 from
+the neighbourhood of 𝑢 uniformly at random, then the function 𝜋𝑢𝑣 is uniformly distributed
+among the set of 2-to-1 maps [2𝑛] → [𝑛] (this property is called richness).13
+    A labelling for this instance is an assignment 𝑐 which sends 𝑈 to [2𝑛] and 𝑉 to [𝑛]. The
+value of the labelling is the probability that 𝑐(𝑣) = 𝜋𝑢𝑣 (𝑐(𝑢)) for (𝑢, 𝑣) sampled uniformly at
+random from 𝐸. The value of the instance is the maximum value of any labelling.
+▶ Conjecture 28 (Rich 2-to-1 conjecture [23]). For every 𝜀 > 0 there exists a large enough
+𝑛 such that it is NP-hard to decide whether a Rich 2-to-1 Label Cover instance (𝑈 ∪
+𝑉, 𝐸, [2𝑛], [𝑛], {𝜋𝑒 } 𝑒∈𝐸 ) has value 1, or value < 𝜀.
+   For a tuple 𝑥 ∈ 𝐴𝑛 and a map 𝜋 : [2𝑛] → [𝑛], the pullback of 𝑥 along 𝜋 is the tuple
+𝑦 ∈ 𝐴2𝑛 such that 𝑦 𝑗 = 𝑥 𝜋 ( 𝑗 ) for all 𝑗 ∈ [2𝑛]. We will usually denote this tuple by 𝜋 −1 (𝑥),
+abusing the notation.
+   Conversely, for a function 𝑓 on 2𝑛 variables and a map 𝜋 : [2𝑛] → [𝑛], we denote by 𝑓 𝜋
+the 𝑛-ary function 𝑔 defined by pulling back its input and passing to 𝑓 , that is,
+    𝑔(𝑥1 , . . . , 𝑥 𝑛 ) = 𝑓 (𝑥 𝜋 (1) , . . . , 𝑥 𝜋 (2𝑛) ).
+                                            𝜋
+In this case, we also write 𝑓 −
+                              → 𝑔. This operation is known as a minor in PCSP literature.
+
+Informal overview of Theorem 25
+Let us preface this overview by emphasizing that our proof is largely based on the proof
+of [22, Theorem 6.7]; in particular, the reduction [22, Section 6.2], the completeness proof [22,
+Section 6.3], and a part of the soundness proof [22, Section 6.4] are followed verbatim, with
+a few simplifications. Due to this, and the lack of space, we only present a proof sketch here,
+deferring some technical details to the Appendix.
+▶ Theorem 25. Let ∅ ≠ 𝑅 ⊆ 𝐴𝑟 be a symmetric BKLM-connected relation of arity 𝑟 ≥ 2.
+For any 𝑑 such that 𝑅 → NAE𝑟(𝑑) , the problem PCSP(𝑅, NAE𝑟(𝑑) ) is NP-hard, assuming the
+Rich 2-to-1 Conjecture.
+     We will assume that each 𝑎 ∈ 𝐴 can be extended to a tuple (𝑎, 𝑎 2 , . . . , 𝑎 𝑟 ) ∈ 𝑅; otherwise
+such 𝑎 can be removed from 𝐴 without affecting the complexity of the PCSP in question.
+Throughout the proof, 𝑟, 𝑑, and | 𝐴| are treated as constants.
+     In order to prove Theorem 25, we shall reduce from the Rich 2-to-1 Conjecture (see Con-
+jecture 28), transforming Rich 2-to-1 Label Cover instances into instances of PCSP(𝑅, NAE𝑟 ),
+i.e., 𝑟-uniform hypergraphs. Fix the value of 𝑛 obtained from Conjecture 28 for a small 𝜀 > 0
+that we shall define later. Let Φ = (𝑈 ∪ 𝑉, 𝐸, [2𝑛], [𝑛], {𝜋𝑒 } 𝑒∈𝐸 ) be a Rich 2-to-1 Label Cover
+instance. Let us recall the standard Long Code transformation (see e.g. [8]): each vertex
+𝑢 ∈ 𝑈 is replaced with a copy of 𝐴2𝑛 (called the cloud of 𝑢), each 𝑣 ∈ 𝑉 is replaced with a
+copy of 𝐴𝑛 (the cloud of 𝑣); every edge (𝑢, 𝑣) ∈ 𝐸 commands identification of all pairs of
+tuples 𝑥 ∈ 𝐴2𝑛 and 𝑦 ∈ 𝐴𝑛 in the clouds of 𝑢 and 𝑣 such that 𝑥 = 𝜋𝑢𝑣     −1 (𝑦); additionally, some
+
+hyperedges are added, which we discuss later.
+     Our transformation differs from the above only in the use of a “shorter” code: instead of
+the whole Cartesian power of 𝐴, we are content with a certain subset of it, called multislice.
+
+
+13 In other words, if one fixes any 𝑢 ∈ 𝑈 and considers the maps 𝜋 associated with the edges incident to
+                                                                  𝑒
+  𝑢, every 2-to-1 map appears equally often.
+18   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+                                                                                       Í
+     ▶ Definition 29 (Multislice). For any 𝑛 ∈ N and # ∈ {1, . . . , 𝑛} 𝐴 such that 𝑎 #𝑎 = 𝑛, let
+     S# be the subset of 𝐴𝑛 consisting of all tuples in which each 𝑎 ∈ 𝐴 appears exactly #𝑎 times.
+     By 2# we denote the tuple (2#𝑎 ) 𝑎 ∈ {0, . . . , 2𝑛} 𝐴. If #𝑎 ≥ 𝛼 · 𝑛 for all 𝑎 ∈ 𝐴, then we call
+     the tuple # 𝛼-balanced.
+         The Long Code reduction framework further stipulates that, for any 𝑣 1 , . . . , 𝑣 𝑟 ∈ 𝑉 with
+     a common neighbour 𝑢 ∈ 𝑈 and any 𝑦 (1) , . . . , 𝑦 (𝑟 ) from the respective clouds, a hyperedge
+     (𝑦 (1) , . . . , 𝑦 (𝑟 ) ) is added whenever (𝜋𝑢𝑣
+                                                    −1 (𝑦 (1) ) , . . . , 𝜋 −1 (𝑦 (𝑟 ) ) ) ∈ 𝑅 for all 𝑖 ∈ [2𝑛]. Since our
+                                                      1        𝑖             𝑢𝑣𝑟           𝑖
+     domain is stripped down to a union of multislices, not all of these hyperedges exist — we
+     only add some of them. To be precise, let Ω be a probability distribution over 𝑅. We define
+     the relation 𝜇Ω         𝑛 as the following set
+                                                   14
+
+                                       𝑟
+                                        Ö               n                                      o             
+            (𝑥 (1) , . . . , 𝑥 (𝑟 ) ) ∈   𝐴2𝑛 : ∀𝑎 ∈ 𝑅. 𝑗 : (𝑥 (1) 𝑗    , . . . , 𝑥 (𝑟 )
+                                                                                    𝑗    ) = 𝑎   = 2𝑛 · Ω(𝑎)   .
+                                  𝑖=1
+
+     Intuitively, one can think of all 𝑟 × 2𝑛 matrices in which the frequency of each column 𝑎
+     is proportional to Ω(𝑎). Indeed, the uniform distribution over the set 𝜇Ω                    𝑛 is designed to
+     “simulate” Ω2𝑛 .
+         Observe that 𝜇Ω   𝑛 is, in fact, a relation over a product of 𝑟 multislices. Now, we only
+     include those hyperedges which satisfy (𝜋𝑢𝑣   −1 (𝑦 (1) ), . . . , 𝜋 −1 (𝑦 (𝑟 ) )) ∈ 𝜇 Ω .
+                                                      1                  𝑢𝑣𝑟                𝑛
+         The reduction is summarized concisely in the following paragraph. We will make use of
+     marginal distributions: Given a distribution Ω over 𝐴1 ×· · ·× 𝐴𝑟 , its marginal distribution to 𝑖 ∈
+                                                          Í
+     [𝑟] is a distribution Ω𝑖 over 𝐴𝑖 defined as Ω𝑖 (𝑎) = 𝑎1 ∈ 𝐴1 ,...,𝑎𝑟 ∈ 𝐴𝑟 Ω(𝑎 1 , . . . , 𝑎 𝑖−1 , 𝑎, 𝑎 𝑖+1 , . . . , 𝑎 𝑟 )
+     for each 𝑎 ∈ 𝐴𝑖 .
+
+     Reduction
+     Let Φ = (𝑈 ∪ 𝑉, 𝐸, [2𝑛], [𝑛], {𝜋𝑒 } 𝑒∈𝐸 ) be a Rich 2-to-1 Label Cover instance. The reduction
+     produces an instance of PCSP(𝑅, NAE𝑟(𝑑) ), that is, an 𝑟-uniform hypergraph 𝐻. Let Ω be
+     the uniform distribution over 𝑅; to simplify the presentation of the proof, we shall assume
+     that 𝑛 · Ω(𝑎) ∈ N for every 𝑎 ∈ 𝑅 (this is not necessarily the case, but it suffices to tweak the
+     distribution Ω just slightly — we defer the technical details to the Appendix).
+         Denote by 𝜌 := Ω𝑖 the marginal distribution of Ω to any coordinate 𝑖 ∈ [𝑟] (they are all
+     equal as Ω is uniform over a symmetric relation). Put # = (𝑛 · 𝜌(𝑎)) 𝑎 ∈ N 𝐴 and note that #
+     is 𝛼-balanced for 𝛼 := min 𝑎∈ 𝑅 Ω(𝑎) = 1/|𝑅| > 0.
+         We replace each vertex 𝑣 ∈ 𝑉 with a copy of the multislice S#, and represent its elements
+     as pairs (𝑣, 𝑦) where 𝑦 ∈ S#. All these pairs form the set of vertices 𝑉 (𝐻). One could also
+     add multislices arising from the vertices 𝑢 ∈ 𝑈 to 𝑉 (𝐻), but they will be rendered redundant
+     by the following paragraph anyway.
+         We define the relation ∼ on 𝑉 (𝐻) by (𝑣, 𝑦) ∼ (𝑣 ′ , 𝑦 ′ ) if there is a common neighbour
+     𝑢 ∈ 𝑈 of 𝑣 and 𝑣 ′ , and a tuple 𝑥 ∈ S2# such that 𝑥 = 𝜋𝑢,𝑣                −1 (𝑦) = 𝜋 −1 (𝑦 ′ ). We extend ∼
+                                                                                          𝑢,𝑣 ′
+     to an equivalence relation on 𝑉 (𝐻), which, abusing notation, we also denote by ∼. In the
+     hypergraph 𝐻, we identify all vertices in the same equivalence class of ∼, which can be done
+     in logarithmic space [58].
+         For every 𝑣 1 , . . . , 𝑣 𝑟 ∈ 𝑉 with a common neighbour 𝑢 ∈ 𝑈 and every (𝑦 (1) , . . . , 𝑦 (𝑟 ) ) such
+     that (𝜋𝑢𝑣  −1 (𝑦 (1) ), . . . , 𝜋 −1 (𝑦 (𝑟 ) )) ∈ 𝜇 Ω , add to 𝐻 the hyperedge over
+                   1                   𝑢𝑣𝑟               𝑛
+                                          
+           𝑣 1 , 𝑦 (1) , . . . , 𝑣 𝑟 , 𝑦 (𝑟 ) .
+
+
+     14 Of course, this requires that 2𝑛 · Ω(𝑎) ∈ Z for any 𝑎 ∈ 𝑅.
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                                                                19
+
+
+▷ Claim 30 (Completeness). If Φ (Label Cover instance) has a perfect labelling, then 𝐻 → 𝑅.
+Proof. Let 𝑠 : 𝑈 → [2𝑛] and 𝑠′ : 𝑉 → [𝑛] be labellings that satisfy all the constraints of Φ.
+We define the assignment ℎ : 𝑉 (𝐻) → 𝐴 as ℎ(𝑣, 𝑦) = 𝑦 𝑠′ (𝑣) .
+   We will argue that ℎ is a homomorphism from 𝐻 to 𝑅. Indeed, consider a hyperedge
+
+    (𝑣 1 , 𝑦 (1) ), . . . , (𝑣 𝑟 , 𝑦 (𝑟 ) ).
+
+witnessed by a common neighbour 𝑢 ∈ 𝑈. It suffices to prove that
+                                                                              
+     ℎ(𝑣 1 , 𝑦 (1) ), . . . , ℎ(𝑣 𝑟 , 𝑦 (𝑟 ) ) = 𝑦 𝑠(1)                 (𝑟 )
+                                                     ′ (𝑣 ) , . . . , 𝑦 𝑠 ′ (𝑣 )
+                                                         1                    𝑟
+                                                                                   ∈ 𝑅.
+
+Thanks to the equivalence constraints ∼, the right-hand side tuple is exactly
+                                                        
+      −1     (1)                     −1     (𝑟 )
+     𝜋𝑢𝑣1
+          (𝑦     ) 𝑠 (𝑢) , . . . , 𝜋 𝑢𝑣𝑟
+                                         (𝑦      ) 𝑠 (𝑢)
+
+
+which belongs to 𝑅 by the definition of 𝜇Ω
+                                         𝑛.                                                                                           ◀
+
+Soundness
+This part is much more complicated than completeness. To spell it out, given a NAE𝑟(𝑑) -
+colouring of the hypergraph, we ought to construct a labelling of the original Label Cover
+instance with a superconstant value. Historically, Fourier analysis has been central in
+constructing such a labelling. Let us review some standard probabilistic notation commonly
+used in Fourier-analytic arguments.
+    For a function 𝑓 : 𝑋 → R and a distribution Ω over 𝑋, we denote by EΩ [ 𝑓 ] the expectation
+of 𝑓 (𝑥) when 𝑥 is sampled from Ω (which we denote by 𝑥 ∼ Ω). When we write E𝑋 [ 𝑓 ] or
+E[ 𝑓 ], the uniform distribution over 𝑋 (the domain of 𝑓 ) is assumed implicitly. By Ω𝑛 we
+denote the 𝑛-fold tensor power of Ω, that is, the distribution over 𝑋 𝑛 such that the measure
+                        Î
+Ω𝑛 (𝑥1 , . . . , 𝑥 𝑛 ) = 𝑛𝑗=1 Ω(𝑥 𝑗 ).
+    Cartesian powers and multislices are connected via the following lifting operator, which
+is a Markov operator of a certain coupling defined in [22]. Given #   Í
+                                                                          ∈ N 𝐴, there exists an
+operator 𝑇 that maps any function 𝑓 : S# → R to a function 𝑇 𝑓 : 𝐴 #𝑎 → R that satisfies
+                                                                        𝑎
+
+
+
+     E [ 𝑓 ] = E𝑛 [𝑇 𝑓 ]
+    S#              𝜌
+                   Í
+where 𝑛 = 𝑎 #𝑎 and 𝜌 is a distribution over 𝐴 such that the measure of each 𝑎 ∈ 𝐴 is
+proportional to #𝑎 .
+    The soundness proof amounts to analysing the properties of functions satisfying, in expect-
+ation, 𝑓 (𝑥 1 ) 𝑓 (𝑥 2 ) · · · 𝑓 (𝑥𝑟 ) ≈ 0: note that the equality holds for any hyperedge (𝑥 1 , . . . , 𝑥𝑟 )
+whenever 𝑓 is an indicator function of any fixed colour in a NAE𝑟 -colouring. The invariance
+principle for multislices by [22] argues that these lifting operators preserve products, up to a
+negligible error. To be precise, here and later we will denote negligible errors by 𝑜(1) — a
+real number that can be pushed arbitrarily close to 0 by taking 𝑛 large enough (the semantics
+of 𝑛 will always be clear from the context).
+                                                                  (1)      (𝑟 )
+▶ Theorem 31 (Corollary of [22, Theorem 1.11]). Let # , . . . , # ∈ N 𝐴 such that 𝑎 #𝑎(𝑖) =
+                                                                                              Í
+𝑛 for each 𝑖 ∈ [𝑟]. Let Ω be a distribution over 𝐴                       := Ω
+                                                            n ; denote 𝜇 𝜇 𝑛 . oIf the support of Ω is a
+                                                             𝑟
+                                                                                                (𝑖)                   𝑟
+symmetric BKLM-connected relation, then any                                         𝑓𝑖 : S#           → [0, 1]              satisfy
+                                                                                                                      𝑖=1
+                                " 𝑟            #                                  " 𝑟                    #
+                                 Ö                                                 Ö
+               E                      𝑓𝑖 (𝑥 (𝑖) ) −              E                      𝑇𝑖 𝑓𝑖 (𝑥 (𝑖) )       = 𝑜(1)
+     ( 𝑥 (1) ,..., 𝑥 (𝑟 ) )∼𝜇   𝑖=1                   ( 𝑥 (1) ,..., 𝑥 (𝑟 ) )∼Ω𝑛   𝑖=1
+20   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+                                                   (𝑖)
+     where 𝑇𝑖 is the lifting operator for # .
+     Roughly speaking, if 𝑓 is a NAE𝑟 -colouring of the hypergraph, then 𝑇 𝑓 may be thought of as
+     an almost NAE𝑟 -colouring of a hypergraph that we would obtain by applying the full Long
+     Code transformation to the Label Cover instance.
+        Mossel [54] proved the powerful noise inequalities, from which we conclude these almost
+     NAE𝑟 -colourings necessarily possess a coordinate with significant low-degree influence. For a
+     function 𝑔 : 𝐴𝑛 → R and a distribution 𝜌 over 𝐴, the degree-𝑘 influence of 𝑗 ∈ [𝑛], denoted
+     by Inf ≤𝑗 𝑘 [𝑔; 𝜌], is a number in [0, 1] which (intuitively) measures how important the 𝑗-th
+     input is to the output of 𝑔. The precise definition of this notion will not be important to us.
+     We state a specialization of Mossel’s result, tailored to our purposes:
+     ▶ Theorem 32 (Corollary of [54, Proposition 6.4]). Let Ω be a distribution over 𝐴𝑟 whose
+     support is a symmetric BKLM-connected relation of arity 𝑟 ≥ 2 and size ≥ 2.
+        For all 𝛿 > 0 there exist 𝜏, 𝑘 > 0 such that if 𝑔 : 𝐴𝑛 → [0, 1] with E 𝑥∼Ω𝑖𝑛 [𝑔(𝑥)] ≥ 𝛿 for
+     each 𝑖 ∈ [𝑟], and
+                       " 𝑟        #
+                        Ö
+                              (𝑖)
+               E           𝑔(𝑥 ) = 𝑜(1)
+         ( 𝑥 (1) ,...,𝑥 (𝑟 ) )∼Ω𝑛   𝑖=1
+
+     then
+
+         max max Inf ≤𝑗 𝑘 [𝑔; Ω𝑖 ] > 𝜏.
+         𝑖 ∈ [𝑟 ] 𝑗 ∈ [𝑛]
+
+     For completeness, its proof is provided in the Appendix.
+        The coordinates with significant low-degree influence give rise to a labelling of the original
+                                                                                           Í
+     Label Cover instance via the following result. We will say that 𝛽 > 0 is #-valid if 𝛽· 𝑎 #𝑎 ∈ N.
+
+                                                                                            Í
+     ▶ Lemma 33 (See [22, Section 6.4]). Let 𝜏, 𝑘, 𝛼 > 0 and # ∈ N 𝐴 be 𝛼-balanced with 𝑎 #𝑎
+     sufficiently large. For any sufficiently small #-valid 𝛽 > 0, we can assign to every function
+     𝑔 : S# → [0, 1] a coordinate 𝑑 𝑔 ∈ [𝑛] in such a way that any 𝑓 : S2# → [0, 1] satisfies
+
+          max Inf ≤𝑗 𝑘 [𝑇 𝑓 ; 𝜌] > 𝜏 =⇒
+                                                             
+                                         Pr      𝜋( 𝑗) = 𝑑 𝑓 𝜋 ≥ 𝐶 = 𝐶 (𝛼, 𝛽, 𝜏, 𝑘)
+         𝑗 ∈ [2𝑛]                            2-to-1 𝜋
+
+     where 𝑇 and 𝜌 are the lifting operator and the distribution associated with #.
+     Roughly speaking, the conclusion says that, if one assigns 𝑗 to the vertex 𝑢, and 𝑑 𝑓 𝜋𝑢𝑣 to
+     each neighbour 𝑣 of 𝑢, then a constant fraction of the edges incident to 𝑢 will be satisfied.
+        We provide a concise summary of the soundness proof below.
+     ▷ Claim 34 (Soundness). If 𝐻 → NAE𝑟(𝑑) , then there exists a labelling of Φ (Label Cover
+     instance) with a value > 𝜀.
+     Proof. Since 𝐻 → NAE𝑟(𝑑) , there is a subset of 𝑉 (𝐻) of fractional size at least 1/𝑑 that does
+     not induce any hyperedge in 𝐻; let 𝑓 : 𝑉 (𝐻) → {0, 1} be its indicator function. In other
+     words E[ 𝑓 ] ≥ 1/𝑑, and for every hyperedge (𝑦 (1) , . . . , 𝑦 (𝑟 ) ) we have 𝑓 (𝑦n (1) ) · . . . · 𝑓 (𝑦 (𝑟o) ) = 0.
+        For each 𝑣 ∈ 𝑉, let 𝑓𝑣 : S# → {0, 1} be 𝑓 restricted to the domain (𝑣, 𝑦) | 𝑦 ∈ S# . For
+     each 𝑢 ∈ 𝑈, the equality constraints (the equivalence ∼) give rise to a function 𝑓𝑢 : S2# →
+                          𝜋𝑢𝑣
+     {0, 1} such that 𝑓𝑢 −−−→ 𝑓𝑣 for any neighbour 𝑣 of 𝑢. By the regularity of (𝑈 ∪ 𝑉, 𝐸) and
+     richness, we have
+
+            E E[ 𝑓𝑢 ] ≥ 1/𝑑.
+         𝑢∈𝑈
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                          21
+
+
+Denote 𝛿 := 1/(2𝑑). By an averaging argument, we obtain a set Good ⊆ 𝑈 of fractional size
+at least 𝛿 such that E[ 𝑓𝑢 ] ≥ 𝛿 for each 𝑢 ∈ Good.
+    Fix 𝑢 ∈ Good. The equality constraints ensure that, sampling (𝑥 (1) , . . . , 𝑥 (𝑟 ) ) ∈ 𝜇Ω
+                                                                                              𝑛
+uniformly at random, we have
+      " 𝑟             #
+       Ö
+    E      𝑓𝑢 (𝑥 (𝑖) ) = 0.
+          𝑖=1
+
+We apply Theorem 31 (the invariance principle) to { 𝑓𝑢 }𝑟𝑖=1 , and obtain
+                " 𝑟            #
+                 Ö
+                           (𝑖)
+         E          𝑇 𝑓𝑢 (𝑥 ) = 𝑜(1)
+     ( 𝑥 (1) ,...,𝑥 (𝑟 ) )∼Ω2𝑛   𝑖=1
+
+where 𝑇 is the lifting operator for 2#. By the Markov properties of 𝑇, we have
+
+       E [𝑇 𝑓𝑢 (𝑥)] = E [ 𝑓𝑢 ] ≥ 𝛿.
+     𝑥∼𝜌2𝑛                       S2#
+
+Applying the noise inequality Theorem 32 to 𝑇 𝑓𝑢 , we obtain 𝜏, 𝑘 > 0 such that
+
+     max Inf ≤𝑗 𝑘 [𝑇 𝑓𝑢 ; 𝜌] > 𝜏.
+     𝑗 ∈ [2𝑛]
+
+Assign to 𝑢 any label 𝑗 that maximises the expression above; to the vertices 𝑢 ′ ∈ 𝑈 \ Good
+assign arbitrary labels.
+     We now want to appeal to Lemma 33 in order to label the vertices in 𝑉. Fix any sufficiently
+small #-valid 𝛽. To each 𝑣 ∈ 𝑉 assign the label 𝑑 𝑓𝑣 obtained from Lemma 33.
+     We shall argue that the value of this labelling is greater than 𝜀, which would conclude
+the proof. Fix 𝑢 ∈ Good and its label 𝑗. For a random neighbour 𝑣 of 𝑢, by the richness
+of the instance, the constraint 𝜋𝑢𝑣 is distributed uniformly among all 2-to-1 maps, and
+     𝜋𝑢𝑣
+ 𝑓𝑢 −−−→ 𝑓𝑣 . By Lemma 33, we get that 𝜋𝑢𝑣 ( 𝑗) is the label assigned to 𝑣 with probability at
+least 𝐶 (𝛼, 𝛽, 𝜏, 𝑘). Thus, by the biregularity and the richness of Φ, the probability that our
+labelling satisfies a uniformly random edge (𝑢, 𝑣) is at least
+     |Good|
+            · 𝐶 (𝛼, 𝛽, 𝜏, 𝑘) ≥ 𝛿 · 𝐶 (𝛼, 𝛽, 𝜏, 𝑘)
+       |𝑈|
+so it suffices to pick 𝜀 < 𝛿 · 𝐶 (𝛼, 𝛽, 𝜏, 𝑘).
+    The dependency of various parameters used in the soundness proof on one another is
+a delicate matter, so we shall elaborate. First of all, note that 𝑛 can be assumed to be
+sufficiently large as long as 𝜀 > 0 is allowed to be chosen arbitrarily small. Recall that we
+treat 𝐴, 𝑟, 𝑅, and 𝑑 as constants. Therefore, 𝛼 and 𝛿 are also constants. Then 𝜏 and 𝑘 are
+obtained from Theorem 32. We find a suitable sufficiently small 𝛽 > 0, and pick 𝜀 > 0 small
+enough so that 𝜀 ≤ 𝛿 · 𝐶 (𝛼, 𝛽, 𝜏, 𝑘). Finally, for this 𝜀 the Rich 2-to-1 Conjecture gives 𝑛. It
+remains to note that we must ensure that 𝛽𝑛 ∈ N: we can change 𝛽 slightly to arrange that
+without breaking other dependencies. To see how, after fixing the upper-bound 𝐵 on 𝛽, take
+𝜀 > 0 extremely tiny, which forces 𝑛 to be extremely large. Now note that there exists ℓ ∈ N
+such that 𝐵/2 ≤ ℓ/𝑛 ≤ 𝐵. It suffices to take 𝛽 = ℓ/𝑛.                                          ◀
+
+ 6        Conclusions
+In the present paper, we initiated the study of Promise MMSNP problems. For the most
+fundamental case, forbidding monochromatic cliques, we obtained a complexity dichotomy
+22   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+     under the Rich 2-to-1 Conjecture. This class of problems includes the notorious Approximate
+     Graph Colouring, which are not yet known to admit an unconditional hardness proof. Never-
+     theless, some special cases of our Promise MMSNPs do follow from existing unconditional
+     hardness results: for example, if the forbidden cliques only use 2 colours, the hardness can
+     be derived from the dichotomy for symmetric Boolean PCSPs by [34].
+         The hardness of the Approximate Graph Colouring was also obtained by [39] from
+     the weaker 𝑑-to-1 Conjecture of Khot [43]. Hence the most natural question is whether
+     “richness” is necessary for the Promise MMSNPs studied in this paper. In other words, do
+     Promise MMSNPs over forbidden monochromatic cliques admit the dichotomy under the
+     2-to-1 Conjecture?
+          These Promise MMSNPs are tightly connected with certain balanced hypergraph colouring
+     problems. More concretely, consider PCSP(𝑅, NAE𝑟 ) where 𝑅 constitutes the promise
+     colouring. If the promise colouring is perfectly balanced, that is, each colour appears the
+     same number of times in every hyperedge, then a proper (NAE𝑟 ) colouring can be computed
+     efficiently (see [37]). For multiple special cases, this was proved to be the only tractable case,
+     e.g., [37, 38]. Our result can also be viewed as another special case where a perfect balance
+     of the colours characterises tractability.
+         There are also some interesting connections with the topological approach to PCSPs. Some
+     of the previous results on rainbow-free colouring of hypergraphs are based on topological
+     combinatorics [1]; while our approach is Fourier-analytic, the notion of reconfigurability is
+     (perhaps unsurprisingly, given the name) in some sense topological. Indeed, many of the
+     recent applications of topology in (P)CSPs [3, 35, 48, 53] have used hom-complexes, a vast
+     generalisation of the reconfiguration graph. (It is worth noting that our Theorem 8 implies
+     all the hardness results that we know of that follow via the topological approach to PCSP,
+     although under the additional hypothesis of the Rich 2-to-1 conjecture.) Such connections
+     between topological and Fourier-analytic approaches to PCSP have been noticed before,
+     e.g. a connection between the work of [48] and Fourier analysis via winding numbers due to
+     Mottet (personal communication). Finding a principled reason why these connections appear
+     may be worth investigating.
+         Besides the forbidden vertex-coloured patterns, there has been some research on the
+     edge-coloured ones. It would be interesting to obtain similar results for promise problems
+     of forbidden monochromatic cliques of the latter type as well. The forbidden edge-coloured
+     patterns give rise to a larger than MMSNP fragment of Existential Second-Order Logic
+     called GMSNP, see [9]. Unlike MMSNP, the computational dichotomy for GMSNP remains
+     unresolved; however, it lies within the scope of the Bodirsky-Pinsker conjecture as well as
+     MMSNP [13]. Recently, the containment problem for two GMSNP formulas was shown to be
+     decidable, and also dependent on the existence of a recolouring [6]. Deciding whether a given
+     graph has an edge 2-colouring that avoids monochromatic triangles is a classic NP-complete
+     problem [36]. It remains NP-hard for an arbitrary (fixed) clique size [26], and for an arbitrary
+     (fixed) number of colours [5]. Nevertheless, its promise extensions present new obstacles,
+     compared to the vertex-coloured cliques. In particular,
+
+        Characterising the existence of a recolouring must depend on the Ramsey numbers, which
+        are very hard to compute.
+
+        The associated finite-domain PCSPs are no longer symmetric: the full symmetric group
+        acting with permutations on the edge set of a clique does not always map the edges of a
+        subclique to the edges of a subclique.
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                            23
+
+
+     References
+ 1    Per Austrin, Amey Bhangale, and Aditya Potukuchi. Improved Inapproximability of Rainbow
+      Coloring. In Shuchi Chawla, editor, Proceedings of the 2020 ACM-SIAM Symposium on
+     Discrete Algorithms (SODA), page 1479–1495. SIAM, January 2020. arXiv:1810.02784,
+      doi:10.1137/1.9781611975994.90.
+ 2    Per Austrin, Johan Håstad, and Björn Martinsson. On the Usefulness of Promises. In
+      Kasper Green Larsen and Barna Saha, editors, Proceedings of the 2026 Annual ACM-SIAM
+     Symposium on Discrete Algorithms (SODA), page 6332–6378. SIAM, January 2026. arXiv:
+      2511.21450, doi:10.1137/1.9781611978971.228.
+ 3    Sergey Avvakumov, Marek Filakovský, Jakub Oprsal, Gianluca Tasinato, and Uli Wagner.
+      Hardness of 4-Colouring 𝐺-Colourable Graphs. In Michal Koucký and Nikhil Bansal, editors,
+     Proceedings of the 57th Annual ACM Symposium on Theory of Computing, STOC ’25, page
+     72–83. ACM, June 2025. doi:10.1145/3717823.3718154.
+ 4    Demian Banakh and Katzper Michno. Boolean PCSPs through the lens of Fourier Analysis,
+     2026. arXiv:2604.22742, doi:10.48550/arXiv.2604.22742.
+ 5    Alexey Barsukov, Antoine Mottet, and Davide Perinti. Edge-coloring problems with forbidden
+      patterns and planted colors, 2026. arXiv:2507.19000, doi:10.48550/arXiv.2507.19000.
+ 6    Alexey Barsukov, Michael Pinsker, and Jakub Rydval. Containment for Guarded Monotone
+      Strict NP. In 52nd International Colloquium on Automata, Languages, and Programming
+     (ICALP 2025), volume 334 of Leibniz International Proceedings in Informatics (LIPIcs), pages
+     140:1–140:20, Dagstuhl, Germany, 2025. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+      doi:10.4230/LIPIcs.ICALP.2025.140.
+ 7    Libor Barto, Diego Battistelli, and Kevin M. Berg. Symmetric Promise Constraint Satisfaction
+      Problems: Beyond the Boolean Case. In 38th International Symposium on Theoretical Aspects
+     of Computer Science (STACS 2021), volume 187 of Leibniz International Proceedings in
+     Informatics (LIPIcs), pages 10:1–10:16, Dagstuhl, Germany, 2021. Schloss Dagstuhl – Leibniz-
+      Zentrum für Informatik. doi:10.4230/LIPIcs.STACS.2021.10.
+ 8    Libor Barto, Jakub Bulín, Andrei Krokhin, and Jakub Opršal. Algebraic Approach to Promise
+      Constraint Satisfaction. Journal of the ACM, 68(4), July 2021. doi:10.1145/3457606.
+ 9    Meghyn Bienvenu, Balder Ten Cate, Carsten Lutz, and Frank Wolter. Ontology-Based Data
+     Access: A Study through Disjunctive Datalog, CSP, and MMSNP. ACM Trans. Database
+     Syst., 39(4):33:1–33:44, December 2014. doi:10.1145/2661643.
+10    Manuel Bodirsky. Complexity of infinite-domain constraint satisfaction, volume 52 of Lecture
+     Notes in Logic. Cambridge University Press, Cambridge; Association for Symbolic Logic,
+      Ithaca, NY, 2021. doi:10.1017/9781107337534.
+11    Manuel Bodirsky and Martin Grohe. Non-dichotomies in Constraint Satisfaction Complexity. In
+      Luca Aceto, Ivan Damgård, Leslie Ann Goldberg, Magnús M. Halldórsson, Anna Ingólfsdóttir,
+      and Igor Walukiewicz, editors, Automata, Languages and Programming, pages 184–196, Berlin,
+      Heidelberg, 2008. Springer Berlin Heidelberg. doi:10.1007/978-3-540-70583-3_16.
+12    Manuel Bodirsky and Jan Kára. The complexity of temporal constraint satisfaction problems.
+     J. ACM, 57(2):9:1–9:41, January 2010. doi:10.1145/1667053.1667058.
+13    Manuel Bodirsky, Simon Knäuer, and Florian Starke. ASNP: a tame fragment of existential
+      second-order logic. In Beyond the horizon of computability, volume 12098 of Lecture Notes in
+     Comput. Sci., pages 149–162. Springer, Cham, 2020. doi:10.1007/978-3-030-51466-2_13.
+14    Manuel Bodirsky, Florent Madelaine, and Antoine Mottet. A universal-algebraic proof of the
+      complexity dichotomy for Monotone Monadic SNP. In Anuj Dawar and Erich Grädel, editors,
+     Proceedings of the 33rd Annual ACM/IEEE Symposium on Logic in Computer Science, LICS
+     ’18, page 105–114. ACM, July 2018. doi:10.1145/3209108.3209156.
+15    Manuel Bodirsky, Florent Madelaine, and Antoine Mottet. A proof of the algebraic tractability
+      conjecture for monotone monadic SNP. SIAM J. Comput., 50(4):1359–1409, 2021. doi:
+     10.1137/19M128466X.
+24   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+     16   Manuel Bodirsky, Barnaby Martin, Michael Pinsker, and András Pongrácz. Constraint
+          satisfaction problems for reducts of homogeneous graphs. SIAM J. Comput., 48(4):1224–1264,
+          2019. doi:10.1137/16M1082974.
+     17   Manuel Bodirsky, Michael Pinsker, and András Pongrácz. Projective clone homomorphisms.
+          J. Symb. Log., 86(1):148–161, 2021. doi:10.1017/jsl.2019.23.
+     18   Joshua Brakensiek and Venkatesan Guruswami. Promise constraint satisfaction: Algebraic
+          structure and a symmetric boolean dichotomy. SIAM Journal on Computing, 50(6):1663–1700,
+          2021. doi:10.1137/19M128212X.
+     19   Joshua Brakensiek and Venkatesan Guruswami. The quest for strong inapproximability
+          results with perfect completeness. ACM Trans. Algorithms, 17(3):27:1–27:35, 2021. doi:
+          10.1145/3459668.
+     20   Joshua Brakensiek, Venkatesan Guruswami, and Sai Sandeep. Conditional Dichotomy of
+          Boolean Ordered Promise CSPs. TheoretiCS, 2, January 2023. doi:10.46298/theoretics.
+          23.2.
+     21   Alex Brandts and Stanislav Živný. Beyond PCSP(1-in-3, NAE). Inform. and Comput., 289,
+          November 2022. doi:10.1016/j.ic.2022.104954.
+     22   Mark Braverman, Subhash Khot, Noam Lifshitz, and Dor Minzer. An invariance principle
+          for the multi-slice, with applications. Adv. Math., 480:Paper No. 110460, 80, 2025. doi:
+          10.1016/j.aim.2025.110460.
+     23   Mark Braverman, Subhash Khot, and Dor Minzer. On Rich 2-to-1 Games. In 12th Innovations
+          in Theoretical Computer Science Conference (ITCS 2021), volume 185 of Leibniz International
+          Proceedings in Informatics (LIPIcs), pages 27:1–27:20, Dagstuhl, Germany, 2021. Schloss
+          Dagstuhl – Leibniz-Zentrum für Informatik. doi:10.4230/LIPIcs.ITCS.2021.27.
+     24   Andrei Bulatov, Peter Jeavons, and Andrei Krokhin. Classifying the complexity of con-
+          straints using finite algebras. SIAM J. Comput., 34(3):720–742, 2005. doi:10.1137/
+          S0097539700376676.
+     25   Andrei A. Bulatov. A Dichotomy Theorem for Nonuniform CSPs. In Chris Umans, editor,
+          2017 IEEE 58th Annual Symposium on Foundations of Computer Science (FOCS), page
+          319–330. IEEE, October 2017. doi:10.1109/FOCS.2017.37.
+     26   Stefan A. Burr. On the computational complexity of Ramsey-type problems. In Mathematics
+          of Ramsey theory, volume 5 of Algorithms Combin., pages 46–52. Springer, 1990. doi:
+          10.1007/978-3-642-72905-8_5.
+     27   Maria Chudnovsky, Linda Cook, James Davies, and Sang-il Oum. Reuniting 𝜒-boundedness
+          with polynomial 𝜒-boundedness. J. Combin. Theory Ser. B, 176:30–73, 2026. doi:10.1016/j.
+          jctb.2025.08.002.
+     28   Lorenzo Ciardo, Marcin Kozik, Andrei Krokhin, Tamio-Vesa Nakajima, and Stanislav Živný.
+          1-in-3 vs. not-all-equal: Dichotomy of a broken promise. ACM Trans. Comput. Logic, 26(2),
+          April 2025. doi:10.1145/3719007.
+     29   Irit Dinur, Elchanan Mossel, and Oded Regev. Conditional hardness for approximate coloring.
+          SIAM Journal on Computing, 39(3):843–873, 2009. doi:10.1137/07068062X.
+     30   Irit Dinur, Oded Regev, and Clifford Smyth. The hardness of 3-uniform hypergraph coloring.
+          Combinatorica, 25(5):519–535, 2005. doi:10.1007/s00493-005-0032-4.
+     31   P. Erdős. Graph theory and probability. Canadian J. Math., 11:34–38, 1959. doi:10.4153/
+          CJM-1959-003-9.
+     32   Ronald Fagin. Generalized first-order spectra and polynomial-time recognizable sets. In
+          Complexity of computation (Proc. SIAM-AMS Sympos., New York, 1973), volume Vol. VII of
+          SIAM-AMS Proc., pages 43–73. Amer. Math. Soc., Providence, RI, 1974.
+     33   Tomás Feder and Moshe Y. Vardi. The computational structure of monotone monadic SNP
+          and constraint satisfaction: A study through datalog and group theory. SIAM J. Comput.,
+          28(1):57–104, 1998. doi:10.1137/S0097539794266766.
+     34   Miron Ficak, Marcin Kozik, Miroslav Olšák, and Szymon Stankiewicz. Dichotomy for Sym-
+          metric Boolean PCSPs. In 46th International Colloquium on Automata, Languages, and
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                          25
+
+
+     Programming (ICALP 2019), volume 132 of Leibniz International Proceedings in Informatics
+     (LIPIcs), pages 57:1–57:12, Dagstuhl, Germany, 2019. Schloss Dagstuhl – Leibniz-Zentrum für
+     Informatik. doi:10.4230/LIPIcs.ICALP.2019.57.
+35   Marek Filakovský, Tamio-Vesa Nakajima, Jakub Opršal, Gianluca Tasinato, and Uli Wagner.
+     Hardness of linearly ordered 4-colouring of 3-colourable 3-uniform hypergraphs. ACM Trans.
+     Comput. Theory, 18(2), May 2026. doi:10.1145/3779121.
+36   Michael R. Garey and David S. Johnson. Computers and Intractability: A Guide to the Theory
+     of NP-Completeness. A Series of Books in the Mathematical Sciences. W. H. Freeman, 1979.
+     A guide to the theory of NP-completeness.
+37   Venkatesan Guruswami and Euiwoong Lee. Strong inapproximability results on bal-
+     anced rainbow-colorable hypergraphs. Combinatorica, 38(3):547–599, 2018. doi:10.1007/
+     s00493-016-3383-0.
+38   Venkatesan Guruswami and Rishi Saket. Hardness of Rainbow Coloring Hypergraphs. In
+     Satya V. Lokam and R. Ramanujam, editors, 37th IARCS Annual Conference on Foundations
+     of Software Technology and Theoretical Computer Science (FSTTCS 2017), volume 93 of
+     LIPIcs, pages 33:1–33:15, Dagstuhl, Germany, 2017. Schloss Dagstuhl - Leibniz-Zentrum für
+     Informatik. doi:10.4230/LIPIcs.FSTTCS.2017.33.
+39   Venkatesan Guruswami and Sai Sandeep. d-To-1 Hardness of Coloring 3-Colorable Graphs with
+     O(1) Colors. In 47th International Colloquium on Automata, Languages, and Programming
+     (ICALP 2020), volume 168 of Leibniz International Proceedings in Informatics (LIPIcs), pages
+     62:1–62:12, Dagstuhl, Germany, 2020. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+     doi:10.4230/LIPIcs.ICALP.2020.62.
+40   Wilfrid Hodges. A shorter model theory. Cambridge University Press, 1997.
+41   Ravindran Kannan and Achim Bachem. Polynomial algorithms for computing the smith and
+     hermite normal forms of an integer matrix. SIAM Journal on Computing, 8(4):499–507, 1979.
+     doi:10.1137/0208040.
+42   Michał Karpiński and Krzysztof Piecuch. On vertex coloring without monochromatic triangles.
+     In Computer science—theory and applications, volume 10846 of Lecture Notes in Comput. Sci.,
+     pages 220–231. Springer, Cham, 2018. doi:10.1007/978-3-319-90530-3_19.
+43   Subhash Khot. On the power of unique 2-prover 1-round games. In Proceedings of the
+     Thiry-Fourth Annual ACM Symposium on Theory of Computing, STOC ’02, pages 767–775.
+     ACM, 2002. doi:10.1145/509907.510017.
+44   Subhash Khot, Guy Kindler, Elchanan Mossel, and Ryan O’Donnell. Optimal Inapproximability
+     Results for MAX-CUT and Other 2-Variable CSPs? SIAM J. Comput., 37(1):319–357, January
+     2007. doi:10.1137/S0097539705447372.
+45   Subhash Khot and Oded Regev. Vertex cover might be hard to approximate to within 2 − 𝜀.
+     J. Comput. Syst. Sci., 74(3):335–349, 2008. doi:10.1016/j.jcss.2007.06.019.
+46   Michael Kompatscher and Trung Van Pham. A complexity dichotomy for poset constraint
+     satisfaction. J. Appl. Logics, 5(8):1663–1695, 2018. URL: https://www.collegepublications.
+     co.uk/downloads/ifcolog00028.pdf, arXiv:1603.00082.
+47   Andrei Krokhin and Danny Vagnozzi. Approximating 1-in-3 SAT by linearly ordered hyper-
+     graph 3-colouring is NP-hard, 2025. arXiv:2508.14606, doi:10.48550/arXiv.2508.14606.
+48   Andrei A. Krokhin, Jakub Oprsal, Marcin Wrochna, and Stanislav Živný. Topology and
+     Adjunction in Promise Constraint Satisfaction. SIAM J. Comput., 52(1):38–79, 2023. doi:
+     10.1137/20M1378223.
+49   Gábor Kun. Constraints, MMSNP and expander relational structures. Comb., 33(3):335–347,
+     2013. doi:10.1007/s00493-013-2405-4.
+50   Richard E. Ladner. On the structure of polynomial time reducibility. J. ACM, 22(1):155–171,
+     1975. doi:10.1145/321864.321877.
+51   Florent Madelaine. On the Containment of Forbidden Patterns Problems. In David Cohen,
+     editor, Principles and Practice of Constraint Programming – CP 2010, volume 6308 of Lecture
+26   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+            Notes in Computer Science, page 345–359. Springer, 2010. doi:10.1007/978-3-642-15396-9_
+            29.
+     52     Florent Madelaine and Iain A. Stewart. Constraint satisfaction, logic and forbidden patterns.
+            SIAM J. Comput., 37(1):132–163, January 2007. doi:10.1137/050634840.
+     53     Sebastian Meyer and Jakub Opršal. A topological proof of the Hell-Nešetřil dichotomy. In Yossi
+            Azar and Debmalya Panigrahi, editors, Proceedings of the 2025 Annual ACM-SIAM Symposium
+            on Discrete Algorithms (SODA), page 4507–4519. SIAM, January 2025. arXiv:2409.12627,
+            doi:10.1137/1.9781611978322.154.
+     54     Elchanan Mossel. Gaussian bounds for noise correlation of functions. Geometric and Functional
+            Analysis, 19(6):1713–1756, March 2010. doi:10.1007/s00039-010-0047-x.
+     55     Antoine Mottet and Michael Pinsker. Smooth approximations: an algebraic approach to
+            CSPs over finitely bounded homogeneous structures. J. ACM, 71(5):36:1–36:47, 2024. doi:
+            10.1145/3689207.
+     56     Tamio-Vesa Nakajima, Zephyr Verwimp, Marcin Wrochna, and Stanislav Živný. Complexity of
+            Approximate Conflict-Free, Linearly-Ordered, and Nonmonochromatic Hypergraph Colourings.
+            In 52nd International Colloquium on Automata, Languages, and Programming (ICALP 2025),
+            volume 334 of Leibniz International Proceedings in Informatics (LIPIcs), pages 169:1–169:10,
+            Dagstuhl, Germany, 2025. Schloss Dagstuhl – Leibniz-Zentrum für Informatik. doi:10.4230/
+            LIPIcs.ICALP.2025.169.
+     57     Tamio-Vesa Nakajima and Stanislav Živný. Linearly ordered colourings of hypergraphs. ACM
+            Trans. Comput. Theory, 14(3–4), February 2023. doi:10.1145/3570909.
+     58     Omer Reingold. Undirected connectivity in log-space. J. ACM, 55(4), September 2008.
+            doi:10.1145/1391289.1391291.
+     59     Sai Sandeep. Almost optimal inapproximability of multidimensional packing problems. In
+            2021 IEEE 62nd Annual Symposium on Foundations of Computer Science (FOCS), pages
+            245–256. IEEE, 2021. arXiv:2101.02854, doi:10.1109/FOCS52979.2021.00033.
+     60     Dmitriy Zhuk. A Proof of CSP Dichotomy Conjecture. In Chris Umans, editor, 2017 IEEE
+            58th Annual Symposium on Foundations of Computer Science (FOCS), pages 331–342. IEEE,
+            October 2017. doi:10.1109/FOCS.2017.38.
+     61     Dmitriy Zhuk. A proof of the CSP dichotomy conjecture. J. ACM, 67(5):30:1–30:78, 2020.
+            doi:10.1145/3402029.
+
+
+      A       Noise inequalities
+     Correlation plays an important role in our analysis. For a distribution Ω over 𝐴 × 𝐵, it is
+     denoted by 𝜌( 𝐴, 𝐵; Ω) ∈ [0, 1]. We will not define it formally here; the intuition behind
+     𝜌( 𝐴, 𝐵; Ω) is that it measures the correlation between the first and second coordinates of Ω.
+         The reason BKLM-connected relations are interesting is due to the following correlation
+     bound that they provide:
+
+     ▶ Lemma 35 (Lemma 2.9 in [54]). Let Ω be a distribution over 𝐴 × 𝐵 whose support forms a
+     connected bipartite graph. Then 𝜌( 𝐴, 𝐵; Ω) < 1.
+
+          For a distribution Ω over 𝐴1 × · · · × 𝐴𝑟 , its correlation vector 𝜌 ∈ [0, 1] 𝑟 −1 is defined as
+
+          𝜌𝑖 = 𝜌( 𝐴1 × · · · × 𝐴𝑖 , 𝐴𝑖+1 × · · · × 𝐴𝑟 ; Ω)
+
+     where Ω is treated as a binary distribution over ( 𝐴1 × · · · × 𝐴𝑖 ) × ( 𝐴𝑖+1 × · · · × 𝐴𝑟 ).
+        Finally, we need Gaussian stability measures. Let N be the distribution function of a
+     standard Gaussian. We define for 𝜌, 𝜇, 𝜈 ∈ [0, 1]
+
+          Γ𝜌 (𝜇, 𝜈) = Pr 𝑋 ≤ N −1 (𝜇), 𝑌 ≥ N −1 (1 − 𝜈)
+                                                       
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                                                    27
+
+
+where (𝑋, 𝑌 ) are 𝜌-correlated15 Gaussian variables. Note that Γ𝜌 is an increasing function in
+𝜇 and 𝜈. The only fact needed about Γ𝜌 is the following.
+
+▶ Observation 36 (See [29]). If 𝜇 > 0 and 𝜌 < 1, then Γ𝜌 (𝜇, 𝜇) > 0.
+
+The definition of Γ is extended to more than 2 variables in a recursive way. Namely, given
+𝜌 ∈ [0, 1] 𝑟 −1 and 𝜇 ∈ [0, 1] 𝑟 for 𝑟 ≥ 3 we define
+                                                                         
+      Γ𝜌 (𝜇1 , . . . , 𝜇𝑟 ) := Γ𝜌1 𝜇1 , Γ𝜌2 ,...,𝜌𝑟 −1 (𝜇2 , . . . , 𝜇𝑟 ) .
+
+
+
+▶ Observation 37. If 𝜇1 , . . . , 𝜇𝑟 > 0 and 𝜌1 , . . . , 𝜌𝑟 −1 < 1, then Γ𝜌 (𝜇1 , . . . , 𝜇𝑟 ) > 0.
+
+Proof. We prove it by induction. For the base case 𝑟 = 2, recall from Observation 36 that
+
+      Γ𝜌 (𝜇1 , 𝜇2 ) ≥ Γ𝜌 (𝜇, 𝜇) > 0
+
+where 𝜇 := min{𝜇1 , 𝜇2 } > 0. For the inductive step, we have
+                                                                         
+      Γ𝜌 (𝜇1 , . . . , 𝜇𝑟 ) := Γ𝜌1 𝜇1 , Γ𝜌2 ,...,𝜌𝑟 −1 (𝜇2 , . . . , 𝜇𝑟 ) > 0
+
+because Γ𝜌2 ,...,𝜌𝑟 −1 (𝜇2 , . . . , 𝜇𝑟 ) > 0 by the inductive assumption.                                                ◀
+
+   Theorem 32 follows from the powerful noise inequalities discovered by Mossel [54], which
+we state here for completeness.
+                                                                                                      Î𝑟
+▶ Theorem 38 (Proposition 6.4 in [54]). Let Ω be a distribution over                                   𝑖=1 𝐴𝑖 such that
+
+                                     1
+    𝛼 :=           min    Ω(𝑎) ≤
+              𝑎∈supp(P)              2
+
+and
+                                         !
+                            Ö
+      𝜌 := max 𝜌 𝐴 𝑗 ,             𝐴𝑖 ; Ω < 1.
+                   𝑗
+                            𝑖≠ 𝑗
+
+For every 𝜀 > 0 there exists 𝜏 > 0 such that if 𝑓𝑖 : 𝐴𝑖𝑛 → [0, 1] for 𝑖 ∈ [𝑟] satisfy
+
+    Inf ≤log(1/𝜏
+        𝑗
+                 )/log(1/𝛼)
+                            [ 𝑓𝑖 ; Ω𝑖 ] ≤ 𝜏
+
+for all 𝑖 ∈ [𝑟] and 𝑗 ∈ [𝑛], then
+                                                                        " 𝑟                     #
+                                                                           Ö
+                                                                                        (𝑖)
+      Γ𝜌 E𝑛 [ 𝑓1 ], . . . , E𝑛 [ 𝑓𝑟 ] − 𝜀 ≤              E                      𝑓𝑖 (𝑥         )
+              Ω1           Ω𝑟                  ( 𝑥 (1) ,...,𝑥 (𝑟 ) )∼Ω𝑛   𝑖=1
+
+where Ω𝑖 denotes the marginal distribution of Ω to 𝑖.
+
+    We are in a position to prove Theorem 32. We state it again, for the reader’s convenience.
+
+
+
+15 The exact definition of 𝜌-correlated variables is not important here; we refer the curious reader to [54].
+28   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+     ▶ Theorem 32 (Corollary of [54, Proposition 6.4]). Let Ω be a distribution over 𝐴𝑟 whose
+     support is a symmetric BKLM-connected relation of arity 𝑟 ≥ 2 and size ≥ 2.
+        For all 𝛿 > 0 there exist 𝜏, 𝑘 > 0 such that if 𝑔 : 𝐴𝑛 → [0, 1] with E 𝑥∼Ω𝑖𝑛 [𝑔(𝑥)] ≥ 𝛿 for
+     each 𝑖 ∈ [𝑟], and
+                       " 𝑟        #
+                        Ö
+                              (𝑖)
+               E           𝑔(𝑥 ) = 𝑜(1)
+          ( 𝑥 (1) ,...,𝑥 (𝑟 ) )∼Ω𝑛    𝑖=1
+
+     then
+
+          max max Inf ≤𝑗 𝑘 [𝑔; Ω𝑖 ] > 𝜏.
+          𝑖 ∈ [𝑟 ] 𝑗 ∈ [𝑛]
+
+     Proof of Theorem 32. We apply Theorem 38 with 𝐴1 = · · · = 𝐴𝑟 = 𝐴 and 𝑓1 = · · · = 𝑓𝑟 = 𝑔.
+        Clearly 𝛼, the minimum probability of any atom in Ω, satisfies 𝛼 ≤ 1/2. Since the support
+     of Ω is BKLM-connected and symmetric, we deduce from Lemma 35 that the correlation
+                        !
+               Ö
+         𝜌 𝐴𝑗,    𝐴𝑖 ; Ω = 𝜌 < 1
+                     𝑖≠ 𝑗
+
+     for any 𝑗 ∈ [𝑟]. Hence the assumptions of Theorem 38 are satisfied.
+         We will argue, by contraposition, that it is possible to find 𝜀 > 0 small enough so that
+                                                 " 𝑟         #
+                                                    Ö
+         Γ𝜌 E [𝑔], . . . , E [𝑔] − 𝜀 >    E             𝑔(𝑥 𝑖 ) = 𝑜(1).
+                Ω1                   Ω𝑟     ( 𝑥 (1) ,..., 𝑥 (𝑟 ) )∼Ω𝑛   𝑖=1
+
+     Then Theorem 38 gives us 𝜏 > 0, we define 𝑘 = log(1/𝜏)/log(1/𝛼), and that would conclude
+     the proof.
+         Since the support of Ω is BKLM-connected, we know from Lemma 35 that 𝜌 ∈ [0, 1) 𝑟 −1 .
+     It suffices to note that Γ𝜌 (E1 [𝑔], . . . , E𝑟 [𝑔]) > 0 by Observation 37.            ◀
+
+
+      B         Full proof of the hardness theorem
+     ▶ Theorem 25. Let ∅ ≠ 𝑅 ⊆ 𝐴𝑟 be a symmetric BKLM-connected relation of arity 𝑟 ≥ 2.
+     For any 𝑑 such that 𝑅 → NAE𝑟(𝑑) , the problem PCSP(𝑅, NAE𝑟(𝑑) ) is NP-hard, assuming the
+     Rich 2-to-1 Conjecture.
+
+         We will assume that each 𝑎 ∈ 𝐴 can be extended to a tuple (𝑎, 𝑎 2 , . . . , 𝑎 𝑟 ) ∈ 𝑅; otherwise
+     we can remove such 𝑎 from 𝐴 without affecting the complexity of the PCSP in question.
+     Throughout the proof, 𝑟, 𝑑, and | 𝐴| are treated as constants. We use the standard Big-O
+     notation to describe asymptotic bounds: for example, writing 𝑓 (𝑛) = O (𝑔(𝑛)) means that
+     𝑓 (𝑛) is upper-bounded by a constant times 𝑔(𝑛) for all sufficiently large 𝑛. Similarly, writing
+     𝑓 (𝑛) = 𝑜(1) means that 𝑓 (𝑛) → 0 as 𝑛 → ∞.
+
+     Reduction
+     We reduce from the Rich 2-to-1 Conjecture (see Conjecture 28) to our PCSP. Let Φ =
+     (𝑈 ∪ 𝑉, 𝐸, [2𝑛], [𝑛], {𝜋𝑒 } 𝑒∈𝐸 ) be a Rich 2-to-1 Label Cover instance. The reduction will
+     produce an instance of PCSP(𝑅, NAE𝑟(𝑑) ), that is, an 𝑟-uniform hypergraph 𝐻. Let 𝜔 be the
+     uniform distribution over 𝑅. We can always find a distribution Ω over 𝑅 which
+     1. has the same support as 𝜔,
+     2. satisfies 𝑛 · Ω(𝑎) ∈ Z for every 𝑎 ∈ 𝑅, and
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                                        29
+
+
+3. is 𝑂 (1/𝑛2 )-close in KL-divergence16 to 𝜔.
+In particular, the product distributions Ω2𝑛 and 𝜔2𝑛 are O (1/𝑛)-close√︁ in KL-divergence, and
+by Pinsker’s inequality the statistical distance17 between them is O ( 1/𝑛) = 𝑜(1). We denote
+𝛼 := min 𝑎∈ 𝑅 𝜔(𝑎)/2 > 0; provided 𝑛 is sufficiently large, we have that min 𝑎∈𝑅 Ω(𝑎) ≥ 𝛼.
+    For each 𝑖 ∈ [𝑟], denote by Ω𝑖 the marginal distribution of Ω to the 𝑖-th coordinate. Put
+    (𝑖)                                                         (𝑖)
+#         = (𝑛 · Ω𝑖 (𝑎)) 𝑎 ∈ N 𝐴; note that each #                    is 𝛼-balanced.
+                                                                                                (𝑖)
+    We replace each vertex 𝑣 ∈ 𝑉 with copies of the multislices S# for each 𝑖 = 1 . . . 𝑟. We
+                                                             (𝑖)
+represent these as triples (𝑣, 𝑖, 𝑥) where 𝑖 ∈ [𝑟] and 𝑥 ∈ S# . All these triples form the set
+of vertices 𝑉 (𝐻).
+
+Folding
+We define the relation ∼ on 𝑉 (𝐻) by (𝑣, 𝑖, 𝑥) ∼ (𝑣 ′ , 𝑖 ′ , 𝑥 ′ ) if there is a common neighbour
+                                                                                   ( 𝑗)
+                                                                          −1 (𝑥) = 𝜋 −1 (𝑥 ′ ).
+𝑢 ∈ 𝑈 of 𝑣 and 𝑣 ′ , index 𝑗 ∈ [𝑟], and a tuple 𝑦 ∈ S2# such that 𝑦 = 𝜋𝑢,𝑣          𝑢,𝑣 ′
+We extend ∼ to an equivalence relation on 𝑉 (𝐻), which, abusing notation, we also denote
+by ∼. In the hypergraph 𝐻, we will identify all vertices in the same equivalence class of ∼,
+which can be done in logarithmic space [58].
+
+Hyperedges
+Recall the definition of
+                           𝑟
+                            Ö               n                            o           
+     Ω      (1)        (𝑟 )     2𝑛                  (1)           (𝑟 )
+   𝜇 𝑛 = (𝑥 , . . . , 𝑥 ) ∈   𝐴    : ∀𝑎 ∈ 𝑅. 𝑗 : (𝑥 𝑗 , . . . , 𝑥 𝑗 ) = 𝑎 = 2𝑛 · Ω(𝑎) ,
+                                              𝑖=1
+
+                                (𝑖)
+and observe that 𝜇Ω
+                      Î𝑟
+                  𝑛 ⊆   𝑖=1 S2# . The hyperedges of 𝐻 are described by the following
+sampling procedure. Sample 𝑢 ∈ 𝑈 and (𝑥 (1) , . . . , 𝑥 (𝑟 ) ) ∈ 𝜇Ω
+                                                                  𝑛 , both uniformly at random. For
+                                                                                                            (𝑖)
+each 𝑖 ∈ [𝑟], sample a neighbour 𝑣 𝑖 of 𝑢 conditioned on 𝑥 (𝑖) = 𝜋𝑢𝑣
+                                                                  −1 (𝑦 (𝑖) ) for some 𝑦 (𝑖) ∈ S# .
+                                                                    𝑖
+Add the hyperedge over
+
+      (𝑣 1 , 1, 𝑦 (1) ), . . . , (𝑣 𝑟 , 𝑟, 𝑦 (𝑟 ) ).
+
+Reduction correctness
+▷ Claim 39 (Completeness). If Φ (Label Cover instance) has a solution, then 𝐻 → 𝑅.
+Proof. Let 𝑠 : 𝑈 → [2𝑛] and 𝑠′ : 𝑉 → [𝑛] be labellings that satisfy all the constraints of Φ.
+We define the assignment ℎ : 𝑉 (𝐻) → 𝐴 as ℎ(𝑣, 𝑖, 𝑦) = 𝑦 𝑠′ (𝑣) .
+   We will argue that ℎ is a homomorphism from 𝐻 to 𝑅. Indeed, consider a hyperedge
+
+      (𝑣 1 , 1, 𝑦 (1) ), . . . , (𝑣 𝑟 , 𝑟, 𝑦 (𝑟 ) )
+
+witnessed by a common neighbour 𝑢. It suffices to prove that
+                                                                                    
+     ℎ(𝑣 1 , 1, 𝑦 (1) ), . . . , ℎ(𝑣 𝑟 , 𝑟, 𝑦 (𝑟 ) ) = 𝑦 𝑠(1)                 (𝑟 )
+                                                           ′ (𝑣 ) , . . . , 𝑦 𝑠 ′ (𝑣 )
+                                                               1                    𝑟
+                                                                                         ∈ 𝑅.
+
+
+16 Kullback-Leibler (KL) divergence is an information-theoretic measure of difference between distribution;
+
+   it measures how much an approximating distribution (Ω in our case) is different from the true distribution
+   (𝜔 in our case).
+17 The statistical distance is given by 1 Í          2𝑛       2𝑛 (𝑠) |. Pinsker’s inequality (ignoring constant
+                                        2   𝑠∈𝑅 2𝑛 |Ω (𝑠) − 𝜔
+   factors) states that the statistical distance between two distributions is at most of the order of the
+   square root of the KL-divergence between the two distributions.
+30   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+     Thanks to the equivalence constraints ∼, the right-hand side tuple is exactly
+                                                            
+           −1
+          𝜋𝑢𝑣1
+               (𝑦 (1) ) 𝑠 (𝑢) , . . . , 𝜋𝑢𝑣
+                                         −1
+                                           𝑟
+                                             (𝑦 (𝑟 ) ) 𝑠 (𝑢)
+
+     which belongs to 𝑅 by the definition of 𝜇Ω
+                                              𝑛.                                                      ◀
+
+     ▷ Claim 40 (Soundness). If 𝐻 → NAE𝑟(𝑑) , then there exists a labelling of Φ (Label Cover
+     instance) with a value > 𝜀.
+
+     Proof. Since 𝐻 → NAE𝑟(𝑑) , there is a subset of 𝑉 (𝐻) of fractional size at least 1/𝑑 that does
+     not induce any hyperedge in 𝐻; let 𝑓 : 𝑉 (𝐻) → {0, 1} be its indicator function. In other
+     words,
+
+                 E          [ 𝑓 (𝑣, 𝑖, 𝑦)] ≥ 1/𝑑,
+         (𝑣,𝑖,𝑦) ∈𝑉 (𝐻 )
+
+
+     and for every hyperedge (𝑦 (1) , . . . , 𝑦 (𝑟 ) ) we have
+         𝑟
+         Ö           
+               𝑓 𝑦 (𝑖) = 0.
+         𝑖=1
+
+                                                            (𝑖)
+         For each 𝑣 ∈ 𝑉 and 𝑖 o∈ [𝑟], let 𝑓𝑣,𝑖 : S#               → {0, 1} be 𝑓 restricted to the domain
+                                           (𝑖)                                        (𝑖)
+     n
+      (𝑣, 𝑖, 𝑦) | 𝑖 ∈ [𝑟], 𝑦 ∈ S# . Fix 𝑢 ∈ 𝑈. For all 𝑖 ∈ [𝑟] and all 𝑥 ∈ S2# , the projections
+     of 𝑥 along 𝜋𝑢𝑣 for neighbours 𝑣 of 𝑢 get the same value in [𝑑] by the homomorphism, due
+     to the equality constraints (equivalence ∼). Therefore, we may think that this value is also
+                                                                                             (𝑖)
+     given to the “imaginary” vertex (𝑢, 𝑖, 𝑥), and thus think of a function 𝑓𝑢,𝑖 : S2# → {0, 1}.
+                                                             𝜋𝑢𝑣
+     In particular, for any 𝑢 ∈ 𝑈 and 𝑖 ∈ [𝑟], we have 𝑓𝑢,𝑖 −−−→ 𝑓𝑣,𝑖 for any neighbour 𝑣 of 𝑢.
+        By the regularity of (𝑈 ∪ 𝑉, 𝐸) and richness, these functions also satisfy
+
+          E      E E[ 𝑓𝑢,𝑖 ] ≥ 1/𝑑.
+         𝑢∈𝑈 𝑖 ∈ [𝑟 ]
+
+     Denote 𝛿 := 1/(2𝑑). By an averaging argument, we obtain a set Good ⊆ 𝑈 of fractional size
+     at least 𝛿 such that
+
+         ∀𝑢 ∈ Good : E E[ 𝑓𝑢,𝑖 ] ≥ 𝛿.
+                                𝑖 ∈ [𝑟 ]
+
+
+        Fix 𝑢 ∈ Good. The equality constraints ensure that, sampling (𝑥 (1) , . . . , 𝑥 (𝑟 ) ) ∈ 𝜇Ω
+                                                                                                  𝑛
+     uniformly at random, we have
+          " 𝑟             #
+           Ö
+                      (𝑖)
+        E      𝑓𝑢,𝑖 (𝑥 ) = 0.
+               𝑖=1
+
+     We apply Theorem 31 (the invariance principle) to { 𝑓𝑢,𝑖 }𝑟𝑖=1 , and obtain
+                     " 𝑟               #
+                      Ö
+                                   (𝑖)
+              E          𝑇𝑖 𝑓𝑢,𝑖 (𝑥 ) = 𝑜(1)
+         ( 𝑥 (1) ,...,𝑥 (𝑟 ) )∼Ω2𝑛   𝑖=1
+
+                                                    (𝑖)
+     where 𝑇𝑖 is the lifting operator for # . We now want to define a single function in order to
+     appeal to Theorem 32.
+        Let 𝑔𝑢 : 𝐴2𝑛 → {0, 1} be defined as follows: given 𝑥 ∈ 𝐴2𝑛 , we guess 𝑖 ∈ [𝑟] such that 𝑥
+     was sampled from Ω2𝑛   𝑖 , and output 𝑇𝑖 𝑓𝑢,𝑖 (𝑥). We claim that this guess is successful except
+D. Banakh, A. Barsukov, and T.-V. Nakajima                                                          31
+
+
+with probability 𝑜(1): first, there is a constant Δ > 0 such that the total variation distance
+between any Ω𝑖 and Ω𝑖 ′ is at least Δ unless the two distributions are identical. Thus, for
+sufficiently large 𝑛, the distributions Ω2𝑛        2𝑛
+                                          𝑖 and Ω𝑖 ′ are either identical, or 1 − 𝑜(1) far. For
+any 𝑖 ∈ [𝑟], we obtain that
+
+         E [𝑔𝑢 (𝑥)] ≥                                (statistical closeness of 𝜔 and Ω)
+       𝑥∼𝜔𝑖2𝑛
+
+   ≥ E [𝑔𝑢 (𝑥)] − 𝑜(1) ≥                                                 (guess of 𝑔𝑢 )
+       𝑥∼Ω2𝑛
+          𝑖
+
+   ≥ E [𝑇𝑖 𝑓𝑢,𝑖 (𝑥)] − 2𝑜(1) =                                     (Markov operator)
+       𝑥∼Ω2𝑛
+          𝑖
+
+   =     E [ 𝑓𝑢,𝑖 ] − 2𝑜(1).
+               (𝑖)
+       S2#
+
+Since E𝑖 E[ 𝑓𝑢,𝑖 ] ≥ 𝛿, there must exist 𝑖 such that
+
+                      𝛿          𝛿
+       E [𝑔𝑢 (𝑥)] ≥     − 2𝑜(1) ≥ .
+    𝑥∼𝜔𝑖2𝑛            𝑟          2𝑟
+
+Observe that 𝜔1 = · · · = 𝜔𝑟 as 𝜔 is a uniform distribution over a symmetric relation, thus
+the inequality above holds for all 𝑖 ∈ [𝑟]. By the statistical closeness of 𝜔 and Ω again, we
+conclude that
+                      𝛿           𝛿
+       E [𝑔𝑢 (𝑥)] ≥      − 𝑜(1) ≥
+    𝑥∼Ω2𝑛
+       𝑖
+                      2𝑟          4𝑟
+
+for all 𝑖 ∈ [𝑟]. Applying the noise inequality Theorem 32 to 𝑔𝑢 , we obtain 𝜏, 𝑘 > 0 and 𝑖 ∈ [𝑟]
+such that
+
+    max Inf ≤𝑗 𝑘 𝑔𝑢 ; Ω2𝑛
+                         
+                       𝑖    > 𝜏.
+    𝑗 ∈ [2𝑛]
+
+
+Under Ω2𝑛
+       𝑖 the distributions of 𝑔𝑢 and 𝑇𝑖 𝑓𝑢,𝑖 are statistically close, thus
+
+    max Inf ≤𝑗 𝑘 𝑇𝑖 𝑓𝑢,𝑖 ; Ω2𝑛
+                              
+                            𝑖    > 𝜏 − 𝑜(1) > 𝜏/2.
+    𝑗 ∈ [2𝑛]
+
+Assign to 𝑢 any label 𝑗 that maximises the expression above (for some 𝑖); to the vertices
+𝑢 ′ ∈ 𝑈 \ Good assign arbitrary labels.
+     We now want to appeal to Lemma 33 in order to label the vertices in 𝑉. Fix any sufficiently
+                  (𝑖)
+small 𝛽 that is # -valid for all 𝑖 ∈ [𝑟]. To each 𝑣 ∈ 𝑉 assign a label uniformly at random
+                                                                             (𝑖)
+out of the 𝑟 coordinates 𝑑 𝑓𝑣,𝑖 obtained from Lemma 33 applied to # for 𝑖 = 1..𝑟.
+   We shall argue that the value of this labelling is greater than 𝜀, which would conclude
+the proof. Fix 𝑢 ∈ Good and its label 𝑗 ∈ [2𝑛], along with 𝑖 ∈ [𝑟] that witnesses it. For a
+random neighbour 𝑣 of 𝑢, by the richness of the instance, the constraint 𝜋𝑢𝑣 is distributed
+                                             𝜋𝑢𝑣
+uniformly among all 2-to-1 maps, and 𝑓𝑢,𝑖 −−−→ 𝑓𝑣,𝑖 . By Lemma 33, we get that 𝜋𝑢𝑣 ( 𝑗) = 𝑑 𝑓𝑣,𝑖
+with probability at least 𝐶 (𝛼, 𝛽, 𝜏, 𝑘). In particular, 𝜋𝑢𝑣 ( 𝑗) is the label assigned to 𝑣 with
+probability at least 𝐶 (𝛼, 𝛽, 𝜏, 𝑘)/𝑟. Thus, by the biregularity of Φ, the probability that our
+labelling satisfies a uniformly random edge (𝑢, 𝑣) is at least
+
+    |Good| 𝐶 (𝛼, 𝛽, 𝜏, 𝑘)     𝐶 (𝛼, 𝛽, 𝜏, 𝑘)
+          ·               ≥𝛿·                ,
+      |𝑈|        𝑟                  𝑟
+
+so it suffices to pick 𝜀 < 𝐶 (𝛼, 𝛽, 𝜏, 𝑘)/𝑟.
+32   Towards infinite PCSP: a dichotomy for monochromatic cliques
+
+
+         The dependency of various parameters used in the soundness proof on one another is
+     a delicate matter, so we shall elaborate. First of all, note that 𝑛 can be assumed to be
+     sufficiently large as long as 𝜀 > 0 is allowed to be chosen arbitrarily small. Recall that we
+     treat 𝐴, 𝑟, 𝑅, and 𝑑 as constants. Therefore, 𝛼 and 𝛿 are also constants. Then 𝜏 and 𝑘 are
+     obtained from Theorem 32. We find a suitable sufficiently small 𝛽 > 0, and pick 𝜀 > 0 small
+     enough so that 𝜀 ≤ 𝛿 · 𝐶 (𝛼, 𝛽, 𝜏, 𝑘)/𝑟, that is, the expected fraction of satisfied constraints.
+     Finally, for this 𝜀 the Rich 2-to-1 Conjecture gives 𝑛. It remains to note that we must ensure
+     that 𝛽𝑛 ∈ N: we can change 𝛽 slightly to arrange that without breaking other dependencies.
+     To see how, after fixing the upper-bound 𝐵 on 𝛽, take 𝜀 > 0 extremely tiny, which forces 𝑛
+     to be extremely large. Now note that there exists ℓ ∈ N such that 𝐵/2 ≤ ℓ/𝑛 ≤ 𝐵. It suffices
+     to take 𝛽 = ℓ/𝑛.                                                                              ◀
+

@@ -1,0 +1,1357 @@
+                                         Convergent Gate Elimination and Constructive
+                                         Circuit Lower Bounds
+                                         Marco Carmosino # 
+                                         MIT-IBM Watson AI Lab, Cambridge, MA, USA
+                                         Ngu Dang # 
+                                         Boston University, Boston, MA, USA
+                                         Tim Jackman # 
+                                         Boston University, Boston, MA, USA
+
+                                               Abstract
+                                         Gate elimination is the only method known that can prove complexity lower bounds for explicit
+                                         functions against unrestricted Boolean circuits. After decades of effort, the best results are still
+arXiv:2602.17942v1 [cs.CC] 20 Feb 2026
+
+
+
+
+                                         linear: Li and Yang proved lower bounds of 3.1n − o(1) in the basis B2 consisting of all binary
+                                         Boolean functions (STOC 2022), and Iwama and Morizumi proved lower bounds of 5n − o(1) in the
+                                         DeMorgan basis consisting only of AND, OR, and NOT functions (MFCS 2002). These arguments
+                                         deploy intricate and lengthy case analyses that substitute carefully-chosen inputs into circuits and
+                                         track which gates become redundant – thus, “gate elimination”. Unlike other methods in complexity
+                                         theory, there is only limited characterization of the obstacles to improving circuit lower bounds
+                                         proved via gate elimination.
+                                             Towards better understanding of gate elimination, this work contributes: (1) formalizing circuit
+                                         simplifications as a convergent term graph rewriting system and (2) giving a simple and constructive
+                                         proof of a classical lower bound using this system.
+                                             First, we show that circuit simplification is a convergent term graph rewriting system over
+                                         the DeMorgan and {∧, ∨, ⊕} bases. We define local rewriting rules from Boolean identities such
+                                         that every simplification sequence yields an identical final result (up to circuit isomorphism or
+                                         bisimulation). Convergence enables rigorous reasoning about structural properties of simplified
+                                         circuits without dependence on the order of simplification. Then, we show that there is no similar
+                                         convergent formalization of circuit simplification over the U2 and B2 bases.
+                                             Then, we use our simplification system to give a constructive circuit lower bound, generalizing
+                                         Schnorr’s classical result that the XOR function requires 3(n − 1) gates to compute in the DeMorgan
+                                         basis. A constructive lower bound f ̸∈ C gives an algorithm (called a “refuter”) that efficiently
+                                         finds counter-examples for every C-circuit trying to compute the function f . Chen, Jin, Santhanam,
+                                         and Williams showed that constructivity plays a central role in many longstanding open problems
+                                         about complexity theory (FOCS 2021), so it is natural to ask for constructive circuit lower bounds
+                                         from gate elimination arguments. This demonstrates how using convergent simplification can lead
+                                         to shorter and more modular proofs of circuit lower bounds. Furthermore, until this work, no
+                                         constructive lower bound had been proved via gate elimination.
+
+                                         2012 ACM Subject Classification Theory of computation → Rewrite systems; Theory of computation
+                                         → Circuit complexity
+
+                                         Keywords and phrases Term Graph Rewriting, Circuit Complexity, Constructivity
+
+                                         Digital Object Identifier 10.4230/LIPIcs.CVIT.2016.23
+
+                                         Supplementary Material
+
+
+
+
+                                                     © Marco Carmosino, Ngu Dang, and Tim Jackman;
+                                                     licensed under Creative Commons License CC-BY 4.0
+                                         42nd Conference on Very Important Topics (CVIT 2016).
+                                         Editors: John Q. Open and Joan R. Access; Article No. 23; pp. 23:1–23:24
+                                                            Leibniz International Proceedings in Informatics
+                                                            Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+23:2   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+        1     Introduction
+
+       Circuits model the computation of Boolean functions on fixed input lengths by acyclic wires
+       between atomic processing units – logical “gates.” To measure the circuit complexity of a
+       function f , we fix a set of gates B – called a basis – and count the number of binary gates
+       required to compute f . Some of the well-known bases include the DeMorgan basis (binary
+       AND, binary OR, and unary NOT gates), the U2 basis (all binary Boolean functions except
+       parity and equivalence), and the B2 basis (all binary Boolean functions).
+           Shannon proved in 1949 – using a simple counting argument – that most n-input Boolean
+       functions require near-maximal circuit complexity (2n /n gates) to compute [39]. This is
+       almost the trivial “memorization” complexity obtained for any n-input Boolean function
+       by writing a DNF using O(n2n ) gates. Unfortunately, counting arguments only establish
+       that such hard functions exist. Identifying specific Boolean functions with high circuit
+       complexity is a major open problem, inextricably connected to the ongoing search for efficient
+       pseudorandom bit generators via celebrated hardness-randomness tradeoffs: strong enough
+       circuit complexity lower bounds imply P = BPP [28, 17, 19]. The past seven decades have
+       seen impressive super-polynomial complexity lower bounds proved for circuits restricted to
+       constant depth [11, 41, 51]. However, complexity lower bounds for unrestricted circuits are
+       required for efficient universal derandomization, and remain a substantial challenge.
+           Gate elimination is the most successful technique known for proving complexity lower
+       bounds on specific Boolean functions against unrestricted circuits over the DeMorgan, U2 ,
+       [34, 38, 52, 23, 18] and B2 bases [38, 46, 9, 10, 26]. The idea is straightforward: input
+       variables are substituted (by constants or by other functions) and then the resulting circuit is
+       simplified. During simplification, complexity measures like the number of gates and assertions
+       about circuit structure are tracked and lifted to lower bounds using induction. For example,
+       if restriction yields a desirable subfunction (e.g., the same function on fewer variables) while
+       removing c gates, then we can inductively argue that the original circuit had at least c · n
+       gates. The simplest gate elimination arguments follow this schematic exactly, substituting
+       constants and removing gates according to basic Boolean identities. Schnorr’s tight 3(n − 1)
+       bound for XORn (and ¬XORn ) [38] exemplifies this nicely: substituting for an input with a
+       constant allows removal of at least three gates and results in a circuit computing XORn−1
+       (or ¬XORn−1 ). Induction shows that any XORn circuit must have at least 3(n − 1) gates.
+           However, progress has been slow and the best known lower bounds remain linear: about
+       5n for the DeMorgan and U2 bases [23, 18] and 3.1n for the B2 basis [26]. Why? Ongoing
+       attempts to improve these results and understand both the capabilities and limitations of
+       gate elimination are an important research direction. In a exciting recent development,
+       breakthrough ETH-hardness results used gate elimination to characterize and exploit the
+       structure of the linear-size circuits [16]. Combined with new results showing that constructive
+       separations (efficient algorithms generating inputs where an incorrect algorithm errs, defined
+       below) are necessary for widely-conjectured complexity lower bounds [7], this raises natural
+       questions. Are proofs by gate elimination constructive? If so, is that an obstacle or an asset?
+           The questions above motivate this work. Despite the fundamental role of gate elimination,
+       our understanding of this methodology remains informal and all known arguments are ad-hoc.
+       We present two contributions:
+       1. Formalization of the circuit-simplification process used in all gate elimination arguments
+          as a convergent term graph rewriting system.
+       2. A constructive separation of XORn from circuits of size < 3(n − 1), derived by re-writing
+          Schnorr’s gate elimination proof using our convergent circuit simplification system.
+M. Carmosino, N. Dang, and T. Jackman                                                               23:3
+
+
+1.1    Our Results & Research Directions
+Convergent Systems for Gate Elimination. In Section 3, we develop a formal foundation
+for gate elimination as a convergent term graph rewriting system using ideas from
+term rewriting [2] and graph-based computation models [32]. Sections 3.1 and 3.2 define
+simplification systems for Boolean formulas over the DeMorgan and {∧, ¬, ⊕} bases where
+rules are derived from carefully-chosen Boolean identities. Then, the Knuth-Bendix algorithm
+[20, 15] is applied to produce convergent formula simplification system. In Section 3.3, these
+formula rewriting systems are lifted into circuit rewriting systems via Plump’s term graph
+rewriting framework [32]. The resulting systems are convergent, that is, any valid sequence
+of simplifications terminates in a unique normal form, regardless of order.
+
+▶ Theorem (Informal Statement of Theorem 13). Circuit simplification is convergent in the
+DeMorgan ({∧, ∨, ¬}) and {∧, ⊕, ¬} bases.
+
+    This convergence property is useful for making gate-elimination arguments both clean
+and automatable: because every simplification sequence terminates in the same normal form,
+the structural properties of the simplified circuit are invariant under the choice of rewrites,
+letting us reason about circuits “up to normal form” rather than requiring justification
+for each possible simplification path. This is especially important for computer-aided
+proofs – non-terminating rewrite systems may not even halt, whereas convergent rewriting
+guarantees completion and makes brute-force exploration unnecessary. We hope that casting
+gate elimination in a convergent term-graph rewriting framework contributes to ongoing
+formalization of complexity theory (see Section 1.2 on Related Work).
+
+▶ Research Direction 1. Formalize known gate elimination arguments in standard proof
+assistants with the purpose of developing new computer-assisted gate elimination arguments
+and ultimately improved circuit lower bounds.
+
+   To further this goal, we reproved Schnorr’s lower bound for XORn [38] using the system
+(Appendix C) and in a structured format, aiming to ease formalization (Appendix C.1).
+Verifying convergence of our system and Schnorr’s argument using a proof assistant like
+Lean4 is a natural next step.
+
+Non-confluent Gate Elimination. We explore varying our systems in Section 4 to surprising
+effect. Classical circuit complexity arguments conflate the DeMorgan basis and U2 as
+interchangeable. This treatment is not baseless: with respect to size and depth bounds, the
+two bases are identical for all non-degenerate functions except f (x) = ¬x. This equivalence
+also holds between {¬, ∧, ⊕} and B2 ; arguments like [30] begin by categorizing B2 gates as
+“AND”-like and “XOR”-like, informally changing the basis to {¬, ∧, ⊕}. We make these
+folklore connections between the bases explicit in Appendix B. However, we find that when
+formalizing gate elimination as a rewriting system, this equivalence between the bases
+immediately breaks down.
+
+▶ Observation (Informal Statement of Observation 16). U2 and B2 do not admit confluent
+circuit simplification systems.
+
+   This failure arises from the presence of superfluous negation gates which need to be
+subsumed upwards and/or downwards during simplification, causing divergent simplification
+paths and ultimately non-isomorphic circuits (see Figure 2 in Section 4).
+   Even different bases are often treated similarly since translations often only sees constant
+changes to size and depth. As researchers are interested in proving non-linear lower bounds,
+
+
+
+                                                                                                  CVIT 2016
+23:4   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+       this cost is seemingly inconsequential. This results highlights how impactful a basis choice
+       can be; arguments in the DeMorgan basis or {∧, ⊕, ¬} can be easier than their U2 or B2
+       counterparts. This is especially true if implemented in a proof assistant – formalizing in
+       these bases may cut down the search space depending on the specific argument.
+           By casting gate elimination as a rewriting system, we gain a better understanding of
+       its underlying properties. Besides decades of limited progress and known limitations (see
+       Related Works), provable barriers to using gate elimination to prove superlinear circuit
+       bounds remain unknown.
+
+       ▶ Research Direction 2. Further investigate gate elimination as a rewriting system. How
+       does varying bases and rules affect its power? Does there exist a barrier for the technique
+       against proving circuit lower bounds?
+
+       Constructive Circuit Lower Bounds. The statement “Boolean function f does not have
+       size s(n) circuits” has quantifier structure ∀∃ when translated into logic:
+
+          ∀n ∈ N ∀C such that size(C) < s(n) ∃x ∈ {0, 1}n C(x) ̸= f (x).
+
+       Concretely, every circuit that fails to compute f must err on a particular input x. Thus,
+       every circuit complexity lower bound for a specific function f induces a natural total search
+       problem: given as input a circuit C that is too small (and therefore must fail to compute
+       f ) print a bitstring x such that C and f disagree. Exciting recent work discovered that
+       constructive separations play a surprisingly central role in complexity theory, by showing that
+       most conjectured uniform separations (including P ̸= NP, ZPP ̸= EXP, and BPP ̸= NEXP)
+       can be automatically transformed into constructive separations [7].
+           On the other hand, they also showed that if certain well-known lower bounds (including
+       “deciding palindromes requires super-quadratic time on one-Tape Turing Machines”, [27])
+       can be made constructive, then major complexity breakthroughs (like P ̸= NP) would follow
+       [7]. Essentially, the intuition that “simple” proofs of complexity lower bounds should be
+       “easy” to make constructive is wildly inaccurate. We show that, at least in the case of gate
+       elimination, simple proofs can be converted into constructive separations.
+
+       ▶ Theorem (Informal Statement of Theorem 19). Let C be any DeMorgan circuit on n inputs
+       with fewer than 3(n − 1) binary gates. There is an efficient and deterministic algorithm that,
+       given input C, prints an n-bit string x such that C(x) ̸= XORn (x).
+
+           This immediately raises further questions: what about other circuit lower bounds proved
+       using gate elimination? Though some employ sophosticated combinatorial objects, they still
+       use a simple inductive simplification structure. What about other notions of “constructivity”?
+       The efficient error generation algorithms discussed above are not logical notions becuase the
+       proof itself is not treated as a mathematical object. Subsequent work showed that many
+       features of constructive separations in the algorithmic sense still hold when we consider proofs
+       in weak fragments of Peano Arithmetic closely associated with computational complexity
+       classes, like Cook’s PV (which is connected to deterministic polynomial time) [14]. There
+       is a recent turn towards understanding the proof-theoretic strength required to establish
+       known theorems and resolve open problems of complexity theory, and it is entirely unknown
+       where gate elimination fits into this landscape [29, 8]. The foregoing discussion motivates
+
+       ▶ Research Direction 3. Analyze gate elimination using both “algorithmic” and logical proof
+       theory. Which gate elimination proofs can be transformed into constructive separations? Can
+       weak logical theories (like PV) prove circuit lower bound via gate elimination?
+M. Carmosino, N. Dang, and T. Jackman                                                                  23:5
+
+
+1.2    Related Work
+Proving & Exploiting Structural Characterization of Circuits. Beyond the problem of
+proving tight circuit bounds for a particular Boolean function lies a natural design question
+which asks “what is the structure of its optimal circuit?” Though this question empirically
+appears difficult to answer in general [50], it has been investigated for a handful of functions
+and bases over the last few decades. The primary method here is also gate elimination: one
+proves that any deviation from the desired structure would allow one to eliminate “too many”
+gates, contradicting optimality. Some of the earliest work on this question include [37] and
+[3] which investigated when optimal circuits for 2-output Boolean functions compute each
+output independently of the other. Subsequent work characterized optimal circuits computing
+XOR in the DeMorgan basis under the convention that NOT-gates contribute to circuit size
+[21], and later extended these ideas to other bases [22]. More recently, Rahul Ilango [16]
+                                                             Wn
+characterizes the optimal structure of circuits computing i=1 (xi ∧ yi ), and leverages this to
+obtain a breakthrough hardness reduction: the partial function minimum circuit size problem
+(MCSP∗ ) is hard assuming the exponential time hypothesis (ETH).
+    Structural characterizations also have practical implications, but their recent applications
+highlight a broader theoretical payoff. In particular, Carmosino, Dang, and Jackman [6]
+explicitly target and characterize optimal circuits of functions which enjoy linear sized circuits
+such as the exclusive-or function XOR where they show that the result of [21] also holds
+when NOT-gates do not contribute to circuit size under the same basis. They further show
+that the structure of optimal circuits for simple extensions (function extensions with minimal
+additional circuit complexity) enables a fixed-parameter tractable algorithm to identify them.
+Together, these developments motivate studying gate elimination even if the technique seems
+unable to prove superlinear bounds: understanding its intrinsic strengths and limitations as
+a method for proving and exploiting structural theorems may be valuable independently of
+its role as a lower-bound tool.
+    These new applications of gate elimination motivate its study even if the technique seems
+unable to prove superlinear bounds. Thus, we believe that further study is required to
+understand the strengths and weaknesses inherent to gate elimination as a technique itself,
+rather than as a tool for proving lower bounds.
+
+Formalizing Circuit Complexity with Proof Assistants. Besides its theoretical importance,
+circuit complexity has clear practical relevance; circuit minimization, synthesis, and verifica-
+tion are central tasks in hardware design. These applications have motivated the creation of
+a rich suite of software for the design of Boolean circuits [5, 43, 35, 47]. Recent open-source
+tools like Cirbo [1] employ SAT-based techniques and optimal circuit databases to enable
+efficient optimization, analysis and experimentation [13]. While these tools are useful for
+upper bounds, they do not provide methods for lower bounds beyond exhaustive search.
+    The use of theorem provers in studying circuit complexity has mostly been limited to
+verification. [40] provides a HOL4 library which verifies common functional elements and can
+structurally analyze complex circuits which are composed of these widgets. Rocq has also
+been used for the verification of classical circuits and quantum circuits [4, 33]. One of the few
+formally verified lower bounds – Clique cannot be computed by polynomial size monotone
+circuits – was formalized in Isabelle/HOL [48]. However, to the best of our knowledge, this
+work is the first to model circuits as term graphs. This representation is not impracticable for
+proof assistants – [49] recently formally verified term graph optimizations in Isabelle/HOL.
+By formally studying gate elimination, we hope to build up the set of tools for verifiable
+circuit lower bounds and bridge the gap with the extensive upper bound tooling.
+
+
+
+                                                                                                     CVIT 2016
+23:6   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+       Barriers Against Gate Elimination. The relativization, natural proofs, and algebrization
+       barriers to improving complexity separations are not known to apply to gate elimination [36].
+       Investigating its limitations, [12] constructed functions whose circuits are “resistant” to gate
+       elimination: any single substitution reduces their complexity by merely a constant. As gate
+       elimination arguments rely on a small constant number of substitutions, current techniques
+       cannot prove superlinear circuit lower bounds for these functions. This analysis is limited in
+       two ways: (i) this requires the class to contain their constructions, which is not always given,
+       and (ii), this limit does not say much about using gate elimination for applications besides
+       circuit lower bounds.
+
+
+        2     Representing Boolean Circuits as Term Graphs
+
+       We study general circuits over two bases. The first is the DeMorgan basis BD = {∧, ∨, ¬, 0, 1}
+       of Boolean functions: binary ∧ and ∨, unary ¬, and zero-ary (constants) 1 and 0. The
+       second basis is {∧, ⊕, ¬, 0, 1}, where ∨ has been replaced by the binary exclusive-or function
+       ⊕. Circuits take zero-ary variables in X = {x1 , x2 , . . . , xn } for some fixed n as inputs, and
+       have exactly one distinguished output gate. Usually, circuits are described as directed acyclic
+       graphs (DAGs) with nodes labeled by function symbols or variables and edges representing
+       “wires” between the gates. For every such circuit C, acyclicity of the underlying graph ensures
+       that C computes a well-defined n-ary Boolean function by evaluating each gate in topological
+       order according to the function it is labeled with (starting with a substitution of concrete
+       bits into the variables) until the output gate has a value.
+           The complexity of a Boolean circuit can be measured in a number of ways including
+       size and depth. In this work, circuit size is defined as the number of binary gates (i.e.,
+       ¬ gates are “free”). Under this measure, the circuit complexity of non-degenerate Boolean
+       functions – the size of the smallest circuits computing them – are the same in the DeMorgan
+       basis and U2 , the basis consisting of the set of all binary Boolean operators besides ⊕ and its
+       complement ⊙. The same relationship holds between {∧, ⊕, ¬, 0, 1} and B2 = U2 ∪ {⊕, ⊙}.
+       We make this relationship explicit in Appendix B.
+           To apply results from term graph rewriting, however, we must describe circuits as
+       hypergraphs, tuples C = ⟨VC , EC , labC , attC ⟩ where VC and EC are finite sets of vertices
+       (or nodes) and hyperedges respectively, labC : EC → B ∪ X is an edge-label function
+       recording the type of each edge, and attC : EC → VC≤3 is an attachment function which
+       assigns a non-empty string of vertices attC (e) = v0 , . . . , vℓ to each hyperedge e such that
+       | attC (e)| = 1 + arity(labC (e)). We call v0 the result node of e and v1 , . . . , vℓ the argument
+       nodes, and denote them res(e) and arg(e) respectively.
+           The hypergraph C is a term graph if (1) there is a node rootG from which each node is
+       reachable, (2) G is acyclic – there is no path where some node occurs twice, and (3) each
+       node is the result node of a unique edge. In this setting, hyperedges represent logic gates
+       and vertices represent “wires” between gates — essentially dual to the standard encoding of
+       circuits as DAGs.
+
+
+        3     Gate Elimination as a Convergent Term Graph Rewriting System
+
+       An abstract rewriting system is just a set of objects A together with a binary relation → on
+       A called the rewrite relation. In this section, we will develop a system S where A consists of
+       Boolean circuits over the DeMorgan basis and C → C ′ holds when C simplifies to C ′ via a
+       single step of gate elimination. To this end, first recall standard notions concerning abstract
+M. Carmosino, N. Dang, and T. Jackman                                                                     23:7
+
+
+                                                                                           ∗
+rewriting systems (see Definition 2.1.3 of [2]). For elements a, a′ ∈ A, write a → a′ to mean
+that there is a finite path of rewrite steps from a to a′ .
+
+▶ Definition 1. The rewrite relation → is called
+terminating iff there is no infinite path a0 → a1 → . . . ,
+                                                  ∗         ∗
+confluent iff for every triple a, b, b′ ∈ A, if a → b and a → b′ , then there exists c ∈ A such
+                ∗        ′ ∗
+   that both b → c and b → c , and
+convergent iff it is both confluent and terminating.
+
+   An object a ∈ A is in normal form if there is no b such that a → b. Objects in normal
+form often enjoy nice structural properties, because they are “simplest” according to the
+rewrite relation. For example, circuits C in normal form according to our system S will have:
+
+     No double negations.
+     No constants unless C computes a constant function — e.g., (xi ∨ ¬xi ) normalizes to 1.
+     No identity gates — sub-circuits (γ ∧ γ) and (γ ∨ γ) do not occur.
+
+    Each rewrite rule of S will (by construction) decrease or preserve the number of gates.
+Consequently, it will be straightforward to show that (1) system S is terminating and (2)
+given a circuit C with bits b = b1 , . . . , bn substituted for all input variables, rewriting C
+using S until termination just evaluates C on input b. These basic properties connect paths
+through S to efficient circuit manipulation and evaluation. The work in showing that S is
+“well behaved” goes into proving confluence. We proceed along the following lines.
+
+1. Identify a list of Boolean identities, EB , which are sufficient for gate elimination arguments.
+2. Use the Knuth-Bendix algorithm on EB to produce a convergent formula simplification
+   system RB .
+3. Lift RB to a convergent circuit simplification system S via Plump’s account of term
+   graph rewriting.
+
+   This detailed treatment is for the DeMorgan basis ({∧, ∨, ¬}); the convergent system for
+{∧, ⊕, ¬} follows similarly albeit with a different set of Boolean identities.
+
+3.1      Boolean Identities
+The identities collected in EB (Definition 2) describe each step of circuit simplification in
+proofs by gate elimination. Clearly, EB is valid for Boolean algebra: for all g ∈ {0, 1},
+each identity is true when ≈ is interpreted as equality on the Boolean domain. Therefore,
+consequences derived from EB via “sound inference rules” are true. We do not treat that
+equational logic 1 formally, because we transform EB into a convergent term rewriting system
+in the next subsection.
+
+▶ Definition 2 (Useful Boolean Identities). We denote by EB the following set of identities:
+
+     1∧1≈1          1∨1≈1          ¬1 ≈ 0      g∧1≈g         g∧0≈0          g ∧ ¬g ≈ 0     g∧g ≈g
+     1∧0≈0          1∨0≈1          ¬0 ≈ 1      1∧g ≈g        0∧g ≈0         ¬g ∧ g ≈ 0     g∨g ≈g
+     0∧1≈0          0∨1≈1        ¬¬g ≈ g       g∨0≈g         g∨1≈1          g ∨ ¬g ≈ 1
+     0∧0≈0          0∨0≈0                      0∨g ≈g        1∨g ≈1         ¬g ∨ g ≈ 1
+       (tt and)      (tt or)      (tt not)     (passing)      (fixing)       (tautology)   (simplify)
+
+1
+    See Chapter 3 of [2] or the exposition of Birkhoff’s Theorem in [31].
+
+
+
+
+                                                                                                        CVIT 2016
+23:8   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+           Some Boolean identities are omitted from EB , such as commutativity of ∧ and ∨. This is
+       for two reasons: (1) including them would induce a rewriting system that is not convergent
+       and (2) commutativity identities do not “simplify” Boolean expressions – the right hand
+       sides do not have fewer Boolean operators than the left. While EB does not fully characterize
+       Boolean algebra, it is sufficient to capture the steps of gate elimination. The identities EB
+       are available in machine-readable form as supplementary material:
+       https://feasible-math.org/2026-FSCD-80-supplementary.zip
+
+
+       3.2    Convergent Term Rewriting for Boolean Formulas
+       Now we mechanically transform EB into an abstract term rewriting system on Boolean
+       formulas and prove convergence. Term rewriting is a classical special case of abstract
+       rewriting systems, motivated by algebra, logic, and programming language theory. Terms are
+       treelike expressions built up from function symbols, constants, and variables. We will take
+       an intermediate step through treelike expressions to get to DAG-like expressions: circuits.
+       Terms in general and DeMorgan formulas in particular are defined below, along with some
+       auxiliary notions required to specify appropriate rewrite relations.
+
+       ▶ Definition 3 (DeMorgan Formulas as Terms). Let Σ be a finite tuple of function and constant
+       symbols with arities d⃗ ∈ N|Σ| , and let Z denote an infinite set of variables. T (Σ, Z) denotes
+       the set of all terms over Σ and Z, defined inductively:
+           Every variable z ∈ Z is a term.
+           Every application of a function symbol fi ∈ Σ to di terms t1 , . . . , tdi of the form
+           f (t1 , . . . , tdi ) is a term.
+       Let B = ⟨∧, ∨, ¬, 0, 1⟩ with arities ⟨2, 2, 1, 0, 0⟩ be the DeMorgan signature. We denote by
+       F = T (B, X) where X = {g, x1 , x2 , . . . } the set of DeMorgan formulas.
+
+           A substitution σ is a mapping between terms that may replace any finite number of
+       variables with another term, but must leave constants and function applications fixed. So,
+       can write substitutions as σ = {xi 7→ t}. A term rewrite rule is a pair of terms ⟨ℓ, r⟩ written
+       as ℓ → r, such that (1) ℓ is not a variable and (2) the set of variables in r is a subset of the
+       variables in ℓ. A term rewriting system (TRS) over T (Σ, Z) is a set R of term rewrite rules
+       where all pairs of terms are from T (Σ, Z). Finally, we have:
+
+       ▶ Definition 4 (Term Rewriting, Definition 4.1 of [32]). The rewrite relation →R on T (Σ, Z)
+       induced by a term rewriting system R is defined as follows:
+       t →R u if there is a rule ℓ → r in R and a substitution σ such that
+        1. The left-hand side of the rule “matches” t — σ(ℓ) is a subterm of t
+        2. The right-hand side “generates” u — u is obtained from t by replacing an occurence of
+           σ(ℓ) by σ(r)
+
+          We can now give the precise type of EB : it is a set of pairs of terms from F . We aim to
+       transform EB into a convergent term rewriting system RB . Rather than manually casting our
+       equations as term rewrite rules (e.g. g ∧ 1 ≈ g =⇒ g ∧ 1 → g) and then proving convergence
+       from scratch, we use a well-known procedure designed to automate this: the Knuth-Bendix
+       completion algorithm [20, 15].
+
+       ▶ Theorem 5 (Knuth-Bendix, [45]). Given as input a set of identities E over T (Σ, Z), if
+       Knuth-Bendix terminates, it outputs a convergent term rewriting system R over T (Σ, Z)
+       with the same consequences as E.
+M. Carmosino, N. Dang, and T. Jackman                                                              23:9
+
+
+    At a high level, Knuth-Bendix completion works by ensuring that overlapping pairs of
+rules do not create ambiguities. Furthermore, the algorithm may add new rules and/or
+simplify rules to create a convergent   system. Manually running the algorithm in our case
+would require checking 25
+                            
+                          2   pairs of equations — although not every possible pair overlaps.
+While this is technically doable by hand, we instead use the open-source Knuth-Bendix
+Completion Visualizer software (KBCV, [45]) to run the algorithm on input EB , yielding
+
+▶ Definition 6 (Term Rewriting System RB ).
+
+          0 → ¬1           g ∧ ¬1 → ¬1             g∧1→g               g ∧ ¬g → ¬1
+      ¬¬g → g              ¬1 ∧ g → ¬1             1∧g →g              ¬g ∧ g → ¬1
+      g∧g →g                g∨1→1                 g ∨ ¬1 → g           g ∨ ¬g → 1
+      g∨g →g                1∨g →1                ¬1 ∨ g → g           ¬g ∨ g → 1
+   (normalizing)              (fixing)             (passing)            (tautology)
+
+▶ Lemma 7. RB is a convergent term rewriting system for the DeMorgan formulas, F .
+
+Proof. The Knuth-Bendix algorithm run on input EB terminated and printed the system
+RB listed in Definition 6 above. Therefore, RB is convergent and has the same consequences
+as EB . A machine-verifiable proof has been included in the supplementary material in
+certification problem format (CPF) which can be verified using tools like CeTA [44]. KBCV
+outputs its proofs in CPF 2 while CeTA requires CPF 3. We have converted the output to CPF
+3 using the tool at http://cl-informatik.uibk.ac.at/software/ceta/cpf3.tgz.              ◀
+
+   The rules of RB are grouped based on their structure and impact on a formula. Observe
+that RB is a smaller set than EB , as Knuth-Bendix has made a few simplifications including
+removal of truth-table identities. The unique added rule, 0 → ¬1, stands out. This is the only
+rewrite rule in the system RB that increases the number of Boolean operators in a formula.
+This is compatible with gate elimination because: (1) the formulas become simpler in the
+sense that after rewriting 0 to ¬1 only a single type of constant occurs, and (2) substituting
+a variable for 0 can be accomplished by a single additional step of rewriting to ¬1. The term
+rewriting rules RB are available in machine-readable form as part of supplementary material.
+   All that remains is lifting this rewriting system for formulas to one for circuits.
+
+
+3.3    Convergent Term Graph Rewriting for Boolean Circuits
+Recalling Plump’s definitions, we can lift our term rewriting system to a term graph rewriting
+system by generalizing the notions of pattern matching and generation as follows [32].
+
+▶ Definition 8 (Hypergraph Morphism). For hypergraphs G and H, a hypergraph morphism
+f : G → H is a pair of functions fE : EG → EH and fV : VG → VH that preserve
+labels, so fE maps each edge γ of G to an edge of H with matching label:
+    ∀γ ∈ EG labG (γ) = labH (fE (γ)) and
+attachments, so for every edge γ of G, fV is an order-preserving map from the vertices
+    attached to γ to the vertices attached to fE (γ) in H — recalling that att(γ) is a string:
+    ∀γ ∈ EG ∀i ∈ | attG (γ)| fV (attG (γ))[i] = attH (fE (γ))[i].
+
+   Term graphs can be transformed into terms in the natural way: by “unrolling” term
+graphs so that each edge is read only once.
+
+
+
+                                                                                                 CVIT 2016
+23:10   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+        ▶ Definition 9 (Term representation of a term graph (3.2 in [32])). A node v in a term graph
+        G represents the term termG (v) = labG (e)(termG (v1 ), . . . , termG (vℓ )), where e is the unique
+        edge with res(e) = v and where arg(v) = v1 , . . . vℓ . Denote termG (rootG ) by term(G).
+
+            Similarly, terms t can be transformed into term graphs by encoding each application of
+        a function symbol in t by a hyper-edge; the resulting hypergraph is essentially the parse
+        tree of t. To formulate pattern matching, Plump extended this simple idea to erase specific
+        variables: for a term t, define ⋄t as the parse tree of t encoded by a hypergraph, with all
+        repeated variables collapsed into “open” vertices — that is, the edge xi is deleted for each xi ,
+        but the unique result vertex remains and is referenced by every edge that was attached to xi
+        in the parse tree. A term graph L is an instance of a term l if there is a graph morphism
+        ⋄l → L that sends the root of ⋄l to the root of L. Given a node v in a term graph G and a
+        term rewrite rule r → ℓ, the pair ⟨v, ℓ → r⟩ is a redux if the subgraph of G reachable from v
+        (denoted G[v]) is an instance of ℓ. Finally, we recall a single step of Plump’s graph rewriting:
+        essentially, a subgraph matching the left hand side of a rule is sliced out and replaced with
+        the right-hand side.
+
+        ▶ Definition 10 (Term Graph Rewriting (Definition 1.4.5 of [32])). Let G be a term graph
+        containing a redux ⟨v, l → r⟩. There is a proper rewrite step from G to H where H is
+        constructed by
+         1. G1 ← G − {e} where e is the unique edge that satisfies res(e) = v
+         2. G2 ← the disjoint union of G1 with ⋄r where
+               v is identified with root(⋄r)
+               Every edge labeled with a variable in ⋄r is identified according to the morphism that
+               matched ℓ to G.
+         3. Garbage collection: H is obtained from G2 by deleting all nodes and edges not reachable
+            from the root.
+
+          We will consider rewriting up to two different notions of equivalence for hypergraphs.
+        One is hypergraph isomorphism, the other is
+
+        ▶ Definition 11 (Bisimilarity). Two term graphs G and H are bisimilar, denoted G ∼ H, if
+        term(G) = term(H).
+
+            Crucially for our applications, two bisimilar circuits compute the same function. Thus,
+        though weaker than isomorphism, bisimilarity is still valuable in the circuit complexity setting:
+        it implies functional equivalence. Plump showed that under both notions of equivalence,
+        convergent term rewriting can be used to manufacture convergent term graph rewriting.
+
+        ▶ Theorem 12 (Corollary 1.7.4 and Theorem 1.7.12 of [32]). If R is a convergent term
+        rewriting system, then
+         1. the term graph rewriting system consisting of proper rewrite steps induced by R plus the
+            collapse rule is convergent up to hypergraph isomorphism, and
+         2. the term graph rewriting system consisting only of proper rewrite steps (plain rewriting)
+            induced by R is convergent up to bisimilairty classes of hypergraphs.
+
+            Collapse is an additional term graph rewriting rule that allows us to merge two rooted
+        subhypergraphs if there exists a root-preserving hypergraph morphism between them. For
+        circuits, this operation would correspond to finding redundant subcircuits and combining
+        them into one. This is natural simplification step; indeed, if our goal was to optimize circuits
+        then any system missing this rule would be insufficient. In gate elimination proofs the
+M. Carmosino, N. Dang, and T. Jackman                                                                23:11
+
+
+collapse rule is largely irrelevant – arguments start with sub-optimal circuits and simplify
+them until a contradiction is obtained to prove circuit complexity lower bounds.
+    However, it is still desirable to work with collapse because it provides a strong guarantee:
+circuit simplifications act identically on isomorphism classes of circuits. When aiming for
+structural characterizations which should hold up to isomorphism, this is the natural choice.
+Unfortunately, it is not clear if the collapse rule can be implemented efficiently. Therefore,
+we use the plain rewriting system (without collapse rule) when constructive arguments are
+required (e.g., Theorem 19).
+    Applying this lifting theorem to our term rewriting system RB for simplification of
+DeMorgan formulas yields systems for gate elimination.
+
+▶ Theorem 13. RB induces two term graph rewriting systems for DeMorgan circuits:
+1. system S includes the collapse rule and is convergent up to circuit isomorphism, and
+2. system S ′ does not include the collapse rule and is convergent up to circuit bisimulation.
+
+
+3.4    Explicit Circuit Simplification Systems
+In this section we “compile” the systems S and S ′ to give a concrete description of DeMorgan
+circuit simplification, complementing the entirely abstract statement of Theorem 13.
+    There are three parts to S: (1) notions of redundancy and pattern matching for sub-
+circuits (Definitions 14 and 15), (2) a set of circuit rewrite rules given as pairs of patterns
+(Figures 3 – 6 in Appendix A), and (3) the procedure for pattern-substitution in a circuit
+(Algorithm 1). System S is then the binary relation on circuits induced by setting C → C ′
+when either (a) C matches the left-hand side l of a rule ⟨l 7→ r⟩ and C ′ is the result of
+substituting pattern r for l in C, or (b) C has a redundant sub-circuit that “collapses” in C ′ .
+System S ′ is identical except for omission of the collapse rule.
+
+▶ Definition 14 (Collapsing Redundant Sub-Circuits). Circuit C collapses to circuit D if there
+is a non-injective hypergraph morphism C 7→ D mapping rootC to rootD , denoted C ≻ D.
+
+▶ Definition 15 (Pattern & Redux in Circuits). A pattern is just a circuit L where vertices
+γ without a unique gate g such that attL (g)[0] = γ may occur; we call these open vertices.
+Circuit D is then an instance of pattern L if there is a morphism p : L → D sending rootL
+to rootD . Then, given a vertex α in circuit C and a rule L 7→ R, the pair ⟨α, L 7→ R⟩ is a
+redex if the sub-circuit of C rooted at α (denoted C[α]) is an instance of L.
+
+    Most rewrite rules of S use the open vertex labeled γ to match “the rest of the sub-circuit
+D.” That is, a morphism p will send γ to each node of D not explicitly mentioned to “match”
+the pattern. Each family of rules then plays a different role in gate elimination.
+Normalizing enforces that each circuit does not contain “duplicate” gates — such as double
+    negation or trivial identity.
+Fixing applies when a gate computes a constant function because of one input.
+Passing applies when a gate computes the identity function because of one input.
+Tautology removes redundant (costly) gates which trivially compute constants.
+
+    Distinct rules are required for fixing, passing, and tautology to handle left and right
+inputs because inclusion of “AND is commutative” and “OR is commutative” as rewrite
+rules makes confluence impossible [42]. Finally, we describe an abstract proper rewrite step
+(Definition 10) as a concrete operation that transforms circuits (Algorithm 1).
+
+
+
+                                                                                                    CVIT 2016
+23:12   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+
+
+                                                  ∨                                                        ∨
+                  ∧   7→        γ
+                                                           7→
+                                                                               ∧
+                                                                                                                   7→
+                                              γ
+                                                                                   γ
+                                                                                        7→     γ               ¬
+                                                       1         1                                                        1
+                  γ                                                       1
+                                                                                                           γ
+
+
+
+
+          (a) AND De-duplication (b) OR Fixing (left)                 (c) AND Passing (right) (d) OR Tautology (left)
+
+           Figure 1 Selection of proper circuit rewriting steps, see Figures 3 – 6 in Appendix A for the
+        complete system.
+
+
+
+             Algorithm 1 Step of Circuit Simplification System S, defining C → C ′
+        Require: C is a circuit containing the redex ⟨α, R 7→ L⟩, with p : R → C[α] the witnessing
+                 morphism
+         C1 ← C − {g} where g = res−1 (α)            ▷ Remove the unique gate with output wire α
+         C2 ← C1 + R                              ▷ Disjoint union: rhs of the matched rule with C
+         C3 ← Identify vertex α with rootR of C2 ▷ Connect R to the appropriate element(s) of C
+         if γ ∈ R then                                                ▷ Does R reuse a subcircuit?
+             C4 ← Identify vertex p(γ) with γ of C3 ▷ Yes; wire the matching element of R into C
+         else
+             C4 ← C3                              ▷ R does not reuse any subcircuits — do nothing
+         C ′ ← Garbage collection: remove all vertices and edges unreachable from rootC4
+
+
+
+
+         4      Simplification of U2 and B2 Circuits is Not Confluent
+
+        In this section we demonstrate that any similar formulation of gate elimination in U2 is not
+        confluent. As U2 ⊂ B2 , the same argument shows gate elimination in B2 is not confluent.
+        To do this we produce a circuit and substitution which, after applying a different series
+        of rewrites, results in two distinct circuits (i.e. non-isomorphic). We recall the 14 binary
+        operators that make up U2 in Table 1.
+
+             Table 1 The U2 basis: all the binary Boolean operations except ⊕ and its negation ⊙
+
+                 p    q    ∗1       ∗2   ∗3       ∗4       ∗5   ∗6   ∗7   ∗8       ∗9    ∗10       ∗11   ∗12   ∗13      ∗14
+                 T    T    T        F    T        F        T    F    T    F        T      F         T     F     T        F
+                 T    F    T        F    T        F        F    T    T    F        F      T         F     T     T        F
+                 F    T    T        F    F        T        T    F    F    T        T      F         F     T     T        F
+                 F    F    T        F    F        T        F    T    T    F        T      F         F     T     F        T
+
+
+            Gates ∗4 and ∗6 compute the negation of their first and second inputs respectively. If
+        these are not the sole gate in the circuit, then they are superfluous. We can remove them by
+        relabeling either their input gates or every gate that is read by them. We demonstrate the
+        two ways to “push” these superfluous negations in Figure 2.
+M. Carmosino, N. Dang, and T. Jackman                                                                    23:13
+
+
+               ∗10
+
+
+
+               ∗4                             ∗14                             ∗10
+
+
+
+               ∗8                              ∗8                             ∗7
+
+  (a) ∗4 can be removed two ways (b) Pushing up: ∗10 → ∗14         (c) Pushing down: ∗8 → ∗7
+
+     Figure 2 Two simplifications for ∗4 , disproving convergence of gate elimination over U2 and B2
+
+
+    If both of these rewrite rules are present in our system then, as the example shows, is not
+confluent. Unfortunately, we must include rewrite rules that both push negations up and
+down: if we do not (and choose to always push negations in one direction), then superfluous
+∗4 and ∗6 gates can survive at the extremes of the circuit. Furthermore, this issue cannot be
+sidestepped even if we limit ourselves to optimal circuits. This is because “passing” rules in
+this rewriting system must generate intermediate negation gates.
+    For example, p ∗8 q is equivalent to ¬p ∧ q; if we wanted to substitute q ← 1 we would
+like the equivalent of a “passing” rule to be applied. However, the output wires of ∗8 should
+pass to ¬p, which is not an actual gate in the circuit. Thus, rather than removing ∗8 , this
+substitution will have to relabel ∗8 to ∗4 . Then ∗4 can be eliminated by “pushing” it either
+up or down leading to two non-isomorphic circuits. Again, we cannot always “push down” as
+p could be an input and not a binary gate. From these examples, we see that
+
+▶ Observation 16. Gate elimination is not confluent in the U2 or B2 bases, even when
+restricted to optimal circuits.
+
+ 5      Constructive Circuit Lower Bounds via Convergent Gate Elimination
+Proofs by gate elimination often show a circuit C has property P with the following argument.
+
+1. Assume, for the sake of contradiction, that C does not have property P.
+2. Select a variable xi and constant α for substitution using ¬P and the structure of C.
+3. Simplify C under the substitution {xi 7→ α}, to obtain a constant-free circuit C ′ .
+4. Argue that a critical property P′ of C ′ implies a contradiction.
+
+   To demonstrate that this system is sufficiently powerful to capture gate elimination
+arguments, we revisit Schnorr’s lower-bound for the parity function XOR using the system S.
+To begin, we must first recall the parity functions XORn :
+                                                                                     Pn
+▶ Definition 17. For an n bit input ⃗x = (x1 , . . . , xn ) ∈ {0, 1}n , XORn (⃗x) = ( i=1 xi ) mod 2.
+
+We define (¬)f to mean “f or ¬f .” For a (partial) assignment α, we define f ↾α to be the
+function restricted under α. We now recall two useful facts about (¬)XORn .
+
+▶ Fact 1. XORn is self-reducible, i.e., for any i ∈ [n], for any assignment b ∈ {0, 1},
+
+     XORn ↾xi ←b ≡ (¬)XORn−1 .
+
+▶ Fact 2. XORn is maximally sensitive, i.e., for all i ∈ [n], for all assignments α,
+
+     XORn (α) ̸= XORn (α⊕i ) where α⊕i denotes α but with its ith bit flipped.
+
+
+
+                                                                                                        CVIT 2016
+23:14   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+            Schnorr’s proof is the quintessential gate elimination proof. We provide the full details of
+        re-proving it using our system in Appendix C and merely provide a sketch here.
+
+        ▶ Theorem 18 (Schnorr, [38]). XORn requires 3(n − 1) gates in the DeMorgan basis.
+
+        Proof Sketch. Let C be an optimal circuit for XORn with n ≥ 2, our goal is to find a
+        substitution of an input hyperedge which results in at least 3 costly gate hyperedges (those
+        labeled with ∧ or ∨) to be removed during rewriting steps. We first fix a topological order
+        and let h be its first costly gate. Then, h has two arguments whose terms are (¬)xi and
+        (¬)xj . If h were the only costly gate reading (¬)xi , we can substitute xj to eliminate h via a
+        fixing rule, leaving xi disconnected. However, the resulting circuit, which by self-reducibility
+        (Fact 1) computes (¬)XORn−1 , no longer depends on xi . This contradicts non-degeneracy of
+        XORn−1 (Fact 2).
+            Therefore, another costly gate f ̸= h reads (¬)xi . Furthermore, (¬)f cannot be the
+        output since we can fix it by substituting xi , again contradicting Fact 1. Let f ′ be any
+        binary gate reading f . Then, we choose the substitution for xi that fixes f . This ultimately
+        removes at least 3 costly gates h, f, f ′ after simplification and the resulting circuit computes
+        XORn−1 by Fact 1. Finally, we apply induction to obtain the desired lower bound.               ◀
+
+            Schnorr’s proof is simple, but when viewed through the lens of formal methods, it is hard
+        not to see it as an algorithm for breaking down XOR circuits; this is especially true of our
+        structured proof in Appendix C.1. Gate elimination yields its lower bounds by arguing that
+        if a circuit does not have some minimal structure, then it doesn’t compute its underlying
+        function. Since a function is defined by its behavior on its inputs, it seems reasonable to
+        expect that we can derive which inputs the circuit would fail on. We show that this intuition
+        is true at least for Schnorr’s proof by giving the first constructive separation for a circuit
+        lower bound proved by gate elimination.
+
+        ▶ Theorem 19. Let C be a DeMorgan circuit on n inputs with size s < 3(n − 1) that claims
+        to compute XORn . We can construct an input x ∈ {0, 1}n such that C(x) ̸= XORn (x) in
+        polynomial time with respect to n.
+
+        Proof. Let C be a DeMorgan circuit on n inputs with size s < 3(n − 1) and let f be the
+        function it computes. If n = 2, then we can brute-force evaluate all four possible inputs to
+        find a counterexample in constant time. For larger n, we can run Algorithm 2. At a high
+        level, the algorithm will follow Schnorr’s proof; each iteration, it tries to find a substitution
+        that removes at least three gates. If it cannot, then the circuit’s function will violate Fact 2,
+        and we can easily extract a counterexample. If successful, it instead produces a circuit that
+        is too small to compute XOR on one fewer variable which it can recurse on. This continues
+        until, eventually, the remaining circuit purports to compute (¬)XOR2 with fewer than three
+        gates, and again we can simply brute-force over its four completions.
+             Algorithm 2 keeps track of (i) a partial restriction α and (ii) a list V of the variables
+        still unrestricted by the circuit. During each iteration, it considers Ci , a normalized circuit
+        computing f ↾α . In lines 4-5, the algorithm can identify an obvious contradiction to Fact 2.
+        If Ci is degenerate with respect to some variable(s) in V then f ↾α does not depend on some
+        xj for some j ∈ V . Let α̂ be any completion of α, then C(α̂) = f (α̂) = f (α̂⊕j ) = C(α̂⊕j ); C
+        is incorrect on one of these two inputs since XORn (α̂) ̸= XORn (α̂⊕j ).
+             Otherwise, in line 7, the algorithm selects the topologically minimal binary gate of Ci
+        which must read (¬)xp and (¬)xq where i =    ̸ j since Ci is normalized. As in Schnorr, (¬)xp
+        must be read by another binary gate f besides h. If this is not the case on line 9 then we
+        are in a similar case to the previous DEGEN case: after adding the correct substitution of xq
+M. Carmosino, N. Dang, and T. Jackman                                                                   23:15
+
+
+to α and normalizing, f ↾α will no longer depend on xp , and C must err on any completion
+α̂ or α̂⊕p . Furthermore, (¬)f must not be the output or else we can fix the circuit to be
+constant on line 15-17. If it were, we could then take any completion α̂ and it or α̂⊕q will be
+a counterexample, since f no longer depends on xq .
+     If the algorithm does not return prematurely, then as in Schnorr, there exists some f ′ that
+reads (¬)f . Algorithm 2 selects a substitution for xp so that simplification removes h, f and
+f ′ reducing the size of the circuit by at least three per loop iteration. Hence, the resulting
+Ci+1 is too small to compute XOR|V | . In the worst case, the algorithm goes through n − 2
+iterations and the resulting Cn−2 will, by Fact 1 purportedly compute (¬)XOR2 . However,
+its size will be at most s − 3(n − 2) < 3(n − 1) − 3(n − 2) = 3. Therefore, we can simply
+brute-force over all four completions of α and C must err on at least one of them.
+     It is easy to see this process runs in polynomial time (with respect to n). There are at
+most linear loop iterations, and each condition can be checked in polynomial time. Since we
+are using system S ′ without collapse, substitution and simplification in each iteration can be
+done in polynomial time. To extract a counterexample, we only need to compute the circuit
+on a constant number of inputs and each evaluation can be done in polynomial time.             ◀
+
+   Algorithm 2 Efficient search for a bad restriction α witnessing that C does not compute XOR.
+Require: C is a circuit on n input variables with s gates with n > 3 and s < 3(n − 1)
+ 1: i ← 0 ; C0 ← Normalize C ; α ← ∅ ; V ← [n]
+ 2: ▷ number of rounds ; working circuit ; working restriction ; active variables                  ◁
+ 3: while |V| > 2 do
+ 4:    if a variable xj for some j ∈ V is not read in Ci then
+ 5:        return "DEGEN in xj under α"
+ 6:    Assert: Ci is in normal form and does not trivially fail to compute XOR|V |
+ 7:    h ← topologically minimal {∧, ∨}-gate in Ci
+ 8:    Assert: h has inputs (¬)xp , (¬)xq for p, q ∈ V and p ̸= q
+ 9:    ▷ the assertion holds because Ci is in normal form                                          ◁
+10:    if the fanout of (¬)xp is 1 then
+11:        add fixer(h, xq ) 7→ xq to α
+12:        ▷ fixer(h, xq ) is the substitution for xq that removes h via a fixing rule             ◁
+13:        return "DEGEN in xp under α"
+14:    else
+15:        f ← the distinct gate reading xp besides h, so f ̸= h
+16:    if (¬)f is the output gate of Ci then
+17:        add fixer(f, xp ) 7→ xp to α
+18:        return "CONST under α"
+19:    else
+20:        f ′ ← topologically minimal costly successor of f in Ci
+21:    add fixer(f, xp ) 7→ xp to α
+22:    Ci+1 ← Substitute xp ← fixer(f, xp ) in Ci and simplify           ▷ Eliminates h, f, and f ′
+                                          ′
+23:    ▷ By convergence of system S this step is deterministic — greedy selection of
+         simplifications is the same up to bisimulation of Ci+1 which is all we require            ◁
+24:    V ← V \ {p}
+25:    i ← (i + 1)
+26:    Assert: Ci+1 is a normalized circuit which is too small to compute (¬)XOR|V |
+27: return "FAILS under α"                ▷ “fail search”, brute-force is feasible to find the error
+
+
+
+
+                                                                                                       CVIT 2016
+23:16   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+             References
+         1   Daniil Averkov, Tatiana Belova, Gregory Emdin, Mikhail Goncharov, Viktoriia Krivogornitsyna,
+             Alexander S. Kulikov, Fedor Kurmazov, Daniil Levtsov, Georgie Levtsov, Vsevolod Vaskin,
+             and Aleksey Vorobiev. Cirbo: A new tool for boolean circuit analysis and synthesis. In Toby
+             Walsh, Julie Shah, and Zico Kolter, editors, AAAI-25, Sponsored by the Association for the
+             Advancement of Artificial Intelligence, February 25 - March 4, 2025, Philadelphia, PA, USA,
+             pages 11105–11112. AAAI Press, 2025. URL: https://doi.org/10.1609/aaai.v39i11.33207,
+             doi:10.1609/AAAI.V39I11.33207.
+         2   Franz Baader and Tobias Nipkow. Term rewriting and all that. Cambridge University Press,
+             1998.
+         3   Norbert Blum and Martin Seysen. Characterization of all optimal networks for a si-
+             multaneous computation of AND and NOR. Acta Informatica, 21:171–181, 1984. doi:
+             10.1007/BF00289238.
+         4   Thomas Braibant. Coquet: A coq library for verifying hardware. In Jean-Pierre Jouannaud
+             and Zhong Shao, editors, Certified Programs and Proofs - First International Conference, CPP
+             2011, Kenting, Taiwan, December 7-9, 2011. Proceedings, volume 7086 of Lecture Notes in
+             Computer Science, pages 330–345. Springer, 2011. doi:10.1007/978-3-642-25379-9\_24.
+         5   Robert K. Brayton and Alan Mishchenko. ABC: an academic industrial-strength verification
+             tool. In Tayssir Touili, Byron Cook, and Paul B. Jackson, editors, Computer Aided Verification,
+             22nd International Conference, CAV 2010, Edinburgh, UK, July 15-19, 2010. Proceedings,
+             volume 6174 of Lecture Notes in Computer Science, pages 24–40. Springer, 2010. doi:
+             10.1007/978-3-642-14295-6\_5.
+         6   Marco Carmosino, Ngu Dang, and Tim Jackman. Simple circuit extensions for xor in ptime.
+             arXiv preprint arXiv:2511.16903. To Appear in STACS 2026, 2025.
+         7   Lijie Chen, Ce Jin, Rahul Santhanam, and Ryan Williams. Constructive separations and their
+             consequences. TheoretiCS, 3, 2024. URL: https://doi.org/10.46298/theoretics.24.3,
+             doi:10.46298/THEORETICS.24.3.
+         8   Lijie Chen, Jiatu Li, and Igor C. Oliveira. Reverse mathematics of complexity lower bounds. In
+             65th IEEE Annual Symposium on Foundations of Computer Science, FOCS 2024, Chicago, IL,
+             USA, October 27-30, 2024, pages 505–527. IEEE, 2024. doi:10.1109/FOCS61266.2024.00040.
+         9   Evgeny Demenkov and Alexander S. Kulikov. An elementary proof of a 3n - o(n) lower bound
+             on the circuit complexity of affine dispersers. In Filip Murlak and Piotr Sankowski, editors,
+             Mathematical Foundations of Computer Science 2011 - 36th International Symposium, MFCS
+             2011, Warsaw, Poland, August 22-26, 2011. Proceedings, volume 6907 of Lecture Notes in
+             Computer Science, pages 256–265. Springer, 2011. doi:10.1007/978-3-642-22993-0\_25.
+        10   Magnus Gausdal Find, Alexander Golovnev, Edward A. Hirsch, and Alexander S. Kulikov. A
+             better-than-3n lower bound for the circuit complexity of an explicit function. In 2016 IEEE
+             57th Annual Symposium on Foundations of Computer Science (FOCS), pages 89–98, 2016.
+             doi:10.1109/FOCS.2016.19.
+        11   Merrick L. Furst, James B. Saxe, and Michael Sipser. Parity, circuits, and the polynomial-time
+             hierarchy. Math. Syst. Theory, 17(1):13–27, 1984. doi:10.1007/BF01744431.
+        12   Alexander Golovnev, Edward A. Hirsch, Alexander Knop, and Alexander S. Kulikov. On
+             the limits of gate elimination. J. Comput. Syst. Sci., 96:107–119, 2018. doi:10.1016/j.jcss.
+             2018.04.005.
+        13   Mikhail Goncharov, Alexander S. Kulikov, and Georgie Levtsov. Smaller circuits for bit
+             addition. arXiv preprint arXiv:2509.13966. To Appear in STACS 2026, 2025.
+        14   Stefan Grosser and Marco Carmosino. Student-teacher constructive separations and
+             (un)provability in bounded arithmetic: Witnessing the gap. In Michal Koucký and Nikhil
+             Bansal, editors, Proceedings of the 57th Annual ACM Symposium on Theory of Com-
+             puting, STOC 2025, Prague, Czechia, June 23-27, 2025, pages 1341–1347. ACM, 2025.
+             doi:10.1145/3717823.3718216.
+M. Carmosino, N. Dang, and T. Jackman                                                                 23:17
+
+
+15   Gérard Huet. A complete proof of correctness of the knuth-bendix completion algorithm. Jour-
+     nal of Computer and System Sciences, 23(1):11–21, 1981. URL: https://www.sciencedirect.
+     com/science/article/pii/0022000081900027, doi:10.1016/0022-0000(81)90002-7.
+16   Rahul Ilango. Constant depth formula and partial function versions of mcsp are hard. SIAM
+     Journal on Computing, 0(0):FOCS20–317–FOCS20–367, 2020. arXiv:https://doi.org/10.
+     1137/20M1383562, doi:10.1137/20M1383562.
+17   Russell Impagliazzo and Avi Wigderson. P = BPP if E requires exponential circuits: De-
+     randomizing the XOR lemma. In Frank Thomson Leighton and Peter W. Shor, editors,
+     Proceedings of the Twenty-Ninth Annual ACM Symposium on the Theory of Computing, El
+     Paso, Texas, USA, May 4-6, 1997, pages 220–229. ACM, 1997. doi:10.1145/258533.258590.
+18   Kazuo Iwama and Hiroki Morizumi. An explicit lower bound of 5n - o(n) for boolean circuits.
+     In Krzysztof Diks and Wojciech Rytter, editors, Mathematical Foundations of Computer
+     Science 2002, 27th International Symposium, MFCS 2002, Warsaw, Poland, August 26-30,
+     2002, Proceedings, volume 2420 of Lecture Notes in Computer Science, pages 353–364. Springer,
+     2002. doi:10.1007/3-540-45687-2\_29.
+19   Valentine Kabanets and Russell Impagliazzo. Derandomizing polynomial identity tests means
+     proving circuit lower bounds. Comput. Complex., 13(1-2):1–46, 2004. URL: https://doi.
+     org/10.1007/s00037-004-0182-6, doi:10.1007/S00037-004-0182-6.
+20   DONALD E. KNUTH and PETER B. BENDIX. Simple word problems in universal al-
+     gebras††the work reported in this paper was supported in part by the u.s. office of naval
+     research. In JOHN LEECH, editor, Computational Problems in Abstract Algebra, pages
+     263–297. Pergamon, 1970. URL: https://www.sciencedirect.com/science/article/pii/
+     B978008012975450028X, doi:10.1016/B978-0-08-012975-4.50028-X.
+21   Yu A Kombarov. The minimal circuits for linear boolean functions. Moscow University
+     Mathematics Bulletin, 66(6):260–263, 2011.
+22   Yu A Kombarov. Complexity and structure of circuits for parity functions. Journal of
+     Mathematical Sciences, 233:95–99, 2018.
+23   Oded Lachish and Ran Raz. Explicit lower bound of 4.5n - o(n) for boolena circuits. In
+     Proceedings of the Thirty-Third Annual ACM Symposium on Theory of Computing, STOC
+     ’01, page 399–408, New York, NY, USA, 2001. Association for Computing Machinery. doi:
+     10.1145/380752.380832.
+24   Leslie Lamport. How to write a proof. The American mathematical monthly, 102(7):600–608,
+     1995.
+25   Leslie Lamport. How to write a 21 st century proof. Journal of fixed point theory and
+     applications, 11:43–63, 2012.
+26   Jiatu Li and Tianqi Yang. 3.1n - o(n) circuit lower bounds for explicit functions. In Stefano
+     Leonardi and Anupam Gupta, editors, STOC ’22: 54th Annual ACM SIGACT Symposium
+     on Theory of Computing, Rome, Italy, June 20 - 24, 2022, pages 1180–1193. ACM, 2022.
+     doi:10.1145/3519935.3519976.
+27   Wolfgang Maass. Quadratic lower bounds for deterministic and nondeterministic one-tape
+     turing machines (extended abstract). In Richard A. DeMillo, editor, Proceedings of the 16th
+     Annual ACM Symposium on Theory of Computing, April 30 - May 2, 1984, Washington, DC,
+     USA, pages 401–408. ACM, 1984. doi:10.1145/800057.808706.
+28   Noam Nisan and Avi Wigderson. Hardness vs randomness. J. Comput. Syst. Sci., 49(2):149–167,
+     1994. doi:10.1016/S0022-0000(05)80043-1.
+29   Igor C. Oliveira. SIGACT news complexity theory column 124 meta-mathematics of computa-
+     tional complexity theory. SIGACT News, 56(1):41–68, 2025. doi:10.1145/3726856.3726862.
+30   Wolfgang J. Paul. A 2.5 n-lower bound on the combinational complexity of boolean functions.
+     In Proceedings of the Seventh Annual ACM Symposium on Theory of Computing, STOC
+     ’75, page 27–36, New York, NY, USA, 1975. Association for Computing Machinery. doi:
+     10.1145/800116.803750.
+
+
+
+
+                                                                                                     CVIT 2016
+23:18   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+        31   David A. Plaisted. Equational reasoning and term rewriting systems, page 274–364. Oxford
+             University Press, Inc., USA, 1993.
+        32   Detlef Plump. Term graph rewriting. Handbook Of Graph Grammars And Computing By
+             Graph Transformation: Volume 2: Applications, Languages and Tools, pages 3–61, 1999.
+        33   Robert Rand, Jennifer Paykin, and Steve Zdancewic. QWIRE practice: Formal verification of
+             quantum circuits in coq. In Bob Coecke and Aleks Kissinger, editors, Proceedings 14th Inter-
+             national Conference on Quantum Physics and Logic, QPL 2017, Nijmegen, The Netherlands,
+             3-7 July 2017, volume 266 of EPTCS, pages 119–132, 2017. doi:10.4204/EPTCS.266.8.
+        34   NP Red’kin. Proof of minimality of circuits consisting of functional elements. Systems Theory
+             Research: Problemy Kibernetiki, pages 85–103, 1973.
+        35   Franz-Xaver Reichl, Friedrich Slivovsky, and Stefan Szeider. Circuit minimization with qbf-
+             based exact synthesis. In Brian Williams, Yiling Chen, and Jennifer Neville, editors, Thirty-
+             Seventh AAAI Conference on Artificial Intelligence, AAAI 2023, Thirty-Fifth Conference
+             on Innovative Applications of Artificial Intelligence, IAAI 2023, Thirteenth Symposium on
+             Educational Advances in Artificial Intelligence, EAAI 2023, Washington, DC, USA, February
+             7-14, 2023, pages 4087–4094. AAAI Press, 2023. URL: https://doi.org/10.1609/aaai.
+             v37i4.25524, doi:10.1609/AAAI.V37I4.25524.
+        36   Hanlin Ren and Rahul Santhanam. A relativization perspective on meta-complexity. In Petra
+             Berenbrink and Benjamin Monmege, editors, 39th International Symposium on Theoretical
+             Aspects of Computer Science, STACS 2022, Marseille, France (Virtual Conference), March
+             15-18, 2022, volume 219 of LIPIcs, pages 54:1–54:13. Schloss Dagstuhl - Leibniz-Zentrum für
+             Informatik, 2022. URL: https://doi.org/10.4230/LIPIcs.STACS.2022.54, doi:10.4230/
+             LIPICS.STACS.2022.54.
+        37   Jürgen Sattler. Netzwerke zur simultanen berechnung boolescher funktionen. In Peter Deussen,
+             editor, Theoretical Computer Science, 5th GI-Conference, Karlsruhe, Germany, March 23-25,
+             1981, Proceedings, volume 104 of Lecture Notes in Computer Science, pages 32–40. Springer,
+             1981. URL: https://doi.org/10.1007/BFb0017293, doi:10.1007/BFB0017293.
+        38   Claus-Peter Schnorr. Zwei lineare untere schranken für die komplexität boolescher funktionen.
+             Computing, 13(2):155–171, 1974. doi:10.1007/BF02246615.
+        39   Claude. E. Shannon. The synthesis of two-terminal switching circuits. The Bell System
+             Technical Journal, 28(1):59–98, 1949. doi:10.1002/j.1538-7305.1949.tb03624.x.
+        40   Sumayya Shiraz and Osman Hasan. A library for combinational circuit verification using the
+             HOL theorem prover. IEEE Trans. Comput. Aided Des. Integr. Circuits Syst., 37(2):512–516,
+             2018. doi:10.1109/TCAD.2017.2705049.
+        41   Roman Smolensky. Algebraic methods in the theory of lower bounds for boolean circuit
+             complexity. In Alfred V. Aho, editor, Proceedings of the 19th Annual ACM Symposium on
+             Theory of Computing, 1987, New York, New York, USA, pages 77–82. ACM, 1987. doi:
+             10.1145/28395.28404.
+        42   Rolf Socher-Ambrosius. Boolean algebra admits no convergent term rewriting system. In
+             Ronald V. Book, editor, Rewriting Techniques and Applications, 4th International Conference,
+             RTA-91, Como, Italy, April 10-12, 1991, Proceedings, volume 488 of Lecture Notes in Computer
+             Science, pages 264–274. Springer, 1991. doi:10.1007/3-540-53904-2\_102.
+        43   Mathias Soeken, Heinz Riener, Winston Haaswijk, and Giovanni De Micheli. The EPFL logic
+             synthesis libraries. CoRR, abs/1805.05121, 2018. URL: http://arxiv.org/abs/1805.05121,
+             arXiv:1805.05121.
+        44   Christian Sternagel and René Thiemann. Formalizing knuth-bendix orders and knuth-bendix
+             completion. In Femke van Raamsdonk, editor, 24th International Conference on Rewriting Tech-
+             niques and Applications, RTA 2013, Eindhoven, The Netherlands, June 24-26, 2013, volume 21
+             of LIPIcs, pages 287–302. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2013. URL:
+             https://doi.org/10.4230/LIPIcs.RTA.2013.287, doi:10.4230/LIPICS.RTA.2013.287.
+        45   Thomas Sternagel and Harald Zankl. KBCV - knuth-bendix completion visualizer. In Bernhard
+             Gramlich, Dale Miller, and Uli Sattler, editors, Automated Reasoning - 6th International
+M. Carmosino, N. Dang, and T. Jackman                                                                23:19
+
+
+     Joint Conference, IJCAR 2012, Manchester, UK, June 26-29, 2012. Proceedings, volume
+     7364 of Lecture Notes in Computer Science, pages 530–536. Springer, 2012. doi:10.1007/
+     978-3-642-31365-3\_41.
+46   Larry J. Stockmeyer. On the combinational complexity of certain symmetric boolean functions.
+     Math. Syst. Theory, 10:323–336, 1977. doi:10.1007/BF01683282.
+47   Ruofei Tang, Xuliang Zhu, Xinyi Zhang, Lei Chen, Xing Li, Mingxuan Yuan, and Jianliang
+     Xu. EDGE: dbms-empowered boolean decomposition for GIG synthesis. In 62nd ACM/IEEE
+     Design Automation Conference, DAC 2025, San Francisco, CA, USA, June 22-25, 2025, pages
+     1–7. IEEE, 2025. doi:10.1109/DAC63849.2025.11133306.
+48   René Thiemann. Clique is not solvable by monotone circuits of polynomial size. Archive of
+     Formal Proofs, May 2022. https://isa-afp.org/entries/Clique_and_Monotone_Circuits.
+     html, Formal proof development.
+49   Brae J. Webb, Ian J. Hayes, and Mark Utting. Verifying term graph optimizations using
+     Isabelle/HOL. In Robbert Krebbers, Dmitriy Traytel, Brigitte Pientka, and Steve Zdancewic,
+     editors, Proceedings of the 12th ACM SIGPLAN International Conference on Certified Programs
+     and Proofs, CPP 2023, Boston, MA, USA, January 16-17, 2023, pages 320–333. ACM, 2023.
+     doi:10.1145/3573105.3575673.
+50   Ingo Wegener. The Complexity of Boolean Functions. Wiley-Teubner, 1987.
+51   Ryan Williams. Nonuniform ACC circuit lower bounds. J. ACM, 61(1):2:1–2:32, 2014.
+     doi:10.1145/2559903.
+52   Uri Zwick. A 4n lower bound on the combinational complexity of certain symmetric boolean
+     functions over the basis of unate dyadic boolean functions. SIAM Journal on Computing,
+     20(3):499–505, 1991.
+
+
+
+
+                                                                                                    CVIT 2016
+23:20   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+        A            Gate Elimination Rules
+
+
+
+
+                                 7→       ¬
+                                                                    ¬
+                                                                                                                     7→    γ                              7→    γ
+                         0
+                                                                                7→    γ
+                                                                                                         ∧                                ∨
+
+                                                                    ¬                                    γ                                γ
+                                          1
+                                                                γ
+
+
+
+
+          (a) Zero Elim                           (b) 2xNegation Elim                         (c) AND-De-dup                       (d) OR-De-dup
+
+            Figure 3 Normalizing Rules
+
+
+
+
+                     ∧                                      ∧
+                                                                                                         ∨
+                                                                                                                                              ∨
+             γ
+                             ¬       7→       ¬
+                                                    γ
+                                                                        ¬        7→       ¬      γ
+                                                                                                                      7→                                   7→
+                                                                                                                                                      γ
+                                                                                                                 1             1
+                                                                                                                                      1                             1
+
+                             1                1                         1                 1
+
+
+
+          (a) AND-Left                            (b) AND-Right                               (c) OR-Left                          (d) OR-Right
+
+            Figure 4 Fixing Rules
+
+
+
+
+                                                                                                         ∨                                    ∨
+
+                         ∧                                      ∧                                γ                                                    γ
+                                                                                                                                                           7→       γ
+
+                 γ
+                                     7→       γ                             γ
+                                                                                 7→       γ
+                                                                                                                 ¬    7→       γ
+                                                                                                                                      ¬
+
+                                 1                      1
+
+                                                                                                                 1                    1
+
+
+
+          (a) AND-Left                            (b) AND-Right                               (c) OR-Left                          (d) OR-Right
+
+            Figure 5 Passing Rules
+
+
+
+
+                     ∧                                              ∧                                ∨                                            ∨
+                                     7→       ¬
+                                                                                7→    ¬                              7→                                   7→
+                             ¬                              ¬                                                ¬                            ¬
+                                                                                                                           1                                    1
+                     γ                        1                     γ                 1              γ                                            γ
+
+
+
+
+          (a) AND-Left                            (b) AND-Right                               (c) OR-Left                          (d) OR-Right
+
+            Figure 6 Tautology Rules
+M. Carmosino, N. Dang, and T. Jackman                                                                 23:21
+
+
+ B       Circuit Size When NOT Gates are Free: Comparing Different Bases
+Recall that U2 is the basis consisting of all two-input Boolean functions except binary
+exclusive-or ⊕ and equivalence ⊙ while the DeMorgan basis is {∧, ∨, ¬}. We show explicitly
+that these bases are equivalent in terms of size and depth when ¬ gates are not counted
+towards these complexity measures. The proof that B2 and {∧, ⊕, ¬} are equivalent when
+the latter’s ¬ gates are free is identical.
+
+▶ Lemma 20 (Folklore). Let f be any non-degenerate Boolean function besides f (x) = ¬x.
+Then the size and depth complexity of f in the U2 (B2 ) basis and the DeMorgan ({∧, ⊕, ¬})
+basis where ¬ gates are free is equal.
+
+Proof. Let CCU (f ) denote the circuit size complexity of f in the U2 basis. Let CCD (f )
+denote the circuit size complexity of f in the DeMorgan basis where ¬ gates are free.
+   We begin by arguing CCD (f ) ≤ CCU (f ) by translating any optimal U2 circuit into a
+DeMorgan circuit of equal size. We recall the 14 binary Boolean operators that form the U2
+in Table 2.
+
+         p   q   ∗1 ∗2 ∗3 ∗4 ∗5 ∗6 ∗7 ∗8 ∗9 ∗10 ∗11 ∗12 ∗13 ∗14
+         T T T        F     T     F    T     F    T    F    T    F     T     F    T    F
+         T F      T   F     T     F     F    T    T    F    F    T     F     T    T    F
+         F T T        F     F     T    T     F    F    T    T    F     F     T    T    F
+         F F      T   F     F     T     F    T    T    F    T    F     F     T    F    T
+     Table 2 The U2 basis consists of all the binary Boolean operations except XOR2 and ¬XOR2
+
+
+
+   We claim that no optimal circuit for f uses ∗i gates for i ∈ [6]. For ∗1 and ∗2 , replacing
+these gates with the constants 0 and 1 would reduce the size of the circuit. Similarly, ∗3 and
+∗5 gates are non-optimal since they just compute the first and second inputs respectively. If
+a ∗3 gate appears in a circuit, we can instead feed it’s first input into it’s outputs for the
+same effect. The gates ∗4 and ∗6 simply negate their first and second inputs respectively.
+Similarly, if a ∗4 or ∗6 appear internally we can pass the first and second inputs up to the
+gates’ outputs but we must change the labels of these gates. We record the transformations
+in Table 3 below:
+
+                                 ∗7    ∗8   ∗9   ∗10 ∗11 ∗12 ∗13 ∗14
+                     ¬p     q    ∗12 ∗11 ∗13 ∗14        ∗8    ∗7    ∗9    ∗10
+                      p    ¬q ∗13 ∗14 ∗12 ∗11 ∗10             ∗9    ∗7     ∗8
+     Table 3 Gate substitutions when removing superfluous internal ∗4 or ∗6 gates
+
+
+
+    For example, if a ∗4 gate is the first input of ∗7 , then we can remove the ∗4 gate, feed its’
+first input into the first input of the ∗7 gate and then relabel the ∗7 gate to be a ∗12 gate. If
+a ∗4 or ∗6 gate is the output of the circuit, then it must be negating one of the remaining 8
+Boolean functions since f (x) ̸= ¬x. We can apply the transformations listed in Table 4.
+
+                         ¬(∗7 ) ¬(∗8 ) ¬(∗9 ) ¬(∗10 ) ¬(∗11 ) ¬(∗12 ) ¬(∗13 )         ¬(∗14 )
+      Is Equivalent To    ∗8        ∗7     ∗10      ∗9       ∗12       ∗11     ∗14     ∗13
+     Table 4 Gate substitutions for removing superfluous negations at the output
+
+
+
+
+                                                                                                     CVIT 2016
+23:22   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+           Lastly, the remaining 8 binary Boolean functions in the basis can all be represented in
+        the DeMorgan basis with only one binary gate:
+
+                                  ∗7      ∗8      ∗9      ∗10     ∗11       ∗12      ∗13      ∗14
+             Is Equivalent To p ∨ ¬q ¬p ∧ q ¬p ∨ q p ∧ ¬q p ∧ q ¬p ∨ ¬q p ∨ q               ¬p ∧ ¬q
+             Table 5 Translations Between U2 and DeMorgan formulas for ∗7 through ∗14
+
+
+
+           To show CCU (f ) ≤ CCD (f ) we show how to take any optimal DeMorgan circuit and
+        transform it into an equivalent size U2 circuit. To do so, if any ¬ gate has fanout m where
+        m > 1, we split the ¬ gate up into m copies, each with fanout exactly one. We also remove
+        any double negations. Neither of these transformations change the size of the circuit.
+           Then, in increasing topological order, we replace each ∧ and ∨ gate with one of the
+        U2 gates depending on whether their left or right inputs is negated. There are 8 possible
+        configurations, and the correspondence can be seen in Table 5. Lastly, if the entire circuit is
+        negated (i.e. the final output gate is ¬), then we absorb it into the U2 gate below using the
+        transformations listed in Table 4.
+           Since CCU (f ) ≤ CCD (f ) and CCD (f ) ≤ CCU (f ) we get CCU (f ) = CCD (f ). Notice
+        that none of these transformations change the depth of the circuits as well, and thus the
+        bases are equivalent with respect to depth complexity as well.                               ◀
+
+
+         C       Circuit Simplification in Action: Proving Schnorr’s Lower Bound
+        In this section, we provide the full proof of Theorem 18, Schnorr’s lower bound for XORn ,
+        using our system S to demonstrate that this system is powerful enough to capture traditional
+        gate elimination arguments. As a reminder, the theorem states that any DeMorgan circuit
+        C computing XORn requires at least 3(n − 1) costly gates [38].
+            As a quick reminder, proofs by gate elimination often use the following argument to show
+        that a circuit C has property P.
+
+        1. Assume that C does not have property P.
+        2. Select a variable xi and constant α for substitution {xi 7→ α} using ¬P and the structure
+           of C.
+        3. Simplify C under the substitution {xi 7→ α}, to obtain a constant-free circuit C ′ .
+        4. Argue that a critical property P′ of C ′ implies a contradiction, therefore C must have
+           property P.
+
+            System S formalizes the simplification procedure used in step three above. Usually, this
+        is not necessary: the critical property is something like P′ = “simplification eliminated four
+        gates” and it is clear that every sequence of simplification steps reaches a circuit C ′ with
+        property P′ . However, to algorithmically process the results of gate elimination we must
+        assert more complicated post-simplification properties like P′ = “input xj has fanout one,”
+        where xj was the sibling of xi in C. These more delicate properties are not so easily seen to
+        hold after every terminated simplification. Furthermore, we often wish to carefully sequence
+        and analyze only the first few steps of gate elimination, and then apply “all remaining
+        simplifications” without considering them in detail. It is critical that P′ emerge no matter
+        how the steps of elimination are sequenced.
+            The convergent simplification procedure S for circuits has the following property: every
+        valid run of S on C with α substituted for any input xi terminates with the same circuit
+M. Carmosino, N. Dang, and T. Jackman                                                                 23:23
+
+
+C ′ , up to bisimulation. Therefore, to carry out the gate elimination argument template
+above, one need only exhibit a particular run of S and argue that the resulting C ′ has critical
+property P′ .
+     In Appendix C.1, we provide an alternative proof of Theorem 18 using the structured proof
+format of Lamport [24, 25]. Due to the case analysis and repeated proofs by contradiction
+present, this alternative format may be easier to verify. Furthermore, we believe that this
+presentation style makes the intricate case analysis present both in our proof of Schnorr more
+explicit and readable. Furthermore, this style of proof is more amenable to verification using
+a computer.
+
+Proof of Theorem 18. Let C be an optimal circuit for XORn with n ≥ 2. In the original
+proof, the goal was to find some setting of an input node such that gate elimination would
+remove at least 3 costly (∧ and ∨) gate. Besides notational differences, our goal remains the
+same. We will find a substitution of an input hyperedge which causes at least 3 costly gate
+hyperedges (those labeled ∧ or ∨) to be removed during rewriting. Following Schnorr we
+build up the circuit locally around an input by repeated proofs by contradiction; we perform
+substitutions and rewrites to contradict C’s optimality or the downward self-reducibility of
+XORn thereby forcing C to have the desired structure.
+    In order to smooth the transition from viewing circuits as graphs to viewing them as
+term graphs, we will simply refer to input hyperedges as inputs and gate hyperedges as gates.
+We describe the substitution and rewriting steps at a high level.
+    We wish to first sort the gates in “topological order". In the traditional view of circuits as
+DAGs (where gates are nodes) this notion is straightforward. However, since our gates are
+edges, we must do so indirectly. We can sort the vertices of C topologically and, since each
+node is the result node of a unique edge, we then order the gates according to their result
+nodes. From this point on when we refer to sorting inputs or gates topologically, formally we
+are doing this process.
+    Fix a topological order and let h be the first costly gate in C. Under the traditional view
+of circuits, we would conclude h has xi (or ¬xi ) and xj (or ¬xj ) as inputs for some i, j ∈ [n].
+Formally, this means h has two argument nodes whose terms are xi (or ¬xi ) and xj (or
+¬xj ). Before we continue, however, we streamline our verbiage. We notate the possibility of
+¬ gates by defining the shorthand (¬)f to mean “f (or ¬f )." If f ′ has an argument node
+whose term is (¬)f we say that f feeds into f ′ and that f ′ is a successor of f . Lastly if the
+label of a gate f is ∧ or ∨ we say f is costly. Combining these allows us to instead say h is
+the costly successor of two inputs xi and xj for some i, j ∈ [n] — maintaining the formalism
+of our system while being more inline with the original proof.
+    We assert i ≠ j. Otherwise h ≡ (¬)xi ⋄ (¬)xi for some ⋄ ∈ {∧, ∨}. If this occurred, we
+could apply a normalizing or tautology rule; rewriting C would then delete h. Since h is a
+costly gate this would decrease the the size of C, contradicting C’s optimality.
+    We now wish to say that xi has fanout at least 2 where we define fanout to the number
+of costly successors a gate or input has. Again, assume the contrary: h is xi ’s only costly
+successor. We can then substitute xj = α where α is set so that during rewriting, we can
+apply a fixing rule to h. This would mean that C|xj =α does not depend on xi violating Fact
+2 (All Subfunctions of (¬)XOR are Non-Degenerate).
+    Let f be another costly successor of xi . We can conclude that (¬)f is not the output
+of the circuit (i.e. the root node). If it were, then we could substitute xi = β and fix (¬)f
+during rewriting. This would fix the output of the circuit so that C|xi = β is constant
+contradicting Fact 1 ((¬)XOR is fully DSR).
+
+
+
+                                                                                                     CVIT 2016
+23:24   Convergent Gate Elimination and Constructive Circuit Lower Bounds
+
+
+             Let f ′ be a costly successor of f and observe h =    ̸ f ′ since f < f ′ in our topological
+        ordering and h was the first costly gate in the ordering. We now observe that if we set
+        xi = β so that f is fixed, then during rewriting we eliminate h (using a fixing or passing
+        rule), f (using a fixing rule), and f ′ (using a fixing or passing rule). This is because once f
+        is fixed, then the fixing (¬)1 now feeds into f ′ . In this case we say that (¬)1 inherited f ′ as
+        a successor after this rewrite applies, and thus another rewriting rule will apply deleting f ′ .
+             Thus XORn requires at least 3 more costly gates than XORn−1 . Since XOR1 requires zero
+        costly gates, we have using induction that XORn requires at least 3(n − 1).                     ◀
+
+        C.1     Structured Proof of Schnorr
+        Below, we prove Theorem 18 with a structured proof as proposed by Lamport [24, 25]. We
+        believe that this presentation style makes the intricate case analysis present in this proof
+        more explicit and readable. Furthermore, this style of proof is more amenable to verification
+        using a computer.
+
+         Structured Proof of Theorem 18. Let C be an optimal circuit for XORn where n ≥ 2.
+         1. Let h be the first AND,OR gate of C in topological order, so h has (¬)xi , (¬)xj as inputs
+            for i, j ∈ N.
+         2. i ̸= j
+            a. Suppose not, so i = j
+            b. Then h ≡ (¬)xi ⋄ (¬)xi where ⋄ ∈ {∧, ∨}
+            c. Thus, one of the normalizing or tautology rules from Gate Elim TGRS matches h
+            d. Rewrite C finding h deleted
+            e. Contradiction to optimality of C
+         3. The fanout of xi must be at least 2.
+            a. Suppose not, so fanout of xi is 1.
+            b. Substitute xj = α in C to fix h
+            c. Rewrite C, finding that fanout of xi is now 0
+            d. Thus, C |xj =α does not depend on xi
+            e. Contradiction to Fact 2.
+         4. Let f be the other gate taking xi as input so f ̸= h
+         5. (¬)f is not the output gate of C.
+            a. Suppose it is, so (¬)f is the output gate of C.
+            b. Substitute xi = α in C to fix f
+            c. Rewrite C, finding that output of C is constant
+            d. Thus, C |xi =α is a constant function
+            e. Contradiction to Fact 1.
+         6. Let f ′ be a costly successor of f in C, such must exist.
+         7. Eliminate three distinct gates with a substitution.
+            a. Substitute xi = α in C to fix f
+            b. Rewrite C, finding at least f, h, f ′ deleted
+            c. argument: Observe that xi “touches” gate h to eliminate, and it fixes f which “touches”
+                gate f ′
+            d. there exists a 1-bit restriction eliminating ≥ 3 gates
+         8. Conclude XORn requires at least 3 more costly gates than XORn−1 .
+         9. Observe XOR1 requires 0 costly gates.
+        10. Use induction to show XORn requires at least 3(n − 1).
+                                                                                                    ◀
+

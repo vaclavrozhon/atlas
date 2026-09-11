@@ -1,0 +1,1583 @@
+                                                             The Submodular Santa Claus Problem
+                                                         Étienne Bamas∗              Sarah Morell†             Lars Rohwedder‡
+arXiv:2407.04824v1 [cs.DS] 5 Jul 2024
+
+
+
+
+                                                                                          Abstract
+                                                  We consider the problem of allocating indivisible resources to players so as to maximize
+                                               the minimum total value any player receives. This problem is sometimes dubbed the Santa
+                                               Claus problem and its different variants have been subject to extensive research towards
+                                               approximation algorithms over the past two decades.
+                                                  In the case where each player has a potentially different additive valuation function,
+                                               Chakrabarty, Chuzhoy, and Khanna [FOCS’09] gave an O(nε )-approximation algorithm with
+                                               polynomial running time for any constant ε > 0 and a polylogarithmic approximation al-
+                                               gorithm in quasi-polynomial time. We show that the same can be achieved for monotone
+                                               submodular valuation functions, improving over the previously best algorithm due to Goe-
+                                               mans, Harvey, Iwata, and Mirrokni [SODA’09], which has an approximation ratio of more
+                                                    √
+                                               than n.
+                                                  Our result builds up on a sophisticated LP relaxation, which has a recursive block structure
+                                               that allows us to solve it despite having exponentially many variables and constraints.
+
+
+                                        1      Introduction
+                                        The egalitarian welfare is the value of the least happy player. Other natural welfare functions
+                                        include utilitarian welfare, the sum of values, and Nash social welfare, the product of values.
+                                        Egalitarian welfare can be seen as the trade-off that emphasizes most extremely on fairness. In
+                                        this paper we study the problem of allocating indivisible resources with the goal of maximizing
+                                        egalitarian welfare, which is sometimes called the Santa Claus problem or max-min fair allocation.
+
+                                        Problem setting. Given resources R and players P , we wish to find an allocation σ : R → P
+                                        such that
+                                                                      min fp ({r ∈ R : σ(r) = p})
+                                                                                p∈P
+                                                                     R
+                                        is maximized. Here fp : 2 → R≥0 with p ∈ P is the function that specifies the value that player p
+                                        receives from a set of resources. When considering polynomial-time approximation algorithms, one
+                                        typically assumes the function can be accessed by value queries, i.e., an oracle that returns fp (A)
+                                        for some given p and A in polynomial time. Strong assumptions on the functions are necessary in
+                                        order to hope for any meaningful algorithmic guarantees. At the same time, the functions should
+                                        still remain expressive enough to capture realistic scenarios.
+                                             A natural assumption is that each fp is non-negative and additive (a linearP function), which
+                                        means that there are values vp,r ∈ R≥0 for each p ∈ P, r ∈ R and fp (A) = r∈A vp,r for each
+                                        A ⊆ R. Already for this class of functions, the study of approximation algorithms for the Santa
+                                        Claus problem has proven to be extremely challenging. The best algorithm due to Chakrabarty,
+                                        Chuzhoy, and Khanna [11] achieves an nε -approximation in polynomial time, for every fixed
+                                            ∗ Post-Doctoral Fellow, ETH AI Center, Switzerland. etienne.bamas@inf.ethz.ch
+                                            † TU Berlin, Germany. morell@math.tu-berlin.de. Funded by the Deutsche Forschungsgemeinschaft (DFG,
+
+                                        German Research Foundation) under Germany´s Excellence Strategy – The Berlin Mathematics Research Center
+                                        MATH+ (EXC-2046/1, project ID: 390685689).
+                                            ‡ Maastricht University, Netherlands. l.rohwedder@maastrichtuniversity.nl. Supported by Dutch Research Coun-
+
+                                        cil (NWO) project “The Twilight Zone of Efficiency: Optimality of Quasi-Polynomial Time Algorithms” [grant
+                                        number OCEN.W.21.268].
+
+
+                                                                                               1
+constant ε > 0, or a (logO(1) n)-approximation in quasi-polynomial time, more precisely in time
+nO(log n/ log log n) . The best lower bound on the approximation ratio of a polynomial-time algorithm
+is 2 (assuming P̸=NP). Closing the gap remains a big open question in approximation algorithms
+and is connected to the similar task of minimizing makespan on unrelated parallel machines, see [5].
+    An important generalization of additive functions is the class of monotone submodular func-
+tions. A function f is submodular if it satisfies the diminishing marginal returns property, which
+means that
+
+                f (A ∪ {r}) − f (A) ≥ f (B ∪ {r}) − f (B) for all A ⊆ B and r ∈
+                                                                              / B.
+
+Monotonicity states that f (A) ≤ f (B) for A ⊆ B. As is standard in approximation algorithms, we
+also assume that any monotone submodular function is normalized such that f (∅) = 0. Staying
+the metaphor of Santa Claus, an example of the diminishing marginal returns property is that the
+value of an apple is higher for a child, when the child does not have a donut than when it does.
+    For utilitarian welfare or Nash social welfare, the class of monotone submodular functions still
+admits good algorithms [21, 24], which raises the question whether the restriction to additive
+functions is necessary in egalitarian welfare.
+    Even more general than monotone submodular functions are subadditive functions, which only
+need to satisfy f (A ∪ B) ≤ f (A) + f (B) for all A, B. Next to additive functions, submodular
+and subadditive functions are arguably the most fundamental classes of valuation functions. Both
+submodular and subadditive functions are also briefly mentioned by Chakrabarty, Chuzhoy, and
+Khanna [11] who emphasize that at the time the best lower bound for both in the Santa Claus
+problem was also only 2. Since then however, Barman, Bhaskar, Krishna, and Sundaram [8]
+have proven that for XOS functions, a class of functions that lies between monotone submodular
+and subadditive, any O(n1−ε )-approximation algorithm requires exponentially many value queries,
+which therefore also forms a lower bound on subadditive functions. This lower bound is in the
+value query model. In literature there are more powerful query models, for example demand
+queries, see e.g. [8, 16], which we do not detail here.
+    Monotone submodular functions are not subject to the mentioned lower bound and a sub-
+linear approximation rate is indeed possible: Goemans,√Harvey, Iwata, and Mirrokni [17] gave a
+reduction to the additive case, which loses a factor of O( n log n) and thus leads to an O(n1/2+ε )-
+approximation algorithm when combined with [11].
+
+Contribution and outline. In this paper we achieve a direct generalization from the addi-
+tive to the monotone submodular case, without the reduction of Goemans, Harvey, Iwata, and
+Mirrokni [17], and match the state-of-the-art from the additive case.
+Theorem 1. For the Submodular Santa Claus problem there is a polylogarithmic approximation
+algorithm with running time nO(log n/ log log n) and an nε -approximation algorithm with running
+time nO(1/ε) for any constant ε > 0.
+
+   Similar to Chakrabarty, Chuzhoy, and Khanna [11], our techniques can be divided into three
+steps:
+  1. Reducing to a carefully designed layered flow problem, the augmentation problem.
+  2. Formulating and solving a strong linear programming relaxation of the augmentation prob-
+     lem.
+  3. Obtaining integral solution of the augmentation problem via randomized rounding.
+The most challenging part to generalize is the second step. In order to include submodular valua-
+tion functions in the linear programming relaxation, we use the standard concept of configuration
+variables, i.e., a variable for each set of resources that has a sufficiently large value. The natu-
+ral way of writing a configuration LP, however, is not sufficient even for the additive case, see
+e.g. [7]. The formulation used by Chakrabarty, Chuzhoy, and Khanna for the additive case is
+
+
+                                                 2
+                            poly
+
+
+
+                                            ..
+                                                 .                         exp
+
+
+                                                         ..
+                                                              .
+                                                                  ..
+                                                                       .
+
+                                                     exp
+
+Figure 1: Block structure of non-zero entries in constraint matrix of linear programming relaxation
+
+
+highly non-trivial. It is closely related to using a constant or logarithmic number of rounds of the
+Sherali-Adams hierarchy on a naive formulation, see [9]. Notably, their linear program is strong
+for the augmentation problem, to which they give a non-trivial reduction (step 1), but not for the
+original problem.
+    Combining their approach with configuration variables as above leads to a linear program that
+has both an exponential number of variables and constraints, an issue that does not occur in the
+additive case. Typically, one needs to have either a polynomial number of variables or constraints
+in order to even hope to solve a linear program efficiently. Otherwise, already the encoding of
+a solution might require exponential space. Exceptions are very rare, see e.g. [18]. The distinct
+feature of our linear programming relaxation is that it has a recursive block structure. Specifically,
+the matrix consists of an exponentially large number of blocks along the diagonal which are linked
+by a polynomial number of constraints. The blocks on the diagonal exhibit the same structure
+recursively up to a recursion depth of h, see Figure 1. It can be shown that if in addition the
+feasible region of each block (ignoring the linking constraints) forms a polyhedral cone, then indeed
+such matrices always have solutions of support nO(h) (if any exist). This is then polynomial for
+constant recursion depth h. We solve our specific formulation using ideas from the Dantzig-Wolfe
+decomposition [12], where the pricing problem requires a combination of recursively solving a linear
+program with lower recursion depth and the search for a configuration of high submodular function
+value. For the latter we use the multilinear extension and continuous Greedy in a non-standard
+variant. This way we arrive at a sufficiently good approximation of the linear program.
+    As an additional contribution, we significantly simplify the reduction step of Chakrabarty,
+Chuzhoy, and Khanna which used very intricate techniques and non-trivial graph theory results.
+In contrast, our reduction only uses standard flow arguments.
+
+Further related work. If all functions are identical and additive, then there exists a PTAS for
+the Santa Claus problem [25, 14]. If they are identical and monotone submodular, then a Greedy
+type of algorithm still achieves a constant approximation [19].
+    A substantially harder variant, which has received a lot of attention is the so-called restricted
+assignment case. Here, the valuation functions are identical (fp = fp′ for p, p′ ∈ P ), but each
+player p can only receive resources from a specific set R(p) ⊆ R. This can equivalently be phrased
+as fp (A) = f (A ∩ R(p)) for some uniform function f , or in the additive case, that vp,r ∈ {0, vr }
+for some uniform value vr for each resource r ∈ R. Most of this work focuses on the mentioned
+additive case, leading to a constant factor approximation for this case [7, 15, 2, 13, 22, 3]. For
+the submodular case, an O(log log n)-approximation algorithm is known [4]. These works heavily
+rely on the configuration LP, a linear programming relaxation, which is known to have a high
+integrality gap outside of the restricted assignment variant [7]. Therefore these techniques have
+only limited impact towards the goals of this paper.
+    Outside the restricted assignment problem, some progress towards a constant approximation
+
+
+                                                     3
+is due to Bamas and Rohwedder [6] who gave a (logO(1) log n)-approximation algorithm in quasi-
+polynomial time for the so-called max-min degree arborescence problem, a special case of the
+additive variant, where the configuration LP already has a high integrality gap.
+    The dual problem of minimizing the maximum instead of maximizing the minimum function
+value is usually motivated by machine scheduling, specifically makespan minimization. Here, the
+additive case is well known to admit a constant approximation [20] and the reduction by √Goemans,
+Harvey, Iwata, and Mirrokni [17] works in the same way, yielding a polynomial-time O( n log n)-
+approximation algorithm for makespan minimization with monotone submodular load functions.
+Interestingly, this is known to be the best possible up to logarithmic factors in the value query
+model, see [23], and therefore behaves differently to the problem studied in this paper.
+
+
+2     Algorithmic framework
+In this chapter, we introduce the augmentation problem as well as the linear programming re-
+laxation for it. Those are the pillars of our algorithm that connect the three steps outlined in
+the introduction. In Section 3 we then show how to reduce to the augmentation problem, in
+Section 4 we explain how to solve its linear programming relaxation, and in Section 5 we present
+the rounding algorithm for the relaxation.
+
+2.1     The augmentation problem
+As the name suggests, the augmentation problem is related to augmenting some partial solution
+of the Submodular Santa Claus problem to a better solution. This can be seen as a much more
+involved variant of finding augmenting paths to solve bipartite matching. Similar to there, we will
+later invoke it several times in order to arrive at the final solution for the Santa Claus problem.
+We formulate the augmentation problem in purely graph theoretical terms.
+    An instance of the augmentation problem contains several levels. We will start by introducing
+the structure within one level.
+
+One level of the augmentation problem. Let G = (V, E) be a directed graph and let
+S, T ⊆ V denote disjoint sets of sources and sinks. Each source in S has exactly one outgoing
+edge and no incoming edges. Each sink in T has only incoming edges. Furthermore, for all v ∈ T
+let fv : 2δ(v) → R≥0 be monotone, submodular functions. Here, δ(v) are the edges incident to v.
+    The solution for this level is a binary flow g : E → {0, 1} from S to T , i.e., S
+                                                                                    flow conservation
+is satisfied on V \ (S ∪ T ). We write E(g) = {e ∈ E : g(e) > 0} and V (g) = (u,v)∈E(g) {u, v}.
+Furthermore, in slight abuse of notation we write V ′ ∩ g = V ′ ∩ V (g) for some V ′ ⊆ V and
+E ′ ∩g = E ′ ∩E(g) for some E ′ ⊆ E. We say that sink v ∈ T is α-covered by g if fv (g ∩δ(v)) ≥ 1/α.
+We give an example in Figure 2.
+
+Augmentation problem. For h ∈ N, an h-level instance of the augmentation problem consists
+of levels (Gi , Si , Ti ) with Gi = (Vi , Ei ) for i = 1, 2, . . . , h with the structure as above and monotone
+submodular functions fv : 2δ(v) → R≥0 for v ∈ T1 ∪ T2 ∪ . . . ∪ Th . In addition, there are linking
+edges Li ⊆ Ti+1 × Si for i = 1, 2, . . . , h − 1. Each set Li forms a matching, i.e., the edges are
+disjoint. For U ⊆ Si we write Li (U ) = {v ∈ Ti+1 : (v, u) ∈ Li for some u ∈ U }.
+    A solution consists of a flow gi for each level i, as described above. The h levels depend on
+each other in that for the source g ∩ Si is used by the flow in level i, gi+1 must cover Li (g ∩ Si ). In
+other words, if s ∈ g ∩ Si and there is no edge (u, s) ∈ Li for any u ∈ Ti+1 , i.e., Li ({s}) = ∅, then
+there is no further requirement and if indeed there exists such an edge then we may informally
+think of the flow leaving source s to arrive through the linking edge and indirectly from u. Note,
+however, that u may require an incoming flow higher than the amount of flow leaving s. The sinks
+of the first level T1 and the sources of the last level Sh have no dependencies with other levels.
+    To conclude the description of the problem, a solution is feasible for some T ∗ ⊆ T1 if
+
+
+
+                                                      4
+                                                                          S
+                                T
+
+
+
+
+Figure 2: An instance of the one-level augmentation problem. The top sink on the left has valuation
+function equal to the total flow received, and the sink at the bottom has valuation function equal
+to the total flow received divided by 2. The set of bold orange edges forms a feasible solution
+which covers all the sinks in T .
+
+
+   • g1 α-covers each v ∈ T ∗ and
+   • for i = 1, 2, . . . , h − 1, solution gi+1 α-covers each v ∈ Li (gi ∩ Si ).
+We refer the reader to Figure 3 for an example. In the remainder we denote by n the total number
+of vertices in all h graphs. This will be polynomial in the size of the original instance.
+
+                                                 S1                                           S2
+       T1                                                 T2
+
+
+
+
+Figure 3: An instance of 2-level augmentation problem. The two levels are copies of the one level
+of Figure 2, with the same valuation functions for the sinks in each level. The second and fourth
+source in S1 have a linking edge with the first and second sinks in T2 . The set of bold orange
+edges forms a feasible solution which covers all of T1 .
+
+
+Congestion. A technically very useful notion is the following relaxation of the problem: we allow
+each gi (e) to be an integer number in {0, 1, . . . , β} instead of {0, 1}. The rest of the definition
+remains the same. We say that such a solution has congestion β.
+    We will reduce the Submodular Santa Claus problem to the following gap problem: for some
+T ∗ ⊆ T1 either find a feasible solution g1 , g2 , . . . , gh with coverage 1/α and congestion at most β
+or determine that there is no such solution with coverage 1 and congestion 1. We call an algorithm
+that solves this problem an (α, β)-approximation algorithm. The lower the values of α and β are,
+the better the approximation rate for the Submodular Santa Claus problem. The reduction to the
+augmentation problem follows a very similar strategy to Chakrabarty, Chuzhoy, and Khanna [11].
+Formally, we prove in section 3 the following theorem.
+
+
+                                                      5
+Theorem 2. Let A be an (α, β)-approximation algorithm for the augmentation problem and let
+h, γ ∈ N with γ ≥ 1000α3 β 3 h4 log2 (n) and h ≥ 1 + log(βn2 )/ log(γ/(2α)). Then there is a γ-
+approximation algorithm for the Submodular Santa Claus problem that uses polynomially many
+calls to A on h-level instances and has polynomial time overhead.
+   The main technical novelty is in proving that the augmentation problem can indeed be ap-
+proximated well.
+
+Theorem 3. There is an (α, β)-approximation algorithm for the h-level routing problem with
+running time nO(h) with α = O(1) and β = polylog(n).
+   These two theorems imply the main theorem.
+Proof of Theorem 1. Let α, β as in Theorem 3. By setting h = ⌈1 + log(βn2 )/ log log(n)⌉ =
+O(log n/ log log n) and γ = ⌈1000α3 β 3 h4 log2 (n)⌉ = polylog(n) we obtain a polylogarithmic ap-
+proximation in time nO(log n/ log log n) .
+    On the other hand, for γ = nε and h = ⌈1 + log(βn2 )/ log(γ/(2α))⌉ = O(1/ε) we have for
+sufficiently large n that γ ≥ 1000α3 β 3 h4 log2 (n). Hence, there is a nε -approximation algorithm
+with running time nO(1/ε) .
+
+2.2    Definition of the linear programming relaxation
+Consider a solution to the augmentation problem without congestion. This solution exhibits the
+following hierarchical structure: after an arbitrary path decomposition of the flows g1 , . . . , gh , we
+can associate with each sink u ∈ Ti the set of sources A ⊆ Si , for which in the decomposition some
+path ends in u and starts in A. Moreover, we associate Li (A) ⊆ Ti+1 with u and by the fact that
+each source has only one outgoing edge, effectively enforcing a vertex capacity of 1 on it, each sink
+in Ti+1 is only associated to one sink in Ti . Recursively, this results in a forest-like structure of
+sinks. Based on this structure, we design our linear programming formulation recursively.
+    For each suffix of the levels i, i + 1, . . . , h. We define E≥i = Ei ∪ · · · ∪ Eh . For each level i,
+set of sinks T ∗ ⊆ Ti , and α, β ≥ 1, we define the linear program CLP≥i (T ∗ , α, β). Here, α is a
+parameter that stands for the coverage requirement, i.e., that every covered sink receives value at
+least 1/α, and β stands for the allowed congestion.
+    In order to model the submodular function requirement, we make use of configuration sets
+C(v, α, β) for each sink v ∈ T ∗ . These configurations are the integral flows g in Gi starting in
+the sources Si and ending in v, such that the congestion of g is at most β and the coverage of v,
+that is, fv (g ∩ δ(v)), is at least 1/α. Each sink in T ∗ needs to pick one configuration subject to
+constraints that will be explained below. The sum of all configurations stands for the flow gi in
+level i.
+                                                                                  E
+    The linear program CLP≥i (T ∗ , α, β) contains the variable sets bv,g ∈ R≥0≥i and xv,g ∈ R≥0 for
+all v ∈ T ∗ , g ∈ C(v, α, β), as well as parameter (fixed constant) b ∈ [0, β]E≥i . Here, b(e) describes
+a ”budget” of how much flow is allowed to pass through edge e, i.e., an upper bound on gi (e)
+where Ei ∋ e. Including b is necessary for the recursive definition. The budget is decomposed
+further into bv,g (e), which describes how much of b(e) is used by the sink v ∈ T ∗ together with
+configuration g, using the intuition of a fixed path decomposition as before, which allows us to
+trace each unit of flow back to one of the sinks in T ∗ . We write (b, bv,g , xv,g ) ∈ CLP≥i (T ∗ , α, β)
+if these variables and parameters are feasible. Let B≥i (T ∗ , α, β) be the set of feasible values
+b ∈ [0, β]E≥i for CLP≥i (T ∗ , α, β), i.e., b ∈ B≥i (T ∗ , α, β) if and only if there exist bv,g , xv,g such
+that (b, bv,g , xv,g ) ∈ CLP≥i (T ∗ , α, β). B≥i (T ∗ , α, β) forms a polytope, which can be seen from
+turning b into variables in CLP and then projecting to b. We are now ready to state the linear
+program completely.
+
+
+
+
+                                                     6
+    Multi-level configuration LP, CLP≥i (T ∗ , α, β)
+
+                    X
+                              xv,g ≥ 1                                   ∀v ∈ T ∗                     (1)
+                 g∈C(v,α,β)
+         X       X
+                           bv,g (e) ≤ b(e)                               ∀e ∈ E≥i                     (2)
+        v∈T ∗ g∈C(v,α,β)
+
+                     g(e) · xv,g = bv,g (e)                              ∀v ∈ T ∗ , g ∈ C(v, α, β),   (3)
+                                                                         e ∈ Ei ,
+              (bv,g (e))e∈E≥i+1 ∈ xv,g · B≥i+1 (Li (g ∩ Si ), α, β)      ∀v ∈ T ∗ , g ∈ C(v, α, β)    (4)
+                                                                                  ∗
+                              xv,g ≥ 0                                   ∀v ∈ T , g ∈ C(v, α, β)      (5)
+                           bv,g (e) ≥ 0                                  ∀v ∈ T ∗ , g ∈ C(v, α, β),   (6)
+                                                                         e ∈ E≥i
+
+    For the last level i = h we omit Constraint (4).
+    Constraint (1) ensures that each sink in T ∗ selects one configuration. Constraint (2) enforces
+the relationship between b(e) and bv,g (e). Constraint (3) guarantees that bv,g (e) correctly repre-
+sents the amount of flow on edge e caused by v and g in level i.
+    The last Constraint (4) requires some more elaboration. First, we verify that it is indeed a
+polyhedral constraint: for some v, g, the values xv,g and bv,g (e), e ∈ E≥i+1 , that satisfy (4) are
+exactly those generated by the polyhedral cone with extreme rays xv,g = 1 and bv,g (e), e ∈ E≥i+1 ,
+being a vertex of B≥i+1 (Li (g ∩ Si ), α, β).
+    The intuition of the constraint is that if v is covered via the flow g, then Li (g ∩ Si ) need to be
+covered in the next level. However, it is not sufficient that CLP≥i+1 (Li (g ∩ Si ), α, β) is feasible,
+since several sinks in Ti (not just v) share the budget on edges in E≥i+1 . Hence, we use bv,g (e)
+to store the budget used by v (together with configuration g). Constraint 2 then ensures that the
+flow used by all sinks together does not exceed the budget. In the uncongested case and with the
+intuition of the forest-like structure, this simply says that the trees rooted in different sinks of
+T ∗ are edge-disjoint. Formally, the fact that we can separately consider solutions induced by the
+different sinks Li (g ∩ Si ) in the next level is justified by the following lemma.
+Lemma 4. Let T ∗ , T ∗∗ be disjoint sets of sinks and let b ∈ [0, β]E≥i . Then b ∈ B≥i (T ∗ ∪ T ∗∗ , α, β)
+if and only if there exist b′ + b′′ = b with b′ ∈ B≥i (T ∗ , α, β) and b′′ ∈ B≥i (T ∗∗ , α, β).
+    This means that for an integral uncongested solution Constraint (4) is equivalent to
+
+                                  (b(e))e∈E≥i+1 ∈ B≥i+1 (Li (gi ∩ Si ), 1, 1) ,
+
+where gi = v∈T ∗ g∈C(v,α,β) xv,g g. The implication uses the fact that Li (g ′ ∩ Si ) and Li (g ′′ ∩ Si )
+            P      P
+
+must be disjoint for different g ′ , g ′′ used by the solution: g ′ ∩ Si and g ′′ ∩ Si are disjoint since each
+vertex in Si has out-degree 1, enforcing a vertex capacity of 1 on Si and Li (·) is injective. The
+proof of the lemma is straight-forward and deferred to Appendix B.
+
+
+3     Reduction to the augmentation problem
+We now present the reduction of the Submodular Santa Claus problem to the augmentation
+problem that we have introduced in Section 2.1.
+    In order to devise a γ-approximation algorithm, by a standard binary search framework it
+suffices for a given η to either find a solution of value at least η/γ or to determine that OPT < η.
+Furthermore, by scaling all functions fp we may assume that η = 1.
+
+
+
+
+                                                       7
+3.1    From general instances to canonical instances.
+We will first reduce to the following canonical instances.
+
+Canonical instance. As mentioned above we need to either determine that OPT < 1 or find a
+solution of value at least 1/γ. We distinguish between basic players B and complex players C.
+    For a basic player p ∈ B, we have that fp (S) ∈ {0, 1} for all S ⊆ R. Notice that fp (S) = 1 if
+and only if S contains a resource r with fp ({r}) = 1. We may therefore assume without loss of
+generality that each basic player gets exactly one resource of value 1 in a solution.
+    Each complex player p has a private resource r(p) with fp ({r(p)}) = 1 and fq ({r(p)}) = 0 for
+all complex players q ̸= p. Similar to before, we may assume that if player p gets r(p) in a solution
+then p does not get any other resources. For all resources r ̸= r(p), we have fp ({r}) < 1/γ.
+
+Reduction to canonical instances. In a general instance, we split each player p ∈ P into a
+basic player p′ and a complex player p′′ and we introduce an additional resource r(p′′ ) which has
+value fp′ ({r(p′′ )}) = fp′′ ({r(p′′ )}) = 1 for p′ and p′′ and value 0 for all other players. For player p,
+             (b)
+we define Rp the set of resources r such that fp ({r}) ≥ 1/γ (i.e. the big resources for p). Then,
+we can define the submodular valuation function for player p′ as follows.
+                                           (
+                                                         (b)
+                                             1 if S ∩ (Rp ∪ {r(p′′ )}) ̸= ∅,
+                                fp′ (S) :=
+                                             0 otherwise.
+
+For player p′′ , we define the submodular valuation function as follows
+                                            (
+                                             1 if r(p′′ ) ∈ S,
+                                fp′′ (S) :=             (b)
+                                             fp (S \ Rp ) otherwise.
+
+    Note that the resource r(p′′ ) can cover either p′ or p′′ . This corresponds intuitively to the
+fact that p needs either small resources that sum up to a large value or a single resource of
+sufficiently large value. Note that in the above construction p′ is a basic player which values only
+the additional resource r(p′′ ) or the big resources of p, while p′′ is a complex player which values
+only the additional resource or the small resources of p.
+    It is easy to see that a solution of value at least 1 in the original instance can be transformed
+to a solution of value at least 1 in the canonical instance: if a player p receives at least one
+big resource r in the orginal instance such that fp (r) ≥ 1/γ, we give that same resource to the
+corresponding basic player p′ in the canonical instance, and the complex player p′′ is given the
+additional resource r(p′′ ). On the other hand, if a player p does not receive any big resource, we
+give the resource r(p′′ ) to the basic player p′ in the canonical instance, and the complex player p′′
+receives the same resources as p receives in the original instance.
+    Conversely, it is easy to see that a solution of value at least 1/γ in the canonical instance can
+be transformed to a solution of value at least 1/γ in the original instance. Indeed, if a pair of
+players p′ , p′′ (corresponding to one player p in the original instance) both receive value at least
+1/γ, it must be that either (a) p′ does not receive the resource r(p′′ ) hence p′ must receive one
+resource of value at least 1/γ for p in the original instance, or (b) the player p′′ does not receive
+the resource r(p′′ ) hence must receive a bundle of resources S of total value at least 1/γ for player
+p in the original instance. In both cases, the original player p is covered.
+    Hence, it suffices to devise an algorithm for the canonical instance.
+
+3.2    From canonical instances to augmentation problem
+Consider a partial assignment of resources σ : R → P ∪ {⊥}, where symbol ⊥ is used to describe
+that a resource is not assigned to any player. From a canonical instance, partial assignment σ,
+and a parameter h ∈ N, we will construct an instance I(σ, h) of the augmentation problem that
+
+
+                                                     8
+closely relates to potential reassignments of resources. Parameter h, the number of levels in the
+instance, will influence the approximation ratio and the running time. First, we define
+                                 (
+                                   σ(r) if σ(r) ̸= ⊥ and fσ(r) ({r}) = 1 ,
+                          σ(r) =
+                                   ⊥ otherwise.
+
+Intuitively, the assignment σ is equal to the assignment σ except that all complex players release
+the small resources assigned to them. Notice that in this new assignment σ, a complex player p can
+only receives its unique big resource r(p), if any. The intuition here is that this greatly simplifies
+the structure of potential reassignments, since every player can now only give up a single resource
+(i.e., has an out-degree of at most 1). Thus, reassignments can be thought of as directed trees.
+
+Construction of augmentation instance. All our h levels will feature the same graph, which
+is defined as follows. Let G = (V, E) where V consists of all resources R, all basic players B, two
+copies of the complex players, which we denote by C S and C T , a vertex t and a vertex s(r) for
+each currently unassigned resource r (i.e., σ(r) = ⊥). For each resource r and each q ∈ B ∪ C T
+for which fq ({r}) > 0 there is an edge from each r to q if σ(r) ̸= q. Further, for each q ∈ B ∪ C S
+and each resource r which is currently assigned to q (in the assignment σ) there is an edge from
+q to r. Recall that by definition of σ this implies that fq ({r}) = 1. Finally, there is an edge from
+s(r) to r for each unassigned resource r and an edge from each basic player that is currently not
+assigned any resource to t (again referring to the assignment σ).
+    The sinks are t and the copies C T , and the sources are s(r) for unassigned resources r and the
+copies C S . The incoming edges for some p ∈ C T all come from resources and thus, a set A ⊆ δ(p)
+naturally corresponds to the set of resources incident to it. We define fp (A) as the function value
+for these resources and complex player p in the canonical instance.
+    For vertex t we define ft (A) = |A|/|δ(t)| for each A ⊆ δ(t). Notice that this function is linear,
+hence submodular.
+    In the reassignment of resources corresponding to the optimal solution, any complex player p
+whose private resource r(p) is taken away would receive a lot of other resources. The intuition
+for C T and C S is that we do not strictly enforce this: from the copies in C S we potentially take
+away the private resource and the copies in C T potentially receive a lot of other resources, but
+consistency is not enforced. This relaxation is to make it easier to find a good reassignment.
+However, we still have to strengthen this relaxation to avoid that a reassignment simply takes
+away all private resources from C S without being able to cover them with other resources.
+    Towards this, we build a multi-level instance of the augmentation problem by stacking several
+copies of the graph defined as above on top of each other. Then we connect these graphs together
+by some linking edges. Formally, for each 1 ≤ i < h and every complex player p, we add a
+linking edge from the vertex in C T corresponding to player p in level i + 1 to the vertex in C S
+corresponding to the player p in level i.
+    By construction, this enforces that if the unique resources of some complex players A ⊆ C S of
+level i are removed, then in the next level there must be a solution that gives a lot of resources to
+the elements in C T of level i + 1 that correspond to A.
+    We denote by I(σ, h) the multi-level augmentation instance obtained as above.
+
+Existence of an augmentation. In the following lemma we prove that the instance I(σ, h) as
+above is feasible, assuming that the canonical instance is.
+Lemma 5. Consider the instance I(σ, h) of the augmentation problem, where σ is an arbitrary
+assignment of resources. If there exists a solution of value 1 for the canonical instance, then there
+exists a solution with coverage α = 1 and congestion β = 1 for I(σ, h) for any h ≥ 1, which covers
+the sink t in level 1.
+Proof. As a solution, we define the same flow in each level. Let σOPT be the optimal assignment
+in the canonical instance, and σ the modified assignment derived from σ as before. We assume
+
+
+                                                  9
+that there is no resource r such that σOPT = ⊥. This is without loss of generality, because we can
+always assign this resource to an arbitrary player and modify σOPT accordingly.
+    For simplicity of notation, we denote by (p, r) the edge from the vertex corresponding to player
+p to the resource r. Notice that if p is a complex player, which means that there are two vertices
+corresponding to p, this edge only exists from the copy of p in C S . Thus, the edge is uniquely
+defined. Similarly, we denote by (r, p) the edge from a resource r to a player p. Again, if p is a
+complex player, the edge must go to C T . We also have edges (s(r), r) for unassigned resource r
+and edges (p, t) for uncovered players to t.
+    The solution flow gi (e) for each level i and some edge e is defined by
+                                  
+                                  
+                                  
+                                   1 if e = (p, r) and σ(r) ̸= σOPT (r),
+                                  1 if e = (r, p) and σOPT (r) = p,
+                                  
+                                  
+                                  
+                          gi (e) = 1 if e = (s(r), r),
+                                  
+                                    1 if e = (p, t),
+                                  
+                                  
+                                  
+                                  
+                                  
+                                  0 otherwise.
+
+It is easy to verify the validity of this solution since our flow solution mimics the optimal assign-
+ment. One can verify that the sink t in level 1 is covered since all uncovered basic players send a
+flow of 1 to t, and the congestion is clearly at most 1 on any edge.
+    Second, any player vertex p which is not a source nor a sink must be a basic player. Therefore,
+if the corresponding vertex is traversed by some flow, there is one unit of outgoing flow since p is
+assigned at most one big resource in σ, and exactly one unit of in-going flow since p receives only
+one big resource in σOPT . Hence we have the flow conservation at all player vertices. The case
+of resource vertices is very similar, the resource is assigned to exactly one player in σOPT and at
+most one in σ, and it is easy to verify that flow conservation holds at the corresponding vertex.
+Either the resource is not traversed by any flow if both σ and σOPT agree on that resource, or it
+is traversed by exactly one flow unit.
+    Finally, in the flow solution gi , the set of vertices in C S which send some flow corresponds to
+a set of complex players which give up their big resource in the reassignment. But since σOPT
+covers all players, it must be that those players are covered by some small resources, hence the
+corresponding sinks in C T will receive enough flow in the assignment gi+1 , which satisfies the
+constraint related to the linking edges between C S in one layer and C T in the next layer.
+
+Approximate solution with additional structure. By Lemma 5 we know that I(σ, h) will
+have a feasible solution, assuming the canonical instance is feasible. We will show next that by
+a negligible loss we can simplify any solution to obey a structure that will later help in actually
+augmenting the assignment σ.
+
+Lemma 6. Let α, β ∈ N and h ≥ 1 + log(βn2 )/ log(γ/(2α)) and consider the instance I(σ, h)
+constructed from the assignment σ.
+    Any solution g1 , g2 , . . . , gh of coverage α and congestion β that covers t in level 1 can be turned
+in polynomial time into a solution g1′ , g2′ , . . . , gh′ with coverage 2hα and congestion β such that
+  1. either (a) g1 uses none of the source in C S (only the sources s(r)) or (b) g1 does not use
+     sources s(r) (and therefore only C S ); and
+  2. gh does not use any sources in C S (only potentially sources s(r)) .
+Proof. Let i be a level and consider a path decomposition of gi into paths that each send unit
+flows. We define weights for each path corresponding to the marginal values. Specifically, for a
+sink v and an arbitrary ordering of the paths P1 , P2 , . . . that end in v, set
+
+              w(i, Pj ) := fp (δ(v) ∩ Pj | δ(v) ∩ {P1 , P2 , . . . , Pj−1 })
+                        = fp (δ(v) ∩ {P1 , P2 , . . . , Pj }) − fp (δ(v) ∩ {P1 , P2 , . . . , Pj−1 }) .
+
+
+                                                        10
+The total weight of paths ending in a covered sink is at least 1/α.
+    For the construction we need the notion of a subtree: with each path P (in some level i) we
+can associate the following subtree of paths: if P starts in some source s(r), then the subtree
+only contains P . If it starts in some vertex of C S corresponding to a complex player p, then we
+associate with P all paths in level i + 1 that end in the corresponding vertex of C T and their
+recursively defined subtrees.
+    Now, if the paths to sink t in level 1 that start in one of the sources s(r) have weight at
+least |δ(t1 )|/(2α), then we simply keep these paths and delete all the others as well as all flows
+in later levels. The obtained flow loses only a factor of 2 in the coverage at t in level 1 due to
+submodularity and satisfies the conditions of (1a) and (2).
+    Otherwise, it must be that paths of level 1 that start in C S and end in t have a total weight of
+at least |δ(t1 )|/(2α). We drop all other paths including their subtrees, thus satisfying (1b). Next,
+we proceed to establish Property (2). We assume without loss of generality that the solution is
+minimal in the sense that it contains exactly the subtree of t in level 1 and no other paths.
+    We mark the covered complex player vertices according to their “depth”. Every vertex in C T
+of some level i ≥ 1, which receives more than a 1/(2h) fraction of its weight through paths from a
+source s(r) in the same level, is marked as depth-1 vertex, and we delete all other paths that end
+in them (along with their subtree). The corresponding vertices of C S in level i − 1 (linked to the
+marked one via linking edges) are considered to have the same depth of 1.
+    Then we proceed iteratively. Having marked all vertices up to depth ℓ for some ℓ ≥ 1, we say
+that every unmarked vertex in C T of some level i ≥ 1, which receives more than a 1/(2h) fraction
+of its weight via paths from depth-ℓ vertices in C S of the same level are marked as depth-(ℓ + 1)
+vertices (together the corresponding vertices in C S of level i − 1), and we delete all other paths
+that end in them along with the corresponding subtree.
+    We claim that if we choose h as in the lemma then all covered complex players of level 2 are
+marked by iteration ℓ = h − 1. Assume otherwise. Let p ∈ C T be the complex player of level 2,
+which is not marked. Since this player is unmarked, it receives less than a 1/(2h) fraction of his
+flow from the sources s(r) or level-ℓ′ players, for any 1 ≤ ℓ′ < h. Furthermore, there cannot be
+depth-h players in level 2, since the remaining levels are only h−1. Hence, it must be that at least a
+1/2 fraction of his weight comes from unmarked players. Applying the same argument recursively,
+the player p in level 2 must be the root of a tree of depth h − 1 with minimum out-degree at least
+γ/(2α), since by construction every resource has marginal value at most 1/γ.
+    It follows that the number of paths in level h is at least
+
+                                        (γ/(2α))h−1 > βn2 ,
+
+which is a contradiction since then some edge would have congestion more than β.
+   Notice that at the end of this process, none of the sources in C S are used, since the leafs of
+subtrees induced by players C T of level 2 start in s(r) of some level. In this process, we lost an
+approximation factor of at most 2h, which concludes the proof.
+
+3.3    From approximate augmentation to canonical instance solution
+Our approach is to start with a solution that covers all complex players p with their private
+resource r(p) and we iteratively reduce the number of basic players that are not covered while
+maintaining a good coverage of the complex players. During this process, it will be helpful to
+maintain an assignment σk : R → P of resources to players, for every iteration k = 1, 2, . . .
+Lemma 7 (Augmentation). Let α, β, k ∈ N and h ≥ 1+log(βn2 )/ log(γ/(2α)). Assume that there
+exists a solution of value 1 for the canonical instance with parameter γ. Given an assignment σk
+for this canonical instance where each complex player gets a value of at least 1/(8αβh2 k) − 4k/γ,
+and a solution to the augmentation problem I(σk , h) with coverage α and congestion β, one can
+find in polynomial time an assignment σk+1 where each complex player gets a value of at least
+1/(8αβh2 (k + 1)) − 4(k + 1)/γ and the number of basic players not covered reduces by a factor of
+(1 − 1/(4hαβ)).
+
+
+                                                 11
+Proof. We first take away all resources r ̸= r(q) from each complex player q to obtain the as-
+signment σ k , as in the construction of the augmentation instance. With Lemma 6, we transform
+the solution to the augmentation problem for the assignment σ k into an augmentation solution
+g1 , . . . , gh covering t in level 1 that has coverage 2hα, congestion β, and the structural assumptions
+mentioned. In particular, the solution is of one of two types, for which we derive the assertion
+separately.
+
+Flow g1 does not use C S . Assume that g1 uses only sources s(r). This means g1 forms a
+flow of at least |δ(t)|/(2hα) from sources s(r) to t with congestion β. Consider the fractional flow
+g1 /β. This flow has congestion at most 1 and flow value at least |δ(t)|/(2hαβ). By standard flow
+arguments we can then also find an integral flow g from sources s(r) to t with congestion 1 and
+flow value at least |δ(t)|/(2hαβ). This flow can be interpreted as a reassignment of resources.
+Let us denote by σk′ the assignment obtained from σ k following the reassignment. σk′ covers
+a 1/(2hαβ)-fraction of previously uncovered basic players and each basic player covered in σ k
+remains covered.
+    However, it might be that some complex players covered in σk by small resources are not
+covered anymore in σ k , hence not covered either in σk′ . Consider such a complex player p. We
+have two cases.
+    If at least two of the small resources that are assigned to p in σk are taken away by some
+other player in σk′ , then we give p back the private resource r(p) and modify the assignment σk′
+accordingly. If r(p) is taken by some basic player in σk′ , this results in the basic player being
+uncovered.
+    Otherwise, we modify σk′ by giving to p all the resources it was assigned in σk , except for the
+one resource r (if any) that is already used in σk′ . Notice that in that case, p receives value at
+least
+                                                 1      4k  1       1         4(k + 1)
+       fp (R′ \ {r}) ≥ fp (R′ ) − fp ({r}) ≥          −    − ≥              −          ,
+                                               8αkβh2   γ   γ  8α(k + 1)βh2      γ
+
+where R′ are the resources that were assigned to p in σk . We let σk+1 be the assignment resulting
+from these modifications.
+    To conclude the analysis of this case, let N be the number of complex players which take back
+their private resource in the first case above. For each one of these players, we uncover one basic
+player, but each of these players also sends 2 flow units to t via different paths. Hence, the change
+in the number of covered basic players is at least
+
+                                                 |δ(t)|        |δ(t)|
+                                 max{2N − N,            − N} ≥        ,
+                                                 2hαβ          4hαβ
+
+where |δ(t)| is the number of previously uncovered basic players.
+
+Flow g1 only uses C S . Define g = g1 + g2 + · · · + gh . Let X ⊆ C be the complex players
+for which the corresponding vertex in C S has any outgoing flow in g and let Y ⊆ C \ X be the
+complex players p that are not assigned their private resource r(p) in σk . By Lemma 6, the flow
+g has the following properties:
+   1. g(e) ≤ βh for all e ∈ E,
+
+   2. the incoming flow to t is at least |δ(t)|/(2hα),
+   3. For each p ∈ X the corresponding copy pT ∈ C T satisfies fpT (δ(pT ) ∩ g) ≥ 1/(2hα).
+The last property holds because C S in the last level is not used. For p ∈ X and the corresponding
+copy pT ∈ C T write E(p) = g ∩ δ(pT ) and for p ∈ Y we define E(p) as the edges from s(r) to r
+for resources r assigned to p in σk (those that were removed from p in σ k ).
+
+
+
+                                                   12
+   For some p ∈ X ∪ Y let {e1 , e2 , . . . , eℓ } = E(p) be an arbitrary but fixed order of the set E(p).
+We define a partition E(p) = E1 (p) ∪ E2 (p) ∪ . . . by marginal value, with Ei (p) consisting of all
+ej with
+                    2−(i−1) > fpT ({e1 , . . . , ej }) − fpT ({e1 , . . . , ej−1 }) ≥ 2−i .
+Notice that E1 (p), E2 (p), . . . , E⌊log γ⌋ (p) are actually empty, since fp ({e}) ≤ γ for all e ∈ E(p).
+We can now find an integer flow g ′ with
+   1. g ′ (e) ∈ {0, 1} for all e ∈ E
+                                         |δ(t)|
+   2. the incoming flow to t is at least 4hαβ
+   3. For each p ∈ X ∪ Y and i = 1, 2, . . . we have
+
+                                      g(Ei (p))                       g(Ei (p))
+                                 ⌊              ⌋ ≤ g ′ (Ei (p)) ≤ ⌈            ⌉.
+                                     2(k + 1)βh                      2(k + 1)βh
+
+This holds because the fractional flow g1 /2 + g/(2(k + 1)βh) satisfies Properties 2 and 3 and has
+congestion at most 1: here notice that g1 has no flow on any of the edge sets Ei (p). Arguing
+with dummy vertices for each set Ei (p), it follows easily by standard flow arguments that this
+fractional flow is a convex combination of flows that satisfy 1 and 3, at least one out of which then
+also satisfies 2.
+     We use this flow g ′ to transform σk into a new assignment σk+1 in the natural way: From the
+flow g ′ we can transform σ k (itself obtained from σk ) into a new assignment σk′ . Then, we modify
+σk′ by giving to each player p ∈ Y all the resources that p was assigned in σk and that are not
+traversed by any flow in g ′ . This constitutes our final assignment σk+1 . We will analyze that the
+new assignment satisfies the properties in Lemma 7.
+     First, each basic player that loses its current resource gets a new resource, because basic players
+are not sources. This means that all basic players that had a resource in the current assignment,
+still have one in the new assignment. Furthermore, for each unit of incoming flow to t, there must
+be one basic player that previously did not have a resource and now gets one. This means that
+the number of basic players that do not have a resource decreases by a factor of (1 − 1/(4hαβ)).
+     Consider now a complex player p ∈ X, i.e., p may lose its private resource r(p). Then the value
+of the resources assigned to p through the reassignment is
+                                       ∞
+                                       X
+                  fp (E(p) ∩ g ′ ) ≥         2−i · g ′ (Ei (p))
+                                       i=1
+                                       ∞
+                                       X                g(Ei (p))
+                                 ≥           2−i · ⌊              ⌋
+                                       i=1
+                                                       2(k + 1)βh
+                                                   ∞                             ∞
+                                            1     X                              X
+                                 ≥                    2−(i−1) · g(Ei (p)) −                  2−i
+                                       4(k + 1)βh i=1
+                                                                              i=⌊log2 (γ)⌋
+                                        1                       4
+                                 ≥            fp (E(p) ∩ g) −
+                                   4(k + 1)βh                   γ
+                                        1         1     4
+                                 ≥            ·      −
+                                   4(k + 1)βh 2hα γ
+                                          1         4(k + 1)
+                                 ≥                −           .
+                                   8αβh2 (k + 1)       γ
+
+
+Finally, consider a complex player p ∈ Y , i.e., p is not assigned r(p) in the assignment σk . The
+reassignment may further take away resources, but we will argue that p retains a large value. More
+
+
+
+                                                            13
+precisely, the value of resources that p still has after the reassignment is
+                                              ∞
+                                              X
+                          ′
+            fp (E(p) \ E(g )) ≥ fp (E(p)) −         2−(i−1) · g ′ (Ei (p))
+                                              i=1
+                                               ∞
+                                              X                    g(Ei (p))
+                              ≥ fp (E(p)) −         2−(i−1) · ⌈              ⌉
+                                              i=1
+                                                                  2(k + 1)βh
+                                                       ∞                        ∞
+                                                1     X                        X
+                              ≥ fp (E(p)) −               2−i · g(Ei (p)) −              2−i
+                                           (k + 1)βh i=1
+                                                                            i=⌈log2 (γ)⌉
+                                                        
+                                                   1          4
+                              ≥ fp (E(p)) 1 −               −
+                                               (k + 1)βh      γ
+                                                             
+                                     1      4k             1         4
+                              ≥           −        1−             −
+                                  8αβh2 k    γ         (k + 1)       γ
+                                       1         4(k + 1)
+                              ≥               −           .
+                                8αβh2 (k + 1)       γ
+
+We can conclude that the new assignment σk+1 satisfies our desiderata in both cases.
+Proof of Theorem 2. We repeatedly apply Lemma 7 with h as specified in the lemma. After at
+most k = 4hαβ log(n) iterations all basic players are covered. According to the lemma, in the
+resulting assignment each complex player receives a value of at least
+
+                                         1                 16hαβ log(n)
+                                                       −                .
+                                 32α2 β 2 h3 log(n)             γ
+
+This is at least 1/γ provided that
+
+                                      γ ≥ 1000α3 β 3 h4 log2 (n) .
+
+
+4     Solving the linear programming relaxation
+This section is devoted to proving the following theorem.
+
+Theorem 8. Let α = 40 and β = 10 log(n). There is a Las Vegas algorithm that given some b ∈
+[0, β]E≥i determines that b ∈ B≥i (T ∗ , α, β) and finds corresponding variables for CLP≥i (T ∗ , α, β)
+or finds a hyperplane that separates b from B≥i (T ∗ , 1, 1). The algorithm makes polynomially many
+recursive calls on B≥i+1 and has otherwise polynomial time overhead.
+   It follows immediately that one can find a solution to CLP≥1 (T ∗ , α, β) for a given b ∈ [0, β]E
+and T ∗ ⊆ T1 in time nO(h) with α, β as in the theorem.
+
+4.1    Reduction to separation problem
+In this subsection we reformulate the linear program using Dantzig-Wolfe decomposition, which
+then can be solved using the Ellipsoid method. This will reduce the proof of Theorem 8 to a certain
+separation problem, which we then solve in the next subsection. Dantzig-Wolfe decomposition,
+see [12], is a reformulation method of specific block structured linear programs. The specific
+variant we are interested in is given in the following lemma.
+Lemma 9. Suppose we are given a linear program with k sets of variables x(1) ∈ Rn1 , x(2) ∈
+Rn2 , . . . , x(k) ∈ Rnk . There are local constraints given by Bi x(i) ≤ b(i) for some Bi ∈ Rmi ×ni and
+b(i) ∈ Rmi as well as global constraints of the form A1 x(1) + · · · + Ak x(k) ≤ b(0) for Ai ∈ Rm0 ×ni
+and b(0) ∈ Rm0 . We assume that each set Qi = {x(i) ∈ Rni : Bi x(i) ≤ b(i) } is a polyhedral cone
+
+
+                                                     14
+generated by a finite set of extreme rays Ri . Then this linear program is feasible if and only if
+there is a solution to
+                   X                     X
+               A1      λ(1)
+                        r r + · · · + A1   λ(k)
+                                            r r ≤b
+                                                   (0)
+
+                  r∈R1                      r∈Rk
+
+                                                      λ(i) ∈ RRi
+                                                              ≥0                 ∀i = 1, 2, . . . , k
+
+Proof. If there is a solution x(1) , . . . , x(k) to the original linear program, then we can write each
+x(i) ∈ Qi as a conic combination of the extreme rays Ri . The corresponding weights λ(i) form a
+solution to the reformulation.
+                                                                 (1)       (k)
+    Suppose
+       P on the other hand there exists a solution λ , . . . , λ               to the reformulation. Then
+x(i) := r∈Ri λ(i) r ∈ Qi is a solution to the original linear program.
+   This reformulation will be useful to us because it can greatly reduce the number of constraints at
+the cost of increasing the number of variables. To apply it, we first need to make some preparations.
+Let X≥i (T ∗ , α, β) ⊆ B≥i (T ∗ , α, β) be the set of extreme points of the polytope, in particular,
+
+                                  conv(X≥i (T ∗ , α, β)) = B≥i (T ∗ , α, β) .
+
+Define further
+                                           E
+       Qv,g = {(xv,g , bv,g ) ∈ R≥0 × R≥0≥i : (bv,g (e))e∈E≥i+1 ∈ xv,g · B≥i+1 (Li (g ∩ Si ), α, β),
+                                                    g(e) · xv,g = bv,g (e) ∀e ∈ Ei } .
+                                                                                                        E
+Then Qv,g is a polyhedral cone generated by the extreme rays (1, g, d) ∈ R≥0 × RE      ≥i+1
+                                                                                ≥0 × R≥0
+                                                                                  i
+                                                                                            for
+each d ∈ X≥i+1 (Li (g ∩ Si ), α, β).
+    Given b ∈ [0, β]E≥i as fixed parameters, we apply Dantzig-Wolfe decomposition (Lemma 9) to
+obtain the formulation CLPDW , which is equivalent to CLP in the sense that one LP is feasible
+for b if and only if the other is.
+
+   Dantzig-Wolfe decomposition of multi-level configuration LP, CLPDW   ∗
+                                                                   ≥i (T , α, β)
+
+
+                       X                X
+                                                         yv,g,d ≥ 1       ∀v ∈ T ∗                          (7)
+                   g∈C(v,α,β) d∈X≥i+1 (Li (g∩Si ),α,β)
+        X        X                X
+                                                   g(e) · yv,g,d ≤ b(e)   ∀e ∈ Ei ,                         (8)
+       v∈T ∗ g∈C(v,α,β) d∈X≥i+1 (Li (g∩Si ),α,β)
+        X        X                X
+                                                   d(e) · yv,g,d ≤ b(e)   ∀e ∈ E≥i+1 ,                      (9)
+       v∈T ∗ g∈C(v,α,β) d∈X≥i+1 (Li (g∩Si ),α,β)
+
+                                                         yv,g,d ≥ 0       ∀v ∈ T ∗ , g ∈ C(v, α, β),    (10)
+                                                                          d ∈ X≥i+1 (Li (g ∩ Si ), α, β)
+
+    It is now sufficient to either find a solution of CLPDW or a hyperplane that separates b from
+all b′ for which CLPDW is feasible, i.e., from B≥i (T ∗ , α, β). Since CLPDW has only polynomially
+many constraints, it is useful to consider the dual, which has polynomial dimension.
+
+
+
+
+                                                         15
+   Dual of CLPDW   ∗
+              ≥i (T , α, β)
+
+
+                                 X                 X
+                         min            b(e)µe −           πv                                         (11)
+                                e∈E≥i              v∈T ∗
+             X                 X
+                   g(e)µe +             d(e)µe ≥ πv                  ∀v ∈ T ∗ , g ∈ C(v, α, β),       (12)
+            e∈Ei              e∈E≥i+1
+
+                                                                     d ∈ X≥i+1 (Li (g ∩ Si ), α, β)
+                                           πv ≥ 0                    ∀v ∈ T ∗                         (13)
+                                           µe ≥ 0                    ∀e ∈ E≥i                         (14)
+
+   Our plan is to apply the Ellipsoid method to the dual using an approximate separation problem,
+which we introduce below.
+
+Separation problem. Given dual variables πv , µe find u∗ ∈ T ∗ , g ∗ ∈ C(u∗ , α, β), and d∗ ∈
+B≥i+1 (Li (g ∩ Si ), α, β) such that
+                                X                   X
+                                     g ∗ (e) · µe +   d∗ (e) · µe < πu∗
+                                e∈Ei                  e∈E≥i+1
+
+
+or determine that πv , µe satisfy all constraints (12) in the dual of CLPDW     ∗
+                                                                         ≥i+1 (T , 1, 1).
+
+Lemma 10. Given an algorithm for the separation problem and some b ∈ [0, β]E≥i , we can find
+with polynomially many calls to the algorithm and polynomial running time overhead a solution
+to CLPDW      ∗                                                          DW   ∗
+        ≥i (T , α, β) or find a feasible solution π, µ to the dual of CLP≥i (T , 1, 1) with negative
+                                   DW    ∗
+objective (which proves that CLP≥i (T , 1, 1) is infeasible).
+Proof. We have C(v, 1, 1) ⊆ C(v, α, β), and we can swap the requirement of d ∈ X≥i+1 (Li (g ∩
+Si ), α, β) for d∗ ∈ B≥i+1 (Li (g ∩ Si ), α, β), since these also form valid constraints for the dual.
+Hence, the feasible region P of the dual of CLPDW         ∗
+                                                     ≥i (T , α, β) is contained in the feasible region Q
+of the dual of CLPDW          ∗
+                     ≥i+1 (T , 1, 1). An algorithm for the separation problem can be seen as an
+approximate separation oracle in the sense that, given dual variables as input, it either detects
+membership of the larger polyhedron Q or outputs a hyperplane separating the input from the
+smaller polyhedron P .
+     Notice that the all-zero-vector is feasible for the dual. Furthermore, if (π, µ) is a feasible
+solution with objective −1, then (c · π, c · µ) is also feasible for the dual and has an objective
+value of −c for any c > 0, i.e., the dual is unbounded. It follows that CLP≥i+1 (Li (g ∩ Si ), α, β) is
+feasible if and only if its dual has no solution of value −1. Let
+                                                     X              X
+                       P ′ = {(π, µ) : (π, µ) ∈ P,       b(e)µe −       πv = −1},
+                                                       e∈E≥i               v∈T ∗
+
+                                                           X               X
+                      Q′ = {(π, µ) : (π, µ) ∈ Q,                b(e)µe −           πv = −1}.
+                                                       e∈E≥i               v∈T ∗
+
+We simulate the Ellipsoid method on P ′ with the given approximate separation oracle (over P ′
+and Q′ ) in order to find a feasible point in Q′ , if there exists one. Recall that in each iteration
+the Ellipsoid method presents a point (π, µ) and it expects us to either determine that x ∈ P ′ or
+a hyperplane separating x from P ′ . In each iteration, we apply the approximate separation oracle
+which either determines (π, µ) ∈ Q′ or finds a hyperplane separating (π, µ) from P ′ . In the latter
+case, we continue the Ellipsoid method adhering to its requirements. In the former case we can
+stop the algorithm, since we found the required solution. Note that we terminate earlier than one
+
+
+
+                                                           16
+would normally when running Ellipsoid on P ′ , since we cannot actually decide whether (π, µ) ∈ P ′
+or not.
+   As mentioned above, the existence of (π, µ) ∈ Q′ implies infeasibility of CLPDW      ∗
+                                                                                  ≥i (T , 1, 1). If
+such a point can not be found, it is enough to consider the primal variables that are encountered
+as dual constraints when solving the dual. Since we only had polynomially many calls to the
+approximate separation oracle, one can solve the primal restricted to these variables.
+
+   Assuming we can solve the separation problem efficiently, this implies Theorem 8. Indeed, if
+the algorithm from Lemma 10    P is not successful,
+                                                 Pthen we find a feasible solution π, µ′ e for the dual    of
+CLPDW≥i (T ∗
+             , 1, 1) such that  e∈E≥i   b(e)µe −    v∈T ∗ π v < 0. Notice that for any b  ∈ B ≥i (T ∗
+                                                                                                      , 1, 1)
+the dual has no negative solutions, thus e∈E≥i b′ (e)µe − v∈T ∗ πv ≥ 0. Hence, this provides us
+                                             P                   P
+
+with a hyperplane that separates b from B≥i (T ∗ , 1, 1) as required in Theorem 8.
+
+4.2     Separation via multilinear extension
+Our goal is now to devise an algorithm that solves the separation problem stated above. We will
+formulate a continuous relaxation of the separation problem, solve and round it, but in order to
+do so we need to first introduce the concept of multilinear extension. Let f : {0, 1}n → R≥0 be a
+submodular function. We want to extend f : {0, 1}n → R to the domain [0, 1]n , since we will be
+working with continuous relaxations. There are several natural extensions, one of which is known
+as the multilinear extension. The multilinear extension F : [0, 1]n → R is defined by
+                                       X         Y Y
+                               F (x) =     f (S)    xi    (1 − xj ) .
+                                           S⊆[n]       i∈S    j ∈S
+                                                                /
+
+
+It is equivalent to set F (x) = E[f (X)] where X is a random set with elements appearing inde-
+pendently with probabilities xi . Notice that the definition of F involves summing over all subsets
+of [n], but a good approximation can be computed by sampling from the said distribution. Al-
+though F is not convex, there are strong results for approximately maximizing it over polytopes,
+most notable the continuous Greedy algorithm [24]. We will need a non-standard variant that is
+summarized in the lemma below.
+Lemma 11. Let P ⊆ Q ⊆ [0, 1]n be downward-closed polytopes1 and suppose that we can approx-
+imately optimize over Q in the following way: given some c ∈ Rn we can find some x ∈ Q such
+that cT x ≥ cT y for all y ∈ P or determine that P is empty. Let F be the multilinear extension
+of a monotone submodular function f and let x∗ = argmaxx∈P F (x). Assume furthermore that
+f ({i}) ≤ F (x∗ ) for any element i ∈ [n]. Then, there is a polynomial time Las Vegas algorithm
+that finds some x ∈ Q such that F (x) ≥ (1 − 1/e − ε)F (x∗ ).
+     The proof of the lemma is almost identical to the classical analysis of the continuous Greedy
+algorithm [24], see Appendix A.
+     We will now reformulate the separation problem as maximizing a submodular function over a
+polytope. Assume that πv , µe do not satisfy all constraints (12) for the dual of CLPDW       ∗
+                                                                                       ≥i+1 (T , 1, 1),
+                         ∗   ∗   ∗         ∗           ∗
+i.e., there exists some u ∈ T , g ∈ C(u , 1, 1), and d ∈ B≥i+1 (Li (g ∩ Si ), 1, 1) with
+                               X                X
+                                   g ∗ (e)µe +        d∗ (e)µe < πu∗ .
+                                  e∈Ei             e∈E≥i+1
+
+
+We can assume that we know u∗ through guessing. Our goal is to approximately find g ∗ and d∗ .
+Using the definition of a configuration, the values g ∗ and d∗ are feasible for the following system
+    1 A polyope is downward-closed if for any x in the polytope and any y with 0 ≤ y ≤ x for each component i, y
+                                                                                    i   i
+is also in the polytope.
+
+
+
+
+                                                      17
+and have a value of at least 1.
+
+                                        max fu∗ (g ∩ δ(u∗ ))                                                  (15)
+          X                  X
+                 g(e)µe +             d(e)µe ≤ πu∗                                                            (16)
+          e∈Ei              e∈E≥i+1
+
+                                    g(δ − (v)) = g(δ + (v))                            ∀v ∈ Vi \ (Si ∪ Ti )   (17)
+                                            d ∈ B≥i+1 (Li (g ∩ Si ), 1, 1)                                    (18)
+                                         g(e) ∈ {0, 1}                                 ∀e ∈ Ei                (19)
+
+We need to find a solution of value at least 1/α and we can make use of congestion β. For technical
+reasons we will assume without loss of generality that fu∗ is upper bounded by 1, which is possible
+by replacing fu∗ with fu′ ∗ (S) = min{1, fu∗ (S)}, since this preserves monotonicity, submodularity
+and the existence of a solution of value 1. We further assume that each individual element has
+a small value, more precisely, fu∗ ({e}) ≤ 1/20 for each e ∈ δ(u∗ ). The careful reader will have
+noticed that the reduction in Section 3 anyway guarantees this property. However, it is also easy
+to establish this assumption without adding more technical restrictions to the definition of the
+augmentation problem2 .
+   By Lemma 4 we can replace Constraint (18) with the following equivalent constraints and
+additional variables. The main idea is that we introduce a binary variable ys ∈ {0, 1} for each
+s ∈ Si , which describes whether s ∈ g ∩ Si .
+
+                      ds ∈ ys · B≥i+1 (Li ({s}), 1, 1)                       ∀s ∈ Si
+                                +
+                      ys = g(δ (s))                                          ∀s ∈ Si
+                      ys ∈ {0, 1}                                            ∀s ∈ Si
+                            X
+                    d(e) =      ds (e)                                       ∀e ∈ E≥i+1
+                             s∈Si
+
+                    d(e) ∈ [0, 1]                                            ∀e ∈ E≥i+1
+                   ds (e) ∈ [0, 1]                                           ∀s ∈ Si , e ∈ E≥i+1
+
+In order to find an approximate solution we consider the continuous relaxation using the multi-
+linear extension as described below.
+   2 If g ∗ (e) = 1 for some e ∈ δ(u∗ ) with f ∗ ({e}) > 1/40 we guess e as well as the source s ∈ S , from which
+                                              u                                                      i
+the flow on e comes (in an arbitrary path decomposition of g ∗ . We compute
+                                                                        P        a shortest path from s to e with
+weights µe and we compute some d ∈ B≥i+1 (Li ({s}), α, β) minimizing e∈E            d(e)µe using Ellipsoid method.
+                                                                                ≥i+1
+This yields a solution of the separation problem for α ≥ 1/40. In the other case we can remove all e ∈ δ(u∗ ) with
+fu∗ ({e}) > 1/40, since they are not used.
+
+
+
+
+                                                          18
+   Relaxed separation problem SEP(u∗ , α, β) with multilinear extension
+
+
+                                          max Fu∗ ( (g(e))e∈δ(u∗ ) )                                    (20)
+       X                  X      X
+             g(e)µe +                  ds (e)µe ≤ πu∗                                                   (21)
+      e∈Ei              e∈E≥i+1 s∈Si
+
+                                    g(δ − (v)) = g(δ + (v))                      ∀v ∈ Vi \ (Si ∪ Ti )   (22)
+                                             ds ∈ ys · B≥i+1 (Li ({s}), α, β)    ∀s ∈ Si                (23)
+                                             ys = g(δ + (s))                     ∀s ∈ Si                (24)
+                                   X
+                                          ds (e) ≤ 1                             ∀e ∈ E≥i+1             (25)
+                                   s∈Si
+
+                                           g(e) ∈ [0, 1]                         ∀e ∈ Ei                (26)
+                                             ys ∈ [0, 1]                         ∀s ∈ Si                (27)
+                                          ds (e) ∈ [0, 1]                        ∀s ∈ Si , e ∈ E≥i+1    (28)
+
+   Here Fu∗ is the multilinear extension of fu∗ . If Fu∗ is replaced by a linear objective, then we
+can solve SEP approximately in the following sense.
+
+Lemma 12. ConsiderP      the system LINSEP(u∗ , α, β, c), where (20) in SEP(u∗ , α, β) is replaced by
+                                                    ∗
+a linear objective max e∈δ(u∗ ) ce g(e) for c ∈ Rδ(u ) .
+    Let α, β ∈ N. We can find a solution for LINSEP(u∗ , α, β, c) with value at least the optimum of
+LINSEP(u∗ , 1, 1, c) using polynomial running time overhead and a polynomial number of queries
+that for a given s ∈ Si and ds ∈ [0, β]E≥i+1 determine either ds ∈ B≥i+1 (Li ({s}), α, β) or return
+a hyperplane separating ds from B≥i+1 (Li ({s}), 1, 1).
+Proof. We will run the Ellipsoid method to optimize over LINSEP: similar to the proof of
+Lemma 10 we simulate Ellipsoid on LINSEP(u∗ , 1, 1, c) and terminate once the given solution
+is feasible for LINSEP(u∗ , α, β, c). Optimization is reduced to feasibility testing by performing a
+binary search over the optimum.
+    It remains to separate (approximately) over Constraint (23). The query access from the premise
+can be lifted to this task: Fix some s ∈ Si and ds , ys . If ds , ys are all zero, then ds ∈ ys ·
+B≥i+1 (Li ({s}, α, β). If ys = 0 and ds (e) > 0 for some e, we have that
+
+                     ds (e) > ys and d′s (e) ≤ ys′ for all d′s ∈ ys′ · B≥i+1 (Li ({s}, 1, 1) ,
+
+which serves as a separating hyperplane. Assume now that ys > 0. Apply the query from the
+premise on ds /ys . Either ds /ys ∈ B≥i+1 (Li ({s}), α, β), which implies that ds ∈ ys ·B≥i+1 (Li ({s}), α, β)
+or we find a separating hyperplane w ∈ RE≥i+1 , W ∈ R with wT (ds /ys ) < W and wT d′ ≥ W for
+all d′ ∈ B≥i+1 (Li ({s}), 1, 1). It follows that
+
+             wT ds − W ys < 0 and wT d′s − W ys′ ≥ 0 for all d′s ∈ ys′ · B≥i+1 (Li ({s}), α, β) ,
+
+which again serves as a separating hyperplane.
+    In order to employ the continuous Greedy algorithm (Lemma 11), the feasible region needs to be
+downward closed, which is not necessarily true here. If, however, we project to the variables g(e),
+e ∈ δ(u∗ ), then the feasible region becomes downward closed. This is easy to see by considering the
+path decomposition of the flow g, and the fact that the µe variables are non-negative. Maximizing
+Fu∗ over the projection is equivalent to maximizing it over the original feasible set. Hence, we can
+use the lemma to find such a solution with value at least 1 − 1/e − ε (assuming that the optimum
+is 1).
+    As a final step, we need to round this continuous solution to an integral one.
+
+
+
+                                                            19
+Lemma 13. Let α ≥ 40 and β ≥ 10 log(n). Given a solution of value 1 − 1/e − ε for SEP(u∗ , α, β)
+with ε > 0 being a sufficiently small constant, there is a Las Vegas algorithm to find a solution for
+the separation problem in polynomial time.
+Proof. Let g, ys , ds be the continuous solution of SEP(u∗ , α, β). We compute
+                                                                            P a path decomposition
+of g into paths P from Si to u∗ and weights λP , P ∈ P, that satisfy g = P ∈P λP · χ(P ), where
+χ(P ) ∈ {0, 1}Ei is the characteristic vector of path P . We partition P into sets P(e), e ∈ δ(u∗ ),
+which are the paths with last edge being e.
+    Independently for each e ∈ δ(u∗ ) we sample at most one path from P(e) such that the proba-
+bility of sampling P is exactly λP . Let P ′ be the resulting paths. For simplicity of notation, we
+write                                               [
+                                    fu∗ (Q) = fu∗ (    P ∩ δ(u∗ )) ,
+                                                         P ∈Q
+
+for the submodular function value of some set of paths Q. Furthermore, for each P ∈ P ′ define
+                                     X          X
+                            Φ(P ) =     µe +         ds (e)/ys · µe ,
+                                            e∈P          e∈E≥i+1
+
+where s is the source that P originates from. Then we have that
+                   X            X              X X
+                E[     Φ(P )] =     g(e)µe +            ys · ds (e)/ys · µe ≤ πu∗ .
+                     P ∈P ′          e∈Ei             e∈E≥i+1 s∈Si
+
+Thus, by Markov’s inequality we get
+                                   X
+                                P[   Φ(P ) > 10πu∗ ] ≤ 1/10 .
+                                          P ∈P ′
+
+Further, let p = P[fu∗ (P ′ ) < 1/2]. Since f is bounded by 1 due to an earlier assumption, we have
+
+                    1 − 1/e − ε ≤ Fu∗ ((g(e))e∈δ(u∗ ) ) = E[fu∗ (P ′ )] ≤ p/2 + (1 − p) .
+
+This implies
+                                             p ≤ 2/e + 2ε ≤ 0.75 ,
+assuming
+ P        ε (from the continuous Greedy algorithm) is choosen sufficiently small. Define k =
+⌈ P ∈P ′ Φ(P )/πu∗ ⌉. With probability at least 0.15 we have that
+
+                                       k ≤ 10      and     fu∗ (P ′ ) ≥ 1/2 .                                  (29)
+
+We will show that if (29) holds, then we can recover a set of paths P ′′ ⊆ P ′ with P ∈P ′′ Φ(P ) <
+                                                                                             P
+πu∗ and fu∗ (P ′′ ) ≥ 1/α.
+    Partition P ′ into k+1 many sets P0′ , . . . , Pk′ where |P0′ | ≤ k and Φ(Pi′ ) < 1 for all i = 1, 2, . . . , k:
+for this, we greedily add paths to P1′ until Φ(P1′ ) < 1 would be violated with the next path. This
+path is added to P0′ . Then we repeat the same with P2′ , P3′ , . . . until all paths are placed in one
+set. Since each iteration packs Φ(P ) values of sum at least 1, the process must terminate after at
+most k iterations.
+    Since f is monotone submodular and in particular subadditive and since fu∗ ({e}) ≤ 1/40 by
+an earlier assumption, we have that
+
+                fu∗ (P1′ ) + · · · + fu∗ (Pk′ ) ≥ fu∗ (P ′ ) − fu∗ (P0′ ) ≥ 1/2 − k · 1/40 ≥ 1/4 .
+                ′
+Thus, fu∗ (PP   i ) ≥ 1/(4k) ≥ 1/40 = 1/α for some i ∈ {1, 2, . . . , k}. Let i be the index above and
+define g = P ∈P ′ χ(P ), where χ(P ) is the characteristic vector of path P . In other words, g ′ is
+          ′
+                      i
+the flow corresponding to Pi′ . We further define d′ = s∈Li (g′ ∩Si ) ds /ys .
+                                                       P
+    By the previous arguments we have that with probability at least 0.15, the function value
+fu∗ (g ′ ∩ Si ) ≥ 1/40. It remains to show that with a high probability g ′ has congestion at most
+
+
+                                                         20
+β and that d′ ∈ B≥i+1 (Li (g ′ ∩ Si ), α, β). For the former, we analyze the flow value on each edge
+e ∈ Ei separately. Note that
+
+                               E[g ′ (e)] ≤ E[ |{P ∈ P ′ : e ∈ P }| ] = g(e) ≤ 1 .
+
+Further, X = |{P ∈ P ′ : e ∈ P }| can be seen as a sum of independent 0/1 random variables, one
+for each set P(e′ ), e′ ∈ δ(u∗ ). Thus, we can apply a Chernoff bound on X, which implies that
+
+                              P[g ′ (e) > 10 log(n)] ≤ P[X > 10 log(n)] ≤ 1/n3 .
+
+Now consider d′ . Since ds /ys ∈ CLP≥i+1 (Li ({s}), α, β) for all s ∈ g ′ ∩ Si and d′ is their sum, due
+to Lemma 4 it suffices to show that d′ ∈ [0, β]E≥i+1 . This we can argue in a similar way with a
+Chernoff bound: let e ∈ E≥i+1 . Then
+                                 X                                X
+                     E[d′ (e)] =   P[s ∈ g ′ ∩ Si ] · ds (e)/ys ≤    ds (e) ≤ 1 .
+                                     s∈Si                              s∈Si
+
+Each term ds (e)/ys can be seen as an independent random variable, which is bounded by 1 since
+ds ∈ ys · CLP≥i+1 ({s}, 1, 1). Thus
+
+                                          P[d′ (e) > 10 log(n)] ≤ 1/n3 .
+
+To summarize, we have with probability 0.15 − |E≥i |/n3 that the solution we output is a correct
+solution to the separation problem. This can be boosted to high probability by repeating the
+random experiment.
+
+
+5     Rounding the linear programming relaxation
+In this section we will perform randomized rounding on a solution to the multi-level configuration
+LP, CLP≥1 (T ∗ , α, β), in order to arrive at a solution for the augmentation problem. For conve-
+nience, we restate here the LP. We recall that B≥i (T ∗ , α, β) is the set of feasible values b ∈ [0, β]E≥i
+for CLP≥i (T ∗ , α, β).
+
+    Multi-level configuration LP, CLP≥i (T ∗ , α, β)
+
+                   X
+                             xv,g ≥ 1                                      ∀v ∈ T ∗                     (30)
+                g∈C(v,α,β)
+        X       X
+                           bv,g (e) ≤ b(e)                                 ∀e ∈ E≥i                     (31)
+        v∈T ∗ g∈C(v,α,β)
+
+                    g(e) · xv,g = bv,g (e)                                 ∀v ∈ T ∗ , g ∈ C(v, α, β),   (32)
+                                                                           e ∈ Ei ,
+             (bv,g (e))e∈E≥i+1 ∈ xv,g · B≥i+1 (Li (g ∩ Si ), α, β)         ∀v ∈ T ∗ , g ∈ C(v, α, β)    (33)
+                                                                                  ∗
+                             xv,g ≥ 0                                      ∀v ∈ T , g ∈ C(v, α, β)      (34)
+                                                                                  ∗
+                           bv,g (e) ≥ 0                                    ∀v ∈ T , g ∈ C(v, α, β),     (35)
+                                                                           e ∈ E≥i
+
+    The rounding procedure will be defined recursively and its properties are summarized in the
+following lemma.
+Lemma 14. Assume we are given a set of sinks T ∗ ⊆ Ti , and b = (γ, . . . , γ) ∈ B≥i (T ∗ , α, β) with
+γ ≥ 6β · log3 n. Then, we can in polynomial time find an integral flow ḡ in Gi such that with high
+probability
+
+
+                                                       21
+  1. flow ḡ α-covers every sink in T ∗ with congestion O(γ), and
+                                                                               
+  2. (γ̄, γ̄, . . . , γ̄) ∈ B≥i+1 (Li (ḡ ∩ Si )), α, β) for γ̄ = γ · 1 + log1 n .
+
+Proof. We proceed as follows. We let xv,g and bv,g (e) be the variables that attest (γ, γ, . . . , γ) ∈
+B≥i (T ∗ , α, β). We assume without loss of generality that (30) holds with equality. Each sink
+v ∈ T ∗ picks independently a flow (configuration) gv with probability xv,gv , which by the previous
+assumption is a valid probability distribution. By Constraints (33), we have that bv,gv /xv,gv ∈
+                                                         (v)    (v)
+B≥i+1 (Li (gv ∩ Si ), α, β) attested by some variables xu,gu , bu,gu (corresponding to the conditions of
+CLP≥i+1 ). We then define
+                         X                  X                                X
+                   ḡ =       gv , x̄u,gu =      x(v)
+                                                  u,gu ,     and b̄u,gu =       b(v)
+                                                                                 u,gu .
+                        v∈T ∗                     v∈T ∗                                      v∈T ∗
+
+We will show that with high probability ḡ satisfies the properties of the lemma and x̄u,gu , b̄u,gu
+attest that (γ̄, . . . , γ̄) ∈ B≥i+1 (T̄ ∗ , α, β), where T̄ ∗ = Li (ḡ ∩ Si ).
+    For the first property, we need to analyze the congestion of ḡ. By Constraints (32) and (31)
+we obtain that the expected congestion on any edge e is equal to
+                              X                X      X                        X X
+           E[ḡ(e)] = E[          gv (e)] =                    g(e) · xv,g ≤       bv,g ≤ γ .
+                          v∈T ∗            v∈T ∗ g∈C(v,α,β)                       v∈T ∗ g∈C(v,α,β)
+
+Further, the congestion is the sum of independent random variables, one for each v ∈ T ∗ , that
+are each bounded by β. Therefore, using a Chernoff bound, the probability that the congestion is
+more than 2γ is at most                  
+                                        γ
+                                            ≤ exp −2 log3 n) .
+                                                            
+                                exp −
+                                       3β
+    Hence, with high probability, the congestion in Ei at most 2γ. For the second property, we
+verify Constraints (30), (32), (31), and (33) one by one, the last two being trivial to verify.
+
+Constraint (30). Let u ∈ T̄ ∗ be one of our new sources. Let gw ∈ C(w, α, β) be a configuration
+that was selected for some w ∈ T ∗ such that u ∈ V (gw ) (it must exists by definition of T̄ ∗ ). Then,
+                                                                                                    (w)
+by Constraint (33), we have that that bw,gw /xw,gw ∈ B≥i+1 (Li (gw ∩ Si ), α, β) attested by xv,g ,
+ (w)
+bv,g . Due to Constraint (30) in CLP≥i+1 we have
+                                  X               X
+                                         x̄u,g ≥           x(w)
+                                                            u,g ≥ 1 .
+                                    g∈C(u,α,β)             g∈C(u,α,β)
+
+
+Constraints (32) and (33). Notice that x̄u,g , b̄u,g are the sum of variables that each satisfy (32)
+and (33). It is easy to see that these constraints remain satisfied under taking the sum of feasible
+solutions (since those constraints define polyhedral cones).
+
+Constraint (31).       Notice that
+                              X      X                         X        X                  bv,g (e)
+                         E[                     b̄u,g (e)] ≤                      xv,g ·
+                                                                                            xv,g
+                            u∈T̄ ∗ g∈C(u,α,β)                  v∈T ∗ g∈C(v,α,β)
+                                                                       xv,g >0
+                                                               X        X
+                                                          ≤                       bv,g (e)
+                                                               v∈T ∗ g∈C(v,α,β)
+
+                                                          ≤γ ,
+
+where the first inequality is obtained by definition of our sampling procedure
+                                                                           P and the
+                                                                                 P last inequality
+by Constraint (31) in CLP≥i . Second, we notice that the random variable u∈T̄ ∗ g∈C(u,α,β) b̄u,g (e)
+
+
+                                                           22
+is a sum of independent random variables, one for each u ∈ T ∗ that take a value bu,g (e)/xu,g for
+some configuration g. By definition of B≥i+1P                Phave the constraint that bu,g (e)/xu,g ≤ β
+                                                     , we also
+for all u and g. Hence the random variable u∈T̄ ∗ g∈C(u,α,β) b̄u,g (e) is a sum of independent
+random variables, all bounded in absolute value by β, and of total expectation at most γ. By a
+standard Chernoff bound, we have
+                                                        
+                                                                             
+           X       X                                                    γ
+        P                 b̄u,g (e) ≥ γ · (1 + 1/ log n) ≤ exp −              ≤ exp(−3 log n) .
+              ∗ g∈C(u,α,β)
+                                                                    2β log2 n
+          u∈T̄
+
+Hence, with high probability, Constraint (31) is satisfied as well.
+    Now we can solve the augmentation problem by applying Lemma 14 iteratively. If we have an
+LP solution with coverage α and congestion β for an h-level instance, this yields an (α, O(β log3 (n)·
+(1 + 1/ log n)h )-approximate solution. For any h = O(log n), this is a (α, O(β log3 n))-approximate
+solution. Hence, Theorem 8 and Lemma 14 imply Theorem 3.
+
+
+References
+ [1] Noga Alon and Joel H Spencer. The probabilistic method. John Wiley & Sons, 2016.
+ [2] Chidambaram Annamalai, Christos Kalaitzis, and Ola Svensson. Combinatorial algorithm
+     for restricted max-min fair allocation. ACM Transactions on Algorithms, 13(3):1–28, 2017.
+ [3] Arash Asadpour, Uriel Feige, and Amin Saberi. Santa claus meets hypergraph matchings.
+     ACM Transactions on Algorithms, 8(3):24:1–24:9, 2012.
+ [4] Étienne Bamas, Paritosh Garg, and Lars Rohwedder. The submodular santa claus problem
+     in the restricted assignment case. In Proceedings of ICALP, pages 22:1–22:18, 2021.
+ [5] Étienne Bamas, Alexander Lindermayr, Nicole Megow, Lars Rohwedder, and Jens Schlöter.
+     Santa claus meets makespan and matroids: Algorithms and reductions. In Proceedings of
+     SODA, pages 2829–2860, 2024.
+ [6] Étienne Bamas and Lars Rohwedder. Better trees for santa claus. In Proceedings of the 55th
+     Annual ACM Symposium on Theory of Computing, pages 1862–1875, 2023.
+ [7] Nikhil Bansal and Maxim Sviridenko. The santa claus problem. In Proceedings of STOC,
+     pages 31–40, 2006.
+ [8] Siddharth Barman, Umang Bhaskar, Anand Krishna, and Ranjani G. Sundaram. Tight
+     Approximation Algorithms for p-Mean Welfare Under Subadditive Valuations. In Proceedings
+     of ESA, pages 11:1–11:17, 2020.
+ [9] Mohammad Hossein Bateni, Moses Charikar, and Venkatesan Guruswami. Maxmin allocation
+     via degree lower-bounded arborescences. In Proceedings of STOC, pages 543–552, 2009.
+[10] Gruia Calinescu, Chandra Chekuri, Martin Pal, and Jan Vondrák. Maximizing a mono-
+     tone submodular function subject to a matroid constraint. SIAM Journal on Computing,
+     40(6):1740–1766, 2011.
+[11] Deeparnab Chakrabarty, Julia Chuzhoy, and Sanjeev Khanna. On allocating goods to maxi-
+     mize fairness. In Proceedings of FOCS, pages 107–116, 2009.
+[12] George B Dantzig and Philip Wolfe. Decomposition principle for linear programs. Operations
+     research, 8(1):101–111, 1960.
+[13] Sami Davies, Thomas Rothvoss, and Yihao Zhang. A tale of santa claus, hypergraphs and
+     matroids. In Proceedings of SODA, pages 2748–2757, 2020.
+
+
+                                                  23
+[14] Leah Epstein and Jiřı́ Sgall. Approximation schemes for scheduling on uniformly related and
+     identical parallel machines. In Proceedings of ESA, pages 151–162, 1999.
+[15] Uriel Feige. On allocations that maximize fairness. In Proceedings of SODA, pages 287–293,
+     2008.
+[16] Uriel Feige. On maximizing welfare when utility functions are subadditive. SIAM Journal on
+     Computing, 39(1):122–142, 2009.
+
+[17] Michel X Goemans, Nicholas JA Harvey, Satoru Iwata, and Vahab Mirrokni. Approximating
+     submodular functions everywhere. In Proceedings of SODA, pages 535–544, 2009.
+[18] Sungjin Im, Benjamin Moseley, Hung Q. Ngo, Kirk Pruhs, and Alireza Samadian. Optimizing
+     polymatroid functions. CoRR, abs/2211.08381, 2022.
+
+[19] Andreas Krause, Ram Rajagopal, Anupam Gupta, and Carlos Guestrin. Simultaneous place-
+     ment and scheduling of sensors. In Proceedings of IPSN, pages 181–192, 2009.
+[20] Jan Karel Lenstra, David B. Shmoys, and Éva Tardos. Approximation algorithms for schedul-
+     ing unrelated parallel machines. Mathematical Programming, 46:259–271, 1990.
+
+[21] Wenzheng Li and Jan Vondrák. A constant-factor approximation algorithm for nash social
+     welfare with submodular valuations. In Proceedings of FOCS, pages 25–36, 2022.
+[22] Lukáš Poláček and Ola Svensson. Quasi-polynomial local search for restricted max-min fair
+     allocation. ACM Transactions on Algorithms, 12(2):1–13, 2015.
+[23] Zoya Svitkina and Lisa Fleischer. Submodular approximation: Sampling-based algorithms
+     and lower bounds. SIAM Journal on Computing, 40(6):1715–1737, 2011.
+[24] Jan Vondrák. Optimal approximation for the submodular welfare problem in the value oracle
+     model. In Proceedings of STOC, pages 67–74, 2008.
+[25] Gerhard J Woeginger. A polynomial-time approximation scheme for maximizing the minimum
+     machine completion time. Operations Research Letters, 20(4):149–154, 1997.
+
+
+A     Continuous greedy with approximate separation
+In this section, we prove Lemma 11. Let P ⊆ Q ⊆ [0, 1]n be two polyhedra which are downward-
+closed.
+    Let F be the multilinear relaxation of a monotone submodular function f . We also assume
+that for any element i in the ground set, we have that f ({i}) ≤ F (x∗ ), where x∗ is the point in P
+maximizing F (x∗ ).
+    We show that we can obtain with high probability, in polynomial time for any fixed ε > 0, a
+point y ∈ Q such that F (y) ≥ (1 − 1/e − ε) · F (x∗ ).
+    The proof is an easy modification of [10], which we repeat here for completeness. The algorithm
+is as follows.
+
+  1. Let δ = 1/(10n2 ), and let t = 0, y(0) = 0.
+  2. Let R(t) contain each j ∈ [n] independently with probability yj (t). For all j ∈ [n], we let
+     wj (t) be an estimate of
+                                          E[f (j | R(t))]
+     by taking the average over 10
+                                δ 2 (1 + ln n) independent samples of R(t). We denote by Et the
+     vector whose j-th coordinate is equal to E[f (j | R(t))]. We also aggregate the wj (t) into a
+     single vector w(t).
+
+
+
+                                                   24
+   3. Find y ∈ Q such that w(t)T y ≥ w(t)T x for all x ∈ P . We can find such a point by the
+      assumption in Lemma 11. Set
+
+                                                  y(t + δ) = y(t) + δ · y .
+
+   4. If t < 1, return to step 2, otherwise output y(1).
+
+    Note that the output y(1) is a convex combination of points in Q (recall that y(0) = 0 ∈ Q
+since Q is downward-closed). Hence, we have y(1) ∈ Q.
+    We use essentially the same arguments as in [10]. We start by the first key lemma.
+Lemma 15. Let y ∈ [0, 1]n and let R be a random set containing each j independently with
+probability yj . Then                       X
+                      F (x∗ ) ≤ F (y) + max
+                                         ′
+                                              yj′ · E[f (j | R(t))] .
+                                                     y ∈P
+                                                            j∈[n]
+
+Proof. We can write by submodularity, for any set R, and any set O,
+                                                X
+                               f (O) ≤ f (R) +      f (j | R) .
+                                                                 j∈O
+
+By taking the expectation over the set R containing each j independently with probability yj and
+over the set O containing each element j independently with probability x∗j , we obtain
+                                  X                                            X
+             F (x∗ ) ≤ F (y) +            x∗j · E[f (j | R)] ≤ F (y) + max
+                                                                        ′
+                                                                                       yj′ · E[f (j | R)] ,
+                                                                        y ∈P
+                                  j∈[n]                                        j∈[n]
+
+where the inequality holds since x∗ ∈ P . This concludes the proof.
+   The second lemma essentially states that estimating the expectations with sampling does not
+loose much. Before proving this result, we state here an inequality that will be useful in the proof.
+Theorem 16 (Theorem A.1.16 in [1]). Let Xi , 1 ≤ i ≤ k be independent random variable with
+E[Xi ] = 0 and |Xi | ≤ 1 for all i, then
+                                          k
+                                          X
+                                   P[|          Xi | > a] ≤ 2 exp(−a2 /(2k)) .
+                                          i=1
+
+Lemma 17. With probability at least 1 − 1/poly(n), for every t the algorithm finds some y ∈ Q
+such that
+                         (Et )T y ≥ (1 − 2nδ) · F (x∗ ) − F (y(t)) .
+Proof. Recall that y is selected to (approximately) maximize w(t)T y among feasible points in Q,
+where wj (t) is our estimate of (Et )j = E[f (j | R(t))]. We say that an estimate wj (t) is bad if
+|wj (t) − E[f (j | R(t))]| > δ · F (x∗ ). As in [10], one can argue that with high probability there is
+no bad estimate during the whole run of the algorithm.
+    Let R1 , R2 , . . . , Rk be the k = 10
+                                         δ 2 (1 + ln n) samples used for the estimates wj (t), and let us
+denote by Xi the random variable Xi = (f (j | Ri )−E[f (j | R(t))])/F (x∗ ). First, by submodularity
+and our assumption in the beginning of this section, we always have
+                                  max(f (j | Ri ), E[f (j | R(t))])    f (j)
+                        |Xi | ≤                                     ≤         ≤1.
+                                              F (x∗ )                 F (x∗ )
+Next, note that the estimate is bad exactly if
+                                           k
+                                           X             10
+                                                  Xi >      (1 + ln n) · δ .
+                                            i=1
+                                                         δ2
+
+
+                                                            25
+By applying Theorem 16, the probability of this happening is at most
+                                            
+                              5
+                    2 exp − 2 (1 + ln n) · δ = 2 exp (−5 ln(n)) ≤ n−4 .
+                             δ
+By union bound over all 10n2 timesteps and all coordinates j ∈ [n], with high probability all
+estimates are good.
+    Now, let y ′ ∈ P defined as
+                                y ′ = argmaxy′′ ∈P (Et )T y ′′ ,
+and let M be this value. By Lemma 15, we have that
+                                       M ≥ F (x∗ ) − F (y(t)) .
+Since all estimates are good, we also have that
+      X                  X                    X
+           yj · wj (t) ≥   yj′ · wj (t) ≥ M −   yj′ |wj (t) − E[f (j | R(t))]| ≥ M − nδF (x∗ ) ,
+     j∈[n]             j∈[n]                       j∈[n]
+
+where y ∈ Q is the point chosen by the algorithm such that (w(t))T y ≥ (w(t))T y ′′ for all y ′′ ∈ P .
+Therefore, we obtain that
+              X                          X               X
+                  yj · E[f (j | R(t))] ≥   yj · wj (t) −   yj |wj (t) − E[f (j | R(t))]|
+              j∈[n]                       j∈[n]                      j∈n
+                                          X
+                                      ≥           yj′ · wj (t) − nδF (x∗ )
+                                          j∈[n]
+
+                                      ≥ M − 2nδF (x∗ )
+                                      ≥ (1 − 2nδ)F (x∗ ) − F (y(t)) ,
+as desired.
+   We can conclude with the main result we need.
+Lemma 18. With high probability, if f is a monotone submodular function such that F (x∗ ) ≥ f (i)
+for all i ∈ [n], the fractional solution y found by the continuous greedy algorithm satisfies
+                                F (y) ≥ (1 − 1/e − 1/(2n)) · F (x∗ ) .
+Proof. Assume without loss of generality that F (y(t)) ≤ F (x∗ ) for all t, since otherwise the
+assertion follows immediately from the fact that F (y) ≥ F (y(t)). The assumption is not trivial,
+since x∗ is in the set P , while y(t) is allowed to be inside the bigger polytope Q.
+    The algorithm starts with F (y(0)) = 0. We lower bound the increase in value at each step of the
+algorithm. The proof is the same as in [10]. Let R(t) be the random set containing each element j
+independently with probability yj (t), and D(t) the set containing each element independently with
+probability ∆j (t) = yj (t + δ) − yj (t). We can easily see that
+                          F (y(t + δ)) = E[R(t + δ)] ≥ E[f (R(t) ∪ D(t))] .
+This is because R(t + δ) contains j with probability yj (t) + ∆j (t), while R(t) ∪ D(t) contains j
+with smaller probability 1 − (1 − yj (t))(1 − ∆j (t)). The two distributions can be coupled so that
+R(t) ∪ D(t) is a subset of R(t + δ), and we can conclude by the monotonicity of f . By denoting
+y ∗ ∈ Q the direction in which we move y(t), we can write
+                  F (y(t + δ)) − F (y(t)) ≥ E[f (R(t) ∪ D(t)) − f (R(t))]
+                                            X
+                                          ≥      P[D(t) = {j}] · E[f (j | R(t))]
+                                               j∈[n]
+                                               X               Y
+                                           =         (δyj∗ )             (1 − δyj∗′ ) · E[f (j | R(t))]
+                                               j∈[n]           j ′ ̸=j
+                                               X
+                                           ≥         (δyj∗ )(1 − nδ) · E[f (j | R(t))] .
+                                               j∈[n]
+
+
+
+                                                       26
+Using Lemma 17 and F (y(t)) ≤ F (x∗ ), we obtain
+                          X
+F (y(t + δ)) − F (y(t)) ≥   (δyj∗ )(1 − nδ) · E[f (j | R(t))]
+                              j∈[n]
+
+                           ≥ δ(1 − nδ)((1 − 2nδ) · F (x∗ ) − F (y(t))) ≥ δ((1 − 3nδ) · F (x∗ ) − F (y(t)) .
+
+Writing F̃ (x∗ ) = (1 − 3nδ) · F (x∗ ), we rearrange to get
+
+                             F̃ (x∗ ) − F (y(t + δ)) ≤ (1 − δ)(F̃ (x∗ ) − F (y(t))) .
+
+It follows now by induction that for any k ≥ 0 (recall that F (y(0)) = 0),
+
+                                       F̃ (x∗ ) − F (y(kδ)) ≤ (1 − δ)k F̃ (x∗ ) .
+
+Hence,
+
+                                      F (y(1)) ≥ F̃ (x∗ )(1 − (1 − δ)1/δ )
+                                               ≥ F̃ (x∗ )(1 − 1/e)
+                                               = (1 − 3nδ) · F (x∗ ) · (1 − 1/e)
+                                               ≥ (1 − 1/e − 1/(2n)) · F (x∗ ) ,
+
+which concludes the proof.
+
+
+B      Proof of Lemma 4
+For convenience, we restate the assertion here: Let T ∗ , T ∗∗ be disjoint sets of sinks and let b ∈
+[0, β]E≥i . Then b ∈ B≥i (T ∗ ∪ T ∗∗ , α, β) if and only if there exist b′ + b′′ = b with b′ ∈ B≥i (T ∗ , α, β)
+and b′′ ∈ B≥i (T ∗∗ , α, β).
+
+Proof. Let (b, bv,g , xb,g ) ∈ CLP≥i (T ∗ ∪ T ∗∗ , α, β) and assume without loss of generality that each
+constraint (2) is tight. Let
+                               (                                   (
+                       ′        xv,g if v ∈ T ∗             ′       bv,g if v ∈ T ∗
+                     xv,g :=                           and bv,g :=
+                                0      otherwise.                   0    otherwise.
+
+Similarly, let               (                                              (
+                              xv,g          if v ∈ T ∗∗                      bv,g if v ∈ T ∗∗
+                   x′′v,g :=                                  and b′′v,g :=
+                              0             otherwise.                       0      otherwise.
+Define b′ (e) = v∈T ∗ g∈C(v,α,β) b′v,g (e) and b′′ (e) = v∈T ∗∗ g∈C(v,α,β) b′′v,g (e). Then (b′ , b′v,g , x′v,g ) ∈
+                 P       P                                          P         P
+
+CLP≥i (T ∗ , α, β), (b′′ , b′′v,g , x′′v,g ) ∈ CLP≥i (T ∗∗ , α, β), and b = b′ + b′′ .
+   For the other direction, let (b′ , b′v,g , x′v,g ) ∈ CLP≥i (T ∗ , α, β) and (b′′ , b′′v,g , x′′v,g ) ∈ CLP≥i (T ∗∗ , α, β).
+Then (b′ + b′′ , b′v,g + b′′v,g , x′v,g + x′′v,g ) ∈ CLP≥i (T ∗ ∪ T ∗∗ , α, β).
+
+
+
+
+                                                          27
+

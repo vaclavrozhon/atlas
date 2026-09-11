@@ -1,0 +1,2729 @@
+                                                 On the LP-relaxation for Directed Steiner Tree with Relatively
+                                                                       Integral Solution∗
+                                                                                      Bundit Laekhanukit†
+
+                                                                                        October 13, 2025
+arXiv:2412.10744v3 [cs.DS] 10 Oct 2025
+
+
+
+
+                                                                                             Abstract
+                                                      The Directed Steiner Tree (DST) problem is defined on a directed graph G = (V, E), where
+                                                  we are given a designated root vertex r and a set of k terminals K ⊆ V \ r. The goal is to find
+                                                  a minimum-cost subgraph that provides directed r → t paths for all terminals t ∈ K.
+                                                      The approximability of DST has long been a central open problem in network design.
+                                                  While there exist polylogarithmic-approximation algorithms with quasi-polynomial running
+                                                  times (Charikar et al. 1998; Grandoni, Laekhanukit, and Li 2019; Ghuge and Nagarajan 2020),
+                                                  the best known polynomial-time approximation until now has remained at k ϵ , for any constant
+                                                  ϵ > 0. Whether a polynomial-time algorithm achieving a polylogarithmic approximation exists
+                                                  has remained unresolved.
+                                                      In this paper, we present a flow-based LP-relaxation for DST that admits a polylogarithmic
+                                                  integrality gap under the relative integral condition — there exists a fractional solution in
+                                                  which each edge e either carries a zero flow (fet = 0) or uses its full capacity (fet = xe ), where fet
+                                                  denotes the flow variable and xe denotes the indicator variable treated as capacities. This stands
+                                                  in contrast to known lower bounds, as the standard flow-based relaxation is known to exhibit
+                                                  a polynomial integrality gap even under relatively integral solutions. In fact, this relatively
+                                                  integral property is shared by all the known integrality gap instances of DST [Halperin et al.,
+                                                  SODA’07; Zosin-Khuller, SODA’02; Li-Laekhanukit, SODA’22].
+                                                      We further provide a randomized polynomial-time algorithm that gives an O(log3 k)-approximation,
+                                                  assuming access to a relatively integral fractional solution.
+
+
+                                         1        Introduction
+                                         In the Directed Steiner Tree (DST) problem, we are given a directed graph G = (V, E) with n = |V |
+                                         vertices and nonnegative edge-costs c : E → R+
+                                                                                      0 . We are also given a designated root vertex r ∈ V
+                                         and a set of k terminals K ⊆ V \ r. The objective is to find a minimum-cost subgraph H ⊆ G
+                                         that provides a directed path from the root r to every terminal t ∈ K. DST and its undirected
+                                         counterpart are central problems in network design, with numerous practical applications such
+                                         as communication network design, VLSI design automation [GMW97, She95, SW96, AMS08], in-
+                                         formation retrieval [SXC+ 21, YSL+ 22], and phylogenetics [WMT12, BTN+ 09, LTL02, ABMS12].
+                                         Over the decades, DST has been at the center of extensive study both theoretically and practically.
+                                             ∗
+                                              This paper serves as a rectification of [Lae24]: whereas [Lae24] claimed a polynomial-time polylogarithmic ap-
+                                         proximation for the general case, this work proves it only for relatively integral fractional solutions.
+                                            †
+                                              The author is unofficially affiliated with Kasetsart University, Bangkok, Thailand. E-mail: Lbundit@gmail.com
+
+
+                                                                                                 1
+    The Steiner Tree problem (both directed and undirected) is among the earliest known NP-
+hard problems. Its decision version is listed as one of Karp’s 21 NP-complete problems [Kar72].
+This intractability leaves theoretical computer scientists with no option but to seek approximation
+algorithms.
+    For the undirected Steiner tree problem, a factor-two approximation algorithm was discov-
+ered in the late 1960s by Gilbert and Pollak [GP68], and the approximation ratio has steadily
+improved. Currently, thanks to the state-of-the-art algorithm by Byrka, Grandoni, Rothvoß, and
+Sanità [BGRS13], the approximation ratio for the undirected case is nearing ln(4) < 1.39.
+    In stark contrast, the best-known polynomial-time approximation ratio for DST has remained
+at k ϵ for every fixed ϵ > 0 since the 1990s from the work of Zelikovsky [Zel97] and Charikar et al.
+[Zel97] and Charikar et al. [CCC+ 99].1 Evidence from integrality gaps [HKK+ 07, ZK02, LL24]
+and hardness results [HK03] strongly suggests that DST is inherently more difficult. In fact, no
+constant-factor approximation is known under plausible complexity assumptions — DST admits no
+log2−ϵ n-approximation, for any ϵ > 0 unless NP ⊆ ZPTIME(npolylog(()n) ) [HK03]. Until recently,
+no polynomial-time algorithm was known that could even achieve a sub-polynomial approximation
+ratio.
+    Yet, if we allow quasi-polynomial-time algorithms, the picture changes dramatically. Charikar et al.
+[CCC+ 99] first showed that DST admits a polylogarithmic approximation ratio of O(log3 k) in
+quasi-polynomial time. Two independent works by Grandoni, Laekhanukit, and Li [GLL23], and
+by Ghuge and Nagarajan [GN22], further improved this approximation ratio to O(log2 k/ log log k),
+but still with quasi-polynomial running times. This leaves a striking gap: While quasi-polynomial-
+time algorithms achieve nearly optimal polylogarithmic approximations, no sub-polynomial approx-
+imation is known in strictly polynomial time. This gap has remained a major open problem in the
+area for nearly three decades.
+
+Open Problem 1. Is there a polylogarithmic approximation algorithm for the Directed Steiner
+Tree problem that runs in polynomial time? Is there even a polynomial-time sub-polylogarithmic
+approximation algorithm for the problem?
+
+    This paper takes a step toward resolving the major open problem in the approximability of DST.
+We formulate a flow-based LP relaxation that has a polylogarithmic integrality gap, provided the
+fractional solution is relatively integral — i.e., for every terminal t and edge e, the flow value fet
+is either zero or equal to the capacity variable xe , where fet and xe denote the flow and indicator
+(capacity) variables, respectively.
+    More precisely, we design a randomized polynomial-time rounding algorithm that, given a frac-
+tional solution (x, f ) from the strengthened LP satisfying the relatively integral property, returns
+an integral solution whose cost is at most O(log2 k) times that of the fractional one. Since we
+incur an additional O(log k) factor in the LP formulation itself, this yields an overall O(log3 k)-
+approximation algorithm.
+    The relatively integral property is, in fact, shared by all known integrality gap instances of
+DST [HKK+ 07, ZK02, LL24]. This suggests that understanding whether such fractional solutions
+admit a sub-polynomial integrality gap is a promising direction toward resolving the longstanding
+open question.
+  1
+   Zelikovsky’s approximation scheme was originally developed for DST in directed acyclic graphs.   Later,
+Charikar et al. [CCC+ 99] showed that it also applies to general graphs.
+
+
+
+
+                                                   2
+1.1   Our Result and Contribution
+Our main contribution is a new LP relaxation for the Directed Steiner Tree problem that admits
+a polylogarithmic approximation guarantee under the relatively integral condition. Specifically,
+we show that any feasible fractional solution (x, f ) satisfying this condition can be rounded to an
+integral solution with cost at most O(log2 k) times that of the fractional one.
+    Since our Strengthened-LP incurs an additional O(log k) factor in the approximation ratio,
+this yields an overall O(log3 k)-approximation. However, while the integrality gap proof is con-
+structive, it does not directly yield a polynomial-time algorithm. To this end, we also provide
+a randomized rounding algorithm that, given access to a relatively integral fractional solution,
+outputs an O(log3 k)-approximate solution in expected polynomial time.
+
+Theorem 1. There exists an LP relaxation for the Directed Steiner Tree problem such that any
+feasible fractional solution satisfying the relatively integral property can be rounded to an integral
+solution whose cost is at most O(log2 k) times that of the fractional one. Since the LP formulation
+incurs an additional O(log k) loss in the approximation factor, this yields an overall O(log3 k)-
+approximation.
+    Moreover, there exists a randomized algorithm that, given access to a relatively integral fractional
+solution, computes such an O(log3 k)-approximate solution in expected polynomial time. Therefore,
+the existence of an LP relaxation that guarantees a relatively integral solution implies a polynomial-
+time O(log3 k)-approximation algorithm for the Directed Steiner Tree problem.
+
+    We remark that it is not necessary to explicitly enforce the relatively integral condition within
+the LP formulation. Instead, it suffices to guarantee the existence of a decomposition of the frac-
+tional solution that satisfies this condition to obtain a polynomial-time polylogarithmic approxi-
+mation algorithm.
+    The core of our approach is a novel LP formulation. We strengthen the standard flow-based
+LP relaxation for DST by adding carefully designed constraints that enforce consistency between
+capacity and flow variables. Leveraging these constraints, we decompose the fractional solution
+into a tree-like structure amenable to rounding using techniques originally developed for the Group
+Steiner Tree problem on trees. Crucially, unlike previous methods relying on LP/SDP hierarchies
+or large enumerations, our decomposition and rounding algorithms run in polynomial time. By
+reverse-engineering known integrality gap constructions [HKK+ 07], we demonstrate how to main-
+tain the flow structure throughout the decomposition, yielding a polynomial-time polylogarithmic
+approximation for DST whenever the fractional solution from the LP satisfies the relatively integral
+property.
+
+1.2   Related Work
+The Steiner Tree problem and its variants lie at the heart of network design, encompassing a rich
+family of problems with wide-ranging applications. Among these, two of the most fundamental
+are the Undirected Steiner Tree problem and its directed counterpart — the Directed Steiner Tree
+problem, which is the focus of this paper.
+     For the Undirected Steiner Tree problem, approximation algorithms have a long history. The
+first known approximation, a factor-two algorithm, was given by Gilbert and Pollak in 1968 [GP68].
+Breaking through the factor-of-two barrier took decades: Zelikovsky’s algorithm [Zel93] achieved a
+factor of 11/6, a key early improvement. Subsequent efforts have steadily lowered the approximation
+
+
+                                                   3
+ratio, culminating in the current state-of-the-art result by Byrka, Grandoni, Rothvoß, and Sanit’a
+[BGRS13], which obtains an approximation ratio approaching ln(4) < 1.39. This progression
+highlights significant advances on the undirected side.
+    In contrast, the Directed Steiner Tree (DST) problem is substantially more challenging. The first
+approximation algorithm achieving a ratio of k ϵ (for any ϵ > 0) was devised by Zelikovsky [Zel97]
+for directed acyclic graphs. Charikar et al. [CCC+ 99] later extended this result to general directed
+graphs and additionally introduced the first polylogarithmic approximation for DST, attaining an
+O(log3 k)-approximation ratio but requiring quasi-polynomial time. 2 Subsequent works [Rot11,
+FKK+ 14] also attained O(log3 k) approximations, still relying on quasi-polynomial running times.
+    More recently, two independent breakthroughs by Grandoni, Laekhanukit, and Li [GLL23], as
+well as Ghuge and Nagarajan [GN22], improved the approximation ratio to O(log2 k/ log log k),
+yet these results still hinge on quasi-polynomial-time algorithms. Notably, [GLL23] showed that
+this ratio is essentially the best possible
+                                       S in the quasi-polynomial   regime, assuming the Projection
+                                                         δ
+Game Conjecture and that NP ⊊ δ>0 ZPTIME(2n ). Under the more standard assumption
+NP ⊊ ZPTIME(npolylog(n) ), the hardness result by Halperin and Krauthgamer [HK03] establishes
+that no log2−ϵ n-approximation for DST is possible for any constant ϵ > 0.
+    A closely related special case of DST is the Group Steiner Tree (GST) problem, defined on
+undirected graphs. In Group Steiner Tree, the goal is to ensure connectivity from a root to at least
+one node in each of several specified groups (subsets) of vertices. Through a standard reduction,
+any instance of Group Steiner Tree can be transformed into a DST instance with minimal overhead.
+For Group Steiner Tree on trees, the seminal work of Garg, Konjevod, and Ravi [GKR00] achieved
+an O(log2 k)-approximation. By applying probabilistic metric-tree embeddings [Bar98, FRT04],
+their approach extends to yield an O(log3 k)-approximation for general undirected graphs. This
+randomized LP-rounding algorithm was later derandomized by Charikar, Chekuri, Goel, and Guha
+[CCGG98].
+    On the negative side, Halperin et al. [HKK+ 07] established an Ω(log2 n/(log log n)2 ) integrality
+gap for a standard LP-relaxation of Group Steiner Tree on a tree. Subsequently, Halperin and
+Krauthgamer [HK03] proved that no log2−ϵ n-approximation is possible for any constant ϵ > 0,
+unless NP ⊆ ZPTIME(npolylog(n) ). These hardness results closely parallel the complexity landscape
+observed for the DST problem.
+    High-connectivity generalizations of both DST and Group Steiner Tree problems have also
+been studied, requiring λ edge-disjoint or vertex-disjoint paths from the root to each terminal or
+group. For DST, nontrivial approximation results are known only for the special case λ = 2 (2-edge
+connectivity), where Grandoni and Laekhanukit [GL17] obtained a quasi-polynomial-time polylog-
+arithmic approximation. For higher connectivity requirements (λ ≥ 3), only special cases admit
+nontrivial results [Lae16, CLWZ20, Nut24]. Liao, Chen, Laekhanukit, and Zhang [LCLZ22] showed
+that the hardness of the λ-Connected DST problem grows exponentially in λ, even for constant
+λ, indicating an inherent difficulty. More generally, the hardness is almost polynomial in n (see,
+e.g., [CLNV14, Lae14, Man19]). For the Group Steiner Tree variant with λ-edge-connectivity,
+polynomial-time polylogarithmic approximations exist for any value of λ, as shown by Chen,
+Laekhanukit, Li, and Zhang [CLLZ22], setting it apart from the directed case. For additional
+relevant and related results, see [GKR10a, KKN12, CGL15].
+   2
+     Charikar et al. originally claimed a ratio of O(log2 k) [CCC+ 99]. However, the correct ratio is O(log3 k) due to
+a subtle issue in Zelikovsky’s height reduction lemma [Zel97], which was identified and corrected by Helvig, Robin,
+and Zelikovsky in [HRZ01].
+
+
+
+                                                          4
+2     On the Complexity of Directed Steiner Tree
+In this section, we provide further discussion on the open problem of whether DST admits a
+polylogarithmic approximation algorithm that runs in polynomial time. The author discusses two
+aspects of the complexity status of DST based on personal studies, which the author believes may
+be useful for future research.
+
+2.1   Integrality Gap and Approximation Hardness
+Most previous results lean toward a negative answer to this question, particularly in terms of the in-
+tegrality gap. Generally, many hardness-of-approximation results can be derived from lower bounds
+on the integrality gap. For instance, the log2−ϵ k-hardness of approximation result for DST [HK03]
+builds on an integrality gap lower bound of roughly the same ratio [HKK+ 07]. However, the recent
+result showing a polynomial integrality gap for the standard flow-based relaxation [LL24] is unlikely
+to lead directly to a hardness result. This is due to the basic structure of the constraints used in
+the LP, as described informally below.
+
+      Find capacities {xe }e∈E(G) that support
+                                            P a unit flow from the root to each terminal
+      t ∈ K, while minimizing the total cost e∈E(G) ce xe .
+
+    These basic constraints naturally generalize to the high-connectivity version of the problem,
+namely the λ-Edge-Connected Directed Steiner Tree (λ-EC-DST), which asks for a minimum-cost
+subgraph that provides λ edge-disjoint paths from the root to every terminal. The corresponding
+LP formulation for λ-EC-DST requires a flow of value at least λ to each terminal. Thus, any
+feasible solution to the basic LP of λ-EC-DST is also feasible for the basic LP of DST. Conversely,
+any feasible solution to the basic LP of DST in which every capacity satisfies xe ≤ 1/λ is feasible
+for the basic LP of λ-EC-DST after scaling by a factor of λ — i.e., if the solution satisfies a scaling
+property.
+    This observation has an important implication: it weakly connects the integrality ratio of stan-
+dard LPs for DST (both flow- and cut-based) to the hardness of approximation of λ-EC-DST.
+Under quasi-NP-hardness assumptions, the approximation hardness of λ-EC-DST is known to be
+nearly polynomial [CLNV14, Lae14, Man19, LCLZ22], and assuming the Sliding Scale Conjec-
+ture [BGLR93], the hardness can be strengthened to a polynomial ratio. Based on this connection,
+we propose the following conjecture:
+
+Conjecture 1. Every LP relaxation for DST that satisfies the scaling property — i.e., feasibility
+is preserved under scaling to the λ-EC-DST relaxation — admits a polylogarithmic integrality gap.
+
+    Due to the above reasoning, existing integrality gap instances for DST are unlikely to yield
+hardness results, as they involve extremely small capacities [ZK02, LL24], which inherently satisfy
+the scaling property.
+    Furthermore, one may observe that constraints derived by applying LP or SDP hierarchies to the
+standard LPs for DST and λ-EC-DST are structurally similar. Therefore, the author conjectures
+that the integrality gap of standard LP relaxations for DST — both cut-based and flow-based —
+remains polynomial or nearly so, even after applying a constant number of rounds of LP or SDP
+hierarchies.
+
+
+
+                                                  5
+    Indeed, as shown by Liao et al. [LCLZ22], the approximation hardness of λ-EC-DST grows
+exponentially in λ. This suggests that at least logarithmic rounds of hierarchy are required to
+significantly reduce the integrality gap of the standard LP relaxations for DST.
+
+2.2   Polynomial vs Quasi-Polynomial Time Separation
+This subsection discusses the potential separation between the computational power of polynomial-
+time and quasi-polynomial-time approximation algorithms.
+     One may naturally ask whether there exists a separation between polynomial-time and quasi-
+polynomial-time algorithms in terms of approximation guarantees. The answer is ”Yes” — there
+is a known hardness result that demonstrates such a separation.
+     A notable example is the infamous Densest k-Subgraph (DkS) problem, where the input consists
+of a graph G and an integer k ≥ 0, and the goal is to find an induced subgraph on at most k vertices
+that maximizes density, defined as the number of edges per vertex.
+     When the input graph admits perfect completeness — i.e., the optimal solution is guaranteed
+to be a k-clique—the problem admits a quasi-polynomial-time approximation scheme (QPTAS).
+Specifically, Feige and Seltser [FS97] presented a (1 + ϵ)-approximation algorithm that runs in time
+             n
+nO((1+log k )/ϵ) .
+     In contrast, for polynomial-time algorithms, Manurangsi [Man17] showed that achieving an
+n 1/(log log n)c -approximation, for some universal constant c > 0 independent of n, is unlikely under
+
+the Exponential Time Hypothesis (ETH). Furthermore, assuming the Gap-ETH conjecture, DkS
+with perfect completeness does not admit any polynomial approximation in polynomial time —
+i.e., there is no nf (ϵ) -approximation algorithm running in nO(1/ϵ) time, for any constant ϵ > 0.
+
+2.3   Relation to Densest-k-Subgraph
+Although no approximation-preserving reduction from DkS to DST is currently known, the prob-
+lems are related through a maximization variant of 2-EC-DST, namely the Budgeted 2-Edge-
+Connected Directed Steiner Tree (Budgeted-2-EC-DST) problem. In this variant, the input includes
+a budget B ≥ 0, and the goal is to find a subgraph of total cost at most B that maximizes the
+number of terminals t ∈ K that have two edge-disjoint paths from the root.
+    The reduction from DkS to Budgeted-2-EC-DST is known only among a few experts. Thus, we
+provide a brief description of the reduction below.
+    Let I = (G, k) be an instance of DkS, where G is the input graph and k is the size bound for
+the subgraph. We construct an instance I ′ = (G′ , B) of Budgeted-2-EC-DST as follows. The graph
+G′ is a directed graph with three layers:
+
+   • The first layer consists of a single root vertex r.
+
+   • The second layer is a copy of the vertex set of G.
+
+   • The third layer is a copy of the edge set of G.
+
+We add directed edges of cost 1 from the root r to each vertex in the second layer. Then, for each
+vertex v in the second layer and each edge vw ∈ E(G) incident to v, we add a directed edge of cost
+0 from v to the corresponding edge-node in the third layer. Finally, the budget is set to B = k.
+
+
+
+                                                  6
+     There is a natural correspondence between any induced subgraph G[S] of G (for S ⊆ V (G))
+and a subgraph H ′ ⊆ G′ . Specifically, a subset S maps to its copy S ′ in the second layer, while
+each edge in G[S] corresponds to a vertex in the third layer, forming the terminal set K ′ . The
+solution H ′ to the 2-EC-DST instance then consists of the edges from the root r to the vertices
+in S ′ , together with the edges from S ′ to all vertices representing edges incident to S in G. The
+total cost of H ′ is |S ′ | since only the edges from r to S ′ incur a cost. Moreover, a terminal t ∈ K ′
+admits two edge-disjoint paths from r if and only if t corresponds to an edge whose endpoints both
+lie in S. This gives the forward correspondence (from DkS to 2-EC-DST), and the converse (from
+2-EC-DST to DkS) is straightforward.
+     Consequently, the maximum number of edges induced by any subset of k vertices in G equals
+the maximum number of terminals that can be reached by two edge-disjoint paths from the root
+in the 2-EC-DST instance under budget k, and vice versa.
+     We can choose k to be polynomial in |V (G)|, which is a feasible parameter in the hardness
+construction of Manurangsi [Man17]. Since the number of terminals |K| is |E(G)| = O(|V (G)|2 ),
+this implies that there is no no(1) -approximation algorithm for Budgeted-2EC-DST that runs in
+polynomial time.
+     In stark contrast, the minimization version of 2-EC-DST admits a polylogarithmic approxima-
+tion in quasi-polynomial time, as shown by Grandoni and Laekhanukit [GL17].
+     It is worth noting that the instance of Budgeted-2-EC-DST produced by the reduction has
+imperfect completeness — i.e., in the YES case, the optimal solution can provide two-edge-disjoint
+paths to at most k(k − 1) = |V (G)|c terminals, for some constant 0 < c < 2, while the total
+number of terminals is Θ(|V (G)|2 ). Although the algorithm of Grandoni and Laekhanukit could
+potentially be adapted to the maximization version, it relies on the assumption that an optimal
+solution provides two-edge-disjoint paths to all the terminals. Therefore, the algorithm may not be
+applicable to Budgeted-2-EC-DST instances with imperfect completeness.
+
+2.4   Separation Between Maximization and Minimization
+While the separation between the approximation power of polynomial-time and quasi-polynomial-
+time algorithms is known in the literature — albeit only to a handful of experts — it is less well
+known that there is also a separation between the maximization and minimization variants of
+certain problems.
+    Here, we focus on another problem related to 2-EC-DST, namely the Restricted 2-Edge-Connected
+Group Steiner Tree problem (Restricted 2-EC-GST). The input consists of an undirected graph
+G = (V, E), a root vertex r, and a collection of groups (i.e., subsets of vertices) U1 , . . . , Uk . The
+goal is to find a minimum-cost subgraph H ⊆ G such that there are two edge-disjoint paths from
+the root r to some vertex si ∈ Ui for every group Ui . Note that, in the standard variant of 2-
+EC-GST, the two edge-disjoint paths can end at different vertices in each group Ui , whereas the
+restricted variant requires the two paths to end at the same vertex in the group. This additional
+requirement makes the problem strictly harder from an algorithmic perspective.
+    Nevertheless, Gupta, Krishnaswamy, and Ravi [GKR10b] showed that Restricted 2-EC-GST
+admits a polynomial-time polylogarithmic approximation.
+    In contrast, the budgeted variant of Restricted 2-EC-GST does not admit a polylogarithmic
+approximation, due to a reduction from DkS. The reduction is essentially the same as that from DkS
+to 2-EC-DST, except that the resulting graph G′ is undirected. Furthermore, the DkS instance is
+modified to have color classes X1 , . . . , Xk , with the additional constraint that only one vertex can be
+
+                                                    7
+selected from each class. We can also assume, implicitly as in Manurangsi’s construction [Man17],
+that each Xj forms an independent set.
+    The groups in the Restricted 2-EC-GST instance are then defined using these color classes: for
+each pair i ̸= j, the group Ui,j consists of copies of edges connecting vertices in Xi to those in Xj .
+As a result, we obtain an instance with k(k − 1) groups.
+    In the Yes-case of the DkS instance (constructed in [Man17]), there exists a clique of size k, which
+implies perfect completeness in the corresponding Restricted 2-EC-GST instance. This hardness
+result shows that the budgeted variant does not admit any almost-polynomial approximation in
+polynomial time, unless ETH is false.
+    This demonstrates a strong separation between the approximability of the minimization and
+maximization (budgeted) variants of 2-EC-GST under polynomial-time algorithms — a phenomenon
+that is quite rare in approximation complexity.
+
+2.5   Possible Research Directions
+So far, much of the available evidence leans toward a negative answer to the open problem. However,
+ruling out a polynomial-time polylogarithmic approximation for DST remains difficult. One key
+obstacle lies in the relationship between the fractional solutions of DST and those of its harder
+variant, λ-EC-DST, which complicates the use of integrality gap lower bounds to derive hardness
+results.
+    Although we know that certain variants of DST — particularly the budgeted or maximization
+versions — do not admit polylogarithmic approximations in polynomial time (unless ETH is false),
+the known separation between the minimization and maximization variants, as illustrated in the
+case of Restricted 2-EC-GST, also renders this direction less promising.
+    The author believes that the most viable path forward is to eliminate the known bad instances
+from integrality gap constructions. These instances share a common structural property: the
+optimal fractional solutions are relatively integral. Therefore, a crucial step toward progress —
+whether in algorithm design or in constructing hardness gadgets — is to closely investigate this
+property.
+    In pursuit of a positive result, the author identifies several constraints that distinguish DST from
+λ-EC-DST. These structural differences may offer useful insights and are summarized as follows:
+
+   • In DST, the optimal solution can be assumed to be a directed binary tree. Hence, it suffices to
+     enforce an out-degree of exactly two, which is not feasible in 2-EC-DST or higher-connectivity
+     variants.
+
+   • Under the assumption that the optimal solution is a directed binary tree, one may impose a
+     density constraint: the total terminal flow carried by edges at level ℓ sums to exactly 2ℓ .
+
+   • In any minimal solution to DST, every vertex except the root has in-degree exactly one. In
+     contrast, in λ-EC-DST, internal vertices can have irregular in-degrees.
+
+    The constraint in the last item is the key ingredient used in this paper to invalidate integrality
+gap instances exhibiting the relatively integral property. The other two constraints, while poten-
+tially valuable, have not yet been exploited and may offer promising directions for future work.
+
+
+
+
+                                                   8
+3    Overview of Our Approach
+This section provides intuition and an informal overview of our algorithm. We delay formal defini-
+tions and notations to Section 4; readers unfamiliar with the topic may wish to briefly go through
+the preliminaries before returning here.
+
+Simplifying the Instance. As the first step, we use a height-reduction technique due to Ze-
+likovsky [Zel97] to simplify the input instance. This result shows that every solution to the DST
+problem can be approximated by a directed binary tree of height O(log k) whose cost is within
+O(log k) of the optimum. Thus, we may assume without loss of generality that the input graph
+is a directed acyclic graph (DAG) with L = O(log k) layers. This layered structure is crucial for
+formulating a strong LP relaxation.
+
+Formulating a Strong LP. A natural LP-relaxation for DST assigns capacities xe to each edge
+e ∈ E(G) and flow variables fet to send a unit r → t flow to every terminal t ∈ K; see Figure 2 and
+the discussion in Section 5. Unfortunately, the standard flow-based LP for DST has an integrality
+gap of at least Ω(n0.418 ) [LL24], making it too weak for achieving a polylogarithmic approximation
+ratio.
+    While applying Θ(L) rounds of LP or SDP hierarchies (such as Sherali-Adams, Lasserre, or
+Lov’asz-Schrijver) would reduce the integrality gap to O(L log k) (i.e., O(log2 k) for L = O(log k))
+as shown in [Rot11, FKK+ 14], the resulting LP would have size nΩ(L) and thus would not be
+solvable in polynomial time when L = Ω(log n).
+    Instead, we tackle the main source of difficulty directly: the inconsistency between flow and
+capacity that arises when multiple terminals share the same edges. In any integral solution, each
+vertex (except the root) has exactly one incoming edge, so each r → t path is unique. Thus,
+if different terminals’ flows use the same edges, they must share a common prefix. However, in
+a fractional solution, distinct terminals’ flows can merge or diverge arbitrarily, allowing multiple
+paths that differ in their initial segments to share an edge, as illustrated in Figure 1.
+
+
+
+
+               Figure 1: An example of flow inconsistency in a fractional solution.
+
+
+
+
+                                                 9
+     In Figure 1, we illustrate how multiple r → t flow paths can cause inconsistencies in a fractional
+solution. Consider four terminals t1 , t2 , t3 , and t4 with corresponding flow paths p1 , p2 , p3 , and
+p4 . The paths p1 and p2 initially share the same edge e1 before diverging onto edges e3 and e4 ,
+respectively. Meanwhile, p3 and p4 share a different edge e2 before eventually merging into the same
+edges e3 and e4 as p2 and p1 . In an integral solution, each vertex (except the root) has exactly one
+incoming edge, ensuring a unique r → t path per terminal and preventing such complex merges and
+divergences. However, a fractional solution allows different terminals to share edges in a manner
+that cannot arise integrally. This issue is compounded if flow paths separate and then rejoin later,
+making it much harder to enforce a tree-based structure without additional constraints.
+     To prevent such inconsistencies, we introduce new variables and constraints that enforce a
+property akin to degree-one connectivity, ensuring that if multiple terminals’ flows reach the same
+edge, they do so in a structured, tree-like manner. Previous approaches [Rot11, FKK+ 14] rely on
+Θ(L) rounds of hierarchies to ensure the unique path property, effectively controlling the entire
+length-L path. However, this leads to a quasi-polynomial-size LP. Since we cannot afford such
+blow-up, we only enforce capacity-flow consistency locally, on each pair of consecutive edges.
+     More concretely, we add constraints of the form:
+                                           X
+                                                xuv→vw = xvw
+                                             uv
+
+    The constraints ensure that the capacity used to enter v from various predecessors u can only
+“flow” into vw under separate sets of capacity variables xuv→vw . Similar constraints can be derived
+from two rounds of the Sherali-Adams hierarchy, but those only guarantee inequalities rather than
+equalities:
+                                                 
+                                    X                       X
+                       (xvw ) ×          xuv ≤ 1 =⇒             xuv ≤ xvw
+                                   uv∈δ in (v)             uv∈δ in (v)
+
+    The equality constraints we introduce here are crucial, as the weaker inequalities would allow
+decomposition into a tree-like structure but fail to ensure sufficient capacity to support a unit flow
+for each terminal.
+
+Decomposing the Fractional Solution into a Tree. With these strengthened constraints, we
+show that the LP solution can be decomposed into a capacitated tree structure — referred to as
+the decomposition tree. Initially, we only consider the integrality gap upper bound and allow the
+decomposition tree to be of quasi-polynomial size.
+    The decomposition is layered: we handle one layer at a time and form a probabilistic distribution
+of possible “children” structures for the next layer. Ensuring coherence across layers is the main
+challenge. By carefully analyzing these probabilities, we argue that the resulting decomposition
+tree supports a fractional solution that resembles a Group Steiner Tree (GST) instance on a tree.
+    The well-studied GST problem admits an O(log2 k) integrality gap on a tree instance [GKR00],
+giving us a polylogarithmic integrality gap for our strengthened LP as well. Thus, we conclude
+that our LP is significantly stronger than the standard flow-based relaxation.
+
+
+
+
+                                                  10
+Ensuring Feasibility and Controlling Error Accumulation. While the conceptual outline
+is clear, ensuring the feasibility of the GST instance derived from our probabilistic decomposition is
+intricate. Each layer introduces small multiplicative errors in capacities and flows. Even an (1 ± ϵ)
+distortion per layer can accumulate into (1 ± ϵ)L distortion over L = O(log k) layers, potentially
+growing polynomially in k.
+     Our feasibility analysis is inspired by the work of Halperin et al. [HKK+ 07] and Halperin and
+Krauthgamer [HK03], who built integrality gap constructions through recursive instances of Set
+Cover (a special case of GST on a star). By “reverse-engineering” their proofs, we adapt their tech-
+niques to analyze our randomized decomposition. The key difference is that we cannot control the
+random instances of Set Cover as they could. Instead, we carefully choose a probability distribution
+that aligns with our LP variables. Another subtlety is that we construct a pre-flow (not necessarily
+feasible) and then argue that a feasible flow of the same value must exist. These refinements allow
+us to bound error accumulation and maintain the desired polylogarithmic integrality gap.
+
+From Integrality Gap to a Polynomial-Time Algorithm. Our analysis shows that for an
+L-layer DAG with L = O(log k), the integrality gap of our strengthened LP is polylogarithmic.
+However, the decomposition tree constructed in the proof may have quasi-polynomial size, which
+does not immediately yield a polynomial-time algorithm.
+    To overcome this, we interleave the decomposition and rounding steps on-the-fly. Our rounding
+algorithm is based on the Garg-Konjevod-Ravi (GKR) algorithm for the GST problem on a tree. A
+key insight, as discussed by Rothvoß [Rot11], is that although GKR might conceptually operate on a
+large (even quasi-polynomial-size) tree, it only needs to query a polynomial number of LP variables.
+This ensures that, despite the complexity of the underlying structure, the overall computation
+remains polynomial in time.
+    We prove that a similar phenomenon holds in our setting: by carefully interleaving the de-
+composition and rounding steps, we ensure that only a polynomial number of recursive calls are
+made. As a result, we obtain a randomized polynomial-time algorithm for DST that achieves a
+polylogarithmic approximation ratio.
+    Previous approaches [Rot11, FKK+ 14] relied on solving LPs or SDPs of quasi-polynomial size,
+making polynomial-time computability unlikely. Our method, in contrast, directly encodes essential
+structural properties into the LP and interleaves decomposition and rounding to overcome this com-
+plexity barrier. This innovative approach leads to the first known polynomial-time polylogarithmic
+approximation for DST.
+
+
+4    Preliminaries
+We use standard graph terminology. Let G be any directed graph, with vertex set V (G) and edge
+set E(G). We usually denote an edge between vertices u, v ∈ V (G) by uv. However, at times we
+will write (u, v) to clearly distinguish between u and v and emphasize the direction of the edge.
+For any subset of vertices U ⊆ V (G) (or a single vertex), we define the set of incoming edges to U
+and outgoing edges from U as
+               in                                    out
+              δG  (U ) = {vu ∈ E(G) : u ∈ U }   and δG   (U ) = {uv ∈ E(G) : u ∈ U }
+                                                    in (U )| and outdeg (U ) = |δ out (U )|. When G is
+The indegree and outdegree of U are indegG (U ) = |δG                  G         G
+clear from the context, we omit the subscript and write V and E for V (G) and E(G), respectively.
+
+                                                 11
+   An arborescence is a directed graph analog of a tree, meaning that its underlying undirected
+graph forms a tree. Formally, a directed graph H with a designated root vertex r ∈ V (H) is an
+arborescence if it satisfies the following properties:
+
+ (1) H is weakly connected.
+
+ (2) Every vertex in H except the root r has indegree one.
+
+ (3) There is a unique directed path connecting r to each vertex v ∈ V (H) \ {r} (or making r
+     reachable from every v).
+
+Arborescences come in two types: (1) out-arborescences, where all paths are directed away from
+the root, and (2) in-arborescences, where all paths are directed toward the root. In this paper, we
+consider only out-arborescences and will refer to such graphs simply as trees.
+    A layered graph (or an L-layered graph) is a directed acyclic graph (DAG) G whose vertex set
+is partitioned into L disjoint subsets, called layers, V1 , V2 , . . . , VL . In a layered graph, every edge
+connects a vertex in layer ℓ to a vertex in layer ℓ + 1 for i = 1, 2, . . . , L − 1. Formally, an L-layered
+graph G is defined by
+
+                                     ˙ 2 ∪˙ . . . ∪V
+                          V (G) = V1 ∪V           ˙ L,
+                          E(G) = E1 ∪E˙ 2 ∪˙ . . . ∪E
+                                                   ˙ L−1 , where Ei ⊆ Vi × Vi+1 .
+
+    We also partition the edges of G into E1 , E2 , . . . , EL−1 , where Eℓ consists of edges uv whose
+head is in layer Vℓ and tail is in Vℓ+1 . A vertex v ∈ V (G) is said to be at level ℓ if v ∈ Vℓ , and an
+edge uv ∈ E(G) is at level ℓ if uv ∈ Eℓ . For any vertex v or edge uv, we denote its level by Level(v).
+    In a tree (out-arborescence) or a DAG, we define the height as the length of the longest path
+from the root (or source vertex) to any leaf (or sink vertex). Specifically, the height of a tree is
+the maximum number of edges on a path from the root to a leaf, while the height of a DAG is the
+maximum number of edges on a path from any source to any sink vertex.
+
+Problem Definitions:        We define the problems considered in this paper as follows:
+
+   • Directed Steiner Tree (DST): Given a directed graph G with n vertices, m edges, and
+     nonnegative edge costs ce , a root vertex r ∈ V (G), and a set of k terminals K ⊆ V (G) \ r,
+     the goal is to find a minimum-cost subgraph H ⊆ G that contains a directed path from r to
+     each terminal t ∈ K.
+
+   • Group Steiner Tree (GST): Given an undirected graph G with n vertices, m edges, and
+     nonnegative edge costs ce , a root vertex r ∈ V (G), and a collection of subsets G1 , . . . , Gk called
+     groups, the goal is to find a minimum-cost subgraph H ⊆ G that contains a path from r to
+     at least one vertex in each group Gi for i = 1, 2, . . . , k.
+
+Pseudo-Flow, Pre-Flow and Feasible-Flow: Our discussion requires the notions of several
+types of flows, which are relevant to the formulation of our LP and for our analysis. Readers already
+familiar with these concepts may skip this part.
+    A cut in a directed graph G is a partition of V (G) into two parts S and S̄ = V (G) \ S. We may
+refer to a cut as (S, S̄) or simply S. For a cut S ⊆ V (G), its cut-set is the set of edges going from
+
+
+                                                    12
+S to S̄, i.e., δ out (S). An edge e ∈ E(G) belongs to a cut S if e ∈ δ out (S). A cut S separates vertices
+s and t if s ∈ S and t ̸∈ S, and may be called an s → t-cut. By Menger’s theorem, there are λ
+edge-disjoint s → t paths in G if and only if every s → t-cut S has at least λ edges. In particular,
+to guarantee an s → t-path exists, we must have at least one edge crossing every s → t-cut (S, S̄).
+     An s, t-flow network N is defined on a directed graph G with capacities xe on each edge
+e ∈ E(G), where s, t ∈ V (G) are the source and sink, respectively. A pseudo-flow (or pseudo-
+s, t-flow ) f is a function f : E(G) → R assigning each edge uv ∈ E(G) a real value fuv , subject to
+the capacity constraint:
+                                    fuv ≤ xuv for all edges uv ∈ E(G).
+We often refer to a pseudo-flow by its values fe e∈E(G) . The value of a pseudo-flow on any cut
+S ⊆ V (G) is the net-flow, defined as the total flow entering S minus the total flow leaving S:
+                                     X               X
+                                           fuv −            fvw .
+                                      uv∈δ in (S)     vw∈δ out (S)
+
+The value of a flow f on the network is the net-flow entering the sink t.
+   A pre-flow (or pre-s, t-flow ) is a pseudo-s, t-flow where every vertex except the source s has
+non-negative net-flow. A feasible s, t-flow is a pseudo-s, t-flow where every vertex except the source
+s and the sink t has zero net-flow, i.e., it satisfies the flow-conservation constraint:
+                     X                X
+                           fuv =              fvw for all vertices v ∈ V (G) \ {s, t}.
+                    uv∈δ in (v)     vw∈δ out (v)
+
+   Throughout our discussion, all s, t-flows have the root vertex r as the common source, while
+the sink can be any terminal t ∈ K. Thus, we will often refer to such a flow simply as a t-flow.
+
+Concentration Bounds: Our analysis relies heavily on the well-known Chernoff-Hoeffding bounds
+[Che52, Hoe63]. We use the versions commonly presented in modern literature, as found in the
+textbook by Mitzenmacher and Upfal [MU17].
+
+Lemma 2 (Chernoff-Hoeffding [Che52, Hoe63, MU17]). Let X1 , X2 , . . . , Xn be independent 0 − 1
+random                           = 1] = ρi and Pr[Xi = 0] = 1 − ρi , for i = 1, 2, . . . , n. Let
+     P variables such that Pr[Xi P
+X = ni=1 Xi , and let µ = E[X] = ni=1 ρi . Then the following hold:
+                                              −ϵ2
+   • Upper Tail: Pr[X ≥ (1 + ϵ)µ] ≤ e 3 µ , for all 0 < ϵ ≤ 1.
+                                              −ϵ2
+   • Lower Tail: Pr[X ≤ (1 − ϵ)µ] ≤ e 2 µ , for all 0 < ϵ < 1.
+
+4.1    Parameters and Settings of the Directed Steiner Tree Instance
+Throughout the discussion, we assume that the input graph G is an L-layered directed graph with
+L = ⌈log2 k⌉ + 1 layers. From now on, we focus on directed graphs and omit the word “directed”
+for brevity. The number of vertices, edges, and terminals are denoted by n, m, and k, respectively.
+    In general, we can assume that G is a layered graph with n layers. To see this, given any graph
+G, create n copies of V (G) as V1 , V2 , . . . , Vn . For each edge uv ∈ E(G), join a copy u
+                                                                                           e of u at level
+ℓ to a copy ve of v at level ℓ + 1 by an edge with cost c(eu,ev) = cuv , for all ℓ = 1, 2, . . . , L − 1. In
+addition, join a copy of u at level ℓ to another copy of u at level ℓ + 1 by a zero-cost edge. It is not
+
+                                                    13
+hard to see that this transformation preserves the optimal solution. We may further assume that
+V1 = {r} and VL = K.
+    However, for technical reasons, our algorithm requires L = O(log k) layers, while the trivial
+transformation might result in L = n. Consider, for example, a case where the optimal solution is
+a path of length n.
+    Nevertheless, Zelikovsky [Zel97, HRZ01] showed that the metric closure of the input graph
+contains a tree of height L, for L = 2, . . . , ⌈log2 k⌉ + 1, that preserves the cost of an optimal
+solution within a factor of L · k 1/L .
+
+Lemma 3 (Zelikovsky’s Height Reduction [Zel97, HRZ01]). Let T be any tree (out-arborescence)
+with cost ce on each edge e ∈ E(T ) having a root r and k leaves. Then there exists a tree (out-
+arborescence) T̂ of height ℓ, for L = 2, 3, . . . , ⌈log2 k⌉ + 1, in the metric closure M(T ) of T that
+has r as a root, spans all the k leaves and has cost at most:
+
+                                          cost(T̂ ) ≤ L2 k 1/L cost(T )
+
+   It follows from the basic transformation mentioned above that the metric closure of G can be
+transformed into an L-layered graph with L = ⌈log2 k⌉ + 1 layers, while preserving the cost of an
+optimal solution within a factor of O(log k).
+
+
+5    Formulating a Strong Linear Program
+We begin by explaining how to formulate our LP. The standard flow-based LP-relaxation for DST
+seeks a minimum-cost solution vector {xe }e∈E(G) that supports a unit r → t flow for every terminal
+t ∈ K.
+    In this standard flow-based LP-relaxation, we have two types of variables on an edge e ∈ E(G).
+
+    • The variable xe indicates whether an edge e ∈ E(G) is chosen in the solution.
+
+    • The variable fet is a flow variable indicating how much r → t flow is carried on edge e.
+
+    A basic description of the standard flow-based LP-relaxation for DST is shown in Figure 2.
+
+             X
+     min             ce xe
+            e∈E(G)
+
+      s.t
+            {xe }e∈E(G) supports a unit r → t-flow to every terminal t ∈ K
+            {fet }e∈E(G) defines a unit r → t-flow                                        ∀t ∈ K
+            0 ≤ fet ≤ xe ≤ 1                                                  ∀e ∈ E(G), ∀t ∈ K
+
+
+                             Figure 2: Standard flow-based LP-relaxation for DST
+
+    In our formulation, we strengthen the LP by adding constraints that ensure, for any edge vw,
+the number of paths containing any two consecutive edges uv and vw is at most xvw (the number of
+
+                                                       14
+paths passing through vw). These are valid constraints because, in any minimal integral solution,
+each vertex v except the root has exactly one incoming edge.
+    More precisely, for every pair of consecutive edges uv, vw ∈ E(G) and every terminal t ∈ K, we
+                                              t
+introduce additional variables xuv→vw and fuv→vw    . We then impose the following constraints:
+             X                                              X
+                                                                  t        t
+                   xuv→vw = xvw ,                                fuv→vw = fvw ,
+              uv∈E(G)                                       uv∈E(G)
+                                                              X
+                          t                                            t        t
+                         fuv→vw ≤ xuv→vw                              fuv→vw = fuv
+                                                            vw∈E(G)
+                                                                       t            t     t
+                         xuv→vw ≤ min{xuv , xvw },                    fuv→vw ≤ min{fuv , fvw }
+
+    Note that a similar constraint can be derived from two rounds of the Sherali-Adams hierarchy,
+but it would not hold with equality.
+    Let G = (V, E) be the input graph, r be the root vertex, K ⊆ V \ r be the set of terminals, and
+let Eℓ , for ℓ = 1, 2, . . . , L with L = ⌈log2 k⌉+1, denote the set of edges at level ℓ. Our LP-relaxation
+is shown in Figure 3.
+
+               X
+      min              ce xe
+              e∈E(G)
+
+        s.t
+               X
+                        xuv→vw = xvw                                                 ∀vw ∈ E(G)       (⋆)
+              uv∈E(G)
+
+          0 ≤ xuv→vw ≤ xuv                                                      ∀uv, vw ∈ E(G)
+          0 ≤ xuv→vw ≤ xvw                                                      ∀uv, vw ∈ E(G)
+            X
+                  t        t
+                 fuv→vw = fvw                                              ∀vw ∈ E(G), ∀t ∈ K
+              uv∈E(G)
+                X
+                         t        t
+                        fuv→vw = fuv                                        ∀uv ∈ E(G), ∀t ∈ K
+              vw∈E(G)
+               t        t
+          0 ≤ fuv→vw ≤ fuv                                              ∀uv, vw ∈ E(G), ∀t ∈ K
+                t         t
+          0 ≤ fuv→vw  ≤ fvw                                             ∀uv, vw ∈ E(G), ∀t ∈ K
+           t
+          fvw  ≤ xvw                                                       ∀vw ∈ E(G), ∀t ∈ K
+           t
+          fuv→vw ≤ xuv→vw                                               ∀uv, vw ∈ E(G), ∀t ∈ K
+             t
+          {fvw }vw∈E(G) defines a unit r → t-flow.                                       ∀t ∈ K
+             t                                            t
+          {fvw }uv∈E(G) defines an r → t-flow with value fvw .                           ∀t ∈ K
+          0 ≤ xe ≤ 1                                                                  ∀e ∈ E(G)
+
+
+                       Figure 3: Strengthened LP-relaxation for Directed Steiner Tree
+
+
+
+
+                                                     15
+6     Bounding Integrality Gap
+Before describing our algorithm, we first analyze an upper bound on the integrality gap of the
+LP in Figure 3. The key idea is to show that any feasible fractional solution can be decomposed
+into a capacitated tree T that supports a feasible flow of value close to one. More concretely,
+we transform an optimal fractional solution of the DST LP into a corresponding LP solution for
+the Group Steiner Tree (GST) problem on a tree. Applying the rounding algorithm of Garg,
+Konjevod, and Ravi [GKR00] to this GST instance, we conclude that the integrality gap of our LP
+is polylogarithmic in the number of terminals.
+    A direct implementation of the decomposition, however, would produce a tree of quasi-polynomial
+size, making it infeasible to run explicitly, even though our LP can be solved in polynomial time.
+To achieve a polynomial running time, we interleave the rounding and decomposition steps so that
+only a polynomial number of elements need to be processed. Additionally, we must carefully handle
+the capacity distortion in the resulting tree since each original edge uv ∈ E(G) may appear multiple
+times in the decomposition tree.
+    Our upper bound analysis draws on insights from the lower bound construction of Halperin et al.
+[HKK+ 07] for the GST problem on a tree. Their approach recursively composes an integrality gap
+instance of the Set Cover problem to form a complex GST instance. In contrast, we essentially
+apply a similar idea in reverse: by treating each level of the layered graph as a Set Cover instance,
+we break down a given fractional DST solution into a simpler, tree-based structure that the GST
+rounding algorithm can effectively handle.
+
+6.1     Constructing the Decomposition Tree
+We now describe a random process that constructs a tree T . Note that T is not a subgraph of the
+original graph G and may be significantly larger. To avoid confusion, we will use the term nodes
+when referring to vertices of T , while continuing to use vertex for those of G.
+    The tree T is an out-arborescence whose root node corresponds to r, and whose leaves corre-
+spond to the set of terminals K. Thus, the root and terminals of T match those in the original
+DST instance.
+    In Section 6.1.1, we outline the overall structure of the decomposition tree. Then, in Sec-
+tion 6.1.2, we describe the random growth process that, starting from the root, recursively decom-
+poses the fractional solution along each edge uv ∈ E(G) associated with each node in T . Next,
+we detail the capacity and flow assignments in Section 6.1.3, and finally, we analyze the resulting
+integrality gap in Section 6.2.
+
+6.1.1    Structure of the Decomposition Tree
+The decomposition tree T is an out-arborescence constructed from decomposing the fractional
+solution of our LP. Its nodes come in two distinct types: edge-copy nodes and subset nodes. As we
+grow this tree level by level, starting from a special root node, we maintain a layered structure to
+mirror the complexity of the underlying layered graph G.
+
+    • Height: The decomposition tree T has L̂ = 2L − 1 levels, where L is the number of layers in
+      the original L-layered graph G. The levels of T are numbered from 1 through 2L − 1. Thus,
+      each level in G roughly corresponds to two levels in T : one containing edge-copy nodes and
+      one containing subset nodes.
+
+                                                16
+   • Root Node: At level 1, we have a special edge-copy node re associated with the root vertex
+     r of G. We may think of r as arising from an auxiliary edge r′ r. We call this unique node r̂
+     the root node of T .
+
+   • Leaf Nodes: The leaves of T lie at level L̂, which is an odd level. Leaf nodes are “edge-copy
+     nodes” corresponding to edges entering terminal vertices t ∈ K. Specifically, each leaf is
+                  e for vt ∈ E(G) and t ∈ K. These leaves can be partitioned into groups Gt
+     denoted by vt,
+     based on their associated terminal t. Each Gt represents a group in a Group Steiner Tree
+     instance on the decomposition tree T .
+
+   • Odd-Level Nodes (Edge-Copy Nodes): At every odd level 1, 3, 5, . . . , 2L − 1, the nodes
+     of T are edge-copy nodes. Each such node corresponds to an edge in G. We write u      fv to
+     denote an edge-copy node associated with an original edge uv ∈ E(G). Since a single edge
+     uv may appear multiple times as we branch out in the decomposition, we may have multiple
+     copies labeled u
+                    fv. Except at the leaves, each edge-copy node u
+                                                                  fv at an odd level has exactly
+     d children, and these children are subset nodes.
+
+   • Even-Level Nodes (Subset Nodes): At every even level 2, 4, 6, . . . , 2L − 2, the nodes of
+     T are subset nodes. Each subset node sjufv corresponds to a randomly chosen subset of edges
+     from E(G) that are “children” of the edge uv. There are d such subsets for each edge-copy
+     node. The subset nodes sjufv serve as probabilistic intermediaries, chosen independently at
+     random, that refine the decomposition down to the next layer.
+
+    In summary, T alternates levels of edge-copy nodes and subset nodes, starting with an edge-
+copy node at the root and ending with edge-copy nodes at the leaves. Edge-copy nodes represent
+edges of the original graph G, while subset nodes represent random subsets of edges, guiding the
+decomposition through each layer. This alternating structure enables us to progressively “zoom
+in” on the fractional solution, ultimately transforming it into a tree-structured instance for which
+an existing technique — the Garg-Konjevod-Ravi rounding algorithm — is applicable.
+
+6.1.2     Randomized Construction
+The decomposition tree T is built using a randomized procedure applied to each edge-copy node
+u
+fv, proceeding level by level until terminal nodes are reached. We remark that both the first and
+the last levels of T consist exclusively of edge-copy nodes.
+    Given an edge-copy node u  fv, the randomized construction process operates as follows:
+
+   • From u       fv to sjufv : If v is not a terminal vertex in K, then we independently generate d subsets
+     s1ufv , s2ufv , . . . , sdufv . For each subset sujfv , we consider every outgoing edge vw ∈ E(G) (i.e., edges
+     emanating from v). We include the edge-copy node vw                    f in subset sjufv with probability:
+                                                           h          i x
+                                                                           uv→vw
+                                                     Pr vw   f ∈ sjufv =         .
+                                                                            xuv
+
+        This probability ensures that the selection of child edges in each subset aligns proportionally
+        with their corresponding capacity xuv distributed to each xuv→vw in the LP solution.
+
+
+
+                                                       17
+                          Figure 4: An illustration of the Decomposition
+
+
+   • From sjufv to vw:
+                   f For each subset node sjufv , we create a child edge-copy node vw
+                                                                                   f corresponding
+                                                     j
+     to edge vw ∈ E(G) only if vw                                    f becomes a child of sjufv if and
+                                  f is included in sufv . Formally, vw
+             f ∈ sjufv . That is,
+     only if vw
+
+                                     (sjufv , vw)          f ∈ sjufv .
+                                              f ∈ E(T ) ⇐⇒ vw
+
+     Importantly, observe that each subset sjufv contains at most one copy of any edge vw ∈ E(G).
+
+    We may conceptualize the randomized construction as a form of fractional set packing, where
+our goal is to fractionally pack a star (a height-1 tree) into a capacity determined by the LP
+solution of the Strengthened LP. This perspective helps in understanding how the decomposition
+aligns with the flow and capacity constraints imposed by the LP, ensuring that the resulting tree
+structure accurately represents the fractional solution in expectation.
+    An illustration of the decomposition process is provided in Figure 4.
+
+Handling the Root Level: The randomized process described above generates a block of sub-
+trees emanating from each edge-copy node u  fv. However, the first level of the input graph G consists
+only of the root vertex r, which has no incoming edge. To uniformly apply the decomposition pro-
+cess to all edge-copy nodes, including the root, we introduce auxiliary LP variables by treating the
+root r ∈ V (G) as if it were an edge, and we add its copy re as the root of the decomposition tree
+T . Specifically, we set the capacity xr = 1, representing the root’s total capacity, and for each
+outgoing edge rv from r, we set xr→rv = xrv , where rv denotes an edge outgoing from the root
+vertex r in G. Additionally, for each terminal t ∈ K, we set the flow frt = 1 to ensure that one unit
+                                                 t
+of flow is directed towards each terminal, and fr→rv      t to maintain flow consistency. That is,
+                                                      = frv
+
+              xr = 1, xr→rv = xrv    and   frt = 1, fr→rv
+                                                     t       t
+                                                          = frv for all terminals t ∈ K.
+
+This setup ensures that the root vertex r correctly distributes flow and capacity to its outgoing
+edges in accordance with the LP solution, and the edge-copy re can be seeded as the first node in
+the construction.
+
+
+
+                                                 18
+Terminals in the Decomposition Tree: In the decomposition process, each terminal t ∈ K
+is represented by a collection of edge-copy nodes within the decomposition tree T . Specifically, a
+terminal t ∈ K is associated with all edge-copy nodes corresponding to edges directed into t in the
+original graph G. Formally, the set of edge-copy nodes representing terminal t is defined as
+
+                                   Gt := {vt
+                                          e ∈ V (T ) : vt ∈ E(G)}.
+
+Borrowing terminology from the Group Steiner Tree (GST) problem, each set Gt is referred to as a
+group. Each group Gt encapsulates all potential connections to the terminal t ∈ K within the tree
+structure and serves as the basis for defining a GST instance on the decomposition tree T .
+
+6.1.3   Assigning Capacities and Flow to the Decomposition Tree
+Now, we assign the capacities and flows to the edges of the decomposition tree T . The assignments
+will be described for each block in the decomposition tree T consisting of an edge-copy node
+fv ∈ V (T ), its children sujfv , and nodes vw
+u                                           f ∈ sjufv .
+
+Intuition Behind The Distribution: We briefly explain the intuition behind our choice of
+distributions.
+    Firstly, we treat xuv as the probability that an edge uv appears in an integral solution, and we
+            t as the probability that an integral t-flow chooses to route through the edge uv. Thus,
+interpret fuv
+            t
+the ratio fuv /xuv represents the conditional probability that the t-flow chooses to route through uv
+given that uv is included in the integral solution.
+    Viewing the fractional solution this way, xuv→vw /xuv can be seen as the probability that an
+edge vw appears in the integral solution as a child of uv, given that uv is chosen. This forms the
+basis of the distribution we employ. Consequently, the probability is
+
+                                                                                            xuv→vw
+   Pr[vw appears in an integral as a child of vw|uv appears in an integral solution] =
+                                                                                              xuv
+                              t
+     Now, one may interpret fuv→vw /xuv→vw as the probability that an integral t-flow routes through
+the edges uv and then vw. The key observation is that the flow variables fuv   t are not relatively
+                                      t /x
+integral with respect to xuv — i.e., fuv   uv < 1 is often the case. Therefore, we need to scale the
+t-flow by a factor of xuv /fuv and multiply by the fraction of t-flow fˆuv
+                            t                                           t routing through uv in the
+
+decomposition tree. This yields the probability:
+
+                                                                                   xuv xuv→vw
+Pr[t-flow routes through uv → vw|uv and vw appear in an integral solution] = fˆuv
+                                                                               t
+                                                                                  · t ·
+                                                                                   fuv   xuv
+
+     These ideas form the basis of our capacity and flow assignments. The t-flow on the decomposi-
+tion tree is maintained so that it is close to being integral relative to the capacities — specifically,
+x̂ufv = fˆuf
+           t whenever fˆt > 0.
+            v           u
+                        fv
+
+
+Notation Simplification: To avoid confusion with the LP variables on the original graph G, we
+use x̂α and fˆαt to denote the capacity and flow variables on an edge α ∈ E(T ) in the decomposition
+tree. For convenience, since every node in a tree has a unique incoming edge, we may refer to an
+
+
+                                                  19
+edge (a, b) ∈ E(T ) simply by its head node b when it appears in a subscript. For example, x̂b and
+fˆbt correspond to x̂(a,b) and fˆ(a,b)
+                                 t     , respectively.
+
+
+                                x̂(f
+                                   uv,sj )
+                                           ⇐⇒ x̂sj             fˆ(f
+                                                                 t
+                                                                  uv,sj )
+                                                                          ⇐⇒ fˆstj
+                                        uv
+                                        f            uv
+                                                     f                 uv
+                                                                       f         uv
+                                                                                 f
+
+                                x̂(sj ,vw) ⇐⇒ x̂vw
+                                                f              fˆ(s
+                                                                 t
+                                                                    j
+                                                                      ,vw)
+                                                                           ⇐⇒ fˆvw
+                                                                                t
+                                                                                f
+                                   uv
+                                       f
+                                                                  uv
+                                   f                              f
+                                                                       f
+
+
+                                                                           uv, sjufv , vw),
+Capacity Assignments: First, we assign a capacity of d−(ℓ+1) to each path (f           f where
+ℓ is the current level of node u
+                               fv. Formally,
+                                                          −(ℓ+1)
+                                             x̂sj = x̂vw
+                                                      f =d
+                                              uv
+                                              f
+
+
+
+Defining Pseudo-Flow: Next, for each terminal t ∈ K, we define a pseudo-flow fˆt by pushing
+the t-flow from a node u
+                       fv of level ℓ to its descendant vw
+                                                       f of level ℓ + 1.
+
+   • Initialization: For each terminal t ∈ K, we initialize a pseudo-flow fˆt by pushing a flow of
+     value fˆret = 1 to the root node re.
+
+   • Selecting Recipient Node: For each level ℓ = 0, 1, . . . , L − 1, we propagate the pseudo-flow
+     from each node u
+                    fv at level ℓ to its descendants vwf at level ℓ + 1 as follows:
+                     fv ∈ V (T ) at level ℓ with positive incoming pseudo-flow, i.e., fˆt = x̂ufv . For
+     Consider a node u                                                                         u
+                                                                                               fv
+      each subset sujfv , we mark one child node vw
+                                                 f ∈ sjufv with probability:
+                             t
+                      xuv fuv→vw      t
+                                     fuv→vw                         t           t
+                       t
+                          ·        =                      (because fuv > 0 and fuv ∈ {0, xuv }).
+                      fuv   xuv→vw   xuv→vw
+                                                                                              t
+      Observe that the above is a valid probability because the capacity constraint enforces fuv→vw ≤
+      xuv→vw .
+
+   • Propagating the Flow: If a node vw   f ∈ sjufv is marked, then we push a pseudo-flow of
+     value x̂vw
+             f =d                         uv, sjufv , vw).
+                 −(ℓ+1) through the path (f           f Formally,
+                                                              i x       t        t
+                                                                  uv fuv→vw     fuv→vw
+                        h
+                                                          j
+                      Pr fˆvw
+                           t
+                              = x̂vw u
+                                     f v ∈ V (T ) ∧ vw
+                                                    f  ∈ su v  =  t
+                                                                     ·        =
+                           f       f                       f     fuv   xuv→vw   xuv→vw
+
+Remark: It is possible that no node in sjufv is marked. In such cases, the edge (f uv, sjufv ) carries no
+t-flow. The probability of this event is
+                                                   h                                       i
+                                                                                          j
+                                              X
+               ˆt
+          Pr fsj = 0 u  fv ∈ V (T ) = 1 −         Pr fˆvw
+                                                        t
+                                                          =  x̂vw u v ∈ V (T ) ∧ vw ∈  s
+                                                        f       f f              f        u
+                                                                                          fv
+                 uv
+                                                        j
+                 f
+                                                   vw∈s
+                                                   f uv f
+
+
+
+
+                                                          20
+6.1.4    Alternative View of the Decomposition Tree
+The decomposition tree T can be conceptualized as a path-splitting tree, which is a suffix tree
+representing all possible paths in the layered graph G. Note, however, that our decomposition tree
+allows subpaths of length ℓ to appear up to dℓ times within the tree. Consequently, an edge-copy
+      f that is absent from a subset sjufv can be considered as having a capacity of x̂(f
+node vw                                                                                    f = 0.
+                                                                                        uv,vw)
+    Path-splitting trees have been instrumental in developing algorithms for various variants of
+the Directed Steiner Tree and Group Steiner Tree problems; see, for example, [NPS11, CEKP18,
+CEGS11]. Additionally, the path-splitting tree is a key component in rounding fractional solutions
+obtained from LP and SDP hierarchies [Rot11, FKK+ 14], as well as in addressing the 2-Edge-
+Connected Directed Steiner Tree problem [GL17].
+
+6.2     Analysis for the Integrality Gap
+In this subsection, we analyze the integrality gap of the Straightened LP formulation for DST.
+Throughout this analysis, we adhere strictly to the construction of the decomposition tree T as
+described in Section 6.1.2 and the capacity and flow assignments detailed in Section 6.1.3.
+    Our analysis is organized as follows. First, in Section 6.2.1, we introduce the necessary notations,
+parameter settings, and prerequisites required for the subsequent discussion. Then, in Section 6.2.2,
+we analyze the distortion on the capacity of edges when mapped to the decomposition tree. This
+distortion analysis shows that the cost of the fractional solution on the decomposition tree deviates
+by only a constant factor. The proofs also serve as a warm-up for the subsequent analysis. Next,
+in Section 6.2.3, we analyze the feasibility of the flow assignments as described in Section 6.1.3.
+    Following the distortion and flow feasibility analyses, in Section 6.2.4, we leverage the known
+integrality gap of the Group Steiner Tree problem on a tree to argue that the integrality gap of the
+fractional solutions on the decomposition tree is polylogarithmic.
+    Finally, we combine the transformation steps to conclude the existence of a randomized polynomial-
+time polylogarithmic approximation estimation algorithm for DST — an algorithm that estimates
+the value of an optimal solution without providing the actual solution. The integrality gap result
+is subsequently transformed into a polynomial-time approximation algorithm in Section 7.
+
+6.2.1    Notation, Parameters and Prerequisite
+Before proceeding to the analysis, we will define the notation, parameter settings, and prerequisites
+that will be used throughout the discussion.
+
+Prerequisite:    We assume the following prerequisite:
+
+                              t
+                       xuv , fuv ≥ 1/n2     and                  t
+                                                       xuv→vw , fuv→vw ≥ 1/n4 .
+     This assumption is valid because even after removing all edges with xe below n12 , the remaining
+edges still support a t-flow of value at least 12 . More formally, after removing such edges, each cut
+still has a capacity of at least
+                                       1        n(n − 1) 1          1    1
+                         1 − |E(G)| ·   2
+                                          ≥1−            · 2 ≥1− = .
+                                      n            2      n         2    2
+Note that the first inequality holds because the graph G is directed acyclic, meaning that any pair
+of vertices u, v can have at most one of the edges uv or vu.
+
+                                                  21
+    Although the prerequisite only ensures a t-flow of at least 1/2, we will assume a flow of value one
+to simplify the discussion. Additionally, we assume throughout the discussion that the fractional
+solution is relatively integral — i.e., each edge e ∈ E(G) carried t-flow value either fet = 0 or
+fet = xe . In other words,
+                                        fet > 0 =⇒ fet = xe .
+
+Notation: Regarding the levels of nodes in the decomposition tree, we define the level of a node
+fv ∈ V (T ) to be the level of its corresponding edge uv ∈ E(G), and we define the level of the root
+u
+node as level-0.
+   The following notation will be used throughout the proofs:
+
+
+Copy(uv) = the set of copies of an edge uv ∈ E(G) in the decomposition tree
+Level(uv) = the level of an edge uv in the graph G
+        Zuv = the number of copies of uv ∈ E(G) in the decomposition tree
+            = |Copy(uv)|
+Zufv→(vw) = the number of copies of vw ∈ E(G) created from a node u
+                                                                  fv ∈ V (T )
+             n             o
+                 f ∈ sjufv
+          = j : vw
+        Qtuv = the number of copies of uv ∈ E(G) that has positive t-flow in the decomposition tree
+                n                         o
+             = u  fv ∈ Copy(uv)| fˆuf
+                                    t
+                                      v >0
+
+Qtufv→(vw) = the number of copies of vw ∈ E(G) created from a node u
+                                                                   fv ∈ V (T )
+              n                      o
+                  f ∈ sjufv ∧ fˆvw
+           = j : vw             t
+                                f >0
+
+
+
+
+Parameter Settings:        We conclude by setting the parameters
+
+                                       d = n7   and    δ = 1/4.
+
+The choice of d ensures that 1/d is smaller than any LP variables (e.g., xuv , xuv→vw ) by a polynomial
+factor. The constant δ is used in our probabilistic analysis. Its value is chosen to guarantee the
+applicability of all necessary inequalities.
+
+6.2.2     Analysis of Capacity Distortion
+This subsection is devoted to analyzing the distortion of the capacity variables xuv as they appear
+as multiple copies in the decomposition tree. The upper bound on the distortion provides an upper
+limit on the blow-up of the cost of the fractional solution as it is mapped to the decomposition
+tree, while the lower bound ensures that the connectivity requirements are met.
+    However, the lower bound alone does not suffice to argue that the capacities on the decomposi-
+tion tree support a flow of value close to one. Therefore, a more involved analysis using flow-based
+arguments is necessary, which we postpone to Section 6.2.3. Here, we present the proofs of both
+lower and upper bounds on distortion as a warm-up to the analysis of flow feasibility. Additionally,
+
+
+                                                  22
+the proof of the distortion upper bound serves as a precursor to the analysis of the running time
+of the “Decompose-and-Round” algorithm discussed in Section 7.
+    We will proceed at a slow pace to familiarize readers with the use of concentration bounds by
+proving a simple lemma using Chernoff-Hoeffding bounds. Readers already acquainted with the
+subject may choose to skip this part.
+
+Lemma 4. Consider an edge uv ∈ E(G) at level ℓ and its child vw ∈ E(G). Let δ = 1/4, and let
+                                                                f in the decomposition tree T ,
+Zufv→(vw) denote the number of copies of vw created from a copy vw
+                 n            o
+                           j
+                      f ∈ svw
+i.e., Zufv→(vw) = j : vw    f   . Then it holds that
+       h                                    i                                         
+   • Pr Zufv→(vw) ≤ 1 − 2ℓ+1
+                          δ
+                               · d · xuv→vw           − 12 ·   δ
+                                                                        · d · xuv→vw
+                                                                   
+                                       xuv    ≤ exp            2ℓ               xuv
+       h                                    i                                             
+   • Pr Zufv→(vw) ≥ 1 + 2ℓ+1
+                          δ
+                               · d · xuv→vw           − 13 ·    δ
+                                                                            · d · xuv→vw
+                                                                       
+                                       xuv    ≤ exp            2ℓ+1                 xuv
+
+                                 fv of uv ∈ E(G) appears in the decomposition tree T , the number
+In particular, given that a copy u
+of copies vw
+          f created from u fv is (1 ± δ/2ℓ+1 ) · d · xuv→vw
+                                                       xuv  with probability at least 1 − exp(−n)).
+
+                                                  f is added to a subset sjufv is
+Proof. We recall that the probability that a copy vw
+                                h                       i x
+                                                            uv→vw
+                              Pr vwf ∈ sjufv u
+                                             fv ∈ V (T ) =        .
+                                                             xuv
+Thus, the expected number of copies of vw
+                                       f created from u  fv is
+                                          h                      i x
+                                                                    uv→vw
+                                            f ∈ sujfv u
+                               X
+                 E Zufv→(vw) =         Pr vw          fv ∈ V (T ) =       · d.
+                                                                     xuv
+                                        j=1,...,d
+
+Plugging in ϵ = δ/2ℓ+1 to the Chernoff-Hoeffding bounds in Theorem 2, the desired inequalities
+immediately follow.
+    Moreover, from the prerequisite, we have d ≥ n7 , xuv→vw ≤ 1 and xuv≥1/n . Therefore, applying
+the union bound, we conclude that the number of copies vw  f deviates from the expectation by a
+               ℓ+1
+factor (1 ± δ/2 ) with probability at most exp(−n).
+
+Distortion Lower Bound: With the concentration bounds in place, we are now ready to prove
+the distortion lower and upper bounds. Intuitively, we apply the concentration bounds similar to
+those in Theorem 4. However, the number of copies of an edge vw at level ℓ + 1 depends on the
+number of copies of its parent edges uv ∈ E(G). Therefore, we need to condition on the lower
+bound provided by the previous level.
+
+Lemma 5 (Distortion Lower Bound). Suppose all edges uv ∈ E(G) have xuv ≥ 1/n2 . Let δ = 1/4
+and d ≥ n7 . Then it holds for all edges uv ∈ E(G) at level ℓ, for ℓ = 0, 1, 2, . . . , L − 1, that
+                                                                                      !
+                             Y                                          ℓ
+                                         δ      ℓ                 1   2     d
+              Pr Zuv ≤            1 − i  · d xuv  ≤ exp − · δ ·                · xvw
+                                        2                         5         4
+                            i=1,...,ℓ
+
+
+In particular, for d ≥ n7 , every edge uv ∈ E(G) at level ℓ has at least (dℓ xuv )/2 copies in the
+decomposition tree with high probability.
+
+                                                    23
+Proof. We prove the lemma by induction on ℓ. At the level 0, there is only the root r, which we
+treat as a special edge. Thus, the statement holds immediately as the root has exactly one copy re
+in the decomposition tree, implying
+                                                    
+                                       Y        δ
+                                                   
+                          Zr = 1 ≥          1 − i  · dℓ xr = d0 · 1 = 1.
+                                                 2
+                                       i=1,...,ℓ
+
+   Assume inductively that, for some ℓ ≥ 1, the claim holds for all edges uv ∈ E(G) at level ℓ. For
+notational convenient, we define the threshold ϑuv for edges uv ∈ E(G) as
+                                                        
+                                          Y          δ
+                                                        
+                                ϑuv :=          1 − i  · dℓ xuv .
+                                                     2
+                                             i=1,...,ℓ
+
+   Thus, we have from the induction hypothesis that
+                           "         #                ℓ      !
+                                                 1 2  d
+                       Pr Zuv ≤ ϑuv ≤ exp − · δ ·         · xvw .
+                                                 5    4
+
+   The probability is negligible when d ≥ n7 and xuv ≥ 1/n2 . Specifically, the probability that
+there exists an edge uv ∈ E(G) at level ℓ having fewer than ϑuv copies is
+           "                                          #                       ℓ         !
+                                                                      1        d
+        Pr ∃uv ∈ E(G) at level ℓ such that Ẑuv ≤ ϑuv ≤ n2 · exp − · δ 2 ·          · xvw
+                                                                      5        4
+                                                                           ℓ       !
+                                                                  1 2      d
+                                                        ≤ exp − · δ ·          · xvw
+                                                                  6        4
+
+    It follows that, for ℓ ≥ 1, every edge uv at level ℓ has no less than ϑuv copies in the decomposition
+tree with probability at least (1 − 1/n). Hence, it suffices to analyze the expected number of copies
+of vw at level ℓ + 1 given that all its parents uv have at least ϑuv copies.
+
+
+
+
+                                                         24
+            "                            #                                                    
+                                                                                   h          i
+                                                                                     f ∈ sjufv 
+                                                 X                       X
+       E Zvw Zuv ≥ ϑuv ∀uv ∈ E(G) ≥                      ϑuv ·                  Pr vw
+                                               uv∈E(G)             j=1,2,...,d
+                                                 X                    xuv→vw
+                                                                               
+                                             =             ϑuv · d ·
+                                                                         xuv
+                                               uv∈E(G)
+                                                                                                     
+                                                 X              Y           δ
+                                                                                
+                                                                                                x uv→vw 
+                                             =                         1 − i  · dℓ xuv · d ·
+                                                                             2                     xuv
+                                               uv∈E(G)        i=1,...,ℓ
+                                                                                                 
+                                                 X              Y           δ
+                                                                                
+                                             =                         1 − i  · dℓ+1 · xuv→vw 
+                                                                             2
+                                               uv∈E(G)        i=1,...,ℓ
+                                                                       
+                                                   Y                
+                                                                 δ  ℓ+1            X
+                                             =             1− i          ·d    ·         xuv→vw
+                                                                 2
+                                                 i=1,...,ℓ                        uv∈E(G)
+                                                                       
+                                                   Y            δ
+                                                                     
+                                             =             1 − i  · dℓ+1 xvw
+                                                                 2
+                                                 i=1,...,ℓ
+
+   The first inequality follows because we are given that the number ofPcopies of every edge uv ∈
+E(G) is at least ϑuv . The last equality follows from the constraint        uv xuv→vw = xvw in the
+Strengthened LP.
+   It then follows by Chernoff-Hoeffding bounds (Theorem 2) that
+                                                                                      
+                                                   
+                             δ        Y             δ
+        Pr  Zvw ≤ 1 − ℓ+1 ·                   1 − i  · dℓ+1 · xvw Zuv ≥ ϑuv ∀uv ∈ E(G)
+                           2                       2
+                                    i=1,...,ℓ
+                                                                                      
+                                                         2     Y          
+                                                1      δ                   δ
+                                  ≤ exp − ·                 ·       1 − i  · dℓ+1 xvw 
+                                                2    2ℓ+1                 2
+                                                                         i=1,...,ℓ
+
+    Next, we analyze the left-hand-side  of the inequality. We apply the fact that exp(−y) ≤ 1−y/2,
+for y ∈ [0, 1.59] to the product i=1,...,ℓ 1 − 2δi . Then we have
+                                 Q                
+
+                                                                 
+   Y          δ
+                       Y       
+                                     δ
+                                                      X       δ
+          1− i ≥            exp − i−1 = exp −                     ≥ exp(−2δ) = exp(−1/2) ≥ 1/2.
+               2                   2                         2i−1
+i=1,...,ℓ              i=1,...,ℓ                             j=1,...,ℓ
+
+    Consequently, we have
+             "                                               #                            2       !
+                                                                                     dℓ+1 xvw
+                                                                                  
+                                                               1                      δ
+                Pr Zvw ≤ ϑvw       Zuv ≥ ϑuv ∀uv ∈ E(G) ≤ exp − ·                  ·
+                                                               2             2ℓ+1        2
+                                                                                ℓ+1       !
+                                                                        1 2      d
+                                                                 = exp − · δ ·        · xvw
+                                                                        4        4
+
+
+
+                                                        25
+    As discussed, the probability that all edges uv ∈ E(G) at level ℓ have no less than ϑuv copies
+in the decomposition tree is at least 1 − 1/n. Thus, we have
+
+       "            #       "                                           #
+    Pr Zvw ≤ ϑvw ≤ Pr Zvw ≤ ϑvw ∧ Zuv ≥ ϑuv ∀uv ∈ E(G)
+                            "                                       #       "                        #
+                        = Pr Zvw ≤ ϑvw Zuv ≥ ϑuv ∀uv ∈ E(G) · Pr Zuv ≥ ϑuv ∀uv ∈ E(G)
+                                         ℓ+1       !      
+                               1         d                 1
+                        ≤ exp − · δ 2 ·        · xvw · 1 −
+                               4         4                 n
+                                         ℓ+1       !
+                               1         d
+                        ≤ exp − · δ 2 ·        · xvw
+                               5         4
+
+    This proves
+          Q the first part of  the lemma. The second part of the lemma follows by applying the
+                             δ
+fact that    i=1,...,ℓ+1 1 − 2i   ≤ 1/2 to the multiplicative term in ϑvw , which gives us
+
+                                                            ℓ+1       !
+                                  dℓ+1 xvw
+                                          
+                                                    1 2     d
+                         Pr Zvw ≤            ≤ exp − · δ ·        · xvw
+                                     2              5       4
+
+    Thus, for ℓ ≥ 1, xuv ≥ 1/n2 and d = n7 , it holds that Zvw ≤ (dℓ+1 xvw )/2 with probability at
+most exp(−n). Since the graph G has at most n2 edges, it follows by the union bound that all
+the edges vw ∈ E(G) have Zvw ≥ (dℓ+1 xvw )/2 copies in the decomposition tree with probability at
+least 1 − 1/n, i.e., with high probability. This completes the proof of the lower bound.
+
+Distortion Upper Bound: The proof of the distortion upper bound is almost identical to that
+of the lower bound (Theorem 5) except that the concentration bound is applied to the upper tail.
+
+Lemma 6 (Distortion Upper Bound). Suppose all edges uv ∈ E(G) have xuv ≥ 1/n2 , and let
+δ = 1/4 and d ≥ n7 . Then it holds for all edges uv ∈ E(G) at level ℓ, for ℓ = 0, 1, 2, . . . , L − 1, that
+                                                                                 !
+                             Y                                           ℓ
+                                         δ                        1         d
+              Pr Zuv ≥            1 + i  · dℓ xuv  ≤ exp − · δ 2 ·          xuv
+                                        2                         2         4
+                                i=1,...,ℓ
+
+
+In particular, for d ≥ n7 , every edge uv ∈ E(G) at level ℓ has at most 2 · (dℓ xuv ) copies in the
+decomposition tree with high probability.
+
+Proof. We prove the lemma by induction on ℓ. At the level 0, there is only the root r, which we
+treat as a special edge. Thus, the statement holds immediately as the root has exactly one copy re
+in the decomposition tree, implying
+                                                    
+                                       Y        δ
+                                                   
+                          Zr = 1 ≤          1 + i  · dℓ xr = d0 · 1 = 1.
+                                                 2
+                                            i=1,...,ℓ
+
+
+
+                                                        26
+   Assume inductively that, for some ℓ ≥ 1, the claim holds for all edges uv ∈ E(G) at level ℓ. For
+notational convenient, we define the threshold ϑuv for edges uv ∈ E(G) as
+                                                        
+                                          Y          δ
+                                                        
+                                ϑuv :=          1 + i  · dℓ xuv .
+                                                     2
+                                           i=1,...,ℓ
+
+   Thus, we have from the induction hypothesis that
+                           "          #                ℓ    !
+                                                  1 2  d
+                        Pr Zuv ≥ ϑuv ≤ exp − · δ ·         xuv .
+                                                  2    4
+
+   The probability is negligible when d ≥ n7 and xuv ≥ 1/n2 . Specifically, the probability that
+there exists an edge uv ∈ E(G) at level ℓ having more than ϑuv copies is
+            "                                          #                     ℓ      !
+                                                            2          1 2    d
+         Pr ∃uv ∈ E(G) at level ℓ such that Zuv ≥ ϑuv ≤ n · exp − · δ ·           xuv
+                                                                       2      4
+                                                                          ℓ     !
+                                                                  1 2     d
+                                                         ≤ exp − · δ ·        xuv
+                                                                  3       4
+
+    It follows that, for ℓ ≥ 1, every edge uv at level ℓ has no more than ϑuv copies in the decom-
+position tree with probability at least (1 − 1/n). Hence, it suffices to analyze the expected number
+of copies of vw at level ℓ + 1 given that all its parents uv have no more than ϑuv copies in the
+decomposition tree.
+
+        "                            #                                                    
+                                                                              h          i
+                                                                                f ∈ sjufv 
+                                              X                  X
+      E Zvw Zuv ≤ ϑuv ∀uv ∈ E(G) ≤                     ϑuv                 Pr vw
+                                           uv∈E(G)            j=1,2,...,d
+                                                                           
+                                              X                     xuv→vw
+                                         =              ϑuv · d ·
+                                                                      xuv
+                                           uv∈E(G)
+                                                                                                 
+                                             X               Y           δ
+                                                                             
+                                                                                             xuv→vw 
+                                         =                          1 + i · dℓ xuv  · d ·
+                                                                          2                    xuv
+                                           uv∈E(G)         i=1,...,ℓ
+                                                                                             
+                                             X               Y           δ
+                                                                             
+                                         =                          1 + i  · dℓ+1 · xuv→vw 
+                                                                          2
+                                           uv∈E(G)         i=1,...,ℓ
+                                                                    
+                                                                 
+                                               Y              δ                 X
+                                         =              1 + i  · dℓ+1 ·             xuv→vw
+                                                              2
+                                             i=1,...,ℓ                        uv∈E(G)
+                                                                    
+                                                                 
+                                               Y              δ
+                                         =              1 + i  · dℓ+1 xvw
+                                                              2
+                                              i=1,...,ℓ
+
+    The first inequality follows because we are given that the number ofPcopies of every edge uv ∈
+E(G) is at most ϑuv . The last equality follows from the constraint       uv xuv→vw = xvw in the
+strengthened LP.
+
+                                                       27
+   It then follows by Chernoff-Hoeffding bounds (Theorem 2) that
+                                                                                     
+                                                  
+                           δ         Y             δ
+        Pr  Zvw ≥ 1 + ℓ+1 ·                  1 + i · dℓ+1  · xvw Zuv ≥ ϑuv ∀uv ∈ E(G)
+                         2                        2
+                                   i=1,...,ℓ
+                                                                                     
+                                                        2                
+                                               1      δ         Y         δ
+                                 ≤ exp − ·                 ·       1 + i  · dℓ+1 xvw 
+                                               3    2ℓ+1                 2
+                                                                 i=1,...,ℓ
+
+    Next, we analyze the left-hand-side
+                                      Q of the inequality.  We apply the fact that exp(y) ≥ 1 + y,
+for all real number y, to the product i=1,...,ℓ 1 + 2δi . Then we have
+                                                       
+
+                                                              
+           Y        δ
+                             Y        
+                                        δ               X δ
+                1+ i ≤            exp       = exp              ≤ exp(2δ) = exp(1/2) ≤ 2.
+                     2                  2i                  2i
+       i=1,...,ℓ            i=1,...,ℓ                j=1,...,ℓ
+
+   Consequently, we have
+            "                                   #                                   2   !
+                                                    1                        δ
+           Pr Zvw ≥ ϑvw Zuv ≤ ϑuv ∀uv ∈ E(G) ≤ exp − ·                · 2 · dℓ+1 xvw
+                                                    3           2ℓ+1
+                                                                   ℓ+1        !
+                                                           2 2      d
+                                                    = exp − · δ ·         · xvw
+                                                           3        4
+
+    As discussed, the probability that all edges uv ∈ E(G) at level ℓ have no more than ϑuv copies
+in the decomposition tree is at least 1 − 1/n. Thus, we have
+
+      "            #       "                                             #
+    Pr Zvw ≥ ϑvw ≤ Pr Zvw ≥ ϑvw ∧ Zuv ≤ ϑuv ∀uv ∈ E(G)
+                           "                                         #           "            #
+                       = Pr Zvw ≥ ϑvw Zuv ≤ ϑuv ∀uv ∈ E(G) · Pr Zuv ≤ ϑuv ∀uv ∈ E(G)
+                                        ℓ+1       !      
+                              2         d                 1
+                       ≤ exp − · δ 2 ·        · xvw · 1 −
+                              3         4                 n
+                                        ℓ+1       !
+                              1         d
+                       ≤ exp − · δ 2 ·        · xvw
+                              2         4
+
+    This proves
+          Q the first part of  the lemma. The second part of the lemma follows by applying the
+                             δ
+fact that    i=1,...,ℓ+1 1 − 2i   ≤ 1/2 to the multiplicative term in ϑvw , which gives us
+                                                                ℓ+1        !
+                                    dℓ+1 xvw
+                                            
+                                                        1 2      d
+                         Pr Zvw ≥              ≤ exp − · δ ·           · xvw
+                                       2                2        4
+
+   Thus, for ℓ ≥ 1, xuv ≥ 1/n2 and d = n7 , it holds that Zvw ≥ 2 · dℓ+1 xvw with probability at
+most exp(−n). Since the graph G has at most n2 edges, it follows by the union bound that all the
+edges vw ∈ E(G) have Zvw ≤ 2 · dℓ xuv copies in the decomposition tree with probability at least
+1 − 1/n, i.e., with high probability. This completes the proof of the upper bound.
+
+                                               28
+Concluding Capacity Distortion Bounds:                The following is an immediate corollary of Theo-
+rem 5 and Theorem 6.
+Corollary 7 (Bounds on Capacity Distortion). It holds with high probability for every edge uv ∈
+E(G) at level ℓ, for ℓ = 0, 1, . . . , L, that
+                                xuv           X
+                                       ≤        x̂ufv = Zuv · dℓ ≤ 2 · xuv
+                                  2
+                                       u
+                                       fv∈Copy(uv)
+
+
+
+
+6.2.3   Flow Feasibility Analysis
+At first glance, the distortion lower bound established in Theorem 5 might suggest that the ca-
+pacities on the decomposition tree are sufficient to guarantee the existence of a t-flow of value at
+least half of the original flow for every terminal t ∈ K. However, the distortion lower bound only
+provides guarantees on the mapping of an r → t-cut in the original graph G to the decomposition
+tree T . It does not directly rule out the existence of an re → Gt -cut in T that has a sub-constant
+value. Addressing this issue would lead to a complicated analysis.
+      Therefore, instead of solely relying on the distortion lower bound, we directly show the existence
+of an re → Gt-flow using a flow-based argument. Specifically, we show that the pseudo-t-flow
+{fˆαt }α∈E(T ) , defined in Section 6.1.3 is a pre-t-flow of value at least 1/2. In other words, it satisfies
+the following properties:
+
+   • Capacity Constraints: For every edge α ∈ E(T ), the flow fˆαt does not exceed its assigned
+     capacity x̂α .
+   • Flow Conservation: At every node u     fv ∈ V (T ) (excluding leaves), the incoming flow is at
+     least equal to the outgoing flow, ensuring no negative net-flow.
+   • Flow Value Preservation: The total flow value from the root to each terminal’s group Gt
+     in the decomposition tree is at least half of the original flow value ρt in the input graph G.
+
+    More formally, given that a terminal t ∈ K receives a flow of value ρt in the input graph G, the
+corresponding pseudo-t-flow fˆt in the decomposition tree T is a pre-t-flow with a flow value of at
+least ρt /2.
+Lemma 8. For any terminal t ∈ K, the pseudo-t-flow {fˆαt }α∈E(T ) defines a pre-t-flow on the
+decomposition tree T . Moreover, with high probability, if the terminal t receives a t-flow of value ρt
+in the input graph G, then the total flow received by its corresponding group Gt in the decomposition
+tree is at least ρt /2.
+    Consequently, the capacity assignments x̂ on the decomposition tree T support a feasible-t-flow
+of value at least 1/2 from the root to every group Gt with high probability.
+Proof. We prove the lemma by induction on the level ℓ of the decomposition tree, for ℓ = 0, 1, . . . , L.
+More formally, we claim that the following invariants hold at any node ufv ∈ V (T ) at level ℓ and
+for any terminal t ∈ K:
+   • Non-Negative Net-Flow: For any node u           fvP∈ V (T ), the amount of t-flow entering u
+                                                                                                fv is at
+     least the sum of t-flow leaving it, i.e., fˆuf
+                                                  t ≥
+                                                   v    j=1,...,d
+                                                                  ˆtj .
+                                                                  f
+                                                                   suv
+                                                                    f
+
+
+
+                                                     29
+   • Capacity Constraint: For any edge α ∈ E(T ), the flow fˆαt does not exceed its capacity x̂α ,
+     i.e., fˆαt ≤ x̂α .
+
+   • Flow Value Preservation: For any original edge uv ∈ E(G) at level ℓ, the probability that
+                                                                                      Q               δ
+                                                                                                          t
+     the total t-flow across all its copies in the decomposition tree is less than      i=1,...,ℓ 1 − 2i
+                                                                                                           fuv
+     is at most                                                                  
+                                                     Y            
+                                       1     δ                     δ        t
+                            exp − ·             ·           1 − i  fuv      · dℓ 
+                                       2    2ℓ                     2
+                                                      i=1,...,ℓ−1
+
+    The first and second invariants are immediately satisfied by the flow assignment, while the third
+invariant is established through induction on the level ℓ.
+
+Non-negative Excess Flow: Consider any node u              fv at level ℓ. By construction, the t-flow
+entering node ufv is either zero (fˆuf
+                                     t = 0) or equal to its capacity (fˆt = x̂
+                                      v                                 u
+                                                                        fv    uf
+                                                                                     −ℓ
+                                                                                v = d ). In the former
+case, no flow is sent out from ufv. In the latter case, node u fv distributes a t-flow of either zero or
+  −(ℓ+1)                                                 j
+d        to each of its d children (the subset nodes sufv ). Consequently, the total outgoing t-flow
+from ufv is at most d · d−(ℓ+1) = d−ℓ , which does not exceed the incoming flow. Thus, the invariant
+is automatically satisfied.
+
+Capacity Constraints: The second invariant is maintained by the construction of the flow.
+Specifically, for every edge α ∈ E(T ), the flow fˆαt is either set to its capacity x̂α during the flow
+assignment or set to zero. Therefore, the capacity constraints are inherently satisfied.
+    It remains to verify the third invariant regarding the flow value lower bound.
+
+Flow Value Preservation: Fix a terminal t ∈ K, and consider any node u                fv ∈ V (T ), which can
+be either a copy of an edge uv ∈ E(G) at level ℓ ≥ 1 or the root node (i.e., u        fv = re). If u
+                                                                                                   fv receives
+no t-flow, then we are done. Thus, we assume that fˆuf       t > 0.
+                                                               v
+   We recall the construction of the t-flow. Given that the node u          fv receives a positive t-flow, we
+                                                           j
+push a t-flow of value x̂vw
+                         f   to each child   node vw
+                                                   f    ∈ s u
+                                                            fv   with probability
+        h                                  i      h                                         i
+                                       j                                                j
+    Pr fˆvw
+          t
+          f  = x̂vw
+                  f fˆt
+                      u
+                      fv >  0 ∧ vw
+                                f  ∈  sufv   = Pr   ˆ
+                                                    f t
+                                                     vw
+                                                      f   =   x̂vw
+                                                                 f  u
+                                                                    fv ∈ V (T ) ∧ vw
+                                                                                  f  ∈ s u
+                                                                                         fv
+                                                     t
+                                              xuv fuv→vw
+                                             =  t
+                                                  ·
+                                              fuv   xuv→vw
+                                              f t
+                                             = uv→vw (by relatively integral, i.e., fuv
+                                                                                     t
+                                                                                        ∈ {0, xuv }).
+                                              xuv→vw
+    Now we prove by induction on ℓ that, for any level ℓ = 0, 1, . . . , d and any edge uv ∈ E(G) at
+level ℓ, the number of copies of u
+                                 fv in the decomposition tree that carry positive t-flow is at least
+                                        Y         δ
+                                                     
+                                               1 − i · dℓ fuv
+                                                           t
+                                                  2
+                                          i=1,...,ℓ
+
+
+
+
+                                                      30
+with probability at least
+                                                                                          
+                                                                                                
+                         1           δ        1                   Y              δ     ℓ t          1
+               1 − exp − ·              · 1− ℓ ·                            1 − i · d fuv · 1 −
+                         2           2ℓ      d                                  2                    n
+                                                                i=1,...,ℓ−1
+                                                                                            ℓ        !
+                                                                                     1 2     d      t
+                                                                       ≥ 1 − exp − · δ ·         · fuv
+                                                                                     5       4
+
+Base Case (ℓ = 0): At level ℓ = 0, there is only the root node re. By construction, the flow
+assigned to the root is fˆret = x̂re = 1. Therefore, the number of copies with positive t-flow is 1, which
+satisfies the base case as
+                                      0        
+                                     Y        δ
+                                          1 − i · d0 frt = 1 · 1 · frt = frt .
+                                              2
+                                      i=1
+
+Assuming frt = 1, the base case holds trivially.
+
+Inductive Step: Assume inductively that the invariants hold for every edge uv ∈ E(G) at level
+ℓ ≥ 0. For notational convenient, we define the threshold φtuv for edges uv ∈ E(G) and a terminal
+t ∈ K as
+                                          Y          δ
+                                                        
+                                   t
+                                  φuv =          1 − i · dℓ fuvt
+                                                     2
+                                                    i=1,...,ℓ
+
+   Now, consider any edge uv ∈ E(G) at level ℓ, and its child edge vw ∈ E(G). Observe that, for
+ t ≥ 1/n2 and d ≥ n7 , the probability that any edge uv ∈ E(G) at level ℓ has less than φt copies
+fuv                                                                                      uv
+that receive positive t-flow is exponentially small. Thus, we deduce that, with probability at least
+1 − 1/n, all the edges uv ∈ E(G) at level ℓ has at least φtuv copies that receive positive t-flow. Thus,
+it suffices to analyze the expected value of Qtvw given that the value Qtuv of any its parent uv is at
+least φtuv .
+    By linearity of expectation, we know that
+                                                                                                 
+       "                            #
+                                                   X
+    E Qtvw Qtuv ≥ φtuv ∀uv ∈ E(G) = E                         Qtufv→(vw) Qtuv ≥ φtuv ∀uv ∈ E(G) .
+                                                                                                 
+                                                        fv∈Copy(uv):fˆuv
+                                                        u             t >0
+                                                                      f
+
+
+Hence, we first need to analyze the t-flow received by copies of vw
+                                                                 f created from some node u
+                                                                                          fv with
+positive t-flow.
+
+            h                    i  X   h              i
+           E Qtufv→(vw) fˆuf
+                           t
+                             v >0 =   Pr fˆvw
+                                           t     ˆt > 0
+                                           f > 0 fu
+                                                  fv
+                                            j=1,...,d
+                        h                                       i      h                 i
+                                         j                   j                 j
+                X
+           =         Pr fˆvw
+                          t
+                          f  > 0 ∧ vw
+                                   f  ∈ su
+                                             ˆt > 0 ∧ vw
+                                             f
+                                          fv u fv     f  ∈ s u
+                                                             fv   · Pr   vw
+                                                                         f  ∈ su
+                                                                                   ˆt > 0
+                                                                                   f
+                                                                                fv u fv
+               j=1,...,d
+                   t                                     t
+                      fuv→vw          xuv→vw                fuv→vw
+           =d·              · ·                     =d·
+                  xuv→vw                xuv                   xuv
+                f t
+           = d · uv→vw
+                     t
+                                 (because fˆuf
+                                             t           t          t
+                                               v > 0 =⇒ fuv > 0 =⇒ fuv = xuv )
+                    fuv
+
+                                                                 31
+                                fv of uv ∈ E(G), we have
+    Summing over all the copies u
+                                                                                         
+      "                           #
+                                                X
+    E Qtvw Qtuv ≥ φtuv ∀uv ∈ E(G) = E                   Qtufv→(vw) Qtuv ≥ φtuv ∀uv ∈ E(G)
+                                                                                         
+                                                                 fv∈Copy(uv):fˆuv
+                                                                 u             t >0
+                                                                               f
+                                                                                        "                   #
+                                                             Y          δ
+                                                                           
+                                                        ≥           1 − i · dℓ fuv
+                                                                                 t 
+                                                                                      · E Qutfv→(vw) fˆuf
+                                                                                                        t
+                                                                                                          v >0
+                                                                        2
+                                                           i=1,...,ℓ
+                                                                                   
+                                                             Y                            ft
+                                                                           
+                                                                         δ
+                                                        =           1 − i · dℓ fuv
+                                                                                 t 
+                                                                                      · d · uv→vw
+                                                                                               t
+                                                                        2                     fuv
+                                                           i=1,...,ℓ
+                                                                           
+                                                             Y          δ
+                                                                           
+                                                        =           1 − i  · dℓ+1 · fuv→vw
+                                                                                        t
+                                                                        2
+                                                               i=1,...,ℓ
+
+
+
+
+    Applying Chernoff-Hoeffding bounds (Theorem 2), it follows that
+                    "                                             #
+                                      δ
+                 Pr Qtvw ≤ 1 − ℓ+1 φtuv Qtuv ≥ φtuv ∀uv ∈ E(G)
+                                    2
+                                                                       
+                                       2              
+                            1       δ         Y        δ
+                 ≤ exp − ·        ℓ+1
+                                           ·    1 − i  · dℓ+1 · fˆuv→vw
+                                                                      t   
+                            2    2                     2
+                                                                    i=1,...,ℓ
+
+    Next, we analyze the left-hand-side  of the inequality. We apply the fact that exp(−y) ≤ 1−y/2,
+for y ∈ [0, 1.59] to the product i=1,...,ℓ 1 − 2δi . Then we have
+                                Q                 
+
+                                       
+  Y    δ
+           Y    
+                     δ
+                                X   δ
+     1− i ≥   exp − i−1 = exp −         ≥ exp(−2δ) = exp(−1/2) ≥ 1/2.
+       2           2               2i−1
+i=1,...,ℓ                     i=1,...,ℓ                                         j=1,...,ℓ
+
+    This implies
+                                                                                                                2           !
+                                                                                                                dℓ+1 · fvw
+                                                                                                                        t
+                                                                                                    
+                                   δ                                                               1        δ
+     Pr         Qtvw ≤       1−               φtuv   Qtuv ≥ φtuv ∀uv ∈ E(G)                 ≤ exp − ·         ·
+                                  2ℓ+1                                                             2    2ℓ+1         2
+                                                                                                           ℓ+1      !
+                                                                                                   1 2      d      t
+                                                                                            = exp − · δ ·        fvw
+                                                                                                   4        4
+
+    As discussed, the probability that all edges uv ∈ E(G) at level ℓ have no less than φtuv copies
+
+
+
+
+                                                                           32
+that received positive t-flow is at least 1 − 1/n. Thus, we have
+      "            #        "                                                #
+   Pr Qtvw ≤ φtvw ≤ Pr Qtvw ≤ φtvw ∧ Qtuv ≥ φtuv ∀uv ∈ E(G)
+                          "                                              #       "                       #
+                     ≤ Pr Qtvw ≤ φtvw Qtuv ≥ φtuv ∀uv ∈ E(G) · Pr Qtuv ≤ φtuv ∀uv ∈ E(G)
+                                      ℓ+1       !      
+                            1         d                 1
+                     ≤ exp − · δ 2 ·           t
+                                            · fvw · 1 −
+                            4         4                 n
+                                      ℓ+1       !
+                            1         d
+                     ≤ exp − · δ 2 ·           t
+                                            · fvw
+                            5         4
+                                  Q                        
+                                                       δ
+    Now, applying the fact that        i=1,...,ℓ+1 1 − 2i        ≤ 1/2 to the multiplicative term in φtvw , it
+follows that                                                 ℓ+1       !
+                                  ℓ+1 f t
+                                         
+                                 d     vw          1         d
+                       Pr Qtvw ≤            ≤ exp − · δ 2 ·           t
+                                                                   · fvw
+                                    2              5         4
+                       t ≥ 1/n2 and d = n7 , it holds that Qt ≥ (dℓ+1 f t )/2 with probability at
+    Thus, for ℓ ≥ 1, fuv                                         vw         vw
+least 1 − exp(−n). Since the graph G has at most n2 edges, it follows by the union bound that
+every edge uv ∈ E(G) has Qtuv ≥ (dℓ+1 fvw  t )/2 copies with positive t-flow with probability at least
+
+1 − 1/n, i.e., with high probability.
+    By the flow assignment, each edge at level ℓ has t-flow of value either 0 or d−ℓ . Therefore, we
+conclude that fˆt is a pre-t-flow with value at least
+                                         X
+                                              dL fut
+                                                   t
+                                                     /2 = ρt /2,
+                                         ut∈EL
+
+where ρt is the value of the t-flow sending from the root r to the terminal t ∈ K in the original
+graph.
+    As we may push the excess flow on each node back to the source, the existence of the pre-t-flow
+ˆt
+f of value 1/2 then implies that the capacities x̂ on the decomposition tree T is enough to support
+a feasible t-flow from the root re to each group Gt with value at least 1/2, for every terminal t ∈ K.
+This completes the proof of the flow value lower bound.
+
+6.2.4   Bounding Integrality Gap via Group Steiner Tree Algorithm
+We now argue using a Group Steiner Tree (GST) rounding algorithm by Garg, Konjevod, and Ravi
+[GKR00] that the integrality gap of the group Steiner tree instance induced by the decomposition
+is polylogarithmic.
+    To construct the GST instance, we use the decomposition tree T as the input graph. We
+designate re as the root of the tree and define each group Gt for t ∈ K as the set of edge-copy nodes
+corresponding to edges entering the terminal t. Thus, Gt represents the group associated with a
+terminal t in the GST instance.
+    Next, we define the LP variables {x̂α }α ∈ E(T ) corresponding to the standard LP relaxation for
+GST. According to Garg, Konjevod, and Ravi, given an LP solution {xe }e∈E(T ) for a tree instance
+
+
+                                                    33
+T of GST, their rounding algorithm produces an integral solution with an expected cost of at most
+O(∆ log k) times the cost of the LP solution, where ∆ denotes the height of the tree T and k is
+the number of terminals. Importantly, this guarantee depends only on the tree’s height and the
+number of terminals, and is independent of the number of nodes in the tree.
+    Furthermore, the Garg-Konjevod-Ravi rounding algorithm requires only that the fractional
+solution {xe }e∈E(T ) supports a flow of constant value. It is not necessary to support a flow of
+value one for every terminal. More formally, we state the following theorem derived from the later
+interpretation and analysis of the Garg-Konjevod-Ravi rounding algorithm by Rothvoß [Rot11].
+
+Lemma 9 (Garg-Konjevod-Ravi Rounding [GKR00, Rot11]). There exists a randomized polynomial-
+time algorithm that, given a solution {xe }e∈E(T ) to the standard LP-relaxation of the Group Steiner
+Tree problem on an input tree T of height ∆ with k groups, outputs a feasible integral solution T ′ ⊆ T
+so that each edge e ∈ E(T ) appears in the tree T ′ with probability at most O(∆ log k).
+    In other words, the integrality gap of the standard LP-relaxation of the group Steiner tree problem
+is upper bounded by O(∆ log k).
+
+    Consequently, we only need the fact that the decomposition tree has capacities that support
+a t-flow of value at least a constant, say 1/2, for every terminal t ∈ K as shown in Theorem 8.
+Furthermore, by Theorem 6, the cost of the fractional solution on the decomposition tree is at most
+twice that of the fractional solution to the Strengthened LP in Figure 3.
+    Therefore, we conclude that the integrality gap of the Strengthened LP is O(L log k), which is
+O(log2 k) as we set L = O(log k).
+
+Theorem 10 (Integrality Gap of Strengthened LP). The integrality gap of the Strengthened LP
+in Figure 3 defined on an instance of the Directed Steiner Tree problem on an L-layered graph
+with k terminals is at most O(L log k) whenever the fractional solution is relatively integral, i.e.,
+fet ∈ {0, xe } for all edges e ∈ E(G) and all terminals t ∈ K.
+
+    We recall that Zelikovsky’s Height Reduction lemma Theorem 3 allows us to reduce an arbitrary
+instance of DST to an instance on a layered graph with L = O(log k) layers by paying a factor
+O(log k). As our LP has polynomial size on the input graph and, thus, can be solved in polynomial
+time, we therefore prove the existence of an O(log3 k)-estimation algorithm for DST that runs in
+polynomial time whenever the optimal fractional solution from the Strengthened-LP is relatively
+integral.
+
+Theorem 11 (Polynomial Time Estimation Algorithm). Given a fractional solution from the
+Strengthened LP in Figure 3 that is relatively integral, there exists a randomized algorithm that
+estimates value of the optimal solution to the Directed Steiner Tree problem within a factor of
+O(log3 k), where k is the number of terminals.
+
+
+7    Polynomial Time Approximation Algorithm
+In the previous section, we presented a decomposition algorithm that transforms a fractional so-
+lution from the Strengthened LP (that is relatively integral) defined on an L-layered graph into
+an LP solution of a standard flow-based LP corresponding to the Group Steiner Tree (GST) prob-
+lem on a tree of size nΘ(L) . However, for an arbitrary input graph, transforming an instance into
+an L-layered graph G incurs an approximation factor of O(L · n1/L ) (refer to Theorem 3). To
+
+                                                 34
+achieve a polylogarithmic approximation ratio, we require L to be Θ(log n). Consequently, while
+the integrality gap upper bound proof is constructive, it does not directly yield a polynomial-time
+polylogarithmic approximation algorithm.
+    To circumvent this limitation, we apply the decomposition process iteratively, level-by-level,
+interleaving with the rounding algorithm. This approach ensures that our algorithm operates in
+polynomial time in expectation and produces a solution with a cost of at most O(log3 k), where k
+is the number of terminals.
+
+7.1   Decompose-and-Round Algorithm
+Now, we describe our algorithm, which we refer to as Decompose-and-Round. Let E0 , E1 , . . . , EL
+denote the sets of edges at levels 0, 1, 2, . . . , L in the graph G, respectively, where E0 = {r} and EL
+consists of the edges entering terminals. Specifically, the root vertex r is treated as an auxiliary
+edge with LP values defined as
+
+                   xr = 1,
+                   frt = 1 for all terminals t ∈ K,
+               xr→rv = xrv for all child edges rv ∈ E(G) of r,
+                t
+               fr→rv = xrv for all terminals t ∈ K, for all child edges rv ∈ E(G) of r
+
+
+    For each level ℓ = 0, 1, 2, . . . , L, we create an active set Aℓ containing copies of edges at level
+ℓ. Initially, all active sets are empty except for A0 = re, which contains a copy of the root r. We
+then iteratively create active sets Aℓ+1 from Aℓ for ℓ = 0, 1, . . . , L − 1, following these two steps:
+
+   • Decomposition: For each copy u   fv ∈ Aℓ of an edge uv ∈ Eℓ , we create d subsets s1ufv , . . . , sdufv .
+     We then add to sjufv a copy vw
+                                 f of each child-edge vw ∈ E(G) with probability:
+                                    h                   i x
+                                                             uv→vw
+                                      f ∈ sjufv u
+                                  Pr vw         fv ∈ Aℓ =           .
+                                                              xuv
+      To emphasize the hierarchical structure of the decomposition, we will refer to each edge-copy
+      vw
+      f as a node.
+
+   • Rounding: Next, we independently at random mark each subset sjvw with probability:
+                                                                 1
+                                       Pr sjuv is marked u
+                                         
+                                                         fv ∈ Aℓ = .
+                                                                  d
+
+      We then add all elements from the marked subsets sjufv to the active set Aℓ+1 . Then we
+      continue our procedure to the level ℓ + 1.
+
+   Upon completion of the decomposition and rounding steps for all levels, we construct the output
+graph H by including all edges that have at least one active copy across all levels, i.e.,
+                                                [
+                                        H=            Aℓ .
+                                                  ℓ=0,1,...,L
+
+
+
+                                                     35
+7.2   Main Algorithm
+Our main algorithm begins by transforming the input directed graph into an L-layered graph with
+L = ⌈log2 k⌉ + 1, where k denotes the number of terminals. This transformation, as shown in
+Theorem 3, introduces an O(log k) multiplicative factor to the overall cost. We then solve the
+Strengthened LP defined on the L-layered graph G.
+    After the preparation, we repeatedly execute the Decompose-and-Round procedure q log2 k
+times, for some sufficiently large constant q > 0 (for example, q = 100). The subgraphs generated
+in each iteration are aggregated, and the union is returned as the final solution. This ensures that,
+with high probability, that a directed path exists from the root vertex to every terminal, while
+paying an approximation factor of O(log3 k) in expectation.
+    The Decompose-and-Round procedure and the main algorithm are formally presented in Algo-
+rithm 1 and Algorithm 2, respectively.
+
+Algorithm 1 Decompose-and-Round(G, x)
+Input: An L-layered graph G, and an LP solution {xuv , xuv→vw }uv,vw∈E(G) .
+Output: A solution subgraph H ⊆ G.
+ 1: Set xr = 1 and xr→rv = xrv for all rv ∈ E(G).
+ 2: Initialize the subgraph H = (V (G), ∅).
+ 3: Initialize the active sets A0 := {e  r}, and Aℓ := ∅, for all ℓ = 1, 2, . . . , L.
+ 4: for ℓ = 0, 1, . . . , L do
+ 5:     for each copy u    fv ∈ Zℓ do
+ 6:         for j = 1, 2, . . . , d do
+ 7:             Create a subset sjufv .
+ 8:             for each edge vw ∈ E(G) do
+ 9:                  Independently at random add a copy vw   f to sjufv with probability
+                                          h                  i x
+                                                                    uv→vw
+                                       Pr vwf ∈ sjufv u
+                                                      fv ∈ Aℓ =             .
+                                                                     xuv
+
+10:            Mark sjd with probability
+                                      h                       i 1
+                                    Pr sjufv is marked u
+                                                       fv ∈ Aℓ = .
+                                                                d
+
+11:            If sjufv is marked, add all its copies of edges to H.
+
+
+
+
+                                                   36
+Algorithm 2 Main Algorithm
+Input: An input DST instance: a directed graph G, a root r, a terminal set K.
+Output: A feasible solution Ĥ ⊆ G to the DST instance.
+ 1: Construct an L-layered graph Ĝ from an arbitrary directed graph G.
+                                                 t , ft
+ 2: Compute an optimal solution {xuv , xuv→vw , fuv   uv→vw }uv,vw∈E(G),t∈K of LP in Figure 3.
+                          2
+ 3: Set R := 100 log k.
+ 4: for i = 1, 2, . . . , R do
+ 5:    Compute Hi := Decompose-and-Run(Ĝ, {xuv , xuv→vw }uv,vw∈E(G) ).
+                                        S
+    return The solution subgraph Ĥ = i=1,...,R Hi .
+
+
+7.3   Running Time and Cost Analysis
+First, we show that, with high probability, the number of active copies of any edge uv ∈ E(G) at
+level ℓ is at most O(d · xuv ). Consequently, the total number of active nodes across all levels is
+bounded by O(d · |E(G)|). This implies that the algorithm runs in expected polynomial time.
+
+Lemma 12. Consider any edge uv ∈ E(G) residing at level ℓ, for ℓ = 0, 1, . . . , L. Let Zuv denote
+the number of active copies of uv during the run of the algorithm, i.e., the number of copies of uv
+appearing in the active set Aℓ . Setting δ = 1/4, the following holds:
+                                                    
+                             Y           δ
+                                                               
+                                                                    1
+                                                                           
+                                                                            d
+                                                                                     
+                                                                       2
+              Pr Zuv ≥             1 + i  · d · xuv  ≤ exp − · δ ·         · xuv
+                                         2                          2       4
+                            i=1,...,ℓ
+
+Consequently, with high probability, every level ℓ has at most O(d · |Eℓ |) active nodes.
+
+Proof. We proceed with proof by induction on ℓ, for ℓ = 0, 1, . . . , L. The claim is trivial for the
+base case ℓ = 0 because we only have r as an active node in A0 .
+   Assume inductively that, for some ℓ ≥ 1, the claim holds for all edges uv ∈ E(G) at level ℓ. For
+notational convenient, we define the threshold φuv for edges uv ∈ E(G) as
+                                                        
+                                          Y         δ
+                                                       
+                               φuv :=          1 + i  · d · xuv .
+                                                     2
+                                          i=1,...,ℓ
+
+    Observe that the probability that there exists an edge uv ∈ E(G) at level ℓ with Zuv > φuv is
+exponentially low, i.e., at most exp(−n). Thus, we conclude that with probability at least 1 − 1/n,
+all edges at level ℓ have Zuv ≤ φuv
+    Now consider any edge vw ∈ E(G) at level ℓ + 1. It suffices to analyze the probability that the
+number of active copies of vw is above the threshold φvw given that all its parents uv have at most
+φuv copies in the decomposition tree.
+
+
+
+
+                                                      37
+      "                                           #
+    E Zvw Zuv ≤ φuv ∀uv ∈ E(G)
+                                            "                                #
+           X                     X
+    ≤                 φuv ·               Pr vw
+                                              f is active u
+                                                          fv was active 
+        uv∈E(G)                j=1,...,d
+                                            "                                            #
+                                              f ∈ sujfv ∧ sjufv is marked u
+           X                     X
+    ≤                 φuv ·               Pr vw                          fv was active 
+        uv∈E(G)                j=1,...,d
+                                            "                         #         "                      #
+                                              f ∈ sujfv u
+                                                        fv was active · Pr sjufv is marked u
+           X                     X
+    ≤                 φuv ·               Pr vw                                           fv was active 
+        uv∈E(G)                j=1,...,d
+                                          
+           X                   xuv→vw 1
+    =              φuv · d ·           ·
+                                 xuv     d
+      uv∈E(G)
+                                                         
+        X               Y           δ
+                                        
+                                                     xuv→vw 
+    =                          1 + i · d · xuv  ·
+                                     2                 xuv
+      uv∈E(G)         i=1,...,ℓ
+                                                    
+        X               Y           δ
+                                        
+    =                          1 + i · d · xuv→vw 
+                                     2
+      uv∈E(G)         i=1,...,ℓ
+                               
+                            
+          Y              δ               X
+    =              1+ i ·d·                 xuv→vw
+                         2
+        i=1,...,ℓ                     uv∈E(G)
+                               
+                            
+          Y              δ
+    =              1 + i  · d · xvw
+                         2
+           i=1,...,ℓ
+
+The first inequality follows because we condition on the event that the numberPof copies of every
+edge uv ∈ E(G) is at most ϑuv . The last equality follows from the constraint uv xuv→vw = xvw
+in the Strengthened-LP.
+    It then follows by Chernoff-Hoeffding bounds (Theorem 2) that
+                                                                                      
+                                                       
+                               δ        Y              δ
+           Pr Zvw ≥ 1 + ℓ+1 ·                   1 + i  · d · xvw Zuv ≥ ϑuv ∀uv ∈ E(G)
+                             2                         2
+                                      i=1,...,ℓ
+                                                                                      
+                                                          2               
+                                                1       δ        Y         δ
+                                  ≤ exp − ·                  ·       1 + i  · d · xvw 
+                                                3     2ℓ+1                 2
+                                                                              i=1,...,ℓ
+
+    Next, we analyze the left-hand side
+                                      Q of the inequality.  We apply the fact that exp(y) ≥ 1 + y,
+for all real number y, to the product i=1,...,ℓ 1 + 2δi . Then, for δ = 1/4, we have
+                                                       
+
+                                                              
+           Y        δ
+                             Y        
+                                        δ               X δ
+                1+ i ≤            exp       = exp              ≤ exp(2δ) = exp(1/2) ≤ 2.
+                     2                  2i                  2i
+          i=1,...,ℓ                   i=1,...,ℓ                   j=1,...,ℓ
+
+
+                                                             38
+   Consequently, we have
+                                                                             2       !
+                                                          1               δ
+            Pr [ Zvw ≥ φvw | Zuv ≤ φuv ∀uv ∈ E(G)] ≤ exp − ·              · 2 · d · xvw
+                                                          3         2ℓ+1
+                                                                       ℓ+1            !
+                                                               2 2      1
+                                                        = exp − · δ ·         · d · xvw
+                                                               3        4
+
+    As discussed, the probability that all edges uv ∈ E(G) at level ℓ have no more than ϑuv copies
+in the decomposition tree is at least 1 − 1/n. Thus, we have
+
+       "                                       #          "                                  #
+    Pr Zvw ≥ φvw ∧ Zuv ≤ φuv ∀uv ∈ E(G) = Pr Zvw ≥ φvw Zuv ≤ φuv ∀uv ∈ E(G)
+                                                            "                      #
+                                                    · Pr Zuv ≤ φuv ∀uv ∈ E(G)
+                                                                    ℓ+1           !      
+                                                          2         1                     1
+                                                   ≤ exp − · δ 2 ·        · d · xvw · 1 −
+                                                          3         4                     n
+                                                                    ℓ+1           !
+                                                          1         1
+                                                   ≤ exp − · δ 2 ·        · d · xvw
+                                                          2         4
+
+    This proves
+          Q the first part of  the lemma. The second part of the lemma follows by applying the
+                             δ
+fact that    i=1,...,ℓ+1 1 − 2i   ≤ 1/2 to the multiplicative term in φvw , which gives us
+                                                               
+                                  d · xvw          1 2     d
+                         Pr Zvw ≥           ≤ exp − · δ ·     · xvw
+                                      2            2       4
+     Thus, for ℓ ≥ 1, xuv ≥ 1/n2 and d = n7 , it holds that Zvw ≥ 2 · d· xvw with probability at most
+exp(−n). Since the graph G has at most n2 edges, it follows by the union bound that all the edges
+vw ∈ E(G) have Zvw ≤ 2 · dℓ xuv copies in the decomposition tree with probability at least 1 − 1/n,
+i.e., with high probability. This completes the proof.
+
+   The running time of our algorithm follows as a corollary of Theorem 12
+Corollary 13 (The Running time of Decompose-and-Round). With high probability, the running
+time of the algorithm Decompose-and-Round is polynomial on the size of the input graph.
+Proof. The running time of the Decompose-and-Round algorithm is proportional to the total num-
+ber of active nodes processed. From Theorem 12, with high probability, the number of active copies
+for each edge uv ∈ E(G) at any level ℓ is O(d · xuv ). Therefore, the total number of active nodes
+across all levels is
+                                                              
+                           X      X                   X
+                     O              Zℓ  = O  d           |Eℓ | = O(d · |E|).
+                        ℓ=0,1,...,L uv∈Eℓ               ℓ=0,1,...,L
+
+Therefore, by setting d = poly(n), the algorithm runs in polynomial time on the size of input with
+high probability.
+
+                                                   39
+   It also follows from Theorem 12 that the cost of the solution subgraph H produced by the
+Decompose-and-Round algorithm is linear in the cost of the LP solution.
+
+Corollary 14 (The Cost of Solution produced by Decompose-and-Round). The expectedP cost of the
+solution subgraph H produced by the Decompose-and-Round algorithm is (1 + o(1)) · e∈E(G) ce xe .
+
+Proof. Observe that each copy of an edge uv ∈ E(G) appears in a different subset sjα , where α
+is a parent edge of uv. From Theorem 12, we assert that the expected number of copies of any
+edge uv ∈ E(G) is at most (1 + o(1)) · d · xuv . Since each subset sjα is marked independently with
+probability 1/d, it follows that the expected number of active copies of any edge uv is
+                        "    #                          !               !
+                                  1
+                      E Zuv ≤ ·         1 + o(1) · d · xuv = 1 + o(1) · xuv
+                                  d
+
+Since each active copy of an edge uv contributes a cost of cuv to the solution subgraph H, the
+expected total cost of H is
+                      "      #               "    #             !
+                                  X                                X
+                   E cost(H) =         ce · E Zuv = 1 + o(1)             ce xe
+                                   e∈E(G)                             e∈E(G)
+
+
+
+
+7.4   Feasibility Analysis
+In this subsection, we analyze the probability that the solution subgraph H produced by the
+Decompose-and-Round algorithm successfully connects the root vertex to each terminal t ∈ K.
+    To conduct the reachability analysis, we model the algorithm as a Markov process, where edge
+selections occur iteratively across the levels of the decomposition tree. A direct analysis of this
+process involves examining the decision tree induced by the random process.
+    Fundamentally, our algorithm is a compact description of running the Garg-Konjevod-Ravi
+(GKR) algorithm on the decomposition tree described in Section 6.1. Thus, it suffices to map the
+workings of our algorithm to those of the GKR rounding algorithm. Consequently, the analysis
+can be derived directly from the existing results [GKR00, Rot11] known for the GKR rounding
+algorithm.
+    To be formal, the GKR algorithm operates as follows: Given a tree T̂ and an LP solution x̂,
+the algorithm initially marks edges incident to the root with probability x̂α . For each subsequent
+edge α in the tree, the algorithm marks α with probability x x̂α , where parent(α) represents
+                                                                 parent(α)
+the (unique) parent edge of α. Edges are included in the solution subgraph H if and only if all of
+their ancestor edges up to the root are marked.
+    The GKR rounding algorithm can be re-formulated as a Markov process that proceeds level by
+level. For each selected edge α, each of its child edges β is independently selected with probability
+xβ
+xα . This random process aligns closely with the Decompose-and-Round algorithm, allowing us to
+interpret and analyze our approach within the framework devised for the GKR rounding technique.
+
+
+
+
+                                                 40
+Garg-Konjevod-Ravi Rounding (Re-interpretation): The input to the GKR rounding pro-
+cedure consists of a tree T̂ with height L̂ and an LP solution x̂ that supports a flow of at least
+a constant, say 1/2, from the root to every terminal t ∈ K. The Garg-Konjevod-Ravi algorithm
+works as follows:
+    Starting from level ℓ = 0, i.e., the root level, the algorithm adds to an active set A0 an auxiliary
+edge re. Next, the algorithm iteratively constructs active sets Aℓ+1 from active sets Aℓ for ℓ =
+0, 1, . . . , L̂ − 1. For each edge α ∈ Aℓ , the algorithm adds its child edge β ∈ E(T̂ ) to Aℓ+1 with
+probability
+                                                                     x̂β
+                                      Pr [β is active|α is active] =
+                                                                     x̂α
+The pseudocode of Garg-Konjevod-Ravi rounding is given in Algorithm 3.
+
+Algorithm 3 Garg-Konjevod-Ravi Rounding(T̂ , x̂):
+ 1: Initialize A0 = {r̂}.
+ 2: for ℓ = 1, 2, . . . , L̂ − 1 do
+ 3:     for each edge α ∈ Aℓ do
+ 4:         Add to Aℓ+1 , child edges β ∈ E(T̂ ) of α, each with probability:
+
+                                                                        x̂β
+                                       Pr [β is active|α is active] =
+                                                                        x̂α
+                                             S
+    return The solution subgraph H =             ℓ=1,...,L̂ Aℓ .
+
+
+  Next, we show that the distributions that the Decompose-and-Round algorithm and the Garg-
+Konjevod-Ravi algorithm select edges of G are the same.
+
+Lemma 15 (Identical Distributions). The probability that the Decompose-and-Round and Garg-
+Konjevod-Ravi algorithms select edges are statistical equivalent.
+
+Proof. Consider the decomposition tree T̂ as described in Section 6.1. There are two types of edges
+                               uv, sjufv ) and (ii) edges of the form (sjufv , vw).
+in T̂ : (i) edges of the form (f                                               f
+    For edges of type (i), the value of x̂(f         fv) is equal to 1/d times the LP value of its parent
+                                               uv,sj u
+edge. Under the GKR rounding algorithm, (f         uv, sj u
+                                                          fv) is marked as active with probability 1/d. This
+aligns with the Decompose-and-Round algorithm, where each subset sjufv is marked with probability
+1/d.
+    For edges of type (ii), the value of x̂(sj ufv,vw)
+                                                    f is equal to the LP value of its parent edge. Under
+the GKR rounding algorithm (sj u      fv, vw)
+                                           f is marked as active with probability one. This aligns with
+the Decompose-and-Round algorithm, where all copies u            fv in the selected subset sujfv are determin-
+istically marked as active.
+    Therefore, the edge selection probabilities in the Decompose-and-Round algorithm precisely
+mirror those of the GKR rounding algorithm when applied to the decomposition tree T̂ . In other
+words, they are statistically equivalent.
+
+   Consequently, we deduce from Theorem 8 the probability that the solution subgraph H connects
+the root vertex r to each terminal t ∈ K.
+
+
+
+                                                         41
+Corollary 16 (Reachability Probability). Consider the solution subgraph H constructed by running
+the Decompose-and-Round algorithm. Then the probability that H contains a directed path from the
+root vertex r to any terminal t ∈ K is at least
+                                                             1
+                                   Pr[H has r → t-path] ≥
+                                                            2L
+Proof. First, we argue using Theorem 15 that the Decompose-and-Round procedure behaves identi-
+cally to the GKR rounding algorithm running on the decomposition tree T̂ . Then from Theorem 8,
+we know that the decomposition tree T̂ supports an r → t flow of value at least 1/2 for every
+terminal t ∈ K with high probability. This implies the capacities on the decomposition tree meets
+the prerequisite of Theorem 15. Consequently, as the input to Decompose-and-Round algorithm is
+an L layered — thus, inducing a decomposition tree of height 2L − 1 — the Garg-Konjevod-Ravi
+algorithm guarantees that each terminal t ∈ K is connected to the root vertex r with probability
+          1
+at least 2L .
+
+7.5   Combining Everything Together
+In this subsection, we summarize the previously discussed components to conclude that the main
+algorithm runs in polynomial time and achieves an approximation ratio of O(log3 k) for the Directed
+Steiner Tree problem.
+
+Polynomial Running Time: Firstly, the main algorithm invokes the Decompose-and-Round
+algorithm O(log2 k) times. By Theorem 13, each procedural call runs in polynomial time on the
+input size with high probability (at least 1 − 1/n). Consequently, the overall running time of the
+main algorithm remains polynomial with high probability.
+
+Approximation Ratio: Secondly, we analyze the expected cost of the solution subgraph Ĥ
+produced by the main algorithm. The expected cost is bounded by O(log3 k) · OPT, where OPT
+denotes the cost of the optimal solution to the directed Steiner tree problem.
+   This bound arises from two primary factors:
+
+   • Height Reduction: The initial step involves transforming an arbitrary directed graph into
+     an L-layered graph G. This transformation incurs an O(log k) factor in the cost, as shown
+     by Theorem 3.
+
+   • Repeated Runs of Decompose-and-Round: Each run of the Decompose-and-Round
+                                                                            
+                                                                P
+     algorithm produces a subgraph H with an expected cost of O   e∈E(G) e e . Since the
+                                                                        c x
+      main algorithm performs O(log2 k) such rounds and takes the union of their outputs, this
+      incurs an additional O(log2 k) factor in the expected cost.
+
+Summary: Therefore, our main algorithms runs in polynomial time with high probability and
+outputs a solution with expected cost O(log3 k) times the optimum, thus proving Theorem 1.
+
+
+
+
+                                                42
+8    Conclusion and Discussion
+We presented a novel LP formulation for the Directed Steiner Tree (DST) problem together with
+a randomized rounding algorithm. Given access to a feasible fractional solution satisfying the
+relatively integral property, our algorithm produces an integral solution of cost at most O(log2 k)
+times that of the LP solution. Since the LP formulation itself incurs an additional O(log k) factor,
+this yields an overall O(log3 k)-approximation. Crucially, the relatively integral property — while
+key to our algorithm — is also shared by all known integrality gap instances for DST, suggesting that
+such constructions can be systematically addressed. This observation strengthens the possibility
+that DST might indeed admit a polylogarithmic approximation in polynomial time.
+    Although it seems unlikely that the LP can be forced to produce a relatively integral solution
+directly, such solutions may be obtainable via decomposition. Achieving this, however, may require
+more sophisticated tools, such as configuration LPs or multiple rounds of LP/SDP hierarchies.
+    At the same time, the possibility of a negative answer remains open. There may exist inherent
+computational barriers preventing a polynomial-time polylogarithmic approximation for DST. Such
+a barrier would establish a genuine separation between the power of polynomial-time and quasi-
+polynomial-time algorithms, placing DST alongside the Densest-k-Subgraph problem in terms of
+approximability complexity. Although connections between Densest-k-Subgraph and two-edge-
+connected variants of DST are known, establishing a direct link to DST itself remains elusive.
+    In summary, both algorithmic and hardness perspectives remain open, and resolving the ap-
+proximability of DST continues to stand as one of the most compelling challenges in network design.
+
+
+References
+[ABMS12] Pranjal Awasthi, Avrim Blum, Jamie Morgenstern, and Or Sheffet. Additive approx-
+         imation for near-perfect phylogeny construction. In Anupam Gupta, Klaus Jansen,
+         José D. P. Rolim, and Rocco A. Servedio, editors, Approximation, Randomization, and
+         Combinatorial Optimization. Algorithms and Techniques - 15th International Work-
+         shop, APPROX 2012, and 16th International Workshop, RANDOM 2012, Cambridge,
+         MA, USA, August 15-17, 2012. Proceedings, volume 7408 of Lecture Notes in Computer
+         Science, pages 25–36. Springer, 2012.
+
+[AMS08]    Charles J. Alpert, Dinesh P. Mehta, and Sachin S. Sapatnekar. Handbook of Algorithms
+           for Physical Design Automation. Auerbach Publications, USA, 1st edition, 2008.
+
+[Bar98]    Yair Bartal. On approximating arbitrary metrices by tree metrics. In Proceedings of the
+           Thirtieth Annual ACM Symposium on Theory of Computing, STOC ’98, page 161–168,
+           New York, NY, USA, 1998. Association for Computing Machinery.
+
+[BGLR93] M. Bellare, S. Goldwasser, C. Lund, and A. Russell. Efficient probabilistically checkable
+         proofs and applications to approximations. In Proceedings of the Twenty-Fifth Annual
+         ACM Symposium on Theory of Computing, STOC ’93, page 294–304, New York, NY,
+         USA, 1993. Association for Computing Machinery.
+
+[BGRS13] Jaroslaw Byrka, Fabrizio Grandoni, Thomas Rothvoß, and Laura Sanità. Steiner tree
+         approximation via iterative randomized rounding. J. ACM, 60(1), February 2013. Pre-
+         liminary version in STOC 2010.
+
+                                                 43
+[BTN+ 09] M. Brazil, D. A. Thomas, B. K. Nielsen, P. Winter, C. Wulff-Nilsen, and M. Zachariasen.
+          A novel approach to phylogenetic trees: d-dimensional geometric steiner trees. Netw.,
+          53(2):104–111, March 2009.
+
+[CCC+ 99] Moses Charikar, Chandra Chekuri, To-yat Cheung, Zuo Dai, Ashish Goel, Sudipto
+          Guha, and Ming Li. Approximation algorithms for directed Steiner problems. J. Algo-
+          rithms, 33(1):73–91, October 1999. Preliminary version in SODA ’98.
+
+[CCGG98] Moses Charikar, Chandra Chekuri, Ashish Goel, and Sudipto Guha. Rounding via
+         trees: deterministic approximation algorithms for group steiner trees and k-median. In
+         Proceedings of the Thirtieth Annual ACM Symposium on Theory of Computing, STOC
+         ’98, page 114–123, New York, NY, USA, 1998. Association for Computing Machinery.
+
+[CEGS11] Chandra Chekuri, Guy Even, Anupam Gupta, and Danny Segev. Set connectivity
+         problems in undirected graphs and the directed steiner network problem. ACM Trans.
+         Algorithms, 7(2):18:1–18:17, 2011. Preliminary in SODA’08.
+
+[CEKP18] Deeparnab Chakrabarty, Alina Ene, Ravishankar Krishnaswamy, and Debmalya Pani-
+         grahi. Online buy-at-bulk network design. SIAM J. Comput., 47(4):1505–1528, 2018.
+         Preliminary in FOCS’15.
+
+[CGL15]    Parinya Chalermsook, Fabrizio Grandoni, and Bundit Laekhanukit. On survivable set
+           connectivity. In Proceedings of the Twenty-Sixth Annual ACM-SIAM Symposium on
+           Discrete Algorithms, SODA ’15, page 25–36, USA, 2015. Society for Industrial and
+           Applied Mathematics.
+
+[Che52]    Herman Chernoff. A Measure of Asymptotic Efficiency for Tests of a Hypothesis Based
+           on the sum of Observations. The Annals of Mathematical Statistics, 23(4):493 – 507,
+           1952.
+
+[CLLZ22] Qingyun Chen, Bundit Laekhanukit, Chao Liao, and Yuhao Zhang. Survivable net-
+         work design revisited: Group-connectivity. In 2022 IEEE 63rd Annual Symposium on
+         Foundations of Computer Science (FOCS), pages 278–289, 2022.
+
+[CLNV14] Joseph Cheriyan, Bundit Laekhanukit, Guyslain Naves, and Adrian Vetta. Approximat-
+         ing rooted steiner networks. ACM Trans. Algorithms, 11(2), October 2014. Preliminary
+         version in SODA 2012.
+
+[CLWZ20] Chun-Hsiang Chan, Bundit Laekhanukit, Hao-Ting Wei, and Yuhao Zhang. Polylog-
+         arithmic Approximation Algorithm for k-Connected Directed Steiner Tree on Quasi-
+         Bipartite Graphs. In Jaroslaw Byrka and Raghu Meka, editors, Approximation,
+         Randomization, and Combinatorial Optimization. Algorithms and Techniques (AP-
+         PROX/RANDOM 2020), volume 176 of Leibniz International Proceedings in Informat-
+         ics (LIPIcs), pages 63:1–63:20, Dagstuhl, Germany, 2020. Schloss Dagstuhl – Leibniz-
+         Zentrum für Informatik.
+
+[FKK+ 14] Zachary Friggstad, Jochen Könemann, Young Kun-Ko, Anand Louis, Mohammad
+          Shadravan, and Madhur Tulsiani. Linear programming hierarchies suffice for directed
+
+
+
+                                               44
+          Steiner tree. In Jon Lee and Jens Vygen, editors, Integer Programming and Combinato-
+          rial Optimization - 17th International Conference, IPCO 2014, Bonn, Germany, June
+          23-25, 2014. Proceedings, volume 8494 of Lecture Notes in Computer Science, pages
+          285–296. Springer, 2014.
+
+[FRT04]   Jittat Fakcharoenphol, Satish Rao, and Kunal Talwar. A tight bound on approximating
+          arbitrary metrics by tree metrics. J. Comput. Syst. Sci., 69(3):485–497, November 2004.
+
+[FS97]    Uriel Feige and Michael Seltser. On the densest k-subgraph problem. Technical Report
+          CS97-16, Weizmann Institution of Science, Rehovot, Israel, 1997.
+
+[GKR00]   Naveen Garg, Goran Konjevod, and R. Ravi. A polylogarithmic approximation algo-
+          rithm for the group Steiner tree problem. J. Algorithms, 37(1):66–84, 2000. Preliminary
+          version in SODA ’98.
+
+[GKR10a] Anupam Gupta, Ravishankar Krishnaswamy, and R. Ravi. Tree embeddings for two-
+         edge-connected network design. In Proceedings of the Twenty-First Annual ACM-SIAM
+         Symposium on Discrete Algorithms, SODA ’10, page 1521–1538, USA, 2010. Society for
+         Industrial and Applied Mathematics.
+
+[GKR10b] Anupam Gupta, Ravishankar Krishnaswamy, and R. Ravi. Tree embeddings for two-
+         edge-connected network design. In Proceedings of the Twenty-First Annual ACM-SIAM
+         Symposium on Discrete Algorithms, SODA ’10, page 1521–1538, USA, 2010. Society for
+         Industrial and Applied Mathematics.
+
+[GL17]    Fabrizio Grandoni and Bundit Laekhanukit. Surviving in directed graphs: a quasi-
+          polynomial-time polylogarithmic approximation for two-connected directed steiner tree.
+          In Proceedings of the 49th Annual ACM SIGACT Symposium on Theory of Computing,
+          STOC 2017, page 420–428, New York, NY, USA, 2017. Association for Computing
+          Machinery.
+
+[GLL23]   Fabrizio Grandoni, Bundit Laekhanukit, and Shi Li. o(log2 k/ log log k)-approximation
+          algorithm for directed Steiner tree: A tight quasi-polynomial time algorithm. SIAM J.
+          Comput., 52(2):STOC19–298–STOC19–322, 2023. Preliminary version in STOC 2019.
+
+[GMW97] M. Grötschel, A. Martin, and R. Weismantel. The steiner tree packing problem in vlsi
+        design. Math. Program., 78(2):265–281, August 1997.
+
+[GN22]    Rohan Ghuge and Viswanath Nagarajan. Quasi-polynomial algorithms for submodular
+          tree orienteering and directed network design problems. Math. Oper. Res., 47(2):1612–
+          1630, 2022. Preliminary version in SODA 2020.
+
+[GP68]    E. N. Gilbert and H. O. Pollak. Steiner minimal trees. SIAM J. Appl. Math., 16(1):1–29,
+          January 1968.
+
+[HK03]    Eran Halperin and Robert Krauthgamer. Polylogarithmic inapproximability. In Pro-
+          ceedings of the Thirty-Fifth Annual ACM Symposium on Theory of Computing, STOC
+          ’03, page 585–594, New York, NY, USA, 2003. Association for Computing Machinery.
+
+
+
+                                              45
+[HKK+ 07] Eran Halperin, Guy Kortsarz, Robert Krauthgamer, Aravind Srinivasan, and Nan
+          Wang. Integrality ratio for group steiner trees and directed steiner trees. SIAM Journal
+          on Computing, 36(5):1494–1511, 2007. Preliminary version in SODA ’03.
+
+[Hoe63]    Wassily Hoeffding. Probability inequalities for sums of bounded random variables.
+           Journal of the American Statistical Association, 58(301):13–30, 1963.
+
+[HRZ01]    Christopher S. Helvig, Gabriel Robins, and Alexander Zelikovsky. An improved approx-
+           imation scheme for the group Steiner problem. Networks, 37(1):8–20, 2001.
+
+[Kar72]    Richard M. Karp. Reducibility among combinatorial problems. In Raymond E. Miller,
+           James W. Thatcher, and Jean D. Bohlinger, editors, Complexity of Computer Computa-
+           tions: Proceedings of a symposium on the Complexity of Computer Computations, held
+           March 20–22, 1972, at the IBM Thomas J. Watson Research Center, Yorktown Heights,
+           New York, and sponsored by the Office of Naval Research, Mathematics Program, IBM
+           World Trade Corporation, and the IBM Research Mathematical Sciences Department,
+           pages 85–103, Boston, MA, 1972. Springer US.
+
+[KKN12]    Rohit Khandekar, Guy Kortsarz, and Zeev Nutov. Approximating fault-tolerant group-
+           steiner problems. Theor. Comput. Sci., 416:55–64, January 2012. Preliminary version
+           in FSTTCS’09.
+
+[Lae14]    Bundit Laekhanukit. Parameters of two-prover-one-round game and the hardness of
+           connectivity problems. In Proceedings of the Twenty-Fifth Annual ACM-SIAM Sym-
+           posium on Discrete Algorithms, SODA ’14, page 1626–1643, USA, 2014. Society for
+           Industrial and Applied Mathematics.
+
+[Lae16]    Bundit Laekhanukit. Approximating Directed Steiner Problems via Tree Embedding. In
+           Ioannis Chatzigiannakis, Michael Mitzenmacher, Yuval Rabani, and Davide Sangiorgi,
+           editors, 43rd International Colloquium on Automata, Languages, and Programming
+           (ICALP 2016), volume 55 of Leibniz International Proceedings in Informatics (LIPIcs),
+           pages 74:1–74:13, Dagstuhl, Germany, 2016. Schloss Dagstuhl – Leibniz-Zentrum für
+           Informatik.
+
+[Lae24]    Bundit Laekhanukit. Breaking the barrier: A polynomial-time polylogarithmic approx-
+           imation for directed steiner tree, 2024.
+
+[LCLZ22] Chao Liao, Qingyun Chen, Bundit Laekhanukit, and Yuhao Zhang. Almost Tight
+         Approximation Hardness for Single-Source Directed k-Edge-Connectivity. In Mikolaj
+         Bojańczyk, Emanuela Merelli, and David P. Woodruff, editors, 49th International Col-
+         loquium on Automata, Languages, and Programming (ICALP 2022), volume 229 of
+         Leibniz International Proceedings in Informatics (LIPIcs), pages 89:1–89:17, Dagstuhl,
+         Germany, 2022. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+
+[LL24]     Shi Li and Bundit Laekhanukit. Polynomial integrality gap of flow lp for directed steiner
+           tree. ACM Trans. Algorithms, 21(1), November 2024. Preliminary version in SODA
+           2022.
+
+
+
+
+                                                46
+[LTL02]   Chin Lung Lu, Chuan Yi Tang, and Richard Chia-Tung Lee. The full steiner tree
+          problem in phylogeny. In Oscar H. Ibarra and Louxin Zhang, editors, Computing and
+          Combinatorics, pages 107–116, Berlin, Heidelberg, 2002. Springer Berlin Heidelberg.
+
+[Man17]   Pasin Manurangsi. Almost-polynomial ratio eth-hardness of approximating densest k-
+          subgraph. In Proceedings of the 49th Annual ACM SIGACT Symposium on Theory
+          of Computing, STOC 2017, page 954–961, New York, NY, USA, 2017. Association for
+          Computing Machinery.
+
+[Man19]   Pasin Manurangsi. A note on degree vs gap of min-rep label cover and improved inap-
+          proximability for connectivity problems. Inf. Process. Lett., 145(C):24–29, May 2019.
+
+[MU17]    Michael Mitzenmacher and Eli Upfal. Probability and Computing: Randomization and
+          Probabilistic Techniques in Algorithms and Data Analysis. Cambridge University Press,
+          USA, 2nd edition, 2017.
+
+[NPS11]   Joseph Naor, Debmalya Panigrahi, and Mohit Singh. Online node-weighted steiner
+          tree and related problems. In Rafail Ostrovsky, editor, IEEE 52nd Annual Symposium
+          on Foundations of Computer Science, FOCS 2011, Palm Springs, CA, USA, October
+          22-25, 2011, pages 210–219. IEEE Computer Society, 2011.
+
+[Nut24]   Zeev Nutov. On rooted k-connectivity problems in quasi-bipartite digraphs. Operations
+          Research Forum, 5(1):10, 2024. Preliminary version in CSR 2021.
+
+[Rot11]   Thomas Rothvoß.      Directed Steiner tree and the Lasserre hierarchy.        CoRR,
+          abs/1111.5473, 2011.
+
+[She95]   Naveed A. Sherwani. Algorithms for VLSI Physical Design Automation. Kluwer Aca-
+          demic Publishers, USA, 2nd edition, 1995.
+
+[SW96]    Majid Sarrafzadeh and C. K. Wong. An Introduction to VLSI Physical Design. McGraw-
+          Hill Higher Education, 1st edition, 1996.
+
+[SXC+ 21] Yahui Sun, Xiaokui Xiao, Bin Cui, Saman Halgamuge, Theodoros Lappas, and Jun
+          Luo. Finding group steiner trees in graphs with both vertex and edge weights. Proc.
+          VLDB Endow., 14(7):1137–1149, March 2021.
+
+[WMT12] J. F. Weng, I. Mareels, and D. A. Thomas. Probability steiner trees and maximum
+        parsimony in phylogenetic analysis. Journal of Mathematical Biology, 64(7):1225–1251,
+        2012.
+
+[YSL+ 22] Shuang Yang, Yahui Sun, Jiesong Liu, Xiaokui Xiao, Rong-Hua Li, and Zhewei Wei.
+          Approximating probabilistic group steiner trees in graphs. Proc. VLDB Endow.,
+          16(2):343–355, October 2022.
+
+[Zel93]   A. Z. Zelikovsky. An 11/6-approximation algorithm for the network steiner problem.
+          Algorithmica, 9(5):463–470, 1993.
+
+[Zel97]   Alexander Zelikovsky. A series of approximation algorithms for the acyclic directed
+          Steiner tree problem. Algorithmica, 18(1):99–110, 1997.
+
+                                             47
+[ZK02]   Leonid Zosin and Samir Khuller. On directed Steiner trees. In David Eppstein, editor,
+         Proceedings of the Thirteenth Annual ACM-SIAM Symposium on Discrete Algorithms,
+         January 6-8, 2002, San Francisco, CA, USA, pages 59–63. ACM/SIAM, 2002.
+
+
+
+
+                                            48
+

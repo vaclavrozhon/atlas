@@ -1,0 +1,1996 @@
+                                                 Beyond the Bethe Approximation of the Permanent
+
+                                                                                      Nima Anari‗1
+                                                                    1 Stanford University, anari@stanford.edu
+arXiv:2608.28031v2 [cs.DS] 1 Sep 2026
+
+
+
+
+                                                                                          Abstract
+                                                  The canonical Bethe approximation gives√a deterministic approximation to the permanent of
+                                              every nonnegative matrix within√a factor of ( 2)𝑛 . We improve the base of this exponential factor:
+                                              for some absolute constant 𝑐 < 2, there is a deterministic polynomial-time 𝑐 𝑛 -approximation
+                                              for the permanent of every nonnegative matrix. This shows that the canonical Bethe guarantee
+                                              is not a barrier for deterministic approximation of the permanent. The proof augments the Bethe
+                                              lower bound with a new certificate tailored to matrices on which that lower bound loses nearly
+                                              the full factor.
+                                                  The author supplied the high-level plan of attack, and the proof was developed in an
+                                              interaction with ChatGPT 5.6 Sol Pro. The author subsequently verified the results. Codex
+                                              assisted with proof checking, manuscript assembly, and typesetting.
+
+
+                                        1    Introduction
+                                                                       𝑛×𝑛
+                                        The permanent of a matrix 𝐴 ∈ ℝ≥0  is
+                                                                                              𝑛
+                                                                                             ÕÖ
+                                                                                 per(𝐴) =              𝐴 𝑖,𝜎(𝑖) .
+                                                                                            𝜎∈𝑆𝑛 𝑖=1
+
+                                        Here 𝑆𝑛 is the set of permutations of {1, . . . , 𝑛}. Computing or approximating the permanent is one
+                                        of the canonical problems in theoretical computer science and the field of counting and sampling.
+                                        Valiant proved that computing the permanent is #P-hard even for 0/1 matrices [Val79]. On the
+                                        other hand, Jerrum, Sinclair, and Vigoda gave a randomized fully polynomial-time approximation
+                                        scheme for every nonnegative matrix [JSV04]. The best general deterministic algorithms remain
+                                        exponentially worse.
+                                        A particularly natural deterministic approximation is the Bethe permanent. It is the maximum of a
+                                        concave function over the Birkhoff polytope, the set of doubly stochastic matrices, and can therefore
+                                        be computed efficiently; we denote it by Bethe(𝐴). Gurvits proved that it is a lower bound for the
+                                        permanent, building on Schrĳver’s permanental inequality [Sch98; Gur11]; Vontobel developed its
+                                        variational and graph-cover interpretations [Von13]. Anari and Rezaei proved the sharp universal
+                                        sandwich
+                                                                        Bethe(𝐴) ≤ per(𝐴) ≤ 2𝑛/2 Bethe(𝐴)
+                                           ‗ The accompanying Lean 4 formalization is available at https://github.com/nimaanari/formalization-beyond-
+                                        bethe. The corresponding Palomar Registry entry is available at https://palomar-registry.org/entry?id=PALOMAR-
+                                        2026-08-29-000006&version=1.
+
+
+
+                                                                                              1
+[AR24]. The factor 2𝑛/2 is attained by a block diagonal matrix
+                                                             √ with 2 × 2 all-ones blocks. Thus no
+analysis of the Bethe permanent alone can improve the base 2.
+This paper goes beyond that barrier by augmenting the Bethe certificate rather than replacing it.
+Our main result is the following.
+                                                                 √
+Theorem 1 (Main theorem). There is an absolute constant 𝑐 < 2 and a deterministic polynomial-time
+                           𝑛×𝑛
+algorithm that, given 𝐴 ∈ ℚ≥0  , returns a number 𝐿(𝐴) satisfying
+
+                                        𝐿(𝐴) ≤ per(𝐴) ≤ 𝑐 𝑛 𝐿(𝐴).
+
+We make no attempt to optimize 𝑐. The point is the uniform improvement in the base of the
+exponential approximation; optimizing the constants would obscure the argument.
+
+Independent work. √ Independently, Narang and Perkins proved a similar result: a deterministic
+polynomial-time ( 2 − 𝜀)𝑛 -approximation for some absolute constant 𝜀 > 0 [NP26]. Their approach
+also exploits nearly isolated weighted 2 × 2 blocks, through a structural correction to the Bethe
+approximation.
+
+1.1   Proof overview
+The proof couples a new lower-bound certificate with a stability analysis of the Bethe upper bound.
+For this overview, suppose that 𝐴 is positive and let
+                                       𝑛
+                              Δ(𝐴) =     log 2 + log Bethe(𝐴) − log per(𝐴)
+                                       2
+                                                                                          √
+be the slack in that upper bound. If Δ(𝐴) = Ω(𝑛), then the Bethe permanent already beats ( 2)𝑛 by
+an exponential factor. We therefore only need a better certificate when Δ(𝐴) is a small constant
+multiple of 𝑛. The argument has three main ideas.
+
+A lower bound that remembers pairs of rows. A matching partitions the rows into pairs and
+unmatched singletons. A singleton contributes a linear polynomial whose capacity is its contribution
+to the Bethe lower bound. For a pair of rows 𝑟, 𝑠, we instead use the quadratic polynomial
+                                              Õ
+                                 𝑄 𝑟𝑠 (𝑧) =         𝐴𝑟 𝑗 𝐴𝑠 𝑘 + 𝐴𝑟 𝑘 𝐴𝑠 𝑗 𝑧 𝑗 𝑧 𝑘 .
+                                                                          
+                                              𝑗<𝑘
+
+The coefficient of 𝑧 𝑗 𝑧 𝑘 is the total weight of the two ways to assign rows 𝑟, 𝑠 to the distinct columns
+𝑗, 𝑘. We multiply the polynomials of all row clusters and pair the result with another polynomial
+that enforces that every column is used exactly once. A coefficient inequality for real stable
+polynomials—a class defined in Section 2—then turns this encoding into a lower bound for per(𝐴)
+[AO17]. On an exact 2 × 2 all-ones block, the paired cluster recovers the factor 2 lost by the Bethe
+permanent.
+
+Near equality forces approximate 2 × 2 blocks. Sample a permutation 𝜎 with probability
+proportional to its weight 𝑖 𝐴 𝑖,𝜎(𝑖) , and let 𝑃𝑖𝑗 = ℙ𝜎 [𝜎(𝑖) = 𝑗]. Thus row 𝑖 of 𝑃 records the marginal
+                          Î
+distribution of the column assigned to row 𝑖. Anari and Rezaei analyze the following sequential
+experiment. Order the rows uniformly at random and process them in that order; when row 𝑖 is
+
+                                                         2
+reached, choose an unused column with probability proportional to the corresponding entries of 𝑃𝑖 .
+This experiment produces another distribution on permutations. Their upper bound compares it
+with the original weighted distribution and then applies a one-row inequality.
+We keep the information lost in both steps. This gives an exact decomposition of Δ(𝐴) into three
+nonnegative contributions: the suboptimality of 𝑃 in the Bethe program, the sum of the deficits in the
+one-row inequality, and the average relative entropy between the true and sequential distributions.
+Consequently, when Δ(𝐴) is small, all three contributions are small.
+The one-row inequality is stable: a row with small deficit must be close to a probability vector
+supported uniformly on two columns. Hence most rows of 𝑃 have two entries near 1/2. These large
+entries form a bipartite graph of maximum degree two. The relative-entropy contribution rules out
+many long cycles in this graph, so most rows lie in approximate copies of 𝐾 2,2 , the complete bipartite
+graph on two rows and two columns. This is the rigidity statement behind the improvement.
+
+Transfer the blocks and collect their gain. The marginal matrix 𝑃 is not available to the algorithm.
+We optimize a slightly regularized Bethe objective instead, adding a small multiple of the sum of
+the Shannon entropies of its rows. The unique optimizer 𝑋 is positive. Its Karush–Kuhn–Tucker
+optimality equations give positive row and column scaling factors 𝑟 𝑖 , 𝑐 𝑗 such that
+
+                                       𝐴 𝑖𝑗 = 𝑟 𝑖 𝑐 𝑗 𝑋𝑖𝑗1+𝜏 (1 − 𝑋𝑖𝑗 ).
+
+Here 𝜏 is a small positive regularization parameter. A global identity derived from this factorization
+measures how much the relevant coordinates can change between 𝑃 and 𝑋. It shows that most of
+the approximate 𝐾2,2 ’s found in 𝑃 remain useful at 𝑋. On each such block, the paired certificate
+improves on the two singleton certificates by a constant factor. A maximum-weight row matching
+collects these gains on a linear number of disjoint blocks, improving the lower bound by 𝑒 Ω(𝑛) .
+The key point is the interaction between the two sides of the argument. The stability analysis
+identifies precisely where the Bethe bound can be nearly tight, while the paired certificate is
+designed to recover weight on those same configurations.
+
+1.2   Related work
+The Bethe permanent was introduced and analyzed systematically by Vontobel [Von13]. Its lower-
+bound property follows from Schrĳver’s inequality and Gurvits’s variational formulation [Sch98;
+Gur11]. Anari and Rezaei proved the matching 2𝑛/2 upper bound [AR24]. Our proof begins with
+their sequential-distribution argument but uses its discarded relative-entropy term as a structural
+statistic.
+Graph covers give another interpretation of the Bethe permanent. Ng and Vontobel studied the role
+of double covers [NV22]; Huang, Kashyap, and Vontobel developed degree-𝑀 Bethe and Sinkhorn
+permanent bounds [HKV24]. These works analyze the Bethe approximation and its finite-cover
+counterparts. Our certificate instead recovers weight that the Bethe objective necessarily loses on
+2 × 2 blocks.
+The stable-polynomial input is the multiaffine coefficient inequality of Anari and Oveis Gharan
+[AO17]. It proves one-sidedness of each paired certificate; the global argument deciding which
+pairs are profitable is information-theoretic.
+
+
+
+                                                      3
+Organization. Section 2 records notation, the Bethe bound, and the two stable-polynomial facts
+used in the proof. Section 3 constructs the paired lower certificate. Sections 4 and 5 prove the
+exact slack identity and the stability of its row term. Section 6 extracts the robust 𝐾 2,2 structure.
+Sections 7 and 8 transfer this structure to the regularized optimizer and prove the paired gain.
+Section 9 combines the estimates. Section A treats zero entries and finite-precision computation.
+
+
+2     Preliminaries
+Notation. We write [𝑛] = {1, . . . , 𝑛} and let 𝑆𝑛 denote the set of permutations of [𝑛]. The Birkhoff
+polytope is
+                                   
+                                            Õ             Õ           
+                                                                       
+                                         𝑛×𝑛
+                                   
+                                                                      
+                                                                       
+                               ℬ𝑛 = 𝑋 ∈ ℝ≥0    𝑋𝑖𝑗 = 1 ∀𝑖,   𝑋𝑖𝑗 = 1 ∀𝑗 .
+                                             𝑗             𝑖
+                                   
+                                                                      
+                                                                       
+                                                                      
+For a probability vector 𝑝, its Shannon entropy is
+                                                              Õ
+                                                 𝐻(𝑝) = −                 𝑝 𝑗 log 𝑝 𝑗 ,
+                                                                  𝑗
+
+with the convention 0 log 0 = 0. We write 𝐻2 (𝑡) = −𝑡 log 𝑡 − (1 − 𝑡) log(1 − 𝑡) for binary entropy. For
+probability measures 𝜇, 𝜈 on the same finite set, their Kullback–Leibler (KL) divergence is
+                                                            Õ                       𝜇(𝑥)
+                                           𝐷KL (𝜇∥𝜈) =                𝜇(𝑥) log           .
+                                                              𝑥
+                                                                                    𝜈(𝑥)
+
+All logarithms are natural. We use the same formula to write 𝐻(𝜇) for the entropy of a finite
+probability measure, 𝐻(𝑍) for the entropy of a finite-valued random variable, and 𝐻(𝑍 | 𝑊) for
+conditional entropy.
+
+2.1   The Bethe permanent
+For 𝐴 ∈ ℝ𝑛×𝑛
+         >0
+             and 𝑋 ∈ ℬ𝑛 , define the Bethe objective
+                                           Õ              𝐴 𝑖𝑗
+                                                                                              
+                               𝛽 𝐴 (𝑋) =         𝑋𝑖𝑗 log          + (1 − 𝑋𝑖𝑗 ) log(1 − 𝑋𝑖𝑗 ) .       (1)
+                                                           𝑋𝑖𝑗
+                                           𝑖,𝑗
+
+At 𝑋𝑖𝑗 ∈ {0, 1}, we interpret the summands by continuity. The Bethe permanent is
+                                                                                         
+                                           Bethe(𝐴) = exp max 𝛽 𝐴 (𝑋) .
+                                                                          𝑋∈ℬ𝑛
+
+For a nonnegative matrix 𝐴, we use the same definition with the convention that 𝑋𝑖𝑗 log(𝐴 𝑖𝑗 /𝑋𝑖𝑗 ) =
+−∞ when 𝐴 𝑖𝑗 = 0 < 𝑋𝑖𝑗 , and that this term is zero when 𝑋𝑖𝑗 = 0. Equivalently, this is the limit of
+Bethe(𝐴 + 𝛿𝐽) as 𝛿 ↓ 0, where 𝐽 is the all-ones matrix. Vontobel proved that the objective is concave
+on ℬ𝑛 [Von13]. The following sharp sandwich combines the lower bound of Gurvits with the upper
+bound of Anari and Rezaei [Gur11; AR24].
+                                           𝑛×𝑛
+Theorem 2 (Bethe sandwich). For every 𝐴 ∈ ℝ≥0  ,
+
+                                      Bethe(𝐴) ≤ per(𝐴) ≤ 2𝑛/2 Bethe(𝐴).                             (2)
+Both inequalities are tight.
+
+                                                                  4
+We first prove the result for positive matrices. Zero entries are treated by a quantitative smoothing
+argument in Section A.
+
+2.2   Capacity and real stability
+We need one coefficient inequality for multivariate polynomials. Its variational quantity is the
+following scale-invariant lower envelope. Let 𝑞 ∈ ℝ≥0 [𝑧1 , . . . , 𝑧 𝑚 ] be homogeneous of degree 𝑑. For
+      𝑚
+𝛼 ∈ ℝ≥0 with 𝑗 𝛼 𝑗 = 𝑑, define its capacity at 𝛼 by
+              Í
+
+                                                                       𝑞(𝑧)
+                                                  Cap𝛼 (𝑞) = inf𝑚           .                                    (3)
+                                                                 𝑧∈ℝ>0 𝑧 𝛼
+
+                                𝛼𝑗
+Here and below 𝑧 𝛼 =         𝑗 𝑧𝑗 .
+                         Î
+
+A polynomial is multiaffine if every variable has degree at most one. A polynomial 𝑞 ∈ ℝ[𝑧 1 , . . . , 𝑧 𝑚 ]
+is real stable if 𝑞(𝑧1 , . . . , 𝑧 𝑚 ) ≠ 0 whenever every 𝑧 𝑗 has positive imaginary part. Products of real
+stable polynomials in disjoint variable sets are real stable. We use the following two facts.
+Lemma 3 (Quadratic stability criterion). Let 𝑞 be a nonzero homogeneous multiaffine quadratic with
+nonnegative coefficients. If the Hessian of 𝑞 has at most one positive eigenvalue, then 𝑞 is real stable.
+
+Proof. Write 𝑞(𝑧) = 12 𝑧 ⊤ 𝐻𝑧, where 𝐻 is the Hessian. Suppose that 𝑞(𝑥 + 𝑖 𝑦) = 0 for some 𝑥 ∈ ℝ𝑚
+and 𝑦 ∈ ℝ𝑚>0
+             . Separating real and imaginary parts gives
+
+                                       𝑥 ⊤ 𝐻𝑥 = 𝑦 ⊤ 𝐻 𝑦,                   𝑥 ⊤ 𝐻 𝑦 = 0.
+
+The nonnegative coefficients and 𝑦 > 0 imply 𝑦 ⊤ 𝐻 𝑦 = 2𝑞(𝑦) > 0. Since 𝐻 has at most one positive
+eigenvalue, its quadratic form is nonpositive on the 𝐻-orthogonal complement of 𝑦, namely on
+the vectors 𝑥 satisfying 𝑥 ⊤ 𝐻 𝑦 = 0. Thus 𝑥 ⊤ 𝐻𝑥 ≤ 0, contradicting the first equality. This is the
+degree-two case of Brändén’s half-plane-property criterion [Brä07].
+
+For a set 𝑆 ⊆ [𝑚], write 𝑧 𝑆 =            𝑗∈𝑆 𝑧 𝑗 .   For multiaffine polynomials 𝑝(𝑧) =       𝑆 𝑝𝑆 𝑧
+                                                                                                        𝑆 and 𝑞(𝑧) =
+                                      Î                                                    Í
+         𝑆
+  𝑆 𝑞 𝑆 𝑧 , write
+Í
+                                                                 Õ
+                                                      ⟨𝑝, 𝑞⟩ =           𝑝𝑆 𝑞𝑆 .
+                                                                     𝑆
+Thus this inner product pairs coefficients of the same squarefree monomial.
+Theorem 4 (Stable coefficient inequality). Let 𝑝, 𝑞 ∈ ℝ≥0 [𝑧 1 , . . . , 𝑧 𝑚 ] be homogeneous, multiaffine, real
+stable polynomials of the same degree 𝑑. For every 𝛼 ∈ [0, 1]𝑚 with 𝑗 𝛼 𝑗 = 𝑑,
+                                                                      Í
+
+                                            𝑚
+                                                      𝛼𝑗
+                                            Ö
+                                ⟨𝑝, 𝑞⟩ ≥          𝛼 𝑗 (1 − 𝛼 𝑗 )1−𝛼 𝑗 Cap𝛼 (𝑝) Cap𝛼 (𝑞).                         (4)
+                                            𝑗=1
+
+The conventions 00 = 1 and 10 = 1 are used at the boundary.
+This is the multiaffine specialization of the coefficient inequality of Anari and Oveis Gharan
+[AO17]. The inner product in Eq. (4) pairs the same squarefree monomial in 𝑝 and 𝑞, rather than
+complementary monomials.
+We use the following elementary entropy certificate for capacity. Its one-sided form is exactly what
+the proof and the algorithm need.
+
+                                                                 5
+Lemma 5 (Entropy certificate for capacity). Let
+                                                    Õ
+                                          𝑞(𝑧) =             𝑐𝐸 𝑧 𝐸 ,          𝑐 𝐸 > 0,
+                                                    𝐸∈ℰ
+
+           𝑚                      𝐸𝑗
+              and 𝑧 𝐸 =       𝑗 𝑧 𝑗 . If 𝜃 is a probability distribution on ℰ with   𝐸 𝜃𝐸 𝐸 = 𝛼, then
+                          Î                                                        Í
+where ℰ ⊆ ℤ≥0
+                                         Õ                𝑐𝐸
+                                               𝜃𝐸 log        ≤ log Cap𝛼 (𝑞).                                 (5)
+                                                          𝜃𝐸
+                                         𝐸∈ℰ
+
+Terms with 𝜃𝐸 = 0 are interpreted by continuity.
+
+Proof. Fix a feasible 𝜃. For every 𝑧 > 0, the log-sum inequality gives
+                                                      Õ        𝑐𝐸 𝑧 𝐸 Õ
+                       log 𝑞(𝑧) − ⟨𝛼, log 𝑧⟩ ≥                 𝜃𝐸 log−   𝜃𝐸 ⟨𝐸, log 𝑧⟩
+                                                                𝜃𝐸
+                                                      𝐸                𝐸
+                                                      Õ        𝑐𝐸
+                                                    =   𝜃𝐸 log     .
+                                                               𝜃𝐸
+                                                         𝐸
+
+Taking the infimum over 𝑧 proves the claim.
+
+
+3   A paired lower certificate
+Throughout the structural argument we assume 𝑛 ≥ 2; the case 𝑛 = 1 is exact. We augment the
+Bethe lower bound by clustering disjoint pairs of rows. The construction is valid for every interior
+point of the Birkhoff polytope; later we evaluate it at the optimizer of a regularized Bethe objective.
+Fix a positive matrix 𝐴 ∈ ℝ𝑛×𝑛>0
+                                 and an interior point 𝑋 ∈ ℬ𝑛 , meaning that every entry of 𝑋 is
+positive. For a row 𝑖, define
+
+                                                    Ö  𝐴 𝑖𝑗  𝑋𝑖𝑗
+                                   𝑆 𝑖 (𝐴, 𝑋) =                              (1 − 𝑋𝑖𝑗 )1−𝑋𝑖𝑗 .               (6)
+                                                              𝑋𝑖𝑗
+                                                     𝑗
+
+The product of the singleton factors is exactly the exponential of the Bethe objective:
+                                               Ö
+                                                    𝑆 𝑖 (𝐴, 𝑋) = 𝑒 𝛽 𝐴 (𝑋) .                                 (7)
+                                                𝑖
+
+
+For two distinct rows 𝑟, 𝑠, let
+                                   Õ
+                      𝑄 𝑟𝑠 (𝑧) =         𝐴𝑟 𝑗 𝐴𝑠 𝑘 + 𝐴𝑟 𝑘 𝐴𝑠 𝑗 𝑧 𝑗 𝑧 𝑘 ,              𝛼 𝑟𝑠
+                                                                                        𝑗 = 𝑋𝑟 𝑗 + 𝑋 𝑠 𝑗 .
+                                                                     
+                                                                                                             (8)
+                                   𝑗<𝑘
+
+The coefficient of 𝑧 𝑗 𝑧 𝑘 is the combined weight of the two assignments of rows 𝑟, 𝑠 to columns 𝑗, 𝑘,
+while 𝛼 𝑟𝑠
+        𝑗
+           is the total mass that these two rows place on column 𝑗. The column constraints on 𝑋
+imply                                                  Õ
+                                       0 < 𝛼 𝑟𝑠
+                                             𝑗  ≤ 1,       𝛼 𝑟𝑠
+                                                             𝑗 = 2.
+                                                                         𝑗
+
+
+                                                                 6
+Writing 𝑒 𝑗 for the 𝑗-th standard basis vector, the vectors in [0, 1]𝑛 whose coordinates sum to two
+form the convex hull of 𝑒 𝑗 + 𝑒 𝑘 , 𝑗 < 𝑘. Thus 𝛼 𝑟𝑠 lies in the convex hull of the exponent vectors of the
+monomials in 𝑄 𝑟𝑠 , as required for its capacity. Define
+
+                                                                                                  𝑆𝑟𝑠 (𝐴, 𝑋)
+                                                                                                             pair
+                           Ö                    𝑟𝑠
+           𝑆𝑟𝑠 (𝐴, 𝑋) =          (1 − 𝛼 𝑟𝑠                                       Γ𝑟𝑠 (𝐴, 𝑋) =                     .
+            pair                            1−𝛼 𝑗
+                                        𝑗 )          Cap𝛼 𝑟𝑠 (𝑄 𝑟𝑠 ),
+                                                                                              𝑆𝑟 (𝐴, 𝑋)𝑆 𝑠 (𝐴, 𝑋)
+                                                                                                                       (9)
+                             𝑗
+
+
+If 𝛼 𝑟𝑠
+     𝑗
+        = 1, the corresponding factor in the first product is interpreted as 00 = 1. The ratio Γ𝑟𝑠
+measures the gain from treating rows 𝑟, 𝑠 as one pair rather than as two singleton rows.
+Theorem 6 (Paired lower certificate). For every matching 𝑀 on the row set—that is, every collection of
+disjoint unordered pairs of rows—
+                                                              Ö
+                                 𝐿 𝑀 (𝐴, 𝑋) := 𝑒 𝛽 𝐴 (𝑋)                Γ𝑟𝑠 (𝐴, 𝑋) ≤ per(𝐴).                          (10)
+                                                           {𝑟,𝑠}∈𝑀
+
+
+The theorem has two important features. It is one-sided for every matching, so the pairs may be
+chosen algorithmically, and it reduces the rest of the paper to finding many pairs with Γ𝑟𝑠 > 1. The
+proof encodes the row clusters and the requirement of using every column once by two stable
+polynomials whose coefficient inner product is the permanent.
+
+Proof. The cluster polynomial. Let 𝒢 be the partition of the row set whose nontrivial parts are the
+pairs in 𝑀. Give each cluster 𝐶 ∈ 𝒢 its own copy 𝑧 𝐶1 , . . . , 𝑧 𝐶𝑛 of the column variables. For a
+singleton 𝐶 = {𝑖}, put                               Õ
+                                        𝑝 𝐶 (𝑧 𝐶 ) =   𝐴 𝑖𝑗 𝑧 𝐶 𝑗 .
+                                                                   𝑗
+
+For a pair 𝐶 = {𝑟, 𝑠}, put 𝑝 𝐶 (𝑧 𝐶 ) = 𝑄 𝑟𝑠 (𝑧 𝐶 ), and define
+                                                              Ö
+                                                     𝑝(𝑧) =            𝑝 𝐶 (𝑧 𝐶 ).                                    (11)
+                                                              𝐶∈𝒢
+
+
+
+Stability. The singleton polynomials are positive linear forms and are therefore real stable. For a
+pair, write 𝑢 = 𝐴𝑟 and 𝑣 = 𝐴 𝑠 , viewed as row vectors, and let 𝑢 ◦ 𝑣 denote their coordinatewise
+product. The Hessian of 𝑄 𝑟𝑠 is
+
+                                       ∇2 𝑄 𝑟𝑠 = 𝑢𝑣 ⊤ + 𝑣𝑢 ⊤ − 2diag(𝑢 ◦ 𝑣).                                          (12)
+
+Multiplying this matrix on the left and right by diag(𝑢 ◦ 𝑣)−1/2 transforms it into
+                                                                   q                        q
+                             𝑎𝑏 ⊤ + 𝑏𝑎 ⊤ − 2𝐼,             𝑎𝑗 =         𝑢 𝑗 /𝑣 𝑗 ,   𝑏𝑗 =       𝑣 𝑗 /𝑢 𝑗 .
+
+Here 𝐼 is the identity matrix. The two possibly nonzero eigenvalues of 𝑎𝑏 ⊤ + 𝑏𝑎 ⊤ are
+
+                                    𝑎 ⊤ 𝑏 + ∥𝑎∥∥𝑏∥            and            𝑎 ⊤ 𝑏 − ∥𝑎∥∥𝑏∥.
+
+The second is nonpositive by Cauchy–Schwarz. After subtracting 2𝐼, the matrix therefore has at
+most one positive eigenvalue. The multiplication above preserves the numbers of positive and
+
+                                                               7
+negative eigenvalues, so the same conclusion holds for ∇2 𝑄 𝑟𝑠 . By Lemma 3, 𝑄 𝑟𝑠 is real stable.
+Products in disjoint variables preserve stability, so 𝑝 is real stable.
+
+The column selector. Define
+                                                     𝑛
+                                                                        !
+                                                     Ö Õ
+                                         𝑅(𝑧) =                   𝑧𝐶 𝑗 .                               (13)
+                                                     𝑗=1    𝐶∈𝒢
+
+It is a product of positive linear forms and is therefore multiaffine and real stable. Both 𝑝 and 𝑅 are
+homogeneous of degree 𝑛. Their coefficient inner product is exactly the permanent:
+
+                                             ⟨𝑝, 𝑅⟩ = per(𝐴).                                          (14)
+
+Indeed, a common squarefree monomial chooses one cluster for every column and assigns to each
+cluster as many columns as it has rows. A singleton has one possible internal assignment. The
+two terms in the coefficient of 𝑧 𝐶 𝑗 𝑧 𝐶 𝑘 for a pair 𝐶 = {𝑟, 𝑠} enumerate the two bĳections from its
+rows to its selected columns. Thus the common monomials and their coefficients enumerate all
+permutations, with their correct 𝐴-weights.
+
+Applying the coefficient inequality. Define a vector indexed by cluster-column pairs by
+
+                                 𝛼{𝑖},𝑗 = 𝑋𝑖𝑗 ,         𝛼{𝑟,𝑠},𝑗 = 𝑋𝑟 𝑗 + 𝑋𝑠 𝑗 .                       (15)
+
+For each cluster 𝐶, the sum of 𝛼 𝐶 𝑗 over 𝑗 equals the degree of 𝑝 𝐶 . For each column 𝑗,       𝐶 𝛼 𝐶 𝑗 = 1.
+                                                                                            Í
+We may therefore apply Theorem 4 to 𝑝 and 𝑅.
+Capacities factor across disjoint variable sets. For a singleton cluster, the weighted arithmetic–
+geometric mean inequality (AM–GM) gives
+                                                                  𝑋𝑖𝑗
+                                                     ª Ö 𝐴 𝑖𝑗
+                                                           
+                                        ©Õ
+                                  Cap𝑋𝑖 ­   𝐴 𝑖𝑗 𝑧 𝑗 ® =               .                               (16)
+                                                             𝑋𝑖𝑗
+                                        « 𝑗          ¬   𝑗
+
+For a fixed column 𝑗, another application of weighted AM–GM gives
+                                                            !
+                                                                             −𝛼 𝐶 𝑗
+                                                   Õ               Ö
+                                   Cap(𝛼 𝐶 𝑗 )𝐶         𝑧𝐶 𝑗 =              𝛼𝐶 𝑗 .
+                                                    𝐶               𝐶
+
+Consequently
+                                                                   −𝛼 𝐶 𝑗
+                                                            Ö
+                                         Cap𝛼 (𝑅) =               𝛼𝐶 𝑗 .                               (17)
+                                                            𝐶,𝑗
+
+                      𝛼𝐶 𝑗
+                𝐶,𝑗 𝛼 𝐶 𝑗 in Eq. (4) cancels Eq. (17). What remains from a singleton cluster is exactly
+             Î
+The factor
+𝑆 𝑖 (𝐴, 𝑋), by Eqs. (6) and (16); what remains from a pair is exactly 𝑆𝑟𝑠 (𝐴, 𝑋). Combining Eqs. (4)
+                                                                        pair
+
+and (14) yields                          Ö                        Ö
+                                                  𝑆 𝑖 (𝐴, 𝑋)             𝑆𝑟𝑠 (𝐴, 𝑋).
+                                                                            pair
+                              per(𝐴) ≥
+                                         {𝑖}∈𝒢                 {𝑟,𝑠}∈𝑀
+
+Using Eqs. (7) and (9) gives Eq. (10).
+
+
+
+                                                        8
+4     An exact identity for the Bethe slack
+We now ask what a matrix must look like when the upper bound in Eq. (2) is nearly tight. The starting
+point is a probability distribution on the permutations counted by the permanent. Comparing
+this distribution with a sequential sampling procedure recovers the Anari–Rezaei upper bound;
+keeping the full comparison gives the additional structural information that we need.
+Let
+                                                           𝑖 𝐴 𝑖,𝜎(𝑖)
+                                                       Î
+                                             𝜇(𝜎) =                                                    (18)
+                                                        per(𝐴)
+be the Gibbs distribution on permutations, and let
+
+                                           𝑃𝑖𝑗 = ℙ𝜎∼𝜇 [𝜎(𝑖) = 𝑗]
+
+be its matrix of assignment marginals: 𝑃𝑖𝑗 is the probability that row 𝑖 is assigned to column 𝑗. Since
+𝐴 is positive, 𝜇 has full support and 𝑃 is an interior point of ℬ𝑛 .
+For a probability vector 𝑝, define
+
+                                            Õ            Õ ª
+                                            
+                                 𝑇(𝑝) = 𝔼𝜋    𝑝 𝑗 log ­  𝑝 𝑘 ® ,
+                                                        ©
+                                                                                                       (19)
+                                             𝑗
+                                             Õ « 𝑘≥𝜋 𝑗 ¬
+                                                                 
+                                  𝑔(𝑝) = 𝑇(𝑝) −        (1 − 𝑝 𝑗 ) log(1 − 𝑝 𝑗 ),                       (20)
+                                                   𝑗
+                                           1
+                                  𝑑(𝑝) =     log 2 − 𝑔(𝑝),                                             (21)
+                                           2
+where 𝜋 is a uniformly random ordering of the coordinates, and 𝑘 ≥𝜋 𝑗 means that coordinate
+𝑘 appears at or after coordinate 𝑗 in this ordering. Thus 𝑇(𝑝) averages the log suffix mass seen
+from a sample drawn from 𝑝. The quantity 𝑔(𝑝) is the resulting row correction in the sequential
+comparison, and 𝑑(𝑝) measures its deficit from the sharp one-row bound
+
+                              𝑑(𝑝) ≥ 0       for every probability vector 𝑝                            (22)
+
+[AR24].
+For an ordering 𝜋 = (𝑖1 , . . . , 𝑖 𝑛 ) of the rows, define a sequential distribution 𝜈𝜋 on permutations as
+follows. Process the rows in the order 𝜋. When row 𝑖 𝑡 is processed, choose an unused column 𝑗
+with probability proportional to 𝑃𝑖𝑡 𝑗 . Let
+
+                                           𝐷 = 𝔼𝜋 [𝐷KL (𝜇∥𝜈𝜋 )].                                       (23)
+
+Using only the inequality 𝐷 ≥ 0 is one of the steps that yields the Bethe upper bound. Here we
+retain the value of 𝐷 exactly.
+Lemma 7 (Exact sequential identity). We have
+                                                              Õ
+                                  log per(𝐴) = 𝛽 𝐴 (𝑃) +            𝑔(𝑃𝑖 ) − 𝐷.                        (24)
+                                                                𝑖
+
+
+
+
+                                                       9
+Proof. Fix a row ordering 𝜋 and a permutation 𝜎. When row 𝑖 is processed, the unused columns
+are precisely the columns assigned by 𝜎 to rows that appear at or after 𝑖 in 𝜋. Thus
+
+                                    Õ                      Õ                             Õ
+                     log 𝜈𝜋 (𝜎) =         log 𝑃𝑖,𝜎(𝑖) −                                                    𝑃𝑖 𝑘 ® .
+                                                                      ©                                        ª
+                                                                log ­
+                                      𝑖                    𝑖          « 𝑘: 𝜎−1 (𝑘) is at or after 𝑖 in 𝜋       ¬
+On the other hand,                                  Õ
+                                  𝔼𝜇 [log 𝜇(𝜎)] =          𝑃𝑖𝑗 log 𝐴 𝑖𝑗 − log per(𝐴).
+                                                     𝑖,𝑗
+
+For fixed 𝜎, a uniformly random row ordering induces a uniformly random ordering of the columns
+through 𝜎. Averaging the preceding display over 𝜋 and then over 𝜎 ∼ 𝜇 therefore gives
+                           Õ                                          Õ                             Õ
+                      𝐷=          𝑃𝑖𝑗 log 𝐴 𝑖𝑗 − log per(𝐴) −                    𝑃𝑖𝑗 log 𝑃𝑖𝑗 +          𝑇(𝑃𝑖 ).
+                            𝑖,𝑗                                           𝑖,𝑗                       𝑖
+
+Rearranging, and using                                    Õ
+                                   𝑇(𝑃𝑖 ) = 𝑔(𝑃𝑖 ) +           (1 − 𝑃𝑖𝑗 ) log(1 − 𝑃𝑖𝑗 ),
+                                                           𝑗
+
+gives Eq. (24).
+
+Define the slack in the Bethe upper bound and the Bethe suboptimality of 𝑃 by
+                     𝑛
+            Δ(𝐴) = log 2 + log Bethe(𝐴) − log per(𝐴),      𝐸 = log Bethe(𝐴) − 𝛽 𝐴 (𝑃).        (25)
+                     2
+Thus Δ(𝐴) is the gap in the upper half of the Bethe sandwich, while 𝐸 is the loss from evaluating
+the Bethe objective at 𝑃 rather than at its maximizer.
+Lemma 8 (Exact slack decomposition). We have
+                                                               Õ
+                                            Δ(𝐴) = 𝐸 +              𝑑(𝑃𝑖 ) + 𝐷.                                       (26)
+                                                                𝑖
+
+In particular, every term on the right is nonnegative.
+
+Proof. Substitute Eq. (24) into Eq. (25) and use 𝑑(𝑃𝑖 ) = 12 log 2 − 𝑔(𝑃𝑖 ). The nonnegativity of 𝐸 follows
+from the definition of the Bethe optimum, the nonnegativity of the row deficits is Eq. (22), and
+𝐷 ≥ 0 is Gibbs’ inequality.
+
+
+5    Dimension-free stability of the row inequality
+To use the slack decomposition, we need a dimension-free description of rows with small deficit.
+The equality examples in the row inequality are the half–half vectors. For 𝑚 ≥ 2, let
+                                                                                               
+                                         1      1
+                                    ℰ𝑚 =   𝑒 𝑎 + 𝑒𝑏 𝑎, 𝑏 ∈ [𝑚], 𝑎 ≠ 𝑏 .                                               (27)
+                                         2      2
+Here 𝑒 𝑎 is the 𝑎-th standard basis vector, and
+                                                                      Õ
+                                          dist1 (𝑝, ℰ𝑚 ) = min                  |𝑝 𝑗 − 𝑞 𝑗 |.
+                                                               𝑞∈ℰ𝑚
+                                                                          𝑗
+
+The next lemma gives a modulus that is independent of the ambient dimension.
+
+                                                               10
+Lemma 9 (Row stability). There is a universal constant 𝐶stab < ∞ such that every probability vector
+     𝑚
+𝑝 ∈ ℝ≥0 , 𝑚 ≥ 2, satisfies
+                                  dist1 (𝑝, ℰ𝑚 ) ≤ 𝐶stab 𝑑(𝑝)1/4 .                             (28)
+
+Proof. The proof has two steps. First we lower-bound 𝑑(𝑝) by a separable function of the coordinates
+and identify its equality cases. We then turn this lower bound into a quantitative estimate on the
+two largest coordinates.
+
+A separable lower bound. For a random ordering 𝜋, put
+                                                    Õ                             Õ
+                                             𝐿𝑖 =           𝑝𝑗 ,        𝑅𝑖 =              𝑝𝑗.
+                                                    𝑗≤𝜋 𝑖                         𝑗≥𝜋 𝑖
+
+Pairing every ordering with its reverse gives
+                                     1Õ                          Õ
+                            𝑔(𝑝) =      𝑝 𝑖 𝔼𝜋 [log(𝐿 𝑖 𝑅 𝑖 )] −  (1 − 𝑝 𝑖 ) log(1 − 𝑝 𝑖 ).                     (29)
+                                     2
+                                        𝑖                                    𝑖
+
+                    𝑘
+Let 𝑠 𝑘 =       𝑖 𝑝 𝑖 . Averaging over the relative positions of three indices gives
+            Í
+
+                                                                   1 − 𝑠2 2     1
+                                     𝑀 𝑖 := 𝔼𝜋 [𝐿 𝑖 𝑅 𝑖 ] =              + 𝑝 𝑖 + 𝑝 2𝑖 .                         (30)
+                                                                     6    3     3
+To see this, write
+                                                                                 !
+                                                           ©Õ ª Õ
+                                            𝐿𝑖 𝑅 𝑖 = 𝑝 𝑖 + ­        𝑝𝑗®        𝑝𝑘 .
+                                                           « 𝑗< 𝜋 𝑖   ¬ 𝑘> 𝜋 𝑖
+
+For distinct 𝑗, 𝑘 ≠ 𝑖, the probability that 𝑗 <𝜋 𝑖 <𝜋 𝑘 is 1/6. Summing the corresponding cross terms
+proves Eq. (30).
+Jensen’s inequality and the tangent inequality
+                                                log 𝑥 ≤ − log 2 + 2𝑥 − 1
+give
+                                   1        Õ         1 Õ
+                           𝑔(𝑝) ≤ − log 2 +   𝑝 𝑖 𝑀𝑖 − − (1 − 𝑝 𝑖 ) log(1 − 𝑝 𝑖 )
+                                   2                  2
+                                                    𝑖                         𝑖
+                                   1       1 1     1      Õ
+                                = − log 2 − + 𝑠 2 + 𝑠 3 −  (1 − 𝑝 𝑖 ) log(1 − 𝑝 𝑖 ).
+                                   2       3 2     3
+                                                                                  𝑖
+
+Consequently                                                        Õ
+                                                  𝑑(𝑝) ≥ 𝐶 −                𝐹(𝑝 𝑖 ),                            (31)
+                                                                        𝑖
+where
+                                                                    𝑥2 𝑥3                                1
+                           𝐹(𝑥) = −(1 − 𝑥) log(1 − 𝑥) +               + ,                     𝐶 = log 2 + .     (32)
+                                                                    2  3                                 3
+
+The equality case. Put ℎ(𝑥) = 𝐹(𝑥)/𝑥 for 𝑥 > 0, with ℎ(0) = 1. Direct differentiation gives
+                                                                                       ∫ 𝑥
+                                ′′     𝑥(1 − 2𝑥)                    ′      1
+                               𝐹 (𝑥) =           ,                 ℎ (𝑥) = 2                    𝑡𝐹 ′′ (𝑡) 𝑑𝑡.
+                                         1−𝑥                              𝑥               0
+
+
+                                                                   11
+Thus ℎ is strictly increasing on [0, 1/2], and a direct substitution gives ℎ(1/2) = 𝐶.
+Suppose first that every coordinate of 𝑝 is at most 1/2. Then
+                                            Õ                   Õ
+                                                   𝐹(𝑝 𝑖 ) =           𝑝 𝑖 ℎ(𝑝 𝑖 ) ≤ 𝐶.
+                                              𝑖                   𝑖
+
+Equality is possible only if all positive coordinates equal 1/2, hence only when 𝑝 ∈ ℰ𝑚 .
+Now suppose that the largest coordinate is 𝑎 > 1/2, and put 𝑞 = 1 − 𝑎. Every remaining coordinate
+is at most 𝑞 ≤ 1/2, so monotonicity of ℎ gives
+                                                     Õ
+                                                               𝐹(𝑝 𝑖 ) ≤ 𝐹(𝑞).
+                                                    𝑖:𝑝 𝑖 ≠𝑎
+
+For
+                                           𝐽row (𝑎) = 𝐶 − 𝐹(𝑎) − 𝐹(1 − 𝑎)
+and 𝑢 = 2𝑎 − 1, we have
+                            ′                      𝑎
+                           𝐽row (𝑎) = log             − 4𝑎 + 2 = 2 (artanh 𝑢 − 𝑢) ≥ 0.                        (33)
+                                                  1−𝑎
+Here artanh denotes the inverse hyperbolic tangent. Moreover,
+                                  ∫ 2𝑎−1                                                            4
+                                                                 (2𝑎 − 1)4 4     1
+                     𝐽row (𝑎) =              (artanh 𝑡 − 𝑡) 𝑑𝑡 ≥          =   𝑎−                          .   (34)
+                                   0                                12      3    2
+
+Thus the separable defect is nonnegative, vanishes only at a half–half vector, and grows quartically
+when one coordinate exceeds 1/2.
+
+Quantitative stability. Let 𝑎 ≥ 𝑏 be the two largest coordinates of 𝑝, and put 𝑡 = 1 − 𝑎 − 𝑏. Define
+
+                   𝑐1 =     min         ℎ ′ (𝑥) > 0,            𝑐2 =       min        (ℎ(𝑥) − ℎ(𝑥/2)) > 0,
+                          𝑥∈[1/4,1/2]                                   𝑥∈[1/4,1/2]
+
+and                                                                                  
+                                              1 1
+                                    𝛿★ = min    , (𝐶 − ℎ(1/4)) > 0.                                           (35)
+                                             192 2
+All three constants are absolute.
+Assume first that 𝑎 ≤ 1/2 and 𝑑(𝑝) ≤ 𝛿★. Since the separable defect in Eq. (31) is at most 𝑑(𝑝), we
+must have 𝑎, 𝑏 ≥ 1/4: if 𝑎 < 1/4, then the defect is at least 𝐶 − ℎ(1/4); if 𝑏 < 1/4, the mass outside
+the largest coordinate is at least 1/2, and its contribution to the defect is at least 12 (𝐶 − ℎ(1/4)).
+Monotonicity on [1/4, 1/2] now gives
+
+                                        1     4𝑑(𝑝)                     1      4𝑑(𝑝)
+                                          −𝑎≤       ,                     −𝑏 ≤       .
+                                        2      𝑐1                       2       𝑐1
+Indeed, the coordinates 𝑎 and 𝑏 contribute at least 𝑎𝑐 1 (1/2 − 𝑎) and 𝑏𝑐 1 (1/2 − 𝑏), respectively, to the
+separable defect, and both weights are at least 1/4. Since 𝑡 = (1/2 − 𝑎) + (1/2 − 𝑏),
+
+                                                                             16𝑑(𝑝)
+                                            dist1 (𝑝, ℰ𝑚 ) = 2𝑡 ≤                   .                         (36)
+                                                                               𝑐1
+
+                                                                  12
+Suppose next that 𝑎 > 1/2 and 𝑑(𝑝) ≤ 𝛿★. By Eq. (34),
+                                                                         1/4
+                                           1  3𝑑(𝑝)                                    1
+                                         𝑎− ≤                                      ≤     ,
+                                           2    4                                      4
+so 𝑞 = 1 − 𝑎 ≥ 1/4. Write the coordinates other than 𝑎 as 𝑥 1 , . . . , 𝑥 𝑟 , with 𝑏 = maxℓ 𝑥ℓ . The remaining
+separable defect is                   Õ           Õ
+                               𝐹(𝑞) −    𝐹(𝑥ℓ ) =     𝑥ℓ ℎ(𝑞) − ℎ(𝑥ℓ ) .
+                                                                               
+                                                                                                           (37)
+                                          ℓ                      ℓ
+If 𝑡 = 𝑞 − 𝑏 ≤ 𝑞/2, all coordinates other than 𝑏 are at most 𝑞/2, and their total mass is 𝑡. If 𝑡 > 𝑞/2,
+then every tail coordinate is at most 𝑞/2, and their total mass 𝑞 is at least 𝑡. In both cases Eq. (37) is
+at least 𝑐 2 𝑡. Therefore
+                                                                                           1/4
+                                                1          3𝑑(𝑝)                                         2𝑑(𝑝)
+                         dist1 (𝑝, ℰ𝑚 ) = 2 𝑎 −   + 2𝑡 ≤ 2                                           +         .   (38)
+                                                2            4                                            𝑐2
+
+For 𝑑(𝑝) > 𝛿★, use the bound dist1 (𝑝, ℰ𝑚 ) ≤ 2. Thus Eq. (28) holds with, for example,
+                                                  (               1/4                              )
+                                            16    3                          2    −1/4
+                                𝐶stab = max    ,2                           + , 2𝛿★    .
+                                            𝑐1    4                          𝑐2
+
+
+
+
+6    Robust four-cycle structure
+Row stability makes most rows close to half–half. We encode their two large coordinates as heavy
+edges. The column constraints give a graph of maximum degree two, and the sequential divergence
+controls the rows lying on long cycles.
+The key observation is entropic. Once we know which rows leave the heavy-edge graph, each cycle
+carries at most one bit of matching ambiguity. A good row, on the other hand, contributes almost
+half a bit to the entropy calculation below. Cycles with at least three rows therefore create a definite
+surplus, which must be paid for by the divergence 𝐷. Since our logarithms are natural, one bit here
+means log 2 units of entropy.
+Fix 0 < 𝜂 ≤ 1/10. Call row 𝑖 good if
+                                                  dist1 (𝑃𝑖 , ℰ𝑛 ) ≤ 𝜂,
+and let 𝑏 be the number of bad rows. By Lemmas 8 and 9, every bad row has deficit at least
+                                                                     𝜂
+                                                                         4
+                                                   𝑑0 =                        ,
+                                                                𝐶stab
+and therefore
+                                             Δ(𝐴)
+                                                  .   𝑏≤                                    (39)
+                                              𝑑0
+For every good row, choose two coordinates witnessing its distance from ℰ𝑛 . If their masses are
+𝑢, 𝑣 and the remaining mass is 𝑞, then
+                                            1         1
+                                       |𝑢 − | + |𝑣 − | + 𝑞 ≤ 𝜂.                                   (40)
+                                            2         2
+In particular, both distinguished entries are at least 1/2 − 𝜂, and the mass outside them is at most 𝜂.
+
+                                                                13
+6.1   The heavy-edge graph
+Form the bipartite graph                                               
+                                                             1
+                                𝐹𝜂 = (𝑖, 𝑗) ∈ [𝑛] × [𝑛] 𝑃𝑖𝑗 ≥ − 𝜂 .                                 (41)
+                                                             2
+Its two vertex sets are the rows and columns of 𝐴. Every row and column has degree at most two,
+since 3(1/2 − 𝜂) > 1, and every good row has degree exactly two.
+We complete 𝐹𝜂 to a spanning bipartite two-regular multigraph 𝐾. This can be done without
+deleting an edge: attach 2 − deg(𝑣) stubs to every row and column vertex, and pair the row stubs
+arbitrarily with the column stubs. The two sides have the same number of stubs because they have
+the same number of vertices and the same total degree in 𝐹𝜂 . Parallel edges are allowed. Every
+component of 𝐾 is therefore an even cycle, where a pair of parallel edges is allowed as a cycle
+containing one row. Such a doubled edge contains no good row, since a good row already has two
+distinct neighbors in 𝐹𝜂 .
+Let 𝑁𝐾 (𝑖) denote the set of column neighbors of row 𝑖 in 𝐾, with parallel edges ignored. Let 𝑁 be
+the number of good rows in components of 𝐾 containing at least three rows.
+
+6.2   An entropy encoding
+View a sampled permutation 𝜎 ∼ 𝜇 as a perfect matching between the row and column vertices.
+Define                               (
+                                       ★,     𝜎(𝑖) ∈ 𝑁𝐾 (𝑖),
+                                𝑌𝑖 =
+                                       𝜎(𝑖), 𝜎(𝑖) ∉ 𝑁𝐾 (𝑖).
+Thus 𝑌𝑖 records the exact column used by row 𝑖 when its matching edge is not in 𝐾, and otherwise
+only records that it uses one of its neighbors in 𝐾. Let 𝑚(𝐾) be the number of components of 𝐾
+containing at least two rows. The next lemma formalizes the fact that each surviving cycle costs at
+most one bit.
+Lemma 10 (Core encoding). We have
+                                             Õ
+                                    𝐻(𝜇) ≤       𝐻(𝑌𝑖 ) + 𝑚(𝐾) log 2.                               (42)
+                                             𝑖
+
+Proof. Fix a value 𝑦 of the vector 𝑌 = (𝑌1 , . . . , 𝑌𝑛 ). It determines the set of escaped rows and the
+columns assigned to them. Delete these rows and columns from 𝐾. Every remaining assignment
+consistent with 𝑦 is a perfect matching of the resulting subgraph.
+Within an original component of 𝐾, deleting vertices either leaves the whole cycle intact or breaks it
+into paths. An intact cycle containing at least two rows has two perfect matchings. Every path that
+has a perfect matching has a unique one, obtained greedily from an endpoint. A doubled edge
+represents only one row-column assignment. Consequently there are at most 2𝑚(𝐾) permutations
+consistent with 𝑦, and
+                                       𝐻(𝜎 | 𝑌) ≤ 𝑚(𝐾) log 2.
+Now use                                                    Õ
+                     𝐻(𝜇) = 𝐻(𝜎) ≤ 𝐻(𝑌) + 𝐻(𝜎 | 𝑌) ≤            𝐻(𝑌𝑖 ) + 𝑚(𝐾) log 2.
+                                                            𝑖
+
+
+
+
+                                                   14
+The KL term from Eq. (23) has a useful entropy form. For a probability vector 𝑝, put
+
+                                                      𝑠(𝑝) = 𝐻(𝑝) + 𝑇(𝑝).                                (43)
+
+Lemma 11 (Entropy form of the sequential divergence). We have
+                                                                         Õ
+                                                    𝐷 = −𝐻(𝜇) +                 𝑠(𝑃𝑖 ).                  (44)
+                                                                          𝑖
+
+Proof. The Gibbs law gives                                               Õ
+                                         𝐻(𝜇) = log per(𝐴) −                     𝑃𝑖𝑗 log 𝐴 𝑖𝑗 .
+                                                                          𝑖,𝑗
+
+Substitute Eq. (24) and expand the Bethe objective. For a row 𝑝, the terms that remain are
+                           Õ                   Õ
+                       −       𝑝 𝑗 log 𝑝 𝑗 +        (1 − 𝑝 𝑗 ) log(1 − 𝑝 𝑗 ) + 𝑔(𝑝) = 𝐻(𝑝) + 𝑇(𝑝).
+                           𝑗                    𝑗
+
+Summing over the rows proves the identity.
+
+6.3   The score of a good row
+A good row contributes almost (log 2)/2 beyond the information already contained in 𝑌𝑖 . The
+following Riemann-sum identity makes the dependence on the leakage explicit.
+Lemma 12 (Suffix Riemann-sum identity). Fix an ordering of a probability vector 𝑝, write its coordinates
+in that order as 𝑝1 , . . . , 𝑝 𝑚 , and put
+                                                       𝑚
+                                                       Õ
+                                                𝑧𝑟 =         𝑝𝑘 ,         𝑧 𝑚+1 = 0.
+                                                       𝑘=𝑟
+
+For
+                                  𝑒(𝑎, 𝑥) = 𝑎 − 𝑥 log(1 + 𝑎/𝑥),                       𝑒(𝑎, 0) = 𝑎,       (45)
+we have
+                                         𝑚
+                                         Õ                               𝑚
+                                                                         Õ
+                                               𝑝 𝑟 log 𝑧 𝑟 = −1 +               𝑒(𝑝 𝑟 , 𝑧 𝑟+1 ).         (46)
+                                         𝑟=1                             𝑟=1
+
+Moreover, 𝑒(𝑎, 𝑥) ≥ 0, and for fixed 𝑎 ≥ 0, the function is nonincreasing in 𝑥 ≥ 0.
+
+Proof. On the interval [𝑧 𝑟+1 , 𝑧 𝑟 ],
+                                               ∫ 𝑧𝑟
+                                                                                   𝑝𝑟
+                                                                                                    
+                               𝑝 𝑟 log 𝑧 𝑟 −       log 𝑥 𝑑𝑥 = 𝑝 𝑟 − 𝑧 𝑟+1 log 1 +
+                                             𝑧 𝑟+1                                𝑧 𝑟+1
+                                                                    = 𝑒(𝑝 𝑟 , 𝑧 𝑟+1 ).
+                                    ∫1
+Summing over 𝑟, and using 0 log 𝑥 𝑑𝑥 = −1, proves Eq. (46). The inequality log(1 + 𝑡) ≤ 𝑡 gives
+𝑒(𝑎, 𝑥) ≥ 0. Finally,
+                                𝜕                              𝑎
+                                  𝑒(𝑎, 𝑥) = − log(1 + 𝑎/𝑥) +     ≤ 0,
+                               𝜕𝑥                            𝑎+𝑥
+where the last inequality follows from log(1 + 𝑡) ≥ 𝑡/(1 + 𝑡).
+
+                                                                    15
+Consider one good row. Call its two distinguished masses 𝑢, 𝑣, call the remaining mass 𝑞 = 1 − 𝑢 − 𝑣,
+and refer to the two distinguished coordinates as its core coordinates. The random variable 𝑌𝑖
+merges the two core outcomes and leaves every outside outcome distinct. Hence
+
+                                                                           𝑢
+                                                                             
+                                  𝐻(𝑃𝑖 ) − 𝐻(𝑌𝑖 ) = (1 − 𝑞)𝐻2                 .                   (47)
+                                                                          1−𝑞
+
+In Eq. (46), keep only the two nonnegative summands corresponding to the core coordinates. With
+probability 1/2, the other core coordinate precedes 𝑢; then the suffix mass after 𝑢 is at most 𝑞. With
+probability 1/2, it follows 𝑢; then that suffix mass is at most 𝑣 + 𝑞. Monotonicity of 𝑒 gives the
+analogous two estimates for 𝑣. Averaging over the ordering yields
+
+                  𝑠(𝑃𝑖 ) − 𝐻(𝑌𝑖 ) ≥ Ψ(𝑢, 𝑣, 𝑞),                                                   (48)
+                                                    𝑢
+                                                          
+                     Ψ(𝑢, 𝑣, 𝑞) = (1 − 𝑞)𝐻2            −1
+                                                   1−𝑞
+                                       1
+                                          𝑒(𝑢, 𝑞) + 𝑒(𝑢, 𝑣 + 𝑞) + 𝑒(𝑣, 𝑞) + 𝑒(𝑣, 𝑢 + 𝑞) .
+                                                                                       
+                                   +
+                                       2
+
+At (𝑢, 𝑣, 𝑞) = (1/2, 1/2, 0), the right side equals (log 2)/2. Continuity makes this estimate uniform
+over all good rows.
+Lemma 13 (Good-row score). There is a nondecreasing function 𝜔 : [0, 1/10] → ℝ≥0 , with 𝜔(𝜂) → 0 as
+𝜂 ↓ 0, such that every good row satisfies
+
+                                                            1
+                                    𝑠(𝑃𝑖 ) − 𝐻(𝑌𝑖 ) ≥         log 2 − 𝜔(𝜂).                       (49)
+                                                            2
+
+Proof. The function 𝑒 is continuous on ℝ2≥0 under the convention 𝑒(𝑎, 0) = 𝑎. Hence Ψ is continuous
+in a neighborhood of (1/2, 1/2, 0), where
+
+                                                                  1
+                                         Ψ(1/2, 1/2, 0) =           log 2.
+                                                                  2
+For 0 ≤ 𝜂 ≤ 1/10, let 𝒟𝜂 be the compact set of triples (𝑢, 𝑣, 𝑞) ∈ ℝ3≥0 satisfying
+
+                                                         1        1
+                             𝑢 + 𝑣 + 𝑞 = 1,          |𝑢 − | + |𝑣 − | + 𝑞 ≤ 𝜂,
+                                                         2        2
+and define                                                                       
+                                                         1
+                               𝜔(𝜂) =     max              log 2 − Ψ(𝑢, 𝑣, 𝑞) .
+                                        (𝑢,𝑣,𝑞)∈𝒟𝜂       2                   +
+
+Here (𝑥)+ = max{0, 𝑥}. These sets are nested and shrink to {(1/2, 1/2, 0)}, so continuity implies that
+𝜔 is nondecreasing and tends to zero at the origin. The claim follows from Eqs. (40) and (48).
+
+For a bad row, the coarser estimate suffices. By Lemma 12, 𝑇(𝑝) ≥ −1 for every probability vector 𝑝.
+Since 𝑌𝑖 is a coarsening of an outcome sampled from 𝑃𝑖 , 𝐻(𝑃𝑖 ) ≥ 𝐻(𝑌𝑖 ). Therefore
+
+                             𝑠(𝑃𝑖 ) − 𝐻(𝑌𝑖 ) ≥ −1              for every bad row 𝑖.               (50)
+
+
+
+
+                                                          16
+6.4   Excluding long components
+We can now compare the half-bit contribution of each good row with the one-bit ambiguity of each
+cycle.
+Lemma 14 (Robust cycle information). For the fixed threshold 𝜂, let 𝑏 be the number of bad rows and let
+𝑁 be the number of good rows in components of 𝐾 containing at least three rows. Then
+                                                            
+                                   log 2        log 2
+                                𝐷≥       𝑁 − 1+       𝑏 − 𝑛𝜔(𝜂).                                    (51)
+                                     6            2
+
+Proof. Let 𝐺 be the set of good rows. Combining Eqs. (42), (44), (49) and (50) gives
+                                                        
+                                      1
+                              𝐷 ≥ |𝐺|   log 2 − 𝜔(𝜂) − 𝑏 − 𝑚(𝐾) log 2.                              (52)
+                                      2
+
+For a component 𝐶 of 𝐾, let 𝑘 𝐶 , 𝑔𝐶 , 𝑏 𝐶 be its number of rows, good rows, and bad rows. A one-row
+doubled component has 𝑔𝐶 = 0. If 𝑘 𝐶 = 2, then
+
+                                            𝑔𝐶     𝑏𝐶
+                                               −1=− .
+                                             2      2
+If 𝑘 𝐶 ≥ 3, then
+                                          𝑔𝐶         𝑔𝐶 𝑏 𝐶
+                                              −1≥       −     ,
+                                           2          6    3
+because the difference between the two sides is (𝑘 𝐶 − 3)/3. Summing over the components, including
+the one-row components, gives
+                                         |𝐺|            𝑁 𝑏
+                                             − 𝑚(𝐾) ≥      − .                                  (53)
+                                          2             6     2
+Substitute Eq. (53) into Eq. (52), and use |𝐺| ≤ 𝑛.
+
+A component containing exactly two rows is a 𝐾2,2 . If such a component contains a bad row, it
+contains at most one good row, so contaminated two-row components account for at most 𝑏 good
+rows. The number of rows in two-row components whose two rows are good is therefore at least
+
+                                             𝑛 − 2𝑏 − 𝑁 .                                           (54)
+
+Equivalently, 𝐾 contains at least (𝑛 − 2𝑏 − 𝑁)/2 vertex-disjoint clean pairs: pairs of good rows forming
+a 𝐾 2,2 component.
+
+
+7     Transfer to a computable Bethe point
+The structural conclusions of Section 6 concern the true marginal matrix 𝑃, which is not available to
+the algorithm. We transfer these conclusions to a point obtained by concave optimization.
+The entropy regularizer serves two purposes: it places the optimizer in the interior of the Birkhoff
+polytope, and its first-order optimality equations expose coordinates in which the paired gain
+factorizes. The main identity in this section then measures how far those coordinates can move on
+the heavy edges of 𝑃.
+
+
+
+                                                    17
+Fix a rational constant 𝜉 > 0. For 𝑛 ≥ 2, let
+                                                                            𝜉
+                                         ℓ 𝑛 = ⌈log2 𝑛⌉,            𝜏=          .                 (55)
+                                                                           4ℓ 𝑛
+Define the regularized Bethe objective
+                                                          Õ
+                                Φ𝜏 (𝑍) = 𝛽 𝐴 (𝑍) + 𝜏            𝐻(𝑍 𝑖 ),           𝑍 ∈ ℬ𝑛 ,       (56)
+                                                           𝑖
+
+and let 𝑋 be its maximizer.
+Lemma 15 (Regularized optimizer). The maximizer 𝑋 is unique and lies in the interior of ℬ𝑛 . Moreover,
+
+                                         𝛽 𝐴 (𝑋) ≥ log Bethe(𝐴) − 𝜉𝑛.                             (57)
+
+There are positive row and column scalings 𝑟 𝑖 , 𝑐 𝑗 such that
+
+                                      𝐴 𝑖𝑗 = 𝑟 𝑖 𝑐 𝑗 𝑋𝑖𝑗1+𝜏 (1 − 𝑋𝑖𝑗 )       ∀𝑖, 𝑗.               (58)
+
+Proof. The Bethe objective is concave on ℬ𝑛 , and Shannon entropy is strictly concave. Thus Φ𝜏 is
+strictly concave.
+To prove interiority, suppose that 𝑍 ∈ ℬ𝑛 is on the boundary. Let 𝑊 = 𝐽/𝑛 and put 𝑍(𝑡) = (1−𝑡)𝑍+𝑡𝑊.
+A boundary point has a zero entry, say 𝑍 𝑖𝑗 = 0. Concavity of the Bethe objective gives
+
+                                     𝛽 𝐴 (𝑍(𝑡)) ≥ (1 − 𝑡)𝛽 𝐴 (𝑍) + 𝑡𝛽 𝐴 (𝑊).
+
+Coordinatewise concavity of 𝑥 ↦→ −𝑥 log 𝑥 gives the analogous bound for the row entropies. At the
+chosen zero entry, the difference from this chord is exactly
+
+                                     𝑡   𝑡             𝑡
+                                                                    
+                                               1    1      1
+                                    − log − 𝑡 − log   = log .
+                                     𝑛   𝑛     𝑛    𝑛  𝑛   𝑡
+
+Consequently
+                                                               𝜏𝑡    1
+                            Φ𝜏 (𝑍(𝑡)) − Φ𝜏 (𝑍) ≥ 𝑡 Φ𝜏 (𝑊) − Φ𝜏 (𝑍) +
+                                                                  log .
+                                                                               
+                                                               𝑛      𝑡
+The last term dominates the first as 𝑡 ↓ 0. Thus every boundary point can be improved, and the
+maximizer is interior.
+Since 𝑖 𝐻(𝑍 𝑖 ) ≤ 𝑛 log 𝑛 and log 𝑛 ≤ ℓ 𝑛 log 2, the regularizer is at most 𝜉𝑛. Comparing 𝑋 with a
+       Í
+Bethe maximizer gives Eq. (57).
+At the interior maximizer, the Karush–Kuhn–Tucker (KKT) conditions apply. The derivative of the
+objective in coordinate (𝑖, 𝑗) is
+
+                              log 𝐴 𝑖𝑗 − (1 + 𝜏) log 𝑋𝑖𝑗 − log(1 − 𝑋𝑖𝑗 ) − (2 + 𝜏).
+
+The KKT equations say that this matrix is a sum of a row potential and a column potential.
+Exponentiating, and absorbing the constant 2 + 𝜏 into the potentials, gives Eq. (58).
+
+
+
+
+                                                           18
+For a row 𝑖, put
+
+                               Ö                                           𝑋𝑖𝑗1+𝜏 (1 − 𝑋𝑖𝑗 )                𝑋𝑖𝑗1+𝜏
+                        𝑞𝑖 =           (1 − 𝑋𝑖 𝑘 ),        𝑈 𝑖𝑗 =                               =Î                        .   (59)
+                                                                                    𝑞𝑖                 𝑘≠𝑗 (1 − 𝑋 𝑖 𝑘 )
+                               𝑘
+
+The normalization by 𝑞 𝑖 makes the variables 𝑈 𝑖𝑗 both bounded and compatible with the KKT
+factorization. These are the two properties used below.
+Lemma 16 (Elementary bounds on 𝑈). For every row 𝑖,
+                                                                                   Õ
+                                                 0 < 𝑈 𝑖𝑗 ≤ 1,                           𝑈 𝑖𝑗 ≤ 𝑒.                            (60)
+                                                                                    𝑗
+
+
+Proof. Suppress the row index and write 𝑥 𝑗 = 𝑋𝑖𝑗 and 𝑞 = 𝑘 (1 − 𝑥 𝑘 ). The elementary product
+                                                                                               Î
+inequality gives                Ö                   Õ
+                                   (1 − 𝑥 𝑘 ) ≥ 1 −   𝑥𝑘 = 𝑥𝑗 .
+                                                𝑘≠𝑗                                𝑘≠𝑗
+
+Therefore
+                                                             𝑈 𝑗 ≤ 𝑥 𝜏𝑗 ≤ 1.
+For the row sum, first discard 𝑥 𝜏𝑗 ≤ 1:
+
+                                                    𝑗 𝑥 𝑗 (1 − 𝑥 𝑗 )
+                                                Í
+                               Õ                                               1 − 𝑠2                  Õ
+                                        𝑈𝑗 ≤ Î                             =          ,         𝑠2 =         𝑥 2𝑗 .           (61)
+                                                      𝑘 (1 − 𝑥 𝑘 )               𝑞
+                                   𝑗                                                                    𝑗
+
+          √                                                                            𝑘    𝑘
+Put 𝑎 =       𝑠 2 < 1. Monotonicity of ℓ 𝑝 -norms gives                            𝑗 𝑥 𝑗 ≤ 𝑎 for 𝑘 ≥ 2. Hence
+                                                                               Í
+
+                                                                                           𝑘
+                                                                                        𝑗 𝑥𝑗
+                                                                                    Í
+                                                                            Õ
+                                                 − log 𝑞 = 1 +
+                                                                                         𝑘
+                                                                            𝑘≥2
+                                                                            Õ 𝑎𝑘
+                                                              ≤1+
+                                                                                    𝑘
+                                                                            𝑘≥2
+                                                              = 1 − log(1 − 𝑎) − 𝑎
+                                                              ≤ 1 − log(1 − 𝑎 2 ),
+
+where the last inequality is equivalent to log(1 + 𝑎) ≤ 𝑎. Thus 𝑞 ≥ 𝑒 −1 (1 − 𝑠2 ), and Eq. (61) proves
+the result.
+
+7.1   The transfer identity
+The transfer identity is the bridge between the structural point 𝑃 and the computable point 𝑋. It
+assigns a nonnegative cost to every entry of 𝑈. We first bound the total cost and then subtract the
+part caused by assignments outside 𝐾, leaving a bound on the heavy edges.
+For a probability vector 𝑝, define its row contribution to the Bethe entropy by
+                                                                  Õ
+                                          ℎ 𝐵 (𝑝) = 𝐻(𝑝) +                  (1 − 𝑝 𝑗 ) log(1 − 𝑝 𝑗 ),                         (62)
+                                                                       𝑗
+
+
+                                                                           19
+and let
+                                                      𝐸𝜏 = Φ𝜏 (𝑋) − Φ𝜏 (𝑃) ≥ 0.
+Thus 𝐸𝜏 is the suboptimality of the marginal matrix 𝑃 in the regularized program.
+Lemma 17 (Global transfer identity). We have the exact identity
+                                          Õ                                              Õ                        1
+                                  𝐸𝜏 +              [ℎ 𝐵 (𝑃𝑖 ) + 𝜏𝐻(𝑃𝑖 )] =                          𝑃𝑖𝑗 log          .                              (63)
+                                                                                                                 𝑈 𝑖𝑗
+                                            𝑖                                                  𝑖,𝑗
+
+Moreover,
+                             Õ                       1                        𝑛
+                                      𝑃𝑖𝑗 log            ≤ Δ(𝐴) + 2𝜉𝑛 + 𝐻(𝜇) − log 2.                                                                (64)
+                                                    𝑈 𝑖𝑗                      2
+                                𝑖,𝑗
+
+
+Proof. Write log 𝐴 𝑖𝑗 using Eq. (58). Row and column scaling terms cancel between Φ𝜏 (𝑋) and Φ𝜏 (𝑃).
+At 𝑋, all remaining terms sum to 𝑖 log 𝑞 𝑖 . Expanding the difference gives
+                                     Í
+
+                             Õ                               Õ                                       Õ
+                      𝐸𝜏 =            log 𝑞 𝑖 − (1 + 𝜏)                𝑃𝑖𝑗 log 𝑋𝑖𝑗 −                          𝑃𝑖𝑗 log(1 − 𝑋𝑖𝑗 )
+                              𝑖                                  𝑖,𝑗                                   𝑖,𝑗
+                                                Õ                          Õ
+                             + (1 + 𝜏)                 𝑃𝑖𝑗 log 𝑃𝑖𝑗 −               (1 − 𝑃𝑖𝑗 ) log(1 − 𝑃𝑖𝑗 ).
+                                                𝑖,𝑗                          𝑖,𝑗
+
+Adding 𝑖 [ℎ 𝐵 (𝑃𝑖 ) + 𝜏𝐻(𝑃𝑖 )] cancels the second line. The first line is exactly                                                     𝑖,𝑗 𝑃𝑖𝑗 log(1/𝑈 𝑖𝑗 ),
+           Í                                                                                                                      Í
+proving Eq. (63).
+To obtain the upper bound, use that the regularizer is nonnegative and at most 𝜉𝑛:
+                                                                                   Õ
+                                      0 ≤ 𝐸𝜏 ≤ 𝐸 + 𝜉𝑛,                        𝜏            𝐻(𝑃𝑖 ) ≤ 𝜉𝑛.
+                                                                                     𝑖
+
+By Eq. (44) and 𝑠 = 𝑔 + ℎ 𝐵 ,            Õ                                                 Õ
+                                                    ℎ 𝐵 (𝑃𝑖 ) = 𝐻(𝜇) + 𝐷 −                            𝑔(𝑃𝑖 ).
+                                           𝑖                                                     𝑖
+
+Finally,                                       Õ                  𝑛         Õ
+                                                      𝑔(𝑃𝑖 ) =      log 2 −   𝑑(𝑃𝑖 ).
+                                                                  2
+                                                𝑖                                          𝑖
+
+Use Eq. (26) to replace 𝐸 + 𝐷 +             𝑖 𝑑(𝑃𝑖 ) by Δ(𝐴). This gives Eq. (64).
+                                        Í
+
+For each row 𝑖, let                                                     Õ
+                                                           𝜌𝑖 =                    𝑃𝑖𝑗 .                                                             (65)
+                                                                       𝑗∉𝑁𝐾 (𝑖)
+
+Thus 𝜌 𝑖 is the probability that the matching edge of row 𝑖 lies outside 𝐾. For a good row, 𝜌 𝑖 ≤ 𝜂.
+We call the edges from 𝑖 to 𝑁𝐾 (𝑖) its core edges and define their transfer cost by
+                                                            Õ Õ                                       1
+                                                𝑅core =                            𝑃𝑖𝑗 log                .                                          (66)
+                                                                                                     𝑈 𝑖𝑗
+                                                             𝑖     𝑗∈𝑁𝐾 (𝑖)
+
+
+
+
+                                                                        20
+Lemma 18 (Excursion-entropy cancellation). We have
+                                                                       Õ
+                                    𝑅 core ≤ Δ(𝐴) + 2𝜉𝑛 +                          𝐻2 (𝜌 𝑖 ) + 𝜌 𝑖 .
+                                                                                                     
+                                                                                                                         (67)
+                                                                         𝑖
+
+Consequently,
+                              𝑅core Δ(𝐴)                                𝑏
+                                   ≤     + 2𝜉 + 𝐻2 (𝜂) + 𝜂 + (1 + log 2) .                                               (68)
+                               𝑛     𝑛                                  𝑛
+
+Proof. Combine Eqs. (42) and (64) and 𝑚(𝐾) ≤ 𝑛/2 to obtain
+                                   Õ                 1                  Õ
+                                          𝑃𝑖𝑗 log        ≤ Δ(𝐴) + 2𝜉𝑛 +   𝐻(𝑌𝑖 ).                                        (69)
+                                                    𝑈 𝑖𝑗
+                                    𝑖,𝑗                                                      𝑖
+
+Fix a row and let 𝑂 = [𝑛] \ 𝑁𝐾 (𝑖) be its set of outside columns. Write 𝜌 = 𝑗∈𝑂 𝑃𝑖𝑗 and 𝑊 =                          𝑗∈𝑂 𝑈 𝑖𝑗 .
+                                                                                                         Í       Í
+If 𝜌 = 0, the desired estimate holds. Otherwise the log-sum inequality gives
+                   Õ                1                     Õ         𝑃𝑖𝑗 /𝜌
+                         𝑃𝑖𝑗 log        = 𝜌𝐻 (𝑃𝑖𝑗 /𝜌) 𝑗∈𝑂 +  𝑃𝑖𝑗 log         − 𝜌 log 𝑊
+                                   𝑈 𝑖𝑗                              𝑈 𝑖𝑗 /𝑊
+                   𝑗∈𝑂                                                       𝑗∈𝑂
+
+                                          ≥ 𝜌𝐻 (𝑃𝑖𝑗 /𝜌) 𝑗∈𝑂 − 𝜌,
+                                                                   
+
+where we used 𝑊 ≤ 𝑒 from Lemma 16. Since
+
+                                          𝐻(𝑌𝑖 ) = 𝐻2 (𝜌) + 𝜌𝐻 (𝑃𝑖𝑗 /𝜌) 𝑗∈𝑂 ,
+                                                                                                 
+
+we obtain                             Õ                    1
+                                                𝑃𝑖𝑗 log        ≥ 𝐻(𝑌𝑖 ) − 𝐻2 (𝜌 𝑖 ) − 𝜌 𝑖 .                              (70)
+                                                          𝑈 𝑖𝑗
+                                    𝑗∉𝑁𝐾 (𝑖)
+
+Subtract Eq. (70) from Eq. (69) and sum over the rows to obtain Eq. (67). For good rows use 𝜌 𝑖 ≤ 𝜂;
+for bad rows use 𝐻2 (𝜌 𝑖 ) + 𝜌 𝑖 ≤ log 2 + 1. This gives the normalized bound.
+
+
+8   A constant gain from a clean four-cycle
+The KKT equations also factor the paired certificate. For a row 𝑖, put
+                                                                       𝜏𝑋𝑖𝑗
+                                                            Ö
+                                                    𝜁𝑖 =          𝑋𝑖𝑗         ≤ 1.                                       (71)
+                                                              𝑗
+
+
+Lemma 19 (Pair factorization). For two rows 𝑟, 𝑠, let 𝛼 𝑗 = 𝑋𝑟 𝑗 + 𝑋𝑠 𝑗 . Then
+
+                                    1 Ö                       ©Õ
+                 Γ𝑟𝑠 (𝐴, 𝑋) =            (1 − 𝛼 𝑗 )1−𝛼 𝑗 Cap𝛼 ­ (𝑈𝑟 𝑗 𝑈 𝑠 𝑘 + 𝑈𝑟 𝑘 𝑈 𝑠 𝑗 )𝑧 𝑗 𝑧 𝑘 ® .
+                                                                                                  ª
+                                                                                                                         (72)
+                                   𝜁𝑟 𝜁𝑠
+                                            𝑗                                 « 𝑗<𝑘                          ¬
+Proof. Substituting Eq. (58) into the singleton factor gives
+                                                                              Ö 𝑋
+                                                                                        𝑖𝑗
+                                                𝑆 𝑖 (𝐴, 𝑋) = 𝑟 𝑖 𝑞 𝑖 𝜁 𝑖             𝑐𝑗 .                                (73)
+                                                                               𝑗
+
+
+                                                                  21
+For the pair polynomial, Eqs. (58) and (59) give
+                                                            Õ
+                                𝑄 𝑟𝑠 (𝑧) = 𝑟𝑟 𝑟 𝑠 𝑞 𝑟 𝑞 𝑠         𝑐 𝑗 𝑐 𝑘 (𝑈𝑟 𝑗 𝑈 𝑠 𝑘 + 𝑈𝑟 𝑘 𝑈 𝑠 𝑗 )𝑧 𝑗 𝑧 𝑘 .
+                                                            𝑗<𝑘
+
+Rescaling the capacity variables by 𝑐 𝑗 therefore gives
+
+                                                            ©Ö 𝛼 𝑗 ª
+                               Cap𝛼 (𝑄 𝑟𝑠 ) = 𝑟𝑟 𝑟 𝑠 𝑞 𝑟 𝑞 𝑠 ­    𝑐𝑗 ®
+                                                            «   𝑗    ¬
+                                                          ©Õ
+                                                   · Cap𝛼 ­ (𝑈𝑟 𝑗 𝑈 𝑠 𝑘 + 𝑈𝑟 𝑘 𝑈 𝑠 𝑗 )𝑧 𝑗 𝑧 𝑘 ® .
+                                                                                              ª
+
+                                                          « 𝑗<𝑘                               ¬
+Divide by Eq. (73) for rows 𝑟, 𝑠. Since 𝛼 𝑗 = 𝑋𝑟 𝑗 + 𝑋𝑠 𝑗 , the row scalings, column scalings, and the
+factors 𝑞 𝑟 𝑞 𝑠 cancel, leaving Eq. (72).
+
+A clean pair gives a constant gain whenever its four core entries have small transfer cost.
+Lemma 20 (Clean-pair gain). There are rational constants 𝜅0 , 𝛾0 , 𝜉0 > 0 with the following property.
+Suppose rows 𝑟, 𝑠 and columns 𝑎, 𝑏 form a clean 𝐾 2,2 component of 𝐾. If 0 < 𝜉 ≤ 𝜉0 and
+                                                  Õ Õ                       1
+                                                                    log         ≤ 𝜅0 ,                          (74)
+                                                                           𝑈 𝑖𝑗
+                                                 𝑖∈{𝑟,𝑠} 𝑗∈{𝑎,𝑏}
+
+then
+                                                     log Γ𝑟𝑠 (𝐴, 𝑋) ≥ 𝛾0 .                                      (75)
+
+Proof. The proof has two steps. Large core entries of 𝑈 first force both rows of 𝑋 to place almost all
+their mass on the two core columns. We then build a feasible distribution for the entropy dual of
+capacity which places most of its mass on the core monomial 𝑧 𝑎 𝑧 𝑏 .
+Let 𝜅 > 0 be a parameter to be fixed below and put 𝑢𝜅 = 𝑒 −𝜅 . Assume the left side of Eq. (74) is at
+most 𝜅. By Lemma 16, every summand in Eq. (74) is nonnegative. Thus all four core entries of 𝑈
+are at least 𝑢𝜅 .
+
+Small transfer cost implies small leakage. Consider one of the two rows and write
+                                                                                   Õ
+                                          𝑥 𝑎 + 𝑥 𝑏 + 𝑡 = 1,                𝑡=              𝑋𝑖𝑗 .
+                                                                                  𝑗∉{𝑎,𝑏}
+
+
+            𝑗∉{𝑎,𝑏} (1 − 𝑋 𝑖𝑗 ) ≥ 1 − 𝑡, we have
+        Î
+Since
+                                                         𝑥𝑎             𝑥𝑎
+                                           𝑈 𝑖𝑎 ≤                  =           ,                                (76)
+                                                  (1 − 𝑥 𝑏 )(1 − 𝑡) 𝑥 𝑎 + 𝑡𝑥 𝑏
+                                                      𝑥𝑏
+                                           𝑈 𝑖𝑏 ≤            .                                                  (77)
+                                                  𝑥 𝑏 + 𝑡𝑥 𝑎
+The inequalities 𝑈 𝑖𝑎 , 𝑈 𝑖𝑏 ≥ 𝑢𝜅 imply
+
+                                   𝑢𝜅 𝑡𝑥 𝑏 ≤ (1 − 𝑢𝜅 )𝑥 𝑎 ,               𝑢𝜅 𝑡𝑥 𝑎 ≤ (1 − 𝑢𝜅 )𝑥 𝑏 .
+
+                                                                    22
+Multiplying and using 𝑥 𝑎 , 𝑥 𝑏 > 0 gives
+                                              𝑡 ≤ 𝑢𝜅−1 − 1 = 𝑒 𝜅 − 1.                                        (78)
+
+Let                                                                         Õ
+                                      𝛼 𝑗 = 𝑋𝑟 𝑗 + 𝑋 𝑠 𝑗 ,         𝜌=                𝛼𝑗.
+                                                                          𝑗∉{𝑎,𝑏}
+
+Applying Eq. (78) to both rows gives
+                                              𝜌 ≤ 𝜌𝜅 := 2(𝑒 𝜅 − 1).                                          (79)
+Put 𝛿 𝑎 = 1 − 𝛼 𝑎 and 𝛿 𝑏 = 1 − 𝛼 𝑏 . Since       𝑗 𝛼 𝑗 = 2, we have 𝛿 𝑎 + 𝛿 𝑏 = 𝜌.
+                                              Í
+
+A capacity witness concentrated on the core. Consider the following probability distribution on
+two-element column sets:
+                                                      𝛿𝑏                             𝛿𝑎
+                   𝜃{𝑎,𝑏} = 1 − 𝜌,        𝜃{𝑎,ℓ } =      𝛼ℓ ,         𝜃{𝑏,ℓ } =         𝛼ℓ   (ℓ ∉ {𝑎, 𝑏}).   (80)
+                                                      𝜌                              𝜌
+At 𝜌 = 0, use the limiting distribution concentrated on {𝑎, 𝑏}. For 𝜌 > 0, the total mass is one. Its
+inclusion marginal at an outside column ℓ is 𝛼ℓ , while
+                         1 − 𝜌 + 𝛿𝑏 = 1 − 𝛿 𝑎 = 𝛼 𝑎 ,             1 − 𝜌 + 𝛿 𝑎 = 1 − 𝛿𝑏 = 𝛼𝑏 .
+Thus its mean exponent vector is 𝛼, so 𝜃 is feasible in Lemma 5.
+Let                                             Õ
+                                      𝑄(𝑧)
+                                      e =             (𝑈𝑟 𝑗 𝑈 𝑠 𝑘 + 𝑈𝑟 𝑘 𝑈 𝑠 𝑗 )𝑧 𝑗 𝑧 𝑘
+                                                𝑗<𝑘
+
+be the polynomial in Eq. (72). Its coefficient at 𝑧 𝑎 𝑧 𝑏 is at least 2𝑢𝜅2 . If
+                                                  𝑉ℓ = 𝑈𝑟ℓ + 𝑈 𝑠ℓ ,
+then the coefficients at 𝑧 𝑎 𝑧ℓ and 𝑧 𝑏 𝑧ℓ are at least 𝑢𝜅 𝑉ℓ . Also,
+                                                         𝑋𝑖ℓ1+𝜏
+                                        𝑈 𝑖ℓ = Î                         ≥ 𝑋𝑖ℓ1+𝜏 .
+                                                      𝑘≠ℓ (1 − 𝑋 𝑖 𝑘 )
+
+Convexity of 𝑥 ↦→ 𝑥 1+𝜏 therefore gives
+                                        𝑉ℓ ≥ 𝑋𝑟ℓ
+                                              1+𝜏
+                                                  + 𝑋𝑠ℓ
+                                                     1+𝜏
+                                                         ≥ 2−𝜏 𝛼ℓ1+𝜏 .                                       (81)
+
+We apply Lemma 5 to 𝑄
+                    e with the feasible distribution 𝜃. Its expected log coefficient is at least
+                                                                          Õ
+                               (1 − 𝜌) log(2𝑢𝜅2 ) + 𝜌 log 𝑢𝜅 +                      𝛼ℓ log 𝑉ℓ .              (82)
+                                                                         ℓ ∉{𝑎,𝑏}
+
+Its entropy is
+                                                                           Õ
+                               𝐻(𝜃) = −(1 − 𝜌) log(1 − 𝜌) −                         𝛼ℓ log 𝛼ℓ
+                                                                         ℓ ∉{𝑎,𝑏}
+                                                      𝛿𝑎          𝛿𝑏
+                                         − 𝛿 𝑎 log       − 𝛿 𝑏 log .                                         (83)
+                                                      𝜌           𝜌
+
+
+                                                             23
+Using Eq. (81) in Eq. (82), and then adding Eq. (83), gives
+
+                                                 2𝑢𝜅2
+                       log Cap𝛼 (𝑄)
+                                 e ≥ (1 − 𝜌) log       + 𝜌 log 𝑢𝜅 − 𝜏𝜌 log 2
+                                                1−𝜌
+                                             Õ                     𝛿𝑎          𝛿𝑏
+                                          +𝜏   𝛼ℓ log 𝛼ℓ − 𝛿 𝑎 log    − 𝛿 𝑏 log .                      (84)
+                                                                   𝜌           𝜌
+                                                 ℓ ∉{𝑎,𝑏}
+
+
+
+Combining the factors. Insert the capacity bound into Eq. (72). Its core coordinates contribute
+𝛿 𝑎 log 𝛿 𝑎 + 𝛿 𝑏 log 𝛿 𝑏 . These terms combine with the last line of Eq. (84) to give 𝜌 log 𝜌. The outside
+coordinates satisfy
+                                          (1 − 𝛼ℓ ) log(1 − 𝛼ℓ ) ≥ −𝛼ℓ .
+Finally, 𝜁 𝑟 𝜁 𝑠 ≤ 1. We obtain
+
+                                                         2𝑢𝜅2
+                            log Γ𝑟𝑠 ≥ (1 − 𝜌) log             + 𝜌 log 𝑢𝜅 + 𝜌 log 𝜌 − 𝜌
+                                                         1−𝜌
+                                             Õ                            
+                                                                          
+                                        − 𝜏 −
+                                                      𝛼ℓ log 𝛼ℓ + 𝜌 log 2 .                         (85)
+                                             ℓ ∉{𝑎,𝑏}                     
+                                                                          
+
+The entropy in brackets is at most 𝜌 log(𝑛/𝜌) + 𝜌 log 2. By Eq. (55), log 𝑛 ≤ ℓ 𝑛 log 2, and 𝜌 log(1/𝜌) ≤
+1/𝑒, its contribution after multiplication by 𝜏 is at most 𝜉 times
+
+                                                             𝜌 log 2
+                                                                                  
+                                          1            1
+                                            𝜌 log 2 +      +         .
+                                          4           𝑒ℓ 𝑛      ℓ𝑛
+
+For all sufficiently small 𝜅, we have 𝜌 ≤ 𝜌𝜅 < 1/10, so this ratio is less than one.
+For the first line of Eq. (85), set
+
+                                                            2𝑒 −2𝜅
+                                  𝑓𝜅 (𝜌) = (1 − 𝜌) log             − 𝜅𝜌 + 𝜌 log 𝜌 − 𝜌.
+                                                            1−𝜌
+
+Here 0 log 0 = 0. Since 𝜌𝜅 = 2(𝑒 𝜅 − 1) → 0,
+
+                                       min 𝑓𝜅 (𝜌) −→ log 2                  as 𝜅 ↓ 0.
+                                      0≤𝜌≤𝜌𝜅
+
+
+Choose a rational 𝜅0 > 0 small enough that this minimum is larger than (log 2)/2, and then choose
+rational 𝜉0 , 𝛾0 > 0 such that
+                                             1
+                                       𝛾0 < log 2 − 𝜉0 .
+                                             2
+Taking 𝜅 = 𝜅0 in the preceding argument, Eq. (85) proves the lemma for these constants.
+
+The same witnesses make the gain algorithmic without requiring a separate capacity optimization.
+For distinct columns 𝑎, 𝑏 whose outside mass 𝜌 is at most one, define 𝜃 𝑎,𝑏 by Eq. (80), with the point
+mass on {𝑎, 𝑏} when 𝜌 = 0, and write
+
+                                               𝑐 𝑗 𝑘 = 𝑈𝑟 𝑗 𝑈 𝑠 𝑘 + 𝑈𝑟 𝑘 𝑈 𝑠 𝑗 .
+
+                                                             24
+Set
+                                                                          Õ
+                                𝑎,𝑏
+                           log Γ𝑟𝑠  := − log 𝜁 𝑟 − log 𝜁 𝑠 +                   (1 − 𝛼 𝑗 ) log(1 − 𝛼 𝑗 )
+                                                                          𝑗
+                                                              𝑐𝑗𝑘
+                                                𝜃 𝑗𝑎,𝑏
+                                          Õ
+                                      +             𝑘
+                                                       log            .                                   (86)
+                                          𝑗<𝑘                𝜃 𝑗𝑎,𝑏
+                                                                 𝑘
+
+                        𝑎,𝑏
+By Lemmas 5 and 19, Γ𝑟𝑠     ≤ Γ𝑟𝑠 . More importantly, the proof of Lemma 20 used precisely the
+witness with the two core columns; it therefore proves the stronger conclusion
+                                                         𝑎,𝑏
+                                                    log Γ𝑟𝑠  ≥ 𝛾0                                         (87)
+
+for that choice of 𝑎, 𝑏.
+For the algorithm, we assign row pair {𝑟, 𝑠} the nonnegative weight
+                                                     (                                  )
+                                                                                    𝑎,𝑏
+                                     𝑤 𝑟𝑠 = max 0,               max           log Γ𝑟𝑠  .                 (88)
+                                                                   𝑎,𝑏
+                                                             𝑎≠𝑏: 𝜌𝑟𝑠  ≤1
+
+If there is no eligible column pair, the inner maximum is omitted and the weight is zero. The
+core columns of every clean pair are eligible by Eq. (79) and the choice of 𝜅 0 . A maximum-weight
+matching in the complete graph on the rows gives at least as much total gain as any collection of
+clean pairs constructed only for the analysis, and can be found in polynomial time [Sch03]. Edges
+of zero weight are omitted from the final certificate.
+
+
+9     Completing the approximation bound
+We now combine the stability information from the Bethe upper bound with the gain from the
+paired lower certificate. Let 𝜅 0 , 𝛾0 , 𝜉0 be the constants from Lemma 20. Enlarge 𝐶stab , if necessary,
+to make it rational.
+The exact values of the constants will not matter. We choose them once, in the order used by
+the proof: 𝜂 controls the structural errors, 𝛿0 defines the near-equality regime, and 𝜉 controls the
+regularization loss. Choose rational 𝜂, 𝛿0 , 𝜉 > 0, in this order, and put
+
+                                                                  𝜂
+                                                                         4
+                                                   𝑑0 =                        .
+                                                                 𝐶stab
+The following three quantities will bound, respectively, the fractions of bad rows, rows on long
+components, and clean pairs with excessive transfer cost. We require 𝜂 ≤ 1/10 and
+                                    𝛿0      1
+                           𝜀row :=      ≤      ,                                                          (89)
+                                    𝑑0 128
+                                                                        
+                                      6                 log 2                  1
+                            𝜀cyc :=         𝛿0 + 1 +            𝜀row + 𝜔(𝜂) ≤    ,                        (90)
+                                    log 2                 2                   16
+                                    𝛿0 + 2𝜉 + 𝐻2 (𝜂) + 𝜂 + (1 + log 2)𝜀row      1
+                             𝜀tr :=                                          ≤     ,                      (91)
+                                                   (1/2 − 𝜂)𝜅 0                16
+                                              𝛿0 𝛾0
+                                                    
+                              𝜉 ≤ min 𝜉0 , ,           .                                                  (92)
+                                              2 16
+
+
+                                                                 25
+Such a choice exists. First take 𝜂 small enough to control 𝜔(𝜂) and 𝐻2 (𝜂) + 𝜂; next take 𝛿0 small
+relative to 𝑑0 ; finally take 𝜉 small. No numerical optimization of these constants is needed.
+Let 𝑋 be the regularized point from Section 7. Give every row pair the weight in Eq. (88), and let 𝑀
+be a maximum-weight matching. Delete the zero-weight edges from 𝑀, and define
+
+                                                                    Õ
+                                  𝐿𝑋 (𝐴) = exp ­𝛽 𝐴 (𝑋) +                 𝑤 𝑟𝑠 ® .
+                                                  ©                           ª
+                                                                                                      (93)
+                                                  «             {𝑟,𝑠}∈𝑀       ¬
+For every positive-weight edge, choose columns attaining the maximum in Eq. (88). Since its
+witness gain is no larger than Γ𝑟𝑠 , Theorem 6 gives 𝐿𝑋 (𝐴) ≤ per(𝐴).
+Proposition 21 (Positive matrices). There is an absolute constant 𝜀+ > 0 such that every positive matrix
+𝐴 of order 𝑛 ≥ 2 satisfies                         √       𝑛
+                               𝐿𝑋 (𝐴) ≤ per(𝐴) ≤ 2𝑒 −𝜀+ 𝐿𝑋 (𝐴).                                     (94)
+
+Proof. The proof is a dichotomy between slack in the Bethe bound and gain from the paired
+certificate. Recall that 𝑏 counts bad rows, 𝑁 counts good rows in long components of 𝐾, 𝐷 is the
+averaged sequential divergence, and 𝑅core is the transfer cost on the edges of 𝐾.
+
+Case 1: nonnegligible Bethe slack. Suppose that Δ(𝐴) ≥ 𝛿0 𝑛. Since the matching gain in Eq. (93)
+is nonnegative, Eq. (57) gives
+                                         per(𝐴)
+                                   log          ≤ log per(𝐴) − 𝛽 𝐴 (𝑋)
+                                         𝐿𝑋 (𝐴)
+                                                                    
+                                                    1
+                                                ≤     log 2 − 𝛿 0 + 𝜉 𝑛.                              (95)
+                                                    2
+
+Case 2: nearly tight Bethe bound.        Suppose that Δ(𝐴) < 𝛿0 𝑛. By Eqs. (39) and (89),
+                                                 𝑏 ≤ 𝜀row 𝑛.                                          (96)
+Also 𝐷 ≤ Δ(𝐴). Rearranging Eq. (51) and using Eq. (90) gives
+                                                 𝑁 ≤ 𝜀cyc 𝑛.                                          (97)
+Hence Eq. (54) gives at least
+                                         1 − 2𝜀row − 𝜀cyc            59
+                                                               𝑛≥       𝑛
+                                                 2                  128
+vertex-disjoint clean pairs.
+By Eqs. (68) and (91),
+                                          𝑅core ≤ 𝜀tr (1/2 − 𝜂)𝜅 0 𝑛.                                 (98)
+If a clean pair with core columns 𝑎, 𝑏 fails Eq. (74), its contribution to 𝑅 core is at least (1/2 − 𝜂)𝜅0 ,
+because each of its four core 𝑃-entries is at least 1/2 − 𝜂. Therefore at most 𝜀tr 𝑛 ≤ 𝑛/16 clean pairs
+fail the local-cost condition. At least 3𝑛/8 vertex-disjoint pairs satisfy the hypothesis of Lemma 20.
+The maximum-weight matching therefore has total gain at least
+                                              Õ                3𝛾0
+                                                      𝑤 𝑟𝑠 ≥       𝑛.                                 (99)
+                                                                8
+                                            {𝑟,𝑠}∈𝑀
+
+
+                                                       26
+Using the upper half of the Bethe sandwich and Eq. (57),
+                                                                                        
+                                         per(𝐴)   1             3𝛾0
+                                     log        ≤   log 2 + 𝜉 −     𝑛.                                                     (100)
+                                         𝐿𝑋 (𝐴)   2              8
+
+Define                                                                          
+                                                         3𝛾0
+                                        𝜀+ = min 𝛿0 − 𝜉,     − 𝜉 > 0.                                                      (101)
+                                                          8
+Equations (95) and (100) prove Eq. (94).
+
+The proposition is the conceptual core of the theorem. The remaining issues are positivity and
+finite-precision computation; we handle them in the appendix.
+
+
+A     Zero entries and finite-precision computation
+This appendix passes from the exact positive-matrix argument to the algorithm in Theorem 1. There
+are two issues: zero entries, which we remove by a one-sided smoothing, and the finite-precision
+computation of the regularized optimizer and the paired gains. Neither issue changes the structural
+argument.
+
+A.1    Smoothing zero entries
+We first extend the positive-matrix result to nonnegative matrices. We choose the smoothing to
+have polynomial bit complexity and to preserve a one-sided certificate.
+Lemma 22 (Smoothing). Suppose that a nonnegative rational matrix 𝐴 has largest entry at most one and
+the bipartite graph of its positive entries has a perfect matching. There is a polynomial-time construction of a
+positive rational matrix 𝐴 e such that
+                                                                            𝜒𝑛 
+                                     per(𝐴) ≤ per(𝐴)
+                                                  e ≤ 1+                          per(𝐴),                                  (102)
+                                                                              2
+where 𝜒 > 0 is any fixed rational constant.
+
+Proof. Let 𝑚 be the smallest positive entry of 𝐴, and put
+
+                                            1 𝜒𝑚 𝑛
+                                                                    
+                                 𝛿sm = min   ,     ,                          𝐴
+                                                                              e = 𝐴 + 𝛿sm 𝐽.                               (103)
+                                           2𝑛 4𝑛!
+Here 𝐽 is the all-ones matrix. For every permutation 𝜎,
+                           Ö                           Ö
+                      0≤        (𝐴 𝑖,𝜎(𝑖) + 𝛿 sm ) −               𝐴 𝑖,𝜎(𝑖) ≤ (1 + 𝛿 sm )𝑛 − 1 ≤ 2𝑛𝛿sm .
+                            𝑖                              𝑖
+
+For the last inequality, use (1 + 𝛿 sm )𝑛 ≤                              𝑘 = (1 − 𝑛𝛿          −1 and 𝑛𝛿
+                                               Í
+                                                   𝑘≥0 (𝑛𝛿 sm )                        sm )               sm ≤ 1/2. Summing over
+the 𝑛! permutations gives
+                                                                                        𝜒𝑛 𝑛
+                                  0 ≤ per(𝐴)
+                                          e − per(𝐴) ≤ 2𝑛𝑛!𝛿sm ≤                           𝑚 .
+                                                                                         2
+The positive support contains a perfect matching, so per(𝐴) ≥ 𝑚 𝑛 . This proves Eq. (102). The bit
+length of 𝛿sm is polynomial in the bit length of 𝐴 and in 𝑛.
+
+                                                                    27
+A.2    Certified finite-precision computation
+It remains to compute the regularized point and the explicit witness gains with certified precision
+while preserving the lower-bound direction. We first bound the optimizer away from the boundary.
+We then solve a bounded epigraph problem by weak optimization, recover approximate KKT
+potentials, and interpret the result as an exact optimizer for a nearby matrix. This last step lets us
+reuse the exact certificate proved in the main argument.
+Lemma 23 (Interior bound). Assume 𝑛 ≥ 2 and 𝑚 ≤ 𝐴 𝑖𝑗 ≤ 1 for every 𝑖, 𝑗, where 𝑚 > 0, and let 𝑋 be the
+maximizer of Φ𝜏 . Then
+                                      1         𝑛𝑅 𝐴
+                               log            ≤      + 𝑛 2 log 𝑛,                               (104)
+                                   min𝑖,𝑗 𝑋𝑖𝑗    𝜏
+where one may take
+                                                                    1
+                                                𝑅 𝐴 = 𝑛 log           + 𝑛 log 𝑛 + 𝑛.                                           (105)
+                                                                    𝑚
+In particular, if 𝐴 is rational, every 𝑋𝑖𝑗 and every 1 − 𝑋𝑖𝑗 is at least 2−poly(𝑛,𝐵,1/𝜏) , where 𝐵 is the input bit
+length.
+
+Proof. Let 𝐽 be the all-ones matrix, set 𝑋 = 𝐽/𝑛, and write
+                                                                                Õ
+                                                Φ𝜏 (𝑍) = 𝛽 𝐴 (𝑍) + 𝜏                   𝐻(𝑍 𝑖 ).
+                                                                                 𝑖
+
+The range of 𝛽 𝐴 on ℬ𝑛 is at most 𝑅 𝐴 : the linear term                              𝑖,𝑗 𝑍 𝑖𝑗 log 𝐴 𝑖𝑗 lies between 𝑛 log 𝑚 and zero,
+                                                                                Í
+the row entropy is at most 𝑛 log 𝑛, and
+                                          Õ              Õ
+                                      −         𝑍 𝑖𝑗 ≤         (1 − 𝑍 𝑖𝑗 ) log(1 − 𝑍 𝑖𝑗 ) ≤ 0.
+                                          𝑖,𝑗            𝑖,𝑗
+
+Here the first inequality follows from −𝑥 ≤ (1 − 𝑥) log(1 − 𝑥), and                                   𝑖,𝑗 𝑍 𝑖𝑗 = 𝑛.
+                                                                                                  Í
+
+Since 𝑋 is an interior maximizer, the directional derivative of Φ𝜏 at 𝑋 toward 𝑋 is zero. Concavity
+of 𝛽 𝐴 gives
+                             𝛽′𝐴 (𝑋; 𝑋 − 𝑋) ≥ 𝛽 𝐴 (𝑋) − 𝛽 𝐴 (𝑋) ≥ −𝑅 𝐴 .
+Consequently                                                   !′
+                                                Õ                                          𝑅𝐴
+                                                     𝐻(𝑋𝑖 ) (𝑋; 𝑋 − 𝑋) ≤                      .                                (106)
+                                                                                            𝜏
+                                                 𝑖
+
+The entropy derivative is
+                          Õ1                                        Õ                           1Õ
+                      −              − 𝑋𝑖𝑗 (1 + log 𝑋𝑖𝑗 ) =                     𝑋𝑖𝑗 log 𝑋𝑖𝑗 −        log 𝑋𝑖𝑗 ,
+                                 𝑛                                                                𝑛
+                          𝑖,𝑗                                             𝑖,𝑗                         𝑖,𝑗
+
+because the direction has coordinate sum zero. Let 𝑥★ = min𝑖,𝑗 𝑋𝑖𝑗 . We have
+                        Õ                                                       1Õ          1    1
+                                𝑋𝑖𝑗 log 𝑋𝑖𝑗 ≥ −𝑛 log 𝑛,                    −       log 𝑋𝑖𝑗 ≥ log .
+                                                                                𝑛           𝑛   𝑥★
+                          𝑖,𝑗                                                        𝑖,𝑗
+
+
+
+
+                                                                     28
+Substitute these estimates into Eq. (106) to obtain Eq. (104). Finally,
+                                                   Õ
+                                      1 − 𝑋𝑖𝑗 =          𝑋𝑖 𝑘 ≥ (𝑛 − 1)𝑥★ ,
+                                                   𝑘≠𝑗
+
+which gives the same polynomial logarithmic bound for 1 − 𝑋𝑖𝑗 .
+
+Lemma 24 (Certified computation). There is an absolute constant 𝐶num with the following property. For
+every positive rational matrix 𝐴 of order 𝑛 ≥ 2 and every rational 𝜀num > 0, a deterministic algorithm
+computes a rational number 𝐿b such that
+                                                    √                        𝑛
+                                  𝐿
+                                  b ≤ per(𝐴) ≤            2𝑒 −𝜀+ +𝐶num 𝜀num        𝐿.
+                                                                                   b                (107)
+
+The running time is polynomial in the input bit length, 𝑛, and log(2 + 1/𝜀num ).
+
+Proof. Replacing 𝜀num by min{𝜀num , 1}, we may assume it is at most one. Recall that 𝜏 = 𝜉/(4ℓ 𝑛 ) is
+rational and that both its bit length and 1/𝜏 are polynomially bounded.
+
+A compact optimization domain. After a global scaling, assume 𝑚 ≤ 𝐴 𝑖𝑗 ≤ 1, where 𝑚 is the smallest
+entry of the scaled matrix, and let 𝐵 be its input bit length. By Lemma 23, the optimizer belongs to
+the truncated Birkhoff polytope
+
+                                    ℬ𝑛 (𝛿) = 𝑍 ∈ ℬ𝑛 𝑍 𝑖𝑗 ≥ 𝛿 ∀𝑖, 𝑗
+                                               
+
+
+for an explicitly computable rational 𝛿int = 2−poly(𝑛,𝐵,1/𝜏) . Concretely, increase 𝐵 if necessary so that
+𝑚 ≥ 2−𝐵 , and put
+                                𝑛(𝑛𝐵 + 2𝑛 2 )
+                        𝐾0 =                   + 𝑛3 ,     𝑞 = ⌈2𝐾 0 ⌉,   𝛿int = 2−𝑞 .
+                                       𝜏
+The inequalities log 2 ≤ 1 and log 2 ≥ 1/2 show directly from Eq. (104) that this floor is valid. We
+optimize over ℬ𝑛 (𝛿int /2), which still contains the exact optimizer. Since 𝑞 ≥ 𝑛 + 1, 𝛿int ≤ 1/(2𝑛). On
+the slightly larger set ℬ𝑛 (𝛿 int /4), both 𝑍 𝑖𝑗 and 1 − 𝑍 𝑖𝑗 are bounded below by 𝛿int /4.
+Write 𝑓 = −Φ𝜏 . Its gradient is
+
+                     ∇ 𝑓 (𝑍)𝑖𝑗 = − log 𝐴 𝑖𝑗 + (1 + 𝜏) log 𝑍 𝑖𝑗 + log(1 − 𝑍 𝑖𝑗 ) + (2 + 𝜏).          (108)
+
+On the larger truncated set, its Frobenius norm is at most
+
+                                        𝐺 = 𝑛 𝐵 + (2 + 𝜏)(𝑞 + 3) ,
+                                                                        
+
+where we used log 2 ≤ 1. Thus 𝑓 is 𝐺-Lipschitz there. Its gradient is 𝐿-Lipschitz there, with
+
+                                                         4(2 + 𝜏)
+                                               𝐿=                 .                                 (109)
+                                                           𝛿int
+Both 𝐺 and log 𝐿 have polynomial size.
+
+A bounded epigraph and its separation oracle. We eliminate the row- and column-sum equations by
+rational affine coordinates and apply weak linear optimization to the epigraph of 𝑓 . We record the
+geometry needed for this reduction. Use the upper-left (𝑛 − 1)-by-(𝑛 − 1) block as coordinates and
+
+                                                          29
+recover the last row and column from the sum constraints. The resulting affine map 𝑇 has norm at
+most 𝑛 from Euclidean coordinate error to Frobenius error. Also
+
+                           | 𝑓 (𝑍)| ≤ 𝑀0 := 𝑛𝐵 + (1 + 𝜏)𝑛 2 + 𝑛       (𝑍 ∈ ℬ𝑛 ).
+
+We use the bounded epigraph
+
+                       𝐾 = (𝑦, 𝑡) 𝑇(𝑦) ∈ ℬ𝑛 (𝛿int /2), 𝑓 (𝑇(𝑦)) ≤ 𝑡 ≤ 𝑀0 + 2 .
+                            
+
+Since ∥𝑦∥2 ≤ 𝑛 and −𝑀0 ≤ 𝑡 ≤ 𝑀0 + 2 on 𝐾, it lies in the ball centered at the origin of rational radius
+𝑅 = 𝑀0 + 𝑛 + 2. If 𝑦𝑈 represents the uniform matrix, then (𝑦𝑈 , 𝑀0 + 1) is the center of a ball in 𝐾 of
+radius at least                                             
+                                               1 1       1
+                                     𝑟 = min , 2 ,             .
+                                               4 4𝑛 4𝑛𝐺
+Indeed, changing 𝑦𝑈 by Euclidean distance at most 𝑟 changes every entry of 𝑇(𝑦𝑈 ) by at most
+𝑛𝑟 ≤ 1/(4𝑛), so all entries remain above 𝛿int /2. Changing 𝑡 by at most 𝑟 ≤ 1/4 preserves its upper
+bound. Finally, 𝑓 (𝑇(𝑦)) ≤ 𝑓 (𝑇(𝑦𝑈 )) + 𝐺𝑛𝑟 ≤ 𝑀0 + 1/4, whereas 𝑡 ≥ 𝑀0 + 3/4, so the lower epigraph
+inequality also holds. Thus the outer radius and log(1/𝑟) have polynomial bit length, exactly as
+required by the weak optimization theorem of [GLS81].
+The weak separation oracle first checks all rational linear inequalities defining ℬ𝑛 (𝛿 int /2) and the
+upper bound on 𝑡 exactly. At a point passing these checks, directed approximations to Eq. (108)
+and to 𝑓 give the usual supporting hyperplane to the epigraph, with normal (𝑇lin     ∗
+                                                                                       ∇ 𝑓 (𝑇(𝑦)), −1).
+Convexity implies that its value on the displacement from the query to any (𝑧, 𝑠) ∈ 𝐾 satisfies
+                               ∗
+                            (𝑇lin ∇ 𝑓 (𝑇(𝑦)), −1), (𝑧 − 𝑦, 𝑠 − 𝑡) ≤ 𝑡 − 𝑓 (𝑇(𝑦)).
+
+If the sign of the violation 𝑓 (𝑇(𝑦)) − 𝑡 cannot be certified at the requested precision, the oracle
+declares the query to be in the prescribed weak enlargement. This is the weak-separation model
+used in the separation–optimization reduction. Taking the value error and the gradient error times
+the outer radius below a fixed fraction of the requested weak tolerance makes each reported cut
+valid. Evaluation to 𝑝 directed bits takes time polynomial in 𝑛, 𝐵, 𝑞, 𝑝, so this additional accuracy is
+polynomially bounded.
+
+A rounded ellipsoid implementation. We use a fixed dyadic precision for the entire ellipsoid run. This
+avoids evaluating the determinant of an intermediate rational matrix. To see that such a precision
+exists, clear the denominators of the initial rational basis. If their least common multiple is 𝐷,
+nonsingularity gives the explicit lower bound 𝐷 −𝑑 on the absolute determinant, where 𝑑 is the
+dimension of the epigraph. Choose 𝐿 so that 2−𝐿 ≤ 𝐷 −𝑑 , and choose 𝐾 so that the initial center and
+basis have total absolute magnitude at most 2𝐾 . After 𝑡 rounded central cuts, the determinant is at
+least 2−(𝐿+2𝑡) , while the total magnitude is at most 2𝐾+𝑡(6+3𝑑) . The first estimate follows because the
+exact central cut retains at least half of the determinant and sufficiently fine rounding retains another
+half. The second follows from the entrywise central-cut and rounding bounds. It is therefore
+enough to use, at every iteration, the single precision
+
+                   𝑃 = (𝐿 + 2𝑇 + 1) + 12 + 8𝑑 + 𝑑2 + 𝑑 𝐾 + 𝑇(6 + 3𝑑) + 3 + 𝑑 + 2,
+                                                                                    
+
+where 𝑇 is the iteration budget. The determinant perturbation bound and the adjugate formula
+show that flooring the center and basis to the 2−𝑃 grid, followed by inflation by 1 + 1/(1024𝑑 4 ),
+preserves the surviving half-ellipsoid. The same estimates give determinant contraction by a factor
+
+                                                    30
+at most 1 − 1/(32𝑑 3 ). Thus 𝑃 has polynomial length, is computed before the run from rational data,
+and controls every stored state.
+
+Recovering approximate KKT potentials. Let Δobj > 0 be the desired objective error. Invoke weak
+optimization with accuracy
+                                              𝛿int Δobj
+                                                         
+                                    𝜎 ≤ min       ,         .                              (110)
+                                              4𝑛 2 + 𝑛𝐺
+Write the rational output as (b𝑦,b𝑡). It is within 𝜎 of some (𝑦 ′ , 𝑡 ′ ) ∈ 𝐾, and b 𝑡 is within 𝜎 above the
+minimum. Mapping b    𝑦 through 𝑇 gives a rational matrix 𝑋. Its row and column sums are exactly
+                                                            b
+one. The first bound in Eq. (110) and the norm bound for 𝑇 imply 𝑋        b𝑖𝑗 ≥ 𝛿int /4; exact row sums then
+give the same lower bound for 1 − 𝑋   b𝑖𝑗 . The second bound and Lipschitzness give, more explicitly,
+
+                  𝑦 )) ≤ 𝑓 (𝑇(𝑦 ′ )) + 𝑛𝐺𝜎 ≤ 𝑡 ′ + 𝑛𝐺𝜎 ≤ b
+             𝑓 (𝑇(b                                      𝑡 + (1 + 𝑛𝐺)𝜎 ≤ min 𝑡 + (2 + 𝑛𝐺)𝜎.
+                                                                              𝐾
+
+Consequently,
+                                          Φ𝜏 (𝑋) − Φ𝜏 (𝑋)
+                                                       b ≤ Δobj .                                     (111)
+Thus the fact that a weak optimizer need not return a point in its input body does not compromise
+exact double stochasticity.
+The function 𝑓 is 𝜏-strongly convex on the affine hull of ℬ𝑛 , because the negative Shannon term has
+Hessian 𝜏diag(1/𝑍 𝑖𝑗 ) ⪰ 𝜏𝐼, while concavity of the Bethe objective makes the remaining Hessian
+positive semidefinite on the tangent space. Strong convexity gives
+                                                 q
+                                   ∥𝑋
+                                    b − 𝑋∥𝐹 ≤        2(Φ𝜏 (𝑋) − Φ𝜏 (𝑋))/𝜏.
+                                                                    b
+
+Set Δobj = 𝜏𝜀num
+             2      /(128𝐿2 ) in Eq. (110). Then the two gradients are within 𝜀num /8 in Frobenius norm.
+Approximate the gradient rationally to accuracy 𝜀num /16. The exact optimizer’s gradient has the
+form (𝑅 𝑖 + 𝐶 𝑗 )𝑖𝑗 by the KKT equations. Fix a row 𝑖0 and a column 𝑗0 , let 𝐺e be the rational gradient
+approximation, and set
+                                       𝑅
+                                       e𝑖 = 𝐺e𝑖𝑗0 ,   𝐶
+                                                      e𝑗 = 𝐺
+                                                           e𝑖0 𝑗 − 𝐺
+                                                                   e𝑖0 𝑗0 .
+
+For an exact row-plus-column matrix this reconstruction is an identity. If each entry of 𝐺 e is within 𝑎
+of such a matrix, its residual is at most 4𝑎, by the triangle inequality on the corresponding four-cycle.
+Our preceding choices make the residual, including the error in evaluating the gradient at 𝑋,      b at
+most 𝜀num . Set 𝜆 𝑖 = −𝑅 𝑖 and 𝜈 𝑗 = 2 + 𝜏 − 𝐶 𝑗 . These rational potentials satisfy
+                        e                     e
+
+                        log 𝐴 𝑖𝑗 − 𝜆 𝑖 − 𝜈 𝑗 − (1 + 𝜏) log 𝑋
+                                                           b𝑖𝑗 − log(1 − 𝑋
+                                                                         b𝑖𝑗 ) ≤ 𝜀num .               (112)
+
+
+Exactification by a nearby matrix. Define the nearby positive matrix
+
+                                        𝐴′𝑖𝑗 = 𝑒 𝜆𝑖 +𝜈 𝑗 𝑋
+                                                         b1+𝜏 (1 − 𝑋
+                                                           𝑖𝑗
+                                                                   b𝑖𝑗 ).                             (113)
+
+Then 𝑋
+     b satisfies the exact KKT equations for 𝐴′ , and concavity shows that it is the exact regularized
+optimizer. Moreover,
+                                      𝑒 −𝜀num 𝐴′ ≤ 𝐴 ≤ 𝑒 𝜀num 𝐴′                                 (114)
+
+                                                       31
+entrywise. Hence
+                              𝑒 −𝜀num 𝑛 per(𝐴′ ) ≤ per(𝐴) ≤ 𝑒 𝜀num 𝑛 per(𝐴′ ).                   (115)
+
+One-sided evaluation of the paired certificate. The gain does not require another convex program. For
+every row pair and every pair of distinct candidate core columns, compute the outside mass and
+retain the candidate only if it is at most one. Then form the rational distribution 𝜃 𝑎,𝑏 in Eq. (80);
+the case 𝜌 = 0 is detected exactly and uses the point mass on {𝑎, 𝑏}. These are exactly the finitely
+many witness gains in Eq. (86). There are only 𝑂(𝑛 4 ) of them. Every retained 𝜃 𝑎,𝑏 satisfies its mass
+and marginal constraints exactly, so Lemma 5 preserves the lower-bound direction without any
+feasibility recovery.
+Logarithms and exponentials at rational arguments can be evaluated to 𝑝 directed bits in time
+polynomial in the input length and 𝑝 [Bre76]. We use outward-rounded interval arithmetic for all
+elementary expressions generated from the rational inputs. There is no need to materialize the
+generally irrational matrix 𝐴′ : inside 𝛽 𝐴′ (𝑋)
+                                              b we use
+
+                          log 𝐴′𝑖𝑗 = 𝜆 𝑖 + 𝜈 𝑗 + (1 + 𝜏) log 𝑋
+                                                             b𝑖𝑗 + log(1 − 𝑋
+                                                                           b𝑖𝑗 ),
+
+and the transfer coefficients are evaluated in logarithmic form from
+                                                             Õ
+                             log 𝑈 𝑖𝑗 = (1 + 𝜏) log 𝑋
+                                                    b𝑖𝑗 −          log(1 − 𝑋
+                                                                           b𝑖 𝑘 ).
+                                                             𝑘≠𝑗
+
+The quantities 𝜌, 𝛿 𝑎 , 𝛿 𝑏 and every nonzero witness mass are rational. Zero masses are recognized
+exactly and their entropy terms are set to zero. We evaluate 𝛽 𝐴′ (𝑋)     b and every witness log-gain,
+always taking the lower endpoint. For each row pair, take the largest lower endpoint over the
+candidate columns, truncate it at zero, and compute a maximum-weight matching. If every edge
+weight is underestimated by at most 𝜀num , the computed matching loses at most 𝑛𝜀num /2 relative to
+the exact witness-weight matching, because both matchings have at most 𝑛/2 edges. Evaluating
+each of the polynomially many elementary terms to 𝜀num /poly(𝑛) therefore gives a rational value
+𝐿
+b′ such that
+                              b′ ≤ 𝐿 b (𝐴′ ),
+                              𝐿                   b′ ≥ log 𝐿 b (𝐴′ ) − 𝐶0 𝜀num 𝑛
+                                              log 𝐿
+                                    𝑋                       𝑋
+
+for an absolute constant 𝐶0 . All inequalities are one-sided, so 𝐿
+                                                                 b′ ≤ per(𝐴′ ) by Theorem 6 and
+Eq. (86).
+
+Assembling the output. Finally compute a rational 𝐿
+                                                  b satisfying
+
+                                      𝑒 −2𝜀num 𝑛 𝐿    b ≤ 𝑒 −𝜀num 𝑛 𝐿
+                                                 b′ ≤ 𝐿             b′ .
+Such a number is obtained by directed evaluation with polynomially many bits. The lower bound
+in Eq. (107) follows from Eq. (115). Since 𝑋
+                                           b is the exact regularized optimizer for 𝐴′ , Proposition 21
+gives                                           √       𝑛
+                                           ′         −𝜀+
+                                     per(𝐴 ) ≤ 2𝑒           𝐿𝑋b (𝐴′ ).
+
+Combining this inequality with Eq. (115) and the loss in 𝐿
+                                                         b′ proves the upper bound in Eq. (107)
+with 𝐶num = 𝐶0 + 3. The initial scaling can be undone using the degree-𝑛 homogeneity of the
+permanent and the certificate. All requested precisions have polynomial bit length, and every
+rational intermediate and the final output have polynomial bit length. Rational arithmetic, weak
+optimization, directed elementary-function evaluation, and weighted matching therefore take
+polynomial time in the ordinary binary encoding of the input.
+
+                                                     32
+A.3   Proof of the main theorem
+Proof of Theorem 1. The case 𝑛 = 1 is exact. For 𝑛 ≥ 2, first test by bipartite matching whether the
+positive support of 𝐴 contains a perfect matching. If not, return zero.
+Otherwise scale 𝐴 by its largest entry. The constant 𝜀+ in Eq. (101) is positive and rational.
+Decreasing it if necessary, we may assume that 𝜀+ ≤ (log 2)/2; this only weakens Eq. (94) and
+ensures that the final approximation base is larger than one. Apply Lemma 22 with 𝜒 = 𝜀+ /2, and
+apply Lemma 24 to the smoothed matrix with
+                                                     𝜀+
+                                          𝜀num ≤         .                                     (116)
+                                                   4𝐶num
+By Lemma 24, the smoothed permanent is bounded by the computed certificate with base
+                                    √
+                                      2𝑒 −𝜀+ +𝐶num 𝜀num .
+
+If 𝐿
+   e is the certified lower bound for the smoothed permanent, put
+
+                                                   𝐿
+                                                   e
+                                          𝐿=            .
+                                               1 + 𝜒𝑛/2
+
+By Eq. (102), 𝐿 ≤ per(𝐴). On the logarithmic scale, the division loses at most
+                                                𝜒𝑛  𝜒𝑛
+                                       log 1 +       ≤   .
+                                                  2    2
+Our choices of 𝜒 and 𝜀num leave at least 𝜀+ /2 in the exponent. Thus the final approximation base
+can be taken to be                          √           √
+                                       𝑐 = 2𝑒 −𝜀+ /2 < 2.                                    (117)
+Undoing the initial scaling multiplies both the output and the permanent by the same factor to the
+𝑛th power. Every step is deterministic and polynomial-time.
+
+
+B     Provenance
+The proof in this paper originated in an interaction between the author and ChatGPT 5.6 Sol Pro.
+The author supplied the high-level plan of attack and guided the development of the argument.
+Within this plan, the model proposed the paired stable-polynomial certificate, the exact-slack
+strategy, and the transfer through a regularized Bethe point. The author subsequently verified the
+results.
+Codex assisted with alternating manuscript expansion and critical proof passes, including symbolic
+and numerical checks, literature verification, assembly, and typesetting. The author is responsible
+for the final contents.
+An accompanying Lean 4 development, available at https://github.com/nimaanari/for
+malization-beyond-bethe and registered with the Palomar Registry at https://palomar-
+registry.org/entry?id=PALOMAR-2026-08-29-000006&version=1, formalizes the proof and the
+complete algorithm. It reconstructs from their source proofs Vontobel’s concavity theorem, the
+sharp one-row inequality of Anari and Rezaei, the upper Bethe bound, and the stable coefficient
+
+
+                                                 33
+inequality of Anari and Oveis Gharan. The lower Bethe bound is recovered internally as a special
+case.
+The formalization includes the convex optimization, finite-precision error analysis, support and
+boundary cases, and an executable rational algorithm. It also proves ordinary deterministic
+polynomial running time on a binary encoding, including the elementary arithmetic, ellipsoid,
+matching, and certificate routines used by the algorithm. Its main theorem has no project-specific
+hypotheses, and its axiom audit reports only the standard logical axioms used by Lean and Mathlib.
+
+
+References
+[AO17]     Nima Anari and Shayan Oveis Gharan. “A Generalization of Permanent Inequalities and
+           Applications in Counting and Optimization”. In: Proceedings of the 49th Annual ACM Symposium
+           on Theory of Computing. 2017, pp. 384–396. doi: 10.1145/3055399.3055470. arXiv: 1702.02937
+           [cs.DS].
+[AR24]     Nima Anari and Alireza Rezaei. “A Tight Analysis of Bethe Approximation for Permanent”.
+           In: SIAM Journal on Computing 53.6 (2024), pp. 1538–1553. doi: 10.1137/19M1306142. arXiv:
+           1811.02933 [cs.DS].
+[Brä07]    Petter Brändén. “Polynomials with the Half-Plane Property and Matroid Theory”. In: Advances
+           in Mathematics 216.1 (2007), pp. 302–320. doi: 10.1016/j.aim.2007.05.011.
+[Bre76]    Richard P. Brent. “Fast Multiple-Precision Evaluation of Elementary Functions”. In: Journal of the
+           ACM 23.2 (1976), pp. 242–251. doi: 10.1145/321941.321944.
+[GLS81]    Martin Grötschel, László Lovász, and Alexander Schrĳver. “The Ellipsoid Method and Its
+           Consequences in Combinatorial Optimization”. In: Combinatorica 1.2 (1981), pp. 169–197. doi:
+           10.1007/BF02579273.
+[Gur11]    Leonid Gurvits. “Unleashing the Power of Schrĳver’s Permanental Inequality with the Help of
+           the Bethe Approximation”. In: Electronic Colloquium on Computational Complexity 18.169 (2011).
+           arXiv: 1106.2844 [cs.CC].
+[HKV24]    Yuwen Huang, Navin Kashyap, and Pascal O. Vontobel. “Degree-𝑀 Bethe and Sinkhorn
+           Permanent Based Bounds on the Permanent of a Nonnegative Matrix”. In: IEEE Transactions
+           on Information Theory 70.7 (2024), pp. 5289–5308. doi: 10 . 1109 / TIT . 2024 . 3374787. arXiv:
+           2306.02280 [math.CO].
+[JSV04]    Mark Jerrum, Alistair Sinclair, and Eric Vigoda. “A Polynomial-Time Approximation Algorithm
+           for the Permanent of a Matrix with Nonnegative Entries”. In: Journal of the ACM 51.4 (2004),
+           pp. 671–697. doi: 10.1145/1008731.1008738.
+[NP26]     Ijay Narang and Will Perkins. “Structural Corrections to the Bethe Approximation of the
+           Permanent”. In: (2026). arXiv: 2608.31061 [cs.DS].
+[NV22]     Kit Shing Ng and Pascal O. Vontobel. “Double-Cover-Based Analysis of the Bethe Permanent
+           of Nonnegative Matrices”. In: 2022 IEEE Information Theory Workshop. 2022, pp. 672–677. doi:
+           10.1109/ITW54588.2022.9965764. arXiv: 2205.15186 [math.CO].
+[Sch03]    Alexander Schrĳver. Combinatorial Optimization: Polyhedra and Efficiency. Vol. 24. Algorithms and
+           Combinatorics. Berlin: Springer-Verlag, 2003.
+[Sch98]    Alexander Schrĳver. “Counting 1-Factors in Regular Bipartite Graphs”. In: Journal of Combinatorial
+           Theory, Series B 72.1 (1998), pp. 122–135. doi: 10.1006/jctb.1997.1798.
+[Val79]    Leslie G. Valiant. “The Complexity of Computing the Permanent”. In: Theoretical Computer Science
+           8.2 (1979), pp. 189–201. doi: 10.1016/0304-3975(79)90044-6.
+[Von13]    Pascal O. Vontobel. “The Bethe Permanent of a Nonnegative Matrix”. In: IEEE Transactions
+           on Information Theory 59.3 (2013), pp. 1866–1901. doi: 10 . 1109 / TIT . 2012 . 2227109. arXiv:
+           1107.4196.
+
+
+
+
+                                                    34
+

@@ -1,0 +1,2721 @@
+                                         New Complexity Classes in Locally Checkable
+                                         Labeling for Local Computation Algorithms
+                                         Sijin Peng # 
+                                         CSAIL, MIT, Cambridge, United States
+
+                                               Abstract
+                                         Local Computation Algorithms (LCAs), introduced by Rubinfeld, Tamir, Vardi, and Xie (2011), are
+                                         a special type of sublinear algorithms that, given probing access to a possibly massive input, are
+                                         required to provide query access to a consistent solution, without maintaining a state between different
+                                         queries. In this paper, we try to understand LCA through the lens of complexity classifications,
+                                         described by the following question: Given a target complexity function f (n), is there a problem
+                                         whose local computation complexity is f (n), up to polylogarithmic factors?
+                                             We restrict our focus to Locally Checkable Labeling (LCL) problems, which can be seen as
+                                         constant-degree constraint satisfaction problems. Possible complexity classes of this problem family
+                                         have been extensively studied in various distributed computation models, including the VOLUME
+                                         model proposed by Rosenbaum and Suomela (2020), which is an invariant of local computation
+                                         algorithms with additional locality requirements.
+                                             In this paper, we provide new LCL complexity constructions in the VOLUME model, and
+arXiv:2607.09626v1 [cs.DC] 10 Jul 2026
+
+
+
+
+                                         generalize the results to LCAs. Specifically, we show that there are LCLs whose probe complexities
+                                         in the VOLUME and LCA models are Θ(logk n) and Θ̃(np/q ) for any positive integer k ≥ 1 and
+                                         rational p/q ∈ (0, 1]. Our approach, completely different from the approach to a similar result in the
+                                         distributed LOCAL model by Balliu et al. (2018), is to stack instances of complexity Θ(log n) and
+                                         Θ̃(n1/k ) in the VOLUME model constructed by Rosenbaum and Suomela (2020).
+
+                                         2012 ACM Subject Classification Theory of computation → Distributed algorithms; Theory of
+                                         computation → Streaming, sublinear and near linear time algorithms
+
+                                         Keywords and phrases Local Computation Algorithms, Volume Model, Locally Checkable Labeling
+
+                                         Acknowledgements The LCL construction, lower bound analysis, and high-level ideas for upper
+                                         bound algorithms in this paper were discovered by the author. At the same time, most of the proof
+                                         details in Sections 4 and 5, including Definition 40, and figures in Sections 1 and 2 were assisted by
+                                         the use of OpenAI Codex. All AI outputs were reviewed and edited by the author, who takes full
+                                         responsibility for the correctness, originality, and integrity of this paper.
+
+
+                                          1     Introduction
+                                         Local computation algorithms (LCAs), proposed in [2, 42], are a special type of sublinear
+                                         algorithms typically applied to graph problems involving multiple output bits. An LCA is
+                                         expected to find only a small part of the solution each time, specified by queries, through a
+                                         small number of probes that give the algorithm access to the input and adjacency list of a
+                                         vertex in the graph. Following most of the LCA literature, in this paper, the input graph has
+                                         a constant maximum degree, so it is the same up to a constant factor for a probe to return
+                                         the complete adjacency list of a vertex as to return one entry of the adjacency list.
+                                             The main challenge in designing a local computation algorithm is consistency: when
+                                         there are multiple feasible solutions to the instance, multiple queries to different parts of
+                                         the solution should provide consistent local solutions that point to a single globally feasible
+                                         solution without maintaining state across queries. For graph coloring, for example, a query
+                                         may ask for the color of one vertex, and the answers to multiple queries must together form
+                                         a single feasible coloring. To make this possible, if an LCA needs randomness, the same
+                                         randomness must be shared across queries.
+2   New LCL Complexity Classes for LCAs
+
+
+        The motivation behind LCA is to provide an efficient and parallelizable way to gain
+    access to a small part of a large solution to a massive problem. This shares the spirit with
+    distributed computing and property testing. See [35] for a survey on common methods in
+    LCA and its connection to property testing and various distributed models. LCAs have
+    also been connected to several other fields of theoretical computer science, including online
+    algorithms [39], graph sparsification [3], distributed optimization [38], coding theory [36, 42],
+    and algorithmic game theory [34]. However, most existing literature on LCA takes an
+    algorithm-designer perspective, seeking the optimal probe complexity of concrete problems.
+    In this paper, we ask the question the other way around: Given a target complexity f (n), is
+    there a problem whose probe complexity is exactly or roughly f (n) up to a polylogarithmic
+    factor?
+        This question becomes meaningless if we take arbitrary problems into consideration. For
+    example, one can take a problem with Θ(n) probe complexity and add a promise to the
+    input instance that each connected component only has size f (n), likely leading to a problem
+    of probe complexity Θ(f (n)). Another candidate with probe complexity Θ(f (n)) is to give
+    each vertex v a radius rv ≤ log∆ f (n) and let each vertex collect the exact number of vertices
+    within distance rv from v. From the examples above, it is essential to select a suitable
+    family of problems that excludes trivial issues, while also striving to include a large class of
+    meaningful problems.
+        Our approach, as is standard in distributed graph algorithms, is to restrict ourselves to
+    the family of locally checkable labeling (LCL) problems. To talk about LCL, we should first
+    define the graph family these problems are defined on. In this paper, we will analyze LCLs
+    on the family of all bounded-degree graphs and the family of all bounded-degree trees. We
+    cannot make additional promise about the input structure, so the first example above does
+    not fall into our consideration.
+        In a typical LCL setting, each vertex in a constant-degree graph receives its unique ID and
+    possibly an input label from a constant number of possible inputs, and each vertex should
+    provide an output label from a constant number of choices. Furthermore, the feasibility
+    of a solution is locally checkable. This means that each vertex can check whether its local
+    constraint is satisfied with information from a constant-hop neighborhood, and a global
+    solution satisfies the requirement of the problem if all vertices are locally satisfied. One
+    may also think of LCLs as CSPs on constant-degree constraint graphs. The second example
+    given above is not an LCL because its label sets or checkability radius are not constant.
+    At the same time, LCLs still include classic problems, such as graph coloring and maximal
+    independent set.
+        Since the work by Naor and Stockmeyer [40], the possible complexity of LCLs has been
+    extensively studied in the context of distributed graph algorithms [6, 10, 19, 26, 28, 29]. There
+    is now a substantial understanding of LCL complexities in the LOCAL model on bounded-
+    degree graphs (see [9] for the almost-complete complexity spectrum), trees [5, 7, 24, 25, 32],
+    and other special types of graphs [4, 16, 22, 31]. This research paradigm has also extended
+    to other models and settings [1, 11, 25, 43], among which the VOLUME model proposed by
+    Rosenbaum and Suomela [41] has a close connection to local computation algorithms.
+        The VOLUME model is motivated to provide a more fine-grained resource analysis
+    compared to other common distributed models such as LOCAL and CONGEST. This model
+    shares a similar spirit with LCA, using probes to measure the cost of an algorithm, but they
+    are different in two aspects:
+       First, any time in the execution of a VOLUME algorithm, the set of vertices probed by
+       the algorithm should always be a connected component that includes the current vertex
+S. Peng                                                                                                3
+
+
+    being queried. In other words, VOLUME algorithms cannot perform a far probe with low
+    cost.
+    Another difference lies in the randomness: As mentioned above, in local computation
+    algorithms, different queries share the single random string r, and the algorithm can
+    freely access each bit of r. In the VOLUME model, different queries still share the same
+    randomness, but the algorithm only has restricted access to it. Specifically, each vertex v
+    in the graph has an independent random string rv that jointly constitutes r, and for a
+    query, the algorithm can access rv only after it probes v.
+In these two dimensions, the VOLUME model more closely resembles common distributed
+models in which information only propagates through network channels abstracted as edges
+in the graph, and the algorithm needs to use additional resources to get information from
+vertices far away.
+
+
+1.1    Main Results
+In this paper, we consider LCLs with probe complexity Ω(log n) in both the LCA and
+VOLUME models for randomized algorithms only. To the best of the author’s knowledge, no
+prior work addresses the LCL complexity classification for LCAs. Several existing papers
+have studied randomized VOLUME complexities of LCLs [21, 32, 41]. See Figure 1 for an
+illustration of the status of the randomized VOLUME complexity landscape for bounded-degree
+graphs before our work. We note here that [41] also includes results for the deterministic
+VOLUME model, but current knowledge on this model is largely limited by the fact that it is
+unknown whether there is either a gap theorem or an explicit LCL construction between
+Ω(log⋆ n) and o(n) for the deterministic VOLUME model.
+
+                 • known construction        × known gap theorem              ? unknown interval
+
+                                             ?           ?                       ?          ?
+                                 √                                  ···                            n
+             1         log⋆ n        log n       log n       o(1)
+                                                             n            1/3
+                                                                          n          n1/2
+
+
+
+    Figure 1 The LCL complexity landscape of randomized VOLUME algorithms from previous works
+for bounded-degree graphs. The blue dots between no(1) and n1/3 correspond to constructions for
+n1/k for any integer k ≥ 3.
+
+
+    Before our work, one can construct LCLs with randomized VOLUME complexity Θ(1),
+Θ(log⋆ n), Θ(log n), and Θ̃(n1/k ) for any positive integer k, where Θ̃ ignores polylogarithmic
+factors. The constructions for Θ(1) and Θ(log⋆ n) complexity come from constructions in
+the LOCAL model, while other constructions are given in [41]. It turns out that all LCL
+constructions in Figure 1 have the same complexity in the VOLUME model when we restrict
+the instance to bounded-degree trees. Two gap theorems in the randomized VOLUME model,
+                                           √
+ω(1) − o(log⋆ n) gap and ω(log⋆ n) − o( log n) gap, are given in [32] and [21] respectively.
+Unfortunately, these constructions and gap theorems do not directly transfer to LCAs.
+    At the same time, there are still regions where we do not know either a separation theorem
+or an LCL construction. It is explicitly asked in [41] whether more randomized VOLUME
+complexities exist in the polylogarithmic regime, and whether the set of possible complexities
+in the polynomial regime is “dense”, meaning that for any two reals 0 < a < b ≤ 1, there is a
+problem with complexity Ω(na ) and o(nb ).
+    In this paper, we provide affirmative answers to both questions, and extend the con-
+structions and analysis further to the LCA setting and bounded-degree trees, as stated in
+4   New LCL Complexity Classes for LCAs
+
+
+    Theorem 1 and Theorem 2. Adding our results gives the new complexity landscape for the
+    VOLUME model shown in Figure 2.
+
+    ▶ Theorem 1. For each positive integer k, there exists an LCL whose randomized LCA and
+    VOLUME complexities are both Θ(logk n) for both bounded-degree graphs and trees.
+
+    ▶ Theorem 2. For each x ∈ Q ∩ (0, 1], there exists an LCL whose randomized LCA and
+    VOLUME complexities are both Θ̃(nx ) for both bounded-degree graphs and trees.
+
+
+          • known construction           dense constructions            × known gap theorem          ? unknown interval
+                                                                               ···
+                                         ?           ?            ?                              ?
+                                 √                                                                             n
+                1     log⋆ n         log n   log n       log2 n       log3 n     2ω(log log n)       no(1)
+
+        Figure 2 The current LCL complexity landscape of randomized VOLUME algorithms for bounded-
+    degree graphs. The blue dots between log3 n and 2ω(log log n) correspond to constructions for logk n
+    for any integer k ≥ 3; The solid blue segment in the polynomial regime represents constructions
+    with complexity Θ̃(nx ) for every rational x ∈ (0, 1].
+
+
+
+    1.2     Comparison with Results in the LOCAL Model
+    It is worth noting the difference between our results in the LCA and VOLUME model and
+    similar results in the LOCAL model. In the LOCAL model proposed by Linial [37], the
+    complexity is measured by the number of communication rounds, equivalently, the radius of
+    the neighborhood that determines the output for each vertex.
+        For bounded-degree trees, it is shown in [24, 27] that no LCL has complexity in the
+    range ω(log n) − no(1) or the range ω(n1/(k+1) ) − o(n1/k ) for any integer k ≥ 1. Our results
+    indicate that the complexity landscape of LCLs in bounded-degree trees is more complex
+    for the VOLUME model and LCAs compared to the LOCAL model in polylogarithmic and
+    polynomial regimes. This is consistent with the intuition that probe complexity looks like a
+    more fine-grained complexity measure compared to distance complexity.
+        Yet this intuition does not hold for general graphs, as it is shown in [8, 13] that, for
+    bounded-degree graphs, the possible LCL complexity for the LOCAL model is dense in
+    the interval ranging from log n to n. More specifically, for any positive rational r/s ≤ 1
+                                                                                          r/s
+    and p/q ≥ 1, one can construct LCLs with distance complexity Θ(logp/q n), 2Θ(log n) and
+    Θ(nr/s ). Our result exhibits a similar density in the polynomial regime, but the techniques are
+    completely different. The constructions in [8, 13] use a set of carefully crafted constraints to
+    encode the execution of special Turing machines into the instance. Instead, our constructions
+    use the constructions in [41] with VOLUME complexity Θ(log n) and Θ̃(n1/k ) and provide a
+    way to stack multiple instances of these problems to create more complexity classes. We will
+    briefly discuss how the stacking works in Section 2.
+
+    1.3     Organization of the Paper
+    In Section 2, we provide an overview of our approach. In Section 3, we define basic notations
+    and also models and problems of our interest. In Section 4 and Section 5, we provide the
+    LCL construction and analysis in the polylogarithmic complexity setting and the polynomial
+    complexity setting, respectively. Finally, in Section 6, we discuss several aspects of our paper
+    at a higher level and provide some future directions.
+S. Peng                                                                                                 5
+
+
+ 2      Technical Overview
+
+2.1     The Construction in the Polylogarithmic Regime
+In the polylogarithmic regime, we use the LeafColoring LCL constructed in [41] with VOLUME
+complexity Θ(log n), and stack its instances for k levels to provide an LCL whose VOLUME
+and LCA complexities are Θ(logk n) for any positive integer k. We first review the LeafColoring
+construction and then show how the stacking works. Finally, we briefly demonstrate how to
+generalize the lower bound analysis from VOLUME to LCAs.
+
+2.1.1     Review of the LeafColoring LCL
+The main idea behind the LeafColoring LCL is that, on all possible rooted trees of size n
+where each vertex has out-degree zero or two, the root needs Ω(log n) steps to reach a leaf,
+while a random walk takes O(log n) steps from the root to a leaf with high probability for
+any such tree.
+    To make sure that any VOLUME algorithm working on the output label for the root must
+discover a path from the root to a leaf, we impose the following constraints: Each leaf is
+given a red-blue color as an input and required to output the same color as its input, while
+each internal vertex needs to output a color appearing as the output color of one of the two
+children. These locally checkable constraints together require the root to output the input
+color of one of the leaves, and if an algorithm does not probe any leaf, it cannot distinguish
+between cases where all leaves are red and all leaves are blue.
+    Finally, to generalize the construction to all bounded-degree trees and graphs, one needs
+to rule out graphs not following a rooted tree of out-degree zero or two without an explicit
+promise on the input structure. To address this issue, Rosenbaum and Suomela [41] design a
+special set of input labels for each vertex and constraints called binary tree labeling. The
+binary tree labeling is a part of the LCL. If a vertex does not satisfy the locally checkable
+constraints for the binary tree labeling, we will output a special ⊥ label for this vertex and
+remove it from the rest of the computation. For vertices satisfying all constraints for the
+binary tree labeling, we can show that the induced subgraph will be almost a rooted forest
+of out-degree zero or two, and we require these vertices to solve the coloring problem. We
+will use the same approach in Definitions 9 and 11 to generalize our construction to all
+bounded-degree trees and graphs. For ease of understanding, in this section, we can just
+assume that all vertices pass the binary tree labeling check.
+
+2.1.2     The Stacking
+First, we slightly generalize the LeafColoring construction by using the following set of
+constraints: Instead of the red/blue color, we give for each vertex an input bit bin (v),
+and each vertex needs to output two symbols. The first symbol d(v) ∈ {L, R} indicates
+the path from each vertex to a leaf. Define child(v, d(v)) to be the left child of v when
+d(v) = L and the right child of v when d(v) = R, then the path from some vertex u will
+be p0 = u, p1 = child(p0 , d(p0 )), p2 = child(p1 , d(p1 )), · · · , all the way down to a leaf w
+where d(w) should be a placeholder ⊥. The second output symbol bout (v) is to ensure
+that the algorithm probes all vertices along the path, and we add the constraint that
+bout (u) = ⊕i≥0 bin (pi ) for each vertex u. This constraint involves Ω(log n) labels, so it is not
+local, but we notice that we can use the locally checkable constraint bout (v) = bout (p1 ) ⊕ bin (v)
+on each internal vertex v in the instance to jointly make sure that bout (u) equals the xor of
+input bits along the path.
+6   New LCL Complexity Classes for LCAs
+
+
+        We denote the previous LCL as Π1PTL , where PTL abbreviates “path to leaf”. Compared
+    to LeafColoring, the benefit of Π1PTL is that the output of the root is always related to Θ(log n)
+    input bits rather than a single input color on some leaf. As a result, we would expect that
+    any randomized LCA would also need Ω(log n) probes.
+        We will now demonstrate the way to stack Π1PTL instances. Consider, for each vertex v in
+    a Π1PTL instance of size m called the base instance, we give it a “twisted” input bit b′in (v)
+    and additionally attach a fresh Π1PTL instance of size m. Different vertices receive disjoint
+    instances, so the final instance includes (m + 1) independent Π1PTL instances where one of
+    them is the base instance. For a vertex in the base instance, the actual input bit bin (v) will
+    be the xor of the twisted input bit b′in (v) and the output bit of the root of the attached
+    instance. The Π1PTL constraints for each of the (m + 1) instances are the same as before.
+        Now, to get the output bit for the root of the base instance, apart from Θ(log m) input
+    bits along the path, the algorithm needs to additionally get the root output label for Θ(log m)
+    independent attached instances. This suggests that the LCL should provide a Θ(log2 m)
+    probe complexity construction. The total instance size will blow up by a polynomial factor,
+    but it does not affect the complexity since we are in the polylogarithmic regime. We call
+    this problem Π2PTL , and we can recursively do the attachment to define ΠkPTL for any positive
+    integer k.
+
+    2.1.3    Upper Bound and Lower Bound
+    The Θ(log2 n) VOLUME and LCA upper bound for Π2PTL follows by generalizing the random-
+    walk algorithm in [41]. For the lower bound, one may first approach it using uniform random
+    bits for bin , hoping that the output bit at the root of the base instance is then the xor sum
+    of Θ(log2 n) uniform random bits. The issue is that the algorithm can choose d(v) based on
+    the input bits. For example, an algorithm may use a few probes to find a d(v) assignment
+    adaptively such that the correct bout value at the root is zero with high probability.
+        To resolve this issue, we construct a special distribution over the instances, so that each
+    instance I in the support is associated with a bit bI ∈ {0, 1}, and no matter how the output
+    label d is chosen for each vertex, the output bit at the root of the base instance in a globally
+    correct solution will always be bI . This removes the effect of d outputs, and we can use an
+    induction argument to show that, conditioned on the input bit of any set of o(log2 n) vertices,
+    the probability that the associated instance bit bI equals 1 will be exactly 1/2. This, along
+    with Yao’s minimax principle, proves the lower bound.
+
+    2.2     The Construction in the Polynomial Regime
+    In the polynomial regime, we utilize the Hierarchical-THC LCL constructed in [41] with
+    VOLUME complexity Θ̃(n1/k ) for any positive integer k, and stack its instances in a nontrivial
+    way to provide an LCL of randomized LCA and VOLUME complexities Θ̃(np/q ) for any
+    positive rational 0 < p/q ≤ 1. We first review the Hierarchical-THC construction and then
+    show how the stacking works. Finally, we demonstrate the difficulties in the upper and lower
+    bound analysis.
+
+    2.2.1    Review of the Hierarchical-THC LCL
+    Our presentation of the Hierarchical-THC LCL will be different from previous works [27, 41],
+    and the purpose is to show that Hierarchical-THC is constructed by stacking path two-coloring
+    instances in a different way compared to the stacking in the polylogarithmic regime. This
+    allows us to integrate two different stacking strategies to provide new complexity classes.
+S. Peng                                                                                                   7
+
+
+head                          tail
+ v1       v2           v3     v4     X        X         X       X       D        D         D        D
+
+
+
+          p2,1         p3,1   p3,2            X         X       X                D         D        D
+
+
+ p1,1     p1,2         p1,3          X        X         X               D        D         D
+
+
+                 (a)                              (b)                                (c)
+ X        X             X      X     X        X         X       X       R        B         R        R
+
+
+
+
+          D             D      D              B         B       D                R         B        R
+
+
+
+ D        D             D            B        D         D               B        R         B
+
+
+                 (d)                              (e)                                (f)
+
+    Figure 3 An Hierarchical-THC instance with a top path of length four and attached bottom paths
+of lengths three, one, two, and zero from head to tail, respectively. Solid left-to-right arrows denote
+path connections, and dotted downward arrows denote attachments. (a) shows the input color for
+each vertex: all vertices in the top path have red input color, and all vertices in the bottom path
+have blue input color. (b)(c)(d)(e)(f) are possible output colorings for (a) that violate constraints
+1,2,3,4,5 in Hierarchical-THC, respectively.
+
+
+    The Hierarchical-THC construction is parameterized by levels of stacking. To start with,
+let us consider the construction with two levels, leading to an LCL with Θ̃(n1/2 ) probe
+complexity in the VOLUME model. In the construction, we have a directed top path of length
+ℓ, denoted by v1 , v2 , . . . , vℓ , with each vertex vi in the top path possibly having a directed
+bottom path Pi attached. The total number of vertices in the top path and all bottom paths
+is n. See Figure 3(a) for an illustration.
+    The constraints of the Hierarchical-THC LCL will guarantee the following: The algorithm
+needs to either visit all vertices in the top path to get the output for v1 , or visit all vertices in
+one of the bottom paths to get the output of the head of the bottom path. This immediately
+                                                                     √                 √
+implies Ω(n1/2 ) lower bound from the instance where ℓ = Θ( n) and |Pi | = Θ( n) for each
+1 ≤ i ≤ ℓ. The matching upper bound requires additional work when bottom paths have
+varying lengths, and we will discuss this after introducing our LCL construction.
+    Now we show how to craft the constraints to generate the effect described above. First,
+we follow the narrative of [41] and add a variant of two-coloring constraints for each top and
+bottom path: Each vertex receives a red/blue input color, and the tail of a path must output
+its input color. Other vertices should output a color that is the same as their out-neighbors
+along the path. These constraints together require the head of a path to output the input
+color of the tail.
+    At the same time, we want an algorithm to be able to escape from the top path or some
+bottom paths when they are too long; otherwise, the complexity will be a clear Θ(n). We
+introduce two additional colors for each vertex: color D for decline, and color X for exempt.
+These two colors will be used when the algorithm thinks a path is too long. To make sure that
+an algorithm cannot abuse these colors, we add the following constraints to Hierarchical-THC:
+1. A vertex in any bottom path cannot be colored X;
+2. A vertex in the top path cannot be colored D;
+3. If a top vertex is colored X, then either no bottom path is attached to it, or the head of
+    its attached bottom path is not D;
+4. If a vertex is not colored D, then its descendant in the directed path is not colored D.
+8   New LCL Complexity Classes for LCAs
+
+
+    5. After removing vertices with colors D and X, the set of directed paths follows the
+       two-coloring constraints.
+
+        The first two constraints prevent the colorings in Figure 3(b) and (c) that color all vertices
+    with X or color all vertices with D. The third constraint prevents the coloring in Figure 3(d):
+    if an algorithm tries to escape from the top path by putting an X color on some top-level
+    vertex vi , then the algorithm is required not to color the head of Pi with D if it exists.
+    With this in mind, constraint 4 then says that, if some vertex is not colored D, so is its
+    out-neighbor. This constraint propagates from the head of Pi along the directed edges, and
+    finally implies that any vertex in Pi should not be colored D or X. Finally, we need to color
+    the path following the two-coloring constraints to satisfy constraint 5, so the head of Pi must
+    travel along the path to fetch the input color of the tail.
+        The previous argument holds only when the top path uses color X, but if it does not use
+    X, it cannot use D either from constraint 2, so according to constraint 5, the head of the top
+    path needs to travel along the top path to fetch the input color on the tail. This gives the
+    guarantee that we want: The algorithm needs to either visit all vertices in the top path to
+    get the output for v1 , or visit all vertices in one of the bottom paths to get the output of the
+    head of the bottom path.
+        To generalize the result to larger k, instead of a bottom path, one can attach an
+    Hierarchical-THC instance to each vertex in the top path. Following a similar argument, the
+    algorithm is required to either solve the two-coloring along the top path or solve one of the
+    attached Hierarchical-THC instances. For instance, if we replace the bottom path with a two-
+    level Hierarchical-THC instance, we will end up with a three-level Hierarchical-THC instance.
+    In this case, when the top path has length ℓ, the complexity will be Θ̃(min(ℓ, (n/ℓ)1/2 )), and
+    the final complexity is Θ̃(n1/3 ) attained by ℓ = Θ(n1/3 ).
+        As in the polylogarithmic setting, [41] additionally constructs an input labeling called
+    colored tree labeling to generalize the LCL to general bounded-degree trees and graphs. We
+    follow the same approach in Definitions 31 and 32.
+
+    2.2.2    The Stacking
+    From the previous review, we can see how the stacking strategy in Hierarchical-THC differs
+    from that in ΠkPTL : In the Hierarchical-THC stacking, an algorithm only needs to solve one
+    instance among all attached instances along the path, whereas in ΠkPTL , the algorithm is
+    required to solve all attached instances for each vertex along the path.
+        Same as the approach in the polylogarithmic setting, before the stacking, we first change
+    the input and output format of Hierarchical-THC to make sure that the output bit on the
+    head of the top path v1 must depend on inputs on nΩ(1) vertices. We provide an additional
+    input bit bin (v) for each vertex in the instance, and we require any vertex with color other
+    than D to output a bit bout (v) which is the xor of bin (w) for all vertices w in the following
+    path starting from v: Suppose currently we are at some vertex u with color other than D.
+        If u is of output color X, go to the head of its attached bottom path. If it has no bottom
+        path attached, stop.
+        If u is of output color red or blue, go to its out-neighbor in the directed path. If it is the
+        tail, stop.
+    According to constraints 3 and 4, this path will never visit vertices of color D. At the same
+    time, the length of this path from v1 will be Ω(n1/2 ) for the Hierarchical-THC construction
+    above, since the path either never visits vertices of color X and visits all vertices in the top
+    path, or visits some vertex with color X and visits all vertices of the attached bottom path.
+S. Peng                                                                                                9
+
+
+
+
+                               v1         v2          v3          v4
+
+
+
+
+                                          p2,1       p3,1        p3,2
+
+
+
+                              p1,1        p1,2       p1,3
+
+
+    Figure 4 Fine-grained stacking construction. The large two-level Hierarchical-THC instance is
+the base instance. Each vertex in the top path has one two-level Hierarchical-THC instance attached,
+shown as a small boxed copy above the vertex.
+
+
+With the input bin (v), we can remove the two-coloring constraint and the red/blue color
+input without changing the complexity. In Section 5 we will identify R and B as a single
+color U.
+     Now we try to stack Hierarchical-THC instances. A possible first approach, similar to
+the stacking in the polylogarithmic setting, is to attach a Hierarchical-THC instance, say
+of complexity Θ̃(m1/3 ), to every vertex in a base Hierarchical-THC instance of complexity
+Θ̃(m1/2 ) of size m, and hope that it generates an LCL of probe complexity Θ(m1/2+1/3 ) =
+Θ(m5/6 ). Unfortunately, since the instance has size blown up to n = m2 when each attached
+instance has size m, this is not true. By balancing the size of the base instance and attached
+instances, it turns out that the complexity is still Θ̃(m1/2 ).
+     Our approach is to deploy a more fine-grained stacking strategy, stacking different
+Hierarchical-THC instances for different levels. Next, we will give one concrete example
+to show this idea. In the example, there will be a base instance, which is a two-level
+Hierarchical-THC instance, to which other instances are attached. Instead of attaching an
+instance for each vertex in the base instance, we only attach one instance, specifically a fresh
+two-level Hierarchical-THC instance, for each vertex in the top path of the base instance.
+Vertices in the bottom path of the base instances have no instance attached. See Figure 4
+for an illustration. As the construction in the polylogarithmic regime, the input bit on the
+vertices of the top path in the base instance will be a twisted one b′in (v), and the algorithm
+needs to recover the actual input bit bin (v) by xoring b′in (v) and the output bit of the root of
+the attached instance, namely the head of the top path.
+     Denote ℓ as the length of the top path in the base instance, and we assume that the
+algorithm knows the size of the attached two-level Hierarchical-THC instances, denoted as
+s1 , s2 , . . . , sℓ , and also |Pi | for 1 ≤ i ≤ ℓ. Consider two possibilities for the output:
+
+   If the top path in the base instance has no color X, then apart from ℓ input bits, the
+   algorithm is required to solve ℓ two-level Hierarchical-THC instances. The total number of
+                      P√
+   probes will be Θ̃(    si ). By Jensen’s inequality, an adversary that wants to maximize the
+   probe complexity will make si roughly equal, leading to Θ̃(ℓ(n/ℓ)1/2 ) probe complexity;
+   Otherwise, the algorithm is required to solve one of the bottom paths in the base instance.
+   The algorithm can choose the shortest one to solve, and an adversary will make the
+   bottom paths of equal length, leading to Θ(n/ℓ) probe complexity.
+
+   Finally, an algorithm can choose one of the above two choices, so an adversary will take ℓ
+10   New LCL Complexity Classes for LCAs
+
+
+     to maximize Θ̃(min(ℓ(n/ℓ)1/2 , n/ℓ)). The maximum value is Θ̃(n2/3 ) taken by ℓ = Θ(n1/3 ),
+     and we would expect that the complexity of such an LCL is Θ̃(n2/3 ).
+         For the general case, we can replace the bottom path in the base instance with an
+     instance of complexity Θ̃(nq ), and replace the attached two-level Hierarchical-THC instance
+     with an instance of complexity Θ̃(np ) for p < q. Then, following the above analysis, the
+     best algorithm would use Θ̃(min(ℓ(n/ℓ)p , (n/ℓ)q )) probes, and an adversary maximizing the
+     probe complexity will take ℓ = n(q−p)/(1+q−p) , leading to complexity Θ̃(nq/(1+q−p) ). This
+     suffices to generate all rational powers, as we will show in Lemma 30.
+
+     2.2.3     Upper Bound and Lower Bound
+     The lower bound analysis for the polynomial setting is much closer to the preceding discussion.
+     We can follow the adversarial choice in the argument above to generate the underlying graph
+     for the lower bound instances. There is still the issue where an algorithm can choose output
+     colors after reading several input bits to be in favor of the output distribution for the root, yet
+     we can use the same approach as in the polylogarithmic setting: we construct the distribution
+     where each instance in the distribution has a definite output bit at the root, no matter how
+     the underlying coloring is chosen. And then we use an induction to prove that for any vertex
+     set of size o(nq/(1+q−p) ), revealing the input bits on those vertices does not provide any
+     advantage to predict the output bit at the root.
+          The main obstacle for the upper bound proof is to remove the assumption that the
+     algorithm knows the size of each attached instance and bottom path. To see why this
+     is the case, we first provide a sketch of the matching Õ(n1/2 ) upper bound algorithm
+     for two-level Hierarchical-THC: For each vertex vi in the top path, consider the sub-path
+                                               √
+     vi , vi+1 , . . . , vi+⌈2√n⌉ . When i + ⌈2 n⌉ > ℓ, we can just color it with the input color at the
+                                         √
+     tail of the top path with O( n) probes. For the other case, at least half of the vertices
+                                                                      √
+     in the sub-path have a bottom path of length at most n attached. In the algorithm,
+     each vertex in the top path uses its local randomness to add itself to a sample set S with
+                                √
+     probability Θ(log n/ n). Define Si = {vi , vi+1 , . . . , vi+⌈2√n⌉ } ∩ S. By Chernoff bound, with
+     high probability, |Si | = O(log n) and some vertex in Si has a bottom path of length at
+             √
+     most n attached. The algorithm finds the first vertex in Si that has an attached bottom
+                                    √                                 √
+     path of length at most n, which can be tested within Õ( n) probes, and colors it with X,
+                                                           √
+     generating the output accordingly. This uses Õ( n) probes and concludes the algorithm.
+          Returning to the Θ̃(n2/3 ) example above, for the bottom paths in the base instance, we
+     can use a similar approach with an alternate parameter: Each vertex in the top path of the
+     base instance inspects 2n1/3 descendants, and if this does not hit the tail, use the sample set
+     S to find a vertex with an attached bottom path of length at most n2/3 . For the general
+     case where the bottom paths are replaced by instances of complexity Θ̃(nq ), we will run the
+     algorithm for attached instances with a maximum possible size parameter set to n1/(1+q−p) ,
+     and we require the algorithm to fail within Θ̃(nq/(1+q−p) ) probes when the actual instance
+     size is larger than the maximum possible size.
+          For the attached Hierarchical-THC instances, things become more complicated since the
+     algorithm described for Θ̃(n1/2 ) upper bound depends heavily on knowing the instance size.
+     We use a standard binary lifting to guess the size of each instance, and this introduces an
+     additional problem: To get the output for each vertex in the attached instance, each query
+     will start an independent binary lifting guessing procedure, and different vertices may become
+     satisfied and stop at different size guesses, raising potential inconsistency issues. To resolve
+     this issue, we will give an additional size parameter to the algorithm, called the ideal size of
+     the instance, and most of the algorithm’s decisions will rely on the ideal size parameter rather
+S. Peng                                                                                                 11
+
+
+than the size guess in the binary lifting. This maximizes consistency between independent
+queries and allows us to make additional changes to the algorithm to provide full consistency
+within the desired probe complexity budget.
+
+
+ 3     Preliminaries
+In this section, we provide basic definitions and formally define models and problems of
+interest.
+
+3.1    Graphs
+In this paper, we denote a graph as G = (V, E), where V is the vertex set and E is the edge
+set. We will normally use n to denote the number of vertices in a graph. Unless explicitly
+stated, all graphs are undirected without self-loops and parallel edges. For each vertex v ∈ V ,
+we denote its degree by degG (v), its neighborhood by ΓG (v), and its r-hop neighborhood,
+defined as the set of vertices with distance at most r to v, as ΓrG (v). For a vertex set V ′ ⊆ V ,
+define the induced subgraph of V ′ in G as G[V ′ ] = (V ′ , {(u, v) ∈ E : u, v ∈ V ′ }).
+    For all graph problems we will consider in the rest of the paper, we assume that each
+vertex v ∈ V is given a unique identifier from the range {1, 2, . . . , nα } for some arbitrary fixed
+α ≥ 1, and all vertices have degree at most ∆ for some fixed constant ∆ ∈ N. Additionally,
+we assume that the input graph is equipped with a port ordering. This means that, for each
+vertex v and incident edge (v, w), there is an associated number p(v, w) ∈ {1, 2, . . . , deg(v)},
+the port number of (v, w) for v, such that p is a bijection between edges incident to v and
+{1, 2, . . . , deg(v)}. Notice that p(v, w) and p(w, v) may not be equal.
+
+3.2    Locally Checkable Labeling
+Here, we give the formal definition of a locally checkable labeling problem.
+
+▶ Definition 3 (Locally Checkable Labeling). For a fixed ∆, a locally checkable labeling (LCL)
+problem Π is a graph problem that can be specified by a tuple (Σin , Σout , r, C) such that
+   Σin and Σout are finite sets of labels;
+   r is an arbitrary positive integer, called the checkability radius of Π;
+   C is the set of allowed local configurations, denoted by a finite set of tuples (H =
+   (V H , E H ), x, φin , φout ), where:
+      H is a graph of degree at most ∆, x is a vertex of H, and each vertex has distance at
+      most r from x in H;
+      φin is a function from V H to Σin , and φout is a function from V H to Σout .
+
+    An instance of an LCL Π(Σin , Σout , r, C) is a graph G = (V, E) with n vertices and
+maximum degree ∆, and additionally an input labeling ϕin : V → Σin . The graph G may not
+be connected. A solution to the instance (G, ϕin ) is an output labeling ϕout : V → Σout such
+that for every vertex v ∈ V , there exists (H = (V H , E H ), x, φin , φout ) ∈ C and a bijection f
+between ΓrG (v) and V H with all the following properties:
+    f specifies a graph isomorphism between G[ΓrG (v)] and H;
+    ∀u ∈ ΓrG (v), ϕin (u) = φin (f (u)) and ϕout (u) = φout (f (u)).
+
+▶ Remark 4. In the rest of the paper, instead of specifying the set of allowed local configura-
+tions C for an LCL explicitly, we will demonstrate a LOCAL algorithm A that collects the
+information for the r-hop neighborhood, including the graph structure, input labels, output
+12   New LCL Complexity Classes for LCAs
+
+
+     labels and port numbers, but excluding the unique ID on each vertex, and checks whether
+     the output labeling satisfies the local constraints for the LCL. This implicitly defines C as
+     the set of local configurations that pass the check in A.
+
+
+     3.3    Computation Models
+     In the following, we formally define the models we consider in this paper, the randomized
+     LCA and VOLUME model.
+
+     ▶ Definition 5 (Randomized LCA). A randomized local computation algorithm (LCA) A for
+     an LCL is given access to a deterministic graph oracle OG for the input graph G and input
+     labeling ϕin , a tape r of random bits shared across queries, and local read-write computation
+     memory independent across queries. When given a query vertex v, A must assign an output
+     label for v using r, OG , and the knowledge of the size n of graph G. The algorithm can
+     access OG by giving the unique identifier of a vertex u, and OG (u) will return the input label
+     ϕin (u) along with its adjacency list and port number labeling in G. The algorithm is said to
+     solve an LCL Π if for any instance (G, ϕin ) of Π, with probability at least 1 − 1/n over the
+     random tape r, the algorithm generates an output label assignment to each vertex that forms
+     a solution to the instance.
+
+     ▶ Definition 6 (Randomized VOLUME). A randomized VOLUME algorithm A for an LCL
+     is given access to a deterministic graph oracle OG for the input graph G, input labeling ϕin ,
+     and an independent random string rv for each vertex v. The random strings are shared
+     across queries. The algorithm is also equipped with local read-write computation memory
+     independent across queries. When given a query vertex v, A must assign an output label for
+     v using OG and the knowledge of the size n of graph G. The algorithm can access OG by
+     giving the unique identifier of a vertex u, and OG (u) will return the input label ϕin (u), the
+     random string ru , along with its adjacency list and port number labeling in G, only when the
+     following holds:
+         Either u is the vertex being queried, or some previous oracle access OG (w) returns an
+         adjacency list containing u.
+     The algorithm is said to solve an LCL Π if for any instance (G, ϕin ) of Π, with probability
+     at least 1 − 1/n with respect to the local randomness rv for each vertex v, the algorithm
+     generates an output labeling assignment to each vertex that forms a solution to the instance.
+
+         The complexities of randomized LCA and VOLUME algorithms can be measured in several
+     different ways. In this paper, we will use only the probe complexity, the maximum number of
+     oracle accesses an algorithm uses to provide the output label for a single query, to measure
+     an LCA or VOLUME algorithm. One reason is that it simplifies the analysis and enables
+     us to focus on the effect of limited knowledge on the input graph in the algorithm design.
+     Furthermore, it turns out that all algorithms given in this paper can also be implemented with
+     time and space complexities roughly a factor of O(log n) larger than the probe complexities.
+         From the definition, we can see that a VOLUME algorithm is always an LCA, formalized
+     by the following observation, but it is not the case in the reverse. It is still open whether
+     VOLUME models and LCA are equivalent up to polynomial factors; see Section 6.2 for a
+     related discussion.
+
+     ▶ Observation 7. If a randomized VOLUME algorithm solves an LCL Π with probe complexity
+     f (n) for some function f , then there is a randomized LCA that solves Π with probe complexity
+     O(f (n)).
+S. Peng                                                                                              13
+
+
+Proof. Let A be the randomized VOLUME algorithm. We construct an LCA B that simulates
+A on the same query vertex. The LCA uses its shared random tape to generate the local
+random strings used by the VOLUME algorithm: for each vertex identifier u, reserve an
+infinite subsequence of bits on the shared tape for ru . Since vertex identifiers come from a
+polynomial range in n, this reservation can be fixed in advance as a deterministic function of
+the identifier to make sure that the randomness is independent for every vertex.
+    During the simulation, whenever A probes a vertex u, the LCA probes the same vertex
+through its graph oracle and additionally reads the block of random bits assigned to u. The
+VOLUME access rule only restricts which probes A is allowed to make; an LCA can make
+all of these probes as well. Therefore, the transcript of B has the same distribution as the
+transcript of A on every query and every instance. In particular, the output labels form a
+feasible solution with the same success probability. The number of graph-oracle probes is
+exactly the number of probes made by A, so the probe complexity is O(f (n)).                ◀
+
+▶ Remark 8. The algorithms described in the rest of this paper will be Las Vegas, with a
+guarantee of success, and the number of probes will vary with randomness. However, the
+randomized VOLUME model and randomized LCA are stated in Monte Carlo form, with
+a fixed probe budget and a small probability of failure. One can change the algorithm to
+Monte Carlo by running the algorithm with a fixed probing budget and output arbitrarily
+when the algorithm uses up its budget.
+
+ 4     Construction in Polylogarithmic Complexity Regime
+In this section, we construct LCLs ΠkPTL whose randomized probe complexities in both
+the LCA and VOLUME models are Θ(logk n) for every positive integer k. Here, PTL is an
+abbreviation of “path to leaf”.
+
+4.1    Description of the LCL
+Before defining the LCL, we first define an input labeling called “multi-level binary tree
+labeling” in Definition 9 and define its associated local constraints in Definition 11. The
+purpose of this input labeling is to “escape” from the case where the input graph is irregular:
+As we will show in Lemma 12, all vertices satisfying the local constraints for the multi-level
+binary tree labeling, along with their outgoing edges, form a pseudo-forest in which each
+vertex has out-degree zero or two.
+▶ Definition 9 (Multi-level binary tree labeling). Let G = (V, E) be a graph of maximum
+degree at most ∆, and let P = [∆] ∪ {⊥}, where ⊥ is a special placeholder symbol. For a
+given positive integer k, a level-k binary tree labeling consists of a height labeling h : V → [k]
+and the following four labels for each v ∈ V : A parent P(v) ∈ P, a left child LC(v) ∈ P, a
+right child RC(v) ∈ P, and a new-instance child NC(v) ∈ P.
+▶ Remark 10. To make the set of possible inputs at each vertex constant, P(v), LC(v), RC(v),
+and NC(v) are given by the port number rather than the corresponding vertex ID in
+Definition 9. However, to keep notation light, in the rest of this paper, we will abuse the
+notation a bit and use P(v), LC(v), RC(v), NC(v) to also denote the corresponding neighbors
+reached through that port. If a port is ⊥, then the corresponding vertex reached through
+that port is defined as ⊥.
+▶ Definition 11. For a level-k binary tree labeling of G, a vertex v is called consistent if all
+the following conditions hold, and otherwise it is called inconsistent:
+14   New LCL Complexity Classes for LCAs
+
+
+      1. The non-⊥ ports among P(v), LC(v), RC(v), NC(v) are pairwise distinct.
+      2. For w ∈ {LC(v), RC(v), NC(v)}\{⊥}, P(w) = v.
+      3. Either both LC(v) and RC(v) are ⊥, or neither of them is ⊥.
+      4. For w ∈ {LC(v), RC(v)}\{⊥}, h(w) = h(v).
+      5. If NC(v) ̸=⊥, then h(NC(v)) = h(v) − 1. In particular, if h(v) = 1, then NC(v) =⊥.
+     We further use condition 3 to differentiate between consistent vertices: A consistent vertex is
+     internal if LC(v), RC(v) ̸=⊥, and is a leaf if LC(v) = RC(v) =⊥. For a consistent internal
+     vertex v, define child(v, L) = LC(v) and child(v, R) = RC(v).
+
+     ▶ Lemma 12. For a graph G and a level-k binary tree labeling, define a directed graph G′ =
+     (V, E ′ ), where (u → v) ∈ E ′ when u is a consistent internal vertex and v ∈ {LC(u), RC(u)}.
+     Then, each vertex in G′ has in-degree at most one and out-degree either zero or two. As a
+     result, G′ is a pseudo-forest where each weak component has at most one directed cycle.
+
+     Proof. For each vertex v, from constraint 2 of Definition 11, its only possible in-degree in
+     G′ is from P(v) if P(v) ̸=⊥. From constraint 3 of Definition 11, each consistent internal
+     vertex in G′ has out-degree two, while inconsistent vertices and consistent leaves have no
+     out-neighbor. This concludes the statement.                                               ◀
+
+         With Definitions 9 and 11, we are ready to describe the LCL ΠkPTL .
+
+     ▶ Definition 13 (ΠkPTL ). The problem ΠkPTL is defined in the following way:
+        Input: A graph G, a level-k binary tree labeling, and bin (v) ∈ {0, 1} for each v ∈ V .
+        Output: d(v) ∈ {L, R, ⊥} and bout (v) ∈ {0, 1} for each v ∈ V .
+        Constraint: For each vertex v ∈ V , if v is inconsistent, then (d(v), bout (v)) = (⊥, 0);
+     Otherwise, d(v) ∈ {L, R} for internal vertices v, d(v) =⊥ for leaves, and we have the following
+     equation for bout (v):
+
+         bout (v) = bin (v) ⊕ b′ (v) ⊕ b′′ (v).                                                  (1)
+
+     Here
+                     (
+          ′              0,              NC(v) =⊥
+         b (v) =                                                                                 (2)
+                      bout (NC(v)),      NC(v) ̸=⊥
+                     (
+                       0,                         LC(v) = RC(v) =⊥
+         b′′ (v) =                                                                               (3)
+                         bout (child(v, d(v))),   otherwise
+
+     ▶ Lemma 14. ΠkPTL is an LCL.
+
+     Proof. From the definition, since the maximum degree ∆ and the parameter k are constant,
+     we know that the set of possible input and output labels has a constant size. Now we show
+     that there is a LOCAL algorithm of radius one to check whether the local constraint is satisfied
+     for each vertex. The consistency conditions in Definition 11 inspect only v, its incident ports,
+     and the labels of its neighbors. As a result, we can determine whether the current vertex
+     is consistent, internal, or a leaf using input labels from the one-hop neighborhood. After
+     that, constraints for the output label only involve the one-hop neighborhood. Hence, every
+     constraint is checkable in radius one.                                                        ◀
+
+        In the rest of the section, we prove the following upper and lower bound results, which
+     together imply Theorem 1.
+S. Peng                                                                                             15
+
+
+▶ Lemma 15. There is a randomized VOLUME algorithm that solves ΠkPTL in all bounded-
+degree graphs using O(logk n) probes.
+
+▶ Lemma 16. Any randomized LCA that solves ΠkPTL uses Ω(logk n) probes even when we
+restrict the instance to bounded-degree trees.
+
+Proof of Theorem 1. From Observation 7, the upper bound result Lemma 15 can be general-
+ized from VOLUME to LCA, while the lower bound result Lemma 16 can be generalized from
+LCA to VOLUME. As a consequence, in both models, we have a Θ(logk n) randomized algo-
+rithm for ΠkPTL on bounded-degree graphs and a matching lower bound for bounded-degree
+trees.                                                                               ◀
+
+4.2    Upper Bound
+In this part, we prove Lemma 15, providing a randomized VOLUME algorithm for ΠkPTL on
+bounded-degree graphs with probe complexity O(logk n).
+    To begin with, we provide an equivalent formulation of the constraints in ΠkPTL . Arbitrarily
+fix d(v) for each consistent internal vertex v. For some consistent vertex u, apply u ←
+child(u, d(u)) multiple times to generate a path, until either reaching a leaf, an inconsistent
+vertex, or returning to where it starts. The path is always a path in the graph G′ defined in
+Lemma 12, so according to Lemma 12, the procedure terminates in finite steps no matter
+how the d output label is assigned. This procedure generates either a path from u to some
+vertex w, or a simple cycle passing u. We will demonstrate the way to get rid of cycles, so
+let us focus on the other case. Applying Equation (1) for each vertex along the path, we
+can conclude that the value of bout (u) is the xor of all bin values along the path and all bout
+values of the new-instance children along the path.
+    According to constraints 4 and 5 in Definition 11, all vertices along the path have the
+same height, while their new-instance children have height h(v) − 1. If d(v) is assigned in such
+a way that the path is of length O(log n), then one can recurse on all O(log n) new-instance
+children to get their bout value, and the recursion decreases the vertex height by one. This
+means that, when all possible paths generated by the procedure above have length O(log n),
+we get a VOLUME algorithm with probe complexity O(logk n).
+    This is exactly the strategy of our randomized VOLUME algorithm given in Algorithm 2,
+where the output pair (d, z) of SolvePTLk (v) will be the final value of (d(v), bout (v)). We
+assume that each vertex has a uniform random direction ρ(v) ∈ {L, R}, and recall that in the
+VOLUME model, the local random direction ρ(v) is fixed for each vertex v and shared across
+queries.
+    The algorithm first assigns (⊥, 0) for inconsistent vertices. For other vertices, it calls
+WalkToLeaf(v), described in Algorithm 1, to find the path from v to either an inconsistent
+vertex or a leaf using only LC and RC ports. The following observation is straightforward
+from the algorithm description.
+
+▶ Observation 17. For any consistent vertex v, the path πv generated by WalkToLeaf(v)
+is a path in the graph G′ defined in Lemma 12.
+
+    Algorithm 1 treats the randomness ρ(v) as the initial assignment for d(v) and traces the
+path πv by following ρ. If the path ends at a vertex for which the termination condition
+holds, then we assign d(v) with ρ(v) in Algorithm 2. For the other case when ρ directs v into
+a cycle, corresponding to the branch in line 3, Algorithm 1 will abandon all visited vertices
+and use the direction other than ρ(v) to restart a walk. The other direction is guaranteed to
+arrive at a leaf or an inconsistent vertex, as otherwise we can find some vertex with in-degree
+16   New LCL Complexity Classes for LCAs
+
+
+     two in the graph G′ defined in Lemma 12. In this case, we assign d(v) to that other direction.
+     After getting the path πv , Algorithm 2 assigns bout (v) by what we have discussed above:
+     gathers all bin values in πv , and gets all bout values by recursion.
+        We first show that Algorithm 1 behaves correctly within O(log n) probes with high
+     probability, which leads to the O(logk n) probe complexity of Algorithm 2.
+     ▶ Lemma 18. For each consistent vertex v ∈ G, WalkToLeaf(v) generates a path πv from
+     v to a leaf or an inconsistent vertex within O(log n) probes with probability 1 − 1/n3 . As a
+     result, |πv | = O(log n) with probability 1 − 1/n3 .
+     Proof. By Observation 17, all vertices visited by Algorithm 1 lie on a directed walk in the
+     graph G′ from Lemma 12. We first record a simple consequence of the in-degree bound
+     in Lemma 12. Fix a vertex s and expose a walk that starts at s and, whenever it is at
+     a consistent internal vertex, follows an independently chosen random direction in {L, R}.
+     Before the walk reaches a leaf, reaches an inconsistent vertex, or returns to s, two different
+     direction sequences of length t must end at two different vertices. Indeed, if two such prefixes
+     first meet at a vertex other than s, then that vertex has two distinct in-neighbors in G′ ,
+     contradicting Lemma 12. Hence, for t steps, the number of direction sequences that keep the
+     walk “alive”, meaning that all vertices traveled by the walk are consistent internal vertices,
+     is at most n, and the probability that this happens is at most n2−t .
+         Choose a sufficiently large constant C. Applying the previous bound with t = C log n
+     shows that the walk followed by Algorithm 1 lasts more than C log n steps with probability
+     at most 1/(2n3 ) before the walk arrives at a leaf, arrives at an inconsistent vertex, or finds a
+     cycle and triggers the branch in line 3. If this walk reaches a leaf or an inconsistent vertex,
+     the algorithm stops. Otherwise, the first walk has returned to v, so it has found the unique
+     directed cycle through v. The algorithm then restarts from v using the other child of v as
+     the first step. By Lemma 12, this second walk cannot return to v: the predecessor of v on
+     the first cycle already accounts for the only possible in-neighbor of v in G′ . It also cannot
+     enter a directed cycle not containing v, because entering such a cycle from outside would
+     give the entry vertex two distinct in-neighbors in G′ . Therefore, the second walk must end
+     at a leaf or an inconsistent vertex.
+         The same counting argument, now with the first direction fixed and all later directions
+     random, shows that this second walk has length more than C log n with probability at most
+     1/(2n3 ) after increasing C if necessary. By a union bound, with probability at least 1 − 1/n3 ,
+     both walks considered by the algorithm have length O(log n). The algorithm probes only
+     the vertices on these walks, up to a constant number of additional oracle accesses needed to
+     check consistency and read the relevant ports. Thus Algorithm 1 uses O(log n) probes and
+     returns a path πv of length O(log n) with probability at least 1 − 1/n3 .                      ◀
+
+     ▶ Corollary 19. For each v ∈ G, SolvePTLk (v) probes O(logk n) vertices with probability
+     1 − 1/n2 .
+     Proof. From Lemma 18 and union bound over all vertices, with probability 1 − 1/n2 , for
+     any consistent vertex v in the instance, Algorithm 1 generates a path πv of length at most
+     C log n using at most C log n probes for some constant C. In the following, we assume that
+     the event happens.
+         Let T (n, h⋆ ) be the maximum possible number of probes for Algorithm 2 to generate
+     (d(v), bout (v)) for a consistent vertex v with h(v) = h⋆ in an n-vertex instance. For the base
+     case T (n, 1), from constraint 5 in Definition 11, none of the vertices in πv have a new-instance
+     child, so there is no recursion. In conclusion, the number of probes in Algorithm 2 is bounded
+     by C log n.
+S. Peng                                                                                17
+
+
+
+
+   Algorithm 1 WalkToLeaf(v)
+Require: A random direction ρ(u) ∈ {L, R} for each vertex u in the graph.
+Ensure: A path π from v to a leaf or inconsistent vertex using only LC and RC ports.
+ 1: u ← v, π ← ()
+ 2: while u is a consistent internal vertex do
+ 3:   if u = v and π is nonempty then
+ 4:      π ← (v)
+ 5:      a ← the unique direction in {L, R}\{ρ(v)}
+ 6:   else
+ 7:      append u to the end of π
+ 8:      a ← ρ(u)
+ 9:   end if
+10:   u ← child(u, a)
+11: end while
+12: append u to π
+13: return π
+
+
+
+
+   Algorithm 2 SolvePTLk (v)
+Ensure: The output label (d(v), bout (v)) for v
+ 1: if v is inconsistent then
+ 2:    return (⊥, 0)
+ 3: end if
+ 4: π ← WalkToLeaf(v)
+ 5: if v is a leaf then
+ 6:    d ←⊥
+ 7: else
+ 8:    d ← the first direction taken by π from v
+ 9: end if
+10: z ← 0
+11: for each consistent vertex u in π do
+12:    z ← z ⊕ bin (u)
+13:    if NC(u) ̸=⊥ then
+14:       (−, z ′ ) ← SolvePTLk (NC(u))
+15:       z ← z ⊕ z′
+16:    end if
+17: end for
+18: return (d, z)
+18   New LCL Complexity Classes for LCAs
+
+
+         For h⋆ ≥ 2, apart from the call to Algorithm 1, Algorithm 2 recurses on NC(u) for each
+     u ∈ πv . Constraints 4 and 5 of Definition 11 tell us that all vertices in πv have height h⋆ ,
+     while all their new-instance children have height h⋆ − 1. As a consequence, we have the
+     following recurrence:
+
+        T (n, h⋆ ) ≤ C log n · T (n, h⋆ − 1) + C log n,                                            (4)
+
+     with T (n, 1) ≤ C log n. As C is constant with respect to n, solving Equation (4) gives
+                        ⋆
+     T (n, h⋆ ) = O(logh n). Finally, since the maximum height of a vertex is k in ΠkPTL , the probe
+     complexity of Algorithm 2 is O(logk n).                                                      ◀
+
+        Now we show that Algorithm 2 assigns labels satisfying all constraints in ΠkPTL .
+
+     ▶ Lemma 20. If πv = (v, w, p1 , p2 , . . . , pℓ ) is the output of WalkToLeaf(v) for a consistent
+     internal vertex v for some ℓ ≥ 0 and w is consistent, then WalkToLeaf(w) outputs
+     πw = (w, p1 , p2 , . . . , pℓ ).
+
+     Proof. Let a be the first direction taken by πv , so w = child(v, a). After this first step,
+     Algorithm 1 follows the random direction ρ(u) at every subsequent consistent internal vertex
+     u on πv . This is true whether the first direction is a = ρ(v) or the algorithm first discovers a
+     cycle through v and then restarts with the direction a ̸= ρ(v).
+         If w is a leaf, then running Algorithm 1 on w immediately returns (w), which is the
+     desired suffix. Otherwise, w is a consistent internal vertex. Running Algorithm 1 from w
+     starts by following ρ(w), and then follows the same random directions as the run from v did
+     after reaching w due to shared randomness across queries. Thus, the two executions trace the
+     same directed walk unless the execution from w returns to w and triggers the branch in line
+     3. This cannot happen along the suffix of πv : if some later vertex on the suffix pointed back
+     to w, then w would have two distinct in-neighbors in G′ , namely v and that later vertex,
+     contradicting Lemma 12. Hence, the execution from w will never enter the branch in line 3,
+     and it stops exactly at the same terminal leaf or inconsistent vertex as the execution from v.
+     Therefore its output is πw = (w, p1 , p2 , . . . , pℓ ).                                       ◀
+
+     ▶ Lemma 21. SolvePTLk generates labels satisfying all constraints in ΠkPTL .
+
+     Proof. We distinguish the different types of vertices to prove the statement. Recall the
+     definition of b′ and b′′ in Equations (2) and (3).
+         For inconsistent vertices, the algorithm assigns (⊥, 0) to it, satisfying the constraint.
+         For a leaf v, d(v) is assigned ⊥, b′′ (v) = 0 and πv = (v). Algorithm 2 collects bin (v) and
+         also bout (NC(v)) when NC(v) exists, so bout (v) = bin (v) ⊕ b′ (v), which is Equation (1)
+         with b′′ (v) = 0.
+         For an internal vertex v, define w = child(v, d(v)). When w is inconsistent, we know
+         that πv = (v, w), and (d(w), bout (w)) = (⊥, 0), meaning that b′′ (v) = 0 and bout (v) =
+         bin (v) ⊕ b′ (v); Otherwise, from Lemma 20, πw is a suffix of πv . Compare the processes
+         of computing the output bit between SolvePTLk (v) and SolvePTLk (w), the only
+         difference is that SolvePTLk (v) additionally collects bin (v) and bout (NC(v)) if NC(v)
+         exists. As a result, bout (v) = bout (w) ⊕ bin (v) ⊕ b′ (v), which is exactly Equation (1).
+                                                                                                     ◀
+
+     Proof of Lemma 15. The Las Vegas algorithm given by Algorithm 2 can be converted to the
+     required Monte Carlo guarantee by Remark 8. The algorithm succeeds with high probability
+     within O(logk n) probes according to Corollary 19 and Lemma 21.                       ◀
+S. Peng                                                                                                         19
+
+
+4.3     Lower Bound
+In this part, we prove the lower bound for ΠkPTL for LCAs via the following lemma.
+
+▶ Lemma 22. For any positive integer k and for every sufficiently large n, there is a set
+Sk,n of ΠkPTL instances of size at most n with the following properties:
+  (i) All instances in Sk,n have the same underlying graph and binary tree labeling, in which
+      the graph is a tree, every vertex is consistent, and there is a unique root vertex x with
+      h(x) = k and P(x) =⊥;
+ (ii) For any instance I in Sk,n , there exists bI ∈ {0, 1} such that any solution satisfying all
+      ΠkPTL constraints for I must have bout (x) = bI . Define Sk,nB
+                                                                      as the subset of Sk,n with
+      bI = B;
+(iii) For any set V0 of vertices of size o(logk n), there exists a bijection fV0 between Sk,n 0
+            1
+      and Sk,n , where for each I ∈ Sk,n and u ∈ V0 , bin (u) is the same between I and fV0 (I).
+
+    We first show how Lemma 22 implies Lemma 16.
+
+Proof of Lemma 16. Suppose for contradiction that there is a randomized LCA that solves
+ΠkPTL with o(logk n) probes and succeeds in every instance over bounded-degree trees of size
+at most n with probability larger than 1/2. According to Yao’s minimax principle, for any
+distribution D over such instances, there is a deterministic LCA A with the same probe
+complexity that succeeds with probability larger than 1/2 over D.
+     Now set D to be the uniform distribution over Sk,n . For any instance I ∈ Sk,n , define
+V0 as the set of vertices probed by A(x), we have |V0 | = o(logk n). According to condition
+(iii) in Lemma 22, there exists I ′ with bI ̸= b′I , but all inputs in V0 are the same across two
+instances. As A is a deterministic algorithm, the transcript of A(x) on I and I ′ will be
+exactly the same, so A will label x the same in both instances, and one of the two solutions
+must be wrong according to condition (ii). Since they have the same probability weight in D,
+A cannot succeed with probability larger than 1/2, a contradiction.                             ◀
+
+   To construct the set of instances, we first provide the construction for the underlying
+graph and binary tree labeling. The construction consists of k layers of perfect binary trees.
+
+▶ Definition 23. For a positive integer sequence (a1 , a2 , . . . , aℓ ), define the graph G(a1 ,a2 ,...,aℓ )
+along with its binary tree labeling recursively in the following way:
+    For the base case, G(1) consists of only one root vertex x with h(x) = 1.
+    G(a1 ,a2 ,...,aℓ ) consists of a vertex x with h(x) = ℓ and the following ports for x:
+       If ℓ ̸= 1, attach the graph and labeling G(a2 ,...,aℓ ) to NC(x), otherwise NC(x) =⊥;
+       If a1 ̸= 1, attach two independent copies of G(a1 −1,a2 ,...,aℓ ) to LC(x) and RC(x)
+       respectively, otherwise LC(x) = RC(x) =⊥.
+For “attaching a graph to a port”, we mean creating a copy of the graph and making the port
+point to the root of the graph. Finally, we set up P ports to make every vertex consistent. It
+is easy to check that there is a unique way to do so.
+
+    The following observation can be proved by a standard induction argument.
+
+▶ Observation 24. G(a1 ,...,aℓ ) satisfies the following property:
+                                  Qℓ
+  G(a1 ,...,aℓ ) is a tree with Θ( i=1 2ai ) vertices and maximum degree 4;
+  With respect to the binary tree labeling, all vertices in the graph are consistent;
+  The maximum height in the binary tree labeling is ℓ.
+20   New LCL Complexity Classes for LCAs
+
+
+         Now we construct sets S(a        0
+                                              1 ,a2 ,...,aℓ )
+                                                                    1
+                                                               and S(a 1 ,a2 ,...,aℓ )
+                                                                                       of ΠℓPTL instances for each sequence
+     {a1 , . . . , aℓ }, in which all instances have G{a1 ,...,aℓ } as the underlying graph and binary tree
+     labeling. The only difference between these instances lies in bin inputs for each vertex, and
+     we construct the inputs also recursively, in the following way:
+                                   B
+         For the base case, S(1)        contains the only instance with bin (x) = B for B ∈ {0, 1};
+                                         B
+         For the general case, S(a           1 ,a2 ,...,aℓ )
+                                                              contains all instances that can be generated by the
+         following procedure:
+              If ℓ = ̸ 1, NC(x) has a copy of G(a2 ,...,aℓ ) attached. Arbitrarily pick b′ ∈ {0, 1} and a
+                                       b′
+              bin assignment in S(a       2 ,...,aℓ )
+                                                        to assign bin values for the subtree rooted at NC(x). If
+              ℓ = 1, set b′ to be zero.
+              If a1 ̸= 1, LC(x) and RC(x) both have a copy of G(a1 −1,a2 ,...,aℓ ) attached. Arbitrarily
+                                                                                b′′
+              pick b′′ ∈ {0, 1} and two bin assignments in S(a                    1 −1,a2 ,...,aℓ )
+                                                                                                    to assign bin values for the
+              subtrees rooted at LC(x) and RC(x), respectively. Notice that two copies use the same
+              bit b′′ but possibly different bin assignments. If a1 = 1, set b′′ to be zero.
+              Finally, assign bin (x) with B ⊕ b′ ⊕ b′′ .
+                                                  0                       1
+         Finally, S{a1 ,...,aℓ } is the union of S(a 1 ,a2 ,...,aℓ )
+                                                                     and S(a1 ,a2 ,...,aℓ )
+                                                                                            .
+                                                                                                                     0
+     ▶ Lemma 25. For any positive integer sequence (a1 , a2 , . . . , aℓ ), the sets S(a                               1 ,a2 ,...,aℓ )
+                                                                                                                                       and
+       1
+     S(a  1 ,a2 ,...,aℓ )
+                           satisfy    the  following:
+        (i) All instances in S(a1 ,a2 ,...,aℓ ) have the same underlying graph and binary tree labeling,
+              in which the graph is a tree, every vertex is consistent, and there is a unique root vertex
+              x with h(x) = ℓ and P(x) =⊥;
+                                                                             B
+       (ii) For B ∈ {0, 1} and any instance I in S(a                           1 ,a2 ,...,aℓ )
+                                                                                               , any solution satisfying all ΠℓPTL
+              constraints for I satisfies bout (x) = B;
+                                                                              Qℓ
+      (iii) For any set V0 of vertices of size less than i=1 ai , there exists a bijection fV0 between
+                 0                          1
+              S(a   1 ,a2 ,...,aℓ )
+                                     and S(a    1 ,a2 ,...,aℓ )
+                                                                , where for each I ∈ S(a1 ,a2 ,...,aℓ ) and u ∈ V0 , bin (u) is the
+              same between I and fV0 (I).
+                                                                            Pℓ
+     Proof. We prove the lemma by induction on i=1 ai . In the base case, the sequence is (1),
+                                                                                                                B
+     and condition (i) is trivial. The graph consists only of the root x, and S(1)                                 fixes bin (x) = B.
+     Hence every legal solution has bout (x) = B by Equation (1), proving condition (ii). Finally,
+     in condition (iii), the set V0 is required to have size less than one, so V0 = ∅, and the bijection
+                       0              1
+     between S(1)            and S(1)    is trivial.
+                                                                                   Pℓ
+          Now consider a sequence A = {a1 , . . . , aℓ } with i=1 ai > 1, and let x be the root of GA .
+     Condition (i) follows from the construction of GA and Observation 24.
+          To prove condition (ii), fix B ∈ {0, 1} and an instance I ∈ SA                                 B
+                                                                                                           . Let b′ and b′′ be the
+     auxiliary bits used to assign bin inputs for I. If NC(x) ̸=⊥, the bin input is assigned according
+                                        b′
+     to some instance in S(a               2 ,...,aℓ )
+                                                       , so by the induction hypothesis applied to the subtree rooted
+     at NC(x), every solution of I has bout (NC(x)) = b′ . This means that the b′ (x) value defined
+     in Equation (2) always equals the auxiliary bit b′ . When ℓ = 1, we also have b′ (x) = 0 = b′ .
+          Similarly, if x is internal and w = child(x, d(x)), then w is the root of either the left or
+     right copy of G(a1 −1,a2 ,...,aℓ ) , and both copies have bin input generated from some instance
+            b′′
+     in S(a    1 −1,a2 ,...,aℓ )
+                                   . By induction, every solution of I has bout (w) = b′′ , so the b′′ (x) value in
+     Equation (3) always equals to b′′ , too. When a1 = 1, we also have b′′ (x) = 0 = b′′ .
+          In sum, we have b′ (x) = b′ and b′′ (x) = b′′ . Since bin (x) = B ⊕ b′ ⊕ b′′ , Equation (1) gives
+     bout (x) = B, implying (ii).
+                                                                                    Qℓ
+          For condition (iii), fix a set V0 of size less than i=1 ai . If x ∈                          / V0 , the bijection fV0 can
+     simply flip bin (x), so we suppose x ∈ V0 . Let VNC be the intersection of V0 with the subtree
+     rooted at NC(x) when it exists, and VNC = ∅ if NC(x) =⊥. Similarly define VLC and VRC .
+S. Peng                                                                                                              21
+
+                          Qℓ
+     If ℓ > 1 and |VNC | < i=2 ai , applying the induction hypothesis to the subtree rooted
+                                                 0                      1
+at NC(x), there is a bijection fNC between S{a     2 ,a3 ,...,aℓ }
+                                                                   and S{a 2 ,a3 ,...,aℓ }
+                                                                                           that preserves
+the input for vertices in VNC . Now we define the bijection fV0 in the following way: For
+each instance I, we apply the bijection fNC to the subtree rooted at NC(x), and keep other
+inputs unchanged. From the induction hypothesis, fV0 is a map that preserves inputs among
+V0 . Finally, following Equation (1), applying fV0 changes b′ (x), while b′′ (x) and bin (x) are
+                                                                                        0        1
+unchanged, so bout (x) is flipped, showing that fV0 is a bijection between SA              and SA  .
+                                                                        Qℓ
+     Consider the remaining case, where either ℓ = 1, or |VNC | ≥ i=2 ai . Since x ∈ V0 and
+           Qℓ
+|V0 | < a1 i=2 ai , we have
+                                                                 ℓ
+                                                                 Y                ℓ
+                                                                                  Y                     ℓ
+                                                                                                        Y
+     |VLC ∪ VRC | = |V0 \({x} ∪ VNC )| = |V0 | − 1 − |VNC | <          ai − 1 −         ai < (a1 − 1)         ai .
+                                                                 i=1              i=2                   i=2
+
+Apply the induction hypothesis to the subtrees rooted at LC(x) and RC(x), we know there
+                                  0                         1
+are bijections fLC , fRC between S(a 1 −1,a2 ,...,aℓ )
+                                                       and S(a 1 −1,a2 ,...,aℓ )
+                                                                                 which preserve the input
+                                                                                 0       1
+among VLC and VRC , respectively. For the bijection fV0 between SA                 and SA  , we apply fLC
+to the subtree rooted at LC(x), apply fRC to the subtree rooted at RC(x), and keep other
+inputs unchanged. From the induction hypothesis, fV0 preserves inputs among V0 . Finally,
+from Equation (1), applying fV0 changes b′′ (x) regardless of the choice of d(x), while b′ (x)
+and bin (x) remain unchanged, so bout (x) is flipped, showing that fV0 is a bijection between
+  0       1
+SA  and SA  .                                                                                           ◀
+
+Proof of Lemma 22. Recall that k is a constant. Let q = Θ(log n) and set Sk,n to be
+S{q,q,...,q} where the sequence has length k. According to Observation 24, the graph has size
+Θ(2qk ) = nΘ(1) , and the size is less than n when the constant on q is small enough. We have
+q k = Θ(logk n) and all three conditions in Lemma 22 follow from Lemma 25.                 ◀
+
+ 5      Construction in Polynomial Complexity Regime
+In this section, we provide LCL constructions whose randomized VOLUME and LCA com-
+plexity is Θ̃(nx ) for any x ∈ Q ∩ (0, 1].
+
+5.1     Preliminaries
+In this section, our construction is parameterized by an ordered binary tree T . For an ordered
+binary tree, we mean that the tree is rooted, and we distinguish the left and right children of
+a vertex. In the following, we provide basic notations around ordered binary trees.
+    Define the root of an ordered binary tree T as rT and the subtree of a vertex v ∈ T as Tv .
+For each vertex v, the left child of a vertex v ∈ T is denoted as LCT (v), while the right child
+is denoted as RCT (v). When the vertex does not have a left child, denote LCT (v) =⊥, and
+similarly for the right child. The parent of the vertex v is denoted as PT (v), while PT (rT ) is
+defined as ⊥. For notation simplicity, we define LCT (⊥) = RCT (⊥) = PT (⊥) =⊥.
+▶ Remark 26. To avoid confusion between LCT , RCT and PT notation in an ordered binary
+tree and LC, RC, P ports in the LCL (See Definition 9 and Definition 31), we will never omit
+subscript T on any notation related to ordered binary trees, such as LCT , RCT , PT and rT .
+    Define TL and TR as the left and right subtrees of rT in T . Denote the unique ordered
+binary tree with no vertex as ⊥, and the unique ordered binary tree with only one vertex as
+•. We define r⊥ =⊥.
+    Now we introduce an important definition in this section, the value of an ordered binary
+tree.
+22   New LCL Complexity Classes for LCAs
+
+
+     ▶ Definition 27 (Value). The value of an ordered binary tree T is defined recursively as
+     follow:
+                 
+                 0,
+                 
+                                   T =⊥
+        val(T ) =       1,                          T = •,                                          (5)
+                            val(TR )
+                        1+val(TR )−val(TL ) ,       Otherwise.
+                    
+                    
+
+         We say an ordered binary tree T is good, if for every vertex v ∈ T that is not a leaf, its
+     left subtree has a value strictly smaller than that of its right subtree. In the following, we
+     will only focus on good ordered binary trees. The following observation can be easily proved
+     via induction.
+
+     ▶ Observation 28. val(T ) is always a rational value in (0, 1] for any nonempty good ordered
+     binary tree T .
+
+        The main theorem we will prove in this section is the following. This theorem, along with
+     Lemma 30, concludes Theorem 2.
+
+                                                    T that is not ⊥, there exists an LCL
+     ▶ Theorem 29. For every good ordered binary tree
+     whose VOLUME and LCA complexity is Θ̃ nval(T ) .
+
+     ▶ Lemma 30. For any rational x ∈ Q ∩ (0, 1], there exists a good ordered binary tree T with
+     val(T ) = x.
+
+     Proof. We induct on c to prove the following claim: For all 0 ≤ a ≤ b ≤ c, there is a good
+     ordered binary tree T with value a/b. If a = 0, then we can set T =⊥, and we can set T = •
+     when a = b, so the base case c = 1 is proved.
+        Now we assume the induction hypothesis holds for c − 1 and consider the statement for
+     c. We only need to consider cases where b = c and a ∈ [1, b − 1]. Let p = (a − 1)/(b − 1)
+     and q = a/(b − 1). We have 0 ≤ p < q ≤ 1, and both p and q have denominators strictly
+     smaller than c. By induction hypothesis, there are two good ordered binary trees TL , TR
+     whose values are p and q respectively. Now we consider the tree T where the left subtree of
+     the root is TL while the right subtree is TR . According to Equation (5),
+                                                a                a
+                      q          b−1             a
+        val(T ) =         =      a    a−1 = b−1
+                                             b
+                                                = .
+                    1+q−p   1 + b−1 − b−1   b−1
+                                                 b
+
+     It is easy to check that T is good, and this concludes the induction.                           ◀
+
+     Proof of Theorem 2. For every rational x ∈ (0, 1], choose the good ordered binary tree T
+     with val(T ) = x, whose existence is guaranteed by Lemma 30, and apply Theorem 29 to
+     generate an LCL with complexity in the LCA and VOLUME model Θ̃(nval(T ) ) = Θ̃(nx ). ◀
+
+
+     5.2    Description of the LCL
+     In the rest of this section, we fix a good ordered binary tree T . T does not grow with the
+     size of the LCL instance we will construct, so the size of T is considered a constant.
+         Similar to Definitions 9 and 11 in the polylogarithmic setting, we will first provide a set
+     of input labels called T -labeling and the associated local constraints to rule out irregularities
+     in the instance.
+S. Peng                                                                                          23
+
+
+▶ Definition 31 (T -labeling). Let G be a graph of maximum degree at most ∆, and P =
+[∆] ∪ {⊥}. For a given ordered binary tree T , a T -labeling consists of a type labeling
+t : V (G) → V (T ) ∪ {⊥} and the following four labels for each v ∈ V (G): a parent P(v) ∈ P,
+a left child LC(v) ∈ P, a right child RC(v) ∈ P, and a direct child DC(v) ∈ P. We call t(v)
+the type of v.
+
+    Same as Remark 10, we will abuse the notation and use P(v), LC(v), RC(v) and DC(v)
+to also denote the vertex reached from the corresponding port.
+
+▶ Definition 32. For a T -labeling, a vertex v is consistent if all the following constraints
+hold; otherwise, it is inconsistent:
+1. The non-⊥ ports among P(v), LC(v), RC(v), and DC(v) are pairwise distinct.
+2. For w ∈ {LC(v), RC(v), DC(v)}\{⊥}, P(w) = v.
+3. If P(v) ̸=⊥, then v ∈ {LC(P(v)), RC(P(v)), DC(P(v))}.
+4. If LC(v) ̸=⊥, t(LC(v)) = LCT (t(v)). Specifically, t(LC(v)) =⊥ when LCT (t(v)) =⊥.
+5. If RC(v) ̸=⊥, t(RC(v)) = RCT (t(v)). Specifically, t(RC(v)) =⊥ when RCT (t(v)) =⊥.
+6. If DC(v) ̸=⊥, t(DC(v)) = t(v).
+
+    With Definitions 31 and 32, we are ready to define our LCL ΠTHC , where HC is an
+abbreviation of HierarchicalColoring. The name comes from the LCL Hierarchical 2 12 Coloring
+introduced in previous works [27, 41].
+
+▶ Definition 33 (ΠTHC ). The problem ΠTHC is defined in the following way:
+   Input: A graph G, a T -labeling and a bit bin (v) ∈ {0, 1} for each v ∈ V (G).
+   Output: A color cout (v) ∈ {D, X, U, Cyc, ⊥} and bout (v) ∈ {0, 1} for each v ∈ V (G).
+   Constraint on cout (v): If v is inconsistent, then cout (v) =⊥. Otherwise, cout (v) ̸=⊥
+and the coloring should follow the following constraints:
+1. If cout (v) = Cyc, then DC(v) ̸=⊥ and cout (DC(v)) = Cyc.
+2. If cout (v) = U, then DC(v) =⊥ or cout (DC(v)) ∈ {X, U, ⊥}.
+3. If cout (v) = X, then all of the following hold:
+   a. t(v) =⊥ or t(v) is not a leaf in T .
+   b. RC(v) =⊥ or cout (RC(v)) ̸= D.
+4. If cout (v) = D, then t(v) ̸= rT ;
+5. If cout (v) ∈ {X, U}, then LC(v) =⊥ or cout (LC(v)) ̸= D.
+
+   Constraint on bout (v): If cout (v) ∈ {Cyc, D, ⊥} or t(v) =⊥, then bout (v) = 0. Otherwise,
+we have the following equation:
+
+   bout (v) = bin (v) ⊕ b′ (v) ⊕ b′′ (v),                                                 (6)
+
+where
+             
+             0,
+                               cout (v) = U and DC(v) =⊥,
+             
+             
+    ′
+             b (DC(v)),
+                out             cout (v) = U and DC(v) ̸=⊥,
+   b (v) =                                                                                (7)
+             
+             
+              0,               cout (v) = X and RC(v) =⊥,
+             
+               bout (RC(v)),    cout (v) = X and RC(v) ̸=⊥,
+             
+             (
+               0,               LC(v) =⊥,
+   b′′ (v) =                                                                              (8)
+               bout (LC(v)),    LC(v) ̸=⊥ .
+24   New LCL Complexity Classes for LCAs
+
+
+     ▶ Remark 34. For readers familiar with previous works [27, 41], the Hierarchical-THC LCL
+     introduced in these papers is a special case of ΠTHC , where all vertices in T only have a right
+     child, a new output color Cyc is introduced, and colors R and B are identified to a single
+     color U. Left and right children in Hierarchical-THC correspond to DC and RC ports in ΠTHC .
+     The extra color Cyc is to avoid the possibility that none of the vertices in a cycle want to
+     output X, and there may be no consistent solution for bout along the cycle.
+
+     ▶ Observation 35. ΠTHC is an LCL.
+
+     Proof. As |T | is a constant, the set of possible input and output labels has a constant size.
+     Now we show that there is a LOCAL algorithm of radius one to check whether the local
+     constraint is satisfied for each vertex. The consistency conditions in Definition 32 inspect only
+     v, its incident ports, and the labels of its neighbors. As a result, we can determine whether
+     a vertex is consistent within one round. After that, constraints for the output label only
+     involve the one-hop neighborhood. Hence, every constraint is checkable in radius one. ◀
+
+        In the rest of this section, we will show the following two lemmas, jointly proving
+     Theorem 29.
+
+     ▶ Lemma 36. There is a randomized VOLUME algorithm that solves ΠTHC over bounded-degree
+     graphs using Õ(nval(T ) ) probes.
+
+     ▶ Lemma 37. Any randomized LCA that solves ΠTHC uses Ω(nval(T ) ) probes even when we
+     restrict the instance to bounded-degree trees.
+
+     Proof of Theorem 29. From Observation 7, the upper bound result Lemma 36 can be
+     generalized from VOLUME to LCA, while the lower bound result Lemma 37 can be generalized
+     from LCA to VOLUME. As a consequence, in both models, we have a Õ(nval(T ) ) randomized
+     algorithm for ΠTHC over bounded-degree graphs and a matching lower bound for bounded-
+     degree trees up to a polylogarithmic factor.                                          ◀
+
+     5.3    Upper Bound
+     Throughout the rest of this section, fix a good ordered binary tree T . Set p = val(TL ) and
+     q = val(TR ), and furthermore
+                          q                  q−p
+        α = val(T ) =         ,        β=         .
+                        1+q−p               1+q−p
+     We have the following equalities:
+
+        β + p(1 − β) = q(1 − β) = α                                                                (9)
+                            p−1    q − (1 + q − p)
+        (p − 1)(1 − β) =         =                 = α − 1.                                       (10)
+                           1+q−p      1+q−p
+
+        As we see in Section 2, ΠTHC instances are formed by paths (corresponding to DC paths
+     and cycles in which all vertices have type rT ) and some attached ΠTHC
+                                                                          L
+                                                                            and ΠTHC
+                                                                                   R
+                                                                                     instances.
+     We formalize this structure by the definition of a sub-instance.
+
+     ▶ Definition 38 (Sub-instance). For a ΠTHC instance I, define a graph GI = (VI , EI ) where
+     VI contains all consistent vertices with type other than rT and ⊥ in I, and EI = {(u, P(u)) |
+     u, P(u) ∈ VI }. A connected component of GI induces an instance, which we call a sub-
+     instance in I. A sub-instance is a ΠTHC L
+                                               (ΠTHC
+                                                   R
+                                                     ) sub-instance if all vertices in the sub-instance
+     have type in TL (TR ).
+S. Peng                                                                                            25
+
+
+    For each consistent vertex u of type rT , LC(u) and RC(u) will be in a ΠTHC
+                                                                              L
+                                                                                and a ΠTHCR
+
+
+sub-instance when these two vertices are consistent. We will call the two sub-instances the
+ΠTHC
+   L
+     (ΠTHC
+         R
+           ) instance attached to u.
+
+▶ Lemma 39. Every vertex v in a ΠTHC instance I falls in exactly one of the categories: an
+inconsistent vertex, a consistent vertex of type ⊥, a consistent vertex of type rT , a vertex in
+some ΠTHCL
+           sub-instance, or a vertex in some ΠTHC R
+                                                    sub-instance.
+
+Proof. If v is inconsistent, or if v is consistent with t(v) =⊥ or t(v) = rT , then v falls into
+exactly one of the first three categories. It remains to consider a consistent vertex v with
+t(v) ∈
+     / {⊥, rT }. Since T is an ordered binary tree, t(v) belongs to exactly one of TL and TR .
+The vertex v is therefore included in VI and lies in a unique connected component of GI .
+    We now show that this component cannot contain types from both TL and TR . Consider
+an edge {x, y} of GI . By the definition of GI , x and y are consistent vertices, so up to
+swapping x and y, we have y = P(x) and x ∈ {LC(y), RC(y), DC(y)}. If x = DC(y), then
+t(x) = t(y). If x = LC(y) or x = RC(y), then t(x) is a child of t(y) in T . In all cases, as
+x, y ∈ VI , the two types lie in the same one of the two subtrees TL and TR . Hence every
+connected component of GI is contained entirely in one side, and v belongs to exactly one
+ΠTHC
+   L
+     or ΠTHCR
+              sub-instance.                                                                   ◀
+
+    In the rest of this section, a randomized VOLUME algorithm A for ΠTHC will receive three
+inputs (u, N1 , N2 ), where u is the queried vertex, and N1 , N2 are positive size parameters
+with N1 ≤ N2 . The algorithm A will be used to solve both an ΠTHC instance, in which
+                                                           ′
+N1 = N2 = n, and a ΠTHC sub-instance inside a larger ΠTHC instance, in which N1 and N2 give
+clues about the size of the current sub-instance.
+    N1 denotes the ideal size of the ΠTHC sub-instance, and this parameter is to ensure the
+    correct probe complexity and consistency. Most decisions in the algorithm that are related
+    to the size of the instance, such as the probability of each vertex entering the sample set
+    in Algorithm 5, will use N1 as the size parameter.
+    N2 is the maximum possible size of the ΠTHC sub-instance. When the algorithm has a high
+    confidence that the current sub-instance is even larger than N2 , then it could use (D, 0)
+    to label the current vertex being queried. Otherwise, the algorithm should make the best
+    effort to use a label other than (D, 0).
+Within the algorithm, we will utilize binary lifting to estimate the correct size of the sub-
+instance, with the estimation denoted as N . The actual size of the sub-instance is generally
+unknown to the algorithm, and we denote it as n⋆ . n denotes the size of the whole instance,
+which is known to the algorithm. One may think of the algorithm as solving a ΠTHC sub-
+instance of unknown size n⋆ inside a large instance of known size n. Additionally, the
+algorithm A may execute the algorithm for ΠTHC    L
+                                                     and ΠTHCR
+                                                               to deal with the ΠTHCL
+                                                                                      and ΠTHC
+                                                                                             R
+
+
+sub-instances of the current instance I.
+    The following definition provides the guarantee for the algorithm in this section.
+
+▶ Definition 40 (Strong Algorithm). Fix a ΠTHC instance I with n⋆ vertices, a randomized
+VOLUME algorithm A, a randomness setup R = {rv }v∈I , and n ≥ n⋆ . For a vertex u ∈ I
+and positive integers N1 ≤ N2 , define au,N1 ,N2 as the output of A(u, N1 , N2 ) using R as the
+randomness, and define bu,N1 ,N2 as the number of probes used by A(u, N1 , N2 ). A knows the
+value of n but does not know n⋆ .
+    The algorithm A is called strong if for all ΠTHC instances I of size n⋆ , n ≥ n⋆ and
+1 ≤ N1 ≤ n, with probability 1 − n⋆ /n2 over R all the following conditions hold:
+26   New LCL Complexity Classes for LCAs
+
+
+       (i) (Stability over N2 ) For every vertex u ∈ I, there exists N2⋆ (u, N1 ) ≥ N1 such that
+                           (
+                            (D, 0),              N2 < N2⋆ (u, N1 ),
+               au,N1 ,N2 =                                                                       (11)
+                            au,N1 ,N2⋆ (u,N1 ) , N2 ≥ N2⋆ (u, N1 ).
+
+      (ii) (Correctness for small N2 ) For all N2 ≥ N1 , all constraints in ΠTHC are satisfied by the
+           output labeling given by av,N1 ,N2 , except constraints of type 4 for cout (vertices of label
+           (D, 0) should not have type rT ).
+     (iii) (Correctness for large N2 ) For every N2 ≥ max(N1 , n⋆ ) and every consistent vertex
+           u ∈ I with t(u) = rT , au,N1 ,N2 ̸= (D, 0).
+     (iv) (Probe complexity) For every N2 ≥ N1 ,
+                               (
+                                 O(1),                    T =⊥,
+               max bu,N1 ,N2 =            α−1     dT
+                                                                                                    (12)
+                u∈I              O(N2 N1 log n), T ̸=⊥ .
+
+          In addition, when T ̸=⊥, then for every consistent vertex u ∈ I with t(u) = rT ,
+
+              bu,N1 ,N2 = O(max(N1 , n⋆ )N1α−1 logdT n).                                           (13)
+
+          Here dT is the depth of the good ordered binary tree T defined as the number of edges
+          in the longest path in T from rT to some vertex in the tree.
+     ▶ Remark 41. We explain here the intuition of the four requirements in Definition 40.
+       (i) Condition (i) says that an algorithm can label a vertex u with output label (D, 0)
+           when N2 is smaller than the actual size n⋆ . However, once N2 is large enough for the
+           algorithm to make a decision, increasing N2 will not change the output. Notice that we
+           allow the algorithm to always output (D, 0) no matter how large N2 is.
+      (ii) Condition (ii) says that even if N2 is too small compared to n⋆ , the output labels satisfy
+           all constraints in ΠTHC except that some vertices with type rT may output (D, 0).
+     (iii) Condition (iii) says that once N2 is at least n⋆ , every root-type vertex is not labeled
+           (D, 0) with high probability. Combining condition (ii), the output labeling in the
+           sub-instance satisfies all ΠTHC constraints with probability 1 − n⋆ /n2 .
+     (iv) Condition (iv) contains two complexity guarantees, Equations (12) and (13). Equa-
+           tion (12) applies to the case where n⋆ ≫ N2 : in this case, we require the algorithm to
+           produce the output of every vertex in the instance with a probe complexity depending on
+           N2 rather than n⋆ . N1 roughly measures the proportion of vertices that the algorithm
+           is going to shave. When N1 = N2 = n⋆ and T ̸=⊥,        since d⋆T αis a constant, we have
+                                                        ⋆  1+α−1
+           that with high probability bu,n⋆ ,n⋆ = Õ (n )         = Õ((n ) ), which is the desired
+           complexity for ΠTHC . Equation (13) handles the case where n⋆ ≪ N2 . In this case, we
+           require the algorithm to produce a labeling for root-type vertices faster than the bound
+           claimed by Equation (12).
+        We will show the following claim in the rest of this section, and it immediately implies
+     Lemma 36.
+     ▶ Theorem 42. For every good ordered binary tree T , there is a strong randomized VOLUME
+     algorithm for ΠTHC .
+     Proof of Lemma 36. Apply Theorem 42 with N1 = N2 = n⋆ = n. By conditions (ii) and
+     (iii) of Definition 40, the output labeling {au,n,n }u∈I satisfies ΠTHC with probability at least
+     1 − 1/n. By condition (iv), the probe complexity is Õ(nval(T ) ) with probability 1 − 1/n.
+     Finally, we can use Remark 8 to translate this algorithm from Las Vegas to Monte Carlo. ◀
+S. Peng                                                                                                27
+
+
+   We build the algorithm for Theorem 42 inductively, and a strong algorithm for ΠTHC will
+use strong algorithms for ΠTHC
+                             L
+                               and ΠTHC
+                                      R
+                                        . We first handle the base cases T =⊥ and T = •.
+
+▶ Lemma 43. There is a strong deterministic VOLUME algorithm for Π⊥
+                                                                  HC .
+
+Proof. The algorithm checks whether the queried vertex u is consistent using Definition 32.
+If u is inconsistent, it is labeled (⊥, 0); otherwise it is labeled (X, 0). The output is not (D, 0)
+and is independent of the parameter N2 , so condition (i) of Definition 40 is satisfied.
+     Since T =⊥, every consistent vertex has type ⊥. Thus X is allowed by item 3(a) in the
+cout constraint, and item 3(b) is always satisfied since output color D does not appear in the
+instance. This shows that all vertices satisfy the ΠTHC constraints on cout . The constraint on
+bout enforces every vertex u in the instance to have bout (u) = 0. This means that conditions
+(ii) and (iii) hold. Finally, the probe complexity is O(1), satisfying condition (iv).            ◀
+
+▶ Lemma 44. There is a strong deterministic VOLUME algorithm for Π•HC .
+
+Proof. The algorithm first performs the same consistency and type-⊥ checks as in Lemma 43.
+Thus inconsistent vertices output (⊥, 0), type-⊥ consistent vertices output (X, 0), and
+constraints on these vertices are satisfied. Now suppose u is consistent and t(u) = rT , then
+colors X and D are both prohibited at u. With the input parameter N2 , the algorithm follows
+the DC path from u (i.e. the path u, DC(u), DC(DC(u)) . . . ) for N2 steps and outputs the
+first applicable label below:
+    If the walk revisits u, u is labeled (Cyc, 0).
+                  L a consistentvertex w such that DC(w) =⊥ or DC(w) is inconsistent,
+    If the walk reaches
+    u is labeled U, z∈Pu,w bin (z) , where Pu,w is the DC path from u to w.
+    If neither event above is found within N2 steps, u is labeled (D, 0).
+    Now we check the conditions for strong algorithms. For a fixed N1 , the threshold
+N2⋆ (u, N1 ) is the smallest value N2 for which the walk from u sees one of the two terminating
+events, hence condition (i) holds.
+    Now we check conditions (ii) and (iii). Fix N2 ≥ N1 , and distinguish different possibilities
+for a vertex u in the instance. Inconsistent vertices and consistent type-⊥ vertices have
+already been handled. Let u be a consistent vertex with t(u) = rT . If the algorithm outputs
+(D, 0), then the only possible violation is item 4 in the constraint on cout , which is precisely
+the exception allowed in condition (ii).
+    Suppose the algorithm outputs (Cyc, 0) at u. Then the DC walk from u returns to u
+within N2 steps. For every vertex z on this directed cycle, the same walk starting from z also
+returns to z within N2 steps before encountering any terminating event, so z is also labeled
+(Cyc, 0). Hence item 1 in the constraint on cout is satisfied at u, and the bit constraint is
+satisfied because vertices of color Cyc have output
+                                                 Lbit zero.       
+    Finally, suppose the algorithm outputs U, z∈Pu,w bin (z) at u, where w is the first
+consistent vertex on the DC path from u such that DC(w) =⊥ or DC(w) is inconsistent. If
+u = w, then item 2 in the constraint on cout is immediate. Otherwise, the vertex DC(u)
+reaches the same terminating vertex w within fewer steps, so it is also labeled U. Thus item
+2 is satisfied at u. Since T = •, vertices of type rT have left and right children of type ⊥
+whose output bit must be zero. As a result, Equation (6) reduces to
+
+    bout (u) = bin (u) ⊕ bout (DC(u)),
+
+with bout (DC(u)) = 0 when DC(u) =⊥ or DC(u) is inconsistent. The bit given by the
+algorithm is exactly this recurrence expanded along the path from u to w.
+28   New LCL Complexity Classes for LCAs
+
+
+         To prove condition (iii), let N2 ≥ max(N1 , n⋆ ) and u be a consistent vertex with t(u) = rT .
+     Along the DC walk from u, the first repeated consistent vertex must be u: if the first repeated
+                   ̸ u, then z would have two different predecessors, contradicting the consistency
+     vertex were z =
+     definition in Definition 32. Therefore, within at most n⋆ steps, the walk either returns to u
+     or reaches a vertex whose DC port is ⊥ or points to an inconsistent vertex. Since N2 ≥ n⋆ ,
+     the algorithm sees one of these terminating events and does not output (D, 0).
+         Finally, the walk uses O(min(n⋆ , N2 )) probes for every vertex. This is O(N2 ) for all
+     vertices and O(max(N1 , n⋆ )) for root-type vertices. Since α = 1 and dT = 0, condition (iv)
+     holds.                                                                                         ◀
+
+         For the induction step, assume that there are strong VOLUME algorithms AL and AR for
+     ΠTHC
+        L
+          and ΠTHCR
+                    respectively. We also assume that T ≠ •, so rT is not a leaf and the vertices of
+     type rT are not prohibited from using color X.
+
+     5.3.1    Algorithm Description
+     The description of the algorithm is given in Algorithm 6. Before explaining the algorithm, we
+     first explain its subroutines, Algorithms 3–5. Inside the algorithm, we define DCj (u) as the j-
+     th vertex in the DC path starting from u. Namely, DC0 (u) = u and DCj (u) = DC(DCj−1 (u))
+     for j ≥ 1.
+         The algorithm PrepareT described in Algorithm 3 is a subroutine that handles edge
+     cases and sub-instances. For inconsistent vertices or vertices of type ⊥, we label them in
+     the same way as in the algorithm for Π⊥     HC described in Lemma 43. For consistent vertices u
+     where t(u) ̸= rT , according to Lemma 39, it lies in either a ΠTHC    L
+                                                                             or a ΠTHC
+                                                                                     R
+                                                                                       sub-instance. We
+     use AL and AR to solve them. Notice that parameter N2 is different between AL and AR
+     calls: ΠTHC
+               R
+                  sub-instances will be solved in a best-effort basis, meaning that if the sub-instance
+     size is larger than ⌈N N1−β ⌉, it is allowed to label (D, 0); Instead, the maximum possible size
+     for ΠTHCL
+               sub-instances is a conservative value N .
+         The algorithm CollectT described in Algorithm 4 is used when the algorithm plans to
+     color the DC path from u to DCk−1 (u) with U and color DCk (u) with U or X. When we
+     follow the coloring plan, expanding bout (u) using Equation (6) along the path, we have that
+                                                                         
+                                     Mk
+         bout (u) = b′ (DCk (u)) ⊕        bin (DCj (u)) ⊕ b′′ (DCj (u))  ,
+                                                                        
+                                    j=0
+                                                    L                                         
+                                                         k
+     and CollectT tries to compute the term              j=0   bin (DCj (u)) ⊕ b′′ (DCj (u))        . This re-
+     quires CollectT to get the output bit for LC(DC (u)) for each 0 ≤ j ≤ k if it exists. Each
+                                                           j
+
+     of these vertices is either handled directly by PrepareT or lies in a ΠTHCL
+                                                                                  sub-instance, so we
+                    T
+     call Prepare with size parameters (N1 , N ) to get them.
+         To avoid wasting too many probes when the total size of the attached ΠTHC    L
+                                                                                        sub-instances
+                                                                         α−1
+     is much larger than N , we set up a probe budget of size Θ̃(N N1 ). Once those calls use
+     up the probe budget, we immediately stop this process and all recursions generated by it,
+     returning ⊥ to indicate a failure. Another possibility of failure is when any PrepareT call
+     returns (D, 0): in this case, we cannot execute the original coloring plan for the DC path due
+     to item 5 in the constraint on cout (a vertex of color X or U cannot have a left child of color
+     D). In this case, CollectT also returns ⊥.
+         The algorithm TraverseT described in Algorithm 5 travels along the DC path from u
+     for at most ⌈2N1β ⌉ steps. For each of the vertices traveled, we include it in a sample set
+     S with probability min(1, 4N1−β log n). This sampling should be consistent across different
+S. Peng                                                                                        29
+
+
+   Algorithm 3 PrepareT (u, N1 , N )
+Ensure: Either the output label (cout (u), bout (u)), or ⊥ indicating no output.
+ 1: if u =⊥ then
+ 2:    return (X, 0)
+ 3: else if u is inconsistent then
+ 4:    return (⊥, 0)
+ 5: else if t(u) =⊥ then
+ 6:    return (X, 0)
+ 7: else if t(u) ∈ TL then
+ 8:    return AL (u, ⌈N11−β ⌉, N )
+ 9: else if t(u) ∈ TR then
+10:    return AR (u, ⌈N11−β ⌉, ⌈N N1−β ⌉)
+11: else
+12:    return ⊥
+13: end if
+
+
+   Algorithm 4 CollectT (u, k, N1 , N )
+Ensure: ⊥ when the algorithm fails, or a bit b ∈ {0, 1} when it succeeds.
+ 1: Set a probe budget of size Θ(N N1
+                                      α−1
+                                           logdT n) with a sufficiently large constant. Once
+                             T
+    the whole Collect procedure uses up the budget, stop all recursions and return ⊥.
+ 2: b ← 0
+ 3: for j from 0 to k do
+ 4:   (c′ , b′ ) ← PrepareT (LC(DCj (u)), N1 , N )
+ 5:   if (c′ , b′ ) = (D, 0) then
+ 6:      return ⊥
+ 7:   end if
+ 8:   b ← b ⊕ bin (DCj (u)) ⊕ b′
+ 9: end for
+10: return b
+
+
+   Algorithm 5 TraverseT (u, N1 , N )
+Ensure: A sample set Su and a backup label (c0 , b0 ).
+ 1: S ← ∅, (c0 , b0 ) ← (D, 0)
+                            β
+ 2: for j from 0 to ⌈2N1 ⌉ do
+                  j
+ 3:   w ← DC (u)
+ 4:   if w =⊥ or w is inconsistent or (j > 0 and w = u) then
+ 5:      if j > 0 and w = u then
+ 6:         (c0 , b0 ) ← (Cyc, 0)
+ 7:      else if CollectT (u, j − 1, N1 , N ) ̸=⊥ then
+ 8:         (c0 , b0 ) ← (U, CollectT (u, j − 1, N1 , N ))
+ 9:      end if
+10:      break
+11:   end if
+12:   With probability min(1, 4N1−β log n), include j in S. The same randomness is used
+      between different calls when N1 is the same.
+13: end for
+14: return S, (c0 , b0 )
+30   New LCL Complexity Classes for LCAs
+
+
+        Algorithm 6 SolveHCT (u, N1 , N2 )
+     Ensure: An output labeling (cout (u), bout (u)) for u.
+      1: if N1 > N2 then
+      2:    return (D, 0)
+      3: end if
+                     T
+      4: if Prepare (u, N1 , 2N2 ) ̸=⊥ then
+      5:    return PrepareT (u, N1 , 2N2 )
+      6: end if
+      7: k ← ⌈log2 (N2 /N1 )⌉
+      8: for p from 0 to k do
+      9:    if TryT (u, N1 , p) ̸=⊥ then
+     10:       return TryT (u, N1 , p)
+     11:    end if
+     12: end for
+     13: return (D, 0)
+
+        Algorithm 7 TryT (u, N1 , p)
+     Ensure: An output labeling (cout (u), bout (u)) other than (D, 0), or ⊥ to denote a failure
+      1: N ← 2p N1
+                                       T
+      2: Su , (c0 , b0 ) ← Traverse (u, N1 , N )
+           ′
+      3: Su,p    ← {j ∈ Su | PrepareT (RC(DCj (u)), N1 , N ) ̸= (D, 0)}
+               ′
+      4: if Su,p    ̸= ∅ then
+                                         ⋆
+      5:      ⋆
+             j ← min Su,p   ′
+                              , w ← DCj (u)
+      6:     (c⋆ , b⋆ , B) ← (D, 0, ⊥)
+      7:     if j ⋆ = 0 then
+      8:        c⋆ ← X
+      9:        (−, b⋆ ) ← PrepareT (RC(w), N1 , N )
+     10:        B ← CollectT (u, 0, N1 , N )
+     11:     else
+     12:        c⋆ ← U
+     13:        if SolveHCT (w, N1 , N/2) ̸= (D, 0) then
+     14:            (−, b⋆ ) ← SolveHCT (w, N1 , N/2)
+     15:            B ← CollectT (u, j ⋆ − 1, N1 , N )
+     16:        else
+     17:            (−, b⋆ ) ← PrepareT (RC(w), N1 , N )
+     18:            B ← CollectT (u, j ⋆ , N1 , N )
+     19:        end if
+     20:     end if
+     21:     if B =⊥ then
+     22:        return ⊥
+     23:     else
+     24:        return (c⋆ , b⋆ ⊕ B)
+     25:     end if
+     26: else if (c0 , b0 ) ̸= (D, 0) then
+     27:     return (c0 , b0 )
+     28: else
+     29:     return ⊥
+     30: end if
+S. Peng                                                                                                                31
+
+
+TraverseT calls with the same N1 , meaning that for two calls TraverseT (u, N1 , N ) and
+TraverseT (v, N1 , N ′ ) that both visit w, w will be in both or neither of the sample sets.
+Apart from the sample set S, like the algorithm in Lemma 44 for Π•HC , TraverseT produces
+a label (c0 , b0 ) for u when the walk returns itself or reaches a terminating vertex.
+    Finally, SolveHCT described in Algorithm 6 first calls PrepareT to deal with edge
+cases and sub-instances. Vertices left are consistent vertices with type rT due to Lemma 39.
+For each of them, SolveHCT uses binary lifting to guess n⋆ , the actual size of the current
+ΠTHC (sub-)instance, from N1 to 2N2 . For each guess p ∈ [0, ⌈log2 (N2 /N1 )⌉], SolveHCT
+calls TryT (u, N1 , p) described in Algorithm 7 to see whether the size guess N = 2p N1 can
+generate for u an output label other than (D, 0). If none of them work, the algorithm then
+has a high confidence that N2 is actually much smaller than n⋆ . In this case, condition (ii)
+in the definition of a strong algorithm allows SolveHCT to give output label (D, 0) for u,
+and it outputs (D, 0). For the other case, if any of the TryT calls succeeds, it gives the label
+from the first successful TryT call to u.
+    Each TryT (u, N1 , p) call tries to generate an output label other than (D, 0) for u with
+size guess N = 2p N1 . It first gets the sample set Su and a backup label (c0 , b0 ) from
+TraverseT . Notice that the set Su does not carry a p subscript because, for fixed u and N1 ,
+the walk inspected by TraverseT and the sampling choices are independent of the size guess
+N = 2p N1 . Indices in Su are candidates for an output color X. To color a candidate DCj (u)
+with X, item 3(b) in cout constraints requires the algorithm to give an output label other than
+(D, 0) to RC(DCj (u)). RC(DCj (u)) is either handled directly by PrepareT or lies in a ΠTHC     R
+
+                                                                          T         j
+sub-instance. As a result, for each j ∈ Su , we check whether Prepare (RC(DC (u)), N1 , N )
+                                                                                      ′
+returns an output label other than (D, 0). We collect all such indices to the set Su,p  in line 3.
+                                                             ′
+    N may be too small, or we are simply unlucky, and Su,p may then be empty. In this case,
+we enter line 27 and try to output the backup label if it is not (D, 0). If the backup label is
+also (D, 0), then we indicate a failure by returning ⊥.
+                                                                                             ⋆
+        ′
+    If Su,p is not empty, we pick j ⋆ as the minimum in Su,p  ′
+                                                                , and plan to color w = DCj (u)
+with X and the path between P(w) and u with U when w =          ̸ u. For the case where w = u,
+we use CollectT (u, 0, N1 , N ) to compute the contribution of bin (v) and b′′ (v) defined in
+Equation (8), denoted by B.
+    When w =   ̸ u, to ensure local consistency, we need to make sure that w, whose output label
+is generated by an independent query SolveHCT (w, N1 , N2 ), agrees with this plan, thinking
+that it is colored X. To address this issue, we will prove that if SolveHCT (w, N1 , N2 ) does
+not follow the coloring plan, then SolveHCT (w, N1 , N2 ) must get a label from a smaller size
+guess. This is why in line 13, we call SolveHCT (w, N1 , N/2) to see whether this is the case.
+    If the call does not return (D, 0), then we know the output label for w; otherwise, we
+know that SolveHCT (w, N1 , N2 ) will follow the same coloring plan and color w with X. In
+both cases, we will color the path between P(w) and u with U and use CollectT to get
+their contributions to bout (u). When the CollectT call fails, TryT will return ⊥.
+
+5.4      Algorithm Analysis
+Throughout the analysis, we assume the ΠTHC instance I of size n⋆ , N1 , and n ≥ N1 are
+arbitrary but fixed. Define n0 as the number of consistent vertices of type rT , sequences
+(Il,1 , Il,2 , . . . , Il,nl ) and (Ir,1 , Ir,2 , . . . , Ir,nr ) as the sequences of ΠTHCL
+                                                                                            and ΠTHC
+                                                                                                   R
+                                                                                                      sub-instances,
+and (sl,1 , sl,2 , . . . , sl,nl ), (sr,1 , sr,2 , . . . , sr,nr ) as their size sequences. According to Lemma 39,
+                  Pnl             Pnr
+n⋆ ≥ n0 + i=1              sl,i + i=1     sr,i .
+     We apply induction hypothesis for AL and AR to each ΠTHC                         L
+                                                                                        and ΠTHC
+                                                                                               R
+                                                                                                 sub-instance. This
+means that,
+32   New LCL Complexity Classes for LCAs
+
+
+       For each 1 ≤ i ≤ nl , the output labeling given by SolveHCT (⋆, N1 , N2 ) for Il,i , which
+       is further the output labeling given by AL (⋆, ⌈N11−β ⌉, 2N2 ), satisfies the four conditions
+       given in Definition 40 with probability 1 − sl,i /n2 ;
+       For each 1 ≤ i ≤ nr , the output labeling given by SolveHCT (⋆, N1 , N2 ) for Ir,i , which
+       is further the output labeling given by AR (⋆, ⌈N11−β ⌉, ⌈2N2 N1−β ⌉), satisfies the four
+       conditions given in Definition 40 with probability 1 − sr,i /n2 ;
+     We additionally require the following event to occur for every consistent vertex of type rT :
+     ▶ Lemma 45. For every consistent vertex u of type rT , the following event happens with
+     probability 1 − 1/n2 : For every N ≥ N1 , if the call TraverseT (u, N1 , N ) never enters the
+     if-block at line 4 (i.e. within ⌈2N1β ⌉ steps, the walk never returns to itself or visits a vertex
+     w =⊥ or an inconsistent vertex w), then the call returns a sample set S of size O(log n) in
+     which there exists j such that the ΠTHC R
+                                               instance attached to DCj (u) has size at most n⋆ /N1β .
+     For fixed u and N1 , this sample set is the same for all values of N .
+     Proof. The behavior of TraverseT (u, N1 , N ) before entering the if-block in line 4 is inde-
+     pendent of N , and the sampling probability is also independent of N . Hence it is enough to
+     analyze the single random sample set on the first ⌈2N1β ⌉ + 1 positions of the DC walk from
+     u, and all TraverseT (u, N1 , N ) calls will give the same sampling set.
+         Let δ = min(1, 4N1−β log n) be the sampling probability. If δ = 1, then N1β = O(log n),
+     so the sample set has size O(log n). Suppose now that δ < 1. We have E[|S|] = (⌈2N1β ⌉ +
+     1)(4N1−β log n) = Θ(log n), and a Chernoff bound implies that the sample size is O(log n)
+     with probability at least 1 − 1/(2n2 ).
+         Now assume that TraverseT (u, N1 , N ) never enters the if-block. Then the vertices
+     DC (u) for 0 ≤ j ≤ ⌈2N1β ⌉ are distinct consistent vertices of type rT . Consider the ΠTHC
+         j                                                                                      R
+                                                                                                   sub-
+     instances attached to them. Since these sub-instances are vertex-disjoint and all contained in
+     I, their total size is at most n⋆ . This means that at least N1β of them have a ΠTHC
+                                                                                        R
+                                                                                          sub-instance
+                        ⋆    β
+     of size at most n /N1 attached. The probability that none of these vertices is sampled is at
+                      β
+     most (1 − δ)N1 ≤ exp(−4 log n) ≤ 2n1 2 for all sufficiently large n. A union bound over two
+     events proves the lemma.                                                                        ◀
+
+         A union bound shows that with probability at least 1 − n⋆ /n2 , all sub-instances have an
+     output label satisfying Definition 40, and for every consistent vertex u of type rT , the event
+     in Lemma 45 occurs. In the rest of the upper bound analysis, all lemmas assume that these
+     events happen.
+         Now we verify that SolveHCT follows all conditions in Definition 40. We first verify
+     stability.
+     ▶ Lemma 46. SolveHCT satisfies condition (i) in Definition 40.
+     Proof. Fix a vertex u and the first size parameter N1 . If u =⊥, if u is inconsistent, or if u is
+     consistent with t(u) =⊥, then PrepareT (u, N1 , 2N2 ) returns an output independent of N2 .
+     Thus we may take N2⋆ (u, N1 ) = N1 .
+        Suppose next that u lies in a ΠTHC  L
+                                              sub-instance. Then SolveHCT (u, N1 , N2 ) returns
+                               1−β
+     the output of AL (u, ⌈N1 ⌉, 2N2 ). By condition (i) for AL , there is a threshold M ⋆ for
+     the third parameter of AL . Taking N2⋆ (u, N1 ) to be the smallest integer N2 ≥ N1 with
+     2N2 ≥ M ⋆ gives the desired statement. The argument for u in a ΠTHC  R
+                                                                            sub-instance is identical,
+                             ⋆               1−β
+     using the threshold M for AR (u, ⌈N1 ⌉, ⋆) and taking the smallest N2 ≥ N1 such that
+     ⌈2N2 N1−β ⌉ ≥ M ⋆ .
+        It remains to consider a consistent vertex u with t(u) = rT . For every integer p ≥ 0, the
+     output of TryT (u, N1 , p) depends only on u, N1 , p and the fixed randomness, and not on the
+S. Peng                                                                                           33
+
+
+value of N2 . If there exists p such that TryT (u, N1 , p) ̸=⊥, take the minimum of them, de-
+noted as p⋆ , and take N2⋆ (u, N1 ) to be the smallest N2 ≥ N1 such that SolveHCT (u, N1 , N2 )
+calls TryT (u, N1 , p⋆ ); Otherwise the output label will be (D, 0) whatever the value of N2 .
+Both cases satisfy condition (i).                                                           ◀
+
+
+   For condition (ii), we need the following lemma showing that CollectT behaves correctly
+when the parameter N is large enough.
+
+▶ Lemma 47. Fix N2 , so the output labeling for u is generated from SolveHCT (u, N1 , N2 ).
+During the execution of SolveHCT (u, N1 , N2 ) for some consistent vertex u of type rT , if a
+call CollectT (u, k, N1 , N ) returns a bit B, then
+
+        k
+        M
+              bin (DCj (u)) ⊕ b′′ (DCj (u)) ,
+                                           
+   B=
+        j=0
+
+
+where b′′ is defined in Equation (8). Moreover, if the total size of the ΠTHC
+                                                                            L
+                                                                              sub-instances
+                j                                               T
+attached to DC (u) for 0 ≤ j ≤ k is at most N , then Collect (u, k, N1 , N ) returns a bit
+rather than ⊥.
+
+Proof. For each call CollectT (u, k, N1 , N ) in SolveHCT (u, N1 , N2 ), we first have N1 ≤
+N ≤ 2N2 . Additionally, k ≤ ⌈2N1β ⌉ and DCj (u) is consistent for each 0 ≤ j ≤ k: whenever
+CollectT is called from TraverseT , all these vertices were visited before the first termi-
+nating event, and whenever CollectT is called from TryT , j ⋆ ∈ Su already indicates that
+j ⋆ ≤ ⌈2N1β ⌉ and all indices between zero and j ⋆ passes the termination check in line 4 of
+TraverseT .
+    For the first claim, CollectT uses PrepareT with size parameter (N1 , N ) to obtain
+the output bit of each LC(DCj (u)), while the output label of LC(DCj (u)) is generated by
+PrepareT (LC(DCj (u)), N1 , 2N2 ) inside SolveHCT (LC(DCj (u)), N1 , N2 ). If LC(DCj (u))
+falls into an edge case handled directly by PrepareT , its output is independent of the size
+parameter. Otherwise, condition (i) for AL implies that, if PrepareT (LC(DCj (u)), N1 , N )
+returns an output label other than (D, 0), this label must be the final output label for
+LC(DCj (u)). When LC(DCj (u)) =⊥, PrepareT outputs (X, 0). In sum, no matter when
+CollectT returns a bit, every PrepareT call has returned an output label other than
+(D, 0), and the output bit is indeed b′′ (DCj (u)) defined in Equation (8). If a call returns
+(D, 0), then CollectT fails and returns ⊥ instead of a bit. This concludes the first claim.
+   For the second claim, for each 0 ≤ j ≤ k, CollectT (u, N1 , N ) generates a call
+AL (LC(DCj (u)), ⌈N11−β ⌉, N ) when LC(DCj (u)) does not fall into the edge cases. For each
+0 ≤ j ≤ k, we define mj to be the size of the ΠTHC
+                                                 L
+                                                   sub-instance attached to DCj (u), and mj = 0
+                                                                                 Pk
+when it does not exist. These sub-instances are vertex-disjoint, so we have j=0 mj ≤ N .
+This means that mj ≤ N for each 0 ≤ j ≤ k, and additionally ⌈N11−β ⌉ ≤ N1 ≤ N , so we can
+apply condition (iii) for AL to show that all of the AL calls return labels other than (D, 0).
+   We need to show further that the probe budget will not be used up by these AL calls. If
+TL =⊥, then each call uses O(1) probes, and the total cost is O(N1β ) = O(N N1α−1 ) because
+N ≥ N1 and α = β when p = 0. The case TL = • is impossible since then p = 1 ≥ q,
+contradicting the goodness of T . In all remaining cases, the vertices queried are consistent
+vertices of type rTL in ΠTHC
+                           L
+                             sub-instances, so we apply Equation (13) in condition (iv), and
+34   New LCL Complexity Classes for LCAs
+
+
+     the total number of probes is
+          k
+          X                                              
+                 O max(⌈N11−β ⌉, mj )⌈N11−β ⌉p−1 logdTL n
+           j=0
+                                                                   
+                        (1−β)(p−1)         (1−β)(p−1)
+        =O        N1 · N1            + N N1                 logdT n
+                                                                                        Pk
+                                               (⌈N11−β ⌉ = Θ(N11−β ), k = O(N1β ) and     j=0 mj ≤ N )
+                                      
+                    (p−1)(1−β)
+        =O N N1          logdT n                                                             (N ≥ N1 )
+                          
+        =O N N1α−1 logdT n                                                              (Equation (10))
+
+     This is within the probe budget when we set the probe budget constant in CollectT to be
+     sufficiently large.                                                                  ◀
+
+         We will prove condition (ii) for SolveHCT by considering each constraint in ΠTHC one
+     by one. During the analysis of condition (ii), we will fix the value N2 . According to the
+     induction hypothesis, constraints are satisfied on inconsistent vertices, vertices of type ⊥, and
+     vertices in a sub-instance, so it remains to consider constraints touching consistent vertices of
+     type rT . If the output label for such a vertex u is (D, 0), then it only violates item 4 in cout
+     constraints, which is allowed for condition (ii). So we will focus on cases where u receives a
+     label other than (D, 0).
+         For each consistent vertex u of type rT that does not receive output label (D, 0), define
+     p⋆u as the minimum nonnegative integer p such that TryT (u, N1 , p) does not return ⊥ and
+                      ⋆
+     define Nu = 2pu N1 . According to the algorithm description, p⋆u exists and is bounded by
+     ⌈log2 (N2 /N1 )⌉, and SolveHCT (u, N1 , N2 ) returns the output label from TryT (u, N1 , p⋆u ).
+     Now we distinguish different possibilities in TryT (u, N1 , p⋆u ) that generate an output label
+     for u, and show that in all these cases, constraints on u are satisfied. We start with an
+     observation around Su,p′
+                               in TryT .
+                                                                        ′      ′
+     ▶ Observation 48. For a consistent vertex u of type rT and p ≥ 0, Su,p ⊆ Su,p+1 , where
+      ′                              T
+     Su,p is defined in line 3 of Try (u, N1 , p).
+
+     Proof. Let N = 2p N1 . The sample set Su is the same between TryT (u, N1 , p) and
+     TryT (u, N1 , p + 1) according to Lemma 45, so it is enough to prove that every j ∈ Su,p   ′
+
+                    ′                       j                                      T
+     belongs to Su,p+1 . Write x = RC(DC (u)), and compare the calls Prepare (x, N1 , N ) and
+     PrepareT (x, N1 , 2N ).
+         If x lies in edge cases handled directly by PrepareT , then the output is independent
+     of the size parameter. This covers the cases x =⊥, x is inconsistent, and t(x) =⊥. The
+     case where PrepareT returns ⊥ is impossible here: if x is consistent, then x is the right
+     child of a consistent type-rT vertex and therefore has type RCT (rT ), or type ⊥ when
+     RCT (rT ) =⊥. Hence PrepareT (x, N1 , 2N ) is an output label other than (D, 0) whenever
+     PrepareT (x, N1 , N ) is one, and j ∈ Su,p+1
+                                              ′
+                                                   .
+         It remains to consider the case where x lies in a sub-instance. If x lies in a ΠTHC L
+                                                                                               sub-
+                               T                           1−β
+     instance, then Prepare (x, N1 , N ) calls AL (x, ⌈N1 ⌉, N ). Since this value is not (D, 0),
+     condition (i) for AL implies that PrepareT (x, N1 , 2N ) would give the same output. The
+     argument for a ΠTHC R                                      ′
+                           sub-instance is identical. Thus j ∈ Su,p+1 , completing the proof.     ◀
+
+       We first consider the case where TryT (u, N1 , p⋆u ) returns the backup label (c0 , b0 ) from
+     TraverseT .
+S. Peng                                                                                                 35
+
+
+▶ Lemma 49. For a consistent vertex u of type rT , if TryT (u, N1 , p⋆u ) returns the backup
+label (c0 , b0 ) from TraverseT , then ΠTHC constraints on u are satisfied.
+                                                                         ′
+Proof. Let v = DC(u). The backup label is returned only when Su,p           ⋆ = ∅ and the backup
+                                                                            u
+                                    T
+label produced by Traverse (u, N1 , Nu ) is not (D, 0). According to Observation 48, we
+                   ′
+also know that Su,p   = ∅ for every 0 ≤ p < p⋆u .
+    First suppose this label is (Cyc, 0). Then for some ℓ ∈ [1, ⌈2N1β ⌉], DCℓ (u) = u, and
+all vertices on this directed cycle are consistent vertices of type rT . Additionally, every
+TraverseT (u, N1 , N ) call will see this cycle and produce backup label (Cyc, 0) whatever the
+value of N is, so p⋆u = 0. We claim that p⋆v is also zero and the output label for v will be
+(Cyc, 0), then the ΠTHC constraints on u are satisfied.
+    To see this, consider the call TryT (v, N1 , 0). It calls TraverseT (v, N1 , N1 ), which will
+see the cycle and prepare (Cyc, 0) for the backup label. Additionally, this call will visit
+exactly the same set of vertices as in TraverseT (u, N1 , N1 ), and the sampling is consistent
+across calls of the same N1 value, this means that Sv will point to the same set of vertices as
+             ′
+Su . Since Su,0         ′
+                 = ∅, Sv,0    will also be empty and TryT (v, N1 , 0) will output the backup label
+(Cyc, 0).
+    Now suppose the backup label is (U, b0 ). This means TraverseT reaches a vertex DCj (u)
+that is either ⊥ or inconsistent, u, DC(u), DC2 (u), . . . , DCj−1 (u) are all consistent vertices of
+type rT , and CollectT (u, j − 1, N1 , Nu ) returns b0 . If j = 1, DC(u) is ⊥ or colored (⊥, 0),
+satisfying item 2 in the cout constraints for u, and from Lemma 47, bout (u) = bin (u) ⊕ b′′ (u),
+which is just Equation (6) with b′ (u) = 0.
+    Next, we consider the case where j > 1, then TraverseT (v, N1 , Nu ) will see the same
+terminating event by traveling along a suffix of the DC path traveled by u, and the corre-
+sponding CollectT call collects a subset of bits from CollectT (u, j − 1, N1 , Nu ). This
+means that TraverseT (v, N1 , Nu ) successfully generates a backup label (U, b′0 ). It is possible
+that the backup label can be produced with a smaller guess: Define p′v as the smallest guess
+p such that TraverseT (v, N1 , 2p N1 ) produces a backup label other than (D, 0). From the
+argument above, we know p′v ≤ p⋆u . In the remaining, we show that p⋆v = p′v and the output
+label for v makes u satisfy its ΠTHC constraints.
+                                                                            ′
+    We have Sv ⊆ Su , so similar to the argument in the cycle case, Sv,p        = ∅ for 0 ≤ p ≤ p⋆u .
+                                             T
+This means that for each such p, Try will check whether the backup label is not (D, 0).
+As p′v is the smallest possible p value that generates a backup label other than (D, 0) and
+p′v ≤ p⋆u , TryT (v, N1 , p′v ) will output the backup label while smaller p outputs ⊥. This
+proves p′v = p⋆v . Since the backup label colors v with U, item 2 in the cout constraint is
+satisfied on u. For the bout constraint, according to Lemma 47, we have
+                 j−1
+                 M
+    bout (u) =         (bin (DCr (u)) ⊕ b′′ (DCr (u))) ,
+                 r=0
+                 j−1
+                 M
+    bout (v) =         (bin (DCr (u)) ⊕ b′′ (DCr (u))) .
+                 r=1
+
+As a result, we have bout (u) = bout (v) ⊕ bin (u) ⊕ b′′ (u), which is Equation (6).
+    In both cases, it remains to consider item 5 in the cout constraints that LC(u) should not
+be labeled (D, 0). This comes from the fact that the CollectT call, which would fail when
+one of the left children is labeled (D, 0), outputs a bit rather than a failure.            ◀
+
+    The other possibility that TryT (u, N1 , p⋆u ) generates an output label is when Su,p
+                                                                                      ′
+                                                                                         ⋆ is
+                                                                                         u
+                                                                                               ⋆
+                                                                   ′                   j
+nonempty. The algorithm will then pick j ⋆ as the minimum item in Su,p⋆ and set w = DC
+                                                                      u
+                                                                                         (u).
+36   New LCL Complexity Classes for LCAs
+
+
+     We first consider the case where j ⋆ = 0, so w = u.
+                                                                ′
+     ▶ Lemma 50. For a consistent vertex u of type rT , if 0 ∈ Su,p⋆ , then u is colored X and the
+                                                                   u
+      T
+     ΠHC constraints on u are satisfied.
+                           ′                             ⋆
+     Proof. Since 0 ∈ Su,p     ⋆ , the minimum index j
+                               u
+                                                           chosen is zero. Thus, the branch for j ⋆ = 0
+     sets c⋆ = X. As Try (u, N1 , p⋆u ) succeeds, CollectT (u, 0, N1 , Nu ) returns a bit, and the
+                               T
+
+     algorithm returns a label of color X.
+                                                                                                ′
+         The color X is allowed at u because u has type rT and rT is not a leaf. As 0 ∈ Su,p      ⋆ , the
+                                                                                                  u
+                     T                  ⋆                                               ⋆
+                                       pu                                              pu
+     call Prepare (RC(u), N1 , 2 N1 ) returns a label other than (D, 0). Since 2 N1 ≤ 2N2 , by
+     condition (i) of SolveHCT , this will be the output label for RC(u). This proves item 3(b)
+     in the constraint on cout . Similarly, the successful CollectT call implies, by Lemma 47,
+     that the output label of LC(u) is not (D, 0), proving item 5. In sum, cout constraints on u
+     are satisfied.
+                                                                     ⋆
+         Let b⋆ be the output bit of PrepareT (RC(u), N1 , 2pu N1 ), then b⋆ equals bout (RC(u))
+     when RC(u) exists, and equals zero if RC(u) =⊥. This is exactly the definition of b′ (u) in
+                                                               ⋆
+     Equation (7). By Lemma 47, CollectT (u, 0, N1 , 2pu N1 ) returns bin (u) ⊕ b′′ (u). Therefore
+     bout (u) = bin (u) ⊕ b′′ (u) ⊕ b⋆ , which is exactly Equation (6) for a vertex of color X.        ◀
+                             ′
+         When j ⋆ = min Su,p    ⋆ ≥ 1, we have w ̸= u and DC(u) is not ⊥. In this case, the call
+                                u
+          T
+     Try (u, N1 , p⋆u ) will always color u with U. We define v = DC(u). Since j ⋆ is sampled only
+     after the termination check in line 4, all vertices DCj (u) with 0 ≤ j ≤ j ⋆ are consistent
+     vertices of type rT , so p⋆DCj (u) is well-defined. We begin with the following lemma that all
+     vertices between P(w) and u will agree on the coloring plan and color itself with U.
+                                                                 ′                  ′
+     ▶ Lemma 51. For a consistent vertex u of type rT , suppose Su,p⋆ ̸= ∅ and 0 ∈
+                                                                                 / Su,p⋆ . Define
+                                                                    u                  u
+      ⋆                             ′                              ⋆          j
+     j as the minimum element in Su,p⋆u , then for every 0 ≤ j < j , cout (DC (u)) = U.
+
+     Proof. Define y = DCj (u). When cout (y) = Cyc, the cycle containing y must contain u as
+     otherwise the consistency will be violated. Then from the argument in Lemma 49, cout (u)
+     should also be Cyc, a contradiction.
+                                                                                        ′
+         Another possibility is that cout (y) = X. This happens only when 0 ∈ Sy,p          ⋆ , which by
+                                                                                            y
+                                                     ′
+     consistent sampling would imply j ∈ Su,p⋆y . According to Observation 48, to make sure
+                                          ′
+     j ⋆ > j is the minimum among Su,p             ⋆    ⋆
+                                              ⋆ , py > pu must hold.
+                                              u
+         However, we will prove next that p⋆y ≤ p⋆u , leading to a contradiction. Notice that
+       ⋆                                ′                    ⋆                                   ′
+     j is the minimum value in Su,p         ⋆ implies that j
+                                            u
+                                                               − j is the minimum value in Sy,p    ⋆ . As
+                                                                                                   u
+                    T           ⋆                                               T         ⋆
+     a result, Try (y, N1 , pu ) will agree on the same vertex w as Try (u, N1 , pu ), the check
+     SolveHCT (w, N1 , Nu /2) ≥ 0 has the same result, and the corresponding CollectT call
+     in TryT (y, N1 , p⋆u ) collects a subset of bits compared to the successful CollectT call in
+     TryT (u, N1 , p⋆u ). This means that TryT (y, N1 , p⋆u ) returns a label rather than a failure and
+     p⋆y ≤ p⋆u .
+         Since we have proved p⋆y ≤ p⋆u , cout (y) cannot be D either. So the only possible color for
+     y is U, concluding the statement.                                                                  ◀
+
+        Now we will prove the following lemma, which is sufficient to prove that u is locally
+     consistent:
+                                                                            ′                     ′
+      ▶ Lemma 52. For a consistent vertex u of type rT , suppose Su,p         ⋆ ̸= ∅ and 0 ∈  / Su,p ⋆.
+                                                                              u                      u
+              ⋆                                                i                          i
+     Define iu to be the minimum value i such that DC (u) is inconsistent, DC (u) =⊥ or
+      cout (DCi (u)) = X. Then:
+     1) i⋆u exists, and for every 0 ≤ i < i⋆u , DCi (u) is a consistent vertex of type rT colored U;
+S. Peng                                                                                                 37
+
+
+2) The cout constraint on u is satisfied, meaning that DC(u) is either ⊥ or colored using one
+   of the colors in {X, U, ⊥}, and LC(u) is not colored D if exists.
+          ⋆
+3) If DCiu (u) is colored X, then
+                                   ⋆                                 
+                                    iu
+                         ⋆         M
+       bout (u) = b′ (DCiu (u)) ⊕     (bin (DCj (u)) ⊕ b′′ (DCj (u))) ,                 (14)
+                                          j=0
+
+                                                                               ⋆
+   where b′ and b′′ are defined in Equations (7) and (8); otherwise, if DCiu (u) is inconsistent
+          ⋆
+   or DCiu (u) =⊥, then
+                    i⋆
+                     u −1
+                    M
+       bout (u) =           (bin (DCj (u)) ⊕ b′′ (DCj (u))).                                    (15)
+                    j=0
+
+Proof. We prove the statement by induction on p⋆u . This means that, to show the statement
+for a vertex u, we assume that the induction hypothesis holds for every consistent vertex
+                                                                         j⋆
+u′ of type rT with p⋆u′ < p⋆u . Let j ⋆ = min Su,p   ′
+                                                         ⋆ and w = DC
+                                                         u
+                                                                            (u), then j ⋆ ≥ 1. TryT
+then checks whether SolveHCT (w, N1 , Nu /2) ̸= (D, 0), and enters one of the two branches
+                                             ⋆
+starting at lines 13 and 16. As Nu = 2pu N1 , this is equivalent to checking whether p⋆w < p⋆u .
+    Consider first the branch where SolveHCT (w, N1 , Nu /2) ̸= (D, 0). Then, according to
+condition (i) for SolveHCT , the label returned by this call is the output label of w, and we
+know p⋆w < p⋆u . The case where cout (w) = Cyc cannot exist: as otherwise the DC cycle from
+w should pass u, and cout (u) should also be Cyc according to Lemma 49, a contradiction.
+p⋆w < p⋆u implies that cout (w) ̸= D, thus w is colored X or U.
+    If w is colored X, we set i⋆u = j ⋆ . Lemma 51 shows that for all 0 ≤ j < j ⋆ , cout (DCj (u)) =
+U, so j ⋆ is the correct value for i⋆u . If w is colored U, w receives this label from two possible
+places: one is from the backup label produced by TraverseT , in which, according to the
+                                                                  ⋆
+proof in Lemma 49, there exists a value i⋆w such that DCiw (w) is inconsistent or ⊥ and all
+                                ⋆
+vertices between w and DCiw −1 (w) are colored U. As a result, i⋆u exists and equals j ⋆ + i⋆w .
+                          ′                       ′                            ⋆     ⋆
+The final case is that Sw,p  ⋆ =
+                             w
+                                 ̸ ∅ and 0 ̸∈ Sw,p   ⋆ . In this case, since pw < pu , we can apply
+                                                     w
+                                      ⋆                 ⋆    ⋆     ⋆
+the induction hypothesis to get iw , and assign iu = iw + j . The arguments above in sum
+prove item 1).
+    The item 2 in the cout constraint on u follows because DC(u) is either ⊥, inconsistent,
+or colored X when i⋆u = 1, and colored U when i⋆u > 1; also, the successful CollectT call
+implies that LC(u) is not colored D if it exists, so item 5 in the cout constraint is also satisfied.
+This proves item 2).
+    For items 3), notice that the CollectT call in this branch uses parameter (u, j ⋆ −
+1, N1 , Nu ), and it returns a bit B because TryT (u, N1 , p⋆u ) succeeds. By Lemma 47, the
+algorithm returns bout (u) = bout (w) ⊕ B with
+          ⋆
+         jM −1
+                 bin (DCi (u)) ⊕ b′′ (DCi (u)) .
+                                              
+    B=
+          i=0
+
+    If w is colored X, then substituting Equation (6) for w proved in Lemma 50 gives
+Equation (14). If w is colored U and receives the backup label from TryT (w, N1 , p⋆w ), the
+                                             Li⋆w −1
+proof of Lemma 49 implies that bout (w) = i=0        (bin (DCi (w)) ⊕ b′′ (DCi (w))), and this gives
+                                                                          ′                     ′
+Equation (15). Finally, the case where w receives a label since Sw,p        ⋆ ̸= ∅ and 0 ̸∈ Sw,p⋆
+                                                                            w                     w
+follows from the induction hypothesis.
+    It remains to consider the branch where SolveHCT (w, N1 , Nu /2) = (D, 0). In this
+                                       ′                                                        ′
+case, we know p⋆w ≥ p⋆u . Since j ⋆ ∈ Su,p ⋆ , the consistent sampling implies that 0 ∈ Sw,p⋆ .
+                                           u                                                      u
+38   New LCL Complexity Classes for LCAs
+
+
+     Moreover, CollectT (w, 0, N1 , Nu ) will succeed since it collects a subset of bits compared
+     to the successful call CollectT (u, j ⋆ , N1 , Nu ). As a result, from Lemma 50, we know that
+     p⋆w = p⋆u , the output color for w will be X, and its local constraints are satisfied.
+         We set i⋆u = j ⋆ , then Lemma 51 immediately implies item 1). Also, the successful
+     CollectT (u, j ⋆ , N1 , Nu ) call implies that LC(u) is not colored D if it exists, so the cout
+     constraint on u is satisfied, implying item 2).
+         For item 3), notice that the successful CollectT (u, j ⋆ , N1 , Nu ) call returns a bit B with
+                ⋆
+              j
+              M
+                    bin (DCj (u)) ⊕ b′′ (DCj (u))
+                                                 
+        B=
+              j=0
+
+
+     according to Lemma 47. At the same time, condition (i) for SolveHCT implies that the bit
+     b⋆ obtained from PrepareT (RC(w), N1 , N ) is exactly b′ (w). Since TryT (u, N1 , p⋆u ) returns
+     b⋆ ⊕ B, this gives Equation (14).                                                            ◀
+
+        Wrapping up, we are finally able to show condition (ii) for SolveHCT .
+
+     ▶ Lemma 53. SolveHCT satisfies condition (ii) in Definition 40.
+
+     Proof. Fix N2 ≥ N1 and consider the output labeling generated by SolveHCT (u, N1 , N2 ).
+     Inconsistent vertices, vertices of type ⊥, and vertices in ΠTHC  L
+                                                                        or ΠTHC
+                                                                              R
+                                                                                sub-instances satisfy all
+                                                            T
+     relevant constraints by the definition of Prepare and the induction hypothesis. Hence it
+     remains to consider a consistent vertex u with t(u) = rT .
+         If SolveHCT (u, N1 , N2 ) returns (D, 0), then the only possible violation is item 4 in the
+     constraint on cout , which is explicitly allowed in condition (ii). Otherwise p⋆u is defined. If
+     TryT (u, N1 , p⋆u ) returns the backup label from TraverseT , the constraints on u are satisfied
+                                                      ′
+     by Lemma 49. Otherwise Su,p⋆u ̸= ∅. If 0 ∈ Su,p    ⋆ , constraints on u are satisfied by Lemma 50.
+                                                        u
+                                     ′                    ′
+     The remaining case is that Su,p    ⋆
+                                        u
+                                          ̸ = ∅ and 0 ∈
+                                                      / Su,p⋆u
+                                                               , which is handled by Lemma 52. These
+     lemmas cover every possible cases, so condition (ii) follows.                                     ◀
+
+        Now we proceed to conditions (iii) and (iv).
+
+     ▶ Lemma 54. SolveHCT satisfies condition (iii) in Definition 40.
+
+     Proof. Let N2 ≥ max(N1 , n⋆ ), and let u be a consistent vertex with t(u) = rT . Set
+     p = ⌈log2 (N2 /N1 )⌉ and N = 2p N1 , then N2 ≤ N ≤ 2N2 , and in particular N ≥ n⋆ . Consider
+     the call TryT (u, N1 , p), we will show that this call must return a label rather than a failure,
+     so the output label for u is not (D, 0).
+         First of all, for every CollectT call during TryT (u, N1 , p), all ΠTHC L
+                                                                                   sub-instances are
+                                                         ⋆
+     vertex-disjoint, so their total size is at most n ≤ N . According to Lemma 47, every
+     CollectT call will succeed.
+         Now consider every possibility that u gets a label. If TraverseT (u, N1 , N ) reaches a
+     terminating event (i.e. reaching ⊥, an inconsistent vertex, or returning to itself) and produces
+     a backup label, the corresponding CollectT call always succeed, so a backup label other
+     than (D, 0) is produced. This means that, when Su,p     ′
+                                                                = ∅, TryT (u, N1 , p) still output a
+     label other than (D, 0). When Su,p ′
+                                           ̸= ∅, TryT always outputs a label other than (D, 0) no
+                                      T
+     matter the result of SolveHC (w, N1 , N/2) is.
+         For the other case that TraverseT (u, N1 , N ) does not produce a backup label, according
+     to Lemma 45, there is an index j ∈ Su whose attached ΠTHC      R
+                                                                      sub-instance has size at most
+     n /N1 . Prepare (RC(DC (u)), N1 , N ) will invoke AR (RC(DCj (u)), ⌈N11−β ⌉, ⌈N N1−β ⌉).
+       ⋆   β              T         j
+
+     As ⌈N11−β ⌉ ≤ ⌈N N1−β ⌉ and n⋆ /N1β ≤ ⌈N N1−β ⌉, condition (iii) for AR implies that this AR
+      S. Peng                                                                                           39
+
+
+                                                     ′
+      call returns a label other than (D, 0). Hence Su,p is nonempty, and TryT outputs a label
+      other than (D, 0) following the same argument as above.                               ◀
+
+      ▶ Lemma 55. SolveHCT satisfies condition (iv) in Definition 40.
+
+     Proof. Apart from the induction hypothesis for AL and AR , we apply an induction on d to
+     prove the following three claims simultaneously for the current instance of size n⋆ :
+   A(d) For every 0 ≤ r ≤ d,
+
+             TryT (u, N1 , r) uses O(2r N1α logdT n) probes.
+
+ Ball (d) For every N1 ≤ N2 ≤ N1 2d and every vertex u,
+
+             SolveHCT (u, N1 , N2 ) uses O(N2 N1α−1 logdT n) probes.
+
+Broot (d) For every N1 ≤ N2 ≤ N1 2d and every consistent vertex u with t(u) = rT ,
+
+             SolveHCT (u, N1 , N2 ) uses O(max(N1 , n⋆ )N1α−1 logdT n) probes.
+
+      The claims Ball (d) and Broot (d) for all d ≥ 0 are exactly the two bounds in condition (iv).
+      The base case for d = −1 is trivial. We show Ball (d − 1) ⇒ A(d), and then A(d) ⇒ Ball (d)
+      and Broot (d), concluding the induction.
+         We first show Ball (d − 1) ⇒ A(d). Fix 0 ≤ r ≤ d and set N = 2r N1 . Consider the
+      subroutines that TryT (u, N1 , r) calls. It makes only constantly many CollectT calls, each
+      with budget
+
+         O(N N1α−1 logdT n) = O(2r N1α logdT n).
+
+      The TraverseT call uses O(N1β ) ≤ O(N1α ) ≤ O(N1α ) probes. For each sampled index
+      j ∈ Su , the call to PrepareT (RC(DCj (u)), N1 , N ) is either handled directly in O(1) probes,
+      or invokes AR (RC(DCj (u)), ⌈N11−β ⌉, ⌈N N1−β ⌉). By induction hypothesis, applying (12) for
+      AR , we know that each of these calls costs
+                                                 
+            O N N1−β · N1
+                            (1−β)(q−1)
+                                       logdT −1 n                                     (dTR ≤ dT − 1)
+                                  
+          = O N N1α−1 logdT −1 n .        (−β + (1 − β)(q − 1) = −(q−p)      q−1       p−1
+                                                                   1+q−p + 1+q−p = 1+q−p = α − 1)
+
+
+      Since |Su | = O(log n) by Lemma 45, all calls together cost O(N N1α−1 logdT n). Finally, TryT
+      may call SolveHCT (w, N1 , N/2). If r = 0, this call returns immediately because N/2 < N1 .
+      Otherwise, Ball (d − 1) applies and gives cost
+
+         O((N/2)N1α−1 logdT n) = O(N N1α−1 logdT n).
+
+      In sum, TryT (u, N1 , r) has a cost of O(2r N1α logdT n). This proves A(d).
+          We now prove Ball (d) from A(d). The initial PrepareT (u, N1 , 2N2 ) may call one of AL
+      and AR . By Equation (12) applied to both AL and AR , the call AL (u, ⌈N11−β ⌉, 2N2 ) costs
+                 (1−β)(p−1)
+         O(N2 N1              logdTL n) = O(N2 N1α−1 logdT n),                      (Equation (10))
+
+      and the call AR (u, ⌈N11−β ⌉, ⌈2N2 N1−β ⌉) costs
+
+         O(N2 N1−β N1
+                      (1−β)(q−1)
+                                   logdTR n) = O(N2 N1α−1 logdT n).
+40   New LCL Complexity Classes for LCAs
+
+
+     If PrepareT returns a label, this proves Ball (d). Otherwise, u is a consistent vertex of type
+     rT , and SolveHCT runs TryT (u, N1 , r) over a geometric sequence of size guesses all the
+     way up to 2N2 . By A(d), the total cost of all these calls is O(N2 N1α−1 logdT n). This proves
+     Ball (d).
+         It remains to prove Broot (d) from A(d). Let u be a consistent vertex with t(u) = rT .
+     Then PrepareT (u, N1 , 2N2 ) returns ⊥ with O(1) probes. When N2 < n⋆ , Ball (d) already
+     implies Broot (d), so we consider the other case where N2 ≥ n⋆ . The proof of Lemma 54 shows
+     that TryT (u, N1 , r) succeeds as soon as 2r N1 ≥ n⋆ . Therefore the largest size guess used
+     by SolveHCT is O(max(N1 , n⋆ )), and the probe complexity forms a geometric sequence
+     according to A(d). As a result, they sum up to
+
+        O(max(N1 , n⋆ )N1α−1 logdT n),
+
+     which is the desired bound. This proves Broot (d) and completes the proof of condition
+     (iv).                                                                                ◀
+
+     Proof of Theorem 42. The proof is by induction on the size of T . The base cases are
+     Lemmas 43 and 44. For the induction part, assume that for some tree T there is a strong
+     algorithm for ΠTHC
+                      L
+                        and ΠTHC
+                               R
+                                 , then the algorithm is given by SolveHCT . For the conditions,
+     when all the events described in the start of the analysis section happens, which is of
+     probability at least 1 − n⋆ /n2 , all four conditions in Definition 40 are satisfied shown in
+     Lemmas 46 and 53–55.                                                                       ◀
+
+     5.5    Lower bound
+     We will show the lower bound via induction on a stronger claim that one specific output bit
+     in a dedicated distribution is indistinguishable for any deterministic LCA with o(nval(T ) )
+     probes.
+
+     ▶ Lemma 56. Let T ̸=⊥ be a good ordered binary tree. For every sufficiently large n, there
+     is a set ST,n of ΠTHC instances of size at most n with the following properties:
+        (i) All instances in ST,n have the same underlying graph and T -labeling, in which the
+            underlying graph is a degree-4 tree, every vertex is consistent, and there is a unique
+            root vertex x with t(x) = rT and P(x) =⊥;
+       (ii) For any instance I in ST,n , there exists bI ∈ {0, 1} such that any solution satisfying all
+            ΠTHC constraints for I must have bout (x) = bI . Define ST,nB
+                                                                            as the set of instances I in
+            ST,n with bI = B;
+      (iii) For any set V0 of vertices of size o(nval(T ) ), there exists a bijection fV0 between ST,n
+                                                                                                     0
+                  1
+            and ST,n , where for each I ∈ ST,n and u ∈ V0 , bin (u) is the same between I and fV0 (I).
+
+     Proof. We prove the lemma by induction on the size of T .
+         First, consider the base case T = •. S•,n contains all instances with the following property:
+     The underlying graph is a directed DC path u1 , u2 , . . . , un , where u1 = x; in the T -labeling,
+     all vertices have type rT , all LC and RC ports are ⊥. There is no constraint on bin inputs
+     on each vertex, so S•,n contains 2n instances, one different bin assignment per instance.
+         Condition (i) is satisfied by definition. Since rT is a leaf and a root, X and D are prohibited.
+     Moreover, no vertex can output Cyc. Thus, every legal solution colors each vertex with U,
+                                                Ln
+     and Equation (6) gives bI = bout (x) = i=1 bin (ui ). This proves condition (ii). Finally, for
+     any V0 of size o(n), choose w ∈  / V0 and map an instance to the instance obtained by flipping
+                                                                 0         1
+     only bin (w). This map is clearly a bijection between S•,n      and S•,n , and it preserves all input
+     bits on V0 . Hence condition (iii) holds.
+S. Peng                                                                                                41
+
+
+   Now assume that T ̸= •, and write
+                                                                    q−p
+   p = val(TL ),         q = val(TR ),     α = val(T ),       β=         .
+                                                                   1+q−p
+
+Since T is good, we have p < q. Let ℓ = Θ(nβ ) and m = Θ(n1−β ), and we define ST,n as all
+instances that can be generated by the following procedure:
+    Create a directed DC path x = u1 , u2 , . . . , uℓ of length ℓ, all of which have type rT .
+    Generate (A1 , . . . , Aℓ ) ∈ {0, 1}ℓ and define Si = Ai+1 ⊕ Ai+2 ⊕ · · · ⊕ Aℓ for 0 ≤ i < ℓ and
+    Sℓ = 0.
+    If TL =⊥, then for every vertex ui (1 ≤ i ≤ ℓ), set LC(ui ) =⊥ and bin (ui ) = Ai . Otherwise,
+    we set bin (ui ) = 0 and attach to LC(ui ) an arbitrary instance drawn from STALi ,m .
+    For every i ∈ [1, ℓ], attach to RC(ui ) an arbitrary instance drawn from STSRi ,m .
+For “attaching an instance to a port”, we mean creating a copy of the instance, making the
+port point to the root of the copy, and setting the parent port of that copied root back to
+the vertex ui . The constants hidden in Θ(·) are chosen so that the final instance has at most
+n and Θ(n) vertices. This completes the definition of ST,n .
+    According to the induction hypothesis, the structure and T -labeling of the attached
+instance is fixed, while the structure and T -labeling of the top-level DC path is also fixed.
+Hence all instances in ST,n have the same underlying graph and T -labeling, in which it is
+easy to prove that the graph is a tree, every vertex is consistent, and the only type-rT vertex
+with parent ⊥ is x = u1 . Thus condition (i) holds.
+    Now we consider condition (ii). Define the contribution of a vertex ui , denoted as c(ui ),
+as b′′ (ui ) ⊕ bin (ui ), where b′′ is defined in Equation (8). According to the construction,
+c(ui ) = Ai for each 1 ≤ i ≤ ℓ. Now, for any legal output, define k = min{i | cout (ui ) = X},
+and k = ∞ when there is no such i. Notice that Cyc is prohibited since there is no cycle in
+the instance. When k ̸= ∞, expanding Equation (6) gives
+
+   bout (x) = c(u1 ) ⊕ · · · ⊕ c(uk ) ⊕ Sk = A1 ⊕ · · · ⊕ Ak ⊕ Sk = ⊕ℓi=1 Ai .
+
+If k = ∞, then we have
+
+   bout (x) = c(u1 ) ⊕ · · · ⊕ c(uℓ ) = A1 ⊕ · · · ⊕ Aℓ = ⊕ℓi=1 Ai .
+
+In all, condition (ii) is satisfied by bI = ⊕ℓi=1 Ai .
+    It remains to prove condition (iii). Define Li and Ri as the ΠTHC  L
+                                                                          and ΠTHCR
+                                                                                      instance
+                                                                                    val(T )
+attached to ui , with Li = ∅ when TL =⊥. For a fixed set of vertices V0 of size o(n         ), let
+ViL = V0 ∩ Li and ViR = V0 ∩ Ri . We have
+
+   |ViR | = o(nα ) = o(nq(1−β) ) = o(mq ),
+
+so according to the induction hypothesis, for each i ∈ [1, ℓ] there exists a bijection fiR between
+ST0R ,m and ST1R ,m satisfying condition (iii) for ViR . Additionally, when TL ̸=⊥, we have
+
+                     ℓ
+                  1X L          o(nα )
+   min |ViL | ≤         |Vi | ≤        = o(nα−β ) = o(np(1−β) ) = o(mp ).
+     i            ℓ i=1           ℓ
+
+Take i⋆ = arg mini |ViL |, then according to the induction hypothesis, there exists a bijection
+fiL⋆ between ST0L ,m and ST1L ,m satisfying condition (iii) for ViL⋆ . For the case where TL =⊥,
+α = q/(1 + q) = β, so |V0 | = o(nβ ) and there exists some i⋆ where ui⋆ ̸∈ V0 . We let fiL⋆
+denote the operation that flips bin (ui⋆ ).
+42   New LCL Complexity Classes for LCAs
+
+
+                                                               0         1
+         Now we construct the bijection fV0 between ST,n           and ST,n . For each instance I in ST,n
+                                                                     TL
+     with bits A1 , A2 , . . . , Aℓ , we flip Ai⋆ by replacing the ΠHC instance attached to ui⋆ with its
+     image in fiL⋆ if TL =  ̸ ⊥, or by flipping bin (ui⋆ ) if TL =⊥. For every 1 ≤ i < i⋆ , the value Si
+     also flips, so we replace the ΠTHC     R
+                                              instance attached to ui with its image under fiR . All other
+     inputs are unchanged. This completes the construction.
+         Since fiL⋆ and all fiR are bijections, and the same components are changed when we apply
+     the map again, fV0 is an bijection. It remains to check that fV0 flips bI . According to the
+     induction hypothesis, the map changes exactly Ai⋆ and S1 , S2 , . . . , Si⋆ −1 . By following the
+     same analysis for condition (ii), we know that all solutions for fV0 (I) must have bout (x) = bI ⊕1,
+                                                   0         1
+     so fV0 is indeed a bijection between ST,n         and ST,n .
+         Finally, we show that I and fV0 (I) have the same input labels on V0 . For replaced ΠTHC        L
+
+             TR                                                                         L
+     and ΠHC copies, this follows from the induction hypothesis applied to Vi⋆ and to the sets
+     ViR . All other attached instances are identical. Vertices in the top DC chain keep the same
+     input when TL ̸=⊥, and when TL =⊥, the only input bit that changes is at ui⋆ ∈            / V0 . This
+     concludes condition (iii).                                                                         ◀
+
+     Proof of Lemma 37. Suppose for contradiction that there is a randomized LCA that solves
+     ΠTHC with o(nval(T ) ) probes and succeeds in every ΠTHC instance of size at most n with
+     probability larger than 1/2. Pick any distribution D over instances of size at most n.
+     According to Yao’s minimax principle, there is a deterministic LCA A with the same probe
+     bound that succeeds with probability larger than 1/2 over D.
+         Now set D to be a uniform distribution over ST,n . Since all instances in the support have
+     the same graph and T -labeling, the transcript of A(x) is determined by the set of probed
+     vertices and their bin values. Fix any possible transcript τ , and let V (τ ) be the set of vertices
+     probed in this transcript. We have |V (τ )| = o(nval(T ) ). Applying condition (iii) of Lemma 56
+                                          0         1
+     to V (τ ) gives a bijection between ST,n and ST,n  that preserves all input bits seen in τ . Since
+     all instances have the same probability of being chosen, and by condition (ii), a correct
+     output must have root bit bI , we have Pr[bI = 0 | τ ] = Pr[bI = 1 | τ ] = 1/2, and the success
+     probability of A over D is at most 1/2, a contradiction.                                          ◀
+
+
+      6     Discussion and Future Directions
+
+     In this section, we provide discussions and propose several possible future directions.
+
+
+     6.1    Unifying Constructions Between LOCAL and VOLUME
+     As we have mentioned in the introduction, our construction is completely different from the
+     previous approach to provide a similar result in the distributed LOCAL model [13].
+         The LOCAL constructions in [8, 13] encode the execution of some special Turing machines
+     into the graph, and the time complexity of such Turing machines will determine the round
+     complexity of the problem. The current realization of such encodings crucially relies on the
+     fact that each vertex reads all vertices in its local neighborhood and checks whether the
+     input graph follows certain nice structure locally, so the LCLs require Ω(n) probes in the
+     VOLUME and LCA model.
+         Conversely, our construction does not yield dense round complexities in the LOCAL model
+     for the polynomial regime. For the problem ΠTHC , follow the same argument in Section 2,
+     if the left and right children have complexity Θ̃(np ) and Θ̃(nq ), then the round complexity
+     for a top path of length ℓ will be Õ(min(ℓ + (n/ℓ)p , (n/ℓ)q )). The term balancing always
+S. Peng                                                                                             43
+
+
+gives Θ̃(n1/(p+1) ) round complexity for p < q, so the construction only gives Θ̃(n1/k ) round
+complexity for some positive integer k.
+    As a consequence, we raise the following open question to find a possible way to integrate
+density results in the LOCAL and VOLUME model.
+
+▶ Question 57. For any pair of rationals 0 < r/s < p/q < 1, construct a LCL Πr/s,p/q
+with round complexity Θ̃(nr/s ) in the LOCAL model and probe complexity Θ̃(np/q ) in the
+VOLUME or LCA model.
+
+
+6.2    LCAs and VOLUME Model
+From Observation 7, the VOLUME model is an LCA with additional locality restrictions.
+However, are these additional restrictions necessary? Can we find a problem that separates
+LCAs and VOLUME algorithms? This question is trivial if we allow arbitrary problems to be
+under consideration (for example, consider the problem that each vertex in a graph needs to
+output the input label on vertex 1). But for LCLs, this question is still open.
+
+▶ Question 58. Provide an LCL that separates the LCA and VOLUME model more than
+polynomially, or prove that such an LCL does not exist.
+
+    The constraint of connectivity for the probe region is shown to be not important in [30]:
+Any randomized LCA A for an LCL can be transformed into another randomized LCA A′
+with polynomial probe complexity blowup, with the additional property that A′ always keeps
+its probed region a connected component in the graph. So the remaining question is to show
+whether the difference in randomness is important.
+    The question about different randomness models is also explicitly mentioned as an open
+question in [41]. There is work discussing the benefit of shared randomness in the distributed
+setting [12, 33], and it has been shown that in the LOCAL model, shared randomness helps
+exponentially for certain LCLs. Yet it is currently unknown whether this is also the case in
+the VOLUME model and LCAs.
+
+
+6.3    LCLs and CSPs
+The definition of LCLs is almost the same as that of finite-domain CSPs, except that LCLs
+are defined on bounded-degree constraint graphs. A natural question is whether it is possible
+to utilize existing tools in CSP complexity classification for LCL complexity classification.
+From decades of research, it turns out that the complexity of a CSP is largely related to its
+polymorphism, an important definition in universal algebra. See [15] for an introduction to
+the application of polymorphism in complexity theory and [14] for a literature review.
+    Previous work suggests indirect connections between universal algebra tools and dis-
+tributed graph algorithms: [23] applies universal algebra techniques to distributed CSPs [45],
+but the distributed model is not a standard one. An emergent line of research, connecting
+distributed graph algorithms with descriptive combinatorics [17, 18, 20, 31], may also have
+implicit connections to a universal algebraic approach [44]. Yet, we are not aware of a
+directly application of universal algebra to the classification of LCL complexities in standard
+distributed models. As a result, we raise the following question.
+
+▶ Question 59. Provide a way to apply a universal algebraic approach to LCL complexity
+classification in distributed settings, or provide evidence that these algebraic tools may not be
+suitable to classify LCLs.
+44   New LCL Complexity Classes for LCAs
+
+
+          References
+      1   Amirreza Akbari, Navid Eslami, Henrik Lievonen, Darya Melnyk, Joona Särkijärvi, and Jukka
+          Suomela. Locality in online, dynamic, sequential, and distributed graph algorithms. arXiv
+          preprint arXiv:2109.06593, 2021.
+      2   Noga Alon, Ronitt Rubinfeld, Shai Vardi, and Ning Xie. Space-efficient local computation
+          algorithms. In Proceedings of the twenty-third annual ACM-SIAM symposium on Discrete
+          Algorithms, pages 1132–1139. SIAM, 2012.
+      3   Amir Azarmehr, Soheil Behnezhad, Alma Ghafari, and Ronitt Rubinfeld. Stochastic matching
+          via in-n-out local computation algorithms. In Proceedings of the 57th Annual ACM Symposium
+          on Theory of Computing, pages 1055–1066, 2025.
+      4   Alkida Balliu, Sebastian Brandt, Yi-Jun Chang, Dennis Olivetti, Mikaël Rabie, and Jukka
+          Suomela. The distributed complexity of locally checkable problems on paths is decidable.
+          In Proceedings of the 2019 ACM Symposium on Principles of Distributed Computing, pages
+          262–271, 2019.
+      5   Alkida Balliu, Sebastian Brandt, Yi-Jun Chang, Dennis Olivetti, Jan Studenỳ, and Jukka
+          Suomela. Efficient classification of locally checkable problems in regular trees. arXiv preprint
+          arXiv:2202.08544, 2022.
+      6   Alkida Balliu, Sebastian Brandt, Fabian Kuhn, Dennis Olivetti, Timothé Picavet, and Gustav
+          Schmid. The distributed complexity landscape on trees depends on the knowledge about the
+          network size. arXiv preprint arXiv:2605.12787, 2026.
+      7   Alkida Balliu, Sebastian Brandt, Dennis Olivetti, Jan Studenỳ, Jukka Suomela, and Aleksandr
+          Tereshchenko. Locally checkable problems in rooted trees. In Proceedings of the 2021 ACM
+          Symposium on Principles of Distributed Computing, pages 263–272, 2021.
+      8   Alkida Balliu, Sebastian Brandt, Dennis Olivetti, and Jukka Suomela. Almost global problems
+          in the local model. arXiv preprint arXiv:1805.04776, 2018.
+      9   Alkida Balliu, Sebastian Brandt, Dennis Olivetti, and Jukka Suomela. How much does
+          randomness help with locally checkable problems? In Proceedings of the 39th Symposium on
+          Principles of Distributed Computing, pages 299–308, 2020.
+     10   Alkida Balliu, Filippo Casagrande, Francesco d’Amore, Massimo Equi, Barbara Keller, Henrik
+          Lievonen, Dennis Olivetti, Gustav Schmid, and Jukka Suomela. Distributed quantum advantage
+          in locally checkable labeling problems. In Proceedings of the 2026 Annual ACM-SIAM
+          Symposium on Discrete Algorithms (SODA), pages 1268–1308. SIAM, 2026.
+     11   Alkida Balliu, Keren Censor-Hillel, Yannic Maus, Dennis Olivetti, and Jukka Suomela. Locally
+          checkable labelings with small messages. arXiv preprint arXiv:2105.05574, 2021.
+     12   Alkida Balliu, Mohsen Ghaffari, Fabian Kuhn, Augusto Modanese, Dennis Olivetti, Mikaël
+          Rabie, Jukka Suomela, Jara Uitto, et al. Shared randomness helps with local distributed
+          problems. In Proceedings of the 52nd International Colloquium on Automata, Languages, and
+          Programming (ICALP) 2025, 2025.
+     13   Alkida Balliu, Juho Hirvonen, Janne H Korhonen, Tuomo Lempiäinen, Dennis Olivetti, and
+          Jukka Suomela. New classes of distributed time complexity. In Proceedings of the 50th Annual
+          ACM SIGACT Symposium on Theory of Computing, pages 1307–1318, 2018.
+     14   Libor Barto. The constraint satisfaction problem and universal algebra. Bulletin of Symbolic
+          Logic, 21(3):319–337, 2015.
+     15   Libor Barto, Andrei Krokhin, and Ross Willard. Polymorphisms, and how to use them, 2017.
+     16   Katalin Berlow, Anton Bernshteyn, Clark Lyons, and Felix Weilacher. Separating complexity
+          classes of lcl problems on grids. arXiv preprint arXiv:2501.17445, 2025.
+     17   Anton Bernshteyn. Distributed algorithms, the lovász local lemma, and descriptive combina-
+          torics. Inventiones mathematicae, 233(2):495–542, 2023.
+     18   Anton Bernshteyn and Felix Weilacher. Borel versions of the local lemma and local algorithms
+          for graphs of finite asymptotic separation index. Transactions of the American Mathematical
+          Society, 378(11):8183–8221, 2025.
+S. Peng                                                                                                45
+
+
+19   Nicolas Bousquet, Laurent Feuilloley, and Théo Pierron. How local constraints influence
+     network diameter and applications to lcl generalizations. arXiv preprint arXiv:2409.01305,
+     2024.
+20   Sebastian Brandt, Yi-Jun Chang, Jan Grebík, Christoph Grunau, Václav Rozhoň, and Zoltán
+     Vidnyánszky. Local problems on trees from the perspectives of distributed algorithms, finitary
+     factors, and descriptive combinatorics. arXiv preprint arXiv:2106.02066, 2021.
+21   Sebastian Brandt, Christoph Grunau, and Václav Rozhoň. The randomized local computation
+     complexity of the lovász local lemma. In Proceedings of the 2021 ACM Symposium on Principles
+     of Distributed Computing, pages 307–317, 2021.
+22   Sebastian Brandt, Juho Hirvonen, Janne H Korhonen, Tuomo Lempiäinen, Patric RJ Östergård,
+     Christopher Purcell, Joel Rybicki, Jukka Suomela, and Przemysław Uznański. Lcl problems on
+     grids. In Proceedings of the ACM Symposium on Principles of Distributed Computing, pages
+     101–110, 2017.
+23   Silvia Butti and Victor Dalmau. The complexity of the distributed constraint satisfaction
+     problem. Theory of Computing Systems, 68(4):838–867, 2024.
+24   Yi-Jun Chang. The complexity landscape of distributed locally checkable problems on trees.
+     arXiv preprint arXiv:2009.09645, 2020.
+25   Yi-Jun Chang. The distributed complexity of locally checkable labeling problems beyond
+     paths and trees. arXiv preprint arXiv:2311.06726, 2023.
+26   Yi-Jun Chang, Tsvi Kopelowitz, and Seth Pettie. An exponential separation between ran-
+     domized and deterministic complexity in the local model. SIAM Journal on Computing,
+     48(1):122–143, 2019.
+27   Yi-Jun Chang and Seth Pettie. A time hierarchy theorem for the local model. SIAM Journal
+     on Computing, 48(1):33–69, 2019.
+28   Yi-Jun Chang, Jan Studenỳ, and Jukka Suomela. Distributed graph problems through an
+     automata-theoretic lens. Theoretical Computer Science, 951:113710, 2023.
+29   Anubhav Dhar, Eli Kujawa, Henrik Lievonen, Augusto Modanese, Mikail Muftuoglu, Jan
+     Studenỳ, and Jukka Suomela. Local problems in trees across a wide range of distributed
+     models. arXiv preprint arXiv:2409.13795, 2024.
+30   Mika Göös, Juho Hirvonen, Reut Levi, Moti Medina, and Jukka Suomela. Non-local probes
+     do not help with graph problems. arXiv preprint arXiv:1512.05411, 2015.
+31   Jan Grebík and Václav Rozhoň. Local problems on grids from the perspective of distributed al-
+     gorithms, finitary factors, and descriptive combinatorics. Advances in Mathematics, 431:109241,
+     2023.
+32   Christoph Grunau, Václav Rozhoň, and Sebastian Brandt. The landscape of distributed
+     complexities on trees and beyond. In Proceedings of the 2022 ACM Symposium on Principles
+     of Distributed Computing, pages 37–47, 2022.
+33   Adar Hadad and Moni Naor. Shared randomness in locally checkable problems: The role of
+     computational assumptions. In 28th International Conference on Approximation Algorithms for
+     Combinatorial Optimization Problems, APPROX 2025 and the 29th International Conference
+     on Randomization and Computation, RANDOM 2025, page 50. Schloss Dagstuhl-Leibniz-
+     Zentrum für Informatik GmbH, Dagstuhl Publishing, 2025.
+34   Avinatan Hassidim, Yishay Mansour, and Shai Vardi. Local computation mechanism design.
+     ACM Transactions on Economics and Computation (TEAC), 4(4):1–24, 2016.
+35   Reut Levi, Moti Medina, et al. A (centralized) local guide. Bulletin of EATCS, 2(122), 2017.
+36   Yuting Li, Ryan Gabrys, and Farzad Farnoud. Constructing low-redundancy codes via
+     distributed graph coloring. arXiv preprint arXiv:2512.04197, 2025.
+37   Nathan Linial. Locality in distributed graph algorithms. SIAM Journal on computing,
+     21(1):193–201, 1992.
+38   Palma London, Niangjun Chen, Shai Vardi, and Adam Wierman. Distributed optimization
+     via local computation algorithms. ACM SIGMETRICS Performance Evaluation Review,
+     45(2):30–32, 2017.
+46   New LCL Complexity Classes for LCAs
+
+
+     39   Yishay Mansour, Aviad Rubinstein, Shai Vardi, and Ning Xie. Converting online algorithms
+          to local computation algorithms. In International Colloquium on Automata, Languages, and
+          Programming, pages 653–664. Springer, 2012.
+     40   Moni Naor and Larry Stockmeyer. What can be computed locally? In Proceedings of the
+          twenty-fifth annual ACM symposium on Theory of Computing, pages 184–193, 1993.
+     41   Will Rosenbaum and Jukka Suomela. Seeing far vs. seeing wide: Volume complexity of local
+          graph problems. In Proceedings of the 39th Symposium on Principles of Distributed Computing,
+          pages 89–98, 2020.
+     42   Ronitt Rubinfeld, Gil Tamir, Shai Vardi, and Ning Xie. Fast local computation algorithms.
+          arXiv preprint arXiv:1104.1377, 2011.
+     43   Gustav Schmid. Lcls beyond bounded degrees. arXiv preprint arXiv:2602.02340, 2026.
+     44   Riley Thornton. An algebraic approach to borel csps. arXiv preprint arXiv:2203.16712, 2022.
+     45   Makoto Yokoo, Toru Ishida, Edmund H Durfee, and Kazuhiro Kuwabara. Distributed constraint
+          satisfaction for formalizing distributed problem solving. In [1992] Proceedings of the 12th
+          International Conference on Distributed Computing Systems, pages 614–621. IEEE, 1992.
+

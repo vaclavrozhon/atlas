@@ -1,0 +1,1584 @@
+                                               Truly Tight-in-∆ Bounds for Bipartite
+                                               Maximal Matching and Variants
+
+                                               Sebastian Brandt · brandts@ethz.ch · ETH Zurich
+                                               Dennis Olivetti1 · dennis.olivetti@cs.uni-freiburg.de · University of Freiburg
+arXiv:2002.08216v1 [cs.DC] 19 Feb 2020
+
+
+
+
+                                                   In a recent breakthrough result, Balliu et al. [FOCS’19] proved a deterministic
+                                               Ω(min(∆, log n/ log log n))-round and a randomized Ω(min(∆, log log n/ log log log n))-
+                                               round lower bound for the complexity of the bipartite maximal matching problem on
+                                               n-node graphs in the LOCAL model of distributed computing. Both lower bounds are
+                                               asymptotically tight as a function of the maximum degree ∆.
+                                                   We provide truly tight bounds in ∆ for the complexity of bipartite maximal matching
+                                               and many natural variants, up to and including the additive constant. As a by-product,
+                                               our results yield a considerably simplified version of the proof by Balliu et al.
+                                                   We show that our results can be obtained via bounded automatic round elimination,
+                                               a version of the recent automatic round elimination technique by Brandt [PODC’19] that
+                                               is particularly suited for automatization from a practical perspective. In this context,
+                                               our work can be seen as another step towards the automatization of lower bounds in
+                                               the LOCAL model.
+
+
+
+
+                                           1
+                                             Part of this work was done while this author was supported by Aalto University, and the Academy of Finland,
+                                         Grant 285721.
+1    Introduction
+The maximal matching (MM) problem has been studied extensively in the field of distributed graph
+algorithms. In the LOCAL model of distributed computing [20, 24], the recent breakthrough by
+Balliu et al. [2] provided lower bounds for the complexity of MM that are asymptotically tight
+in the maximum degree ∆. More precisely, for n-node graphs, the authors prove lower bounds
+of Ω(min(∆, logloglogn n )) rounds for deterministic algorithms and Ω(min(∆, logloglogloglogn n )) rounds for
+randomized algorithms, while an upper bound of O(∆ + log∗ n) is known since almost two decades
+due to a result by Panconesi and Rizzi [23].
+    In other words, it is possible to solve MM in linear-in-∆ time by paying a small dependency on
+n, and we cannot do better as a function of ∆, unless we pay a high dependency on n. The lower
+bound results have been obtained by using the so-called round elimination technique to show that
+on infinite regular 2-colored trees the MM problem requires Ω(∆) rounds. This way of proving the
+lower bounds guarantees that they hold even for the bipartite maximal matching (BMM) problem.
+
+Our contributions In this work, we prove truly tight bounds for the complexity of BMM, i.e.,
+we prove that exactly 2∆ − 1 rounds are required. Moreover, we also prove tight bounds for
+natural variants of MM by showing that our lower bound technique is robust to changes in the
+description of the considered problem, and providing optimal algorithms to obtain tight upper
+bounds. As a by-product, we obtain a much simplified version of the proof for the celebrated lower
+bounds presented in [2], both in terms of the technical issues and the intuition behind the proof.
+Finally, we consider our work as an important step towards the automatization of lower bounds:
+we introduce the notion of bounded automatic round elimination, a special variant of the round
+elimination technique amenable to automatization, and show that our bounds can be obtained in a
+(semi-)automatable fashion via bounded automatic round elimination. This also provides another
+step in better understanding the round elimination technique—a tool that is responsible for most of
+the lower bounds in the LOCAL model [1, 2, 4, 7–10, 20, 21], but still poorly understood.
+
+Maximal matching and its variants               In this work, we will consider the following natural
+problem family (in the bipartite setting).
+
+Definition 1.1. (x-maximal y-matching) Given a graph G = (V, E), a set M ⊆ E is an x-maximal
+y-matching if the following conditions hold:
+
+    • Every node is incident to at most y edges of M ;
+
+    • If a node v is not incident to any edge of M , then at least min{deg(v), ∆ − x} neighbors of v
+      are incident to at least one edge of M .
+
+    This family of problems contains MM (by setting x = 0 and y = 1), and many interesting
+variants of it, obtained by relaxing the covering or the packing constraint of MM. While the results
+presented in [2] showed asymptotically tight bounds for MM as a function of ∆, no tight bounds
+are provided for relaxed variants of matchings.
+    How much easier does MM become if we allow each node to be matched with a constant number
+of neighbors, instead of just one? We know, for example, that in the non-bipartite setting Ω(log∗ n)
+rounds are required to solve MM [20], while as soon as we allow nodes to have two incident edges
+in the matching, the problem becomes solvable without any dependency on n [25], but it is not
+clear how this affects the dependency on ∆. How much easier does the problem become if we don’t
+require strict maximality? We will address these kinds of questions in this work and prove truly
+
+
+                                                     1
+tight bounds for MM and the whole family of x-maximal y-matching problems, in the bipartite
+setting. Note that tightness results of this kind require that the considered problems can be solved
+independently of n, which is the reason for our restriction to the bipartite setting.
+
+Round elimination In order to prove our lower bounds, we will make use of the round elimination
+technique, which works as follows. Start from a locally checkable problem Π, i.e., a problem where
+all nodes must output labels from some finite set, subject to some local constraints. Try to define a
+problem Π0 that is at least one round easier than Π (i.e., can be solved strictly faster in the LOCAL
+model). Then, repeat the process. If we prove that the result that we get after T steps of this
+process cannot be solved in 0 rounds of communication, then we directly obtain a lower bound of
+T + 1 rounds for the original problem Π.
+    This is not a new technique: it has been used by Linial roughly 30 years ago to prove a lower
+bound for 3-coloring a cycle [20]. However, after Linial’s result, the technique was apparently
+forgotten until it re-emerged in 2016, when it was used to prove lower bounds for sinkless orientation,
+∆-coloring, and the Lovász Local Lemma [8–10]. Since then, round elimination has been used to
+prove lower bounds for a number of different problems [1, 2, 4, 7]. More importantly, though, this
+technique can be automated in a certain sense.
+
+Automatic round elimination In a recent breakthrough result, Brandt [7] showed that, under
+certain conditions, given any locally checkable problem Π, we can automatically define a problem
+Π0 that is exactly one round easier than Π. Conceptually, this tremendously simplifies the task
+of applying round elimination to prove lower bounds in the LOCAL model: instead of having to
+find each subsequent problem that is one round easier than the previous one by hand, we can do
+the same by just mechanically applying certain operations. The main issue with automatic round
+elimination, and the reason why the result by Brandt does not immediately provide new lower
+bounds for all kinds of problems, is the growing description complexity inherent in each of the round
+elimination steps: If we start from a problem Π defined via a set of labels L (and certain output
+constraints), then the problem Π0 obtained after one step is defined via a subset of the label set
+2L . In other words, even if Π is some simple problem that can be described in a compact way, the
+description of the problem Π0 can be exponentially larger, and it may be difficult for a human being
+to understand and feasibly deal with the problems obtained after applying only a few of these steps.
+     The main approach for dealing with this issue is to find good relaxations, i.e., to reduce the
+description complexity of the obtained problem Π0 without losing too much round complexity: the
+goal is to transform Π0 into a problem Π∗ such that on one hand, Π∗ has a much simpler description
+than Π0 , while on the other hand, Π∗ is provably at least as easy as Π0 , but not much easier. If
+we can find such a relaxation after each round elimination step (and use the relaxed problem as
+the starting point for the next step), then the number of steps until we obtain a 0-round solvable
+problem still constitutes a lower bound for the problem.
+
+Bounded automatic round elimination One natural way to ensure that problems do not grow
+beyond some description complexity threshold is to fix a constant c, and after each step of automatic
+round elimination, relax the problem in a way that ensures that the obtained problem uses at most
+c labels in its description.
+    We propose the study of round elimination lower bounds that only require a constant number of
+labels as a major research program. Understanding better for which problems we can obtain lower
+bounds using this technique, and how good the lower bounds achieved in such a way can be, would
+not only help us to get a better handle on general automatic round elimination, but also has another
+
+
+                                                  2
+advantage: the bound on the number of labels ensures (in some sense) that the lower bound can be
+found automatically by a computer. The basic idea is that while the automatic round elimination
+technique can be used in theory to define a problem that is exactly k rounds easier than the original
+problem, for any k, this may be really hard to do in practice, since in each step the problem that
+we obtain can have an exponentially larger description than the old one. However, if we bound the
+number of labels to some (reasonably small) constant c, a computer can actually try all possible
+relaxations that give problems with at most c labels. If at least one obtained relaxation results in a
+sufficiently hard problem, by repeating this process we can obtain lower bounds automatically also
+in practice. We discuss this automatization in more detail in Section 7.
+    The bottom line is that understanding for which problems a round elimination proof with a
+restricted number of labels works would allow us to decide which problems to attack with the help
+of computers and for which problems this would simply be a waste of resources. Moreover, a more
+fine-grained understanding of which constant c (depending on the chosen problem) is required to
+obtain the largest possible lower bound, or more generally, how the obtained lower bound depends
+on the chosen constant c, would help to direct the use of resources in the most efficient way.
+    A very interesting example case is provided by the recent Ω(∆)-round2 lower bound for BMM
+by Balliu et al. [2]. Here, the authors use automatic round elimination with label number   √ restricted
+by a constant as part of their proof, but this part only yields a lower bound of Ω( ∆) rounds,
+that is subsequently lifted to a bound of Ω(∆) rounds by applying another technique on top of
+it. One important ingredient in our new lower bounds is to increase the chosen constant from 4
+to 5, which results in a direct Ω(∆)-round lower bound. Besides proving that bounded automatic
+round elimination can yield the full Ω(∆)-round lower bound, our result highlights how sensitive
+the achieved lower bound can be to the exact number of used labels. While the change from 4 to 5
+labels increases the difficulty in finding good relaxations after each round elimination step due to
+the substantially increased number of possible relaxations, the behavior of the obtained problem
+sequence is actually much easier to understand than   √ the one given in [2]. Together with the fact
+that we can omit the step in [2] that lifts their Ω( ∆)-round lower bound to Ω(∆) rounds, we
+obtain a considerably simplified proof for both the deterministic Ω(min(∆, logloglogn n ))-round and the
+randomized Ω(min(∆, logloglogloglogn n ))-round lower bound.
+
+Upper bounds Automatic round elimination is not only a tool to prove lower bounds; it can
+also be used to prove upper bounds. While, for technical reasons, the obtained upper bounds only
+hold on high-girth graphs, they can still give valuable insight into how a problem could possibly
+be solved in general. Furthermore, studying bounded automatic round elimination is also very
+interesting from an upper bound perspective, due to the fact that the bounded number of labels
+ensures that the resulting algorithm is bandwidth efficient, i.e., we do not only obtain an upper
+bound automatically, but the bound directly applies to the CONGEST model as well! While we
+will not prove it, we remark that the upper bounds that we provide in this work can be obtained
+using bounded automatic round elimination.
+
+Our results      We prove tight bounds for x-maximal y-matchings. Let
+                                (
+                                 2d(∆ − x)/ye,       if d∆/ye > d(∆ − x)/ye
+                    T∆ (x, y) =
+                                 2d(∆ − x)/ye − 1,   if d∆/ye = d(∆ − x)/ye .
+We will start by proving the following theorem.
+  2
+    Note that bounds obtained by round elimination are usually bounds in ∆. In order to transform these bounds
+into bounds in n, we simply have to consider graphs with suitably chosen ∆ (as a function of n).
+
+
+                                                      3
+Theorem 1.2. The x-maximal y-matching problem requires exactly T∆ (x, y) rounds for deterministic
+algorithms in the port numbering model, even on 2-colored ∆-regular balanced trees.
+
+    While an upper bound for the port numbering model directly implies also an upper bound for
+the LOCAL model, the same is not true for lower bounds. However, we will show that these bounds
+can be lifted to the LOCAL model, and obtain truly tight bounds in the LOCAL model for all
+combinations of x,y, and ∆. Moreover, we will examine how large ∆ can be, as a function of n,
+such that our lower bounds still hold:
+
+Theorem 1.3. For any k ≥ 1, and for large enough ∆ and n, any randomized algorithm for
+bipartite x-maximal y-matching that fails with probability at most 1/n in the LOCAL model requires
+                                               1 log log n                        1/k .
+at least T∆ (x, y) rounds, unless T∆ (x, y) ≥ 3k log log log n , or T∆ (x, y) ≤ ∆
+
+    Note that this theorem implies tight bounds for problems such as the ∆2 -maximal log ∆-matching
+problem, for graphs where ∆ is not too large as a function of n. While a randomized lower bound
+directly implies the same deterministic lower bound, we will show that we can get better deterministic
+bounds by relaxing our tightness requirements in ∆ from truly tight to asymptotically tight.
+
+Theorem 1.4. For any k ≥ 1, and for large enough ∆ and n, any deterministic algorithm for
+bipartite x-maximal y-matching in the LOCAL model requires Ω(min(T∆ (x, y), k1 log n/ log log n),
+unless T∆ (x, y) ≤ ∆1/k .
+
+1.1   Related Work
+The maximal matching problem has been widely studied in the literature of distributed computing.
+We know since the 80s that MM cannot be solved in constant time. In fact, the Ω(log∗ n) lower
+bound by Linial for 3-coloring a cycle [20] implies a lower bound also for MM. Naor proved that
+this lower bound holds also for randomized algorithms [21] .
+    Concerning upper bounds, we also know since the 80s that MM can be solved in O(log n) rounds
+using a randomized algorithm [16], and there has been a lot of effort in trying to obtain also
+good deterministic complexities. The first polylogarithmic deterministic algorithm was provided by
+Hanckowiak et al. [13], who showed that MM can be solved in O(log7 n) rounds. The same authors
+later improved the upper bound to O(log4 n) [14]. More recently, Fischer substantially improved
+this bound to O(log2 ∆ log n) [11]. If the degree of the input graph is small, there is a very efficient
+algorithm by Panconesi and Rizzi [23], that runs in O(∆ + log∗ n) rounds and thus matches, as a
+function of n, Linial’s lower bound. In the meantime, also the upper bound on the randomized
+complexity of MM has been improved. Barenboim et al. [5, 6] and Fischer [11] showed that MM
+can be solved in poly log log n time, by paying only an additive log ∆ dependency.
+    In 2004, Kuhn et al. [17, 18, p19] substantially improved Linial’s lower bound: they showed
+that MM cannot be solved in o( log n/ log log n + log ∆/ log log ∆), and this bound holds also for
+randomized algorithms. After that, different works made progress in obtaining a better understanding
+of the complexity of MM as a function of ∆. First, Hirvonen and Suomela [15] proved that if we
+are only given an edge coloring (but no IDs and no randomness) then indeed this problem requires
+Ω(∆) rounds. Then, a similar technique has been used to show an Ω(∆) lower bound for fractional
+matchings, under the assumption that the running time of the algorithm does not depend on n at
+all [12]. Finally, a lower bound for the LOCAL model has been proved by Balliu et al. [2], who
+showed that MM cannot be solved in o(∆ + log log n/ log log log n) by randomized algorithms and
+o(∆ + log n/ log log n) by deterministic ones.
+
+
+
+                                                   4
+2     Preliminaries
+2.1    Model of Computing
+In this work, we will mainly consider two different models of distributing computing, namely, the
+port numbering model and the LOCAL model.
+    In the port numbering model, we are given a graph G = (V, E), where nodes represent computing
+entities, and edges represent communication links. The computation is synchronous: all nodes start
+in the same round, and in each round each node can send a different message to each neighbor,
+receive messages sent by the neighbors, and perform some local computation. In this model, nodes
+are anonymous, that is, they have no IDs, but they can distinguish neighbors using port numbers.
+Each node v has deg(v) ports, and each edge is connected to a specific port. If an edge {u, v} ∈ E
+is connected to port i of node u and port j of node v, then node u can decide to send a message to
+its port number i, and the message will be received by node v on port j. That is, nodes can refer to
+ports.
+    Depending on the context, we may assume that nodes initially know the size of the graph n = |V |,
+and the maximum degree of the graph ∆. Also, in a randomized algorithm in the port numbering
+model, each node is provided with an unbounded number of private random bits. We say that a
+randomized algorithm succeeds with high probability if the output of all nodes is globally correct
+with probability at least 1 − 1/n. The running time of an algorithm is the number of communication
+rounds required before all nodes output their part of the solution.
+    The LOCAL model is defined similarly. The only difference is that in this case nodes are not
+anonymous, that is, they are provided with unique IDs in {1, . . . , nc } for some constant c ≥ 1.
+
+2.2    Automatic Round Elimination
+In order to obtain our lower bounds we will make use of the automatic round elimination framework
+developed in [7], in the bipartite formulation used first in [2]. For any problem we will consider, the
+input will be a ∆-regular bipartite graph. As we will prove lower bounds, this does not restrict the
+generality of our results. We refer to the nodes on one side of the bipartition as white nodes and
+the nodes on the other side as black nodes. Each node is aware of the bipartition, i.e., it knows
+whether it is a white or a black node.
+
+Problems In the bipartite round elimination framework (which, for simplicity, we will describe
+only for ∆-regular graphs), a problem Π is formally given by an alphabet Σ, a white constraint W ,
+and a black constraint B. Both W and B are a collection of words of length ∆ over the alphabet Σ,
+where technically each word is to be considered as a multiset, i.e., the order of the ∆ elements in a
+word does not matter and the same element can appear repeatedly in a word. A correct output for
+Π is a labeling of the edges of the input graph with one label from Σ per edge such that
+
+    1. the white constraint is satisfied, i.e., for each white node u, the output labels assigned to the
+       ∆ edges incident to u form a word from W , and
+
+    2. the black constraint is satisfied, i.e, for each black node v, the output labels assigned to the ∆
+       edges incident to v form a word from B.
+
+Each word in W is called a white configuration, and each word in B a black configuration. To
+succinctly represent multiple configurations in one expression, we will make use of regular expressions,
+e.g., we will write [M ][P O]∆−1 to describe the collection of all configurations consisting of exactly one
+M , and a P or an O at every other position. For simplicity, we will also call such a regular expression
+
+                                                    5
+a (white or black) configuration. Where required, we will clarify which kind of configuration is
+considered by using the terms single configuration and condensed configuration (the latter indicating
+a regular expression). Moreover, we will use the term disjunction to refer to parts of a regular
+expression describing that each choice of a subset of labels is valid, such as [P O]. Notice that the
+encoding of a problem can look quite different if its configurations are condensed in different ways.
+This is just a syntactic difference: if two different sets of condensed configurations generate the
+same set of single configurations, then the two sets encode the same constraint.
+    We remark that even though we only consider ∆-regular graphs, it is possible to also encode
+locally checkable problems that are not only defined on ∆-regular graphs in a similar way. We also
+note that if we restrict attention to trees or high-girth graphs, any locally checkable problem can
+be described in this form. In fact, by increasing the number of labels, it is possible to encode any
+output constraint that depends on the constant-radius neighborhood of each node. In the remainder
+of the paper, we will use the term “locally checkable problem” (or simply “problem”) to refer to
+problems of the above kind.
+
+Example Let us look at an example that shows how to encode BMM. In BMM we basically have
+to ensure two constraints: a node cannot have two incident edges in the matching, and if a node
+does not have any incident edge in the matching, then all its neighbors must have at least one.
+    We start by defining the white constraints as follows:
+
+                                              MO∆−1
+                                              P∆
+
+
+In other words, a white node either outputs M on an edge (the matched edge) and O on all the
+others, or it outputs P (pointer) on all edges. We now need to ensure that the pointers reach only
+matched black nodes. Thus, we define black constraints as follows:
+
+                                             M[OP]∆−1
+                                             O∆
+
+
+That is, a black node accepts a pointer only if one of its edges is labeled as M. Clearly, a solution
+satisfying these constraints is a matching (two Ms are never allowed). Maximality is guaranteed by
+the following observations:
+
+   • In order for white nodes to not be matched, they need to write P on all edges. These Ps must
+     reach matched black nodes, since on the black side Ps are accepted only if an M is present.
+
+   • In order for black nodes to not be matched, they need to have all edges marked with the label
+     O, and Os are written by white nodes only if they are matched.
+
+Technically, what we defined is not exactly BMM: if we are given a solution for BMM, where the
+edges are either marked to be part of the matching or not, we do not have edges marked with
+pointers. Nevertheless, white nodes can produce these pointers in 0 rounds. That is, the problem
+that we defined is equivalent to BMM.
+
+
+
+
+                                                   6
+Algorithms We will distinguish between white algorithms and black algorithms. In a white
+algorithm, each white node decides on the output labels for all incident edges whereas black nodes
+take part in the usual communication but have no say in deciding on the output; in a black algorithm,
+the roles are reversed. The white complexity (resp. black complexity) of a given problem is the
+usual time complexity of the problem where we restrict attention to white algorithms (resp. black
+algorithms). White and black complexities cannot differ by more than one round as any white node
+can inform any black neighbor of the intended output label for the connecting edge, and vice versa.
+    Notice that if we consider, e.g., a white algorithm, black nodes do not actually need to know the
+output given by white nodes. If we consider the more standard assumption where both nodes that
+are incident to the same edge know the output for that edge, we see that such an algorithm requires
+at most one round more than what is required by either a white or a black algorithm. However, in
+the bipartite round elimination framework, such algorithms require an extra step of argumentation
+which we omit for simplicity, by considering only white and black algorithms. We emphasize that
+the tightness of our MM bound does not depend on this choice, just the bound itself: in the setting
+where both endpoints of an edge have to know the output for that edge, the tight bound is 2∆,
+instead of 2∆ − 1.
+
+Round Elimination Theorems The automatic round elimination theorem given in [7, Theorem
+4.3], roughly speaking, states that for any locally checkable problem Π, there exists another locally
+checkable problem Π0 that can be solved exactly one round faster if we restrict attention to high-girth
+graphs, i.e., graphs where the cycle of smallest length is sufficiently long. A useful fact observed in
+[2] is that the given proof also extends to the case of hypergraphs, and hence can also be phrased in
+the context of bipartite graphs, by interpreting nodes as one side of the bipartition and hyperedges
+as the other side. In order to satisfy the conditions of [7, Theorem 4.3], we will restrict our attention
+to the class of regular, bipartite graphs with a girth of at least 4∆ + 2, for the remainder of the
+paper. We will see that our lower bounds hold already for this restricted graph class. Now, we can
+formulate [7, Theorem 4.3] in our setting as follows.3
+Theorem 2.1 ([7], rephrased). Let Π be a locally checkable problem with white (resp. black)
+complexity T (n, ∆). Then there exists a locally checkable problem RB (Π) (resp. RW (Π)) with black
+(resp. white) complexity min{0, T (n, ∆) − 1}.
+   The problem RB (Π) is constructed explicitly in [7]. Translated to our setting, we obtain RB (Π)
+from Π as follows.
+   Let ΣΠ , WΠ , and BΠ denote the alphabet, white constraint, and black constraint of Π. The
+alphabet ΣRB (Π) of RB (Π) is simply the set 2ΣΠ of all subsets of ΣΠ . In order to describe the
+black constraint of RB (Π), we first construct an intermediate collection B 0 of configurations over
+ΣRB (Π) . Let B 0 be the collection of all configurations F1 , . . . , F∆ with Fi ∈ 2ΣΠ such that for each
+choice f1 ∈ F1 , . . . , f∆ ∈ F∆ of labels from ΣΠ , it holds that f1 , . . . , f∆ is a configuration in BΠ .
+We now obtain BRB (Π) from B 0 by removing all configurations F1 , . . . , F∆ that are not maximal,
+   3
+    For the reader interested in the technical subtleties of our rephrasing, four remarks are in order: 1) The edge
+orientations prescribed in [7, Theorem 4.3] are simply given by the port numberings (of the nodes on one side of the
+bipartition) in our setting. 2) In our setting the nodes do not see the port numbering of adjacent nodes in a 0-round
+algorithm, while the nodes in [7] do see the edge orientations; however, it is straightforward to check that the proof is
+not affected by this change. 3) If Π can be solved in 0 rounds, then the proof of [7, Theorem 4.3] ensures that this
+also holds for Π0 ; hence we can replace the condition of a strictly positive complexity of Π by a minimum expression.
+4) As the nodes on one side of the bipartition in our setting correspond to (hyper)edges in the original setting, the
+step from Π to RB (Π) (resp. RW (Π)) in our setting corresponds either to the first step from Π to the intermediate
+problem Π1/2 given in the proof of [7, Theorem 4.3], or to the step from Π1/2 to the final problem Π1 (depending on
+whether we consider white or black nodes as (hyper)edges).
+
+
+                                                           7
+i.e., for which it is possible to obtain another configuration from B 0 by adding elements to the Fi
+(more precisely, at least one element to at least one of the Fi ). Since the above removal process
+ensures that for each non-maximal configuration there always remains a “super-configuration” in
+the collection, the order in which the non-maximal configurations are removed does not matter.
+     Similarly, to obtain WRB (Π) , we first construct an intermediate collection W 0 of configurations
+over ΣRB (Π) . Let W 0 be the collection of all configurations F10 , . . . , F∆
+                                                                              0 with F 0 ∈ 2ΣΠ such that
+                                                                                               i
+there exists a choice f10 ∈ F10 , . . . , f∆
+                                           0 ∈ F 0 of labels from Σ such that f 0 , . . . , f 0 is a configuration
+                                                ∆                  Π           1             ∆
+in WΠ . We now obtain WRB (Π) from W 0 by removing each configuration that contains some set Fi0
+that does not appear in any of the configurations in the black constraint BRB (Π) .
+     So, roughly speaking, apart from some simplifications on top of it, we obtain the new black
+constraint by “applying” the universal quantifier to the old black constraint, and the new white
+constraint by “applying” the existential quantifier to the old white constraint.
+     We define RW (Π) analogously to RB (Π), with the only difference that the role of white and
+black is reversed. The following observation follows immediately from the definition of our functions
+RB () and RW ().
+Observation 2.2. Let Π be some problem, and assume we have already computed the black constraint
+of RB (Π) (resp. the white constraint of RW (Π)). Then the white constraint of RB (Π) can be obtained
+by iterating through the white configurations of Π and replacing in each configuration each label L by
+the disjunction of all sets that occur in the black constraint of RB (Π) and contain label L. Similarly,
+the black constraint of RW (Π) can be obtained by iterating through the black configurations of Π
+and replacing in each configuration each label L by the disjunction of all sets that occur in the white
+constraint of RW (Π) and contain label L.
+    As the alphabet of a problem obtained by applying the function RB () (resp. RW ()) consists of
+sets of the original labels, we will need to be careful with notation. In order to clearly distinguish the
+set consisting of some labels X, Y, Z from the disjunction [XYZ], we will write it as XYZ . Moreover,
+we say that a configuration F1 , . . . , F∆ consisting of sets of labels can be extended to a configuration
+C if C can be obtained from F1 , . . . , F∆ by adding (potentially everywhere 0) elements to the sets Fi .
+
+Example We will now show an example of the application of this technique. We will consider
+the bipartite sinkless orientation problem [8], where white constraints can be simpliy described as
+B[AB]∆−1 , and black constraint can be described as A[AB]∆−1 . Intuitively, the label A represents
+an edge oriented from black to white, while B represents an edge oriented from white to black, and
+the constraints require both black and white nodes to have at least an outgoing edge: B for white
+nodes and A for black nodes.
+    We start by applying the universal quantifier on the black constraint. Essentially, we must forbid
+all words where all the ∆ sets contain a B, otherwise it would be possible to pick the configuration
+B∆ that is not allowed by the black constraint. Hence, we obtain the following:
+                                                            ∆−1
+                                                A [ A B AB ]
+
+We can now apply maximality, and since in the disjunction [ A B AB ] the label AB strictly contains
+all the others, we get the following:
+                                                            ∆−1
+                                                    A AB
+
+We can now apply the existential quantifier on the white constraint. The white constraint basically
+requires to be able to pick at least one B, hence, we now need at least one set containing a B:
+                                            [ B AB ][ A B AB ]∆−1
+
+
+                                                        8
+By removing labels that are not used in the universal step, we get the following:
+                                                        ∆−1
+                                             AB [ A AB ]
+
+
+We can now rename the sets to obtain something more readable. We can use the following renaming:
+
+                                                 A   →A
+                                                AB   →B
+
+Thus, the black constraint of RB (Π) can be described as AB∆−1 , while the white constraint can be
+described as B[AB]∆−1 .
+
+Relaxations As mentioned in the introduction, a crucial part of successfully applying automatic
+round elimination is to find good relaxations of problems. We say that a problem Π0 is a white
+relaxation of a problem Π if there is a 0-round white algorithm that transforms any arbitrary correct
+output for Π into a correct output for Π0 . More specifically, in this 0-round algorithm, each white
+node sees, for all incident edges e, the given output label (for Π) on e, and its task is to relabel each
+incident edge (possibly with the same label as before) such that the global output is correct. We
+define a black relaxation analogously. It immediately follows from the definition that the relaxation
+of a relaxation of a problem is again a relaxation of the problem.
+    A simple way to find a relaxation of a problem is to replace a fixed label everywhere by another
+label. Any white or black node can solve the new problem in 0 rounds given a solution to the old
+problem, by just performing the corresponding relabeling everywhere.
+
+Observation 2.3. Let Π be a problem, and K, L ∈ ΣΠ labels. Then replacing all occurrences of
+label K in both WΠ and BΠ by label L results in a problem Π0 that is a relaxation of Π.
+
+    A more interesting way to find relaxations of problems given via white and black constraints
+starts by ordering the labels occuring in the constraints according to their strength, which roughly
+corresponds to their usefulness for outputting a correct configuration. Consider the black constraint
+BΠ of some problem Π. For two labels K, L ∈ ΣΠ , we say that L is at least as strong as K (according
+to BΠ ) if for each K appearing in some configuration in BΠ , replacing that K by an L results again
+in some configuration in BΠ . Equivalently, we say that K is at least as weak as L (according to BΠ ),
+and write K ≤B L. If K is at least as weak as L, but L is not at least as weak as K, then we say
+that L is stronger than K, and K weaker than L. If K is at least as weak as L, and L is at least
+as weak as K, we say that K and L are equally strong. We define these concepts and notations
+analogously for white constraints. Now, we can use the strengths of labels to find relaxations as
+follows.
+
+Lemma 2.4. Let Π be a problem, and K, L ∈ ΣΠ labels such that L is at least as strong as K
+according to BΠ (resp. WΠ ). Then replacing an arbitrary number of labels K in WΠ (resp. BΠ ) by
+label L results in a problem Π0 that is a white (resp. black) relaxation of Π.
+
+Proof. For reasons of symmetry it is sufficient to prove the lemma for the case of replacing the
+labels in WΠ . We obtain a 0-round algorithm as required in the definition of a relaxation as follows.
+Given a solution to Π (on each incident edge), each white node v simply replaces as many incident
+occurrences of label K by L as have been replaced in the configuration the solution of Π around v
+corresponds to. This satisfies the white constraint by definition. But also the black constraint is
+satisfied since replacing occurrences of label K by L preserves that a configuration is contained in
+BΠ due to the fact that L is at least as strong as K, and BΠ0 = BΠ .
+
+                                                     9
+   Recall that the labels used to describe a problem obtained by applying the function RB () (resp.
+RW ()) to some problem Π are sets of labels of Π. The following observation follows immediately
+from the definition of RB () (resp. RW ()).
+Observation 2.5. Let Π be a problem, and K, L ∈ 2ΣΠ labels of the problem RB (Π) (resp. RW (Π)).
+If K ⊆ L, then L is at least as strong as K according to the white constraint of RB (Π) (resp. to the
+black constraint of RW (Π)).
+   To visualize the strengths of the labels according to the black (resp. white) constraint of a
+problem, we can draw a diagram as follows. For any two labels K, L ∈ ΣΠ , we draw an arrow from
+K to L if
+   1. K and L are equally strong, or
+
+   2. L is stronger than K and there is no label M such that M is stronger than K, and L is
+      stronger than M .
+We call the obtained diagram the black (resp. white) diagram of Π.
+
+Example Consider the following problem Π (for the curious reader, this problem is exactly 2
+rounds easier than BMM). The white constraint is the following:
+
+                                              MO∆−1
+                                              YP∆−1
+                                              XZO∆−2
+
+The black constraint is the following:
+
+                                         [MYX][PYOX]∆−1
+                                         [ZMPYOX][OX]∆−1
+
+The black diagram of Π is the following:
+                                              M        Y
+
+
+                                         Z                 X
+
+
+                                              P        O
+
+
+Notice that there is an arrow from Y to X, since each time Y is allowed in a black configuration, the
+label X is allowed as well. We can thus simplify the problem Π according to Lemma 2.4 using labels
+X and Y. In particular, we can replace all occurences of Y with X in the white constraint, and thus
+get rid of Y also in the black constraint. We obtain the following new white constraint:
+
+                                              MO∆−1
+                                              XP∆−1
+                                              XZO∆−2
+
+The new black constraint is the following:
+
+                                         [MX][POX]∆−1
+                                         [ZMPOX][OX]∆−1
+
+                                                  10
+White-Black Dualism So far, we have seen a number of definitions and results that have two
+versions: one for white nodes, algorithms, configurations, etc., and one for the black equivalent. In
+fact, the white and black versions are completely dual: they only differ in exchanging the role of
+white and black. Moreover, this behavior will hold throughout the entirety of the paper. Hence, we
+will use the following convention in the remainder of the paper.
+Convention 2.6. For simplicity, we will formulate any theorem and lemma for which there is a
+white and a black version only in one of the two versions. Moreover, by giving a theorem and lemma
+for which all ingredients are defined if we exchange the terms “white” and “black”, we implicitly
+state that also its dual version holds. We will refer to the dual of a stated theorem or lemma by
+simply referring to the theorem or lemma in its original version; the context in which the statement
+is referred indicates which version is meant.
+
+From the port numbering model to the LOCAL model The round elimination theorem
+can be used to get lower bounds for deterministic algorithms in the port numbering model, where it
+is assumed that nodes have no IDs and no access to random bits. The usual way [1, 2] to lift lower
+bounds obtained with this technique to the LOCAL model is the following. First, we incorporate
+the analysis of failure probabilities in the round elimination theorem, i.e., we show that if Π can be
+solved in T rounds using a white randomized algorithm with some failure probability p, then RB (Π)
+can be solved in T − 1 rounds using a black randomized algorithm with some failure probability p0 ,
+where p0 is not much larger than p. Using this version of the theorem, we can repeatedly apply round
+elimination, until either we get a 0 round solvable problem or we get a too large failure probability.
+This allows us to obtain a lower bound for randomized algorithms for the port numbering model,
+and since by using randomness it is also possible to generate unique IDs with high probability of
+success, then the same lower bound holds in the LOCAL model as well.
+    Notice that we do not have to actually prove a randomized version of Theorem 2.1: a randomized
+version of the round elimination theorem has been shown in [1], where it has also been shown that, if
+the number of labels is bounded at each step, then we can automatically lift a lower bound obtained
+with this technique to the LOCAL model.
+    Also, since a lower bound for randomized algorithms implies also a lower bound for deterministic
+algorithms, we immediately get as a corollary a lower bound for the LOCAL model for deterministic
+algorithms.
+    We can then get even better lower bounds for deterministic algorithms by exploiting known gap
+results: we know that for locally checkable problems some complexities are not possible, and if we
+get as lower bound a complexity T that falls into one of these gaps, we immediately get as new
+lower bound the smallest complexity T 0 , larger than T , for which the gap does not hold anymore.
+
+
+3    Roadmap
+In √
+   the breakthrough result of Balliu et al. [2], the round elimination technique yielded only an
+Ω( ∆) lower bound for BMM, and different techniques were necessary to lift the result to an Ω(∆)
+lower bound. One of our contributions is to show the reason why a full Ω(∆) lower bound was
+not achieved via round elimination: the relaxations performed at each step were too severe. In
+fact, the main issue of the approach in [2] is the following. After each step of round elimination,
+some simplifying relaxations are performed in order to obtain a problem that can be described
+using just 4 labels. By performing such simplifications, a special label called wildcard appears:
+this is a powerful label that can replace any other label in any configuration without invalidating
+the configuration. The issue is now the following: by performing a round elimination step on
+
+                                                 11
+a problem where valid configurations contain some number of wildcards, the obtained resulting
+problem contains configurations with√many more wildcards. In particular, the number of wildcards
+grows quadratically. Hence, after O( ∆) round elimination steps the obtained problem description
+contains so many wildcards that the problem is 0-round solvable.
+    What we can show is that, if we allow just one more label at each step, hence 5 instead of 4, then
+the number of wildcards does not grow at all; instead we obtain a linear growth on some parameter
+that controls how easy the problem is. In this way, for BMM, we can perform 2∆ − 1 steps of
+round elimination before getting to a 0-rounds solvable problem. Since we can also provide an upper
+bound with the same number of rounds, this implies that the simplifications that we perform are
+not making the problem easier at all: they produce a problem that is easier to describe but that
+has the same round complexity as the one before the respective simplification. We will actually
+prove a stronger result: using 5 labels we can prove exact bounds for the whole family of bipartite
+x-maximal y-matchings.
+    Hence, the family of problems that we provide in the lower bound proof really captures the
+essence of BMM and its variants: for each given variant of BMM and any i, we describe in a compact
+form a problem that is exactly i rounds easier than the given variant.
+
+Round elimination We start by defining a family of problems Ψ∆ (a, b, c), described by 3
+parameters. Then, we prove that the problem Ψ∆ (y, x, 0) is exactly 2 rounds easier than the
+bipartite x-maximal y-matching problem (recall that bipartite 0-maximal 1-matching is standard
+BMM). Then, we relate problems in the family: we will show that the problem Ψ∆ (a, c + a, b) is at
+least one round easier than Ψ∆ (a, b, c) (the results that we provide in the upper bound section will
+imply that Ψ∆ (a, c + a, b) is actually exactly one round easier than Ψ∆ (a, b, c)). In this way, we get
+a full characterization of all the problems in the family. Crucially, all the problems of the family are
+described using only 5 labels, and while the result of the round elimination technique may contain
+more than 5 labels, we will provide relaxations that allow us to map these problems back to this
+family.
+
+Lower bounds for bipartite x-maximal y-matchings We will then prove that, for some values
+of a, b, c, the problem Ψ∆ (a, b, c) cannot be solved in 0 rounds, and we will then show what lower
+bounds this implies for bipartite x-maximal y-matchings. In particular, we will obtain tight-in-∆
+lower bounds for the port numbering model.
+
+Upper bounds Then, we will prove upper bounds for the whole family of bipartite x-maximal
+y-matchings. These upper bounds will match exactly the lower bounds that we provided.
+
+Lifting the bounds to the LOCAL model At this point we have lower bounds for plenty of
+variants of matchings, for the port numbering model. We now need to lift these bounds to the
+LOCAL model. The first step is to prove a randomized lower bound for the port numbering model,
+that directly implies a lower bound for the LOCAL model as well, since it is possible to generate
+unique IDs in constant time. Then, while a randomized lower bound directly implies a deterministic
+lower bound, we will obtain a better deterministic lower bound using standard techniques.
+
+Behind the scenes We will then informally discuss about what we mean by automatic lower
+and upper bounds. We will briefly explain how, part of our results concerning both lower and upper
+bounds can be actually obtained automatically, not in theory but also in practice.
+
+
+
+                                                  12
+Open questions We will finally conclude with some open questions regarding round elimination,
+and in particular about how different can be lower bounds obtained by using bounded automatic
+round elimination, compared to what can be obtained by using the standard version of round
+elimination for the same problem.
+
+
+4    Lower Bounds
+In this section, we will prove a lower bound for BMM that we will show to be tight in the LOCAL
+model in Sections 5 and 6. In particular, our lower bound holds even in the restricted setting of
+∆-regular trees. In order to obtain this bound, we will define a family F of problems that will help
+us to describe the behavior of BMM in the round elimination framework. As it turns out, our way
+of proving a lower bound via such a family of problems is very robust: we can also obtain tight lower
+bounds for very natural variants of BMM by generalizing our problem family. In fact, we believe
+that the general lower bound idea should also work for many other variants of BMM; however we
+will only give an explicit proof for the variants we consider to be the most natural extensions of
+BMM, namely those obtained by relaxing the packing and/or covering constraint used to define
+BMM. To be more precise, if we relax the packing constraint, we allow each node to be matched
+with up to y many neighbors, for some parameter y, and if we relax the covering constraint, we
+allow each unmatched node to have up to x neighbors that are unmatched themselves, giving rise
+to the already defined notion of x-maximal y-matchings. BMM appears as a special case in this
+family, where we set x = 0 and y = 1; hence we will only give a general proof for the whole family
+and obtain the proof for BMM as a special case.
+     In order to obtain the desired lower bounds for all problems in this family, we define the
+aforementioned problem family F (or more precisely, its extension that also describes the behavior
+of all bipartite x-maximal y-matching problems), parameterized (for each fixed ∆) by three values
+a, b, c. For each 1 ≤ a ≤ ∆ − 1 and 0 ≤ b, c ≤ ∆ such that a + b ≤ ∆ and a + c ≤ ∆, denote by
+ΨW                    B
+  ∆ (a, b, c) (resp. Ψ∆ (a, b, c)) the problem given by the white (resp. black) configurations
+
+                                              Xa−1 MO∆−a
+                                              Xa Ob P∆−a−b
+                                              Xa ZO∆−a−1
+and the black (resp. white) configurations
+                                      [MZPOX]a−1 [MX][POX]∆−a
+                                      [MZPOX]a [POX]c [OX]∆−a−c
+                                      [MZPOX]a [X][POX]∆−a−1 .
+The black diagram of ΨW  ∆ (a, b, c) is represented in Figure 1. For extreme values of a, b, c additional
+arrows may be present.
+    We now proceed as follows. In Lemma 4.2 and Lemma 4.3 we will prove that ΨW              ∆ (x, y, 0) is
+exactly two rounds easier than the bipartite x-maximal y-matching problem. In Lemma 4.4 we
+will prove that for most parameter values, the problems in the family ΨW     ∆ (a, b, c) are not 0-round
+solvable. Finally, in Theorem 4.5 we will combine all the results of this section to prove a lower
+bound for the bipartite x-maximal y-matching problem. We will now start by relating problems
+in the family that we just defined, by showing in Lemma 4.1 that by applying Theorem 2.1 on
+ΨW∆ (a, b, c) and performing some relaxations, we obtain a problem that is still in the same family,
+but with different parameters.
+
+                                                    13
+                                                          M
+
+
+                                              Z                          X
+
+
+                                                      P            O
+
+
+                                 Figure 1: The black diagram of ΨW
+                                                                 ∆ (a, b, c).
+
+
+
+Lemma 4.1. For any ∆ ≥ 2, 1 ≤ a ≤ ∆ − 1, 0 ≤ b ≤ ∆ − a, and 0 ≤ c ≤ ∆ − a, problem ΨB
+                                                                                    ∆ (a, d, b)
+is a black relaxation of RB (ΨW
+                              ∆ (a, b, c)), where d = min{c + a, ∆ − a}.
+
+Proof. Recall the definition of extending a configuration, and let d = min{c + a, ∆ − a}. We start
+by showing that any configuration in the black constraint of RB (ΨW  ∆ (a, b, c)) can be extended to
+one of the configurations
+                                                  a−1                    ∆−a
+                                          MZPOX           MX POX
+                                                  a            d        ∆−a−d
+                                          MZPOX       POX          OX
+                                                  a                ∆−a−1
+                                          MZPOX       X POX                  .
+
+Consider an arbitrary configuration C in the black constraint of RB (ΨW           ∆ (a, b, c)), and recall that
+the black constraint of RB (ΨW ∆  (a, b, c)) is obtained   by applying   the universal  quantifier to the white
+                W
+constraint of Ψ∆ (a, b, c). We distinguish three cases.
+    If C contains the set X , then at most a of the other ∆ − 1 sets in C can contain an M or Z
+since in each black configuration of ΨW    ∆ (a, b, c) there are at most a labels from {M, Z}. Hence the
+remaining ∆ − a − 1 labels must be subsets of POX each. It follows that C can be extended to
+ MZPOX a X POX ∆−a−1 .
+    If C contains the set MX , then at most a − 1 of the other ∆ − 1 sets in C can contain an M or Z
+since otherwise we would again be able to choose a + 1 labels contained in {M, Z} from a + 1 sets
+in C which cannot result in a black configuration of ΨW       ∆ (a, b, c), no matter which labels are picked
+from the remaining ∆ − a − 1 sets. Hence the remaining ∆ − a labels must be subsets of POX each,
+and similarly to the previous case, we see that C can be extended to MZPOX a−1 MX POX ∆−a .
+    Consider the last remaining case, i.e., that C contains neither the set X nor the set MX . Since
+X is a label that is at least as strong as M according to the black constraint of ΨW         ∆ (a, b, c), any set
+in C that contains M must also contain X as otherwise adding X to that particular set would still
+result in a black configuration of RB (ΨW      ∆ (a, b, c)) which would violate the maximality condition
+in the definition of RB (). It follows that C does not contain the set M . By a similar argument to
+the previous one, any set in C containing Z must also contain P, and any set containing P must
+also contain O, due to P being a label as strong as Z and O being a label as strong as P. Hence, it
+follows that each set in C must contain the label O, since if a set does not contain O then it must
+not contain P and Z as well, and this in turn would imply that the set is either X or MX , and
+this case has already been covered. This implies that at most a + c sets in C can contain the label
+P as otherwise we could choose a + c + 1 times the label P and ∆ − a − c − 1 times the label O
+from the sets in C which does not yield a black configuration of ΨW           ∆ (a, b, c). Moreover, with an
+argumentation analogous to the one in the first case, we see that at most a sets in C can contain an
+M or Z, and we can extend these sets to MZPOX . The other ∆ − a sets must be subsets of POX ,
+and at most d = min{c + a, ∆ − a} of them can contain a P. We extend these sets to POX . All
+other sets are extended to OX . It follows that C can be extended to MZPOX a POX d OX ∆−a−d .
+    Now, Lemma 2.4 in conjunction with Observation 2.5 tells us that replacing the black constraint
+
+
+
+                                                          14
+of RB (ΨW
+        ∆ (a, b, c)) by the configurations
+
+                                               a−1                  ∆−a
+                                       MZPOX         MX POX
+                                               a          d        ∆−a−d
+                                       MZPOX       POX        OX
+                                               a              ∆−a−1
+                                       MZPOX       X POX               .
+
+will result in a black relaxation of RB (ΨW   ∆ (a, b, c)). What is left to be done is to compute the
+white constraint of this relaxation. As we performed the above relaxation, formally we cannot
+directly apply Observation 2.2, but the same idea works: the definition of our function RB () still
+ensures that we can obtain the white constraint of the relaxation by iterating through the white
+configurations of ΨW ∆ (a, b, c) and replacing in each configuration each label L by the disjunction of
+all sets that occur in the black constraint of the relaxation and contain label L. We obtain that the
+white constraint is given by the configurations
+
+                  [ X MX OX POX MZPOX ]a−1 [ MX MZPOX ][ OX POX MZPOX ]∆−a
+                  [ X MX OX POX MZPOX ]a [ OX POX MZPOX ]b [ POX MZPOX ]∆−a−b
+                  [ X MX OX POX MZPOX ]a [ MZPOX ][ OX POX MZPOX ]∆−a−1 .
+
+Finally, renaming the sets in the black and white constraint of the relaxation according to
+
+                                                     X   →Z
+                                                   OX    →P
+                                               POX       →O
+                                                   MX    →M
+                                             MZPOX       →X ,
+
+shows that the relaxation is identical to ΨB
+                                           ∆ (a, d, b), thereby proving the lemma.
+
+    In order to relate the x-maximal y-matching problem with the family F, we now redefine the
+bipartite x-maximal y-matching problem in a way that conforms to the formalism used in Theorem
+2.1. We will then prove that by applying Theorem 2.1 twice on this encoded version of x-maximal
+y-matching and performing some relaxations, we get some problem in the family F. We will use 4
+labels: M, O, X, and P. The label M represents a matched edge, and for both black and white nodes
+it can appear on at most y incident edges. Also, we want unmatched white nodes to prove that they
+have enough matched neighbors. Thus, we require that they output at least ∆ − x pointers using
+the label P. Then, they can output X on all the other incident edges, where the label X represent a
+wildcard. The P pointers must be incident to only black matched nodes. In order to require that
+also unmatched black nodes have enough matched white neighbors, we limit the number of labels X
+incident to an unmatched black node to x. The label O represents an unmatched edge, where no
+pointer nor wildcard has been used. More formally, we define the bipartite x-maximal y-matching
+problem as follows.
+    For any 0 ≤ x ≤ ∆ and 1 ≤ y ≤ ∆, denote by ΦW                     B
+                                                     ∆ (x, y) (resp. Φ∆ (x, y)) the problem given by
+the white (resp. black) configurations
+
+                                        [MOX]y−1 [M][OX]∆−y
+                                        [PX]x [P]∆−x ,
+
+
+
+                                                     15
+                                                  M
+
+
+                                          P       O         X
+
+
+                               Figure 2: The black diagram of ΦW
+                                                               ∆ (x, y).
+
+
+
+and the black (resp. white) configurations
+
+                                      [MPOX]y−1 [M][POX]∆−y
+                                      [OX]x [O]∆−x .
+
+The black diagram of ΦW  ∆ (x, y) is represented in Figure 2. For extreme values of x and y additional
+arrows may be present.
+    We now argue that the problem that we just defined is the x-maximal y-matching problem
+previously defined in the introduction. In particular, this definition correctly encodes the bipartite
+x-maximal y-matching problem, where the solution is given by edges labeled M. In fact, first, note
+that each node is incident to at most y edges labeled M, hence the packing constraint is not violated.
+Then, note that unmatched white nodes are incident to at least ∆ − x Ps, and since black nodes
+incident to a P must also be incident to an M, then each white node has at most x unmatched
+neighbors. Finally, note that unmatched black nodes are incident to at least ∆ − x Os, and since
+white nodes incident to an O must also be incident to an M, then each black node has at most x
+unmatched neighbors. Thus, the covering constraint is not violated. We now need to show that
+given a solution to the bipartite x-maximal y-matching problem we can output a solution for this
+problem with the encoding that we defined. This can be performed in 1 round of communication,
+required by white nodes to be aware of which black neighbors are actually matched. Matched
+white nodes output M on all matched edges and O on all the others, while unmatched white nodes
+output P on all edges connecting them to matched black nodes, and X on all the others. This is
+a valid solution, since the number of Ms incident to each node is at most y, at most x neighbors
+of unmatched white nodes are also unmatched and thus white nodes are incident to at most x Xs,
+and at most x neighbors of unmatched black nodes are also unmatched and thus at most x white
+nodes output X on their ports. Notice that the bipartite x-maximal y-matching problem now has
+two different meanings:
+   • The natural and intuitive version where both black and white nodes know which edges are
+     part of the matching, and nothing else.
+
+   • The locally checkable encoded version, where only white nodes need to know the output, but
+     they need to know which edges are part of the matching and which edges must be marked
+     with P.
+All the results that we prove in the paper about x-maximal y-matchings will refer to the locally
+checkable encoded version. As we have seen, there is at most a 1-round difference between the
+two versions. We remark that it is possible to show that any algorithm that solves the problem
+in the original definition must in fact be aware of enough matched neighbors that it can output
+the required pointers without the 1-round penalty, implying that these two problems are actually
+equivalent.
+    We now show how to connect the bipartite x-maximal y-matching problem (with the encoding
+described above) to the family of previously defined problems. In particular, we define an intermediate
+problem, and we apply Theorem 2.1 twice, once in Lemma 4.2 and once in Lemma 4.3, to show that
+ΨW∆ (x, y, 0) is exactly two rounds easier than the bipartite x-maximal y-matching problem. The
+
+
+                                                  16
+                                                  M
+
+
+                                                                     X
+
+
+                                            P              O
+
+                                Figure 3: The white diagram of Φ0 (x, y).
+
+
+white diagram of the intermediate problem Φ0 (x, y) that we define is represented in Figure 3. For
+extreme values of x and y additional arrows may be present.
+Lemma 4.2. For any ∆ ≥ 2, 0 ≤ x ≤ ∆ and 1 ≤ y ≤ ∆ − 1, the problem Φ0 (x, y) given by the
+black configurations
+
+                                                Xy−1 MO∆−y
+                                                Xy P∆−y ,
+
+and the white configurations
+
+                                      [MPOX]y−1 [MX][POX]∆−y
+                                      [POX]x [OX]∆−x .
+
+is a black relaxation of RB (ΦW
+                              ∆ (x, y)).
+
+Proof. Similarly to the proof of Lemma 4.1, we start by showing that any configuration in the black
+constraint of RB (ΦW∆ (x, y)) can be extended to one of the configurations
+                                                  y−1                ∆−y
+                                           MPOX         M POX
+                                                  y        ∆−y
+                                           MPOX       OX         .
+
+Consider an arbitrary configuration C in the black constraint of RB (ΦW   ∆ (x, y)). We distinguish two
+cases.
+    If C contains the set M , then at most y − 1 of the other ∆ − 1 sets in C can contain an M since
+in each black configuration of ΦW ∆ (x, y), there are at most y labels M. Hence, the remaining ∆ − y
+labels must be subsets of POX each, and it follows that C can be extended to MPOX y−1 M POX ∆−y .
+    If C does not contain the set M , then each set in C cannot contain P as otherwise we could
+choose one P and ∆ − 1 further labels that are all different from M from the ∆ sets in C, which does
+not yield a black configuration of ΦW ∆ (x, y). Using, again, the fact that in each black configuration
+of Φ∆ (x, y) there are at most y labels M, it follows that C can be extended to MPOX y OX ∆−y .
+     W
+
+    By applying Lemma 2.4 and Observation 2.5, we obtain that replacing the black constraint of
+RB (ΦW ∆ (x, y)) by the configurations
+                                                  y−1                ∆−y
+                                           MPOX         M POX
+                                                  y        ∆−y
+                                           MPOX       OX         ,
+
+will result in a black relaxation of RB (ΦW
+                                          ∆ (x, y)). Computing the white configurations of the
+relaxation in an analogous manner to the approach in Lemma 4.1, we obtain the configurations
+
+                       [ M OX POX MPOX ]y−1 [ M MPOX ][ OX POX MPOX ]∆−y
+                       [ OX POX MPOX ]x [ POX MPOX ]∆−x .
+
+
+                                                        17
+Finally, renaming the sets in the black and white constraint of the relaxation according to
+                                                  M    →M
+                                                 OX    →P
+                                                 POX   →O
+                                             MPOX      →X ,
+shows that the relaxation is identical to Φ0 (x, y), thereby proving the lemma.
+Lemma 4.3. For any ∆ ≥ 2, 0 ≤ x ≤ ∆ and 1 ≤ y ≤ ∆ − 1, problem ΨW
+                                                                ∆ (y, x, 0) is a white
+                   0
+relaxation of RW (Φ (x, y)).
+Proof. Similarly to the proof of Lemma 4.1, we start by showing that any configuration in the white
+constraint of RW (Φ0 (x, y)) can be extended to one of the configurations
+                                             y−1                 ∆−y
+                                      MPOX         MX POX
+                                             y         x        ∆−y−x
+                                      MPOX       POX       OX
+                                             y             ∆−y−1
+                                      MPOX       X POX              .
+Consider an arbitrary configuration C in the white constraint of RW (Φ0 (x, y)). We distinguish three
+cases.
+     Analogously to the argumentation in the case distinction in the proof of Lemma 4.1, we obtain
+that if C contains the set X , then C can be extended to MPOX y X POX ∆−y−1 , and if C contains the
+set MX , then C can be extended to MPOX y−1 MX POX ∆−y . Hence, consider the last remaining case,
+i.e., that C contains neither the set X nor the set MX . Again, analogously to the argumentation in
+the proof of Lemma 4.1, we see that each set in C must contain the label O, which in turn implies
+that at most x sets in C can contain the label P. Since at most y sets in C can contain an M, it
+follows that C can be extended to MPOX y POX x OX ∆−y−x .
+     Continuing analogously to the proof of Lemma 4.1, by applying Lemma 2.4 and Observation 2.5,
+and computing the black constraint, we obtain a white relaxation of RW (Φ0 (x, y)) that is given by
+the white configurations
+                                             y−1                 ∆−y
+                                      MPOX         MX POX
+                                             y         x        ∆−y−x
+                                      MPOX       POX       OX
+                                             y             ∆−y−1
+                                      MPOX       X POX              .
+and the black configurations
+                    [ X MX OX POX MPOX ]y−1 [ MX MPOX ][ OX POX MPOX ]∆−y
+                    [ X MX OX POX MPOX ]y [ POX MPOX ]∆−y .
+Now adding the black configuration [ X MX OX POX MPOX ]y [ MPOX ][ OX POX MPOX ]∆−y−1 (which
+can only relax the problem further) and renaming the sets according to
+                                                   X   →Z
+                                                 OX    →P
+                                                 POX   →O
+                                                 MX    →M
+                                             MPOX      →X ,
+yields a relaxation that is identical to ΨW
+                                          ∆ (y, x, 0), thereby proving the lemma.
+
+
+                                                   18
+    We now prove that, if the parameters a, b, and c are not too large, then the problem ΨW
+                                                                                          ∆ (a, b, c)
+is not 0-round solvable.
+
+Lemma 4.4. For any ∆ ≥ 2, 1 ≤ a ≤ ∆ − 1, 0 ≤ b ≤ ∆ − a − 1, and 0 ≤ c ≤ ∆ − a − 1, there is
+no deterministic white algorithm that solves ΨW
+                                              ∆ (a, b, c) in 0 rounds.
+
+Proof. For a contradiction, assume that such a white algorithm exists. As it is deterministic, and
+in the port numbering model each node has exactly the same information in the beginning, i.e.,
+after 0 rounds, each white node will necessarily choose the same configuration C from the white
+constraint and output the ∆ labels contained in C on the ∆ incident edges according to a fixed
+bijective function that maps the set of port numbers (or, in other words, the set of incident edges)
+to the (multi)set of ∆ labels in C. For each edge e, call the port number that the white endpoint of
+e assigns to edge e the white port of e. From the above, it follows that for each label L in C, there
+is a fixed port number γ such that each edge whose white port equals γ will receive the output L.
+Therefore, w.l.o.g., we can assume the following. If C = Xa−1 MO∆−a , then each edge whose white
+port equals 1 receives output label M; if C = Xa Ob P∆−a−b , then each edge whose white port equals
+1 receives output label P; if C = Xa ZO∆−a−1 , then each edge whose white port equals 1 receives
+output label Z. Note that for the second case, our choice of parameters ensures that C contains at
+least one P.
+    Now, consider a black node v such that the white port of each edge incident to v equals 1.
+Clearly, there exist input graphs in which such a node occurs. Depending on which of the white
+configurations was chosen as C, the multiset consisting of the output labels of the ∆ edges incident
+to v is M∆ , P∆ , or Z∆ . As, due to our choice of parameters, none of these multisets is a black
+configuration of ΨW ∆ (a, b, c), we obtain a contradiction to the correctness of the algorithm, which
+proves the lemma.
+
+   We finally combine all the results obtained above to prove a lower bound for the bipartite
+x-maximal y-matching problem in the port numbering model.
+
+Theorem 4.5. In the port numbering model, for any 0 ≤ x ≤ ∆ and 1 ≤ y ≤ ∆ − 1, the white
+round complexity of bipartite x-maximal y-matching is at least
+
+                         2d(∆ − x)/ye ,        if d∆/ye > d(∆ − x)/ye , and
+                     2d(∆ − x)/ye − 1 ,        if d∆/ye = d(∆ − x)/ye .
+
+In particular, the white round complexity of BMM is at least 2∆ − 1.
+
+Proof. By Lemmas 4.1, 4.2, and 4.3, we obtain the following sequence of problems in the round
+elimination framework if we start with bipartite x-maximal y-matching:
+               0
+  ΦW                      W              B              W                  B
+   ∆ (x, y) → Φ (x, y) → Ψ∆ (y, x, 0) → Ψ∆ (y, y, x) → Ψ∆ (y, x + y, y) → Ψ∆ (y, 2y, x + y) → . . .
+
+Each problem in the sequence is obtained from the previous problem by applying the function RB ()
+or the function RW (), and additionally relaxing the obtained problem. By Theorem 2.1, it follows
+that each problem has a black, resp. white complexity that is at least one round less than the
+white, resp. black, complexity of the previous problem, depending on which of the two functions
+was applied in the respective step.
+    With an analogous argumentation to the one in the proof of Lemma 4.4, we can see that ΦW
+                                                                                           ∆ (x, y)
+has white round complexity 0 if and only if x = ∆ or y = ∆, and also Φ0 (x, y) has black round
+complexity 0 if and only if x = ∆ or y = ∆. As the lemma assumes y < ∆ and only promises a
+
+
+                                                 19
+0-round lower bound for the case where x = ∆, the lemma statement holds for these cases. Hence,
+assume that x < ∆ (and y < ∆).
+    Consider first the case that d∆/ye > d(∆ − x)/ye, i.e., d(∆ − x)/ye ≤ d∆/ye − 1. Due to the
+growth behavior of the parameters in the above sequence promised by Lemma 4.1, the problem
+ΨB                                                                  W
+  ∆ (y, b, c) obtained after 2d(∆ − x)/ye − 1 steps, starting from Φ∆ (x, y), satisfies
+
+           b = (d(∆ − x) /ye − 1) · y ≤ ((d∆/ye − 1) − 1) · y ≤ ∆ − 1 − y ,            and
+           c = x + (d(∆ − x) /ye − 2) · y ≤ x + (∆ − x − 1 − y) = ∆ − 1 − y .
+
+By Lemma 4.4, we obtain that, for these parameters b and c, problem ΨB  ∆ (y, b, c) cannot be solved in
+0 rounds by a black algorithm, which implies that the complexity of bipartite x-maximal y-matching
+must be at least 2d(∆ − x)/ye.
+    Now, consider the case that d∆/ye = d(∆ − x)/ye. Similarly to the previous case, we obtain
+that the problem ΨW ∆ (y, b, c) in the above sequence obtained after 2d(∆ − x)/ye − 2 steps satisfies
+
+         b = x + (d(∆ − x) /ye − 2) · y ≤ x + (∆ − x − 1 − y) = ∆ − 1 − y ,              and
+         c = (d(∆ − x) /ye − 2) · y ≤ (d∆/ye − 2) · y ≤ ∆ − 1 − y .
+
+Again, by Lemma 4.4, we obtain that, for these parameters b and c, problem ΨW ∆ (y, b, c) cannot be
+solved in 0 rounds by a white algorithm, which implies that the complexity of bipartite x-maximal
+y-matching must be at least 2d(∆ − x)/ye − 1.
+
+   Note that for the case y = ∆, there is a trivial 0-round upper bound, which is why we do not
+cover this case in Theorem 4.5.
+
+
+5    Upper bounds
+We will now prove upper bounds for the family of bipartite x-maximal y-matching problems. The
+algorithm we provide is very similar to the proposal algorithm of Hanckowiak et al. [13], that works
+as follows: for i = 1, . . . , ∆, at round 2i − 2, white nodes propose to be matched to their i-th
+neighbor (if it exists), and black unmatched nodes accept a proposal and reject all the others. This
+algorithm requires 2∆ rounds, but it can be made 1 round faster by making black nodes propose
+and white nodes output. For the special case of BMM, i.e., bipartite 0-maximal 1-matching, the
+algorithm that we propose achieves the same running time of the proposal algorithm. The main
+difference is that, in the general case, our algorithm achieves a better intermediate state than the
+proposal algorithm, i.e., the partial solution that it maintains at each step is better than the one
+maintained by the original proposal algorithm, and this allows us to get exact bounds for the whole
+family of problems. In the following, we will consider only the case where 1 ≤ y < ∆, since for
+y = ∆ there exists a trivial 0-rounds algorithm that simply puts each edge into the matching.
+    The high level idea of the algorithm is the following. White nodes start sending matching
+proposals to y arbitrary black neighbors. Black nodes that receive proposals accept one and reject
+the others. Black nodes that did not receive any proposal, send proposals to y white neighbors that
+have not previously sent a proposal to the black node (but can be chosen arbitrarily apart from
+that). White nodes that receive proposals and are not matched, accept one and reject the others.
+By repeating this procedure for a sufficiently large number of rounds, we can ensure that if a black
+or white node is still unmatched, then a large number of neighbors are already matched. This is the
+main difference with the standard proposal algorithm, where only one side proposes: if we stop the
+execution of the algorithm before its natural termination and we look at the partial solution that
+
+
+                                                  20
+it maintains, we see that the partial solution of the standard proposal algorithm maintains good
+guarantees for one side only.
+    We will now formally describe the procedure. Each node keeps track of the state of each incident
+edge, by maintaining four sets:
+   • The set F contains all free edges, i.e., the edges over which no request has ever been sent or
+     received.
+
+   • The set M contains all edges that are already part of the matching.
+
+   • The set S contains all edges where the node sent a proposal.
+
+   • The set R contains all edges where the node received a proposal.
+Note that the design of the algorithm will ensure that each edge will be used for at most one
+proposal in total, which implies that the set S and the set R are disjoint. In the beginning, each
+node initializes the set F with all incident edges, and all the other sets as empty sets. Then, nodes
+apply the following 1-round procedure repeatedly. Each round the role of active and passive is
+reversed between black and white nodes. Initially, white nodes are active.
+  1. Active nodes with M = ∅ do the following:
+
+       (a) If R contains at least one edge e, send an acceptance over the edge e, and put e into the
+           set M .
+      (b) Otherwise, remove y edges from the set F (or all edges if |F | < y), add them to the set
+          S, and send proposals over these edges.
+
+  2. Passive nodes with M = ∅ do the following:
+
+       (a) If acceptances are received over a set of edges E, add elements of E to M
+      (b) If requests are received over a set of edges E, add elements of E to R.
+
+If at some point M 6= ∅ for some node v, then v terminates.
+    In the following, we prove that, by applying this procedure 2k times, we obtain a solution (known
+by white nodes) for the bipartite x-maximal y-matching problem, where x = max{0, ∆ − ky}.
+    Regarding the maximum number of incident edges in the matching, note that a node sends at
+most y proposals in parallel, and if at least one is accepted, then the node stops participating in the
+following phases. Thus, a node is matched with at most y neighbors.
+    Next, we show that, for each node v, if M is empty after 2k steps, then min{deg(v), ky} neighbors
+of v are matched (i.e., have non-empty M ). Notice that a node that is still unmatched after 2k
+steps has been active for k steps, and in those steps it added a total of min{deg(v), ky} different
+edges to the set S, and hence sent min{deg(v), ky} proposals. If all the proposals are rejected, it
+means that the receivers of those proposals are matched with different nodes, and thus if a node v is
+unmatched, then at least min{deg(v), ky} neighbors are matched. Notice that black nodes may not
+know if they are matched or not: the proposals that they sent in round 2k are received by white
+nodes that output the solution without informing black nodes about their decisions.
+    Hence, if we want to solve the bipartite x-maximal y-matching problem, we can set k = d ∆−x    y e
+                                  ∆−x
+and obtain a running time of 2d y e. In order to satisfy the formal specifications of (the encoded
+version of) the bipartite x-maximal y-matching problem, white matched nodes output M on matched
+edges and O on all the others, while white unmatched nodes output P on all the edges where they
+sent a proposal and X on all the others. This clearly bounds the number of X given as output by
+
+                                                  21
+white nodes correctly. Concerning black nodes, since an X cannot be given as output by a white
+node on an edge where a black node sent a proposal, the number of X incident to black nodes is
+also correctly bounded.
+    Finally, note that if d∆/ye = d(∆ − x)/ye then we can save one round. In fact, in this case
+we can solve the harder case where x = 0 and thus obtain strict maximality. For this purpose, we
+can use the previously described algorithm (setting x = 0) and modify it as follows: black nodes
+start and white nodes output. Notice in fact that if we run the original algorithm for just 2k − 1
+rounds, instead of obtaining the maximality guarantee for both sides, we obtain the maximality
+guarantee for one side only. But for x = 0, this is enough, since if one side is matched or proposed
+to all neighbors, then there is no reason for the other side to send additional proposals.
+    Thus, the bipartite x-maximal y-matching problem can be solved by a white algorithm in
+                             2d(∆ − x)/ye ,          if d∆/ye > d(∆ − x)/ye , and
+                         2d(∆ − x)/ye − 1 ,          if d∆/ye = d(∆ − x)/ye .
+
+
+6       Lifting the lower bounds to the LOCAL model
+In the previous sections we proved lower and upper bounds for the port numbering model. While
+upper bounds for the port numbering model are trivially also upper bounds for the LOCAL model,
+the same is not true for lower bounds. Hence, in this section we show how to lift the obtained lower
+bounds to the LOCAL model. The proof ideas that we use are heavily inspired by the proofs in [2].
+    In Sections 4 and 5 we proved that, on graphs with maximum degree ∆, the bipartite x-maximal
+y-matching problem in the port numbering model requires exactly
+                                (
+                                  2d(∆ − x)/ye,         if d∆/ye > d(∆ − x)/ye
+                    T∆ (x, y) =
+                                  2d(∆ − x)/ye − 1,     if d∆/ye = d(∆ − x)/ye
+rounds. In order to show this result, we applied the round elimination technique for exactly
+T∆ (x, y) − 1 times, and at each time we performed simplifications that reduced the number of labels
+to 5. We thus obtained a sequence of problems Π∆,x,y 0    , . . . , Π∆,x,y
+                                                                     T∆ (x,y)−1 , where the first problem
+Π∆,x,y
+  0     is the initial problem ΦW                            0                      W
+                                    ∆ (x, y), the second is Φ (x, y), the third is Ψ∆ (y, x, 0), and the last
+is a problem that is still not solvable in 0 rounds (in the following we will omit the superscript and
+just write Π0 , . . . , ΠT −1 ). We will not consider the exact problem sequence of Section 4, where for
+problems with even index a white algorithm is considered and for problems with odd index a black
+algorithm is considered. Instead, for simplicity, we will only consider white algorithms, and we will
+consider a new sequence of problems that can be obtained by starting from the original sequence
+and swap black and white constraints on problems with odd indexes. Notice that this is equivalent,
+by just reversing the roles of black and white nodes on problems with odd indexes. Also, let S(Π)
+be the problem obtained by swapping the black and the white constraints of Π.
+    In order to get a lower bound for the LOCAL model, we first show how to obtain a randomized
+lower bound for the port numbering model, and then we argue about what this bound implies for
+the LOCAL model.
+    In order to obtain a randomized lower bound for the port numbering model, the only thing that
+we need to do is to replace the application of the round elimination theorem with a randomized
+version of it: additionally to the problem sequence (that is the same as in the deterministic case),
+we also have local failure probabilities 4 assigned to the problems in the sequence. In particular, we
+    4
+    While a global failure probability of at most 1/n implies that with probability at least 1 − 1/n no node of the
+graph fails, a local failure probability of 1/n just requires that each node fails with probability at most 1/n.
+
+
+                                                        22
+will consider the sequence of problems Π0 , . . . , ΠT −1 and prove that if we assume that Π0 can be
+solved in T − 1 rounds with some small local failure probability, then we obtain that ΠT −1 can be
+solved in 0 rounds with some larger but still small enough local failure probability. We will then
+prove that this last problem cannot be solved with small local failure probability, hence obtaining a
+contradiction with the initial assumption.
+    We do not need to prove a randomized version of the round elimination theorem: in [1] it has
+been shown that for each subsequent problem in the sequence, we can give a bound on the local
+failure probability as a function of ∆, the number of labels used to describe the previous problem,
+and the bound on the local failure probability for the previous problem, i.e., we do not have to
+take into account the black and white constraints, and we can hence use this result in a blackbox
+manner. In particular, [1] showed the following result (rephrased for our purposes):
+
+Lemma 6.1 (Lemma 41 of [1]). Let A be a white (resp. black) randomized t-round algorithm for
+Π with local failure probability at most p in the port numbering model. Then there exists a black
+(resp. white) randomized (t − 1)-round algorithm A0 for RB (Π) (resp. RW (Π)), with local failure
+probability at most 21/(∆+1) (∆|ΣΠ |)∆/(∆+1) p1/(∆+1) + p.
+
+    We can use this lemma to incorporate the given local failure probability analysis into the sequence
+of problems Πi that we obtained. Since |ΣΠi | ≤ 5 for all problems in the family, we can rewrite the
+upper bound on the local failure probability as
+
+                        21/(∆+1) (∆|ΣΠ |)∆/(∆+1) p1/(∆+1) + p ≤ K∆p1/(∆+1)
+
+for some constant K. Also, since we can reverse the roles of black and white nodes, we obtain the
+following corollary:
+
+Corollary 6.2. Let A be a white randomized t-round algorithm for Π with local failure probability
+at most p in the port numbering model. Then there exists a white randomized (t − 1)-round algorithm
+A0 for S(RB (Π)) with local failure probability at most K∆p1/(∆+1) , for some constant K.
+
+   We will now prove the following lemma, that bounds the local failure probability after multiple
+round elimination steps.
+
+Lemma 6.3. Let A be a white t-round randomized algorithm for Π0 with local failure probability at
+most p in the port numbering model. Then there exists a white randomized (t − j)-round algorithm
+                                                               j
+A0 for Πj with local failure probability at most (K∆)2 p1/(∆+1) for some constant K, for all j ≤ t.
+
+Proof. We can apply Corollary 6.2 multiple times to get an upper bound on the local failure
+probability after j steps of round elimination. We can prove by induction that the failure probability
+pj after j steps is at most
+                                                         j
+                                          (K∆)2 p1/(∆+1) .
+The base case holds trivially. For the induction step we have that
+                                                       1/(∆+1)
+                                        pj+1 ≤ K∆pj              .
+
+By applying the induction hypothesis, we get that pj+1 is at most
+                              j                                      j+1                  j+1
+         K∆((K∆)2 p1/(∆+1) )1/(∆+1) ≤ (K∆)1+2/(∆+1) p1/(∆+1)               ≤ (K∆)2 p1/(∆+1)     .
+
+
+
+
+                                                  23
+   We now lower bound the local failure probability of a 0 rounds algorithm solving ΠT −1 .
+Lemma 6.4. There is no white randomized algorithm that solves ΠT −1 in 0 rounds with local failure
+probability p ≤ 1/∆2∆ in the port numbering model.
+Proof. To show this lemma we will prove a stronger statement, namely, that for any problem
+that does not admit a white deterministic algorithm in the port numbering model, there is no
+white randomized algorithm solving it with local failure probability smaller than 1/∆2∆ in the port
+numbering model. Let Π = (W, B) be a problem having white constraint W and black constraint B
+using labels over the set L. Let W = {c1 , . . . , ck }. Notice that for the family of problems under
+consideration k = O(∆), and |L| = 5.
+    Any 0 rounds algorithm is just a probability assignment to each             P ci , that is, any 0 rounds
+algorithm must output ci with some probability 0 ≤ pi ≤ 1, such that               pi = 1. By the pigeonhole
+principle there must exist a configuration c̄ = ci such that pi ≥ 1/k. Hence, all white nodes output
+the configuration c̄ with probability at least 1/k. Also, conditioned on the fact that a white node
+outputs the configuration c̄, for each label ` ∈ L that appears in c̄ there must be a port number j
+where ` is written with probability at least 1/∆.
+    Since Π is not 0 rounds solvable in the port numbering model, then there exists a configuration
+b̄ = {`1 , . . . , `∆ } that is not in B, such that `j ∈ c̄ for all j. Let us now consider a black node and
+let us connect ∆ white nodes w1 , . . . , w∆ to it in some specific way. Node wi will output `i on some
+                                        1
+port j with probability at least k∆       . We connect port j to port i of the black node. Thus, the black
+node will be incident to the bad configuration b̄ with probability at least
+                                                    1
+                                                  (k∆)∆
+
+Since in our case the white constraint contains O(∆) configurations (actually O(∆) for the first
+problem of the sequence and then 3 for all the others), for large enough ∆ the claim follows.
+
+    We now lower bound the local failure probability of a randomized algorithm for Π0 running in
+t = T − 1 rounds, in order to show that if an algorithm for Π0 runs “too fast” then it must fail with
+large probability.
+    By applying Lemma 6.3 and setting j = t = T − 1 we get that if there is a (T − 1)-algorithm
+for Π0 fails with probability at most p, then there is a 0-round algorithm for ΠT −1 that fails with
+                                   t
+probability at most (K∆)2 p1/(∆+1) for some constant K. Now, by applying Lemma 6.4 we obtain
+that
+                                                     t
+                                     (K∆)2 p1/(∆+1) ≥ 1/∆2∆
+For large enough ∆, we get that
+                                                1             1
+                                   p≥                      ≥ ∆2t+3
+                                        ((K∆)2 ∆2∆ )(∆+1)t  2
+Hence, we obtain the following result:
+Lemma 6.5. A white randomized algorithm for bipartite x-maximal y-matching for graphs of
+maximum degree ∆ that runs in strictly less than T = T∆ (x, y) rounds must fail with probability at
+        1
+least ∆2T +1 in the port numbering model.
+     2
+
+   We are now ready to prove lower bounds for the LOCAL model. Our goal will be to show
+lower bounds for randomized algorithms in the LOCAL model, for all ∆ ≤ ∆,  ¯ where we will try
+to make ∆¯ as large as possible, as a function of n. Since in the port numbering model we can
+
+                                                    24
+easily generate unique IDs with high probability of success, a lower bound for this model directly
+implies a lower bound for the LOCAL model. Thus, the only thing that we need to take care of
+is to show the largest possible lower bound, as a function of ∆ and n, that does not violate the
+previous assumptions, that is, in order to apply the round elimination technique our lower bound
+graph family must contain a large enough tree-like neighborhood, and we need to choose the right
+value of ∆ such that we can apply Lemma 6.5 (in particular, if ∆, as a function of n, is too large,
+Lemma 6.5 would not imply large failure probability).
+    By definition, any randomized algorithm in the LOCAL model has a global failure probability
+of at most 1/n, hence also each node must have a local failure probability of at most 1/n. In order
+to get the best possible lower bound in terms of n, we can choose the largest possible value of ∆ (as
+a function of n) such that:
+
+   • There is a graph containing a tree-like ∆-regular neighborhood of radius T∆ (x, y) + 1 (a
+     necessary condition to apply the round elimination theorem).
+
+   • By applying Lemma 6.5 we get a local failure probability that is larger than 1/n (implying
+     that T∆ (x, y) − 1 rounds are not enough to solve the problem with local failure probability at
+     most 1/n).
+
+We will prove the following lemma, that states that bipartite x-maximal y-matchings that are not
+too relaxed are hard in the LOCAL model.
+
+Lemma 6.6. For any k ≥ 1, and for large enough ∆ and n, a white randomized algorithm for
+bipartite x-maximal y-matching that fails with probability at most 1/n in the LOCAL model requires
+                                               1
+at least T∆ (x, y) rounds, unless T∆ (x, y) ≥ 3k log log n/ log log log n, or T∆ (x, y) ≤ ∆1/k .
+                                                       1 log log n                     1 log log n
+                                                                                                      k
+Proof. Consider any ∆ satisfying T = T∆ (x, y) < 3k      log log log n , that is, ∆ > 3k log log log n .
+   Assume for a contradiction that a faster algorithm exists, that is, it runs in t < T∆ (x, y) rounds
+                1 log log n
+such that t < 3k  log log log n . We can construct a graph where there is a neighborhood that locally
+looks like a tree up to distance T + 1 (since for large enough n, ∆T +1 < n), and by Lemma 6.5
+nodes there must fail with probability at least
+                    1              1                                  1                                 1             1
+                           ≥                ≥                                                   ≥                 ≥
+                 2∆2T +1       223T log ∆            3k 1
+                                                           log log n
+                                                    2 3k log log log n
+                                                                       log( 1
+                                                                                log log n
+                                                                           3k log log log n
+                                                                                            )       22log log n       n
+                                                2
+for large enough n.
+
+    This result directly implies the same lower bound for deterministic algorithms in the LOCAL
+model. Nevertheless, we can prove deterministic lower bounds for even larger values of n. For
+this purpose, we use the same idea as in [2, Theorem 25], that is, we assume to have a too fast
+deterministic algorithm, and we use it to define a too fast randomized algorithm, that would
+contradict the previously shown lower bound. Unfortunately, while doing so, we lose the tight-in-∆
+dependency, but notice that this happens only for n = Ω( logloglogloglogn n ), since for smaller values the
+previous result applies.
+
+Lemma 6.7. For any k ≥ 1, and for large enough ∆ and n, a white deterministic algorithm for
+bipartite x-maximal y-matching in the LOCAL model requires Ω(min(T∆ (x, y), k1 log n/ log log n)
+rounds, unless T∆ (x, y) ≤ ∆1/k .
+
+
+
+
+                                                                 25
+                                                                                                 1
+Proof. Assume that there is a faster algorithm A that runs in t = t(n, ∆) < min(T∆ (x, y), 4k      log n/ log log n))
+rounds; we will prove that this leads to a contradiction. Let us fix ∆ as in the proof of Lemma
+                       1 log log n
+                                       k
+6.6, that is, ∆ > 3k      log log log n . We now set N = log n. The goal is to execute A by lying
+about the size of the graph, claiming it is of size N . Notice that this gives a running time
+                1                         1
+t̄ = t(N, ∆) ≤ 4k  log N/ log log N ≤ 4k    log log n/ log log log n. In order to do so, we need to compute
+a new small enough ID assignment, such that A cannot detect the lie, that is, the ID assignment
+must be locally valid: in each radius t̄ neighborhood the new ID assignment must be unique. For
+this purpose, we compute a c = O(∆2t̄+2 (log log N + log ∆2t̄+2 ))-coloring of G2t̄+2 , the (2t̄ + 2)-
+th power of G, in O(t̄) rounds [2, Theorem 25]. The algorithm A cannot detect the lie, since
+           3
+c = O(log 4 n) · logo(1) n < N for large enough n.
+     Thus we can now run A and get a solution for the problem in o(T∆ (x, y) + log N/ log log N )
+rounds, and since N = log n, we get a contradiction with Lemma 6.6, since we used the same graph
+family.
+
+    Both Lemma 6.6 and Lemma 6.7 assume ∆ to be larger than some constant. Notice that
+tight-in-∆ bounds can be actually obtained in the LOCAL model also for smaller values of ∆, as we
+needed large values of ∆ only to be able to obtain good in n dependencies. In fact, for fixed values
+of ∆, we need to apply the randomized round elimination theorem only a constant number of times,
+and thus we obtain that an algorithm for ΠT −1 that runs in 0 rounds must fail with local failure
+probability f (n) = o(1); hence by taking large enough values of n we still get a contradiction, since
+any 0 rounds algorithm for ΠT −1 must fail with constant probability, if ∆ is constant. In particular,
+for any combination of integers x ≥ 0, y ≥ 1, ∆ ≥ 2, our bound of T∆ (x, y) is truly tight.
+
+
+7    Behind the scenes
+In the introduction we claimed that in some sense, bounded automatic round elimination can be
+automated in practice. We will discuss now how this automatization works, using the example of
+(bipartite) MM.
+    Concerning lower bounds, we can actually feed BMM, for small values of ∆ (such as 3, 4 and 5),
+to a computer program and get a lower bound of 2∆ − 1 automatically [22]. This does not directly
+give a proof for all values of ∆, but it gives good ideas that can help us to prove a lower bound
+for all values of ∆. The important output we obtain from a computer program in this respect is a
+sequence of simplifications for each problem Π0 obtained after a round elimination step. For each Π0 ,
+ideally these simplifications transform Π0 into a problem Π∗ that is just a tiny bit easier to solve,
+but much simpler to describe.
+    Sometimes, the obtained simplifications are very specific to the chosen value of ∆, and thus they
+do not generalize, i.e., they do not help in extracting general relaxation patterns for arbitrary ∆.
+For instance, this is what happens by feeding non-bipartite MM to the program: we get something
+very different for the limited small values of ∆ that the program can handle, and it is quite hard
+to see the pattern. However, at other times, there is some common pattern in the simplification
+that the program performs for different values of ∆, and by understanding those we can then try to
+design a general proof. This is exactly what happens with bipartite MM.
+    This, in turn, allowed us to handle the entire family of problems of bipartite x-maximal y-
+matchings: we could not feed this whole family of problems to a computer program and get an
+automatic lower bound, but after having obtained a deep understanding of BMM, we managed to
+manually design the right simplifications that worked for this much larger family of problems.
+    Concerning upper bounds, by feeding specific variants of the bipartite x-maximal y-matching
+
+
+                                                     26
+problem to a computer program (for small ∆, x anx y), we noticed that we could obtain an automatic
+upper bound via round elimination by using only three labels at each step. These upper bounds were
+matching the exact round complexity that we obtained as lower bounds; before that we thought
+that the lower bounds are not tight since by modifying the standard proposal algorithm to handle
+bipartite x-maximal y matchings we could only obtain upper bounds that were a factor of two larger
+than the lower bounds. Unfortunately, while automatic lower bounds can be somehow understood
+by a human being, automatic upper bounds obtained via round elimination are still eluding human
+interpretation. Thus, at this point we knew that some better upper bound exists, but we could not
+understand it, much less generalize it. Still, the mere fact of knowing that there is a better upper
+bound really helped us to finally find it.
+
+
+8    Open Problems
+The round elimination technique allows us to define a problem that is exactly one round easier
+than the given one. Unfortunately, this comes with a high cost: the description complexity of the
+problem that we obtain can be exponentially larger than the one from which we start. Most of the
+lower bounds obtained using this technique can be grouped in two types:
+
+    • Those where the number of labels grows really fast, like in the case of 3-coloring [20], and
+      weak colorings [4, 7].
+
+    • Those where the number of labels is kept constant at each step, like in the case of sinkless
+      orientation [8] and BMM [2].
+
+Bounded automatic round elimination makes it easy to prove lower bounds of the second type, and
+understanding for which kind of problems it is possible to obtain lower bounds in this way is a
+major open question. More concretely, we think that addressing the following open question would
+help to make significant progress in the process of proving distributed lower bounds.
+
+Open Problem 8.1. Characterize the dependency between the maximum number of labels and the
+best lower bound that can be achieved by using bounded automatic round elimination.
+
+    While this question is admittedly (and intentionally) vague, we give a more concrete open
+question in the following. It seems to be significantly harder to prove lower bounds by using the
+round elimination technique on non-2-colored graphs. We informally mention that a lower bound
+for non-bipartite MM can be actually obtained by using bounded automatic round elimination, but
+the lower bound looks significantly different from the one presented in this paper. For MM we can
+use a bipartition, but for some other problems we cannot, such as the maximal independent set
+(MIS) problem, as the problem is trivial in such a setting. While a lower bound for MIS is directly
+implied by the maximal matching lower bound of Balliu et al. [2], a lower bound obtained directly
+via round elimination is not known. Understanding whether even a bounded number of labels might
+be enough to obtain the same lower bound would be an important step forward.
+
+Open Problem 8.2. Prove or disprove that the best lower bound for MIS achievable by automatic
+round elimination is asymptotically larger than the best lower bound achievable by using bounded
+automatic round elimination.
+
+    While for most of the problems it is it true that the problem obtained by applying one step
+of round elimination is much larger, some other problems, called fixed points, are an exception:
+they constitute a fascinating special case of bounded automatic round elimination in which the
+
+                                                27
+number of labels does not grow at all, allowing us to apply this technique as many times as we want.
+Most of the Ω(log n) lower bounds for the LOCAL model have been shown by relaxing the given
+problem and obtaining a fixed point, with one clear exception [3]. We think that understanding
+when and how it is possible to obtain fixed points would help a lot in better understanding the
+Ω(log n) complexity spectrum.
+Open Problem 8.3. Prove or disprove that for all problems that require Ω(log n) rounds in the
+LOCAL model it is possible to prove such a lower bound by obtaining a fixed point via round
+elimination and/or suitable relaxations.
+
+
+References
+ [1] Alkida Balliu, Sebastian Brandt, Yuval Efron, Juho Hirvonen, Yannic Maus, Dennis Olivetti,
+     and Jukka Suomela. 2019. Classification of distributed binary labeling problems. CoRR
+     abs/1911.13294 (2019). arXiv:1911.13294 http://arxiv.org/abs/1911.13294
+ [2] Alkida Balliu, Sebastian Brandt, Juho Hirvonen, Dennis Olivetti, Mikaël Rabie, and Jukka
+     Suomela. 2019. Lower Bounds for Maximal Matchings and Maximal Independent Sets. In
+     60th IEEE Annual Symposium on Foundations of Computer Science, FOCS 2019, Baltimore,
+     Maryland, USA, November 9-12, 2019. 481–497. https://doi.org/10.1109/FOCS.2019.00037
+ [3] Alkida Balliu, Juho Hirvonen, Christoph Lenzen, Dennis Olivetti, and Jukka Suomela. 2019.
+     Locality of Not-so-Weak Coloring. In Structural Information and Communication Complexity -
+     26th International Colloquium, SIROCCO 2019, L’Aquila, Italy, July 1-4, 2019, Proceedings
+     (Lecture Notes in Computer Science), Vol. 11639. Springer, 37–51.
+ [4] Alkida Balliu, Juho Hirvonen, Dennis Olivetti, and Jukka Suomela. 2019. Hardness of Minimal
+     Symmetry Breaking in Distributed Computing. In Proceedings of the 2019 ACM Symposium
+     on Principles of Distributed Computing, PODC 2019, Toronto, ON, Canada, July 29 - August
+     2, 2019. 369–378. https://doi.org/10.1145/3293611.3331605
+ [5] Leonid Barenboim, Michael Elkin, Seth Pettie, and Johannes Schneider. 2012. The Locality of
+     Distributed Symmetry Breaking. In Proc. 53rd Annual Symposium on Foundations of Computer
+     Science (FOCS 2012). IEEE, 321–330. https://doi.org/10.1109/FOCS.2012.60
+ [6] Leonid Barenboim, Michael Elkin, Seth Pettie, and Johannes Schneider. 2016. The Locality of
+     Distributed Symmetry Breaking. J. ACM 63, 3 (2016), 1–45. https://doi.org/10.1145/2903137
+ [7] Sebastian Brandt. 2019. An Automatic Speedup Theorem for Distributed Problems. In
+     Proceedings of the 2019 ACM Symposium on Principles of Distributed Computing, PODC 2019,
+     Toronto, ON, Canada, July 29 - August 2, 2019. 379–388. https://doi.org/10.1145/3293611.
+     3331611
+ [8] Sebastian Brandt, Orr Fischer, Juho Hirvonen, Barbara Keller, Tuomo Lempiäinen, Joel
+     Rybicki, Jukka Suomela, and Jara Uitto. 2016. A lower bound for the distributed Lovász local
+     lemma. In Proc. 48th ACM Symposium on Theory of Computing (STOC 2016). ACM Press,
+     479–488. https://doi.org/10.1145/2897518.2897570
+ [9] Yi-Jun Chang, Qizheng He, Wenzheng Li, Seth Pettie, and Jara Uitto. 2018. The Complexity
+     of Distributed Edge Coloring with Small Palettes. In Proc. 29th ACM-SIAM Symposium on
+     Discrete Algorithms (SODA 2018). Society for Industrial and Applied Mathematics, 2633–2652.
+     https://doi.org/10.1137/1.9781611975031.168
+
+                                                28
+[10] Yi-Jun Chang, Tsvi Kopelowitz, and Seth Pettie. 2016. An Exponential Separation be-
+     tween Randomized and Deterministic Complexity in the LOCAL Model. In Proc. 57th
+     IEEE Symposium on Foundations of Computer Science (FOCS 2016). IEEE, 615–624.
+     https://doi.org/10.1109/FOCS.2016.72
+
+[11] Manuela Fischer. 2017. Improved Deterministic Distributed Matching via Rounding. In Proc.
+     31st International Symposium on Distributed Computing (DISC 2017). 17:1–17:15. https:
+     //doi.org/10.4230/LIPIcs.DISC.2017.17
+
+[12] Mika Göös, Juho Hirvonen, and Jukka Suomela. 2017. Linear-in-∆ lower bounds in the
+     LOCAL model. Distributed Computing 30, 5 (2017), 325–338. https://doi.org/10.1007/
+     s00446-015-0245-8
+
+[13] Michal Hanckowiak, Michal Karonski, and Alessandro Panconesi. 1998. On the Distributed
+     Complexity of Computing Maximal Matchings. In Proc. 9th Annual ACM-SIAM Symposium
+     on Discrete Algorithms (SODA 1998). ACM/SIAM, 219–225.
+
+[14] Michal Hanckowiak, Michal Karonski, and Alessandro Panconesi. 2001. On the Distributed
+     Complexity of Computing Maximal Matchings. SIAM Journal on Discrete Mathematics 15, 1
+     (2001), 41–57. https://doi.org/10.1137/S0895480100373121
+
+[15] Juho Hirvonen and Jukka Suomela. 2012. Distributed maximal matching: greedy is optimal. In
+     Proc. 31st Annual ACM SIGACT-SIGOPS Symposium on Principles of Distributed Computing
+     (PODC 2012). ACM Press, 165–174. https://doi.org/10.1145/2332432.2332464
+
+[16] Amos Israeli and A. Itai. 1986. A fast and simple randomized parallel algorithm for maximal
+     matching. Inform. Process. Lett. 22, 2 (1986), 77–80. https://doi.org/10.1016/0020-0190(86)
+     90144-4
+
+[17] Fabian Kuhn, Thomas Moscibroda, and Roger Wattenhofer. 2004. What cannot be computed
+     locally!. In Proc. 23rd Annual ACM Symposium on Principles of Distributed Computing (PODC
+     2004). ACM Press, New York, New York, USA, 300. https://doi.org/10.1145/1011767.1011811
+
+[18] Fabian Kuhn, Thomas Moscibroda, and Roger Wattenhofer. 2006. The price of being near-
+     sighted. In Proc. 17th Annual ACM-SIAM Symposium on Discrete Algorithms (SODA 2006).
+     ACM Press, New York, New York, USA, 980–989. https://doi.org/10.1145/1109557.1109666
+
+[19] Fabian Kuhn, Thomas Moscibroda, and Roger Wattenhofer. 2016. Local Computation: Lower
+     and Upper Bounds. J. ACM 63, 2 (2016), 1–44. https://doi.org/10.1145/2742012
+
+[20] Nathan Linial. 1992. Locality in Distributed Graph Algorithms. SIAM J. Comput. 21, 1 (1992),
+     193–201. https://doi.org/10.1137/0221015
+
+[21] Moni Naor. 1991. A lower bound on probabilistic algorithms for distributive ring coloring.
+     SIAM Journal on Discrete Mathematics 4, 3 (1991), 409–412. https://doi.org/10.1137/0404036
+
+[22] Dennis Olivetti. 2019. Round Eliminator: a tool for automatic speedup simulation.     https:
+     //github.com/olidennis/round-eliminator
+
+[23] Alessandro Panconesi and Romeo Rizzi. 2001. Some simple distributed algorithms for sparse
+     networks. Distributed Computing 14, 2 (2001), 97–100. https://doi.org/10.1007/PL00008932
+
+
+
+                                               29
+[24] David Peleg. 2000. Distributed Computing: A Locality-Sensitive Approach. Society for Industrial
+     and Applied Mathematics. https://doi.org/10.1137/1.9780898719772
+
+[25] Jukka Suomela. 2014 - 2019. Distributed Algorithms. Online Textbook. https://users.ics.aalto.
+     fi/suomela/da/
+
+
+
+
+                                                30
+

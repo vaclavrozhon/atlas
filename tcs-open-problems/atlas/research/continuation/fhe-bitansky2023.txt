@@ -1,0 +1,1274 @@
+Bootstrapping Homomorphic Encryption via
+Functional Encryption
+Nir Bitansky1 !
+Tel Aviv University, Israel
+Tomer Solomon !
+Tel Aviv University, Israel
+        Abstract
+Homomorphic encryption is a central object in modern cryptography, with far-reaching applications.
+Constructions supporting homomorphic evaluation of arbitrary Boolean circuits have been known
+for over a decade, based on standard lattice assumptions. However, these constructions are leveled,
+meaning that they only support circuits up to some a-priori bounded depth. These leveled con-
+structions can be bootstrapped into fully homomorphic ones, but this requires additional circular
+security assumptions, which are construction-dependent, and where reductions to standard lattice
+assumptions are no longer known. Alternative constructions are known based on indistinguishability
+obfuscation, which has been recently constructed under standard assumptions. However, this
+alternative requires subexponential hardness of the underlying primitives.
+    We prove a new bootstrapping theorem based on functional encryption, which is known based
+on standard polynomial hardness assumptions. As a result we obtain the first fully homomorphic
+encryption scheme that avoids both circular security assumptions and super-polynomial hardness
+assumptions. The construction is secure against uniform adversaries, and can be made non-uniformly
+secure assuming a generalization of the time-hierarchy theorem, which follows for example from
+non-uniform ETH.
+    At the heart of the construction is a new proof technique based on cryptographic puzzles and
+decomposable obfuscation. Unlike most cryptographic reductions, our security reduction does not
+fully treat the adversary as a black box, but rather makes explicit use of its running time (or circuit
+size).
+
+2012 ACM Subject Classification Theory of computation → Cryptographic protocols
+
+Keywords and phrases Fully Homomorphic Encryption, Polynomial Assumptions, Cryptographic
+Puzzles
+
+Digital Object Identifier 10.4230/LIPIcs.ITCS.2023.17
+
+Funding This work was supported in part by the European Research Council (ERC) under the Euro-
+pean Union’s Horizon Europe research and innovation programme (grant agreement No. 101042417,
+acronym SPP) and by ISF grant 2137/19.
+
+
+    1    Introduction
+Starting from the breakthrough work of Gentry [17], homomorphic encryption has changed
+the face of cryptography, bringing about the era of encrypted computation, with an abundance
+of new applications and new cryptographic tools. In the context of homomorphic encryption
+for general Boolean circuits, an important distinction is between schemes that are fully
+homomorphic and schemes that are only leveled homomorphic. Leveled homomorphic schemes
+have an a-priori bound d on the depth of circuits for which homomorphic evaluation is
+supported. In particular, the size of parameters in these schemes may scale with d. In
+contrast, fully homomorphic schemes allow to evaluate circuits of arbitrary polynomial depth
+with no a-priori bound.
+
+
+1
+    Member of the Check Point Institute of Information Security.
+            © Nir Bitansky and Tomer Solomon;
+            licensed under Creative Commons License CC-BY 4.0
+14th Innovations in Theoretical Computer Science Conference (ITCS 2023).
+Editor: Yael Tauman Kalai; Article No. 17; pp. 17:1–17:23
+                   Leibniz International Proceedings in Informatics
+                   Schloss Dagstuhl – Leibniz-Zentrum für Informatik, Dagstuhl Publishing, Germany
+17:2   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+            By now there are various, relatively simple, constructions of leveled homomorphic encryp-
+       tion schemes based on standard lattice assumptions (c.f. [11, 10, 19]). However, constructing
+       fully homomorphic encryption from similar assumptions remains a long standing open
+       problem. Nonetheless, Gentry [17] showed that by making an additional circular security
+       assumption the above schemes (and in fact any leveled scheme that can evaluate its own
+       decryption circuit) can be made full homomorphic. However, in this case we no longer
+       have a reduction to similar lattice assumptions. Furthermore, the corresponding assumption
+       is construction-dependent, in the sense that it assumes circular security of any specific
+       encryption scheme considered, rather than based on a clean problem that can be studied in
+       isolation.
+            An alternative construction of fully homomorphic encryption was shown by Canetti et
+       al. [13] based on indistinguishability obfuscation. Combining this with the recent breakthrough
+       of Jain, Lin, and Sahai [23, 24] who constructed indistinguishability obfuscation from
+       standard assumptions, leads to fully homomorphic encryption from standard assumptions.
+       The resulting construction, however, suffers from a caveat – it requires that the underlying
+       assumptions are all sub-exponentially secure.
+            The work of Agrikola et al. [1] showed that fully homomorphic encryption can be obtained
+       from polynomially-secure indistinguishability obfuscation and extremely lossy functions
+       (ELFs) [33]. However, the above mentioned constructions of indistinguishability obfuscation
+       are based on subexponential hardness assumptions, whereas ELFs are only known based on
+       exponential hardness assumptions. Other constructions of fully homomorphic encryption are
+       based on non-standard forms of obfuscation or functional encryption, which are not known
+       to be reducible to standard assumptions [2].
+            Overall, a construction of fully homomorphic encryption based on standard polynomial
+       assumptions has yet to be achieved.
+
+       1.1    Our Result
+       In this work we prove a new bootstrapping theorem based on functional encryption.
+       ▶ Theorem 1 (Informal). Assuming (polynomially-secure) semi-compact public-key functional
+       encryption, any leveled homomorphic encryption scheme that can evaluate (slightly more
+       than) its own decryption circuit, can be turned into a fully-homomorphic scheme against
+       efficient uniform adversaries.
+       Such functional encryption schemes were recently constructed by Jain, Lin, and Sahai from
+       standard polynomial assumptions (LPN, Bilinear SXDH, and shallow PRGs) [23, 24] and
+       thus combining with known leveled homomorphic encryption schemes (e.g. [11] from the
+       LWE [30]), we obtain the first fully homomorphic encryption scheme that does not rely on
+       circular security nor does it require super-polynomial hardness assumptions.
+
+       Non-uniform Adversaries. Whereas above we state security for uniform adversaries, we can
+       further obtain security against non-uniform adversaries, by making an additional complexity-
+       theoretic assumption that generalizes the time-hierarchy theorem and follows for example
+       from non-uniform ETH. We refer the reader to the technical overview for more details.
+
+       Polynomial Security through Cryptographic Puzzles. Our main conceptual contribut-ion
+       is a new proof technique that leverages cryptographic puzzles for the sake of polynomial
+       security. An interesting aspect of the technique is that unlike most cryptographic security
+       reductions, our security reduction does not fully treat the adversary as a black box, but
+       rather makes explicit use of its running time (or circuit size).
+N. Bitansky and T. Solomon                                                                               17:3
+
+
+1.2    Technical Overview
+In this section we provide an overview of the main new technical ideas behind our results.
+    We first briefly recall the syntax and requirements from leveled and fully homomorphic
+encryption schemes. Homomorphic encryption scheme consists of an encryption algorithm Enc,
+a decryption algorithm Dec, and a homomorphic evaluation algorithm Eval. These algorithms
+have associated public encryption and evaluation keys ek, evk and a secret decryption key dk,
+which are sampled jointly from some generation algorithm Gen. In a leveled scheme, this
+generation algorithm depends on the maximal depth d of supported circuits, and the size of
+keys ek, evk, dk may scale polynomially with d. In contrast, in fully homomorphic schemes
+the keys are of fixed size, and yet can support the homomorphic evaluation of circuits of
+arbitrary polynomial depth.
+
+Gentry’s Bootstrapping. Our starting point is Gentry’s bootstrapping [17]. Here the basic
+idea is that a leveled scheme that supports slightly more than the depth d∗ of its own
+decryption circuit can be transformed into a leveled scheme for computations of arbitrary
+depth. Specifically, to support circuits of depth d ≫ d∗ , we generate d + 1 sets of keys
+(ek0 , evk0 , dk0 ), . . . , (ekd , evkd , dkd ), and produce a new set of keys:
+
+   ek = ek0
+                                                                 
+            Encek1 (dk0 ) Encek2 (dk1 ) . . .   Encekd (dkd−1 )
+   evk =
+               evk1          evk2       ...         evkd
+   dk = dkd
+
+Then, starting from an encryption of the message Encek0 , a circuit of arbitrary depth d can
+be homomorphically evaluated layer by layer according to the following invariant: given
+encryptions Enceki (vi ) of the circuit wire values vi in layer i, we can obtain encryptions
+Enceki+1 (vi+1 ) of the wire values vi+1 in the next layer. This is done starting from
+Enceki+1 (dki ), which is part of the evaluation key evk, and homomorphically evaluating the
+circuit that given as input the decryption key dki , decrypts Enceki (vi ), and computes vi+1
+from vi . The security of the scheme reduces to that of the underlying encryption by a
+standard hybrid argument, where starting from Encekd (dkd−1 ), we switch each encryption
+Enceki (dki−1 ) with an encryption Enceki (0) of garbage (say, the all-zero string), which is
+possible as we have already eliminated dki from the adversary’s view.
+    The above is still a leveled scheme as the size of keys grows with the maximal depth d
+that can be evaluated. To make the scheme fully homomorphic, Gentry samples a single
+set of keys (ek, evk, dk) and collapses the chain of encryptions Encek1 (dk0 ) . . . Encekd (dkd−1 )
+into one encryption Encek (dk) where the decryption key is encrypted under its corresponding
+encryption key. While the size of keys is now fixed regardless of the depth of evaluated circuit,
+we can no longer invoke the above reduction to the security of the underlying encryption
+scheme. Proving security requires that the underlying scheme is circularly secure, namely
+that an encryption of the scheme’s own decryption key does not compromise its security.
+
+Compressing the Keys via Obfuscation. Aiming to avoid the circular security assumpti-on,
+Canetti et al. [13] consider an alternative approach toward compressing Gentry’s bootstrap-
+ping. (To be more precise, the exact details in [13] are somewhat different, but the core is
+essentially similar). The basic observation is that, using a pseudo-random function (PRF)
+family {fk }k , the process of generating the long evaluation key evk can be described by a
+succinct circuit EVK that has a hardwired PRF key k. Specifically, for i ≥ 1, the randomness
+
+
+
+                                                                                                       ITCS 2023
+17:4   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+       ri for generating the i-th set of keys, and encryption randomness ri′ for the i-th encryption,
+       are both derived using PRF fk (i). The succinct circuit EVK given input i, derives the key
+       generation randomness (ri−1 , ri ) and encryption randomness ri′ , computes the corresponding
+       keys, and outputs (evki , Enceki (dki−1 ; ri′ )). We then replace the previously large evaluation key
+       evk with an obfuscated version EVK g of the succinct circuit EVK. To allow for homomorphic
+       evaluation of circuits of arbitrary polynomial depth, the space of input indices [d] is taken to
+       be of super-polynomial size λω(1) in the security parameter λ.
+           Using similar techniques to those in [5, 13] this construction can be proven secure if
+       the obfuscation is instantiated using indistinguishability obfuscation (IO) and the PRF is
+       puncturable [8, 25, 9] (the concept of puncturing is discussed in more detail later on). However,
+       the proof requires that the PRF, IO, and underlying leveled homomorphic encryption are
+       all super-polynomially secure. Roughly speaking, the cause for this loss is that the security
+       reduction extends the previously described hybrid argument, and in particular suffers a loss
+       in the indistinguishability gap through d = λω(1) hybrids.
+           Overall, this construction has two sources of super-polynomial loss:
+        1. The super-polynomial number of hybrids described above.
+        2. Known IO reductions incur a loss proportional to the size of the input space of obfuscated
+           circuits, which in this case is again super-polynomial (and this is in fact conjectured to
+           be inherent [18]).
+
+         Our solution essentially addresses these two sources of super-polynomial loss separately.
+       We next explain the main ideas involved.
+
+       Polynomial Number of Hybrids through Cryptographic Puzzles. The essential problem is
+       that the two requirements of full homomorphism on one hand, and a polynomial reduction on
+       the other hand, collide. To support computations of arbitrary polynomial depth, we cannot
+       restrict the length d of the key chain to any specific polynomial. At the same time if the
+       length d of the key chain is super-polynomial, then the number of hybrids and loss in the
+       security proof is also super-polynomial. Roughly speaking, to avoid the super-polynomial
+       loss, we aim that an adversary of polynomial running time (or circuit size) t = poly(λ) will
+       only be able to access a corresponding prefix of the key chain
+
+            Encek1 (dk0 ) Encek2 (dk1 ) . . .   Encekt (dkt−1 ) Encekt+1 (dkt ) . . .   Encekd (dkd−1 )
+                                                                                                        .
+               evk1          evk2       ...         evkt           evkt+1       ...         evkd
+
+       Had we managed that, then the number of hybrids will become proportional to the adversary’s
+       polynomial running time, as required.
+           To achieve this guarantee, we use an appropriate notion of cryptographic puzzles. Generally
+       speaking, cryptographic puzzles are encryption schemes where decryption does not require a
+       decryption key, but rather the investment of some pre-specified amount of computational
+       resources. Relevant to our context are relaxed time-lock puzzles (RTLPs) as defined in [6],
+       where this resource is simply time. Specifically, a RTLP with gap ε < 1 allows anyone to
+       encrypt a message m relative to a difficulty parameter T so that the resulting ciphertext
+       (aka puzzle) Z can be decrypted in time ≈ T , whereas adversaries running in time at most
+       T ε do not learn anything about the underlying message. Encryption on the other hand, only
+       requires time polylog(T ). (Both encryption and decryption also have some fixed polynomial
+       dependence on the security parameter λ, which we suppress here for simplicity.)
+           Such RTLPs relax the notion of (non-relaxed) TLPs by Rivest, Shamir, and Wagner [31],
+       which requires that decryption is hard even for parallel adversaries that have sequential
+       time T ε , although possibly a number of processors larger than T . RTLPs against uniform
+N. Bitansky and T. Solomon                                                                             17:5
+
+
+adversaries are constructed in [6] based on succinct randomized encodings [5, 12, 27], which
+in turn can be constructed from indistinguishability obfuscation with logarithmic input space
+[3, 16, 26] and accordingly also from standard polynomial assumptions [23, 24]. Obtaining
+RTLPs against non-uniform adversaries requires an additional rather mild assumption that
+generalizes (unconditional) time-hierarchy theorems such as [21] and [4], which is used in [6].
+We elaborate on this later on.
+
+Augmenting the Construction with RTLPs. Equipped with RTLPs we augment the
+previous construction as follows. Rather than considering the circuit EVK that explicitly
+outputs the key chain, we augment the circuit EVK so that it outputs increasingly difficult
+puzzles encrypting the key chain. That is, on input i, EVK will not output Enceki (dki−1 ) in
+the clear, but rather output a RTLP Zi encrypting Enceki (dki−1 ). The required randomness
+for computing the puzzle Zi , will again be derived by applying another PRF fk′ to i. In
+terms of functionality, we can still homomorphically evaluate circuits of arbitrary polynomial
+depth d, by simply solving the puzzles. This only incurs an additive overhead of ≈ d2 (we
+explain later how this overhead can be reduced). At the same time, we are now able to
+obtain a polynomial reduction, as we effectively prevent the adversary from accessing the
+key chain, except for a polynomially bounded prefix.
+    In a bit more detail, given an adversary of polynomial running time t = poly(λ). The
+hybrid strategy will start from index T ≈ t1/ε , where ε is the constant difficulty gap of
+the RTLP. Intuitively, we can now replace the puzzle ZT encrypting the key chain link
+EncekT (dkT −1 ), with a puzzle that encrypts garbage. Indeed, the adversary’s running time t
+is at most T ε , and thus by the puzzle security guarantee, it cannot tell the difference. Now,
+having eliminated the secret key dkT −1 from the adversary’s view, we can proceed with the
+hybrid argument to the next link and so on. Overall, we will have a polynomial number
+T = t1/ε of hybrids. The exact details behind this hybrid argument are overall similar to [13],
+they are based on IO, used to obfuscate the augmented circuit EVK, and puncturable PRFs.
+(Below, when discussing how to avoid general-purpose IO, we discuss some of these details.)
+    Unlike typical cryptographic reductions that treat the adversary as a complete black-box,
+regardless of its efficiency, our reduction depends on the specific running time of the adversary,
+and has a diagonalization flavour. Indeed, in the RTLPs from [6] underlies the time hierarchy
+theorem, based on diagonalization.
+
+Avoiding the Super-polynomial Loss of General Purpose IO. Having removed the first
+mentioned source of super-polynomial loss (the super-polynomial number of hybrids), we now
+turn to deal with the second source, which is the inherent loss in using general-purpose IO.
+Indeed, there are several known cases where constructions based on IO were subsequently
+improved to obtain constructions directly from (polynomially-secure) functional encryption
+[14, 15]. These latter works were later abstracted (and extended) by Liu and Zhandry [28]
+into a general framework called decomposable obfuscation (DO).
+    Like IO, DO recompiles circuits into new circuits with the same functionality. In terms
+of security, DO relaxes IO as follows. While IO guarantees that obfuscations of any two
+circuits C0 , C1 of the same size and functionality are computationally indistinguishable, DO
+requires that this equivalence has a certificate of a specific form. Specifically, for input space
+{0, 1}n , such a certificate is a set of nodes T C ⊆ {0, 1}≤n in the corresponding full binary
+tree such that:
+    It exactly covers the leafs, in the sense that every x ∈ {0, 1}n has exactly one ancestor in
+    T C. Hence, it is called a tree covering.
+
+
+
+                                                                                                     ITCS 2023
+17:6   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+           For every x ∈ T C, the two simplified restrictions C0 (x, ·) and C1 (x, ·) are identical as
+           circuits.
+           Here by “simplified”, we mean that the partial input x is propagated through the circuit in
+           the natural way to make it simpler (e.g. AND(0, b) is turned to the constant 0, AND(1, b)
+           is turned to b, unused wires and gates are removed, and so on).
+       In other words, the circuits C0 and C1 can both be decomposed to the same fragments
+       {C0 (x, ·) : x ∈ T C}. Such two circuits C0 , C1 are called τ -decomposing-equivalent (or
+       τ -equivalent in short) if the size of the tree covering T C is τ . Liu and Zhandry construct
+       DO based on functional encryption. The security loss in their reduction, with respect to
+       τ -equivalent circuits, is proportional to τ ; in particular, for polynomially-equivalent circuits
+       polynomially-secure functional encryption suffices. Importantly, the complexity of their
+       obfuscation (in particular the size of obfuscated circuits) does not grow with τ . We show
+       that relying on DO, and performing certain adaptations to the construction to make it
+       “decomposition friendly”, we can prove security. As a corollary we can base our result on
+       polynomially-secure functional encryption. We next provide some more details.
+
+
+       The High-Level Hybrid Structure. The goal of the proof is to show that we can replace the
+       obfuscated key chain circuit EVK
+                                     g with an obfuscated circuit that is independent of the initial
+       decryption key dk0 , and thus any encryption Encek0 (m) is semantically secure. This is shown
+       by a hybrid argument that gradually changes the circuit EVK till we can completely erase
+       dk0 from it description. We next explain the high-level structure of the hybrid argument. We
+       first describe how the functionality of the circuit changes through the hybrids and afterwards
+       turn to discuss how this changes are realized to guarantee indistinguishability.
+           The first hybrid changes the behavior at a point T , where instead of computing a puzzle
+       that encrypts the key chain link EncekT (dkT −1 ), it encrypts garbage. As already mentioned,
+       T is chosen according to the (polynomial) adversary running time t and the difficulty gap ε.
+       Naming this first hybrid HT , we then consider hybrids HT −1 , . . . , H1 , where in hybrid Hi ,
+       on every index j in the interval [i, T − 1], the circuit outputs a puzzle Zj that encrypts a
+       fake key chain link Encekj (0) rather than the real link Encekj (dkj−1 ). In particular, in the
+       last hybrid H1 , the secret key dk0 is not used at all.
+
+
+       Indistinguishability through Decomposability. Intuitively, to claim indistinguishability of
+       the real obfuscated circuit EVK and its tweaked version in hybrid HT , we wish to invoke
+       the RTLP security, whereas, to claim indistinguishability between every Hi and Hi−1 , we
+       wish the invoke the semantic of the encryption Enceki . Indeed, had all the outputs were
+       simply hardwired into the circuit EVK, we could have done exactly that. However, recall
+       that these values are each inferred through computation using a PRF (which was the whole
+       point behind compression).
+           Roughly speaking, when using IO this difficulty is overcome by using the concept of
+       puncturable PRFs (starting from the work of Sahai and Waters [32] and essentially in all
+       subsequent IO-based constructions). Such PRFs allow creating punctured PRF keys that
+       enable computation of any point except for one punctured point, whereas the value at the
+       punctured point remains pseudorandom. Intuitively, this allows hardwiring into the circuit
+       one output at a time, and replacing it with a new desired output that is computationally
+       indistinguishable. The transition from this “hardwired output form” to and from the
+       “computed from the seed form” is enabled by the guarantee of IO, since these two forms are
+       just two ways of computing the same output.
+N. Bitansky and T. Solomon                                                                              17:7
+
+
+    Using DO we aim to follow a similar strategy, but have to make sure that the transitions
+between the two “hardwired” and “computed” forms are not only functionally equivalent,
+but also decomposing equivalent. For this purpose, we rely on the decomposable equivalent
+of puncturable PRFs, which are decomoposable PRFs (DPRFs) [28]. Roughly speaking, such
+a PRF has the property that when its evaluation circuit fk is decomposed according to
+a tree covering T C, any fragment fk (x, ·) where x ∈ T C is a pseudorandom function (of
+the remaining bits), even given all other fragments fk (y, ·) such that y ∈ T C \ x. Liu and
+Zhandry observe that the GGM PRF [20] is in fact a decomposable PRF.
+    DPRFs together with DO allow for example to transition quite easily from the real
+obfuscated circuit EVK to the one obfuscated in HT (which on input T outputs a puzzle
+ZT encrypting garbage). This is done by decomposing the circuit EVK according to a tree
+covering T C that contains the input T (which is a leaf in the binary input tree). This
+effectively induces a similar decomposition of the underlying DPRF fk′ used to derive
+randomness for puzzles. Here any fragment EVK(y, ·) such that y ∈ T C \ T contains as
+a sub-circuit the corresponding DPRF fragment fk (y, ·), and is otherwise independent of
+the seed k. The fragment EVK(T, ·) is in fact a constant, which is just the output of the
+circuit; namely, it is the the puzzle ZT generated using randomness fk (T ). Invoking the
+DPRF security, we can resample ZT using true independent randomness and now invoke
+the puzzle security to replace it with a new puzzle ZT that encrypts garbage. (Formally, we
+need to consider a version of EVK that is decomposed according to T C and then efficiently
+recomposed in a canonical way into a circuit. We refer to the body for details.)
+
+
+Technical Challenges in the Next Hybrids. The above is a typical use case for DO, and its
+relative simplicity stems from the fact that the pseudorandom coins fk (T ) are not used for
+any other input i ̸= T . The next transitions between hybrids Hi and Hi−1 are more subtle.
+    Recall that unlike the randomness used to generate puzzles, the randomness used to
+generate keys is correlated between subsequent inputs. As at any input i, we derive both ri−1
+to produce dki−1 as well as ri to produce eki . Had we used IO rather than DO this wouldn’t
+be an issue. Indeed, by the time we deal with input i, we have already changed the output
+behavior on input i + 1, so that it does not use dki , accordingly puncturing the corresponding
+PRF fk at point j does not change the functionality of the overall circuit at point j + 1.
+However, in the case of DO things are more subtle. When considering a decomposition
+according to some T C ∋ i as described before, we need to consider the composition of both
+the DPRF circuit fk (·), but also the shifted circuit fk ((·) − 1). While we are guaranteed
+that for any y ∈ T C \ i, fk (y, ·) does not leak information about fk (i), this is not necessarily
+guaranteed for fk ((y, ·) − 1), when considering an arbitrary tree covering containing i.
+    Our solution is to consider a tree covering with a specific structure that is decomposition
+compatible with respect to the function x 7→ x−1. In this tree covering, for any x ∈ T C \{ i },
+either |x| = n or x = p||1, where p is not a prefix of i. In the first case where |x| = n we
+fully compute the circuit on x, and in particular we fully compute x − 1. So if x ̸= i + 1
+the DPRF circuit is evaluated on x − 1 ̸= i so the output of the circuit on that value does
+not leak fk (i). The case x = i + 1 is also not problematic since we have already altered
+the functionality of the circuit on that input to encrypt garbage instead of dki , so fk (i)
+is not leaked. Alternatively, |x| < n and has the form x = p||1 where p is not a prefix of
+i. In this case, assuming a suitable implementation which we formalize, we can partially
+evaluate the function x 7→ x − 1 to get the prefix p as a partial output, and then continue
+with partial evaluation of the DPRF circuit on p. Since p is not a prefix of i, fk (p, ·) does
+not leak information about fk (i).
+
+
+
+                                                                                                      ITCS 2023
+17:8   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+       On RTLPs Against Non-Uniform Adversaries. As mentioned RTLPs against uniform
+       adversaries can be based on (polynomial) functional encryption [6]. We observe that RTLPs
+       against non-uniform adversaries, with some gap ε < 1, can be obtained by a similar
+       construction and proof to that of [6], but require and additional complexity assumption.
+       ▶ Assumption 2. There exists a constant ε < 1 such that for any polynomial t(·) there exists
+       a language L ∈ Dtime(t) such that any family C = {Cλ } of size-tε (λ) circuits fails to decide
+       Lλ = L ∩ {0, 1}λ for all large enough λ.
+           We find this assumption rather mild. It can be seen as a generalization of the (uncondition-
+       al) time-hierarchy theorem for uniform computation. It is in the same spirit of Nisan-
+       Impagliazzo-Wigderson style assumptions used to derandomize BPP [29, 22]. We also note
+       that this assumption follows for instance from the non-uniform ETH assumption. (In
+       the body, we slightly relax this assumption to also allow for some fixed polynomial size
+       non-uniformity in order to solve L.)
+
+       On the Overhead of Homomorphic Evaluation. As mentioned above, homomorphically
+       evaluating a circuit of depth d in our scheme incurs an additive overhead of ≈ d2 . Indeed,
+       as the complexity of puzzles grows with time, the overall work needed is proportional to
+       P
+          i∈[d] i. This overhead can be reduced to ≈ d by embedding cryptographic puzzles only in a
+       sparse set of positions rather than in every position as described before. For instance, we
+       can embed a puzzle in every position that is a power of two. This way the overall work is
+                   i
+       P
+          i∈log d 2 = O(d). This strategy still enables a polynomial security reduction.
+           While the amortized overhead in the above adaptation is linear, most of the computational
+       overhead is incurred toward the end of the homomorphic evaluation. However, by another
+       simple tweak to the scheme, we can ensure that the worst-case overhead in each individual
+       step is fixed and independent of the total depth of the computation. The idea is to equally
+       divide the process of solving the puzzle corresponding to position 2i among all 2i−1 steps in
+       the interval [2i−1 , 2i ), so that at every step we incur a fixed overhead. This can be easily
+       done by obtaining the corresponding puzzle already at step 2i−1 and unrolling the puzzle
+       computation through the next 2i−1 steps.
+
+        2     Preliminaries
+       Prefixes.
+          Let || denote string concatenation, e.g. if x = 0 and y = 1 then x||y = 01. Given a string
+          x ∈ zo∗ , let |x| be its length.
+          Let xj be the j − th bit of x, for i ≤ j let xi,..,j be xi ||...||xj , and let x[j] be x1,j , i.e. the
+          prefix of x of length j.
+          Given two strings a, b ∈ {0, 1}≤n , we say a ⪯ b if a is a prefix of b and say they are prefix
+          free if a ⪯̸ b and b ⪯̸ a. Given a set T ⊆ {0, 1}≤n and p ∈ {0, 1}≤n , p is prefix free with
+          respect to T if for any p′ ∈ T , p and p′ are prefix free. We say a set T ⊆ {0, 1}≤n is prefix
+          free, if for any p ∈ T , p is prefix free with respect to T \ p, i.e. any two different p, p′ ∈ T
+          are prefix free.
+
+       Efficient Adversaries.
+           We denote by PPT probabilistic polynomial-time Turing machines.
+           For a PPT algorithm M , we denote by M (x; r) the output of M on input x and random
+           coins r, and by M (x) the random variable, given by sampling the coins r uniformly at
+           random.
+N. Bitansky and T. Solomon                                                                             17:9
+
+
+   A polynomial-size circuit family C is a sequence of circuits C = { Cλ }λ∈N , such that each
+   circuit Cλ is of polynomial size λO(1) and has λO(1) input and output bits. We also
+   consider probabilistic circuits that may toss random coins.
+   An adversary A is said to be t-efficient if A is either a PPT algorithm with time bound
+   t(·), or a circuit family C = { Cλ }λ∈N where the size of each circuit Cλ is bounded by
+   t(λ).
+   An adversary A is said to be uniform efficient if A is a PPT algorithm. Similarly, A is
+   said to be non-uniform efficient if A a polynomial-size circuit family C.
+   An adversary A is said to be efficient if it is either uniform efficient or non-uniform
+   efficient.
+   A function f : N → [0, 1] is negligible if f (λ) = λ−ω(1) and is noticeable if f (λ) = λ−O(1) .
+   Two ensembles of random variables X = {Xi }λ∈N,i∈Iλ , Y = {Yi }λ∈N,i∈Iλ over the same
+   set of indices I = ∪· λ∈N Iλ are said to be computationally indistinguishable (respectively,
+   statistically indistinguishable), denoted by X ≈c Y (respectively, X ≈s Y), if for every
+   polynomial-size (respectively, unbounded) distinguisher A = { Aλ }λ∈N there exists a
+   negligible function negl such that for all λ ∈ N, i ∈ Iλ ,
+
+       |Pr(A(Xi ) = 1) − Pr(A(Yi ) = 1)| ≤ negl(λ)
+
+2.1    Relaxed Time-Lock Puzzles
+We adapt the definitions of [6] for puzzles. A puzzle instance is associated with a pair of
+parameters: a security parameter λ determining the cryptographic security of the puzzle,
+and a difficulty parameter t determining how computationally difficult is to solve the puzzle.
+
+▶ Definition 3 (Relaxed Time-Lock Puzzles). A relaxed time-lock puzzle scheme Puzzle is a
+pair of algorithms (Puzzle.Gen, Puzzle.Solve) satisfying the following requirements:
+    Syntax:
+       Z ← Puzzle.Gen(t, s) is a probabilistic algorithm that takes as an input a difficulty
+       parameter t and a solution s ∈ {0, 1}λ , where λ is a security parameter, and outputs a
+       puzzle Z.
+       s ← Puzzle.Solve(Z) is a deterministic algorithm that takes as input a puzzle Z and
+       outputs a solution s.
+    Completeness: For every security parameter λ, difficulty parameter t, solution s ∈ {0, 1}λ
+   and a puzzle Z in the support of Puzzle.Gen(t, s), Puzzle.Solve(Z) outputs s.
+    Efficiency:
+       Z ← Puzzle.Gen(t, s) can be computed in time poly(log t, λ).
+       Puzzle.Solve(Z) can be computed in time t · poly(λ).
+    Relaxed time-lock ε-security: There exists a polynomial t(·), such that for every polyno-
+   mial t(·) ≥ t(·) and t′ -efficient adversary A where t′ (·) ≤ tε (·), there exists a negligible
+    function negl, such that
+
+                              s1 , s2 ← A(1λ ), where s1 , s2 ∈ {0, 1}λ
+                                                                       
+
+       Pr b ← A(1λ , Z)                     b ← {0, 1}                  ≤ 1 + negl(λ)
+                                                                            2
+                                      Z ← Puzzle.Gen(t(λ), sb )
+
+   Where the probability is also over the random coins tossed by A.
+Such a puzzle is called Uniform Relaxed Time-Lock Puzzle (denoted URTLP) if it is secure
+against uniform efficient adversaries, and Non-Uniform Relaxed Time-Lock Puzzle (denoted
+NRTLP) if secure against non-uniform efficient adversaries.
+
+
+
+                                                                                                     ITCS 2023
+17:10   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+           In [6], a Uniform Relaxed Time-Lock Puzzle, for gap ε < 1, is constructed based on
+        succinct randomized encodings, which in turn can be based on (semi) compact functional
+        encryption [3, 16, 26].
+           We observe that Non-Uniform Relaxed Time-Lock Puzzle with some gap ε < 1 can
+        be obtained by a similar construction and proof, but require and additional complexity
+        assumption.
+
+        ▶ Assumption 4. There exists a constant ε < 1 and a polynomial a(·), such that for any
+        polynomial t(·) there exists a language L ∈ Dtime(t)/a such that any family C = {Cλ } of
+        size-tε (λ) circuits fails to decide Lλ = L ∩ {0, 1}λ for all large enough λ.
+
+            We find this assumption rather mild. It can be seen as a generalization of the (uncondition-
+        al) time-hierarchy theorem for uniform computation. It is in the same spirit of Nisan-
+        Impagliazzo-Wigderson style assumptions used to derandomize BPP [29, 22]. We also note
+        that this assumption follows for instance from the non-uniform ETH assumption (in fact,
+        with advice length a = 0).
+
+        2.2     Decomposable Obfuscation
+        The following definitions are adapted from [28] to suit our concrete needs. see [28] for full
+        definitions.
+
+        ▶ Definition 5 (Single Bit Partial Evaluation). Consider a circuit C defined on input length
+        n > 0. For any bit b ∈ {0, 1}, a partial evaluation of C on bit b denoted as C(b, ·) or Cb (·)
+        is a circuit defined on inputs of length n − 1, where we hardcode the input bit x1 to b and
+        then simplify. To Simplify, while there is a gate which some of its input is already known,
+        replace it with the appropriate gate or wire in the usual way, e.g. AND(1, b) is replaced with
+        the wire b, AND(1, 1) is replaced with hard coded 1 and AND(0, b) is replaced with hard
+        coded 0. Then remove all unused wires.
+            It is easy to see that when C is defined on a single bit, the partial evaluation of C is a
+        circuit with no input that just gives the output.
+
+        ▶ Definition 6 (Partial Evaluation). Consider a circuit C defined on input length n > 0. For
+        any string x of length at most n, a partial evaluation of C on a string x denoted as C(x, ·)
+        or Cx (·) is a circuit defined on input of length n − |x| where we repeatedly apply partial
+        evaluations on the bit xi for i = 1, ..., |x| .
+            From now on, whenever we use the expression C(x, ·) we refer to the result of simplifying
+        C after hardcoding the prefix x.
+
+        ▶ Definition 7 (Binary Tree). A binary tree Tn is a tree of depth n + 1 where the root is
+        labeled with ε (an empty string), and for any node that is not a root whose parent is labeled as
+        x, it is labeled as x||0 if it is a left-child of its parent; it is labeled as x||1 if it is a right-child
+        of its parent. The leaves of the tree Tn are labeled from 0n to 1n . Tn has 2n+1 − 1 nodes and
+        depth n + 1 (if the root has depth 1).
+
+        ▶ Definition 8 (Tree Covering). We say a set of binary strings T C = {xi }ℓi = 1 is a tree
+        covering for all strings of length n if the following holds: for every string x ∈ {0, 1}n there
+        exists exactly one xj in that set such that xj is a prefix of x. T C will be referred to just as
+        tree covering if n is clear in the context.
+            A tree covering T C can also be viewed as a set of nodes in Tn such that for every leaf in
+        the tree, the path from ε to this leaf will pass through exactly one node in the set.
+N. Bitansky and T. Solomon                                                                                      17:11
+
+
+    Yet another equivalent formulation is that a tree covering is either (1) a set consisting
+only of the root node of the tree, or (2) the union of two tree coverings for the sub-trees rooted
+at the children the root node.
+
+▶ Definition 9 (Partial Order on Tree Coverings). Given two tree coverings T C0 , T C1 , we
+say T C0 is above T C1 , denoted T C0 ⪯ T C1 , if for every node u ∈ T C1 there exists a node
+v ∈ T C0 such that v ⪯ u. We say T C1 is below T C0 if T C0 is above T C1 .
+
+▶ Definition 10 (Minimal Tree Covering). Given strings x1 , ..., xm ∈ {0, 1}≤n , where A =
+{x1 , ..., xm } is prefix-free set, let T Cx1 ,...,xm be the minimal tree covering containing x1 , ..., xm .
+Similarly, given a prefix-free set A ⊆ {0, 1}≤n denote as T CA the minimal tree covering
+containing A.
+
+▶ Observation 11 (Size of Tree Covering). Let A ⊆ {0, 1}≤n be a prefix-free set. Then,
+|T CA | = O(n|A|). In particular, if A has polynomial size then so is |T CA |. Moreover, if
+|A| = 1 then |T CA | ≤ n + 1 and if |A| = 2 then |T CA | ≤ 2n + 1.
+
+proof sketch: The above observation is achieved by considering for example the following
+                                         0
+inductive construction: Start from T CA      = {ε}. In step i we consider ai ∈ A and generate a
+                   i
+tree covering T CA containing a1 , ..., ai . This is done by removing the ancestor of ai from
+    i−1
+T CA    , followed by adding ai and at most n other nodes. This results in a tree covering
+containing A with size bound O(n|A|), hence this is also a bound on T CA .
+    We remark that T CA can be actually obtained by this inductive construction if a minimal
+set of nodes is added at each inductive step.
+
+▶ Observation 12 (Partial Order on Tree Coverings). Let A, B ⊆ {0, 1}≤n be a prefix-free
+sets. If A ⊆ B Then T CA ⪯ T CB . In particular, if A has polynomial size then so is |T CA |.
+
+proof sketch: Suppose this is not the case. Then there exists u ∈ T CB for which there doesn’t
+exist a node v ∈ T CA such that v ⪯ u. Let Su be the set of leafs in the subtree rooted at u.
+Since T CA is a tree covering, there exist nodes v1 , .., vk ∈ T CA which every leaf l ∈ Su is
+a descendent of some vi . Hence, since for any i, vi ̸⪯ u, we must have that u ⪯ vi . Since
+u ∈ T CB , for any i, vi ̸∈ B so vi ̸∈ A. Note it can’t be the case that k = 1 as then v1 = u.
+Therefore, by replacing v1 , ..., vk by u we obtain a tree covering T C ′ which contain A and
+also |T C ′ | < |T CA | contradiction.
+
+▶ Definition 13 (Circuit assignment). We say L = {(xi , Cxi )}xi ∈T C is a circuit assignment
+with size ℓ, where T C = {xi }ℓi = 1 is a tree covering for Tn and {Cxi }xi ∈T C is a set of
+circuits where Cxi is assigned to the node xi in the covering. We refer to T C as the covering
+in L, and may write LT C to emphasize that.
+    We denote each such circuit Cxi in the circuit assignment as fragment.
+    We say a circuit assignment L = {(xi , Cxi )}xi ∈T C 1 is valid if each Cxi is defined on input
+length n − |xi |. A valid circuit assignment LT C = {(xi , Cxi )}xi ∈T C naturally corresponds to
+a function LT C (·): on input y ∈ {0, 1}n find the unique xj ∈ T C such that y[i] = xj , and
+output Cxi (y[i+1,...,n] ). From now on all circuit assignments will be valid.
+    Given a circuit C defined on inputs of length n and a tree covering T C, let LTCC :=
+{(x, Cx )}x∈T C be their corresponding circuit assignment defined in the natural way: every
+fragment Cx from LTCC is the partial evaluation of C on x, i.e. C(x, ·). In other words, it is
+the set of partial evaluations of the circuit C with respect to the prefixes in T C. We may
+simply write LC when T C is clear in the context.
+    Next, the following operations on circuits and circuit assignments are defined:
+    DecomposeTo(C, T C): Returns LTCC = {(x, C(x, ·))}x∈T C . This operation is also
+    referred to as circuit decomposition.
+
+
+                                                                                                               ITCS 2023
+17:12   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+           CanonicalMerge(L, x): Operates on an assignment L where L’s tree covering includes
+           both the children of the node x (but not x itself). It takes the circuits fragments Cx||0
+           and Cx||0 assigned to the nodes x||0, x||1 respectively, and merge them to get the circuit
+                                               W
+           fragment Cx (b, y) = (b ∧ Cx||1 (y)) (¬b ∧ Cp||0 (y)). The new circuit assignment is then
+           obtained by replacing (x||0, Cx||0 ) and (x||1, Cx||1 ) in L with (x, Cx ). Hence, the tree
+           covering of the new circuit assignment L′ contains x but not x||0, x||1.
+           CanonicalMerge(L): Repeatedly perform CanonicalMerge(L, x) at different x until the
+           tree covering in the circuit assignment becomes {ε} and we are left with a single circuit
+           fragment Cε′ , i.e. merge canonically all the way to the root. To make this merge truly
+           canonical, we need to specify the order the nodes are merge in. We take the convention
+           that the lowest nodes in the tree are merged first, and between nodes in the same level,
+           the leftmost nodes are merged first.
+           The output of CanonicalMerge(L) can be thought of as a circuit or as a circuit assignment
+           (with {ε} as the tree covering and Cε′ as the circuit fragment assigned to ε).
+           The following definition concerns a circuit C which uses a some sub circuit D in a specific
+        way: It evaluates D only on its own input. This definition is flexible, as if we want to run D
+        on some y = f (x), we can look at D′ (x) = D(f (x)).
+        ▶ Definition 14 (Sub Circuit Assignment). Given a circuit C(·, ·) defined over two inputs,
+        and a circuit D(·), denote by C(·, D(·)) the circuit that on input x computes y = D(x) and
+        then computes C(x, y). Then, given a circuit assignment L = {(x, Dx )}x∈T C , let C(·, L(·))
+        be the following circuit assignment:
+            Let T C be the tree covering in L = {(x, Dx )}x∈T C .
+            Let L′ = DecomposeTo(C(·, D(·)) T C) = {(x, Cx′ )}x∈T C .
+            The fragment in Cx′ corresponding to x ∈ T C is Cx (·, Dx (·)) simplified, which is defined
+            on {0s, 1}n−|x| .
+           In other words, we decompose C to the same tree covering, and pair Cx with Dx . In this
+        context, we refer to D as sub circuit and to L as a sub circuit assignment.
+            This above definition can be extended naturally to a circuit using multiple sub circuits,
+        and multiple sub circuit assignments, as long as these sub circuit assignments have the same
+        tree covering. In other words, let L1 , ..., Lm be sub circuit assignments with the same tree
+        covering T C, i.e. Li = {(x, Dxi )}x∈T C . Then C(·, L1 (·), ..., Lm (·)) is a circuit assignment
+        whose fragment corresponding to x ∈ T C is C(x, ·, Dx1 (·), ..., Dxm (·) simplified.
+            The following lemma (lemma 5.3 from [28]) concerns the decomposition of a circuit and
+        its sub circuits. Informally, the lemma says we can push down decomposition to sub circuits,
+        and obtain a sub circuit assignments.
+        ▶ Lemma 15 (Push Down Circuit Decomposition, [28]). For any circuits C(·, ·), D(·) where
+        D takes a single input x and C takes two inputs x and D(x), for any tree covering T C, we
+        have:
+
+           DecomposeTo(C(·, D(·)), T C) = C(·, [DecomposeTo(D, T C)](·))
+
+        Similarly, given m + 1 circuits C, D1 , ..., Dm where D1 , ..., Dm take a single input x, and
+        C takes x and D1 (x), ..., Dm (x) as inputs, we have:
+
+
+                               DecomposeTo(C(·, D1 (·), ..., Dm (·)), T C)
+           = C(·, DecomposeTo(D1 , T C), ..., DecomposeTo(Dm , T C))
+N. Bitansky and T. Solomon                                                                                       17:13
+
+
+▶ Definition 16 (Decomposing Equivalence). Given two circuits C0 , C1 defined on inputs of
+length n, we say they are τ -decomposing equivalent if the following holds:
+   There exists a tree covering X = {xi }i of size at most τ ;
+    DecomposeTo(C0 , X ) = DecomposeTo(C1 , X ), i.e. for all xi ∈ X , C0 (xi , ·) = C1 (xi , ·).
+
+    We now define decomposable IO (DO). Informally, decomposable IO is an indistinguisha-
+bility obfuscator, but where the indistinguishability security requirement only applies to
+pairs of circuits that are decomposing equivalent (as opposed to applying to all equivalent
+circuits).
+
+▶ Definition 17 (DO). DO with two PPT algorithms (DO.ParaGen, DO.Eval) is τ (n, s, λ)-
+decomposable obfuscator if the following conditions hold:
+   Efficiency: DO.ParaGen, DO.Eval are efficient algorithms.
+   Functionality preserving: DO.ParaGen takes as input a security parameter λ and a circuit
+   C, and outputs the description C b of an obfuscated program. For all λ and circuit C, for
+   all input x ∈ {0, 1} , we have that DO.Eval(DO.ParaGen(1λ , C), x) = C(x).
+                       n
+
+   Decomposing indistinguishability: Consider a pair of efficient adversaries (Samp, D),
+   where Samp outputs a tuple (C0 , C1 , σ), where C0 , C1 are circuits with the same size
+   s = s(λ) with input length n = n(λ). We require that, for any such PPT (Samp, D), if
+
+         P r[C0 is τ (n, s, λ) − decomposing equivalent to C1 | (C0 , c1 σ) ← Samp(1λ )] = 1
+
+     Then there exists a negligible function negl(λ) such that:
+
+                       |P r(D(σ, DO.ParaGen(1λ , C0 )) = 1)
+         −P r(D(σ, DO.ParaGen(1λ , C1 )) = 1)| ≤ negl(λ)
+
+   DO is said to be decomposable obfuscator if it is τ (n, s, λ)-decomposable obfuscator for
+any polynomial τ (n, s, λ).
+
+     The following is theorem 4.5 from [28].
+
+▶ Theorem 18 (DO exists under FE). If semi-compact 2 single-key selective secure functional
+encryption schemes and one-way functions exists, then there exists decompose obfuscator
+DO.
+
+    All circuits will be padded to some upper bound before obfuscation (see Section 3.3 for a
+discussion on padding upper bound).
+
+2.2.1       Decomposing Compatible Algorithms
+We follow the definition from [28] to define decomposing compatible pseudo random function
+DPRF, where it was also observed that the GGM construction [20] satisfies this definition.
+
+▶ Definition 19 (DPRF). A decomposing compatible pseudo random function DPRF consists
+of the following polynomial algorithms DPRF.KeyGen and DPRF.Eval where:
+    Syntax:
+       S ← DPRF.KeyGen(1λ ) is a probabilistic algorithm that samples a seed S of length
+       k(λ).
+
+
+2
+    For simplicity, in [28] the statement is stated with compact FE, however same calculations as in [7] show
+    semi-compact FE suffices.
+
+
+
+
+                                                                                                                ITCS 2023
+17:14   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+              y ← DPRF.Eval(S, x) is a deterministic algorithm that takes as input a seed S ∈
+              {0, 1}k(λ) and query input x ∈ {0, 1}n(λ) and outputs y ∈ {0, 1}p(n) for some fixed
+              polynomial p(n).
+           PRF security: For any efficient adversary A, there exists negligible function negl such
+           that:
+
+               ∀x ∈ {0, 1}n(λ) | Pr(A(1λ , DPRF.Eval(S, x)) = 1) − Pr(A(1λ , r) = 1)| ≤ negl(λ)
+
+           Where r ← {0, 1}p(n) is chosen uniformly at random and S ← DPRF.KeyGen(1λ ).
+           DPRF security: Let Gameλ,A,b be the following game:
+             The challenger prepares a seed S ← DPRF.KeyGen(1λ );
+             The adversary A makes queries about x and gets DPRF.Eval(S, x) back from the
+             challenger;
+             The adversary gives a tree covering T C and y ∗ ∈ T C where y ∗ is not a prefix of any x
+             that has been asked;
+             The challenger returns the circuit assignment Lb back to the adversary A:
+              ∗ L0 : Let D(·) = DPRF.Eval(S, ·). Then L0 = DecomposeTo(D(·), T C).
+              ∗ L1 : Same as L0 , but the fragment corresponding to y ∗ - which is DPRF.Eval(S, y ∗ , ·)
+                - is replaced with the partial evaluation of DPRF.Eval(S ′ , y ∗ , ·), where S ′ ←
+                DPRF.KeyGen(1λ ) is an independent seed.
+             The output of the game is the output of A.
+           Then for any efficient adversary A there exists a negligible function negl such that:
+
+               |Pr(Gameλ,A,0 = 1) − Pr(Gameλ,A,1 = 1)| ≤ negl(λ)
+
+        ▶ Observation 20 (Generalization of DPRF Security). The set T C in the DPRF security
+        game is a tree covering w.l.o.g., and it suffices just to assume y ∗ is prefix-free with respect to
+        T C \ {y ∗ }. I.e. y ∗ isn’t a prefix of any other p ∈ T C, and any other p ∈ T C isn’t a prefix of
+        y ∗ . In case T C isn’t a tree covering, the sets L0,1 are defined to contain the circuit fragments
+        corresponding to the prefixes in T C (And again in L1 an independent seed S ′ is used for y ∗ ).
+
+        This holds as such T C can be easily transformed into a tree covering containing y ∗ : first
+        refine it to a prefix free set T C ′ , where if p is prefix of q keep p. Then look at T C ′′ which is
+        the minimal tree covering containing T C ′ . As y ∗ was prefix free with respect to T C \ {y ∗ },
+        it wasn’t removed along the way, and therefore y ∗ ∈ T C ′′ .
+
+        ▶ Definition 21 (Binary Encoding). Given x ∈ {0, 1}n , denote x b = Σni=1 2i−1 xi . Note that x
+        is a binary encoding of x
+                                b using the most significant bit encoding.
+
+        ▶ Definition 22 (Decomposing Compatible In-range Tester). A circuit C is called in-range
+        tester if on inputs x, y, z ∈ {0, 1}n s.t. x
+                                                   b ≤ zb it outputs TRUE if and only if yb ∈ [b
+                                                                                               x, zb]. We
+        say C is a decomposing compatible in-range tester if it’s an in-range tester and if for any
+        such x, z and a prefix p ∈ {0, 1}≤n , such that p isn’t a prefix of any y such that yb ∈ [b  x, zb],
+        the partial evaluation of C(x, z, p, ·) is simplified to FALSE.
+
+        Note that a naïve implementation of an in-range tester is decomposing compatible.
+            The following definition captures the notion computing x 7→ x − 1 in a decomposing
+        compatible manner. That is, given a prefix p the resulting circuit computes as much bits of
+        the result as it could. Note that for a prefix p of the form p = y||1||0k we can already deduce
+        the result will begin with y (the rest of the bits depend on the rest of the input which is not
+        yet known).
+N. Bitansky and T. Solomon                                                                            17:15
+
+
+▶ Definition 23 (Decomposing Compatible Decreaser). A circuit C defined on inputs of length
+n is called decreaser if on input x ∈ {0, 1}n it outputs y ∈ {0, 1}n such that yb = x b − 1. Such
+circuit shall be called decomposing compatible decreaser if on prefix p ∈ {0, 1}≤n of the form
+p = y||1||0k , the partial evaluation of C on p results in a circuit C ′ defined on inputs of size
+n − (|y| + k + 1) which outputs y||x′ .
+
+2.3    Homomorphic Encryption
+▶ Definition 24 (ℓ-Leveled Homomorphic Encryption). ℓ-leveled homomorphic encryption
+scheme LHE consists of four PPT algorithms (LHE.Gen, LHE.Enc, LHE.Dec, LHE.Eval) sat-
+isfying:
+ 1. Depth-ℓ correctness: For any λ ∈ N, (dk, ek, evk) ← LHE.Gen(1λ ), message m ∈
+    {0, 1}∗ , and circuit C with input size |m| and depth at most ℓ,
+
+       LHE.Decdk (LHE.Evalevk (C, LHE.Encek (m))) = C(m)
+
+   LHE is then said to support homomorphic evaluation of circuits with depth ℓ or equivalently
+   to support ℓ-level of homomorphism.
+2. Semantic Security: Let Gameλ,A,b be the following game:
+      The challenger samples ek, dk, evk ← LHE.Gen(1λ ) and sends ek, evk to A;
+      The adversary A generates two equal length messages m0 , m1 ∈ {0, 1}poly(λ) and sends
+      them to the challenger;
+      The challenger returns LHE.Encek (mb );
+      The output of the game is the output of A.
+   Then for any efficient adversary A there exists a negligible function negl such that:
+
+       |Pr(Gameλ,A,0 = 1) − Pr(Gameλ,A,1 = 1)| ≤ negl(λ)
+
+   We also denote ε = |Pr(Gameλ,A,0 = 1) − Pr(Gameλ,A,1 = 1)| and refer to it as A’s
+   advantage.
+3. Compactness: There exists a fixed polynomial poly, such that for any λ ∈ N,
+   (dk, ek, evk) ← LHE.Gen(1λ ), message m ∈ {0, 1}∗ , and circuit C,
+
+       |LHE.Evalevk (C, LHE.Encek (m))| ≤ poly(|C(m)|, λ)
+
+    Let LHE.Decct be the decryption algorithm where the encrypted message ct is hardwired
+into the circuit, and the input is only the decryption key dk.
+   The following definition is adapted from [17].
+▶ Definition 25 (Bootstrapble Leveled Homomorphic Encryption). A ℓ-leveled homomorphic
+encryption scheme LHE is said to be bootstrapble leveled homomorphic scheme if its decryption
+circuit has depth d such that d + 1 ≤ ℓ.
+▶ Definition 26 (Fully Homomorphic Encryption). A scheme FHE is said to be fully homomorp-
+hic ecnryption scheme if it is ℓ-leveled homomorphic scheme for any polynomial ℓ(·).
+A fully homomorphic ecnryption scheme FHE is said to support homomorphic evaluation of
+circuits with depth any polynomial depth or equivalently to support poly-level of homomorphi-
+sm. Note that the size of the keys produced by FHE.Gen are bounded by some polynomial in
+λ, and do not depend on the depth of the evaluated circuits.
+We use the convention that an encryption of a message m ∈ {0, 1}∗ is an encryption of its
+bits separately, i.e. Encek (m) = Encek (m1 ), ..., Encek (m|m| ).
+We define the following function, which will be used for bootstrapping using the technique
+from [17].
+
+
+                                                                                                     ITCS 2023
+17:16   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+        ▶ Definition 27 (Gentry’s function). Given a leveled homomorphic encryption scheme
+        LHE, we define the following function: GLHE.Dec
+                                                C,C ′   (s) = LHE.DecC (s) NAND LHE.DecC (s) =
+        LHE.Decs (C) NAND LHE.Decs (C).
+
+         3     Constructing Fully Homomorphic Encryption
+        3.1    FHE Construction Overview
+        In this section we build fully homomorphic encryption scheme secure against efficient ad-
+        versaries. A formal description of the scheme can be found in the full version of the paper.
+        The construction uses the following cryptographic primitives: DPRF, LHE, DO and RTLP:
+        if URTLP are used the construction is secure against uniform efficient adversaries, and if
+        NRTLP are used the construction is secure against non-uniform efficient adversaries.
+            For simplicity of presentation, we assume the underlying LHE scheme used by the
+        construction doesn’t need an evaluation key in order to perform homomorphic evaluations.
+        we assume w.l.o.g. LHE.Gen and LHE.Enc use λ bits of randomness and that LHE.Eval is
+        deterministic. We also assume w.l.o.g. that an encryption of a decryption key has size λ, i.e.
+        ∀dk ∈ Support(LHE.Gen(1λ )), ek′ ∈ Support(LHE.Gen(1λ )) we have that |LHE.Encek′ (dk)| =
+        λ.
+            Our FHE encryption scheme has in the background an exponentially long chain, i.e.
+        2λ − 1 long, of encrypted keys. The i-th node in the chain is the i − 1-th decryption
+        key encrypted under the i − th encryption key, i.e. LHE.Enceki (dki−1 ). The randomness
+        for generating nodes in the chain is derived from a DPRF using a seed Senc . For every i,
+        |DPRF.Eval(Senc , i)| = 2λ. The first λ bits are used for generating eki , dki , and the second
+        λ bits are used for the encryption procedure itself, i.e. in order to encrypt dki−1 under pki .
+
+        Making “decomposition friendly”. We use “decomposition friendly” algorithms, namely
+        DPRF (Definition 19) for deriving randomness, decomposing compatible in-range tester
+        (Definition 22) for testing belonging to a range and decomposing compatible decreaser
+        (Definition 23) for computing x 7→ x − 1.
+
+        Ciphertexts. A ciphertext in this scheme is a ciphertext of the underlying leveled homo-
+        morphic scheme LHE, paired with a key index, which is the index of the decryption key from
+        the chain that should be used for decryption. Formally, an encryption in the scheme is a
+        tuple ct = (c, pos), where pos represents the key index in the chain, and the decryption
+        of ct = (c, pos) is LHE.Decdkpos (c). So a fresh encryption is encrypted under ek0 , i.e. of
+        the form (ct, 0), and the output of a homomorphic evaluation of a circuit of depth d1 is
+        decryptable under dkd1 , i.e. of the form (c, d1 ). The scheme supports consecutive homo-
+        morphic evaluations a ciphertext, so after performing another homomorphic evaluation of a
+        circuit of depth d2 we get an encryption decryptable under dkd1 +d2 . More generally, after
+        performing homomorphic evaluations of circuits of depths d1 , ..., dk we get an encryption
+        decryptable under dkd1 +d2 +...+dk . The scheme support homomorphic evaluation of any circuit
+        of polynomial size since there are super-polynomial number of keys.
+
+        Keys: ek, dk, evk. The encryption key of the scheme is ek0 , and the decryption key is the
+        seed Senc from which the randomness for generating the keys is derived using DPRF. The
+        evaluation key evk of the scheme is a decomposable obfuscation of the EVK circuit (padded to
+        some upper bound, see discussion bellow in section 3.3). On input i ≥ 1 this circuit outputs
+        Puzzle.Gen(i, LHE.Enceki (dki−1 )) (on i = 0 it returns ⊥). Consequently, the evaluation key
+N. Bitansky and T. Solomon                                                                           17:17
+
+
+circuit induces a super-polynimally long chain of keys (actually, exponentially long), each key
+encrypted under the next one (except the last one). Each such encrypted key is wrapped by
+a puzzle, where the index in the chain serves as the difficulty level. The relevant puzzles are
+solved by FHE.Eval so it can it use the encrypted keys. EVKa,b is defined the same, except
+that on input i in the range [a, b] it outputs Puzzle.Gen(i, LHE.Enceki (0λ )) instead.
+
+Inputs to FHE.Eval.
+   a description of the function f as NAND gates.
+   A ciphertext ct = (c, pos), where each bit in the ciphertext is encrypted separately, that
+   is, c = {cj }. pos is the key index under which the ciphertext can be decrypted, e.g. for a
+   fresh encryption pos = 0.
+   Evaluation key evk, which is a decomposable obfuscation of the evaluation key circuit.
+   The input to that circuit is i, and the output is a puzzle of difficult i wrapping the
+   encryption of dki−1 under eki , i.e. Puzzle.Gen(i, LHE.Enceki (dki−1 )).
+
+Function evaluation. FHE.Eval evaluates the function layer by layer. Given a layer, the
+NAND gates in that layer are homomorphically evaluated by homomorphically evaluating
+Gentry’s function (see definition 27): decrypt the input wires and then compute a NAND over
+them. The output is then stored in the set EWi . After computing the NAND gates of a layer,
+the algorithm also upgrades every wire from EWi−1 to be encrypted under the next key and
+add it to EWi , so it could be used by next layers as well. Finally, the algorithm uses the
+Output algorithm for determining the output wires of the entire computation, corresponding
+to the function being computed. The output of the FHE.Eval algorithm also contains the
+index of the current position in the chain of keys, which is the key under which the output is
+decryptable.
+
+3.2    Correctness
+We state the propositions for the correctness, the full proofs can be found in the full version
+of the paper.
+
+▶ Lemma 28 (FHE scheme consists of polynomial algorithms).
+
+proof sketch: Recall that generating a puzzle takes time poly(log(t), λ) where t is the
+difficulty parameter. Since the hardest puzzle has difficulty as the length of the key chain,
+which is 2λ , we have a time bound poly(log(2λ ), λ) = poly(λ). Therefore, we can take a
+puzzle generation circuit of size poly(λ). The rest of the operations are clearly polynomial.
+
+▶ Theorem 29 (FHE is fully homomorphic). Let LHE be a bootstrapable leveled homomorphic
+encryption scheme. Then FHE supports homomorphic evaluation circuits with any polynomial
+depth.
+
+The proof is by inspection and follows the same lines as in [17].
+
+3.3    Security
+In this section we present the key ideas of security proof of the construction, the full security
+proof can be found in the full version of the paper. Given adversary A, the idea is to “cut”
+the key chain produced by the EVK algorithm at some position i∗ , and switch to puzzles
+containing encryptions of 0λ instead. The exact index i∗ is determined by the efficiency
+of the adversary, i.e. the running time bound for a uniform adversary and the size for a
+
+
+
+                                                                                                    ITCS 2023
+17:18   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+        non-uniform one. Since the difficulty level of the puzzle should be only slightly more than the
+        efficiency of the reduction, any efficient adversary A has has a polynomial cutting index i∗ .
+        When we cut the chain at position i∗ we change the output of the evaluation key circuit on
+        input i∗ to contain an encryption of 0λ instead of an encryption of the previous decryption
+        key dki∗ −1 . We then go through a series of hybrids till we get to i = 1. At that point the
+        evaluation key circuit doesn’t contain any information about the decryption key dk0 , and we
+        can apply to the semantic security of the underlying LHE scheme.
+            The indistinguishability of the first cut at position i∗ in the chain is due to puzzle security.
+        Once we have the first cut in the chain we can rely on the semantic security of underlying
+        encryption scheme LHE for the rest of the swaps. The number of hybrids is polynomial
+        in the initial cutting position i∗ . Since for every efficient adversary A the first cut is at a
+        polynomial position i∗ we have a polynomial number of hybrids in total. Hence all underlying
+        cryptographic primitives are allowed to be only polynomially secure.
+
+        Hybrids structure. After the first cut in the chain, the hybrids go through the following
+        hybrid circuit EVKi,i∗ : output a puzzle wrapping LHE.Encekj (0λ ) on input j in the range
+        [i, i∗ ], and otherwise output a puzzle wrapping LHE.Enceki (dki−1 ). In other words, EVKi,i∗
+        is a (succinct) circuit which behaves the same as the original EVK, except on inputs in the
+        range [i, i∗ ]. Moving between the hybrids in the security proof is by the following template
+        inspired by the example applications described in [28].
+            As in [28], we decompose a circuit with respect to some tree covering, followed by
+        a CanonicalMerge operation. We then alter the circuit assignment corresponding to the
+        decomposed circuit. We use a special type of tree coverings, defined bellow.
+
+        ▶ Definition 30 (Special Tree Covering). Given a tree covering T C and x ∈ {0, 1}n , let
+        T x be the tree covering obtained by the following process. We start with T C0 = T C.
+        T Ck+1 is obtained from T Ck by picking some element p ∈ Tk which is not a leaf (i.e.
+        |p| ̸= n) and not of the form p = q||1 where q is not a prefix of x. We then define
+        T Ck+1 = T Ck {p||1, p||0} \ { p }. T C x is then defined as the final tree covering in the
+                       S
+
+        proccess.
+
+        ▶ Observation 31 (Size of Special Tree Covering). Given a tree covering T C and x ∈ {0, 1}n ,
+        |T C x | = O(n|T C|).
+
+        Bellow is the template of the sub hybrids, when the behaviour of the EVK is switched on
+        some input i.
+        1. Same circuit C from previous hybrid, which is either EVK if i = i∗ , or EVKi+1,i∗ if i ̸= i∗ .
+        2. Decompose the circuit C with respect to a tree covering T C = T Cii (corresponding to
+           the input i0 currently changed) to obtain the circuit assignment LC . Then reconstruct a
+           new circuit with a CanonicalMerge operation. Indistinguishability is due DO security as
+           the two circuits are |T C|-decomposing equivalent, where T C has a polynomial size. Due
+           to Lemma 15, the decomposition is pushed down and creates a sub circuit assignment for
+           the DPRF.Eval sub circuit. This lets us to treat the randomness as a separate component
+           in the reconstructed circuit in next hybrids.
+        3. Replace the seed used by the circuit on input i to an independent one S ′ . The switch is done
+           in the DPRF.Eval sub circuit assignment of the decomposed circuit. Indistinguishability
+           is due to DPRF security. Note the circuit uses two seeds, one for deriving randomness for
+           the puzzles, and one for deriving randomness for the encryptions. When we switch the
+           puzzles in the first cut where i = i∗ this step is immediate, as the DPRF is evaluated on
+           input i with the puzzle’s seed only when the input to the EVK circuit is i. However, when
+N. Bitansky and T. Solomon                                                                                     17:19
+
+
+   we go along the chain and switch the encryptions this requires more subtle argument, as
+   the DPRF is evaluated on input i with the encryption’s seed when the input to the EVK
+   circuit is either i or i + 1.
+4. Switch a real fresh randomness on input i. Indistinguishability is due to PRF security, as
+   the currently used seed on i is independent from the rest of the circuit assignment.
+5. Switch the underlying cryptographic instance on input i, from a puzzle wrapping
+   LHE.Enceki (dki−1 ) to a puzzle wrapping LHE.Enceki (0λ ) 3 . The switch is done in top level
+   circuit assignment (as opposed to sub circuit assignments in previous sub hybrids). In the
+   first time we cut the chain, indistinguishability is due to the puzzle security, and when
+   we go along the chain indistinguishability is due to the LHE semantic security.
+6. Move back to using the original seed when computing input i by going through hybrids
+   3, 4 in reverse: switch back to an independent random seed and then to the original one.
+7. In this hybrid we switch to EVKi,i∗ . This circuit is decomposing equivalent to the circuit
+   from previous hybrid and hence their obfuscation is indistinguishable. The decomposing
+                                                                  i                                      ∗
+   equivalence is with respect to the tree covering T Ci,...,i       ∗ which has a polynomial size: i
+                                     ∗
+   is polynomial, so |{i, ..., i }| is polynomial, and then we apply observations 11 and 31.
+   Let EVK′ be the circuit obtained in the end of the previous step. Since {i} ⊆ {i, ..., i∗ }, by
+   observation 12 we have that T Ci ⪯ T Ci,...,i∗ . It follows that T Cii ⪯ T Ci,...,i  i
+                                                                                             ∗ . Therefore,
+                                                ′      i
+   we observe that DecomposeTo(EVK , T Ci,...,i∗ ) is identical to the circuit assignment we
+                                                                                                     i
+   would have got if in sub hybrid 1 we had decomposed with respect to T C = T Ci,...,i                  ∗
+
+   instead of T C = T Cii . This holds as the fragment corresponding to i is the same, and
+   any other fragment is just partially evaluated further. To show equivalence between
+   DecomposeTo(EVK′ , T Ci,...,i     i                                          i                    i
+                                         ∗ ) and DecomposeTo(EVKi,i∗ , T Ci,...,i∗ ), let p ∈ T Ci,...,i∗
+
+   and consider the following cases:
+       In case p ∈ [i, ..., i∗ ] in both hybrids we have the same fragment as it’s the output of
+       the circuits on that input - which is the same.
+       If p ̸∈ [i, ..., i∗ ], then by the definition of the tree covering, p isn’t a prefix of anything in
+       the range [i, ..., i∗ ]. Recall the circuits check belonging to a range using a decomposing
+       compatible in-range tester (see definition 22). Therefore, since it’s a tree covering,
+       p isn’t a prefix of anything in the range [i, ..., i∗ ], so the tester will be evaluated to
+       FALSE, and the simplification process will eliminate the relevant code, after which we
+       just end up with the same fragment (which is actually the same as in the original EVK,
+       as anything else is eliminated by simplification).
+
+Tree coverings considerations. The reason taking T Ci (the minimal tree covering containing
+i) isn’t enough when the seed of the encryptions is switched is due to the use of randomness
+by the circuit. Given a prefix p, let DP RFSp be the DPRF equipped with the seed S after
+partially evaluated on the prefix p. In order to apply to DPRF security, we need to argue
+that any circuit fragment doesn’t contain DP RFSp for any p which is prefix of i. Recall that
+the DPRF is evaluated on input i when the input the EVK circuit is either i or i + 1. In
+particular, the circuit has a sub circuit for computing x 7→ x − 1. Consider now a prefix q ̸= i
+in the tree covering T C, and let Cq be the corresponding circuit assignment. In order for
+Cq not to contain DP RFSp for some p which is prefix of i, we need the mapping x 7→ x − 1
+to be partially evaluated far enough, so the partial result would be pushed down and allow
+partial evaluation of the DPRF on the seed S. This is achieved by taking T Cii combined
+with computing x 7→ x − 1 using a decomposing compatible decreaser (definition 23). For
+
+
+3
+    To make the security proof shorter, we also do that when the first puzzle is switched at position i∗ .
+
+
+
+
+                                                                                                              ITCS 2023
+17:20   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+        demonstration, suppose we had used a tree covering with some prefix p ∈ {0, 1}<n , which is
+        of the form p = p′ ||0. Since p′ ends with 0, we can not yet deduce the prefix of the result of
+        the computation x 7→ x − 1. However, we can deduce these bits if p ends with 1 or if |p| = n
+        (as in that case we can fully compute p − 1). This is achieved by using T Cii .
+        Next, in the last sub hybrid we switch to EVKi,i∗ . The main difference between this circuit
+        and the previous one is how the “control flow” is evaluated. Roughly speaking, in EVKi,i∗ the
+        control flow has the following form: if the input j is in [i, i∗ ] then do A, otherwise do B. In
+        the previous circuit the flow is essentially of the form: if the input j is in [i + 1, i∗ ] then do A,
+        otherwise if j = i do A, and otherwise do B. Observe this control flow mechanism is evaluated
+                                                                                    i
+        and simplified to TRUE or FALSE when using the tree covering T Ci,...,i         ∗ combined with a
+
+        decomposing compatible in-range tester (see definition 22). This eliminates the diffreneces
+        between the circuits.
+
+        Padding. Note that during the hybrids in the security proof intermediate circuits are
+        obtained by a CanonicalMerge of circuit assignments with |T Cii | = O(poly(λ)) fragments
+        followed by replacing a fragment. Therefore, there exists some polynomial upper bound on
+        the size of all these circuits, which all circuits are padded to it before obfuscation.
+
+        ▶ Theorem 32 (FHE scheme is secure). If DO is a poly-DO, DPRF is a secure decomposing
+        compatible pseudorandom function, LHE is a semantically secure leveled homomorphic en-
+        cryption scheme, and Puzzle is URTLP, then the FHE scheme is semantically secure against
+        uniform efficient adversaries. Furthermore, if Puzzle is also NRTLP, then the scheme is
+        semantically secure against non-uniform efficient adversaries as well.
+
+             proof sketch: We go through the following hybrids using the above sub hybrids template.
+
+        1. H0 : This hybrid corresponds to the real security game, G0 .
+        2. H1 : In this hybrid we switch to use obfuscation of EVKi∗ ,i∗ as the evaluation key. I.e.,
+           same evaluation key circuit, except that on some polynomial input i∗ the output is a
+           puzzle wrapping LHE.Enceki∗ (0λ ) (instead of wrapping LHE.Enceki∗ (dki∗ −1 )).
+        3. H2 , k for k ∈ [i∗ , ..., 1]: In this hybrid we use EVKk,i∗ . In other words, on inputs
+           in the range i ∈ [k, ..., i∗ ] the evaluation key circuit encrypts 0λ under eki (instead of
+           encrypting dki−1 ). In particular in H2 , 1 the evaluation key circuit encrypts 0λ instead of
+           dk0 . Hybrids H2,i∗ and H1 are the same.
+        4. Hf inal : Same as H2,1 , except that the encryption key ek0 is sampled independently from
+           the evaluation key.
+
+               References
+         1    Thomas Agrikola, Geoffroy Couteau, and Dennis Hofheinz. The usefulness of sparsifiable
+              inputs: How to avoid subexponential io. In Aggelos Kiayias, Markulf Kohlweiss, Petros
+              Wallden, and Vassilis Zikas, editors, Public-Key Cryptography – PKC 2020 – 23rd IACR
+              International Conference on Practice and Theory of Public-Key Cryptography, Edinburgh, UK,
+              May 4-7, 2020, Proceedings, Part I, volume 12110 of Lecture Notes in Computer Science, pages
+              187–219. Springer, 2020. doi:10.1007/978-3-030-45374-9_7.
+         2    Joël Alwen, Manuel Barbosa, Pooya Farshim, Rosario Gennaro, S. Dov Gordon, Stefano
+              Tessaro, and David A. Wilson. On the relationship between functional encryption, obfuscation,
+              and fully homomorphic encryption. In Martijn Stam, editor, Cryptography and Coding
+              – 14th IMA International Conference, IMACC 2013, Oxford, UK, December 17-19, 2013.
+              Proceedings, volume 8308 of Lecture Notes in Computer Science, pages 65–84. Springer, 2013.
+              doi:10.1007/978-3-642-45239-0_5.
+N. Bitansky and T. Solomon                                                                             17:21
+
+
+ 3   Prabhanjan Ananth and Alex Lombardi. Succinct garbling schemes from functional encryption
+     through a local simulation paradigm. In Amos Beimel and Stefan Dziembowski, editors,
+     Theory of Cryptography – 16th International Conference, TCC 2018, Panaji, India, November
+     11-14, 2018, Proceedings, Part II, volume 11240 of Lecture Notes in Computer Science, pages
+     455–472. Springer, 2018. doi:10.1007/978-3-030-03810-6_17.
+ 4   Boaz Barak. A probabilistic-time hierarchy theorem for "slightly non-uniform" algorithms. In
+     Randomization and Approximation Techniques, 6th International Workshop, RANDOM 2002,
+     Cambridge, MA, USA, September 13-15, 2002, Proceedings, pages 194–208, 2002.
+ 5   Nir Bitansky, Sanjam Garg, Huijia Lin, Rafael Pass, and Sidharth Telang. Succinct ran-
+     domized encodings and their applications. In Rocco A. Servedio and Ronitt Rubinfeld,
+     editors, Proceedings of the Forty-Seventh Annual ACM on Symposium on Theory of Com-
+     puting, STOC 2015, Portland, OR, USA, June 14-17, 2015, pages 439–448. ACM, 2015.
+     doi:10.1145/2746539.2746574.
+ 6   Nir Bitansky, Shafi Goldwasser, Abhishek Jain, Omer Paneth, Vinod Vaikuntanathan, and
+     Brent Waters. Time-lock puzzles from randomized encodings. In Madhu Sudan, editor,
+     Proceedings of the 2016 ACM Conference on Innovations in Theoretical Computer Science,
+     Cambridge, MA, USA, January 14-16, 2016, pages 345–356. ACM, 2016. doi:10.1145/
+     2840728.2840745.
+ 7   Nir Bitansky and Vinod Vaikuntanathan. Indistinguishability obfuscation from functional
+     encryption. J. ACM, 65(6):39:1–39:37, 2018. doi:10.1145/3234511.
+ 8   Dan Boneh and Brent Waters. Constrained pseudorandom functions and their applications. In
+     Kazue Sako and Palash Sarkar, editors, Advances in Cryptology – ASIACRYPT 2013 – 19th
+     International Conference on the Theory and Application of Cryptology and Information Security,
+     Bengaluru, India, December 1-5, 2013, Proceedings, Part II, volume 8270 of Lecture Notes in
+     Computer Science, pages 280–300. Springer, 2013. doi:10.1007/978-3-642-42045-0_15.
+ 9   Elette Boyle, Shafi Goldwasser, and Ioana Ivan. Functional signatures and pseudorandom
+     functions. In Hugo Krawczyk, editor, Public-Key Cryptography – PKC 2014 – 17th International
+     Conference on Practice and Theory in Public-Key Cryptography, Buenos Aires, Argentina,
+     March 26-28, 2014. Proceedings, volume 8383 of Lecture Notes in Computer Science, pages
+     501–519. Springer, 2014. doi:10.1007/978-3-642-54631-0_29.
+10   Zvika Brakerski, Craig Gentry, and Vinod Vaikuntanathan. (leveled) fully homomorphic
+     encryption without bootstrapping. In Shafi Goldwasser, editor, Innovations in Theoretical
+     Computer Science 2012, Cambridge, MA, USA, January 8-10, 2012, pages 309–325. ACM,
+     2012. doi:10.1145/2090236.2090262.
+11   Zvika Brakerski and Vinod Vaikuntanathan. Efficient fully homomorphic encryption from
+     (standard) LWE. In Rafail Ostrovsky, editor, IEEE 52nd Annual Symposium on Foundations
+     of Computer Science, FOCS 2011, Palm Springs, CA, USA, October 22-25, 2011, pages 97–106.
+     IEEE Computer Society, 2011. doi:10.1109/FOCS.2011.12.
+12   Ran Canetti, Justin Holmgren, Abhishek Jain, and Vinod Vaikuntanathan. Succinct garbling
+     and indistinguishability obfuscation for RAM programs. In Rocco A. Servedio and Ronitt
+     Rubinfeld, editors, Proceedings of the Forty-Seventh Annual ACM on Symposium on Theory of
+     Computing, STOC 2015, Portland, OR, USA, June 14-17, 2015, pages 429–437. ACM, 2015.
+     doi:10.1145/2746539.2746621.
+13   Ran Canetti, Huijia Lin, Stefano Tessaro, and Vinod Vaikuntanathan. Obfuscation of proba-
+     bilistic circuits and applications. In Yevgeniy Dodis and Jesper Buus Nielsen, editors, Theory
+     of Cryptography – 12th Theory of Cryptography Conference, TCC 2015, Warsaw, Poland,
+     March 23-25, 2015, Proceedings, Part II, volume 9015 of Lecture Notes in Computer Science,
+     pages 468–497. Springer, 2015. doi:10.1007/978-3-662-46497-7_19.
+14   Sanjam Garg, Omkant Pandey, and Akshayaram Srinivasan. Revisiting the cryptographic
+     hardness of finding a nash equilibrium. In Matthew Robshaw and Jonathan Katz, editors,
+     Advances in Cryptology – CRYPTO 2016 – 36th Annual International Cryptology Conference,
+     Santa Barbara, CA, USA, August 14-18, 2016, Proceedings, Part II, volume 9815 of Lecture
+     Notes in Computer Science, pages 579–604. Springer, 2016. doi:10.1007/978-3-662-53008-5_
+     20.
+
+
+                                                                                                      ITCS 2023
+17:22   Bootstrapping Homomorphic Encryption via Functional Encryption
+
+
+        15   Sanjam Garg, Omkant Pandey, Akshayaram Srinivasan, and Mark Zhandry. Breaking the
+             sub-exponential barrier in obfustopia. In Jean-Sébastien Coron and Jesper Buus Nielsen,
+             editors, Advances in Cryptology – EUROCRYPT 2017 – 36th Annual International Conference
+             on the Theory and Applications of Cryptographic Techniques, Paris, France, April 30 – May
+             4, 2017, Proceedings, Part III, volume 10212 of Lecture Notes in Computer Science, pages
+             156–181, 2017. doi:10.1007/978-3-319-56617-7_6.
+        16   Sanjam Garg and Akshayaram Srinivasan. A simple construction of io for turing machines. In
+             Amos Beimel and Stefan Dziembowski, editors, Theory of Cryptography – 16th International
+             Conference, TCC 2018, Panaji, India, November 11-14, 2018, Proceedings, Part II, volume
+             11240 of Lecture Notes in Computer Science, pages 425–454. Springer, 2018. doi:10.1007/
+             978-3-030-03810-6_16.
+        17   Craig Gentry. Fully homomorphic encryption using ideal lattices. In Michael Mitzenmacher,
+             editor, Proceedings of the 41st Annual ACM Symposium on Theory of Computing, STOC
+             2009, Bethesda, MD, USA, May 31 – June 2, 2009, pages 169–178. ACM, 2009. doi:
+             10.1145/1536414.1536440.
+        18   Craig Gentry, Allison Bishop Lewko, Amit Sahai, and Brent Waters. Indistinguishability
+             obfuscation from the multilinear subgroup elimination assumption. In Venkatesan Guruswami,
+             editor, IEEE 56th Annual Symposium on Foundations of Computer Science, FOCS 2015,
+             Berkeley, CA, USA, 17-20 October, 2015, pages 151–170. IEEE Computer Society, 2015.
+             doi:10.1109/FOCS.2015.19.
+        19   Craig Gentry, Amit Sahai, and Brent Waters. Homomorphic encryption from learning with
+             errors: Conceptually-simpler, asymptotically-faster, attribute-based. In Ran Canetti and
+             Juan A. Garay, editors, Advances in Cryptology – CRYPTO 2013 – 33rd Annual Cryptology
+             Conference, Santa Barbara, CA, USA, August 18-22, 2013. Proceedings, Part I, volume
+             8042 of Lecture Notes in Computer Science, pages 75–92. Springer, 2013. doi:10.1007/
+             978-3-642-40041-4_5.
+        20   Oded Goldreich, Shafi Goldwasser, and Silvio Micali. How to construct random functions.
+             J. ACM, 33(4):792–807, 1986. URL: http://dblp.uni-trier.de/db/journals/jacm/jacm33.
+             html#GoldreichGM86.
+        21   Juris Hartmanis and Richard Stearns. On the computational complexity of algorithms.
+             Transactions of the American Mathematical Society, 117:285–306, 1965.
+        22   Russell Impagliazzo and Avi Wigderson. P = BPP if E requires exponential circuits: De-
+             randomizing the XOR lemma. In Frank Thomson Leighton and Peter W. Shor, editors,
+             Proceedings of the Twenty-Ninth Annual ACM Symposium on the Theory of Computing, El
+             Paso, Texas, USA, May 4-6, 1997, pages 220–229. ACM, 1997. doi:10.1145/258533.258590.
+        23   Aayush Jain, Huijia Lin, and Amit Sahai. Indistinguishability obfuscation from well-founded
+             assumptions. In Samir Khuller and Virginia Vassilevska Williams, editors, STOC ’21: 53rd
+             Annual ACM SIGACT Symposium on Theory of Computing, Virtual Event, Italy, June 21-25,
+             2021, pages 60–73. ACM, 2021. doi:10.1145/3406325.3451093.
+        24   Aayush Jain, Huijia Lin, and Amit Sahai. Indistinguishability obfuscation from LPN over
+             $\mathbb {F}_p$, dlin, and prgs in nc0 . In Orr Dunkelman and Stefan Dziembowski, editors,
+             Advances in Cryptology – EUROCRYPT 2022 – 41st Annual International Conference on the
+             Theory and Applications of Cryptographic Techniques, Trondheim, Norway, May 30 – June 3,
+             2022, Proceedings, Part I, volume 13275 of Lecture Notes in Computer Science, pages 670–699.
+             Springer, 2022. doi:10.1007/978-3-031-06944-4_23.
+        25   Aggelos Kiayias, Stavros Papadopoulos, Nikos Triandopoulos, and Thomas Zacharias. Dele-
+             gatable pseudorandom functions and applications. In Ahmad-Reza Sadeghi, Virgil D. Gligor,
+             and Moti Yung, editors, 2013 ACM SIGSAC Conference on Computer and Communica-
+             tions Security, CCS’13, Berlin, Germany, November 4-8, 2013, pages 669–684. ACM, 2013.
+             doi:10.1145/2508859.2516668.
+N. Bitansky and T. Solomon                                                                             17:23
+
+
+26   Fuyuki Kitagawa, Ryo Nishimaki, Keisuke Tanaka, and Takashi Yamakawa. Adaptively secure
+     and succinct functional encryption: Improving security and efficiency, simultaneously. In
+     Alexandra Boldyreva and Daniele Micciancio, editors, Advances in Cryptology – CRYPTO
+     2019 – 39th Annual International Cryptology Conference, Santa Barbara, CA, USA, August
+     18-22, 2019, Proceedings, Part III, volume 11694 of Lecture Notes in Computer Science, pages
+     521–551. Springer, 2019. doi:10.1007/978-3-030-26954-8_17.
+27   Venkata Koppula, Allison Bishop Lewko, and Brent Waters. Indistinguishability obfuscation for
+     turing machines with unbounded memory. In Rocco A. Servedio and Ronitt Rubinfeld, editors,
+     Proceedings of the Forty-Seventh Annual ACM on Symposium on Theory of Computing,
+     STOC 2015, Portland, OR, USA, June 14-17, 2015, pages 419–428. ACM, 2015. doi:
+     10.1145/2746539.2746614.
+28   Qipeng Liu and Mark Zhandry. Decomposable obfuscation: A framework for build-
+     ing applications of obfuscation from polynomial hardness. J. Cryptol., 34(3):35, 2021.
+     doi:10.1007/s00145-021-09400-4.
+29   Noam Nisan and Avi Wigderson. Hardness vs randomness. J. Comput. Syst. Sci., 49(2):149–167,
+     1994. doi:10.1016/S0022-0000(05)80043-1.
+30   Oded Regev. On lattices, learning with errors, random linear codes, and cryptography. In
+     Harold N. Gabow and Ronald Fagin, editors, Proceedings of the 37th Annual ACM Symposium
+     on Theory of Computing, Baltimore, MD, USA, May 22-24, 2005, pages 84–93. ACM, 2005.
+     doi:10.1145/1060590.1060603.
+31   Ronald L. Rivest, Adi Shamir, and David A. Wagner. Time-lock puzzles and timed-release
+     crypto. Technical report, MIT, 1996.
+32   Amit Sahai and Brent Waters. How to use indistinguishability obfuscation: deniable encryption,
+     and more. In David B. Shmoys, editor, Symposium on Theory of Computing, STOC 2014,
+     New York, NY, USA, May 31 – June 03, 2014, pages 475–484. ACM, 2014. doi:10.1145/
+     2591796.2591825.
+33   Mark Zhandry. The magic of elfs. In Matthew Robshaw and Jonathan Katz, editors, Advances
+     in Cryptology – CRYPTO 2016 – 36th Annual International Cryptology Conference, Santa
+     Barbara, CA, USA, August 14-18, 2016, Proceedings, Part I, volume 9814 of Lecture Notes in
+     Computer Science, pages 479–508. Springer, 2016. doi:10.1007/978-3-662-53018-4_18.
+
+
+
+
+                                                                                                      ITCS 2023
+

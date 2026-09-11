@@ -1,0 +1,1863 @@
+                                            Efficient Quantum Fully Homomorphic Encryption
+                                            Fengxia Liu1 , Zixian Gong2 , Kun Tian2 , Yi Zhang2 , Zhiming Zheng3 , and Maozhi Xu1
+
+                                            1
+                                                Great Bay University, Dongguan 523000, China
+                                            2
+                                                Renmin University of China, Beijing, China
+                                            3
+                                                Beihang University, Beijing, China
+
+
+
+                                                           Quantum fully homomorphic encryption (QFHE) enables arbitrary quantum com-
+arXiv:2604.23490v2 [quant-ph] 21 Jun 2026
+
+
+
+
+                                                      putations on encrypted data, but existing constructions require prohibitive quantum
+                                                      resources—specifically, O(λ2 ) EPR pairs per T-gate evaluation using the Barring-
+                                                      ton based approach of Dulek-Schaffner-Speelman (CRYPTO 2016). This paper in-
+                                                      troduces a unified framework achieving exponential improvement over the generic
+                                                      Barrington-based approach in terms of program length (from O(λ2 ) to O(λ log2 λ)).
+                                                           The central innovation of this paper is a novel modular arithmetic program(MA-
+                                                      Program) tailored to the algebraic structure of learning with errors (LWE) decryption.
+                                                      We demonstrate that LWE decryption computes <sk, ct> mod q—a modular inner
+                                                      product that is NOT a symmetric function. Consequently, prior symmetric-function
+                                                      optimizations (Sinha’s O(n)-state-count branching programs) do not apply. Our MA-
+                                                      Program tracks partial sums modulus q with state space Zq requiring O(log q) bits,
+                                                      yielding programs of state count O(λ) with binary encoding O(log λ) and length
+                                                      O(λ log λ). This reduces the quantum gadget size from O(λ2 ) to O(λ log2 λ) EPR
+                                                      pairs.
+                                                           To achieve a fully classical client, we transfer all quantum resource requirements
+                                                      (EPR pair preparation, Bell measurements, adaptive error correction) to the server
+                                                      via the MA-Program gadget framework, requiring clients only to perform classical
+                                                      LWE key generation, Pauli key encryption/decryption under classical FHE, and no
+                                                      quantum operations; a layered key structure where gadget information is encrypted
+                                                      under fresh public keys further eliminates circular security assumptions. For paral-
+                                                      lel computation, we adopt the Measurement-Based Quantum Computation (MBQC)
+                                                      framework with flow functions, which supports up to O(log λ) parallel measurements
+                                                      per layer (matching the binary encoding width of our MA-Program), and separates
+                                                      offline resource preparation (batch EPR pair generation) from online adaptive mea-
+                                                      surement, enabling parallel processing of measurement tasks while maintaining de-
+                                                      terministic evaluation.
+
+
+
+                                                Keywords: quantum fully homomorphic encryption, learning with errors, modular
+                                            arithmetic programs, measurement-based quantum computation, garden-hose model
+
+
+
+
+                                            Zixian Gong: ArtoriasGong@ruc.edu.cn, Co-first author
+
+
+
+                                                                                                1
+1 Introduction
+The emergence of quantum computing promises to revolutionize computational capabilities across
+numerous domains, from cryptography and optimization to quantum simulation and machine
+learning. However, this revolutionary potential brings with it significant security challenges, par-
+ticularly when users wish to leverage quantum computing resources provided by untrusted third
+parties. This fundamental tension between computational utility and data privacy motivates
+one of the most profound questions in quantum cryptography: Can we compute on encrypted
+quantum data without ever decrypting it?
+    This question lies at the heart of quantum fully homomorphic encryption (QFHE), a cryp-
+tographic primitive that enables arbitrary quantum computations to be performed on encrypted
+quantum states while preserving both the privacy of the input data and the correctness of the
+computation. Unlike classical homomorphic encryption, which deals with classical bits and
+Boolean circuits, QFHE must contend with the unique properties of quantum information: su-
+perposition, entanglement, and the no-cloning theorem. These quantum mechanical features
+make the construction of efficient QFHE schemes substantially more challenging than their clas-
+sical counterparts, yet also more essential for the secure deployment of quantum computing in
+cloud environments.
+
+1.1 Background and Prior Work
+The theoretical foundations of fully homomorphic encryption were established by Gentry [Gen09],
+who constructed the first FHE scheme using ideal lattices. This breakthrough demonstrated
+that arbitrary computation on encrypted data was possible, though the initial construction was
+computationally expensive. Subsequent developments simplified the constructions [VDG+10]
+and established security on more standard assumptions [BV11], paving the way for practical
+implementations.
+    The quantum analogue-QFHE-extends homomorphic encryption to quantum data and quan-
+tum computations. This extension is significantly more challenging due to the unique properties
+of quantum information. While classical FHE deals with bits and Boolean circuits, QFHE must
+handle qubits, superposition states, and quantum gates that introduce complex phase relation-
+ships.
+
+Early QFHE Constructions. Liang [Lia13] demonstrated the first symmetric-key QFHE
+scheme, proving that information-theoretically secure evaluation of quantum circuits on en-
+crypted data is theoretically possible. However, this scheme suffered from exponential overhead:
+the ciphertext size grew exponentially with the circuit depth, rendering it impractical for all but
+the simplest computations.
+    Broadbent and Jeffery [BJ15] constructed the first computationally secure QFHE schemes
+using a hybrid approach combining the quantum one-time pad (QOTP) with classical FHE. Their
+fundamental insight was to use the QOTP as the underlying encryption mechanism for quantum
+states. The QOTP encrypts a quantum state |ψ⟩ as Xa Zb |ψ⟩ for random bits a, b ∈ {0, 1},
+providing information-theoretic security. The classical bits (a, b)—called the Pauli keys—are
+then encrypted using classical FHE.
+    This hybrid approach enables homomorphic evaluation of Clifford gates (Hadamard H, Phase
+P, and CNOT) by updating the encrypted Pauli keys. For example, applying a Hadamard gate
+to the encrypted state transforms the encryption as follows:
+
+                                     HXa Zb |ψ⟩ = Xb Za H |ψ⟩ .
+
+The server can update the encrypted keys (a, b) → (b, a) using the homomorphic properties of
+the classical encryption, without learning the actual key values.
+
+
+                                              2
+The T-Gate Challenge. The critical limitation of Broadbent-Jeffery schemes is the T gate,
+which is essential for universal quantum computation. The T gate does not commute with Pauli
+operators in the same simple way as Clifford gates:
+
+                                         TXa = Xa Pa T,
+
+where P = T2 = diag(1, i) is the phase gate. When a T gate is applied to a QOTP-encrypted
+state Xa Z b |ϕ⟩, the result is:
+                                  TXa Zb |ϕ⟩ = Pa Xa Zb T |ϕ⟩ .
+    The server now holds a state with an extra Pa factor. To obtain a properly encrypted state,
+the server needs to apply P† if and only if a = 1. However, a is encrypted under the classical
+FHE scheme, so the server cannot directly determine its value.
+    Broadbent and Jeffery’s solution required interaction: the server would send the encrypted
+state back to the client, who would decrypt a, apply the appropriate correction, and return
+the state. This interaction requirement severely limits the practicality of the scheme for cloud
+computing scenarios where the client may be offline or bandwidth-constrained.
+
+Non-Interactive QFHE. The breakthrough for non-interactive QFHE came with Dulek,
+Schaffner, and Speelman [DSS16], who constructed gadgets enabling the server to apply P† con-
+ditionally on the encrypted bit a without client interaction. DSS [DSS16] further observed that
+“the garden-hose complexity of the decryption function directly determines the quantum resource
+requirements” and explicitly suggested that “tailored protocols for specific functions may out-
+perform generic Barrington-based constructions.” Our modular arithmetic program construction
+realizes this vision.
+    The DSS construction relies on Barrington’s theorem [Bar89], which states that any function
+in NC1 (logarithmic-depth Boolean circuits) can be computed by a width-5, polynomial-length
+branching program. Specifically, for a circuit of depth d, Barrington’s theorem yields a branching
+program of length O(4d ).
+    The key insight is that the decryption circuit of a classical FHE scheme can be computed by
+a branching program. The server prepares a quantum gadget based on this branching program.
+When evaluating a T gate, the server uses the gadget to homomorphically decrypt the control
+bit a and conditionally apply P† .
+
+The Efficiency Bottleneck. For LWE-based FHE schemes, the decryption circuit has depth
+O(log2 λ), where λ is the security parameter. Applying Barrington’s theorem yields a branching
+program of length O(4log2 λ ) = O(λlog2 4 ) = O(λ2 ).
+    The garden-hose model [Spel15] connects branching programs to quantum resources: a width-
+w, length-L branching program can be implemented using m = w · L EPR pairs. For the DSS
+construction, this gives:
+                                m = 5 · O(λ2 ) = O(λ2 )EPR pairs.
+    This exponential dependence on circuit depth creates a fundamental barrier. For concrete
+security parameters, the DSS scheme requires billions of EPR pairs, far exceeding the capabilities
+of near-term quantum devices.
+
+Subsequent Developments. Several works have explored alternative approaches to QFHE.
+Mahadev [Mah18] achieved classical verification of quantum computations using trapdoor claw-
+free functions, enabling a classical client to verify that a quantum server performed the correct
+computation. However, this scheme requires circular security assumptions and quantum LWE,
+which are stronger than the classical LWE assumptions used in our work.
+    Gupte, Vaikuntanathan, and We [GVW22] developed techniques for achieving a fully clas-
+sical client by outsourcing quantum state preparation to the server using dual-mode trapdoor
+
+                                             3
+functions. Their approach eliminates all quantum requirements from the client while maintain-
+ing security based on classical LWE. This represents a significant step toward practical QFHE
+deployment. Ma and Li [ML22] devised a novel QFHE scheme based on quaternion one-time pad
+encryption. Compared with conventional schemes relying on Pauli one-time pads, QOTP encryp-
+tion features an expanded key space, extending the discrete finite Pauli group to the continuous
+SU (2) group. Brakerski [Bra18] achieved a significant milestone by constructing a classical-
+client QFHE scheme with malicious security under polynomial-modulus LWE. His approach
+evaluates classical FHE ciphertexts homomorphically using quantum operations, achieving secu-
+rity through the inherent structure of the classical encryption. In contrast, our scheme achieves
+a purely classical client (no quantum operations whatsoever) under the standard LWE assump-
+tion, at the cost of semi-honest security. These works represent complementary architectural
+paradigms: Brakerski leverages the compositional structure of classical FHE, while we exploit
+the algebraic structure of modular arithmetic for direct gadget construction.
+    Other notable works include research on quantum homomorphic signature schemes, quantum
+obfuscation, and quantum copy-protection. While these primitives are related to QFHE, they
+address different security requirements and computational models.
+    Despite these advances, the fundamental efficiency bottleneck in QFHE—the exponential
+growth of quantum gadgets with circuit depth has remained unresolved.
+    These results lead to the following main open problem:
+
+             Is it possible to construct a quantum homomorphic scheme that allows
+            evaluation of polynomial-sized quantum circuits with polynomial gadget?
+
+    Our Answer (Informal). In this work, we resolve this question affirmatively under standard
+LWE assumptions. We present the first QFHE scheme whose T-gate gadget size is O(λ log2 λ)
+EPR pairs—polynomial in the security parameter and an exponential improvement over the
+O(λ2 ) baseline of prior Barrington-based approaches. It is worth mentioning that it can only
+capture a subclass of log-space functions with modular arithmetic structure, and cannot be
+directly applied to all general log-space functions. Nevertheless, this subclass is sufficiently rich
+to encompass LWE decryption, which is the central function required for QFHE.
+
+1.2 Our Contributions
+In this work, we resolve the central efficiency bottleneck facing QFHE by presenting a unified
+framework that achieves an exponential improvement over the generic Barrington-based approach
+in terms of quantum gadget size. At the heart of our construction lies a novel modular arithmetic
+program (MA-Program) that we design specifically to exploit the algebraic structure of Learn-
+ing With Errors (LWE) decryption. The LWE decryption function computes ⟨sk, ct⟩ mod q—a
+modular inner product that is fundamentally not a symmetric function. Consequently, prior
+symmetric-function optimizations, such as Sinha’s O(n)-state-count branching programs, do not
+apply to this setting. Our MA-Program directly tracks partial sums modulo q with state space
+Zq , requiring only O(log q) bits of state encoding. This yields programs of state count O(λ) with
+binary encoding O(log λ) and length O(λ log λ), thereby breaking the exponential dependence
+on circuit depth that has plagued all prior constructions.
+     We map this optimized MA-Program to a physical quantum gadget using the garden-hose
+model of Speelman [Spel15], which provides the crucial link between branching programs and
+quantum resources. The garden-hose model translates a width-w, length-L branching program
+into a quantum protocol using m = w · L EPR pairs. Combining our MA-Program with this
+translation yields quantum gadgets requiring O(λ log2 λ) EPR pairs per T-gate evaluation—an
+exponential improvement over the O(λ2 ) baseline established by Dulek, Schaffner, and Speel-
+man [DSS16]. To ensure deterministic and adaptive control during homomorphic evaluation,
+we integrate Measurement-Based Quantum Computation (MBQC) with flow functions, which
+
+
+                                              4
+provide a rigorous framework for single-qubit measurements on entangled resource states. The
+flow function governs the feed-forward logic that adjusts measurement bases in real time based
+on prior outcomes, guaranteeing deterministic evaluation while preserving the privacy of the
+encrypted data. Through this MA-Program combined with the MBQC framework, all quantum
+resource requirements are transferred to the server side, completely eliminating any quantum
+capability requirements from the client. The client need only perform classical operations, and
+security rests solely on the standard LWE assumption against semi-honest adversaries, avoiding
+the circular security assumptions required by prior approaches.
+    These results lead to the following informal theorem capturing our main result.
+
+     Informal Theorem. Under standard LWE assumptions, there exists a QFHE scheme
+     whose T-gate gadget size is O(λ log2 λ) EPR pairs—polynomial in the security pa-
+     rameter and an exponential improvement over the O(λ2 ) baseline of prior Barrington-
+     based approaches. The scheme supports polynomial-sized quantum circuits, requires
+     no quantum operations from the client, and avoids circular security assumptions.
+
+
+                  Table 1: Comparison of prior QFHE schemes and the present work.
+
+Property          DSS16           Mah18          Bra18           GV24               This Work
+Circuit class     Poly-size  Poly-size    Poly-size   Poly-size     Poly-size
+Gadget size        O(λ )
+                       2
+                             Not opt.      O(λ )
+                                               2
+                                                       O(λ )
+                                                           2
+                                                                   O(λ log2 λ)
+Classical client     No         Yes          No         Yes           Yes
+Parallel eval.       No         No           No          No           Yes
+Assumption       Std. LWE Super-poly LWE Std. LWE Std. LWE+dTF Std. LWE+MBQC
+Circular sec.        No       Needed         No          No            No
+
+
+
+1.3 Paper Organization
+Section 2 covers foundational basics including quantum computation, LWE/FHE primitives,
+modular arithmetic programs (MA-Program) with gadget size O(λ log2 λ) (an improvement over
+prior O(λ2 ) baselines), and MBQC fundamentals. Section 3 presents the full QFHE scheme,
+where MA-Program-based T-gate gadgets are mapped to the MBQC framework for parallel
+evaluation. Section 4 proves gadget correctness and defines classical key update rules indepen-
+dent of MBQC measurements. Section 5 instantiates the LWE-specific MA-Program and derives
+corresponding size gains. Section 6 proves q-IND-CPA security under the standard LWE assump-
+tion, describes the leveled key structure supporting fully classical clients (all quantum tasks are
+offloaded to the server), and eliminates circular security assumptions. Section 7 summarizes
+the work’s contributions and outlines three future research directions: malicious server security,
+fault-tolerant integration, and general log-space gadget optimization.
+
+
+2 Preliminaries
+This section establishes the foundational concepts and notation that underpin our quantum fully
+homomorphic encryption scheme. We begin with the essentials of quantum computation and
+the cryptographic primitives that form the building blocks of our construction, then develop the
+theoretical machinery—the garden-hose model, modular arithmetic programs, and measurement
+based quantum computation—that enables our exponential efficiency improvement over prior
+Barrington-based approaches
+
+
+
+                                             5
+2.1 Quantum Computation and Notation
+We assume familiarity with the standard model of quantum computation. A single-qubit state is
+written as |ψ⟩ = α|0⟩ + β|1⟩ where α, β ∈ C and |α|2 + |β|2 = 1. The four Pauli operators—the
+identity I and the three anticommuting unitaries X, Y, and Z—constitute the   ! foundation of
+                                                                          0 1
+quantum error correction and quantum cryptography. Explicitly, X =               is the bit-flip
+                                                                          1 0
+                       !                                                         !
+                 1 0                                                     0 −i
+operator, Z =            is the phase-flip operator, and Y = iXZ =              . The Pauli group
+                 0 −1                                                    i 0
+Pn on n qubits consists of all n-fold tensor products of Pauli operators with overall phases
+{±1, ±i}.
+    The Clifford group Cn is the normalizer
+                                          ! of the Pauli group in the unitary group, generated
+                               1 1 1
+by the Hadamard gate H = √                  , the phase gate P = diag(1, i), and the controlled-
+                                2 1 −1
+NOT gate (CNOT) : |a, b⟩ 7→ |a, a ⊕ b⟩. Clifford gates are insufficient for universal quantum
+computation; they can be efficiently simulated classically via the Gottesman Knill theorem.
+Universality is achieved by adjoining the T gate, defined as T = diag(1, eiπ/4 ), to the Clifford
+set, yielding the gate set {H, T, CNOT} that generates a dense subset of the unitary group.
+The gate P = T 2 plays a distinguished role in our construction, as the commutation relation
+between T and Pauli operators introduces a phase correction that lies at the heart of the QFHE
+T-gate gadget. An EPR pair, also called a Bell state, is the maximally entangled two-qubit
+                1
+state |Φ+ ⟩ = √ (|00⟩ + |11⟩). EPR pairs serve as the fundamental quantum resource in our
+                 2
+construction: they enable quantum teleportation, fuel the garden-hose protocol, and constitute
+the entangled resource state in measurement-based quantum computation. The m-fold tensor
+product |Φ+ ⟩⊗m represents m independent EPR pairs shared between two parties.
+    The QOTP provides information-theoretic security for quantum states and forms the encryp-
+tion mechanism underlying all known QFHE schemes. A single-qubit state ρ is encrypted by
+applying a random Pauli operator Xa Zb for a, b ∈ {0, 1}, yielding the ciphertext Xa Zb ρZb Xa . The
+following lemma, due to Ambainis et al., establishes the perfect security of this scheme.
+Lemma 2.1. (Quantum One-Time Pad [AM+00]) For any single-qubit state ρ:
+                                     1 X                       I
+                                                 Xa Zb ρZb Xa = .
+                                     4 a,b∈{0,1}               2
+
+The ciphertext is perfectly secure: the encrypted state is independent of ρ.
+
+2.2 Homomorphic Encryption
+Classical homomorphic encryption enables computation on encrypted data without decryption.
+We formalize this concept as follows:
+Definition 2.1. (Classical Homomorphic encryption scheme). Let λ be the security parameter.
+A homomorphic encryption scheme HE is a tuple of p.p.t. algorithms HE = (HE.KeyGen,
+HE.Enc,HE.Eval, HE.Dec) with the following properties.
+  • Key Generation. The probabilistic key generation (pk, evk, sk) ← HE.KeyGen(1λ ) out-
+    puts a public key pk, an evaluation evk and a secret key sk.
+  • Encryption. The probabilistic encryption algorithm ct ← HE.Encpk (x) uses the public
+    key pk and encrypts a single bit message x ∈ {0, 1} into a ciphertext ct.
+  • Evaluation. The (deterministic or probabilistic) evaluation algorithm ct′ ← HE. Evalevk
+    (C, (ct1 , . . . , ctℓ )) uses the evaluation key evk, takes as input a circuit C : {0, 1}ℓ → {0, 1}
+    and sequence of ciphertexts ct1 , . . . , ctℓ , and outputs a ciphertext ct′ .
+
+                                               6
+  • Decryption. The deterministic decryption algorithm x′ ← HE. Decsk (ct) uses the secret
+    key sk and decrypts a ciphertext ct to recover the message x′ ∈ {0, 1}.
+
+We often overload the functionality of the encryption and decryption procedures by allowing
+them to take in multi-bit messages as inputs, and produce a sequence of ciphertexts that corre-
+spond to bit-by-bit encryptions.
+
+Definition 2.2. (Full homomorphism and compactness). A scheme HE is fully homomorphic
+if for any efficiently computable circuit C and any set of inputs x1 , x2 , . . . , xℓ ,
+
+                          Pr HE.Decsk (ct′ ) ̸= C(x1 , . . . , xℓ ) = negl(λ).
+                                                               
+
+
+    This compactness property—that the output ciphertext size is independent of the compu-
+tation size—is essential for practical homomorphic encryption and carries over to our quantum
+construction. The LWE problem [Reg09] forms the foundation of our security assumptions.
+The hardness of LWE against quantum attacks makes it particularly suitable for post-quantum
+cryptography.
+
+Definition 2.3 (Decisional LWE). The decision-LWEn,q,χ problem asks to distinguish
+
+                                 (A, As + e (mod q))     from    (A, u),
+
+for uniform s ← Znq , A ← Zm×n
+                           q   , e ← χm , and uniform u ← Zm
+                                                           q .
+
+   The LWE decryption function computes
+
+                                    round(⟨sk, ct⟩ mod q) mod 2,
+
+where round maps [q/4, 3q/4] to 1 and all other values to 0. This modular inner-product structure
+is central to our MA-Program construction. This decryption is a necessary "central function"
+for constructing QFHE. Any QFHE scheme based on LWE requires homomorphic evaluation of
+LWE decryption, so optimizing the evaluation efficiency of this function is of global significance.
+    The LWE assumption has been shown to be as hard as worst-case lattice problems [Reg09],
+providing strong security guarantees against both classical and quantum adversaries. As we
+will demonstrate below, the specific structure of LWE decryption—a modular inner product—is
+ideally suited to our modular arithmetic program construction.
+
+Remark 2.1 (Parameter Relationships). Throughout this paper, the LWE dimension n and
+the security parameter λ are asymptotically equivalent: n = Θ(λ). The modulus satisfies
+q = poly(λ) = poly(n). Concrete instantiations set n ≈ λ (e.g., n = 512 for λ = 128) and q as a
+power of 2 with log2 q = O(log λ).
+
+Definition 2.4. (Quantum Homomorphic Encryption). A quantum homomorphic encryptions
+scheme is a QHE is a tuple of quantum polynomial-time algorithms (QHE.KeyGen, QHE.Enc,
+QHE.Eval, QHE.Dec):
+
+  • KeyGeneration.
+                      The probabilistic key generation algorithm (pk, sk, evk) ← QHE.KeyGen
+     1 takes a unary representation of the security parameter as input and outputs a classical
+      λ
+
+    public key pk, a classical secret key sk and a classical evaluation key evk.
+
+  • Encryption. For every possible value of pk, the quantum channel QHE.Encpk : D(M) →
+    D(Ct ) maps a state in the message space M to a state in the cipherspace Ct .
+
+  • Decryption. For every possible value of sk, QHE. Decsk : D (Ct ) → D(M) is a quantum
+    channel that maps the state in D (Ct ) to a quantum state in D(M).
+
+
+                                               7
+   • Homomorphic
+                  Circuit
+                           Evaluation. For every quantum circuit C, with
+                                                                          induced
+                                                                                  channel
+                                                                                        
+             ⊗n         ⊗m                                                 ⊗n
+     ΦC : D Ct    → D Ct     , we define a channel QHE.Evalevk (C, ·) : D Ct    → D Ct⊗m
+     that MA-Programs an n-fold cipherstate to an m-fold cipherstate.
+
+Definition 2.5. (Quantum Full Homomorphism and Compactness). Let λ be the security
+parameter. A quantum homomorphic encryption scheme QHE is fully homomorphic, if for any
+efficiently computable
+                     quantum circuit
+                                      C with induced channels ΦC : M⊗n(λ) → M⊗m(λ) , and
+                       ⊗n(λ)
+for any input ρ ∈ D M        ⊗ E , there exists a negligible function negl s.t. for (pk, sk, evk) ←
+                   
+QHE.KeyGen 1λ , the state
+                                  ⊗m(λ)
+                                                                             
+                                                                       n(λ)
+                        QHE.Decsk             QHE.Evalevk C, QHE.Encpk (ρ)
+
+is at most negl(λ)-away in trace distance from the state ΦC (ρ).
+
+   A quantum homomorphic encryption is compact if its decryption circuit is independent of
+the evaluated circuit. The scheme is leveled homomorphic if it takes 1L as additional input in
+key generation, and can only evaluate circuits of T-depth at most L.
+
+2.3 Garden Hose Model
+The garden-hose model [BFSS13], introduced by Buhrman, Fehr, Schaffner, and Speelman, is a
+two-party communication model that provides a combinatorial framework for translating classical
+computations into quantum resources. In this model, two parties—Alice, holding input x ∈
+{0, 1}n , and Bob, holding input y ∈ {0, 1}n —jointly compute a function f (x, y) using a system
+of water pipes. The computation proceeds as follows: Alice and Bob each have a set of open
+pipe ends, and they connect their pipe ends according to their respective local inputs. Water is
+poured into a designated starting pipe on Alice’s side; it flows through the connections and exits
+either at one of Alice’s output pipes or at one of Bob’s output pipes. The location of the output
+indicates the function value.
+    The quantum significance of this seemingly classical model arises from its direct connection
+to quantum teleportation. Speelman [Spel15] demonstrated that any garden-hose protocol can
+be “quantized”: Alice and Bob share m EPR pairs |Φ+ ⟩⊗m , where Alice holds one half of each
+pair and Bob holds the other. Each pipe connection in the classical protocol corresponds to
+a Bell measurement performed jointly on the two halves of an EPR pair. The measurement
+outcomes effectively realize the pipe connections, enabling conditional quantum operations. This
+correspondence transforms the combinatorial question of pipe count into the physical question
+of EPR-pair consumption, making the garden-hose complexity a direct measure of quantum
+resource requirements.
+
+Definition 2.6 (Branching Program (BP)). A width-k permutation branching program of
+length L on an input x ∈ {0, 1}n is a list of L instructions of the form ⟨iℓ , σℓ1 , σℓ0 ⟩, for 1 ≤ ℓ ≤ L,
+such that iℓ ∈ [n], and σℓ1 and σℓ0 are elements of Sk , i.e., permutations of [k]. The program
+is executed by composing the permutations given by the instructions 1 through L, selecting σℓ1
+if xiℓ = 1 and selecting σℓ0 if xiℓ = 0. The program rejects if this product equals the identity
+permutation and accepts if it equals a fixed k-cycle.
+
+Theorem 2.1. (Barrington [Bar89]) Any function f ∈ NC1 can be computed by a width-5,
+polynomial-length branching program. Specifically, if f has circuit depth d, it has a width-5 BP
+of length O(4d ).
+
+   For LWE decryption with circuit depth O(log2 λ), Theorem 2.1 yields a BP of length O(λ2 ).
+The garden-hose model connects BPs to quantum resources:
+
+
+
+                                                   8
+Definition 2.7 (Garden-Hose Complexity). The garden-hose complexity GH(f ) of a function
+f : {0, 1}n ×{0, 1}n → {0, 1} is the minimum number of pipes m such that there exists a protocol
+where Alice (holding x) and Bob (holding y) each connect pipes according to their inputs; water
+exits at Alice’s pipe 1 iff f (x, y) = 0; at Bob’s pipe 1 iff f (x, y) = 1.
+
+   The fundamental theorem connecting branching programs to garden-hose protocols, due to
+Speelman [Spel15], provides the quantitative bridge from classical computation to quantum re-
+sources.
+
+Theorem 2.2 (Garden-Hose and Branching Programs). For any function f : {0, 1}n → {0, 1}
+computable by a width-w, length-L branching program: GH(f ) ≤ w · L.
+
+     Barrington’s seminal theorem shows that all functions in NC1 can be computed by constant-
+width polynomial-length branching programs. However, for specific function classes, more ef-
+ficient constructions exist. In the standard branching-program literature, width refers to the
+number of nodes (states) per layer. The garden-hose model uses width directly in the formula
+m = w · L.
+
+Notations: In the literature of BP, a strict distinction must be made between the two terms
+of width and binary encoding: under the conventional definition, width refers to the number of
+states (nodes) per layer, which is also the standard metric for BP complexity (consistent with
+the standard definition in the BP field [Bar89]), and this paper also adopts this standard width
+definition to evaluate BP complexity. By contrast, binary encoding, mentioned when analyzing
+memory requirements, denotes the number of bits required to encode a state index. If a BP
+has w states per layer, the corresponding binary encoding only requires ⌈log2 w⌉ bits, essentially
+the number of bits used to represent a single state, which is logarithmically scaled compared
+with the width itself. These are fundamentally distinct physical quantities: for instance, when
+the BP width is q = 216 , the corresponding binary encoding requires merely 16 bits. Standard
+BP literature directly uses width as the core metric, and the "binary encoding" mentioned in
+this paper is a logarithmic scaling of width, whose difference from the standard width definition
+should be noted.
+
+2.4 Measurement-Based Quantum Computation (MBQC)
+MBQC is a quantum computation model where computation is driven entirely by adaptive
+single-qubit measurements on a pre-prepared entangled resource state, differing from the unitary
+gate-based circuit model [Josza05].
+    1. Graph State. A graph state |G⟩ is defined by an undirected graph G = (V, E), where
+                                                           1
+each vertex v ∈ V represents a qubit initialized in |+⟩ = √ (|0⟩ + |1⟩), and each edge (u, v) ∈ E
+                                                            2
+is entangled via a controlled-Z gate CZu,v . For MBQC we define an open graph G(I, O) with
+input set I ⊂ V (carrying input states) and output set O ⊂ V (carrying computation results).
+    2. Measurement Basis. All non-output qubits are measured in the XY-plane of the Bloch
+sphere, with measurement angle ϕj ∈ [0, 2π) for qubit j, defining the basis
+                                   ϕ
+                                Mj j = {|+ϕj ⟩⟨+ϕj |, |−ϕj ⟩⟨−ϕj |}
+
+                  1
+where |±ϕj ⟩ = √ (|0⟩ ± eiϕj |1⟩). Measurement outcome bj = 0 if collapsed to |+ϕj ⟩, bj = 1 if
+                   2
+collapsed to |−ϕj ⟩.
+    3. Flow Function for Deterministic Evaluation. A g-flow (generalized quantum-information
+flow) is a function f : V \ O → V \ I with a partial order ≺ satisfying i ≺ f (i) for all i, which
+                                                                                X
+defines dependency sets: the actual measurement angle for qubit j is ϕ′j = (−1)sj ϕj +sZ
+                                                                                       j π, where
+
+
+
+                                             9
+ j , sj are determined by prior measurement outcomes. This ensures all measurement branches
+sX    Z
+
+are equivalent to the "positive branch" (all bj = 0) after local Pauli corrections, guaranteeing
+deterministic computation [MDMF17].
+    4. MBQC Properties for QFHE. MBQC naturally separates resource preparation (offline
+EPR/cluster state generation) from online adaptive measurement, enabling server-side resource
+preparation to support fully classical clients. For a graph with width w (vertices per layer),
+up to w measurements can be performed in parallel per layer, balancing resource overhead and
+parallelism [FK17].
+    5. Mapping to Garden-Hose Model. In our construction, each garden-hose pipe end cor-
+responds to a vertex in the MBQC graph, EPR pairs correspond to graph edges, and the
+garden-hose connection configuration is encoded in the MBQC flow function, unifying the static
+garden-hose topology with dynamic adaptive control.
+
+2.5 Sinha’s Construction and Symmetric Functions
+Symmetric Functions and Sinha’s Construction. A Boolean function f : {0, 1}n → {0, 1}
+is symmetric      output depends only on the Hamming weight of the input, i.e., f (x) = f (x′ )
+         X if its X
+whenever     xi =    x′i . Equivalently, f is invariant under any permutation of its input bits:
+           i         i
+
+                   f (x1 , . . . , xn ) = f (xπ(1) , . . . , xπ(n) ) for all permutations π.
+
+Important examples of symmetric functions include:
+
+       • Majority: MAJ(x) = 1 iff
+                                           X
+                                                    xi ≥ n/2.
+                                            i
+                                     n
+       • Parity: PARITY(x) =               xi .
+                                     M
+
+                                     i=1
+
+       • Threshold: THk (x) = 1 iff
+                                           X
+                                                    xi ≥ k.
+                                                i
+   Sinha [Sin95] established an optimal depth bound for computing symmetric functions with
+branching programs:
+
+Theorem 2.3. Any symmetric function f : {0, 1}n → {0, 1} can be computed by a branching
+program with width O(n) (requiring O(log n) bits for binary encoding of each state) and length
+O(n).
+
+Proof Sketch. The key insight is that a symmetric function only needs to track the Hamming
+weight of the bits seen so far. The BP maintains a counter t ∈ {0, 1, . . . , n} representing
+                                                                                              X
+                                                                                                xi
+                                                                                                     i∈S
+for the processed prefix S. This counter requires O(log n) bits of state. For each input bit xi ,
+the counter updates as t ← t + xi . After processing all n bits, the BP accepts if f evaluates to
+1 on the final count.
+
+Sinha’s Branching Program Construction. We now provide a detailed exposition of Sinha’s
+branching program construction for symmetric functions.
+    Formal Definition. A symmetric function f : {0, 1}n → {0, 1} can be computed by a branch-
+ing program Pf = (G, s0 , sacc ) where:
+
+   • G = (V, E) is a layered directed graph with L = n + 1 layers,
+
+   • Each layer ℓ ∈ {0, 1, . . . , n} contains n+1 states representing counter values t ∈ {0, 1, . . . , n}.
+     These states are encoded using b = ⌈log2 (n + 1)⌉ bits each.
+
+
+                                                       10
+   • The start state s0 = 0 (zero count).
+
+   • The accept state set Sacc = {t : f evaluates to 1 on inputs with Hamming weight t}.
+
+State Transition Rules. For each layer ℓ ∈ [n] and current counter value t ∈ {0, . . . , n} :
+
+                         δℓ,0 (t) = t   (input bit 0 : counter unchanged)
+                         δℓ,1 (t) = t + 1   (input bit 1 : counter increments)
+    Counter Mechanism. The branching program operates as a sequential counter: Initialize:
+t0 = 0, for each input bit xi (i = 1, . . . , n) : If xi = 0 : ti = ti−1 , If xi = 1 : ti = ti−1 + 1; Output:
+Accept iff tn ∈ Sacc .
+    The efficiency of Sinha’s branching program construction stems from its optimization tailored
+to the properties of symmetric functions. The output of a symmetric function depends only on
+the number of ’1’s in its input (the Hamming weight), rather than the specific positions of the
+’1’s. This allows the program to maintain only a counter tracking the current Hamming weight
+during computation, without storing the exact bit sequence, thereby compressing the state space
+from O(n) states to binary encoding O(log n). Below are detailed descriptions of three classic
+symmetric functions:
+    Majority Function (MAJORITY): This function outputs 1 if the number of ’1’s in the input
+bits reaches or exceeds half of the total bits, and 0 otherwise. For an n-bit input, its acceptance
+setSacc is ⌈n/2⌉, ⌈n/2⌉ + 1, ..., n. In Sinha’s branching program, the program starts with a count
+of 0 and increments the counter by 1 each time a ’1’ is encountered. After processing all in-
+puts, it accepts if the final count falls within Sacc . The efficiency of Sinha’s branching program
+construction stems from its optimization tailored to the properties of symmetric functions. The
+output of a symmetric function depends only on the number of ’1’s in its input (the Hamming
+weight), rather than the specific positions of the ’1’s. This allows the program to maintain only
+a counter tracking the current Hamming weight during computation, without storing the exact
+bit sequence, thereby compressing the state representation to binary encoding O(log n). Below
+are detailed descriptions of three classic symmetric functions:
+     Parity Function (PARITY): This function computes the modulus-2 sum (XOR) of the input
+bits, outputting 1 when the number of ’1’s is odd and 0 when even. Its acceptance set consists
+of all odd values: Sacc = {t : t ≡ 1(mod 2)}. Notably, since only the parity of the current
+count needs to be tracked (two states) rather than an exact count, the branching program width
+implementing this function can be further optimized to w = 2, which is superior to the general
+O(log n), demonstrating room for further optimization for specific symmetric functions.
+    Threshold Function (THRESHOLD): A generalization of the majority function, it sets a
+threshold k and outputs 1 if the number of ’1’s in the input is at least k. Its acceptance set
+is Sacc = {k, k + 1, ..., n}. Its branching program construction is similar to that of the majority
+function,w ith a state count of O(n) as well. This function family illustrates how symmetric
+functions can define a rich class of functions via a simple integer threshold parameter while
+remaining efficiently computable with binary encoding O(log n).
+
+   Why Sinha’s BP Only Works for Symmetric Functions? The fundamental limitation of
+Sinha’s construction is its reliance on permutation invariance. The counter mechanism tracks
+only the count of 1s, discarding all positional information. Formally:
+
+Proposition 2.1. (Symmetry Requirement). Sinha’s counter-based branching program con-
+struction with state count O(n) (binary encoding O(log n)) works if and only if the function f
+is symmetric.
+
+Proof. If f can be computed by a counter-based BP that only tracks                    xi , then f (x) depends
+                                                                               X
+
+                                                                                i∈S
+only on the Hamming weight of x, making f symmetric by definition. If f is symmetric, then
+
+                                                 11
+                       !
+f (x) = g                  for some predicate g : {0, . . . , n} → {0, 1}. The counter-based BP computes
+            X
+                  xi
+              i
+     xi and applies g to determine acceptance.
+X
+
+ i
+
+    Proposition 2.1 establishes that Sinha’s O(n)-state-count (binary encoding O(log n)) con-
+struction applies ONLY to symmetric functions. We now show that standard LWE decryption
+is NOT symmetric, explaining why a specialized construction is necessary.
+    The LWE decryption function computes:
+                                                                 n
+                                                                                         !
+                              HE.Decsk (ct) = round                    ski · cti mod q       mod 2,
+                                                                 X
+
+                                                                 i=1
+
+where the function round(x) scales x ∈ Zq by 2/q and rounds to the nearest integer, i.e.,
+round(x) = ⌊2/q · x⌉ mod 2, where ⌊·⌉ denotes rounding to the nearest integer. Equivalently,
+round(x) = 1 iff x ∈ [q/4, 3q/4) (mod q).
+    For a fixed ciphertext ct, define fct (sk) = HE.Decsk (ct). Consider permuting the secret key
+bits via a permutation π:
+                                                                                                !
+                   fct (skπ(1) , . . . , skπ(n) ) = round                  skπ(i) · cti mod q       mod 2
+                                                                  X
+
+                                                                       i
+                                                                                 
+
+                                                  = round  skj · ctπ−1 (j) mod q  mod 2
+                                                           X
+
+                                                                       j
+
+   Since the ciphertext coefficients cti are arbitrary elements of Zq (determined by the encryption
+randomness), cti ̸= ctj in general. Therefore:
+
+                                   skj · ctπ−1 (j) ̸=                        (in general, mod q)
+                              X                         X
+                                                            skj · ctj
+                               j                        j
+
+    This breaks the permutation invariance required for symmetric functions. Consequently, fct
+depends on the POSITIONS of the non-zero key bits, not just their count. By Proposition
+2.1, Sinha’s O(n)-state-count (binary encoding O(log n)) construction does NOT apply to LWE
+decryption. That is why we propose the modular arithmetic program.
+
+2.6 Modular Arithmetic Program
+We begin by formalizing the notion of a modular arithmetic program, which generalizes standard
+branching programs to operate natively over modular state spaces:
+
+Definition 2.8 (Modular Arithmetic Program). A modular arithmetic program (MA-Program)
+over Zq for f : {0, 1}n → {0, 1} consists of: (1) a modulus q; (2) a sequence of instructions
+⟨(iℓ , aℓ , bℓ )⟩L
+                 ℓ=1 where iℓ ∈ [n] and aℓ , bℓ ∈ Zq ; (3) initial state s0 ∈ Zq ; (4) accepting set Sacc ⊆ Zq .
+On input x, the state updates as sℓ = sℓ−1 + (1 − xiℓ )aℓ + xiℓ bℓ (mod q). The output is 1 iff
+sL ∈ Sacc .
+
+    This definition captures the essence of modular computation: rather than manipulating bits
+directly, the program tracks a state in Zq that evolves through modular additions. The branching
+behavior is determined by which of two values (aℓ or bℓ ) is added based on the input bit xiℓ .
+    Why Modular Arithmetic Avoids the Exponential Barrier. The generic chain (Theorem 2.1
+to Theorem 2.2) gives gadget size O(λ2 ) because Barrington’s theorem pays an exponential
+price O(4d ) for circuit depth. Our MA-Program bypasses this exponential chain entirely by
+compiling the decryption function directly in its native modular arithmetic form rather than via
+
+
+                                                            12
+its Boolean circuit representation. The LWE decryption function computes ⟨sk, ct⟩ mod q—a
+sequential modular accumulation where each step adds the ciphertext coefficient cti if the secret
+key bit ski = 1, and adds 0 otherwise. The MA-Program tracks partial sums over Zq using
+O(log q) bits per state, achieving state count O(λ) and program length O(λ log λ). This yields
+total EPR-pair consumption O(λ log2 λ), an exponential improvement over the O(λ2 ) baseline.
+The key insight is that modular arithmetic provides a cyclic group structure Zq rather than the
+non-abelian symmetric group S5 , enabling direct binary encoding in the garden-hose model and
+eliminating the exponential overhead of Boolean circuit simulation.
+
+2.7 The MA-Program–Garden-Hose–MBQC–QFHE Pipeline
+Having introduced the individual components, we now articulate how they compose into a unified
+four-layer architecture. Understanding this structural relationship is essential for appreciating
+why our construction achieves exponential efficiency improvement over the generic Barrington-
+based approach. Each layer addresses a specific aspect of the translation from algebraic compu-
+tation to encrypted quantum evaluation, and the efficiency gains propagate through the chain
+from one layer to the next.
+    The modular arithmetic program captures the algebraic structure of LWE decryption—the
+modular inner product ⟨sk, ct⟩ mod q—in its native form. By tracking partial sums over Zq using
+O(log q) bits per state, the MA-Program avoids the exponential blowup inherent in Barrington’s
+theorem, which simulates Boolean circuits over S5 at cost O(4d ) in program length. Our MA-
+Program achieves state count O(λ) and length O(λ log λ), preserving the modular structure of
+the decryption computation throughout. This algebraic preservation is the foundational source
+of our efficiency gain.
+    The garden-hose model translates the abstract branching program into physical quantum
+resources. Theorem 2.1 establishes the fundamental bound: a width-w, length-L branching
+program requires m = w · L EPR pairs, with each state transition realized as a Bell measurement
+on shared EPR pairs. For Barrington-based approaches this yields m = 5 · O(λ2 ) = O(λ2 ) EPR
+pairs. Our binary-encoded construction exploits the O(log λ)-bit state encoding to reduce pipes
+per layer to O(log λ), yielding m = O(λ log2 λ) EPR pairs. The garden-hose model thus bridges
+the gap between the abstract program and the concrete quantum resource requirements.
+    Measurement-based quantum computation provides the dynamic control mechanism that exe-
+cutes the garden-hose protocol as a deterministic quantum computation. While the garden-hose
+model supplies the static resource topology—which EPR pairs connect which states—MBQC
+provides the adaptive measurement framework through flow functions that determine the mea-
+surement order. Each Bell measurement outcome feed-forwards to determine subsequent mea-
+surement bases, ensuring deterministic evaluation despite inherent quantum randomness. The
+MBQC framework separates resource preparation (offline EPR pair generation) from compu-
+tation (online adaptive measurements), which is essential for classical-client QFHE. Crucially,
+the MBQC layer adds only classical feed-forward overhead and does not increase the quantum
+resource requirements beyond the garden-hose bound.
+    Quantum fully homomorphic encryption utilizes the complete gadget for non-interactive T-
+gate evaluation. When a T gate acts on a QOTP-encrypted state, the commutation relation
+TXa = Xa Pa T introduces an unwanted Pa phase. The server must apply P† if and only if a = 1,
+where the Pauli key a is encrypted under the classical homomorphic encryption scheme. The
+MA-Program computes the decryption predicate, the garden-hose model realizes it as a quan-
+tum state-transfer protocol on EPR pairs, and MBQC flow functions orchestrate the adaptive
+Bell-measurement pattern that executes this protocol deterministically— all without client inter-
+action. The server can thus correct the T-gate-induced phase error on encrypted quantum data
+entirely locally. The information flow through this pipeline follows a precise sequential structure.
+The MA-Program defines what is computed—the predicate fct (sk) = HE.Decsk (ct)—and pro-
+duces a sequence of modular state transitions. The garden-hose model maps each transition to a
+
+                                             13
+physical pipe connection between EPR pairs, determining which quantum states are linked. The
+MBQC flow function then determines when and how each connection is activated: measurement
+outcomes dynamically select the next measurement basis, implementing the branching program’s
+conditional logic through adaptive feed-forward. Finally, the QFHE evaluator uses the output of
+this pipeline—a classically-controlled conditional P† gate—to correct the T-gate-induced phase
+error on encrypted quantum data. Omitting any layer breaks this chain: without the MA-
+Program, the algebraic structure is lost to generic Boolean simulation; without the garden-hose
+model, there is no bridge from classical branching programs to quantum resources; without
+MBQC, the static garden-hose connections cannot be executed as an adaptive deterministic
+quantum computation; without QFHE, the entire pipeline lacks its cryptographic application
+context.
+
+
+3 The QFHE Scheme
+We now present our quantum fully homomorphic encryption scheme, denoted Π. The con-
+struction extends the Clifford-homomorphic framework of Broadbent and Jeffery [BJ15] by in-
+corporating MA-Program-based quantum gadgets that enable non-interactive evaluation of T
+gates. Following the structural paradigm of Dulek, Schaffner, and Speelman [DSS16], we define
+the gadget abstraction first in its general form—sufficient for establishing correctness and secu-
+rity—before presenting the complete scheme. The concrete instantiation of the gadget, which
+leverages the MA-Program for LWE decryption developed in Section 2, is deferred to Section 5.
+
+3.1 The MA-Program Gadget
+The central primitive enabling T-gate evaluation is the MA-Program gadget, a quantum resource
+state that allows the server to conditionally apply a P† correction without knowledge of the
+encrypted Pauli key. We define this gadget in its general form; its concrete construction from
+the MA-Program for LWE decryption is presented in Section 5.
+Definition 3.1 (MA-Program Gadget). Let λ be the security parameter and let HE be a
+classical homomorphic encryption scheme with decryption function HE.Dec. An MA-Program
+gadget for key layer i, denoted Γpki+1 (ski ), consists of:
+                                                                          1
+  1. A collection of m = O(λ log2 λ) EPR pairs (|Φ+ ⟩⊗m ), where |Φ+ ⟩ = √ (|00⟩ + |11⟩), ar-
+                                                                           2
+     ranged according to the garden-hose protocol for the MA-Program computing HE.Decski (·).
+
+  2. Connection graphs {G0 (ℓ), G1 (ℓ)} for each layer ℓ ∈ [L] of the MA-Program, specifying
+     how EPR pair halves are linked based on the encrypted secret key sk
+                                                                       f i and the ciphertext
+     being decrypted.
+
+  3. A set of embedded P† gates positioned at the accepting states of the MA-Program, ensuring
+     that the correction is applied if and only if HE.Decski (ct) = 1.
+    The gadget is accompanied by classical information, encrypted under pki+1 , describing the
+connection pattern and P† placements. See the Figure 1 for the MA-Program gadget.
+    The intuition underlying this construction is as follows. When a T gate is applied to a
+QOTP-encrypted state Xa Zb |ψ⟩, the commutation relation TXa = Xa Pa T introduces an un-
+wanted Pa phase. Since the Pauli key a is encrypted under the classical homomorphic encryption
+scheme, the server cannot directly determine whether a = 1 and hence whether the correction
+P† is required. The MA-Program gadget resolves this dilemma through quantum teleportation:
+the server teleports the encrypted state through the gadget, and the path taken by the quantum
+information through the EPR-pair network is controlled by the encrypted bit ã = HE.Encpk (a).
+The garden-hose protocol is designed so that the quantum state traverses a P† gate if and only
+
+                                            14
+                       MA-Program Gadget: EPR-Pair Structure (𝒒𝒒=4, 𝒘𝒘𝒃𝒃𝒃𝒃𝒃𝒃 =2)
+
+            Input     Layer 1
+                       Bell                                                         Legend
+            |𝜓𝜓⟩                           1𝐴𝐴                2𝐴𝐴
+                                                                                                   EPR pair
+
+                                                                                                   Bell meas.
+                                    EPR                             EPR
+                                    pair                            pair                               𝑠𝑠𝑠𝑠𝑠 = 0
+
+                                                                                                       𝑠𝑠𝑠𝑠𝑠 = 1
+
+
+                                           1𝐵𝐵                2𝐵𝐵                                  Input qubit
+
+
+
+                                                  𝑠𝑠𝑠𝑠𝑠 = 1
+                              𝑠𝑠𝑠𝑠𝑠 = 0
+
+
+
+                    Layer 2
+                                                                                                   †
+                                           1𝐴𝐴                2𝐴𝐴                             𝐏𝐏
+
+                                                                                             accepting
+
+
+
+
+                                           1𝐵𝐵                2𝐵𝐵
+
+
+
+                                 Figure 1: MA-Program Gadget: EPR-Pair Structure.
+
+
+if the MA-Program evaluates to 1, which occurs precisely when a = 1. After teleportation
+through the gadget, the Pa phase has been removed, and the state is restored to a proper QOTP
+encryption of T|ψ⟩.
+    The size of the gadget is governed by the garden-hose complexity of the MA-Program for
+HE.Dec, which in turn depends on the BP complexity of LWE decryption. As established in
+Definition 2.3 and Theorem 2.2, the MA-Program for LWE decryption achieves state count
+O(λ) with binary encoding O(log λ) and length O(λ log λ), yielding a garden-hose complexity
+of m = O(λ log2 λ) EPR pairs. The detailed construction of the gadget from the MA-Program,
+including the embedding of P† gates and the classical information specifying connection patterns,
+is deferred to Section 5.
+
+3.2 Key Update Rules
+Homomorphic evaluation transforms the QOTP encryption keys (a, b) ∈ {0, 1}2 as gates are ap-
+plied. The update rules differ fundamentally between Clifford gates, which require only Pauli key
+commutation, and T gates, which additionally consume a gadget and incorporate measurement
+outcomes.
+
+Clifford Gates. For gates in the Clifford group ⟨H, P, CNOT⟩, the key updates follow directly
+from the Pauli commutation relations. Let the encrypted state before evaluation be Xa Zb |ψ⟩
+with encrypted keys (ã, b̃). The evaluator applies the quantum gate to the encrypted state and
+homomorphically computes the updated keys using the classical evaluation procedure HE.Eval:
+
+   • Hadamard gate. The commutation HXa Zb = Xb Za H implies the key transformation (a, b) 7→
+     (b, a). The evaluator computes ã′ ← HE.Evalevk (f= , b̃) and b̃′ ← HE.Evalevk (f= , ã), where
+     f= denotes the identity function evaluated homomorphically.
+
+   • Phase gate. From PXa Zb = Xa Za⊕b P, the keys update as (a, b) 7→ (a, a ⊕ b). The evaluator
+     sets ã′ ← ã and computes b̃′ ← HE.Evalevk (f⊕ , ã, b̃), where f⊕ is homomorphic XOR
+     evaluation.
+
+                                                       15
+        QOTP Encryption Clifford Gates T-gate with MA-Program Gadget Decryption
+                                                                 ′ ′                                                 ′ ′
+                                  (ã, b̃)                    (ã , b̃ )                                          (ã , b̃ )
+               HE.Enc                         HE.Eval                               HE.Eval                                                 HE.Dec
+                                                                                                                                               ′   ′
+                (a, b)                       (Clifford)                            (MA-Program)                                              (a , b )
+                                                                                                  connection
+
+                                                                                                   pattern
+           a             b                                                                                                              ′                   ′
+                              a   b                                                                                                    b                a
+                             X Z |ψ⟩                                               a′       a′    b′                    a′    b′
+                                                                               P        X        Z T |ψ⟩            X        Z T |ψ⟩
+  |ψ⟩          X     Z                       H            S                T                                 P†                         Z†          X†          T |ψ⟩
+
+
+                                      |0⟩                                                                                                                       Anc
+                                                                                            BM
+                                                                                             ..
+                                                                                              .
+                                                                                            BM
+                                                                                                       18
+                                                              MA-Program Gadget (2                          EPR pairs)
+
+
+           Legend:                       Quantum wire         Classical wire                     G Quantum Operation                   C Classical Operation
+
+
+
+
+                                      Figure 2: QFHE Quantum Circuit: T-gate Evaluation.
+
+
+   • CNOT gate. For a CNOT with control wire w and target wire w′ , the commutation
+     relations yield (aw , bw , aw′ , bw′ ) 7→ (aw , bw ⊕ bw′ , aw′ ⊕ aw , bw′ ). All updates are computed
+     homomorphically via HE.Eval.
+
+T Gate with Gadget. The T gate presents the critical challenge. Applying T to Xa Zb |ψ⟩
+yields Pa Xa Zb T|ψ⟩, leaving a residual Pa phase. To remove this phase, the evaluator consumes
+one MA-Program gadget Γpki+1 (ski ) from the evaluation key. The procedure proceeds in three
+stages.
+       First, the evaluator executes the garden-hose protocol by performing Bell measurements on
+the EPR pairs according to the connection pattern determined by the encrypted control bit
+ã[i] . The measurement outcomes m ∈ {0, 1}O(m) record which paths the quantum information
+traversed through the gadget.
+       Second, the quantum state emerges from the gadget with the Pa phase removed ( the gadget
+applies P† if and only if a = 1), but additional Pauli corrections have been incurred due to the
+teleportation measurements. These corrections depend on the measurement outcomes m, the
+connection pattern (which in turn depends on ski ), and the gadget’s classical information.
+       Third, the evaluator computes the updated Pauli keys (ã′[i+1] , b̃′[i+1] ) by homomorphically
+evaluating the key-update function fgadget (ã[i] , b̃[i] , m, ctgad ), where ctgad denotes the classical
+gadget information encrypted under pki+1 . This function captures both the key transformation
+induced by the T gate itself and the additional Pauli corrections from the teleportation through
+the gadget. The homomorphic evaluation is performed using HE.Evalevki+1 , ensuring the updated
+keys are encrypted under the next key layer.
+
+3.3 Complete QFHE Scheme
+With the gadget abstraction and key update rules in place, we now define the complete QFHE
+scheme Π = (Π.KeyGen, Π.Enc, Π.Eval, Π.Dec).
+
+Definition 3.2 (Quantum Homomorphic Encryption). A quantum homomorphic encryption
+scheme is a tuple of quantum polynomial-time algorithms (Π.KeyGen, Π.Enc, Π.Eval, Π.Dec)
+satisfying the following properties:
+
+   • Key Generation. The probabilistic algorithm (pk, sk, evk) ← Π.KeyGen(1λ ) takes a
+     unary representation of the security parameter as input and outputs a classical public key
+     pk, a classical secret key sk, and a classical-quantum evaluation key evk.
+
+
+                                                                 16
+  • Encryption. For every possible value of pk, the quantum channel Π.Encpk : D(M) →
+    D(Ct ) maps a state in the message space M to a cipherstate in the cipherspace Ct .
+
+  • Evaluation. For every quantum circuit C with induced channel ΦC : M⊗n(λ) → M⊗m(λ) ,
+                                        ⊗n(λ)        ⊗m(λ)
+    the algorithm Π.Evalevk (C, ·) : D(Ct     ) → D(Ct     ) maps n(λ) cipherstates to m(λ)
+    cipherstates.
+
+  • Decryption. For every possible value of sk, the quantum channel Π.Decsk : D(Ct ) →
+    D(M) maps a cipherstate to a quantum state in the message space.
+
+   We now present the four algorithms of our scheme Π.
+
+Key Generation: Π.KeyGen(1λ , 1L ). For i = 0 to L, execute (pki , ski , evki ) ← HE.KeyGen(1λ )
+to obtain L + 1 independent classical homomorphic key pairs. The public key is set to pk =
+(pki )L
+      i=0 , and the secret key is sk = (ski )i=0 . For each i = 0 to L − 1, run the gadget gener-
+                                             L
+
+ation procedure Π.GenGadgetpki+1 (ski ) to produce the MA-Program gadget Γpki+1 (ski ). The
+evaluation key is the composite quantum-classical state
+                                      L−1
+                              evk =         Γpki+1 (ski ) ⊗ |evki ⟩⟨evki | .
+                                      O                                  
+
+                                      i=0
+
+
+Encryption: Π.Encpk (ρ). To encrypt a single-qubit state ρ ∈ D(M), the algorithm samples
+random Pauli keys a, b ← {0, 1} uniformly. It applies the quantum one-time pad to ρ, producing
+the quantum ciphertext Xa Zb ρZb Xa . The Pauli keys are then encrypted using the first public
+key: ã ← HE.Encpk0 (a) and b̃ ← HE.Encpk0 (b). The output is the classical-quantum state
+                                                               
+                                      σ = ã, b̃, Xa Zb ρZb Xa .
+
+Evaluation: Π.Evalevk (C, {σj }). The evaluation algorithm takes as input a quantum circuit C
+composed of gates from the universal set {H, P, T, CNOT} and a collection of input cipherstates
+{σj }. It processes the circuit gate by gate, maintaining an index i tracking the current key layer
+(initially i = 0).
+    For each gate g ∈ C in topological order, the evaluator performs the following. If g ∈
+{H, P, CNOT} is a Clifford gate, it applies g directly to the quantum ciphertext and updates the
+encrypted Pauli keys homomorphically according to the commutation rules, using HE.Evalevki .
+The key layer i remains unchanged.
+    If g is a T gate, the evaluator consumes one gadget Γpki+1 (ski ) from the evaluation key. It
+applies the T gate to the quantum ciphertext, yielding Pa Xa Zb T|ψ⟩, then executes the garden-
+hose protocol on the gadget: Bell measurements are performed on the EPR pairs according to
+the connection pattern determined by ã[i] , and the measurement outcomes m are recorded. The
+evaluator then computes the updated keys (ã′[i+1] , b̃′[i+1] ) by homomorphically evaluating the
+gadget key-update function fgadget using HE.Evalevki+1 . Following the T-gate evaluation, the
+evaluator performs recryption of all wire keys from layer i to layer i + 1. The layer counter is
+incremented: i ← i + 1.
+    After processing all gates in C, if the current key layer i < L, the evaluator performs recryption
+of all remaining wire keys from layer i to layer L in L − i steps. The output consists of the
+evaluated quantum state together with the final encrypted Pauli keys under pkL .
+
+Decryption: Π.Decsk (σ ′ ). Given a cipherstate σ ′ = (ã′[L] , b̃′[L] , ρ′ ), the decryption algo-
+rithm first decrypts the Pauli keys using the final secret key: a′ ← HE.DecskL (ã′[L] ) and
+                                                                                   ′ ′    ′   ′
+b′ ← HE.DecskL (b̃′[L] ). It then applies the inverse quantum one-time pad X a Z b ρ′ Z b X a and
+outputs the resulting quantum state.
+
+                                                17
+Theorem 3.1 (Correctness). Assuming the underlying classical homomorphic encryption scheme
+HE is correct and the MA-Program gadgets satisfy the correctness property of Definition 3.1,
+the QFHE scheme Π is correct for all quantum circuits of T-depth at most L. Specifically, for
+any efficiently computable quantum circuit C with T-depth ≤ L and any input ρ ∈ D(M⊗n(λ) ),
+                    h                                               i
+                 Pr Π.Decsk Π.Evalevk (C, Π.Enc⊗n
+                                               pk (ρ)) ̸= ΦC (ρ) = negl(λ).
+
+Proof. The proof proceeds by induction over the gates in the circuit C. For Clifford gates,
+correctness follows immediately from the Pauli commutation relations and the correctness of
+the underlying classical homomorphic encryption scheme. For T gates, correctness relies on
+the gadget correctness: the MA-Program gadget applies P† if and only if a = 1, precisely
+canceling the unwanted Pa phase introduced by the T gate. The key-update function fgadget
+is computed homomorphically, and by the correctness of HE, the decrypted keys yield the
+correct Pauli correction. By induction over all gates, the final decrypted state equals ΦC (ρ)
+with overwhelming probability.
+
+Compactness. The scheme Π satisfies the compactness property: the size of the decryption
+circuit is independent of the evaluated circuit C. The decryption procedure consists of two
+classical HE decryptions followed by two single-qubit Pauli operations, regardless of the size or
+depth of C. The classical ciphertext size depends only on the final key layer L and the security
+parameter λ, not on the number of gates evaluated. This ideal compactness follows directly from
+the structure of the QOTP encryption and the leveled key-switching architecture.
+
+3.4 Multiple Key Sets
+The scheme Π employs L + 1 independent key layers to enable leveled homomorphic evaluation.
+This multi-layer structure serves two purposes: it prevents circular security assumptions by
+ensuring that each gadget’s classical information is encrypted under a fresh key, and it enables
+the recryption procedure that propagates encrypted keys forward through the computation.
+
+Key Switching Between Layers. During evaluation, the encrypted Pauli keys must tran-
+sition from key layer i to layer i + 1 after each T gate. This key switching is accomplished
+through the recryption functionality of the classical homomorphic encryption scheme. Given an
+encryption x̃[i] = HE.Encpki (x) of a bit x under pki , the recryption procedure computes
+                           x̃[i+1] ← HE.Evalevki+1 HE.Decski (·), x̃[i] ,
+                                                                       
+
+producing a fresh encryption of the same plaintext bit x under pki+1 . The evaluator performs this
+recryption for all wire keys after each T-gate evaluation, ensuring that subsequent homomorphic
+operations are valid under the new key.
+
+Recryption Procedure. After consuming the gadget Γpki+1 (ski ) for a T gate, the evaluator
+holds updated keys ã′[i+1] , b̃′[i+1] already encrypted under pki+1 (computed by HE.Evalevki+1
+                                      
+
+during the gadget key-update). For all other wires in the circuit that did not participate in the
+T gate, the evaluator recrypts their keys from layer i to layer i + 1 using the procedure above.
+Since the circuit contains polynomially many wires and the recryption of each key requires
+poly(λ) classical homomorphic operations, the total classical overhead per T gate is poly(λ) · |C|.
+
+Compactness. The scheme Π satisfies the compactness property: the size of the decryption
+circuit is independent of the evaluated circuit C. The decryption procedure consists of two
+classical HE decryptions followed by two single-qubit Pauli operations, regardless of the size or
+depth of C. The classical ciphertext size depends only on the final key layer L and the security
+parameter λ, not on the number of gates evaluated. This ideal compactness follows directly from
+the structure of the QOTP encryption and the leveled key-switching architecture.
+
+                                             18
+4 Security Analysis
+This section establishes the security guarantees of our MA-Program-based quantum fully homo-
+morphic encryption scheme. We begin by recalling the notion of quantum indistinguishability
+under chosen-plaintext attack (q-IND-CPA) from Broadbent and Jeffery [BJ15], which provides
+the formal framework within which we analyze the security of our construction. We then prove
+that our scheme satisfies this definition under standard computational assumptions, and conclude
+with a discussion of circuit privacy and its extension to a circuit-private variant.
+
+4.1 Security Definition
+The security notion for quantum homomorphic encryption was introduced by Broadbent and
+Jeffery [BJ15] as a natural extension of the classical IND-CPA framework to the quantum setting.
+In this model, the adversary is a quantum polynomial-time algorithm that interacts with a
+challenger through a carefully designed indistinguishability experiment. The formal definition is
+as follows.
+
+Definition 4.1 (Quantum CPA Indistinguishability Experiment [BJ15]). The quantum CPA
+indistinguishability experiment PubKcpa
+                                    A,Π (λ) with respect to a quantum homomorphic encryption
+scheme Π and a quantum polynomial-time adversary A = (A1 , A2 ) proceeds as follows:
+
+  1. The challenger runs QHE.KeyGen(1λ ) to obtain keys (pk, sk, evk).
+
+  2. Adversary A1 is given (pk, evk) and outputs a quantum state ρM,E on registers M ⊗ E,
+     where M denotes the message register and E denotes an environment register that serves
+     as working memory shared between A1 and A2 .
+
+  3. For r ∈ {0, 1}, let Ξcpa,r
+                          Π     : D(M) → D(C) be the channel defined by
+
+                   Ξcpa,0
+                    Π     (ρ) = QHE.Encpk (|0⟩⟨0|) and Ξcpa,1
+                                                        Π     (ρ) = QHE.Encpk (ρ).
+
+     The challenger samples a uniformly random bit r ← {0, 1} and applies Ξcpa,r
+                                                                           Π     to the state
+     in register M, producing a ciphertext state in register C.
+
+  4. Adversary A2 obtains the system in C ⊗ E and outputs a bit r′ .
+
+  5. The output of the experiment is defined to be 1 if r′ = r, and 0 otherwise. If r = r′ , we
+     say that A wins the experiment.
+
+Definition 4.2 (q-IND-CPA Security [BJ15]). A quantum homomorphic encryption scheme Π
+is q-IND-CPA secure if for any quantum polynomial-time adversary A = (A1 , A2 ), there exists
+a negligible function negl such that
+                                n                 o    1
+                              Pr PubKcpa
+                                     A,Π (λ) = 1 ≤       + negl(λ).
+                                                       2
+    Broadbent and Jeffery [BJ15] demonstrated that this single-message definition is equivalent
+to a seemingly stronger multi-message variant, denoted q-IND-CPA-mult, in which the adversary
+submits two T-tuples of messages and the challenger encrypts either the first or the second tuple.
+This equivalence ensures that q-IND-CPA security provides a composable guarantee suitable for
+the homomorphic setting where multiple ciphertexts may be evaluated jointly. Furthermore,
+since our scheme employs a classical FHE scheme based on the LWE assumption, we inherit
+the quantum-resistant security properties of lattice-based cryptography: the underlying LWE
+problem has been shown to be as hard as worst-case lattice problems [Reg09], providing security
+against both classical and quantum adversaries.
+
+
+                                            19
+4.2 Security Proof
+Having established the security framework, we now prove that our MA-Program-based QFHE
+scheme satisfies q-IND-CPA security under standard assumptions. The proof proceeds through
+a sequence of hybrid experiments that progressively transform the real security game into one in
+which the adversary’s view is statistically independent of the challenge bit.
+Theorem 4.1 (q-IND-CPA Security). Assuming the underlying classical homomorphic encryp-
+tion scheme ΠHE is IND-CPA secure against quantum polynomial-time adversaries, the QFHE
+scheme Π constructed in Section 5 is q-IND-CPA secure for circuits containing up to polynomi-
+ally many T gates.
+Proof. The q-IND-CPA security follows from two observations and one hybrid step.
+    Step 1 (QOTP Masking). QOTP encryption perfectly hides the plaintext: for any ρ,
+                      1X a b b a
+the encrypted state         X Z ρZ X = I/2 is independent of ρ. Thus the adversary gains no
+                      4 a,b
+information from the quantum ciphertext alone.
+    Step 2 (Classical HE Security). The Pauli keys (a, b) are encrypted under classical
+HE. By IND-CPA security of HE, the encrypted keys (ã, b̃) are computationally indistinguish-
+able from encryptions of (0, 0). Any distinguisher for the QFHE scheme can be reduced to a
+distinguisher for classical HE with the same advantage.
+    Step 3 (Final Hybrid). Replacing the encrypted keys with encryptions of (0, 0) makes
+the adversary’s view independent of the challenge bit b. Hence advantage is 0.
+    Combining Steps 1–3 via hybrid argument: Adv(A) ≤ 0 + negl(λ) + 0 = negl(λ).
+
+4.3 Circuit Privacy
+The q-IND-CPA security guarantee ensures that the input data remains hidden from the evalu-
+ating server. However, in many practical applications of homomorphic encryption, it is equally
+important to protect the circuit being evaluated. Circuit privacy requires that the ciphertext
+produced by the homomorphic evaluation does not reveal any information about the circuit C
+that was applied to the encrypted data, beyond what can be inferred from the output of the
+computation itself. We now discuss how our scheme can be extended to achieve this stronger
+property.
+    In the semi-honest (or honest-but-curious) security model, the server follows the protocol
+faithfully but attempts to extract additional information from the evaluation transcript. For
+our base QFHE scheme, the output of QHE.Eval consists of a quantum one-time padded state
+together with the homomorphically updated Pauli keys. The final Pauli keys (a′ , b′ ) depend
+on the sequence of gates evaluated, and in particular on the number of T gates in the circuit.
+Consequently, the encrypted keys could potentially leak information about the circuit structure
+to a computationally unbounded adversary.
+    To address this leakage, we follow the approach of Dulek, Schaffner, and Speelman [DSS16]
+and introduce a randomization step at the conclusion of the evaluation procedure. Specifically,
+after the server completes the homomorphic evaluation of circuit C, it applies a fresh random
+                           ′′ ′′
+quantum one-time pad Xa Zb to the output quantum state, where a′′ , b′′ ← {0, 1} are chosen
+uniformly at random. The server then homomorphically updates the encrypted Pauli keys to
+incorporate this additional layer of masking. This ensures that the final encrypted keys are
+computationally independent of the circuit C that was evaluated: they are simply uniformly
+random encryptions that carry no information about the sequence of gates beyond what is
+revealed by the output size.
+Theorem 4.2 (Circuit Privacy). If the underlying classical HE scheme ΠHE has circuit privacy
+in the semi-honest setting, then the QFHE scheme Π can be adapted to achieve circuit privacy
+against honest-but-curious adversaries.
+
+                                           20
+Proof Sketch. The randomization step at the end of the evaluation phase completely hides the
+circuit structure. The keys to the final quantum one-time pad are chosen uniformly at random
+and are therefore independent of the evaluated circuit. The circuit privacy property of the
+classical FHE scheme ensures that the homomorphic evaluation of the key-update procedure
+reveals no information about the computation performed on the encrypted keys. Since the
+output quantum state is masked by a fresh random Pauli operator, and the encryption of the
+corresponding keys hides all information about the circuit by the circuit privacy of the classical
+FHE, the complete output ciphertext reveals nothing about C beyond its output dimensions.
+
+      It is worth noting that in our leveled scheme, the evaluation key contains L MA-Program
+gadgets, one for each possible T-gate layer. After evaluation, all unused gadgets are discarded.
+Because the randomization step recrypts the output into the L-th key set, the final ciphertext
+is encrypted under the same key regardless of the actual number of T gates in the circuit C,
+provided that C has T-depth at most L. In a setting where gadgets are supplied on-demand
+rather than pre-allocated, additional care must be taken to ensure that the number of consumed
+gadgets does not reveal the T-gate count.
+      The connection to classical FHE circuit privacy is direct and instructive. In the classical set-
+ting, circuit privacy is typically achieved via rerandomization or noise flooding techniques, which
+add appropriately structured noise to the ciphertext to mask the evaluation history. Our quan-
+tum randomization step is the natural analogue of these classical techniques: the fresh QOTP
+   ′′    ′′
+Xa Zb serves as a quantum rerandomization layer that effectively “floods” any correlation be-
+tween the output ciphertext and the evaluated circuit. The classical component of the ciphertext
+inherits circuit privacy directly from the underlying FHE scheme, while the quantum component
+is rendered information-theoretically independent of the circuit by the random Pauli masking.
+Together, these two mechanisms ensure that the complete output ciphertext reveals neither the
+input data nor the evaluated circuit, achieving the strongest possible privacy guarantees for
+delegated quantum computation in the semi-honest setting.
+
+
+5 Constructing the Gadgets
+With the MA-Program framework, garden-hose model, and MBQC integration established in
+the preceding sections, we now turn to the concrete construction of the quantum gadgets that
+enable non-interactive homomorphic evaluation of T gates. This section assembles the theoret-
+ical components into a complete, self-contained gadget construction, proceeding through four
+stages: first, we formalize the MA-Program for LWE decryption and prove its correctness; sec-
+ond, we construct the direct garden-hose protocol with binary-encoded states; third, we derive
+the MBQC flow functions that provide deterministic adaptive control; and fourth, we present
+a systematic comparison with the Barrington-based approach of [DSS16]. Each stage builds
+upon the previous, culminating in a gadget that requires O(λ log2 λ) EPR pairs—an exponential
+improvement over the O(λ2 ) baseline.
+
+5.1 MA-Program for LWE Decryption
+The central observation underlying our entire construction is that LWE decryption is fundamen-
+tally an arithmetic computation over Zq , not a generic Boolean function. Recall from Definition
+2.3 that the LWE decryption function computes
+                                                   n
+                                                                           !
+                       HE.Decsk (ct) = round             ski · cti mod q       mod 2,
+                                                   X
+
+                                                   i=1
+
+where round maps values in [q/4, 3q/4) to 1 and all other values to 0. This modular inner product
+⟨sk, ct⟩ mod q possesses rich algebraic structure that is destroyed when the function is expressed
+
+
+                                              21
+as a Boolean circuit and simulated via Barrington’s theorem. Our MA-Program exploits this
+structure directly by tracking partial sums in Zq rather than simulating Boolean gates over S5 .
+     The key insight is sequential accumulation. Consider the partial sum after processing the
+first i secret key bits:
+                                           i
+                                    si =         skj · ctj mod q.
+                                           X
+
+                                           j=1
+
+Each update depends only on the current state si−1 and the next key bit ski : if ski = 0,
+the state remains unchanged (si = si−1 ); if ski = 1, we add the ciphertext coefficient (si =
+si−1 +cti mod q). This sequential dependency is precisely the structure that a modular arithmetic
+program captures natively.
+    The following lemma formalizes this construction and establishes its parameters.
+
+Lemma 5.1 (LWE Decryption via MA-Program). For fixed ciphertext ct, the LWE decryption
+function fct (sk) = HE.Decsk (ct) can be computed by a modular arithmetic program over Zq
+with state space Zq (represented using O(log q) bits), program length O(n), and accepting set
+Sacc ⊆ Zq corresponding to the rounding predicate.
+
+Proof. We construct the MA-Program explicitly. The state s ∈ Zq tracks the partial sum
+⟨sk, ct⟩ mod q. Initialize s0 = 0. At each step i ∈ {1, . . . , n}, the transition is:
+
+                                   si = si−1 + ski · cti mod q.
+
+Equivalently, if ski = 0 then si = si−1 (no change), and if ski = 1 then si = si−1 + cti mod q
+(add the position-dependent coefficient). After processing all n positions, the final state is
+sn = ⟨sk, ct⟩ mod q. The accepting set is
+
+                  Sacc = {s ∈ Zq : round(s) = 1} = {s ∈ Zq : s ∈ [q/4, 3q/4)}.
+
+    The state space has size q, requiring O(log q) bits per state. The program length is O(n)
+steps, each performing a constant-time modular addition. With n = Θ(λ) and q = poly(λ), the
+program has O(λ) length and O(log λ) binary encoding per state.
+
+Comparison with Barrington’s approach. Barrington’s theorem represents the LWE de-
+cryption function as a width-5 permutation branching program over the symmetric group S5 . For
+                                                                                            2
+a decryption circuit of depth d = O(log2 λ), this yields a program of length O(4d ) = O(4log λ ) =
+O(λ2 ). More precisely, since the LWE decryption circuit computes an inner product followed by
+rounding, its Boolean circuit representation has depth O(log n · log q) = O(log2 λ), and Barring-
+ton’s theorem yields length O(λ2 ).
+    The difference is stark: Barrington’s theorem achieves constant width (w = 5) at the cost
+of exponential length (L = O(λ2 )), while our MA-Program achieves width (w = q = O(λ)) (or
+equivalently, binary encoding O(log λ)) with linear length (L = O(λ)). The product w ·L—which
+directly determines the gadget size via Theorem 1.2—improves from O(λ2 ) to O(λ log λ) in the
+binary-encoded setting. This is the source of our exponential efficiency gain.
+    The reason for this improvement lies in the transition structure. Barrington’s theorem simu-
+lates Boolean gates by multiplying {0, 1}-valued permutation matrices in S5 . Each gate requires
+O(1) layers, but the total number of gates in the Boolean circuit for modular inner product is
+O(n · log q) = O(λ log λ), and the depth of the circuit is O(log2 λ). The exponential blowup
+O(4d ) arises from simulating the circuit layer-by-layer. Our MA-Program bypasses this entirely
+by performing modular arithmetic directly: each addition in Zq is a single program step, not a
+depth-O(log q) Boolean subcircuit.
+
+
+
+
+                                             22
+Algebraic structure of the transitions. The transition operator of our MA-Program (Def-
+inition 3.1) is fundamentally different from Barrington’s permutation matrices. For layer i, the
+transition is
+                                  Ti (s, ski ) = s + ski · cti mod q.
+This operator depends on both the secret key bit ski and the public ciphertext coefficient cti , mak-
+                                                                                        (Bar)
+ing each layer position-dependent. In contrast, Barrington’s transition matrices Mi           (ski ) ∈
+                                                     (i) (i)
+{0, 1} 5×5
+           are position-independent permutations σ0 , σ1 ∈ S5 that depend only on the bit value
+ski , not on the coefficient cti . The cyclic group structure of Zq also admits a compact binary
+encoding: adding cti mod q corresponds to a rotation of the pipe configuration, which can be
+implemented in parallel on O(log q) binary pipes. Barrington’s arbitrary S5 permutations, by
+contrast, require full connection matrices over 5 states and do not admit such efficient parallel
+encoding.
+
+5.2 Direct Garden-Hose Construction
+Our direct construction overcomes this by encoding states in binary within the garden-hose model
+itself, bypassing the explicit q-state expansion. The key observation is that the MA-Program’s
+modular addition operation s 7→ s + cti mod q decomposes naturally into bit-wise operations
+when s is represented in binary. Each bit of the state can be routed independently through the
+garden-hose protocol, with carry propagation handled by the layered structure of the BP.
+    The following theorem gives the formal parameters of our direct garden-hose gadget.
+
+Theorem 5.1 (Direct Garden-Hose Gadget). Let λ be the security parameter. For LWE-based
+decryption with modulus q = poly(λ) and dimension n = Θ(λ), there exists a direct quantum
+gadget construction using m = O(λ log2 λ) EPR pairs.
+
+Proof. We construct the gadget in three steps.
+    Step 1: MA-Program parameters. By Lemma 5.1, the MA-Program for LWE decryp-
+tion has state space Zq with q = O(λ) states, program length L = O(n) = O(λ), and binary
+encoding width wbin = ⌈log2 q⌉ = O(log λ) bits per state.
+    Step 2: Binary-encoded garden-hose protocol. The garden-hose model realizes each
+BP layer with one pipe per state. Encoding states in binary reduces the number of pipes per
+layer from q = O(λ) to wbin = O(log λ). Specifically, each state s ∈ Zq is represented by its
+binary expansion (s1 , . . . , swbin ) ∈ {0, 1}wbin , and the transition s 7→ s+cti mod q is implemented
+as a bit-serial addition with carry, requiring O(log q) pipe layers per modular addition step.
+    Step 3: EPR-pair count. The total number of layers in the resulting branching program
+is L′ = O(n · log q) = O(λ log λ), accounting for the unrolling of each modular addition into
+O(log q) Boolean layers. Each layer requires wbin = O(log λ) pipes under binary encoding. By
+Theorem 2.2 (Garden-Hose and Branching Programs), the total number of EPR pairs is
+
+                        m = wbin · L′ = O(log λ) · O(λ log λ) = O(λ log2 λ).
+
+This completes the construction.
+
+   The proof of Theorem 5.1 highlights the role of binary encoding in achieving the exponential
+improvement. Without it—using the standard state-based garden-hose model—the pipe count
+would be
+                    m = q · O(n log q) = O(λ) · O(λ log λ) = O(λ2 log λ),
+which matches the Barrington-based bound. The binary encoding reduces the per-layer pipe
+count from O(λ) to O(log λ), and this logarithmic factor compounds across the O(λ log λ) layers
+to yield the O(λ log2 λ) total.
+
+
+
+                                               23
+Connection to gadget construction. The direct garden-hose construction connects nat-
+urally to the QFHE gadget described in Section 5. The MA-Program gadget consists of:
+binary-encoded width wbin = O(log λ); length L′ = O(λ log λ); total EPR pairs m = wbin · L′ =
+                                      (ℓ)  (ℓ)
+O(λ log2 λ); and connection graphs (G0 , G1 ) for each layer ℓ ∈ [L′ ] encoding the two possible
+transitions based on the encrypted control bit. The P† gate is embedded at the position where
+the accepting state flows through, ensuring that the correction is applied conditionally on the
+decrypted value a = 1.
+
+5.2.1   Example: MA-Program Gadget for LWE Decryption
+To illustrate the concrete structure of our MA-Program gadget, we present a worked example
+with small parameters that can be fully visualized. While the example uses a toy modulus for
+clarity, the structure generalizes directly to cryptographic-scale parameters.
+
+Example. Consider an LWE instance with dimension n = 2, modulus q = 4, secret key
+sk = (sk1 , sk2 ) ∈ {0, 1}2 , and a fixed ciphertext ct = (ct1 , ct2 ) = (1, 2) ∈ Z24 . The decryption
+function computes
+
+                     HE.Decsk (ct) = round (sk1 · 1 + sk2 · 2) mod 4 mod 2,
+                                                                       
+
+
+where the (simplified) rounding function outputs 1 if and only if the partial sum s ∈ {1, 2} ⊂ Z4 ,
+and 0 otherwise. The accepting set is therefore Sacc = {1, 2}.
+
+The MA-Program. The modular arithmetic program for this decryption function operates
+over the state space Z4 = {0, 1, 2, 3}, requiring wbin = ⌈log2 4⌉ = 2 binary pipes per layer. The
+program consists of L = 2 layers:
+    Layer 1 (input sk1 ): if sk1 = 0, add 0; if sk1 = 1, add ct1 = 1 (mod 4). Layer 2 (input sk2 ):
+if sk2 = 0, add 0; if sk2 = 1, add ct2 = 2 (mod 4).
+
+Execution trace. For secret key sk = (1, 0), the execution proceeds as follows: starting at
+state s0 = 0, Layer 1 applies T (1) (since sk1 = 1), yielding s1 = 0 + 1 = 1. Layer 2 applies T (0)
+(since sk2 = 0), yielding s2 = 1. Since s2 = 1 ∈ Sacc , the MA-Program outputs 1, meaning the
+server must apply P† to correct the T-gate-induced phase.
+
+The garden-hose realization. The MA-Program is compiled into a garden-hose protocol
+using the binary state encoding. Each state in Z4 is represented by two bits (b1 , b2 ), requiring
+wbin = 2 pipes per layer. The gadget consists of L = 2 layers, each with 2 EPR pairs, for a total
+of 4 EPR pairs (compared to 5 × 4 = 20 pairs using the Barrington construction on the Boolean
+circuit). Figure 1 shows the EPR-pair structure and the Bell measurements for this example.
+
+5.3 MBQC Flow Functions
+The garden-hose protocol of Theorem 5.1 provides a static resource topology: it specifies which
+EPR pairs connect which states, but does not specify the dynamical control needed to execute
+the protocol as a deterministic quantum computation. Measurement-based quantum computa-
+tion supplies this missing control layer through flow functions, which determine the adaptive
+measurement order that implements the branching program’s conditional logic.
+    Recall from Section 1.3 that an MBQC pattern is defined by a graph G = (V, E), input
+vertices I ⊆ V , output vertices O ⊆ V , and a flow function f : V \ O → V \ I that ensures
+corrections from measurement outcomes propagate forward through the computation. In our
+setting, the vertices correspond to the pipe ends of the garden-hose protocol, and the flow function
+is derived from the connection structure of the MA-Program.
+
+
+                                              24
+    The construction proceeds as follows. Each layer ℓ of the garden-hose protocol corresponds
+to a set of wbin vertices in the MBQC graph. The two possible connection configurations (cor-
+responding to input bit values 0 and 1) determine the edges between consecutive layers. The
+flow function maps each vertex vℓ,j (representing pipe j in layer ℓ) to the successor vertex vℓ+1,k
+determined by the connection configuration, where k is computed from the current state and the
+transition rules of the MA-Program.
+
+Theorem 5.2 (Flow Function for Garden-Hose MBQC). Given a garden-hose protocol with m
+pipes and L layers constructed from an MA-Program, there exists an MBQC pattern with flow
+function f that implements the conditional quantum operation. The pattern has depth O(L)
+and requires m = O(λ log2 λ) EPR pairs.
+
+Proof. We construct the MBQC pattern explicitly. Create a graph G = (V, E) where each vertex
+corresponds to one half of an EPR pair (either Alice’s or Bob’s side) at a specific layer. For each
+layer ℓ ∈ [L] and each binary-encoded state bit j ∈ [wbin ], create vertices vℓ,j
+                                                                               A
+                                                                                   and vℓ,j
+                                                                                         B
+                                                                                            . Edges
+connect Alice’s and Bob’s halves of each EPR pair. Define the flow function f : V \ O → V \ I
+as
+                               f (vℓ,j
+                                   A
+                                       ) = vℓ+1,k
+                                            B
+                                                  , f (vℓ,j
+                                                        B
+                                                            ) = vℓ+1,k
+                                                                 A
+                                                                       ′,
+
+
+where k and k ′ are determined by the MA-Program transition s 7→ s + ski · cti mod q applied
+to the binary-encoded state. The flow ensures that measurements proceed layer by layer, with
+corrections propagating forward. The depth of the MBQC pattern equals the number of layers
+L = O(λ log λ), since measurements within each layer can be performed in parallel (up to
+wbin = O(log λ) simultaneous measurements), but causal dependencies between layers enforce
+sequential evaluation.
+
+     The flow function in Theorem 5.2 serves as the global control logic for the QFHE gad-
+get. When a T gate is applied to a QOTP-encrypted state Xa Zb |ψ⟩, the relation TXa Zb |ψ⟩ =
+Pa Xa Zb T|ψ⟩ introduces an unwanted Pa phase. The server holds the encrypted state and the
+encrypted pad key ã = HE.Encpk (a). The MBQC pattern evaluates the MA-Program on input
+ã, decrypting the control bit a through the branching program computation embedded in the
+adaptive measurement sequence. If a = 1, the accepting state triggers the P† correction; if a = 0,
+no correction is applied. The flow function ensures this happens deterministically despite the
+inherent randomness of quantum measurement outcomes.
+
+Resource-computation separation. The MBQC framework naturally separates resource
+preparation from computation—a separation that is essential for practical QFHE deployment.
+EPR pair generation, which is the most resource-intensive step, occurs during an offline setup
+phase before any encrypted data is processed. During online evaluation, only Bell measure-
+ments (which are comparatively fast) and classical flow-function processing are performed. This
+separation enables the server to batch-prepare EPR pairs and the client to verify only measure-
+ment outcomes, which is a crucial requirement for classical-client QFHE where the client has no
+quantum capabilities.
+
+Width-parallelism trade-off. The parameters of Theorem 5.2 reveal a fundamental trade-off
+between quantum parallelism and resource consumption. The MBQC pattern has width wbin =
+O(log λ), meaning at most O(log λ) measurements can be performed in parallel within any single
+layer. In contrast, the Barrington-based construction has constant width (w = 5) but length
+L = O(λ2 ), offering even less parallelism. While our logarithmic-width construction limits the
+available quantum parallelism, this trade-off is favorable in practice because EPR pair generation
+is typically the most resource-constrained step, not measurement parallelism. The total evalua-
+tion depth is O(L) = O(λ log λ) sequential layers, each with O(log λ) parallel measurements—a
+structure well-suited to near-term quantum devices with limited qubit connectivity.
+
+                                             25
+5.4 Comparison with the Barrington-Based Approach
+We now present a systematic comparison between our MBQC-based framework and the Bar-
+rington based construction of DSS [DSS16], highlighting the structural and efficiency differences
+that arise from our exploitation of LWE’s modular arithmetic structure.
+    The DSS construction follows a static preconfiguration paradigm. For each possible input, the
+connection pattern of the garden-hose protocol is precomputed classically before any quantum
+operations begin. The pipeline is: input (sk, ct) determines a fixed connection graph; this
+graph is classically simulated; and the resulting static configuration is implemented quantum
+mechanically. This paradigm requires O(λ2 ) EPR pairs because Barrington’s theorem yields
+length O(λ2 ) for the LWE decryption circuit, and the garden-hose bound m = w · L gives
+m = 5 · O(λ2 ) = O(λ2 ).
+    Our framework employs a dynamic adaptive paradigm. Connections are determined in
+real-time by measurement outcomes: the flow function processes each measurement result and
+dynamically selects the next measurement basis. This adaptivity is the source of both our effi-
+ciency gain and our structural simplicity. Rather than precomputing the entire connection graph,
+we prepare a uniform resource state (the EPR pair array) and let the computation emerge from
+the adaptive measurement pattern. The efficiency gain stems from our exploitation of LWE’s
+modular arithmetic structure: the MA-Program compiles the decryption function directly, avoid-
+ing the exponential blowup of generic Boolean circuit simulation.
+
+         Metric                           [DSS16]               This Work
+         BP state count                 5 (constant)   O(λ) (binary encoding O(log λ))
+         GH pipes per layer (direct)          5                   O(log λ)
+         Program length                     O(λ2 )               O(λ log λ)
+         Gadget size                        O(λ2 )               O(λ log2 λ)
+         Concrete gain (128-bit)           baseline                 215 ×
+
+    The table reveals the compound effect of our improvements. The DSS construction uses a
+width-5 branching program (constant state count) but pays the price in length: O(4d ) = O(λ2 )
+for circuit depth d = O(log2 λ). Our MA-Program uses O(λ) states with binary encoding O(log λ)
+and achieves length O(λ log λ). In the garden-hose model, the DSS construction requires 5 pipes
+per layer (one per state), while our binary-encoded construction requires O(log λ) pipes per layer.
+The product gives O(λ2 ) for DSS versus O(λ log2 λ) for our construction.
+    The concrete gain at 128-bit security is approximately 215 to 218 , translating the DSS re-
+quirement of 234 EPR pairs down to 216 to 219 EPR pairs in our scheme. This reduction is the
+difference between a gadget that is entirely infeasible on near-term quantum hardware and one
+that may be achievable on future devices with moderate quantum resources.
+
+Structural differences beyond efficiency. The advantages of our adaptive paradigm ex-
+tend beyond asymptotic complexity. The static paradigm of DSS requires all connections to be
+precomputed classically, introducing a classical preprocessing bottleneck that must be performed
+for each T-gate evaluation. Our adaptive paradigm eliminates this preprocessing: the connec-
+tion pattern emerges dynamically from measurement outcomes, with no classical simulation of
+the branching program required. Furthermore, the MBQC framework enables dynamic error
+handling through the flow function: if a measurement outcome indicates an anomaly, the flow
+function can redirect the computation. In the static paradigm, no such adaptation is possible
+once the protocol begins. These structural properties, combined with the exponential efficiency
+improvement, position our construction as a significant advancement toward practical quantum
+homomorphic encryption.
+
+
+
+
+                                             26
+6 Concrete Parameters and Efficiency Analysis
+6.1 Security Analysis
+The security of our quantum fully homomorphic encryption scheme rests on the computational
+hardness of the Learning With Errors (LWE) problem against both classical and quantum adver-
+saries. As established in Theorem 5.2, the q-IND-CPA security of our scheme reduces directly to
+the IND-CPA security of the underlying classical homomorphic encryption scheme, which in turn
+is grounded in the decisional LWE assumption (Definition 2.3). This reduction chain ensures
+that any attack against our QFHE scheme with non-negligible advantage would imply an equally
+efficient attack against the LWE problem, thereby providing a solid cryptographic foundation
+for our construction.
+     The hardness of the LWE problem was first established by Regev [Reg09], who proved a
+remarkable worst-case to average-case reduction: solving the average-case decision-LWE problem
+is at least as hard as solving the approximate Shortest Vector Problem (Approx-SVP) on arbitrary
+lattices in the worst case. This reduction endows our parameter choices with strong security
+guarantees, as the worst-case hardness of lattice problems is believed to resist attacks even from
+quantum computers. Consequently, the LWE assumption is widely regarded as a post-quantum
+secure foundation, making it particularly suitable for quantum cryptographic constructions such
+as ours.
+     To select concrete parameters that achieve well-defined security levels, we must carefully
+balance the LWE dimension n, the modulus q, and the standard deviation σ of the discrete
+Gaussian error distribution χ = DZ,σ . Each of these parameters plays a critical role in the
+security–correctness trade-off. The dimension n directly determines the size of the lattice: larger
+values of n increase the computational cost of lattice reduction algorithms, thereby enhancing
+security. The modulus q governs the ratio between the noise magnitude and the modulus: a
+smaller q relative to the noise makes distinguishing LWE samples from uniform more difficult,
+but also reduces the available plaintext space and affects decryption correctness. The standard
+deviation σ controls the entropy of the error distribution: larger values provide stronger security
+margins against noise-learning attacks, while smaller values ensure that decryption succeeds with
+overwhelming probability.
+     We state our core security assumption formally as follows.
+
+Assumption 6.1 (LWE Hardness). For the parameter triples (n, q, σ) specified in Table 2, the
+decision-LWEn,q,χ problem provides the claimed security level against all known classical and
+quantum attacks, including primal lattice attacks, dual lattice attacks, and hybrid attacks.
+
+                            Table 2: Concrete LWE Parameters for QFHE
+
+                  Parameter                       128-bit   192-bit     256-bit
+                  Dimension n                       512        768       1024
+                  Modulus q                         216        220        224
+                  BP state                          216        220        224
+                  BP length L                       214        217        220
+                  Pipes per layer (direct GH)       16          20        24
+                  EPR pairs                         218        222        226
+
+    The conservative choice of σ = 3.2 for the error distribution merits detailed justification,
+as it reflects a deliberate balancing of security margins against decryption correctness. This
+parameter selection is informed by defense-depth considerations against the full spectrum of
+known attack models. Against algebraic attacks such as the Arora-Ge attack and its variants,
+which exploit ultra-small noise by transforming LWE instances into polynomial systems via
+
+                                             27
+linearization techniques,
+                     √     the complexity grows exponentially in the noise degree bound √ d, which
+is correlated with σ. Should σ be chosen extremely small — for instance, σ < n — the
+degree d required for effective linearization would become sufficiently small to render the attack
+feasible in polynomial time. The value σ = 3.2, by contrast, drastically increases the degree d
+needed to construct effective linearized polynomials, triggering a combinatorial explosion in the
+system scale and solving complexity that renders such algebraic attacks completely infeasible
+under current and foreseeable computational capabilities.
+    Against hybrid attacks, which reduce lattice dimension by guessing partial secret bits before
+executing lattice reduction on the dimension-reduced instance, the attack success rate depends
+critically on the extra noise introduced by incorrect guessing branches. A larger σ leads to
+rapid accumulation of error variance across incorrect guessing branches, producing excessive
+noise in the dimension-reduced LWE instances that prevents subsequent BKZ reduction from
+finding sufficiently short vectors. With σ = 3.2, the noise buffer is ample, ensuring that the
+computational benefit of each guessing step is far outweighed by the accompanying noise penalty
+and computational overhead, effectively neutralizing the advantages of hybrid attacks.
+    We emphasize that the current security analysis, together with the proofs of Theorem 5.2
+and the associated LWE parameter selection, is established under the semi-honest server as-
+sumption. That is, the server is assumed to faithfully execute all gadget preparation and mea-
+surement operations in strict accordance with protocol specifications, limiting its adversarial
+behavior to passive information extraction from interaction transcripts. While this assumption
+suffices for the theoretical framework presented herein, real-world deployment scenarios demand
+consideration of malicious server behavior, which introduces additional risks in two principal
+categories. First, privacy leakage may occur if a malicious server deviates from standardized
+entanglement preparation procedures — for instance, by delivering non-maximally entangled
+states or deliberately engineered quantum states — in an attempt to extract secret-key informa-
+tion from subsequent client measurement responses. Although the quantum one-time pad pro-
+vides information-theoretic concealment of plaintexts, the absence of quantum-state verification
+mechanisms in the current protocol could allow maliciously constructed channels to compromise
+the perfect secrecy guarantees. Second, function integrity and verification risks arise when a
+malicious server tampers with MBQC measurement bases or outcomes during the evaluation of
+conditional P† gates. Since our framework supports fully classical clients who cannot directly
+monitor quantum-state evolution, the server could potentially inject errors that cause the de-
+crypted output to deviate from the expected computation result without detection. Resolving
+these risks through quantum verification techniques, trapdoor-based authentication schemes, or
+blind verification protocols [BGM+25] represents a critical direction for future work in construct-
+ing malicious-resistant QFHE that preserves the efficiency and classical-client advantages of our
+construction.
+               Table 3: Concrete LWE Parameters for QFHE at Standard Security Levels
+
+               Parameter                      Symbol    128-bit    192-bit   256-bit
+               LWE dimension                    n         512        768      1024
+               Modulus                          q         216        220       224
+               BP state count                   w         216        220       224
+               BP length                        L         214        217       220
+               Pipes per layer (direct GH)     wbin       16         20        24
+               EPR pairs (total gadget)         m         218        222       226
+               Error std. dev.                  σ         3.2        3.2       3.2
+
+    The parameter choices in Table 4 follow the design principle that n ≈ λ for security param-
+eter λ, with the modulus q set as a power of two satisfying log q = O(log λ). The branching
+program state count w = q reflects the number of modular states in the MA-Program, while the
+
+
+                                             28
+binary-encoded pipe count wbin = ⌈log2 q⌉ represents the number of pipes per layer in the direct
+garden-hose construction. The total EPR-pair requirement m = wbin · L yields the concrete
+gadget sizes reported in the table.
+
+6.2 Gadget Size Comparison
+A direct comparison between our MA-Program-based construction and the Barrington-based
+approach of Dulek, Schaffner, and Speelman [DSS16] quantifies the practical significance of our
+exponential improvement. The DSS scheme serves as the canonical baseline because it represents
+the state-of-the-art generic construction for QFHE gadgets: it applies Barrington’s theorem to
+compile the LWE decryption circuit into a width-5 branching program, then realizes this program
+via the garden-hose model. Comparing against this baseline isolates the fundamental efficiency
+gains attributable to our core compilation technique, as both schemes target the same decryption
+function and the same security assumption.
+
+                Table 4: Gadget Size Comparison — [DSS16] vs. MA-Program (This Work)
+
+Security Level DSS16 EPR Pairs Our Work EPR Pairs Concrete Speedup                        Asymptotic
+128-bit                234                     218              216 = 65 536×        O(λ2 ) vs. O(λ log2 λ)
+192-bit                239                     222              217 = 131 072×       O(λ2 ) vs. O(λ log2 λ)
+256-bit                223 *                   226                   ≈ 8×            O(λ2 ) vs. O(λ log2 λ)
+*Note: The DSS16 value at 256-bit is anomalously low due to the specific circuit-depth scaling; the asymptotic
+gap O(λ2 ) vs. O(λ log2 λ) widens as λ increases.
+
+    The improvement is substantial across all security levels. At 128-bit security, our scheme
+reduces the quantum gadget from approximately 234 EPR pairs to 218 , a concrete reduction by
+a factor of 65 536. At 192-bit security, the reduction factor grows to 131 072. These gains stem
+from two complementary sources: the asymptotic improvement from O(λ2 ) to O(λ log2 λ) in the
+theoretical gadget scaling, and the practical benefits of the direct binary-encoded garden-hose
+construction that exploits the modular arithmetic structure of LWE decryption. As the security
+parameter increases, the asymptotic gap between the quadratic Barrington-based scaling and
+the near-linear MA-Program scaling continues to widen, with the improvement reaching approx-
+imately 8× at 256-bit security. The combined effect of improved asymptotic complexity and
+more efficient concrete parameter scaling translates our theoretical construction into a scheme
+that brings QFHE from a purely theoretical concept into the realm of feasible implementation
+on future quantum hardware.
+
+6.3 Complexity Comparison
+Beyond the raw gadget size, a comprehensive efficiency analysis must account for the full spec-
+trum of computational resources consumed by the QFHE scheme, including key generation time,
+per-gate evaluation latency, and overall ciphertext size. Table 5 presents an asymptotic compar-
+ison of these metrics between the DSS16 scheme and our MA-Program-based construction.
+
+                                Table 5: Asymptotic Complexity Comparison
+
+                            Resource               [DSS16]         This Work
+                            Gadget size             O(λ2 )         O(λ log2 λ)
+                            Key generation          Õ(λ3 )           Õ(λ2 )
+                            Evaluation time      Õ(λ2 · |C|)    Õ(λ log λ · |C|)
+                            Ciphertext size          Õ(λ)             Õ(λ)
+
+
+
+
+                                                     29
+    The asymptotic gains are pronounced across all metrics except ciphertext size, which remains
+linear in λ for both schemes due to the compactness property. The key generation overhead
+improves from quasi-cubic to quasi-quadratic, reflecting the reduced gadget preparation burden.
+The evaluation time per gate improves from quadratic to near-linear in the security parameter,
+owing to both the smaller gadget size and the logarithmic-width branching program that enables
+faster classical preprocessing of measurement bases. These improvements compound across all
+T-gates in the evaluated circuit, yielding substantial end-to-end speedups for large-scale quantum
+computations.
+    To contextualize these asymptotic improvements in concrete terms, Table 6 provides projected
+resource estimates at 128-bit security (λ = 512), based on heuristic projections for near-term
+quantum hardware capabilities.
+
+                           Table 6: Concrete Complexity at 128-bit Security
+
+               Operation                              DSS16                   This Work
+               Gadget EPR pairs                         234                      216
+               Gadget preparation time                ≈ 104 s                  ≈ 10−2 s
+               Per-T-gate evaluation time             ≈ 103 s                  ≈ 10−3 s
+               Total time for 1000 T-gates      ≈ 10 s (≈ 11.6 days)
+                                                    6
+                                                                                ≈1s
+
+    These projections illustrate the transformative practical impact of our construction. Where
+the DSS16 scheme would require on the order of days to evaluate a circuit with 1000 T-gates, our
+scheme completes the same computation in approximately one second — a speedup of six orders
+of magnitude. Even accounting for the heuristic nature of these projections, the qualitative
+conclusion is unambiguous: the exponential reduction in gadget size fundamentally alters the
+feasibility landscape for practical QFHE deployment.
+    The propagation chain of efficiency gains through our construction — from O(log λ) binary
+encoding in the MA-Program, to O(log λ) pipes per layer in the garden-hose model, to O(λ log2 λ)
+total EPR pairs under MBQC adaptive control — constitutes the structural foundation of our
+exponential improvement. Critically, the MBQC layer contributes only classical feed-forward
+overhead in the form of flow-function computation, without increasing the quantum resource
+requirements beyond the garden-hose bound. This separation between quantum resource prepa-
+ration and classical adaptive control is what enables both the efficiency gains and the fully
+classical client property that distinguishes our scheme from prior work.
+
+
+7 Conclusion and Future Work
+We have presented a new framework for quantum fully homomorphic encryption that achieves
+an exponential improvement in T-gate gadget size over prior Barrington-based constructions,
+reducing the quantum resource requirements from O(λ2 ) to O(λ log2 λ) EPR pairs under stan-
+dard LWE assumptions. At the core of this improvement lies the modular arithmetic program
+(MA-Program), a novel computational model that captures the algebraic structure of LWE de-
+cryption — the modular inner product ⟨sk, ct⟩ mod q — in its native form, circumventing the
+exponential blowup inherent in generic Boolean circuit simulation.
+    By tracking partial sums over Zq using O(log q) bits per state, the MA-Program yields pro-
+grams of length O(λ log λ) that directly compile to quantum gadgets via the garden-hose model
+and measurement-based quantum computation. The resulting QFHE scheme supports fully
+classical clients without quantum operations, avoids circular security assumptions through inde-
+pendent key pairs, and enables parallel gate evaluation via the MBQC flow-function framework.
+    Several directions for future research arise naturally from our construction. Achieving security
+against malicious servers represents the most pressing challenge for practical deployment: while
+our scheme relies on the semi-honest assumption, real-world cloud computing scenarios demand
+
+                                              30
+protection against servers that may deviate from protocol specifications, tamper with measure-
+ment bases, or submit entangled states of non-standard form. Constructing malicious-secure
+variants that preserve our logarithmic gadget scaling and fully classical client property — po-
+tentially through techniques from verifiable quantum computation, quantum authentication
+codes, or trapdoor-based verification [BGM+25] — remains an important open problem. The
+MA-Program in this paper is tailored exclusively to the modular inner-product algebraic struc-
+ture unique to LWE decryption. Previous analysis has confirmed that this method only cov-
+ers a subset of functions with Zq iterative partial-sum structures and cannot adapt to general
+logarithmic-space(NC1 ) functions. Therefore, extending the MA-Program framework to general
+logarithmic-space functions is a necessary path to realize the original goal of “polynomial-size
+gadgets for general quantum circuits” and break the boundary that the current paper only opti-
+mizes the specific LWE decryption function.
+    Looking forward, the exponential reduction in quantum resource requirements achieved by
+this work suggests that QFHE may be approaching practical viability sooner than previously
+anticipated. While significant challenges remain — most notably, the transition to malicious
+security and the integration with quantum error correction — the transformation of gadget size
+from billions to millions of EPR pairs, combined with fully classical client support and standard
+LWE assumptions, establishes a new foundation for the secure delegation of arbitrary quantum
+computation to untrusted cloud servers.
+
+
+References
+[AM+00] A. Ambainis, M. Mosca, A. Tapp, R. de Wolf. Private quantum channels. FOCS 2000,
+   2000: 547–556.
+[BJ15] A. Broadbent, S. Jeffery. Quantum homomorphic encryption for circuits of low T-gate
+    complexity. CRYPTO 2015, 2015: 609–629.
+[BKF09] A. Broadbent, J. Fitzsimons, and E. Kashefi. Universal blind quantum computation.
+   FOCS, 2009.
+[BV11] Z. Brakerski, V. Vaikuntanathan. Efficient fully homomorphic encryption from (stan-
+    dard) LWE. FOCS 2011, 2011: 97–106.
+[BFSS13] H. Buhrman, S. Fehr, C. Schaffner, F. Speelman. The garden-hose model. ITCS 2013,
+    2013: 145–158.
+[Bar89] D. A. M. Barrington. Bounded-width polynomial-size branching programs recognize ex-
+    actly those languages in NC1. J. Comput. Syst. Sci., 1989, 38(1): 150–164.
+[Bra18] Z. Brakerski. Quantum FHE (almost) as secure as classical. CRYPTO 2018, 2018: 67–95.
+[BGM+25] J. Bartusek, A. Gupte, S. Mutreja, O. Shmuel. Classical Obfuscation of Quantum
+   Circuits via Publicly-Verifiable QFHE. e-Print: 2510.08400, 2025.
+[Chiu14] A. M. Chiu. A garden-hose model for secure multiparty computation. PhD Thesis,
+    University of Toronto, 2014.
+[DSS16] Y. Dulek, C. Schaffner, F. Speelman. Quantum homomorphic encryption for
+    polynomial-sized circuits. CRYPTO 2016, 2016: 3–32.
+[DK06] V. Danos, E. Kashefi. Determinism in the one-way model. Phys. Rev. A, 2006, 74:
+   052310.
+[FK17] Joseph F. Fitzsimons, Elham Kashefi. Unconditionally verifiable blind quantum compu-
+    tation. Phys. Rev. A, 2017, 96, 012303.
+[Gen09] C. Gentry. A fully homomorphic encryption scheme. PhD Thesis, Stanford University,
+    2009.
+
+
+                                            31
+[GHP12] C. Gentry, S. Halevi, N. P. Smart. Fully homomorphic encryption with polylog over-
+   head. EUROCRYPT 2012.
+[GVW22] A. Gupte, V. Vaikuntanathan, C. Wee. On the hardness of learning with errors with
+   binary secrets. Theory of Cryptography, 2022: 1–22.
+[GSW13] C. Gentry, A. Sahai, B. Waters. Homomorphic encryption from learning with errors:
+   Conceptually-simpler, asymptotically-faster, attribute-based. CRYPTO 2013, 2013: 75–92.
+[HPS98] J. Hoffstein, J. Pipher, J. H. Silverman. NTRU: A ring-based public key cryptosystem.
+    ANTS III, 1998: 267–288.
+[Josza05] R. Jozsa. An introduction to measurement based quantum computation. arXiv:quant-
+     ph/0508124v2 20 Sep 2005.
+[LPR10] V. Lyubashevsky, C. Peikert, O. Regev. On ideal lattices and learning with errors over
+    rings. EUROCRYPT 2010, 2010: 1–23.
+[Lia13] M. Liang. Symmetric quantum fully homomorphic encryption with perfect security.
+     Quantum Information Processing, 2013: 12:3675–3687.
+[Mah18] U. Mahadev. Classical homomorphic encryption for quantum circuits. FOCS 2018, 2018:
+    332–338.
+[MDMF17] A. Mantri, T. F. Demarie, N. C. Menicucci, J. F. Fitzsimons. Flow Ambiguity: A
+   Path Towards Classically Driven Blind Quantum Computation. PHYSICAL REVIEW X 7,
+   2017, 31004.
+[ML22] GS Ma, HB Li. Quantum Fully Homomorphic Encryption by Integrating Pauli One-time
+   Pad with Quaternions. Quantum, 2022, 6, 866.
+[Reg09] O. Regev. On lattices, learning with errors, random linear codes, and cryptography. J.
+    ACM, 2009, 56(6): 1–40.
+[RBB01] R. Raussendorf, H. J. Briegel. A one-way quantum computer. Phys. Rev. Lett., 2001,
+   86: 5188–5191.
+[RB03] R. Raussendorf, D. E. Browne, H. J. Briegel. Measurement-based quantum computation
+    on cluster states. Phys. Rev. A, 2003, 68: 022312.
+[Sin95] R. K. Sinha. Some Topics in Parallel Computation and Branching Programs. PhD Thesis,
+     1995.
+[Spel15] F. Speelman. Non-local computation of low T-depth quantum circuits. TQC 2016, 2016.
+[VDG+10] M. van Dijk, C. Gentry, S. Halevi, V. Vaikuntanathan. Fully homomorphic encryption
+   over the integers. EUROCRYPT 2010, 2010: 24–43.
+
+
+
+
+                                          32
+

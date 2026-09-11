@@ -1,0 +1,1249 @@
+Proceedings of Machine Learning Research vol 196:1–23, 2024              37th Annual Conference on Learning Theory
+
+
+
+
+ Lower Bounds for Differential Privacy Under Continual Observation
+                  and Online Threshold Queries
+
+
+Edith Cohen                                                                      EDITH @ COHENWANG . COM
+Google Research and Tel Aviv University
+
+Xin Lyu                                                                          LYUXIN 1999@ GMAIL . COM
+UC Berkeley and Google Research
+
+Jelani Nelson                                                                     MINILEK @ ALUM . MIT. EDU
+UC Berkeley and Google Research
+
+Tamás Sarlós                                                                      STAMAS @ GOOGLE . COM
+Google Research
+
+Uri Stemmer                                                                                      U @ URI . CO . IL
+Tel Aviv University and Google Research
+
+
+
+Editors: Shipra Agrawal and Aaron Roth
+
+
+
+                                                          Abstract
+      One of the most basic problems for studying the “price of privacy over time” is the so called private
+      counter problem, introduced by Dwork et al. (2010) and Chan et al. (2011). In this problem, we
+      aim to track the number of events that occur over time, while hiding the existence of every single
+      event. More specifically, in every time step t ∈ [T ] we learn (inP  an online fashion) that ∆t ≥ 0 new
+                                                                             t
+      events have occurred, and must respond with an estimate nt ≈ j=1 ∆j . The privacy requirement
+      is that all of the outputs together, across all time steps, satisfy event level differential privacy.
+           The main question here is how our error needs to depend on the total number of time steps T 
+      and the total number of events n. Dwork et al. (2015) showed an upper bound of O log(T ) + log2 (n) ,
+      and Henzinger et al. (2023) showed a lower bound of Ω (min{log n, log T }). We show a new lower
+      bound of Ω (min{n, log T }), which is tight w.r.t. the dependence on T , and is tight in the sparse
+      case where log2 n = O(log T ). Our lower bound has the following implications:
+
+     • We show that our lower bound extends to the online thresholds problem, where the goal is to privately
+       answer many “quantile queries” when these queries are presented one-by-one. This resolves an open
+       question of Bun et al. (2017).
+
+     • Our lower bound implies, for the first time, a separation between the number of mistakes obtainable
+       by a private online learner and a non-private online learner. This partially resolves a COLT’22 open
+       question published by Sanyal and Ramponi.
+
+     • Our lower bound also yields the first separation between the standard model of private online learning
+       and a recently proposed relaxed variant of it, called private online prediction.
+
+
+© 2024 E. Cohen, X. Lyu, J. Nelson, T. Sarlós & U. Stemmer.
+                                    C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+1. Introduction
+Differential privacy (DP), introduced by Dwork et al. (2006), is a mathematical definition for privacy
+that aims to enable statistical analysis of datasets while providing strong guarantees that individual-
+level information does not leak. Most of the academic research on differential privacy has focused
+on the “offline” setting, where we analyze a dataset, release the outcome (in a privacy preserving
+manner), and conclude the process. In contrast, most of the industrial applications of differential
+privacy are “continual” and involve re-collecting and re-aggregating users’ data, say on a daily basis.
+In this work we study one of the most popular models for arguing about this, called the continual
+observation model of differential privacy (Dwork et al., 2010b; Chan et al., 2010). Algorithms in this
+model receive a stream of sensitive inputs and update their outcome as the stream progresses while
+guaranteeing differential privacy. This model abstracts situations where the published statistics need
+to be continually updated while sensitive information is being gathered.
+    Before describing our new results, we define our setting more precisely. Consider an algorithm
+A that on every time step t ∈ [T ] obtains a (potentially empty) dataset Dt ∈ X ∗ and outputs
+an answer yt . We say that A solves a problem P : X ∗ → R if for every sequence of datasets
+D = (D1 , . . . , DT ), with high probability over A’s coins, for every t ∈ [T ] it holds that yt ≈
+P (D1 ◦ · · · ◦ Dt ) ≜ pt . We measure quality by the ℓ∞ norm, that is, for a sequence of outputs
+y = (y1 , . . . , yT ) we denote errorP (D, y) = maxt∈[T ] |yt − pt |. The privacy requirement is that the
+sequence of all T outputs should be differentially private w.r.t. D. That is, the outcome distribution
+of the y should be insensitive to a change limited to one elements in one of the datasets Dt . Formally,
+
+Definition 1 (Dwork et al. (2006)) Given a sequence of datasets D = (D1 , . . . , DT ) and an al-
+gorithm A, we write ReleasesA (D) to denote the sequence of T outcomes returned by A during
+the execution on D. Algorithm A is (ε, δ)-differentially private if for any neighboring1 sequences
+of datasets D, D′ , and for any outcome set F ⊆ RT it holds that Pr[ReleasesA (D) ∈ F ] ≤
+eε · Pr[ReleasesA (D′ ) ∈ F ] + δ. The case where δ = 0 is referred to as pure DP and the case
+where δ > 0 as approximate DP.
+
+Remark 2 Typically one aims for a stronger privacy definition in which the neighboring datasets
+are not fixed in advanced, and can be adaptively chosen as the execution progresses. Since in this
+work we show negative results, then focusing on the above “non-adaptive” privacy definition only
+makes our results stronger.
+
+    An algorithm that operates in the continual observation model must overcome two main chal-
+lenges: (i) The algorithm is required to solve T instances of the underlying problem P , rather than
+just a single instance, and (ii) The algorithm receives its input in an online manner, which may in-
+troduce larger error than what is required when the algorithm receives the entire sequence at once.
+So far, all known hardness results for the continual observation model were based on challenge (i)
+above. To emphasize this, let us consider the following “offline” variant of the continual observation
+model:
+
+Definition 3 (The offline observation model) Let P : X ∗ → R be a problem. In the offline ob-
+servation model, the algorithm gets in the beginning of the execution an entire sequence of datasets
+ 1. D = (D1 , . . . , DT ) and D′ = (D1′ , . . . , DT′ ) are neighboring if Dt = Dt′ for all but at most index t∗ for which
+    Dt∗ could be obtained from Dt′ ∗ by adding/removing one element.
+
+
+                                                            2
+          L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+D = (D1 , . . . , DT ), and aims to return T solutions y1 , ..., yT such that yt ≈ P (D1 ◦ · · · ◦ Dt ) for
+every t ∈ [T ].
+
+     So far, all prior hardness results for the continual observation model are, in fact, hardness results
+for this offline observation model. On the one hand, this makes these prior results stronger, as the
+offline observation model is strictly easier than the continual observation model. On the other
+hand, such lower bounds cannot capture the hardness that steams from the online nature of the
+continual observation model. As we show in this work, there are important cases where in order
+to show strong lower bounds for the continual observation model we must differentiate it from the
+offline observation model.2 Furthermore, we show this for what is arguably the most well-studied
+problem in the continual observation model – the private counter problem. In this problem, the data
+domain is X = {0, 1} and the function P simply counts the number of ones in the datasets received
+so far. Alternatively, it is common to interpret the input as a sequence of non-negative numbers
+∆ = (∆1 , . . . , ∆T ) ∈ ZT≥0 , where ∆t is the number of events that occurred at time t, and the goal
+is to track (and publish) the prefix sums nt = ti=1 ∆i for t ∈ [T ].
+                                                   P
+
+
+1.1. Prior Works on the Counter Problem
+Upper bounds. Dwork et al. (2010a) and Chan et al. (2010) presented the celebrated binary tree
+                                                                                                 2.5
+mechanism for PTthe online counter problem, which guarantees error at most Oε (log(T ) + log n),
+where n =        t=1 ∆t is the total number of events throughout the execution (via the analysis of
+Dwork et al. (2015)). In the offline observation model, the private counter problem can be solved
+with error Õε,δ ((log∗ T )(polylog(n))) via algorithms for the related problem of threshold sanitiza-
+tion (a.k.a. CDF estimation) (Cohen et al., 2023; Kaplan et al., 2020). So, in terms of the dependence
+in the time horizon T , the private counter problem can be solved with error O(log T ) in the online
+model and Õ(log∗ T ) in the offline model.
+Lower bounds. There are three prior lower bounds for the private counter problem, all of which
+hold also for the offline model:
+
+  (1) Dwork et al. (2010a) showed a lower bound of Ω(log T ) that holds only for pure-DP algo-
+      rithms.
+  (2) For approximate DP, a lower bound of Ω(log∗ T ) follows from the results of Bun et al. (2015),
+      who showed a lower bound for the simpler private median problem. Thus, in the offline
+      setting, the dependence on T of Θ̃(log∗ T ) is tight.
+  (3) Henzinger et al. (2023) recently established a lower bound of Ω(min{log T, log n}) on the ℓ2
+      error, which implies a lower bound of Ω(min{log T, log n}) on the ℓ∞ error.
+
+    Our focus in this work is on lower bounds on the ℓ∞ error of approximate-DP online counters.
+To summarize our knowledge from prior works: The known upper bound is O(min{n, log T +
+log2 n}), combining the bound of Dwork et al. (2015) with the observation that we can trivially
+obtain an error of n by reporting ñt = 0 for t ∈ [T ]). The prior lower bound is Ω(min{log T, log n})
+by Henzinger et al. (2023). Note that there is a gap: In the common regime where n ≤ T the upper
+bound is O(log T +log2 n) while the lower bound is only Ω(log n). Furthermore, as the lower bound
+ 2. We remark that in other models of computation there are known hardness result that differentiate between similar
+    offline and online models, most notably by Bun et al. (2017).
+
+
+                                                         3
+                              C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+of Henzinger et al. (2023) applies in the offline setting, its dependence on T cannot be tightened,
+since the offline setting has an upper bound of Õ((log∗ T )polylog(n)).
+
+Remark 4 Most applications for the counter problem operate in the sparse regime where n ≪ T .
+For example, in tracking the view counts of YouTube videos, popular videos like those of Taylor
+Swift may experience rapid increases in views, while the majority of videos tend to exhibit slower
+growth (that is, small n). This typical pattern is broadly known as the long-tail phenomena. In this
+use case, a counter is maintained for each video. We may need frequent refreshes (e.g. large T ), for
+example, so that we can detect sudden surges quickly and verify the content for compliance.
+
+1.2. Our Contributions
+We present a lower bound of Ω(min{n, log T }) on the ℓ∞ error of approximate-DP online counting.
+This bound is tight in terms of the dependence on T and is tight overall for sparse inputs, where
+log2 n = O(log T ). Formally,
+
+Theorem 5 For any T ≥ 1, let n ≤ 12 log(T ) and δ ≤ 100n  1
+                                                              . Any (0.1, δ)-DP algorithm for the
+online counter problem with n events over T time steps must incur ℓ∞ -error of Ω(n) with constant
+probability.
+
+   Observe that this gives a lower bound of Ω(log T ) even when n is as small as log T . As we
+explained, such a lower bound does not hold for the offline model, and hence our result differentiates
+between these two models.
+The threshold monitor problem. To obtain our results, we consider a simpler variant of the
+counter problem, which we call the Threshold Monitor Problem, which is natural and of independent
+interest. Similarly to the counter problem, on every time step t we obtain an input ∆t indicating the
+number of events occurring on step t. However, instead of maintaining a counter for the total number
+of events, all we need to do is to indicate when it (roughly) crosses some predefined threshold k.
+Formally,
+
+Problem 6 (The threshold monitor problem) There is a pre-determined threshold value k. The
+input to the algorithm is a sequence of T updates (∆1 ,P  . . . , ∆T ) ∈ {0, 1}T . At each time step
+t ∈ [T ], the algorithm receives the update ∆t , lets nt ← tj=1 ∆j , and outputs ⊤ or ⊥, subject to
+the following requirements:
+    • If nt < 21 k, the algorithm reports ⊥.
+    • If nt ≥ k, the algorithm reports ⊤.
+    • If nt ∈ [ 12 k, k), the algorithm may report either ⊥ or ⊤.
+    • Once the algorithm reports a ⊤, it halts.
+We say the algorithm succeeds if all its responses (before halting) satisfy the requirements above.
+
+    Clearly, an algorithm for the counter problem with ℓ∞ error at most k/2 can be used to solve the
+Threshold Monitor Problem. Therefore, a lower bound for the Threshold Monitor Problem implies
+a lower bound for the counter problem. We establish the following, which implies Theorem 5. The
+proof is included in Section 2.
+
+                                                   4
+          L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+Theorem 7 Consider the Threshold Monitor Problem with T ≥ 1, k ≤ 12 log(T ), and privacy
+                1
+parameter δ ≤ 100k . There is no (0.1, δ)-DP algorithm that succeeds with probability 0.99.
+                                                            1
+    A natural question is whether the requirement of δ < log(T ) can be relaxed to δ < o(1). The
+following observation suggests that the answer is negative.
+
+Observation
+                     is an (ε, δ)-DP algorithm for the Threshold Monitor Problem with threshold
+            n8 There o
+              log T 1
+k = O min       ε ,δ      that succeeds with constant probability.
+
+This follows as a special case of the classical AboveThreshold algorithm of Dwork et al. (2009),
+also known as the Sparse Vector Technique. The algorithm performs an online sequence of T noisy
+threshold tests and halts after the first time that the response is that the threshold is exceeded. The
+overall privacy cost is that of a single query. For the threshold monitor problem, we test sequentially
+each prefix sum if it is above the threshold 3k/4. We return ⊥ on “below” responses and return ⊤
+(and halt) on the first “above” response.  We   require that the ℓ∞ norm of the noise does not exceed
+                                            log T
+                                                    . The O 1δ upper bound follows by simply releasing
+                                                               
+k/4 (w.h.p.), which holds when k = Ω          ε
+every input bit with probability δ, and estimating the sum of the bits from that.
+
+1.2.1. A PPLICATION I: T HE THRESHOLD QUERIES PROBLEM
+We show that our lower bound extends to the threshold queries problem, thereby solving an open
+question of Bun et al. (2017). In this problem, we get an input dataset D containing n points from
+[0, 1]. Then, for T rounds, we obtain a query q ∈ [0, 1] and need to respond with an approximation
+for the number of points in D that are smaller than q. The privacy requirement is that the sequence
+of all our answers together satisfies DP w.r.t. D. Note that here the dataset is fixed at the beginning
+of the execution and it is the queries that arrive sequentially.
+     In the offline variant of this problem, where all the queries are given to us in the beginning of the
+execution (together with the dataset D), this problem is equivalent to the offline counter problem,
+and can be solved with error Õ(log∗ T ) using the algorithm of Cohen et al. (2023); Kaplan et al.
+(2020). For the online variant of the problem (where the queries arrive sequentially), Bun et al.
+(2017) presented an upper bound of O(log T ), and asked if it can be improved. We answer this
+question in the negative and show the following theorem.
+
+Theorem 9 Let n, T ≥ 1 be two integers. There is no (0.1, n12 )-DP algorithm A that, on input
+a set S of n reals number from [0, 1], answers a sequence of T online but non-adaptive threshold
+queries within error 21 min{n, log(T )} and with probability 0.99.
+
+1.2.2. A PPLICATION II: P RIVATE ONLINE LEARNING
+We apply our technique to establish a lower bound for the private online learning problem in the
+mistake bound model. To the best of our knowledge this is the first non-trivial lower bound for
+the private online learning model, separating it from the non-private online learning model. This
+partially answers a COLT’22 open question posted by Sanyal and Ramponi (2022).3 Our lower
+bound also implies, for the first time, a separation between the problems of private online learning
+and private online prediction. Let us recall these two related models.
+ 3. This does not completely resolves their question as they aimed for a stronger separation.
+
+
+                                                           5
+                                    C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+The private online learning model. Suppose X is the data domain and Let H ⊆ {0, 1}X be a
+hypothesis class. The private online learning model, considered first by Golowich and Livni (2021),
+can be expressed as a T -round game between an adversary B and a learning algorithm (the learner)
+A. In every round i of this game:
+
+   1. The adversary chooses a query xi ∈ X and the learner chooses a hypothesis hi : X → {0, 1}.
+   2. At the same time, the adversary gets hi and the learner gets xi .
+   3. The adversary chooses a “true” label yi under the restriction that ∃h ∈ H such that ∀j ≤ i
+      we have h(xj ) = yj . This “true” label yi is given to the learner.
+
+      We say that a mistake happened in round i if hi (xi ) ̸= yi . The goal of the learner is to min-
+imize the total number of mistakes. The privacy definition is that the sequence of all hypothe-
+ses (h1 , h2 , . . . , hT ) together satisfies differential privacy w.r.t. the inputs given to the algorithm
+throughout the execution. That is, if we were to replace one labeled example (xi , yi ) with another
+(x′i , yi′ ) then that should not change by much the distribution on the resulting vector of hypotheses.
+
+Remark 10 In Step 1 of the game above, the adversary and the learner chooses the next query
+and hypothesis simultaneously. There is another formulation of the model in which the learner is
+allowed to choose the current hypothesis hi as a function of the current query xi . Note that, in both
+models, hi (xi ) clearly must depend on xi . The question is if the description of the hypothesis itself
+is allowed to depend on xi (in a way that preserves DP). We do not know if our lower bound holds
+also for this alternative formulation of the model.
+
+The private online prediction model. This is a similar model, introduced by Kaplan et al. (2023),
+which incorporates the following two changes: First, in Step 2 of the above game, instead of get-
+ting the hypothesis hi , the adversary only gets hi (xi ). Second, the privacy requirement is weaker.
+Specifically, instead of requiring that the vector of all outputs given by the learner should be insensi-
+tive to changing one labeled example (xi , yi ), the requirement is only w.r.t. the vector of all outputs
+other than the output in round i. Intuitively, in the context of private online prediction, this privacy
+definition allows the ith prediction to depend strongly on the ith input, but only very weakly on all
+other inputs. This privacy notion could be a good fit, for example, when using a (privacy preserving)
+online learner to predict a medical condition given an individual’s medical history: As long as the
+ith individual does not share its medical data with additional users, only with the learner, then its
+medical data will not leak to the other users via the predictions they receive. Kaplan et al. (2023)
+showed strong positive results that outperform the known constructions for the standard model of
+private online learning. However, before our work, it was conceivable that the two models are
+equivalent, and no separation was known.
+    We consider the class of point functions over a domain X , containing all functions that evaluate
+to 1 on exactly one point of the domain X .4 This class is known to have Littlestone dimension 1,
+and hence there is a non-private online-learner for it that makes at most 1 mistake throughout the
+execution (no matter what T is). We apply our techniques to establish a non-trivial lower bound for
+the private online learning model, thereby separating it from the non-private model. This is captured
+by the following theorem.
+ 4. That is, for every x ∈ X , the class of point functions contains the function cx defined as cx (y) = 1 iff y = x.
+
+
+                                                            6
+         L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+Theorem 11 Let T ≥ 100 denote the number of time steps, and let X = {0, 1, 2, . . . , T } be the
+                                                                         1
+data domain. Let H be the class of point functions over X . Let δ = 20 log(T ) . Then, for any (ε, δ)-
+DP online learner A for X that answers T queries there exists a query sequence on which A makes
+Ω(log(T )) mistakes with constant probability.
+
+    We complement this result with an upper bound for the online private prediction model that
+achieves a mistake bound which is independent of T . This establishes a separation between private
+online learning and online prediction. Formally,
+
+Lemma 12 Let X be a domain. The class of point functions over X admits an (ε, δ)-DP online
+predictor with mistake bound O( ε12 log2 1δ ).
+
+Independent work. In a concurrent and independent work, Dmitriev et al. (2024) presented a
+similar lower bound to that of Theorem 11. Their lower bound holds even when the domain size X
+is small (say |X | = 3), while our lower bound requires larger domain size. On the other hand, our
+lower bound is unconditional, while their lower bound only holds for a certain family of learning
+algorithms A (which they call “concentrated algorithms”). We stress that Dmitriev et al. (2024) did
+not obtain lower bounds for the other problems we study in this work, namely, the counter problem
+and the threshold queries problem.
+Road map. The proofs of Theorem 11 is given in Appendix A and the proof of Lemma 12 is
+given in Appendices B and C. In Appendix B we present an algorithm that satisfies Joint Differential
+Privacy (Kearns et al., 2015) for a version of the threshold monitor problem that applies with k =
+O( ε12 log2 1δ ) and in Appendix C we apply it to construct an online prediction algorithm.
+
+2. A Lower Bound for the Threshold Monitor Problem
+In this section we prove our lower bound for the threshold monitor problem (i.e., we prove Theo-
+rem 7), which directly implies our lower bound for the counter problem. We begin with an overview
+of the proof.
+
+2.1. Proof Overview
+
+                                                                            Pt of updates ∆1 , . . . , ∆T ∈
+Recall that in the threshold monitor problem, the algorithm receives a sequence
+      T
+{0, 1} and needs to report “HALT” at some time step t ∈ [T ] such that i=1 ∆i ∈ [k/2, k], where
+k = 12 log(T ). We want to show that no (ε = 0.1, δ = 100k  1
+                                                                )-DP algorithm can solve the problem
+with success probability 0.99. Suppose such an algorithm exists and denote it by A. Then, on the
+sequence D(0) = (0, 0, . . . , 0), A cannot halt with probability larger than 0.01.
+    To derive a contradiction, we want to use the fact that A is differentially private to find a new
+data set D(k) ∈ {0, 1}T that contains k “1”s in the sequence, yet the algorithm halts on D(k) with
+probability at most 0.5. If we just append k “1” at the beginning of thePsequence, the DP property
+of A only promises that A halts with probability at most: 0.01eεk + ki=1 δ · e(k−i)ε , which is a
+                          1
+vacous bound for δ = 100k    .
+    In this naive attempt, we only considered the probability that A ever halts on the input. By
+the DP property of the algorithm, the best we can say about this quantity is that it increases by
+a multiplicative factor of eε and an additive factor of δ when we move to an adjacent data set.
+The additive increment is easy to bound. However, to handle the multiplicative blow-up, we need
+
+                                                  7
+                               C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+to exploit the online nature of the problem and the long time horizon. Specifically, on an input
+sequence S = (∆1 , . . . , ∆T ) ∈ {0, 1}T , we consider whether A is more likely to halt on the
+stream’s first or second half.
+
+
+    • If A more likely halts at time step t ∈ [1, T /2], then we fix the first half of S, and recursively
+      insert more “1”s in the second half of S. Because A is an online algorithm, only the second
+      half of the stream will suffer from the “eε ” blow-up in the future.
+
+    • If A more likely halts at time step t ∈ [T /2 + 1, T ], then we fix the second half of S, and
+      recursively insert more 1’s in the first half of S. In doing so, the behavior of A in time interval
+      [T /2 + 1, T ] might change. However, our construction will eventually append at least k “1”s
+      before time step T /2. Therefore, ultimately, the algorithm’s behavior on the second half of
+      the stream is irrelevant.
+
+
+Using this construction, we can start at D(0) = (0, . . . , 0)T , find a sequence D(k) as well as an
+index ℓ, such that D(k) contains at least k “1”s before time step ℓ, yet A halts before time step ℓ
+with probability at most 0.5. The key insight in the construction is intuitively explained as follows:
+after inserting each new item, we cut the stream into two halves and recurse into the left or right
+half, in a way that at most half of the probability mass will suffer from the eε blow-up in the future.
+Overall, the eε blow-up is reduced to a 12 eε multiplicative factor, which is less than 1, and the overall
+halting probability is easily bounded.
+
+
+2.2. The Formal Details
+
+We now present the formal construction. We prove the following restatement of Theorem 7.
+
+
+Theorem 13 Let T > 1 and k ≤ 12 log(T ) − 5. There is no ( 21 , 100·k1
+                                                                       )-DP algorithm for the
+Threshold Monitor Problem (Problem 6) with parameters T, k that has success probability 0.99.
+
+                             Pk       i                         1
+Proof Fix k and let T =         i=1 2 . It is clear that k ≤ 2 log(T ) − 5. We show that there is
+no algorithm for the Threshold Monitor Problem with parameters k and T (or more) updates. We
+assume that such an algorithm A exists and derive a contradiction in the following.
+    For any fixed input sequence D ∈ {0, 1}T and t ∈ [T ], an algorithm A for Problem 6 can be
+fully described by a probability distribution on [T ] ∪ {non} that corresponds to the time step t ∈ [T ]
+where it outputs ⊤ and halts. The event non corresponds to the algorithm outputting ⊥ on all time
+steps. We use the notation pD t for the probability that A outputs ⊤ (and thus halts) after the t-th
+update:
+                          pD
+                           i := Pr[A(D) outputs ⊤ after the i-th update].                             (1)
+
+    We start with the all-zero sequence D(0) = (0, 0, . . . ) and construct a “hard sequence” for
+algorithm A, as described in Algorithm 1.
+
+                                                    8
+             L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+     Algorithm 1: Construction of Hard Instance
+                                     Pk
+   Input: Parameters k, T = j=1 2j ; A mapping pD                                                             T
+                                                                i as in (1) induced by an Algorithm A : {0, 1} .
+                                    (0)
+ 1 Initialize ℓ ← 1, r ← T , D          ← (0, 0, . . . , 0), and ctotal ← 0
+ 2 for i = 1, . . . , k do
+ 3      m ← 12 (ℓ + r + 1)                                              // midpoint m is always an integer
+                 Pm−1 D(i−1)
+ 4      cleft ← j=ℓ pj
+                   Pr         (i−1)
+ 5      cright ← j=m pD     j
+ 6      if cleft ≤ cright then
+ 7            Set the ℓ-th entry of D(i−1) to 1 to obtain D(i)
+                                      (i)
+ 8            ctotal ← ctotal + pD  ℓ
+ 9            ℓ←ℓ+1
+10            r ←m−1
+11      end
+12      else
+13            Set the m-th entry of D(i−1) to 1 to obtain D(i)
+                                             (i)
+14            ctotal ← ctotal + cleft + pD p
+15            ℓ←m+1
+16      end
+17 end
+                             (k)
+18 return ℓ, ctotal and D
+
+       Note that D(k) is an input sequence with k “1”s before the ℓ-th update. Thus, a correct algo-
+   rithm has to output ⊤ before the ℓ-th update arrives. However, we will show that, assuming the
+   algorithm is differentially private and is correct on the first sequence D(0) with probability 0.99, the
+   algorithm must err on the input D(k) with probability at least 12 , contradicting to the correctness of
+   the algorithm. We now give the proof. We start with the following simple observation.
+
+   Claim 14 Consider Algorithm 1. After the algorithm finishes, it holds that
+
+                         ctotal = Pr[A(D(k) ) outputs ⊤ before or at the ℓ-th update].
+
+   Proof By definition, we have
+                                                                                    r
+                                                                                                 (k)
+                                                                                    X
+                      Pr[A(D(k) ) outputs ⊤ before or at the ℓ-th update] =                pjD         .
+                                                                                     i=j
+
+                                                                                                 (kj )
+   On the other hand, considering the execution of Algorithm 1, we observe that ctotal = ℓj=1 pD
+                                                                                        P
+                                                                                               j       ,
+   where we use kj to denote the round in which the interval [ℓ, r] in Algorithm 1 updates to a new
+                                                    (kj )       (k)
+   interval [ℓ′ , r′ ] with ℓ′ > j. Observe that pD
+                                                  j   = pjD for every j. (This follows because after the
+                                         ′          ′
+   kj -th round, we only update the ℓ -th to the r -th entries of the input, and the algorithm is ignorant
+   to future updates at time j.) The claim now follows.
+
+       The next claim gives an upper bound for ctotal .
+                                                                                                   ε
+   Claim 15 Consider Algorithm 1. After the execution finishes, we have ctotal ≤ e (0.01+2kδ)
+                                                                                    1− 1 eε
+                                                                                              .
+                                                                                                           2
+
+
+
+                                                            9
+                                     C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+Proof We shall use a potential argument. Before the i-th round of Algorithm 1, let the current
+                                                                                         (i−1)
+interval be [ℓ, r] and define the current potential of the algorithm by Φ(i−1) = rj=ℓ pD
+                                                                                P
+                                                                                       j       . Let
+ (i−1)
+ctotal be the value of ctotal before the i-th round. We will examine (with some foresight) the
+                        (i)
+following quantity e−ε ctotal + 1−11 eε Φ(i) . First, assuming the algorithm errs with probability at
+                                                 2
+most 0.01 on the input D(0) , it follows that
+
+                                               (0)          1               0.01
+                                    e−ε ctotal +             1 εΦ
+                                                                  (0)
+                                                                      ≤0+           .
+                                                         1 − 2e           1 − 12 eε
+
+                                                                                                 (i)
+Consider how ctotal and Φ change from round i − 1 to round i. Note that ctotal is obtained by adding
+                          (i)     (i−1)
+a subset I ⊂ [ℓ, r] of pD
+                        j     to ctotal . Assuming the algorithm is (ε, δ)-DP, we have
+
+          (i)     (i−1)                  (i)         (i−1)                   (i−1)           (i−1)
+                             X                                    X
+         ctotal = ctotal +         pjD         ≤ ctotal + (eε           pD
+                                                                         j           + δ) ≤ ctotal + eε Φ(i−1) + δ.
+                             j∈I                                  j∈I
+
+
+On the other hand, Φ(i) consists of contribution from a sub-interval J of Φ(i−1) , where the interval
+has a total contribution being at most half of Φ(i−1) . Again assuming the algorithm is (ε, δ)-DP, we
+                        (i)                     (i−1)
+have Φ(i) = j∈J pD          ≤ δ + eε · j∈J pD         ≤ 12 eε Φ(i−1) + δ. Thus,
+              P                       P
+                      j                       j
+                                                                                             
+          (i)          1                
+                                           (i−1)
+                                                                       1        1 ε (i−1)
+     e−ε ctotal +              (i)
+                              Φ ≤e   −ε             ε
+                                          ctotal + e · Φ i−1
+                                                             +δ +                  e Φ     +δ
+                    1 − 12 eε                                        1 − 21 eε 2
+                                                                   !
+                                           (i−1)       1                   2δ
+                                   = e−ε ctotal +       1 εΦ
+                                                             (i−1)
+                                                                     +           .
+                                                   1 − 2e              1 − 12 eε
+
+                      (k)                                                                                             (k)
+Consequently, e−ε ctotal + 1−11 eε Φ(k) ≤ 0.01+2kδ
+                                           1− 1 eε
+                                                   , which implies the desired conclusion ctotal ≤
+                                     2                        2
+eε (0.01+2kδ)
+    1− 12 eε
+              as Φ is always non-negative.
+
+                                                                               ε
+    For our choice of ε = 21 and δ = 100k
+                                       1
+                                          , we have e (0.01+2kδ)
+                                                       1− 1 eε
+                                                                 ≤ 12 . Hence, combining the
+                                                                                       2
+two claims above shows that the algorithm errs on the input D(k) with a probability of at least 0.5,
+completing the proof.
+
+
+
+3. Online Threshold Queries
+Recall that in the threshold queries problem, we get an input dataset D containing n points from
+[0, 1]. Then, for T rounds, we obtain a query q ∈ [0, 1] and need to respond with an approximation
+for the number of points in D that are smaller than q. In this section we show that our lower bound
+extend also to this problem. We begin with a proof overview.
+
+3.1. Proof Overview
+The key challenge in extending our lower bound to the online threshold query problem is that the
+data set is given all at once. To motivate, let us consider a simple reduction:
+
+                                                                  10
+         L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+    • For an input sequence (∆1 , . . . , ∆T ) ∈ {0, 1}T to the counter problem, construct a data set
+               i
+      D = { T +1 : ∆i = 1}. Then, issue a set of T queries {qi = Ti }1≤i≤T to the threshold query
+      algorithm and report the answers to these queries.
+For the offline version of the problem, this reduction preserves the privacy parameters and the cor-
+rectness perfectly. However, this reduction itself does not work in the online setting: at any time
+step t ∈ [1, T ], the algorithm does not know the future inputs ∆t+1 , . . . , ∆T . Therefore, the data
+set D cannot be constructed at all without seeing the whole stream.
+    To carry out the reduction for the online version of the problem, we only need one more property
+for the threshold query algorithm: on a query q ∈ [0, 1], the algorithm’s response only depends on
+the set D ∩ [0, q]. Namely, it is ignorant of all the data points with values larger than q. This
+condition is not necessarily satisfied by an arbitrary algorithm. Still, for any fixed algorithm A, it
+is possible to identify a set of T points 0 < p1 , . . . , pT < 1 (possibly depending on A), such that
+the condition is satisfied for any data set D ⊆ {p1 , . . . , pT } that only contains a subset of these
+T points. The existence of such T points is guaranteed by the hypergraph Ramsey theory. The
+high-level idea is easy to describe: Knowing the set S = D ∩ [0, q], for every possible data set
+D that contains S, the algorithm’s behavior on q can be thought of as a “coloring” to the data set
+D. Since there are infinitely many points in (q, 1], one can use the Ramsey theory to identify an
+arbitrarily large monochromatic clique among (q, 1]. That is, a set of data points P ⊆ (0, q] such
+that the algorithm behaves similarly on any data set D = S ∪ P ′ with P ′ ⊆ P . Note that this is
+exactly what our reduction asks for.
+
+3.2. The Formal Details
+We are now ready to prove Theorem 9. We will do so by proving lower bounds for the following
+threshold version of the problem.
+    • The input D consists of k data points, each taking values from [0, 1]. The algorithm receives
+      all of the set D in advance.
+    • The algorithm then processes a sequence of queries q1 ≤ q2 ≤ · · · ≤ qT where each query
+      qi ∈ [0, 1] is described by a real number. Let ci = |{j : xj ≤ qi }|.
+
+         – If ci ≤ 12 k, the algorithm reports ⊥.
+         – If ci ≥ k, the algorithm reports ⊤.
+         – If ci ∈ (k/2, k), the algorithm may report either ⊥ or ⊤.
+         – Once the algorithm reports a ⊤, it halts.
+
+We say the algorithm succeeds if all the queries before halting are answered correctly. For k =
+1                            1
+2 log(T ) and ε = 0.1, δ = 100k , we show that no (ε, δ)-DP algorithm can solve the problem with
+success probability more than 0.99.
+
+3.2.1. R AMSEY T HEORY
+We need a well-known result from Ramsey theory. Consider the complete k-uniform hypergraph
+over vertex set V (that is to say, for every subset of size k, there isa hyperedge connecting them).
+For any integer c ≥ 1, a c-coloring of the graph is a mapping f : Vk → [c] which assigns a color to
+each hyperedge. Given a mapping f , a subset S ⊆ V of vertices is called a monochromatic clique
+
+                                                    11
+                               C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+if all hyperedges inside S are colored using the same color. Then, the hypergraph Ramsey theorem
+says the following.
+
+Lemma 16 Fix any finite k, c, n ≥ 1. Then, there is a sufficiently large N such that, for every
+c-coloring to a complete k-uniform hypergraph with at least N vertices, a monochromatic clique of
+size at least n exists.
+
+3.2.2. T HE K EY L EMMA
+We need the following technical lemma for the reduction to go through.
+
+Lemma 17 Let A be an algorithm for the online threshold problem that operates on k data points.
+Then, for any η > 0, there exists a subset 0 < x1 < · · · < xT of T points satisfying the following.
+For any fixed data set S ⊆ {x1 , . . . , xT }, |S| = k and the sequence of queries x1 , . . . , xT , there
+exists a sequence of real numbers r1 ≤ r2 ≤ · · · ≤ rT , for which the following holds.
+
+• For every i ∈ [T ], ri − Pr[A(S) outputs ⊤ for the i-th query | A(S) did not halt before] ≤ η.
+• ri depends only on the set S ∩ [0, xi ]. Namely, it is oblivious to data points larger than xi .
+
+Proof Let N be a large enough integer to be specified later. We construct xi , pi in the increasing
+                                                                           i
+order of i. To start, consider the discrete ensemble of points P = {pi = N +1 }1≤i≤N ⊆ [0, 1].
+   We set x1 := p1 . Then, consider the k-uniform complete hypergraph with vertex set V =
+P \ {p1 }. Let S ⊆ V be a hyperedge over k vertices. We color the edge with the color
+                                                                   
+                          1                                               1
+                            · Pr[A(S) outputs ⊤ for the first query] ∈ [0, ].
+                          η                                               η
+
+As the number of colors is finite, for any desired N (1) > 1, there exists N such that there exists a
+N (1) -monochromatic clique. Denote by P (1) ⊆ P \ {p1 } the subset.
+    Next, we consider a (k − 1)-uniform complete hypergraph with vertex set P (1) . Let S ⊆ P (1)
+be a hyperedge over (k − 1) vertices. Color the edge with the color
+                                                                          
+                        1
+                          · Pr[A(S ∪ {x1 }) outputs ⊤ for the first query] .
+                        η
+
+Again, for any desired N (2) , there exists N (1) so that the existence of an N (2) -monochromatic
+clique is guaranteed. Denote by P (2) ⊆ P (1) the subset.
+    Now, note that if we choose x1 to be p1 and choose x2 , . . . , xT from P (2) , then the two condi-
+tions in the theorem statement are satisfied for i = 1. We proceed to choose x2 , . . . , xT from P (2)
+so that the theorem is also satisfied for i ≥ 2. We simply choose x2 as the smallest element in P (2) .
+Then, we apply Ramsey’s theory four times, as follows:
+
+  • First, We identify a subset P (3) of P (2) such that
+
+                            Pr[A(S ∪ {x1 , x2 }) outputs ⊤ for the 2nd query ]
+
+    is almost the same (i.e., up to an error of η) for every S ⊆ P (2) .
+
+                                                   12
+          L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+  • Continuing, we apply Ramsey’s theory three more times to identify P (6) ⊆ P (5) ⊆ P (4) ⊆
+    P (3) such that, for every data set S ⊆ P (6) ∪ {x1 , x2 }, the quantity
+                                  Pr[A(S) outputs ⊤ for the 2nd query ]
+    only depends on S ∩ {x1 , x2 } up to an error of η.
+    In total, we need to apply Ramsey’s theory four times because the intersection S ∩ {x1 , x2 } for
+    a data set S ⊆ P (6) ∪ {x1 , x2 } has four possibilities.
+    After this step, we have identified x1 , x2 and a set P (6) such that the theorem statements are
+satisfied for i = 1, 2 as long as we choose x3 , . . . , xT from P (6) . By setting N to be large enough,
+we can make P (6) arbitrarily large. We apply the same idea in the following stages. Namely, at
+each stage i ∈ [T ], we choose xi as the smallest element in the current set of “active points” P (ti ) .
+Then, we apply Ramsey’s theory enough times to identify P (ti+1 ) such that the theorem is satisfied
+for the i-th query as long as we choose xi+1 . . . , xT from P (ti+1 ) . Once we have chosen xT , the
+construction is complete.
+                                                                          i
+    If we start with a sufficiently large N and point set P = { N +1        }i∈[N ] , we can guarantee the
+success of each application of Ramsey’s theory. This completes the proof.
+
+
+3.2.3. T HE R EDUCTION
+We are ready to finish the reduction.
+
+Theorem 18 Let A be an (ε, δ)-DP algorithm for the online threshold algorithm that operates on
+k data points and has failure probability at most β. For every η > 0, let {x1 , . . . , xT } ⊆ [0, 1] be
+as given in Theorem 17 with parameter η. Then, there exists an algorithm B for the online Counter
+Problem that is (ε, δ + T η)-DP and has failure probability T η + β.
+
+    Note that the lower bound for the threshold query problem (i.e., Theorem 9) follows by com-
+bining Theorem 18 and Theorem 7.
+Proof We describe the algorithm B.
+    • B maintains a subset S ⊆ {x1 , . . . , xT }, which we think of as the “input” to A.
+    • For each i ∈ [T ], B receives the i-th update ∆i . If ∆i = 1, B inserts xi to S. Otherwise, B
+      does not update S in this round. Then, B invokes A with the partial data set S and query xi .
+      By Theorem 17, knowing only S ⊆ {x1 , . . . , xi }, there is ri ∈ [0, 1] that captures the halting
+      probability of A up to an error of η. B simply returns ⊤ with probability ri . This finishes the
+      description of the algorithm B.
+For the correctness, note that for any update sequence ∆ = (∆1 , . . . , ∆T ) of Hamming weight at
+most k, it induces a data set S = {xi : ∆i = 1}. Furthermore, the output distribution of B on ∆,
+and the output of A on S (and queries x1 , . . . , xT ) differ by at most η · T in statistical distance.
+Furthermore, the correctness criteria of the two problems are equivalent. Hence, if A has failure
+probability β, we know that B has failure probability at most η · T + β.
+    For the privacy claim, simply note that two adjacent update sequences ∆, ∆′ induce two adjacent
+data sets S, S ′ . Thus, the privacy of B follows from the privacy of A and the similarity of output
+distributions between A and B.
+
+
+                                                   13
+                              C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+References
+Mark Bun, Kobbi Nissim, Uri Stemmer, and Salil P. Vadhan. Differentially private release and
+ learning of threshold functions. In FOCS, 2015.
+
+Mark Bun, Kobbi Nissim, and Uri Stemmer. Simultaneous private learning of multiple concepts. In
+ ITCS, 2016.
+
+Mark Bun, Thomas Steinke, and Jonathan R. Ullman. Make up your mind: The price of online
+ queries in differential privacy. In SODA, 2017.
+
+T.-H. Hubert Chan, Elaine Shi, and Dawn Song. Private and continual release of statistics. In
+   ICALP, 2010.
+
+Edith Cohen and Xin Lyu. The target-charging technique for privacy analysis across interactive
+  computations. In Thirty-seventh Conference on Neural Information Processing Systems, 2023.
+  URL https://openreview.net/forum?id=7yjsYrajlt.
+
+Edith Cohen, Ofir Geri, Tamas Sarlos, and Uri Stemmer. Differentially private weighted sampling.
+  In AISTATS, 2021.
+
+Edith Cohen, Xin Lyu, Jelani Nelson, Tamás Sarlós, and Uri Stemmer. Õptimal differentially private
+  learning of thresholds and quasi-concave optimization. In STOC, 2023.
+
+Daniil Dmitriev, Kristóf Szabó, and Amartya Sanyal. On the growth of mistakes in differentially
+  private online learning: A lower bound perspective, 2024.
+
+Cynthia Dwork, Frank McSherry, Kobbi Nissim, and Adam Smith. Calibrating noise to sensitivity
+  in private data analysis. In TCC, 2006.
+
+Cynthia Dwork, Moni Naor, Omer Reingold, Guy N. Rothblum, and Salil P. Vadhan. On the com-
+  plexity of differentially private data release: efficient algorithms and hardness results. In STOC,
+  2009.
+
+Cynthia Dwork, Moni Naor, Toniann Pitassi, and Guy N. Rothblum. Differential privacy under
+  continual observation. In STOC, 2010a.
+
+Cynthia Dwork, Guy N. Rothblum, and Salil P. Vadhan. Boosting and differential privacy. In FOCS,
+  2010b.
+
+Cynthia Dwork, Moni Naor, Omer Reingold, and Guy N. Rothblum. Pure differential privacy for
+  rectangle queries via private partitions. In ASIACRYPT, 2015.
+
+Noah Golowich and Roi Livni. Littlestone classes are privately online learnable. In NeurIPS, 2021.
+
+Monika Henzinger, Jalaj Upadhyay, and Sarvagya Upadhyay. Almost tight error bounds on differ-
+ entially private continual counting. In SODA, 2023.
+
+Haim Kaplan, Katrina Ligett, Yishay Mansour, Moni Naor, and Uri Stemmer. Privately learning
+  thresholds: Closing the exponential gap. In COLT, 2020.
+
+                                                 14
+        L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+Haim Kaplan, Yishay Mansour, Shay Moran, Kobbi Nissim, and Uri Stemmer. Black-box differen-
+  tial privacy for interactive ml. In NeurIPS, 2023.
+
+Michael J. Kearns, Mallesh M. Pai, Ryan M. Rogers, Aaron Roth, and Jonathan R. Ullman. Robust
+ mediators in large games. CoRR, abs/1512.02698, 2015.
+
+Amartya Sanyal and Giorgia Ramponi. Do you pay for privacy in online learning? In Conference
+ on Learning Theory, pages 5633–5637. PMLR, 2022.
+
+
+
+
+                                             15
+                                   C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+Appendix A. Lower Bound for Private Online Learning
+In this section we prove Theorem 11. Recall that this theorem states that every private online
+learner for the class of all point functions over a somain X must make Ω(log T ) mistakes with
+constant probability. We first give a proof sketch for a simplified lower bound that holds only for
+proper learners, i.e., for learners that on every time step i choose a hypothesis hi that is itself a point
+function. For simplicity, in this intuitive explanation we will assume that |X | ≫ T , say |X | = T 2 .
+Suppose towards contradiction that there exists a private online proper learner A for the class of
+all point functions with error k ≪ log T . We now use A in order to construct an algorithm M
+that solves the threshold monitor problem (Problem 6), which will contradict Theorem 7. At the
+beginning of the execution, algorithm M chooses a random point x∗ ∈ X \ 0. Then, on every time
+step i we do the following:
+
+   1. Algorithm M obtains an input bit bi ∈ {0, 1}.
+
+   2. If bi = 0 then set xi = 0. Otherwise set xi = x∗ .
+
+   3. Feed the input xi to algorithm A, obtain a hypothesis hi , and then feed it the “true” label bi .
+
+   4. If hi (x∗ ) = 0 then output ⊥ and continue to the next step. Otherwise output ⊤ and halt.
+
+    Now, whenever A makes at most k mistakes, then algorithm M halts before the (k + 1)th time
+in which the input bit is 1. On the other hand, observe that before the first time that we get a positive
+input bit, then algorithm A gets no information on x∗ , and hence the probability that hi (x∗ ) = 1 is
+very small (at most 1/|X |). This is because when A is a proper learner, then hi can label at most 1
+point from X as 1, and x∗ is chosen at random. Hence, when |X | is large enough, we get that w.h.p.
+algorithm M never halts before the first time that we get a positive input bit. This contradicts our
+impossibility result for the threshold monitor problem.5
+    We now proceed with the formal proof, which is more complex in order to capture also the
+improper case. Intuitively, the extra difficulty is that in the improper case the algorithm might
+choose hypotheses that label the point x∗ as 1 even before seeing any instance of this point.
+Proof of Theorem 11 Suppose for the sake of contradiction that such a learner exists and denote
+it by A.       √
+    Denote k = T , and consider the following distribution over query sequences.
+
+    • For the i-th query when i ∈ [1, k], send (xi , 0) where xi ∼ Uniform[1, k] (where Uniform[a, b]
+      is the uniform distribution on {a, . . . , b}).
+
+    • For the ith query when i ∈ {k + 1, . . . , 2k}, send (xi , 0) where xi ∼ Uniform[k + 1, 2k].
+
+    • In general for j ∈ [k], for the ith query where i ∈ {(j − 1)k + 1, . . . , jk}, send (xi , 0) where
+      xi ∼ Uniform[(j − 1)k, jk]
+
+ 5. Technically, in the definition of the threshold monitor problem we required the algorithm to output ⊥ whenever the
+    number of ones in the stream is at most k/2, while here we allowed the algorithm to output ⊤ immediately after
+    the first time that the stream contains a positive input. This is a minor issue which we ignore for the sake of this
+    simplified explanation.
+
+
+                                                          16
+          L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+We use k phases of k queries each. For each phase j ∈ [k] there is an allocated disjoint set of k
+points Xj := {(j − 1)k + 1, . . . , jk}. The query points at each step of phase j is selected uniformly
+at random from Xj .
+                                                                 (j)
+     Under this query distribution, for every i, j we denote pi := Pr[hi (j) = 1], where hi is
+the hypothesis released at the i-th step by A. Note that the events 1{hi (j) = 1} depend on the
+randomness of the query sequence and the algorithm and are not necessarily independent.
+     Note that the query distribution we defined always chooses the label 0. This might seem strange
+at first glance. What we show, however, is that a private online learner cannot keep releasing the all-
+zero hypothesis (whereas a non-private learner would naturally do this with this query distribution).
+That is, a private learner must sometimes “gamble” and output a hypothesis that is not all zero. But
+these “gambles” (as we show) will inflate the mistake bound of the non-private learner and yield the
+desired lower bound. Formally, the analysis proceeds by inspecting the following two cases:
+Case 1. For every phase j ∈ [k] and every k ′ ∈ [(j − 1)k + 1, jk], we have
+                                            jk
+                                                      (k′ )
+                                            X
+                                                     pi       ≥ 0.001,
+                                        i=(j−1)k+1
+
+that is, the average probability, over steps i in the phase, that the released hypothesis is 1 on k ′ is at
+least 0.001/k.
+    We can now express the expected number of mistakes by the algorithm:
+                                k        jk
+                                X        X       1 X (k′ )  √
+                                                     pi ≥ Ω( T ).
+                                                 k ′
+                                j=1 i=(j−1)k+1     k ∈Xj
+
+Case 2. There exists a phase j ∈ [k] and point k ′ ∈ Xj such that
+                                            jk
+                                                      (k′ )
+                                            X
+                                                     pi       ≤ 0.001.                                 (2)
+                                        i=(j−1)k+1
+
+    In this case, we first derandomize the query distribution.
+    Consider the query sequence and the event that it does not include examples of the form (k ′ , 0),
+that is, for all steps i in phase j, xi ̸= k ′ . This event has probability (1 − k1 )k ≥ 1/4. Therefore,
+from (2) it must hold that when conditioning on the event that k ′ is not present we have
+                              jk
+                              X
+                                        Pr[hi (k ′ ) = 1] ≤ 0.001/0.25 ≤ 0.01.                         (3)
+                           i=(j−1)k+1
+
+This implies that with probability at least 0.99 over sequences conditioned on the event, it holds that
+hi (k ′ ) = 0 for all of the steps i ∈ [(j − 1)k + 1, jk].
+     Therefore we can fix a sequence for which k ′ is not present and with probability 0.99, hi (k ′ ) = 0
+on all steps.
+     We now apply the construction of Algorithm 1 to insert Ω(log(k)) = Ω(log(T )) queries of the
+form (k ′ , 1) into the sequence, such that the probability that hi (k ′ ) = 0 throughout is still Ω(1).
+This in particular means that the algorithm makes Ω(log(T )) mistakes on the new query sequence,
+as desired.
+
+
+                                                     17
+                               C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+  Algorithm 2: JDP-Mirror
+Input: Privacy parameters ε ∈ (0, 2], δ ∈ (0, 0.1), Delay parameter K ≥ 1
+// Initialization
+ε′ ← O(ε2 / log(1/δ)); δ ′ ← O(δ)                                      // As in Lemma 24
+C←K
+for t = 1, . . . do                                                         // Main Loop
+    Receive an input bit ∆t ∈ {0, 1}
+    if ∆t = 1 then                                                    // Process input 1
+        C ←C +1
+        r ← Bern(πε′ ,δ′ (max{0, C − K}))           // Where (π(i))i are as in Claim 22
+        if r = 1 then
+             Output yt ≡ ⊤
+        else
+             Output yt ≡ ⊥
+        end
+    else
+        Output yt ≡ ⊥                                                 // Input is ∆t = 0
+    end
+end
+
+
+Appendix B. JDP Algorithm for the Mirror Problem
+In this section we present a construction for (a variant of) the threshold monitor problem that satisfies
+a weaker variant of differential privacy known as joint differential privacy (JDP) and has an error
+that is independent of T . We will use this construction in Section C as a building block of an online
+prediction algorithm for point functions. We first recall the definition of JDP.
+
+Definition 19 ((ε, δ)-indistinguishable) For two random variables X1 , X2 we write X1 ≈ε,δ X2
+if for b ∈ {0, 1}
+                                              Pr[X b ∈ S] − δ
+                                                             
+                                  max ln                        ≤ ε.
+                               S⊆supp(X b )    Pr[X 1−b ∈ S]
+We will interchangeably use notation for random variables and distributions.
+
+Definition 20 (Joint Differential Privacy Kearns et al. (2015)) Let M : X n → Y n be a random-
+ized algorithm that takes a dataset S ∈ X n and outputs a vector y ∈ Y n . Algorithm M satisfies
+(ε, δ)-joint differential privacy (JDP) if for every i ∈ [n] and every two datasets S, S ′ ∈ X n
+differing only on their ith point it holds that M(S)−i ≈ε,δ M(S ′ )−i . Here M(S)−i denotes
+the (random) vector of length n − 1 obtained by running (y1 , . . . , yn ) ← M(S) and returning
+(y1 , . . . , yi−1 , yi+1 , . . . , yn ).
+
+Problem 21 (The Mirror Problem) For a sequence of input bits (∆t )t∈[T ] where ∆t ∈ {0, 1}, the
+goal is to mirror the input, returning yt = ⊥ for ∆t = 0 and returning yt = ⊤ for ∆t = 1. The
+constraints are that for a specified delay parameter K ≥ 1:
+
+    • For ∆t = 0 we must return yt = ⊥.
+
+                                                   18
+         L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+                                       Pt−1
+    • We may return yt = ⊤ only if       i=1 ∆t ≥ K, that is, there were at least K prior steps with
+      input ∆t = 1.
+The goal is to minimize the number of mistakes. A mistake occurs at time t if ∆t = 1 and
+P t
+  i=1 ∆t > K, and yt = ⊥.
+
+    For privacy parameters (ε, δ) and delay parameter K ≥ 1 we construct an (ε, δ)-JDP algorithm
+for the Mirror problem. The construction is described in Algorithm 2. The algorithm uses the
+probabilities specified in the following claim:
+Claim 22 For ε > 0 , δ ∈ (0, 0.1) there are probabilities πε,δ (i) (i ≥ 0) and L ≤ ⌈ 1ε ln((eε −
+1)/(2δ))⌉ as follows:
+    • πε,δ (0) = 0, πε,δ (1) = δ, πε,δ (2L) = 1 − δ
+
+    • For i > 2L, πε,δ (i) = 1
+
+    • For 1 ≤ i < 2L, Bern[πε,δ (i)] ≈ε Bern[πε,δ (i + 1)].
+Proof Let
+                                                       j−1
+                                                       X
+                                   L = arg min j , δ         eiε > 1/2 .
+                                                       i=0
+                                  PL−1 iε′
+Let ε′ ≤ ε be the solution of δ    i=0 e   = 1/2. Define
+                                                                           ′
+                                     For 1 ≤ ı ≤ L: π(i) = δe(i+1)ε
+                                                                               ′
+                              For L + 1 ≤ ı ≤ 2L: π(i) = δe(2L−i)ε .
+
+
+
+
+Lemma 23 (Utility of JDP-Mirror) Algorithm 2 correctly solves the Mirror problem for delay
+parameter K while incurring at most 2L = O(ε−2 log2 (1/δ)) mistakes.
+
+Proof On time steps where ∆t = 0 the algorithm always returns yt = ⊥, so there are no mistakes.
+On the first K time steps with ∆t = 1 we have C ≤ K and thus r = 0 and hence yt = ⊥, which
+is as specified. At time steps where C > K + 2L and ∆t = 1 we have r = 1 and the algorithm
+always reports yt = ⊤ so there are no mistakes. Mistakes are possible only when ∆t = 1 and only
+when K + 1 ≤ C ≤ K + 2L so there are at most 2L = O((1/ε′ ) log(1/δ ′ )) mistakes.
+
+
+Lemma 24 (JDP of JDP-Mirror) Algorithm 2 is (ε, δ)-JDP.
+
+Proof Fix i∗ ∈ [T ] and fix two neighboring input sequences ∆, ∆′ ∈ {0, 1}T that differ in position
+i∗ . Observe that coordinates t s.t. ∆t = 0 (and hence when t ̸= i∗ , ∆′t = 0) have no effect on either
+of the executions. Hence, we may ignore these coordinates. Therefore, without loss of generality,
+we may assume that ∆ ≡ 1, and that ∆′ is the vector of all 1 except for the i∗ th coordinate for
+which ∆′i∗ = 0.
+
+                                                  19
+                                C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+     Consider now for each t ∈ [T ]\{i∗ } the random variables Yt that is the output at time t when the
+input is ∆ and the random variable Yt′ that is the output at time t when the input is ∆′ . Note that for
+a fixed input, the random variables of different time steps are independent. Denote Pt = Pr[Yt = ⊤]
+and Pt′ = Pr[Yt′ = ⊤]. We will show that there can be at most 2L time steps t ∈ [T ] where Pt ̸= Pt′
+and that out of these steps, there can be at most two where |Pt − Pt′ | ≤ δ ′ (and thus Yt ≈0,δ′ Yt′ ) and
+at most 2L − 2 where Yt ≈ε′ Yt′ . If we apply advanced composition over time steps t ∈ [T ] \ {i∗ }
+we obtain that Y −i∗ ≈ε,δ Y −i∗ where
+                   1                                              √
+               ε = (2L − 2)(ε′ )2 + ε′ 2(2L − 2) log(1/δ ′′ ) = O( ε′ log(1/δ ′′ ))
+                                      p
+                   2
+               δ = 2δ ′ + δ ′′ .
+
+Therefore if we wish for final privacy parameters ε, δ we need to choose ε′ = O((ε)2 log−2 (1/δ))
+and δ ′ = O(δ).
+     We can tighten the privacy analysis using the Target Charging Technique (Cohen and Lyu,
+2023). We note that the 2T − 2 steps that can differ between the dataset have ⊤ probabilities
+πε′ ,δ′ (j) for j ∈ P
+                    [2L]. With TCT privacy analysis we only count target hits. The expected number
+of target hits is j∈[2L] min{πε′ ,δ′ (j), 1 − πε′ ,δ′ (j)} = O(1/ε′ ). We obtain a composition over
+O(max{1/ε′ , log(1/δ)}) steps (the log(1/δ) is the overhead of TCT). Applying advanced compo-
+sition and solving for ε′ we obtain: ε′ = O((ε)2 log−1 (1/δ)) and δ ′ = O(δ).
+     It Premains to establishP
+                             that the claimed property holds. We do so via case analysis. Denote by
+Ct = i=1 ∆i and Ct = ti=1 ∆′i the value of the counter C in Algorithm 2 at step t for inputs ∆
+           t             ′
+
+and ∆′ respectively. Observe that we always have Ct − 1 ≤ Ct′ ≤ Ct .
+Case i∗ ≤ K + 1
+    • For t ≤ K, Ct′ ≤ Ct ≤ K and hence Pt = Pt′ = π(ε′ ,δ′ ) (0) = 0.
+
+    • For t = K + 1 (relevant when i∗ < K + 1), Ct = K + 1 and hence Pt = π(ε′ ,δ′ ) (Ct − K) =
+      π(ε′ ,δ′ ) (1) = δ ′ and Ct′ = K and hence Pt′ = π(ε′ ,δ′ ) (0) = 0.
+
+    • For K + 1 < t ≤ K + 2L, K + 2L ≥ Ct = Ct′ + 1 ≥ K + 2 That is 2 ≤ Ct − K ≤ 2L and
+      1 ≤ Ct′ − K ≤ 2L − 1 and hence by Claim 22, Yt ≈ε′ Yt′ .
+
+    • For t = K + 2L + 1, we have Ct = K + 2L + 1 and Ct′ = K + 2L and hence Pt = 1 and
+      Pt′ = 1 − δ ′ .
+
+    • For t ≥ K + 2L + 1, Pt = Pt′ = 1.
+Case K + 1 < i∗ ≤ K + 2L + 1
+    • For t < i∗ , Pt = Pt′ .
+
+    • For i∗ < t ≤ K + 2L, we have K + 2 ≤ Ct = Ct′ + 1 ≤ K + 2L and 2 ≤ Ct − K ≤ K + 2L
+      and hence by Claim 22, Yt ≈ε′ Yt′ .
+
+    • For t = K + 2L + 1 (relevant when i∗ < K + 2L + 1), we have Ct = K + 2L + 1 and hence
+      Pt = 1 and Ct′ = K + 2L and hence Pt′ = 1 − δ ′ .
+
+    • If t > K + 2L + 1, then Ct′ − K > 2L and Ct − K > 2L + 1 and therefore Pt = Pt′ = 1.
+
+                                                   20
+         L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+Case i∗ > K + 2L + 1 In this case for all t ≤ K + 2L + 1, Ct = Ct′ and hence Pt = Pt′ and for
+all t > K + 2L + 1, Ct − K > 2L + 1 and Ct′ − K > 2L and hence Pt = Pt′ = 1.
+     Summarizing all this, in each of the cases we have a composition of at most 2L − 2 ε′ -
+indistinguishable random variables and at most two (0, δ ′ )-indistinguishable random variables.
+
+
+
+Appendix C. Private Online Prediction for Point Functions
+In this section we present a construction for a private online predictor for point functions, obtaining
+mistake bound that is independent of the time horizon T . This separates private online learning
+from private online prediction. Specifically, we leverage Algorithm 2 to construct an efficient on-
+line learner for point functions in the private prediction model. The construction is described in
+Algorithm 3.
+
+Lemma 25 [Restatement of Lemma 12] Let X be a domain. The class of point functions over X
+admits an (ε, δ)-DP online predictor with mistake bound O( ε12 log2 1δ ).
+
+Proof sketch The proof is via the construction given in Algorithm 3, which we denote here as
+algorithm A. The utility analysis of this algorithm is straightforward. We only need to consider
+the case where the input is consistent with some point function, say with point x∗ . In this case, we
+argue that the output is identical to that of JDP-Mirror with delay K on inputs 1(xi = x∗ ), with
+⊤ replaced by 1 and ⊥ replaced by 0. Once ≈ 1ε log 1δ positive labels have been obtained, we run
+the private histogram algorithm in order to identify the point x∗ . Since the delay K is much larger
+than k we have Flag = 1. (Note that if JDP-Mirror would have returned a ⊤ before that point, we
+know that the input is not consistent with a point function.) After JDP-Mirror returns the first ⊤
+we get that Fake = Lap( 1ε ) and the algorithm transitions to Flag = 2. The output of the algorithm
+then follows JDP-Mirror and the number of mistakes that is at most K + O(ε−2 log2 (1/δ)) =
+O(ε−2 log2 (1/δ)).
+    For the privacy analysis, fix two neighboring input streams that differ on the ith labeled example:
+
+                           S0 = ((x1 , y, 1), . . . , (x0i , yi0 ), . . . , (xT , yT ))
+                           S1 = ((x1 , y, 1), . . . , (x1i , yi1 ), . . . , (xT , yT )).
+
+    Let b ∈ {0, 1} and consider the execution of A on Sb . We now claim that the outcome dis-
+tribution of A(Sb ), excluding the ith output, can be simulated from the outcomes of three private
+computations on b. Specifically, we consider a simulator Sim that interacts with a “helping algo-
+rithm”, Helper, who knows the value of the bit b and answers DP queries w.r.t. b as issued by Sim.
+The simulator Sim first asks Helper to execute the algorithm for histograms on the dataset contain-
+ing the first k positively labeled points in Sb to obtain x∗ . This satisfies (ε, δ)-DP. The simulator
+then asks Helper for the outcome vector of executing JDP-Mirror on the stream (I(xj , x∗ ))Tj=1 .
+The Helper responds with the vector b ∈ {⊥, ⊤, ∅}T (excluding the ith step). Next, similarly to
+Step 3(c)ii of the algorithm, let L̂ denote the indices of the first 10k occurrences of x∗ in Sb . The
+simulator asks Helper for the value of
+
+                               [ ← |{j ∈ L̂ : yj = 0}| + Lap( 1 ).
+                               Fake
+                                                              ε
+
+                                                       21
+                                C OHEN LYU N ELSON S ARL ÓS S TEMMER
+
+
+
+
+ Algorithm 3: Online Predictor for Point Functions
+   1. Instantiate JDP-Mirror (Algorithm 2) with privacy parameters ε, δ and with the delay
+      K = 20 · k, where k = Θ( 1ε log 1δ ).
+   2. Set Flag = 0 and Count = 0.
+   3. For time t = 1, 2, . . . , T do:
+
+        (a) Obtain an input point xt .
+       (b) If Flag = 0 then:
+               i. Output 0 and obtain the “true” label yt .
+              ii. Set Count ← Count + yt .
+             iii. If Count ≥ k then
+                   A. Run an (ε, δ)-DP algorithm for sparse histograms to identify a point x∗ ∈ X
+                      that appears Ω( 1ε log(1/δ)) times in the multiset {xj : j ∈ [t] and yj = 1}. If
+                      the algorithm failed to identify such a point then we set x∗ ← ⋆ for some
+                      special symbol ⋆ ∈  / X . See, e.g., Bun et al. (2016); Cohen et al. (2021).
+                   B. For j ∈ [t], feed JDP-Mirror the bit I (xj , x∗ ), where I(a, b) = 1 iff a = b.
+                   C. If all the answers given by JDP-Mirror in the previous step were ⊥ then set
+                      Flag = 1. Otherwise set Flag = 3.
+        (c) Else if Flag = 1 or Flag = 2 then:
+                i. Feed JDP-Mirror the bit I(xt , x∗ ) to obtain at ∈ {⊤, ⊥}.
+               ii. If Flag = 1 and at = ⊤ then
+                      • Let L ⊆ [t], where |L| ≤ 10k, be the set containing the positions of the first
+                        10k occurrences of x∗ till time t.
+                      • Let Fake ← |{j ∈ L : yj = 0}| + Lap( 1ε ).
+                      • If Fake ≥ 1ε log 1δ then set Flag = 3 and output 0.
+                      • Otherwise set Flag = 2 and output the bit I(at , ⊤).
+             iii. Else output the bit I(at , ⊤).
+              iv. Obtain the “true” label yt .
+       (d) Else if Flag = 3 then output 0.
+
+
+
+
+This satisfies (ε, 0)-DP by the properties of the Laplace mechanism.
+
+    We now claim that using these three random elements (x∗ , the outcome vector of JDP-Mirror,
+     [ we can simulate the outcome of A(Sb ) up to a statistical distance of at most δ. Specif-
+and Fake),
+           [ ≥ 1 log 1 then we output the all 0 vector, and otherwise we output the vector given
+ically, if Fake  ε      δ
+by JDP-Mirror (where ⊤ is replaced by 1 and ⊥ is replaced by 0). To see that this simulates the
+outcome of A(Sb ), let us consider the following two events:
+
+                                                   22
+         L OWER B OUNDS FOR D IFFERENTIAL P RIVACY U NDER C ONTINUAL O BSERVATION
+
+
+
+
+   1. The first ⊤ given by JDP-Mirror is such that the number of appearances of x∗ before it is
+      at least 10k. By the properties of JDP-Mirror, this event happens with probability at least
+      1 − δ.
+                              [ is at most 1 log 1 . This event also holds with probability at least
+   2. The noise magnitude in Fake             ε     δ
+      1 − δ by the properties of the Laplace distribution.
+
+    Now, whenever these two events hold, then the outcome of the simulator is identical to the
+outcome of A(Sb ). More specifically, if the algorithm sets Flag = 1 in Step 3(b)iiiC, then the
+outcome of the simulator is syntactically identical to the output of the algorithm. Otherwise (if we
+set Flag = 0 in Step 3(b)iiiC), then there must be at least 9k occurrences of (x∗ , 0) in Sb before the
+kth occurrence of (x∗ , 1). Hence, in this case we have that Fake
+                                                              [ ≥ 1 log 1 . So both the algorithm
+                                                                       ε     δ
+and the simulator output the all zero vector.
+    Overall, we showed that by posing 3 queries to Helper, each of which satisfies (ε, δ)-DP, our
+simulator can simulate the outcome of A(Sb ) up to a statistical distance of at most δ. This concludes
+the proof.
+
+
+
+
+                                                  23
+

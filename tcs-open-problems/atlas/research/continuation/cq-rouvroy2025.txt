@@ -1,0 +1,1430 @@
+    Enumerating answers of acyclic conjunctive queries
+                with self-joins (Report)
+
+                                  Clément Rouvroy
+                                      ENS Paris
+                            rouvroy@phare.normalesup.org
+
+                                      May 2, 2025
+
+
+                                        Abstract
+        This work studies the enumeration of answers to conjunctive queries. Re-
+     search on this topic typically focuses on conjunctive queries without self-joins.
+     We want to work towards a dichotomy that allows us to know if a conjunctive
+     query with self-joins can be enumerated with optimal time guarantees: lin-
+     ear time before the first answer and constant delay between answers. In this
+     work, we have found a sufficient and necessary conditions. However, we have
+     examples that we can not classify and can lead to new work on the subject.
+
+    DISCLAIMER: This report is yet to be polished. It is composed of the work
+I’ve made during summer 2024 at INRIA, supervised by Nofar Carmeli and David
+Carral, and during the first semester 2024-2025 at ENS supervised by Luc Segoufin.
+
+
+1    Introduction
+Querying data efficiently is one of the main topics of database theory. One of the
+most common ways of storing data is relational databases. For example, you can
+have a database that represents a hospital’s patients’ files, treatments, surgeries,
+and rooms. You can then query this database to get all the rooms of the patients
+who have surgery in the next 24 hours to be sure not to feed them.
+    Many query languages exist, and many are expressive but may be too hard to
+study. Hence, researchers often focus on a language called conjunctive queries which
+is powerful enough to express many queries and simple enough to be studied and to
+have some meaningful results.
+    Queries can have a number of results that is polynomial in the size of the input
+database, hence we need to define what is an efficient query evaluation algorithm. If
+we compute all results and then return all of them at once we cannot hope for a linear
+time algorithm, hence we prefer to print the answers one by one and to measure the
+delay between two prints. The best we can hope for is to begin with a linear time
+computation (required to read the input) and then enumerate the answers with a
+constant delay between them. This defines the complexity class CD ◦ Lin.
+    We have a dichotomy to decide whether a conjunctive query without self-join is
+in CD ◦ Lin [1]. From this dichotomy, we know that the two main difficulties in the
+
+
+                                            1
+Clément Rouvroy
+
+
+enumeration of a conjunctive query are cyclicity and projections. For conjunctive
+queries with self-joins, we know that this dichotomy does not extend if the query is
+cyclic [6]. That is, if a conjunctive query with self-joins is cyclic, it is not always
+hard. We have found that the dichotomy does not extend to acyclic queries with
+projections either. Hence, we want to make progress toward a dichotomy to decide
+whether acyclic conjunctive queries with self-join are in CD ◦ Lin.
+    In this work, we focus on conjunctive queries with self-joins that only have
+atoms of arity at most 2. This choice allows us to have a clear definition of the
+structure whose presence might make the query hard, called a free-tree. We would
+like to remove those structures and replace each of them with only one atom without
+projections (of arity possibly more than 2), and we define patching as a way of doing
+so. Using this idea of patching we find a sufficient condition. We have found two
+necessary conditions, however, we also build queries that are not captured by any
+of our conditions (neither sufficient nor necessary).
+
+
+2     Preliminaries
+ A relational schema is a set of relation names with an arity for each of them. In this
+ work, we will always assume implicitly the existence of a relational schema σ. A
+ database D is a finite relational structure consisting of σ, a finite domain Dom(D),
+ and for each relational symbol R of σ of arity r, a subset RD of Dom(D)r . If ⃗y ∈ RD ,
+ then R(⃗y ) is called a fact of D. If ⃗y is a vector of variables and R is a relation name
+ of arity |⃗y |, then R(⃗y ) is called an atom.
+      A conjunctive query (CQ) is an expression of the form q(⃗x) ← ∃⃗z.ψ(⃗x, ⃗z) where
+ ψ is called the body of the query and is a conjunction of atoms using variables in
+⃗x, ⃗z, i.e. ψ(⃗x, ⃗z) = ki=1 Ri (⃗     yi ). If q(⃗x) has for body ψ, we often write Ri (⃗
+                             V
+                                                                                                  yi ) ∈ q
+ which means that Ri (⃗         yi ) is in the conjunction that defines ψ. The variables in ⃗x
+ (resp. ⃗z) are free (resp. quantified). In a CQ, all free variables should appear in at
+ least one atom. We use Vars(q) to denote ⃗x, ⃗z and Free(q) to denote ⃗x. Often we
+ see these vectors as a set and write x ∈ ⃗x which means ∃i.⃗xi = x. A query q is said
+ to be full (resp. boolean) if ⃗z = ∅ (resp. ⃗x = ∅). From now on, we will always use
+ x1 , x2 , x3 , . . . for free variables and z1 , z2 , z3 , . . . for quantified variables.
+      An assignment for a query q over a database D is a function µ : Vars(q) →
+ dom(D) s.t. for every R(⃗y ) ∈ q, R(µ(⃗y )) is a fact of D. A solution to a CQ q
+ is a µ : Free(q) → D such that there exists an assignment µ′ for q over D s.t.
+ µ′|Free(q) = µ. The evaluation of a CQ q over a database D, denoted q(D) consists
+ of returning all solutions of q over D. The enumeration of a CQ q over D consists
+ of printing all solutions in q(D) one by one without repetition.
+      A homomorphism from q(⃗x) to q ′ (x⃗′ ) is a function h : Vars(q) → Vars(q ′ ) such
+ that for all atoms R(⃗         yi ) ∈ q, there exists an atom R(⃗        yi ′ ) ∈ q ′ with h(⃗
+                                                                                              yi ) = y⃗i ′ .
+ Let h : Vars(q) → Vars(q), if h is a homomorphism from q to q, then it is an
+ endomorphism.
+      Queries have an associated hypergraph. This hypergraph has the variables for
+ vertices and for each atom R(⃗x) there is a hyperedge of set {y ∈ Vars(q) | y ∈ ⃗x}.
+ We color hyperedges with one color for each atom. Hyperedges of similar colors
+ mean that they are using the same relation symbol.
+
+
+
+                                                     2
+Clément Rouvroy
+
+
+                                         x1             x2
+
+                                         z1             z2
+
+
+         Figure 1: q(x1 , x2 ) ← ∃z1 , z2 .R(x1 , z1 ), R(z1 , z2 ), T (x1 , x2 , z1 , z2 )
+
+
+
+     See Fig. 1 for an example of a hypergraph associated to a query. Note that in
+this representation we lose the order in the atom. We only use this representation
+when we are speaking of cyclicity. When we want to draw queries to find solutions
+to them, we do not use this representation but an oriented hypergraph, just as in
+Fig. 4. A CQ is acyclic if its associated hypergraph is α-acyclic, otherwise it is
+cyclic. A CQ q is free-connex if its hypergraph is α-acyclic when we add to it a
+hyperedge that contains all free variables.
+     A path in a hypergraph is a finite sequence of vertices u1 , . . . , uk such that for
+each 1 ≤ i ≤ k − 1, ui and ui+1 are neighbors. Two vertices (u, v) are neighbours if
+there exists a hyperedge h such that {u; v} ⊆ h. A free-path in a CQ q is a chordless
+path in the hypergraph of the query that only uses quantified variables except for
+the endpoints that are free, i.e. (x1 , z1 , . . . , zn , x2 ) with n ≥ 1. A CQ has a self-join
+if it has two atoms that use the same relational symbol.
+     We are using the RAM model for all computations and complexity results. When
+we study problems on a query we can either look at their complexities regarding q
+and D (combined complexity) or only D (data complexity): all this work is placed in
+data complexity. We have q ∈ Enum(f, g) if there is an algorithm that enumerates
+all solutions of q with an O(g(|D|)) delay after an O(f (|D|)) time precomputation.
+Note that Enum is a complexity class that takes in consideration the number of
+solutions, but not just by asking a total running time of O(f (|input|)+g(|solution|)),
+it also implies that we start by using O(f (|input|)) time, and then we will print every
+O(g(|input|)). That is a better complexity class because in the case where g = o(f ),
+we can only do smaller computations between answers once we have started to
+enumerate. Hence, Enum is more suitable if we look at complexity because we can
+classify problems that may take time to have a first answer but then print the other
+with a smaller delay.
+     For example,
+           (        q ∈ Enum(Linear, Constant),
+                                           (                  also written q ∈ CD ◦ Lin, with
+            N→N                               N→N
+Linear :               and Constant :                          means that we are able for any
+            n 7→ n                            n 7→ 1
+database D, after an O(|D|) computation, to enumerates all the solutions of q(D)
+with an O(1) delay between each answer and without repeting of solutions.
+     A common linear pre-computation is the removal of dangling tuples (atoms that
+are not used in any solutions). This can be done in linear time on acyclic queries
+according to [2].
+
+Lemma 2.1 (Cheater’s lemma [6]). Let q be a CQ. There is an equivalence between:
+
+   • q is in CD ◦ Lin
+
+   • There is an algorithm that enumerates all solutions of q with constant delay,
+
+                                                  3
+Clément Rouvroy
+
+
+                        R1          R3                                R1            R3
+       q1         x1           z         x2          q2         x1             z         x2
+                          R2                                            R1
+
+                               x3                                              x3
+
+Figure 2: (R) An easy acyclic not free-connex CQ with self-join, and (L) its associ-
+ated join-free CQ
+
+
+      except a constant number of times where the delay is linear. This algorithm
+      can print with duplicates, but there is a constant c such that no solutions is
+      outputed more than c times.
+
+    We will often use three complexity hypotheses:
+
+    • sBMM: Given two boolean matrices A, B represented by the list of their non-
+      zero entries, one can not compute AB in O(m) with m being the number of 1
+      in the matrices A, B and AB.
+
+    • sHyperclique: For all k ≥ 3, it is not possible to determine the existence of
+      a k-hyperclique in a (k − 1)-uniform hypergraph with m hyperedges in time
+      O(m).
+
+    • VUTD: for any α ∈]0; 1], given a tripartie graph V1 , V2 , V3 such that |V1 | =
+      n,|V2 | = |V3 | = O(nα ), one can not detect if there is a triangle in V1 , V2 , V3 in
+      time O(n1+α ).
+
+Theorem 2.2 ([1], [4]). Assuming sBMM and sHyperclique we have that a CQ
+without self-join is in CD ◦ Lin if and only if it is acyclic free-connex.
+
+   This work will focus on a classification for the class CD ◦ Lin for acyclic query
+with self-joins. Hence, in this work, a query is easy, if it is in this class and hard
+otherwise.
+
+
+3     Proving easiness
+3.1    An easy non-free-connex CQ
+Query q2 of Fig. 2 is an example that shows that self-joins affect the known di-
+chotomy for conjunctive queries without self-joins. We can see that q1 is hard using
+Theorem 2.2 because it has no self-join and is acyclic but not free-connex. However,
+q2 has a self-join, so we can not come to the same conclusion. We have that:
+
+Lemma 3.1. q2 has a free-path, but it is in CD ◦ Lin.
+
+Proof. Consider the query q2′ (x1 , x2 , x3 ) ← R(x1 , x3 ), R(x3 , x2 ) that is the same as
+q2 but z has been replaced by x3 . One can verify easily that those claims hold:
+
+    • q2′ is in CD ◦ Lin, thanks to proposition 3 of [5].
+
+    • For any solutions (a1 , a2 , a3 ) ∈ q2′ (D), (a1 , a2 , a3 ) ∈ q2 (D).
+
+
+                                                4
+Clément Rouvroy
+
+
+
+                              z5     x3           z6
+
+                        x1    z1     z2    x2     x5    z7     x6
+
+                              z4     z3    x4
+
+Figure 3: Example of a query with two free-trees. Remember that xi are free and
+zi are quantified.
+
+   • For any (a1 , a2 ) solution of the free-path x1 , z, x2 in q2 , there exists a′ such
+     that (a1 , a′ , a2 ) is a solution to q2′ (D).
+
+    Combining all these claims, one can derive an algorithm that starts by doing
+the linear pre-computations to enumerate q2′ , then enumerate it with a constant
+delay. For each answer (a1 , a2 , a3 ) of q2′ (D), the algorithm keep in memory (a1 , a2 )
+and prints (a1 , a2 , a3 ) (hence it prints with constant delay). Once the algorithm has
+finished to enumerate q2′ (D), it enumerates all the (a1 , a2 ) that it kept in memory
+and for all R(a1 , a3 ) ∈ D, it prints (a1 , a2 , a3 ) ∈ q2 (D). The whole algorithm and
+proof can be found in appendix Lemma .1.
+
+
+     According to Lemma 3.1, q2 is an acyclic not free-connex CQ with self-join that
+is in CD ◦ Lin.
+
+3.2    What is hard in a query with self-join ?
+According to Theorem 2.2, an acylic conjunctive query without self-join can only
+be hard because it has a free-path. Lemma 3.1 demonstrates that free-path can be
+overcome for queries with self-joins. Hence, we need a new hard structure to study:
+we have found free-trees, that are motivated by Proposition 3.8.
+    Let q and q ′ be two CQs, q ′ is a subquery of q if all atoms of q ′ are in q. Let
+q be a subquery of q, q ′ is maximal for some property P if it is maximal for the
+ ′
+
+inclusion of atoms over all subquery of q that satisfies P .
+
+Definition 3.2 (Binary-atoms). A CQ is binary-atoms if every atom in it is of
+arity ≤ 2.
+
+Definition 3.3 (Free-tree). Let q be an acyclic CQ, a free-tree is a subquery of q
+obtained in such a way:
+
+   • Take S, a maximal set of connected quantified variables.
+
+   • If there are at least two free variables that are connected to S, then it is associ-
+     ated with a free-tree which is the maximal subquery of q that uses only variables
+     in S and free variables connected to S by an atom.
+
+    One can find two examples of free-trees on Fig. 3. The main intuition behind free-
+trees is that two free-trees T1 ̸= T2 of a CQ q do not share any quantified variables
+
+                                            5
+Clément Rouvroy
+
+
+compared to a free-path. Hence, if we have all the informations needed to enumerate
+the free-trees of a query q, it might be easier to concatenate all these informations
+into an algorithm. This intuition can be formalized into Proposition 3.8, that will
+need some definitions.
+Definition 3.4 (Query restricted to a subquery). Let q be a conjunctive query, and
+q ′ a subquery of q. q|q′ denotes the query q where every variables are quantified,
+except those free in q ′ .
+Lemma 3.5 (Extension of restricted solution). Let q be an acyclic conjunctive
+query, and q ′ be the restriction of q to T a free-tree. If dangling tuples have been
+removed of the database, then for each solution µ′ of q ′ , one can find in O(1) time
+a solution µ of q such that µ|Free(q′ ) = µ′ .
+
+Proof Sketch. Let dT : Vars(q) → N denotes the distance from a variable v to
+T in the hypergraph associated to q. One can proof by induction P (n): “If all
+variables with dT (v) < n has received a value in µ, then all variables with dT
+equals n can receive a value in O(1) by looking at the only neighbors they have
+in {v ∈ Vars(Q) | dT (v) < n}.”, where the unicity of the neighbor comes from the
+acylicity of q. This induction holds because dangling tuples are removed from the
+database, hence if we have a partial solution it can always be completed to a full
+solution of q.
+
+Corollary 3.6 (Enumeration of restricted solution). Let q be an acyclic conjunctive
+query, and q ′ be the restriction of q to T a free-tree. If dangling tuples have been
+removed of the database and one can enumerate q ′ in CD ◦ Lin, then it can be done
+before an algorithm that enumerates q in CD ◦ Lin without changing its complexity.
+Proof. One can enumerate q ′ in CD ◦ Lin and print a unique solution of q every time
+using Lemma 3.5. We conclude using Cheater’s Lemma 2.1.
+
+This corollary motivates the following definition, which will be useful when we will
+have one algorithm per free-tree :
+Definition 3.7 (CD ◦ Linq ). Let q, q ′ be two conjunctive queries. We say that
+q ′ ∈ CD ◦ Linq if there is an algorithm in CD ◦ Lin that enumerates all solutions
+of q ′ but sometimes enumerate some solutions of q (it resets the delay and also is
+without duplicates).
+Looking at Corollary 3.6, one could use algorithms to enumerate the free-trees solu-
+tions and store them before printing all solutions of the original query. This is the
+idea of the following proof.
+Proposition 3.8 (Tracting query from free-trees). Let q be a binary-atom, acyclic,
+conjunctive queries with self-joins that has free-trees T1 , . . . , Tk . If q|T1 , . . . , q|Tk are
+in CD ◦ Linq , then q is in CD ◦ Lin.
+Proof. Let T1 , . . . , Tk be the free-trees of q and let A1 , . . . , Ak be the algorithms that
+enumerates q|T1 , . . . , q|Tk in CD ◦ Linq .
+    One can execute A1 , . . . , Ak to build k fresh relation names RT1 , . . . , RTk of arity
+|Free(T1 )|, . . . , |Free(Tk )| and fill them with facts that are exactly the solutions of
+
+                                                 6
+Clément Rouvroy
+
+
+
+Algorithm 1 Enumerate(q, D)
+ 1: Removing dangling tuples of D
+ 2: RT1 , . . . , RTk ← Atoms for T1 , . . . , Tk using A1 , . . . , A1
+ 3: q ′ ← copy of q
+ 4: for 1 ≤ i ≤ k do
+ 5:     for R(⃗y ) ∈ Ti do
+ 6:           Remove R(⃗y ) from q ′
+ 7:     end for
+ 8:     Add RTi (Free(Ti )) to q ′
+ 9: end for
+10: Do precomputation for enumerating q ′
+11: Enumerate q ′
+
+
+
+
+T1 , . . . , Tk that can be extended to a solution of q. This can be done with respect
+to CD ◦ Lin because we apply k = O(1) times a CD ◦ Lin algorithm according to
+Corollary 3.6 (this algorithm will have at most 2k duplicates of solution of q). From
+the correctness of this construction, q has the same solutions as the query q ′ that is
+the same as q, but where we removed every atom of the free-trees to replace them
+with RT1 , . . . , RTk .
+     This CQ q ′ is acyclic: if it has a cycle v1 , . . . , vk that uses edges e1 , . . . , ek , at
+least one edge corresponds to an RTi (otherwise the cycle is in q), but we can replace
+this edge by many atoms that were initially in Ti . Using this process we build a
+cycle for q which is supposed to be acyclic, by contradiction q ′ is acyclic.
+     q ′ is also free-connex: no free-path can use an RTi as an edge because they are
+only on free variables, hence if it has a free-path, q has the same free-path, but then
+it is part of a free-tree and has been removed to be part of an RTi . Hence, q ′ is
+acyclic free-connex and so is in CD ◦ Lin according to Theorem 2.2. Then we can
+use Algorithm 1 to enumerate q.
+     Algorithm 1 is sound assuming that RTi has been built correctly,but Ai are
+supposed to be sound and complete. We need to prove that Algorithm 1 is complete.
+Suppose that the algorithm misses a solution µ of q, then it can only be because
+there is at least one i such that µ|Ti is not in RTi , but this is a solution of Ti that
+can be extended to a solution of q and, by hypothesis, Ai is complete, then it should
+be in RTi . Hence, the algorithm is complete.
+     For time complexity, there are three parts:
+    • On line 1, the algorithm takes O(|D|) time to remove the dangling tuples
+      according to [2].
+
+    • On line 2, the algorithm does k calls to algorithms that are constant delay.
+      Combining a constant number of constant delay algorithms is still a constant
+      delay algorithm, so this first step is a constant delay algorithm as k = O(q) =
+      O(1).
+
+    • The for loop of lines 3 to 8 iterates through k = O(1) free-trees and for each
+      i it iterates through each atom of Ti (O(1)) to do an O(1) time computation,
+
+                                                 7
+Clément Rouvroy
+
+
+      it finally does an O(1) time computation, hence we have O(|q|2 + |q|) = O(1)
+      time for this whole loop. The pre-computation to enumerate q is linear for
+      |D| and the number of solutions printed until there (because we have added
+      atoms to the database) according to [3]. The enumeration is with O(1) delay
+      according to [3]. Hence, the three last steps witness a constant delay algorithm
+      for q that will enumerate all solutions of q over D.
+
+   Finally, using cheater’s Lemma 2.1, we have a CD ◦ Lin algorithm for q.
+
+Corollary 3.9 (Enumeration with built relations). In the proposition Proposi-
+tion 3.8, one can replace having algorithms A1 , . . . , Ak by having direct access to
+R1 , . . . , Rk , built in the proof.
+
+    Note that this proposition may not extend to free-pathes, in section 4 we have
+an open-example where all free-pathes are easy to enumerate but we don’t know if
+q is easy. On example Fig. 2, q2 has one free-tree (x1 , z, x2 ) that is its only free-tree.
+The query q2′ defined in the proof of Lemma 3.1 allows to enumerate q|(x1 ,z,x2 ) and
+so q2 was easy. This proposition motivates the search for a way to enumerate the
+solutions of q|T , our solutions is presented in the next subsection.
+
+3.3    Preimages and patching
+Given a conjunctive query q, we need a set of queries to try to enumerate the
+differents qT , motivated by Proposition 3.8. In this section we present the set that
+we have found to be the most interesting, especially thanks to Lemma 3.11.
+
+Definition 3.10 (Preimage query). Consider some endomorphism h for a CQ q.
+Then, let Ph (q) be the CQ that has:
+
+   • An atom R(h(⃗x)) for every atom R(⃗x) in q
+
+   • Free variables {y ∈ Vars(h(q)) | ∃x ∈ Free(q).h(x) = y}.
+
+   If we enumerate solutions of a preimage of a CQ q, for each of them we can print
+a unique solution to q, which is useful to have a CD ◦ Lin algorithm as we will have
+no repetition in the solutions.
+
+Lemma 3.11 (Prehomomorphism lemma). Let q be a binary-atom acyclic CQ. Let
+h be an endomorphism of q, if µh is a solution to Ph (q), then µh ◦ h is a solution to
+q. Moreover, if µ1h ̸= µ2h , then µ1h ◦ h ̸= µ2h ◦ h.
+
+Proof. Let µh be a solution of Ph (q), it is associated to ηh an assignment of Ph (q)
+such that ηh |Free(Ph (q)) = µh . Let x be a free variable of q, by definition of a preimage
+we have h(x) ∈ Free(Ph (q)), so (ηh ◦ h)|Free(q) is a solution of q and it is a solution
+that only uses ηh over h(Free(q)) = Free(Ph (q)), hence µh ◦ h is a solution to q.
+    Moreover, let y ∈ Free(Ph (q)). As y is free in Ph (q), there exists x ∈ Free(q)
+such that h(x) = y, hence (µh ◦ h)(x) = µh (y), i.e. the value of y propagate to the
+solution of q. Then, for two different solutions of Ph (q), there is at least one y that
+has a different value in each solution, hence the solution associated is different.
+
+
+
+                                             8
+Clément Rouvroy
+
+
+   This lemma is useful because we are looking for CD ◦ Lin enumeration and
+thanks to this theorem, we can only loop on solution vectors of preimages. We will
+use preimage query to patch free-trees, however sometimes a preimage can contain
+too much information to patch a free-tree (as will be seen in Fig. 5, a bit after).
+Hence, we need a way to remove some non-essential information of a preimage query,
+as we only need the part corresponding to the free-tree:
+
+Definition 3.12 (Deactivated query). Let q be a CQ. A deactivated query q ′ of q
+is a query with the same body as q but with Free(q ′ ) ⊆ Free(q).
+
+   We need to be prudent with deactivated query because the motivation of preim-
+age query was Lemma 3.11. Fortunately, the following lemma can be composed with
+Lemma 3.11 to have the same benefits:
+
+Lemma 3.13 (Deativated preimage query). Let q be an acyclic CQ. Let h be an
+endomorphism of q, let p := Ph (q) and let p̃ be a deactivation of p. Then every
+solution µ̃ of p̃ can be extended in O(1) to a solution µ of p if dangling tuples have
+been removed. Moreover, if µ̃1 ̸= µ̃2 , then µ1 ̸= µ2 .
+
+Proof Sketch. Suppose that µ̃ corresponds to x1 , . . . , xk and that we have deactivate
+xk+1 , . . . , xp . For each i ∈ J1; p − kK, one can search for a j such that the distance in
+the join-tree between xj and xi is minimal, then one can do a DFS from the entry
+µ̃(xj ) of xj to one entry of xi in the join-tree. This gives a solution µ of p.
+     If µ˜1 ̸= µ˜2 , as extended solutions µ1 and µ2 verify µ˜1 = µ1 and µ˜2 = µ2 on
+Jx1 ; xk K ̸= ∅ , µ1 ̸= µ2 .
+
+Definition 3.14 (Patched free-tree). Let q be a binary-atom acyclic CQ. Let q1 , q2
+be two preimages of q and let T2 be a free-tree of q2 . T2 is patched by q1 if q1 has a
+subquery T1 such that:
+
+   1. There is a homomorphism h from q1 to q2 such that h|T1 is an isomorphism
+      from T1 to T2
+
+   2. Every free variables of T2 is the image of a free variable of T1 .
+
+   3. q1 is in CD ◦ Linq , or q1 has a deactivated query q1′ that does not change the
+      free variables of T1 that is in CD ◦ Linq .
+
+   We will often say that a deactivated preimage q1′ is patching q2 , which means that
+there exists a preimage q1 that uses q1′ to patch q2 . Motivated by Proposition 3.8,
+we will prove the following property:
+
+Proposition 3.15 (Patched by a preimage). Let q be an acyclic binary-atom CQ
+that has two preimages q1 and q2 . Let q˜1 a deactivation of q1 that is in CD ◦ Linq . If
+q2 has a free-tree T2 patched by q˜1 , then one can save q|T2 (D) before doing a CD◦Lin
+algorithm for q and still have a CD ◦ Lin algorithm for q.
+
+Proof. We can enumerate q̃1 to get all solutions of the subquery T1 of q̃1 used to
+patch q2 . While enumerating T1 (D), as every free variable of T2 is the image of at
+least one free variable in T1 , we will go through each solution of T2 . We can add all
+these solutions to D under a fresh relation name. This strategy gives Algorithm 2.
+
+                                             9
+Clément Rouvroy
+
+
+
+Algorithm 2 Edit(q, q1 , q2 , T2 , T1 , D)
+ 1: RT1 ← ∅
+ 2: Do pre-computations for Aq˜1 (D)
+ 3: for ⃗a ∈ Aq˜1 (D) do
+ 4:     if ⃗a is a solution from q then
+ 5:           print ⃗a and get to next loop iteration.
+ 6:     end if
+ 7:     print a solution to q using Lemma 3.11 and Lemma 3.13
+ 8:    ⃗b ← solution of T1 associated to ⃗a
+ 9:     if ⃗b gives a solution to T2 then
+10:          ⃗c ← solution of T2 associated to ⃗b
+11:           if RT1 (⃗c) ∈
+                          / D then
+12:               RT2 .add(⃗c)
+13:           end if
+14:     end if
+15: end for
+16: return RT1
+
+
+
+
+     This algorithm is sound: we will iterate through each solution in q˜1 (D) (because
+it is in CD ◦ Linq ). Then, the variable ⃗b will go through all values of T1 that were
+part of a solution of q˜1 , and ⃗c will go through all solutions to T2 that is the image
+of a solution of T1 that can be extended to a solution of q˜1 : To get ⃗c just use
+the isomorphism between T1 and T2 , we have access to all needed values because by
+definition of deactivation, we do not deactivate variables used to patch free variables.
+     This algorithm is complete: let µ2 be a solution of q2 , it is the image of a solution
+µ̃1 of q̃1 , hence µ˜1 ↾T1 will have for image µ2 ↾T2 .
+     For time complexity, we take initialize an empty list (O(1)), and then we do line
+3. Line 3 will use a CD ◦ Linq algorithm, hence the body of the loop of line 3 will
+alway print either directly a solution of q and wait for the next iteration, or the
+image of a solution of q associated to q˜1 .
+     Then the for-loop of line 3 is iterated with O(1) delay (and a constant time with
+a linear delay) and the body of the loop consists only of O(1) operations because to
+get solutions of T1 (resp. T2 ) given a solution of q˜1 (resp. T1 ) you only need to take
+some values in the given solution which is of length O(|q|) = O(1).
+     Hence, the algorithm will iterate through each solution of q˜1 , print a unique so-
+lution of q each time (unique according to Lemma 3.11 combined with Lemma 3.13)
+except a constant number of times, and will edit D in the same time.
+     At the end, the algorithm does a constant number of linear computations, prints
+solutions of q with constant delay after this linear pre-processing, and end return
+the edited RT1 .
+
+   Consider the query q and two of its preimages as in Fig. 4. One can use Pi (q) to
+patch Ph (q) and then can use Ph (q) to patch q. Here there is no use of deactivation,
+however, sometimes it is needed, as depicted in Fig. 5. The proof that the CQ in
+Fig. 5 is in CD ◦ Lin is in Lemma .2.
+
+                                            10
+Clément Rouvroy
+
+
+
+                                                           h
+               q:            x1        z1        z2        x2        x3
+                                                 i
+                                                           i
+
+             Ph (q) :        x1        z1        x3        x2
+
+
+              Pi (q)         x1        x2        x3
+
+
+Figure 4: A query and two of its preimages. Remember that xi are free and zi are
+quantified.
+
+
+                        x5                                      x3
+
+
+                                  x4                  z2
+
+
+                                            x1
+
+
+                                            z1
+
+
+                                            x2
+
+
+Figure 5: An easy query that needs deactivation. Dashed, dotted, and plain arrows
+denote three different relation symbols for atoms.
+
+
+3.4   Sufficient condition based on preimage and free-trees
+Now that we have Proposition 3.8 and Proposition 3.15, we would like to combine
+them to use preimages of a query to enumerate it with respect to CD ◦ Lin.
+
+Definition 3.16 (Fully-patched query). Let q be a binary-atom acyclic CQ, q is
+fully-patched if every free-tree of q has been patched.
+
+Theorem 3.17 (Patching sufficient condition). Let q be a binary-atom acyclic CQ.
+If q is fully-patched, then q ∈ CD ◦ Lin.
+
+Proof. Let p be a preimage of q, and we denote Ψ(p) the set of all deactivated
+preimages sets that fully-patch p. Let φ a function from the deactivated preimages
+of q to N such that for p a deactivated preimage of q,
+
+                                                  if p is acyclic free-connex
+                
+                0
+                
+         φ(p) = minS∈Ψ(p) (maxp′ ∈S φ(p )) + 1 if it is fully-patched
+                                         ′
+
+                                                  otherwise
+                
+                  −∞
+                
+
+
+                                            11
+Clément Rouvroy
+
+
+One can prove by induction over N that P (n): “For all k ≤ n, each deactivated
+preimage p such that 0 ≤ φ(p) ≤ n has a CD ◦ Linq algorithm” is true (proof of this
+property is in appendix Lemma .3). Once we know that P holds, if q is fully-patched
+then φ(q) < +∞, then q has a CD ◦ Linq algorithm, i.e. q is in CD ◦ Lin.
+
+
+4     Proving hardness
+To prove the hardness of CQs we need to make lower-bound assumptions. We
+will use two assumptions in this work, each comes with its necessary conditions
+that capture different cases. However, we still have open cases that need a clever
+approach, as we will see in the last part of this section.
+
+4.1   BMM-Hard
+The BMM hypothesis states that we cannot have an algorithm that, given two
+boolean n × n matrices A and B, return A × B in O(n2 ) time. We will use the
+tagging technique presented in [5] to encode boolean matrix multiplication in many
+queries with self-join, this is the same idea as in [1] but this time for query with
+self-joins.
+
+Definition 4.1 (Free variable disabled by R). Let q be an acyclic conjunctive query
+with atoms of arity at most 2. Let R be a relational symbol of arity one used in an
+atom of q and let F be a free-path of q. We say that x ∈ Free(q)\Vars(F ) is disabled
+by R on F if:
+
+    • ∀y ∈ Vars(F ).R(y) ∈
+                         / q,
+
+    • R(x) ∈ q.
+
+    Let D(R, F ) be the set of variables disabled by R on F .
+
+    The idea is that a variable disabled by R will not give spurious solutions because
+we can build a database where R = {⊥}. As R does not appear on the free-path, it
+is not a problem to fix it to be {⊥}.
+
+Definition 4.2 (Unmapped to a free-path). Let q be a CQ, and let F be a free-path.
+Let y ∈
+      / Vars(F ) be a variable of q, it is unmapped to F if ∀h ∈ Endo(q), h(y) ∈ /
+Vars(F ).
+
+   A variable y of q is unmapped to a free-path F if y is never mapped to it through
+any homomorphism.
+
+Definition 4.3 (BMM-Hard). Let q be an acyclic CQ. It is BMM-Hard if q ∈
+CD ◦ Lin breaks the BMM hypothesis.
+
+    Before giving and proving the condition, we need one lemma:
+
+Lemma 4.4. Let q be an acyclic binary-atom CQ that we want to enumerate over
+D. Let q ′ and D′ be the query and the database resulting from a tagging technique
+on q over D. Then, for every solution µ of q ′ (D′ ), the tagging map induced by µ is
+an automorphism of q.
+
+                                         12
+Clément Rouvroy
+
+
+
+                                      M1         =            M2
+                     q1 :        x1        z1            z2        x2
+
+                                      M1         =            M2
+                     q2 :        x1        z1            z2        x2
+                                                     ⊥
+
+                                                         x3
+
+
+
+
+Figure 6: Two examples of BMM-hard queries. Dashed arrows are atoms of another
+relational symbol. Label on edges indicates the role in encoding BMM of the edge
+(through tagging technique).
+
+
+                                 x1        z             x3
+
+
+                                 x2
+
+
+             Figure 7: A CQ that is VUTD-Hard but not BMM-Hard
+
+
+Proposition 4.5. Let q be an acyclic conjunctive query with an atom of arity at
+most 2. If there exists a free-path F such that ∀x ∈
+                                                   / Vars(F ), ∃R.x ∈ D(R, F ) or x
+is unmapped to F , q is BMM-Hard.
+
+Proof Sketch. Let M1 and M2 be two boolean matrices. Let F := x1 , z1 , . . . , zn , x2 ,
+the idea is to encode the product on F and to ensure that all other free variables
+can only be ⊥ in all solutions. This can be done because free variables outside
+of the free-path are either in a D(R, F ), hence they can be set to ⊥, or they are
+unmapped on F . If x is unmapped of F and receives a value tagged by a variable
+in F , then there is a homomorphism of q that maps x to a variable in F according
+to Lemma 4.4: impossible. The full proof is available in Proposition .4.
+
+    Proposition 4.5 allows to capture a lot of CQs. For an example of application
+one can look at the two queries in Fig. 6, the meaning of each atom is printed on
+the edges (the meaning is what we intend it to encode in the tagging technique).
+
+4.2   VUTD-Hard
+The Vertex Unbalanced Triangle Detection is, for any α ∈ [0; 1], given a tripartie
+graph V1 , V2 , V3 such that |V2 | = n,|V1 | = |V3 | = O(nα ), to detect if there is a
+triangle in it. The hypothesis is that it cannot be done in O(n1+α ) time.
+
+Definition 4.6 (VUTD-Hard). Let q be an acyclic CQ. It is VUTD-Hard if q ∈
+CD ◦ Lin breaks the VUTD hypothesis.
+
+
+                                           13
+Clément Rouvroy
+
+
+
+                          x1
+
+
+                           ..
+              qk :          .       z1         z2       x0
+
+
+                          xk
+
+
+                       Figure 8: An in-between family of CQs
+
+
+    Some hard CQs do not seem to be BMM-Hard but are VUTD-Hard, an example
+is given in Fig. 7 (and the proof that it is hard is the core of this subsection).
+
+Proposition 4.7. Let q be an acyclic binary-atom CQ. If there is a quantified
+variable z on a free-path that is not the image of a free-variable in any body-
+homomorphism of q, then q is VUTD-hard.
+
+Proof Sketch. Let q be an acyclic binary-atom CQ. Let ζ a quantified variable that
+is the image of no free variable of q for any automorphism of q, i.e. ∀h : q → q, ∀x ∈
+Free(q), h(x) ̸= ζ.
+    Let T be the free-tree associated to ζ (it exists because there is a free-path). Fix
+x1 − ... − ζ − ... − x2 one free-path in T that goes through ζ.
+    The idea is to do an encoding that will tag elements of V2 only with ζ. Hence,
+if another free variable receives a value of V2 , from Lemma 4.4, there is a homo-
+morphism of q that maps a free variable to ζ: impossible. The complete proof and
+encoding is available on Proposition .5
+
+   In Fig. 7, the quantified variable z is the image of no free variable and then the
+query is not in CD ◦ Lin according to Proposition 4.7.
+
+4.3   Clique-based hardness
+The two previous hardness techniques allow to classify many queries, but some
+queries seems not be classifiable using only those two. An example is (L) Fig. 8 for
+k = 2, BMM-hardness may not apply because we can not isolate a free-path, and
+VUTD-hardness may not work because x0 can be mapped to z1 and x1 (or x2 ) can
+be mapped to z2 .
+    To tackle the family of Fig. 8, we will work with k-clique, but this will work only
+for k ≤ 3. From [7], we know that:
+
+Theorem 4.8. Let k = 3l + i ((k, i) ∈ N × {0, 1, 2}), and ω is the optimal bound
+for matrix multiplication (2 ≤ ω < 2.38). Let G be a graph with n nodes, we can
+check if G has a k-clique in O(nωl+i ).
+
+    In particular, for k = 5 the bound is O(nω+2 ) so if we manage to solve the
+5-clique problem in O(n4 ) using that a query q is in CD ◦ Lin, it is likely that
+q∈/ CD ◦ Lin. More generally, we do the following hypotheses:
+
+
+                                          14
+Clément Rouvroy
+
+
+Definition 4.9 (k-clique hypothesis for k ≤ 5). Let k ∈ {1, 2, 3, 4, 5}, there is no
+algorithm that detects a k-clique in O(nk−1 ).
+
+    This is suitable for this lemma:
+
+Lemma 4.10. The k-star query is a query like q(x1 , . . . , xk ) ← R1 (x1 , z) . . . , Rk (xk , z)
+.Let n = |dom(D)|.Assuming k-clique hypothesis for k ≤ 5, no algorithm can answer
+q(D) for q a k-star query in O(|Dom(D)|k ) for k ≤ 4.
+
+Proof. Let k ≤ 4, let q be the k-star query. Suppose that there is an algorithm
+A(q, D) that returns q(D) in O(|Dom(D)|k ) for any D. Let G = (V, E) be a graph
+of size n. Set Dom(D) = V and R = E. For every solution (a1 , . . . , ak ) ∈ q(D)
+one can check that ∀(i, j) ∈ J1; kK2 .i ̸= j ⇒ (ai , aj ) ∈ E holds in O(k 2 ) = O(1).
+Hence we have a O(|Dom(D)|k ) = O(nk ) algorithm to detect a (k + 1)-clique:
+impossible.
+
+    Now, we can reduce k-star queries to some queries depicted in Fig. 8:
+
+Lemma 4.11. For k ≤ 3, qk depicted in Fig. 8 is hard.
+
+Proof. Consider a k + 1-star q and a database D. Construct D′ that has only one
+relation R that contains:
+
+   • ∀R1 (u, v).R(⟨x1 , u⟩, ⟨z1 , v⟩) and R(⟨z2 , v⟩, ⟨z1 , v⟩),
+
+   • ∀i ∈ J2; kK.∀Ri (u, v).R(⟨xi , u⟩, ⟨z1 , v⟩)
+
+   • ∀Rk+1 (u, v).R(⟨z2 , v⟩, ⟨x0 , u⟩)
+
+     A solution over this construction is a solution to the original query iff the tagging
+map is the identity on the free variable, and checking this is O(1) time. We have
+O(nk+1 ) solutions (as can be verified with a case distinction) so we can do the
+filtering for each solution to check if there is at least one k-star solution.
+
+    From Lemma 4.11, we know that the queries in Fig. 8 are hard for k ≤ 3, but
+we do not know for larger k yet. The only result we have yet is when the degree of
+the database satisfies some properties (see appendix, Proposition .11).
+
+4.4    The need for lower-bound based on the delay
+In all previous examples, we never really used enumeration as a structure that gives
+answers with a delay to prove hardness, we only use enumeration with a short delay
+to get all the answers to a query and then use the fact that we have all the answers
+to come to a problem. The section motivates the use of a (still to be determined)
+new hypothesis based on the delay and not the total time.
+    Consider the query q1 depicted in Fig. 9 and q2 the same query but without x3 .
+We don’t know if q1 is easy or hard, but we know that q2 is BMM-Hard.
+
+Lemma 4.12. Let D be a database. We can answer q1 (D) in O(|Dom(D)|3 ).
+
+
+
+
+                                              15
+Clément Rouvroy
+
+
+
+                          x1        z1        z2        x2
+
+
+                                    x3
+
+
+Figure 9: Motivating example. Formally, a CQ can not have a free variable that
+has no atom that uses it, but as we are dealing with self-joins, we can just add one
+unary atom to every variable with a fresh relation symbol that we fill with the active
+domain.
+
+Algorithm 3 Enumerate(q1 , D)
+ 1: Build the join-tree associated to q1 (D)
+ 2: Solve (← x1 → . → x2 )(D) using BMM in O(nω ), let L be all the results.
+ 3: S ← ∅
+ 4: for (a, b) ∈ L do
+ 5:    for c ∈ Dom(D) do
+ 6:        if R(b, c) ∈ D then S.insert((a, c))
+ 7:        end if
+ 8:    end for
+ 9: end for
+10: return S
+
+
+Proof. Consider Algorithm 3. From the join-tree one can build two |Dom(D)| ×
+|Dom(D)| matrices that represent the first and the second arrow. Put a 0 in (i, j)
+if there is no R(i, j) and 1 otherwise. The product of these two matrices will give
+exactly (a, c) ∈ Dom(D)2 | ∃b ∈ Dom(D).a → b → c . This is what line 2 is doing,
+this process takes the time for the creation of the two matrices, O(|Dom(D)|2 ), and
+the time to compute the product, O(|Dom(D)|ω ). The sum of these steps fits in
+O(|Dom(D)|)3 time.
+    Then the loop iterates through O(|Dom(D)|2 ) elements and then through |Dom(D)|
+elements to perform a O(1) time operation (as we have constructed a matrix that
+indicates if R(i, j) ∈ D for all (i, j) ∈ Dom(D)2 it is easy to check if R(b, c) ∈ D).
+
+
+   Hence a hardness proof that enumerates q1 and stores all solutions, and then
+uses that it has all the solutions need to be clever enough to have strictly less than
+O(n3 ) total solutions. Otherwise, we need a contradiction that uses the fact that we
+enumerate the solutions with a constant delay. A problem that may (or may not)
+be easier is the following:
+Definition 4.13 (Dom-linear enumeration). We say that a CQ q is in DomLin ◦
+Lin if there is an algorithm that, after a pre-computation that takes O(|D|) times,
+enumerate all the solutions of q in O(|Dom(D)|).
+   This problem is related to CD◦Lin enumeration because of the following lemma:
+Lemma 4.14 (Link between CD ◦ Lin and DomLin ◦ Lin). q1 ∈ CD ◦ Lin ⇔ q2 ∈
+DomLin ◦ Lin.
+
+                                         16
+Clément Rouvroy
+
+
+Proof Sketch. q1 is q2 but with an extra free variable that allows us to repeat ev-
+ery solution of q2 at maximum O(|Dom(D)|) times. We can use this fact in both
+directions to build a reduction. The complete proof is available in Lemma .6
+
+
+5    Conclusion
+In this work, we defined free-trees as a structure that captures the difficulty in
+conjunctive queries with self-joins. We defined patching as a tool to express how
+self-joins affect this difficulty. This definition allowed us to find a first sufficient
+condition to decide if a CQ with self-joins is in CD ◦ Lin.
+    We have also come to necessary conditions that catch many queries, and we have
+raised two kinds of CQs that are not classified with our conditions and that could
+lead to new work on the topic.
+
+
+References
+[1] Guillaume Bagan, Arnaud Durand, and Etienne Grandjean. On acyclic conjunc-
+    tive queries and constant delay enumeration. In Jacques Duparc and Thomas A.
+    Henzinger, editors, Computer Science Logic, pages 208–222, Berlin, Heidelberg,
+    2007. Springer Berlin Heidelberg.
+
+[2] Catriel Beeri, Ronald Fagin, David Maier, and Mihalis Yannakakis. On the
+    desirability of acyclic database schemes. J. ACM, 30(3):479–513, July 1983.
+
+[3] Christoph Berkholz, Fabian Gerhardt, and Nicole Schweikardt. Constant delay
+    enumeration for conjunctive queries: a tutorial. ACM SIGLOG News, 7(1):4–33,
+    feb 2020.
+
+[4] Johann Brault-Baron. De la pertinence de l’énumération : complexité en logiques
+    propositionnelle et du premier ordre. Theses, Université de Caen, April 2013.
+
+[5] Nofar Carmeli and Luc Segoufin. Conjunctive queries with self-joins, towards a
+    fine-grained complexity analysis, 2022.
+
+[6] Nofar Carmeli, Shai Zeevi, Christoph Berkholz, Benny Kimelfeld, and Nicole
+    Schweikardt. Answering (unions of) conjunctive queries using random access
+    and random-order enumeration, 2019.
+
+[7] Jaroslav Nešetřil and Svatopluk Poljak. On the complexity of the subgraph
+    problem. Commentationes Mathematicae Universitatis Carolinae, 26(2):415–
+    419, 1985.
+
+
+
+
+                                          17
+Clément Rouvroy
+
+
+Algorithm 4 Enumerate(D) for Lemma 3.1
+ 1: q ′ is the query q ′ (x1 , x2 , x3 ) ← R(x1 , x2 ), R(x2 , x3).
+ 2: Do pre-computations for q ′
+ 3: G ← an empty hash-table that given a value a can iterate all b such that R(a, b)
+    is in D.
+ 4: H ← ∅ an hash-table
+ 5: for (a, b, c) ∈ q ′ (D) do
+ 6:      if c ∈
+              / H[a] then
+ 7:          H[a] ← c :: H[a]
+ 8:      end if
+ 9:      print (a, b, c)
+10: end for
+11: for a ∈ H do
+12:      for c ∈ H[a] do
+13:          for b ∈ G[a] do
+14:             print (a, b, c)
+15:          end for
+16:      end for
+17: end for
+
+
+Annexe 1: Proving Easiness
+Lemma .1. Algorithm 4 is complete, correct, and respects the constraint for q2 to
+be in CD ◦ Lin.
+
+Proof. For completeness, let (a1 , a2 , a3 ) ∈ q2 (D). Then there exists az ∈ Dom(D)
+such that {R(a1 , az ), R(az , a2 )} ⊆ D. Hence (a1 , az , a2 ) ∈ q ′ (D), and by complete-
+ness of the enumeration of an acyclic full CQ, (a1 , az , a2 ) will be enumerated on line
+5 of Algorithm 4 and a2 ∈ H[a1 ]. Now, by the completeness of the construction of
+G, when (a1 , a2 ) will be enumerated on line 11,12, a3 will be enumerated on line 13,
+this sequence will print (a1 , a2 , a3 ).
+    For correctness, let (a1 , a2 , a3 ) printed by the algorithm. By construction, we
+have a1 ∈ H, a2 ∈ H[a1 ] and a3 ∈ G[a1 ]. By correctness of the enumeration of an
+acyclic full CQ, there exists az such that (a1 , az , a2 ) ∈ q ′ (D). And by correctness of
+the construction of G, R(a1 , a3 ) ∈ D, hence (a1 , a2 , a3 ) is indeed in q(D).
+    For the time restriction, lines 1 to 4 are pre-computations. Line 1 is O(1) time,
+line 2 is linear because of Theorem 2.2. Line 3 also is linear, one can read all
+atoms in the database and fill G accordingly (a way of seeing it is the enumeration
+of the acyclic full CQ q(x1 , x2 ) : R(x1 , x2 ) which, after a linear pre-computation,
+enumerate with constant delay the solutions and there is exactly O(|D|) solutions).
+Then we enumerate with constant delay in lines 5 to 10: for each loop, we do one
+print and the body of the loop is O(1) time. Note that there is no duplicate in this
+part of the algorithm because a 3-uplet (a, b, c) is enumerated at most once. Finally,
+the last loop chains (11-17) enumerates with constant delay and no repetition, but
+there may be repetitions with the solutions printed on line 9. As each solution is
+printed exactly once on line 14, each solution is printed at most twice and then the
+conditions of Lemma 2.1 are satisfied: q2 ∈ CD ◦ Lin.
+
+
+                                            18
+Clément Rouvroy
+
+
+
+
+Algorithm 5 Enumerate(q, D)
+ 1: Remove dangling tuples on D
+ 2: Solve the query that is like q where every variable is quantified except x1 and
+    call the set of solutions S.
+ 3: HG , HR ← ∅, ∅
+ 4: for a1 ∈ S do
+ 5:     a2 ← A value for x2 such that there exists a z1 such that the (a1 , z1 , a2 ) is
+    an assignment to the bottom free-tree.
+ 6:     a5 ← A value for x5 such that there exists z2 such that (a1 , z2 , a5 ) is an
+    assignment to the right free-tree.
+ 7:     for a3 , a4 ∈ (x4 ← x3 ← a1 )(D) do
+ 8:        print a1 , a2 , a3 , a4 , a5
+ 9:        if (a1 , a3 , a4 ) is a green path then
+10:             HG [a1 ] ← (a4 )
+11:        end if
+12:        if (a1 , a3 , a4 ) is a red path then
+13:             HR [a1 ] ← (a4 )
+14:        end if
+15:     end for
+16: end for
+17: for a1 ∈ S do
+18:     for a3 , a4 s.t. a1 → a3 → a4 do
+19:        for a2 ∈ HR [a1 ] do
+20:             for a5 ∈ HG [a1 ] do
+21:                 print (a1 , a2 , a3 , a4 , a5 )
+22:             end for
+23:        end for
+24:     end for
+25: end for
+
+
+
+Lemma .2. The CQ in Fig. 5 is in CD ◦ Lin.
+Proof. The proof is an application of theorem Theorem 3.17. If one wants to see
+an algorithm, he is in Algorithm 5, but it will not be used here. Consider the two
+deacatived preimages P˜h (q1 ) and P̃i (q1 ) of Section 5. h is the homomorphism that
+maps (x4 , x5 ) to (z1 , x2 ) and i is the homomorphism that maps (x4 , x5 ) to (z2 , x3 ).
+If we do not deactivate the preimages, we still have free-trees in the preimages and
+we can not patch them. But with the deactivation depicted, both queries are easy
+to enumerate. Moreover, P˜h (q1 ) is patching the free-tree (x1 , z1 , x2 ) and P̃i (q1 ) is
+patch the free-tree (x1 , z2 , x3 ).
+    Hence, q1 is fully-patched, hence q1 ∈ CD ◦ Lin according to Theorem 3.17.
+
+
+Lemma .3 (Patching sufficient condition - Induction). The induction holds of
+Patching sufficient condition holds.
+
+                                            19
+Clément Rouvroy
+
+
+
+                                                 z3                                                    x5
+
+
+                                      z2                                                  x4
+
+
+ P˜h (q1 ) :              x1                                P̃i (q1 ) :       x1
+
+
+                          x4                                                  z1
+
+
+                          x5                                                  z2
+
+
+                         Figure 10: Two deactivated preimage of q.
+
+
+Proof. For n = 0 there are only acyclic free-connex queries, which are in CD ◦ Lin
+so they satisfy the property.
+    Let n ≥ 0 and suppose that P (n) is true, let’s prove that P (n + 1) is true. Let
+p be patched by p1 , . . . , pk such that maxp′ ∈{p1 ,...,pk } φ(p′ ) + 1 = φ(p). As p1 , . . . , pk
+fully patch p, we have that φ(p) ≤ φ(pi ) for all i ∈ [|1; k|], hence we have CD ◦ Linq
+algorithms A1 , . . . , Ak for them. We can apply Proposition 3.15 to p1 , . . . , pk to have
+access to RT1 , . . . , RTk , with k = O(1) CD ◦ Linq algorithms, hence in a CD ◦ Linq
+algorithm. Using these relations we can apply Corollary 3.9 to have a CD ◦ Linq
+algorithm for p. Combining these k + 1 CD ◦ Linq algorithm, we have that p ∈
+CD ◦ Linq .
+    We conclude from recursion principle.
+
+
+Annexe 2: Proving hardness
+BMM-Hard
+Proposition .4. Let q be an acyclic conjunctive query with an atom of arity at
+most 2. If there exists a free-path F such that ∀x ∈
+                                                   / Vars(F ), ∃R.x ∈ D(R, F ) or x
+is unmapped to F , q is BMM-Hard.
+
+Proof. Let M1 and M2 be two boolean matrices. Let F := x1 , z1 , . . . , zn , x2 , we do
+the following reduction:
+
+    • ∀(i, k) ∈ M1 s.t. M1 [i][k] = 1.
+
+           – ∀R(x1 , z1 ) ∈ q.R(⟨i; x1 ⟩, ⟨k; z1 ⟩),
+           – ∀p < n.∀R(zp , zp+1 ) ∈ q.R(⟨i; pi ⟩, ⟨i + 1; zp+1 ⟩),
+           – ∀R(x1 ) ∈ F.R(⟨i; x1 ⟩),
+           – ∀R(zp ) ∈ F.R(⟨i; zp ⟩),
+           – ∀R(y, zp ) ∈ q\F.R(⟨⊥; y⟩, ⟨k; zp ⟩). Same for R(zp , y),
+
+                                                 20
+Clément Rouvroy
+
+
+        – ∀R(y, x1 ) ∈ q\F.R(⟨⊥; x1 ⟩, ⟨k; zp ⟩). Same for R(zp , x).
+
+   • ∀(k, j) ∈ M2 s.t. M2 [k][j] = 1.
+
+        – ∀R(zn , x2 ) ∈ q.R(⟨k; zn ; ⟩, ⟨j; x2 ⟩),
+        – ∀R(x2 ) ∈ q.R(⟨k; x2 ⟩),
+        – ∀R(x2 , y) ∈ q\F.R(⟨k; x2 ⟩, ⟨⊥; y⟩). Same for R(y, x2 ).
+
+   • ∀R(y1 , y2 ) ∈ q\F.R(⟨⊥; y1 ⟩, ⟨⊥; y2 ⟩).
+
+   • ∀R(y1 ) ∈ q\F.R(⟨⊥; y1 ⟩).
+
+    Let’s count the number of total solutions (counting spurious ones). A free-
+variable has two possibilities:
+
+   • It is part of the free-path and it can be any value of D, i.e. O(|dom(D)|)
+     possible solutions.
+
+   • It is not in the free-path, hence either:
+
+        – there exists R ∈ q such that x ∈ D(R, F ). But then x can only be evalu-
+          ated to ⟨⊥; x′ ⟩ with x′ ∈ D(R, f ) using the last case of our construction.
+          That is O(|D(R, f )|) = O(1) possibilities.
+        – x is unmapped to F . If it receives a value tagged with a variable of the
+          free-path, then there is a morphism from x to this variable (Lemma 4.4),
+          impossible. Hence all its values are tagged with variables not in the
+          free-path, by construction this is only ⟨⊥; y⟩, i.e. O(|q|) = O(1).
+
+Hence, there is at most O(|dom(D)|2 × | ∪y∈F / {⟨⊥, y⟩}|
+                                                          |Free(q)|−2 ) = O(|dom(D)|2 ).
+
+But |dom(D)| = O(n) hence this is O(n ) possible solutions.
+                                         2
+
+    Now if we have (i, j) such that (M1 × M2 )[i][j] = 1, there exists a k such that
+M1 [i][k] = M2 [k][j] = 1 and we have a solution of the free-path that witnesses this.
+    Hence, we can enumerate q on the tagged database and get all the 1s of M1 ×M2 .
+This can be done in O(n2 ) time because we can check if a solution of q is a valid 1
+of M1 × M2 in O(1) time by checking that x1 is tagged x1 and x2 is tagged x2 .
+
+VUTD-Hard
+Proposition .5. Let q be an acyclic binary-atom CQ. If there is a quantified variable
+z on a free-path that is not the image of a free-variable in any body-homomorphism
+of q, then q is VUTD-hard.
+
+Proof. Let q be an acyclic binary-atom CQ. Let ζ a quantified variable that is the
+image of no free variable of q for any automorphism of q, i.e. ∀h : q → q, ∀x, h(x) ̸= z.
+   Let T be the free-tree associated to ζ (it exists because there is a free-path). Fix
+x1 − ... − ζ − ... − x2 one free-path in T that goes through ζ.
+   We split the xs of T as follows:
+
+   • x ∈ X1 if in the only path from x to x2 x needs to go through ζ.
+
+   • x ∈ X3 if not.
+
+                                              21
+Clément Rouvroy
+
+
+In the same way we define Z1 and Z3 for zs. Now we will encode VUTD on the
+free-tree as this:
+
+  1. ∀v ∈ V1 , ∀(z1 , z2 ) ∈ Z12 . if R(z1 , z2 ) ∈ q (resp.    R(z2 , z1 ) ∈ q), we add
+     R(⟨z1 ; v⟩, ⟨z2 ; v⟩) (resp. R(⟨z2 ; v⟩, ⟨z1 ; v⟩)),
+
+  2. ∀v ∈ V3 , ∀(z1 , z2 ) ∈ Z32 . if R(z1 , z2 ) ∈ q (resp.    R(z2 , z1 ) ∈ q), we add
+     R(⟨z1 ; v⟩, ⟨z2 ; v⟩) (resp. R(⟨z2 ; v⟩, ⟨z1 ; v⟩)),
+
+  3. ∀v ∈ V1 , ∀x ∈ X1 , ∀z ∈ Z1 . if R((x, z)) ∈ q (resp. R((z, x)) ∈ q), we add
+     R(⟨x; v⟩, ⟨z; v⟩) (resp. R(⟨z; v⟩, ⟨x; v⟩)),
+
+  4. ∀v ∈ V3 , ∀x ∈ X3 , ∀z ∈ Z3 . if R((x, z)) ∈ q (resp. R((z, x)) ∈ q), we add
+     R(⟨x; v⟩, ⟨z; v⟩) (resp. R(⟨z; v⟩, ⟨x; v⟩)),
+
+  5. ∀(u, v) ∈ E1,2 , ∀y ∈ X1 ∪ Z1 . if R((y, ζ)) ∈ q (resp. R((ζ, y)) ∈ q), we add
+     R(⟨y; u⟩, ⟨ζ; v⟩) (resp. R(⟨ζ; v⟩, ⟨y; u⟩)),
+
+  6. ∀(u, v) ∈ E2,3 , ∀y ∈ X3 ∪ Z3 . if R((y, ζ)) ∈ q (resp. R((ζ, y)) ∈ q), we add
+     R(⟨y; v⟩, ⟨ζ; u⟩) (resp. R(⟨ζ; u⟩, ⟨y; v⟩)),
+
+  7. ∀u ∈ V1 , ∀y1 ∈ X1 ∪ Z1 , ∀y2 ∈ / T . if R(y1 , y2 ) ∈ q (resp. R(y2 , y1 ) ∈ q) then
+     we add R(⟨y2 ; u⟩, ⟨y1 ; ⊥⟩) (resp. R(⟨y1 ; ⊥⟩, ⟨y2 ; u⟩)),
+
+  8. ∀u ∈ V3 , ∀y1 ∈ X3 ∪ Z3 , ∀y2 ∈ / T . if R(y1 , y2 ) ∈ q (resp. R(y2 , y1 ) ∈ q) then
+     we add R(⟨y2 ; u⟩, ⟨y1 ; ⊥⟩) (resp. R(⟨y1 ; ⊥⟩, ⟨y2 ; u⟩)),
+
+  9. ∀y1 , y2 ∈
+              / T. If R(y1 , y2 ) ∈ q, R(⟨y1 ; ⊥⟩, ⟨y2 ; ⊥⟩).
+
+ 10. ∀v2 ∈ V2 .∀y ∈
+                  / T. If R(y, ζ) ∈ q (resp. R(ζ, y) ∈ q), then we add R(⟨y; ⊥⟩, ⟨ζ; v2 ⟩)
+     (resp. R(⟨ζ; v2 ⟩, ⟨y; ⊥⟩)).
+
+   This construction gives an algorithm to detect a triangle:
+   • Enumerate all solutions of the query and for each:
+
+        – Check if the tagging is the identity on the free variables, if so check if
+          the value given to x1 and x2 are connected in E1,3 , if it is then we have
+          detected a triangle, if not continue.
+
+    Let (v1 , v2 , v3 ) ∈ V1 × V2 × V3 be a triangle in G. We know that there is a path
+(x1 → z11 → . . . → z1k → ζ → z31 → . . . →→ z3p x2 ) ∈ q. From:
+   • Item 3., R(⟨x1 ; v1 ⟩, ⟨z1 ; v1 ⟩) (or the opposite direction, or both of them) will
+     be in D for all z1 ∈ Z1 ,
+
+   • Item 1., we know that there will be a path of R(⟨z1i ; v1 ⟩, ⟨z1i+1 ; v1 ⟩) (or the
+     opposite direction, or both of them) in the database.
+
+   • Item 5., there is R(⟨z1i ; v1 ⟩, ⟨ζ; v2 ⟩) in the database (or the opposite direction,
+     or both of them).
+
+   • Item 6., there is R(⟨ζ; v2 ⟩, ⟨z31 ; v3 ⟩) in the database (or the opposite direction,
+     or both of them).
+
+                                              22
+Clément Rouvroy
+
+
+   • Item 2., we know that there will be a path of R(⟨z3i ; v3 ⟩, ⟨z3i+1 ; v3 ⟩) (or the
+     opposite direction, or both of them) in the database.
+
+   • Item 4., R(⟨x3 ; v3 ⟩, ⟨z3p ; v3 ⟩) (or the opposite direction, or both of them) will
+     be in D.
+
+    So the path is well-encoded (we will see after that we don’t have to check how
+many spurious answers we have because the total number of answers is limited).
+However, we need to be sure that the given path can be completed in a whole
+solution of q. One can see that:
+
+   • Variables in Z1 are connected to either, a variable in X1 , ζ, other variables
+     in Z1 , variables outside of the tree, but can not be connected to variables in
+     Z3 or X3 (otherwise there is a cycle). The possible connections are handled
+     respectively by Item 3., Item 1., Item 5., Item 7.. In particular, Item 7. force
+     variables outside of T to be ⊥.
+
+   • Variables in X1 are connected to either, a variable in X1 , ζ, a variable in Z1 ,
+     or variables outside. Using the same rules as for z1 , we can come to the same
+     conclusion.
+
+   • The same goes for Z3 and X3 using Item 8..
+
+   • If ζ is connected to a variable in Z1 ∪ Z3 ∪ X1 ∪ X3 it is already ok thanks
+     to the previous point. If ζ is connected to a variable outside of the tree, then
+     with Item 10. one can see that y can be set to ⊥.
+
+   • Finally, if two variables outside of tree are connected together, they can both
+     receive ⊥ according to Item 9..
+
+    This query has only O(nkα ) solutions with k = |free variables|: every elements
+of the database is of the form ⟨variable; value⟩. The only elements of the database
+that contain a value from V2 are tagged with the variable ζ. Suppose that a free
+variable x has more than O(nα ) different values in all the solutions. Then it receives
+some value from V2 , i.e. there exists a valuation µ of q such that the tagging map
+sends x to ζ. This is impossible because we would have an automorphism that sends
+x to ζ using (4.4).
+    Hence for α < k1 we could find a triangle in O(n1+α ) if q ∈ CD ◦ Lin.
+
+Lemma .6 (Link between CD ◦ Lin and DomLin ◦ Lin). q1 ∈ CD ◦ Lin ⇔ q2 ∈
+DomLin ◦ Lin.
+
+Proof. q1 is q2 but with an extra free variable that allows us to repeat every solution
+of q2 at maximum O(|Dom(D)|) times. We can use this fact in both directions to
+build a reduction. More formally:
+    For ⇒, consider Algorithm 6. P starts to be enumerated after a linear pre-
+computation (because the hypothesis is that q1 ∈ DomLin ◦ Lin), hence we start to
+enumerate on the second loop after a linear pre-computation. Moreover, the second
+loop is printing with O(1) delay, but we need to be sure that there are not too
+many duplicates. There exists a constant c such that every c|Dom(D)|, P is edited
+
+                                           23
+Clément Rouvroy
+
+
+Algorithm 6 Enumerate(q1 , q2 , D)
+ 1: P ← ∅
+ 2: Do in parallel these two for-loops:
+ 3: for (a, b) ∈ q1 (D) do P.append((a, b))
+ 4: end for
+ 5: for (a, b) ∈ P do
+ 6:    while P hasn’t changed do
+ 7:        for c ∈ D do
+ 8:            output (a, b, c)
+ 9:        end for
+10:    end while
+11: end for
+
+
+Algorithm 7 Enumerate(q1 , q2 , D)
+ 1: P ← ∅
+ 2: H ← ∅
+ 3: c ← 0
+ 4: for (a, b, c) ∈ q2 (D) do
+ 5:    if (a, b) ∈/ H then
+ 6:        H.append((a, b))
+ 7:        P.append((a, b))
+ 8:    end if
+ 9:    c←c+1
+10:    if c ≥ c2 n then
+11:        Print P.pop()
+12:        c←0
+13:    end if
+14: end for
+15: while P is not empty do
+16:    Print P.pop()
+17: end while
+
+
+(because q1 ∈ DomLin ◦ Lin), hence P changes each c|Dom(D)| and for a given
+(a, b) ∈ P , each solution (a, b, c) associated is printed at most O(c|Dom(D)|) (the
+constant depends of the way we are dealing with parallelism). It just needs some
+fine-tuning to be sure that q1 doesn’t output two solutions without giving the hand
+to the second loop (but it can be forced easily with some boolean) and to be sure
+that the share of work is not such that we do a lot of second-lop and only a few on
+the first-loop (otherwise we would print too much).
+    For ⇐, consider Algorithm 7, the constant c2 is such that the delay to enumerate
+q2 is bounded by b2 . From the definition of c2 , P will never be empty in the loop
+(each solution (a, b) is featured n times, one for all possible c) and we print solutions
+of q2 with respect to DomLin ◦ Lin.
+
+
+
+
+                                           24
+Clément Rouvroy
+
+
+
+Algorithm 8 Enumerate(q3 , D)
+ 1: M ← ∅
+ 2: for R(x1 , z) ∈ D do
+ 3:    for R(x2 , z) ∈ D do
+ 4:        for R(x3 , z) ∈ D do
+ 5:             for R(z2 , z) ∈ D do
+ 6:                  Print (x1 , x2 , x3 , z)
+ 7:                  M ← M @(x1 , x2 , x3 , z2 )
+ 8:             end for
+ 9:        end for
+10:    end for
+11: end for
+12: for (x1 , x2 , x3 , z2 ) ∈ M do
+13:    for R(z2 , x4 ) ∈ D do
+14:        Print x1 , x2 , x3 , x4
+15:    end for
+16: end for
+
+
+
+
+Database with O(1) high degrees element
+Definition .7 (Degree of an element). Let D be a database over the domain dom(D)
+with atom of arity at most 2. The in-degree (resp. out-degree) of an element a ∈
+dom(D) is d− (a) = |{R(., a) ∈ D}| (resp. d+ (a) = |{R(a, .) ∈ D}|).
+
+Definition .8 (Number of high degree elements). Let D be a database over the
+domain dom(D) with arity at most 2. The number of high in-degree (resp. out-
+degree) elements in D, denoted ∆− (resp. ∆+ ), is ∆− = |{a ∈ D | d− (a) ̸= O(1)}|
+(resp. ∆+ = |{a ∈ D | d+ (a) ̸= O(1)}|). Here O(1) is compared to |D|.
+
+   For example, if D is a clique, ∆− = ∆+ = O(|dom(D)|). If it is bipartite, then
+∆− = ∆+ = O(1). The following result, Proposition .11, might seem useless but
+here we only ask the in-degree, or the out-degree, to be low, not both of them, hence
+we can still encode some problems that need a lot of edges.
+
+Lemma .9. If ∆− (D) = O(1), then there is a CD ◦ Lin algorithm that enumerates
+q on D.
+
+Proof. Consider Algorithm 8. Completeness and soundness are left to the reader
+(nothing hard in it). For the complexity, one can note that:
+
+   • Loop of line 3 to 5 are each going to at most O(1) elements because z except
+     a constant number of times where it is O(n).
+
+   • Line 6 is printing a solution every O(1) time, and each solution is duplicated
+     exactly the number of times R(z2 , z) appears in D, which is O(1) except for a
+     constant number of solutions where it is at most linear.
+
+
+                                              25
+Clément Rouvroy
+
+
+
+Algorithm 9 Enumerate(q3 , D)
+ 1: M ← ∅
+ 2: for R(z2 , x4 ) ∈ D do
+ 3:    for R(z2 , z1 ) ∈ D do
+ 4:        Print z2 , z2 , z2 , x4
+ 5:        M ← M @(z1 , x4 )
+ 6:    end for
+ 7: end for
+ 8: for (z1 , x4 ) ∈ M do
+ 9:    for R(x1 , z1 ), . . . , R(x3 , z1 ) ∈ D do
+10:        Print x1 , x2 , x3 , x4
+11:    end for
+12: end for
+
+
+
+
+    These two points make that the first chain of loop is respecting CD ◦ Lin (ac-
+cording to Cheater’s Lemma 2.1). Then, the second loop prints every solution of the
+query with a O(1) delay and any (x1 , x2 , x3 , x4 ) is printed at most d− (x4 ), which
+is O(1), except for a constant number of x4 where it is at most linear, hence this
+respects the condition of the cheater’s Lemma 2.1.
+    The algorithm depicts that q3 ∈ CD ◦ Lin when the database satisfies ∆− (D) =
+O(1).
+
+
+Lemma .10. If ∆+ (D) = O(1), then there is a CD ◦ Lin algorithm that enumerates
+q on D.
+
+Proof. Consider Algorithm 9. Completeness and soundness are left to the reader
+(nothing hard in it). For the complexity, one can note that:
+    • For every z2 , there is only a constant number of z1 , except for a constant
+      number of z2 where there is at most a linear number of z1 , hence the first
+      chain of loop is respecting the conditions of cheater’s Lemma 2.1.
+    • On the second chain of for-loop, each z1 gives a constant number of x4 except
+      a constant number of z1 which gives at most a linear number of x4 , hence each
+      solution is duplicated a constant number of times, except a constant number
+      of solutions which is printed at most a linear number of times. Hence, this
+      loop too satisfies the conditions of cheater’s Lemma 2.1
+    Hence, if ∆+ (D) = O(1), the enumeration of q3 is in CD ◦ Lin.
+
+Proposition .11. If min(∆− (D), ∆+ (D)) = O(1), then there is a CD ◦ Lin algo-
+rithm that enumerates q3 on D.
+Proof. Direct from Lemma .9 and Lemma .10.
+
+   All the algorithms presented in this subsection can be scaled easily to any mem-
+ber of the family Fig. 8.
+
+                                               26
+

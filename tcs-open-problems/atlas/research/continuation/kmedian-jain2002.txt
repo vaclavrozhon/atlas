@@ -1,0 +1,773 @@
+        A new greedy approach for facility location problems
+                                                                [Extended Abstract]
+                         Kamal Jain                               Mohammad Mahdian                                   Amin Saberi
+                    Microsoft Research                      Laboratory for Computer Science                      College of Computing
+                    One Microsoft Way                                     M.I.T.                                     Georgia Tech
+                   Redmond, WA 98052                            Cambridge, MA 02139                               Atlanta, GA 30332
+               kamalj@microsoft.com                                 mahdian@mit.edu                           saberi@cc.gatech.edu
+
+
+ABSTRACT                                                                                   tion algorithm for this problem was a 1.728-approximation
+We present a simple and natural greedy algorithm for the                                   algorithm due to Charikar and Guha [4]. This algorithm
+metric uncapacitated facility location problem achieving an                                marginally improves an LP-rounding-based algorithm of Chu-
+approximation guarantee of 1.61. We use this algorithm to                                  dak and Shmoys [7, 8] using the ideas of cost scaling, greedy
+  nd better approximation algorithms for the capacitated fa-                               augmentations, and a primal-dual algorithm of Jain and
+cility location problem with soft capacities and for a common                              Vazirani [18]. The drawback of LP-rounding-based algo-
+generalization of the k-median and facility location prob-                                 rithms is that they need to solve large linear programs and
+lems. We also prove a lower bound of 1+ 2=e on the approx-                                 therefore have a high running time. Charikar and Guha [4]
+imability of the k-median problem. At the end, we present                                  also present an O(n3 ) algorithm with approximation ratio
+a discussion about the techniques we have used in the anal-                                1.853. Mahdian et al. [23] show that a simple greedy algo-
+ysis of our algorithm, including a computer-aided method                                   rithm (similar to the greedy set-cover algorithm of Hochbaum
+for proving bounds on the approximation factor.                                            [16]) achieves an approximation ratio of 1.861 in O(n2 log n)
+                                                                                           time. For the case of sparse graphs, Thorup [30] gives a
+                                                                                           faster (3 + o(1))-approximation algorithm. Regarding hard-
+1.     INTRODUCTION                                                                        ness results, Guha and Khuller [13] proved that it is impossi-
+   In the (uncapacitated) facility location problem, we have                               ble to get an approximation guarantee of 1.463 for the metric
+a set F of nf facilities and a set C of nc cities. For every fa-                           facility location problem, unless NP  DTIME[nO(log log n) ].
+cility i 2 F , a nonnegative number fi is given as the opening                             Shmoys [27] provides a survey of the problem.
+cost of facility i. Furthermore, for every facility i 2 F and                                 In this paper, we present a simple and natural heuris-
+city j 2 C , we have a connection cost (a.k.a. service cost)                               tic algorithm for the facility location problem achieving an
+cij between facility i and city j . The objective is to open a                             approximation factor of 1.61 with the running time O(n3 ).
+subset of the facilities in F , and connect each city to an open                           This algorithm is an improvement of the greedy algorithm
+facility so that the total cost is minimized. We will consider                             of Mahdian et al [23]. We use the method of dual tting
+the metric version of this problem, i.e., the connection costs                             for the analysis of this algorithm. In this method, the al-
+satisfy the triangle inequality.                                                           gorithm computes a solution to the problem together with
+   This problem has many applications in operations research                               an infeasible dual-solution with the same value. The ap-
+[9, 21], and recently in network design problems such as                                   proximation factor of the algorithm can be computed as the
+placement of routers and caches [14, 22], agglomeration of                                 factor by which we need to shrink the dual solution to make
+traÆc or data [1, 15], and web server replications in a con-                               it feasible. In order to compute this factor, we express the
+tent distribution network (CDN) [19, 26]. In the last decade                               constraints imposed by the problem statement and our al-
+this problem was studied extensively from the perspective                                  gorithm as linear inequalities. This allows us to bound the
+of approximation algorithms [2, 4, 6, 7, 8, 13, 18, 20, 28, 30].                           factor by solving a particular series of linear programs, which
+   Di erent approaches such as LP rounding, primal-dual                                    we call factor-revealing LPs. A more detailed treatment of
+method, local search, and combinations of these methods                                    these techniques will appear in Jain et al [17].
+with cost scaling and greedy postprocessing are used to solve                                 The technique of factor-revealing LPs is similar to the
+the facility location problem and its variants. At the time of                             idea of LP bounds in coding theory. LP bounds give the
+submission of the present paper, the best known approxima-                                 best known bounds on the minimum distance of a code with
+                                                                                           a given rate by bounding the solution of a linear program.
+                                                                                           (cf. McEliece et al. [25]). In the context of approxima-
+                                                                                           tion algorithms, Goemans and Kleinberg [11] use a similar
+Permission to make digital or hard copies of all or part of this work for                  method in the analysis of their algorithm for the minimum
+personal or classroom use is granted without fee provided that copies are                  latency problem.
+not made or distributed for profit or commercial advantage and that copies                    The factor-revealing LP enables us to compute the ap-
+bear this notice and the full citation on the first page. To copy otherwise, to            proximation ratio of the algorithm empirically, and provides
+republish, to post on servers or to redistribute to lists, requires prior specific         a straightforward way to prove a bound on the approxima-
+permission and/or a fee.
+STOC’02, May 19-21, 2002, Montreal, Quebec, Canada.
+                                                                                           tion ratio. In the case of our algorithm, this technique also
+Copyright 2002 ACM 1-58113-495-9/02/0005 ...$5.00.                                         enables us to compute the tradeo between the approxima-
+
+
+                                                                                     731
+tion ratio of the facility costs versus the approximation ratio         [24], combines our algorithm with the idea of cost scaling to
+of the connection costs. The algorithm, its analysis, and a             achieve an approximation factor of 1.52.
+discussion about this tradeo are presented in Sections 2, 3,
+and 4, respectively.                                                    2. THE ALGORITHM
+   Among all known algorithms for the facility location prob-
+lem, the primal-dual algorithm of Jain and Vazirani [18] is                The facility location problem can be captured by a com-
+perhaps the most versatile one in that it can be used to                monly known integer program due to Balinski [3]. For the
+obtain algorithms for other variants of the problem. This               sake of convenience, we give another equivalent formulation
+versatility is partly because of a property of the algorithm            for the problem. Let us say that a star consists of one facil-
+which makes it possible to apply the Lagrangian relaxation              ity and several cities. The cost of a star is the sum of the
+technique. We call this property the Lagrangian multiplier              opening cost of the facility and the connection costs between
+preserving property. We will prove in Section 5 that our al-            the facility and all the cities in the star. Let S be the set of
+gorithm also has this property with an approximation factor             all stars. The facility location problem can be thought of as
+better than the primal-dual algorithm. This enables us to               picking a minimum cost set of stars such that each city is in
+obtain algorithms for some variants of the facility location            at least one star. This problem can be captured by the fol-
+problem, such as the k-facility location problem and the ca-            lowing integer program. In this program, xS is an indicator
+pacitated facility location problem with soft capacities. In            variable denoting whether star S is picked and cS denotes
+the k-facility location problem an instance of the facility lo-         the cost of star S .
+cation problem and an integer k are given and the objective                                  X
+is to nd the cheapest solution that opens at most k facili-                    minimize             cS xS                            (1)
+ties. This problem is a common generalization of the facility                                S 2S
+location and k-median problems. The k-median problem is                                                      X
+studied extensively [2, 4, 5, 18] and the best known approx-                   subject to    8j 2 C :                 xS  1
+imation algorithm for this problem, due to Arya et al. [2],                                                 S :j 2S
+achieves a factor of 3+ . The k-facility location problem has                               8S 2 S : xS 2 f0; 1g
+also been studied in operations research [9], and the best pre-
+viously known approximation factor for this problem was 6               The LP-relaxation of this program is:
+[18]. In this paper, we present a 4-approximation algorithm                                  X
+for this problem. We will also give a 3-approximation algo-                    minimize             cS xS                            (2)
+rithm for a capacitated version of the facility location prob-                               S 2S
+lem, in which we are allowed to open more than one facility                                                  X
+at any location. We will refer to this problem as the capaci-                  subject to    8j 2 C :                 xS  1
+tated facility location problem with soft capacities. The best                                              S :j 2S
+previously known approximation algorithm for this problem                                    8S 2 S : xS  0
+has a factor of 3.46, and is based on the facility location al-
+gorithm of Charikar and Guha [4] together with the observa-             The dual program is:
+tion that any -approximation algorithm for the uncapac-                                      X
+itated facility location problem yields a 2 -approximation                     maximize              j                               (3)
+algorithm for the capacitated facility location problem with                                 j2C
+soft capacities.                                                                                                 X
+   In Section 6, we will state some lower bound results. We                    subject to    8S 2 S :                     j    cS
+prove that the k-median problem cannot be approximated                                                      j 2S \    C
+within a factor strictly less than 1 + 2=e, unless NP 
+DTIME[nO(log log n) ]. This is an improvement over a lower
+                                                                                             8j 2 C :        j   0
+bound of 1 + 1=e due to Guha [12]. This result shows that                  We can think of the variable j in the dual program as
+k-median is a strictly harder problem to approximate than               the share of city j toward the total expenses. Now, suppose
+the facility location problem. We will also see a lower bound           we have an algorithm that nds a solution for the facility
+on the best tradeo we can hope to achieve between the ap-
+proximation factors for the facility cost and the connection                  P problem of cost T , and values Pj for j 2 C such
+                                                                        location
+                                                                        that j 2C j = T and for every star S , j 2S \C j  cS ,
+cost in the facility location problem.                                  where  1 is a xed number. Then the approximation
+   In Section 7 we will see a general discussion about the              ratio of the algorithm is at most , since if for every facility
+method used to analyze the algorithms in this paper. The                i that is opened in the optimal solution and the collection
+important feature of this technique is that the most diÆcult            A
+part of the analysis, which is proving a bound on the solution          Pof citiesthat   arePconnected to it, we write the inequality
+                                                                                       (fi + j 2A cij ) and add up these inequalities,
+of the factor-revealing LP, can be done almost automatically               j 2A j
+                                                                        we will obtain that the cost of our solution is at most times
+using a computer. We will use the set cover problem as an               the cost of the optimal solution. Another way of looking at
+example to illustrate the technique of using factor-revealing           this
+LPs.                                                                    P is fromthec perspective      of LP-duality. The inequality
+   Since the submission of the present paper, two new al-                  j 2S \C j       S implies that  if we shrink j 's by a factor
+                                                                        of , we obtain a feasible dual solution.  P The value of this
+gorithms have been proposed for the facility location prob-             feasible solution for the dual, which is j 2C j = = T= , is
+lem. The rst algorithm, due to Sviridenko [29], uses the                a lower bound on the cost of the optimum.
+LP-rounding method to achieve an approximation factor of                   This method, which is called dual tting, can be consid-
+1.58. The second algorithm, due to Mahdian, Ye, and Zhang               ered a primal-dual type method. The only di erence is that
+
+
+                                                                  732
+in primal-dual algorithms, we usually relax the complemen-                Lemma 1. The total cost of the solution found by the
+tary slackness conditions to obtain a solution for the primal           above algorithm is equal to the sum of j 's.
+and a solution for the dual so that the ratio of the values
+of the objective functions for these two solutions is bounded              The above algorithm is similar to the greedy algorithm
+by the approximation factor of the algorithm. However, in               of Mahdian et al [23]. The only di erence is that in [23],
+the dual tting scheme we relax the inequalities in the dual             cities stop o ering money to facilities as soon as they get
+program. Therefore, the algorithm nd a solution for the                 connected to a facility, but in our algorithm, they still o er
+primal, and an infeasible solution for the dual with the same           some money (the amount that they could save by switching
+value for the objective function. The amount by which the               their facility) to other facilities. As a result, our algorithm
+dual inequalities are relaxed (or in other words, the amount             nds a solution that cannot be improved just by opening
+by which we must shrink the dual solution so that it ts the             new facilities, and therefore it cannot be improved by the
+dual) will give a bound on the approximation factor of the              greedy augmentation procedure of Charikar and Guha [4],
+algorithm. This fact is the basis of our analysis. See Jain et          whereas the solution found by the algorithm of Mahdian et
+al. [17] or Mahdian et al. [23] for a more detailed discussion          al. [23] does not possess this property. As we will see in the
+of this technique.                                                      next section, this change reduces the approximation factor
+                                                                        of the algorithm from 1.86 to 1.61.
+Algorithm 1
+  1. We introduce a notion of time. The algorithm starts                3. ANALYSIS OF THE ALGORITHM
+     at time 0. At this time, all cities are unconnected, all              In this section we compute the approximation ratio of Al-
+     facilities are unopened, and the budget of every city j ,          gorithm 1. By the comments before Algorithm 1, we know
+     denoted by Bj , is initialized to 0. At every moment,              that in order to prove an approximation guarantee of , it
+     each city j o ers some money from its budget to each               is enough to show that for every star S , the sum of j 's of
+     unopened facility i. The amount of this o er is com-               the cities in S is at most times the cost of S . In order
+     puted as follows: If j is unconnected, the o er is equal           to compute such a , in Section 3.1 we will de ne an op-
+     to max(Bj cij ; 0) (i.e., if the budget of j is more               timization program (called the factor-revealing LP) whose
+     than the cost that it has to pay to get connected to i,            solution gives the value of . In Section 3.2 we will use the
+     it o ers to pay this extra budget to i); If j is already           factor-revealing LP to prove an upper bound of 1.61 on the
+     connected to some other facility i0 , then its o er to             approximation ratio of Algorithm 1. A discussion of this
+     facility i is equal to max(ci j cij ; 0) (i.e., the amount
+                                 0                                      technique is presented in Section 7.
+     that j o ers to pay to i is equal to the amount j would
+     save by switching its facility from i0 to i).                      3.1 Deriving the factor-revealing LP
+                                                                           In this section, we express various constraints that are
+  2. While there is an unconnected city, increase the time,             imposed by the problem or by the structure of the algorithm
+     and simultaneously, increase the budget of each uncon-             as inequalities so that we can get a bound on the value of
+     nected city at the same rate (i.e., every unconnected              de ned above by solving a series of linear programs.
+     city j has Bj = t at time t), until one of the follow-                Consider a star S consisting of a facility of opening cost
+     ing events occur. If multiple events occur at the same             f (with a slight misuse of the notation, we call this facility
+     time, process them in an arbitrary order.                          f ), and k cities numbered 1 through k. Let dj denote the
+                                                                        connection cost between facility f and city j , and j denote
+      (a) For some unopened facility i, the total o er that             the share of j of the expenses, as de ned in Algorithm 1.
+          it receives from cities is equal to the cost of open-         We may assume without loss of generality that
+          ing i. In this case, we open facility i, and for ev-
+          ery city j (connected or unconnected) which has a                      1      2        k:                            (4)
+          non-zero o er to i, we connect j to i. The amount
+          that j had o ered to i is now called the contribu-               We need more variables to capture the execution of Al-
+          tion of j toward i, and j is no longer allowed to             gorithm 1. For every i (1  i  k), consider the situation
+          decrease this contribution.                                   of the algorithm at time t = i , where  is very small,
+      (b) For some unconnected city j , and some facility i             i.e., just a moment before city i gets connected for the rst
+          that is already open, the budget of j is equal to             time. At this time, each of the cities 1; 2; : : : ; i 1 might be
+          the connection cost between j and i. In this case,            connected to a facility. For every j < i, if city j is connected
+          we connect city j to facility i. The contribution             to some facility at time t, let rj;i denote the connection cost
+          of j toward i is zero.                                        between this facility and city j ; otherwise, let rj;i := j .
+                                                                        The latter case occurs if and only if i = j . It turns out
+  3. For every city j , set j (the share of j of the total              that these variables (f , dj 's, j 's, and rj;i 's) are enough to
+     expenses) equal to the budget of j at the end of algo-             write down some inequalities to boundP the ratio of the sum
+     rithm. Notice that this value is also equal to the time            of j 's to the cost of S (i.e., f + kj=1 dj ).
+     that j rst gets connected.                                            First, notice that once a city gets connected to a facility,
+                                                                        its budget remains constant and it cannot revoke` its contri-
+   At any time during the execution of this algorithm, the              bution to a facility, so it can never get connected to another
+budget of each connected city is equal to its current connec-           facility with a higher connection cost. This implies that for
+tion cost plus its total contribution toward open facilities.           every j ,
+The following fact should be obvious from the description of
+the algorithm.                                                                 rj;j +1  rj;j +2      rj;k :                    (5)
+
+
+                                                                  733
+   Now, consider time t = i . At this time, the amount                                                          k     maxik zi
+city j o ers to facility f is equal to                                                                           10    1.54147
+                                                                                                                 20    1.57084
+
+        max(rj;i dj ; 0)         if j < i; and                                                                   50    1.58839
+
+        max(t dj ; 0)            if j  i:                                                                       100
+                                                                                                                 200
+                                                                                                                       1.59425
+                                                                                                                       1.59721
+
+
+  Notice that by the de nition of rj;i this holds even if j < i
+                                                                                                                 300   1.59819
+                                                                                                                 400   1.59868
+and i = j . It is clear from Algorithm 1 that the total                                                          500   1.59898
+o er of cities to a facility can never become larger than the
+opening cost of the facility. Therefore, for all i,
+                                                                                              Table 1: Solution of the factor-revealing LP
+       X
+       i 1                           X
+                                     k
+              max(rj;i   dj ; 0) +           max( i           dj ; 0)  f: (6)
+       j =1                          j =i                                                    Lemma 3. Let zk be the solution of the factor-revealing
+                                                                                          LP, and := supk fzk g. Then Algorithm 1 solves the metric
+   The triangle inequality is another important constraint                                facility location problem with an approximation factor of .
+that we need to use. Consider cities i and j with j < i at
+time t = i . Let f 0 be the facility j is connected to                                   3.2 Solving the factor-revealing LP
+at time t. By the triangle inequality and the de nition of                                   As mentioned earlier, the optimization program 8 can be
+rj;i , the connection cost cf i between city i and facility f 0
+                                 0
+                                                                                          written as a linear program. This enables us to use an LP-
+is at most rj;i + di + dj . Furthermore, cf i can not be less
+                                                          0
+                                                                                          solver to solve the factor-revealing LP for small values of k,
+than t, since if it is, our algorithm could have connected the                            in order to compute the numerical value of . Table 1 shows
+city i to the facility f 0 at a time earlier than t, which is a                           a summary of results that are obtained by solving the factor-
+contradiction. Here we need to be careful with the special                                revealing LP using CPLEX. It seems from the experimental
+case i = j . In this case, rj;i + di + dj is not more than                                results that zk is an increasing sequence that converges to
+t. If i 6= j , the facility f 0 is open at time t and therefore                           some number close to 1:6 and hence  1:6.
+city i can get connected to it, if it can pay the connection                                 By solving the factor-revealing LP for any particular value
+cost. Therefore for every 1  j < i  k,                                                  of k, we get a lower bound on the value of . In order to
+                                                                                          prove an upper bound on , we need to present a general so-
+        i    rj;i + di + dj :                                                (7)         lution to the dual of the factor-revealing LP. Unfortunately,
+  The above inequalities form the following optimization                                  this is not an easy task in general. (For example, perform-
+program, which we call the factor-revealing LP.                                           ing a tight asymptotic analysis of the LP bound is still an
+                                                                                          open question in coding theory). However, here empirical
+                  Pk                                                                      results can help us: we can solve the dual of the factor-
+                   i=1 i
+ maximize          P
+                 f+ k d
+                                                                              (8)         revealing LP for small values of k to get an idea how the
+                         i=1 i                                                            general optimal solution looks like. Using this, it is usually
+ subject to      81  i < k : i  i             +1
+                                                                                          possible (although sometimes tedious) to prove a close-to-
+                                                                                          optimal upper bound on the value of zk . We have used this
+                 8 1  j < i < k : rj;i  rj;i          +1                                technique to prove an upper bound of 1:61 on . The proof
+                 8 1  j < i  k : i  rj;i + di + dj                                     of this upper bound is presented in Appendix A. Also, we
+                                                                                          can use the optimal solution of the factor-revealing LP to
+                               X
+                               i         1
+                                                                                          construct an example on which our algorithm performs at
+                 81  i  k :      max(rj;i dj ; 0)
+                                                                                          least zk times worse than the optimum. The proof of this
+                               j
+                                  Xk
+                                     =1
+                                                                                          fact is omitted here. These results imply the following.
+                                     +          max( i          dj ; 0)  f
+                                         j =i                                                Theorem 4. Algorithm 1 solves the facility location prob-
+
+                 81  j  i  k :            j ; dj ; f; rj;i   0                        lem in time O(n3 ), where n = max(nf ; nc ). Its approxima-
+                                                                                          tion ratio is equal to the supremum of the solution of the
+  Notice that although the above optimization program is                                  maximization program 8, which is less than 1.61, and more
+not written in the form of a linear program, it is easy to                                than 1.598.
+change it to a linear program by introducing new variables
+and inequalities.                                                                         4. THE TRADEOFF BETWEEN FACILITY
+   Lemma 2. If zk denotes the solution of the factor-revealing                               AND CONNECTION COSTS
+LP, then for every star S consisting of a facility and k cities,                            We de ned the cost of a solution in the facility location
+the sum of j 's of the cities in S in Algorithm 1 is at most                              problem as the sum of the facility cost (i.e., total cost of
+zk cS .                                                                                   opening facilities) and the connection cost. We proved in
+   Proof. Inequalities 4, 5, 6, and 7 derived above imply                                 the previous section that Algorithm 1 achieves an overall
+that the values j ; dj ; f; rj;i that we get by running Algo-                             performance guarantee of 1.61. However, sometimes it is
+rithm 1 constitute a feasible solution of the factor-revealing                            useful to get di erent approximation guarantees for facility
+LP. Thus, the value of the objective function for this solution                           and connection costs. The following theorem gives such a
+is at most zk .                                                                           guarantee. The proof is similar to the proof of Lemma 3.
+Lemmas 1 and 2 imply the following.                                                          Theorem 5. Let f  1 and c := supk fzk g, where zk is
+                                                                                          the solution of the following optimization program.
+
+
+                                                                                    734
+      2                                                                                                 of facilities that can be opened, as well as costs for opening
+                                                                                                        facilities. Jain and Vazirani [18] reduced the k-median prob-
+                                                                                                        lem to the facility location problem in the following sense:
+                                                                                                        Suppose A is an approximation algorithm for the facility lo-
+     1.8
+
+
+
+     1.6                                                                                                cation problem. Consider an instance I of the problem with
+                                                                                                        optimum cost OP T , and let F and C be the facility and
+     1.4                                                                                                connection costs of the solution found by A. Algorithm A is
+                                                                                                        called a Lagrangian Multiplier Preserving -approximation
+                                                                                                        (or LMP -approximation for short) if for every instance
+                                                                                                        I , C  (OP T F ): Jain and Vazirani [18] show that an
+     1.2
+
+
+
+                                                                                                        LMP -approximation algorithm for the metric facility lo-
+           1     1.2   1.4         1.6   1.8        2         2.2   2.4   2.6   2.8     3
+
+
+
+               Figure 1: The tradeo between f and c                                                     cation problem gives rise to a 2 -approximation algorithm
+                                                                                                        for the metric k-median problem. They have noted that this
+                       Pk                                                                               result also holds for the k-facility location problem.
+                                               f                                                           Lemma 6. [18] An LMP
+ maximize                     Pk i d f
+                             i=1                                                            (9)                                            -approximation algorithm for
+                                   i=1 i                                                                the facility location problem gives a 2 -approximation algo-
+                                                                                                        rithm for the k-facility location problem.
+ subject to            81  i < k : i  i                     +1
+
+                       8 1  j < i < k : rj;i  rj;i                                                       In this section, we give an LMP 2-approximation algo-
+                                                                     +1
+                                                                                                        rithm for the metric facility location problem based on Al-
+                       8 1  j < i  k : i  rj;i + di + dj                                             gorithm 1. This will result in a 4-approximation algorithm
+                                     X
+                                     i              1                                                   for the metric k-facility location problem, whereas the best
+                       81  i  k :      max(rj;i dj ; 0)                                               previously known was 6 [18].
+                                     j                                                                     In the capacitated facility location problem, for every fa-
+                                        Xk
+                                                   =1
+                                                                                                        cility, there is one more parameter, which indicates the ca-
+                                                   +          max( i      dj ; 0)  f                   pacity of this facility, i.e., the number of cities it can serve.
+                                                       j =i
+                                                                                                        We will refer to the version of this problem in which we are
+             8 1  j  i  k : j ; dj ; f; rj;i  0                                                     allowed to open each facility more than once as the capaci-
+                                                                                                        tated facility location problem with soft capacities. Jain and
+Then for every instance I of the facility location problem,                                             Vazirani [18] show that their facility location algorithm gives
+and for every solution SOL for I with facility cost FSOL                                                rise to a 4-approximation algorithm for the metric capaci-
+and connection cost CSOL , the cost of the solution found by                                            tated facility location problem with soft capacities. One can
+Algorithm 1 is at most f FSOL + c CSOL .                                                                easily generalize their result to the following lemma. This
+                                                                                                        lemma, together with our LMP 2-approximation facility lo-
+   We have computed the solution of the optimization pro-                                               cation algorithm gives a 3-approximation algorithm for the
+gram 9 for k = 100, and several values of f between 1                                                   metric capacitated facility location problem with soft capac-
+and 3, to get an estimate of the corresponding c 's. The                                                ities.
+result is shown in the diagram in Figure 1. Every point
+( f ; c0 ) on the thick line in this diagram represents a value                                            Lemma 7. An LMP            -approximation algorithm for the
+of f , and the corresponding estimate for the value of c .                                              metric uncapacitated facility location problem leads to an
+The dashed line shows a lower bound that holds unless                                                   ( + 1)-approximation algorithm for the metric capacitated
+NP  DTIME[nO(log log n) ] and is stated in Section 6. Sim-                                             facility location problem with soft capacities.
+ilar tradeo problems are considered by Charikar and Guha                                                   Now we show that there is an LMP 2-approximation al-
+[4]. However, an important advantage that we get here is                                                gorithm for the metric facility location problem. The proof
+that all the inequalities ALG  f FSOL + c CSOL are sat-                                                is based on Theorem 5 together with the scaling technique
+is ed by a single algorithm. In the next section, we will                                               of Charikar and Guha [4]. We prove the following lemma
+use the point f = 1 of this tradeo to design algorithms                                                 using this technique.
+for other variants of the facility location problem. Other
+points of this tradeo can also be useful in designing other                                                Lemma 8. Assume there is an algorithm A for the metric
+
+algorithms based on our algorithm. For example, Mahdian,                                                facility location problem such that for every instance I and
+Ye, and Zhang [24] use the point f = 1:1 of this tradeo                                                 every solution SOL for I , A nds a solution of cost at most
+to obtain a 1.52-approximation algorithm for the metric fa-                                             FSOL + CSOL , where FSOL and CSOL are facility and con-
+cility location problem, which is currently the best known                                              nection costs of SOL, and is a xed number. Then there
+algorithm for this problem.                                                                             is an LMP -approximation algorithm for the metric facility
+                                                                                                        location problem.
+                                                                                                           Proof. Consider the following algorithm: The algorithm
+5.         VARIANTS OF THE PROBLEM                                                                      constructs another instance I 0 of the problem by multiplying
+   The k-median problem di ers from the facility location                                               the facility opening costs by , runs A on this modi ed
+problem in two respects: there is no cost for opening fa-                                               instance I 0 , and outputs its answer. It is easy to see that
+cilities, and there is an upper bound k, that is supplied as                                            this algorithm is an LMP -approximation.
+part of the input, on the number of facilities that can be                                              Now we only need to prove the following. The proof of
+opened. The k-facility location problem is a common gen-                                                this theorem follows the general scheme that is explained in
+eralization of k-median and the facility location problem.                                              Section 7.
+In this problem, we have an upper bound k on the number
+
+
+                                                                                                  735
+   Theorem 9. For every instance I and every solution SOL                   6. LOWER BOUNDS
+for I , Algorithm 1 nds a solution of cost at most FSOL +                      In this section we explore some impossibility results. Our
+2CSOL , where FSOL and CSOL are facility and connection                      rst result is the following theorem, which together with
+costs of SOL.                                                               Feige's result on the hardness of set-cover [10] shows that
+                                                                            there is no (1+ 2e )-approximation algorithm for k-median,
+   Proof. By Theorem 5 we only need to prove that the                       unless NP  DTIME[nO(log log n) ]. The proof is similar to
+solution of the factor-revealing LP 9 with f = 1 is at most 2.              the one used by Guha and Khuller [13] to prove the hardness
+We rst write the maximization program 9 as the following                    of the metric facility location problem, and is omitted in this
+equivalent linear program.                                                  extended abstract.
+              X
+              k                                                                Theorem 10. Metric k -median problem cannot be approx-
+ maximize            i   f                                     (10)         imated within a factor strictly smaller than 1+ 2e unless min-
+              i=1                                                           imum set-cover can be approximated within a factor of c ln n
+                                                                            for c < 1.
+              X
+              k
+ subject to         di = 1                                                     This theorem improves a lower bound of 1+ 1e due to Guha
+              i=1
+                                                                            [12]. Notice that the above theorem proves that k-median
+              81  i < k : i i  0          +1                              is a strictly harder problem to approximate than the facility
+              8 1  j < i < k : rj;i rj;i  0
+                                           +1
+                                                                            location problem because the latter can be approximated
+                                                                            within a factor of 1.61.
+              8 1  j < i  k : i rj;i di dj  0                               We also adapt the proof of Charikar and Guha [13] to
+              8 1  j < i  k : rj;i di gi;j  0                            show the following lower bound on the tradeo results. The
+                                                                            dashed line in Figure 1 shows the lower bound provided by
+              8 1  i  j  k : i dj hi;j  0                               the following theorem.
+                            X
+                            i       1 X
+                                      k
+              81  i  k :      gi;j + hi;j f  0                              Theorem 11. Let f and c be constants with c < 1 +
+                                 j =1            j =i                       2e f . Assume there is an algorithm A such that for every
+              8 i; j :   j ; dj ; f; rj;i ; gi;j ; hi;j   0                instance I of the metric facility location problem, A nds a
+                                                                            solution whose cost is not more than f FSOL + c CSOL for
+We need to prove an upper bound of 2 on the solution of the                 every solution SOL for I with facility and connection costs
+above LP. Since this program is a maximization program, it                  FSOL and CSOL . Then minimum set-cover can be approxi-
+is enough to prove the upper bound for any relaxation of                    mated within a factor of c ln n for c < 1.
+the above program. Numerical results (for a xed value of
+k, say k = 100) suggest that removing the second, third,                      The above theorem shows that nding an LMP (1 + 2e
+and seventh inequalities of the above program does not its                  )-approximation for the metric facility location problem is
+solution. Therefore, we can relax the above program by                      hard. Also, the integrality gap examples found by Guha [12]
+removing these inequalities. Now, it is a simple exercise                   show that Lemma 6 is tight. This shows that one cannot
+to write down the dual of the relaxed linear program and                    use Lemma 6 as a black box to obtain a smaller factor than
+compute its optimal solution. This solution corresponds to                  2 + 4e for k-median problem. Note that 3 +  approximation
+multiplying the third, fourth, fth, and sixth inequalities of               is already known [2] for the problem. Hence if one wants to
+the linear program 10 by 1=k, and the rst one by (2 1=k),                   beat this factor using the Lagrangian relaxation technique
+and adding up these inequalities. This gives an upper bound                 then it will be necessary to look into the underlying LMP
+of 2 1=k on the value of the objective function. Thus, for                  algorithm as already been done by Charikar and Guha [4].
+  f = 1, we have c  2. In fact, c is precisely equal to 2,
+as shown by the following solution for the program 9.                       7. THE FACTOR-REVEALING LP TECH-
+                                                                              NIQUE
+                2    1
+                         i=1                                                   In this section, we elaborate on the technique of using
+         i=          k
+                2        2ik                                              factor-revealing LPs which we used to analyze the algo-
+             
+        di = 10      i=1                                                    rithms in this paper. We demonstrate this technique by
+                     2ik                                                  applying it in combination with dual tting to a classical
+                                                                           greedy algorithm for the set cover problem. We also explain
+       rj;i = 12     j=1
+                     2jk                                                  how we can use computers to predict and prove bounds on
+                                                                            the solution to the factor-revealing LP. Similar methods are
+         f = 2(k    1)                                                      used in Mahdian et al. [23] and Goemans and Kleinberg [13].
+                                                                               A re-statement of the greedy algorithm for the set cover
+This example shows that the above analysis of the factor-                   problem is as follows. All uncovered elements raise their
+revealing LP is tight.                                                      dual-variables until a new set S goes tight (i.e., its cost
+                                                                            equals the sum of the values of the dual variables of its
+  Lemma 8 and Theorem 9 provide an LMP 2-approximation                      elements). At this point, the set S is picked. Newly cov-
+algorithm for the metric facility location problem. This re-                ered elements pay for the cost of S with their dual values.
+sult improves all the results in Jain and Vazirani [18], and                In doing so, they withdraw their contributions o ered to-
+gives straightforward algorithms for some other problems                    wards the cost of any other set. This ensures that at the
+considered by Charikar et al [6].                                           end of the algorithm the total contribution of the elements
+
+
+                                                                      736
+is equal to the sum of the cost of the picked sets. However,               using these techniques.
+we might not get a feasible dual solution. To make the dual                   Since the factor-revealing LP provides an upper bound on
+solution feasible we look for the smallest positive number Z ,             the approximation ratio of the algorithm, we can relax some
+so that when the dual solution is shrunk by a factor of Z ,                of the constraints of this LP to make it simpler. After each
+it becomes feasible. An upper bound on the approximation                   relaxation, we can use computers to verify that this relax-
+factor of the algorithm is obtained by maximizing Z over all               ation does not change the value of the objective function
+possible instances. This technique is called dual tting and                drastically. After simplifying the factor-revealing LP in this
+is explained in detail in Mahdian et al [23]. In this section,             way, we can nd an upper bound on its solution by nding
+we focus on the factor-revealing LP technique, which is used               a feasible solution for its dual for every k. Again, here we
+to estimate the value of Z .                                               can use a computer to solve the dual linear program for a
+   Clearly Z is also the maximum factor by which any set is                couple hundred values of k, to observe a trend in the values
+over-tight. Consider any set S . We want to see what is the                of the optimal dual solution. After guessing a sequence of
+worst factor, over all sets and over all possible instances of             dual solutions, one has to theoretically verify their feasibil-
+the problem, by which a set S is over-tight. Let the elements              ity. For complicated linear programs, it is usually a good
+in S be 1; 2;    ; k. Let xi be the dual variable corresponding         idea to throw in a few parameters (like p1 and p2 in the
+to the element i at the end of the algorithm. Without loss                 proof of Theorem 4 in Appendix A), guess a general dual
+of generality we may assume that x1  x2      xk . It                 solution in terms of these parameters, and optimize over the
+is easy to see that at time t = xi , total duals o ered to                 choice of these parameters at the end.
+S is at least (k i + 1)xi . Therefore, this value cannot be                   Note that in general this technique does not guarantee
+greater than the cost of the set S (denoted by cS ). So, the               the tightness of the analysis, because sometimes the algo-
+optimum solution of the following mathematical program                     rithm performs well not because of local structures but for
+gives an upper bound on the value of Z . (Note that cS is a                some global reasons. Still, in many cases one may get a
+variable not a constant).                                                  tight example from a feasible solution of the factor-revealing
+                                                                           LP. For example, from any feasible solution x of the factor-
+                      Pk x                                                 revealing LP 11, one can construct the following instance:
+                       i=1 i
+       maximize
+                         cS
+                                                             (11)          There are k elements 1; : : : ; k, a set S = f1; : : : ; kg of cost
+                                                                           1 +  which is the optimal solution, and sets Si = fig of
+       subject to     81  i < k : xi  xi  +1                             cost xi for i =P1; : : : ; k. It is easy to verify that our al-
+                      81  i  k : (k i + 1)xi  cS                        gorithm works xi times worst than the optimal on this
+                                                                           instance. This means that the approximation ratio of the
+                      81  i  k : xi  0                                  set cover algorithm is precisely equal to the solution of the
+                      cS  1                                               factor-revealing LP, which is Hn .
+
+   The above optimization program can be turned into a                     8. CONCLUDING REMARKS
+linear program by adding the constraint
+                                 P          cS = 1 and chang-                 A large fraction of the theory of approximation algorithms,
+ing the objective function to ki=1 xi . We call this linear                as we know it today, is built around the theory of linear
+program the factor-revealing LP. Notice that the factor-                   programming, which o ers the two fundamental algorithm
+revealing LP has nothing to do with the LP formulation                     design techniques of rounding and the primal-dual schema
+of the set cover problem; it is only used in order to analyze              (see Vazirani [31]). The technique of using dual tting with
+this particular algorithm. This is the important distinction               the factor-revealing LP appears to be a third emerging tech-
+between the factor-revealing LP technique, and other LP-                   nique.
+based techniques in approximation algorithms.                                 The technique that we used in this paper seems to be a
+   Once we formulate the analysis of the algorithm as a                    useful tool for analyzing greedy, heuristic, and local search
+factor-revealing LP, we can use computers to empirically                   algorithms. For many algorithms, the proof of the approxi-
+compute the upper bound given by the factor-revealing LP                   mation ratio is mainly based on combining several inequal-
+on the approximation ratio of the algorithm. This is very                  ities (usually linear inequalities) to derive a bound on the
+useful, since if the empirical results suggest that the factor-            approximation ratio. It might be possible to \automatize"
+revealing LP does not give us a good approximation ratio,                  such proofs using a method similar to the one used in this
+we can try adding other inequalities to the factor-revealing               paper. It would be interesting to nd other examples that
+LP. For this we might need to introduce new variables to                   apply this method.
+capture the execution of the algorithm more accurately, e.g.,                 When analyzing a problem using this method, we usually
+we needed to introduce the variables rj;i in Section 3.1 in                encounter the problem of nding the limit of the solution of a
+order to get a good bound on the approximation ratio of the                sequence of linear programs. This seems to be a very diÆcult
+algorithm.                                                                 task in general. It would be nice to develop a general method
+   The next step is to analyze the factor-revealing LP and                 for solving such problems. One possible idea is to consider
+derive an upper bound on the value of its solution. For                    the limit of the values of the variables in the optimal solution
+the set cover example above, this step is trivial, since the               as a continuous function, and derive functional equations
+factor-revealing LP associated with the algorithm is quite                 from the inequalities.
+simple. However, in general this can be the most diÆcult                      We have implemented our facility location algorithm, and
+step of the proof (as it is in the case of our algorithm and               run it on several randomly generated test cases. The test
+the algorithm of Mahdian et al. [23]). Here we can use                     cases were generated by considering shortest distance met-
+computers to get ideas about the proof, as explained below.                ric in a complete bipartite graph with random weights, or
+Proving Theorem 4 would have been very diÆcult without                     Euclidean distance metric among a set of random points as
+
+
+                                                                     737
+the connection costs. In all instances, the solution given by         [13] S. Guha and S. Khuller. Greedy strikes back:
+our algorithm was at most a factor of 1.05 away from the                   Improved facility location algorithms. Journal of
+lower bound obtained by solving the LP relaxation of the                   Algorithms, 31:228{248, 1999.
+problem. This shows that in practice our algorithm works              [14] S. Guha, A. Meyerson, and K. Munagala. Hierarchical
+much better than the guaranteed approximation ratio. A                     placement and network design problems. In
+theoretical explanation of this fact would be interesting.                 Proceedings of the 41th Annual IEEE Symposium on
+Acknowledgment. Section 7 was developed over time,                         Foundations of Computer Science, 2000.
+while the last two authors were also working on another               [15] S. Guha, A. Meyerson, and K. Munagala. Improved
+paper [23] with Vijay V. Vazirani and Evangelos Markakis.                  combinatorial algorithms for single sink edge
+We would like to thank Vijay Vazirani, Evangelos Markakis,                 installation problems. Technical Report
+Michel Goemans, Nicole Immorlica, and Milena Mihail for                    STAN-CS-TN00 -96, Stanford University, 2000.
+their helpful comments.                                               [16] D. S. Hochbaum. Heuristics for the xed cost median
+                                                                           problem. Mathematical Programming, 22(2):148{162,
+9.   REFERENCES                                                            1982.
+ [1] M. Andrews and L. Zhang. The access network design               [17] K. Jain, M. Mahdian, E. Markakis, A. Saberi, and
+     problem. In Proceedings of the 39th Annual IEEE                       V.V. Vazirani. Approximation algorithms for facility
+     Symposium on Foundations of Computer Science,                         location via dual tting with factor-revealing lp.
+     1998.                                                                 submitted to Combinatorica.
+ [2] V. Arya, N. Garg, R. Khandekar, A. Meyerson,                     [18] K. Jain and V.V. Vazirani. Primal-dual approximation
+     K. Munagala, and V. Pandit. Local search heuristics                   algorithms for metric facility location and k-median
+     for k-median and facility location problems. In                       problems. In Proceedings of the 40th Annual IEEE
+     Proceedings of 33rd ACM Symposium on Theory of                        Symposium on Foundations of Computer Science,
+     Computing, 2001.                                                      pages 2{13, October 1999.
+ [3] M.L. Balinski. On nding integer solutions to linear              [19] S. Jamin, C. Jin, Y. Jin, D. Raz, Y. Shavitt, and
+     programs. In Proc. IBM Scienti c Computing                            L. Zhang. On the placement of internet
+     Symposium on Combinatorial Problems, pages                            instrumentations. In Proceedings of IEEE
+     225{248, 1966.                                                        INFOCOM'00, pages 26{30, March 2000.
+ [4] M. Charikar and S. Guha. Improved combinatorial                  [20] M.R. Korupolu, C.G. Plaxton, and R. Rajaraman.
+     algorithms for facility location and k-median                         Analysis of a local search heuristic for facility location
+     problems. In Proceedings of the 40th Annual IEEE                      problems. In Proceedings of the 9th Annual
+     Symposium on Foundations of Computer Science,                         ACM-SIAM Symposium on Discrete Algorithms, pages
+     pages 378{388, October 1999.                                          1{10, January 1998.
+ [5] M. Charikar, S. Guha, E. Tardos, and D.B. Shmoys. A              [21] A.A. Kuehn and M.J. Hamburger. A heuristic
+     constant-factor approximation algorithm for the                       program for locating warehouses. Management
+     k-median problem. In Proceedings of the 31st Annual                   Science, 9:643{666, 1963.
+     ACM Symposium on Theory of Computing, pages                      [22] B. Li, M. Golin, G. Italiano, Deng X., and K. Sohraby.
+     1{10, May 1999.                                                       On the optimal placement of web proxies in the
+ [6] M. Charikar, S. Khuller, D. Mount, and                                internet. In Proceedings of IEEE INFOCOM'99, pages
+     G. Narasimhan. Facility location with outliers. In 12th               1282{1290, 1999.
+     Annual ACM-SIAM Symposium on Discrete                            [23] M. Mahdian, E. Markakis, A. Saberi, and V.V.
+     Algorithms, Washington DC, January 2001.                              Vazirani. A greedy facility location algorithm analyzed
+ [7] F.A. Chudak. Improved approximation algorithms for                    using dual tting. In Proceedings of 5th International
+     uncapacited facility location. In R.E. Bixby, E.A.                    Workshop on Randomization and Approximation
+     Boyd, and R.Z. Ros-Mercado, editors, Integer                        Techniques in Computer Science, volume 2129 of
+     Programming and Combinatorial Optimization,                           Lecture Notes in Computer Science, pages 127{137.
+     volume 1412 of Lecture Notes in Computer Science,                     Springer-Verlag, 2001.
+     pages 180{194. Springer, Berlin, 1998.                           [24] M. Mahdian, Y. Ye, and J. Zhang. Improved
+ [8] F.A. Chudak and D. Shmoys. Improved approximation                     approximation algorithms for metric facility location
+     algorithms for the uncapacitated facility location                    problems. Unpublished manuscript, 2002.
+     problem. unpublished manuscript, 1998.                           [25] R.J. McEliece, E.R. Rodemich, H. Rumsey Jr., and
+ [9] G. Cornuejols, G.L. Nemhauser, and L.A. Wolsey. The                   L.R. Welch. New upper bounds on the rate of a code
+     uncapacitated facility location problem. In                           via the delsarte-macwilliams inequalities. IEEE
+     P. Mirchandani and R. Francis, editors, Discrete                      Transactions on Information Theory, 23:157{166,
+     Location Theory, pages 119{171. John Wiley and Sons                   1977.
+     Inc., 1990.                                                      [26] L. Qiu, V.N. Padmanabhan, and G. Voelker. On the
+[10] U. Feige. A threshold of ln n for approximating set                   placement of web server replicas. In Proceedings of
+     cover. J. ACM, 45:634{652, 1998.                                      IEEE INFOCOM'01, Anchorage, AK, USA, April
+[11] M. Goemans and J. Kleinberg. An improved                              2001.
+     approximation ratio for the minimum latency problem.             [27] D.B. Shmoys. Approximation algorithms for facility
+     Mathematical Programming, 82:111{124, 1998.                           location problems. In K. Jansen and S. Khuller,
+[12] S. Guha. Approximation algorithms for facility location               editors, Approximation Algorithms for Combinatorial
+     problems. PhD thesis, Stanford University, 2000.                      Optimization, volume 1913 of Lecture Notes in
+
+
+                                                                738
+     Computer Science, pages 27{33. Springer, Berlin,                                    X
+                                                                                         p2 k             X
+                                                                                                          p2 k X
+                                                                                                               li
+                                                                                                                       dj       Xp2 k
+                                                                                                                                          1
+     2000.                                                                                        i               l i  i + 1
+                                                                                                                              +(
+                                                                                                                                      l i i+1
+                                                                                                                                              )f
+                                                                                         i=1              i=1 j =i               i=1
+[28] D.B. Shmoys, E. Tardos, and K.I. Aardal.
+     Approximation algorithms for facility location                                                         X
+                                                                                                            p2 k X
+                                                                                                                 i 1
+                                                                                                                           xj;i :
+     problems. In Proceedings of the 29th Annual ACM                                                                                                               (13)
+                                                                                                                       l
+                                                                                                              i=1 j =1 i
+                                                                                                                            i+1
+     Symposium on Theory of Computing, pages 265{274,
+     1997.
+[29] M. Sviridenko. An 1.582-approximation algorithm for                           Now for every j  p2 k, let yj := xj;p2 k . The second
+     the metric uncapacitated facility location problem. to                     inequality of the factor-revealing LP implies that xj;i  yj
+     appear in the Ninth Conference on Integer                                  for everyPj < i  p2 k and xj;i  yj for every i > p2 k. Also,
+     Programming and Combinatorial Optimization, 2002.                          let  := pi=1
+                                                                                            2k
+                                                                                               li i+1 . Therefore, inequality 13 implies
+                                                                                                  1
+
+[30] M. Thorup. Quick k-median, k-center, and facility
+     location for sparse graphs. In Automata, Languages
+     and Programming, 28th International Colloquium,                              X
+                                                                                  p2 k           X
+                                                                                                 p2 k X
+                                                                                                      li
+                                                                                                             dj                         X
+                                                                                                                                        p2 k X
+                                                                                                                                             i 1
+                                                                                                                                                          yj : (14)
+     Crete, Greece, volume 2076 of Lecture Notes in                                      i               l   i+1
+                                                                                                                  + f
+                                                                                                                                                 l         i+1
+     Computer Science, pages 249{260, 2001.                                       i=1            i=1 j =i  i                            i=1 j =1 i
+[31] V. V. Vazirani. Approximation Algorithms.
+     Springer-Verlag, Berlin, 2001.
+                                                                                  Consider the index `  p2 k for which 2d` + y` has its
+                                                                                minimum (i.e., for every j  p2 k, 2d` + y`  2dj + yj ). The
+APPENDIX                                                                        third inequality of the factor-revealing LP implies that for
+                                                                                i = p2 k + 1; : : : ; k,
+A. UPPER BOUND ON THE SOLUTION OF
+     THE FACTOR-REVEALING LP
+ In this appendix we prove an upper bound of 1:61 on the                           i    r`;i + di + d`  x`;i + 2d` + di  di + 2d` + y`: (15)
+solution of the factor-revealing LP 8. This proof is obtained
+using the techniques explained in Section 7. We start by                          By adding Inequality 15 for i = p2 k + 1; : : : ; k with In-
+proving the following lemma which allows us to concentrate                      equality 14 we obtain
+on the case when k is suÆciently large.
+  Lemma 12. If zk denotes the solution to the factor-revealing                    X
+                                                                                  k              X
+                                                                                                 p2 k X
+                                                                                                      li
+LP, then for every k, zk  z2k .
+                                                                                                                  dj
+                                                                                         i                            + (2d` + y` )(1 p2 )k
+                                                                                  i=1
+                                                                                                          l
+                                                                                                 i=1 j =i i
+                                                                                                                   i+1
+     Proof. Let ( j ; dj ; f; rj;i ) be the optimum solution of                                           X
+                                                                                                          k             X
+                                                                                                                        p2 k X
+                                                                                                                             i 1
+                                                                                                                                         yj
+the factor-revealing LP for k. We construct a feasible solu-                                     +               dj                           + f
+                                                                                                                                 l        i+1
+tion ( 0j ; d0j ; f 0 ; rj;i
+                         0 ) for 2k by duplicating everything as fol-                               j =p2 k+1           i=1 j =1 i
+lows: 2j 1 = 02j = j , r20 j 1;2i 1 = r20 j 1;2i = r20 j;2i 1 =
+          0                                                                                      X
+                                                                                                 p2 k            X X dj + yj
+                                                                                                              p2 k p2 k
+r20 j;2i = rj;i , d02j 1 = d02j = dj , and f 0 = 2f . It is easy to see                      =          dj
+                                                                                                                              l        i+1
+that this is a feasible solution for 2k with an objective value                                  j =1            j =1 i=j +1 i
+of zk . Thus, z2k  zk .                                                                                  X
+                                                                                                          k                X
+                                                                                                                          p2 k
+                                                                                                                                         1
+                                                                                                 +               (1 +                            )dj
+  Lemma   13. Let zk be the solution to the factor-revealing                                      j =p2 k+1    i=p1 k+1
+                                                                                                                        k i+1
+LP. Then for every suÆciently large k, zk  1:61.                                                +(2d` + y` )(1 p2 )k + f
+                                                                                                 X
+                                                                                                 p2 k               X
+                                                                                                                    k                  X
+                                                                                                                                       p2 k
+                                                                                                                                                      1
+                                                                                                       dj +              (1 +
+                                                                                                                                               k i+1
+                                                                                                                                                             )dj + f
+            Consider a feasible solution of the factor-revealing                                 j =1            j =p2 k+1            i=p1 k+1
+                                                                                                                                                                      !
+  Proof.
+LP. Let xj;i := max(rj;i dj ; 0). The fourth inequality of
+                                                                                                                                         1X      X
+                                                                                                                                             2p k p k
+                                                                                                                                                  2
+the factor-revealing LP implies that for every i  i0 ,                                          +(2d` + y` ) (1              p2 )k                       1
+                                                                                                                                                                ;
+                                                                                                                                         2 j =1 i=j +1 li i + 1
+                            X
+                            i 0
+                                            X
+                                            i 1
+        (i0    i + 1) i           dj + f          xj;i :         (12)
+                            j =i            j =1                                where the last inequality is a consequence of the inequality
+                                                                                2d` + y`  2dj + yj  2dj +2yj for j  pP
+                                                                                                                        2 k . Now, let  := 1+
+                                                                                                                                                               0
+                                                                                P p2 k
+                                                                                                  and Æ := (1 p ) 1 p2 k p2 k
+                                                                                                                               P              .
+  Now, we de ne li as follows:                                                               1
+                                                                                  i=p1 k+1 k i+1                                  2     2k
+                                                                                                                                           1
+                                                                                                                                               j =1       i=j +1 li i+1
+                                                                               Therefore, the above inequality can be written as follows:
+                   p2 k   if i  p1 k
+        li =       k      if i > p1 k
+                                                                                  X
+                                                                                  k              X
+                                                                                                 p2 k               X
+                                                                                                                    k
+                                                                                         i             dj +                 0 dj + f + Æ (2d` + y` )k; (16)
+   where p1 and p2 are two constants (with p1 < p2 ) that will
+be xed later. Consider Inequality 12 for every i  p2 k and
+                                                                                  i=1            j =1            j =p2 k+1
+
+i0 = li , and divide both sides of this inequality by (li i +1).
+By adding up these inequalities we obtain                                       where
+
+
+                                                                          739
+        X
+        p2 k
+                     1                         p2 (1 p1 ) + o(1);
+   =                         = ln                                              (17)
+            l i+1
+        i=1 i
+                                         (p2      p1 )(1 p2 )
+                   X
+                   p2 k
+                                1                            1    p1 + o(1);
+  0 = 1 +                                    = 1 + ln                          (18)
+               i=p1 k+1
+                        k i+1                                1    p2
+                           1 X     X
+                             p k p k
+                               2    2
+                                            1
+   Æ = 1 p2
+                          2k j =1 i=j +1 li i + 1
+     1
+    = (2           p2       p2 ln        p2          ln
+                                                           1     p1 ) + o(1):   (19)
+     2                              p2        p1           1     p2
+  Now if we choose p1 and p2 such that Æ < 0, and let
+  := max(;  0 ) then inequality 16 implies that
+        X
+        k                                          X
+                                                   k
+               i    ( + o(1))(f +                       dj ):
+        i=1                                        i=1
+
+   Using equations 17, 18, and 19, it is easy to see that sub-
+ject to the condition Æ < 0, the value of is minimized when
+p1  0:439 and p2  0:695, which gives us < 1:61.
+
+
+
+
+                                                                                       740
+

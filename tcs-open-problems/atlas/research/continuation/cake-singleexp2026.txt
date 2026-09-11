@@ -1,0 +1,1705 @@
+                                                                 Cutting Down the Tower:
+                                                        Single-Exponential Envy-Free Cake Cutting
+
+                                                                   Qilin Ye                            Yannan Bai
+                                                             Stanford University                Carnegie Mellon University
+                                                             yql@stanford.edu                         byn@cmu.edu
+arXiv:2609.05191v1 [cs.GT] 4 Sep 2026
+
+
+
+
+                                                                                            Abstract
+                                                  Envy-free cake cutting is a central problem in fair division with a striking divide between
+                                              existence and computation. Classical topology guarantees that envy-free allocations exist, yet
+                                              finding one efficiently turned out to be much harder, and this problem has resisted decades of
+                                              work. A well-known result by Aziz and Mackenzie [3] established the existence of a bounded
+                                                                                                      𝑛𝑛
+                                                                                                 𝑛𝑛
+                                              protocol for every 𝑛, but its query bound is 𝑛 𝑛          . A tighter analysis by Sokolov [30] subse-
+                                                                                     8𝑛 2 (1+𝑜(1))
+                                              quently reduced this upper bound to 𝑛                , the best known prior to this work. In contrast,
+                                              the general lower bound, due to Procaccia [26], is merely Ω(𝑛 2 ).
+
+                                                  We close much of this massive gap with a protocol using at most 𝑛 𝑂(1) 2𝑛 queries. At a high
+                                              level, our protocol repeatedly allocates some cake without creating envy until the remaining
+                                              problem involves fewer agents. The main difficulty is to ensure that, when we later put these
+                                              allocations together, we neither assign any cake twice nor create envy. To overcome this difficulty,
+                                              we develop a new construction using only polynomially many partial allocations, replacing the
+                                                 𝑛𝑛
+                                              𝑛 𝑛 partial allocations used in previous work. Overall, our protocol gives the first single-
+                                              exponential query bound for finding a complete envy-free allocation with arbitrary nonatomic,
+                                              additive valuations.
+
+
+                                        Contents
+                                        1   Introduction                                                                                               3
+                                            1.1 Previous Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        3
+                                            1.2 Our Results and Techniques . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .           3
+
+                                        2   Preliminaries                                                                                              5
+
+                                        3   The Protocol at a High Level                                                                               6
+                                            3.1 One Recursive Call . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         6
+
+                                        4   Proof of the Main Theorem                                                                                   8
+                                            4.1 Basic Facts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       8
+                                            4.2 A Lemma for Cutting Several Pieces at Once . . . . . . . . . . . . . . . . . . . . . . .               11
+                                            4.3 Pre-processing the Snapshots . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .           12
+                                            4.4 Pruning the Snapshots . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          14
+                                            4.5 Constructing the Partial Allocation . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          15
+                                            4.6 Recursion and Query Complexity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .             22
+
+                                                                                                1
+5   Discussion and Concluding Remarks                                                              23
+
+A AI Usage Disclosure                                                                              27
+
+B Additional Related Work                                                                          27
+
+C Robertson–Webb Implementation Details                                                             28
+  C.1 Queries on Ordered Pieces . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 28
+  C.2 Deterministic Choices . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 29
+
+D Omitted Proofs for Section 4                                                                     29
+
+E Full Pseudocode                                                                                  31
+
+
+
+
+                                                  2
+1     Introduction
+How should we divide a heterogeneous resource among 𝑛 agents who value its parts differently?
+The cake cutting problem captures this question by modeling the resource as an interval and asking
+for a fair partition. Since Steinhaus formulated the problem in 1948, cake cutting has become a
+standard language for fair division in mathematics, economics, and computer science [28, 32]. In
+this paper, we focus on the fairness requirement of cake cutting: an allocation is envy-free if every
+agent values her own piece at least as much as every other agent’s piece.
+    Envy-free allocations have long been known to exist, and one short and elegant proof uses
+Sperner’s lemma [33, 35]. Finding one, however, is much harder. Since a protocol cannot read an
+arbitrary valuation in full, the standard Robertson–Webb model limits it to two kinds of queries—an
+evaluation query asking for the value of an interval, and a cut query for a point that cuts off a
+prescribed value.
+    We say a protocol is finite if it terminates for every collection of valuations, even when the
+number of queries depends on those valuations, and it is bounded if a function of 𝑛 alone bounds
+that number.
+
+1.1    Previous Work
+For arbitrary nonatomic additive valuations, decades of work have produced only a few general
+results. For two agents, cut-and-choose solves the problem immediately. In the 1960s, Selfridge
+and Conway independently discovered a bounded envy-free protocol for three agents [12, 26].
+    For a larger number of agents, progress was much slower. In 1995, Brams and Taylor gave
+the first finite discrete envy-free protocol for any number of agents [11]. Their protocol always
+terminates, but its query count is not bounded by any function of 𝑛. Other finite protocols had the
+same limitation [25, 28]. On the lower-bound side, Procaccia proved in 2009 that every envy-free
+protocol requires Ω(𝑛 2 ) queries [26]. The main open question was whether a bounded protocol
+existed at all.
+    Aziz and Mackenzie answered this question affirmatively in 2016 by designing a bounded
+protocol for four agents and then extending it to every 𝑛 [3, 4]. Their protocol uses 𝑛 ↑↑ 6
+Robertson–Webb queries.1
+    Throughout the paper, we call their construction the AM protocol. Our work builds on two of
+its main subroutines, Core and SubCore, both of which we introduce in Section 3.
+    Before our work, the only known general improvement to AM’s upper bound was due to
+Sokolov, whose sharper analysis of the same protocol, especially of Core and SubCore, reduces the
+                      2
+query bound to 𝑛 8𝑛 (1+𝑜(1)) [30].
+    We discuss additional related work in Appendix B.
+
+1.2    Our Results and Techniques
+In this paper, we reduce the general upper bound to a single exponential. More precisely, we prove
+the following.
+
+Theorem 1.1 (Main Theorem). For every 𝑛 ≥ 1 and every collection of nonnegative, additive, nonatomic
+valuations, there is a deterministic bounded Robertson–Webb protocol that returns a complete envy-free
+allocation using at most 𝑛 𝑂(1) 2𝑛 queries.
+    1 Here 𝑛 ↑↑ 𝑘 denotes a tower of 𝑘 copies of 𝑛, evaluated from the top. For example, 𝑛 ↑↑ 2 = 𝑛 𝑛 , and 𝑛 ↑↑ 3 = 𝑛 𝑛 𝑛 .
+
+
+
+
+                                                              3
+   We summarize our improvement alongside the previously known general bounds in Table 1
+and briefly discuss our technical novelty below.
+
+                         Result                  Setting       Robertson–Webb Queries
+                Procaccia (2009) [26]        Lower Bound                       Ω(𝑛 2 )
+              Aziz–Mackenzie (2016) [3]      Upper Bound                       𝑛 ↑↑ 6
+                                                                 8𝑛 2 (1+𝑜(1))             2
+                 Sokolov (2023) [30]         Upper Bound       𝑛               = 2(8+𝑜(1))𝑛 log2 𝑛
+                    This paper               Upper Bound                     𝑛 𝑂(1) 2𝑛
+
+                Table 1: Comparison of the general Robertson–Webb query bounds.
+
+    Like Aziz and Mackenzie, our protocol runs recursively. At a high level, we give agents cake
+pieces without creating envy and call the unallocated cake the residue. We seek a nonempty group
+𝐸 that omits at least one agent, and we say that the omitted agents dominate 𝐸 if no omitted agent
+would envy any member of 𝐸, even if that member (of 𝐸) received the entire residue, in addition
+to what she already had. If this happens, then the omitted agents can keep their pieces and be gone, while
+we let agents in 𝐸 recursively divide the residue. Hence, our primary goal throughout recursion is to
+efficiently identify domination.
+    Aziz and Mackenzie’s protocol may produce 𝑛 ↑↑ 4 partial allocations before establishing dom-
+ination and recursing on fewer agents. Replacing this loop with polynomially many allocations,
+however, requires overcoming two challenges.
+
+Challenge #1. First, suppose Alice values her own cake piece only slightly more than another
+piece 𝑃. Since her valuation is essentially unrestricted, this difference may be arbitrarily small. To
+establish domination, AM must make the residue worth no more to Alice than this difference, and
+reducing the residue to an arbitrarily small difference can be costly. AM achieves the reduction via
+repeatedly calling its Core subroutine with Alice as the cutter. In each call, Alice divides the residue
+into pieces of an equal value to her. Core allocates cake pieces to Alice and at least one other agent,
+and the unallocated pieces become the new residue. As Alice cuts the cake, Core guarantees that
+her value for the residue is reduced by a fixed multiplicative factor. Still, reaching her arbitrarily
+small target may require arbitrarily many calls. To avoid these arbitrarily costly calls, AM uses an
+enormous fixed construction.
+    We improve AM’s procedure as follows. If Alice’s aforementioned difference is “tiny,” we add
+enough cake to 𝑃 so that Alice is now willing to take it, instead of her original piece. We also ensure
+that this change is insignificant to every other agent, so everyone who already strongly prefers her
+own piece continues to do so. If, instead, the difference is “huge,” we use a polynomial number
+of Core calls to make the residue small compared with it. We later show that only polynomially
+many such differences arise, and each requires this treatment at most once, so the entire process
+uses only polynomially many allocations and subroutine calls. (We also ensure that every such
+difference is either “tiny” or “huge.”) This resolves the first challenge.
+
+Challenge #2. Resolving one of the differences in the previous challenge may require us to
+distribute a Core allocation in a particular way, say, by giving its piece #42 to Alice. Resolving
+another difference may require us to distribute that same allocation differently, with the same
+piece going to Bob. Since one piece can go to only one agent, this allocation cannot resolve both
+differences. To address this, AM’s construction involves an enormous family of Core allocations, so
+
+
+                                                    4
+that it carries out the two assignments in different allocations, and no actual cake piece is assigned
+twice.
+    We instead begin with only polynomially many Core allocations and “prune” the ones that
+endanger us. Roughly speaking, we want the remaining allocations to be safe to use, in the sense
+that using one allocation to meet Alice’s need does not prevent us from finding another to meet
+Bob’s. Our key insight is that, if only a few allocations can resolve some difference, then they are
+too dangerous to rely on, because other assignments may use them up. Consequently, we discard
+these allocations upfront and later resolve this difference in another way. With careful bookkeeping,
+we show that after pruning, every difference still handled in this way can be resolved using many
+of the remaining allocations. Therefore, we can use a distinct allocation for each difference, thereby
+preventing all conflicts. With only polynomially many allocations, we achieve the same effect as
+AM’s enormous family: we meet Alice’s need in one allocation and Bob’s in another, without
+assigning any cake twice.
+   With these challenges resolved, by tracing the recurrence, we prove that our protocol gives the
+2𝑂(𝑛) Robertson–Webb query bound, as claimed.
+
+
+2    Preliminaries
+We model the cake as the interval [0, 1] and let 𝒜 be the finite set of agents. We assume each agent
+𝑖 ∈ 𝒜 has a nonnegative, additive, nonatomic valuation 𝑉𝑖 , which we call 𝑖’s valuation, and we
+allow a piece (of cake) to be a finite union of intervals. In other words, 𝑉𝑖 (𝐴 ∪ 𝐵) = 𝑉𝑖 (𝐴) + 𝑉𝑖 (𝐵)
+for disjoint pieces 𝐴 and 𝐵 by additivity, and we may cut any interval to any intermediate value by
+nonatomicity. We call a piece that is to be divided on its own a subcake. For a set of agents 𝑁 ⊆ 𝒜
+and a subcake 𝐶, an allocation 𝑋 = (𝑋𝑖 )𝑖∈𝑁 consists of pairwise disjoint pieces of 𝐶, and its residue
+is the unallocated part 𝑅 = 𝐶\ 𝑖∈𝑁 𝑋𝑖 . The allocation is complete when the residue is empty (up to
+                                Ð
+cut endpoints), and it is envy-free when 𝑉𝑖 (𝑋𝑖 ) ≥ 𝑉𝑖 (𝑋 𝑗 ) for every 𝑖, 𝑗 ∈ 𝑁.
+    In the Robertson–Webb model, a protocol accesses the valuations through two query types:
+
+    • Eval𝑖 (𝑥, 𝑦) returns 𝑉𝑖 ([𝑥, 𝑦]).
+
+    • Cut𝑖 (𝑥, 𝑎), for 0 ≤ 𝑎 ≤ 𝑉𝑖 ([𝑥, 1]), returns a point 𝑦 ≥ 𝑥 satisfying 𝑉𝑖 ([𝑥, 𝑦]) = 𝑎.
+
+We say a protocol is bounded if some function of the number of agents bounds its number of queries
+for every collection of valuations. Also, we note that the operations on disconnected pieces used
+later can be simulated by ordinary Robertson–Webb queries. We give this simulation and explain
+how we treat exact real-valued oracle answers in Section C.1.
+    For a partial allocation 𝑋 with residue 𝑅, we say that agent 𝑖 dominates agent 𝑗 if
+
+                                          𝑉𝑖 (𝑋𝑖 ) − 𝑉𝑖 (𝑋 𝑗 ) ≥ 𝑉𝑖 (𝑅),
+
+i.e., 𝑖 would not envy 𝑗 even if 𝑗 receives all of 𝑅.
+     More generally, if a partial allocation 𝑋 with residue 𝑅 is envy-free and every agent in 𝑁\𝐸
+dominates every agent in a nonempty set 𝐸 ⊆ 𝑁, then any envy-free allocation of 𝑅 within 𝐸 can be
+added to 𝑋 without making an agent outside 𝐸 envy an agent in 𝐸. At a high level, this observation
+drives our protocol. We use it formally in Lemma 4.1 and corollary 4.2.
+
+
+
+
+                                                        5
+3     The Protocol at a High Level
+Our protocol recursively reduces the number of active agents—ones who still need to divide the
+cake. A recursive call Main(𝑁 , 𝐶) has the active agents 𝑁 dividing the (sub)cake 𝐶. We design Main
+so that the result of each recursive call can be combined with other allocations without creating
+envy. The top-level call is Main(𝒜, [0, 1]), and calls with ≤ 3 active agents constitute base cases.
+In this section, we provide a high-level walkthrough of our protocol; we describe and analyze our
+protocol in full in Section 4, and include the complete pseudocode in Appendix E.
+    For a larger set of active agents 𝑁, we seek an envy-free partial allocation with residue 𝑅 and a
+nonempty set 𝐸 ⊊ 𝑁 such that every agent in 𝑁\𝐸 dominates every member of 𝐸. We let agents in
+𝑁\𝐸 keep their pieces and recurse on (𝐸, 𝑅). In particular, recursion involves fewer active agents.
+    Throughout, we repeatedly use the AM subroutines Core and SubCore [3].2 The first subroutine,
+Core, takes the current residue and 𝑚 agents, with one agent designated as the cutter. The cutter
+first divides the residue into 𝑚 pieces that she values equally. Core then invokes SubCore, the
+second subroutine, to allocate cake from these pieces. In doing so, SubCore may give an agent one
+of these pieces in full or only part of one. Any cake cut off in this process becomes part of the new
+residue. At a high level, Core produces an envy-free partial allocation in which the cutter and at
+least one other agent each receive one of these pieces in full. Since two of the cutter’s equal pieces
+are allocated in full, she values the new residue at most (𝑚 − 2)/𝑚 as much as the previous one.
+In light of this observation, the main purpose of Core calls is to “safely” shrink the value of the
+residue for a chosen agent. For instance, when we need to reduce Alice’s value for the residue by
+a certain factor, we use a prescribed sequence of repeated Core calls on successive residues with the
+same set of agents and Alice as the cutter.
+    Later, we may encounter situations where we have given some cake to each agent in a particular
+group, but the agents in that group may still envy one another. When this happens, we need to
+redistribute this cake within the group so that the agents no longer envy one another, without
+creating envy between agents in different groups. Here, we use SubCore for a second purpose.
+For a group of 𝑟 agents, we give SubCore the 𝑟 pieces we need to redistribute, together with one
+empty piece, and specify each agent’s required minimum: the least value she must receive. Because
+these pieces may be disconnected, we fix an order on their interval components (for instance, from
+left to right; see Section C.1), and define a trim as removing a prefix and allocating the remaining
+suffix. SubCore finds an allocation without creating envy in which each agent receives a suffix of a
+different piece worth at least her required minimum. We give the formal guarantees in Section 4.1.
+
+3.1    One Recursive Call
+Fix a call Main(𝑁 , 𝐶), and write 𝑛 = |𝑁| for its number of active agents.3 We construct the desired
+partial allocation in three stages.
+
+Stage 1. Recall from Challenge #1 that the difference between the values an agent assigns to
+her own piece and another piece may be arbitrarily small. In Stage 1, we ensure that every such
+difference is either “tiny” or “huge,” with none in-between, so that we can handle it later as
+promised. We call this work pre-processing.
+    Pre-processing begins by going through the agents one at a time. For each agent, we make
+polynomially many consecutive Core calls with her as the cutter. We store each envy-free allocation
+    2 To be precise, we use a variant of SubCore that serves the same purpose but has a better query bound; see
+Proposition 4.4.
+   3 Throughout the analysis, 𝑛 denotes the number of active agents in the current call. At the top level, 𝑛 = |𝒜|.
+
+
+
+                                                            6
+returned by the Core calls as a snapshot. In snapshot 𝑠, we call the cake allocated to agent 𝑘 the
+snapshot piece 𝑐 𝑠,𝑘 . For convenience later, we also call this same piece the label-𝑘 piece in snapshot
+𝑠. We define agent 𝑖’s bonus over label 𝑘 in snapshot 𝑠 as her value for the label-𝑖 piece minus her
+value for the label-𝑘 piece, i.e., 𝑉𝑖 (𝑐 𝑠,𝑖 ) − 𝑉𝑖 (𝑐 𝑠,𝑘 ). Because each snapshot is envy-free, every bonus
+is nonnegative. Observe that Challenge #1 arises when a positive bonus is arbitrarily small.
+    We categorize bonuses as small, large, or intermediate. (The first two categories are what Challenge
+#1 informally called “tiny” and “huge.”) Our goal is to eliminate the intermediate bonuses. To this
+end, whenever agent 𝑖 has an intermediate bonus, we run a prescribed sequence of Core calls with
+𝑖 as the cutter. This shrinks the residue, so the bonus becomes large in comparison, and it remains
+large as the residue shrinks further. Since there are only polynomially many bonuses, we repeat
+this process at most polynomially many times. At the end, every bonus is either small or large.
+
+Stage 2. Let 𝑅 be the residue after Stage 1. If every agent values 𝑅 at zero, we allocate it and
+finish. Otherwise, we choose a cutter who values 𝑅 positively and study her snapshots.
+    The rough idea of Stage 2 is to find, for a pair of agents such as Alice and Bob, a snapshot piece
+that Bob values almost as much as his own, while Alice values it substantially less than hers. This
+way, when we later add a small amount of cake to that piece, Bob is willing to receive it, while
+Alice would not care about the addition, as she still values the resulting piece substantially less
+than her own.
+    Formally, for each snapshot 𝑠, we say agent 𝑖 marks label 𝑘 if she values the label-𝑘 piece 𝑐 𝑠,𝑘
+substantially less than her own 𝑐 𝑠,𝑖 . A reassignment gives each agent a distinct snapshot piece. We
+call snapshot 𝑠 a witness for an ordered pair (𝑖, 𝑗) of distinct agents if 𝑖 marks some label 𝑘 that 𝑗
+does not mark. Thus, a witness identifies a label we would like 𝑗 to receive in a reassignment.
+    However, reassignments serving different pairs may conflict when they use the same snapshot,
+because this would require the same snapshot to be distributed in two different ways, which is
+clearly impossible. We therefore need to reserve distinct witness snapshots for different pairs to
+ensure that no such conflict arises.
+    To this end, we prune the “bad” snapshots. If a pair (𝑖, 𝑗) has too few witnesses, we discard
+all of its witness snapshots, leaving that pair with no witness, and hence nothing to reserve. We
+repeat until every pair that still has a witness can reserve a distinct snapshot. If (𝑖, 𝑗) is left with no
+witness, then in every remaining snapshot, 𝑗 marks every label that 𝑖 marks.
+    For each snapshot that remains after pruning, we form a graph 𝐺 𝑠 with an edge 𝑎 → 𝑘 when 𝑎
+does not mark 𝑘. These edges describe the reassignments we can use in Stage 3. Every self-loop is
+therefore present.
+    We now check for a potential shortcut. If some 𝐺 𝑠 is not strongly connected, we choose a sink
+strongly connected component 𝑆. No edge leaves 𝑆, so every agent in 𝑆 marks every label outside
+𝑆. We can then run prescribed sequences of Core calls for the agents in 𝑆, shrinking the residue
+until 𝑆 dominates 𝑁\𝑆. We simply recurse on 𝑁\𝑆 and return.
+    Otherwise, every 𝐺 𝑠 is strongly connected. We say an agent’s marks across the remaining
+snapshots form her profile, and agents with equal profiles form a profile class. We later show that at
+least two profile classes remain, and enter Stage 3 with enough witness snapshots to avoid conflicts.
+
+Stage 3. In this final stage, our goal is to build an envy-free partial allocation 𝑋 from which we
+can reach domination. For agents 𝑖, 𝑗 in different profile classes, we want to make 𝑉𝑖 (𝑋𝑖 ) − 𝑉𝑖 (𝑋 𝑗 )
+positive whenever 𝑖 values 𝑅 positively, so that once we shrink 𝑉𝑖 (𝑅) to no more than this difference,
+𝑖 dominates 𝑗. We first establish these comparisons, distinguishing whether (𝑖, 𝑗) has a witness,
+and then handle agents within the same profile class.
+
+
+                                                     7
+     Recall every 𝐺 𝑠 is now strongly connected. First suppose (𝑖, 𝑗) is witnessed by snapshot 𝑠
+through a label 𝑘 marked by 𝑖 but not 𝑗. The edge 𝑗 → 𝑘 lies on a directed cycle whose edges,
+together with self-loops outside the cycle, form a perfect matching. The matching pairs every agent
+with a distinct label she does not mark; in particular, it pairs 𝑗 with label 𝑘. Moreover, we reserve a
+different witness snapshot for every pair that has a witness, so the reassignments do not conflict.
+See Figure 1.
+     For every witness snapshot 𝑠 we reserve and every label 𝑘, we cut a small piece 𝐴 𝑠,𝑘 from the
+residue and attach it to 𝑐 𝑠,𝑘 . We choose the added cake so that an agent who does not mark 𝑘 is
+willing to receive the resulting enlarged snapshot piece 𝑐 𝑠,𝑘 ∪ 𝐴 𝑠,𝑘 , while an agent who marks 𝑘
+still prefers her own piece. In particular, 𝑗 is willing to receive this piece, while 𝑖 still prefers her
+own.
+
+                                          1=𝑖                 3=𝑘
+                                                       𝑘
+                                                  𝑗→
+
+                                          2=𝑗                  4
+
+Figure 1: A matching built from a witness. Here 𝑖 = 1 marks label 𝑘 = 3, while 𝑗 = 2 does not.
+The solid arrows show the matching: agent 1 receives the label-1 piece, agent 2 receives the label-3
+piece, agent 3 receives the label-4 piece, and agent 4 receives the label-2 piece. In particular, 𝑗
+receives the label-𝑘 piece, as desired.
+
+    Suppose instead that (𝑖, 𝑗) has no witness, so every label marked by 𝑖 is also marked by 𝑗 in
+every remaining snapshot. In this case, we instead use the residue to make 𝑖 value her own share
+more than 𝑗’s. Specifically, we cut one small piece 𝑃 ℎ for every agent ℎ, with sizes chosen so that
+𝑃𝑖 is worth sufficiently more than 𝑃 𝑗 to 𝑖.
+    It remains to address agents within the same profile class, as they may still envy one another.
+We handle each profile class separately. Within one class, we use SubCore to redistribute the cake
+currently assigned to its agents. Recall from the beginning of Section 3 that this step requires us
+to specify each agent’s required minimum, the least value she must receive. Here, we choose the
+required minima so that every agent still receives enough value to preserve her comparisons with
+agents in other classes. We also place the snapshot pieces last in each share we give to SubCore.
+Doing so ensures that every trim occurs before the snapshot pieces and leaves them intact. SubCore
+therefore removes envy within each class without undoing the comparisons between classes.
+    We finally have the long-wanted envy-free partial allocation that we need for a recursion.
+Choose a profile class 𝐸 ⊊ 𝑁. For each agent 𝑎 ∈ 𝑁\𝐸 who values the remaining residue positively,
+we use a prescribed sequence of Core calls to shrink her value for the remaining residue to at most
+𝑉𝑎 (𝑋𝑎 ) − 𝑉𝑎 (𝑋 𝑗 ), for every agent 𝑗 ∈ 𝐸. Agents in 𝑁\𝐸 who value the remaining residue at zero
+already dominate every member of 𝐸. Furthermore, only 𝐸 remains active. Therefore, we return
+the current partial allocation and recurse on 𝐸 with the final residue.
+
+
+4     Proof of the Main Theorem
+4.1   Basic Facts
+We begin by defining a handful of shorthand notations and stating several facts that we frequently
+use throughout the main proof.
+
+
+                                                   8
+   For allocations 𝑋 and 𝑌 of disjoint subcakes, we define 𝑋 ⊕ 𝑌 by
+
+                                 (𝑋 ⊕ 𝑌)𝑖 = 𝑋𝑖 ∪ 𝑌𝑖          for every agent 𝑖.
+
+If either allocation omits an agent, we treat that agent as receiving the empty piece. We use ⊕ to
+combine several allocations the same way. For a partial allocation 𝑋 and agents 𝑖, 𝑗, define the
+difference in value by
+                                      Δ𝑖𝑗 (𝑋) = 𝑉𝑖 (𝑋𝑖 ) − 𝑉𝑖 (𝑋 𝑗 ).
+   We use the following facts whenever the protocol adds partial allocations or completes a
+recursive branch.
+
+Lemma 4.1. The following hold.
+
+  (i) Suppose several partial allocations use pairwise disjoint subcakes and are envy-free among the same
+      participating agents. Giving every agent the union of her pieces preserves envy-freeness. Moreover, as
+      these allocations are added, the difference in value for any pair of participating agents cannot decrease.
+
+ (ii) Once agent 𝑖 dominates agent 𝑗, every later allocation of part of the residue preserves this domination.
+
+Proof. For (i), each constituent allocation has a nonnegative difference in value for every pair of
+participating agents, so summing over the disjoint subcakes proves both claims. For (ii), let 𝑅 be
+the old residue, and suppose the later allocation gives pieces 𝑌𝑖 and 𝑌𝑗 to 𝑖 and 𝑗 and leaves residue
+𝑅 ′ . Using Δ𝑖𝑗 (𝑋) ≥ 𝑉𝑖 (𝑅) and additivity, we have
+
+                      𝑉𝑖 (𝑋𝑖 ∪ 𝑌𝑖 ) − 𝑉𝑖 (𝑋 𝑗 ∪ 𝑌𝑗 ) ≥ 𝑉𝑖 (𝑅) + 𝑉𝑖 (𝑌𝑖 ) − 𝑉𝑖 (𝑌𝑗 ) ≥ 𝑉𝑖 (𝑅′ ).
+
+The final inequality holds because 𝑅′ is disjoint from 𝑌𝑗 and contained in 𝑅\𝑌𝑗 .                             □
+Corollary 4.2. Suppose a partial allocation 𝑋 is envy-free and every agent in 𝑁\𝐸 dominates every agent
+in a nonempty set 𝐸 ⊊ 𝑁. Any complete envy-free allocation of the residue within 𝐸 can be combined with
+𝑋 to obtain a complete envy-free allocation among all agents in 𝑁.
+
+Proof. By Lemma 4.1 (ii), agents outside 𝐸 do not envy agents in 𝐸, even after the latter receive the
+residue. Agents in 𝐸 cannot begin to envy an outside agent because only members of 𝐸 receive more
+cake. Finally, by Lemma 4.1 (i), envy-freeness within 𝐸 is preserved, while comparisons within 𝑁\𝐸
+remain unchanged.                                                                                   □
+   We use the following formal guarantees of the Core subroutine of Aziz and Mackenzie and
+our variant of their SubCore subroutine [3].
+
+Core. A call Core(𝑁 , 𝑅, 𝑐) takes a residue 𝑅, a set 𝑁 of 𝑛 agents, and a designated cutter 𝑐 ∈ 𝑁.
+It returns an envy-free partial allocation 𝑋 and a new residue 𝑅′ consisting of the unallocated part
+of 𝑅. The cutter and at least one other agent receive whole pieces valued at 𝑉𝑐 (𝑅)/𝑛 by the cutter.
+     We use Core mainly for two purposes: to collect a fixed number of partial allocations or, more
+importantly, to reduce the value of the residue with respect to the cutter. A prescribed sequence
+repeats Core with the same agents and cutter on successive residues, with a maximum number of
+calls fixed in advance. When the purpose is to collect allocations, the sequence continues until it
+has made the prescribed number of calls. When the purpose is only to reduce the cutter’s residue
+value, it stops early if that value reaches zero.
+
+
+
+                                                         9
+SubCore. A SubCore call used inside Core takes 𝑚 agents and at least 𝑚 + 1 pieces, and returns
+an envy-free allocation in which the agents receive possibly trimmed parts of distinct pieces.
+    We later call SubCore directly in a more specific setting. There, the call receives 𝑚 agents, 𝑚
+pieces 𝑊1 , . . . , 𝑊𝑚 , one empty piece (making it 𝑚 + 1 total), and a required minimum 𝑞 𝑖 ≥ 0 for
+every agent 𝑖. The required minimum is the least value that the agent may receive. We store the
+interval components of each 𝑊ℎ in a fixed order, so every trim removes a prefix and leaves a suffix
+as defined in Section C.1. Finally, every unused prefix returns to the residue.
+Proposition 4.3. The following properties hold.
+  (i) A call Core(𝑁 , 𝑅, 𝑐) returns an envy-free partial allocation 𝑋 and a residue 𝑅′ , and the cutter and at
+      least one other agent receive whole pieces valued at 𝑉𝑐 (𝑅)/𝑛 by the cutter.
+
+ (ii) The returned residue satisfies
+                                                                 𝑛−2
+                                                  𝑉𝑐 (𝑅 ′ ) ≤        𝑉𝑐 (𝑅).
+                                                                  𝑛
+ (iii) For 𝑛 ≥l 3 and 𝛽 ≥ 1,
+                          m a prescribed sequence used to reduce the cutter’s residue value, with maximum
+      length log𝑛/(𝑛−2) 𝛽 , leaves a residue 𝑅 ′ satisfying
+
+                                                                   𝑉𝑐 (𝑅)
+                                                     𝑉𝑐 (𝑅′ ) ≤           ,
+                                                                     𝛽
+      where 𝑅 is the residue at the start of the sequence.
+Proof. Part (i) follows from [3]’s proof of Core; we prove that the same guarantee holds for our
+SubCore variant in Appendix D. Assuming (i), (ii) follows immediately, because two of the pieces
+worth 𝑉𝑐 (𝑅)/𝑛 are allocated. Applying this repeatedly yields (iii), as
+                                                      ⌈log𝑛/(𝑛−2) 𝛽⌉
+                                          𝑛−2                                      𝑉𝑐 (𝑅)
+                                             
+                                       ′
+                                𝑉𝑐 (𝑅 ) ≤                               𝑉𝑐 (𝑅) ≤          .
+                                           𝑛                                         𝛽
+
+(If the sequence stops early, then 𝑉𝑐 (𝑅′ ) = 0, so the same bound is immediate.)                               □
+Proposition 4.4. Our protocol uses a variant of AM’s SubCore that serves the same purpose as in AM’s
+protocol. Every call to this variant with 𝑚 agents uses 𝑂(2𝑚 ) cut queries and 𝑂(𝑚2𝑚 ) evaluation queries
+to those agents.4 A Core call on 𝑛 agents uses 𝑂(2𝑛 ) cut queries and 𝑂(𝑛2𝑛 ) evaluation queries. We defer
+description of our SubCore as well as the proof to Appendix D.
+    We now state a guarantee of SubCore with conditions tailored to our needs, and we also defer
+its proof to Appendix D.
+Proposition 4.5. Let 𝐸 be a set of 𝑚 agents. Consider a SubCore call with agents 𝐸, the 𝑚 ordered pieces
+(𝑊ℎ ) ℎ∈𝐸 , the empty piece ∅, and required minima 𝑞 𝑖 ≥ 0 for 𝑖 ∈ 𝐸 satisfying
+
+                                           𝑉𝑖 (𝑊ℎ ) ≥ 𝑞 𝑖        for 𝑖, ℎ ∈ 𝐸.
+
+The call uses the tie-breaking convention described in Section C.2, under which any tie between a piece 𝑊ℎ
+and the empty piece is broken in favor of 𝑊ℎ . Then, SubCore returns an envy-free allocation in which every
+agent receives a suffix of a distinct 𝑊ℎ worth at least her required minimum, while the empty piece remains
+unallocated.
+                                                                                          √
+  4 For the original SubCore, Sokolov’s analysis gives a query bound with base (3 +        5)/2 ≈ 2.618 [30].
+
+
+                                                            10
+4.2   A Lemma for Cutting Several Pieces at Once
+Recall that in Stage 3 of Section 3.1, we needed to make the differences in value positive so that
+our algorithm could recurse, and we described two ways to achieve this. When a pair (𝑖, 𝑗) has a
+witness, we add a small amount of cake to the snapshot piece assigned to 𝑗. When it has no witness,
+we instead use pieces from the residue to make 𝑖 value her own share more than 𝑗’s. To carry out
+both steps, we need to cut many disjoint pieces from the same residue and ensure that each has
+roughly the right value for every agent. The following lemma shows that we can do this efficiently.
+
+Lemma 4.6. Let 𝑁 be a set of 𝑛 agents, let 𝑅 be an ordered piece whose component values are stored for
+every agent, and let 𝐽 be a nonempty finite index set. For each 𝑗 ∈ 𝐽, let 𝜆 𝑗 ≥ 0, and suppose
+                                                   Õ
+                                                          𝜆 𝑗 ≤ 1.
+                                                    𝑗∈𝐽
+
+Let 0 < 𝛿 < 1. There is a deterministic bounded procedure that produces pairwise disjoint pieces 𝐶 𝑗 ⊆ 𝑅,
+one for each 𝑗 ∈ 𝐽, such that, for every 𝑖 ∈ 𝑁 and 𝑗 ∈ 𝐽,
+
+                                          𝑉𝑖 (𝐶 𝑗 ) − 𝜆 𝑗 𝑉𝑖 (𝑅) ≤ 𝛿𝑉𝑖 (𝑅).
+
+Furthermore, this procedure uses 𝑂 𝑛 2 𝛿−2 log(𝑛|𝐽| + 1) Robertson–Webb queries.
+                                                                
+
+Proof. Let 𝑚 = |𝐽| and set 𝛾 = 𝛿 2 /(2 log(2𝑛𝑚 + 2)).
+    We ask each agent 𝑖 with 𝑉𝑖 (𝑅) > 0 to cut 𝑅, following its fixed order (recall the convention
+from Section C.1), into pieces worth 𝛾𝑉𝑖 (𝑅) to her, except possibly the last piece, which may be
+smaller. We combine the points where the agents cut 𝑅 with the endpoints of the intervals that
+make up 𝑅. Together, these points divide 𝑅 into smaller pieces, which we call cells. Whenever an
+agent makes one of these cuts, we use Proposition C.1 to record every agent’s value for the two
+resulting intervals. Consequently, once all cuts are made, we know every agent’s value for every
+cell. By construction, every cell 𝐾 satisfies 𝑉𝑖 (𝐾) ≤ 𝛾𝑉𝑖 (𝑅) for every agent 𝑖.
+    We next show that we can form the desired pieces from these cells. Independently for each
+cell, we make one choice: place it in 𝐶 𝑗 with probability 𝜆 𝑗 for each 𝑗 ∈ 𝐽, or leave it unused with
+probability 1 − 𝑗∈𝐽 𝜆 𝑗 . Fix an agent 𝑖 with 𝑉𝑖 (𝑅) > 0 and some 𝑗 ∈ 𝐽, and let 𝑥 𝐾 = 𝑉𝑖 (𝐾)/𝑉𝑖 (𝑅), i.e.,
+                 Í
+the fraction of 𝑖’s value for 𝑅 contained in cell 𝐾. Because the cells partition 𝑅, we have 𝐾 𝑥 𝐾 = 1.
+                                                                                             Í
+Moreover, 𝑥 𝐾 ≤ 𝛾 for every cell, and hence
+                                            Õ               Õ
+                                                 𝑥 𝐾2 ≤ 𝛾           𝑥 𝐾 = 𝛾.
+                                             𝐾              𝐾
+
+The fraction of 𝑖’s value placed in 𝐶 𝑗 is the sum of 𝑥 𝐾 over the cells placed in 𝐶 𝑗 , and its expected
+value is 𝜆 𝑗 . Therefore, Hoeffding’s inequality gives
+                            "                                           #                   !
+                                Õ                                                 2𝛿 2
+                       Pr         𝑥 𝐾 1{𝐾 is placed in 𝐶 𝑗 } − 𝜆 𝑗 > 𝛿 ≤ 2 exp − Í 2
+                                𝐾                                                 𝐾 𝑥𝐾
+                                                                                    2
+                                                                            ≤ 2𝑒 −2𝛿 /𝛾 .
+
+There are at most 𝑛𝑚 choices of 𝑖 and 𝑗. It follows that the probability that any of the desired
+inequalities fails is at most
+                                         2         2𝑛𝑚
+                               2𝑛𝑚 𝑒 −2𝛿 /𝛾 =              < 1.
+                                                (2𝑛𝑚 + 2)4
+
+                                                          11
+Thus, we can place the cells so that 𝑉𝑖 (𝐶 𝑗 ) − 𝜆 𝑗 𝑉𝑖 (𝑅) ≤ 𝛿𝑉𝑖 (𝑅) for every 𝑖 ∈ 𝑁 and 𝑗 ∈ 𝐽. The pieces
+𝐶 𝑗 are pairwise disjoint because every cell is placed in at most one of them.
+     It remains to find one way to place the cells. Since there are finitely many cells and we know
+every agent’s value for each one, we can check all possibilities until we find one for which every
+inequality holds. The argument above shows that one exists, and this search uses no further
+queries.5
+     Finally, we count the queries used to create the cells and record their values. Each agent needs
+𝑂(1/𝛾) Robertson–Webb cut queries to divide 𝑅 into her small pieces, so all agents together
+need 𝑂(𝑛/𝛾) such queries. By Proposition C.1, recording every agent’s value after each         cut costs
+                                                               2             2
+𝑂(𝑛) evaluation queries. Thus, the procedure uses 𝑂(𝑛 /𝛾) = 𝑂 𝑛 𝛿 log(𝑛|𝐽| + 1) queries, as
+                                                                               −2
+
+claimed.                                                                                                 □
+
+4.3   Pre-processing the Snapshots
+We now begin our analysis of the full algorithm. The first step, as outlined in Stage 1 of Section 3.1,
+is pre-processing, which involves eliminating the “intermediate” bonuses so that we can later
+resolve Challenge #1. In this section, we describe pre-processing in detail.
+     Fix a call Main(𝑁 , 𝐶), where 𝐶 is formed from finitely many intervals, and (with slight abuse
+of notation) set 𝑛 = |𝑁|.
+     For 𝑛 = 1, we give the subcake to the sole agent. For 𝑛 = 2, we use cut-and-choose: one agent
+divides the subcake into two pieces she values equally, the other chooses a piece she prefers, and the
+first agent receives the remaining piece. For 𝑛 = 3, we use the Selfridge–Conway protocol, which
+requires at most 14 Robertson–Webb queries [1, 12]. When 𝐶 has several interval components, we
+apply these protocols to the fixed order defined in Section C.1 and implement the resulting queries
+as explained there [28]. We henceforth assume 𝑛 ≥ 4 and set 𝑄 = 𝑛(𝑛 − 1).
+     Our first step is to construct the snapshots. Throughout, we use 𝑈 for the residue we currently
+have, 𝐻 for the partial allocation we have constructed so far, and 𝒮 for the collection of snapshots.
+Initially, 𝑈 = 𝐶, 𝐻 is the empty allocation, and 𝒮 = ∅. To begin pre-processing, we go through the
+agents one at a time and, for each agent, make 𝑄 2 consecutive Core calls with her as the cutter.
+Each call uses the residue left by the one before it. Altogether, these calls return 𝑛𝑄 2 envy-free
+allocations. We store them in 𝒮, index them by 𝑠, and call each one a snapshot. For convenience,
+we name each piece in a snapshot in two ways. In snapshot 𝑠, we call the cake allocated to agent 𝑘
+both her snapshot piece 𝑐 𝑠,𝑘 and the label-𝑘 piece. Note that this label stays with the snapshot piece if
+it is later reassigned.
+     In snapshot 𝑠, for agent 𝑖, define
+                                 𝑏 𝑠,𝑖 = 𝑉𝑖 (𝑐 𝑠,𝑖 ),       𝑑 𝑠,𝑖,𝑘 = 𝑏 𝑠,𝑖 − 𝑉𝑖 (𝑐 𝑠,𝑘 ).
+We call 𝑑 𝑠,𝑖,𝑘 agent 𝑖’s bonus over label 𝑘. Because snapshot 𝑠 is envy-free, this bonus is nonnegative.
+For any collection 𝒯 of snapshots, we write Id(𝒯 ) for the identity assignment, in which agent 𝑖
+receives the label-𝑖 piece from every snapshot in 𝒯 ; that is, Id(𝒯 )𝑖 = 𝑠∈𝒯 𝑐 𝑠,𝑖 .
+                                                                           Ð
+   For each agent 𝑖, set
+                                   𝑉𝑖 (𝑈)                     Γ𝑖 (𝑈)                         𝜂 𝑖 (𝑈)
+                        Γ𝑖 (𝑈) =          ,     𝜂 𝑖 (𝑈) =             ,        𝜖 𝑖 (𝑈) =             ,
+                                    𝑄2                      4𝑛(𝑄 + 1)                            𝑛
+and recompute these quantities whenever 𝑈 shrinks. We call a bonus small when it is at most
+𝜖 𝑖 (𝑈), intermediate when it lies strictly between 𝜖 𝑖 (𝑈) and Γ𝑖 (𝑈), and large when it is at least Γ𝑖 (𝑈).
+  5 We discuss ways to avoid this exhaustive search in Section 5, though these alternatives concern the computation
+between queries and do not affect the Robertson–Webb query bound.
+
+
+                                                            12
+Whenever
+      l an intermediate bonus
+                          m exists and belongs to agent 𝑖, we run a prescribed sequence of
+at most log𝑛/(𝑛−2) 4𝑛 2 (𝑄 + 1)        Core calls with 𝑖 as the cutter. We add the returned allocations to
+                                  
+
+𝐻, replace 𝑈 with the residue left by the sequence, and recompute the quantities above. We repeat
+this process until no intermediate bonus remains, so that every bonus is either small or large, and
+call the resulting residue 𝑅∗ .
+
+Lemma 4.7. The construction returns a partial allocation 𝐻, a collection 𝒮 of 𝑛𝑄 2 snapshots, and a residue
+𝑅 ∗ such that:
+
+  (i) 𝐻 and every snapshot are envy-free, and their allocated pieces together with 𝑅∗ partition 𝐶;
+
+ (ii) every bonus satisfies
+                                        𝑑 𝑠,𝑖,𝑘 ≤ 𝜖 𝑖 (𝑅∗ )        or          𝑑 𝑠,𝑖,𝑘 ≥ Γ𝑖 (𝑅∗ ).
+
+Furthermore, pre-processing uses 𝑛 𝑂(1) 2𝑛 Robertson–Webb queries.
+
+Proof. We first prove (i). By Proposition 4.3 (i), every Core call returns an envy-free allocation.
+Because each call uses the residue left by the preceding one, all these allocations use pairwise
+disjoint cake. We store the first 𝑛𝑄 2 allocations as snapshots and add every later allocation to 𝐻.
+Thus, every snapshot is envy-free, and 𝐻 is envy-free by Lemma 4.1 (i). Moreover, after each call,
+the cake allocated by that call together with the new residue is the residue we had before the
+call. It follows that the pieces allocated in 𝐻 and the snapshots, together with the final residue 𝑅 ∗ ,
+partition 𝐶. This proves (i).
+    We next show that pre-processing terminates with no intermediate bonus. Suppose 𝑑 = 𝑑 𝑠,𝑖,𝑘 is
+the intermediate bonus being processed while the current residue is 𝑈. By definition, 𝜖 𝑖 (𝑈) < 𝑑 <
+Γ𝑖 (𝑈). By Proposition 4.3 (iii), the sequence with factor 4𝑛 2 (𝑄 + 1) leaves a residue 𝑈 ′ satisfying
+              𝑉 (𝑈)
+𝑉𝑖 (𝑈 ′ ) ≤ 4𝑛 2𝑖(𝑄+1) . Thus,
+
+                                            𝑉𝑖 (𝑈 ′ )       𝑉𝑖 (𝑈)
+                              Γ𝑖 (𝑈 ′ ) =       2
+                                                      ≤               = 𝜖 𝑖 (𝑈) < 𝑑.
+                                              𝑄         4𝑛 (𝑄 + 1)𝑄 2
+                                                          2
+
+
+Therefore, 𝑑 is large after this step. The snapshot pieces do not change during pre-processing, so
+neither does 𝑑. Every later residue is contained in 𝑈 ′ , so the value a bonus must reach to be large
+can only decrease. Thus, 𝑑 remains large for the rest of pre-processing.
+    Each of the 𝑛𝑄 2 snapshots has 𝑄 bonuses 𝑑 𝑠,𝑖,𝑘 with 𝑘 ≠ 𝑖. Thus, at most 𝑛𝑄 3 bonuses can
+become intermediate. Each step makes one of them permanently large, so the same bonus is never
+selected again. The process therefore stops after at most 𝑛𝑄 3 steps, with no intermediate bonus
+remaining. This proves (ii).
+    Finally, we count the queries. Constructing the snapshots takes 𝑛𝑄 2 Core calls, and evaluating
+every snapshot piece for every agent takes 𝑂(𝑛 3 𝑄 2 ) queries. By the argument above, there are at
+most 𝑛𝑄 3 later sequences, each containing at most
+                                   l                                    m
+                                       log𝑛/(𝑛−2) 4𝑛 2 (𝑄 + 1)               = 𝑂(𝑛 log 𝑛)
+
+Core calls. Since 𝑄 = 𝑛(𝑛 − 1), we make only polynomially many Core calls. Combining this with
+Propositions C.1 and 4.4 gives the claimed query bound.                                      □
+    If every agent values 𝑅∗ at zero, we add 𝑅 ∗ to one agent’s share in 𝐻 ⊕ Id(𝒮) and return that
+allocation. By Lemmas 4.1 and 4.7, this allocation is complete and envy-free.
+
+
+                                                              13
+4.4   Pruning the Snapshots
+With pre-processing complete, we now begin Stage 2 of Section 3.1, where we prune the snapshots
+so that the reassignments chosen later do not conflict. For the rest of the proof, assume that some
+agent values 𝑅∗ positively. For every agent 𝑖, we abbreviate
+
+                             Γ𝑖 = Γ𝑖 (𝑅∗ ),        𝜂 𝑖 = 𝜂 𝑖 (𝑅 ∗ ),       𝜖 𝑖 = 𝜖 𝑖 (𝑅∗ ).
+
+We now give “mark” its formal meaning. In snapshot 𝑠, let 𝐹𝑠,𝑖 be the set of labels that agent 𝑖
+marks, i.e.,
+                                𝐹𝑠,𝑖 = {𝑘 ∈ 𝑁 : 𝑑 𝑠,𝑖,𝑘 > 𝜖 𝑖 }.
+By Lemma 4.7, if agent 𝑖 marks label 𝑘 in snapshot 𝑠, then her bonus 𝑑 𝑠,𝑖,𝑘 over that label is large.
+Conversely, if she does not mark label 𝑘, then this bonus is small.
+    We choose an agent 𝑐 with 𝑉𝑐 (𝑅∗ ) > 0 and begin with the 𝑄 2 snapshots made with 𝑐 as the
+cutter. Recall that snapshot 𝑠 witnesses the pair (𝑖, 𝑗) if 𝑖 marks some label that 𝑗 does not. In our
+notation, this means 𝐹𝑠,𝑖 ⊈ 𝐹𝑠,𝑗 . Such a witness identifies a label that we may later want to give to
+𝑗. This also brings us back to Challenge #2 from the introduction. The same snapshot may witness
+several pairs, and those pairs may require us to distribute that snapshot in different, conflicting
+ways. To resolve this issue, we need to reserve a different witness snapshot for each pair.
+    We achieve this by pruning the snapshots. Observe that, since there are 𝑄 (ordered) pairs of
+agents, if every pair has at least 𝑄 witnesses, then our goal is trivially met by the pigeonhole
+principle. Indeed, we can go through the pairs one at a time. Before we reach a pair, at most 𝑄 − 1
+snapshots have been reserved, so at least one witness remains unused. In light of this observation,
+whenever a pair has between 1 and 𝑄 − 1 witnesses, we discard all of its witness snapshots. We
+repeat until no such pair remains and call the remaining collection 𝒫. Thus, in 𝒫, every pair either
+has no witness or has many, enough to avoid conflicts later.
+    We write agent 𝑖’s profile as F𝑖 = (𝐹𝑠,𝑖 )𝑠∈𝒫 . Agents with the same profile form a profile class.
+We write F𝑖 ⪯ F 𝑗 when 𝐹𝑠,𝑖 ⊆ 𝐹𝑠,𝑗 for every 𝑠 ∈ 𝒫, i.e., no snapshot in 𝒫 witnesses (𝑖, 𝑗). We write
+F𝑖 ≺ F 𝑗 when, in addition, 𝐹𝑠,𝑖 ⊊ 𝐹𝑠,𝑗 for some 𝑠 ∈ 𝒫.
+    Later, we recurse on one profile class. We need at least two profile classes to remain, so that the
+recursive call contains fewer agents. The following fact about the cutter prevents all agents from
+having the same profile.
+Lemma 4.8. If agent 𝑐 satisfies 𝑉𝑐 (𝑅∗ ) > 0, then 𝐹𝑠,𝑐 ≠ ∅ in every snapshot 𝑠 made with 𝑐 as the cutter.
+Proof. Fix one such snapshot, and let 𝑈 and 𝑇 be the residues immediately before and after its Core
+call. Agent 𝑐 divides 𝑈 into 𝑛 pieces of equal value, each worth 𝑏 𝑠,𝑐 to her. The allocated snapshot
+pieces together with 𝑇 partition 𝑈. Therefore,
+                                            Õ                             Õ
+                                𝑉𝑐 (𝑇) =          𝑏 𝑠,𝑐 − 𝑉𝑐 (𝑐 𝑠,𝑘 ) =          𝑑 𝑠,𝑐,𝑘 .
+                                                                       
+                                            𝑘∈𝑁                            𝑘∈𝑁
+
+Because snapshot 𝑠 is envy-free, every term in this sum is nonnegative. Moreover, by Proposition 4.3
+(i), 𝑐 and another agent each receive a whole piece cut by 𝑐. Both pieces are worth 𝑏 𝑠,𝑐 to 𝑐, so the
+corresponding two terms are zero. Thus, at most 𝑛 − 2 terms are positive.
+     All later operations only shrink the residue, so 𝑅∗ ⊆ 𝑇. It follows that some label 𝑘 satisfies
+                                            𝑉𝑐 (𝑇) 𝑉𝑐 (𝑅∗ ) 𝑉𝑐 (𝑅∗ )
+                                𝑑 𝑠,𝑐,𝑘 ≥         ≥        >         = Γ𝑐 ,
+                                            𝑛−2     𝑛−2      𝑄2
+where we used 𝑉𝑐 (𝑅∗ ) > 0 and 𝑄 2 > 𝑛 − 2. Since Γ𝑐 > 𝜖 𝑐 , agent 𝑐 marks label 𝑘. Hence 𝐹𝑠,𝑐 ≠ ∅. □
+
+                                                         14
+Lemma 4.9. The collection 𝒫 contains at least 𝑄 snapshots. For every pair (𝑖, 𝑗), the condition 𝐹𝑠,𝑖 ⊆ 𝐹𝑠,𝑗
+either holds throughout 𝒫 or fails in at least 𝑄 snapshots. Moreover, at least two profile classes remain.
+
+Proof. When a pair (𝑖, 𝑗) has between 1 and 𝑄 − 1 witnesses, the procedure deletes its entire witness
+set. After that deletion, this pair has no witnesses and cannot regain one as the collection shrinks,
+so each of the 𝑄 pairs causes at most one deletion. Every deletion removes at most 𝑄 − 1 snapshots.
+Consequently, the final collection satisfies |𝒫| ≥ 𝑄 2 − 𝑄(𝑄 − 1) = 𝑄, and every surviving witness
+set is either empty or has size at least 𝑄.
+    Suppose all agents had the same profile. Then, in every snapshot 𝑠 ∈ 𝒫, they would all mark
+the same labels. Agent 𝑖 never marks label 𝑖, so no other agent could mark label 𝑖 either. This holds
+for every 𝑖, so no agent could mark any label in 𝑠. However, 𝑠 was made with 𝑐 as the cutter, and
+Lemma 4.8 says that 𝑐 marks at least one label in 𝑠, a contradiction. Thus, at least two profile classes
+remain.                                                                                               □
+    To sum up, after pruning, agents in different profile classes fall into one of two cases. Either
+F𝑖 ⪯̸ F 𝑗 , in which case at least 𝑄 snapshots witness (𝑖, 𝑗), or F𝑖 ≺ F 𝑗 , in which case no snapshot in
+𝒫 witnesses (𝑖, 𝑗).
+
+4.5   Constructing the Partial Allocation
+Having pruned the snapshots, we now enter Stage 3, where the main goal is to construct the partial
+allocation needed for recursion. This section is rather lengthy, so we give a brief outline in Figure 2.
+First, we address agents in different profile classes. Our goal, roughly speaking, is to distribute
+the snapshot pieces and give agents additional cake so that each agent values her own share more
+than the share of anyone in another profile class.6 There are two subcases, and we develop a tool
+(Lemmas 4.11 and 4.13) for each one. We then use both tools in one construction that handles the
+two (sub)cases together. Finally, we take care of agents within the same class, where, to ensure no
+envy exists, we use SubCore to redistribute the cake these agents receive.
+
+                              Matchings
+                            (Lemma 4.12)
+                        s
+                      ye
+
+
+
+
+                                                                                                        Get partial
+                                                    Cut cake for          Redistribute within
+   Does (𝑖, ℎ) have                                                                                     allocation
+                                                     both cases            each profile class
+     a witness?                                                                                       (Lemmas 4.18
+                                                   (Lemma 4.14)              (Lemma 4.17)
+                                                                                                        and 4.19)
+                               Ranks
+                      no
+
+
+
+
+                            (Lemma 4.13)
+
+
+                                        Figure 2: A flowchart for Stage 3.
+
+    To begin, for every snapshot 𝑠 that survives the pruning, we define a directed graph 𝐺 𝑠 . The
+graph contains the edge 𝑖 → 𝑘 if 𝑘 ∉ 𝐹𝑠,𝑖 , and in particular every self-loop is present. We first look
+for a potential shortcut.
+
+Lemma 4.10. Suppose some 𝐺 𝑠 is not strongly connected, and let 𝑆 be a sink strongly connected component
+of 𝐺 𝑠 . Then we can construct an envy-free partial allocation in which every agent in 𝑆 dominates every agent
+in 𝑁\𝑆. We can therefore recurse on 𝑁\𝑆.
+   6 Formally, every agent who values 𝑅 ∗ positively strictly prefers her own share to the share of every agent in another
+profile class. See Lemma 4.19.
+
+
+
+
+                                                           15
+Proof. Since 𝐺 𝑠 is not strongly connected, 𝑆 ⊊ 𝑁, and no edge of 𝐺 𝑠 leaves 𝑆. Thus, for every 𝑖 ∈ 𝑆
+and 𝑗 ∈ 𝑁\𝑆, the label 𝑗 belongs to 𝐹𝑠,𝑖 . By Lemma 4.7, we have
+
+                                                                              𝑉𝑖 (𝑅∗ )
+                                 𝑉𝑖 (𝑐 𝑠,𝑖 ) − 𝑉𝑖 (𝑐 𝑠,𝑗 ) = 𝑑 𝑠,𝑖,𝑗 ≥ Γ𝑖 =            .
+                                                                               𝑄2
+
+     Set 𝑌0 = 𝐻 ⊕ Id(𝒮). Since 𝐻 and every snapshot in 𝒮 are envy-free, Lemma 4.1 (i) gives
+Δ𝑖𝑗 (𝑌0 ) ≥ Γ𝑖 . For each 𝑖 ∈ 𝑆 with 𝑉𝑖 (𝑅∗ ) > 0, we repeatedly call Core with 𝑖 as the cutter, each time
+using the residue left by the previous call, until the residue is worth at most 𝑉𝑖 (𝑅∗ )/𝑄 2 = Γ𝑖 to her.
+Let 𝑌 be the allocation obtained by adding every allocation returned by these calls to 𝑌0 . Once the
+sequence for 𝑖 ends, she values the residue at most Γ𝑖 , and later calls only shrink it. Since every
+returned allocation is envy-free, Lemma 4.1 (i) gives Δ𝑖𝑗 (𝑌) ≥ Δ𝑖𝑗 (𝑌0 ) ≥ Γ𝑖 for every 𝑗 ∈ 𝑁\𝑆.
+     If 𝑖 ∈ 𝑆 satisfies 𝑉𝑖 (𝑅 ∗ ) = 0, the remaining residue is worth zero to her. Since 𝑌 is envy-free, she
+also dominates every 𝑗 ∈ 𝑁\𝑆.
+     Every agent in 𝑆 therefore dominates every agent in 𝑁\𝑆. By Corollary 4.2, we recurse on
+𝑁\𝑆.                                                                                                       □
+   For the rest of the proof, we assume that every 𝐺 𝑠 is strongly connected. Let (𝑖, ℎ) be a pair of
+agents from different profile classes. As outlined earlier, our goal is to ensure that 𝑖 values her own
+share more than ℎ’s, and we prove this in two cases.
+
+Different profile classes, Case 1. Suppose F𝑖 ⪯̸ F ℎ . Then some snapshot 𝑠 witnesses (𝑖, ℎ); choose
+a label 𝑘 ∈ 𝐹𝑠,𝑖 \ 𝐹𝑠,ℎ .
+    We want to give the label-𝑘 piece to ℎ, since 𝑖 values this piece substantially less than her own
+piece, while ℎ values it almost as much as her own. Since ℎ does not mark 𝑘, the graph 𝐺 𝑠 contains
+the edge ℎ → 𝑘. The following lemma shows that we can extend this edge to a perfect matching
+using only edges of 𝐺 𝑠 .
+
+Lemma 4.11. Every edge 𝑗 → 𝑘 of a strongly connected graph 𝐺 𝑠 belongs to a perfect matching that pairs
+each agent with a distinct label and uses only edges of 𝐺 𝑠 .
+
+Proof. If 𝑗 = 𝑘, the identity matching works. Otherwise, strong connectivity gives a simple directed
+path from 𝑘 to 𝑗. This path together with 𝑗 → 𝑘 forms a directed cycle. The cycle edges and the
+self-loops at all vertices outside the cycle form the required perfect matching.                   □
+    We now need to choose such a matching for every pair (𝑖, ℎ) with F𝑖 ⪯̸ F ℎ , while ensuring that
+different pairs use different witness snapshots. Let 𝒥 denote the collection of snapshots we select,
+initially empty. We go through the pairs one at a time. For each pair (𝑖, ℎ), we choose an unused
+witness snapshot 𝑠 and a label 𝑘 ∈ 𝐹𝑠,𝑖 \ 𝐹𝑠,ℎ . By Lemma 4.11, we can choose a perfect matching 𝜇𝑠
+containing the edge ℎ → 𝑘. We include 𝑠 in 𝒥 and use this matching for 𝑠, under which ℎ receives
+the label-𝑘 piece.
+    If 𝒥 contains fewer than 𝑄 snapshots after we have considered every pair, we choose additional
+unused snapshots and give each its identity matching until 𝒥 contains exactly 𝑄 snapshots.
+
+Lemma 4.12. Assume every 𝐺 𝑠 with 𝑠 ∈ 𝒫 is strongly connected. We can select a collection 𝒥 of 𝑄 distinct
+snapshots and a perfect matching 𝜇𝑠 for each 𝑠 ∈ 𝒥 . Each matching uses only edges of 𝐺 𝑠 , so every agent
+is paired with a label she does not mark. Moreover, for every pair (𝑖, ℎ) with F𝑖 ⪯̸ F ℎ , some 𝑠 ∈ 𝒥 satisfies
+𝜇𝑠 (ℎ) ∈ 𝐹𝑠,𝑖 \ 𝐹𝑠,ℎ .
+
+
+
+
+                                                         16
+Proof. There are at most 𝑄 such pairs. By Lemma 4.9, each such pair has at least 𝑄 witness snapshots
+in 𝒫. When we reach a pair (𝑖, ℎ), fewer than 𝑄 snapshots have been selected, so an unused witness
+remains. In that snapshot, Lemma 4.11 gives a perfect matching that gives ℎ a label marked by 𝑖
+but not by ℎ. Thus, we can handle every pair using a different snapshot.
+    If fewer than 𝑄 snapshots are selected, then |𝒫| ≥ 𝑄 by Lemma 4.9, so enough unused snapshots
+remain to bring the total to 𝑄. We give each added snapshot its identity matching. Every self-loop
+belongs to 𝐺 𝑠 , so these matchings also use only edges of 𝐺 𝑠 .                                  □
+
+Different profile classes, Case 2. Suppose now that F𝑖 ≺ F ℎ . Let ℰ be the set of profile classes.
+Overloading the notation, we write F𝐸 for the profile shared by agents in 𝐸. Our key tool for this
+case is the notion of rank. For each class 𝐸, define its rank by
+
+                                              ∃𝐸0 , 𝐸1 , . . . , 𝐸𝑡 ∈ ℰ with 𝐸0 = 𝐸,
+                                                                                      
+                                ℓ 𝐸 = max 𝑡 :                                              ,
+                                              F𝐸 0 ≺ F𝐸 1 ≺ · · · ≺ F𝐸 𝑡
+
+and set ℓ ℎ = ℓ 𝐸 for every ℎ ∈ 𝐸. The following lemma explains the name: if F𝐸 ≺ F𝐷 , then 𝐸 has
+higher rank than 𝐷.
+
+Lemma 4.13. For every profile class 𝐸 and every agent ℎ ∈ 𝐸,
+                                                                  Õ
+                                              0 ≤ ℓ ℎ ≤ 𝑛 − 1,          ℓ ℎ ≤ 𝑄.
+                                                                  ℎ∈𝑁
+
+Moreover, for profile classes 𝐸, 𝐷, if F𝐸 ≺ F𝐷 , then ℓ 𝐸 ≥ ℓ 𝐷 + 1.
+
+Proof. Every chain in the definition of ℓ 𝐸 consists of distinct profile classes and therefore contains
+at most 𝑛 classes. Hence, 0 ≤ ℓ ℎ ≤ 𝑛 − 1 for every ℎ, and summing over the 𝑛 agents gives
+  ℎ∈𝑁 ℓ ℎ ≤ 𝑛(𝑛 − 1) = 𝑄. If F𝐸 ≺ F𝐷 , prepending 𝐸 to a longest chain starting at 𝐷 produces a chain
+Í
+of length ℓ 𝐷 + 1 starting at 𝐸, so ℓ 𝐸 ≥ ℓ 𝐷 + 1.                                                    □
+
+Bringing the two cases together. With both tools in place, we now build one partial allocation that
+handles both cases. For Case 1, we slightly enlarge the snapshot pieces assigned by the matchings.
+We choose each enlargement so that an agent who does not mark the label is willing to receive the
+piece, while an agent who marks the label still values it substantially less than her own piece. For
+Case 2, we cut one piece from 𝑅 ∗ for each agent, with its size determined by the agent’s rank. We
+choose all these pieces to be disjoint and now define their sizes.
+   Set 𝐿 = 1/(𝑛𝑄 2 ) and 𝛿 = 𝐿/(16𝑛(𝑄 + 1)). For every 𝑠 ∈ 𝒥 and every label 𝑘, we also set
+
+                                         𝑑 𝑠,𝑖,𝑘
+                                                                                              
+                         𝑟 𝑠,𝑘 = max 0,          where 𝑖 ∈ 𝑁 , 𝑉𝑖 (𝑅∗ ) > 0, 𝑑 𝑠,𝑖,𝑘 ≤ 𝜖 𝑖 ,
+                                        𝑉𝑖 (𝑅∗ )
+
+i.e., the largest fraction of 𝑅∗ needed to cover any small bonus over label 𝑘 in snapshot 𝑠. Using
+these values, we ask for two kinds of pieces. For every such 𝑠 and 𝑘, we ask for a piece 𝐴 𝑠,𝑘 of size
+𝑟 𝑠,𝑘 + 𝛿, and call it the addition to 𝑐 𝑠,𝑘 . For every agent ℎ with ℓ ℎ > 0, we ask for a piece 𝑃 ℎ of size
+𝐿(ℓ ℎ − 21 ) + 𝛿, and call it the rank piece for ℎ. When ℓ ℎ = 0, we set 𝑃 ℎ = ∅. We feed these requests
+into Lemma 4.6, using 𝑅∗ and 𝛿.
+
+Lemma 4.14. The pieces 𝐴 𝑠,𝑘 and 𝑃 ℎ are pairwise disjoint subsets of 𝑅∗ with the following properties:
+
+  (i) if 𝑑 𝑠,𝑖,𝑘 ≤ 𝜖 𝑖 , then 𝑉𝑖 (𝐴 𝑠,𝑘 ) ≥ 𝑑 𝑠,𝑖,𝑘 ;
+
+                                                             17
+  (ii) for every 𝑖 ∈ 𝑁, 𝑠 ∈ 𝒥 , and 𝑘 ∈ 𝑁, 𝑉𝑖 (𝐴 𝑠,𝑘 ) ≤ 𝜂 𝑖 ;
+
+ (iii) for every 𝑖, ℎ ∈ 𝑁, max{0, 𝐿(ℓ ℎ − 1/2)}𝑉𝑖 (𝑅 ∗ ) ≤ 𝑉𝑖 (𝑃 ℎ ) ≤ 𝐿ℓ ℎ 𝑉𝑖 (𝑅 ∗ ).
+
+They can be produced using polynomially many Robertson–Webb queries. We defer the proof to Appendix D.
+
+    (iii) already gives us the bounds on the rank pieces needed for Case 2. We now verify what
+the additions do, first within each snapshot. If agent 𝑖 does not mark label 𝑘, attaching 𝐴 𝑠,𝑘 to 𝑐 𝑠,𝑘
+makes the enlarged piece worth at least as much as her own snapshot piece. If she marks label 𝑘,
+the enlarged piece remains worth substantially less than her own snapshot piece.
+
+Lemma 4.15. For every 𝑠 ∈ 𝒥 and 𝑖, 𝑘 ∈ 𝑁,
+                                  (
+                                      𝑏 𝑠,𝑖 ≤ 𝑉𝑖 (𝑐 𝑠,𝑘 ∪ 𝐴 𝑠,𝑘 ) ≤ 𝑏 𝑠,𝑖 + 𝜂 𝑖 ,       𝑘 ∉ 𝐹𝑠,𝑖 ,
+                                      𝑉𝑖 (𝑐 𝑠,𝑘 ∪ 𝐴 𝑠,𝑘 ) ≤ 𝑏 𝑠,𝑖 − Γ𝑖 + 𝜂 𝑖 ,          𝑘 ∈ 𝐹𝑠,𝑖 .
+
+Proof. If 𝑘 ∉ 𝐹𝑠,𝑖 , then 𝑑 𝑠,𝑖,𝑘 ≤ 𝜖 𝑖 . By Lemma 4.14,
+
+                                                      𝑑 𝑠,𝑖,𝑘 ≤ 𝑉𝑖 (𝐴 𝑠,𝑘 ) ≤ 𝜂 𝑖 .
+
+Since 𝑉𝑖 (𝑐 𝑠,𝑘 ) = 𝑏 𝑠,𝑖 − 𝑑 𝑠,𝑖,𝑘 , the lower bound follows. Because snapshot 𝑠 is envy-free, 𝑉𝑖 (𝑐 𝑠,𝑘 ) ≤ 𝑏 𝑠,𝑖 ,
+so the upper bound follows as well.
+    If 𝑘 ∈ 𝐹𝑠,𝑖 , then 𝑑 𝑠,𝑖,𝑘 > 𝜖 𝑖 . Since Lemma 4.7 rules out bonuses strictly between 𝜖 𝑖 and Γ𝑖 , we
+have 𝑑 𝑠,𝑖,𝑘 ≥ Γ𝑖 . Together with 𝑉𝑖 (𝐴 𝑠,𝑘 ) ≤ 𝜂 𝑖 , this gives
+
+                                             𝑉𝑖 (𝑐 𝑠,𝑘 ∪ 𝐴 𝑠,𝑘 ) ≤ 𝑏 𝑠,𝑖 − Γ𝑖 + 𝜂 𝑖 .                              □
+
+    To combine these bounds across all snapshots in 𝒥 , we group together the pieces assigned to
+each agent by the matchings. For every agent ℎ, let 𝐷 ℎ be the union of the snapshot pieces assigned
+to ℎ, and let 𝐴 ℎ be the union of their additions. For every agent 𝑖, let 𝐵 𝑖 be her total value for her
+own snapshot pieces:
+                                 Ø                                 Ø                             Õ
+                          𝐷ℎ =         𝑐 𝑠,𝜇𝑠 (ℎ) ,        𝐴ℎ =          𝐴 𝑠,𝜇𝑠 (ℎ) ,     𝐵𝑖 =         𝑏 𝑠,𝑖 .
+                                 𝑠∈𝒥                               𝑠∈𝒥                           𝑠∈𝒥
+
+    Because every snapshot is envy-free, the two preceding lemmas give the following bounds.
+
+Lemma 4.16. For every 𝑖, ℎ ∈ 𝑁, we have 𝑉𝑖 (𝐷 ℎ ) ≤ 𝐵 𝑖 and 𝑉𝑖 (𝐴 ℎ ) ≤ 𝑄𝜂 𝑖 . Moreover:
+
+  (i) if F𝑖 = F ℎ , then 𝑉𝑖 (𝐷 ℎ ∪ 𝐴 ℎ ) ≥ 𝐵 𝑖 ;
+
+  (ii) if F𝑖 ⪯̸ F ℎ , then 𝑉𝑖 (𝐷 ℎ ∪ 𝐴 ℎ ) ≤ 𝐵 𝑖 − Γ𝑖 + 𝑄𝜂 𝑖 .
+
+Proof. Because every snapshot in 𝒥 is envy-free, agent 𝑖 values the snapshot piece assigned to ℎ
+no more than her own piece in that snapshot. Summing over the snapshots gives 𝑉𝑖 (𝐷 ℎ ) ≤ 𝐵 𝑖 . By
+definition, 𝐴 ℎ contains one addition from each of the 𝑄 snapshots in 𝒥 . Each addition is worth at
+most 𝜂 𝑖 to agent 𝑖, so 𝑉𝑖 (𝐴 ℎ ) ≤ 𝑄𝜂 𝑖 .
+    For (i), suppose F𝑖 = F ℎ . For every 𝑠 ∈ 𝒥 , the matching uses the edge ℎ → 𝜇𝑠 (ℎ), so 𝜇𝑠 (ℎ) ∉
+𝐹𝑠,ℎ = 𝐹𝑠,𝑖 . By Lemma 4.15,
+                                           𝑉𝑖 𝑐 𝑠,𝜇𝑠 (ℎ) ∪ 𝐴 𝑠,𝜇𝑠 (ℎ) ≥ 𝑏 𝑠,𝑖 .
+                                                                     
+
+Summing over all 𝑠 ∈ 𝒥 gives 𝑉𝑖 (𝐷 ℎ ∪ 𝐴 ℎ ) ≥ 𝐵 𝑖 .
+
+
+                                                                  18
+    For (ii), suppose F𝑖 ⪯̸ F ℎ . By Lemma 4.12, some snapshot 𝑠 ∈ 𝒥 satisfies 𝑘 = 𝜇𝑠 (ℎ) ∈ 𝐹𝑠,𝑖 . For
+this snapshot, Lemma 4.15 gives
+
+                                        𝑉𝑖 (𝑐 𝑠,𝑘 ∪ 𝐴 𝑠,𝑘 ) ≤ 𝑏 𝑠,𝑖 − Γ𝑖 + 𝜂 𝑖 .
+
+For every 𝑡 ∈ 𝒥 other than 𝑠, envy-freeness of snapshot 𝑡 and the bound 𝑉𝑖 (𝐴𝑡,𝜇𝑡 (ℎ) ) ≤ 𝜂 𝑖 give
+
+                                       𝑉𝑖 (𝑐 𝑡,𝜇𝑡 (ℎ) ∪ 𝐴𝑡,𝜇𝑡 (ℎ) ) ≤ 𝑏 𝑡,𝑖 + 𝜂 𝑖 .
+
+Summing these bounds gives
+
+                         𝑉𝑖 (𝐷 ℎ ∪ 𝐴 ℎ ) ≤ 𝐵 𝑖 − Γ𝑖 + 𝜂 𝑖 + (𝑄 − 1)𝜂 𝑖 = 𝐵 𝑖 − Γ𝑖 + 𝑄𝜂 𝑖 .                    □
+   At this point, the additions make a piece good enough for an agent who does not mark its
+label, while keeping it substantially worse for any agent who does mark its label. The rank pieces
+provide more cake for classes of higher rank than for classes of lower rank.
+
+Agents in the same profile class. Agents in the same profile class may still envy one another. For
+every agent ℎ, we concatenate 𝑃 ℎ , 𝐴 ℎ , and 𝐷 ℎ , in this order, to form
+
+                                               𝑊ℎ = [𝑃 ℎ , 𝐴 ℎ , 𝐷 ℎ ].
+
+We now fix a profile class 𝐸 and use SubCore to redistribute the cake prepared for its agents. For
+every agent 𝑖 ∈ 𝐸, set her required minimum to
+
+                                    𝑞 𝑖 = 𝐵 𝑖 + max{0, 𝐿(ℓ 𝐸 − 1/2)}𝑉𝑖 (𝑅∗ ),
+
+i.e., the first term is agent 𝑖’s value for her own pieces in the snapshots from 𝒥 , and the second is
+a lower bound on her value for every 𝑃 ℎ with ℎ ∈ 𝐸.
+Lemma 4.17.        (i) The pieces (𝑊ℎ ) ℎ∈𝑁 are pairwise disjoint.
+
+  (ii) For every 𝑖, ℎ ∈ 𝐸, we have 𝑉𝑖 (𝑊ℎ ) ≥ 𝑞 𝑖 .
+
+ (iii) If we call SubCore on the agents in 𝐸, the pieces (𝑊ℎ ) ℎ∈𝐸 , and one empty piece, using 𝑞 𝑖 as agent 𝑖’s
+       required minimum, then it produces an envy-free allocation. Every agent receives a suffix of a distinct
+       𝑊ℎ worth at least her required minimum. The empty piece remains unallocated, and a suffix is allocated
+       from every 𝑊ℎ .
+
+ (iv) For every ℎ ∈ 𝐸, the suffix allocated from 𝑊ℎ contains all of 𝐷 ℎ . Consequently, the part of 𝑊ℎ left
+      unallocated is a prefix contained in 𝑃 ℎ ∪ 𝐴 ℎ .
+Proof. For (i), Lemma 4.7 shows that the snapshot allocations are pairwise disjoint and lie outside
+𝑅 ∗ . For every 𝑠 ∈ 𝒥 , the perfect matching assigns each label exactly once. Thus, each 𝑐 𝑠,𝑘 belongs
+to exactly one 𝐷 ℎ , and the corresponding 𝐴 𝑠,𝑘 belongs to exactly one 𝐴 ℎ . By Lemma 4.14, all
+additions 𝐴 𝑠,𝑘 and rank pieces 𝑃 ℎ are pairwise disjoint subsets of 𝑅∗ . Hence, the pieces 𝑊ℎ are
+pairwise disjoint.
+      For (ii), fix agents 𝑖, ℎ ∈ 𝐸. Since they have the same profile, Lemma 4.16 gives 𝑉𝑖 (𝐷 ℎ ∪ 𝐴 ℎ ) ≥ 𝐵 𝑖 .
+They also have the same rank, so ℓ ℎ = ℓ 𝐸 , and Lemma 4.14 gives 𝑉𝑖 (𝑃 ℎ ) ≥ max{0, 𝐿(ℓ 𝐸 − 1/2)}𝑉𝑖 (𝑅 ∗ ).
+Therefore,
+                                    𝑉𝑖 (𝑊ℎ ) = 𝑉𝑖 (𝑃 ℎ ) + 𝑉𝑖 (𝐴 ℎ ∪ 𝐷 ℎ )
+                                           ≥ 𝐵 𝑖 + max{0, 𝐿(ℓ 𝐸 − 1/2)}𝑉𝑖 (𝑅∗ )
+                                           = 𝑞𝑖 .
+
+                                                           19
+                                trim point 𝑥                                     boundary before 𝐷 ℎ
+                              𝑃ℎ                         𝐴ℎ                        𝐷ℎ
+                         (unallocated) prefix                      allocated suffix
+                                                                  contains all of 𝐷 ℎ
+                Figure 3: Every trim occurs no later than the boundary before 𝐷 ℎ ,
+                so the allocated suffix contains all of 𝐷 ℎ .
+
+    For (iii), (ii) shows that every agent 𝑖 ∈ 𝐸 values every 𝑊ℎ at least 𝑞 𝑖 , so we may apply
+Proposition 4.5. Therefore, SubCore gives every agent a suffix of a distinct 𝑊ℎ worth at least her
+required minimum and leaves the empty piece unallocated. There are |𝐸| agents and |𝐸| pieces 𝑊ℎ ,
+so a suffix is allocated from every 𝑊ℎ .
+    For (iv), consider any trim. Suppose SubCore asks agent 𝑖 to trim 𝑊ℎ , or one of its suffixes, to
+value 𝑞. Agent 𝑖’s required minimum starts at 𝑞 𝑖 and only increases, so 𝑞 ≥ 𝑞 𝑖 . By Lemma 4.16,
+                                        𝑉𝑖 (𝐷 ℎ ) ≤ 𝐵 𝑖 ≤ 𝑞 𝑖 ≤ 𝑞.
+If 𝑉𝑖 (𝐷 ℎ ) < 𝑞, then a suffix beginning at or after the boundary before 𝐷 ℎ is worth less than 𝑞, so
+the trim occurs before that boundary. If 𝑉𝑖 (𝐷 ℎ ) = 𝑞, that boundary gives a suffix worth 𝑞, and
+the rule in Section C.2 chooses it or an earlier boundary. Thus, every trim occurs no later than the
+boundary before 𝐷 ℎ , as shown in Figure 3. Every allocated suffix therefore contains 𝐷 ℎ , and the
+part left unallocated is a prefix contained in 𝑃 ℎ ∪ 𝐴 ℎ .                                           □
+
+
+The partial allocation. We have gathered everything we need. For agents in different profile
+classes, Lemmas 4.12 to 4.16 give us the additional cake needed to ensure that each agent values
+her own share more than the share of anyone in another class. For agents in the same profile class,
+Lemma 4.17 gives us a way to redistribute their cake so that they no longer envy one another.
+    We apply Lemma 4.17 to every profile class and combine the resulting allocations into 𝑍. By
+Lemma 4.17, 𝑍 is envy-free within each profile class and contains all snapshot pieces from 𝒥 . We
+use the identity assignment for every other snapshot and finally define
+                                        𝑋 = 𝐻 ⊕ Id(𝒮\𝒥 ) ⊕ 𝑍,
+the partial allocation we seek and on which we build the recursion. (Recall that 𝐻 comes from
+Lemma 4.7.) We now prove that 𝑋 is well defined and envy-free.
+Lemma 4.18. For every agent ℎ, let 𝑌ℎ be the prefix of 𝑊ℎ left unallocated by the SubCore call for ℎ’s
+profile class. The allocation 𝑋 is well defined: no cake is allocated twice, and its residue is
+                                                              !
+                                          Ø                            Ø
+                              𝑅1 = 𝑅∗ \         (𝑃 ℎ ∪ 𝐴 ℎ ) ∪               𝑌ℎ ⊆ 𝑅∗ .
+                                          ℎ∈𝑁                          ℎ∈𝑁
+
+Proof. By Lemma 4.17 (i), the pieces 𝑊ℎ are pairwise disjoint, so the calls for different profile
+classes use disjoint cake. By Lemma 4.17 (iii), the call for a profile class 𝐸 assigns a suffix from
+every 𝑊ℎ with ℎ ∈ 𝐸. Since the profile classes partition 𝑁, one suffix is assigned from every 𝑊ℎ . By
+Lemma 4.17 (iv), this suffix contains all of 𝐷 ℎ , so its unused prefix 𝑌ℎ lies in 𝑃 ℎ ∪ 𝐴 ℎ .
+    By Lemma 4.14, the sets 𝑃 ℎ ∪ 𝐴 ℎ , over all ℎ ∈ 𝑁, are pairwise disjoint subsets of 𝑅∗ . Removing
+these sets from 𝑅 ∗ and returning the unused prefixes gives
+                                                                   !
+                                                Ø                        Ø
+                                   𝑅1 = 𝑅∗ \         (𝑃 ℎ ∪ 𝐴 ℎ ) ∪            𝑌ℎ .
+                                               ℎ∈𝑁                       ℎ∈𝑁
+
+
+                                                       20
+Since 𝑌ℎ ⊆ 𝑃 ℎ ∪ 𝐴 ℎ for every ℎ, we also have 𝑅1 ⊆ 𝑅∗ .                                                 □
+   It remains to prove that 𝑋 is envy-free.
+Lemma 4.19. Assume every graph 𝐺 𝑠 with 𝑠 ∈ 𝒫 is strongly connected. Then 𝑋 is envy-free and, for every
+pair (𝑖, 𝑗) in different profile classes,
+                                                                    𝑉𝑖 (𝑅∗ )
+                                           Δ𝑖𝑗 (𝑋) ≥ 𝜂 𝑖 =                    .
+                                                                 4𝑛(𝑄 + 1)𝑄 2
+Proof. Fix agents 𝑖, 𝑗 in different profile classes. By Lemma 4.17 (iii), agent 𝑗 receives a suffix of 𝑊ℎ
+for some ℎ in her profile class. Hence F ℎ = F 𝑗 and ℓ ℎ = ℓ 𝑗 . By definition, 𝐿𝑉𝑖 (𝑅∗ ) = 4(𝑄 + 1)𝜂 𝑖 and
+Γ𝑖 = 4𝑛(𝑄 + 1)𝜂 𝑖 .
+    Since 𝑖 and 𝑗 belong to different profile classes, either F𝑖 ≺ F 𝑗 or F𝑖 ⪯̸ F 𝑗 .
+    Suppose first F𝑖 ≺ F 𝑗 . By Lemma 4.13, ℓ 𝑖 ≥ ℓ 𝑗 + 1. By the definition of 𝑞 𝑖 and Lemma 4.17 (iii),
+                                                                    1
+                                           𝑉𝑖 (𝑍 𝑖 ) ≥ 𝐵 𝑖 + 𝐿(ℓ 𝑖 − )𝑉𝑖 (𝑅∗ ).
+                                                                    2
+Because every snapshot is envy-free, 𝑉𝑖 (𝐷 ℎ ) ≤ 𝐵 𝑖 . By Lemmas 4.14 and 4.16, we also have
+                                 𝑉𝑖 (𝐴 ℎ ) ≤ 𝑄𝜂 𝑖 ,              𝑉𝑖 (𝑃 ℎ ) ≤ 𝐿ℓ 𝑗 𝑉𝑖 (𝑅∗ ).
+Because 𝑍 𝑗 ⊆ 𝑊ℎ , we further have
+                                         𝑉𝑖 (𝑍 𝑗 ) ≤ 𝐵 𝑖 + 𝑄𝜂 𝑖 + 𝐿ℓ 𝑗 𝑉𝑖 (𝑅 ∗ ).
+Together,
+                                                1                  𝐿
+                                                       
+                        Δ𝑖𝑗 (𝑍) ≥ 𝐿 ℓ 𝑖 − ℓ 𝑗 −   𝑉𝑖 (𝑅∗ ) − 𝑄𝜂 𝑖 ≥ 𝑉𝑖 (𝑅∗ ) − 𝑄𝜂 𝑖
+                                                2                  2
+                                = 2(𝑄 + 1) − 𝑄 𝜂 𝑖 = (𝑄 + 2)𝜂 𝑖
+                                                           
+
+                                ≥ 𝜂𝑖 .
+    Now suppose F𝑖 ⪯̸ F 𝑗 . By Lemma 4.17 (iii), 𝑉𝑖 (𝑍 𝑖 ) ≥ 𝑞 𝑖 ≥ 𝐵 𝑖 . Because F ℎ = F 𝑗 , we also have
+F𝑖 ⪯̸ F ℎ . By Lemma 4.16, we have
+                                           𝑉𝑖 (𝐷 ℎ ∪ 𝐴 ℎ ) ≤ 𝐵 𝑖 − Γ𝑖 + 𝑄𝜂 𝑖 .
+In addition, Lemmas 4.13 and 4.14 give
+                                                𝑉𝑖 (𝑃 ℎ ) ≤ 𝐿(𝑛 − 1)𝑉𝑖 (𝑅∗ ).
+Since 𝑍 𝑗 ⊆ 𝑊ℎ , these bounds give
+                                𝑉𝑖 (𝑍 𝑗 ) ≤ 𝐵 𝑖 − Γ𝑖 + 𝑄𝜂 𝑖 + 𝐿(𝑛 − 1)𝑉𝑖 (𝑅∗ ).
+Together,
+                             Δ𝑖𝑗 (𝑍) ≥ Γ𝑖 − 𝑄𝜂 𝑖 − 𝐿(𝑛 − 1)𝑉𝑖 (𝑅∗ )
+                                       = 4𝑛(𝑄 + 1) − 𝑄 − 4(𝑛 − 1)(𝑄 + 1) 𝜂 𝑖
+                                                                                             
+
+                                       = (3𝑄 + 4)𝜂 𝑖 ≥ 𝜂 𝑖 .
+    Since 𝑖 and 𝑗 were arbitrary, the two estimates give Δ𝑖𝑗 (𝑍) ≥ 𝜂 𝑖 whenever 𝑖 and 𝑗 belong
+to different profile classes. By Lemma 4.17, 𝑍 is envy-free within each profile class. Hence 𝑍 is
+envy-free. By Lemma 4.7, 𝐻 and every snapshot in 𝒮\𝒥 are also envy-free. By Lemma 4.18, these
+allocations and 𝑍 use pairwise disjoint cake. Thus, Lemma 4.1 (i) gives Δ𝑖𝑗 (𝑋) ≥ Δ𝑖𝑗 (𝑍) for all
+agents 𝑖, 𝑗, so 𝑋 is envy-free and the proof is complete.                                      □
+
+                                                                21
+4.6     Recursion and Query Complexity
+By Lemmas 4.18 and 4.19, we now have an envy-free partial allocation 𝑋 with residue 𝑅1 ⊆ 𝑅 ∗ .
+ Moreover, Lemma 4.19 bounds how much more each agent values her own share than the share of
+ anyone in another profile class. We now use this bound to complete the recursion and then count
+ the queries used by the protocol.
+      Lemma 4.9 guarantees that at least two profile classes remain, so we choose one and call it
+ 𝐸∗ . To make every agent outside 𝐸∗ dominate its members, we reduce her value for the residue
+lto at most 𝜂 𝑖 . For each m𝑖 ∈ 𝑁\𝐸∗ with 𝑉𝑖 (𝑅1 ) > 0, we run a prescribed sequence of at most
+log𝑛/(𝑛−2) 4𝑛(𝑄 + 1)𝑄 2       Core calls with 𝑖 as the cutter, successively on the current residue. Let
+                          
+
+𝑅 2 be the final residue after all these sequences, and let 𝑋 ′ be obtained by adding every allocation
+returned by these calls to 𝑋. We recurse on 𝐸∗ and return
+
+                                             𝑋 ′ ⊕ Main(𝐸∗ , 𝑅2 ).
+
+Proposition 4.20. Suppose every recursive call on fewer than 𝑛 agents returns a complete envy-free
+allocation. Then Main(𝑁 , 𝐶) returns a complete envy-free allocation, either without recursion or after one
+recursive call on a nonempty proper subset of agents.
+
+Proof. If every agent values 𝑅∗ at zero, we give 𝑅∗ to one agent and combine it with 𝐻 and all
+snapshots under the identity assignment. By Lemmas 4.1 and 4.7, this gives a complete envy-free
+allocation.
+    If instead some graph is not strongly connected, Lemma 4.10 reduces the problem to one
+recursive call on a nonempty proper subset of agents. That call returns a complete envy-free
+allocation by induction.
+    We may therefore assume that every graph is strongly connected. In this case, Lemma 4.9 gives
+at least two profile classes, so 𝐸∗ is nonempty and proper. By Lemmas 4.18 and 4.19, the allocation
+𝑋 is envy-free, has residue 𝑅 1 ⊆ 𝑅∗ , and satisfies Δ𝑖𝑗 (𝑋) ≥ 𝜂 𝑖 whenever 𝑖 and 𝑗 belong to different
+profile classes.
+    Fix 𝑖 ∈ 𝑁\𝐸∗ with 𝑉𝑖 (𝑅 1 ) > 0. When her prescribed sequence begins, the current residue is
+contained in 𝑅1 , and all later calls only shrink it. Hence Proposition 4.3 (iii) gives
+
+                                              𝑉𝑖 (𝑅1 )     𝑉𝑖 (𝑅∗ )
+                              𝑉𝑖 (𝑅2 ) ≤               ≤             = 𝜂𝑖 .
+                                           4𝑛(𝑄 + 1)𝑄 2 4𝑛(𝑄 + 1)𝑄 2
+
+    Because every added Core allocation is envy-free, Lemma 4.1 (i) shows that 𝑋 ′ remains envy-
+free and that Δ𝑖𝑗 (𝑋 ′ ) ≥ Δ𝑖𝑗 (𝑋) for every pair of agents. Consequently, for every 𝑗 ∈ 𝐸∗ ,
+
+                                     Δ𝑖𝑗 (𝑋 ′ ) ≥ Δ𝑖𝑗 (𝑋) ≥ 𝜂 𝑖 ≥ 𝑉𝑖 (𝑅2 ).
+
+   Thus, 𝑖 dominates every member of 𝐸∗ . If 𝑉𝑖 (𝑅 1 ) = 0, then 𝑉𝑖 (𝑅 2 ) = 0, so envy-freeness of 𝑋 ′
+gives the same conclusion. Hence every agent outside 𝐸∗ dominates every agent within it.
+   By induction, Main(𝐸∗ , 𝑅2 ) returns a complete envy-free allocation of 𝑅2 . We may therefore
+combine it with 𝑋 ′ using Corollary 4.2.                                                             □
+      It remains to count the queries.
+
+Proposition 4.21. Let 𝑛 ≥ 4. There are fixed constants 𝐾, 𝑑 > 0 such that a call Main(𝑁 , 𝐶) with |𝑁| = 𝑛
+uses at most Λ𝑛 = 𝐾𝑛 𝑑 2𝑛 queries, not counting those made by its recursive call. The sequence (Λ𝑛 ) is
+nondecreasing.
+
+
+                                                      22
+Proof. Pre-processing uses 𝑛 𝑂(1) 2𝑛 queries by Lemma 4.7. After pre-processing, queries are used
+only for the prescribed Core sequences, for cutting the additions and rank pieces, and for the
+SubCore calls within profile classes.
+    At most 𝑛 prescribed sequences are used, each containing 𝑂(𝑛 log 𝑛) Core calls. The simulta-
+neous cutting step uses polynomially many queries because it produces polynomially many pieces
+and 1/𝛿 is polynomial in 𝑛. We also invoke SubCore at most once for each profile class.
+    Consequently, only polynomially many Core and SubCore calls are made after pre-processing,
+each involving at most 𝑛 agents. By Propositions C.1 and 4.4, these calls use 𝑛 𝑂(1) 2𝑛 queries in
+total. Combining these bounds, we can choose fixed constants 𝐾, 𝑑 > 0 such that Λ𝑛 = 𝐾𝑛 𝑑 2𝑛
+bounds all queries made outside recursion. Since 𝑛 𝑑 2𝑛 increases with 𝑛, the sequence (Λ𝑛 ) is
+nondecreasing.                                                                                   □
+    We are finally ready to prove the main theorem. Here, we restate it as a refresher.
+
+Theorem 1.1 (restated). For every 𝑛 ≥ 1 and every collection of nonnegative, additive, nonatomic valua-
+tions, there is a deterministic bounded Robertson–Webb protocol that returns a complete envy-free allocation
+using at most 𝑛 𝑂(1) 2𝑛 queries.
+
+Proof. We prove correctness by induction on 𝑛. The protocols in Section 4.3 handle 𝑛 ≤ 3, and
+Proposition 4.20 gives the inductive step for 𝑛 ≥ 4. We make every choice deterministic using the
+fixed orders and tie-breaking rules described in Section C.2.
+    To count the queries, let 𝑇(𝑛) be the largest number of queries used by a call with 𝑛 agents,
+including its recursive calls, and set 𝑇(𝑛) = max1≤𝑚≤𝑛 𝑇(𝑚). By Propositions 4.20 and 4.21, every
+call uses at most Λ𝑛 queries outside recursion and makes at most one recursive call on fewer agents.
+Since (Λ𝑛 ) is nondecreasing,
+                                                           𝑛
+                                                           Õ
+                         𝑇(𝑛) ≤ 𝑇(𝑛 − 1) + Λ𝑛 ≤ 𝑇(3) +           Λ 𝑘 ≤ 𝑇(3) + 𝑛Λ𝑛 .
+                                                           𝑘=4
+
+Therefore 𝑇(𝑛) ≤ 𝑛 𝑂(1) 2𝑛 , as claimed.                                                                  □
+
+
+5   Discussion and Concluding Remarks
+Our protocol gives the first single-exponential upper bound for finding a complete envy-free
+allocation. Yet the Ω(𝑛 2 ) lower bound of Procaccia [26] leaves a wide gap. To better understand the
+complexity of our protocol, we consider two questions. First, how much computation is needed
+between queries? Second and more importantly, where does the exponential dependence in our
+query bound come from?
+    For the first question, the main issue appears in Lemma 4.6, where the proof uses an exhaustive
+search to assign the cells. Here, we observe that this search is not necessary. It turns out that
+we can instead assign each cell randomly according to the probabilities used in the proof. The
+same concentration argument shows that the resulting assignment succeeds with high probability.
+Because we already know the value of every cell, we can check whether an assignment succeeds
+without making any further queries. Repeating this process until it succeeds therefore gives a
+simple randomized procedure. We also note that we can remove the randomness using the standard
+method of conditional expectations [27, 31], by choosing the cells one at a time while preserving
+the same guarantee. Hence, we can find a valid assignment deterministically using polynomially
+many arithmetic operations in the number of cells.
+
+                                                    23
+    For the second question, our proof gives a clear answer. We maintain only polynomially many
+partial allocations, make only polynomially many calls to Core and SubCore, and use only poly-
+nomially many queries outside these calls. Thus, up to polynomial factors, the full protocol costs
+no more than one call to Core or SubCore involving 𝑛 agents. In particular, combining the partial
+allocations does not add another exponential factor.
+    Hence, the remaining exponential cost comes from calls to Core and SubCore involving Θ(𝑛)
+agents. Naturally, this suggests two ways forward. One is to improve the query bounds for these
+subroutines, and the other is to avoid calling them with so many agents. Indeed, if every call
+involved 𝑜(𝑛) agents, then our protocol would use 2𝑜(𝑛) queries. Can either approach yield a
+subexponential or even polynomial protocol? Or is the quadratic lower bound tight? We believe
+that answering these questions will deepen our understanding of the computational limits of fair
+division, and we hope our approach provides a useful starting point.
+
+
+Acknowledgments
+We thank Chaoran Yu for helpful feedback on a preliminary draft of this manuscript.
+
+
+References
+ [1] Georgios Amanatidis, George Christodoulou, John Fearnley, Evangelos Markakis, Christos-
+     Alexandros Psomas, and Eftychia Vakaliou. An improved envy-free cake cutting protocol for
+     four agents. In 11th International Symposium on Algorithmic Game Theory (SAGT), pages 87–99,
+     2018. doi: 10.1007/978-3-319-99660-8_9.
+
+ [2] Eshwar Ram Arunachaleswaran, Siddharth Barman, Rachitesh Kumar, and Nidhi Rathi. Fair
+     and efficient cake division with connected pieces. In 15th International Conference on Web and
+     Internet Economics (WINE), pages 57–70, 2019. doi: 10.1007/978-3-030-35389-6_5.
+
+ [3] Haris Aziz and Simon Mackenzie. A discrete and bounded envy-free cake cutting pro-
+     tocol for any number of agents. In 57th Annual IEEE Symposium on Foundations of Com-
+     puter Science (FOCS), pages 416–427, 2016. doi: 10.1109/focs.2016.52. Extended version:
+     arXiv:1604.03655v12.
+
+ [4] Haris Aziz and Simon Mackenzie. A discrete and bounded envy-free cake cutting protocol for
+     four agents. In 48th Annual ACM Symposium on Theory of Computing (STOC), pages 454–464,
+     2016. doi: 10.1145/2897518.2897522.
+
+ [5] Haris Aziz and Chun Ye. Cake cutting algorithms for piecewise constant and piecewise
+     uniform valuations. In 10th International Conference on Web and Internet Economics (WINE),
+     pages 1–14, 2014. doi: 10.1007/978-3-319-13129-0_1.
+
+ [6] Siddharth Barman and Pooja Kulkarni. Approximation algorithms for envy-free cake di-
+     vision with connected pieces. In 50th International Colloquium on Automata, Languages, and
+     Programming (ICALP), pages 16:1–16:19, 2023. doi: 10.4230/lipics.icalp.2023.16.
+
+ [7] Siddharth Barman and Nidhi Rathi. Fair cake division under monotone likelihood ratios.
+     Math. Oper. Res., 47(3):1875–1903, 2022. doi: 10.1287/moor.2021.1192.
+
+
+
+
+                                                24
+ [8] Xiaohui Bei, Youming Qiao, and Shengyu Zhang. Networked fairness in cake cutting. In
+     26th International Joint Conference on Artificial Intelligence (ĲCAI), pages 3632–3638, 2017. doi:
+     10.24963/ĳcai.2017/508.
+
+ [9] Noah Bertram, Alex Levinson, and Justin Hsu. Cutting the cake: A language for fair division.
+     Proc. ACM Program. Lang., 7(PLDI):1779–1800, 2023. doi: 10.1145/3591293.
+
+[10] Noah Bertram, Tean Lai, and Justin Hsu. Verifying cake-cutting, faster. In 36th International
+     Conference on Computer Aided Verification (CAV), pages 109–129, 2024. doi: 10.1007/978-3-031-
+     65630-9_6.
+
+[11] Steven J. Brams and Alan D. Taylor. An envy-free cake division protocol. Amer. Math. Monthly,
+     102(1):9–18, 1995. doi: 10.2307/2974850.
+
+[12] Steven J. Brams and Alan D. Taylor. Fair division - from cake-cutting to dispute resolution.
+     Cambridge University Press, 1996. ISBN 978-0-521-55644-6.
+
+[13] Simina Brânzei. A note on envy-free cake cutting with polynomial valuations. Inf. Process.
+     Lett., 115(2):93–95, 2015. doi: 10.1016/j.ipl.2014.07.005.
+
+[14] Simina Brânzei and Noam Nisan. The query complexity of cake cutting. In 36th Annual
+     Conference on Neural Information Processing Systems (NeurIPS), 2022. doi: 10.52202/068431-2747.
+
+[15] Guillaume Chèze. Envy-free cake cutting: a polynomial number of queries with high proba-
+     bility. Soc. Choice Welf., 67(1):1–20, 2026. doi: 10.1007/s00355-025-01633-7.
+
+[16] Xiaotie Deng, Qi Qi, and Amin Saberi. Algorithmic solutions for envy-free cake cutting. Oper.
+     Res., 60(6):1461–1476, 2012. doi: 10.1287/opre.1120.1116.
+
+[17] Ruiquan Gao, Mohammad Roghani, Aviad Rubinstein, and Amin Saberi. Hardness of ap-
+     proximate sperner and applications to envy-free cake cutting. In 65th Annual IEEE Symposium
+     on Foundations of Computer Science (FOCS), pages 1294–1331, 2024. doi: 10.1109/focs61266.
+     2024.00085.
+
+[18] Ganesh Ghalme, Xin Huang, Yuka Machino, and Nidhi Rathi. A discrete and bounded locally
+     envy-free cake cutting protocol on trees. In 19th International Conference on Web and Internet
+     Economics (WINE), pages 310–328, 2023. doi: 10.1007/978-3-031-48974-7_18.
+
+[19] Paul W. Goldberg, Alexandros Hollender, and Warut Suksompong. Contiguous cake cutting:
+     Hardness results and approximation algorithms. J. Artif. Intell. Res., 69:109–141, 2020. doi:
+     10.1613/jair.1.12222.
+
+[20] Alexandros Hollender and Aviad Rubinstein. Envy-free cake-cutting for four agents. J. ACM,
+     72(5):34:1–34:54, 2025. doi: 10.1145/3765615.
+
+[21] Alexandros Hollender, Gilbert Maystre, and Kilian Risse. On cutting cakes and crossing
+     curves. CoRR, abs/2606.13980, 2026. doi: 10.48550/arxiv.2606.13980.
+
+[22] David Kurokawa, John K. Lai, and Ariel D. Procaccia. How to cut a cake before the party
+     ends. In 27th AAAI Conference on Artificial Intelligence (AAAI), pages 555–561, 2013. doi:
+     10.1609/aaai.v27i1.8629.
+
+
+
+                                                  25
+[23] Martin Mariusz Lester. Cutting the cake into crumbs: Verifying envy-free cake-cutting proto-
+     cols using bounded integer arithmetic. In 26th International Symposium on Practical Aspects of
+     Declarative Languages (PADL), pages 100–115, 2024. doi: 10.1007/978-3-031-52038-9_7.
+
+[24] Arnav Mehra and Alexandros Psomas. On hierarchies of fairness notions in cake cutting:
+     From proportionality to super envy-freeness. In 39th Annual Conference on Neural Information
+     Processing Systems (NeurIPS), 2025. doi: 10.52202/085713-1813.
+
+[25] Oleg Pikhurko. On envy-free cake division. Amer. Math. Monthly, 107(8):736–738, 2000. URL
+     http://www.jstor.org/stable/2695471.
+
+[26] Ariel D. Procaccia. Thou shalt covet thy neighbor’s cake. In 21st International Joint Conference
+     on Artificial Intelligence (ĲCAI), pages 239–244, 2009. URL http://ĳcai.org/Proceedings/09/
+     Papers/049.pdf.
+
+[27] Prabhakar Raghavan. Probabilistic construction of deterministic algorithms: Approximating
+     packing integer programs. J. Comput. Syst. Sci., 37(2):130–143, 1988. doi: 10.1016/0022-
+     0000(88)90003-7.
+
+[28] Jack M. Robertson and William A. Webb. Cake-cutting algorithms - be fair if you can. A K Peters,
+     1998. ISBN 978-1-56881-076-8.
+
+[29] Erel Segal-Halevi, Avinatan Hassidim, and Yonatan Aumann. Waste makes haste: Bounded
+     time protocols for envy-free cake cutting with free disposal. In 14th International Conference
+     on Autonomous Agents and Multiagent Systems (AAMAS), pages 901–908, 2015. URL http:
+     //dl.acm.org/citation.cfm?id=2773268.
+
+[30] Georgy Sokolov. An exponential envy-free cake cutting protocol for n agents.             CoRR,
+     abs/2306.03854, 2023. doi: 10.48550/arxiv.2306.03854.
+
+[31] Anand Srivastav and Peter Stangier. Algorithmic chernoff-hoeffding inequalities in integer
+     programming. Random Struct. Algorithms, 8(1):27–58, 1996.
+
+[32] Hugo Steinhaus. The problem of fair division. Econometrica, 16(1):101–104, 1948. doi: 10.
+     2307/1914289.
+
+[33] Walter Stromquist. How to cut a cake fairly. Amer. Math. Monthly, 87(8):640–644, 1980.
+
+[34] Walter Stromquist. Envy-free cake divisions cannot be found by finite protocols. Electron.
+     J. Comb., 15(1), 2008. URL http://www.combinatorics.org/Volume_15/Abstracts/v15i1r11.
+     html.
+
+[35] Francis Edward Su. Rental harmony: Sperner’s lemma in fair division. Amer. Math. Monthly,
+     106(10):930–942, 1999.
+
+[36] Chenhao Wang and Xiaoying Wu. Cake cutting with single-peaked valuations. In 13th
+     International Conference on Combinatorial Optimization and Applications (COCOA), pages 507–
+     516, 2019. doi: 10.1007/978-3-030-36412-0_41.
+
+
+
+
+                                                 26
+A    AI Usage Disclosure
+We used ChatGPT 5.5 Pro/5.6 Sol extensively during the early brainstorming stage, and we briefly
+describe its role here. GPT’s most important contribution was the suggestion that the rather
+computationally heavy GoLeft protocol of Aziz and Mackenzie could be replaced by a much more
+efficient approach. It developed this suggestion into a complete protocol using 22𝑛(𝑛−1)+𝑂(𝑛 log 𝑛)
+Robertson–Webb queries. This GPT-generated protocol provided the conceptual backbone for our
+work and contained prototypes of several structural ideas used in our paper.
+     From this starting point, we refined and adapted GPT’s structural ideas to the needs of our
+protocol. In our construction, these refined ideas eventually take the form of marks, witnesses,
+profiles, and ranks, which we use to determine how snapshot pieces are chosen and redistributed.
+     Beyond this structural work, and independent of LLM assistance, we studied where the
+quadratic exponent in GPT’s bound came from, and we found the source to be twofold. First,
+GPT’s construction kept exponentially many snapshots in order to find sufficiently many with
+exactly the same marks (roughly speaking, this is the precondition of Lemma 4.12). Second, it
+constructed the additions one at a time, and an unsuccessful attempt could require returning the
+cake and repeating this work across the stored snapshots. Together, these choices made the cost
+grow like the square of the number of snapshots.
+     To address these inefficiencies, we introduced two further ideas. First, we begin with only
+polynomially many snapshots and carefully prune them (Section 4.4). We show that the resulting
+collection still contains enough witnesses to reserve a different snapshot for every assignment
+we need (Lemmas 4.9 and 4.12). Second, to avoid constructing the additions one at a time, we
+developed a “simultaneous cutting” lemma (Lemma 4.6), which constructs all additions and rank
+pieces together using polynomially many queries (Lemma 4.14). These ideas further improve
+GPT’s 22𝑛(𝑛−1)+𝑂(𝑛 log 𝑛) bound to 2𝑂(𝑛) and allow us to streamline the algorithm (in particular, the
+recursion logic becomes much easier to describe).
+     While preparing the final manuscript, we used GPT 5.6 to help identify part of additional related
+work and to generate the full pseudocode in Appendix E. We developed the full protocol and proofs
+and wrote the remainder (and hence, almost all) of the paper, and we take full responsibility for
+its correctness and integrity.
+
+
+B    Additional Related Work
+Here we expand on the related work mentioned briefly in Section 1.
+    If every agent must receive one interval, Stromquist proved that no finite protocol can guar-
+antee a complete envy-free allocation for three or more agents [34]. For additive valuations, work
+has therefore studied query bounds, approximation algorithms, and welfare optimization for con-
+nected pieces [2, 6, 14, 19]. In a broader model of continuous utilities over connected pieces, Deng,
+Qi, and Saberi gave an efficient approximation algorithm for three monotone agents, and Hollen-
+der and Rubinstein extended this positive result to four agents while proving hardness without
+monotonicity [16, 20]. Hollender, Maystre, and Risse have since shown intractability for three
+agents in the general continuous-utility model [21]. For a fixed number of possibly disconnected
+pieces, Gao et al. prove PPAD-hardness in another nonadditive model, even when the output need
+only make three agents approximately envy-free [17]. These models allow utilities more general
+than the additive valuations in our theorem. With free disposal, bounded envy-free protocols can
+instead give every agent a connected piece of positive value while allowing some cake to remain
+unallocated [29].
+
+
+                                                 27
+     Structural restrictions on additive valuations lead to stronger algorithms. Kurokawa, Lai, and
+Procaccia give a Robertson–Webb protocol using 𝑂(𝑛 6 𝑘 log 𝑘) queries when the agents’ piecewise-
+linear densities have at most 𝑘 breakpoints in total, and Brânzei gives an envy-free protocol for
+polynomial value densities whose query bound also depends on the maximum degree [13, 22]. In a
+direct-revelation model, Aziz and Ye give polynomial algorithms for piecewise-constant valuations
+[5]. For single-peaked valuations, an exact envy-free allocation can be found using a linear number
+of queries, while the monotone-likelihood-ratio condition yields efficient connected allocations
+with envy-freeness to arbitrary precision [7, 36]. These guarantees depend on structural restrictions
+absent from our unrestricted model.
+     The bounded protocol for four agents that preceded AM’s general protocol was later simplified,
+and its query bound was reduced by a factor of 3.4 [1]. Bei, Qiao, and Zhang introduced local envy-
+freeness on a graph, and subsequent work gave bounded discrete protocols when the graph is
+a tree [8, 18]. Beyond worst-case analysis, Chèze proves that Webb’s protocol uses fewer than
+𝑛 12 queries with high probability under the uniform full-independence model [15]. Mehra and
+Psomas introduce hierarchies of fairness notions that connect proportionality, envy-freeness, and
+super envy-freeness and study their query complexity [24]. The complexity of modern protocols
+has also prompted automated verification tools, including the Slice language, the Crumbs approach
+based on bounded model checking, and a faster Slice verification framework [9, 10, 23].
+
+
+C     Robertson–Webb Implementation Details
+In this appendix, we explain how ordinary Robertson–Webb queries handle pieces with several
+interval components and record the deterministic conventions used by the protocol.
+
+C.1    Queries on Ordered Pieces
+We ignore overlaps at finitely many cut endpoints, which have value zero for every agent. In
+Robertson–Webb query complexity, exact arithmetic, comparisons, and finite computation on or-
+acle answers are free, and we do not bound the number of bits needed to represent arbitrary real
+answers.
+    Whenever the protocol later divides a piece with several interval components, it stores those
+components in a fixed order, for instance from left to right. We call a piece with such an order
+an ordered piece. For disjoint pieces 𝑃, 𝐴, 𝐷, the notation [𝑃, 𝐴, 𝐷] denotes their union with the
+components of 𝑃 first, followed by those of 𝐴 and then those of 𝐷. A prefix ending at a point 𝑥
+contains everything through 𝑥 in this order, while the corresponding suffix contains everything
+from 𝑥 onward. For example, take
+                𝑃 = [0, 0.1] ∪ [0.7, 0.8],      𝐴 = [0.2, 0.3],       𝐷 = [0.4, 0.5] ∪ [0.9, 1].
+Then [𝑃, 𝐴, 𝐷] orders its components as
+                             [0, 0.1], [0.7, 0.8], [0.2, 0.3], [0.4, 0.5], [0.9, 1],
+and splitting the component [0.2, 0.3] at 𝑥 = 0.25 gives the prefix 𝑃 ∪ [0.2, 0.25] and the suffix
+[0.25, 0.3] ∪ 𝐷.
+Proposition C.1. Let 𝑁 be a set of agents. Queries to an ordered piece can be implemented with ordinary
+Robertson–Webb queries. Once we know how every agent in 𝑁 values every interval component, we can
+evaluate the ordered piece without further queries. Asking for a prefix or suffix of a given value uses at most
+one ordinary cut query and 𝑂(|𝑁|) evaluation queries, regardless of the number of components.
+
+                                                       28
+Proof. We maintain these values for every agent in the current call. At the top level, one evaluation
+query per agent records the value of the initial interval [0, 1]. If a later recursive call receives a
+subcake with several components, those components were cut earlier, so we already know how
+every agent values them. The value of any ordered piece is therefore the sum of the known values
+of its components.
+    Suppose agent 𝑐 asks for a prefix worth 𝑎. Starting with the first component, we add 𝑐’s values
+until the sum reaches or exceeds 𝑎. If it reaches 𝑎 at a component boundary, that boundary gives
+the desired prefix without a cut query. Otherwise, the prefix ends inside the next component,
+where one ordinary cut query locates its endpoint. A suffix is handled in the same way from the
+last component, or equivalently by cutting a prefix of the complementary value.
+    After a component is split, the amount requested in the cut query gives 𝑐’s value of one resulting
+interval, and subtraction gives her value of the other. Every other agent in 𝑁 evaluates one of the
+two intervals once, after which subtraction again gives the value of the other. We therefore know
+all new component values and can maintain the same information throughout the protocol.              □
+
+C.2   Deterministic Choices
+Because the protocol is deterministic, we resolve every finite choice by a fixed rule. Inside the two
+subroutines, we use the AM rule for resolving ties [3, Sec. 3.1.1 and the proof of Lemma 4.13 in the
+extended version]; recursive calls made inside SubCore keep the same order on their remaining
+agents and pieces. If the cutter values the residue at zero while we are collecting snapshots, we
+divide it into one possibly empty piece for each active agent by a fixed rule; she values all of them
+equally. In the direct SubCore calls of Proposition 4.5, a tie between one of the pieces 𝑊ℎ and the
+extra empty piece is resolved in favor of 𝑊ℎ .
+    After trimming an ordered piece, we keep its remaining interval components in the same order.
+Whenever we need a prefix or suffix of a given value, we examine the component boundaries from
+the beginning of this order and use the first one that gives the requested value. If none does, one
+ordinary cut query locates the cut point inside a component. Thus, when an agent values the whole
+ordered piece at zero, the convention gives her the empty prefix and the full suffix.
+
+
+D     Omitted Proofs for Section 4
+Omitted proof of Proposition 4.4. To describe the modification, we temporarily use AM’s notation
+for SubCore. AM calls the value that an agent must receive at a given point her benchmark. Our
+variant makes one change to AM’s SubCore: we skip line 12 of AM’s Algorithm 2. In other words,
+once |𝑊| = 𝑚 − 1, AM makes one final recursive call on 𝑊, while we omit that call. If |𝑊| = 𝑚 − 1
+as soon as the trims are made, then every contested piece has a different rightmost trimmer. For
+each contested piece, we give its rightmost trimmer the part beginning at her trim. If the while
+loop runs, we keep the tentative allocation obtained in its final iteration. In either case, we give the
+sole agent outside 𝑊 her favorite uncontested piece.
+    We argue by the same induction as AM that our variant preserves the guarantees of SubCore.
+The base case is immediate for one agent. If the next agent’s favorite piece is unallocated, she
+receives it whole. Otherwise, the agents place their trims and form the set 𝑊. If |𝑊| = 𝑚 − 1,
+the rightmost trims give the agents in 𝑊 an envy-free allocation in which every agent meets her
+benchmark. If |𝑊| < 𝑚 − 1, every recursive call inside the while loop has fewer than 𝑚 agents, so
+the induction hypothesis applies. AM’s argument then shows that each iteration adds one agent to
+𝑊 while preserving an envy-free tentative allocation in which every agent meets her benchmark [3,
+
+
+                                                  29
+proof of Lemma 4.13 in the extended version]. Thus, when the loop ends, the agents in 𝑊 receive
+parts of distinct contested pieces without envy and meet their benchmarks.
+    Every agent in 𝑊 receives at least as much value as she assigns to her favorite uncontested
+piece, so she envies no uncontested piece. The remaining agent receives her favorite uncontested
+piece, which AM’s argument shows is worth at least her input benchmark. Every contested part
+begins at or to the right of her trim, so she does not envy any agent in 𝑊. The resulting allocation
+is therefore envy-free and meets every benchmark. The agents receive cake from distinct input
+pieces, and the agent outside 𝑊 receives a whole piece.
+    We now return to the terminology of our paper and count the queries. Set 𝑆0 = 𝑆1 = 0, and for
+𝑚 ≥ 2 define
+                                                             𝑚−2
+                                                             Õ
+                                   𝑆𝑚 = 𝑆𝑚−1 + 𝑚(𝑚 − 1) +           𝑆𝑗 .
+                                                              𝑗=1
+
+We claim that SubCore on 𝑚 agents makes at most 𝑆𝑚 cut queries. Indeed, processing the first
+𝑚 − 1 agents uses at most 𝑆𝑚−1 cuts, and introducing the 𝑚th agent requires at most 𝑚(𝑚 − 1) trims.
+The recursive calls inside the while loop have distinct sizes in {1, . . . , 𝑚 − 2}. Thus, 𝑆𝑚 bounds the
+number of cuts by induction. For 𝑚 ≥ 3, subtracting the recurrence for 𝑆𝑚−1 gives
+
+                                       𝑆𝑚 = 2𝑆𝑚−1 + 2(𝑚 − 1).
+
+The same identity holds for 𝑚 = 2, and 𝑆1 = 0, so
+
+                                    𝑆𝑚 = 2𝑚+1 − 2𝑚 − 2 = 𝑂(2𝑚 ).
+
+By Proposition C.1, each cut uses 𝑂(𝑚) evaluation queries to record how the agents value the two
+resulting parts. Thus, the call uses 𝑂(𝑚𝑆𝑚 ) = 𝑂(𝑚2𝑚 ) evaluation queries.
+    A Core call first uses 𝑛 − 1 cuts to create 𝑛 pieces that the cutter values equally, followed by
+𝑂(𝑛 2 ) evaluations to record how the agents value them. It then invokes SubCore on 𝑛 − 1 agents,
+so the stated Core bounds follow.                                                                  □
+Omitted proof of Proposition 4.5. We compare our call with the same variant of SubCore in which
+every initial required minimum is zero. Assume that the two calls have proceeded in the same
+way up to the point where they introduce the 𝑟th agent. At most 𝑟 − 1 of the pieces 𝑊ℎ have been
+tentatively assigned, so some whole 𝑊ℎ remains unassigned. For every agent 𝑗 currently taking
+part, let 𝑓 𝑗 be her value for her favorite unassigned piece. Since every 𝑊ℎ is worth at least 𝑞 𝑗 , we
+have 𝑓 𝑗 ≥ 𝑞 𝑗 . Therefore,
+                                     max{𝑞 𝑗 , 𝑓 𝑗 } = 𝑓 𝑗 = max{0, 𝑓 𝑗 }.
+The required minima do not affect any trim, and the two calls make the same choices. Their
+recursive calls receive the same inputs, so induction on the number of agents shows that the two
+calls have the same execution.
+    Because the two calls have the same execution, the correctness argument for Proposition 4.4
+gives an envy-free allocation in which each agent receives a suffix of a different input piece. We
+implement the corresponding trims using Proposition C.1. Moreover, agent 𝑖’s benchmark starts
+at 𝑞 𝑖 and only increases. Therefore, every agent receives value at least 𝑞 𝑖 .
+    It remains to show that the empty piece stays unallocated. Indeed, whenever we assign a piece
+directly, some whole 𝑊ℎ remains available and is worth at least as much as the empty piece. If
+the agent values 𝑊ℎ and the empty piece equally, our rule chooses 𝑊ℎ . Thus, we never assign the
+empty piece directly. Since the recursive calls use only contested pieces, the empty piece never
+enters a recursive call either. Therefore, it remains unallocated.                               □
+
+                                                  30
+Omitted proof of Lemma 4.14. Every ratio 𝑑 𝑠,𝑖,𝑘 /𝑉𝑖 (𝑅∗ ) appearing in the maximum that defines 𝑟 𝑠,𝑘
+is at most 𝐿/[4𝑛(𝑄 + 1)]. Thus, every addition has requested size at most
+
+                                                               5𝐿
+                                             𝑟 𝑠,𝑘 + 𝛿 ≤              .
+                                                           16𝑛(𝑄 + 1)
+
+There are 𝑛𝑄 additions. By Lemma 4.13, the total requested size of all additions and all 𝑃 ℎ with
+ℓ ℎ > 0 is at most
+                      5𝑄𝐿        Õ               5𝑄𝐿                  𝐿
+                              +𝐿   ℓ ℎ + 𝑛𝛿 ≤            + 𝐿𝑄 +
+                    16(𝑄 + 1)                 16(𝑄 + 1)          16(𝑄 + 1)
+                                         ℎ
+                                                                    (5𝑄 + 1)𝐿
+                                                        = 𝐿𝑄 +
+                                                                    16(𝑄 + 1)
+                                                        < 1.
+Therefore, Lemma 4.6 applies.
+   Suppose that 𝑑 𝑠,𝑖,𝑘 ≤ 𝜖 𝑖 and 𝑉𝑖 (𝑅 ∗ ) > 0. The lower bound in Lemma 4.6 gives
+
+                                       𝑉𝑖 (𝐴 𝑠,𝑘 ) ≥ 𝑟 𝑠,𝑘 𝑉𝑖 (𝑅 ∗ ) ≥ 𝑑 𝑠,𝑖,𝑘 .
+
+If 𝑉𝑖 (𝑅∗ ) = 0, then the small bonus is zero and the same inequality is immediate. For every agent,
+
+                                                                    3𝐿
+                         𝑉𝑖 (𝐴 𝑠,𝑘 ) ≤ (𝑟 𝑠,𝑘 + 2𝛿)𝑉𝑖 (𝑅∗ ) ≤              𝑉𝑖 (𝑅∗ ) ≤ 𝜂 𝑖 .
+                                                                 8𝑛(𝑄 + 1)
+
+   If ℓ ℎ > 0, we asked for 𝑃 ℎ to contain approximately the fraction 𝐿(ℓ ℎ − 21 ) + 𝛿 of the residue for
+every agent. Thus, Lemma 4.6 gives
+
+                          1                               1
+                   𝐿(ℓ ℎ − )𝑉𝑖 (𝑅∗ ) ≤ 𝑉𝑖 (𝑃 ℎ ) ≤ 𝐿(ℓ ℎ − ) + 2𝛿 𝑉𝑖 (𝑅 ∗ ) ≤ 𝐿ℓ ℎ 𝑉𝑖 (𝑅∗ ),
+                                                                
+                          2                               2
+because 2𝛿 ≤ 𝐿/2. If ℓ ℎ = 0, then 𝑃 ℎ = ∅, which satisfies the same bounds. Finally, the number of
+pieces and 1/𝛿 are polynomial in 𝑛, so the query bound follows from Lemma 4.6.                   □
+
+
+E    Full Pseudocode
+This appendix gives pseudocode for the protocol in Sections 3 and 4. We use the base protocols from
+Section 4.3 and the Core and SubCore subroutines from Section 4.1. Whenever the pseudocode
+asks us to choose among finitely many options, we use the rule in Section C.2. As in Proposition 4.3
+(iii), Shrink(𝑁 , 𝑈 , 𝐾, 𝑐, 𝐷) repeatedly calls Core on successive residues with agents 𝑁 and cutter 𝑐.
+It makes at most 𝐷 calls, stops if 𝑉𝑐 (𝑈) = 0, adds the resulting allocations to 𝐾, and returns the
+new allocation and residue.
+
+
+
+
+                                                           31
+Algorithm 1: Main(𝑁 , 𝐶)
+ Input: A nonempty active agent set 𝑁 and a subcake 𝐶 formed from finitely many intervals
+ Output: A complete envy-free allocation of 𝐶 among 𝑁
+ Set 𝑛 ← |𝑁|
+ if 𝑛 ≤ 3 then
+      return the allocation from Section 4.3
+ // stage 1: pre-processing
+ Set 𝑄 ← 𝑛(𝑛 − 1) and (𝐻, 𝒮 , 𝑅 ∗ , 𝑑) ← Preprocess(𝑁 , 𝐶)
+ // stage 2: prune the snapshots
+ if 𝑉𝑖 (𝑅∗ ) = 0 for every 𝑖 ∈ 𝑁 then
+       return the allocation obtained from 𝐻 ⊕ Id(𝒮) by giving 𝑅 ∗ to an agent
+ Set 𝜖 𝑖 ← 𝑉𝑖 (𝑅∗ )/[4𝑛 2 (𝑄 + 1)𝑄 2 ] for every 𝑖 ∈ 𝑁, and set 𝐹𝑠,𝑖 ← {𝑘 ∈ 𝑁 : 𝑑 𝑠,𝑖,𝑘 > 𝜖 𝑖 } for every 𝑠 ∈ 𝒮 and 𝑖 ∈ 𝑁
+ Choose 𝑐 with 𝑉𝑐 (𝑅 ∗ ) > 0 and set 𝒫 ← {(𝑐, 𝑡) : 1 ≤ 𝑡 ≤ 𝑄 2 }
+ while some pair (𝑖, ℎ) has between 1 and 𝑄 − 1 witnesses in 𝒫 do
+      Choose such a pair and remove all of its witness snapshots from 𝒫
+ For every 𝑠 ∈ 𝒫, form 𝐺 𝑠 whose edges are 𝑖 → 𝑘 with 𝑘 ∉ 𝐹𝑠,𝑖
+ if some 𝐺 𝑠 is not strongly connected then
+      Choose such an 𝑠 and a sink strongly connected component 𝑆 of 𝐺 𝑠 as in Lemma 4.10
+      Set 𝑌 ← 𝐻 ⊕ Id(𝒮) and 𝑈 ← 𝑅∗
+      foreach 𝑖 ∈ 𝑆 with 𝑉𝑖 (𝑅 ∗ ) > 0 do
+            Set (𝑌, 𝑈) ← Shrink(𝑁 , 𝑈 , 𝑌, 𝑖, ⌈log𝑛/(𝑛−2) 𝑄 2 ⌉)
+      return 𝑌 ⊕ Main(𝑁\𝑆, 𝑈)
+ // stage 3: construct the partial allocation
+ Set F𝑖 ← (𝐹𝑠,𝑖 )𝑠∈𝒫 and let ℰ be the partition of 𝑁 into profile classes
+ For every 𝑖, ℎ, set 𝒲𝑖,ℎ ← {𝑠 ∈ 𝒫 : 𝐹𝑠,𝑖 ⊈ 𝐹𝑠,ℎ }
+ Set 𝒯 ← {(𝑖, ℎ) : F𝑖 ⪯̸ F ℎ } and 𝒥 ← ∅
+ // reserve witnesses and choose matchings (Lemma 4.12)
+ foreach (𝑖, ℎ) ∈ 𝒯 do
+      Choose 𝑠 ∈ 𝒲𝑖,ℎ \𝒥 and 𝑘 ∈ 𝐹𝑠,𝑖 \𝐹𝑠,ℎ
+      Choose a perfect matching 𝜇𝑠 in 𝐺 𝑠 satisfying 𝜇𝑠 (ℎ) = 𝑘, and set 𝒥 ← 𝒥 ∪ {𝑠}
+ while |𝒥 | < 𝑄 do
+     Choose 𝑠 ∈ 𝒫\𝒥 , set 𝜇𝑠 to the identity matching, and set 𝒥 ← 𝒥 ∪ {𝑠}
+ For every 𝐸 ∈ ℰ, let ℓ 𝐸 be its rank as defined in Section 4.5, and set ℓ ℎ ← ℓ 𝐸 for every ℎ ∈ 𝐸
+ Set (𝑍, 𝑅1 ) ← Allocate(𝑁 , 𝑅∗ ; 𝒥 , 𝜇; ℰ, ℓ )
+ Set 𝑋 ← 𝐻 ⊕ Id(𝒮\𝒥 ) ⊕ 𝑍
+ Choose a profile class 𝐸∗ ⊊ 𝑁, which exists by Lemma 4.9, and set 𝑈 ← 𝑅 1
+ foreach 𝑖 ∈ 𝑁\𝐸∗ with 𝑉𝑖 (𝑅1 ) > 0 do
+      Set (𝑋 , 𝑈) ← Shrink(𝑁 , 𝑈 , 𝑋 , 𝑖, ⌈log𝑛/(𝑛−2) (4𝑛(𝑄 + 1)𝑄 2 )⌉)
+ return 𝑋 ⊕ Main(𝐸∗ , 𝑈)
+
+Algorithm 2: Preprocess(𝑁 , 𝐶)
+ Input: An active agent set 𝑁 and its subcake 𝐶
+ Output: An envy-free partial allocation 𝐻, snapshots 𝒮, the final residue 𝑅 ∗ , and the bonuses 𝑑
+ Set 𝑛 ← |𝑁| and 𝑄 ← 𝑛(𝑛 − 1)
+ Set 𝑈 ← 𝐶, 𝒮 ← ∅, and 𝐻 to the empty allocation
+ // construct the snapshots
+ foreach 𝑐 ∈ 𝑁 do
+      for 𝑡 ← 1 to 𝑄 2 do
+            Set (𝑋 , 𝑈) ← Core(𝑁 , 𝑈 , 𝑐) and store 𝑋 as snapshot 𝑠 = (𝑐, 𝑡)
+            Write 𝑐 𝑠,𝑘 for its label-𝑘 piece for every 𝑘, and set 𝒮 ← 𝒮 ∪ {𝑠}
+
+ Record 𝑉𝑖 (𝑐 𝑠,𝑘 ) for every 𝑠, 𝑖, 𝑘
+ Set 𝑏 𝑠,𝑖 ← 𝑉𝑖 (𝑐 𝑠,𝑖 ) for every 𝑠, 𝑖, and set 𝑑 𝑠,𝑖,𝑘 ← 𝑏 𝑠,𝑖 − 𝑉𝑖 (𝑐 𝑠,𝑘 ) for every 𝑠, 𝑖, 𝑘
+ // eliminate the intermediate bonuses
+ Set Γ𝑖 ← 𝑉𝑖 (𝑈)/𝑄 2 , 𝜂 𝑖 ← Γ𝑖 /[4𝑛(𝑄 + 1)], and 𝜖 𝑖 ← 𝜂 𝑖 /𝑛 for every 𝑖
+ Set 𝐷mid ← ⌈log𝑛/(𝑛−2) (4𝑛 2 (𝑄 + 1))⌉
+ while some agent 𝑖 has an intermediate bonus do
+       Choose such an 𝑖 and set (𝐻, 𝑈) ← Shrink(𝑁 , 𝑈 , 𝐻, 𝑖, 𝐷mid )
+       Recompute Γ𝑟 , 𝜂𝑟 , 𝜖 𝑟 from the new 𝑈 for every 𝑟 ∈ 𝑁
+ Set 𝑅 ∗ ← 𝑈 and return (𝐻, 𝒮 , 𝑅 ∗ , 𝑑)
+
+
+
+
+                                                                           32
+Algorithm 3: Allocate(𝑁 , 𝑅∗ ; 𝒥 , 𝜇; ℰ, ℓ )
+  Input: The active set 𝑁 and residue 𝑅 ∗ ; the snapshots 𝒥 and their matchings 𝜇; the profile classes ℰ and their ranks ℓ
+  Output: An allocation 𝑍 and the residue 𝑅 1
+  Set 𝑛 ← |𝑁|, 𝑄 ← 𝑛(𝑛 − 1), 𝐿 ← 1/(𝑛𝑄 2 ), and 𝛿 ← 𝐿/[16𝑛(𝑄 + 1)]
+  Set 𝑏 𝑠,𝑖 ← 𝑉𝑖 (𝑐 𝑠,𝑖 ) and 𝑑 𝑠,𝑖,𝑘 ← 𝑏 𝑠,𝑖 − 𝑉𝑖 (𝑐 𝑠,𝑘 ) for every 𝑠 ∈ 𝒥 and 𝑖, 𝑘 ∈ 𝑁
+  Set 𝜖 𝑖 ← 𝑉𝑖 (𝑅∗ )/[4𝑛 2 (𝑄 + 1)𝑄 2 ] for every 𝑖 ∈ 𝑁
+  // cut the additions and rank pieces (Lemma 4.14)
+  For every 𝑠 ∈ 𝒥 and 𝑘 ∈ 𝑁, set 𝑟 𝑠,𝑘 ← max{0, 𝑑 𝑠,𝑖,𝑘 /𝑉𝑖 (𝑅∗ ) where 𝑖 ∈ 𝑁 , 𝑉𝑖 (𝑅 ∗ ) > 0, 𝑑 𝑠,𝑖,𝑘 ≤ 𝜖 𝑖 }
+  Set 𝐼 ← {a𝑠,𝑘 : (𝑠, 𝑘) ∈ 𝒥 × 𝑁} ∪ {p ℎ : ℓ ℎ > 0}
+  Set 𝜆a𝑠,𝑘 ← 𝑟 𝑠,𝑘 + 𝛿 for every (𝑠, 𝑘) ∈ 𝒥 × 𝑁 and 𝜆p ℎ ← 𝐿(ℓ ℎ − 1/2) + 𝛿 for every ℎ with ℓ ℎ > 0
+  Apply Algorithm 4 to 𝑁 , 𝑅∗ , 𝐼, (𝜆 𝑗 ) 𝑗∈𝐼 , 𝛿, and denote its output by (𝐶 𝑗 ) 𝑗∈𝐼
+  Set 𝐴 𝑠,𝑘 ← 𝐶a𝑠,𝑘 for every (𝑠, 𝑘) ∈ 𝒥 × 𝑁; set 𝑃 ℎ ← 𝐶p ℎ when ℓ ℎ > 0 and 𝑃 ℎ ← ∅ otherwise
+  Set 𝐷 ℎ ← 𝑠∈𝒥 𝑐 𝑠,𝜇𝑠 (ℎ) and 𝐴 ℎ ← 𝑠∈𝒥 𝐴 𝑠,𝜇𝑠 (ℎ) for every ℎ, and set 𝐵 𝑖 ← 𝑠∈𝒥 𝑏 𝑠,𝑖 for every 𝑖
+              Ð                               Ð                                          Í
+
+  // redistribute the cake within each profile class (Lemma 4.17)
+  foreach 𝐸 ∈ ℰ do
+        Set 𝑊ℎ ← [𝑃 ℎ , 𝐴 ℎ , 𝐷 ℎ ] for ℎ ∈ 𝐸 and 𝑞 𝑖 ← 𝐵 𝑖 + max{0, 𝐿(ℓ 𝐸 − 1/2)}𝑉𝑖 (𝑅∗ ) for 𝑖 ∈ 𝐸
+        Break any tie between a piece 𝑊ℎ and ∅ in favor of 𝑊ℎ , and set 𝑍 𝐸 ← SubCore(𝐸, ((𝑊ℎ ) ℎ∈𝐸 , ∅), (𝑞 𝑖 )𝑖∈𝐸 )
+        Record every agent’s value for the interval components created by each trim
+        For every ℎ ∈ 𝐸, let 𝑌ℎ be the unused prefix of 𝑊ℎ
+  Set 𝑍 ←         𝑍𝐸
+           É
+              𝐸∈ℰÐ
+  Set 𝑅 1 ← 𝑅∗ \ ℎ∈𝑁 (𝑃 ℎ ∪ 𝐴 ℎ ) ∪ ℎ∈𝑁 𝑌ℎ as in Lemma 4.18
+                                  Ð
+  return (𝑍, 𝑅1 )
+
+Algorithm 4: Procedure in Lemma 4.6
+  Input: An agent set 𝑁; an ordered piece 𝑅, togetherÍwith every agent’s value for each interval that forms 𝑅; a nonempty
+         finite index set 𝐽; numbers 𝜆 𝑗 ≥ 0 satisfying 𝑗∈𝐽 𝜆 𝑗 ≤ 1; and 0 < 𝛿 < 1
+  Output: Pairwise disjoint pieces (𝐶 𝑗 ) 𝑗∈𝐽 satisfying |𝑉𝑖 (𝐶 𝑗 ) − 𝜆 𝑗 𝑉𝑖 (𝑅)| ≤ 𝛿𝑉𝑖 (𝑅) for every 𝑖 ∈ 𝑁 , 𝑗 ∈ 𝐽
+  Set 𝑛 ← |𝑁|, 𝑚 ← |𝐽|, and 𝛾 ← 𝛿2 /(2 log(2𝑛𝑚 + 2))
+  foreach 𝑖 ∈ 𝑁 with 𝑉𝑖 (𝑅) > 0 do
+       Following the order of 𝑅, ask agent 𝑖 for a prefix worth 𝑘𝛾𝑉𝑖 (𝑅) for every positive integer 𝑘 with 𝑘𝛾 < 1, and record its
+        endpoint
+       After each cut, record every agent’s value for the two resulting interval components as in Proposition C.1
+  Together, these cut points and the endpoints of the intervals forming 𝑅 divide 𝑅 into cells. Let 𝒦 be their collection, and use
+    the recorded values to compute how every agent values every cell
+  foreach labeling 𝜏Ð    that assigns each cell in 𝒦 an index in 𝐽 or leaves it unused do
+       Set 𝐶 𝑗 (𝜏) ← {𝐾 ∈ 𝒦 : 𝜏(𝐾) = 𝑗} for every 𝑗 ∈ 𝐽
+       if |𝑉𝑖 (𝐶 𝑗 (𝜏)) − 𝜆 𝑗 𝑉𝑖 (𝑅)| ≤ 𝛿𝑉𝑖 (𝑅) for every 𝑖 ∈ 𝑁 and 𝑗 ∈ 𝐽 then
+             return (𝐶 𝑗 (𝜏)) 𝑗∈𝐽
+
+
+
+
+                                                                33
+

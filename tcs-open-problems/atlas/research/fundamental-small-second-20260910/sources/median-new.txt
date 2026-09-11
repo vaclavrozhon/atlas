@@ -1,0 +1,736 @@
+             A (2 + 𝜀)-Approximation Algorithm for Metric k-Median
+             Vincent Cohen-Addad                                              Fabrizio Grandoni                                     Euiwoong Lee
+                 Google Research                                             IDSIA at USI-SUPSI                                 University of Michigan
+                 Grenoble, France                                            Lugano, Switzerland                                   Ann Arbor, USA
+             cohenaddad@google.com                                      fabrizio.grandoni@gmail.com                             euiwoong@umich.edu
+
+                                           Chris Schwiegelshohn                                           Ola Svensson
+                                              Aarhus University                                               EPFL
+                                              Aarhus, Denmark                                         Lausanne, Switzerland
+                                         cschwiegelshohn@gmail.com                                    ola.svensson@epfl.ch
+
+ABSTRACT                                                                                      algorithm that opens exactly 𝑘 centers while maintaining the (2+𝜀)-
+In the classical NP-hard (metric) 𝑘-median problem, we are given                              approximation guarantee.
+a set of 𝑛 clients and centers with metric distances between them,
+along with an integer parameter 𝑘 ≥ 1. The objective is to select                             CCS CONCEPTS
+a subset of 𝑘 open centers that minimizes the total distance from                             • Theory of computation → Approximation algorithms anal-
+each client to its closest open center.                                                       ysis; Facility location and clustering.
+    In their seminal work, Jain, Mahdian, Markakis, Saberi, and Vazi-
+rani presented the Greedy algorithm for facility location, which                              KEYWORDS
+implies a 2-approximation algorithm for 𝑘-median that opens 𝑘                                 Approximation Algorithm, Clustering, k-Median
+centers in expectation. Since then, substantial research has aimed at
+                                                                                              ACM Reference Format:
+narrowing the gap between their algorithm and the best achievable
+                                                                                              Vincent Cohen-Addad, Fabrizio Grandoni, Euiwoong Lee, Chris Schwiegelshohn,
+approximation by an algorithm guaranteed to open exactly 𝑘 cen-
+                                                                                              and Ola Svensson. 2025. A (2 + 𝜀)-Approximation Algorithm for Metric
+ters, as required in the 𝑘-median problem. During the last decade,                            k-Median. In Proceedings of the 57th Annual ACM Symposium on Theory of
+all improvements have been achieved by leveraging their algorithm                             Computing (STOC ’25), June 23–27, 2025, Prague, Czechia. ACM, New York,
+(or a small improvement thereof), followed by a second step called                            NY, USA, 10 pages. https://doi.org/10.1145/3717823.3718299
+bi-point rounding, which inherently adds an additional factor to
+the approximation guarantee.                                                                  1    INTRODUCTION
+    Our main result closes this gap: for any 𝜀 > 0, we present a
+                                                                                              Given a collection 𝐷 of 𝑛 points, a clustering is a partition of the
+(2 + 𝜀)-approximation algorithm for the 𝑘-median problem, improv-
+                                                                                              points into (typically) disjoint subsets (the clusters) such that points
+ing the previous best-known approximation factor of 2.613. Our
+                                                                                              in the same cluster are similar and points in different clusters are
+approach builds on a combination of two key algorithms. First, we
+                                                                                              dissimilar. One of the classical and best-studied clustering problems
+present a non-trivial modification of the Greedy algorithm that oper-
+                                                                                              is 𝑘-median (see also Table 1). Here, in addition to the set 𝐷 (points
+ates with only 𝑂 (log 𝑛/𝜀 2 ) adaptive phases. Through a novel walk-
+                                                                                              are also called clients in this framework), we are given an integer
+between-solutions approach, this enables us to construct a (2 + 𝜀)-
+                                                                                              parameter 𝑘 > 0 and a set 𝐹 1 (the facilities or centers), with metric
+approximation algorithm for 𝑘-median that consistently opens at
+                                                                                              distances 𝑑 (𝑎, 𝑏) for 𝑎, 𝑏 ∈ 𝐷 ∪ 𝐹 . Our goal is to select 𝑘 centers
+most 𝑘 +𝑂 (log 𝑛/𝜀 2 ) centers: via known results, this already implies
+                                                                                              𝑆 ⊆ 𝐹 (open centers) so as to minimize the sum of the distances
+a (2 + 𝜀)-approximation algorithm that runs in quasi-polynomial
+                                                                                              from each client to the closest open center. In other words, the goal
+time. Second, we develop a novel (2 + 𝜀)-approximation algorithm
+                                                                                              is to minimize the following objective function
+tailored for stable instances, where removing any center from an
+optimal solution increases the cost by at least an Ω(𝜀 3 /log 𝑛) frac-
+                                                                                                                                ∑︁
+                                                                                                                    cost(𝑆) :=      min 𝑑 (𝑖, 𝑗).
+tion. Achieving this involves several ideas, including a sampling                                                                         𝑖 ∈𝑆
+                                                                                                                                   𝑗 ∈𝐷
+approach inspired by the 𝑘-means++ algorithm and a reduction
+                                                                                              The 𝑘-clustering induced by 𝑆 is obtained by considering, for each
+to submodular optimization subject to a partition matroid. This
+                                                                                              𝑐 ∈ 𝑆, the subset of points that have 𝑐 as a closest center in 𝑆
+allows us to convert the previous result into a polynomial time
+                                                                                              (breaking ties arbitrarily). We use opt𝑘 to denote the optimal cost,
+                                                                                              and simply use opt when 𝑘 is clear from the context.
+Permission to make digital or hard copies of all or part of this work for personal or            For most clustering variants, it is NP-hard to compute an optimal
+classroom use is granted without fee provided that copies are not made or distributed         clustering and metric 𝑘-median is no exception. For this reason a
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than ACM            lot of effort was devoted to the design of (polynomial-time) approx-
+must be honored. Abstracting with credit is permitted. To copy otherwise, or republish,       imation algorithms for this problem, i.e., algorithms that compute a
+to post on servers or to redistribute to lists, requires prior specific permission and/or a
+fee. Request permissions from permissions@acm.org.
+                                                                                              feasible solution 𝑆 whose cost is provably within some factor 𝛼 > 1
+STOC ’25, June 23–27, 2025, Prague, Czechia                                                   of opt (the approximation factor or approximation ratio/guarantee).
+© 2025 Association for Computing Machinery.
+ACM ISBN 979-8-4007-1510-5/25/06. . . $15.00                                                  1 Sometimes in the literature one assumes 𝐹 = 𝐷 or 𝐷 ⊆ 𝐹 . We consider the more
+https://doi.org/10.1145/3717823.3718299                                                       general case and make no such assumption.
+STOC ’25, June 23–27, 2025, Prague, Czechia                                   Vincent Cohen-Addad, Fabrizio Grandoni, Euiwoong Lee, Chris Schwiegelshohn, and Ola Svensson
+
+
+    Most of the best-known approximation algorithms for 𝑘-median,                              The algorithm in our main theorem combines two novel algo-
+including the current-best one [21, 29], are based on the following                         rithms. First, we address the limitations of the bi-point rounding
+high-level approach (see Section 1.2 for alternative approaches in                          method by introducing a non-trivial variant of the classic Greedy
+the literature). One considers the associated facility location prob-                       algorithm [35, 36]. The Greedy algorithm can be highly adaptive in
+lem, where instead of 𝑘 we are given a (uniform) facility opening                           that tiny changes to the opening cost 𝑓 may lead to vastly different
+cost 𝑓 . In this problem a feasible solution 𝑆 can contain an arbitrary                     solutions 𝑆 and 𝑆 ′ , where |𝑆 | < 𝑘 and |𝑆 ′ | > 𝑘, forcing previous bi-
+number of centers/facilities (rather than 𝑘), however in the objec-                         point rounding approaches to incur a large additional factor in the
+tive function, besides the connection cost 𝑐𝑜𝑠𝑡 (𝑆), one has to pay                         approximation guarantee. We resolve this high-adaptivity by pre-
+also the opening cost 𝑓 |𝑆 |. Then one uses a Lagrangian Multiplier                         senting a low-adaptivity version, which makes adaptive decisions
+Preserving (LMP) 𝛼 𝐿𝑀𝑃 -approximation for the problem (formal def-                          in only 𝑂 (log(𝑛)/𝜀 2 ) phases. This modification intuitively renders
+inition in Section 2) to construct a bi-point solution for 𝑘-median,                        the algorithm less adaptive than the original, where each choice
+i.e., a convex combination of a solution 𝑆 1 (opening fewer than 𝑘                          depends heavily on previous ones. We then introduce a novel walk-
+centers) and a solution 𝑆 2 (opening more than 𝑘 centers), that opens                       between-solutions algorithm that enables us to return a solution
+exactly 𝑘 centers in a fractional sense. In particular, sampling one                        with at most 𝑘 + 𝑂 (log(𝑛)/𝜀 2 ) centers, with no additional loss in
+of the two solutions according to the respective coefficients would                         the approximation factor (up to 1 + 𝜖). Specifically, we achieve the
+give a solution of expected cost 𝛼 𝐿𝑀𝑃 · opt that opens 𝑘 centers                           following result.
+in expectation. Finally, a bi-point rounding algorithm is used to de-
+                                                                                               Theorem 1.2. For every 𝜀 ∈ (0, 1/6), there is a polynomial-time
+rive a feasible 𝑘-median solution, while losing another factor 𝛼 𝐵𝑃𝑅
+                                                                                            algorithm for 𝑘-median that returns a solution containing at most
+in the approximation. The product 𝛼 𝐿𝑀𝑃 · 𝛼 𝐵𝑃𝑅 gives the overall
+                                                                                            𝑘 + 𝑂 (log 𝑛/𝜀 2 ) many centers and of cost at most (2 + 𝜀)opt.
+approximation factor. We remark that the state of the art leaves
+a significant gap between the approximation factor for a solution                              Combining this result with the [44] reduction from 𝑘-median
+with 𝑘 centers in expectation and a true 𝑘-median solution.                                 pseudo-solutions to true 𝑘-median solutions already yields a (2 +
+    In more detail, for the LMP stage, [37] gave a 3-approximation al-                      𝜀)-approximation in quasi-polynomial time. In order to improve
+gorithm which was subsequently improved to 2 by [35, 36], and then                          this to a polynomial time algorithm, we use a completely different
+to 2 −𝜂 for some 𝜂 > 2.25 · 10−7 by [21]. [37] also presented a factor                      algorithm. We say that an instance is 𝛽-stable if opt𝑘−1 ≥ (1 + 𝛽) ·
+2 algorithm for the bi-point√
+                               rounding stage. [44] subsequently im-                        opt𝑘 . Our result is as follows.
+proved this to a factor 1+2 3 ≈ 1.366 when allowing to use 𝑘 + 𝑂 (1)                           Theorem 1.3. For any 𝜀, 𝜁 > 0, there exists a randomized polynomial-
+many centers2 , and also gave a polynomial-time algorithm for ob-                           time algorithm that, given a (𝜁 /log 𝑛)-stable 𝑘-median instance, re-
+taining a proper 𝑘-median clustering from a 𝑘 + 𝑂 (1) clustering                            turns a solution of cost at most (2 + 𝜀)opt with high probability.
+essentially without any loss in the approximation ratio. This ap-
+proach was further refined by [11] who gave a 1.337-approximate                                 The algorithm for stable instances is inspired by a recent fixed-
+bi-point rounding algorithm and also showed      that no LP-based                           parameter-tractable approach that essentially identifies, by enumer-
+                                         √                                                  ation, small-radius balls guaranteed to contain the optimal centers
+rounding algorithm can do better than 1+2 2 . The state of the art for                      and then solves the problem by maximizing a submodular function
+rounding methods is due to [29] who gave a 1.306-approximation                              subject to a partition matroid constraint. However, there are two
+algorithm, while showing√that no algorithm can do better than                               major challenges: first, the running time of [24] is not polynomial
+√︁
+  𝜙 ≈ 1.272, where 𝜙 = 1+2 5 is the golden ratio.                                           even when 𝑘 = 𝑂 (log 𝑛); and second, because 𝑘 may be large (poten-
+   Unfortunately, there is an inherent limitation to this approach.                         tially polynomial in 𝑛), we need to identify almost all clusters of the
+No approximation algorithm for the LMP stage can do better than                             optimal solution before proceeding with any guessing/enumeration
+1 + 2/𝑒 [35, 36], and using the lower bound for bi-point round-                             steps. We address these challenges through several novel ideas,
+ing algorithms by [29], the best possible analysis
+                                                 √︁ cannot yield                            including a sampling approach based on the 𝑘-means++ algorithm.
+an approximation factor better than (1 + 2/𝑒) 𝜙 ≈ 2.207. This                               An overview of the techniques is provided in Section 3.2.
+leaves a significant gap to the inapproximability lower bound of                                Let us see why Theorems 1.2 and 1.3 combine to yield Theorem
+(1 + 2/𝑒) ≈ 1.735 [35, 36], and even to the best-known approxi-                             1.1. We compute a few feasible solutions. Let Δ be the surplus
+mation algorithm that opens 𝑘-centers in expectation [21], which                            number of centers used in Theorem 1.2. One solution is obtained
+achieves an approximation guarantee of 2 − 𝜂 for some small 𝜂 > 0.                          by running the algorithm from Theorem 1.2 with the number of
+                                                                                            centers being 𝑘 ′ = 𝑘 − Δ. If opt𝑘 ′ ≤ opt𝑘 · (1 + 𝜀), this is a good
+1.1      Our Results                                                                        enough approximation. Then we run the algorithm from Theorem
+Our main result is stated as follows. (As commonly done, we use                             1.3 for every 𝑘 ′′ ∈ (𝑘 ′, 𝑘]. If the solution with 𝑘 ′ centers computed
+"with high probability" to mean that an event occurs with probabil-                         before is not good enough, then there exists some 𝑘 ′′ ∈ (𝑘 ′, 𝑘] such
+ity at least 1 − 1/poly(𝑛).)                                                                that opt𝑘 ′′ −1 ≥ (1 + 𝛽) · opt𝑘 ′′ with 𝛽 ∈ Ω(𝜀/Δ) = Ω(𝜀 3 /log 𝑛) and
+                                                                                            opt𝑘 ′′ ≤ (1 + 𝜀) · opt𝑘 . In this case, Theorem 1.3 yields the desired
+   Theorem 1.1. For every 𝜀 > 0, there is a randomized polynomial-                          result for a proper choice of the parameters. Outputting the best of
+time algorithm for 𝑘-median that returns a solution with cost at most                       all computed solutions yields Theorem 1.1.
+(2 + 𝜀)opt with high probability.                                                               For Euclidean spaces, the set of candidate centers is infinite.
+2 Solutions opening slightly more than 𝑘 centers are sometimes called pseudo-solutions      By a standard reduction, we can find a polynomial-sized set 𝐹 ⊂
+in the literature.                                                                          R𝑑 in polynomial time such that the cost of any constant factor
+A (2 + 𝜀) -Approximation Algorithm for Metric k-Median                                                               STOC ’25, June 23–27, 2025, Prague, Czechia
+
+
+
+                Reference         Approximation factor                                  Technique
+                 [8]           𝑂 (log 𝑛 log log 𝑛)                       tree embeddings
+                [12]           𝑂 (log 𝑘 log log 𝑘)                       tree embeddings
+                [14]                  6.667                           dependent LP rounding
+                [37]                    6                            LMP + bi-point rounding
+              [35, 36]                  4                            LMP + bi-point rounding
+                 [5]                  3+𝜀                                   local search
+                [44]                  2.733                          LMP + bi-point rounding
+                [11]                  2.675                          LMP + bi-point rounding
+              [21, 29]                2.613                          LMP + bi-point rounding
+           Theorem 1.1                2+𝜀                       LMP interpolation + stable algorithm
+Table 1: Progression of approximation factors for 𝑘-median. Dependencies on 𝜀 are omitted due to numerical overestimation,
+except for [5] and the final result.
+
+
+
+approximate solution is approximated by a set of centers obtained        (1 + 2/𝑒)-approximation yields a (𝛾𝐺𝐾 ≈ 1.463)-approximation for
+from 𝐹 , see for example Lemma 5.3 of [40]. Thus we also obtain          UFL, which matches the hardness result of Guha and Khuller [31]
+a (2 + 𝜀)-approximation in Euclidean spaces, improving on 2.406          where 𝛾𝐺𝐾 is the solution of 𝛾 = 1 + 2𝑒 −𝛾 . Nevertheless, most im-
+[19].                                                                    provements do not rely on an LMP approach. Following a long
+   Finally, let us remark that Theorem 1.1 essentially closes the gap    line of research [10, 13, 17, 35, 36, 39, 45, 48], Li presented an algo-
+between the approximation guarantee of the best-known algorithm          rithm with the currently best known approximation ratio of roughly
+that opens 𝑘 centers in expectation [21] and algorithms that con-        1.488 [42].
+sistently open at most 𝑘 centers. However, a major open problem
+remains: obtaining a tight approximation result for 𝑘-median, as it
+is only known that it is hard to approximate the problem within a        2    PRELIMINARIES
+factor less than (1 + 2/𝑒) [36]. Building on this work, a natural next   We are given a set of 𝑛 clients 𝐷 and set of 𝑚 potential centers or fa-
+step would be to resolve this question or to significantly improve       cilities 𝐹 . Given a set 𝑆 ⊆ 𝐹 , we use 𝑑 ( 𝑗, 𝑆) = min𝑖 ∈𝑆 𝑑 ( 𝑗, 𝑖), where
+the approximation guarantee, even in the setting where 𝑘 centers         𝑑 is the underlying distance function. 𝑂˜ (𝑥) suppresses polylog(𝑥)
+are opened in expectation.                                               factors, and 𝑂 𝜀 (𝑥) suppresses polynomial factors in 𝜀. We use
+                                                                         [𝑎] + = max(𝑎, 0). We already defined the 𝑘-median problem. The
+                                                                         uncapacitated facility location problem (𝑈 𝐹 𝐿) with uniform open-
+1.2     Related Work                                                     ing costs is given a non-negative number 𝑓 and asks to find a set
+We already reviewed the LMP-based approximation algorithms               𝑆 ⊆ 𝐹 minimizing
+earlier. But there are several other important results for 𝑘-median
+and closely related problems which we cover here.                                                                   ∑︁
+   There also exist other approaches for designing approximation                               cost𝑈 𝐹 𝐿 (𝑆) =             𝑑 ( 𝑗, 𝑆) + 𝑓 · |𝑆 |.
+algorithms for metric 𝑘-median, most notably local search [5, 23,                                                   𝑗 ∈𝐷
+32, 38], combinatorial algorithms [46], metric embeddings [8, 9, 12],
+or other LP-based rounding approaches [2, 15, 16]. There has also                      Í
+been a lot of work for the related problems 𝑘-means and 𝑘-center,        We refer to 𝑗 ∈𝐷 𝑑 ( 𝑗, 𝑆) as the connection cost and 𝑓 · |𝑆 | as the
+which minimize the sum of squared distances and the maximum              opening cost. Let 𝑥𝑖,𝑗 denote in the indicator variable for serving
+distance, respectively. Specifically for 𝑘-center, [28, 34] gave a 2-    client 𝑗 with facility 𝑖 and let 𝑦𝑖 be the indicator variable for opening
+approximation which is optimal unless 𝑃 ≠ 𝑁 𝑃. 𝑘-means admits a          facility 𝑖. Relaxing these to continuous variables in [0, 1], the LP
+(9 + 𝜀)-approximation in general metrics [1]. In addition, both 𝑘-       relaxation to 𝑘-median and UFL are given by the programs
+median and 𝑘-means have been studied in 𝑑-dimensional Euclidean
+spaces, where a PTAS is possible when either 𝑑 or 𝑘 are fixed [3, 20,                           ∑︁
+27, 40]. If neither 𝑑 nor 𝑘 are fixed, the approximation factors for                 min                  𝑑 (𝑖, 𝑗)𝑥𝑖,𝑗                       (𝐿𝑃𝑘𝑚 )
+Euclidean 𝑘-median and 𝑘-means are also better than their general                             𝑖 ∈𝐹,𝑗 ∈𝐷
+                                                                                              ∑︁
+metric counterparts [1, 30], with the best known approximation                        𝑠.𝑡 .          𝑥𝑖,𝑗 ≥ 1                                 ∀𝑗 ∈ 𝐷
+ratio being 5.913 for 𝑘-means and, prior to our work, being 2.406                             𝑖 ∈𝐹
+for 𝑘-median by [19]. Both in high dimensional Euclidean spaces                           𝑦𝑖 − 𝑥𝑖,𝑗 ≥ 0                               ∀𝑗 ∈ 𝐷, 𝑖 ∈ 𝐹
+as well as general metrics, all of these aforementioned problems                          ∑︁
+are APX hard [7, 18, 25, 33, 36, 41].                                                         𝑦𝑖 ≤ 𝑘
+                                                                                              𝑖 ∈𝐹
+   LMP-based approaches are also very relevant for the related
+facility location problem. Mahdian et al. [45] showed that an LMP                         𝑥, 𝑦 ≥ 0
+STOC ’25, June 23–27, 2025, Prague, Czechia                                        Vincent Cohen-Addad, Fabrizio Grandoni, Euiwoong Lee, Chris Schwiegelshohn, and Ola Svensson
+
+
+and                                                                                              3     TECHNICAL OVERVIEW
+                    ∑︁                            ∑︁
+        min                  𝑑 (𝑖, 𝑗)𝑥𝑖,𝑗 + 𝑓 ·          𝑦𝑖       (𝐿𝑃𝑈 𝐹 𝐿 (𝑓 ))                 In this section, we give an overview of our result. Section 3.1 intro-
+                 𝑖 ∈𝐹,𝑗 ∈𝐷                        𝑖 ∈𝐹                                           duces ideas behind Theorem 1.2 that achieves a (2+𝜀)-approximation
+                 ∑︁                                                                              while opening 𝑘 + 𝑂 (log 𝑛/𝜀 2 ) centers, and Section 3.2 discusses
+         𝑠.𝑡 .          𝑥𝑖,𝑗 ≥ 1                                        ∀𝑗 ∈ 𝐷                   Theorem 1.3 for stable instances. Due to space constraints, we are
+                 𝑖 ∈𝐹                                                                            not able to include full proofs in this extended abstract. For this,
+             𝑦𝑖 − 𝑥𝑖,𝑗 ≥ 0                                        ∀𝑗 ∈ 𝐷, 𝑖 ∈ 𝐹                  we refer the reader to the arxiv version of our paper [22].
+            𝑥, 𝑦 ≥ 0
+                 Í                                                                               3.1     (2 + 𝜀)-Approximation with 𝑂 𝜀 (log 𝑛) Extra
+The constraint 𝑖 ∈𝐹 𝑥𝑖,𝑗 ≥ 1 ensures that every client is served by
+some facility and the constraint 𝑦𝑖 − 𝑥𝑖,𝑗 ≥ 0 ensures that a client 𝑗                                   Centers
+can only be served by facility 𝑖 if 𝑖 is open. Moreover, the dual for                            Let us motivate our high-level plan by revisiting the previous frame-
+the facility location LP relaxation is given by the equations:                                   work. The previous best approximation algorithms [11, 21, 29, 43]
+                ∑︁                                                                               for 𝑘-median start by the following initialization step: starting from
+          max      𝛼𝑗                           (𝐷𝑃𝑈 𝐹 𝐿 (𝑓 ))                                   two LMP approximate solutions for UFL 𝑆, 𝑆 ′ ⊆ 𝐹 with the respec-
+                    𝑗 ∈𝐷                                                                         tive facility costs 𝑓 , 𝑓 ′ such that |𝑆 | < 𝑘, |𝑆 ′ | > 𝑘 3 and 𝑓 possibly
+                                                                                                 much larger than 𝑓 ′ , the algorithm uses binary search to obtain
+                    ∑︁
+            𝑠.𝑡 .          [𝛼 𝑗 − 𝑑 (𝑖, 𝑗)] + ≤ 𝑓                     ∀𝑖 ∈ 𝐹
+                    𝑗 ∈𝐷                                                                         two new solutions (𝑆, 𝑓 ), (𝑆 ′, 𝑓 ′ ) such that |𝑆 | < 𝑘, |𝑆 ′ | > 𝑘 and
+                   𝛼≥0                                                                           |𝑓 − 𝑓 ′ | ≤ 2−𝑛 . This step can be already viewed as a merging step
+                                                                                                 that takes two solutions whose number of facilities sandwich 𝑘 and
+The usual interpretation of the 𝛼 𝑗 is that they are the budgets for                             makes them (specifically the facility cost) closer. Then, the natural
+each client, accounting for both connecting the client to a facility, as                         question is can we merge 𝑆 and 𝑆 ′ into the (almost) same set of open
+well as opening a facility. The opening contribution dual variables                              facilities so that both open (almost) exactly 𝑘 facilities?
+𝛽𝑖,𝑗 obtained from the 𝑦𝑖 − 𝑥𝑖,𝑗 ≥ 0 constraints, as well as the dual                                One naive implementation of this idea might be the following
+constraints 𝛼 𝑗 −𝛽𝑖,𝑗 ≤ 𝑑 (𝑖, 𝑗) are removed here, as we can always set                          (from now on, let us assume 𝑓 = 𝑓 ′ ). Just like binary search, suppose
+𝛽𝑖,𝑗 = [𝛼 𝑗 −𝑑 (𝑖, 𝑗)] + . Recall that opt = opt𝑘 is the cost of an optimal                      that we find an LMP approximate solution 𝑆 ′′ which is strictly
+𝑘-median clustering. We use opt𝐿𝑃 and opt𝐿𝑃 (𝑓 ) to denote the                                   between 𝑆 and 𝑆 ′ in some formal sense. If |𝑆 ′′ | > 𝑘, we will let
+cost of an optimal solution to 𝐿𝑃𝑘𝑚 and 𝐿𝑃𝑈 𝐹 𝐿 (𝑓 ), resp. Trivially                            𝑆 ′ ← 𝑆 ′′ and otherwise 𝑆 ← 𝑆 ′′ . Then the invariant |𝑆 | < 𝑘,
+opt ≥ opt𝐿𝑃 . Since any feasible solution for 𝐿𝑃𝑘𝑚 is also feasible                              |𝑆 ′ | > 𝑘 is maintained while the two solutions got strictly closer. So
+for 𝐿𝑃𝑈 𝐹 𝐿 (𝑓 ), one has opt𝐿𝑃 ≥ opt𝐿𝑃 (𝑓 ) − 𝑘 𝑓 . We will use the fact                        we can continue this process until they become the same!
+that, by weak duality, any feasible solution to 𝐷𝑃𝑈 𝐹 𝐿 (𝑓 ) induces a                               Of course, the main question is whether one can find such 𝑆 ′′
+lower bound on opt𝐿𝑃 (𝑓 ). In particular, for any feasible solution 𝛼
+                                                       Í                                         given 𝑆 and 𝑆 ′ . Just like 𝑆 and 𝑆 ′ , 𝑆 ′′ must be an outcome of the
+to 𝐷𝑃𝑈 𝐹 𝐿 (𝑓 ), we have opt ≥ opt𝐿𝑃 (𝑓 ) − 𝑘 𝑓 ≥ 𝑗 ∈𝐷 𝛼 𝑗 − 𝑘 𝑓 .                               LMP approximation algorithm, or at least close to such an outcome
+   We say that an algorithm is a Lagrangian Multiplier Preserving                                in some formal sense. Since being a valid outcome of an algorithm
+(LMP) 𝛼-approximation algorithm for UFL if it returns a solution 𝑆                               is a highly complex property, especially when the algorithm has
+with                                                                                             a large number of adaptive steps whose action depends on the
+                    cost(𝑆) ≤ 𝛼 · (opt𝐿𝑃 (𝑓 ) − 𝑓 |𝑆 |).                                         previous actions, this task remains challenging for a general LMP
+                                                                                                 approximation algorithm.
+   Finally, we will make the assumption that the distances are inte-
+                                                                                                     However, there is an example of success for Jain and Vazirani’s
+gers in [1, 𝑛 3 /𝜀]. The justification is given by the following standard
+                                                                                                 primal-dual [37] algorithm, which gives a LMP 3-approximation.
+reduction.
+                                                                                                 At a high level, this algorithm consists of two phases, where the
+Lemma 2.1. For any constants 𝜀 > 0 and 𝛼 > 1, given a polynomial-                                first phase yields a set 𝑇 of tentative open facilities, and the second
+time 𝛼-approximation algorithm for 𝑘-median on instances with dis-                               phase is allowed to choose an arbitrary 𝑆 ⊆ 𝑇 that forms a maximal
+tances in {1, . . . , 𝑛 3 /𝜀}, there exists a polynomial-time 𝛼 (1 + 𝑂 (𝜀))-                     independent set in an auxiliary graph, so there is a freedom in
+approximation algorithm for 𝑘-median on general instances.                                       choosing the independent set. Ahmadian et al. [1] used this freedom
+                                                                                                 to give a walking procedure that finds a maximal independent set
+  Proof. Consider any input instance (𝐷 ∪ 𝐹, 𝑑) of 𝑘-median.                                     in the auxiliary graph of cardinality exactly 𝑘, which led to an
+Assume that 𝑛 := |𝐷 | is large enough w.r.t. 𝛼, otherwise the problem                            improved approximation ratio for Euclidean 𝑘-means/𝑘-median
+can be solved by brute force in polynomial time. We guess 𝑀 :=                                   and metric 𝑘-means.
+max 𝑗 ∈𝐷 𝑑 ( 𝑗, OPT), where OPT is some optimal 𝑘-median solution,                                   However, the Greedy algorithm [35, 36] with dual-fitting analy-
+by trying all the 𝑛 · 𝑚 possibilities. Next, for each (𝑖, 𝑗) ∈ 𝐹 ×                               sis, which guarantees a better 2-LMP approximation, is more adap-
+                                             𝑑 (𝑖,𝑗)
+𝐷, define 𝑑 ′ ( 𝑗, 𝑖) = 𝑑 ′ (𝑖, 𝑗) = max{1, ⌈ 𝑀 𝑛𝜀 ⌉} if 𝑑 (𝑖, 𝑗) ≤ 𝑀.                           tive; in fact, it can be a completely deterministic algorithm without
+                                                              3
+Set all the remaining 𝑑 ′ (𝑎, 𝑏), 𝑎 ≠ 𝑏, to 𝑛𝜀 . Finally, replace the                            leaving any freedom. Therefore, in order to implement our idea,
+𝑑 ′ (𝑖, 𝑗)’s with the corresponding metric closure. We run the given                             it would be better to find a low-adaptive version of the Greedy
+𝛼-approximation algorithm on the 𝑘-median instance (𝐷 ∪ 𝐹, 𝑑 ′ ),                                algorithm, where the algorithm runs in a small (𝑂 𝜀 (log 𝑛) in our
+hence obtaining a solution 𝑆. It is easy to check that 𝑆 is a good                               3 Throughout this overview, we assume no solution opens exactly 𝑘 centers, because
+enough approximation for the input instance.                        □                            we are done if this happens.
+A (2 + 𝜀) -Approximation Algorithm for Metric k-Median                                                                       STOC ’25, June 23–27, 2025, Prague, Czechia
+
+
+case) number of phases, and each phase presents some freedom of                       At the cost of losing a factor 1/(1 − 𝛿) in the approximation guar-
+choices for the algorithm.                                                            antee, this has the following benefit. If 𝑖 is not paid according to (2)
+                                                                                      when all active clients have 𝛼 𝑗 = 𝜃 , then even when 𝛼 𝑗 ’s are in-
+    The Greedy Algorithm. Let us recall the Greedy algorithm [35, 36].
+                                                                                      creased to (1 + 𝜀 2 )𝜃 , for a client 𝑗 with 𝑑 ( 𝑗, 𝑖) ≥ 𝜀𝜃 , its contribution
+The algorithm maintains the set 𝐴 of active clients and the set 𝑆
+                                                                                      [(1 + 𝜀 2 )𝑡 +1 − 𝑑 (𝑖, 𝑗)] + to (1) is at most its previous contribution
+of open facilities. Initially, all clients are active, i.e., 𝐴 = 𝐷, and
+                                                                                      [(1 + 𝜀 2 )𝑡 − (1 − 𝛿)𝑑 (𝑖, 𝑗)] + to (2), which makes (1) unlikely to be
+no facilities are opened, i.e., 𝑆 = ∅. Additionally, the algorithm
+                                                                                      violated.
+maintains dual variables (𝛼 𝑗 ) 𝑗 ∈𝐷 , initialized to 0.
+                                                                                         Then our second fix deals with active clients close to co-located
+    While there is at least one active client, the algorithm uniformly
+                                                                                      with 𝑖. We do so by allowing the clients 𝑗 in the ball 𝐵(𝑖, 𝜀𝜃 ) to
+increases the 𝛼-values of the active clients until there is a facility 𝑖
+                                                                                      increase their bids for 𝑖 up to min((1 +𝜀 2 )𝜃, (1 −𝛿)𝑑 ( 𝑗, 𝑆)), so that if
+whose "bids" are sufficient to open it (or an active client becomes
+                                                                                      𝑖 could not be opened even with increased bids from nearby clients,
+“close” to an already opened facility). The bids from a client 𝑗 to
+                                                                                      then increasing active clients’ 𝛼 values from 𝜃 to (1 + 𝜀 2 )𝜃 should
+a facility 𝑖 depend on whether 𝑗 is active or not. If 𝑗 ∈ 𝐴, then a
+                                                                                      not make 𝑖 overbid. These increased bids bring other considerations
+portion of its budget 𝛼 𝑗 , specifically 𝑑 (𝑖, 𝑗), is allocated to cover
+                                                                                      (e.g., ensuring dual feasibility of other facilities), leading to the
+the connection cost, and the remainder, 𝛼 𝑗 − 𝑑 (𝑖, 𝑗), is used to bid
+                                                                                      following definition of openable facilities, which can be efficiently
+towards the facility’s opening cost 𝑓ˆ := 2𝑓 . For a client 𝑗 ∉ 𝐴,                    checked by a linear program.
+which is already connected to an open facility at a distance 𝑑 ( 𝑗, 𝑆),
+the bid towards 𝑖 is the difference in distance, i.e., 𝑑 ( 𝑗, 𝑆) − 𝑑 (𝑖, 𝑗)           Definition 1. A facility 𝑖 is openable if there are bids (𝜏 𝑗 ) 𝑗 ∈𝐴 of
+(or 0 if 𝑖 is farther). Finally, the algorithm marks any client 𝑗 with                active clients that satisfy the following conditions.
+𝛼 𝑗 ≥ 𝑑 ( 𝑗, 𝑆) as inactive, ensuring that at any point in time, active                    • For every 𝑗 ∈ 𝐴 \ 𝐵(𝑖, 𝜀𝜃 ), 𝜏 𝑗 = 𝛼 𝑗 .
+clients 𝑗 satisfy 𝛼 𝑗 ≤ 𝑑 ( 𝑗, 𝑆).                                                         • For every 𝑗 ∈ 𝐴 ∩ 𝐵(𝑖, 𝜀𝜃 ), 𝜏 𝑗 ∈ [𝛼 𝑗 , min{(1 − 𝛿)𝑑 ( 𝑗, 𝑆), (1 +
+    In order to prove that the algorithm yields an LMP 2-approximation,                      𝜀 2 )𝜃 }]
+let (𝛼 ∗𝑗 ) 𝑗 ∈𝐷 be the final 𝛼 values and 𝑆 ∗ be the set of opened facili-                • 𝑗 ∈𝐴 [𝜏 𝑗 − (1−𝛿)𝑑 (𝑖, 𝑗)] + + (1−𝛿) 𝑗 ∈𝐼 [𝑑 ( 𝑗, 𝑆) −𝑑 (𝑖, 𝑗)] + ≥
+                                                                                             Í                                          Í
+ties. The design of the algorithm guarantees that the 𝛼 ∗ values pay                          𝑓ˆ .
+for both the opening costs of the facilities in 𝑆 ∗ and the connection                     • For every facility 𝑖 0 and 𝑘 ∈ 𝐴,
+costs of the clients, leading to 𝑗 ∈𝐷 𝛼 ∗𝑗 = 𝑗 ∈𝐷 𝑑 ( 𝑗, 𝑆 ∗ ) + 𝑓ˆ · |𝑆 ∗ |.                                             + Í                                       +
+                                      Í            Í                                         Í                                                                          ˆ
+                                                                                                  𝑗 ∈𝐴 [𝜏 𝑗 − 𝑑 (𝑖 0 , 𝑗)] + 𝑗 ∈𝐼 [𝜏𝑘 − 2𝑑 ( 𝑗, 𝑖 0 ) − 𝑑 (𝑘, 𝑖 0 )] ≤ 𝑓 .
+    The more interesting part of the analysis is to show that 𝛼 ∗ /2 is
+a dual feasible solution for the dual facility location LP with facility                   Given this definition of openability, we present our modified
+cost 𝑓 , namely 𝑗 ∈𝐷 [𝛼 ∗𝑗 − 2𝑑 (𝑖, 𝑗)] + ≤ 𝑓ˆ for every facility 𝑖. The
+                      Í                                                               Greedy algorithm with 𝑂 (log 𝑛) phases, LogAdaptiveAlgorithm,
+                                                                                      which is restated here as Algorithm 1. Here a phase is defined to
+dual feasibility follows from two key properties that, at any point
+                                                                                      be the run of the algorithm for a fixed value of 𝜃 = 1, (1 + 𝜀 2 ), (1 +
+in time, (1) 𝛼 𝑗 ≤ 𝑑 ( 𝑗, 𝑆) for every 𝑗 ∈ 𝐴 and (2) for every 𝑖 ∈ 𝐹 , no
+                                                                                      𝜀 2 ) 2, . . . , which is broken down to two stages according to the
+facility is overbid:
+             ∑︁                       ∑︁                                              description of Algorithm 1. Note that at least in the beginning, stage
+                 [𝛼 𝑗 − 𝑑 (𝑖, 𝑗)] + +    [𝑑 ( 𝑗, 𝑆) − 𝑑 ( 𝑗, 𝑖)] + ≤ 𝑓ˆ . (1)         1 allows opening of any openable facility, providing the desired
+          𝑗 ∈𝐴                     𝑗 ∈𝐷\𝐴                                             freedom to walk between two solutions within the phase. While
+                                                                                      stage 1 still presents some adaptivity as an opening of a facility
+3.1.1 Logarithmic Adaptivity. As stated, the Greedy Algorithm                         might impact the openability of another, it is sufficient for the
+is a highly adaptive algorithm; for instance, consider the case when                  merging procedure described in Section 3.1.2.
+two facilities 𝑖 and 𝑖 ′ both become paid for at the same time 𝜃 .                         For the analysis, we prove that LogAdaptiveAlgorithm yields
+Whether we open 𝑖 or 𝑖 ′ can dramatically change the bids to future                   an LMP (2 + 𝑂 (𝜀))-approximate solution for UFL. It is a nontrivial
+facilities and completely change the trace of the algorithm.                          extension of the dual-fitting analysis of the Greedy algorithm for
+     To reduce such high adaptivity, we limit the number of time                      our definition of openability and design of the algorithm.
+steps where such decisions are made. Specifically, our high-level
+goal is to only consider the time steps of the form (1 + 𝜀 2 ) 0, (1 +                3.1.2 Merging Two Solutions. We describe our final algorithm
+𝜀 2 ) 1, (1 + 𝜀 2 ) 2, . . .. Then, as the minimum nonzero distance is 1 and          MergeSolutions that maintains two LMP approximate solutions
+the maximum distance is poly(𝑛), the total number of time steps                       whose number of facilities sandwich 𝑘 and gradually merges them
+that we need to consider is 𝑂 (log 𝑛/𝜀 2 ), and this is what we refer                 until one of them opens almost exactly 𝑘 facilities.
+to as 𝑂 (log 𝑛) adaptivity.                                                              Setup. Based on the discussion about LogAdaptiveAlgorithm,
+     The main difficulty in implementing this idea is to ensure (1).                  we will describe a solution H as (𝐻 1, . . . , 𝐻𝐿 ) with 𝐿 = 𝑂 (log 𝑛/𝜀 2 ),
+Consider the situation where all active clients have 𝛼 value 𝜃 =                      where 𝐻𝑖 is a valid execution of stage 1 of phase 𝑖 (i.e., when 𝜃 =
+(1 + 𝜀 2 )𝑡 . If their 𝛼 values jump from 𝜃 to (1 + 𝜀 2 )𝜃 , it is possible           (1 + 𝜀 2 )𝑖−1 ), which is formally represented as a sequence of opened
+that a previously underbid facility becomes strictly overbid.                         facilities. 𝐻𝑖 ’s validity also requires maximality, meaning that no
+     We fix this issue in two steps. The first easy fix is to scale down              openable facility remains in the phase. In order to facilitate the
+the metric by a factor of (1 − 𝛿) where 𝛿 = 𝑂 (𝜀); that is, we consider               merging, given a phase, we extend the notion of a valid execution
+a facility 𝑖 paid for if                                                              to include the following actions.
+   ∑︁                                         ∑︁
+         [𝛼 𝑗 −(1−𝛿)𝑑 (𝑖, 𝑗)] + +(1−𝛿)           [𝑑 ( 𝑗, 𝑆)−𝑑 ( 𝑗, 𝑖)] + ≥ 𝑓ˆ . (2)        • We allow opening a free facility, at most three times per
+  𝑗 ∈𝐴                                   𝑗 ∈𝐷\𝐴                                                phase. A free facility 𝑖˜ is based on a regular facility 𝑖 ∈ 𝐹 , and
+STOC ’25, June 23–27, 2025, Prague, Czechia                             Vincent Cohen-Addad, Fabrizio Grandoni, Euiwoong Lee, Chris Schwiegelshohn, and Ola Svensson
+
+
+
+   Algorithm 1 (LogAdaptiveAlgorithm).
+   Initialization: Set 𝑓ˆ = 2𝑓 , 𝑆 = ∅, 𝐴 = 𝐷, 𝜃 = 1 and 𝛼 𝑗 = 𝜃 for every 𝑗 ∈ 𝐴 = 𝐷.
+
+   Repeat the following while 𝐴 ≠ ∅:
+     (1) While there is an unopened facility 𝑖 that is openable (chosen arbitrarily if there are many),
+            Calculate (𝜏 𝑗 ) 𝑗 ∈𝐴 so that 𝑖 is openable with bids (𝜏 𝑗 ) 𝑗 ∈𝐴 . Open 𝑖 (i.e., add it to 𝑆), let 𝛼 𝑗 ← 𝜏 𝑗 for every 𝑗 ∈ 𝐴 (note that
+            only the values of the clients in 𝐴 ∩ 𝐵(𝑖, 𝜀𝜃 ) change), mark all clients 𝑗 ∈ 𝐴 such that 𝛼 𝑗 ≥ (1 − 𝛿)𝑑 ( 𝑗, 𝑆) as served (i.e.,
+            remove them from 𝐴).
+     (2) Perform the following step and proceed to the next phase.
+            For every remaining 𝑗 ∈ 𝐴, let 𝛼 𝑗 ← min((1 + 𝜀 2 )𝜃, (1 − 𝛿)𝑑 ( 𝑗, 𝑆)), remove it from 𝐴 when 𝛼 𝑗 = (1 − 𝛿)𝑑 ( 𝑗, 𝑆). Update
+            𝜃 = (1 + 𝜀 2 )𝜃 .
+
+
+       when it is created, we can choose the distance parameter                       of (𝑓 ′, 𝑢 ′ ). Such a change of the difference parameter is the reason
+       𝑢 (𝑖)
+          ˜ = 𝑑 (𝑖,˜ 𝑖). All other distances 𝑑 (𝑖,˜ 𝑥) are defined to be              for introducing the 𝑛𝜂 slack for 𝜂-valid sequences; for instance, if
+       𝑢 (𝑖)
+          ˜ + 𝑑 (𝑖, 𝑥).                                                               𝐻𝑖 was the exact execution with parameters (𝑓 ′, 𝑢 ′ ), we show that
+     • We slightly relax the notion of openability so that one can                    it is still 𝜂-valid with respect to (𝑓 , 𝑢).
+       open a facility 𝑖 by paying 𝑓ˆ − 𝑛𝜂 instead of 𝑓ˆ for parameter                      If H ′′ opens 𝑘 regular facilities we are done. Also, if the number
+       𝜂 := 2−𝑛 (in the third bullet of Definition 1).                                of open regular facilities of H ′′ and H ′ sandwich 𝑘, then we already
+                                                                                      made progress as they now coincide on the 𝑝th phase while still
+    Call H = (𝐻 1, . . . , 𝐻𝐿 ) a solution of 𝜂-valid sequences if 𝐻𝑖 is a
+                                                                                      having one difference parameter. Therefore, we only need to han-
+valid execution (i.e., an 𝜂-valid sequence) of the 𝑖th phase in the
+                                                                                      dle the case where H ′′ and H ′ sandwich 𝑘, where the difference
+above relaxed notion given 𝐻 1, . . . , 𝐻𝑖−1 . We extend the analysis of
+                                                                                      parameters already became identical but 𝐻𝑝 and 𝐻𝑝′ are different.
+LogAdaptiveAlgorithm to show that such H in the above sense
+                                                                                      Let us rename H ′′ to H ′ .
+still yields an LMP (2+𝑂 (𝜀 +𝑛𝜂))-approximation, if we do not count
+                                                                                            Now our goal is to gradually change 𝐻𝑝′ to 𝐻𝑝 (i.e., walk from
+the opening cost of the free facilities (while using the connections                      ′
+they provide). Therefore, a solution of 𝜂-valid sequences that opens                  𝐻𝑝 to 𝐻𝑝 ). Instead of describing the full procedure, we illustrate
+exactly 𝑘 regular facilities, and at most 3 free facilities per phase, is             the procedure on a particular example. Suppose that 𝐻𝑝 = ⟨𝑖 1 ⟩,
+a (2 + 𝑂 (𝜀 + 𝑛𝜂))-approximation to 𝑘-median that opens at most                       𝐻𝑝′ = ⟨𝑖 2, . . . , 𝑖 6 ⟩ where one can open at most one between 𝑖 1 and
+𝑂 (𝐿) = 𝑂 (log 𝑛/𝜀 2 ) extra facilities.                                              𝑖 𝑗 for any 𝑗 ∈ {2, . . . , 6}; this constraint can be expressed as a star
+    Initially, by the standard binary search on the facility cost and                 graph with 𝑖 1 as the center vertex and 𝑖 2, . . . , 𝑖 6 are only connected
+running LogAdaptiveAlgorithm, we start with two solutions                             to 𝑖 1 , and a valid solution (i.e., 𝜂-valid sequence) here means a
+H = (𝐻 1, . . . , 𝐻𝐿 ) and H ′ = (𝐻 1′, . . . , 𝐻𝐿′ ) with facility costs 𝑓 and       maximal independent set. (Suppose that this is the only constraint
+𝑓 ′ such that |𝑓 − 𝑓 ′ | ≤ 𝜂 and their number of opened facilities                    on openings, so 𝐻𝑝 and 𝐻𝑝′ can be thought of as sets instead of
+sandwich 𝑘. (We will associate parameters (𝑓 , 𝑢) for H and (𝑓 ′, 𝑢 ′ )               sequences.)
+for H ′ .) Throughout the algorithm, we will maintain the invariants                        In this example, 𝐻𝑝 and 𝐻𝑝′ are the only two maximal indepen-
+that (1) H and H ′ open the same set of free facilities (so that 𝑢                    dent sets, so it is impossible to smoothly walk from 𝐻𝑝′ to 𝐻𝑝 . Here
+and 𝑢 ′ are defined on the same set), (2) their number of opened                      is where the notion of a free facility becomes useful because we can
+regular facilities sandwich 𝑘, and (3) (𝑓 , 𝑢) = (𝑓 ′, 𝑢 ′ ) except for               assume that having a free facility helps maximality while not hurt-
+one parameter 𝑓 or 𝑢 (𝑖)      ˜ for one free 𝑖,˜ whose values in the two              ing independence. Then, from 𝐻𝑝′ , by (Step 1) adding a free copy of
+solutions differ by at most 𝜂. Call such a parameter the difference                   𝑖 1 called 𝑖˜1 with 𝑢 (𝑖˜1 ) = 0, (Step 2) removing 𝑖 2, . . . , 𝑖 6 one-by-one,
+parameter.                                                                            and (Step 3) converting 𝑖˜1 to a regular 𝑖 1 , we obtain a sequence of
+    For each 𝑖 = 1, . . . , 𝐿, we will outline a procedure that, given that           maximal independent sets where a consecutive pair of independent
+the prefixes (𝐻 1, . . . , 𝐻𝑝−1 ) and (𝐻 1′, . . . , 𝐻𝑝−1
+                                                      ′ ) are identical, mod-         sets differ by at most one facility. Figure 1 illustrates this process.
+ifies the suffixes (𝐻𝑝 , . . . , 𝐻𝐿 ) and (𝐻𝑝 , . . . , 𝐻𝐿′ ) such that 𝐻𝑝 and
+                                                ′                                           For each intermediate 𝐻𝑝′ , we consider its completion
+𝐻𝑝′ become identical while satisfying the above invariants, unless                    (i.e., CompleteSolution (𝑓 ,𝑢) (𝐻 1′, . . . , 𝐻𝑝′ )) and see how many reg-
+we already find a solution that opens exactly 𝑘 regular facilities.                   ular facilities it opens. Since the completions from the initial 𝐻𝑝′
+This will allow us to gradually merge the solution until one of them                  and 𝐻𝑝 sandwich 𝑘, there must be a consecutive pair in the above
+opens exactly 𝑘 regular facilities (and at most 𝑂 (𝐿) free facilities).               sequence of independent sets (say 𝐻𝑝𝑎 and 𝐻𝑝𝑏 ) that sandwich 𝑘,
+                                                                                      and they differ by only one facility 𝑖𝑞 (say 𝐻𝑝𝑎 contains 𝑖𝑞 while 𝐻𝑝𝑏
+   How to walk in each phase. Finally, we focus on phase 𝑝 and
+introduce ideas behind ensuring 𝐻𝑝 = 𝐻𝑝′ . Our first step is to                       does not). For future execution of the algorithm, 𝐻𝑝𝑎 and 𝐻𝑝𝑏 are
+change the difference parameter value of H ′ to that of H ; formally,                 the same as the solutions that have the free copy 𝑖˜𝑞 (instead of 𝑖𝑞 )
+we let H ′′ = CompleteSolution (𝑓 ,𝑢) (𝐻 1′, . . . , 𝐻𝑝′ ), which is the              with the 𝑢 (𝑖˜𝑞 ) value 0 (for 𝐻𝑝𝑎 ) and ∞ (or sufficiently large number,
+solution resulting from running LogAdaptiveAlgorithm from a                           for 𝐻𝑝𝑏 ). Therefore, by performing binary search on the 𝑢 (𝑖˜𝑞 ), just
+given partial solution (𝐻 1′, . . . , 𝐻𝑝′ ) with parameters (𝑓 , 𝑢) instead
+A (2 + 𝜀) -Approximation Algorithm for Metric k-Median                                                                                            STOC ’25, June 23–27, 2025, Prague, Czechia
+
+
+                           𝑖2                                𝑖2                                 𝑖2                              𝑖2                                 𝑖2
+
+                 𝑖3                  𝑖6            𝑖3                   𝑖6            𝑖3                   𝑖6         𝑖3                   𝑖6            𝑖3                  𝑖6
+                           𝑖1                                𝑖˜1                                𝑖˜1             ...             𝑖˜1                                𝑖1
+                                          Step 1                             Step 2                                                             Step 3
+
+                      𝑖4        𝑖5                      𝑖4         𝑖5                      𝑖4         𝑖5                   𝑖4         𝑖5                      𝑖4        𝑖5
+
+Figure 1: How we walk from 𝐻𝑝′ to 𝐻𝑝 . Dark grey color denotes a free facility and light grey color denotes regular open facilities.
+
+
+like we do on the facility cost 𝑓 , we yield two solutions that are                                   none with sufficient cost improvement can be found, upon which
+now identical up to phase 𝑝 except the 𝜂 difference on the only one                                   we say that the found solution is locally optimal. The running time
+different parameter 𝑢 (𝑖˜𝑞 ), which archives our goal of merging two                                  for executing such a swap is polynomial. In the following, we will
+solutions at phase 𝑝!                                                                                 ignore dependencies on the (1 + 𝜀) factor controlling the rate of
+   In general, the fact that 𝐻𝑝 and 𝐻𝑝′ are not just sets but sequences                               improvement.
+of opened facilities requires more technical consideration. However,                                     We first introduce a bit of notation. Suppose we are given a locally
+the full procedure is still an extension of this idea, trying to increase                             optimal solution 𝑆. We say that a cluster 𝐶 ∗ of the optimal solution
+the length of the common prefix between 𝐻𝑝 and 𝐻𝑝′ by walking                                         OPT is pure with respect to 𝑆, if there exists a cluster 𝐶 ′ induced by
+from 𝐻𝑝′ to 𝐻𝑝 by one coordinate at a time, until two consecutive                                     𝑆 such that both clusters agree on all but 𝑂 (𝜀) · min(|𝐶 ∗ |, |𝐶 ′ |) of
+solutions are sandwiching 𝑘.                                                                          the points. We begin by examining structural properties for 𝛽-stable
+                                                                                                      solutions.
+3.2     (2 + 𝜀)-Approximation for 𝑂 𝜀 ( log1 𝑛 )-Stable                                                     • For any given constant-factor approximation 𝑆, at most
+        Instances                                                                                             𝑂 𝜀 (𝛽 −1 ) many clusters are not pure.
+                                                                                                            • In any locally optimal solution 𝑆, we have
+The other component of our algorithm is an improved approxima-                                                  ∑︁                       ∑︁
+tion to 𝑘-median assuming that the instance has a weak version                                                            𝑑 (𝑝, 𝑆) ≤             𝑑 (𝑝, OPT) + 𝑂 (𝜀) · opt,
+of a structural property known as stability, initially formulated by                                        𝑝 ∈𝐶 ∗ , 𝐶 ∗ pure              𝑝 ∈𝐶 ∗ , 𝐶 ∗ pure
+[47]. Recall that an instance is 𝛽-stable if opt𝑘−1 ≥ (1 + 𝛽)opt𝑘 .
+                                                                                                                that is the cost of the clients in pure clusters is well approxi-
+For any 𝛽-stable instance, [6, 26] showed how to obtain a PTAS for
+                         −1 −𝑂 (1)                                                                              mated.
+the problem in time 𝑛 𝛽 𝜀          and [6] left as an open question as
+                                                                                                      The first property relies on the fact that for every non-pure cluster,
+whether one could obtain a PTAS with running time 𝑓 (𝛽, 𝜀)𝑛𝑂𝜀 (1)
+                                                                                                      𝑆 must merge at least two clusters of the optimum. If 𝑆 is a constant-
+for any computable function 𝑓 for general metrics (they show it is
+                                                                                                      factor approximation, this cannot happen more than 𝑂 𝜀 (𝛽 −1 ) many
+possible for Euclidean metrics). We would indeed like to have an
+                                                                                                      times before the approximation guarantee no longer holds. The
+algorithm running in time 2poly(𝛽,𝜀) 𝑛𝑂𝜀 (1) to solve our (𝜀/log 𝑛)-
+                                                                                                      second property is implied by the local optimality of 𝑆. Specifically,
+stable instances.
+                                                                                                      swapping out the center 𝑐 ′ ∈ 𝑆 serving 𝐶 ′ for the center 𝑐 ∗ of
+   Unfortunately, since any 𝑘-median instance is Ω(1/𝑘)-stable,
+                                                                                                      the pure cluster 𝐶 ∗ cannot change the cost by much as these two
+obtaining a PTAS with the above running time would violate Gap-
+                                                                                                      clusters agree on most of their points.
+ETH [24]: The 𝑘-median problem cannot be approximated better
+                                                                                                          In a nutshell, a locally optimal solution 𝑆 approximates all but
+than 1 + 2/𝑒 in time 𝑓 (𝑘, 𝜀)𝑛𝑂𝜀 (1) assuming Gap-ETH.
+                                                                                                      𝑂 𝜀 (𝛽 −1 ) many clusters of the optimal solution very well. In what fol-
+   The saving grace here is that we are not after a (1+𝜀)-approximation
+                                                                                                      lows, we will describe how we may extend 𝑆 to a (2+𝜀)-approximation
+algorithm but we can use any 2-approximation with the above run-
+                                                                                                      overall.
+ning time. Since a connection between 𝛽-stable and FPT algorithm
+exists (as explained in the above discussion), it is tempting to make                                 3.2.2 Identifying the Non-Pure Clusters. To find a good approxi-
+the journey from FPT algorithms back to 𝛽-stable instances and                                        mation for the non-pure clusters, we would like to identify these
+use the state-of-the-art approximation algorithm of [24] to solve 𝛽-                                  clusters. With the discussion of the last section, we may assume that
+stable instances. Unfortunately the algorithm presented in [24] runs                                  we have a locally optimal solution 𝑆 for which all but 𝑂 𝜀 (𝛽 −1 ) =
+in time (log 𝑛)𝑂 (𝑘/𝜀) 𝑛𝑂 (1) and so importing the techniques directly
+                ˜
+                                                                                                      𝑂 𝜀 (log 𝑛) many clusters are well approximated. Immediate ideas,
+                                                             −1
+would result in a running time of the form (log 𝑛)𝑂 ( (𝛽/𝜀) ) 𝑛𝑂 (1)
+                                                        ˜                                             such as determining the badly approximated clusters by brute force,
+and not to a polynomial running time for our setting. We must                                         will not improve over the quasi-polynomial running time. Instead,
+thus go beyond the state-of-the-art techniques for FPT and 𝛽-stable                                   we look towards fixed parameter tractable (FPT) approaches, pa-
+𝑘-median instances.                                                                                   rameterized by the number of centers. In fact, we would like an FPT
+                                                                                                      approximation algorithm parameterized by the number of non-pure
+3.2.1 Local Optima and Stability. One particularly important tool                                     clusters. Starting point is an FPT algorithm based on submodular
+when dealing with stable solutions are properties of local optima.                                    maximization, initially due to [24], which we first review. However,
+                                                                                                                                                                    −1
+A solution 𝑆 is (1 + 𝜀)-locally optimal if cost(𝑆 ′ ) · (1 + 𝜀) ≥ cost(𝑆)                             recall that the running time of this algorithm is (log 𝑘)𝑂 (𝑘𝜀 ) and
+                                                                                                                                                                 ˜
+
+for any solution 𝑆 ′ with |𝑆△𝑆 ′ | ≤ 2, i.e., that 𝑆 and 𝑆 ′ differ by one                            so will not be enough for our purpose. We thus introduce new ideas
+center. Local search enumerates over all swaps, terminating when                                      to speed things up.
+STOC ’25, June 23–27, 2025, Prague, Czechia                           Vincent Cohen-Addad, Fabrizio Grandoni, Euiwoong Lee, Chris Schwiegelshohn, and Ola Svensson
+
+
+   Review of the FPT approximation algorithm of [24]. Suppose 𝑐 ∗ is               probability 𝜀𝑂 (1) /log 𝑛, we are picking a point from a non-pure,
+a center of cluster 𝐶 ∗ in an optimal solution OPT. [24] introduce the             non-basic cheap cluster and moreover, conditioned on picking a
+notion of a leader client ℓ ∈ 𝐶 ∗ which minimizes the distance to 𝑐 ∗ .            point from a non-pure, non-basic cheap cluster, with probability at
+Using coresets to first reduce the number of clients to 𝑂˜ (𝑘 log 𝑛/𝜀 2 ),         least 𝜀𝑂 (1) , the picked point will be a leader. Thus, when picking
+the leaders of all clusters, as well as the distances 𝑑 (ℓ, 𝑐 ∗ ) can be           𝑂 𝜀 (log 𝑛) samples, we have picked a leader from all but a small
+                                                 −1
+identified in FPT-time, i.e. in time (log 𝑛)𝑂 (𝑘𝜀 ) · 𝑛𝑂 (1) . A solution
+                                              ˜
+                                                                                   fraction of non-pure, non-basic cheap clusters. Thereafter, we can
+𝑆 obtained by simply selecting an arbitrary facility within distance               show that with good probability the contribution of the unpicked
+𝑑 (ℓ, 𝑐 ∗ ) from ℓ yields a 3-approximation. [24] improve upon this by             clusters to the total cost in 𝑆 is very small. Since we have sampled
+showing that for any two candidate sets of centers 𝑆 ′ and Λ                       𝑂 𝜀 (log 𝑛) clients, we can enumerate all the subsets in polynomial
+                                                                                   time and focus on a subset that contains all the leaders of the non-
+                           cost(𝐷, Λ) − cost(𝐷, Λ ∪ 𝑆 ′ )
+                                                                                   basic cheap, non-pure clusters.
+is a monotone submodular function.                                                     Using a constant number of potential guesses per leader, we then
+   The first part which consists in guessing the leaders is the com-               show how to get a sufficiently good approximation of the distance
+putational bottleneck since optimizing a monotone submodular                       𝜌 from each leader to its closest optimum center. Specifically, the
+function can be done in polynomial time.                                           cost of the leader in solution 𝑆 is a rough approximation, so we can
+   We next describe how we deal with the clusters that are not well                interpolate around it.
+approximated. Recall that we first compute a locally optimal solu-                     Existence of a Good Solution. We now use 𝑊 from last section to
+tion 𝑆. By the properties of local optima, 𝑆 is already a sufficiently              identify a modified solution from 𝑆 that is (2 + 𝑂 (𝜀))-approximate.
+good solution for the pure clusters. For the remaining 𝑂 𝜀 (log 𝑛)                        ˆ denote the set of centers of non-pure, non-basic cheap clus-
+                                                                                    Let 𝑂𝑃𝑇
+non-pure clusters, we only have coarser approximation bounds.                       ters that have a leader in𝑊 . The cost of all the other clusters, i.e., the
+    Leader Identification in Polynomial Time via 𝐷 2 -Sampling. Our                 non-pure, non-basic cheap clusters that do not have a leader in 𝑊 is
+next high-level goal is to find leaders of the non-pure clusters                    nearly optimal. We thus wish to add to 𝑆 the optimal centers of OPT      ˆ
+and guess their (approximate) distances to the respective optimum                   and remove an equally sized set 𝑆 0 ⊆ 𝑆. An important constraint
+centers in time 2𝛽 𝜀
+                      −1 −𝑂 (1) 𝑂 (1)
+                               𝑛      for 𝛽-stable instances.                       on 𝑆 0 is that it contains no center 𝑐 such that 𝑐 = argmin 𝑑 (𝑐 ∗, 𝑐 ′ )
+                                       𝑘 log 𝑛                                                                                                 𝑐 ′ ∈𝑆
+    [24] identify leaders in time 𝑘              by sparsifying the instance       for any center 𝑐 ∗ ∈ OPT − OPT.    ˆ Intuitively, we do not wish to
+via coresets and then determining the distance of leaders to the                   remove any centers that are serving the majority of points from a
+optimal solution in time (log 𝑛)𝑘 . Our overall approach significantly             pure cluster, or centers that are used to serve basic cheap clusters.
+speeds up these two steps by way of distance sampling similar to                   We show that such an 𝑆 0 exists such that 𝑀𝑂 := 𝑆 − 𝑆 0 ∪ OPT   ˆ is
+𝑘-means++ [4].                                                                     a (2 + 𝜀)-approximation: If a cluster of OPT is pure, basic cheap,
+    To identify the leaders faster, we lift the stringent requirement              or does have a leader in 𝑊 , there is one center in 𝑆 serving their
+that the leader of cluster 𝐶 ∗ is the client closest to the center 𝑐 ∗ in          clients up to a 2 + 𝜀 factor; for the remaining, we would have their
+the optimal solution. Instead, we consider any client among the                    optimum center (in OPT).ˆ
+𝜀 · |𝐶 ∗ | closest points to 𝑐 ∗ as a valid leader with avg𝐶 ∗ ,OPT being             So our goal from now on is to approximate the solution 𝑀𝑂 ,
+the maximum distance of any leader of 𝐶 ∗ to 𝑐 ∗ . We later show that              where |𝑆 0 | = OPTˆ = 𝑂 𝜀 (log 𝑛), and this final goal has two key
+this only induces a minor cost increase in the total approximation                 components: (1) removing some existing centers from 𝑆 and (2)
+bound.                                                                             adding the centers from OPT.  ˆ The issue is that stated as such this
+    The second relaxation is that we only aim to target clusters that              seems as hard as solving the 𝑘-median problem. We first address
+are sufficiently expensive in our locally stable solution 𝑆. More                  (1), and we will address (2) by making use of the leaders we have
+precisely, a non-pure cluster 𝐶 ∗ with center 𝑐 ∗ is basic cheap if the            correctly guessed for the centers in OPT ˆ at the previous steps.
+                                                                   𝑂 (1)
+total cost of its leaders in 𝑆 is at most 𝜀𝑂 (1) · 𝛽 · opt = 𝜀log 𝑛 · opt or
+                                                                                       Center Removal. Let us first try to address (1). Remember we
+𝑑 (𝑐 ∗, 𝑆) ≤ (1 + 𝜀)avg𝐶 ∗ ,OPT + |𝐶𝜀∗ | · 𝑝 ∈𝐶 ∗ (𝑑 (𝑝, 𝑐 ∗ ) +𝑑 (𝑝, 𝑆)). Then
+                                           Í
+                                                                                    start with solution 𝑆, and the leader and radii guesses from the
+we can show that 𝑆 is already an almost 2-approximation for these                   previous steps. The key issue with (1) is that the clients in some of
+clusters modulo some additive slacks, namely                                        the clusters we would like to remove (i.e., served by 𝑆 0 in solution 𝑆)
+           ∑︁                                ∑︁
+                      𝑑 (𝑝, 𝑆) ≤ 2                        𝑑 (𝑝, OPT)+𝑂 (𝜀·opt).                                          ˆ but we do not know which
+                                                                                    are actually served by a center in OPT,
+𝑝 ∈𝐶 ∗ , 𝐶 ∗ basic cheap              𝑝 ∈𝐶 ∗ , 𝐶 ∗ basic cheap                      are these centers yet! We will thus make use of some approximate
+                                                                                    loose bound on their cost in solution 𝑆 − 𝑆 0 ∪ OPTˆ by introducing
+. It follows from triangle inequality 𝑑 (𝑝, 𝑆) ≤ 𝑑 (𝑝, 𝑐 ∗ ) + 𝑑 (𝑐 ∗, 𝑆) for
+                                                                                    dummy centers Λ. For each leader ℓ and guessed distance/radii
+any 𝑝; if 𝐶 ∗ is basic cheap via the second condition above, it gives a
+                                                                                    𝜌, we will introduce a dummy center at distance 𝜌 from ℓ and at
+direct upper bound on 𝑑 (𝑐 ∗, 𝑆), and if it is basic cheap via the first
+                                                                                    distance 𝑑 (𝑝, ℓ) + 𝜌 from any other vertex 𝑝.
+condition, we use the fact that the number of basic cheap clusters
+                                                      log 𝑛                            If we promise to open a center in the ball of radii 𝜌 around ℓ –
+(which is less than the number of non-pure) is 𝜀𝑂 (1) so the sum of                 which solution 𝑆 − 𝑆 0 ∪ OPTˆ does – then we will guarantee that
+their costs in 𝑆 is 𝑂 (𝜀 · opt). This essentially allows us to focus only           there will be a center not further away than the dummy centers
+on non-pure and non-basic-cheap clusters.                                           in the final solution. We now work with this solution 𝑆 ∪ Λ which
+    We use these two relaxations as follows. Let 𝑊 be a sample of                   provides a worst-case fall back on where the centers in OPT    ˆ could
+                                                             𝑑 (𝑝,𝑆)
+clients picked independently and proportionately to cost(𝑆) . With                  be. We can show that 𝑀𝐷 := 𝑆 ∪ Λ − 𝑆 0 is a 3-approximate solution.
+A (2 + 𝜀) -Approximation Algorithm for Metric k-Median                                                                STOC ’25, June 23–27, 2025, Prague, Czechia
+
+
+     Equipped with this we proceed to our 3-step center removal.              under a partition matroid constraint. In particular, we carefully
+We know that we have at most |𝑆 0 | = 𝑂 𝜀 (log 𝑛) centers we need             define our submodular function so that its value, for a given subset
+to remove. Our first procedure aims at removing the centers of                𝑋 of centers, is calculated by optimally selecting the set R
+                                                                                                                                         e to close
+clusters of high cost in 𝑆 0 . Start with solution 𝑆 ∪ Λ. For 𝑂 𝜀 (log 𝑛)     (for the choice 𝑋 ). Then we can use state-of-the-art algorithms to
+times, we sample a center 𝑐 ∈ 𝑆 proportionally to the cost of its             optimize this and simultaneously approximate the centers OPT   ˆ to
+cluster in solution 𝑆 ∪ Λ, remove 𝑐 from 𝑆 with probability 1/2, and          open and the set R to close.
+repeat on the resulting solution. Let Q be the centers removed from
+𝑆. Then with probability at least 2−𝑂𝜀 (log 𝑛) the procedure succeeds
+by either obtaining Q = 𝑆 0 or ensuring that the total cost of the            ACKNOWLEDGMENTS
+clusters of 𝑆 0 − Q in the solution is at most 𝑂 (𝜀 · opt). This indeed       Fabrizio Grandoni is supported in part by the SNF Grant 200021_200731
+follows from the fact that, if we only removed centers Q ⊆ 𝑆 0                / 1. Euiwoong Lee is supported in part by NSF 2236669. Chris
+up to a certain step, the solution is never more than a (3 + 𝑂 (𝜀))-          Schwiegelshohn is Supported in part by the Independent Research
+approximation (since 𝑆 ∪ Λ − 𝑆 0 is a (3 + 𝑂 (𝜀))-approximation) and          Fund Denmark (DFF) under grant No 1051-00106B. Ola Svensson is
+so the probability of sampling a new center of 𝑆 0 − Q is Ω(𝜀), unless        supported in part by the Swiss State Secretariat for Education, Re-
+the total cost of the clusters of 𝑆 0 − Q is small. Therefore, repeating      search and Innovation (SERI) under contract number MB22.00054.
+the process 𝑛𝑂𝜀 (1) times, we have that one of the runs succeeds
+with high probability.                                                        REFERENCES
+     Thus, after this step, we have removed a set Q of centers of 𝑆 0          [1] Sara Ahmadian, Ashkan Norouzi-Fard, Ola Svensson, and Justin Ward. 2020. Bet-
+and the total cost of the clusters of 𝑆 0 −Q is 𝑂 (𝜀 ·opt). Following this         ter Guarantees for k-Means and Euclidean k-Median by Primal-Dual Algorithms.
+procedure, we only have to remove inexpensive clusters. While here                 SIAM J. Comput. 49, 4 (2020). https://doi.org/10.1137/18M1171321
+                                                                               [2] Aaron Archer, Ranjithkumar Rajagopalan, and David B. Shmoys. 2003. Lagrangian
+it is not possible to identify the correct ones, making a mistake is not           Relaxation for the k-Median Problem: New Insights and Continuity Properties.
+too costly. For any 𝑐 ∈ 𝑆 0 − Q, we can now think of its whole cluster             In Algorithms - ESA 2003, 11th Annual European Symposium, Budapest, Hungary,
+as being assigned entirely to a unique center in 𝑆 − 𝑆 0 ∪ OPT    ˆ since          September 16-19, 2003, Proceedings (Lecture Notes in Computer Science, Vol. 2832),
+                                                                                   Giuseppe Di Battista and Uri Zwick (Eds.). Springer, 31–42. https://doi.org/10.
+by triangle inequality this would only increase its cost by 𝑂 (𝜀 · opt)            1007/978-3-540-39658-1_6
+in total. We can thus think of the remaining centers 𝑆 0 − Q as either         [3] Sanjeev Arora, Prabhakar Raghavan, and Satish Rao. 1998. Approximation
+                       ˆ (we call this set R), or to a center in 𝑆 −𝑆 0 (we        Schemes for Euclidean k-Medians and Related Problems. In Proceedings of the
+being assigned to OPT                                                              Thirtieth Annual ACM Symposium on the Theory of Computing, Dallas, Texas, USA,
+call this set U). Suppose we know how many centers fall into these                 May 23-26, 1998. 106–113. https://doi.org/10.1145/276698.276718
+two types, a figure we determine by trying all possibilities. The              [4] David Arthur and Sergei Vassilvitskii. 2007. k-means++: the advantages of
+                                                                                   careful seeding. In Proceedings of the Eighteenth Annual ACM-SIAM Symposium
+next step would be ideally to remove U. We instead remove a proxy                  on Discrete Algorithms, SODA 2007, New Orleans, Louisiana, USA, January 7-9,
+Ue of U, | U|e = |U|. A natural starting point to find a center for                2007. 1027–1035. http://dl.acm.org/citation.cfm?id=1283383.1283494
+                                                                               [5] Vijay Arya, Naveen Garg, Rohit Khandekar, Adam Meyerson, Kamesh Munagala,
+reassignment is to do so by greedily removing the center 𝑐 for which               and Vinayaka Pandit. 2004. Local Search Heuristics for k-Median and Facility
+the reassignment cost is minimized. However, we must be careful.                   Location Problems. SIAM J. Comput. 33, 3 (2004), 544–562. https://doi.org/10.
+First, the reassignment costs are dynamic, that is when removing a                 1137/S0097539702416402
+                                                                               [6] Pranjal Awasthi, Avrim Blum, and Or Sheffet. 2010. Stability Yields a PTAS for k-
+center, it affects reassignment costs of subsequently removed ones.                Median and k-Means Clustering. In 51th Annual IEEE Symposium on Foundations
+Second, if a center 𝑐 was used to bound the reassigment cost of                    of Computer Science, FOCS 2010, October 23-26, 2010, Las Vegas, Nevada, USA.
+                                                                                   309–318. https://doi.org/10.1109/FOCS.2010.36
+an deleted center, we cannot delete it later in order to prevent the           [7] Pranjal Awasthi, Moses Charikar, Ravishankar Krishnaswamy, and Ali Kemal
+error from adding up. We design a procedure that produces a U             e        Sinop. 2015. The Hardness of Approximation of Euclidean k-Means. In 31st
+                                                                                   International Symposium on Computational Geometry, SoCG 2015, June 22-25,
+satisfying all these constraints. We remark that U      e ∩ R = ∅, hence
+                                                                                   2015, Eindhoven, The Netherlands (LIPIcs, Vol. 34), Lars Arge and János Pach
+removing R is still a valid option in the later stages.                            (Eds.). Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 754–767. https:
+     Thus, for the purpose of analysis (the algorithm does not know                //doi.org/10.4230/LIPICS.SOCG.2015.754
+                                                        e ∪ R) ∪ Λ and         [8] Yair Bartal. 1996. Probabilistic Approximations of Metric Spaces and Its Algorith-
+R), we obtain the solutions 𝑀𝐷′ = 𝑆 − (Q ∪ U                                       mic Applications. In 37th Annual Symposium on Foundations of Computer Science,
+    ′
+𝑀𝑂 = 𝑆 −(Q ∪ U    e∪R)∪ OPT. ˆ Moreover, the costs satisfy cost(𝑀 ′ )+             FOCS ’96, Burlington, Vermont, USA, 14-16 October, 1996. IEEE Computer Society,
+                                                                       𝑂           184–193. https://doi.org/10.1109/SFCS.1996.548477
+         ′
+cost(𝑀𝐷 ) ≤ (4 + 𝜀)OPT, which is the same as summed up costs of                [9] Yair Bartal. 1998. On Approximating Arbitrary Metrices by Tree Metrics. In
+𝑀𝑂 and 𝑀𝐷 .                                                                        Proceedings of the Thirtieth Annual ACM Symposium on the Theory of Computing,
+                                                                                   Dallas, Texas, USA, May 23-26, 1998, Jeffrey Scott Vitter (Ed.). ACM, 161–168.
+                                                                                   https://doi.org/10.1145/276698.276725
+   Improvement via Submodular Maximization. We can now use                    [10] Jaroslaw Byrka and Karen Aardal. 2010. An Optimal Bifactor Approximation
+submodular maximization techniques (specifically algorithms to                     Algorithm for the Metric Uncapacitated Facility Location Problem. SIAM J.
+                                                                                   Comput. 39, 6 (2010), 2212–2231. https://doi.org/10.1137/070708901
+maximize a submodular function over a partition matroid con-                  [11] Jaroslaw Byrka, Thomas W. Pensyl, Bartosz Rybicki, Aravind Srinivasan, and
+straint) in a similar but more general setting as in the work of [24].             Khoa Trinh. 2017. An Improved Approximation for k-Median and Positive
+                                                                                   Correlation in Budgeted Optimization. ACM Trans. Algorithms 13, 2 (2017),
+In more detail, we wish to find the best | OPT|
+                                              ˆ centers 𝑋 to open
+                                                                                   23:1–23:31. https://doi.org/10.1145/2981561
+(instead of the dummy centers Λ), one at the prescribed distance              [12] Moses Charikar, Chandra Chekuri, Ashish Goel, and Sudipto Guha. 1998. Round-
+from each leader, to improve the cost of 𝑀𝐷′ as much as possible.                  ing via Trees: Deterministic Approximation Algorithms for Group Steiner Trees
+                                                                                   and k-Median. In Proceedings of the Thirtieth Annual ACM Symposium on the
+This is almost identical to the work of [24] except that we also need              Theory of Computing, Dallas, Texas, USA, May 23-26, 1998, Jeffrey Scott Vitter
+to close |R| other centers R e in 𝑆 − Q − U.
+                                           e Ideally, we would like                (Ed.). ACM, 114–123. https://doi.org/10.1145/276698.276719
+            ˆ and close R. We show that selecting a good enough               [13] Moses Charikar and Sudipto Guha. 2005. Improved Combinatorial Algorithms
+to open OPT                                                                        for Facility Location Problems. SIAM J. Comput. 34, 4 (2005), 803–824. https:
+pair (𝑋, R)
+          e can be reduced to a submodular maximization problem                    //doi.org/10.1137/S0097539701398594
+STOC ’25, June 23–27, 2025, Prague, Czechia                                     Vincent Cohen-Addad, Fabrizio Grandoni, Euiwoong Lee, Chris Schwiegelshohn, and Ola Svensson
+
+
+[14] Moses Charikar, Sudipto Guha, Éva Tardos, and David B. Shmoys. 1999. A                        In Proceedings of the 2023 ACM-SIAM Symposium on Discrete Algorithms, SODA
+     Constant-Factor Approximation Algorithm for the k-Median Problem (Extended                    2023, Florence, Italy, January 22-25, 2023, Nikhil Bansal and Viswanath Nagarajan
+     Abstract). In Proceedings of the Thirty-First Annual ACM Symposium on Theory of               (Eds.). SIAM, 987–1011. https://doi.org/10.1137/1.9781611977554.CH38
+     Computing, May 1-4, 1999, Atlanta, Georgia, USA, Jeffrey Scott Vitter, Lawrence L.       [30] Fabrizio Grandoni, Rafail Ostrovsky, Yuval Rabani, Leonard J. Schulman, and
+     Larmore, and Frank Thomson Leighton (Eds.). ACM, 1–10. https://doi.org/10.                    Rakesh Venkat. 2022. A refined approximation for Euclidean k-means. Inf. Process.
+     1145/301250.301257                                                                            Lett. 176 (2022), 106251. https://doi.org/10.1016/J.IPL.2022.106251
+[15] Moses Charikar, Sudipto Guha, Éva Tardos, and David B. Shmoys. 2002. A                   [31] Sudipto Guha and Samir Khuller. 1999. Greedy Strikes Back: Improved Facility
+     Constant-Factor Approximation Algorithm for the k-Median Problem. J. Comput.                  Location Algorithms. J. Algorithms 31, 1 (1999), 228–248. https://doi.org/10.
+     Syst. Sci. 65, 1 (2002), 129–149.                                                             1006/jagm.1998.0993
+[16] Moses Charikar and Shi Li. 2012. A Dependent LP-Rounding Approach for the k-             [32] Anupam Gupta and Kanat Tangwongsan. 2008. Simpler Analyses of Local Search
+     Median Problem. In Automata, Languages, and Programming - 39th International                  Algorithms for Facility Location. CoRR abs/0809.2554 (2008). arXiv:0809.2554
+     Colloquium, ICALP 2012, Warwick, UK, July 9-13, 2012, Proceedings, Part I (Lecture            http://arxiv.org/abs/0809.2554
+     Notes in Computer Science, Vol. 7391), Artur Czumaj, Kurt Mehlhorn, Andrew M.            [33] Venkatesan Guruswami and Piotr Indyk. 2003.                 Embeddings and non-
+     Pitts, and Roger Wattenhofer (Eds.). Springer, 194–205. https://doi.org/10.1007/              approximability of geometric problems. In Proceedings of the Fourteenth Annual
+     978-3-642-31594-7_17                                                                          ACM-SIAM Symposium on Discrete Algorithms, January 12-14, 2003, Baltimore,
+[17] Fabián A. Chudak and David B. Shmoys. 2003. Improved Approximation Algo-                      Maryland, USA. 537–538. http://dl.acm.org/citation.cfm?id=644108.644198
+     rithms for the Uncapacitated Facility Location Problem. SIAM J. Comput. 33, 1            [34] Dorit S. Hochbaum and David B. Shmoys. 1986. A unified approach to ap-
+     (2003), 1–25. https://doi.org/10.1137/S0097539703405754                                       proximation algorithms for bottleneck problems. J. ACM 33, 3 (1986), 533–550.
+[18] Vincent Cohen-Addad, Karthik C. S., and Euiwoong Lee. 2021. On Approximabil-                  https://doi.org/10.1145/5925.5933
+     ity of Clustering Problems Without Candidate Centers. In Proceedings of the 2021         [35] Kamal Jain, Mohammad Mahdian, Evangelos Markakis, Amin Saberi, and Vijay V.
+     ACM-SIAM Symposium on Discrete Algorithms (SODA). SIAM, 2635–2648.                            Vazirani. 2003. Greedy facility location algorithms analyzed using dual fitting
+[19] Vincent Cohen-Addad, Hossein Esfandiari, Vahab S. Mirrokni, and Shyam                         with factor-revealing LP. J. ACM 50, 6 (2003), 795–824. https://doi.org/10.1145/
+     Narayanan. 2022. Improved approximations for Euclidean k-means and k-median,                  950620.950621
+     via nested quasi-independent sets. In STOC ’22: 54th Annual ACM SIGACT Sympo-            [36] Kamal Jain, Mohammad Mahdian, and Amin Saberi. 2002. A new greedy approach
+     sium on Theory of Computing, Rome, Italy, June 20 - 24, 2022, Stefano Leonardi and            for facility location problems. In Proceedings on 34th Annual ACM Symposium
+     Anupam Gupta (Eds.). ACM, 1621–1628. https://doi.org/10.1145/3519935.3520011                  on Theory of Computing, May 19-21, 2002, Montréal, Québec, Canada. 731–740.
+[20] Vincent Cohen-Addad, Andreas Emil Feldmann, and David Saulpic. 2019. Near-                    https://doi.org/10.1145/509907.510012
+     Linear Time Approximations Schemes for Clustering in Doubling Metrics. In                [37] K. Jain and V. Vazirani. 2001. Approximation algorithms for metric facility
+     60th IEEE Annual Symposium on Foundations of Computer Science, FOCS 2019,                     location and k-Median problems using the primal-dual schema and Lagrangian
+     Baltimore, Maryland, USA, November 9-12, 2019, David Zuckerman (Ed.). IEEE                    relaxation. J. ACM 48, 2 (2001), 274–296. https://doi.org/10.1145/375827.375845
+     Computer Society, 540–559. https://doi.org/10.1109/FOCS.2019.00041                       [38] Tapas Kanungo, David M. Mount, Nathan S. Netanyahu, Christine D. Piatko, Ruth
+[21] Vincent Cohen-Addad, Fabrizio Grandoni, Euiwoong Lee, and Chris                               Silverman, and Angela Y. Wu. 2004. A local search approximation algorithm for
+     Schwiegelshohn. 2023. Breaching the 2 LMP Approximation Barrier for                           k-means clustering. Comput. Geom. 28, 2-3 (2004), 89–112. https://doi.org/10.
+     Facility Location with Applications to k-Median. In Proceedings of the 2023                   1016/j.comgeo.2004.03.003
+     ACM-SIAM Symposium on Discrete Algorithms, SODA 2023, Florence, Italy,                   [39] Madhukar R. Korupolu, C. Greg Plaxton, and Rajmohan Rajaraman. 2000. Analy-
+     January 22-25, 2023, Nikhil Bansal and Viswanath Nagarajan (Eds.). SIAM,                      sis of a Local Search Heuristic for Facility Location Problems. J. Algorithms 37, 1
+     940–986. https://doi.org/10.1137/1.9781611977554.CH37                                         (2000), 146–188. https://doi.org/10.1006/jagm.2000.1100
+[22] Vincent Cohen-Addad, Fabrizio Grandoni, Euiwoong Lee, Chris Schwiegelshohn,              [40] Amit Kumar, Yogish Sabharwal, and Sandeep Sen. 2010. Linear-time approxima-
+     and Ola Svensson. 2025. A (2+𝜀) -Approximation Algorithm for Metric 𝑘 -Median.                tion schemes for clustering problems in any dimensions. J. ACM 57, 2 (2010),
+     arXiv:2503.10972 [cs.DS] https://arxiv.org/abs/2503.10972                                     5:1–5:32. https://doi.org/10.1145/1667053.1667054
+[23] Vincent Cohen-Addad, Anupam Gupta, Lunjia Hu, Hoon Oh, and David Saulpic.                [41] Euiwoong Lee, Melanie Schmidt, and John Wright. 2017. Improved and simplified
+     2022. An Improved Local Search Algorithm for k-Median. In Proceedings of the                  inapproximability for k-means. Inf. Process. Lett. 120 (2017), 40–43. https:
+     2022 ACM-SIAM Symposium on Discrete Algorithms, SODA 2022, Virtual Conference                 //doi.org/10.1016/J.IPL.2016.11.009
+     / Alexandria, VA, USA, January 9 - 12, 2022, Joseph (Seffi) Naor and Niv Buchbinder      [42] Shi Li. 2013. A 1.488 approximation algorithm for the uncapacitated facility
+     (Eds.). SIAM, 1556–1612. https://doi.org/10.1137/1.9781611977073.65                           location problem. Inf. Comput. 222 (2013), 45–58. https://doi.org/10.1016/j.ic.
+[24] Vincent Cohen-Addad, Anupam Gupta, Amit Kumar, Euiwoong Lee, and Jason Li.                    2012.01.007
+     2019. Tight FPT Approximations for k-Median and k-Means. In 46th International           [43] Shi Li and Ola Svensson. 2013.            Approximating k-median via pseudo-
+     Colloquium on Automata, Languages, and Programming, ICALP 2019, July 9-12,                    approximation. In Symposium on Theory of Computing Conference, STOC’13, Palo
+     2019, Patras, Greece (LIPIcs, Vol. 132), Christel Baier, Ioannis Chatzigiannakis,             Alto, CA, USA, June 1-4, 2013. 901–910. https://doi.org/10.1145/2488608.2488723
+     Paola Flocchini, and Stefano Leonardi (Eds.). Schloss Dagstuhl - Leibniz-Zentrum         [44] Shi Li and Ola Svensson. 2016.            Approximating k-Median via Pseudo-
+     für Informatik, 42:1–42:14. https://doi.org/10.4230/LIPICS.ICALP.2019.42                      Approximation. SIAM J. Comput. 45, 2 (2016), 530–547. https://doi.org/10.
+[25] Vincent Cohen-Addad and Karthik C. S. 2019. Inapproximability of Clustering in                1137/130938645
+     Lp Metrics. In 60th IEEE Annual Symposium on Foundations of Computer Science,            [45] Mohammad Mahdian, Yinyu Ye, and Jiawei Zhang. 2006. Approximation Al-
+     FOCS 2019, Baltimore, Maryland, USA, November 9-12, 2019, David Zuckerman                     gorithms for Metric Facility Location Problems. SIAM J. Comput. 36, 2 (2006),
+     (Ed.). IEEE Computer Society, 519–539. https://doi.org/10.1109/FOCS.2019.00040                411–432. https://doi.org/10.1137/S0097539703435716
+[26] Vincent Cohen-Addad and Chris Schwiegelshohn. 2017. On the Local Structure               [46] Ramgopal R. Mettu and C. Greg Plaxton. 2003. The Online Median Problem. SIAM
+     of Stable Clustering Instances. In 58th IEEE Annual Symposium on Foundations of               J. Comput. 32, 3 (2003), 816–832. https://doi.org/10.1137/S0097539701383443
+     Computer Science, FOCS 2017, Berkeley, CA, USA, October 15-17, 2017, Chris Umans         [47] Rafail Ostrovsky, Yuval Rabani, Leonard J. Schulman, and Chaitanya Swamy.
+     (Ed.). IEEE Computer Society, 49–60. https://doi.org/10.1109/FOCS.2017.14                     2012. The effectiveness of Lloyd-type methods for the k-means problem. J. ACM
+[27] Zachary Friggstad, Mohsen Rezapour, and Mohammad R. Salavatipour. 2019.                       59, 6 (2012), 28. https://doi.org/10.1145/2395116.2395117
+     Local Search Yields a PTAS for k-Means in Doubling Metrics. SIAM J. Comput.              [48] David B. Shmoys, Éva Tardos, and Karen Aardal. 1997. Approximation Algorithms
+     48, 2 (2019), 452–480. https://doi.org/10.1137/17M1127181                                     for Facility Location Problems (Extended Abstract). In Proceedings of the Twenty-
+[28] Teofilo F. Gonzalez. 1985. Clustering to Minimize the Maximum Intercluster                    Ninth Annual ACM Symposium on the Theory of Computing, El Paso, Texas, USA,
+     Distance. Theor. Comput. Sci. 38 (1985), 293–306. https://doi.org/10.1016/0304-               May 4-6, 1997, Frank Thomson Leighton and Peter W. Shor (Eds.). ACM, 265–274.
+     3975(85)90224-5                                                                               https://doi.org/10.1145/258533.258600
+[29] Kishen N. Gowda, Thomas W. Pensyl, Aravind Srinivasan, and Khoa Trinh. 2023.
+     Improved Bi-point Rounding Algorithms and a Golden Barrier for k-Median.                 Received 2024-11-04; accepted 2025-02-01
+

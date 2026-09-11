@@ -1,0 +1,2054 @@
+                                                Subexponential Approximation of the Permanent
+                                                      in Deterministic Polynomial Time
+
+                                                           Sergei Kudria                        Jason Luo           Mahbod Majid*
+                                                          CUHKSZ                                  MIT                    MIT
+                                                sergeikudria@link.cuhk.edu.cn               luojason@mit.edu        mahbod@mit.edu
+arXiv:2609.10516v1 [cs.DS] 9 Sep 2026
+
+
+
+
+                                                                                        Abstract
+                                               We give the first deterministic polynomial time algorithm that approximates the permanent
+                                           of arbitrary nonnegative rational matrices within a subexponential factor. For a matrix of order
+                                           n, the approximation factor is
+
+                                                                               n(log log n)2
+                                                                                           
+                                                                        exp O                   = exp(o (n)).
+                                                                                   log n
+
+                                           All previously known deterministic polynomial time guarantees for unrestricted inputs had
+                                           approximation factors exp(Ω(n)).
+                                               Our proof uses convex optimization to tighten an upper bound on the permanent. The
+                                           bound is based on weighted sums over all matchings in a bipartite graph representing the
+                                           matrix, and correlations between unmatched vertices control its error. We approximate these
+                                           sums deterministically using correlation decay and a bound on the effect of vertex deletion.
+
+
+
+
+                                        * Supported by the 2026 Apple Scholars in AI/ML PhD fellowship.
+Contents
+1   Introduction                                                                                      1
+
+2 Technical overview                                                                              3
+  2.1 Constructing an upper bound by choosing edge weights . . . . . . . . . . . . . . . . 3
+  2.2 The approximation theorem from two ingredients . . . . . . . . . . . . . . . . . . . . 4
+  2.3 Bounding the approximation error using unmatched rows . . . . . . . . . . . . . . . 6
+  2.4 Counting through correlation decay . . . . . . . . . . . . . . . . . . . . . . . . . . . . 8
+  2.5 Finding the weights by subgradient steps . . . . . . . . . . . . . . . . . . . . . . . . . 11
+
+3   Related work                                                                                     12
+
+4   Preliminaries                                                                                     13
+    4.1 Matchings and their probabilities . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+    4.2 Convex optimality and subgradient steps . . . . . . . . . . . . . . . . . . . . . . . . . 16
+
+5 The permanent approximation algorithm                                                              18
+
+6   Optimizing the matching partition function                                                    21
+    6.1 Removing the constraints by normalization . . . . . . . . . . . . . . . . . . . . . . . . 22
+
+7   Counting matchings under a fixed budget                                                          23
+
+8   Optimization with normalized weights                                                             26
+
+References                                                                                           31
+
+A Numerical details                                                                             34
+  A.1 Directed evaluations and rational endpoints . . . . . . . . . . . . . . . . . . . . . . . 34
+  A.2 Absorbing the box width’s dependence on n . . . . . . . . . . . . . . . . . . . . . . . 35
+
+B Amplification to a relative approximation                                                          35
+
+C The all-ones example                                                                               37
+
+D Reduction to zero-one matrices of degree at most three                                             38
+1      Introduction
+The permanent is one of the basic examples through which we understand the power of randomness
+in approximate counting. For a matrix A ∈ Qn≥×0 n , it is defined by
+                                                        n
+                                     per( A) = ∑ ∏ Ai,π (i) ,
+                                                π ∈ Sn i =1
+
+where Sn is the set of permutations of [n] = {1, . . . , n}. A nonzero entry Aij can be viewed as the
+weight of an edge joining row i to column j. The permanent is then the total weight of perfect
+matchings: ways of assigning every row to a distinct column. For zero-one matrices it counts
+feasible assignments, and for general weights it also normalizes the probability distribution on
+assignments in which each assignment has probability proportional to the product of its edge
+weights.
+    Exact evaluation is #P-complete even for zero-one matrices [Val79b]. In contrast, Jerrum,
+Sinclair, and Vigoda [JSV04] gave a randomized fully polynomial time approximation scheme: a
+relative approximation with running time polynomial in the input length and inverse accuracy. A
+deterministic scheme remains open. Even substantially weaker deterministic guarantees are of
+interest, since they measure progress toward removing randomness from a central approximate
+counting problem.
+    The deterministic problem has seen a sequence of improvements over nearly three decades.
+Beginning in 1998, Linial, Samorodnitsky, and Wigderson [LSW00] used matrix scaling to obtain
+an en approximation. Subsequent work reduced this factor [Gur05, Sam08, GS14]. Anari and
+Rezaei [AR25] reached 2n/2√, and recent preprints of Anari [Ana26] and Narang and Perkins [NP26]
+improve the base below 2. Table 1 summarizes this progression. Despite these improvements,
+the best guarantees for unrestricted inputs remained exponential in n.
+
+Year        Work                                                  Approximation factor
+
+1998        Linial–Samorodnitsky–Wigderson [LSW00]                en
+2005        Gurvits [Gur05]                                       en /nk , any fixed k > 0
+2006        Samorodnitsky [Sam08]                                 exp(n − Ω(n/ log n))
+2014        Gurvits–Samorodnitsky [GS14]                          c0n , c0 ≈ 1.9022
+2018        Anari–Rezaei [AR25]                                   2n/2
+                                                                                          √
+2026        Anari [Ana26] and Narang–Perkins [NP26]               cn , absolute 1 < c <       2
+
+This work   Theorem 1.1                                           exp(o(n))
+
+Table 1: Progress in deterministic polynomial time approximation of the permanent of arbitrary
+nonnegative rational n × n matrices. Factors bound U/L for estimates L ≤ per( A) ≤ U when the
+permanent is positive. Asymptotic bounds are for sufficiently large n. Years indicate first dissemi-
+nation. The 2014 base refines the 2n bound originally stated by Gurvits and Samorodnitsky [GS14],
+as noted by Anari–Rezaei [AR25, Section 1.1, footnote 3]. The polynomial degree in the 2005 row
+may depend on the fixed k.
+
+
+
+
+                                                  1
+   We give the first deterministic polynomial time approximation within a subexponential factor for
+arbitrary nonnegative rational matrices. In particular, our guarantee is exp(o (n)), so it eventually
+improves on every fixed exponential factor cn with c > 1.
+
+Computational model. Each entry of A is given as a nonnegative integer numerator and a positive
+integer denominator, both written in binary. Let S denote the total length of this description. All
+running times count bit operations on a deterministic Turing machine. Thus polynomial time
+means polynomial in the description length. For example, an entry 2−b requires O(b) bits. Rational
+parameters and output endpoints use the same representation. We write bits( x ) for the encoding
+length of a rational number x and poly for a polynomial of absolute degree.
+    With the computational model in place, we can now state our main result. A bipartite matching
+test on the nonzero entries of A detects in polynomial time whether per( A) = 0. In that case we
+return zero. Henceforth we assume per( A) > 0.
+
+Theorem 1.1 (Polynomial time approximation). There is a deterministic algorithm that, given an
+explicitly encoded A ∈ Qn≥×0 n of total bit length S, returns positive rational numbers L, U such that
+
+                                                              U   n(log log n)2 1
+                             L ≤ per( A) ≤ U,           log     ≲              .
+                                                              L       log n
+
+The algorithm uses poly(S) bit operations.
+
+   The error per row, n−1 log(U/L), tends to zero. In particular, it answers a question of Anari
+and Rezaei [AR25, Section 1.1]: the infimum of constants α > 1 for which a polynomial time αn
+approximation is possible is 1.
+   The algorithm gives the following more general tradeoff.
+
+Theorem 1.2 (Approximation versus running time). Let A ∈ Qn≥×0 n be given explicitly with total bit
+length S. The analyst may choose any rational parameters λ ≥ 1 and 0 < η ≤ 1/100. For each such choice,
+a deterministic algorithm returns positive rational numbers L, U satisfying
+
+                                                               U   2n
+                               L ≤ per( A) ≤ U,          log     ≤ √ + 8ηn.                          (1)
+                                                               L    eλ
+Its running time in bit operations is
+                                                                       √          
+                                                            −1                  2 λ
+                     poly(S + n + bits λ + bits η, λ, η          ) exp O   λ log       .             (2)
+                                                                                  η
+
+The polynomial degree and the implicit constant are absolute.
+
+    Increasing λ reduces the first error term in (1), at the cost of a larger running time bound in (2).
+The parameter η controls numerical accuracy: as we explain in Section 5, errors in optimization,
+estimation, and rounding together contribute at most 8ηn to the logarithmic interval width. For
+fixed λ and√η, the running time is polynomial in the input length√      S.
+                                           2
+    Taking λ of order log n/(log log n) and η of order 1/ λ gives Theorem 1.1. With an addi-
+tional sparsity assumption, the same method gives a stronger guarantee: if every row and column
+  1 The notation f ≲ g means f ≤ Cg for an absolute constant C.
+
+
+
+                                                        2
+has at most ∆ nonzero entries, for fixed ∆, the logarithmic width improves to O∆ (n log log n/ log n),
+as stated in Corollary 5.1. Here O∆ hides a multiplicative constant C∆ that may depend on the fixed
+degree bound ∆, but not on n or the matrix entries.
+    For any requested accuracy 0 < ϵ ≤ 1, a relative approximation returns positive rational end-
+points L ≤ per( A) ≤ U with U/L ≤ 1 + ϵ, or equivalently logarithmic width at most log(1 + ϵ).
+A deterministic fully polynomial time approximation scheme (FPTAS) achieves this in time polyno-
+mial jointly in the input encoding length and ϵ−1 .
+    In Appendix B, we use amplification by disjoint copies [LSW00, AR25] to prove that a de-
+terministic polynomial time exp(O(n1−δ )) approximation, for any fixed δ > 0, would imply a
+deterministic FPTAS. r disjoint copies have permanent per( A)r . Taking an rth root reduces the
+logarithmic error to O(n1−δ /r δ ), so polynomially many copies in n and inverse accuracy give
+a relative approximation scheme. This amplification does not turn our logarithmic saving into
+an FPTAS. In Corollary B.3, we use the reduction in Appendix D to show that a deterministic
+polynomial time exp(O(n1−δ )) approximation even for zero-one matrices with at most three ones
+per row and column would imply a deterministic fully polynomial time approximation scheme for
+general nonnegative rational matrices.
+
+
+2     Technical overview
+We will approximate the permanent by a sum over all matchings at new edge weights. The weights
+must make this sum close to the permanent, after accounting for the change of weights, and allow
+efficient computation. We first show how these ingredients give the main theorem, then develop
+the arguments that establish them.
+
+2.1   Constructing an upper bound by choosing edge weights
+Our plan is to approximate the sum over perfect matchings by a sum over all matchings. We begin
+by explaining how changing the edge weights can improve this approximation and how to account
+for the change in our upper bound on the permanent.
+    For positive edge weights w, let
+
+                                      Z (w) =      ∑       ∏ we
+                                                M matching e∈ M
+
+be the matching partition function, where the empty matching contributes one. Since perfect
+matchings are included, Z ( A) upper bounds per( A). Gamarnik and Katz [GK10] used this ap-
+proach for zero-one matrices. After uniformly increasing the edge weights, they use expansion
+of the support graph to bound the total weight of imperfect matchings relative to that of perfect
+matchings. Conditioning on whether a vertex is unmatched or matched to each of its neighbors
+gives a deletion recursion. As Section 2.4 explains, bounding the sum of edge weights at each
+vertex makes errors contract through the recursion, allowing efficient approximation. We therefore
+seek an accurate upper bound under this constraint.
+    Consider A = diag(δ, 1) with 0 < δ < 1. Multiplying every entry by t > 1 favors larger
+matchings, because a matching with m edges gains a factor tm . Dividing the resulting sum by t2
+
+
+
+                                                   3
+gives an upper bound on the original permanent, but its approximation factor is
+                                                           
+                                 Z (tA)          1         1
+                                          = 1+          1+      .
+                               t2 per( A)        tδ         t
+Keeping this factor bounded requires t at least of order 1/δ. The larger edge then has weight of
+that order, which can increase the time needed to approximate Z (tA).
+   We can do better by adjusting the edges separately. Give both edges weight 3. The four
+matchings now have weights 1, 3, 3, 9, so their sum is 16. The perfect matching originally had
+weight δ and now has weight 9. Multiplying the final sum by δ/9 restores its original contribution
+and gives the upper bound 16δ/9. The new edge weights remain bounded even when δ is very
+small.
+   For a general matrix, different perfect matchings change by different factors. We work on the
+edges E that occur in a perfect matching. All matchings below use edges in E . Write A( M ) and
+w( M ) for the products of their original and new edge weights. Multiplying by the largest ratio
+A( M )/w( M ) gives enough compensation for every perfect matching at once. Thus
+                                                                   A( M)
+                                  per( A) ≤ Z (w) max                      .                       (3)
+                                                         M perfect w ( M )
+
+There are two sources of overestimation. We include imperfect matchings, and the largest ratio
+may compensate some perfect matchings more than necessary. Our task is to choose weights that
+control the combined loss.
+   Tracking the change in the permanent under reweighting is also central to the matrix-scaling
+algorithm of Linial, Samorodnitsky, and Wigderson [LSW00]. Row and column scaling changes
+every perfect matching by the same factor. Independent edge changes can give different ratios
+A( M )/w( M ), so (3) uses the largest ratio.
+   Taking logarithms turns this choice into convex optimization. Let ye = log we and define the
+logarithm of the upper bound by
+
+                      Φ A (y) = log Z (ey ) +         max            ∑ (log Ae − ye ).
+                                                M perfect matching e∈ M
+                                                                                                   (4)
+
+The maximum over perfect matchings is the assignment term. It equals the logarithm of the
+compensation factor in (3). Both terms are convex (Fact 4.10). Minimizing Φ A therefore searches
+for the best upper bound of the form (3).
+
+2.2   The approximation theorem from two ingredients
+We have constructed the convex objective Φ A , whose exponential upper bounds the permanent.
+We now identify the guarantees needed to make this bound accurate and efficient to compute, and
+show how they give the main theorem.
+    We impose a budget Λ ≥ 1 on the sum of auxiliary edge weights at each vertex: ∑e∋v we ≤ Λ
+for every v. Increasing the budget Λ can improve the upper bound but increases the running time.
+    Write Λ = e a , so increasing a by h multiplies the budget Λ by eh . We use a to quantify the
+improvement as Λ increases. Define
+                     (                                )
+             Da =    y : ∑ eye ≤ e a for every vertex v         ,      OPT A ( a) = min Φ A (y).   (5)
+                        e∋v                                                        y∈D a
+
+
+                                                     4
+The analytic ingredient, Lemma 6.1, is
+                                                                     √
+                         log per( A) ≤ OPT A ( a) ≤ log per( A) + 2 2 ne−a/2 .              (6)
+                                                                            √
+Thus minimizing Φ A over D a gives an approximation factor exp(O(n/ Λ)). For 1 ≤ Λ ≤ n2 /16,
+the all-ones example in Appendix C attains this order of logarithmic error.
+    We use the distribution in which each matching has probability proportional to the product
+of its edge weights. For weights meeting the budget Λ, the algorithmic ingredient, Theorem 7.1,
+computes log Z (w) to additive error ξn and the probabilities that individual edges are used to
+relative error ξ, for 0 < ξ < 1/4, in time
+                                                      √
+                                                                   2 Λ
+                                                                       
+                             poly(input length) exp O        Λ log        .                 (7)
+                                                                     ξ
+
+The polynomial factor has a fixed exponent, independent of Λ, ξ, and the number of neighbors at a
+vertex.
+    The analytic and algorithmic ingredients thus pull in opposite directions: increasing the budget
+Λ improves the approximation factor but increases the running time. Ideally, we would take Λ = nc
+for a fixed c > 0, so that the analytic bound gives a factor exp(O(n1−c/2 )). A polynomial time
+algorithm with this guarantee would yield a fully√polynomial time approximation scheme by the
+amplification argument in Appendix B. However, Λ = nc/2 appears in the exponent of (7), so the
+running time bound does not guarantee polynomial time for this choice.
+    By (6), minimizing Φ A over Dlog Λ gives the desired approximation factor. Proposition 8.1
+finds weights w with log w ∈ Dlog Λ and objective value within any requested additive error of
+OPT A (log Λ). For objective error εn, the number of applications of Theorem 7.1 is polynomial
+in the input length and ε−1 . The required tolerances preserve the parameter dependence in the
+running time below. Section 2.5 explains the search, and Section 5 accounts for its running time.
+    Once the weights are chosen, we evaluate the upper bound in (3). We use Theorem 7.1 to ap-
+proximate log Z (w). For the compensation factor max M perfect A( M )/w( M ), we approximate each
+edge cost log Ae − log we to the required accuracy and compute a perfect matching of maximum
+total cost in polynomial time.                                                                 √
+    We choose both the optimization error and the logarithmic evaluation error as O(n/ Λ),
+matching the analytic error. Exponentiating the computed upper bound on Φ A (log w), with
+upward rounding, gives U. The gap at the constrained optimum, the loss from approximate
+minimization, and the evaluation error add on the logarithmic scale, so
+                                                        √
+                              per( A) ≤ U ≤ exp(O(n/ Λ)) per( A).
+
+Dividing U by the guaranteed approximation factor gives the lower endpoint L.
+   Finding the weights and evaluating their upper bound has total running time
+                                                     √
+                           poly(input length) exp(O( Λ log2 Λ)).
+
+Taking Λ of order (log n)2 /(log log n)4 makes the exponent O(log n), so the running time is poly-
+nomial. At this choice, the logarithmic approximation error is O(n(log log n)2 / log n), which gives
+Theorem 1.1. Section 5 gives the rational endpoint construction and the constants in Theorem 1.2.
+
+
+                                                 5
+2.3   Bounding the approximation error using unmatched rows
+
+                   √and Theorem 7.1 would give the main theorem. We now show that OPT A ( a) −
+We have seen how (6)
+log per( A) = O(n/ Λ) for budget Λ = e a . We will bound this gap using the expected number of
+unmatched rows at an optimizer.
+    Choose weights w whose logarithms minimize Φ A over D a . For a matching M drawn with
+                          let d a = E[n − | M |] be the expected number of unmatched rows. The
+probability w( M )/Z (w), √
+estimate we need is d a ≤ 2 ne−a/2 . To see why it suffices, suppose we also know
+
+                          0 ≤ OPT A ( a) − OPT A (b) ≤ (b − a)d a                ( b > a ).           (8)
+
+Thus d a bounds the decrease in OPT A per unit increase in a.
+    The limiting optimum is log per( A). Scaling the input by t gives Φ A (log(tA)) = log Z (tA) −
+n log t, which tends to log per( A) because the leading coefficient of Z (tA) is per( A). For fixed t,
+these weights are feasible for every sufficiently large budget Λ = e a . If both estimates hold for every
+a ≥ 0, we can bound the total decrease from OPT A ( a) to this limit. Applying (8) on successive
+small intervals and adding the resulting bounds gives
+                                                        Z ∞√                   √
+                      OPT A ( a) − log per( A) ≤                2 ne−t/2 dt = 2 2 ne−a/2 .
+                                                        a
+
+
+How the optimum changes with the budget. The integral reduces the approximation bound to
+two estimates about the optimal weights. We first prove (8): raising the budget from e a to eb can
+lower the optimum by at most (b − a)d a , even after reoptimizing the weights. We start by scaling
+all weights by the same factor, then use convexity to account for changes in their ratios. Let x
+specify proposed weights e xe . Dividing by their largest sum at a vertex and multiplying by e a gives
+                                                                                 e a e xe
+                             H ( x ) = max log ∑ e xe ,           we ( x, a) =            .
+                                        v         e∋v                            e H (x)
+
+The resulting weights have largest sum e a at a vertex. The vector x ∈ RE is unrestricted for every a.
+We evaluate our logarithmic upper bound at these weights by setting
+
+                                       FA ( x, a) = Φ A (log w( x, a)).
+
+For fixed x, increasing a by h multiplies every weight by eh . The weight of a matching M is
+multiplied by eh| M| , while the compensation factor in (3) is divided by ehn , because every perfect
+matching has n edges. Put w = w( x, a) and give M probability w( M )/Z (w). Dividing the new
+upper bound by the old one gives
+
+                                                  ∑ M e−h(n−| M|) w( M )
+                                                                                h           i
+              FA ( x, a + h) − FA ( x, a) = log                          = log E e−h(n−| M|) .
+                                                         Z (w)
+For h ≥ 0, contributions from perfect matchings stay unchanged, while contributions from match-
+ings missing more edges decrease faster.
+    This also explains why normalization preserves the optimum. If H ( x ) ≤ a, the proposed
+weights already satisfy the budget. Normalization scales them by e a− H (x) ≥ 1, which cannot
+increase the upper bound. Since every normalized vector is feasible,
+
+                                        min FA ( x, a) = OPT A ( a).
+                                            x
+
+
+                                                            6
+Let x a ∈ arg minx FA ( x, a) and put w = w( x a , a). Hold x a fixed in the formula for FA ( x, a + h) −
+FA ( x, a). Its expectation equals one at h = 0. Differentiating the finite sum multiplies each term by
+−(n − | M|), so the rule (log f )′ = f ′ / f gives
+                                               d
+                             ∂ a FA ( x a , a) = FA ( x a , a + h)
+                                              dh                   h =0
+                                                ∑ M (n − | M |)w( M )
+                                             =−                         = −da .
+                                                           Z (w)
+   To prove (8), we must also allow the ratios between edge weights to change at the larger budget.
+Lemma 6.4 shows that FA is jointly convex in x and a. The subgradient calculation in Section 6
+shows that, at a minimum in x, a supporting affine function has zero slope in the x-coordinates and
+slope −d a in a. Joint convexity therefore gives, for every alternative choice z,
+
+                      FA (z, b) ≥ FA ( x a , a) − (b − a)d a = OPT A ( a) − (b − a)d a .
+
+Minimizing this inequality over z, and using that a larger budget cannot increase the optimum,
+proves (8).
+
+Why few rows remain unmatched. We have proved (8), which bounds the decrease          √      √in OPT A
+as the budget grows. It remains to show that the optimal weights leave at most 2 n/ Λ rows
+unmatched on average, where Λ = e a . A large budget alone does not force matchings to be large:
+feasible weights could still be tiny on most edges. We need to use the fact that the weights minimize
+our upper bound.
+    Fix optimal weights w under budget Λ, and draw M with probability w( M )/Z (w). Write
+µij = Pr(ij ∈ M ). Each matching leaves exactly n − | M | rows unmatched. This count is the sum
+of one indicator for each row, equal to one when that row is unmatched and zero otherwise. By
+linearity of expectation,
+                                         "               #
+                  d a = E[n − | M|] = E ∑ 1{i unmatched} = ∑ Pr(i unmatched).
+                                                   i                 i
+
+Each indicator has expectation equal to the probability that its row is unmatched. Counting
+unmatched columns in the same way gives d a = ∑ j Pr( j unmatched). Since a matching uses at
+most one edge in each row, ∑ j µij = Pr(i matched). To bring this row sum up to one, we need to
+add Pr(i unmatched). Column j similarly needs an additional Pr( j unmatched).
+    We introduce a matrix ∆ to relate these missing probabilities to the edge weights. Its entry
+∆ij ≥ 0 is an amount added to µij , so that every row and column of µ + ∆ sums to one. Because
+w minimizes Φ A (log w) under budget Λ, such a nonnegative ∆ exists on the existing edges and
+satisfies
+
+                     ∑ ∆ij = Pr(i unmatched),              ∑ ∆ij = Pr( j unmatched),
+                      j                                    i
+                                wij
+                          ∆ij ≤
+                                                                      
+                                    Pr(i unmatched) + Pr( j unmatched) .                              (9)
+                                Λ
+The proof of Lemma 6.3 defines ∆ in (29) and proves these row and column sums and the bound
+on each entry. Summing the first equality gives ∑ij ∆ij = d a . Thus bounding the total of these
+
+                                                       7
+additions will bound the expected number of unmatched rows. The last inequality connects each
+addition to its edge weight, allowing us to use the correlation bound below.
+    We next relate the weight of an edge ij to the probability that both endpoints remain unmatched.
+If a matching N leaves i and j unmatched, adding ij gives a matching N ∪ {ij} that uses this
+edge. Conversely, removing ij from any matching that uses it leaves both endpoints unmatched.
+These operations are inverse to each other. Since matching weights are products of edge weights,
+w( N ∪ {ij}) = wij w( N ). Summing over the corresponding matchings gives
+
+                                ∑        w( M ) = wij           ∑               w ( N ).
+                              M: ij∈ M                  N: i,j unmatched in N
+
+Dividing both sides by Z (w), the total weight of all matchings, turns the sums into probabilities:
+
+                           µij = Pr(ij ∈ M ) = wij Pr(i, j both unmatched).
+
+The two unmatched events are positively correlated, by Heilmann and Lieb [HL72] (Fact 4.5), so
+their joint probability is at least Pr(i unmatched) Pr( j unmatched). Combining this correlation
+bound with (9) gives
+
+                           µij ≥ wij Pr(i unmatched) Pr( j unmatched)
+                                          Pr(i unmatched) Pr( j unmatched)
+                              ≥ Λ∆ij                                        .
+                                         Pr(i unmatched) + Pr( j unmatched)
+
+Thus, the weights required to accommodate the unmatched probabilities also force edges to be
+used. Summing and applying weighted Cauchy–Schwarz (Fact 4.1) gives
+                                                                     2
+                                                         Λ ∑ij ∆ij                               Λd2a
+            n − d a = ∑ µij ≥                                                              =        .   (10)
+                                                     1                1                          2n
+                      ij
+                                ∑ ∆ij                        +
+                                              Pr(i unmatched) Pr( j unmatched)
+                                 ij
+
+Here ∑ij ∆ij = d a . The row terms in the denominator sum to
+
+                                 ∆ij                           ∑ j ∆ij
+                     ∑ Pr(i unmatched) = ∑ Pr(i unmatched) = ∑ 1 = n.                                     (11)
+                      ij                            i                                 i
+
+Equation (11) and its column analogue give the denominator 2n. Since d a ≥ 0, (10) implies
+                                                               √
+                           Λd2a                                  2n
+                                ≤ n − da ≤ n     =⇒     da ≤ √ .
+                           2n                                    Λ
+
+2.4   Counting through correlation decay
+                                                                            √
+Minimizing Φ A over Dlog Λ gives an upper bound within a factor exp(O(n/ Λ)) of the permanent.
+We now estimate log Z and edge probabilities whenever the edge weights at each vertex sum to at
+most the budget Λ. The goal is the running time in (7), with the number of neighbors at a vertex
+kept out of the exponent. We follow the recursive method of Bayati et al. [BGK+ 07], and adapt the
+contraction analysis of Sinclair et al. [SSŠY17] to unequal edge weights.
+
+
+                                                         8
+     On a graph G with at most 2n vertices and weights w, draw M with probability w( M )/ZG (w)
+and write qG (v) = Pr(v unmatched in M ). A subscript G − S uses the matching distribution after
+deleting S, with the remaining weights unchanged. We use the deletion argument of Bayati et
+al. [BGK+ 07, Propositions 2.2 and 3.1]. The same decomposition allows unequal edge weights, as
+in Fact 4.3.
+     Matchings leaving v unmatched are exactly the matchings of G − v, with unchanged weights.
+A matching containing uv consists of that edge and a matching of G − {u, v}, with an extra factor
+wuv in its weight. Dividing the total weight in each case by ZG (w) gives
+
+                           ZG − v ( w )                  ZG−{u,v} (w)
+                qG (v) =                ,   µuv = wuv                 = wuv qG (u)qG−u (v).
+                            ZG ( w )                       ZG ( w )
+Deleting vertices one at a time makes these ratios cancel. Since the empty graph has partition
+function one, ZG (w) is the reciprocal of the product of the resulting unmatched probabilities. The
+second identity recovers each edge probability from two unmatched probabilities.
+   To compute qG (v), separate all matchings according to whether v is unmatched or matched to a
+neighbor u. These cases give
+
+                                ZG (w) = ZG−v (w) + ∑ wvu ZG−{v,u} (w).
+                                                         u∼v
+
+Dividing by ZG−v (w) and using the first identity above gives
+                                                             ! −1
+                                     qG (v) =   1 + ∑ wvu qG−v (u)       .                         (12)
+                                                   u∼v
+
+Repeated substitution in (12) produces a tree whose nodes are paths starting at v with no repeated
+vertices. A child extends its parent’s path by one edge to a vertex not yet visited. This is the
+self-avoiding walk tree used in Godsil’s identity [God81]. Sinclair et al. [SSŠY17, Theorem 2.1] state
+the equality of unmatched probabilities for a common edge weight. Here each tree edge inherits
+the weight of the graph edge that extends the path. The full tree gives qG (v) at its root, since it
+follows the same recursion (12).
+     We stop at depth ℓ, substitute 1 for unresolved probabilities, and evaluate upward. The value 1
+treats each unresolved vertex as certainly unmatched, so it gives an upper bound on its unmatched
+probability. In (12), increasing an input enlarges the denominator and decreases the output. Each
+level therefore reverses the direction of the error: the root estimate is an upper bound on qG (v)
+when ℓ is even and a lower bound when ℓ is odd.
+     We next bound the size of this error. Vertex deletion preserves ∑e∋v we ≤ Λ, so all unmatched-
+vertex probabilities in the recursion lie in [1/(1 + Λ), 1]. Fact 4.7 measures error by the difference
+between transformed √    values ψ(q) = log((2 − q)/q). Each recursion step shrinks the largest input
+error by ρ = 1 − Θ(1/ Λ). This shrinking influence of distant inputs is correlation decay [BGK+ 07,
+SSŠY17].
+     To choose the depth, we compare the remaining error with the requested accuracy ξ. On the
+allowed interval, ψ ranges from 0 to log(1 + 2Λ), so the error in ψ at each leaf is at most log(1 + 2Λ).
+Write qb for the value computed at the root. After ℓ levels, repeated contraction gives
+                                                                               
+                                              ℓ                              cℓ
+                       |ψ(qb) − ψ(qG (v))| ≤ ρ log(1 + 2Λ) ≤ 2Λ exp − √           ,
+                                                                              Λ
+
+                                                     9
+                                                         √
+for an absolute constant c > 0. Here we used√ρ ≤ e−c/ Λ and log(1 + 2Λ) ≤ 2Λ. To make the last
+expression at most ξ/2, it is enough that cℓ/ Λ ≥ log(4Λ/ξ ). We can therefore choose
+                                             √
+                                                     Λ
+                                                        
+                                        ℓ = C Λ log
+                                                      ξ
+for a sufficiently large absolute constant C.
+    The derivative bound |d log q/dψ| ≤ 1 in Fact 4.7 shows that this also gives | log qb − log qG (v)| ≤
+ξ/2. Exponentiating, the ratio qb/qG (v) lies between e−ξ/2 and eξ/2 , so the relative error is at most ξ
+for 0 < ξ < 1/4. This holds for any choice of leaf values in the allowed interval.
+    The obstacle is branching. A vertex can have n neighbors, so expanding every edge can cost
+nΘ(ℓ) . Choose a threshold κ > 0 and expand recursively only edges of weight greater than κ. There
+are at most Λ/κ such edges at a vertex. Smaller edges must still contribute to the denominator. For
+a star with n edges of weight 1/n, for example, the weights of all matchings sum to 2, even though
+each edge is small.
+    For smaller edges, we reuse computations on the input graph G, which may already have some
+vertices deleted. For each depth, store an approximate unmatched probability for every vertex of G.
+On a large edge, recurse with the current vertex deleted. On a small edge, use the stored answer
+for its neighbor in G at one smaller depth. For example, following a large edge vu deletes v. A
+small edge uz then asks for qG−v−u (z), for which we reuse an approximation to qG (z). Initialize
+depth zero answers at one and compute the arrays in increasing depth. Both edge types decrease
+the remaining depth by one, so stored answers are available. Only large edges generate additional
+recursive branches.
+    There are two errors to control. Replacing each computed answer by the probability it ap-
+proximates gives an update using the current smaller graph on large edges and G on small edges.
+Contraction in ψ bounds this change, including the errors in stored answers. The remaining error
+comes from forgetting deletions on small edges and is controlled by
+
+                               ∑ |qG−u (v) − qG (v)| ≤ 1 − qG (u) ≤ 1.                              (13)
+                               v̸=u
+
+To prove this bound, we construct a joint distribution of two matchings, one in G and one in G − u,
+with each having its graph’s matching distribution. Such a joint distribution is called a coupling.
+The random matchings are used only in the proof. The algorithm uses (13) to bound the error of its
+deterministic recursion and never samples these matchings.
+    The construction in Lemma 4.4 specializes the recursive method of Chen and Gu [CG24, Algo-
+rithm 1]. The matching in G leaves u unmatched with probability qG (u) and uses the edge uv with
+probability µuv for each neighbor v. If u is unmatched, use the same matching from G − u in both
+graphs. If u is matched to v, recursively couple matchings in G − u and G − u − v, then add uv to
+the latter. Each matched case extends the disagreement by one edge, giving at most one alternating
+path from u. Only the other endpoint can change unmatched status outside u. Each probability
+difference is at most the chance of a disagreement there. Summing these bounds gives the expected
+number of disagreements, at most 1 − qG (u) regardless of the number of neighbors. For bipartite
+graphs, the preliminaries derive positive correlation of unmatched events on opposite sides from
+this coupling. The deletion bound holds on general graphs, so Theorem 7.1 applies to them as well.
+    Applying (13) at each of h successive deletions and adding gives total change at most h on
+surviving vertices. The denominator error is therefore at most hκ. A denominator 1 + t has
+
+                                                   10
+transformed output log(1 + 2t), whose derivative is at most 2. Thus the error is also O(hκ ) in ψ.
+At level j, at most j + 1 vertices have been deleted, and propagation to the root contributes ρ j . An
+induction therefore bounds the root error by
+                                                       !
+                               √ ℓ                          √          
+                           O     Λ ρ + κ ∑ ( j + 1) ρ j = O    Λ ρℓ + κΛ .
+                                          j ≥0
+
+
+The first term comes from stopping the recursion. For the second, ∑ j≥0 ( j + 1)ρ j = (1 − ρ)−2 =
+O(Λ). Taking κ of order ξ/Λ makes this error O(ξ ). The branching is then polynomial in Λ and
+ξ −1 , giving (7) at the chosen depth. Section 7 gives the induction and bit complexity.
+     The recursion and contraction are standard. Deletion stability permits the shared computations
+on small edges and removes the degree from the exponent.
+
+2.5   Finding the weights by subgradient steps
+We have proved (6) and explained how to obtain the estimates in Theorem 7.1. It remains to find
+weights w with log w ∈ Dlog Λ and objective value at most εn above OPT A (log Λ), for 0 < ε ≤ 1.
+We minimize the normalized objective FA ( x, log Λ) using the estimated edge probabilities to
+compute subgradient steps. We follow the projected subgradient method and averaging analysis in
+Bubeck [Bub15, Section 3.1], adapting the directions and rounding to these estimates.
+   To bound the number of subgradient steps, we need a bounded box containing a nearly optimal
+point. Start from optimal feasible weights w and set
+
+                                ve = max{we , τ },        ze = log(ve /Λ),
+
+where τ is a sufficiently small constant multiple of ε/n. Since τ ≤ ve ≤ Λ, the vector z lies
+in [−W, 0]m for W = O(log(nΛ/ε)) and m = |E |. Normalizing z gives weights Λve /B, where
+B = maxu ∑e∋u ve ≤ Λ + nτ. Raising the small weights increases log Z by at most mτ and cannot
+increase the assignment term. Restoring the budget adds at most n log(1 + nτ/Λ) to the objective.
+Lemma 8.2 proves that the total increase is at most 2n2 τ = O(εn). Thus the box contains a point
+whose normalized objective value is at most OPT A (log Λ) + O(εn).
+    A subgradient g of a convex function f at x gives an affine lower bound: f (z) ≥ f ( x ) + ⟨ g, z − x ⟩
+for every z. At a = log Λ, Lemma 6.4 gives a subgradient g of FA (·, a):
+
+                                            g = µ − P + dp.
+
+Here P is the incidence vector of a perfect matching maximizing ⟨log A − x, P⟩, µ gives the proba-
+bilities that individual edges belong to the matching at the normalized weights, and d = n − ∑e µe .
+Choose a vertex at which the edge weights sum to Λ. The vector p assigns probability we /Λ to
+each of its incident edges and zero elsewhere. The term µ comes from differentiating log Z in the
+logarithmic weights, which gives the edge probabilities. Both µ + dp and P have nonnegative
+entries summing to n, so the subgradient norm is at most 2n.
+    Starting at x0 = 0, let gt be this subgradient at xt and take steps
+
+                                      xt+1 = clip[−W,0]m ( xt − αgt ),
+
+where clipping truncates each coordinate to the interval.
+
+                                                     11
+                                     √
+    Fact 4.11, with radius at most m W and subgradient norm at most 2n, specifies a step size α.
+After O(mW 2 /ε2 ) steps, the average iterate has objective value within O(εn) of the optimum. We
+return its normalized weights and evaluate the permanent upper bound once at the end.
+    With rational arithmetic, we obtain approximate directions from assignment solutions and
+estimated edge probabilities. We round the directions toward zero on a common rational grid,
+then compute the clipped steps exactly. This keeps the iterates’ encoding lengths polynomial.
+Corollary 4.13 accounts for the errors in the directions. Since ∑e µe ≤ n, relative accuracy ξ gives
+total error in these edge probabilities at most ξn. Across a box of width W, the resulting error in the
+inner product ⟨ g, z − x ⟩ in the subgradient inequality is O(ξnW ). Thus relative error of order ε/W
+keeps the objective error within O(εn). Section 8 gives the numerical choices and bit complexity.
+
+
+3   Related work
+The permanent and convex approximation. Several deterministic approaches to permanent
+approximation use convex optimization. For the Bethe permanent, Schrijver’s inequality [Sch98]
+and Gurvits’s variational formulation [Gur11] give a lower bound on the permanent. Vonto-
+bel [Von13] established its concave optimization formulation and graph-cover interpretation. Anari
+and Rezaei [AR25] proved that the Bethe permanent approximates the permanent within a factor
+of 2n/2 .
+
+Recent improvements to the Bethe bound. Recent preprints of Anari [Ana26] and, indepen-
+                                                                             n
+dently, Narang and Perkins [NP26] obtain deterministic    √ polynomial-time c approximations for
+unrestricted nonnegative matrices, for an absolute c < 2. Both exploit nearly isolated weighted
+2 × 2 blocks when the 2n/2 upper bound on the ratio of the permanent to the Bethe permanent is
+nearly tight. Anari combines a stability analysis with a lower bound on the permanent obtained by
+pairing rows and using stable polynomials. Narang and Perkins identify and peel weighted blocks,
+then compare the permanents and Bethe objective values of the original and an auxiliary matrix.
+Our approach optimizes an upper bound formed from the partition function over matchings of
+every size and compensation for the change of weights. Our approximation guarantee improves as
+the allowed sum of edge weights at each vertex increases.
+
+Stronger guarantees under additional assumptions. The recent preprint of Dong and Jain [DJ26]
+proves the sharp approximation factor 22n/g for the Bethe permanent when the bipartite support
+graph has girth at least an even integer g ≥ 4. This already gives a subexponential factor when
+the girth tends to infinity. Yi’s recent preprint [Yi26] gives a deterministic fully polynomial-time
+relative approximation scheme when every row and column has at least (1/2 + γ)n nonzero entries
+and all nonzero weights lie in [θ, 1], for fixed γ, θ > 0. This includes positive matrices whose
+weights lie in a fixed positive interval. The proof uses entropy scaling and Gaussian truncation,
+with running-time exponents depending on the fixed parameters.
+    Other recent directions include elimination-based upper bounds for structured matrices [LP25],
+asymptotics obtained from graph covers for positive block-constant matrices [WV26], and approxi-
+mation on biased random complex matrices [KL26].
+
+
+
+
+                                                  12
+Matching algorithms and the ingredients we use. Gamarnik and Katz [GK10] approximate
+the permanent of zero-one matrices whose bipartite graphs have bounded degree and fixed
+positive expansion. They give every edge the same large weight and count matchings of all sizes.
+Larger matchings receive more weight, and expansion supplies short paths along which imperfect
+matchings can be enlarged. This bounds the total weight of imperfect matchings relative to that
+of perfect matchings, giving a polynomial time (1 + ε)n approximation for each fixed ε > 0. We
+choose weights separately by convex optimization and bound the approximation error using the
+expected number of unmatched rows at the optimal weights, without assuming expansion.
+    To approximate the weighted sum of matchings, we use the recursion of Bayati et al. [BGK+ 07].
+It computes the probability that a vertex is unmatched using probabilities in graphs with vertices
+deleted. Correlation decay bounds the effect of errors in distant recursive calls, allowing the
+recursion to stop early. Their algorithm gives a deterministic fully polynomial time approximation
+scheme when the maximum degree and the common edge weight are fixed. Sinclair et al. [SSŠY17]
+improved the analysis of how errors shrink through the recursion. We use their change of variables
+to measure error, with a calculation for unequal positive edge weights.
+    To handle vertices with many neighbors, we also need to bound how much deleting a vertex
+changes the probabilities that other vertices are unmatched. We sample a matching in G and a
+matching in G − v together so that their differences follow a single path. Comparisons along such
+paths already appear in van den Berg [van99]. Our construction specializes the recursive coupling
+of Chen and Gu [CG24, Algorithm 1]. Yoshida and Zhang [YZ26, Section 4.2.2] also bound changes
+in which vertices are matched, for a common edge weight. Counting vertices matched in only
+one of our two matchings bounds the sum of absolute changes in unmatched probabilities. On
+bipartite graphs, the same construction gives the classical correlation inequalities of Heilmann
+and Lieb [HL72]. We use the bound on probability changes to control the error from reusing
+computations on edges of small weight, keeping the number of neighbors out of the exponent of
+the running time. The resulting algorithm, stated in Theorem 7.1, applies to general graphs.
+    At a minimizer of the normalized objective, we use these correlations to bound the expected
+number of unmatched rows. Danskin’s theorem [Ber09, Proposition A.3.2(b)] gives optimality
+conditions that we use to bound how OPT A ( a) changes with a. The algorithm uses projected
+subgradient averaging [Bub15, Theorem 3.2], with a short adaptation for approximate edge proba-
+bilities and rounded directions. We state both results in the preliminaries. Our analytic contribution
+is the bound on OPT A ( a) − log per( A) in (6). The proof combines convexity of the normalized
+objective, its optimality conditions, and correlations between unmatched vertices. Our algorithmic
+contribution is to use the deletion bound to reuse computations on small edges while keeping the
+dependence on graph size polynomial.
+
+
+4   Preliminaries
+We collect the matching identities and convex optimization facts used in the main proof.
+
+Notation. Logarithms are natural unless indicated otherwise. The notation f ≲ g hides an
+absolute multiplicative constant, and f ≍ g means both f ≲ g and g ≲ f . A subscript permits
+dependence on that parameter. We write bits( x ) for the binary encoding length of a rational number,
+
+
+
+                                                 13
+and ⟨ x, y⟩ = ∑e xe ye . Exponentials of edge vectors are coordinatewise and have zero entries outside
+the specified support. Every unspecified polynomial has absolute degree.
+
+Fact 4.1 (Weighted Cauchy–Schwarz). For nonnegative weights bi and positive numbers ti ,
+
+                                                         bi       ( ∑ bi ) 2
+                                                   ∑ t i ≥ ∑ i bi t i ,
+                                                     i                i
+
+provided at least one bi is positive.
+                                                                               √                √
+Proof. Apply Cauchy–Schwarz to the vectors with entries                            bi /ti and       bi t i .
+
+4.1    Matchings and their probabilities
+Let G = (V, E ) be a finite simple graph, with no loops or parallel edges. Write G − S for the
+graph after deleting vertices S. For positive edge weights w, recall ZG (w) = ∑ M matching ∏e∈ M we ,
+including the empty matching, and let νG,w ( M ) = ∏e∈ M we /ZG (w). For M ∼ νG,w , write µw,e =
+Prw (e ∈ M) and qG,w (u) = Prw (u unmatched). The latter is also called a monomer probability.
+We omit w or G when fixed, and a subscript y denotes weights ey . Expectations use the same
+convention.
+    For the permanent problem, the graph G is bipartite with parts L, R of size n, and E is the
+support after removing edges in no perfect matching. Put m = |E |. Let B be the nonnegative
+matrices with row and column sums one and zeros outside E .
+
+Fact 4.2 (Perfect matchings and assignment [Sch17]). The polytope B is the convex hull of the incidence
+matrices of perfect matchings in E . For edge costs C,
+
+                                        max⟨C, P⟩ =
+                                         P∈B
+                                                                   max          ∑ Ce .
+                                                              M perfect matching e∈ M
+
+For rational costs, a maximizing perfect matching can be computed in polynomial time.
+
+   This fact allows the assignment term of Φ A to be evaluated efficiently and describes the convex
+combinations that occur in its optimality conditions.
+
+Fact 4.3 (Deletion recursion). For positive edge weights,
+                                                       ! −1
+                   Z ( G − u)
+          qG (u) =            = 1 + ∑ wuv qG−u (v)          ,                        µw,uv = wuv qG (u)qG−u (v).           (14)
+                     Z(G)              v∼u
+
+If u1 , . . . , u N orders the vertices and Gj = G − {u1 , . . . , u j−1 }, then log Z ( G ) = − ∑ N
+                                                                                                   j=1 log q Gj ( u j ).
+
+   The weighted version follows by partitioning matchings according to whether u is unmatched
+or matched along an incident edge, and the last identity telescopes. These formulas recover the
+partition function and edge probabilities from unmatched probabilities.
+   We next give a coupling that explains how deletion changes unmatched probabilities. The
+construction specializes the recursive coupling method of Chen and Gu [CG24, Algorithm 1] to
+ordinary matchings with positive edge weights. We count the vertices along its alternating path
+that are matched in only one matching. Yoshida and Zhang [YZ26, Section 4.2.2] also control
+changes in matched vertex sets, for a common edge weight.
+
+
+                                                                 14
+Lemma 4.4 (Coupling under deletion). For every vertex u, there is a coupling M ∼ νG , N ∼ νG−u such
+that M = N when M leaves u unmatched. Otherwise, M △ N is a single simple alternating path starting at
+u. Exactly one vertex other than u then has different unmatched status in the two matchings.
+
+Proof. Induct on the number of vertices and write H = G − u. Choose the status of u according to
+its Gibbs probabilities, with probability qG (u) for unmatched and µuv for matched to a neighbor
+v. In the unmatched case, draw N ∼ νH and set M = N. In the other case, apply the inductive
+coupling to obtain N ∼ νH and M′ ∼ νH −v , and set M = M′ ∪ {uv}. These are the conditional laws
+of M given the status of u, so M ∼ νG . Every branch gives N the same law νH .
+    In the matched case, the inductive symmetric difference is empty or is a simple alternating
+path starting at v with an edge of N. Adding uv extends it to such a path from u with an edge of
+M. The path remains simple because u is absent from H. Its internal vertices are matched in both
+matchings, and only its endpoints change unmatched status.
+
+    The correlation signs below follow from the Heilmann–Lieb path identity [HL72, Theorem 6.3,
+p. 213], restated by Spier [Spi23, Lemma 8]. We prove them using the coupling above.
+
+Fact 4.5 (Bipartite monomer correlations). Suppose G is bipartite. For M ∼ νG,w , let Yu = Yu ( M )
+indicate that u is unmatched in M. For distinct vertices u, v, Cov(Yu , Yv ) ≥ 0 on opposite sides and
+Cov(Yu , Yv ) ≤ 0 on the same side. In particular, for every edge uv,
+
+                          µw,uv = wuv Pr(u, v both unmatched) ≥ wuv qG (u)qG (v).
+                                      w
+
+Proof. Use Lemma 4.4. If its path ends on the opposite side from u, it has odd length and ends with
+an edge of M. That endpoint is therefore unmatched in N and matched in M. An endpoint on the
+same side has the reverse change. Thus qG−u (v) − qG (v) has the claimed sign. Conditioning on u
+being unmatched gives the matching distribution on G − u, so
+                                                                      
+                              Cov(Yu , Yv ) = qG (u) qG−u (v) − qG (v) .
+
+For the edge identity, inserting uv gives a bijection between matchings leaving both endpoints un-
+matched and matchings containing uv, multiplying their weight by wuv . The correlation inequality
+gives the lower bound.
+
+   The coupling also bounds the total change in unmatched probabilities on general graphs. This
+bound lets the algorithm in Theorem 7.1 reuse computed probabilities.
+
+Lemma 4.6 (Deletion stability). For every vertex u of a finite simple graph G with positive edge weights,
+
+                                    ∑ |qG−u (v) − qG (v)| ≤ 1 − qG (u),                             (15)
+                                   v̸=u
+
+with equality when G is bipartite. For every deleted vertex set S,
+
+                                          ∑ |qG−S (v) − qG (v)| ≤ |S|.                              (16)
+                                           ∈S
+                                          v/
+
+Proof. In the coupling, there is one disagreement outside u exactly when M matches u. Hence
+
+                   ∑ |EYv ( N ) − EYv ( M)| ≤ E ∑ |Yv ( N ) − Yv ( M)| = 1 − qG (u).
+                   v̸=u                              v̸=u
+
+
+                                                      15
+On a bipartite graph, the sign of each change is fixed by the side of the vertex, so equality holds. To
+delete a set S, remove its vertices one at a time and sum the changes only over vertices outside S.
+Each deletion contributes at most 1 by (15). The triangle inequality then gives (16).
+
+   The matching recursion contracts in the coordinate ψ below, which is a constant multiple of the
+matching message of Sinclair et al. [SSŠY17, Section 5]. We give the short calculation for unequal
+edge weights, using the weighted deletion recursion in Fact 4.3.
+
+Fact 4.7 (Contraction of the matching recursion). Let γ ≥ 1, I = [1/(1 + γ), 1], and
+
+                                       2−q                 lp           m                   1
+                         ψ(q) = log        ,          s=          1 + 4γ ,            ρ = 1− .
+                                        q                                                   s
+
+For r ≥ 1 nonnegative weights with ∑ri=1 wi ≤ γ, put f ( x ) = (1 + ∑i wi xi )−1 . For x, x ′ ∈ I r ,
+
+                              |ψ( f ( x )) − ψ( f ( x ′ ))| ≤ ρ max |ψ( xi ) − ψ( xi′ )|.
+                                                                   i
+
+Moreover,
+                                                                        d log q   2−q
+                       diam ψ( I ) = log(1 + 2γ) ≤ s,                           =     ≤ 1.              (17)
+                                                                          dψ       2
+Proof. Writing t = ∑i wi xi , differentiation and weighted Cauchy–Schwarz give
+                                                                         √
+                   ∂ψ( f ( x ))      ∑ i wi x i (2 − x i )   2t − t2 /γ    1 + 4γ − 1
+                ∑ ∂ψ(xi ) =               1 + 2t
+                                                           ≤
+                                                               1 + 2t
+                                                                        ≤√
+                                                                           1 + 4γ + 1
+                                                                                      ≤ ρ.              (18)
+                 i
+
+The scalar expression is maximized when t2 + t = γ. The box ψ( I )r is convex, so the derivative
+bound proves the claimed contraction. Direct calculation gives (17).
+
+4.2   Convex optimality and subgradient steps
+For a convex function f : Rm → R, a vector g is a subgradient at x if
+
+                              f (z) ≥ f ( x ) + ⟨ g, z − x ⟩           for every z ∈ Rm .
+
+Thus g gives the slope of an affine lower bound that agrees with f at x. Write ∂ f ( x ) for the set of
+subgradients. A point minimizes f if and only if 0 ∈ ∂ f ( x ). At a differentiable point, the gradient
+is the only subgradient.
+    We use the following elementary calculus rule to differentiate partition functions and to prove
+convexity after normalizing the edge weights. Its convexity assertion is the log-sum-exp composi-
+tion rule of Boyd and Vandenberghe [BV04, Example 3.14].
+
+Fact 4.8 (Log-sum-exp calculus). For convex functions f 1 , . . . , f N : Rm → R, the function L( x ) =
+log ∑ N
+      j =1 e
+             f j (x)
+                     is convex. If the f j are differentiable, then
+
+                                          N
+                                                                                     e f j (x)
+                             ∇ L( x ) = ∑ p j ( x )∇ f j ( x ),         p j (x) =                  .
+                                          j =1                                      ∑i e f i ( x )
+
+
+
+
+                                                           16
+Proof. For 0 < t < 1, convexity of the f j and Hölder’s inequality give
+                                                                                                      !1− t                  !t
+                 ∑e   f j ((1−t) x +ty)
+                                          ≤ ∑e      (1−t) f j ( x )+t f j (y)
+                                                                                ≤   ∑e      f j (x)
+                                                                                                              ∑e   f j (y)
+                                                                                                                                  .
+                  j                            j                                    j                         j
+
+Taking logarithms proves convexity. Differentiating the finite sum gives the gradient formula.
+
+    For matchings, the functions in the exponent are ⟨y, 1 M ⟩, where 1 M is the incidence vector of M,
+and the probabilities in the fact are νG,ey ( M ). Hence ∇y log Z (ey ) = µy . Increasing every coordinate
+of y at unit speed changes log Z (ey ) at rate E M∼νG,ey | M|.
+    The normalized objective is a maximum of finitely many smooth convex functions. The follow-
+ing finite form of Danskin’s theorem describes its subgradients, including at points where several
+functions attain the maximum.
+
+Fact 4.9 (Danskin’s theorem [Ber09, Proposition A.3.2(b)]). Let f 1 , . . . , f k : Rm → R be convex and
+differentiable, and put f ( x ) = maxi f i ( x ). Then
+
+                                     ∂ f ( x ) = conv{∇ f i ( x ) : f i ( x ) = f ( x )}.
+
+   In particular, a point minimizes f if and only if zero belongs to this convex hull.
+   These two facts give the convexity and sensitivity of the objective Φ A defined in (4).
+
+Fact 4.10 (Convexity and sensitivity of the permanent upper bound). The function Φ A is convex. If
+Py is the incidence matrix of a perfect matching maximizing ⟨log A − y, P⟩ over P ∈ B , then µy − Py is a
+subgradient of Φ A at y. In particular,
+
+                                          |Φ A (y) − Φ A (z)| ≤ 2n∥y − z∥∞ .                                                          (19)
+
+Proof. Fact 4.8 gives the convexity and gradient µy of log Z (ey ). Fact 4.9 gives the subgradient − Py
+of the convex assignment term. The edge probabilities sum to at most n, and an assignment has n
+edges. Thus the subgradient has ℓ1 norm at most 2n.
+
+    To compute the weights, we use projected subgradient steps and average the queried points. We
+first state the averaging theorem for exact subgradients and projections, then account for numerical
+errors.
+
+Fact 4.11 (Projected subgradient averaging [Bub15, Theorem 3.2]). Let K ⊆ Rm be nonempty, compact,
+and convex, and let f : Rm → R be convex. Suppose x0 ∈ K, ∥z − x0 ∥2 ≤ R for every z ∈ K, and every
+subgradient√of f at a point of K has Euclidean norm at most G, where R, G > 0. For an integer T ≥ 1, set
+α = R/( G T ) and iterate
+
+                          xt+1 = ΠK ( xt − αgt ),                        gt ∈ ∂ f ( x t )       (0 ≤ t < T ),
+
+where ΠK is Euclidean projection. Then
+                                                               !
+                                                   1 T −1                         RG
+                                                   T t∑
+                                           f              xt        − min f (z) ≤ √ .
+                                                                      z∈K          T
+                                                      =0
+
+   The adaptation uses the projection inequality from the same analysis. For a box, projection clips
+each coordinate to its allowed interval.
+
+                                                                      17
+Fact 4.12 (Projection inequality [Bub15, Lemma 3.1]). Let K ⊆ Rm be nonempty, compact, and convex.
+For every x ∈ Rm and z ∈ K,
+
+                                    ∥ΠK ( x ) − z∥22 ≤ ∥ x − z∥22 − ∥ x − ΠK ( x )∥22 .
+
+   An error in each supporting inequality contributes the same error to the averaging bound. The
+next corollary is the version used by the rational algorithm.
+
+Corollary 4.13 (Averaging with approximate directions). Let K ⊆ Rm be nonempty, compact, and
+convex, and let f : Rm → R be convex. Fix z ∈ K, an integer T ≥ 1, α > 0, and G, r ≥ 0. Suppose
+x0 , . . . , x T ∈ K and directions h0 , . . . , h T −1 satisfy, for every 0 ≤ t < T,
+
+                               ∥ht ∥2 ≤ G,            f (z) ≥ f ( xt ) + ⟨ht , z − xt ⟩ − r,
+
+and
+                                                 xt+1 = ΠK ( xt − αht ).
+Then, with x̄ = T −1 ∑tT=−01 xt ,
+
+                                                             ∥ x0 − z∥22 αG2
+                                        f ( x̄ ) − f (z) ≤              +    + r.
+                                                                2αT       2
+Proof. Fact 4.12 and the approximate supporting inequality give
+                                                 
+                          2α f ( xt ) − f (z) − r ≤ 2α⟨ht , xt − z⟩
+                                                      ≤ ∥ xt − z∥22 − ∥ xt+1 − z∥22 + α2 G2 .
+
+Sum over t, divide by 2αT, and apply convexity at x̄.
+
+
+5     The permanent approximation algorithm
+We restate the main results and first deduce the polynomial time theorem from the parameterized
+tradeoff. We then prove the tradeoff from its analytic and algorithmic ingredients. Recall that
+matrix entries and rational parameters are represented by binary numerators and denominators.
+
+Theorem 1.1 (Polynomial time approximation). There is a deterministic algorithm that, given an
+explicitly encoded A ∈ Qn≥×0 n of total bit length S, returns positive rational numbers L, U such that
+
+                                                                     U   n(log log n)2 2
+                               L ≤ per( A) ≤ U,                log     ≲              .
+                                                                     L       log n
+
+The algorithm uses poly(S) bit operations.
+    2 The notation f ≲ g means f ≤ Cg for an absolute constant C.
+
+
+
+
+                                                              18
+Theorem 1.2 (Approximation versus running time). Let A ∈ Qn≥×0 n be given explicitly with total bit
+length S. The analyst may choose any rational parameters λ ≥ 1 and 0 < η ≤ 1/100. For each such choice,
+a deterministic algorithm returns positive rational numbers L, U satisfying
+                                                               U   2n
+                              L ≤ per( A) ≤ U,           log     ≤ √ + 8ηn.                         (1)
+                                                               L    eλ
+Its running time in bit operations is
+                                                                       √          
+                                                            −1                  2 λ
+                     poly(S + n + bits λ + bits η, λ, η          ) exp O   λ log       .            (2)
+                                                                                  η
+The polynomial degree and the implicit constant are absolute.
+    Here 6λ bounds the sum of auxiliary edge weights at each vertex, and η sets numerical accuracy.
+    For the proofs below, we may assume that n is sufficiently large.
+
+Proof of Theorem 1.1 assuming Theorem 1.2. Apply Theorem 1.2 with λ = k2 and η = 1/(200k ). Its
+interval has logarithmic width O(n/k ), and the exponential factor in its running-time bound is
+exp(O(k log2 k )). Choose
+                  ℓ = ⌈log2 n⌉,         h = max{1, ⌈log2 ℓ⌉},          k = max{2, ⌊ℓ/h2 ⌋}.
+These integers are computable from bit lengths, and k log2 k = O(log n). The running time is
+therefore polynomial, and n/k ≲ n(log log n)2 / log n, as claimed.
+
+    For the tradeoff, we use the bound on the optimized objective in Lemma 6.1, the algorithm
+in Theorem 7.1, and the minimization algorithm in Proposition 8.1. We first deduce the tradeoff
+from these ingredients. The next three sections bound OPT A ( a) − log per( A), develop the counting
+algorithm, and show how to choose the weights. Recall that
+                        Φ A (y) = log Z (ey ) +         max           ∑ (log Ae − ye ),
+                                                  M perfect matching e∈ M
+
+where Z sums the weights of all matchings in E , and the maximum ranges over perfect matchings
+in E . The value OPT A (log Λ) is the minimum of Φ A over Dlog Λ .
+
+Proof of Theorem 1.2 from the three ingredients. Remove edges belonging to no perfect matching.
+
+Approximating log per( A). It is enough to compute, within the claimed running time, a rational
+T with
+                                                            2n
+                          log per( A) ≤ T ≤ log per( A) + √ + 3ηn.                          (20)
+                                                             eλ
+To obtain endpoints from T, first compute a rational error bound E with
+                                        2n            2n
+                                        √ + 3ηn ≤ E ≤ √ + 4ηn.
+                                         eλ            eλ
+Then T − E ≤ log per( A) ≤ T. Round e T −E downward to a positive rational L and e T upward to a
+rational U, allowing logarithmic error at most 2ηn at each endpoint:
+                      T − E − 2ηn ≤ log L ≤ T − E,  T ≤ log U ≤ T + 2ηn.
+                                                   √
+Thus L ≤ per( A) ≤ U and log(U/L) ≤ E + 4ηn ≤ 2n/ eλ + 8ηn, as required in (1). The directed
+evaluations in Appendix A compute these endpoints with polynomial encoding length. It remains
+to construct T.
+
+                                                       19
+Reducing the computation of T to approximate minimization of Φ A . Compute rational θe with
+log Ae ≤ θe ≤ log Ae + η on E . For analysis, let A
+                                                  b = eθ on this support and zero elsewhere. The
+optimization algorithm takes the rational vector θ as input. Every perfect matching has n edges,
+giving
+                          log per( A) ≤ log per( Ab) ≤ log per( A) + ηn.                     (21)
+Set Λ = 6λ and apply Proposition 8.1 with objective tolerance ε = η. It supplies positive rational
+weights w satisfying
+
+              ∑ we ≤ Λ     for every vertex v,        Φ Ab (log w) ≤ OPT Ab (log Λ) + ηn.
+              e∋v
+
+By Lemma 6.1,                                       √
+                                                   2 2n      2n     2n
+                    OPT Ab (log Λ) − log per( A) ≤ √
+                                              b          =√ ≤√ .
+                                                     6λ       3λ     eλ
+                                                               √
+Choosing Λ = 6λ therefore bounds the analytic error by the 2n/ eλ term in (1).
+
+Constructing T from the weights. Evaluate log Z (w) using Theorem 7.1 and the assignment term
+using rational lower bounds for log we . Together these give a rational upper estimate T with
+                                Φ Ab (log w) ≤ T ≤ Φ Ab (log w) + ηn.
+The assignment uses n edges, so logarithmic accuracy O(η ) per weight and additive accuracy
+O(ηn) for log Z suffice. The input approximation in (21), the optimization, and this evaluation each
+contribute at most ηn. Combining these errors with the bound from Lemma 6.1 gives
+                                                      2n
+                                0 ≤ T − log per( A) ≤ √ + 3ηn.
+                                                       eλ
+This proves (20) and finishes the endpoint construction.
+
+Running time. The number of applications of Theorem 7.1 is polynomial in the input and
+parameter encoding lengths and η −1 . In each application, ∑e∋v we ≤ Λ = 6λ for every vertex v.
+We optimize FAb ( x, log Λ) over x ∈ [−W, 0]E , where W = O(log(nλ/η )). Use relative tolerance
+ξ ≍ η/W. Theorem 7.1 then gives the exponential factor
+                                       √                   2 !!
+                                                 λ
+                               exp O    λ log + log log n         .
+                                                 η
+The extra log log n contributes only an absolute polynomial factor in n, by (38). The number of
+optimization steps and all remaining work are polynomial in the input length, λ, and η −1 , with
+absolute degree. The encoding bounds in Proposition 8.1 therefore prove (2).
+
+Corollary 5.1 (Fixed maximum degree). For every fixed ∆, there is a deterministic polynomial time
+algorithm for nonnegative rational matrices with at most ∆ nonzero entries per row and column that
+returns an interval containing the permanent, with positive rational endpoints and logarithmic width
+O∆ (n log log n/ log n).
+Proof. Use the fixed-degree version of Theorem 7.1. At λ = k2 and η = 1/(200k ), the exponential
+factor becomes exp(O∆ (k [log k + log log n])). Taking k = max{2, ⌊ℓ/h⌋}, with ℓ, h as above, makes
+this polynomial and gives the stated interval width.
+
+                                                 20
+6   Optimizing the matching partition function
+Fix a matrix A, and let E be its edges that occur in a perfect matching. For each real a, the feasible
+logarithmic weights form the set
+                                (                                        )
+                         Da =     y ∈ RE : ∑ eye ≤ e a for every vertex v       .
+                                            e∋v
+
+Recall that
+               Φ A (y) = log Z (ey ) + max⟨log A − y, P⟩,        OPT A ( a) = min Φ A (y).
+                                      P∈B                                      y∈D a
+
+Lemma 6.1 (Error of the optimized upper bound). For every a ≥ 0,
+                                                                √
+                      log per( A) ≤ OPT A ( a) ≤ log per( A) + 2 2 ne−a/2 .                         (22)
+    The expected number of unmatched rows at an optimizer bounds how fast OPT A ( a) decreases
+as a increases. We first derive Lemma 6.1 from Lemma 6.2 and Lemma 6.3, then prove these two
+lemmas.
+Lemma 6.2 (Attainment). For every real a, the minimum defining OPT A ( a) is finite and attained.
+Lemma 6.3 (Deficiency and change in the optimum). Let y minimize Φ A over D a , and let d =
+n − ∑e µy,e be the expected number of unmatched rows for M ∼ νG,ey . Then
+                                                √
+                                           d ≤ 2 ne−a/2 .                                (23)
+For every b > a,
+                                0 ≤ OPT A ( a) − OPT A (b) ≤ (b − a)d.                              (24)
+Proof of Lemma 6.1. Each perfect matching has weight in A at most exp(maxP∈B ⟨log A − y, P⟩)
+times its weight in ey . Summing and including imperfect matchings gives log per( A) ≤ Φ A (y).
+   For the upper bound, apply (24) on each interval of a partition of [ a, b] and use (23) at its left
+endpoint. Letting the mesh tend to zero gives
+                                                         Z b√
+                              OPT A ( a) − OPT A (b) ≤          2 ne−s/2 ds.                        (25)
+                                                         a
+We next show that OPT A (b) → log per( A) as b → ∞. Let K be the largest row or column sum of A
+and put t = eb /K. Then log(tA) ∈ Db and
+                        Φ A (log(tA)) = log Z (tA) − n log t −→ log per( A).
+The polynomial Z (tA) has degree n in t and leading coefficient per( A). Together with the lower
+bound, this proves OPT A (b) → log per( A). Let b → ∞ in (25) to conclude.
+
+Proof of Lemma 6.2. For each edge of the support, choose a perfect matching containing it. Averaging
+their incidence matrices gives P0 ∈ B positive on E . Every coordinate of y ∈ D a is at most a, while
+                                      Φ A (y) ≥ ⟨ P0 , log A − y⟩
+because Z ≥ 1. On a feasible sublevel set this also bounds every coordinate below, since the
+other coordinates have a common upper bound. Thus {y ∈ D a : Φ A (y) ≤ C } is compact for
+every C. Taking all coordinates sufficiently negative gives a feasible point, so continuity proves
+attainment.
+
+                                                  21
+6.1   Removing the constraints by normalization
+Normalization lets us vary a while keeping the optimization variables unrestricted. Write
+
+                            H ( x ) = max log ∑ e xe ,            we ( x, a) = e xe +a− H (x) .               (26)
+                                        v         e∋v
+
+The maximum total edge weight at a vertex is e a . Define
+
+                                      FA ( x, a) = Φ A x + ( a − H ( x ))1 .
+                                                                          
+                                                                                                              (27)
+
+The next lemma shows that this rescaling preserves convexity. It also identifies the subgradients
+used in the proof of Lemma 6.3 and in Section 8.
+
+Lemma 6.4 (Convexity after normalization). The function FA is jointly convex in ( x, a), is invariant
+under x 7→ x + t1, and satisfies
+                                 min FA ( x, a) = OPT A ( a).
+                                              x
+
+At ( x, a), let µ be the edge probabilities for weights w( x, a) and put d = n − ∑e µe . For a vertex v attaining
+H ( x ), let p(v) be the probability vector with entries we /e a on edges incident to v and zero elsewhere. If Q is
+the incidence matrix of a perfect matching maximizing ⟨log A − x, Q⟩ over B , then
+
+                                       µ − Q + dp(v) , −d ∈ ∂FA ( x, a).
+                                                         
+                                                                                                              (28)
+
+These vectors generate the subdifferential by convex combinations. Every subgradient in x has ℓ1 norm at
+most 2n.
+
+Proof of Lemma 6.3. Put w = ey and µ = µy . At t = 0, the function t 7→ Φ A (y + t1) has derivative
+∑e µy,e − n = −d < 0. Thus ∑e∋v eye = e a at some vertex v. The vector y also minimizes FA (·, a),
+with the same weights and deficiency.
+   At a minimum, zero is a convex combination of the x-components in (28). Consequently there
+are a convex combination P of maximizing assignments and a probability distribution (ωv )v on
+vertices attaining H (y) such that
+
+                                            ∆ : = P − µ = d ∑ ωv p(v) .                                       (29)
+                                                                   v
+
+The same combination of joint subgradients is (0, −d), so FA (z, b) ≥ OPT A ( a) − (b − a)d for every
+z, b. Minimizing over z proves the upper bound in (24). The lower bound follows from nesting of
+the feasible domains.
+     It remains to bound d. Write Λ = e a , and let ri , c j be the row and column sums of ∆. Since
+P is doubly stochastic, these are the unmatched probabilities, and ∑i ri = ∑ j c j = ∑ij ∆ij = d.
+Equation (29) gives
+                                              d
+                                      ∆ij = wij (ωi + ω j ).
+                                              Λ
+Here i and j denote row and column vertices. At a vertex with ωv > 0, the edge weights sum to Λ,
+so summing its contribution to its own row or column yields ri ≥ dωi and c j ≥ dω j . Therefore
+                                                          wij
+                                                  ∆ij ≤       (r i + c j ).
+                                                          Λ
+
+                                                            22
+The edge bound in Fact 4.5 now gives
+                                                                     ri c j
+                                         µij ≥ wij ri c j ≥ Λ∆ij            .
+                                                                   ri + c j
+
+All monomer probabilities are positive at finite weights. Fact 4.1, with weights ∆ij and numbers
+1/ri + 1/c j , gives
+
+                                              ri c j            Λd2              Λd2
+                         n − d ≥ Λ ∑ ∆ij             ≥                         =     .
+                                    ij
+                                            ri + c j   ∑ij ∆ij (1/ri + 1/c j )   2n
+
+                           ∆ by its
+After dividing each row of √     √ sum, the entries sum to n. The same holds for columns. Since
+n − d ≤ n, this proves d ≤ 2 n/ Λ.
+
+Proof of Lemma 6.4. Every assignment has n edges. Expanding (27) therefore gives
+
+                                                     ∑
+                                                                                                       
+     FA ( x, a) = max ⟨log A − x, Q⟩ + log                    exp ⟨ x, 1 M ⟩ + (n − | M|)( H ( x ) − a) .   (30)
+                 Q perfect                       M matching
+
+The coefficients n − | M | are nonnegative, so every exponent is jointly convex. Fact 4.8 therefore
+proves joint convexity. Translation invariance follows from normalization. Every normalized vector
+is feasible. Conversely, normalizing a feasible vector scales its weights up, which cannot increase
+Φ A . This proves equality of the minima, with attainment from Lemma 6.2.
+    To describe all subgradients, replace H ( x ) in (30) by hv ( x ) = log ∑e∋v e xe and fix an assignment
+Q. The maximum of these smooth convex functions over (v, Q) is FA . The empty matching makes
+the partition expression strictly increasing in hv , so active pairs are exactly the maximizing vertices
+and assignments. Applying Fact 4.8 to an active function gives its gradient (µ − Q + dp(v) , −d).
+Danskin’s theorem (Fact 4.9) proves (28) and the convex-hull description. Finally, µ + dp(v) and Q
+each have nonnegative entries summing to n, so their difference has ℓ1 norm at most 2n. Convex
+combinations preserve this bound.
+
+
+7   Counting matchings under a fixed budget
+We need edge probabilities to optimize the weights and log Z to evaluate the resulting upper bound.
+In the running time bound below, vertex degrees do not enter the exponential factor. We use the
+recursive method of Bayati et al. [BGK+ 07] and the contraction coordinate of Sinclair et al. [SSŠY17].
+The additional step is to reuse values on small edges, with the error controlled by Lemma 4.6.
+
+
+
+
+                                                       23
+Theorem 7.1. Let G be a finite simple graph with at most 2n vertices and positive rational edge weights
+of total encoding length SG . Suppose the edge weights at each vertex sum to at most a rational Γ ≥ 1. For
+rational 0 < ξ < 1/4, a deterministic algorithm returns, for every edge e, an interval containing µe of width
+at most ξµe . It also returns an interval containing log Z ( G ) of width at most ξn. All endpoints are rational.
+Its running time is                                               √
+                                                                               2 Γ
+                                                                                   
+                           poly(SG + n + bits Γ + bits ξ ) exp O         Γ log        ,
+                                                                                 ξ
+with absolute constants and an absolute polynomial degree. If the maximum support degree is a fixed ∆, the
+squared logarithm can be replaced by a single logarithm, with constants depending on ∆.
+
+   The key step is to approximate vertex monomer probabilities. Write qG (u) = Z ( G − u)/Z ( G ),
+and set γ = ⌈Γ⌉, c = 1 + γ, and I = [1/c, 1]. The deletion recursion in Fact 4.3 puts all unmatched-
+vertex probabilities on induced subgraphs in I.
+
+Lemma 7.2. Under the hypotheses of Theorem 7.1, for rational 0 < δ < 1/4 one can compute z ∈
+I V (G) ∩ QV (G) with
+                              max | log zv − log qG (v)| ≤ δ/4
+                                        v
+
+in time                                                     √
+                                                                       Γ
+                                                                         
+                         poly(SG + n + bits Γ + bits δ) exp O   Γ log2      .
+                                                                       δ
+For fixed support degree ∆, the same assertion holds with a single logarithm and constants depending on ∆.
+
+Proof of Theorem 7.1. Order the vertices as v1 , . . . , v N , and put Gj = G − {v1 , . . . , v j−1 }. Apply
+Lemma 7.2 to the induced graphs in the identities
+
+                       µuv = wuv qG (u)qG−u (v),         log Z ( G ) = − ∑ log qGj (v j ).
+                                                                           j
+
+The number of applications is polynomial, and ∑e∋v we ≤ Γ still holds at every remaining vertex.
+Take δ to be a sufficiently small fixed positive rational multiple of ξ. The logarithmic error guarantee
+gives                                                           
+                                                 zv
+                                     qG (v) ∈         , (1 + δ)zv ∩ I.                              (31)
+                                                1+δ
+The interval for an edge probability has endpoint ratio at most (1 + δ)4 , so the interval width is
+≲ δµuv , and hence at most ξµuv . There are at most 2n terms in the partition identity. After taking
+logarithms, the intervals in (31) contribute total width ≲ nδ. Round each logarithmic interval
+outward to rational endpoints, adding at most δ to its width. The resulting total width is ≲ nδ ≤ ξn
+by the choice of δ. Rational lower and upper bounds for logarithms of positive rationals can be
+computed using range reduction and convergent power series in polynomial time in the input
+length and number of requested precision bits.
+   The running time follows from Lemma 7.2.
+
+    Each application of Lemma 7.2 uses a fixed graph G, possibly an induced subgraph of the
+original graph. Both edge types reduce the remaining depth by one. Edges above a threshold
+create recursive calls, and the other edges read stored answers for G with no vertices deleted. The
+threshold bounds the number of recursive children.
+
+                                                       24
+    The proof combines contraction (Fact 4.7) with the bound on total change from Lemma 4.6. Use
+the coordinates and constants from the contraction fact:
+                                 2−q             lp        m              1
+                     ψ(q) = log       ,      s=      1 + 4γ ,     ρ = 1− .
+                                   q                                      s
+
+Proof of Lemma 7.2. Choose
+                                                                           
+                             δ                       64s                  16s
+                         κ=      ,          Q=             ,   L = s log2       .                  (32)
+                            64s2                      δ                    δ
+
+Let R round downward to the grid of spacing 1/(cQ) in I. Both endpoints of I belong to this grid.
+Since |ψ′ (q)| ≤ 2c on I, rounding adds at most 2/Q to the error in ψ.
+    For a deleted vertex set S and v ∈/ S, define qb0 (v, S) = 1. For ℓ ≥ 1, define
+                                                                          −1 
+                                        1 + ∑ wvu qbℓ−1 (u, S ∪ {v})
+                                            u∼v, u/
+                                                  ∈S
+                                                                          
+                                                                          
+                                             wvu >κ
+                       qbℓ (v, S) = R                                           .          (33)
+                                                                          
+                                      + ∑ wvu qbℓ−1 (u, ∅)                
+                                                                               
+                                                                               
+                                               u∼v, u/
+                                                     ∈S
+                                                wvu ≤κ
+
+
+The unrounded values lie in I, so rounding leaves all values in I. Compute the arrays qbℓ (v, ∅), for
+every vertex v, in increasing order of ℓ. Expand the first sum recursively and read the second from
+earlier arrays. After j steps along a branch starting at level ℓ, the second sum reads the stored array
+with index ℓ − j − 1. Return zv = qbL (v, ∅).
+    To bound the error at depth ℓ after h deletions, put
+
+                                                                    2s
+                                     Bℓ (h) = sρℓ + 2κs(h + s) +       .
+                                                                    Q
+
+The three terms account for stopping the recursion, reusing probabilities after deletions, and
+rounding. We prove simultaneously for every S and v ∈
+                                                    / S that
+
+                                 |ψ(qbℓ (v, S)) − ψ(qG−S (v))| ≤ Bℓ (|S|).                         (34)
+
+At ℓ = 0, the diameter bound in (17) gives error at most s ≤ B0 (|S|). Suppose the claim holds at
+depth ℓ − 1, and write h = |S|.
+    First compare the unrounded update in (33) with the update that uses probabilities qG−S−v (u)
+on edges of weight above κ and qG (u) on the other edges. By induction, the former input errors
+are at most Bℓ−1 (h + 1) and the latter are at most Bℓ−1 (0). The function Bℓ−1 is nondecreasing, so
+Fact 4.7 bounds the resulting error by ρBℓ−1 (h + 1).
+    Next compare this update with the deletion recursion for qG−S (v). Only the inputs on edges of
+weight at most κ change. Their total effect on the denominator is at most
+
+                             κ     ∑       |qG (u) − qG−S−v (u)| ≤ κ (h + 1),
+                                  ∈S∪{v}
+                                 u/
+
+
+by (16). For a denominator 1 + t, the transformed output is ψ((1 + t)−1 ) = log(1 + 2t), whose
+derivative in t is at most 2. The change of inputs on edges of weight at most κ therefore contributes
+
+
+                                                        25
+at most 2κ (h + 1) to the error in ψ. Finally, rounding adds at most 2/Q. Since ρs = s − 1, the total
+error is at most
+                              ρBℓ−1 (h + 1) + 2κ (h + 1) + 2/Q = Bℓ (h),
+which proves (34).
+   Taking ℓ = L and h = 0 gives
+                                                                        2s
+                             max |ψ(zv ) − ψ(qG (v))| ≤ sρ L + 2κs2 +      .                        (35)
+                               v                                        Q
+Our choices in (32) bound these three terms by δ/16, δ/32, and δ/32, respectively. For the first
+term, use ρ L ≤ e− L/s and log2 (16s/δ) ≥ log(16s/δ). Their sum is less than δ/4, and (17) gives the
+required logarithmic accuracy.
+    For the running time, put b = γ/κ > 1. Each recursive call has at most b children. Computing
+the stored value qbℓ (v, ∅) therefore uses at most 1 + b + · · · + bℓ recursive nodes. Over all vertices
+and levels up to L, the total is at most
+                                                                        s 
+                           |V ( G )|( L + 1)2 b L = poly(n) exp O s log2       .
+                                                                          δ
+Scanning the remaining incident edges accesses stored values and takes polynomial time in the
+graph size per node.
+    Every recursive output is rounded, so every child value can be represented with denominator
+cQ. A single update adds rational multiples of the input weights, takes one reciprocal, and rounds
+to the grid. The intermediate numerators and denominators in that update have lengths polynomial
+in SG + n + bits(cQ). Thus each update has polynomial bit cost. The integers s, Q, L and rational
+threshold κ also have the required encoding lengths and are computable by integer arithmetic. This
+proves the stated running time.
+    For fixed maximum support degree ∆, recurse on every edge incident to the current vertex v in
+G − S, with child deletion set S ∪ {v}, decreasing ℓ and rounding at every step. Fact 4.7 then gives
+error at most
+                                            2 L −1 j          2s
+                                    sρ L +      ∑
+                                           Q j =0
+                                                   ρ ≤ sρ L +
+                                                              Q
+                                                                 < δ/4.
+                                                                       √
+The number of recursive children is at most ∆, so depth L = O( Γ log(Γ/δ)) gives the asserted
+bound with a single logarithm. Each recursive update again has polynomial bit cost.
+
+
+8   Optimization with normalized weights
+We find weights whose objective is close to the optimum. At each iterate, we normalize the edge
+weights and use edge probabilities to choose a direction. We then average the iterates. The iteration
+follows projected subgradient averaging [Bub15, Section 3.1]. Corollary 4.13 accounts for the errors
+in these directions.
+    Fix a nonempty support E in which every edge occurs in a perfect matching. Let n ≥ 1 be the
+number of vertices on each side, and put m = |E |. The input is a rational vector θ representing
+logarithms of matrix entries. Define A bij = eθij on E and zero elsewhere. Recall the normalization
+from (26) and (27):
+                   H ( x ) = max log ∑ e xe ,     FAb ( x, a) = Φ Ab x + ( a − H ( x ))1 .
+                                                                                        
+                              v      e∋v
+
+
+                                                  26
+After normalization, the largest sum of edge weights at a vertex is e a . By Lemma 6.4, FAb ( x, a) is
+convex in x, is unchanged by a common translation of its coordinates, and has minimum OPT Ab ( a).
+
+Proposition 8.1. Given θ ∈ QE , rational λ ≥ 1, and rational 0 < ε ≤ 1, one can compute positive rational
+weights w such that
+
+                 ∑ we ≤ λ     for every vertex v,       Φ Ab (log w) ≤ OPT Ab (log λ) + εn.
+                 e∋v
+
+Put                                                                                 
+                        ε                                                 nλ
+                   τ=      ,        W = 8 + ⌈log2 (1 + λ/τ )⌉ = O 1 + log                .           (36)
+                      128n                                                 ε
+The algorithm solves O(mW 2 /ε2 ) assignment problems and applies Theorem 7.1 as many times. Each
+application uses Γ = λ and relative tolerance ξ = ε/(1024W ). The assignment problems and all remaining
+work take time polynomial in the input and parameter encoding lengths and ε−1 . The returned weights,
+iterates, and inputs to Theorem 7.1 have encoding lengths polynomial in the input and parameter encoding
+lengths.
+
+    It suffices to optimize over a bounded box containing a point whose objective value is close to
+the minimum. We state this property and the approximate subgradient guarantee, then deduce the
+algorithm. Throughout this section, write a = log λ and Q = [−W, 0]m .
+
+Lemma 8.2 (A nearly optimal point in Q). There exists z ∈ Q such that
+                                                                     εn
+                                       FAb (z, a) ≤ OPT Ab ( a) +       .
+                                                                     64
+Lemma 8.3 (Rational approximate subgradients). For a rational x ∈ Q, a procedure returns a rational
+vector h with ∥h∥2 ≤ 2 such that every y ∈ Q satisfies
+
+                           FAb (y, a) ≥ FAb ( x, a) + n⟨h, y − x ⟩ − 2ξn(1 + W ).                    (37)
+
+The procedure solves one assignment problem and applies Theorem 7.1 once, with Γ = λ and tolerance ξ.
+The assignment and remaining work take time polynomial in the input and parameter encoding lengths and
+the encoding length of x. Its output and the weights used in Theorem 7.1 have encoding lengths polynomial
+in the input and parameter encoding lengths.
+
+Proof of Proposition 8.1. Start with x0 = 0. Choose β as the largest inverse power of two satisfying
+β ≤ ξ/m, and set
+                                                        64mW 2
+                                                               
+                                           ε
+                                     α=      ,   T=               .
+                                          16               ε2
+At each of the T iterations, obtain ht from Lemma 8.3 and round each coordinate toward zero to a
+multiple of β, obtaining eht . This preserves the norm bound and changes the direction by at most
+
+                                 ∥e
+                                  ht ∥2 ≤ 2,        ∥e
+                                                     ht − ht ∥1 ≤ mβ ≤ ξ.
+
+Take the clipped step without further rounding:
+
+                                         x t + 1 = Π Q ( x t − αe
+                                                                h t ).
+
+
+                                                     27
+Since Q is a box with integer endpoints, this projection uses only rational comparisons and leaves
+every iterate in Q. Compute the average
+
+                                                         1 T −1
+                                                         T t∑
+                                                  x̄ =          xt .
+                                                            =0
+
+To return rational weights, approximate its exponentials by positive rational numbers be with
+| log be − x̄e | ≤ ξ, and set
+                                                         λbe
+                                B = max ∑ be ,     we =      .
+                                      v e∋v               B
+Thus ∑e∋v we ≤ λ for every vertex v.
+     We apply the averaging guarantee in Corollary 4.13. Choose z as in Lemma 8.2. Round-
+ing changes the inner product with z − xt by at most ξW, because ∥z − xt ∥∞ ≤ W. For f ( x ) =
+FAb ( x, a)/n, (37) therefore gives the supporting inequality with G = 2 and r = 2ξ (1 + W ) + ξW.
+Since ∥ x0 − z∥22 ≤ mW 2 , it gives
+
+                                                           mW 2
+                                                                                         
+                                                       ε
+                 FAb ( x̄, a) ≤ OPT Ab ( a) + n          +      + 2α + 2ξ (1 + W ) + ξW
+                                                      64   2αT
+                                             εn
+                           ≤ OPT Ab ( a) +      .
+                                              2
+The subgradient bound in Lemma 6.4 makes FAb (·, a) 2n-Lipschitz in the sup norm. Since the
+returned weights satisfy Φ Ab (log w) = FAb (log b, a), we conclude that
+                                                          εn
+                       Φ Ab (log w) ≤ OPT Ab ( a) +          + 2ξn < OPT Ab ( a) + εn.
+                                                           2
+    To bound encoding lengths, write α = A0 /B0 in lowest terms and β = 2− p , where p =
+O(log(m/ξ )). Every step changes each coordinate by a multiple of 1/( B0 2 p ), and clipping to the
+integer endpoints preserves this denominator. The iterates lie in Q, so their encoding lengths are
+polynomial in the input and parameter encoding lengths. The average has denominator TB0 2 p
+and satisfies the same bound. There are O(mW 2 /ε2 ) calls to the direction procedure. Its encoding
+bounds and the final rational normalization prove the remaining claims.
+
+Proof of Lemma 8.2. Let w be optimal weights under budget λ. The proof of Lemma 6.3 shows that
+the weights at some vertex sum to λ. Raise every weight below τ to τ, and define
+
+                    ve = max{we , τ },            ze = log(ve /λ),       B = max ∑ ve .
+                                                                               u   e∋u
+
+Every original weight is at most λ, and τ ≤ λ, so τ ≤ ve ≤ λ. Thus z ∈ [− log(λ/τ ), 0]m ⊆ Q. At
+most n edges meet each vertex, giving λ ≤ B ≤ λ + nτ.
+   It remains to bound the change in the objective. For an edge e = ij, edge insertion gives
+
+                                     ∂ log Z (w)   Z ( G − i − j)
+                                                 =                ≤ 1.
+                                         ∂we            Z(G)
+
+Raising the weights therefore increases log Z by at most mτ. It cannot increase the assignment
+                           be − log we can only decrease. Normalization maps z to the weights
+term, since every cost log A
+
+
+                                                         28
+λv/B. This scales v down, which decreases log Z and adds n log( B/λ) to the cost of each perfect
+matching. Consequently,
+
+                            FAb (z, a) = Φ Ab log(λv/B)
+                                                            
+
+                                      ≤ OPT Ab ( a) + mτ + n log(1 + nτ/λ)
+                                                                           εn
+                                      ≤ OPT Ab ( a) + 2n2 τ = OPT Ab ( a) + .
+                                                                           64
+
+
+Proof of Lemma 8.3. Compute positive rational numbers be satisfying | log be − xe | ≤ ξ. Set
+
+                                                                           λbe
+                                     B = max ∑ be ,             we =           ,
+                                            v    e∋v                        B
+
+choose a vertex attaining the maximum, and put pe = be /B on its incident edges and zero elsewhere.
+Thus p ≥ 0 and ∑e pe = 1. Apply Theorem 7.1 to the rational weights w with tolerance ξ. Let µ
+be the edge probabilities under νG,w and µ
+                                         b the lower endpoints of the returned intervals. Their
+relative width guarantee gives
+
+                               0≤µ
+                                 b ≤ µ,           ∥µb − µ∥1 ≤ ξ ∑ µe ≤ ξn.
+                                                                       e
+
+Compute a maximum weight assignment Px for the rational costs θ − x, and return
+
+                                                                b + dbp − Px
+                                                                µ
+                                 db = n − ∑ µ
+                                            be ,         h=                  .
+                                            e                         n
+
+Both µb + dbp and Px have nonnegative entries summing to n. Hence ∥h∥2 ≤ ∥h∥1 ≤ 2.
+    The assignment Px was computed at x. The estimates µb, and hence d,
+                                                                      b use the rounded weights
+we = λbe /B. To combine the two, write the normalized objective as an assignment maximum plus
+the convex function K:
+
+   FAb ( x, a) = K ( x ) + max⟨θ − x, P⟩,       K ( x ) = log ∑ exp (⟨ x, 1 M ⟩ + (n − | M|)( H ( x ) − a)) .
+                        P∈B                                     M
+
+Here the sum is over all matchings. The function H is 1-Lipschitz in the sup norm. A perturbation
+of size s therefore changes each exponent in the sum by at most | M|s + (n − | M |)s = ns, proving
+that K is n-Lipschitz in this norm.
+    For analysis, put r = log b and d = n − ∑e µe . The subgradient formula (28) gives q = µ + dp ∈
+∂K (r ). This vector has nonnegative entries summing to n. Since ∥r − x ∥∞ ≤ ξ, the Lipschitz bound
+for K and ∥q∥1 = n transfer its supporting inequality from r to x, with error at most 2ξn:
+
+                         K (y) ≥ K (r ) + ⟨q, y − r ⟩ ≥ K ( x ) + ⟨q, y − x ⟩ − 2ξn.
+
+The maximizing assignment Px gives the supporting inequality for the second term at x. Moreover,
+
+                            ∥nh − (q − Px )∥1 ≤ ∥µb − µ∥1 + |db− d| ≤ 2ξn.
+
+Adding the two supporting inequalities and using ∥y − x ∥∞ ≤ W proves (37).
+
+                                                       29
+    Since e xe ≥ e−W throughout the box, a fixed grid whose spacing is an inverse power of two
+gives the required approximations be with O(W + log(1/ξ )) bits per coordinate. The directed
+evaluations in Lemma A.1 compute them in polynomial time. The algorithm in Theorem 7.1 returns
+intervals containing the edge probabilities with polynomial encoding length. The normalization
+and the formula for h preserve this bound for the returned direction. This proves the remaining
+claims.
+
+
+Acknowledgements
+The authors would like to thank Farzam Ebrahimnejad and Shayan Oveis Gharan for helpful
+advice.
+
+
+
+
+                                              30
+References
+[Ana26]   Nima Anari. Beyond the Bethe approximation of the permanent. arXiv preprint
+          arXiv:2608.28031, 2026. 1, 12
+
+[AR25]    Nima Anari and Alireza Rezaei. A tight analysis of Bethe approximation for permanent.
+          SIAM Journal on Computing, 54(4):FOCS19–81–FOCS19–101, 2025. 1, 2, 3, 12, 35
+
+[Ber09]   Dimitri P. Bertsekas. Convex Optimization Theory. Athena Scientific, 2009. 13, 17
+
+[BGK+ 07] Mohsen Bayati, David Gamarnik, Dmitriy Katz, Chandra Nair, and Prasad Tetali. Simple
+          deterministic approximation algorithms for counting matchings. In Proceedings of the
+          39th ACM Symposium on Theory of Computing (STOC), pages 122–127, 2007. 8, 9, 13, 23
+
+[Bub15]   Sébastien Bubeck. Convex optimization: Algorithms and complexity. Foundations and
+          Trends in Machine Learning, 8(3–4):231–357, 2015. 11, 13, 17, 18, 26
+
+[BV04]    Stephen Boyd and Lieven Vandenberghe. Convex Optimization. Cambridge University
+          Press, 2004. 16
+
+[CG24]    Zongchen Chen and Yuzhou Gu. Fast sampling of b-matchings and b-edge covers. In
+          Proceedings of the 2024 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA),
+          pages 4972–4987, 2024. 10, 13, 14
+
+[DJ26]    Dingding Dong and Vishesh Jain. Optimal girth-dependent bounds for the Bethe
+          approximation of the permanent. arXiv preprint arXiv:2609.02017, 2026. 12
+
+[GK10]    David Gamarnik and Dmitriy Katz. A deterministic approximation algorithm for
+          computing the permanent of a 0, 1 matrix. Journal of Computer and System Sciences,
+          76(8):879–883, 2010. 3, 13
+
+[God81]   C. D. Godsil. Matchings and walks in graphs. Journal of Graph Theory, 5(3):285–297, 1981.
+          9
+
+[GS14]    Leonid Gurvits and Alex Samorodnitsky. Bounds on the permanent and some appli-
+          cations. In Proceedings of the 55th IEEE Symposium on Foundations of Computer Science
+          (FOCS), pages 90–99, 2014. 1
+
+[Gur05]   Leonid Gurvits. A proof of hyperbolic van der Waerden conjecture: the right general-
+          ization is the ultimate simplification. arXiv preprint arXiv:math/0504397, 2005. ECCC
+          TR05-103. 1
+
+[Gur11]   Leonid Gurvits. Unleashing the power of Schrijver’s permanental inequality with the
+          help of the Bethe approximation. arXiv preprint arXiv:1106.2844, 2011. 12
+
+[HL72]    Ole J. Heilmann and Elliott H. Lieb. Theory of monomer-dimer systems. Communications
+          in Mathematical Physics, 25(3):190–232, 1972. 8, 13, 15
+
+[JSV04]   Mark Jerrum, Alistair Sinclair, and Eric Vigoda. A polynomial-time approximation
+          algorithm for the permanent of a matrix with nonnegative entries. Journal of the ACM,
+          51(4):671–697, 2004. 1
+
+                                               31
+[KL26]     Frederic Koehler and Pui Kuen Leung. Approximating the permanent of a ran-
+           dom matrix with polynomially small mean: Zeros and universality. arXiv preprint
+           arXiv:2604.01367, 2026. 12
+
+[LP25]     Aditi Laddha and Madhusudhan Reddy Pittu. An algorithmic upper bound for per-
+           manents via a permanental Schur inequality. arXiv preprint arXiv:2509.08121, 2025.
+           12
+
+[LSW00]    Nathan Linial, Alex Samorodnitsky, and Avi Wigderson. A deterministic strongly
+           polynomial algorithm for matrix scaling and approximate permanents. Combinatorica,
+           20(4):545–568, 2000. Preliminary version in STOC 1998. 1, 3, 4, 35
+
+[NP26]     Ijay Narang and Will Perkins. Structural corrections to the Bethe approximation of the
+           permanent. arXiv preprint arXiv:2608.31061, 2026. 1, 12
+
+[Sam08]    Alex Samorodnitsky. An upper bound for permanents of nonnegative matrices. Journal
+           of Combinatorial Theory, Series A, 115(2):279–292, 2008. Preprint circulated in 2006. 1
+
+[Sch98]    Alexander Schrijver. Counting 1-factors in regular bipartite graphs. Journal of Combina-
+           torial Theory, Series B, 72(1):122–135, 1998. 12
+
+[Sch17]    Alexander Schrijver. A course in combinatorial optimization, 2017. Lecture notes, March
+           23. 14
+
+[Spi23]    Thomás Jung Spier. A refined Gallai–Edmonds structure theorem for weighted
+           matching polynomials. Discrete Mathematics, 346(3):113244, 2023. Accessible version:
+           arXiv:2006.15215v2. 15
+
+[SSŠY17]   Alistair Sinclair, Piyush Srivastava, Daniel Štefankovič, and Yitong Yin. Spatial mixing
+           and the connective constant: Optimal bounds. Probability Theory and Related Fields,
+           168(1–2):153–197, 2017. 8, 9, 13, 16, 23
+
+[Val79a]   Leslie G. Valiant. Completeness classes in algebra. In Proceedings of the Eleventh Annual
+           ACM Symposium on Theory of Computing (STOC), pages 249–261, 1979. 38
+
+[Val79b]   Leslie G. Valiant. The complexity of computing the permanent. Theoretical Computer
+           Science, 8(2):189–201, 1979. 1
+
+[van99]    J. van den Berg. On the absence of phase transition in the monomer-dimer model. In
+           Maury Bramson and Rick Durrett, editors, Perplexing Problems in Probability: Festschrift
+           in Honor of Harry Kesten, pages 185–195. Birkhäuser, 1999. 13
+
+[Von13]    Pascal O. Vontobel. The Bethe permanent of a nonnegative matrix. IEEE Transactions on
+           Information Theory, 59(3):1866–1901, 2013. 12
+
+[WV26]     Binghong Wu and Pascal O. Vontobel. Double-cover-based analysis of the Bethe per-
+           manent of block-structured positive matrices. arXiv preprint arXiv:2601.17508v3, 2026.
+           Extended version with appendices of the ISIT paper. 12
+
+
+
+                                                32
+[Yi26]   Zihong Yi. Diffuse Gaussian truncation for deterministic approximate counting. arXiv
+         preprint arXiv:2609.04079, 2026. 12
+
+[YZ26]   Yuichi Yoshida and Zihan Zhang. Low-sensitivity matching via sampling from Gibbs
+         distributions. In Proceedings of the 2026 Annual ACM-SIAM Symposium on Discrete
+         Algorithms (SODA), pages 120–149, 2026. 13, 14
+
+
+
+
+                                            33
+A     Numerical details
+In this appendix, we justify the numerical accuracy and running-time bounds used in the main
+algorithm.
+
+A.1    Directed evaluations and rational endpoints
+Lemma A.1. Let p ≥ 0 be an integer. For rational arguments in their real domains, logarithms, exponentials,
+and square roots can be bounded above and below by rational numbers differing by at most 2− p . With directed
+rounding, these bounds can be computed in polynomial time in the input length, p, and output length.
+
+   First we apply Lemma A.1 to the endpoints and objective evaluation in Section 5. Since the
+support has a perfect matching,
+
+                               | log per( A)| ≤ n max | log Ae | + log(n!).
+                                                   e∈E
+
+For positive binary rational inputs, | log Ae | = O(bits( Ae )). The upper estimate T in Section
+                                                                                              √ 5
+differs from log per( A) by O(n), because λ ≥ 1 and η ≤ 1/100. The error bound E = 2n/ eλ +
+O(ηn) is also of magnitude O(n).
+    To obtain logarithmic accuracy, suppose y ≥ 2−K for an integer K ≥ 1, and 0 < ζ ≤ 1. An
+interval [l, u] containing y, of width at most ζ2−K−1 , has positive endpoints whose logarithms
+differ by at most ζ, because its lower endpoint is at least 2−K −1 and log(u/l ) ≤ (u − l )/l. Thus
+p = O(K + log(1/ζ )) absolute precision bits suffice. For y = e T and y = e T −E , one can take
+K = O(1 + | T | + E), which is polynomial in the input and parameter encoding lengths. Taking
+ζ = min{1, 2ηn} and using the upper endpoint for e T and the lower endpoint for e T −E yields
+positive rational U, L with
+
+                      T ≤ log U ≤ T + 2ηn,          T − E − 2ηn ≤ log L ≤ T − E.
+
+The number of precision bits and the encoding lengths of these rational outputs are polynomial in
+the input and parameter encoding lengths.
+    To evaluate Φ Ab (log w), use an upper endpoint for log Z (w) and lower endpoints of intervals
+containing log we in the assignment costs θe − log we . Intervals of width O(η ) change the cost of
+each perfect matching by O(ηn). Theorem 7.1 supplies an interval of width O(ηn) containing
+log Z (w). Choosing sufficiently small absolute constants in these tolerances gives an upper estimate
+with additive error at most ηn, as used in Section 5.
+
+Proof of Lemma A.1. For logarithms, separate an integer power of two and use the convergent series
+log x = 2 ∑ j≥0 (( x − 1)/( x + 1))2j+1 /(2j + 1) for 1 ≤ x < 2, bounding the tail geometrically. For
+an exponential e x , use [0, 2− p ] if x ≤ −( p + 1). Otherwise range reduction, the Taylor series with
+its remainder bound, and repeated squaring give the required bounds. For positive x, the integer
+part of e x has O(1 + x ) bits, and for x ≥ 1 its length is also Ω( x ). Computing to O( p + bits x + 1 +
+max{ x, 0}) bits therefore has polynomial cost in the input length, p, and output length. Square
+roots follow by bisection. Directed rounding keeps the true value between the computed endpoints,
+proving the lemma.
+
+
+
+                                                     34
+A.2    Absorbing the box width’s dependence on n
+Proposition 8.1 uses ξ = ε/(1024W ), where W = O(log(nλ/ε)) and ε = η in the main algorithm.
+The following inequality absorbs the additional dependence on n from W into a polynomial factor
+of absolute degree.
+
+Lemma A.2. For t ≥ 1 and b, z ≥ 0,
+
+                            t[b + log(z + e)]2 ≤ 2t[b + log t + 1]2 + 2z.                      (38)
+                                                          √
+    In the running-time expression of Section 5, take t = λ, z = log n, and b = O(log(λ/η )). The
+2z term gives an absolute polynomial factor in n after exponentiation, and log t is absorbed into b.
+This proves (2), with an absolute polynomial degree.
+                                                                √
+Proof of Lemma A.2. z + e ≤ te(1 + z/t) and log(1 + x ) ≤ x for x ≥ 0. Apply (u + v)2 ≤
+2u2 + 2v2 .
+
+
+B     Amplification to a relative approximation
+The logarithmic saving in Theorem 1.1 leaves a substantial gap to a relative approximation. A fixed
+power saving would already close that gap by the standard amplification observation attributed to
+Barvinok in Linial, Samorodnitsky, and Wigderson [LSW00, Section 1.1]. We follow the disjoint-
+copy argument in Anari and Rezaei [AR25, Section 1.1], including rational endpoints, then derive
+its consequence for matrices of degree at most three.
+     A deterministic fully polynomial time approximation scheme (FPTAS) returns rational end-
+points L ≤ per( A) ≤ U with U/L ≤ 1 + ϵ, in time polynomial jointly in the input encoding length
+and ϵ−1 .
+
+Theorem B.1 (Amplification of a fixed power saving [LSW00, AR25]). Suppose that, for fixed constants
+C ≥ 1 and 0 < δ ≤ 1, a deterministic algorithm running in polynomial time returns positive rational
+numbers L N , UN satisfying
+
+                                                               UN
+                              L N ≤ per( A) ≤ UN ,                ≤ exp(CN 1−δ )
+                                                               LN
+for every nonnegative rational matrix A of order N. Then the permanent has a deterministic FPTAS.
+
+    It suffices to make the logarithmic interval width small after taking the root corresponding to
+the number of copies. The following lemma separates that calculation from the rational arithmetic.
+
+Lemma B.2 (Recovering an interval from disjoint copies). Let r ≥ 1 be an integer, and suppose positive
+rational numbers Lr , Ur satisfy Lr ≤ per( A)r ≤ Ur . For rational 0 < α ≤ 1, one can compute rational
+endpoints L ≤ per( A) ≤ U satisfying
+                                                       1/r
+                                         U         Ur
+                                           ≤                   (1 + α )2 .
+                                         L         Lr
+
+The running time is polynomial in r and the encoding lengths of Lr , Ur , α.
+
+
+                                                        35
+Proof of Theorem B.1. Let 0 < ϵ ≤ 1. Increase C to an integer, put q = ⌈1/δ⌉, and set
+                                                    q
+                                               q−1 8C
+                                          r=n             .
+                                                     ϵ
+Form the block diagonal matrix A⊕r consisting of r copies of A. Its order is rn, and its permanent
+is per( A)r . Apply the assumed algorithm. Since qδ ≥ 1, taking rth roots of its endpoints gives an
+interval of logarithmic width at most
+
+                                   C (rn)1−δ
+                                             = Cn1−δ r −δ ≤ ϵ/8.
+                                       r
+   Apply Lemma B.2 with α = ϵ/16. The resulting rational endpoints have ratio at most
+
+                                  eϵ/8 (1 + ϵ/16)2 ≤ eϵ/4 ≤ 1 + ϵ,
+
+where the last inequality uses log(1 + ϵ) ≥ ϵ/2 on [0, 1]. The number of copies, the explicit matrix
+size, the assumed algorithm’s output length, and the root computations are polynomial in the
+original input length and ϵ−1 . The exponents can depend on the fixed C, δ. Larger ϵ is handled by
+using ϵ = 1.
+
+Proof of Lemma B.2. It is enough to bound each endpoint’s rth root between positive rational num-
+bers whose ratio is at most 1 + α, then use the outer bounds. For a positive rational x of encoding
+length at most B, both x and x1/r lie between 2− B and 2B . Bisect this interval, deciding which side
+contains the root by comparing the midpoint’s rth power with x. Stop when the interval has width
+at most α2− B . Its lower endpoint is at least 2− B , so its ratio is at most 1 + α.
+    There are O( B + log(1/α)) bisection steps. Each comparison can be performed by taking integer
+powers of the numerators and denominators and cross-multiplying. The resulting integers have bit
+lengths polynomial in r, B, bits α. The two outer endpoints therefore have the asserted ratio and
+can be computed in the stated time.
+
+    The argument with disjoint copies uses only closure under disjoint unions and multiplicativity
+of the quantity being approximated. In particular, it can be applied after a reduction to a restricted
+class of matrices.
+
+Corollary B.3 (Zero-one matrices of degree at most three). The hypothesis of Theorem B.1 need only
+hold for zero-one matrices with at most three nonzero entries in each row and column.
+
+Proof. Lemma D.1 constructs, in polynomial time, a zero-one matrix Q in this class and a positive
+rational c such that per( Q) = c per( A). Apply the proof of Theorem B.1 to copies of Q, which stay
+in the same class, and divide the final endpoints by c. The order of Q and the encoding length of c
+are polynomial in the input length of A, so the amplified algorithm and the final divisions take
+polynomial time in that length and ϵ−1 .
+
+Why the present bound does not give an FPTAS. An approximation guarantee exp( g( N ))
+applied to r copies gives a logarithmic width bound of g(rn)/r after taking roots. For g( N ) =
+N/ logc N and r ≤ nK , this bound is at least
+                                                 n
+                                                           .
+                                          [(K + 1) log n]c
+
+                                                 36
+Thus polynomially many copies do not turn a logarithmic saving into a relative guarantee, even
+at a fixed target accuracy. Likewise, substituting λ ≍ n2δ and η ≍ n−δ into Theorem 1.2 gives the
+needed error scale O(n1−δ ) but a time bound
+
+                                  poly(S + n) exp(O(nδ log2 n)).
+
+The approximation theorem therefore does not meet the hypothesis of Theorem B.1.
+
+
+C    The all-ones example
+The error bound in Lemma 6.1 has the right order for the optimized objective OPT A . This already
+holds for the all-ones matrix, whose permanent is n!.
+
+                                                                         √ matrix and Λ ≥ 1. The
+Proposition C.1 (Error for the all-ones matrix). Let A be the n × n all-ones
+uniform logarithmic weights yij = log(Λ/n) attain OPT A (log Λ). If n ≥ 4 Λ, then
+
+                                                                log 2 n
+                               OPT A (log Λ) − log(n!) ≥             √ .
+                                                                  2    Λ
+Proof. Average any feasible logarithmic weight vector over all row and column permutations.
+Convexity and symmetry of Dlog Λ and Φ A show that the averaged vector is feasible, has constant
+coordinates, and has no larger objective value. At uniform edge weight t, write yij = log t. The
+compensation for changing the weights is t−n , so
+
+                                     exp(Φ A (y)) = ∑ t| M|−n .
+                                                        M
+
+Each term is nonincreasing in t. Thus the largest permitted uniform weight, t = Λ/n, attains the
+minimum.
+   Write g = OPT A (log Λ) − log(n!). A matching with j unmatched rows is specified by its
+                                                                                         2
+unmatched rows and columns and a bijection between the remaining vertices. There are (nj) (n − j)!
+such matchings. Hence
+
+                              1 n n 2                           n    j
+                                                    n j        n 1 n
+                              n! j∑                           ∑ j j! Λ .
+                       eg =              ( n − j ) !        =
+                                  =0
+                                      j                Λ      j =0
+
+                √                                    √     √
+Take k = ⌊n/(2 Λ)⌋. The hypothesis gives n/(4 Λ) ≤ k ≤ n/(2 Λ). Using just the term with
+j = k, together with (nk) ≥ (n/k )k and k! ≤ kk , gives
+                                                       k
+                                                 n2
+                                             
+                                        g
+                                       e ≥                  ≥ 4k .
+                                                 Λk2
+
+Taking logarithms proves the lower bound.
+                                                                 √
+   Together with Lemma 6.1, this gives logarithmic error Θ(n/ Λ) for 1 ≤ Λ ≤ n2 /16. The
+limitation concerns the optimized objective OPT A , even though the permanent of this particular
+matrix is explicit.
+
+
+
+                                                  37
+D     Reduction to zero-one matrices of degree at most three
+We give the reduction for perfect matchings used in Corollary B.3. It uses the classical degree
+reduction in Valiant’s proof of Proposition 8 [Val79a] and the arithmetic path construction from the
+proof of Theorem 1. We give explicit bipartite constructions to track the maximum degree and the
+dependence on binary encoding length.
+
+Lemma D.1. Given A ∈ Qn≥×0 n , one can construct in polynomial time a zero-one matrix Q with at most
+three ones per row and column, and a positive rational c, such that per( Q) = c per( A).
+
+   Clearing denominators reduces the task to positive integer edge weights. We first replace
+these weights by an unweighted graph, then reduce the vertex degrees. This order lets the weight
+construction use vertices of unrestricted degree.
+
+Lemma D.2 (Encoding integer weights). A bipartite graph with equally sized parts and positive integer
+edge weights can be replaced in polynomial time by an unweighted bipartite graph having the same permanent.
+The numbers of vertices and edges are bounded by a constant times the original number of vertices plus the
+total binary length of the edge weights.
+
+Lemma D.3 (Reducing vertex degrees). A weighted bipartite graph with n vertices in each part, m edges,
+and no isolated vertices can be replaced in polynomial time by a weighted bipartite graph of maximum degree
+three with 2m − n vertices in each part. The perfect matchings of the two graphs are in a weight-preserving
+bijection. The new edge weights are the original weights and ones.
+
+Proof of Lemma D.1. Multiply each row by the product of the denominators of its positive entries.
+This yields an integer matrix B and a positive integer c with per( B) = c per( A). The bit length of
+each multiplier is at most the sum of the bit lengths of the row’s denominators, so this step has
+polynomial cost.
+    Apply Lemma D.2 to the weighted graph of B. The resulting unweighted graph has polynomi-
+ally many vertices and edges and the same permanent. Since it has a perfect matching, it has no
+isolated vertices. Apply Lemma D.3 to this graph. All weights remain one, and the permanent is
+unchanged. The resulting matrix Q has polynomial size, at most three ones per row and column,
+and per( Q) = c per( A).
+
+Proof of Lemma D.2. For each weight k > 1, we will construct an acyclic directed graph with source
+s, sink t, and exactly k directed s–t paths, using O(log k ) vertices and edges. We first show why
+such a graph is sufficient.
+    To replace a weighted bipartite edge uv, form a left-right pair ( Lz , Rz ) for each directed vertex z
+and add its diagonal edge Lz Rz . For every arc z → z′ , add Lz Rz′ . Delete uv and attach the gadget
+by uRs and Lt v, giving all new edges weight one.
+     If neither attachment edge is selected, the only internal perfect matching consists of all diagonal
+edges: a nontrivial alternative would give a directed cycle in the original directed graph. If both
+attachment edges are selected, the selected nondiagonal internal edges correspond to one directed
+s–t path in that graph. The remaining gadget vertices are matched diagonally. There are exactly k
+such completions. Selecting exactly one attachment leaves different numbers of internal left and
+right vertices and is impossible. Thus the gadget has multiplicity one when the original edge is
+absent and k when it is present.
+
+                                                    38
+   Leave edges of weight one as they are. Each replacement adds equally many left and right
+vertices, and its size is proportional to the number of vertices and arcs in the directed graph. It
+remains to construct the directed graphs.
+   Start with a single arc from s to a current terminal, giving one directed path. Read the binary
+digits of k after its leading one. For each digit b ∈ {0, 1}, add arcs from the current terminal to
+two fresh vertices and from both of them to a fresh terminal. Every existing path now has two
+extensions. If b = 1, also add a direct arc from s to the new terminal, contributing one more path.
+Thus a path count C becomes 2C + b, and the final terminal t has exactly k paths from s. Each step
+adds three vertices and at most five arcs, so both counts are O(log k ). All arcs lead to newly created
+vertices, so the graph is acyclic and has no parallel arcs. This proves the stated size bound for the
+unweighted graph.
+
+Proof of Lemma D.3. The replacement for an original vertex must use exactly one of that vertex’s
+incident edges in a perfect matching. Replace a left vertex of degree d by the path
+
+                               L 1 − R 1 − L 2 − R 2 − · · · − R d −1 − L d ,
+
+and attach its jth original edge to L j . Give all path edges weight one and each external edge its
+original weight. The d − 1 private right vertices force exactly one external edge in every perfect
+matching. Once the external edge is chosen, there is exactly one way to match the remaining
+vertices of the path. For every original right vertex, apply the same construction with left and
+right interchanged. All degrees are now at most three, and the perfect matchings are in a weight-
+preserving bijection. Summing the sizes of the paths gives 2m − n vertices on each side.
+
+Statement on AI use. The main ideas and proof strategies were developed with assistance from
+OpenAI Codex using the 5.6 Sol and 6.0 Astra models. The authors studied, refined, simplified,
+and verified the resulting material and take responsibility for every claim, proof, and citation.
+
+
+
+
+                                                    39
+

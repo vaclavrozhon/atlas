@@ -1,0 +1,1125 @@
+                        Faster Algorithms for Mean-Payoff Games ⋆
+
+                  L. Brim1 , J. Chaloupka1 , L. Doyen2,4 , R. Gentilini2,3 , and J. F. Raskin2
+                           1
+                             Faculty of Informatics, Masaryk University, Brno, Czech Republic
+                    2
+                       Computer Science Department Université Libre de Bruxelles (U.L.B.), Belgium
+                   3
+                      Department of Mathematics and Informatics, University of Perugia, Perugia, Italy
+                                          4
+                                            LSV, ENS Cachan & CNRS, France
+               {xchalou1,brim}@fi.muni.cz, raffaella.gentilini@dipmat.unipg.it,{ldoyen,jraskin}@ulb.ac.be
+
+     May 10, 2011
+
+        Abstract. In this paper, we study algorithmic problems for quantitative models that are motivated by the
+        applications in modeling embedded systems. We consider two-player games played on a weighted graph
+        with mean-payoff objective and with energy constraints. We present a new pseudopolynomial algorithm for
+        solving such games, improving the best known worst-case complexity for pseudopolynomial mean-payoff
+        algorithms. Our algorithm can also be combined with [3] to obtain a randomized procedure with currently
+        the best expected time complexity. The proposed solution relies on a simple fixpoint iteration to solve the
+        log-space equivalent problem of deciding the winner of energy games. Our results imply also that energy
+        games and mean-payoff games can be reduced to safety games in pseudopolynomial time.
+
+
+
+
+⋆
+    This work is an extended and revised version of [6], appeared in the 5-th Doctoral Workshop on Mathematics and Engi-
+    neering Methods in Computer Science (MEMICS’09), and [9], appeared in the 3-rd Workshop of the ESF Networking
+    Programme on Games for Design and Verification (GAMES’09).
+1 Introduction
+
+Quantitative models Recently, several research efforts have been put in studying quantitative ex-
+tensions of formalisms like automata and games for modeling quantitative aspects of systems like
+embedded systems. Quantities may represent, for example, the power usage of an embedded compo-
+nent, or the buffer size of a networking element [5].
+    In this context, Henzinger et al. have studied resource interfaces [5], and more recently, Bouyer
+et al. have studied weighted (timed) automata and games [4]. In the two papers, the authors consider
+models where accumulated weight along runs are subject to constraints. For one important variant of
+those models, the so-called energy games (with lower bound constraints), they have proved log-space
+equivalence to classical mean-payoff games. This log-space equivalence allows to reuse the existing
+algorithms for solving mean-payoff games.
+    In this paper, we propose a direct algorithm for solving energy games. Furthermore, using the
+log-space reduction from mean-payoff games to energy games, we show how our new algorithm
+for energy games can be used to improve on the existing algorithmic solutions to solve mean-payoff
+games. In addition to improving the worst-case complexity for solving energy games and mean-payoff
+games, we believe that our algorithmic solution, which is a fixed point computation, has the potential
+to be efficiently implemented. We believe that our algorithm is an important step into making the tool
+support for those quantitative models available and efficient.
+
+Mean-payoff games and energy games Two-player mean-payoff games are played on weighted
+graphs (in which every edge has an integer weight) with two types of vertices: in player-0 vertices,
+player 0 chooses the successor vertex from the set of outgoing edges; in player-1 vertices, player 1
+chooses the successor vertex from the set of outgoing edges. The game results in an infinite path
+through the graph. The long-run average of the edge-weights along this path, called the value of the
+play, is won by player 0 and lost by player 1.
+     The decision problem for mean-payoff games asks, given a vertex v and an integer ν ∈ Z, if
+player 0 has a strategy to win a value at least ν when the game starts in v. The associated strategy
+synthesis problem is to construct a strategy for player 0 that ensures a value at least ν, if there exists
+one. The three-way partition problem asks, given a threshold ν ∈ Z, to partition the set of vertices
+of the game into the sets hV<ν , V=ν , V>ν i, where V<ν is the subset of vertices from which player 0
+can only achieve a value less than ν, V=ν is the subset of vertices where player 0 can achieve ν but
+not more, and V>ν is the subset where player 0 can achieve more than ν. The value problem consists
+in computing the maximal (rational) value that player 0 can achieve from each vertex v of the game.
+Finally the (optimal) strategy synthesis problem is to construct a strategy for player 0 that secures the
+maximal value.
+     Mean-payoff games have been first studied by Ehrenfeucht and Mycielski in [1] where it is shown
+that memoryless (or positional) strategies suffice to achieve the optimal value. This result entails that
+the decision problem for these games lies in NP ∩ coNP [2, 19], and it was later shown to belong to1
+UP ∩ coUP [13]. Despite many efforts [20, 19, 16, 7, 8, 22, 12], no polynomial-time algorithm for the
+mean-payoff game problems is known so far. Beside such a theoretically engaging complexity status,
+mean-payoff games have plenty of applications, especially in the synthesis, analysis and verification of
+reactive (non-terminating) systems. Many natural models of such systems include quantitative infor-
+mation, and the corresponding question requires the solution of quantitative games, like mean-payoff
+games. Concrete examples of applications include various kinds of scheduling, finite-window online
+string matching, or more generally, analysis of online problems and algorithms, as well as selection
+with limited storage [19]. Mean-payoff games can even be used for solving the max-plus algebra
+ 1
+     The complexity class UP is the class of problems recognizable by unambiguous polynomial time nondeterministic Turing
+     machines [17]. Obviously P⊆ UP ∩ coUP ⊆ NP ∩ coNP.
+
+
+                                                            1
+Ax = Bx problem, which in turn has further applications [8]. Beside their applicability to the mod-
+eling of quantitative problems, mean-payoff games have tight connections with important problems
+in game theory and logic. For instance, parity games [11] and the model-checking problem for the
+modal mu-calculus [15] are poly-time reducible to mean-payoff games [10], and it is a long-standing
+open question to know whether these problems are in P.
+     In this paper, we present new algorithmic solutions to the mean-payoff game problems listed
+above, improving the known upper bounds in terms of worst-case complexity. Our algorithms rely
+on a reduction to so-called energy games [5, 4] that are log-space equivalent to mean-payoff games.
+In an energy game, given an initial credit c∗ , the objective of player 0 is to maintain the sum of the
+weights (the energy level) positive. The decision problem for energy games asks, given a weighted
+game graph and vertex v, if there exists an initial credit for which player 0 wins from v. It is known
+that memoryless strategies are sufficient for energy games, and that player 0 essentially needs to ensure
+that all cycles that can be formed by player 1 have nonnegative weight. We show that energy games
+can be solved elegantly and efficiently using a notion of progress measure. Progress measures for
+weighted graphs are functions that impose local conditions to ensure global properties of the graph.
+A notion of parity progress measure [21] was exploited in [14] for the algorithmic analysis of parity
+games. In this paper, we introduce so called energy progress measures to witness that all cycles in a
+graph are nonnegative. We show how to transfer this notion from graphs to games, and we provide an
+efficient fixpoint algorithm to synthesize a progress measure when it exists. Since energy games are
+log-space equivalent to mean-payoff games, this also defines a new mean-payoff algorithm which is
+more elegant and conceptually simpler than the previously known algorithmic solutions.
+     As we will see below, our procedure to solve the mean-payoff games decision problem achieves a
+better worst-case complexity than the corresponding best known deterministic pseudopolynomial al-
+gorithm due to Zwick and Paterson [19]. Moreover, (optimal) strategies can be synthetized as a (free)
+byproduct of our algorithm, while [19] requires further computation. Our solution of the mean-payoff
+value problem is also better than [19] when the maximum weight W in the graph is subexponential,
+which is the relevant case for comparing pseudopolynomial procedures. Finally, we can combine our
+deterministic mean-payoff value algorithm with the randomized procedure proposed in [3] to obtain
+an algorithm with currently the best expected complexity (for all W ). We note that in typical appli-
+cations, where the edge-weights represent, for example, the energy consumption of a physical device,
+W is usually small in comparison with |V |, in which case our deterministic algorithm significatively
+outperforms—by a linear factor—the previous state-of-the-art solutions, without any use of random-
+ization.
+
+
+Related works and main results All previous deterministic algorithms for mean-payoff games are
+either pseudopolynomial (i.e., polynomial in the number of vertices |V |, the number of edges |E|, and
+the maximal absolute weight W , rather than in the binary representation of W ) or exponential [20,
+19, 16, 22, 18].
+     In the late eighties, Gurvich, Karzanov, Khachiyan and Lebedev [20, 2] provided the first (ex-
+ponential) algorithms for mean-payoff games. Their method, based on the notion of rational price
+function, was later extended by Pisaruk [16], who considered games with mean-payoff objectives in
+a slightly more general setting than the one originally proposed by Eherenfeucht and Mycielski [1],
+and provides a pseudopolynomial upper bound.
+     The best pseudopolynomial deterministic algorithm for mean-payoff games known so far was
+designed in 1996 by Zwick and Paterson [19]. They provide a value-iteration algorithm with time
+complexity Θ(|E|·|V |3 ·W ) for the value problem, and Θ(|E|·|V |2 ·W ) for the decision problem and
+the three-way partition problem. They also consider the optimal strategy synthesis problem, defining
+                                        |E|
+a corresponding Θ(|E| · |V |4 · W · log |V | ) pseudopolynomial algorithm.
+
+
+                                                   2
+                                                            Problems
+               Algorithms            Decision Problem                       Strategy Synthesis                Note
+                                  3-Way Partition Problem
+                This paper            O(|E | · |V | · W )                   O(|E | · |V | · W )           Deterministic
+                                                                                                |E |
+                   [19]              Θ(|E | · |V |2 · W )              Θ(|E | · |V |3 · W · log |V |
+                                                                                                     ) Deterministic
+
+                   [22]              O(|E | · |V | · 2 |V | )                         —                   Deterministic
+                                                        2                                 2
+                   [12]           min(O(|E |√· |V | · W ),             min(O(|E |√· |V | · W )), Randomized
+                                              O(   |V |·log|V |)
+                                          2                        )           2 O(   |V |·log|V |)
+                                                                                                      )
+
+   Table 1. Complexity of the main algorithms to solve the mean-payoff game problems 1–3 considered in Section 2.
+
+
+
+
+    The best deterministic exponential algorithm for solving mean-payoff games is due to Lifshits and
+Pavlov [22], who provide a graph decomposition procedure with complexity O(|E| · |V | · 2|V | ) for the
+decision problem, and O(|E| · |V | · 2|V | · log W ) for the value problem.
+     In 2007, Björklund and Vorobyov [12] define a randomized algorithm which is both subexpo-
+nential and pseudopolynomial. Their algorithm solves the decision problem, the three-way      √ partition
+                                                                                   2        O( |V |·log|V |)
+problem, and the winning strategy synthesis in expected time min(O(|E| · |V | · W ), 2                       ).
+For the value problem and the optimal strategy synthesis, the    √ time complexity of their solution is
+                                3                             O( |V |·log|V |)
+bounded by min(O(|E| · |V | · W · (log|V | + log W )), 2                       · log W ). In particular, the
+pseudopolynomial terms in the upper bounds given by [12] do not require randomization and im-
+prove on [19] for the (optimal) strategy synthesis problem, since winning strategies are obtained as
+a byproduct of the overall computation. In [3], Andersson and Vorobyov proposed a subexponen-
+tial randomized solution for discounted payoff games, with application to mean-payoff objectives.
+In qparticular, [3] solves the value problem for mean-payoff games in expected time O(|V |2 · |E| ·
+                √        √
+e2· |V |·ln(|E|/ |V |)+O( |V |+ln|E|)), which improves [12] for large W .
+    The (deterministic) algorithms proposed in this work to solve mean-payoff games give new pseu-
+dopolynomial upper bounds for all problems considered above. In particular, we provide O(|E| · |V | ·
+W ) algorithms for the decision problem and the three-way partition problem, achieving a linear im-
+provement in |V | of the corresponding previous upper bound. We define an algorithm for the value
+problem with a complexity O(|E| · |V |2 · W · (log|V | + log W )) while the value-iteration algorithm by
+Zwick and Paterson has complexity O(|E|·|V |3 ·W ). Thus, our procedure performs better when W is
+polynomial in |V |. When W is exponential in |V |, the complexity of both algorithms is outperformed
+by the O(|E| · |V | · 2|V | · log W ) algorithm in [22]. Finally, our algorithmic solution for the (optimal)
+strategy synthesis has complexity O(|E| · |V | · W ) (resp. O(|E| · |V |2 · W (log|V | + log W ))), also
+improving on previous upper bounds in [12].
+    Tables 1 and 2 summarize the results obtained in this paper and compare them with the main
+algorithms in the literature.
+
+
+
+Structure of the paper The rest of this paper is organized as follows. In Section 2, we provide basic
+definitions and notations. In Section 3, we develop energy progress measures to be used in Section 4
+for solving energy game problems. In Section 5, we build up on the new algorithm to improve the
+state-of-the-art pseudopolynomial time upper bounds for mean-payoff games.
+
+                                                                   3
+2 Preliminaries
+
+Weighted graphs Let Z (resp. N) denote the set of integer (resp. nonnegative integer) numbers. A
+weighted graph G = (V, E, w) consists of a finite set V of vertices, a set E ⊆ V × V of edges, and
+a weight function w : E → Z, assigning integer weights to edges. Given w : E → Z and ν ∈ Z,
+we denote by w − ν the function that assigns to each edge e ∈ E the weight w(e) − ν. We assume
+that weighted graphs are total, i.e. for all v ∈ V , there exists v ′ ∈ V such that (v, v ′ ) ∈ E. Given
+U ⊆ V , we denote E ↾ U the restriction of E to U , i.e. E ↾ U = E ∩ U × U . Given a function f
+ranging over V , f : V → cod(f ), and U ⊆ V , we denote by f ↾ U the restriction of f to U , i.e.
+f ↾ U : U → cod(f ) maps each u ∈ U to f ↾ U (u) = f (u). Given U ⊆ V such that for all v ∈ U ,
+there exists v ′ ∈ U with (v, v ′ ) ∈ E, we denote by G ↾ U = (V ′ , E ′ , w′ ) the weighted subgraph
+where V ′ = U , E ′ = E ↾ V ′ , and w′ = w ↾ V ′ . Note that weighted subgraphs are total. A finite
+path p is a nonempty sequence of vertices v0 v1 . . . vn such that (vi , vi+1 ) ∈ E for all 0 ≤ i < n. A
+cycle is a finite path p = v0 v1 . . . vn such that n ≥ 1 and v0 = vn . A cycle v0 v1 . . . vn is reachable
+from v in G if there exists a path u0P  u1 . . . um in G such that u0 = v and um = v0 . The average weight
+                                          n−1
+of a cycle v0 . . . vn is equal to n1 · i=0      w(vi , vi+1 ). A path v0 v1 . . . vn is acyclic if vi 6= vj for all
+0 ≤ i < j ≤ n. We say that a cycle in a weighted graph is negative (resp. nonnegative) if the sum
+of its edge weights is less than 0 (resp. not less than 0). Given a set of vertices U ⊆ V , we denote by
+pre(U ) the set of vertices having a successor in U , i.e. pre(U ) = {v | ∃v ′ ∈ U : (v, v ′ ) ∈ E}, and by
+post(U ) the set of successors of vertices in U , i.e. post(U ) = {v | ∃v ′ ∈ U : (v ′ , v) ∈ E}.
+
+Game graphs A game graph is a tuple Γ = (V, E, w, hV0 , V1 i) where GΓ = (V, E, w) is a weighted
+graph and hV0 , V1 i is a partition of V into the set V0 of player-0 vertices and the set V1 of player-
+1 vertices. An infinite game on Γ is played for infinitely many rounds by two players moving a
+pebble along the edges of the weighted graph GΓ . In the first round, the pebble is on some vertex
+v ∈ V . In each round, if the pebble is on a vertex v ∈ Vi (i = 0, 1), then player i chooses an edge
+(v, v ′ ) ∈ E and the next round starts with the pebble on v ′ . A play in the game graph Γ is an infinite
+sequence p = v0 v1 . . . vn . . . such that (vi , vi+1 ) ∈ E for all i ≥ 0. A strategy for player i (i = 0, 1)
+is a function σ : V ∗ · Vi → V , such that for all finite paths v0 v1 . . . vn with vn ∈ Vi , we have
+(vn , σ(v0 v1 . . . vn )) ∈ E. We denote by Σi (i = 0, 1) the set of strategies for player i. A strategy σ for
+player i is memoryless if σ(p) = σ(p′ ) for all sequences p = v0 v1 . . . vn and p′ = v0′ v1′ . . . vm ′ such
+              ′                     M
+that vn = vm . We denote by Σi the set of memoryless strategies of player i. A play v0 v1 . . . vn . . .
+is consistent with a strategy σ for player i if vj+1 = σ(v0 v1 . . . vj ) for all positions j ≥ 0 such that
+vj ∈ Vi . Given an initial vertex v ∈ V , the outcome of two strategies σ1 ∈ Σ1 and σ2 ∈ Σ2 in v is
+the (unique) play outcomeΓ (v, σ0 , σ1 ) that starts in v and is consistent with both σ0 and σ1 . Given a
+
+
+                                                                           Problems
+Algorithms                             Value Problem                                                 Optimal Strategy Synthesis              Note
+ This paper             O(|E | · |V |2 · W · (log|V | + logW ))                                 O(|E | · |V |2 · W · (log|V | + logW ))      Det.
+                                                                                                                               |E |
+    [19]                          Θ(|E | · |V |3 · W )                                                Θ(|E | · |V |4 · W · log |V |
+                                                                                                                                    )        Det.
+    [22]                      O(|E | · |V | · 2 |V | · logW )                                                           —                    Det.
+    [12]             min(O(|E | · |V |3 · W · (logV + logW )),
+                                       √                                                      min(O(|E | · |V |3 · W · (log|V | + logW )),
+                                                                                                              √                              Rand.
+                               2 O(        |V |·log|V |)
+                                                           · logW )                                    2 O(       |V |·log|V |)
+                                                                                                                                  · logW )
+                                       q                   √           √
+     [3]      O(|V |2 · |E | · e 2 ·       |V |·ln(|E |/    |V |)+O(       |V |+ln|E |)
+                                                                                          )                             —                    Rand.
+
+   Table 2. Complexity of the main algorithms to solve the mean-payoff game problems 4–5 considered in Section 2.
+
+
+
+                                                                                4
+memoryless strategy πi for player i in the game Γ , we denote by GΓ (πi ) = (V, Eπi , w) the weighted
+graph obtained by removing from GΓ all edges (v, v ′ ) such that v ∈ Vi and v ′ 6= πi (v).
+
+Mean-Payoff Games [1] A mean-payoff game (MPG) is an infinite game played on a game graph Γ
+where player 0 wins a payoff value defined as the long-run average weights of the play, while player 1
+loses that value. Formally, the payoff value of a play v0 v1 . . . vn . . . in Γ is
+                                                                      n−1
+                                                                   1 X
+                                MP(v0 v1 . . . vn . . . ) = lim inf ·  w(vi , vi+1 ).
+                                                             n→∞ n
+                                                                      i=0
+The value secured by a strategy σ0 ∈ Σ0 in a vertex v is
+                                    valσ0 (v) = inf MP(outcomeΓ (v, σ0 , σ1 ))
+                                                  σ1 ∈Σ1
+
+and the (optimal) value of a vertex v in a mean-payoff game Γ is
+                                valΓ (v) = sup         inf MP(outcomeΓ (v, σ0 , σ1 )).
+                                             σ0 ∈Σ0 σ1 ∈Σ1
+
+    We say that σ0 is optimal if valσ0 (v) = valΓ (v) for all v ∈ V . Secured value and optimality
+are defined analogously for strategies of player 1. Ehrenfeucht and Mycielski [1] show that mean-
+payoff games are memoryless determined, i.e., memoryless strategies are sufficient for optimality and
+the optimal (maximum) value that player 0 can secure is equal to the optimal (minimum) value that
+player 1 can achieve.
+Theorem 1 ([1]). For all MPG Γ = (V, E, w, hV0 , V1 i) and all vertices v ∈ V , we have
+      valΓ (v) = sup         inf MP(outcomeΓ (v, σ0 , σ1 )) = inf           sup MP(outcomeΓ (v, σ0 , σ1 )),
+                    σ0 ∈Σ0 σ1 ∈Σ1                                  σ1 ∈Σ1 σ0 ∈Σ0
+
+and there exist memoryless strategies π0 ∈ Σ0M and π1 ∈ Σ1M such that
+                                            valΓ (v) = valπ0 (v) = valπ1 (v).
+    Moreover, uniform optimal strategies exist for both players, i.e., a unique memoryless strategy can
+be used to secure the optimal values, independently of the initial vertex [1].
+    The next lemmas follow from memoryless determinacy of mean-payoff games.
+Lemma 1 ([1, 12]). Let Γ = (V, E, w, hV0 , V1 i) be an MPG. For all ν ∈ R, for all memoryless
+strategies π0 ∈ Σ0M for player 0, and for all vertices v ∈ V , the value valπ0 (v) secured by π0 in v
+is greater than ν if and only if all cycles reachable from v in the graph GΓ (π0 ) have average weight
+greater than ν.
+Lemma 2 ([1, 22]). Let Γ = (V, E, w, hV0 , V1 i) be a MPG and let W = max(v,v′ )∈E |w(v, v ′ )|. For
+each vertex v ∈ V , the optimal value valΓ (v) is a rational number nd such that 1 ≤ d ≤ |V | and
+|n| ≤ d · W .
+We consider the following five classical problems [19, 12] for a MPG Γ = (V, E, w, hV0 , V1 i):
+1. Decision Problem. Given a threshold ν ∈ Z and a vertex v ∈ V , decide if valΓ (v) ≥ ν.
+2. Strategy Synthesis. Given a vertex v ∈ V and a threshold ν ∈ Z such that ν ≤ valΓ (v), construct
+   a memoryless strategy π0 ∈ Σ0M for player 0 such that valπ0 (v) ≥ ν.
+3. Three-way partition Problem. Given a integer threshold ν ∈ Z, partition the set V into subsets
+   V>ν , V<ν , V=ν of vertices from which player 0 can secure a payoff greater than ν, less than ν, and
+   equal to ν respectively.
+4. Value Problem. Compute for each vertex v ∈ V the value2 valΓ (v).
+5. Optimal Strategy Synthesis. Given a vertex v, construct an optimal strategy from v for player 0.
+ 2
+     Note that by lemma 2, this value is a rational number.
+
+
+                                                              5
+Energy Games [5, 4] An energy game (EG) is an infinite game on the game graph Γ , where the goal
+of player 0 is to construct an infinite play v0 v1 . . . vn . . . such that for some initial credit c ∈ N:
+                                      j
+                                      X
+                                 c+         w(vi , vi+1 ) ≥ 0 for all j ≥ 0.                            (1)
+                                      i=0
+                   Pj−1
+The quantity c + i=0      w(vi , vi+1 ) is called the energy level of the play prefix v0 v1 . . . vj . Given
+a credit c, a play p = v0 v1 . . . is winning for player 0 if it satisfies (1), otherwise it is winning for
+player 1. A vertex v ∈ V is winning for player i if there exists an initial credit c and a winning strategy
+for player i from v for credit c. In the sequel, we denote by Wi the set of winning states for player i.
+Energy games are memoryless determined [4], i.e. for all v ∈ V , either v is winning for player 0, or v
+is winning for player 1, and memoryless strategies are sufficient.
+
+Theorem 2 ([4]). Let Γ = (V, E, w, hV0 , V1 i) be an EG, for all v ∈ V , the following four statements
+are equivalent:
+ – ∃σ0 ∈ Σ0 · ∀σ1 ∈ Σ1 · outcomeΓ (v, σ0 , σ1 ) is winning for player 0;
+ – ∀σ1 ∈ Σ1 · ∃σ0 ∈ Σ0 · outcomeΓ (v, σ0 , σ1 ) is winning for player 0;
+ – ∃π0 ∈ Σ0M · ∀π1 ∈ Σ1M · outcomeΓ (v, π0 , π1 ) is winning for player 0;
+ – ∀π1 ∈ Σ1M · ∃π0 ∈ Σ0M · outcomeΓ (v, π0 , π1 ) is winning for player 0;
+
+Using the memoryless determinacy of energy games, we can derive the next lemma.
+
+Lemma 3 ([1, 22]). Let Γ = (V, E, w, hV0 , V1 i) be an EG, for all vertices v ∈ V , for all memoryless
+strategies π0 ∈ Σ0M for player 0, the strategy π0 is winning from v if and only if all cycles reachable
+from v in the weighted graph GΓ (π0 ) are nonnegative.
+
+We consider the following problems for an energy game Γ = (V, E, w, hV0 , V1 i):
+
+1. Decision Problem. Given v ∈ V , decide if v is winning for player 0.
+2. Strategy Synthesis. Given v ∈ V , if v is winning for player i (i = 0, 1), construct a corresponding
+   winning strategy for player i from v.
+3. Partition Problem. Construct the sets of vertices Wi (i = 0, 1) of winning vertices for player i.
+4. Minimum Credit Problem. For each vertex v ∈ W0 , compute the minimum initial credit c∗ (v)
+   such that there exists a winning strategy σ0 for player 0.
+
+Using Lemma 1 and Lemma 3, we can relate the decision problems for MPG and EG as follows.
+
+Theorem 3 ([4]). Let Γ = (V, E, w, hV0 , V1 i) be a game graph. For all thresholds ν ∈ Z, for all
+vertices v ∈ V , player 0 has a strategy in the MPG Γ = (V, E, w, hV0 , V1 i) that secures value at
+least ν from v if and only if player 0 has a winning strategy in the EG Γ = (V, E, w − ν, hV0 , V1 i)
+from v.
+
+Example 1. Consider the mean-payoff game Γ = (V, E, w, hV0 , V1 i) illustrated on the left of Fig. 1,
+where player 0 (resp. player 1) controls the square (resp. round) vertices. Assume that player 0 wants
+to ensure a payoff ν ≥ 1 from v. To solve such a mean-payoff decision problem we can consider
+the energy game Γ ′ = (V, E, w − 1, hV0 , V1 i), on the right of Fig. 1, where the weights of all edges
+are decreased by 1. By construction, each cycle c in the EG Γ ′ is nonnegative if and only if c has
+mean-payoff ν ≥ 1 in Γ . In particular, player 0 has a strategy to confine the play into the nonnegative
+cycle (zwz) and win the EG Γ ′ from v (with initial credit 6). Therefore, player 0 has a strategy to
+confine the play into the cycle (zwz) having mean-payoff ν ≥ 1 in the MPG Γ .
+
+                                                      6
+                                  y       4          z                           y       3          z
+                           −5         2       −5         −1 3             −6         1       −6         −2 2
+                              1                                              0
+                          x               v                 w            x               v                 w
+
+
+
+                                                   Fig. 1. Solving MPG via EG.
+
+
+3 A Small Energy Progress Measure
+
+Progress measures are functions f : V → N, defined locally on the set of vertices of a weighted graph,
+that allow to infer global properties of the graph. In this section, we introduce a notion of progress
+measure called energy progress measure, which is tailored to witness the absence of negative cycles
+in a weighted graph G. Intuitively, the value f (v0 ) of a vertex v0 is a sufficient credit to ensure that all
+paths v0 . . . vn can be traversed while maintaining a nonnegative level.
+
+Definition 1 (Energy Progress Measure). Let G = hV, E, wi be a weighted graph. An energy
+progress measure for G is a function f : V → N such that for all (v, v ′ ) ∈ E:
+
+                                               f (v) ≥ f (v ′ ) − w(v, v ′ ).
+
+Lemma 4. Let G = (V, E, w) be a weighted graph. If G admits an energy progress measure, then:
+1. all cycles of G are nonnegative, and
+2. for all paths v0 v1 . . . vn in G it holds:
+                                                                n−1
+                                                                X
+                                               f (v0 ) +              w(vi , vi+1 ) ≥ 0
+                                                                i=0
+
+Proof. Let G = (V, E, w) be a weighted graph and f be an energy progress measure for G. Consider
+an arbitrary path p = v0 v1 . . . vn in G. By definition of energy progress measure, we have:
+                                                                                         n−1
+                                                                                         X
+                     f (v0 ) ≥ f (v1 ) − w(v0 , v1 ) ≥ · · · ≥ f (vn ) −                           w(vi , vi+1 ).   (2)
+                                                                                             i=0
+                       Pn−1
+This leads to f (v0 ) + i=0   w(vi , vi+1 ) ≥ f (vn ) ≥ 0, which proves item 2. In the particular case
+                                                                             Pn−1
+where p is a cycle (i.e., v0 = vn ) Inequality (2) can also be developed into i=0    w(vi , vi+1 ) ≥ 0
+which proves item 1.                                                                                 ⊓
+                                                                                                     ⊔
+
+    The next lemma shows that if all cycles of G are nonnegative, then G admits an energy progress
+measure whose codomain has a pseudopolynomial upper bound (in the size of G). Hence, we refer to
+our progress measure as a small energy progress measure. Given a weighted graph G = (V, E, w),
+define:
+                               X
+                       MG =         max({0} ∪ {−w(v, v ′ ) | (v, v ′ ) ∈ E})
+                                      v∈V
+
+Note that, if W = maxe∈E |w(e)| is the maximal absolute value of the edge-weights in G, then
+MG ≤ |V | · W .
+
+                                                                  7
+Lemma 5. For all weighted graphs G = (V, E, w), if all cycles of G are nonnegative, then there
+exists an energy progress measure f : V → {0, . . . , MG } for G.
+Proof. Given v ∈ V , let AcyclicPath(v) be the set of (possibly trivial3 ) acyclic paths in G = (V, E, w)
+starting in v:
+                     AcyclicPath(v) = {v0 v1 . . . vn | v0 = v ∧ ∀0 ≤ i < n : (vi , vi+1 ) ∈ E
+                                                        ∧ ∀0 ≤ i, j ≤ n : i 6= j → vi 6= vj }
+
+
+Given p = v0 v1 . . . vn ∈ AcyclicPath(v), we denote by w(p), the sum of the weights in p:
+                                      
+                                        0                     if n = 0
+                              w(p) = Pn−1
+                                           i=0 w(v i , vi+1 ) otherwise
+Consider the function f : V → {0, . . . , MG } defined by:
+                                      f (v) = max{−w(p) | p ∈ AcyclicPath(v)}
+for all v ∈ V . Note that by definition of w(p), we have f (v) ≥ 0. We claim that f is an energy
+progress measure for G. Towards contradiction, assume that there exists an edge (v, v ′ ) for which:
+                                                  f (v) < f (v ′ ) − w(v, v ′ ).                             (3)
+There are two cases to consider, depending on whether v is equal to v ′ or not. In the first case (v = v ′ ),
+Inequality 3 immediately yields the contradiction that (v, v) is a negative cycle in G. In the second
+case (v 6= v ′ ), let pv′ = v0 v1 . . . vn be an acyclic path in G from v ′ (i.e. v0 = v ′ ) such that f (v ′ ) =
+−w(pv′ ). If pv′ does not contain v, then by definition of f we get f (v) ≥ −w(pv′ ) − w(v, v ′ ) which
+contradicts Inequality 3. Otherwise, let 0 < i ≤ n such that vi = v, and let w1 = w(v0 v1 . . . vi ) and
+w2 = w(pv′ ) − w1 . By Inequality 3, we have w(v, v ′ ) + w1 + w2 < −f (v). Since all cycles of G are
+nonnegative, we have w(v, v ′ ) + w1 ≥ 0, and thus w2 < −f (v), i.e. f (v) < −w2 . This is again in
+contradiction with the definition of f since w2 is the weight of a (possibly trivial) acyclic path from
+the vertex v.                                                                                                   ⊓
+                                                                                                                ⊔
+
+4 Solving the Energy Game Problems
+In this section, we devise efficient algorithms for the EG problems stated in Section 2. To this purpose,
+we extend the notion of small progress measure from graphs to games, taking into account the partition
+of vertices between the two players. Let Γ = (V, E, w, hV0 , V1 i) be a game graph and consider the
+set:
+                                   CΓ = {n ∈ N | n ≤ MGΓ } ∪ {⊤}.
+We denote by  the total order on CΓ defined by x  y if and only if either y = ⊤ or x ≤ y ≤ MGΓ .
+Moreover, we define the operator ⊖ : CΓ × Z → CΓ such that, for all a ∈ CΓ and b ∈ Z:
+                              
+                                max(0, a − b) if a 6= ⊤ and a − b ≤ MGΓ
+                     a⊖b =
+                                ⊤                otherwise
+
+Intuitively, a small energy progress measure for the game Γ = (V, E, w, hV0 , V1 i) is a mapping from
+V to CΓ tailored to witness wether a vertex v is winning for player 0. In particular, if the small energy
+progress measure function f assumes a value f (v) 6= ⊤ on the vertex v, then player 0 has a winning
+strategy from v, provided an initial credit f (v).
+ 3
+     For each v ∈ V , there is a trivial acyclic path v in G.
+
+
+                                                                8
+Definition 2. Let Γ = (V, E, w, hV0 , V1 i) be an EG. A function f : V → CΓ is a small energy
+progress measure for Γ if and only if the following conditions hold:
+
+ – if v ∈ V0 , then f (v)  f (v ′ ) ⊖ w(v, v ′ ) for some (v, v ′ ) ∈ E;
+ – if v ∈ V1 , then f (v)  f (v ′ ) ⊖ w(v, v ′ ) for all (v, v ′ ) ∈ E.
+Note that Definition 2 can be derived by the corresponding Definition 1 (on graphs) by means of
+the following two extensions. First, specialize the local conditions constraining the (small) energy
+progress measure on each node v ∈ V by taking into account wether v ∈ V0 or v ∈ V1 . Second,
+introduce the special value ⊤ in the codomain of the small energy progress measure4 f , f : V 7→
+CΓ = {0, . . . , MGΓ } ∪ {⊤}, ensuring that all games admit a small energy progress measure.
+    Given a small energy progress measure f for the game graph Γ = (V, E, w, hV0 , V1 i), we denote
+by Vf the set of states Vf = {v | f (v) 6= ⊤}. A (memoryless) strategy π0f : V0 → V for player 0 is
+called compatible with f whenever for all v ∈ V0 , if π0f (v) = v ′ then f (v)  f (v ′ ) ⊖ w(v, v ′ ). Note
+that compatible strategies always exist by definition of progress measure. The next lemma establishes
+that if π0f is a strategy for player 0 compatible with the energy progress measure f , then π0f is a
+winning strategy for player 0 from all vertices in Vf .
+
+Lemma 6. Let Γ = (V, E, w, hV0 , V1 i) be an EG. For all small energy progress measures f for Γ ,
+if π0f is a strategy for player 0 compatible with f , then π0f is a winning strategy for player 0 from
+all vertices v ∈ Vf , i.e. Vf ⊆ W0 . Moreover, Γ admits a small energy progress measure f such that
+Vf = W 0 .
+
+Proof. Let f be a small energy progress measure for Γ and consider a memoryless strategy π0f for
+player 0 which is compatible with f . For the sake of contradiction, suppose that π0f is not winning
+for player 0 from the vertex v ∈ Vf . Then, by Lemma 3, GΓ (π0f ) admits a negative cycle from v.
+Let v0 v1 . . . vi . . . vn with v0 = v be the path in GΓ (π0f ) from v with a negative cycle vi . . . vn (i.e.,
+vi = vn ). We show that vj ∈ Vf for all 0 ≤ j ≤ n, using an inductive argument on j. The base
+case is obvious since v0 = v ∈ Vf by hypothesis. Let j > 0. By inductive hypothesis we have that
+vj−1 ∈ Vf . By definition of small energy progress measure on Γ , if vj−1 ∈ V0 (resp. vj−1 ∈ V1 ), then
+there exists a successor (resp. for all successors) v ′ of vj−1 :
+
+                                           f (vj−1 )  f (v ′ ) ⊖ w(vj−1 , v ′ ).                                  (4)
+
+By Inequality 4 and by definition of π0f we obtain f (vj ) 6= ⊤, i.e. vj ∈ Vf .
+    Hence, for each vertex vj , i ≤ j ≤ n, on the negative cycle vi . . . vn = vi reachable from v,
+f (vj ) 6= ⊤. Thus, by definition of f and π0f we obtain:
+
+                                                                                    n−1
+                                                                                    X
+                       f (vi ) ≥ f (vi+1 ) − w(vi , vi+1 ) ≥ · · · ≥ f (vn ) −            w(vj , vj+1 )
+                                                                                    j=i
+
+which is a contradiction with our hypothesis that vi . . . vn is a negative cycle.
+   We conclude by showing that there exists a small energy progress measure f on Γ such that
+Vf = W0 . Let π0 be a memoryless strategy winning for player 0 from any vertex v ∈ W0 . By
+Lemma 3, GΓ (π0 ) ↾ W0 does not contain any negative cycle. Hence, GΓ (π0 ) ↾ W0 admits an energy
+progress measure f by Lemma 5. The function f can immediately be extended to an energy progress
+measure on the game Γ by setting f (v) = ⊤ for each v ∈     / W0 .                              ⊓
+                                                                                                ⊔
+ 4
+     and appropriately define the operator ⊖ : CΓ × Z 7→ CΓ in order to cast the minus operator to range over CΓ
+
+
+                                                             9
+For a game graph Γ = (V, E, w, hV0 , V1 i), let F be the set of functions f : V → CΓ . The partial order
+⊑⊆ F × F is defined as f ⊑ g iff for all v ∈ V , f (v)  g(v). Note that for all functions f and g, if
+f (v)  f (v ′ ) ⊖ w(v, v ′ ) and g(v)  g(v ′ ) ⊖ w(v, v ′ ), then min{f (v), g(v)}  min{f (v ′ ), g(v ′ )} ⊖
+w(v, v ′ ). Therefore, if f and g are small energy progress measures, then so is the function h =
+min{f, g} (where min is taken pointwise). We use (F, ⊑) to refer to F as a complete partial order.
+Given any set F ⊆ F, we denote by ⊓F the greatest lower bound of F . As F is a complete partial
+order, we know that ⊓F ∈ F. We can now state the following two important properties.
+Proposition 1. Let Γ = (V, E, w, hV0 , V1 i) be an EG, (i) if f and g are small energy progress
+measures for Γ such that f ⊑ g, then Vg ⊆ Vf , and (ii) if f = ⊓{g ∈ F | g is a small energy
+progress measure for Γ }, then f is a small energy progress measure and Vf = W0 .
+
+Proof. The first item is immediate by definition of Vf and ⊑. The second item follows from Lemma 6,
+item 1 and from the fact that if f and g are small energy progress measures, then so is the function
+h = min{f, g} (where min is taken pointwise).                                                      ⊓
+                                                                                                   ⊔
+
+By Lemma 6 and Proposition 1, the problem of determining the least energy progress measure for the
+energy game Γ = (V, E, w, hV0 , V1 i) subsumes the decision problem for Γ . Hence, we present here
+an efficient algorithm (Algorithm 1) to compute the least energy progress measure f : V → CΓ . Our
+algorithm initializes f to the constant function 0 and relies on the following operator.
+
+Definition 3. Given v ∈ V , the lifting operator δ(·, v) : [V → CΓ ] → [V → CΓ ] is defined by
+δ(f, v) = g where:
+            
+             f (u)                                      if u 6= v
+    g(u) = min{f (v ′ ) ⊖ w(v, v ′ ) | (v, v ′ ) ∈ E} if u = v ∈ V0
+             max{f (v ′ ) ⊖ w(v, v ′ ) | (v, v ′ ) ∈ E} if u = v ∈ V
+                                                                      1
+
+The operator δ(·, v) can be computed in time O(|post(v)|), and is ⊑-monotone.
+
+Lemma 7. For each v ∈ V , the operator δ(·, v) is monotone, i.e. δ(f, v) ⊑ δ(g, v) for all f ⊑ g.
+
+Proof. Immediate from Definition 3.                                                                          ⊓
+                                                                                                             ⊔
+
+Given a function f : V → CΓ , we say that f is inconsistent in v if:
+ – v ∈ V0 and for all v ′ such that (v, v ′ ) ∈ E it holds f (v) ≺ f (v ′ ) ⊖ w(v, v ′ );
+ – v ∈ V1 and there exists v ′ such that (v, v ′ ) ∈ E and f (v) ≺ f (v ′ ) ⊖ w(v, v ′ ).
+Algorithm 1 maintains a list L of vertices that witness an inconsistency of f . Initially, v ∈ V0 ∩ L if
+and only if all outgoing edges from v are negative, while v ∈ V1 ∩ L if and only if v is the source of a
+negative edge. As long as the list L is nonempty, the algorithm picks a vertex u from L and performs
+the following operations:
+1. apply to f the lifting operator δ(f, v) in order to solve the inconsistency of f in v;
+2. insert into the list L the set of vertices witnessing a new inconsistency, due to the increase of f (v).
+The update of L following a lifting operation δ(f, v) requires O(|pre(v)|) time. In fact, a vertex v ′ can
+witness a new inconsistency because of the incrementing of f (v) only if v ′ ∈ pre(v). In particular,
+checking if v ′ ∈ pre(v) ∩ V1 witnesses a new inconsistency simply amounts at checking whether
+f (v ′ ) ≺ f (v) ⊖ w(v ′ , v). Some more attention needs to be paid for vertices in pre(v) ∩ V0 . Indeed,
+for such vertices the condition f (v ′ ) ≺ f (v) ⊖ w(v ′ , v) may not be sufficient to witness a new
+inconsistency in v ′ , due to the existence of another successor v ′′ of v ′ such that f (v ′ )  f (v ′′ ) ⊖
+w(v ′ , v ′′ ). In order to efficiently determine if v ′ needs to be inserted in L, we maintain a counter
+function count : V0 → N such that count(v) = 0 for all v ∈ V0 ∩ L, and count(v) is the number
+
+                                                      10
+       0                 0                0        0                  0                 0          0                 3                0
+       x                 z                v        x                  z                 v          x                 z                v
+            3                    1                       3                     1                        3                    1
+                1            1            0                  1             1            0                   1            1            0
+      2             −3               −4            2             −3                −4             2             −3               −4
+
+            y                    w                      y                      w                      y                      w
+  Fig 2.(a)
+            0       L=(w)        0            Fig 2.(b)
+                                                        0        L=(z,v)       4            Fig 2.(c)
+                                                                                                      0         L=(v)        4
+
+
+       0                 3                4        0                  3                 4          0                 3
+       x                 z                v        x                  z                 v          x                 z                v
+            3                    1                       3                     1                        3                    1
+                1            1            0                  1             1            0                   1            1            0
+      2             −3               −4            2             −3                −4             2             −3               −4
+
+            y                    w                      y                      w                        y                    w
+  Fig 2.(d)
+            0       L=(w)        4            Fig 2.(e)
+                                                        0        L=(v)                      Fig 2.(f)
+                                                                                                        0
+
+
+
+                         Fig. 2. EG algorithm applied on a concrete game graph, illustrated in Example 2.
+
+
+
+of successors v ′ of v such that f (v)  f (v ′ ) ⊖ w(v, v ′ ) for v ∈ V0 \ L. Initially, count(v)  1 for
+all v ∈ V0 \ L. When the value f (v) is updated, we compute the new value of count(v) (with cost
+O(|post(v)|)), and we decrement the value count(v ′ ) of all predecessors v ′ of v such that f (v ′ ) ≺
+f (v) ⊖ w(v ′ , v). Those predecessors v ′ for which count(v ′ ) is now 0 are inserted in L. The algorithm
+terminates when the list L is empty. Example 2 illustrates our EG algorithm on a concrete game graph.
+
+Example 2. Consider the game graph Γ = (V, E, w, hV0 , V1 i) illustrated in Fig. 2.(a), where player 0
+(resp. player 1) controls the square (resp. round) vertices. Algorithm 1 initializes the energy progress
+measure f to the constant function 0, and the list L with the only node w. Fig. 2.(b) shows the result
+of the execution of the main while-loop at line 7, upon the extraction of the vertex w. In particular,
+f (w) is updated to 4 leading to the insertion of the nodes z, v into L, within the innermost for-loop.
+Fig. 2.(c) illustrates the energy progress measure computed by the second iteration of the while-loop
+at line 7, when z is taken from L. In this case, the new value 3 of f (z) does not lead to any new
+insertion into L. In fact, at this point of the computation, the values f (x), f (y), f (z) are fixed, and
+only f (w) and f (v) continue to increase until reaching the maximal value encoded as ⊤. Fig. 2.(e)
+and 2.(f ) show the last steps of the algorithm, and the corresponding winning strategy for player 0.
+     Note that, once a small energy progress measure f has been computed and W0 = Vf has been
+determined, a (memoryless) winning strategy σ0 for player 0 on W0 can be immediately derived in
+time O(|E|), as follows: For each vertex v ∈ V0 , set σ0 (v) = v ′ , where (v, v ′ ) ∈ E and f (v ′ ) =
+min{f (v ′ ) ⊖ w(v, v ′ ) | (v, v ′ ) ∈ E}. Such a strategy could also be computed online throughout the
+execution of Algorithm 1, rather than as a post-processing operation.
+     The correctness of the algorithm is established by Theorem 4 on the ground of Lemma 7 and
+Lemma 8, applying the Knaster-Tarski fixpoint theorem to our lifting operator in (F, ⊑). In particular,
+the function f computed by Algorithm 1 is a simultaneous least fixpoint of the operators δ(·, v) for all
+v ∈ V . Thus, the function f is the least energy progress measure for Γ (since f is the least fixpoint of
+δ(·, v) for all v ∈ V ) such that Vf = W0 (since f is a least fixpoint of δ(·, v) for all v ∈ V ).
+
+Lemma 8. The following is an invariant of the while-loop of Algorithm 1 (line 7): for all vertices
+v ∈ V \ L, (i) δ(f, v) = f and (ii) if v ∈ V0 , then count(v) = |{v ′ ∈ V | f (v)  f (v ′ ) ⊖ w(v, v ′ )}|.
+
+                                                                  11
+Algorithm 1: Value-iteration algorithm for energy games.
+    Input      : A game graph Γ = (V, E, w, hV0 , V1 i).
+    Output     : A small energy progress measure f : V → CΓ for Γ .
+    begin
+  1     L ← {v ∈ V0 | ∀(v, v ′ ) ∈ E : w(v, v ′ ) < 0}
+  2     L ← L ∪ {v ∈ V1 | ∃(v, v ′ ) ∈ E : w(v, v ′ ) < 0}
+  3     foreach v ∈ V do
+  4         f (v) ← 0
+  5         if v ∈ V0 ∩ L then count(v) ← 0
+  6         if v ∈ V0 \ L then count(v) ← |{v ′ ∈ post(v) | f (v)  f (v ′ ) ⊖ w(v, v ′ )}|
+  7         while L 6= ∅ do
+  8             Pick v ∈ L
+  9             L ← L \ {v}; old ← f (v)
+ 10             f ← δ(f, v)
+ 11             if v ∈ V0 then count(v) ← |{v ′ ∈ post(v) | f (v)  f (v ′ ) ⊖ w(v, v ′ )}|
+ 12             foreach v ′ ∈ pre(v) such that f (v ′ ) ≺ f (v) ⊖ w(v ′ , v) do
+ 13                  if v ′ ∈ V0 then
+ 14                         if f (v ′ )  old ⊖ w(v ′ , v) then count(v ′ ) ← count(v ′ ) − 1
+ 15                         if count(v ′ ) ≤ 0 then L ← L ∪ {v ′ }
+ 16                    if v ′ ∈ V1 then L ← L ∪ {v ′ }
+
+ 17         return f
+      end
+
+
+
+
+Proof. First, we show that the invariant holds after line 6. Consider an arbitrary vertex v ∈ V \ L. If
+v ∈ V0 , then there exists (v, v ′ ) ∈ E such that w(v, v ′ ) ≥ 0 (line 1 of Alg. 1). Since f (v ′ ) = 0, we
+get f (v ′ ) ⊖ w(v, v ′ ) = 0 = f (v), showing that δ(f, v)(v) = 0 = f (v) by Definition 3. It is obvious
+that δ(f, v)(v ′ ) = f (v ′ ) for all v ′ 6= v, and thus δ(f, v) = f . The proof of part (ii) of the invariant is
+straightforward. The case v ∈ V1 is proven analogously.
+     Second, assume that the invariant holds before executing the loop, and let v be the vertex selected
+at line 8. Consider the case where (v, v) 6∈ E. Let f ′ = δ(f, v) (see also line 10). Note that f ′ differs
+from f only in the value assigned to vertex v, i.e. f ′ (v ′ ) = f (v ′ ) for all v ′ 6= v. Therefore, the value
+count(v ′ ) needs to be updated only for the predecessors v ′ ∈ pre(v) of v, and this can be done as in
+line 14. Now, since we assumed that v 6∈ pre(v), the vertex v is not inserted back in the list L in the
+loop of line 12, and thus we need to show that δ(f ′ , v) = f ′ . It is easy to see that δ(f ′ , v)(v ′ ) = f ′ (v ′ )
+for all v ′ 6= v, while for v ′ = v, this follows from the fact that f ′ and f agree on the value of all
+successors of v.
+     Finally, it is easy to see that the list L is correctly updated in lines 12-16: for v ′ ∈ pre(v) ∩ V1 , if
+f (v ′ )  f (v) ⊖ w(v ′ , v) (i.e. v ′ is not inserted in the list), then δ(f ′ , v ′ ) = f ′ ; for v ′ ∈ pre(v) ∩ V0 , if
+the value count(v ′ ) is positive (i.e. v ′ is not inserted in the list), then δ(f ′ , v ′ ) = f ′ .
+     The case where (v, v) ∈ E is proven analogously.                                                                    ⊓
+                                                                                                                         ⊔
+Theorem 4 (Correctness). Let Γ = (V, E, w, hV0 , V1 i) be an EG. Algorithm 1 computes a small
+energy progress measure f on Γ such that Vf = W0 is the set of winning vertices for player 0.
+Proof. By Lemma 7 , Lemma 8, and the Knaster-Tarski theorem, the function computed f returned
+by Algorithm 1 is the unique least fixpoint of simultaneously all operators δ(·, v) for all v ∈ V .
+Therefore, the set Vf is the set of winning vertices for player 0 according to Lemma 6.
+    Termination of Algorithm 1 is enforced by the fact that every update of line 10 strictly increases
+the value of f in one vertex v, and the fact that the codomain of energy progress measures is finite. ⊓
+                                                                                                      ⊔
+Theorem 5 characterizes the small energy progress measure computed by Algorithm 1, putting it into
+relation with the minimum credit problem, and Theorem 6 establishes the complexity of Algorithm 1.
+
+                                                                12
+Theorem 5 (Minimal credit). Let Γ = (V, E, w, hV0 , V1 i) be an EG. The small energy progress
+measure f computed by Algorithm 1 is such that: (i) if v ∈ W0 (v is winning for player 0), then
+c∗ (v) = f (v), where c∗ (v) is the minimum initial credit to build a winning play for player 0 from v.
+(ii) if v ∈ W1 (v is winning for player 1), then f (v) = ⊤.
+
+Proof. By Theorem 4, the function f is a small energy progress measure on Γ such that Vf = W0 .
+Hence, for each v ∈  / W0 , f (v) = ⊤, which establishes the second item of our claim.
+    In order to show that for each v ∈ W0 , f (v) = c∗ (v), we start proving that f is an energy progress
+measure on the graph GΓ (π0f ) ↾ Vf . This will immediately imply that f (v) ≥ c∗ (v) for all v ∈ W0
+by Lemma 4. Let (v, v ′ ) be an edge in the graph GΓ (π0f ) ↾ Vf . Then f (v) 6= ⊤, f (v ′ ) 6= ⊤, and
+by definition of f we immediately obtain that f (v) ≥ f (v ′ ) − w(v, v ′ ), which yields our claim. We
+finally get to the result by showing that for each v ∈ W0 , the relation
+
+                                                 f (v) ≤ c∗ (v)                                           (5)
+
+is an invariant of Algorithm 1. By contradiction, let v ∈ W0 be the first node for which Equation
+5 is falsified within the execution of Algorithm 1. Since f (v) is initialized to the constant 0, such a
+violation needs to occur immediately after f (v) gets updated, at line (10), to the value f (v ′ )−w(v, v ′ ),
+for some successor v ′ of v. Then:
+
+                         f (v ′ ) − w(v, v ′ ) = f (v) > c∗ (v) ≥ c∗ (v ′ ) − w(v, v ′ ).                 (6)
+
+Equation 6 implies f (v ′ ) > c∗ (v ′ ), which contradicts the fact that v was the first node witnessing a
+violation of equation 5.                                                                                ⊓
+                                                                                                        ⊔
+
+Theorem 6 (Complexity). The worst-case complexity of Algorithm 1 is O(|E| · MGΓ ).
+                                                         P
+Proof. The initialization phase (lines (1)–(6)) costs O( v∈V (|post(v)|)) = O(|E|). Each iteration
+of the while-loop at line 7 (corresponding to a lift operation of f via v, followed by an update of
+the list L) costs O(|post(v)| + |pre(v)|). Since the value f (v) for each vertex v can increase at most
+MGΓ + 1 times, the global cost of Algorithm 1 is:
+                          X
+                       O(     (|post(v)| + |pre(v)|) · MGΓ ) = O(|E| · MGΓ )
+                           v∈V
+
+                                                                                                            ⊓
+                                                                                                            ⊔
+
+We are now ready to state the following theorem, relative to the complexity of the energy games
+problems introduced in Section 2.
+Theorem 7. Let Γ = (V, E, w, hV0 , V1 i) be an EG. The decision problem, the strategy synthesis
+problem, the partition problem, and the minimum credit problem on Γ can be solved in time O(|E| ·
+MGΓ ).
+
+Proof. It follows immediately from Lemma 6, Theorem 4, Theorem 5, and Theorem 6.                            ⊓
+                                                                                                            ⊔
+
+Remark 1. Note that it is also possible to use the results in Section 3 and Section 4 (and in particular
+Lemma 5 and Lemma 6) to derive an algorithm that solves the decision problem for EG by reducing
+it to the decision problem for safety games [23]. A safety game is simple 2-player game played on an
+un-weighted arena, where the vertices are partitioned into allowed and forbidden positions. The goal
+of player 0 is that of building a play that never enters any forbidden position. It is well known that
+safety games can be solved in time linear w.r.t. the size of the corresponding arenas. On the ground of
+Lemma 5 and Lemma 6, the decision problem for an EG Γ = (V, E, w, hV0 , V1 i) can be reduced to
+
+                                                       13
+the decision problem for a safety game Γ ′ in time and space O(|E| · MGΓ ), i.e. pseudopolynomial
+w.r.t. the size of Γ . In fact, given the EG Γ = (V, E, w, hV0 , V1 i), we can build a safety game Γ ′
+played on an arena having set of position V × {0, . . . , MGΓ } ∪ {⊤}. Given a vertex (v, k) in Γ ′ , v
+represents a position in the original EG and k corresponds to a level of energy. The set of forbidden
+positions in the safety game Γ ′ is B = {(v, ⊤) | v ∈ V }. The encoding safety game Γ ′ contains the
+edge ((v, k), (v ′ , k′ )) iff:
+
+      (v, v ′ ) ∈ E ∧ k 6= ⊤ ∧ (k + w(v, v ′ ) = k′ ≤ MGΓ ∨ (k + w(v, v ′ ) > MGΓ ∧ k′ = ⊤)).
+
+It is easy to see that player 0 has a winning strategy from (v, k) in the encoding safety game Γ ′ (i.e.
+she can avoid to reach a (forbidden) position with global energy level ⊤) iff player 0 has a winning
+strategy from the vertex v with credit k in the original EG Γ .
+     Algorithm 1 can be also seen as a space-efficient counterpart of the above procedure of reduction
+from energy games to safety games where, rather than maintaining explicitly the whole space of
+possible energy values, we efficiently update online a set of energy-counters. This allows to use a
+space linear w.r.t. the size of the arena of the EG, rather than pseudopolynomial.
+
+
+5 Solving the Mean-Payoff Game Problems
+
+In this section we provide new efficient pseudopolynomial algorithms for the MPG problems stated
+in Section 2, featuring a better worst-case complexity than the corresponding state-of-the-art pseu-
+dopolynomial procedures by Zwick and Paterson [19]. Our new solutions for those problems build up
+on the notion of small energy progress measure and use Algorithm 1 as a basic step.
+
+
+5.1   Decision Problem, Strategy Synthesis, and Three-Way Partition
+
+First, we consider the decision problem and the strategy synthesis problem for MPG. Let Γ =
+(V, E, w, hV0 , V1 i) be a MPG where w : V → {−W, . . . , W }, and let ν ∈ Z. Consider the problem
+to decide if the value of a given vertex v ∈ V is greater than or equal to ν. If |ν| > W , then according
+to Lemma 2 we can immediately provide an answer to this decision problem (Y ES if ν < −W , N O
+if ν > W ). Otherwise, consider the game Γ −ν = (V, E, w − ν, hV0 , V1 i), this game can be used to
+solve our original problems as stated in the following lemma.
+
+Lemma 9. Given a MPG Γ = (V, E, w, hV0 , V1 i) and a threshold ν ∈ Z, let f be a small energy
+progress measure for Γ −ν = (V, E, w − ν, hV0 , V1 i). All strategies π0f of player 0 compatible with f
+secure a payoff at least ν from all v ∈ Vf in the MPG Γ .
+
+Proof. Towards contradiction, assume that v ∈ Vf is a vertex such that the payoff that player 0 can
+secure from v is less than ν. By Lemma 1, the graph GΓ (π0f ) admits a path p = v0 v1 . . . vi . . . vn
+                                                                     1 Pn−1
+from v = v0 to a cycle vi . . . vn (vi = vn ) having average weight n−i   j=i w(vj , vj+1 ) < ν, which
+implies:
+                         n−1
+                         X
+                               (w − ν)(vj , vj+1 ) < (n − i)ν − (n − i)ν = 0.
+                          j=i
+
+Since v ∈ Vf , the inductive application of the definition of f for 0 ≤ j ≤ n yields vj ∈ Vf for all
+0 ≤ j ≤ n. Hence, the graph GΓ (π0f ) ↾ Vf admits a path v0 . . . vi . . . vn from v to a negative cycle.
+                                −ν
+
+
+This contradicts Lemma 4, since f ↾ Vf is an energy progress measure on GΓ (π0f ) ↾ Vf .
+                                                                                 −ν
+                                                                                                       ⊓
+                                                                                                       ⊔
+
+                                                   14
+We now turn to the three-way partition problem, and we show how this problem can also be solved
+in time O(|E| · MGΓ ) using Algorithm 1 as a basic ingredient. In fact, consider the MPG Γ =
+(V, E, w, hV0 , V1 i) where w : V → [−W, . . . , 0, . . . , +W ], and define V∗ := V0 , V ∗ := V1 . Given
+ν ∈ Z, |ν| ≤ W , we can construct the two game graphs Γ ′ = (V, E, w − ν, hV0 := V∗ , V1 := V ∗ i)
+and Γ ′′ = (V, E, −w + ν, hV0 := V ∗ , V1 := V∗ i). Running Algorithm 1 on Γ ′ yields the partition on
+V into V≥ν (for vertices securing player 0 a payoff at least ν in Γ ) and V<ν . Running Algorithm 1 on
+Γ ′′ yields the partition on V into V≤ν and V>ν . The desired three-way partition can be immediately
+extracted from the above two partitions. Thus, we obtain:
+Theorem 8. Let Γ = (V, E, w, hV0 , V1 i) be a MPG. The decision problem, the strategy synthesis
+problem, and the three-way partition problem on Γ can be solved in time O(|E| · |V | · W ).
+
+Proof. For the decision problem and the strategy synthesis problem, the result immediately follows
+from Lemmas 2, 9, and Theorems 4, 6.
+    For the three-way partition problem, let Γ be a MPG with weight function w, and ν ∈ Z. Consider
+the game Γ ′ obtained as a copy of Γ with weight function w − ν, and the game Γ ′′ obtained by
+exchanging the role of the players in Γ and with value function −w + ν. By Theorem 1, Lemma 9,
+and Theorem 4, running Algorithm 1 on Γ ′ yields the partition V≥ν (for vertices from which player 0
+secures a payoff at least ν in Γ ) and V<ν , while on Γ ′′ , it yields the partition on V into V≤ν and V>ν .
+Hence the three-way partition of V into hV<ν , V=ν = V≤ν ∩ V≥ν , V>ν i can be hence obtained in time
+O(|E| · MGΓ ), by Theorem 6.                                                                             ⊓
+                                                                                                         ⊔
+
+5.2      Value Problem and Optimal Strategy Synthesis
+We finally consider the value problem. Let Γ = (V, E, w, hV0 , V1 i) be a MPG. By Lemma 2, for each
+vertex v ∈ V , the value valΓ (v) is contained in the following set of rationals:
+                           p
+                          S={ | p, m ∈ Z, 1 ≤ m ≤ |V | ∧ −m · W ≤ p ≤ m · W }.
+                           m
+    Thus, a conceptually simple algorithm for computing the value of each vertex v ∈ V would be to
+                                                                                  p
+perform |V | dichotomic searches in the set S. In particular, given v ∈ V and m      ∈ S, the application
+                                                                                                  p
+of Algorithm 1 on Γ = (V, E, m · w − p, hV0 , V1 i) allows to decide whether valΓ (v) ≥ m
+                      ′                                                                             . The
+                                                3                                             2
+global cost of such an algorithm is O(|E| · |V | · W · log(|V | · W ), since S has size O(|V | · W ) and
+Algorithm 1 is called on a reweighted version of Γ , where the maximal (absolute) weight is 2·|V |·W .
+In the sequel, we build on the ideas described above to design an O(|V |2 · |E| · W · log(|V | · W ))
+algorithm to compute the values of a MPG.
+    Instead of performing a dichotomic search in S to assign the value valΓ (v) to each vertex v ∈ V
+individually, Algorithm 2 combines the dichotomic search with recursive calls. Each branch of the
+(binary) recursive tree for Algorithm 2 builds a sequence Γ = Γ 0 , . . . , Γ n of game subgraphs of Γ ,
+coupled with a decreasing sequence S = S 0 ⊇ S 1 ⊇ · · · ⊇ S n of subsets of S such that:
+ – for all 0 ≤ i ≤ n, the values of the vertexes in Γ i are included in S i
+ – for all 0 ≤ i < n, it holds max(S i+1 ) − min(S i+1 ) ≤ 12 (max(S i ) − min(Si))
+In particular, the second item above ensures that the length of each branch in the tree of recursive
+calls in Algorithm 2 is at most O(log(V · W )), since the difference between two values in S is at
+most 2W and at least V12 . Each recursive call to Algorithm 2 on Γ i , S i , where S i is represented by its
+extreme values ri = min(S i ), si = max(S i ), performs the following operations. First, it determines
+the largest element a1 of S i less than or equal to ri +s
+                                                       2 , and the smallest element a2 of S greater
+                                                          i                                        i
+
+than or equal to5 ri +s                                                             i
+                     2 . (e.g. by simply enumerating on the fly the elements in S ). Then, Algorithm 1
+                        i
+
+
+ 5
+     Note that ri +s
+                  2
+                    i
+                      is not guaranteed to be an element of S i , since its denominator may not belong to the range 1 . . . |V |.
+
+
+                                                                15
+is used to determine the partition hV<a  i , V i , V i , V i i over the set of vertices V of the game
+                                           1  =a1    =a2   >a2                             i
+subgraph Γ i . Finally, Algorithm 2 is recursively called on the disjoint subgames Γ i ↾ V<a
+                                                                                          i ,Γi ↾ V i .
+                                                                                             1     >a2
+The recursive reduction of the problem to smaller and disjoint instances provides a linear (w.r.t. |V |)
+improvement of Algorithm 2 over the naive iterative procedure.
+    The correctness of Algorithm 2 is established in Theorem 9 using the following lemma.
+
+Lemma 10. Given a MPG Γ = (V, E, w, hV0 , V1 i) and µ ∈ Q, consider Γ ′ = Γ ↾ V∼µ , where
+                                 ′
+∼∈ {<, >}. If v ∈ V∼µ , then valΓ (v) = valΓ (v).
+
+Proof. We start by showing that the relation E ↾ V∼µ , where µ ∈ Q and ∼∈ {<, >}, is total6 . Let
+π0 (resp. π1 ) be an optimal memoryless strategy in Γ for player 0 (resp. player 1), and consider the
+graph GΓ (π0 , π1 ). Given v ∈ V∼µ , consider the maximal (i.e cyclic) path from v in GΓ (π0 , π1 ),
+v0 , . . . , vn , v0 = v, vn = vk , 0 ≤ k ≤ n. In such a path, the average weight of the cycle vk , . . . , vn
+determines the payoff of each element vi , 0 ≤ i ≤ n. Since π0 and π1 are optimal, for all 0 ≤ i ≤ n,
+valΓ (vi ) equals the payoff from vi using π0 (resp. π1 ) against π1 (resp. π0 ). Hence, the average weight
+of the cycle vk , . . . , vn is equal to valΓ (v) ∼ µ, and for all 1 ≤ i ≤ n, valΓ (vi ) ∼ µ. In particular, v1
+is a successor of v having value ∼ µ, which implies that E ↾ V∼µ is total.
+      Given the above premise, the result follows from the fact that Γ ′ is a mean-payoff game and that
+for all memoryless optimal strategies πi ∈ ΣiM of player i (i = 0, 1), for all vertices v ∈ Vi , we have
+valΓ (v) = valΓ (πi (v)). Therefore, all edges (v, v ′ ) in Γ such that valΓ (v) 6= valΓ (v ′ ) are useless for
+optimality, and in particular, playing in Γ or in Γ ′ does not change the optimal value.                      ⊓
+                                                                                                              ⊔
+
+Theorem 9. Let Γ = (V, E, w, hV0 , V1 i) be a mean-payoff game such that w : V → {−W, . . . , W }.
+Algorithm 2 applied to the input (Γ, −W, W ) computes for each v ∈ V the value valΓ (v).
+
+Proof. Given the mean-payoff game Γ = (V, E, w, hV0 , V1 i), let {valΓ (v) | v ∈ V } ⊆ U ⊆ S =
+  p                              p
+{m  | 1 ≤ m ≤ |V | ∧ −W ≤ m        ≤ W }. We prove that Algorithm 2(Γ, min(U ), max(U )) terminates
+and computes the set of values in Γ . The termination is ensured by the fact that Algorithm 2 performs
+a binary search over the (finite) set U ⊆ S, where |S| = O(|V |2 · W ). To complete the proof of our
+claim of correctness, we use an inductive argument on |U |.
+    For the base case, |U | = 1. Let pq be the only element of U such that for all v ∈ V , it holds
+valΓ (v) = pq . By Lemma 9 and by Theorem 4, the application of Algorithm 1 to the game Γ ′ =
+(V, E, qw − p, hV0 , V1 i) (resp. Γ ′′ = (V, E, −qw + p, hV1 , V0 i)) at Lines (5)–(6) yields the partition
+hV≥ p = V, V< p = ∅i (resp. hV≤ p = V, V> p = ∅i ) on V , where V∼ p = {v ∈ V | valΓ (v) ∼ pq }, ∼∈
+      q            q                   q          q                           q
+
+<, ≤, ≥, >. Hence, Line (9) correctly assigns to each node of V its value valΓ (v) = pq .
+    For the inductive step, suppose that |U | > 1. Let a1 = max{ ql | 1 ≤ l ≤ |V | ∧ min(U ) ≤ ql ≤
+1                                      q                               q    1
+2 (min(U ) + max(U ))}, a2 = min{ l | 1 ≤ l ≤ |V | ∧ max(U ) ≥ l ≥ 2 (min(U ) + max(U ))}.
+By Lemma 9 and by Theorem 4, the application of Algorithm 1 Lines (5)–(10) assign to each node
+in V=a1 (resp. V=a2 ) its value valΓ (v) = a1 (resp. valΓ (v) = a2 ). By inductive hypothesis and by
+Lemma 10 Line (13) (resp. Line (14)) computes the value of the nodes in V<a1 (resp. V>a2 ).        ⊓
+                                                                                                   ⊔
+
+    Lemma 11 proves that the height of the tree of recursive calls corresponding to Algorithm 2 is
+asymptotically logarithmic w.r.t. |V |2 · W , and Lemma 12 states that the cost of executing lines (1)–
+(11) in each recursive call of Algorithm 2 for the subgame Γ ′ = (V ′ , E ′ , w, hV0′ , V1′ i) is O(|E ′ |·|V ′ |2 ·
+W ). Here, the quadratic dependence on |V ′ | comes from the need of applying Algorithm 1 (cf. Lines
+(5)–(8)) on a reweighted version of Γ ′ , where all edge-weights are multiplied by a natural number
+of size at most |V ′ |. Theorem 10 then gives the complexity of Algorithm 2 for the value problem on
+mean-payoff games.
+ 6
+     i.e. ∀v ∈ V∼µ ∃u ∈ V∼µ ((v, u) ∈ E ↾ V∼µ )
+
+
+                                                        16
+Algorithm 2: Solving the value problem for mean-payoff games.
+                                                                                                                  p1
+     Input     : Mean-payoff game Γ = (V, E, w : V → {−W, . . . , W }, hV0 , V1 i); lower and upper bounds m        1
+                                                                                                                      ≤
+                  p2                                               p1       p2
+                 m2
+                     on the values of the nodes in Γ , where −W ≤  m1
+                                                                       ≤   m2
+                                                                                 ≤   W , p 1 , p 2 , m 1 , m 2 ∈ N,  and
+                 1 ≤ m1 ≤ |V |, 1 ≤ m2 ≤ |V |.
+   Output     : For each u ∈ V , the value v Γ (u).
+   begin
+ 1     if V 6= ∅ then
+ 2          a1 ← ql11 ← max{ ql | 1 ≤ l ≤ |V | ∧ m  p1
+                                                      1
+                                                        ≤ ql ≤ 21 ( m
+                                                                    p1
+                                                                     1
+                                                                        p2
+                                                                       +m 2
+                                                                            )}
+                   q2         q                     p2    q    1 p1     p2
+ 3          a2 ← l2 ← min{ l | 1 ≤ l ≤ |V | ∧ m2 ≥ l ≥ 2 ( m1 + m2 )}
+ 4
+             /* Use Algorithm 1 to determine V<a1 , V=a1 , V=a2 , V>a2 */
+ 5           f1 ← Algorithm 1(V, E, l1 w − q1 , hV0 , V1 i)
+ 6           f2 ← Algorithm 1(V, E, −l1 w + q1 , hV1 , V0 i)
+ 7           f3 ← Algorithm 1(V, E, l2 w − q2 , hV0 , V1 i)
+ 8           f4 ← Algorithm 1(V, E, −l2 w + q2 , hV1 , V0 i)
+ 9           foreach (u | f1 (u) 6= ⊤ ∧ f2 (u) 6= ⊤) do v Γ (u) ← a1
+10           foreach (u | f3 (u) 6= ⊤ ∧ f4 (u) 6= ⊤) do v Γ (u) ← a2
+11           V<a1 ← {u | f1 (u) = ⊤}; V>a2 ← {u | f4 (u) = ⊤}
+12
+             /*Recursive Calls*/
+                                                                                   p1
+13           Algorithm 2((V<a1 , E ↾ V<a1 , w ↾ V<a1 , hV0 ∩ V<a1 , V1 ∩ V<a1 i), m 1
+                                                                                      , a1 )
+                                                                                       p2
+14           Algorithm 2((V>a2 , E ↾ V>a2 , w ↾ V>a2 , hV0 ∩ V>a2 , V1 ∩ V>a2 i), a2 , m 2
+                                                                                           )
+
+     end
+
+
+
+
+Lemma 11. Let Γ = (V, E, w, hV0 , V1 i) be a MPG, where w : V → {−W, . . . , W }. The height of
+the tree of recursive calls corresponding to Algorithm 2 applied to (Γ, −W, W ) is O(log(|V | · W )).
+
+Proof. Let c1 , . . . , ck be a branch of recursive calls in the tree of recursive calls corresponding to Al-
+                                                                                      p1 p2
+gorithm 2, and let d1 , . . . , dk be the distances between the input parameters m       ,
+                                                                                       1 m2
+                                                                                             in each recursive
+                                                                          di
+call c1 , . . . , ck . Then, d1 = 2W and for all i = 1, . . . , k, di+1 ≤ 2 . Since two rational numbers with
+denominator at most |V | have distance at least |V1|2 , we obtain that k ≤ log |V2W    |−2
+                                                                                           = log(2W |V |2 ).
+                                                                                                             ⊓
+                                                                                                             ⊔
+
+Lemma 12. The cost of executing lines (1)–(11) in a recursive call of Algorithm 2 on the subgame
+Γ ′ = (V ′ , E ′ , w, hV0′ , V1′ i) of Γ = (V, E, w, hV0 , V1 i), where w : V → {−W, . . . , W }, is O(|E ′ | ·
+|V ′ |2 · W ).
+
+Proof. By assumption, 1 ≤ mi∈{1,2} ≤ |V ′ |, and −|V ′ | · W ≤ pi∈{1,2} ≤ |V ′ | · W . Hence, the
+codomain of the functions m1 w − p1 , −m1 w + p1 , m2 w − p2 , −m2 w + p2 is the set of integers
+{−2·|V ′ |·W, . . . , 2·|V ′ |·W }. By Theorem 6, Lines (5)–(8) can be executed in time O(|E ′ |·|V ′ |2 ·W ).
+Lines (9)–(11) cost O(|V ′ |), while Lines (2)–(3) can be trivially executed in time O(|V ′ |2 · W ) (e.g.,
+                                                           p                             p
+by simply enumerating the elements of the set S = { m        | 1 ≤ m ≤ |V ′ | ∧ −W ≤ m     ≤ W }, where
+            ′ 2
+|S| = O(|V | · W )).                                                                                        ⊓
+                                                                                                            ⊔
+
+Theorem 10. Let Γ = (V, E, w, hV0 , V1 i) be a MPG where w : V → {−W, . . . , W }. Algorithm 2
+applied to (Γ, −W, W ) solves the value problem and the optimal strategy synthesis problem on Γ in
+time: O((log(|V |) + log(W )) · |E| · |V |2 · W ).
+
+Proof. Let Γ hℓ,1i , . . . , Γ hℓ,kℓ i be the kℓ subgames of Γ considered at level ℓ of the tree of recursive
+calls corresponding to Algorithm 2. Then, the corresponding set of vertices V hℓ,1i , . . . , V hℓ,kℓ i are
+such that V hℓ,ii ∩ V hℓ,ji = ∅ for j 6= i, 1 ≤ i, j, ≤ kℓ , and V hℓ,1i ∪ · · · ∪ V hℓ,kℓ i ⊆ V . Hence, on the
+
+                                                           17
+ground of Lemmas 11, 12 we obtain that the global complexity of Algorithm 2 is:
+
+                         log(2|V |2 W )
+                             X
+                      O(              |E| · |V hℓ,1i |2 · W + · · · + |E| · |V hℓ,kℓ i |2 · W ) =
+                              ℓ=1
+
+                                 = O((log(|V |) + log(W )) · |E| · |V |2 · W )
+since |E|·|V hℓ,1i |2 ·W +· · ·+|E|·|V hℓ,kℓ i |2 ·W ≤ |E|·W ·(|V hℓ,1i |+· · ·+|V hℓ,kℓ i |)2 ≤ |E|·|W |·|V |2 .
+                                                                                                              ⊓
+                                                                                                              ⊔
+
+Thus, our MPG value problem outperforms the corresponding deterministic procedure in [19], when
+the maximum weight in the MPG graph is small (i.e. W is subexponential w.r.t. |V |). To design a MPG
+value algorithm that outperforms previous solutions for all values of W , we can consider a randomized
+framework and combine our procedure with the one proposed in [3].qIn particular, the solution to the
+                                                                                  √         √
+value problem proposed by [3] has expected complexity |V |2 ·|E|·e2· |V |·ln(|E|/ |V |)+O( |V |+ln|E|).
+By interleaving our MPG value algorithm with [3] and adding a stopping criterion which terminates
+the computation when either of the two procedures finishes, we get a randomized algorithm for the
+MPG    value problem with expected complexity min(O(|V |2 · |E| · W · log(|V | · W )), |V |2 · |E| ·
+   q            √        √
+e2· |V |·ln(|E|/ |V |)+O( |V |+ln|E|)), which outperforms all previous solutions.
+
+6 Conclusion
+
+We designed simple and efficient deterministic algorithms for solving energy games and mean-payoff
+games. Our algorithmic engine requires O(|E| · |V | · W ) computational steps to solve the MPG
+decision problem, outperforming the corresponding Θ(|E| · |V |2 · W ) pseudopolynomial procedure
+in [19]. Note that the algorithm in [19] requires always Θ(|E| · |V |2 · W ), while our procedure is
+O(|E| · |V | · W ) only in the worst case (it needs linear time when, for example, all the weights are
+positive). The value problem can be solved in time O(|E| · |V |2 · W (log|V | + log W )) using our
+framework, while [19] requires Θ(|E| · |V |3 · W ). As [12], our algorithm has also the advantage
+to produce as a byproduct (optimal) winning strategies, while [19] needs further computation for
+strategy synthesis. Hence, the winning strategy synthesis problem (resp. the optimal strategy synthesis
+problem) is solved in time O(|E| · |V | · W ) (resp. O(|E| · |V |2 · W (log|V | + log W ))) using our
+procedures, outperforming [12, 19]. In combination with the randomized algorithm of Andersson and
+Vorobyov [3], our MPG value algorithm is a randomized procedure with currently the best expected
+complexity, namely:
+
+                                                                        q              √          √
+        min(O(|V |2 · |E| · W · log(|V | · W )), |V |2 · |E| · e2·          |V |·ln(|E|/   |V |)+O(   |V |+ln|E|)
+                                                                                                                    )
+
+References
+ 1. A. Ehrenfeucht and J. Mycielski. International journal of game theory. Positional Strategies for Mean-Payoff Games,
+    8:109–113, 1979.
+ 2. A. V. Karzanov and V. N. Lebedev. Cyclical games with proibitions. Mathematical Programing, 60:277–293, 1993.
+ 3. D. Andersson and S. Vorobyov. Fast algorithms for monotonic discounted linear programs with two variables per
+    inequality. Technical Report Preprint NI06019-LAA, Isaac Newton Institute for Mathematical Sciences, Cambridge,
+    UK, 2006.
+ 4. P. Bouyer, U. Fahrenberg, K. G. Larsen, N. Markey, and J. Srba. Infinite runs in weighted timed automata with energy
+    constraints. In Proc. of FORMATS: Formal Modeling and Analysis of Timed Systems, LNCS 5215, pages 33–47.
+    Springer, 2008.
+
+
+                                                          18
+ 5. A. Chakrabarti, L. de Alfaro, T. A. Henzinger, and M. Stoelinga. Resource interfaces. In Proc. of EMSOFT: Embedded
+    Software, LNCS 2855, pages 117–133. Springer, 2003.
+ 6. J. Chaloupka and L.Brim. Faster algorithm for mean-payoff games. In Proc. of the 5-th Docoral Workshop on Mathe-
+    matical and Engineering Methods in Computer Science (MEMICS ’09), pages 45–53. NOVPRESS, 2009.
+ 7. A. Condon. On algorithms for simple stochastic games. In Advances in Computational Complexity Theory, volume 13
+    of DIMACS Series in Discrete Mathematics and Theoretical Computer Science, pages 51–73. American Mathematical
+    Society, 1993.
+ 8. V. Dhingra and S. Gaubert. How to solve large scale deterministic games with mean payoff by policy iteration. In Proc.
+    Performance evaluation methodolgies and tools, article no. 12. ACM, 2006.
+ 9. L. Doyen, R. Gentilini, and J.-F. Raskin. Faster pseudopolynomial algorithms for meanpayoff games. Technical Report
+    2009.120, Universite Libre de Bruxelles (ULB), Bruxelles, Belgium, 2009.
+10. E. A. Emerson, C. Jutla, and A. P. Sistal. On model checking for fragments of the µ-calculus. In Proc. of CAV:
+    Computer Aided Verification, LNCS 697, pages 385–396. Springer, 1993.
+11. Y. Gurevich and L. Harrington. Trees, automata, and games. In Proc. of STOC: Symposium on Theory of Computing,
+    pages 60–65. ACM, 1982.
+12. H. Bjorklund and S. Vorobyov. A combinatorial strongly subexponential strategy improvement algorithm for mean
+    payoff games. Discrete Applied Mathematics, 155:210–229, 2007.
+13. M. Jurdzinski. Deciding the winner in parity games is in UP ∩ coUP. Inf. Process. Lett., 68(3):119–124, 1998.
+14. M. Jurdzinski. Small progress measures for solving parity games. In Proceedings of STACS: Theoretical Aspects of
+    Computer Science, LNCS 1770, pages 290–301. Springer, 2000.
+15. D. Kozen. Results on the propositional mu-calculus. Theor. Comput. Sci., 27:333–354, 1983.
+16. N. Pisaruk. Mathematics of operations research. Mean Cost Cyclical Games, 4(24):817–828, 1999.
+17. C. M. Papadimitriou. Computational complexity. Addison-Wesley, Reading, Massachusetts, 1994.
+18. S. Schewe. From parity and payoff games to linear programming. In Proceedings of MFCS: Mathematical Foundations
+    of Computer Science, LNCS 5734, pages 675–686. Springer, 2009.
+19. U. Zwick and M. Paterson. The complexity of mean payoff games on graphs. Theoretical Computer Science, 158:343–
+    359, 1996.
+20. V. A. Gurvich, A. V. Karzanov, and L. G. Kachiyan. Ussr computational mathematics and mathematical physics. Cyclic
+    Games and an Algorithm to Find Minmax Cycle Means in Directed Graphs, 5(28):85–91, 1988.
+21. I. Walukiewicz. Pushdown processes: Games and model checking. In Proceedings of CAV: Computer Aided Verifica-
+    tion, LNCS 1102, pages 62–74. Springer, 1996.
+22. Y. Lifshits and D. Pavlov. Potential theory for mean payoff games. Journal of Mathematical Sciences, 145(3):4967–
+    4974, 2007.
+23. Z. Manna and A.Pnueli. The Temporal Logic of Reactive and Concurrent Programs. Springer-Verlag, 1992.
+
+
+
+
+                                                           19
+

@@ -1,0 +1,4813 @@
+Electronic Colloquium on Computational Complexity, Revision 1 of Report No. 52 (2026)
+
+A Sharp Characterization of Pessiland
+Shuichi Hirahara∗
+
+Mikito Nanashima†
+
+Abstract
+It is a long-standing open question whether the average-case hardness of NP implies the
+existence of a one-way function. The hypothetical world in which this does not hold is called
+Pessiland, which is the most pessimistic among Impagliazzo’s five possible worlds. In this paper,
+we present the first “sharp” characterization of Pessiland:
+• NP is hard on average if and only if the minimum description length of programs in agnostic
+learning is hard to approximate on average with an approximation factor ℓ1−o(1) , where ℓ
+is a new parameter of a distribution called advice complexity of sampling.
+• A one-way function does not exist if and only if the minimum description length of programs
+in agnostic learning is easy to approximate on average, with respect to every polynomialtime samplable distribution over instances, with an approximation factor O(ℓ).
+In particular, Pessiland is ruled out if and only if the small quantitative gap in approximation
+factors ℓ1−o(1) and O(ℓ) is closed.
+Our characterization is based on an optimal NP-hardness result for the Collective Minimum
+Monotone Satisfying Assignment (CMMSA) Problem, whose task is, given as input a collection of
+monotone formulas with at most ℓ literals, to compute the minimum weight of an assignment that
+satisfies as many monotone formulas as possible. We prove the NP-hardness of approximating
+the minimum weight within a factor of ℓ1−o(1) , improving the previous inapproximability factor
+of ℓΩ(1) by Hirahara (FOCS 2022). This inapproximability factor is optimal up to the o(1) loss in
+the exponent, unless NP ⊆ coAM, because CMMSA admits a coAM protocol with approximation
+factor O(ℓ).
+
+∗
+†
+
+National Institute of Informatics, Japan. s hirahara@nii.ac.jp
+Institute of Science Tokyo, Japan. nanashima@comp.isct.ac.jp
+
+ISSN 1433-8092
+
+Contents
+1 Introduction
+1.1 Agnostic Learning of Minimum Programs . . . . . . . . . . . . . . . . . . . . . . . .
+1.2 Minimum Monotone Satisfying Assignment Problem . . . . . . . . . . . . . . . . . .
+1.3 Perspective: Can We Rule Out Pessiland? . . . . . . . . . . . . . . . . . . . . . . . .
+
+1
+2
+4
+7
+
+2 Technical Overview
+2.1 Improved NP-Hardness of GapDMMSA . . . . . . . . . . . . . . . . . . . . . . . . .
+2.2 A Reduction from Learning to Inverting Auxiliary-Input Functions . . . . . . . . . .
+
+7
+8
+11
+
+3 Preliminaries
+13
+3.1 Cryptography and Secret Sharing . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+3.2 Algorithmic Information . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+3.3 Sampling with Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+4 NP-Hardness of Distributional Minimum Monotone Satisfying Assignment
+18
+4.1 Distributional Minimum Monotone Satisfying Assignment . . . . . . . . . . . . . . . 18
+4.2 Proof of Theorem 4.2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 20
+4.3 The Star-Projection Structure of Minzer–Zheng PCP . . . . . . . . . . . . . . . . . . 26
+5 From DMMSA to Learning under Distributions with Small Advice
+
+27
+
+6 Reduction to Inverting Auxiliary-Input Functions and Consequences
+32
+6.1 Inductive Inference: From Learning to Universal Extrapolation . . . . . . . . . . . . 33
+6.2 Description-Restricted Reduction to Inverting Auxiliary-Input Functions . . . . . . . 36
+6.3 CoAM Bound for Description-Restricted Context-Sensitive FAIN Reductions . . . . 42
+6.4 CoAM bound for Problems Reducible to GapLearn . . . . . . . . . . . . . . . . . . . 45
+6.5 One-Way Functions from Average-Case Hardness . . . . . . . . . . . . . . . . . . . . 49
+7 Open Problems
+
+53
+
+A An Approximation Algorithm for DNF-MMSA
+
+60
+
+B Advice Complexity of Sampling
+
+60
+
+1
+
+Introduction
+
+A one-way function is a function that is easy to compute but hard to invert on average. This is one
+of the most fundamental cryptographic primitives because the existence of a one-way function is
+sufficient for constructing various “Minicrypt” primitives, such as private-key encryption schemes
+[GM84], commitment schemes [Nao91], pseudorandom function generators [GGM86; HILL99], zero
+knowledge protocols for all NP [GMW91; NOV06], and is also necessary for these cryptographic
+primitives [IL89; OW93; HN24]. It is thus of central importance to investigate what is a minimal
+hypothesis sufficient for the existence of a one-way function. The existence of a one-way function
+clearly implies the average-case hardness of NP (with respect to some polynomial-time samplable
+distribution). Whether the converse holds or not is the central open question known as the exclusion
+of Pessiland — a hypothetical world in which NP is hard on average, yet no one-way function exists
+— from Impagliazzo’s five possible worlds [Imp95]. Pessiland is the most pessimistic in that neither
+cryptography nor heuristic algorithms for NP exist. Recently, Hirahara and Nanashima [HN23] put
+forward an alternative name of Pessiland — “Learnabilica”, in which there exist efficient averagecase algorithms for various learning tasks, such as PAC learning [BFKL93], learning adaptively
+changing distributions [NR06], distributional learning and agnostic learning [IL90; HN23].
+In this paper, we continue to study the complexity of agnostic learning of minimum programs.
+Given random labeled examples (x1 , b1 ), · · · , (xm , bm ) drawn from an unknown distribution D, the
+task of agnostic learning is to approximately calculate the minimum length of programs M such
+that the probability that M (x) = b for (x, b) ∼ D is close to 1. We introduce some parameter
+ℓ of distributions D, which we call advice complexity of sampling, and present the following new
+characterization of Pessiland.
+Main Theorem (informal). For the advice-complexity parameter ℓ, the following hold as ℓ ranges
+over sufficiently large integers.
+• NP is hard on average ⇐⇒ agnostic learning with factor ℓ1−o(1) is hard on average.
+• A one-way function exists ⇐⇒ agnostic learning with factor Cℓ is hard on average for a
+sufficiently large constant C.
+Corollary (informal). Pessiland exists if and only if average-case agnostic learning is hard with
+an approximation factor ℓ1−o(1) for some samplable distribution and is easy with an approximation
+factor O(ℓ) for every samplable distribution.
+This is the first “sharp” characterization of Pessiland. Although there has been a flurry of recent characterizations of the existence of one-way functions [LP20; RS21; LP21; IRS22; ACMTV21;
+LP22; LP23a; LP23b; HILNO23; Hir23; IL90; HN23; HLN24], none of them is quantitatively close
+to the average-case hardness of NP. For example, Liu and Pass [LP22] presented the equivalence
+between the existence of one-way functions and average-case hardness of polynomial -time-bounded
+conditional Kolmogorov complexity with respect to the uniform distribution, as well as the equivalence between average-case hardness of NP and average-case hardness of the sublinear -time-bounded
+conditional Kolmogorov complexity with respect to some polynomial-time samplable distribution.
+Their characterizations leave large quantitative (polynomial vs. sublinear-time bound) and qualitative (uniform vs. some distribution) gaps. Recently, Lu and Santhanam [LS24] extended this
+characterization to arbitrary polynomial-time samplable distributions (by considering probabilistic
+Kolmogorov complexity), which closes the qualitative gap but still leaves the large quantitative
+gap in the time bounds. By contrast, our characterizations leave only the small quantitative gap
+between approximation factors ℓ1−o(1) and O(ℓ), which intuitively suggests that Pessiland is very
+unlikely to exist.
+1
+
+Ruling out Pessiland is equivalent to closing the small quantitative gap between these approximation factors. Whether or not this means we are “close” to actually ruling out Pessiland remains
+to be seen, just as in the case of similar sharp threshold results for circuit lower bounds [CJW20].
+In fact, our characterization is given by an optimal NP-hardness result of the Collective Minimum
+Monotone Satisfying Assignment (CMMSA) problem, which cannot be improved further unless
+NP ⊆ coAM. This suggests that new ideas are necessary, despite the quantitative closeness to ruling
+out Pessiland.
+We proceed to describe the details of our results. In Section 1.1, we introduce the notion of
+advice complexity of sampling and the definition of agnostic learning of programs. In Section 1.2,
+we present the optimal NP-hardness result for CMMSA.
+
+1.1
+
+Agnostic Learning of Minimum Programs
+
+We introduce the notion of advice complexity of sampling.
+Definition 1.1 (Advice complexity of sampling; informal; see Definition 3.11 for the formal definition). For a family D = {Dn }n∈N of distributions, where Support(Dn ) ⊆ {0, 1}n , we say that
+D is samplable with advice complexity ℓ ∈ N if there
+ exist a (not necessarily efficient) algorithm
+S and a (not necessarily computable) family α = αn : {0, 1}∗ → {0, 1}≤ℓ n∈N of functions such
+that S(n, r, αn (r)) outputs ⊥ with probability at most 1/4 and, conditioned on not outputting ⊥, its
+output distribution has statistical distance at most 2−2n from Dn .
+This is analogous to the notion of Trevisan–Vadhan advice [TV07], which is an advice string that
+may depend on the internal randomness of a randomized algorithm. For simplicity, the informal
+definition is given only for a family of distributions; in fact, we may define the advice complexity of
+Dn for every distribution Dn over {0, 1}n based on a universal Turing machine (see Definition 3.11).
+The new notion of advice complexity of sampling is fairly robust, and is shown to be equivalent
+to other notions, such as the ∞-Rényi divergence to the universal distribution (the property of
+domination by the universal distribution) and a coding theorem of Kolmogorov complexity (up to
+a constant factor); see Appendix B for details.
+Many natural distributions have small advice complexity. For example, consider a uniformly
+random function f : {0, 1}n → {0, 1}, and consider the distribution E of a labeled example (x, f (x))
+for a uniformly random x ∼ {0, 1}n . The advice complexity of E is 1, despite that the description
+length (the Kolmogorov complexity) of the distribution itself is as large as Ω(2n ).
+Now we introduce the problem of agnostic learning minimum programs. Ko [Ko91] introduced
+the problem of learning minimum programs, denoted by MINLT. Informally, MINLT is the problem
+of finding a minimum program M such that M (xi ) = bi for all i ∈ [m] for given labeled examples
+(x1 , b1 ), · · · , (xm , bm ) ∈ {0, 1}n ×{0, 1}. Here, we consider an agnostic variant of MINLT: Instead of
+finding a minimum program M that is consistent with all labeled examples (x1 , b1 ), · · · , (xm , bm ),
+we aim to find M that is consistent with most labeled examples. For a technical reason,1 we
+formulate it based on the formulation of Valiant [Val84], where a learner is given oracle access to
+an example oracle E, which returns a labeled example (x, h(x)) for an unknown function h, and is
+asked to compute a function that approximates h.
+Definition 1.2 (GapLearn). For σ, ℓ ∈ N and ε, γ ∈ [0, 1], the problem Gapε,γ
+σ Learn[ℓ] is defined as
+n
+s
+follows. Given parameters 1 and 1 and access to an example oracle E, where the oracle E returns
+1
+To obtain an equivalence between the average-case hardness of this problem and the existence of a one-way
+function in Theorem 1.5, it is crucial that the description of the example distribution is unknown to a learner. On
+the other hand, Theorem 1.3 and Corollary 1.4 holds even if the explicit description of an example distribution E is
+given to a learner.
+
+2
+
+random and independent samples drawn from a distribution over {0, 1}n × {0, 1} that is promised
+to be samplable with advice complexity ℓ, distinguish the following two cases:
+(Yes Cases) There exists a linear-time program h of length s such that
+Pr [h(x) = b] ≥ 1 − ε.
+(x,b)∼E
+
+(No Cases) For all programs h of length at most σ · s,
+Pr [h(x) = b] ≤
+(x,b)∼E
+
+1 γ
++ .
+2 2
+
+This is an agnostic learning variant of MINLT in that in the Yes case, the polynomial-time
+program h is allowed to err on a ε-fraction of inputs.
+Hirahara [Hir22] proved NP-hardness of MINLT under randomized polynomial-time reductions.
+Building on this reduction, we prove the following NP-hardness.
+Theorem 1.3. There exist functions ε(ℓ), γ(ℓ) = o(1), and σ(ℓ) = ℓ1−o(1) such that the problem
+ε(ℓ),γ(ℓ)
+Gapσ(ℓ)
+Learn[ℓ] is NP-hard under randomized many-one reductions for every sufficiently large
+ℓ ∈ N.
+Since this NP-hardness is proved by nonadaptive reductions, we obtain some polynomial-time
+samplable distribution D (naturally induced by the reduction) with respect to which the averagecase analogue of Gapε,γ
+σ Learn[ℓ] is DistNP-complete (i.e., complete for an average-case analogue of
+NP), where D is a distribution over instances of Gapε,γ
+σ Learn[ℓ] (i.e., it chooses parameters n, s and
+the description of an example oracle E, which can be represented as a circuit.)
+Corollary 1.4. There exist functions ε(ℓ), γ(ℓ) = o(1), and σ(ℓ) = ℓ1−o(1) such that for every
+sufficiently large ℓ ∈ N, the following are equivalent.
+• DistNP ̸⊆ HeurBPP (i.e., there is a problem in NP that is hard on average with respect to some
+polynomial-time samplable distribution).
+ε(ℓ),γ(ℓ)
+
+• (Gapσ(ℓ)
+
+ε(ℓ),γ(ℓ)
+
+Gapσ(ℓ)
+
+Learn[ℓ], D) ̸∈ HeurBPP for some polynomial-time samplable distribution D. (i.e.,
+
+Learn[ℓ] is hard on average with respect to D).
+
+Here, HeurBPP is the class of distributional problems solvable by randomized error-prone heuristic
+schemes, i.e., algorithms that are allowed to err on a small fraction of inputs. See the survey of
+Bogdanov and Trevisan [BT06a] for background on average-case complexity.
+ε(ℓ),γ(ℓ)
+We complement this by showing that the average-case hardness of Gapσ(ℓ)
+Learn[ℓ] characterizes the existence of one-way functions when σ(ℓ) = O(ℓ), based on the average-case learning
+algorithms in Pessiland [IL90; HN23].
+Theorem 1.5. There exists a constant C such that for all functions ε(ℓ), γ(ℓ) = o(1), the following
+are equivalent for all sufficiently large ℓ:
+• There exists an infinitely-often one-way function.
+ε(ℓ),γ(ℓ)
+
+• (Gapσ(ℓ)
+Learn[ℓ], D) ̸∈ HeurBPP for σ(ℓ) := C · ℓ and for some polynomial-time samplable
+distribution D.
+3
+
+ε(ℓ),γ(ℓ)
+
+• (Gapσ(n) Learn[ℓ], D) ̸∈ HeurBPP for some σ(n) satisfying C ·ℓ ≤ σ(n) ≤ nO(1) and for some
+polynomial-time samplable distribution D.
+Corollary 1.4 and Theorem 1.5 immediately provide a sharp characterization of Pessiland.
+Corollary 1.6 (A Sharp Characterization of Pessiland). There exist functions ε(ℓ), γ(ℓ) = o(1),
+σ1 (ℓ) = ℓ1−o(1) and σ2 (ℓ) = O(ℓ) such that Pessiland exists if and only if, for every sufficiently large
+ℓ ∈ N, the following two conditions hold:
+• (Gapε,γ
+σ1 (ℓ) Learn[ℓ], D1 ) ̸∈ HeurBPP for some polynomial-time samplable distribution D1 ; and
+• (Gapε,γ
+σ2 (ℓ) Learn[ℓ], D2 ) ∈ HeurBPP for every polynomial-time samplable distribution D2 .
+For comparison, if one instead starts from the ℓα -inapproximability result for CMMSA due to
+Hirahara [Hir22], the same argument yields a weaker analogue of Corollary 1.6, namely a characterization of Pessiland via GapLearn with approximation gap ℓα versus O(ℓ) for some small constant
+α > 0. Corollary 1.6 sharpens the hardness factor from ℓα to ℓ1−o(1) , leaving only a nearly tight
+gap to the O(ℓ)-approximation regime.
+Optimistically, this characterization can be seen as an approach towards eliminating Pessiland.
+Pessiland is ruled out if and only if the small quantitative gap between the inapproximability factors
+σ1 (ℓ) = ℓ1−o(1) and σ2 (ℓ) = O(ℓ) is closed. However, new ideas are certainly necessary because our
+NP-hardness is based on an optimal NP-hardness result of CMMSA, which we explain next.
+
+1.2
+
+Minimum Monotone Satisfying Assignment Problem
+
+The Minimum Monotone Satisfying Assignment (MMSA) problem, introduced by Goldwasser and
+Motwani [GM97] and Alekhnovich, Buss, Moran, and Pitassi [ABMP01], asks for the minimum
+weight of a satisfying assignment for a given monotone formula. This is a generalization of several
+optimization problems, such as the Set Cover problem (i.e., the case of monotone DNFs) and the
+Red-Blue Set Cover problem (i.e., the case of depth-3 formulas with a top AND gate) [CDKM00;
+CNW16]. A sequence of works [DS04; DFKRS11; DHK15] established the NP-hardness of approxiO(1)
+mating MMSA within a factor of n1/(log log n) , where n is the number of variables (see [Hir22]).
+The hardness of approximating MMSA has been instrumental in establishing hardness results in
+proof complexity [ABMP01; AR08] and learning theory [ABFKP08; Hir22].
+The Collective Minimum Monotone Satisfying Assignment (CMMSA) problem, introduced by
+Hirahara [Hir22], is a variant of MMSA in which the topmost gate of a given formula is an approximate threshold gate. Informally, this problem asks for the minimum weight of an assignment that
+satisfies as many formulas as possible given a collection of monotone formulas as input. In order to
+present the formal description of an approximation version,Plet [n] denote {1, . . . , n} for each n ∈ N.
+A weight function w : [n] → [0, 1] is a function
+such that i∈[n] w(i) = 1. We define the w-weight
+P
+n
+of an assignment α ∈ {0, 1} as w(α) = i∈[n] : αi =1 w(i).
+Definition 1.7 (GapCMMSA for a class C). Let C = {Cn }n∈N be a class of monotone functions, where φ : {0, 1}n → {0, 1} for each φ ∈ Cn . For ε, γ ∈ [0, 1] and σ ∈ N, the problem
+Gapε,γ
+σ C-CMMSA is defined as follows: Given as input a collection Φ = {φ1 , . . . , φm } ⊆ Cn , a
+weight function w : [n] → [0, 1], and a size parameter s ∈ [0, 1], the task is to distinguish between
+the following two cases:
+(Yes Cases) There exists an assignment α ∈ {0, 1}n of w-weight at most s such that
+Pr [φ(α) = 1] ≥ 1 − ε,
+
+φ∼Φ
+
+where φ ∼ Φ means that φ is randomly and uniformly chosen from Φ.
+4
+
+(No Cases) There exists no assignment α ∈ {0, 1}n of w-weight at most σ · s such that
+Pr [φ(α) = 1] ≥ γ.
+
+φ∼Φ
+
+Throughout this paper, we assume that the weight function and the size parameter are lower
+bounded by the inverse of a polynomial in the number of variables. We also assume that each φi
+is an O(log n)-junta (i.e., it depends only on O(log n) variables among n input variables), and thus
+each φi can be represented by its truth table without blowing up the input size too much.
+When σ ≡ 1, this problem is studied under the name of biased CSP [GL22], which includes
+natural problems such as the Densest s-Subgraph problem (the case where C is the class of AND
+functions over 2 bits).
+For ℓ ∈ N, let F[ℓ] = {F[ℓ]n }n∈N denote the class of functions computable by monotone formulas
+0,γ(ℓ)
+
+on n variables with ℓ literals. Hirahara [Hir22] proved NP-hardness of Gapσ(ℓ) F[ℓ]-CMMSA for
+σ(ℓ) = ℓα and γ(ℓ) = 1/σ(ℓ) for some constant α > 0, and left as an open question whether the
+inapproximability factor σ can be improved to ℓ1−o(1) . Our main technical contribution is to answer
+this question affirmatively.
+ε(ℓ),γ(ℓ)
+
+Theorem 1.8. For every sufficiently large ℓ ∈ N, Gapσ(ℓ)
+
+F[ℓ]-CMMSA is NP-hard under ran-
+
+domized many-one reductions for some functions γ(ℓ) = o(1), ε(ℓ) = o(1), and σ(ℓ) = ℓ1−o(1) .
+We also present an upper bound of coAM when σ(ℓ) = O(ℓ), and thus the inapproximability
+factor σ(ℓ) of Theorem 1.8 is optimal up to the o(1) loss in the exponent unless NP ⊆ coAM.
+Theorem 1.9. For every constant γ ∈ [0, 1/5), there exists a constant C such that for every
+ε(ℓ) = o(1) and every large enough ℓ ∈ N, the following hold.
+ε(ℓ),γ
+
+• Gapσ(ℓ) F[ℓ]-CMMSA ∈ coAM, where σ(ℓ) := C · ℓ.
+ε(ℓ),γ
+
+• Gapσ(ℓ) Junta[ℓ]-CMMSA ∈ coAM, where σ(ℓ) := 20.585ℓ and Junta[ℓ] = {Junta[ℓ]}n∈N denotes
+the class of all the ℓ-junta monotone functions φ : {0, 1}n → {0, 1}.
+In particular, for every γ(ℓ) = o(1), ε(ℓ) = o(1) and every large enough ℓ ∈ N, we have
+Gapε,γ
+C·ℓ F[ℓ]-CMMSA ∈ coAM.
+More generally, for any class C = {Cn }n∈N of monotone functions, we prove Gapε,γ
+O(q) C-CMMSA ∈
+coAM, where q is an upper bound of the total share size of a secret sharing scheme for Cn . The first
+item of Theorem 1.9 follows from the fact that there exists a secret sharing scheme of total share
+size ℓ for every access structure represented by a monotone formula with ℓ literals [BL88]. The
+second item follows from the work of [AN21], which shows the existence of a secret sharing scheme
+of total share size 1.5ℓ+o(ℓ) < 20.585ℓ for every monotone function over ℓ variables.
+Although it is unlikely that Gapε,γ
+σ=O(ℓ) F[ℓ]-CMMSA is NP-hard, we prove that its worst-case
+hardness implies the errorless average-case hardness of NP, and that its errorless average-case hardness implies the existence of a one-way function.
+Theorem 1.10. For every σ ∈ N, let C[σ] = {C[σ]n }n∈N be the class of monotone functions for
+which there exists a secret sharing scheme with total share size σ. For every constant γ ∈ [0, 1/5),
+there exists a constant C such that for every ε(σ) = o(1) and every sufficiently large σ ∈ N, the
+following hold.
+• If Gapε,γ
+/ BPP, then DistNP ⊈ AvgBPP (i.e., there exists a problem in NP that
+C·σ C[σ]-CMMSA ∈
+is hard on errorless average with respect to some polynomial-time samplable distribution).
+5
+
+• If (Gapε,γ
+/ AvgBPP for some polynomial-time samplable distribution D,
+C·σ C[σ]-CMMSA, D) ∈
+then an infinitely-often one-way function exists.2
+Here, errorless average-case means that an algorithm must not output incorrect answers, and
+is allowed to output a special symbol “⊥”, which indicates the failure of an algorithm for a small
+fraction of inputs. This notion is equivalent to average-case polynomial-time (i.e., the expected
+running time is “polynomially bounded”) [BT06a].
+Previously, Hirahara [Hir22] reduced Gap0,γ
+σ F[ℓ]-CMMSA to MINLT, and using the learning
+algorithm of Hirahara and Nanashima [HN21], observed that its worst-case hardness implies the
+average-case hardness of NP if σ(ℓ) = 1.01ℓ and the soundness error γ is sufficiently smaller than
+1/(sn). The first item of Theorem 1.10 improves this result in that γ can be as large as a constant.3
+Consequently, Theorems 1.8 to 1.10 reveal a sharp threshold at σ(ℓ) ≈ ℓ in the complexity of
+1−o(1) ; It is in coAM if σ(ℓ) ≥ O(ℓ), and its worstGapε,γ
+σ F[ℓ]-CMMSA: It is NP-hard if σ(ℓ) ≤ ℓ
+case (resp. average-case) hardness implies the average-case hardness of NP (resp. the existence of
+one-way functions). This can be compared with the complexity of the shortest vector problem,
+which is the foundational problem for lattice-based cryptography [Pei16]. The complexity of the
+approximate version GapSVP of the shortest vector problem greatly depends on an approximate
+factor
+p γ (see [Ben23] and references therein). It is NP-hard if γ = O(1); It is in coAM if γ =
+O( n/ log n); its worst-case hardness implies the average-case hardness of NP if γ = O(n); It is
+in P if γ = 2O(n log log n/ log n) . To compare this with the complexity of Gapε,γ
+σ F[ℓ]-CMMSA, our
+results provide a sharper threshold than GapSVP using polynomial-time reductions. (A sharper
+complexity landscape of GapSVP was recently revealed by considering exponential time complexities
+[ABBGKLPSV23].)
+Just as in the case of the shortest vector problem, it remains unclear whether the upper bound
+of coAM in Theorem 1.9 can be improved to P. In Appendix A, we present a simple approximation
+algorithm based on linear programming that solves Gap0,1
+σ DNF[ℓ]-CMMSA for σ(ℓ) = ℓ, where
+DNF[ℓ] denotes the class of monotone DNF formulas over n variables with at most ℓ terms. (In
+ℓ
+particular, it solves Gap0,1
+σ Junta[ℓ]-CMMSA for σ(ℓ) = 2 .) We pose the following algorithmic
+challenge of improving this approximation algorithm.
+Open Question 1.11. Design a randomized algorithm M such that for every ℓ ∈ N, every ε =
+ε(ℓ) = o(1), and every polynomial-time samplable distribution D = {Dn }n∈N , it holds that
+ε,1/8
+
+• M decides every instance of Gapσ Junta[ℓ]-CMMSA correctly with high probability over the
+internal randomness of M , where σ = σ(ℓ) := 20.6ℓ .
+• Ex∼Dn [tM (x)α ] ≤ O(n) for some constant α > 0, where tM (x) denotes the running time of M
+on input x.
+Currently, it seems consistent with our knowledge that the answer to Open Question 1.11 is
+negative. A negative answer to Open Question 1.11 implies the existence of a one-way function by
+Theorem 1.10. To the best of our knowledge, this is the first construction of a one-way function
+based on the errorless average-case hardness of some CSP with respect to arbitrary polynomial-time
+samplable distributions. Related results were obtained in an exciting line of research [DLS14; DS16;
+Dan16; Vad17; DV21], where the average-case hardness of random CSPs with respect to specific
+2
+
+An infinitely-often one-way function refers to one whose security holds for infinitely many security parameters.
+We remark that this result also applies to standard one-way functions (whose security holds for any sufficiently large
+security parameter) by assuming the average-case hardness for all sufficiently large instance sizes.
+3
+Our result strictly improves the previous result because the constant C in Theorem 1.10 can be chosen to be 1.01
+if γ = o(1).
+
+6
+
+distributions was shown to imply the hardness of PAC learning. We also mention that one-way
+functions can be constructed from error-prone average-case hardness of Random SAT with respect
+to high-entropy distributions [IRS22; LP23a].
+
+1.3
+
+Perspective: Can We Rule Out Pessiland?
+
+Since our results are quantitatively “close” to ruling out Pessiland, it is natural to ask how close
+we are to actually ruling out Pessiland. There has been a vast literature on barriers for ruling out
+Heuristica [FF93; BT06b; Wat12; Imp11; HN21; Vio05] and Pessiland [Wee06; Liv10; AGGM06;
+BB15; ABX08]. Below, we discuss the two barriers most relevant to our work.
+The first barrier is the relativization barrier. Wee [Wee06] presented an oracle under which
+Pessiland exists, and thus non-relativizing proofs are necessary for ruling out Pessiland. In fact,
+Theorem 1.3 is non-relativizing (see [Ko91; Hir22]). Thus, it may be possible that the inapproximability factor σ(ℓ) = O(ℓ) of Theorem 1.5 can be improved to σ(ℓ) = ℓ1−o(1) by relativizing proofs,
+which is sufficient for ruling out Pessiland. Whether there is a relativizing barrier for improving
+Theorem 1.5 or not is left as an important open question.
+The second barrier is the nonadaptive (black-box) reduction barrier of Akavia, Goldreich, Goldwasser, and Moshkovitz [AGGM06]. They showed that any problem reducible to the task of inverting one-way functions via randomized nonadaptive reductions is in coAM, and in particular, no
+NP-complete problems can be reducible to the task of inverting one-way functions unless NP ⊆ coAM.
+In fact, our coAM upper bound for GapCMMSA (Theorem 1.9) is proved by combining their barrier
+with a reduction from GapCMMSA to the task of inverting one-way functions. Similarly, Theorem 1.5 is unlikely to be improved by nonadaptive reductions. More generally, we have the following
+barrier, based on [AGGM06].4
+Theorem 1.12. Let γ, C, ℓ, and ε be as in Theorem 1.5. Suppose there is a randomized polynomialtime parametric-honest nonadaptive reduction from a paddable language L to Gapε,γ
+σ Learn[ℓ] for
+σ(ℓ) := C · ℓ. Then L ∈ coAM.
+Here, a parametric-honest reduction is a reduction that produces a size parameter at least nΩ(1)
+on inputs of length n. Almost all NP-hardness reductions in the literature of meta-complexity
+are parametric-honest and nonadaptive (see, e.g., [Hir23; Ila23] and references therein), and thus
+the barrier seems formidable. However, in the computational learning theory literature, adaptive
+reductions have been successfully employed in the context of boosting algorithms (e.g., [Sch90;
+Fel10; KK09; FS12]), and such techniques have been utilized in the literature of meta-complexity
+[HN21; GK23]. This suggests that adaptive reductions could offer a viable path toward overcoming
+this barrier.
+
+2
+
+Technical Overview
+
+For technical convenience, we work with a slight generalization of CMMSA, called the distributional
+minimum monotone satisfying assignment (DMMSA). DMMSA is the same problem as CMMSA,
+except that the collection of monotone formulas is given as a distribution of monotone formulas,
+where the distribution is specified by a sampling circuit (see Definition 4.1 for the formal definition). In other words, CMMSA is a special case of DMMSA in which the distribution is uniform
+over a polynomially bounded set of formulas. Nevertheless, it is straightforward to observe that
+GapDMMSA can be reduced to GapCMMSA with a small loss in error parameters ε and γ via a
+4
+
+We thank an anonymous reviewer for suggesting this result.
+
+7
+
+BPP-reduction that samples polynomially many formulas from the distribution in DMMSA to form
+
+a collection for CMMSA (see Proposition 4.3). Therefore, we will identify DMMSA with CMMSA
+below.
+Our main theorems are established based on the following three reductions:
+1. An improved reduction from NP to GapDMMSA;
+2. Hirahara’s reduction from GapDMMSA to GapLearn [Hir22];
+3. A reduction from GapLearn to the task of inverting an auxiliary-input one-way function.
+Here, an auxiliary-input function is a collection f = {fz }z∈{0,1}∗ of functions such that, for every
+z, x ∈ {0, 1}∗ , the value fz (x) can be uniformly computed in polynomial time (where z is referred
+to as the auxiliary input). The inversion task is to find a preimage of fz (r) for most r with respect
+to fz for every z ∈ {0, 1}∗ using a single inversion algorithm that takes (z, fz (r)) as input.
+The first reduction maps each 3-SAT instance to a Gapσ DMMSA instance whose formulas
+have leaf size at most ℓ and whose approximation factor is σ(ℓ) = ℓ1−o(1) . The key input is the
+near-optimal k-CSP hardness theorem of Minzer and Zheng [MZ26], together with a monotone
+compilation of the star-projection constraints produced by their PCP. A detailed overview of the
+reduction, which establishes Theorem 1.8, is presented in Section 2.1.
+The second reduction is essentially from the previous work [Hir22], where the relation between
+the total size of secret sharing schemes and the advice complexity of sampling was not explicitly
+addressed. We simply observe that the advice complexity of the sample distribution in the resulting
+learning problem is at most the total size of the secret sharing scheme for the authorized set induced
+by the formulas in the support of instances of DMMSA. For completeness, we provide a formal proof
+in Section 5. We derive Theorem 1.3 (and Corollary 1.4) from the first and second reductions.
+The third reduction reduces Gapσ Learn to the task of inverting an auxiliary-input function, provided that the approximation factor σ is linear in the advice complexity of the sample distribution.
+The reduction is based on the theory of Solomonoff’s inductive inference [Sol64a] and universal
+extrapolation developed by Impagliazzo and Levin [IL90] and Hirahara and Nanashima [HN23].
+This third reduction establishes Theorem 1.5. Combined with the second reduction, it also yields
+Theorems 1.9 and 1.10. More details are provided in Section 2.2.
+
+2.1
+
+Improved NP-Hardness of GapDMMSA
+
+We first explain the reduction that improves the hardness factor for GapDMMSA from the ℓα factor
+of Hirahara [Hir22] to ℓ1−o(1) . The parameter that matters for the later learning application is not
+the size of the original PCP instance, but the leaf size ℓ of the monotone formulas: in Hirahara’s
+reduction from CMMSA/DMMSA to learning, this leaf size upper bounds the total size of the
+induced secret sharing scheme, and hence the advice complexity of sampling. Thus, to obtain a
+nearly sharp learning-theoretic threshold, the PCP-to-DMMSA reduction must lose almost nothing
+when measured against the leaf size.
+The Bottleneck in the Previous PCP-to-Monotone Reductions
+The reductions of Dinur and Safra [DS04] and Hirahara [Hir22] start from a PCP, viewed as a CSP,
+and encode candidate labels by monotone variables. For each CSP variable u and each alphabet
+symbol a ∈ Σu , they introduce a Boolean variable zu,a ; setting zu,a = 1 means that the monotone
+assignment keeps a as a candidate label for u. Thus an arbitrary monotone assignment represents
+
+8
+
+a list Lu ⊆ Σu of candidate labels for every CSP variable u, while an honest labeling corresponds
+to lists of size one.
+For a local constraint e = (u1 , . . . , uq ) with predicate fe : Σu1 × · · · × Σuq → {0, 1}, the literal
+DNF compilation makes one term for each accepting local tuple:
+_
+
+FeDNF =
+zu1 ,a1 ∧ · · · ∧ zuq ,aq .
+(a1 ,...,aq )∈fe−1 (1)
+
+This preserves completeness, since a satisfying CSP labeling selects one accepting tuple in every
+local test. The cost is that the leaf size of the local formula is proportional to q · |fe−1 (1)|: the
+compilation pays for accepting tuples, not merely for alphabet symbols.
+The soundness side naturally becomes a list-decoding argument. If many monotone formulas are
+satisfied by lists whose occurrence-weighted average size is B, then choosing one label uniformly from
+each nonempty list gives a CSP labeling that satisfies a random arity-q constraint with probability
+roughly at least B −q . Therefore a CSP with soundness ζ can only rule out list size B ≲ ζ −1/q .
+This is where the previous approach loses its sharpness. To make the DMMSA gap large, one
+wants a PCP whose soundness is extremely small as a function of its alphabet size R. However,
+the literal DNF compilation above is useful for a K-leaf formula only when q · |fe−1 (1)| ≲ K. As
+the alphabet or arity is pushed to improve soundness, the number of accepting local tuples can also
+grow, and the gain from smaller PCP soundness is then eaten up by the larger leaf size. This is the
+DNF bottleneck behind the previous ℓα -type hardness factor.
+The Minzer–Zheng PCP
+To obtain the sharp reduction, we use the near-optimal k-CSP hardness theorem of Minzer and
+Zheng [MZ26], together with a structural property of their final PCP. In the form used in the proof,
+for every m ≥ 2, every completeness error δ > 0, and every soundness-slack parameter ξ > 0,
+sufficiently large alphabet bound R gives NP-hardness of distinguishing an (m + 1)-CSP of value at
+least 1 − δ from one of value at most
+R−(1−ξ)m .
+Here ξ measures the loss in the soundness exponent; in the final parameter setting we take ξ = 1/m2 .
+This alphabet-soundness tradeoff is exactly what the list-decoding calculation above asks for.
+If the local tests could be compiled into monotone formulas of leaf size about R, then the CSP
+soundness ζ = R−(1−ξ)m would turn into a DMMSA weight gap
+ζ −1/(m+1) = R(1−ξ)m/(m+1) .
+With ξ = 1/m2 , the exponent is 1 − 1/m, and hence this is R1−o(1) as m → ∞. Thus the alphabet
+size is the right scale for the desired leaf-size-versus-gap tradeoff.
+The remaining issue is to preserve this alphabet-size scale when converting the resulting CSP
+into monotone formulas. Our reduction avoids the extra loss incurred in the previous monotonecompilation step by exploiting the star-projection representation of the final constraints.
+A star-projection constraint has one center variable y, leaf variables x1 , . . . , xm , and projection
+maps πe,i : Σxi → Σy . It accepts a local labeling (b, a1 , . . . , am ) exactly when
+πe,i (ai ) = b
+
+for every i ∈ [m].
+
+Minzer and Zheng state their theorem for general (m + 1)-CSPs. In Section 4.3, we observe that
+the constraints of the final PCP constructed in their proof have the star-projection form, although
+this is not stated explicitly in [MZ26]. We use this form to compile each constraint into a monotone
+formula with at most (m + 1)R leaves.
+9
+
+Compiling Star-Projection Constraints into Monotone Formulas
+We now give the compilation, using the variables zu,a introduced above. Consider a star-projection
+constraint e = (y; x1 , . . . , xm ). A monotone assignment represents lists Lu = {a : zu,a = 1}, and
+the local formula for e asks whether these lists contain a center label b and compatible leaf labels
+projecting to b.
+For b ∈ Σy and i ∈ [m], define
+Pe,i,b := {a ∈ Σx : πe,i (a) = b}.
+Then the formula is
+
+
+Fe :=
+
+_
+
+
+
+zy,b ∧
+
+b∈Σy
+
+^
+
+
+_
+
+
+i∈[m]
+
+zxi ,a  ,
+
+a∈Pe,i,b
+
+where an empty inner OR is interpreted as the constant 0.
+This formula is monotone because it only checks positive membership in the chosen lists. More
+importantly, it is small. The center literals contribute at most |Σy | ≤ R leaves. Fix a leaf variable
+xi . Each label a ∈ Σx can belong to Pe,i,b for at most one value of b: if a ∈ Pe,i,b ∩ Pe,i,b′ , then we
+have b = πe,i (a) = b′ . Hence all inner ORs associated with this x contribute at most |Σx | ≤ R leaves
+in total. Since the number of leaf variables is at most m, the total leaf size is at most (m + 1)R.
+A Tight Leaf-Size Gap
+Completeness is immediate. If a labeling satisfies the original constraint, selecting exactly that one
+label for each CSP variable gives a DMMSA assignment of weight s, and the branch b = A(y)
+satisfies Fe .
+The soundness proof shows that the factorized compilation loses essentially only the factor forced
+by list decoding. Suppose a DMMSA assignment has weight B · s, where s is the weight of an honest
+one-label-per-variable assignment. Equivalently, if su = |Lu |, the occurrence-weighted average list
+size is B. If this assignment satisfies a large fraction of the formulas Fe , then for many satisfied
+constraints the local sum
+sy + sx1 + · · · + sxm
+is O((m + 1)B) by Markov’s inequality.
+On such a satisfied constraint, the formula Fe gives a center label b ∈ Ly and, for every leaf
+variable xi , a label axi ∈ Lx such that
+πe,i (axi ) = b
+
+for every i ∈ [m].
+
+If we decode by choosing a random label from each list, this particular consistent choice is selected
+with probability at least
+1
+Qm
+≳ B −(m+1) ,
+sy i=1 sxi
+where the last step is AM–GM. Thus, if the original instance has soundness at most ζ, any DMMSA
+assignment satisfying many formulas must have
+B ≳ ζ −1/(m+1) .
+Plugging in the original soundness with ξ = 1/m2 gives
+2
+
+B ≳ R(1−1/m )m/(m+1) = R1−1/m = R1−o(1) .
+10
+
+We set R ≈ K/(m + 1) so that the compiled formula has leaf size at most (m + 1)R ≤ K. Since
+m grows only subpolynomially in K, the gap R1−o(1) is still K 1−o(1) . Finally, we take a small
+AND product of independent formulas to reduce the NO-side satisfaction threshold to o(1). This
+multiplies the leaf size only by a subpolynomial factor, so after setting the base leaf bound slightly
+below the final parameter ℓ, the final gap remains
+σ(ℓ) = ℓ1−o(1) .
+This is the tight connection we need: the alphabet size controls both the monotone leaf size and,
+through the exponent in the soundness bound, the DMMSA approximation gap.
+
+2.2
+
+A Reduction from Learning to Inverting Auxiliary-Input Functions
+
+Theorems 1.5, 1.9 and 1.10 are based on a reduction from Gapσ Learn with σ = O(ℓ) to inverting
+an auxiliary-input function, where ℓ denotes the advice complexity. The reduction builds upon the
+theory of universal extrapolation [IL90; HN23].
+In the reduction, we consider a specific case where a distribution E of samples for GapLearn is
+represented by two strings: nonuniform advice z and a randomly selected advice z ′ . Specifically, E is
+represented as E := Dz,z ′ for some samplable distribution family D = {Dz,z ′ }. The goal, then, is to
+reduce GapLearn for Dz,z ′ to inverting an auxiliary-input function fz indexed by z on average over
+z ′ . Here z and z ′ serve different roles in the context. For instance, in GapLearn instances derived
+from Hirahara’s reduction from DMMSA to learning, z corresponds to the DMMSA instance, and
+z ′ represents randomness used in the reduction.
+The advantage of treating z and z ′ separately is that the description size of the inverter depends
+only on z and not on z ′ . This enables us to achieve a good approximation factor for GapLearn
+that is independent of any randomly selected nonuniform advice z ′ embedded in the underlying
+distribution E.
+Specifically, Hirahara and Nanashima [HN23] showed that to learn Dz,z ′ from independent samples, it suffices to extrapolate i.i.d. samples (treated as a prefix string) according to the universal
+distribution Qt |z for a sufficiently large polynomial t. Here, Qt|z represents the distribution of the
+output of a fixed universal Turing machine U executed in t steps on a randomly selected input
+Π ∼ {0, 1}t given the advice string z. This extrapolation task can be reduced to inverting a
+polynomial-time computable function fz indexed by z, resulting in the reduction from learning to
+inverting an auxiliary-input function f = {fz }.
+When there exists a hypothesis of size s with o(1) accuracy error, the extrapolation-based learner
+succeeds using at most m(s) = O(s) samples with high probability over the choice of z ′ , by the chain
+rule for KL divergence (see Lemmas 6.5 and 6.7). We use this sample-complexity upper bound to
+distinguish, for a given input z, between the following two cases: (i) Dz,z ′ is a yes instance for most
+z ′ , and (ii) Dz,z ′ is a no instance for a noticeable fraction of z ′ .
+More concretely, given access to an inverter for the auxiliary-input function, we construct a
+tester that checks whether the extrapolation-based learner succeeds using m(s) samples with high
+probability over the choice of z ′ and the samples drawn from Dz,z ′ . This is feasible because the
+tester can generate samples from Dz,z ′ on its own, by choosing z ′ itself and then executing the
+sampling procedure using the inverter. The tester accepts z if this success test passes. By the
+sample-complexity guarantee above, if Dz,z ′ is a yes instance of GapLearn for most z ′ , then the
+tester accepts z with high probability. This proves completeness.
+For soundness, we must show the converse direction: if the tester accepts z with high probability,
+then case (ii) cannot occur. It is enough to prove that in this situation, for most z ′ , there exists
+a highly accurate hypothesis h for Dz,z ′ whose description size is at most O(ℓ) · s. Indeed, such a
+11
+
+hypothesis certifies that Dz,z ′ is a yes instance for most z ′ . Thus, our remaining task is to construct
+such a hypothesis.
+A natural first attempt is the following. Since acceptance of z means that the extrapolationbased learner succeeds with high probability when given m(s) samples, one may try to hardwire into
+the learner both m(s) independently drawn samples from Dz,z ′ and the inverter Iz for fz , thereby
+obtaining a highly accurate hypothesis h̃. However, this yields only the bound |h̃| ≤ m(s) · n + |Iz |,
+where n is the bit-length of each sample. This is too large for our purposes, since in general the
+sample length n can be much larger than the advice complexity ℓ needed to generate samples from
+Dz,z ′ . Therefore, this naive hardwiring argument does not suffice.
+To reduce the description size of h̃ to a bound in terms of ℓ, we do not hardwire the entire training
+sample set itself. Instead, we hardwire a succinct description of the training set that exploits the
+advice complexity of the sampling procedure. Recall that the m := m(s) samples are generated
+from m random seeds r̄ = (r1 , . . . , rm ), chosen independently of z and z ′ , together with an advice
+string αz,z ′ ,r̄ of length m · ℓ. By a standard probabilistic argument, there exists a choice of random
+seeds r̄ such that, with high probability over the choice of z ′ , the learner succeeds on the training
+set for Dz,z ′ generated using r̄.
+Now fix such a tuple r̄. The property that “with high probability over the choice of z ′ , the
+learner succeeds on the training set for Dz,z ′ generated using r̄” is computable, albeit inefficiently,
+from z, r̄, and the description of the learner; here the learner is determined by the inverter, whose
+description depends only on z. Hence, we may define r̄∗ to be the lexicographically first tuple of
+seeds satisfying this property. Thus, the description size of r̄∗ is at most O(K(z) + log n), where
+K(z) denotes the Kolmogorov complexity of z. Moreover, by the choice of r̄∗ , with high probability
+over the choice of z ′ , the learner succeeds on the training set for Dz,z ′ generated using r̄∗ .
+We therefore hardwire r̄∗ together with the corresponding advice string αz,z ′ ,r̄∗ , and thereby
+obtain a hypothesis h̃z,z ′ of description size at most
+
+O |αz,z ′ ,r̄∗ | + K(r̄∗ ) ≤ O(m(s) · ℓ + K(z) + log n) .
+This bound is sufficient to establish Theorems 1.5, 1.9 and 1.10. Below, we highlight each case.
+Theorem 1.10 (Item 1). First, we reduce GapO(ℓ) DMMSA for formulas whose induced authorized set admits secret sharing of total size ℓ to a GapLearn instance with distribution Dz,z ′
+over samples and size parameter s, where z is the GapDMMSA instance and z ′ is a random
+seed, using Hirahara’s reduction [Hir22] (see also Section 5). The key properties of this reduction are as follows: (i) the advice complexity for sampling from Dz,z ′ is at most ℓ, (ii) the size
+parameter s is polynomially larger than |z|, and (iii) the approximation factor of GapLearn
+for Dz,z ′ corresponds to that of GapDMMSA for z. Consequently, the description size of the
+hypothesis constructed above is at most O(m(s) · ℓ + K(z) + log n) = O(ℓ) · s.
+Therefore, GapO(ℓ) Learn on the support of Hirahara’s reduction can be reduced to inverting
+an auxiliary-input function, and GapO(ℓ) DMMSA is also reducible to the same inversion task.
+This implies that the worst-case hardness of GapO(ℓ) DMMSA yields the hardness of inverting
+an auxiliary-input function (often called an auxiliary-input one-way function), which is known
+to imply the errorless average-case hardness of NP [HS17; Nan21].
+Theorem 1.10 (Item 2). The argument above shows that GapO(ℓ) DMMSA for an instance z is
+reducible to inverting a function fz indexed by z. In particular, if GapO(ℓ) DMMSA is hard on
+average under a samplable distribution D over instances z, then fz is hard to invert on average
+over z ∼ D, which yields a standard one-way function. Moreover, the reduced inversion task
+for fz is testable for every z by empirically estimating the probability that an algorithm
+12
+
+outputs a valid inverse of fz (r) for a random seed r. This allows us to detect any error in the
+reduction on each input z, as observed in [Nan21; Hir23; HN24]. Consequently, we can base
+the existence of one-way functions on the errorless average-case hardness of GapO(ℓ) DMMSA
+under any samplable distribution.
+Theorem 1.9. We have shown that solving GapO(ℓ) DMMSA for an instance z is reducible to
+inverting a function fz indexed by z. This instance-wise reduction is called a fixed-auxiliaryinput reduction. It is known that any promise problem Π that can be reduced to inverting
+an auxiliary-input function via a fixed-auxiliary-input nonadaptive black-box reduction is contained in coAM [AGGM06; ABX08]. Our reduction above is nonadaptive but not black-box,
+since it embeds the description of the inverter for the auxiliary-input function into the learning
+algorithm. Nevertheless, it uses the inverter in an almost black-box manner, with the only
+non-black-box aspect being the bound on the description size. For this description-restricted
+setting, we adapt the technique of [AGGM06] to obtain the coAM upper bound. Specifically,
+the oracle simulated by the coAM protocol in the prior work becomes description-restricted in
+the presence of randomness, and this randomness can be compressed together with the seed
+set r̄. This yields a simulation of a description-restricted inverter within coAM, ensuring that
+our reduction applies. For more details, see Section 6.3.
+Theorem 1.5. We outline the implication from the average-case hardness of GapLearn, with advice
+complexity ℓ for sampling, to the existence of a one-way function. Let D = {Dn }n∈N be a
+family of distributions over distributions E of samples for learning. We apply the reduction
+above to Dn,E , where n indexes D and E is a description of a distribution drawn from Dn ,
+and reduce the task of finding the minimum description size s of a hypothesis for Dn,E (on
+average over E) to inverting fn . In this setting, the inverter In for each fn has description size
+O(log n), and the description size of the hypothesis h̃ constructed above is at most O(m(s) ·
+ℓ + K(n) + log n) = O(ℓ) · s (assuming s ≥ log n; otherwise, the minimum hypothesis can be
+found by brute-force search). Thus, solving GapO(ℓ) Learn on average over E ∼ Dn reduces to
+inverting f = {fn }. If the former is average-case hard, then f is a one-way function.
+The converse implication, from one-way functions to the average-case hardness of GapLearn,
+follows from the fact that pseudorandom functions can be constructed from any one-way
+function [HILL99; GGM86], which implies the average-case hardness of learning even when
+arbitrary polynomial-time computable hypotheses are allowed [Val84].
+
+Organization of This Paper
+The remainder of this paper is organized as follows. In Section 3, we review preliminary notions
+for the formal arguments. In Section 4, we formally define GapDMMSA and prove the NP-hardness
+result via the Minzer–Zheng star-projection PCP, completing the proof of Theorem 1.8. In Section 5, we review Hirahara’s reduction [Hir22] from GapDMMSA to GapLearn, which, together
+with the reduction in Section 4, proves Theorem 1.3. In Section 6, we present the reduction from
+GapLearn to inverting an auxiliary-input function and discuss its implications, including the proofs
+of Theorems 1.5, 1.9 and 1.10. In Section 7, we mention open problems arising from this work.
+
+3
+
+Preliminaries
+
+All logarithms are base 2 unless stated otherwise. We use ϵ to represent an empty symbol. We
+distinguish ϵ from ε and often use ε for a small parameter such as an accuracy error. Let ⟨, ⟩ be a
+13
+
+(standard) pairing function that maps N × N to N.
+We use the notation negl to represent some negligible function, i.e., for any polynomial p and
+sufficiently large n ∈ N, it holds that negl(n) < 1/p(n). We also use the notation poly to refer to
+some polynomial.
+For each n ∈ N, let [n] := {1, 2, . . . , n}. For every x, y ∈ {0, 1}∗ , let x◦y denote the concatenation
+of x and y. For readability, we may omit ◦ from x ◦ y. For each x ∈ {0, 1}n and each i ∈ [n], we let
+xi denote the i-th bit of x. For every x ∈ {0, 1}n , let x[k] = x1 ◦ · · · ◦ xk and x[k:k′ ] = xk ◦ · · · ◦ xk′
+for each k ≤ k ′ ≤ n.
+For a function f : {0, 1}n → {0, 1}m and y ∈ Imf , we define f −1 (y) = {x ∈ {0, 1}n : f (x) = y}.
+For each p ∈ [0, 1], let Ber(p) be a Bernoulli distribution with parameter p. For any distribution
+D, we use the notation x ∼ D to refer to the sampling of x according to D. For any finite set S, we
+use the notation x ∼ S to refer to the uniform sampling of x from S. For any distribution D and
+k ∈ N, let D⊗k denote the k product distribution whose marginal distribution is identical to D.
+In this paper, we assume basic knowledge of probability theory, including the union bound,
+Markov’s inequality, Jensen’s inequality, and Hoeffding’s inequality. For an event E where trials
+to determine whether E occurs are repeated efficiently, we say that an algorithm M performs the
+empirical estimation of the probability that E occurs with accuracy error ε ∈ [0, 1] and confidence
+error δ ∈ [0, 1] if M computes a value v with Pr[E] − ε ≤ v ≤ Pr[E] + ε with probability at least
+1 − δ over trials. By Hoeffding’s inequality, only O(ε−2 log δ −1 ) are needed for such estimation.
+For any distributions D and E, let ∆tv (D, E) denote the total variation distance between D and
+E. Let KL(D||E) represent the KL divergence between two distributions D and E.
+For every distribution D over {0, 1}∗ , every x ∈ {0, 1}∗ , and k ∈ N, we use the notation
+Nextk (x; D) to refer to the conditional distribution of the k-bit prefix of a subsequent string of x
+selected according to D. If x does not match any prefix in the support of D, we regard Nextk (x; D)
+as the distribution of the empty symbol.
+For every promise problem Π = (Πyes , Πno ) and every x ∈ Πyes ∪ Πno , we define Π(x) as
+(
+1 if x ∈ Πyes
+Π(x) =
+0 if x ∈ Πno .
+A family D = {Dn }n∈N of distributions is said to be (polynomial-time) samplable if there exists
+a polynomial-time randomized algorithm D (called a sampling algorithm or a sampler for D) such
+that, for each n ∈ N, the distribution of D(1n ) is statistically identical to Dn . This definition can
+also be extended to a distribution family D = {Dz }z∈{0,1}∗ indexed by binary strings z, where the
+polynomial-time sampler takes the binary index z as input to sample from Dz .
+We say that a randomized algorithm A solves a promise problem Π on errorless average over
+D with failure probability δ ∈ (0, 1) if (1) A outputs Π(x) or ⊥ (which represents “failure”) with
+probability at least 3/4 over the choice of randomness for A for every x ∈ Support(D), and (2) the
+failure probability that A(x) outputs ⊥ overwhelmingly (i.e., with probability at least 3/4) over the
+choice of x ∼ D is bounded above by δ. We say that a distributional problem (Π, {Dn }n∈N ) has an
+errorless heuristic algorithm A with failure probability δ : N → (0, 1) if for all n ∈ N, the randomized
+algorithm A solves a promise problem Π on errorless average over Dn with failure probability δ(n).
+Let Avgδ BPP be the class of distributional problems that have an errorless heuristic algorithm with
+failure probability δ(n). In this paper, we only consider distributional problems (Π, D) for which D
+is samplable.
+We define the leaf size of a formula as the total number of literals appearing in the formula. For
+ℓ ∈ N, let F[ℓ] denote the set of monotone formulas of leaf size at most ℓ.
+
+14
+
+3.1
+
+Cryptography and Secret Sharing
+
+We review some notations in cryptography.
+Definition 3.1 (One-way function). A polynomial-time-computable function f = {fn : {0, 1}poly(n) →
+{0, 1}poly(n) }n∈N is said to be an infinitely-often one-way function if for every polynomial-time randomized algorithm A, there exist infinitely many n ∈ N such that
+Pr [fn (A(1n , fn (r)) = fn (r)] < negl(n),
+
+r,A
+
+where r ∼ {0, 1}poly(n) is a random seed.
+The parameter n in the definition above is often referred to as a security parameter. For readability, we may omit the subscript n from fn and 1n from the input to adversaries. Note that
+our result for constructing an infinitely-often one-way function based on average-case hardness also
+extends to the standard one-way function, whose security holds for all sufficiently large security
+parameters, assuming average-case hardness on all sufficiently large instance sizes.
+Next, we introduce an auxiliary-input variant of one-way functions, introduced by Ostrovsky
+and Wigderson [OW93]. Roughly speaking, auxiliary-input primitives are defined as a collection
+of candidates for secure primitives indexed by an auxiliary input z ∈ {0, 1}∗ and have a relaxed
+security condition that for each adversary A, there exists an auxiliary input zA ∈ {0, 1}∗ depending
+on A such that the primitive indexed by zA is secure for A.
+We define an auxiliary-input function as a function family f = {fz }z∈{0,1}∗ indexed by binary
+strings z. We say that f is polynomial-time computable if each fz (x) is polynomial-time computable
+from (z, x).
+Definition 3.2 (Auxiliary-input one-way function). A polynomial-time computable auxiliary-input
+function f = {fz : {0, 1}poly(|z|) → {0, 1}poly(|z|) }z∈{0,1}∗ is said to be an auxiliary-input one-way
+function if for every polynomial-time randomized algorithm A, there exist infinitely many z ∈ {0, 1}∗
+such that
+Pr [fz (A(z, fz (r))) = fz (r)] < negl(|z|),
+r,A
+
+where r ∼ {0, 1}poly(|z|) is a random seed.
+It is known that the existence of auxiliary-input one-way functions implies the errorless averagecase hardness of NP.
+Proposition 3.3 ([HS17; Nan21]). If there exists an auxiliary-input one-way function, then there
+exist Π ∈ NP, samplable distribution D, and a polynomial p such that (Π, D) ∈
+/ Avg1/p BPP.
+We also review the notion of secret sharing. For each n ∈ N, we define an authorized set A ⊆ [n]
+over n parties as any monotone set system over [n], i.e., S ∈ A and S ⊆ T imply T ∈ A. Namely,
+every monotone function f : {0, 1}n → {0, 1} induces an authorized set Af as
+Af = {S ⊆ [n] : f (χS ) = 1},
+where χS ∈ {0, 1}n is the characteristic string for S.
+Definition 3.4 (Secret sharing). A secret sharing scheme for an authorized set A over n parties
+is a pair of a polynomial-time randomized algorithm Share and a polynomial-time deterministic
+algorithm Rec such that
+15
+
+• Share takes a bit and then outputs n shares s1 , . . . , sn ∈ {0, 1}∗ ;
+• Rec takes n strings and outputs a bit;
+• (Completeness) For every b ∈ {0, 1}, every S ∈ A, and every s′1 , . . . , s′n ∈ {0, 1}∗ ,
+Pr [Rec(s′1 , . . . , s′n ) = b | s′i = si ∀i ∈ S] = 1,
+
+s1 ,...,sn
+
+where (s1 , . . . , sn ) ← Share(b);
+• (Security) For every unauthorized set S ∈
+/ A, the shares held by S are perfectly independent
+of the shared bit. Namely,
+{(si )i∈S : (s1 , . . . , sn ) ← Share(0)} ≡ {(si )i∈S : (s1 , . . . , sn ) ← Share(1)} ,
+where ≡ denotes identical distributions. In particular, no randomized predictor given the
+shares of an unauthorized set, together with any randomness independent of the shared bit,
+can predict the shared bit with probability different from 1/2.
+We say that an authorized set A admits secret sharing of total size s if it holds that |s1 |+· · ·+|sn | ≤ s
+for every bit b and randomness for Share.
+We extend the definition above to a collection of monotone formulas. We say that a collection F
+of monotone formulas admits secret sharing of total size s if there exist polynomial-time algorithms
+Share and Rec such that for every φ ∈ F , (Share(-; φ), Rec(-; φ)) is a secret sharing scheme for the
+induced authorized set Aφ of total size at most s.
+Theorem 3.5 ([ISN93; BL88]). Any monotone formula of leaf size ℓ admits a secret sharing scheme
+for the induced authorized set of total size at most ℓ.
+Let Sℓ be the set of monotone formulas that admits a secret sharing scheme for the induced
+authorized set of total size at most ℓ. Then, the above shows that Sℓ contains every monotone
+formula of leaf size ℓ, i.e., F[ℓ] ⊆ Sℓ .
+
+3.2
+
+Algorithmic Information
+
+We fix a prefix-free universal Turing machine U with an auxiliary-input tape. The output of the
+universal Turing machine on input d and auxiliary input y is denoted by U (d; y). We assume that
+U is prefix-free, i.e., for any two strings d1 and d2 , if d1 is a prefix of d2 and U (d1 ; y) halts, then
+U (d2 ; y) does not halt. We also assume that U is universal; i.e., for every Turing machine M and
+every string p, there exists a description pM such that for every string y,
+U (pM ; y) = M (p; y),
+
+|b
+pM | ≤ |p| + 2⌈log(|p| + 1)⌉ + OM (1),
+
+whenever M (p; y) halts. For each t ∈ N and input Π, we let U t (Π) denote the outcome obtained
+when we execute U on input Π only in t steps.
+We define the Kolmogorov complexity as follows.
+Definition 3.6 (Kolmogorov complexity). For every t ∈ N and every x, z ∈ {0, 1}∗ , we define the ttime-bounded Kolmogorov complexity of x given z as Kt (x|z) = minΠ∈{0,1}∗ {|Π| : U t (Π; z) = x}. We
+also define the (time-unbounded ) Kolmogorov complexity of x given z as K(x|z) = limt→∞ Kt (x|z).
+We omit the description “|z” if z is the empty string, i.e., Kt (x) = minΠ∈{0,1}∗ {|Π| : U t (Π) = x}.
+16
+
+We also extend the definition above to a finite set S of strings. For S = {s1 , . . . , sk } and a string
+z, we define K(S|z) = K(⟨s1 , . . . , sk ⟩|z).
+For any k ∈ N and any x, z ∈ {0, 1}∗ with |z| = k|x|, let DPk (x; z) := z ◦⟨x, z 1 ⟩F2 ◦· · ·◦⟨x, z k ⟩F2 ∈
+{0, 1}|z|+k , where z = z 1 ◦ · · · ◦ z k , |z i | = |x| for each i, and ⟨,⟩F2 represents the inner product in F2 .
+We introduce Algorithmic Information Extraction Lemma, presented in [Hir22]. For m strings
+f1 , . . . , fm ∈ {0, 1}λ and a subset B ⊆ [m], we use the notation fB to refer to ⟨fi1 , . . . , fi|B| ⟩, where
+B = {i1 , . . . , i|B| } (i1 < . . . < i|B| ).
+Lemma 3.7 (Algorithmic Information Extraction Lemma [Hir22]). For any a, k, ε−1 , λ, m ∈ N,
+any f1 , . . . , fm ∈ {0, 1}λ , and any function D : {0, 1}a × ({0, 1}λk+k )m → {0, 1}, there exists a set
+B ⊆ [m] such that
+KD (fB ) ≤ |B| · (mk + a + O(log mλaε−1 )),
+and for every α ∈ {0, 1}a ,
+′
+Pr[D(α, X1 , . . . , Xm ) = 1] − Pr[D(α, X1′ , . . . , Xm
+) = 1] ≤ ε.
+
+Here, Xi is a random variable chosen according to DPk (fi ; zi ) for zi ∼ {0, 1}λk , and Xi′ is a random
+variable identical to Xi if i ∈ B; otherwise (i.e., if i ∈ [m] \ B) selected according to the uniform
+distribution over {0, 1}λk+k .
+We also use the following fact.
+Fact 3.8 ([cf. CT06]). There exists a polynomial τ such that for each p ∈ (0, 1/2) and each x ∈
+{0, 1}n with wt(x) ≤ pn,
+Kτ (n) (x) ≤ O(H(p)n + log n) ≤ O(p0.75 n + log n),
+where H(·) represents the binary entropy function.
+We define the universal probability and computational depth. For every t ∈ N and every string
+y, we define the distribution Qt|y as a distribution of U t (Π, y) for Π ∼ {0, 1}t . When y = ϵ, we omit
+the subscript “|y”.
+For every t ∈ N and every string x, y ∈ {0, 1}∗ ,
+ t
+
+qt (x|y) = − log Pr
+U (Π, y) = x .
+Π∼{0,1}t
+
+For every t ∈ N and x ∈ {0, 1}∗ , the t-time-bounded computational depth cdy (x|y) of x given
+yis defined as
+cdt (x|y) := qt (x|y) − K(x|y).
+The following well-known fact shows that the t-time-bounded computational depth of a sample
+drawn from D is logarithmically small with high probability when t is sufficiently larger than the
+time complexity required to sample from D.
+Lemma 3.9 ([cf. HN23]). For every samplable distribution D = {Dz }z∈{0,1}∗ , for any large enough
+polynomial τ , it holds that for every z ∈ {0, 1}∗ , every i ∈ N, and every t ≥ τ (|z|),
+1
+Pr [cdt (x[i] |z) ≤ 2 log t] ≥ 1 − .
+x∼Dz
+t
+We derive the following lemma from the above.
+17
+
+Lemma 3.10. For every samplable distribution D = {Dz }z∈{0,1}∗ , every polynomial p, for any large
+enough polynomial τ , for every long enough z ∈ {0, 1}∗ , every i ∈ N, every t ≥ τ (|z|), and every
+event E determined by x ∼ Dz such that Prx [E] ≥ 1/p(|z|), it holds that
+Ex∼Dz [cdt (x[i] |z)|E] ≤ 5 log t.
+Proof. We select a large enough polynomial τ such that it satisfies the conditions in Lemma 3.9.
+We also assume that τ (z) is larger enough than the time bound for sampling according to Dz , and
+for each x ∈ Support(Dz ), it holds that cdt (x[i] |z) ≤ |x| + O(1) ≤ t (for each i and each t ≥ τ (|z|)).
+Further, we assume that t ≥ p(|z|) for each t ≥ τ (|z|). We use Lemma 3.9 and obtain that
+Pr [E ∧ cdt (x[i] |z) > 4 log t] ≤ Pr [cdt (x[i] |z) > 4 log t] ≤ t−2 .
+
+x∼Dz
+
+x∼Dz
+
+Thus,
+Pr [cdt (x[i] |z) > 4 log t|E] ≤
+
+x∼Dz
+
+1
+t2 Pr[E]
+
+and
+Ex∼Dz [cdt (x[i] |z)|E] ≤ 1 · (4 log t) +
+
+3.3
+
+≤
+
+p(|z|)
+≤ t,
+t2
+
+t
+≤ 5 log t.
+t
+
+Sampling with Advice
+
+We consider the notion of the advice complexity of sampling as a parameter of problems.
+Definition 3.11 (Advice complexity of sampling). A distribution D over {0, 1}n is said to be
+2n
+samplable with advice complexity ℓ if there exists a function α : {0, 1}2 → {0, 1}≤ℓ such that
+U (α(r); r, n) halts for every r, outputs an element of {0, 1}n ∪ {⊥}, and
+Pr
+
+22n
+
+r∼{0,1}
+
+1
+[U (α(r); r, n) = ⊥] ≤ .
+4
+
+Moreover, conditioned on U (α(r); r, n) ̸= ⊥, its output distribution is required to have statistical
+distance at most 2−2n from D.
+The equivalence to the definition presented in the introduction is discussed in Appendix B.
+
+4
+
+NP-Hardness of Distributional Minimum Monotone Satisfying
+Assignment
+
+In this section, we show the NP-hardness of DMMSA and Theorem 1.8.
+
+4.1
+
+Distributional Minimum Monotone Satisfying Assignment
+
+First, we formally introduce the Distributional Minimum Monotone Satisfying Assignment problem.
+Definition 4.1 (Distributional Minimum Monotone Satisfying Assignment). Let C be a set of
+monotone formulas. An instance of Distributional Minimum Monotone Satisfying Assignment for
+C (C-DMMSA) over n variables has a pair of a distribution D of monotone
+formulas in C over
+P
+variables X = {x1 , . . . , xn } and a weight function w : X → [0, 1] with x∈X w(x) = 1.
+18
+
+For a C-DMMSA instance D over n variables and threshold τ ∈ [0, 1], we define the τ -value
+valτ (D) ∈ [0, 1] of D as
+
+
+n
+valτ (D) := min a ∈ [0, 1] : ∃α ∈ {0, 1} s.t. w(α) = a and Pr [φ(α) = 1] ≥ τ ,
+φ∼D
+
+where
+w(α) =
+
+X
+
+w(xi ).
+
+i:αi =1
+
+For τY , τN ∈ [0, 1] and σ, l ∈ N, we define the promise problem GapστY ,τN C-DMMSA as the
+following promise problem (ΠY , ΠN ):
+ΠY = {(D, w, 1n , s) : val1−τY (D) ≤ s}
+ΠN = {(D, w, 1n , s) : valτN (D) > σ · s},
+where n ∈ N, s ∈ [0, 1] is represented in polynomial size, and (D, w) is a C-DMMSA instance over
+n variables.
+We also define the problem above when τY , τN , σ are specified as functions in the same manner.
+In this paper, we always assume that the weight function w and the size parameter s are lower
+bounded by the inverse of a polynomial in the number of variables, and that w and s are represented
+in polynomial size.
+The main theorem in this section is stated as follows.
+Theorem 4.2. There exist functions σ := σ(ℓ) = ℓ1−o(1) , ε := ε(ℓ) = o(1), γ := γ(ℓ) = o(1)
+such that for every sufficiently large ℓ ∈ N, Gapε,γ
+σ F[ℓ]-DMMSA is NP-hard via a polynomial-time
+deterministic reduction.
+Recall that F[ℓ] is the class of monotone formulas of leaf size at most ℓ. This immediately implies
+Theorem 1.8 because of the following simple proposition.
+ε+1/p(m),γ+1/p(m)
+
+Proposition 4.3. Gapε,γ
+C-CMMSA for every class
+σ C-DMMSA is reducible to Gapσ
+C of monotone formulas and every polynomial p via BPP-reduction, where m is the size of the
+original instance.
+Proof. Let (D, w, 1n , s) be an arbitrary instance of Gapε,γ
+σ C-DMMSA. The BPP-reduction just
+selects Θ(p(m)2 ·n) monotone formulas according to D. Let C be a collection of the selected formulas.
+ε+1/p(m),γ+1/p(m)
+Then, we claim that (C, w, 1n , s) is an yes (resp. no) instance of Gapσ
+C-CMMSA
+with probability at least 2/3 over the choice of C.
+By the Hoeffding’s inequality, for every assignment α,
+Pr [φ(α) = 1] − Pr [φ(α) = 1] ≤ 1/p(m).
+
+φ∼C
+
+φ∼D
+
+with probability at least 1 − 1/(3 · 2n ) over the choice of C.
+Thus, if the original instance is yes instance, then there exists an assignment such that w(α) ≤ s
+and
+Pr [φ(α) = 1] ≥ 1 − ε − 1/p(m)
+φ∼C
+
+with probability at least 1 − 1/(3 · 2n ) ≥ 2/3. If the original instance is no instance, then by the
+union bound, there is no assignment of weight at most σs such that
+Pr [φ(α) = 1] ≥ γ + 1/p(m)
+
+φ∼C
+
+with probability at least 1 − 2n /(3 · 2n ) = 2/3.
+19
+
+4.2
+
+Proof of Theorem 4.2
+
+We prove Theorem 4.2 from the following star-projection CSP hardness statement.
+Definition 4.4 (Star-projection CSP). Let m ≥ 1 and R ≥ 1. A star-projection (m + 1)-CSP
+instance Ψ consists of two disjoint sets of variables X and Y, finite alphabets {Σu }u∈X ∪Y with
+|Σu | ≤ R, a set of constraints E with a distribution µ, and, for each constraint
+e = (y; x1 , . . . , xm ) ∈ E
+
+(y ∈ Y, xi ∈ X ),
+
+projection maps πe,i : Σxi → Σy for i ∈ [m]. A labeling A satisfies e = (y; x1 , . . . , xm ) if
+for every i ∈ [m].
+
+πe,i (A(xi )) = A(y)
+
+Let val(Ψ) denote the maximum, over all labelings A, of the probability that A satisfies a random
+constraint e ∼ µ.
+Theorem 4.5 ([MZ26]). For every integer m ≥ 2 and every ξ, δ > 0, there is an integer R⋆ (m, ξ, δ)
+such that for every R ≥ R⋆ (m, ξ, δ), it is NP-hard to distinguish, given a star-projection (m+1)-CSP
+instance Ψ with alphabet size at most R, between the following two cases:
+val(Ψ) ≥ 1 − δ
+
+val(Ψ) ≤ R−(1−ξ)m .
+
+and
+
+We now complete the reduction from star-projection CSPs to DMMSA, taking Theorem 4.5
+as a black box. The proof that the Minzer–Zheng construction indeed yields the star-projection
+structure required by Theorem 4.5 is postponed to Section 4.3.
+Reduction to DMMSA. Let Ψ be a star-projection (m + 1)-CSP instance with alphabet size
+at most R. Put U := X ∪ Y. We discard variables that have zero probability of appearing in a
+random constraint. For u ∈ U , define its occurrence weight by
+"
+#
+m
+X
+1
+λ(u) :=
+E
+1[y = u] +
+1[xi = u] .
+(1)
+m + 1 e=(y;x1 ,...,xm )∼µ
+i=1
+
+Then λ(u) > 0 for every remaining u, and
+X
+
+λ(u) = 1.
+
+(2)
+
+u∈U
+
+For each u ∈ U and a ∈ Σu , introduce a DMMSA variable zu,a . We first assign the unnormalized
+weight
+w(z
+e u,a ) := λ(u).
+Let
+Λ :=
+
+X
+
+λ(u)|Σu |,
+
+u∈U
+
+and define the normalized DMMSA weight
+w(zu,a ) :=
+Thus
+
+P
+
+w(z
+e u,a )
+λ(u)
+=
+.
+Λ
+Λ
+
+(3)
+
+u,a w(zu,a ) = 1. The size parameter in the resulting Gap-DMMSA instance will be
+
+s :=
+20
+
+1
+.
+Λ
+
+(4)
+
+For a Boolean assignment α to the variables zu,a , write
+Lu (α) := {a ∈ Σu : α(zu,a ) = 1}
+for the list of labels selected for u.
+We now define the distribution D0 over monotone formulas. Sample a constraint e = (y; x1 , . . . , xm ) ∼
+µ. Let Xe be the set of distinct variables appearing among x1 , . . . , xm , and for x ∈ Xe let
+Ie (x) := {i ∈ [m] : xi = x}.
+For b ∈ Σy and x ∈ Xe , define
+Pe,x,b := {a ∈ Σx : πe,i (a) = b for every i ∈ Ie (x)}.
+The formula output by D0 on constraint e is
+
+
+^
+_
+_
+zy,b ∧
+
+Fe :=
+x∈Xe
+
+b∈Σy
+
+
+zx,a  ,
+
+(5)
+
+a∈Pe,x,b
+
+where an empty inner OR is interpreted as the constant 0.
+Lemma 4.6. The reduction above is polynomial time and satisfies the following properties.
+(a) Every formula in supp(D0 ) is monotone and has leaf size at most (m + 1)R.
+(b) (Completeness.) For every τ ∈ [0, 1], if val(Ψ) ≥ 1 − τ , then
+val1−τ (D0 ) ≤ s.
+(c) (Soundness.) If val(Ψ) ≤ ζ, then every assignment α of normalized weight
+1
+w(α) ≤
+8
+
+ 1/(m+1)
+5
+ζ −1/(m+1) · s
+8
+
+satisfies
+3
+Pr [F (α) = 1] ≤ .
+F ∼D0
+4
+Proof. The formula in (5) is monotone by construction. We first count leaves. The center leaves
+contribute at most |Σy | ≤ R. Fix x ∈ Xe and a label a ∈ Σx . Since Ie (x) is nonempty, the label
+a can belong to Pe,x,b for at most one value of b: if a ∈ Pe,x,b ∩ Pe,x,b′ , then for any i ∈ Ie (x) we
+get b = πe,i (a) = b′ . Hence the leaves associated with a fixed x contribute at most |Σx | ≤ R. Since
+|Xe | ≤ m, the total leaf size is at most R + mR = (m + 1)R. This also gives polynomial-time
+constructibility of each local formula.
+For completeness, let A be a labeling that satisfies a 1 − τ fraction of constraints. Define
+the assignment αA by setting αA (zu,A(u) ) = 1 for every u ∈ U and all other variables to 0. Its
+unnormalized weight is
+X
+λ(u) = 1,
+u∈U
+
+so its normalized weight is 1/Λ = s. If A satisfies e = (y; x1 , . . . , xm ), then the branch b = A(y)
+in (5) is satisfied: for each distinct x ∈ Xe , choosing ax = A(x) gives πe,i (ax ) = A(y) = b for
+21
+
+every i ∈ Ie (x). Therefore Fe (αA ) = 1 for every CSP constraint e satisfied by A, and hence
+PrF ∼D0 [F (αA ) = 1] ≥ 1 − τ .
+It remains to prove soundness. Let α be any assignment and put
+X
+su := |Lu (α)|,
+W :=
+λ(u)su .
+u∈U
+
+Thus W = Λ · w(α) is the unnormalized weight of α. We prove that if PrF ∼D0 [F (α) = 1] > 3/4,
+then
+ 
+1 5 1/(m+1) −1/(m+1)
+W >
+ζ
+.
+(6)
+8 8
+This implies the claimed contrapositive after dividing by Λ.
+Assume Pr[F (α) = 1] > 3/4. If W = 0, then every variable appearing in the support of the
+constraint distribution has an empty list, and every sampled formula is unsatisfied. Hence W > 0.
+For a random constraint e = (y; x1 , . . . , xm ), define
+Te := sy +
+
+m
+X
+
+sxi .
+
+i=1
+
+By definition,
+Te = sy +
+
+m
+X
+
+sxi =
+
+i=1
+
+X
+
+su
+
+1[y = u] +
+
+m
+X
+
+!
+1[xi = u] ,
+
+i=1
+
+u∈U
+
+where the occurrences among x1 , . . . , xm are counted with multiplicity. Since the numbers su are
+fixed once the assignment α is fixed, taking expectation over e ∼ µ gives
+"
+#
+m
+X
+X
+Ee∼µ [Te ] =
+su Ee=(y;x1 ,...,xm )∼µ 1[y = u] +
+1[xi = u]
+i=1
+
+u∈U
+
+= (m + 1)
+
+X
+
+λ(u)su = (m + 1)W,
+
+u∈U
+
+where the second equality is exactly the definition of λ(u) in (1).
+Markov’s inequality gives
+1
+Pr [Te > 8(m + 1)W ] ≤ .
+e∼µ
+8
+Since Fe (α) = 1 with probability > 3/4, the probability that both Fe (α) = 1 and Te ≤ 8(m + 1)W
+hold is > 5/8. Call such a constraint good.
+Construct a random labeling Aα as follows. For each u ∈ U , if Lu (α) ̸= ∅, choose Aα (u)
+uniformly from Lu (α); if Lu (α) = ∅, choose an arbitrary fixed label. The choices are independent
+over u. Fix a good constraint e = (y; x1 , . . . , xm ). Since Fe (α) = 1, there exist a label b ∈ Ly (α)
+and, for every x ∈ Xe , a label ax ∈ Lx (α) such that
+πe,i (axi ) = b
+
+for every i ∈ [m].
+
+If Aα (y) = b and Aα (x) = ax for every x ∈ Xe , then Aα satisfies e. The probability of this event is
+1
+1 Y 1
+≥ Qm
+,
+sy
+sx
+sy i=1 sxi
+x∈Xe
+
+22
+
+where repetitions among x1 , . . . , xm can only increase the denominator on the right. By AM–GM
+and the goodness of e,
+sy
+
+m
+Y
+i=1
+
+
+sxi ≤
+
+P
+m+1 
+m+1
+sy + m
+Te
+i=1 sxi
+=
+≤ (8W )m+1 .
+m+1
+m+1
+
+Thus a good constraint is satisfied by Aα with probability at least (8W )−(m+1) . Averaging over the
+random constraint and the random labeling, we obtain
+
+
+5
+EAα Pr [Aα satisfies e] > (8W )−(m+1) .
+e∼µ
+8
+Therefore some deterministic labeling satisfies more than 58 (8W )−(m+1) fraction of constraints. Since
+val(Ψ) ≤ ζ, we have
+5
+(8W )−(m+1) < ζ.
+8
+Since W = Λw(α) = w(α)/s, we have
+w(α) = W · s >
+
+1
+8
+
+ 1/(m+1)
+5
+ζ −1/(m+1) · s,
+8
+
+which is exactly (6).
+We next record the parameter substitution that will be used to prove Theorem 4.2.
+Proposition 4.7. Let K and m ≥ 2 be integers such that
+
+
+
+
+K
+1
+1
+m + 1 ≤ log K,
+R :=
+≥ R⋆ m, 2 ,
+.
+m+1
+m 100(m + 1)
+
+(7)
+
+Then there is a polynomial-time deterministic reduction to DMMSA instances whose formulas have
+leaf size at most K and whose size parameter is s, with the following gap:
+YES: val1−1/(100(m+1)) (D0 ) ≤ s.
+NO: Every assignment α of weight
+w(α) ≤
+
+K 1−1/m
+·s
+32(m + 1)
+
+satisfies
+3
+Pr [F (α) = 1] ≤ .
+4
+
+F ∼D0
+
+Proof. Apply Theorem 4.5 with
+ξ :=
+
+1
+,
+m2
+
+δ :=
+
+1
+,
+100(m + 1)
+
+and alphabet bound R from (7). In the YES case, Lemma 4.6(b) gives val1−δ (D0 ) ≤ s.
+In the NO case, put
+2
+ζ := R−(1−1/m )m .
+
+23
+
+We write the weight threshold supplied by Lemma 4.6(c) as B · s, where B is the multiplicative
+factor
+ 
+1 5 1/(m+1) −1/(m+1)
+B :=
+ζ
+8 8
+ 
+1 5 1/(m+1) (1−1/m2 )m/(m+1)
+=
+R
+8 8
+ 
+1 5 1/(m+1) 1−1/m
+=
+R
+.
+8 8
+Thus Lemma 4.6(c) says that every assignment α with
+w(α) ≤ B · s
+has satisfaction probability at most 3/4. It remains to lower bound this multiplicative factor B in
+terms of the leaf-size parameter K.
+Since (5/8)1/(m+1) ≥ 5/8, we have
+B≥
+
+5 1−1/m
+R
+.
+64
+
+(8)
+
+Moreover, from m + 1 ≤ log K and m ≥ 2, for all sufficiently large K,
+
+
+K
+K
+≥
+.
+R=
+m+1
+2(m + 1)
+Combining this with (8),
+5
+B≥
+64
+
+
+
+K
+2(m + 1)
+
+1−1/m
+≥
+
+5 K 1−1/m
+K 1−1/m
+·
+≥
+.
+64 2(m + 1)
+32(m + 1)
+
+Thus every assignment of weight at most K 1−1/m s/(32(m + 1)) has satisfaction probability at most
+3/4 under D0 .
+The reduction above gives a constant soundness threshold 3/4. To match the formulation of
+Theorem 4.2, whose NO-side threshold is o(1), we take an AND product of independent local
+formulas. For a distribution D0 over monotone formulas and an integer q ≥ 1, let D0∧q be the
+distribution that samples F1 , . . . , Fq ∼ D0 independently and outputs
+F1 ∧ F2 ∧ · · · ∧ Fq .
+Every output formula is monotone, and its leaf size is at most q times the leaf size of D0 . For every
+fixed assignment α,
+
+
+q
+
+Pr∧q [F (α) = 1] =
+
+F ∼D0
+
+Pr [F (α) = 1]
+
+F ∼D0
+
+.
+
+(9)
+
+Consequently, if val1−τ (D0 ) ≤ s, then
+val1−qτ (D0∧q ) ≤ s,
+because (1−τ )q ≥ 1−qτ . Also, if every assignment of weight at most βs has satisfaction probability
+at most 3/4 under D0 , then every such assignment has satisfaction probability at most (3/4)q under
+D0∧q .
+We are now ready to prove Theorem 4.2.
+24
+
+Proof of Theorem 4.2. For an integer K, call an integer m ≥ 2 K-admissible if
+
+
+
+
+1
+K
+1
+m + 1 ≤ log K,
+≥ R⋆ m, 2 ,
+.
+m+1
+m 100(m + 1)
+For every fixed M ≥ 2, the threshold R⋆ (M, 1/M 2 , 1/(100(M + 1))) is finite, while log K → ∞ and
+⌊K/(M + 1)⌋ → ∞ as K → ∞. Thus this fixed integer M is K-admissible for all sufficiently large
+K. In particular, the set of K-admissible integers is nonempty for all sufficiently large K. For each
+such K, this set is finite, since every K-admissible integer m satisfies 2 ≤ m ≤ log K − 1. Hence it
+has a largest element; denote it by mK .
+The same observation implies that mK → ∞: for every fixed M ≥ 2, we have mK ≥ M for all
+sufficiently large K. Also, by admissibility, mK + 1 ≤ log K. Therefore
+mK → ∞,
+
+mK + 1 ≤ log K.
+
+(10)
+
+Now fix a sufficiently large final leaf-size bound ℓ and set
+
+
+√ 
+ℓ
+K = K(ℓ) := √
+,
+m := mK ,
+q :=
+m .
+log ℓ
+√
+√
+√
+By (10), we have q → ∞. Also q ≤ m ≤ log K ≤ log ℓ, and therefore
+qK ≤ ℓ.
+Apply Proposition 4.7 with the base leaf bound K and the admissible arity parameter m = mK ,
+and then replace D0 by the AND-product distribution D := D0∧q . The resulting formulas have leaf
+size at most qK ≤ ℓ.
+Define
+ q
+q
+3
+K 1−1/m
+ε(ℓ) :=
+,
+γ(ℓ) := 2
+,
+σ(ℓ) :=
+.
+(11)
+100(m + 1)
+4
+32(m + 1)
+For large enough ℓ, γ(ℓ) ≤ 1. In the YES case, Proposition 4.7 and the amplification observation
+give
+val1−ε(ℓ) (D) ≤ s.
+In the NO case, every assignment of weight at most σ(ℓ)s has satisfaction probability at most (3/4)q
+under D, which is strictly smaller than γ(ℓ). Hence
+valγ(ℓ) (D) > σ(ℓ)s.
+ε(ℓ),γ(ℓ)
+
+This is exactly the gap required in Gapσ(ℓ)
+F[ℓ]-DMMSA.
+√
+It remains only to check the asymptotics. Since m = mK → ∞ and q = ⌊ m⌋, we have
+ q
+q
+3
+ε(ℓ) =
+= o(1),
+γ(ℓ) = 2
+= o(1).
+100(m + 1)
+4
+Furthermore,
+log σ(ℓ)
+=
+log ℓ
+
+
+1−
+
+1
+m
+
+
+
+log K
+log(32(m + 1))
+−
+.
+log ℓ
+log ℓ
+
+√
+Here K = ⌊ℓ/ log ℓ⌋, so log K/ log ℓ → 1. Also m + 1 ≤ log K, and hence log(32(m + 1))/ log ℓ =
+o(1). Therefore
+log σ(ℓ)
+→ 1,
+log ℓ
+that is, σ(ℓ) = ℓ1−o(1) . This completes the proof of Theorem 4.2.
+25
+
+4.3
+
+The Star-Projection Structure of Minzer–Zheng PCP
+
+We observe that the Minzer–Zheng theorem stated below has a star-projection structure, which
+yields Theorem 4.5.
+Theorem 4.8 ([MZ26, Theorem 1.4, original form]). For every integer q ≥ 2 and every ξ, δ > 0,
+there is an integer RMZ (q, ξ, δ) such that for every R ≥ RMZ (q, ξ, δ), it is NP-hard to distinguish,
+given a q-CSP instance Φ with alphabet size at most R, between the following two cases:
+val(Φ) ≥ 1 − δ
+
+val(Φ) ≤ R−(1−ξ)(q−1) .
+
+and
+
+We use the following structural fact from the proof of Theorem 4.8. For q = k + 1, the final
+composed PCP that Minzer–Zheng denote by Ψk+1 is the CSP constructed in their Section 3.3,
+and their Section 5.2 proves Theorem 1.4 by analyzing this final PCP. Therefore, to derive the
+star-projection version used in Theorem 4.5, it remains to verify that the local constraints of Ψk+1
+have the star-projection form.
+Lemma 4.9. Fix m ≥ 2 and put q = m + 1. The final composed PCP of Minzer–Zheng for
+arity q has a value-preserving representation as a star-projection (m + 1)-CSP: its variables can be
+partitioned into variables X and center variables Y, and for every constraint
+(y ∈ Y, xi ∈ X ),
+
+e = (y; x1 , . . . , xm )
+
+there are maps πe,i : Σxi → Σy such that the original Minzer–Zheng predicate accepts exactly when
+πe,i (ai ) = b
+
+for every i ∈ [m],
+
+where ai is the answer to xi and b is the answer to y.
+Proof. We unpack the CSP described in [MZ26, Section 3.3]. Their final PCP has two types of
+vertices, denoted by A and B. The vertices on the A side have the form
+L ⊕ HU .
+Here U is a question in the outer PCP, HU is the constraint subspace associated with U , and L is
+chosen so that L ∩ HU = {0}; thus ⊕ denotes a direct sum of subspaces. The alphabet at such a
+vertex consists of the linear functions on L ⊕ HU (satisfying the side conditions associated with U ).
+The vertices on the B side are center subspaces, denoted below by R. The alphabet at such a
+vertex consists of the linear functions R → F2 .
+We set
+X := A,
+Y := B.
+Now fix one sampled constraint of their final (m + 1)-CSP. In the notation of Minzer–Zheng,
+the sampler first chooses U and a center subspace R. Then, for each i ∈ [m], it chooses a subspace
+Li with R ⊆ Li , and finally chooses an A-vertex
+xi := L′i ⊕ HUi′ ∈ [Li ⊕ HU ].
+Here, [Li ⊕ HU ] denotes the equivalence class, called a clique by Minzer–Zheng, of the A-vertex
+Li ⊕ HU under the equivalence relation from [MZ26, Section 3.3.3]. The center variable of the
+constraint is
+y := R ∈ Y.
+26
+
+Thus the constraint queries one center variable y and m variables x1 , . . . , xm .
+It remains to define the projection maps. Fix the sampled constraint e and an index i. Given an
+A-label a ∈ Σxi , regard a as a linear function on L′i ⊕ HUi′ (satisfying the side conditions associated
+with Ui′ ). Since xi = L′i ⊕ HUi′ lies in the clique of Li ⊕ HU , [MZ26, Lemma 3.4] gives a unique
+linear extension on the common span
+Si := Li + HU + HUi′ = L′i + HU + HUi′ .
+Let this extension be
+ge,i,a : Si → F2 .
+It extends the label a and is compatible with the side conditions associated with both Ui′ and U .
+Since R ⊆ Li ⊆ Si , the restriction ge,i,a |R is a linear function on R, hence a legal center label. Define
+πe,i (a) := ge,i,a |R ∈ Σy .
+The uniqueness assertion in Lemma 3.4 is exactly what makes πe,i a well-defined function of the
+left label a.
+The constraint in the Minzer–Zheng construction is as follows. In the notation above, if the
+A-answers are a1 , . . . , am and the center answer is b ∈ Σy , then the constraint is precisely
+πe,i (ai ) = b
+
+for every i ∈ [m].
+
+Thus every local predicate is a star-projection predicate.
+Proof of Theorem 4.5. Fix m ≥ 2 and ξ, δ > 0, and set q := m + 1. The proof of Theorem 4.8
+constructs and analyzes the final composed PCP Ψq described in [MZ26, Section 3.3]. By Lemma 4.9,
+this CSP has a star-projection representation. Applying Theorem 4.8 with arity q = m + 1 therefore
+gives the same completeness and soundness after this rewriting:
+val(Ψ) ≥ 1 − δ
+
+or
+
+val(Ψ) ≤ R−(1−ξ)(q−1) = R−(1−ξ)m .
+
+Finally, define R⋆ (m, ξ, δ) to be a sufficiently large threshold for this application of Minzer–Zheng’s
+theorem, enlarging it if necessary to absorb the harmless convention that the two sides may have
+different alphabet sizes but both are bounded by the same parameter R. This proves Theorem 4.5.
+
+5
+
+From DMMSA to Learning under Distributions with Small Advice
+
+In this section, we present the reduction from C-DMMSA to learning under distributions, where
+the advice complexity of sampling is upper bounded by the size of secret sharing in C. It yields
+Theorem 1.3 along with Theorem 4.2 and Theorem 3.5.
+Recall that Sℓ is the class of monotone formulas such that the induced authorized set admits
+secret sharing of total length ℓ for each shared bit.
+The basic ideas are the same as those presented in [Hir22]. For completeness, we give the proof
+below.
+Lemma 5.1. There exists a universal constant cU ≥ 0 such that the following holds. Let ℓ ∈ N, σ ≥
+ε,5γ
+1, ε ∈ [0, 1], and γ ∈ (0, 1]. The problem Gapε,γ
+σ Sℓ -DMMSA is reducible to Gap0.49σ Learn[ℓ + 2⌈log(ℓ + 1)⌉ + cU ]
+as follows: There exists a randomized polynomial-time algorithm R such that, for given Gapε,γ
+σ Sℓ -DMMSAinstance z = (D, w, 1n , s) and randomness z ′ ∼ {0, 1}λ , where λ := λ(|z|), R produces a distribution
+′
+Ez,z ′ over {0, 1}n × {0, 1} and a size parameter s′ := ⌈2sλ⌉ such that
+27
+
+• {Ez,z ′ }z,z ′ is samplable with advice complexity at most ℓ + 2⌈log(ℓ + 1)⌉ + cU .
+• (Completeness) If z is an yes instance, then for every z ′ ∈ {0, 1}λ , there exists a linear-time
+program h of size at most s′ such that
+[h(x) = b] ≥ 1 − ε.
+
+Pr
+(x,b)∼Ez,z′
+
+• (Soundness) If z is a no instance, then with probability 1 − negl(|z|) over the choice of z ′ ∼
+{0, 1}λ , there is no program h of size 0.49σ · s′ such that
+Pr
+
+[h(x) = b] ≥
+
+(x,b)∼Ez,z′
+
+1 5γ
++
+.
+2
+2
+
+Proof. Let z = (D, w, 1n , s) be an instance of Gapε,γ
+σ Sℓ -DMMSA. Here, D is a circuit representing
+a sampler for a distribution on n-variate monotone formulas whose authorized
+sets admit secret
+P
+sharing of total length ℓ, and w : [n] → [0, 1] is a weight function (i.e., i∈[n] w(i) = 1), where we
+identify the variable set with the index set [n]. Recall that we assumed that w(i) ≥ 1/poly(|z|) for
+each i ∈ [n] and s ≥ 1/poly(|z|).
+We construct the reduction R that maps z and randomness z ′ ∼ {0, 1}λ to an instance of the
+learning problem as in the theorem. Let ρ ∈ N be the amount of random bits D takes as input.
+Let (Share, Rec) be the secret sharing scheme for the class Sℓ . Let λ := λ(|z|) ∈ N be a large
+enough and polynomially bounded parameter.
+The reduction
+R first selects n random strings fi ∼ {0, 1}w(i)·λ for each i ∈ [n] (notice that
+P
+it requires i w(i)λ = λ random bits) and then produces a sampler of the following distribution
+′
+E := Ez,z ′ over {0, 1}n × {0, 1}, where n′ := ℓ + ρ + ℓλ.
+The distribution E. Select r ∼ {0, 1}ρ and obtain a monotone formula φ := D(r). Then, select
+b ∼ {0, 1} and execute Share(b; φ) to obtain shares s ∈ {0, 1}ℓ . For each position i ∈ [ℓ], let
+ji ∈ [n] be the index of the variable to which si is distributed. For each j ∈ [n] and q ∈ [ℓ], let
+(q)
+(1)
+(ℓ)
+zj ∼ {0, 1}w(j)λ independently, and write zj := zj ◦ · · · ◦ zj . Define
+(i)
+
+ci := si ⊕ ⟨fji , zji ⟩F2
+for each i ∈ [ℓ]. The distribution E is defined as the distribution of (r ◦ z1 ◦ · · · ◦ zn ◦ c1 ◦ · · · ◦ cℓ , b) ∈
+′
+(q)
+{0, 1}n × {0, 1} over r, b, {zj }, and the randomness for Share (note that each fi is embedded into
+the description of E). It it easy to verify that E has a polynomial-time sampler of description length
+at most
+X
+|z| + |Share| +
+|fi | + O(log |z|) ≤ |z| + λ + O(log |z|).
+i
+
+Since λ ≤ poly(|z|), the above is polynomially bounded in |z|, and R halts in polynomial time.
+First, we observe that {Ez,z ′ }z,z ′ is samplable with advice complexity at most ℓ+2⌈log(ℓ+1)⌉+cU
+′
+in the sense of Definition 3.11. Let N := n′ + 1, identifying a sample (x, b) ∈ {0, 1}n × {0, 1} with
+x ◦ b ∈ {0, 1}N . Let SR be the sampler that, given 1N , an advice string a ∈ {0, 1}ℓ , and a random
+′
+′
+string r′ , outputs (r[N
+−ℓ−1] ◦ a, rN −ℓ ). By universality of U , there exists a constant cU such that
+each a ∈ {0, 1}ℓ has an encoding b
+a ∈ {0, 1}≤ℓ+2⌈log(ℓ+1)⌉+cU with
+U (b
+a, r′ , N ) = SR (1N , a, r′ )
+2N
+
+for all r′ and N . We define the advice function αz,z ′ : {0, 1}2 → {0, 1}≤ℓ+2⌈log(ℓ+1)⌉+cU on seeds
+2N
+r′ ∈ {0, 1}2 as follows. It computes the string c1 ◦ · · · ◦ cℓ according to the definition of Ez,z ′
+28
+
+and outputs the fixed universal-machine encoding c1 ◦\
+· · · ◦ cℓ introduced above. Namely, using the
+(q)
+′
+w(j)λ
+prefix of r , parse r, the strings zj ∈ {0, 1}
+for every j ∈ [n] and q ∈ [ℓ], and the bit b exactly
+as in the sample distribution above. Let φ := D(r) and s := Share(b; φ), where Share uses fresh
+(i)
+randomness from the remaining bits of r′ . For the same indices ji as in E, set ci = si ⊕ ⟨fji , zji ⟩F2
+for each i ∈ [ℓ]. Then, for every z and z ′ = {fi }i , the distribution Ez,z ′ is statistically identical to
+2N
+the distribution generated by U (αz,z ′ (r′ ), r′ , N ) over r′ ∼ {0, 1}2 . Moreover, U (αz,z ′ (r′ ), r′ , N )
+never outputs ⊥.
+Below, we prove the completeness and soundness. This completes the proof by selecting λ
+to be at least max{p(|z|), p′ (|z|)}, where p and p′ are the polynomials specified below, and by
+setting s′ := ⌈2sλ⌉. Since the size parameter s is inverse-polynomially lower bounded, we may
+increase the polynomial λ(·) so that sλ ≥ 100 for every valid input. Then s′ ≤ 2sλ + 1 ≤
+2.01sλ, and hence 0.49σs′ ≤ 0.99σsλ; together with Claim 5.3, this gives the desired soundness
+for Gapε,5γ
+0.49σ Learn[ℓ + 2⌈log(ℓ + 1)⌉ + cU ].
+Claim 5.2 (completeness). There exists a polynomial p such that for every yes instance z, every
+λ ≥ p(|z|), and every choice of z ′ = {fi }i∈[n] , there exists a linear-time program h of size at most
+2sλ (and hence at most s′ ) such that
+Pr [h(x) = b] ≥ 1 − ε.
+(x,b)∼E
+
+Claim 5.3 (soundness). There exists a polynomial p′ such that for every no instance z, every
+λ ≥ p′ (|z|), the following holds with probability at least 1 − negl(|z|) over the choice of z ′ = {fi }:
+there is no program h of size at most 0.99σ · s · λ such that
+Pr [h(x) = b] >
+(x,b)∼E
+
+1
++ 2γ.
+2
+
+Proof of Claim 5.2. We fix an yes instance z arbitrarily. Let λ ∈ N be a large enough parameter.
+We also fix z ′ = {fi }i∈[n] arbitrarily and let E := Ez,z ′ .
+Since z is an yes instance, there exists an assignment α ∈ {0, 1}n to D such that w(α) ≤ s and
+Pr [φ(α) = 1] ≥ 1 − ε.
+
+φ∼D
+
+′
+
+We consider the following hypothesis h : {0, 1}n → {0, 1} into which α, z, and fi are embedded
+(1)
+(ℓ)
+for all i ∈ [n] with αi = 1. On input x = r◦z1 ◦· · ·◦zn ◦c1 · · ·◦cℓ , where r ∈ {0, 1}ρ , zj = zj ◦· · ·◦zj
+(q)
+
+with zj ∈ {0, 1}w(j)λ for each j ∈ [n] and q ∈ [ℓ], and ci ∈ {0, 1} for each i ∈ [ℓ], the hypothesis h
+obtains φ = D(r). Then, for each i ∈ [ℓ], if αji = 1 (where ji ∈ [n] is the same as above) h computes
+(i)
+si from ci and ⟨fji , zji ⟩F2 and executes Rec(; φ) to reconstruct b from shares {si : i ∈ [ℓ] s.t. αji = 1}.
+Let z = z1 ◦ · · · ◦ zn and c = c1 · · · ◦ cℓ . For convenience, we identify r ◦ z ◦ c with (r, z, c).
+By the completeness of (Share, Rec), h(r, z, c) can correctly reconstruct b as long as φ(α) = 1
+where φ = D(r). Thus, we have
+Pr [h(x) = b] ≥ Pr [φ(α) = 1] ≥ 1 − ε.
+(x,b)∼E
+
+φ∼D
+
+It is easy to verify that h halts in polynomial time in n′ . The description size is bounded above
+
+29
+
+by
+!
+|h| ≤
+
+X
+
+|fi |
+
+!
+X
+
++ n + |z| + O(log(n|z|λ)) ≤
+
+i:αi =1
+
+w(i)λ
+
++ poly(|z|) + O(log(|z|λ))
+
+i:αi =1
+
+= w(α)λ + poly(|z|) + O(log(|z|λ))
+≤ sλ + poly(|z|) + O(log(|z|λ)).
+Since the size parameter s is inverse-polynomially lower bounded in |z|, the polynomial p can be
+chosen large enough so that every λ ≥ p(|z|) satisfies
+poly(|z|) + O(log(|z|λ)) ≤ sλ.
+Hence |h| ≤ 2sλ ≤ s′ . The running time of h is O(n′ ) + poly(|z|); by increasing p if necessary, this
+is linear in the padded input length n′ .
+⋄
+Proof of Claim 5.3. We fix a no instance z arbitrarily. Let λ ∈ N be a large enough parameter. We
+consider the random choice of z ′ = {fi }i∈[n] , and let E := Ez,z ′ .
+Let h be an arbitrary program of description size at most 0.99σ · s · λ that maps n′ bits to 1 bit.
+We will show that
+1
+Pr [h(x) = b] ≤ + 2γ.
+2
+(x,b)∼E
+For each i ∈ [n], let f˜i ∈ {0, 1}λ be the string obtained from fi with padding, i.e., f˜i =
+fi ◦ 0λ−w(i)λ .
+We construct a distinguisher D that takes an advice string α = (b, r, r′ ) and input (Z1 Y1 , . . . , Zn Yn ),
+(1)
+(ℓ)
+(1)
+(ℓ)
+where Zi = (Zi , . . . , Zi ) takes values in ({0, 1}λ )ℓ and Yi = (Yi , . . . , Yi ) takes values in {0, 1}ℓ .
+The distinguisher computes (i) φ = D(r), (ii) (s1 , . . . , sℓ ) = Share(b; φ) with randomness r′ , (iii)
+(q)
+cq = Yjq ⊕ sq for each q ∈ [ℓ] (recall that jq is the index of the q-th share). For each i ∈ [n], let
+(1)
+
+(ℓ)
+
+Z i := (Zi )[w(i)λ] ◦ · · · ◦ (Zi )[w(i)λ] .
+The distinguisher outputs 1 if and only if
+h(r ◦ Z 1 ◦ · · · ◦ Z n ◦ c1 ◦ · · · ◦ cℓ ) = b.
+It is easy to verify that if Zi Yi = DPℓ (f˜i ; Zi ) for all i, and α = (b, r, r′ ) is selected uniformly at
+random, then the input to h is distributed in the same manner as the example of E.
+Let a := |α| = poly(|z|). Note that a is independent of λ. Applying the Algorithmic Information
+Extraction Lemma (Lemma 3.7) with k = ℓ, there exists a subset B ⊆ [n] such that
+K(f˜B |D) ≤ |B| · (nℓ + a + O(log nλaγ −1 )) ≤ poly(|z|) · log λ,
+
+(12)
+
+and
+Pr
+
+α,{Zi Yi }
+
+[D(α, Z1 Y1 , . . . , Zn Yn ) = 1] −
+
+Pr ′
+
+α,{Zi Yi }
+
+
+
+D(α, Z1 Y1′ , . . . , Zn Yn′ ) = 1
+
+
+
+≤γ
+
+(13)
+
+where for each i ∈ [n], Zi ∼ ({0, 1}λ )ℓ , Zi Yi = DPℓ (f˜i ; Zi ), Yi′ ≡ Yi if i ∈ B and Yi′ ∼ {0, 1}ℓ
+otherwise.
+For every fixed nonempty set T ⊆ [n], the string fT is uniformly random of length w(T )λ. Hence
+the standard counting argument gives
+Pr [K(fT ) < w(T )λ − 3|z|] ≤ 2−3|z|+O(1) .
+30
+
+Since the unary string 1n is part of the instance, n ≤ |z|, and a union bound over all T ⊆ [n] shows
+that, with probability at least 1 − negl(|z|) over the choice of z ′ = {fi },
+K(fT ) ≥ w(T )λ − 3|z|
+
+for every nonempty T ⊆ [n].
+
+(14)
+
+Below, we condition on this event.
+If B = ∅, then w(B) = 0 < σs. Otherwise, w(B) ≥ mini w(i) ≥ 1/poly(|z|). We have
+K(f˜B |D) + O(log λ) ≥ K(fB |D) + O(log λ) ≥ K(fB |h) + O(log λ) ≥ K(fB ) − |h|,
+where the second inequality holds because D is constructed from h. Combining this with Equation (14) and Eq. (12), we obtain
+w(B)λ − 3|z| − |h| ≤ K(f˜B |D) + O(log λ) ≤ p0 (|z|) · log λ,
+for some universal polynomial p0 . Since w(B) ≥ mini w(i) ≥ 1/poly(|z|), there exists a universal
+polynomial p′ such that for every λ ≥ p′ (|z|),
+3|z| + p0 (|z|) log λ ≤ 0.005w(B)λ.
+Thus,
+0.995w(B)λ ≤ w(B)λ − (3|z| + p0 (|z|) log λ) ≤ |h|.
+Since |h| ≤ 0.99σ · s · λ, we have
+0.99
+σs < σs.
+0.995
+Therefore, in both cases B = ∅ and B ̸= ∅, we have w(B) < σs.
+The characteristic string χB ∈ {0, 1}n (i.e., (χB )i = 1 iff i ∈ B) satisfies that w(χB ) = w(B) <
+σs. Since z is a no instance,
+Pr [φ(χB ) = 0] ≥ 1 − γ.
+w(B) ≤
+
+φ∼D
+
+Now, consider the execution of D(α, Z1 Y1′ , . . . , Zn Yn′ ). Condition on a choice of r for which φ(χB ) =
+0. Then B is an unauthorized set for the access structure induced by φ. The input to h contains
+the shares of parties in B only through the bits cq = sq ⊕ (Yj′q )(q) with jq ∈ B and contains no
+information about the shares of parties outside B: for every share position q with jq ∈
+/ B, the mask
+′
+(q)
+bit (Yjq ) is independent and uniform, so cq is independent of sq . Therefore, after adjoining the
+public randomness r, all Zi ’s, and the independent mask bits, the entire view given to the fixed
+predictor h has the same distribution when the shared bit is 0 as when it is 1, by the perfect privacy
+of the secret sharing scheme. Hence, under this conditioning, D outputs 1 (i.e., h correctly outputs
+b) with probability exactly 1/2. On the remaining γ-fraction of choices of r we use the trivial upper
+bound 1. Thus,
+
+ 1
+Pr ′ D(α, Z1 Y1′ , . . . , Zn Yn′ ) = 1 ≤ + γ.
+2
+α,{Zi Yi }
+Therefore, by Eq. (13)
+Pr
+
+α,{Zi Yi }
+
+[D(α, Z1 Y1 , . . . , Zn Yn ) = 1] ≤
+≤
+
+Pr ′
+
+α,{Zi Yi }
+
+
+
+
+D(α, Z1 Y1′ , . . . , Zn Yn′ ) = 1 + γ
+
+1
++ 2γ.
+2
+
+By contrast,
+Pr
+
+α,{Zi Yi }
+
+[D(α, Z1 Y1 , . . . , Zn Yn ) = 1] ≥
+31
+
+Pr [h(x) = b].
+(x,b)∼E
+
+From the two inequalities above, we conclude that
+Pr [h(x) = b] ≤
+(x,b)∼E
+
+1
++ 2γ.
+2
+⋄
+
+The lemma above implies Theorem 1.3 along with Theorem 4.2 and Theorem 3.5.
+Proof of Theorem 1.3. Let σ0 (L) = L1−o(1) , ε0 (L) = o(1), and γ0 (L) = o(1) be the functions from
+Theorem 4.2. Let cU be the constant in Lemma 5.1. For every sufficiently large ℓ ∈ N, let L be the
+largest integer satisfying L + 2⌈log(L + 1)⌉ + cU ≤ ℓ. Then L = ℓ − O(log ℓ). By Theorem 3.5, we
+have F[L] ⊆ SL . Therefore, Theorem 4.2 and Lemma 5.1 give a randomized many-one reduction
+from an NP-hard problem to
+ε0 (L),5γ0 (L)
+Gap0.49σ
+Learn[ℓ].
+0 (L)
+Since L = ℓ − O(log ℓ), renaming 0.49σ0 (L) and 5γ0 (L) as σ(ℓ) and γ(ℓ) proves Theorem 1.3.
+Note that the Theorem 1.3 states the result in a setting where only access to samples is provided
+(as defined in Definition 1.2). The proof above also works in the stronger setting where the learner
+is given the description of the underlying distribution for learning.
+
+6
+
+Reduction to Inverting Auxiliary-Input Functions and Consequences
+
+In this section, we present the reduction from GapLearn to inverting AIOWF, which establishes the
+following coAM upper bound for DMMSA.
+Theorem 6.1. For every constant γ ∈ [0, 1/5), there exists C > 0 such that for every ε(ℓ) = o(1)
+ε(ℓ),γ
+and every sufficiently large ℓ ∈ N, GapC·ℓ Sℓ -DMMSA is in coAM.
+Note that Theorem 6.1 implies Theorem 1.9 as special cases since (i) F[ℓ] ⊆ Sℓ (Theorem 3.5)
+and (ii) Junta[ℓ] ⊆ S1.5ℓ+o(ℓ) [AN21].
+Theorem 6.1 is proved across Sections 6.1 to 6.3, outlined as follows: In Section 6.1, we present a
+reduction from GapLearn to extrapolating a universal distribution based on the theory of inductive
+inference [Sol64a; Sol64b]. We further extend the reduction from DMMSA to inverting an auxiliaryinput function, using a restricted form of description-restricted, context-sensitive, fixed-auxiliaryinput nonadaptive reduction, detailed below. In Section 6.3, building upon [AGGM06], we observe
+that any promise problem Π reducible to inverting via this restricted reduction is contained in coAM,
+completing the proof of Theorem 6.1. In Section 6.5, we prove the existence of a one-way function
+under the average-case hardness of GapDMMSA and GapLearn (Theorems 1.5 and 1.10).
+First, we present the restricted form of reductions to inverting auxiliary-input functions. For each
+total Turing machine M , we define an M -based (randomized) oracle OM : {0, 1}∗ ×{0, 1}∗ ×{0, 1}∗ →
+{0, 1}∗ as OM (x; ρshared , ρind ) = y if M (x, ρshared , ρind ) outputs y and halts, where ρshared is a shared
+randomness selected at the initialization (and used throughout), and ρind is a random seed selected
+at each query access. When the reduction R given access to OM is time-bounded, the total length
+of the shared randomness and the independent random seeds are bounded and can be selected at
+the initialization as a single random string ρ. In this case, we represent the M -based oracle that
+uses ρ as a random tape (for both ρshared and ρind ) by OM (-; ρ)
+32
+
+Definition 6.2 (Description-restricted context-sensitive reduction). Let f = {fz }z∈{0,1}∗ be an
+auxiliary-input function. A randomized oracle machine R? is said to be a description-restricted
+context-sensitive fixed-auxiliary-input nonadaptive (FAIN ) reduction from a promise problem Π to
+inverting f if
+• R is polynomial-time and nonadaptive;
+• For every x ∈ {0, 1}∗ , the reduction R(x) makes queries only of the form (zx , -) for some
+auxiliary-input zx determined by x;
+• For every (possibly inefficient) total Turing machine M and for every long enough x ∈ {0, 1}∗ ,
+if OM (-, x; ρ) inverts fzx for every fixed random tape ρ used by the reduction, i.e., for every
+such ρ,
+
+
+Pr OM (zx , fzx (r), x; ρ) ∈ fz−1
+(fzx (r)) ≥ 1/2,
+x
+r
+
+then
+Pr [ROM (-,x;ρ) (x) = Π(x)] ≥ 3/4.
+
+R,ρ
+
+We will show the following key lemma in Sections 6.1 and 6.2.
+Lemma 6.3. For every constant γ ∈ [0, 1/5), there exists C ≥ 1 such that for every ε(ℓ) = o(1)
+ε(ℓ),γ
+and every sufficiently large ℓ ∈ N, GapC·ℓ Sℓ -DMMSA is reducible to inverting an auxiliary-input
+function f = {fz } via a description-restricted context-sensitive FAIN reduction.
+Combined with the following theorem, which is implicit in [AGGM06; ABX08], we derive Theorem 6.1.
+Theorem 6.4. If a promise problem Π is reducible to inverting an auxiliary-input function f = {fz }
+via a description-restricted context-sensitive FAIN reduction, then Π ∈ coAM.
+We will observe Theorem 6.4 in Section 6.3.
+
+6.1
+
+Inductive Inference: From Learning to Universal Extrapolation
+
+Towards proving Lemma 6.3, we first reduce learning to extrapolation under the time-bounded
+universal distribution.
+Lemma 6.5. Let D = {Dz,z ′ }z∈Z,z ′ ∈{0,1}r(z) , where Z ⊆ {0, 1}∗ and r(z) ≤ poly(|z|), be a samplable
+distribution satisfying that there exist a function n : Z → N, a polynomially bounded function s =
+s(z, z ′ ), a function η : Z → [0, 1], and polynomial p such that for every z ∈ Z and z ′ ∈ {0, 1}r(z) ,
+• Dz,z ′ is a distribution over {0, 1}n(z) × {0, 1}, where n(z) ≤ poly(|z|);
+• there exists a p(·)-time program h of description size s(z, z ′ ) such that
+Pr
+
+[h(x) = b] ≥ 1 − η(z).
+
+(x,b)∼Dz,z′
+
+Then, for every ε ∈ (0, 1/2), there exist constants η0 > 0 and c := cε > 0 with the following property.
+For every polynomial-time computable polynomially bounded sample-size function m = m(z, z ′ ),
+
+33
+
+there is a polynomial-time computable polynomially bounded time bound tm = tm (z) such that, if
+η(z) ≤ η0 for every long enough z ∈ Z, then for every long enough z ∈ Z,
+
+
+h
+
+
+i
+t (z)
+Pr′ m(z, z ′ ) < c · (s(z, z ′ ) + log |z|) or
+Pr
+Next1 xb<i ; Q|zm
+= bi ≥ 1 − ε ≥ 1−o|z| (1),
+(x1 ,b1 ),...,(xm ,bm ),i,Next1
+
+z
+
+where, inside the probability over samples, m denotes m(z, z ′ ), i ∼ [m], (x1 , b1 ), . . . , (xm , bm ) ∼
+Dz,z ′ , and xb<i = x1 ◦ · · · ◦ xm ◦ b1 ◦ · · · ◦ bi−1 .
+Proof. Let ε > 0 and let c := C1 c20 ε−2 , where c0 is a large enough universal constant that depends
+only on the universal Turing machine and the way of encoding and is specified later, and C1 is
+a sufficiently large universal constant. Choose η0 > 0 sufficiently small. Fix a polynomial-time
+computable polynomially bounded sample-size function m = m(z, z ′ ). Let Mm be a polynomial
+upper bound such that m(z, z ′ ) ≤ Mm (|z|) for all relevant z, z ′ . Let τ be a sufficiently large
+polynomial, in particular large enough for p and the time-complexity of sampling according to D,
+and set
+tm (z) := Mm (|z|) · τ (|z|).
+Fix a long enough z ∈ Z arbitrarily. Let n := n(z) ≤ poly(|z|) and η := η(z), and write t := tm (z).
+We first take care of the randomness z ′ . For this fixed z and the sample-size function m, let
+Dz,m be the mixed distribution obtained by first choosing Z ′ ∼ {0, 1}r(z) and then drawing m(z, Z ′ )
+independent samples from Dz,Z ′ ; its output is the concatenated string XB. This mixed distribution
+is samplable from the advice z in polynomial time. Enlarging τ if necessary, by applying Lemma 3.9
+to Dz,m , we have
+ t
+ 1
+Pr
+cd
+(XB|z)
+>
+2
+log
+t
+≤ .
+⊗m(z,Z ′ )
+t
+Z ′ ,(X,B)∼D
+z,Z ′
+
+Put θz := 1/ log |z|. By Markov’s inequality, with probability at least 1 − θz over Z ′ ,
+
+1
+t
+cd
+(XB|z)
+>
+2
+log
+t
+≤
+.
+⊗m(z,Z ′ )
+tθz
+(X,B)∼D
+
+
+Pr
+
+z,Z ′
+
+For every such z ′ , since cdt (XB|z) ≤ t, we have
+E
+
+⊗m(z,z ′ )
+(X,B)∼Dz,z′
+
+[cdt (XB|z)] ≤ 2 log t +
+
+1
+≤ Cdep log |z|,
+θz
+
+(15)
+
+for a universal constant Cdep , using that t is polynomially bounded in |z|. We call such z ′ depthgood. The probability that z ′ is not depth-good is o|z| (1).
+Now fix an arbitrary depth-good z ′ ∈ {0, 1}r(z) such that m(z, z ′ ) ≥ c · (s(z, z ′ ) + log |z|). Put
+m := m(z, z ′ ) for readability, and let s := s(z, z ′ ). Let X1 , . . . , Xm , B1 , . . . , Bm be random variables
+⊗m
+representing the values of x1 , . . . , xm , b1 , . . . , bm , respectively, under Dz,z
+′ . Let X = X1 ◦ · · · ◦ Xm ,
+B = B1 ◦ · · · ◦ Bm , and XB<i = X1 ◦ · · · ◦ Xm ◦ B1 ◦ · · · ◦ Bi−1 for each i ∈ [m].
+First, we evaluate the following quantity:
+#
+"
+
+
+Pr[B
+=
+b|X
+=
+x]
+KL B X (Qt|z )[mn+1:mn+m] (Qt|z )[mn] = E(x,b)∼(X,B) log
+Pr[(Qt|z )[mn+1:mn+m] = b|(Qt|z )[mn] = x]
+"
+#
+1
+≤ E(x,b)∼(X,B) log
+.
+Pr[(Qt|z )[mn+m] = xb|(Qt|z )[mn] = x]
+For now, we assume the following claim and continue the proof.
+34
+
+Claim 6.6. For each z ′ and each (x, b) ∼ (X, B),
+h
+i
+t
+0.75
+Pr (Qt|z )[mn+m] = xb (Qt|z )[mn] = x ≥ 2−c0 (s+cd (x,b|z)+γx,b m+log |z|) ,
+where γx,b = |{i ∈ [m] : h(xi ) ̸= bi }|/m for the size-s program h in the statement.
+By the claim above and Equation (15),
+
+
+
+
+0.75
+m + log |z|)
+KL B X (Qt|z )[mn+1:mn+m] (Qt|z )[mn] ≤ E(x,b) c0 (s + cdt (x, b|z) + γx,b
+ 0.75 
+= c0 s + c0 E(x,b) [cdt (x, b|z)] + c0 log |z| + c0 Ex,b γx,b
+·m
+ 0.75 
+≤ c0 s + c0 (Cdep + 1) log |z| + c0 Ex,b γx,b · m
+≤ c0 s + c0 (Cdep + 1) log |z| + c0 Ex,b [γx,b ]0.75 · m
+= c0 s + c0 (Cdep + 1) log |z| + c0 η 0.75 · m,
+where the third inequality uses the depth-goodness of z ′ , and the last inequality follows from Jensen’s
+inequality.
+By the chain rule for the KL divergence,
+ c s c (C + 1) log |z|
+0
+dep
+0
+(Qt|z )[mn+i] (Qt|z )[mn+i−1] ≤
++
++ c0 η 0.75
+m
+m
+
+
+1 X
+KL Bi XB<i
+m
+i∈[m]
+
+≤ ε2 + c0 η 0.75 ,
+where the last inequality follows from m ≥ c(s + log |z|) and the choice of the constant C1 in
+c = C1 c20 ε−2 . By choosing η0 sufficiently small, for long enough z,
+h 
+i
+Ei∼[m] KL Bi |XB<i (Qt|z )[mn+i] (Qt|z )[mn+i−1] ≤ 2ε2 .
+By Pinsker’s inequality,
+h
+
+i
+Ei∼[m],xb<i ∼XB<i ∆tv (Bi |XB<i = xb<i ), ((Qt|z )[mn+i] |(Qt|z )[mn+i−1] = xb<i )
+r
+h 
+i
+≤
+
+Ei∼[m] KL Bi XB<i
+
+(Qt|z )[mn+i] (Qt|z )[mn+i−1]
+
+/2 ≤ ε.
+
+Notice that, given xb<i ∼ XB<i , the probability of ((Qt|z )[mn+i] |(Qt|z )[mn+i−1] = xb<i ) is equivalent
+to Next1 (xb<i ; Qt|z ). Thus,
+Pr
+
+h
+
+i,XB<i ,Next1
+
+i
+Next1 (xb<i ; Qt|z ) ̸= h(xi ) ≤
+
+Pr
+
+i,XB<i ,Bi
+
+[Bi ̸= h(xi )] + ε
+
+≤ η + ε.
+By the union bound,
+Pr
+
+i,XB<i ,Next1
+
+h
+
+i
+Next1 (xb<i ; Qt|z ) ̸= Bi ≤ 2η + ε,
+
+which is less than 2ε for long enough z by the choice of η0 . For non-depth-good z ′ we lose only an
+o|z| (1) fraction, while for any z ′ with m(z, z ′ ) < c(s(z, z ′ ) + log |z|) the disjunction in the statement
+is already true. Since ε > 0 is arbitrary, this yields the lemma.
+Now, we present the deferred proof of the claim and complete the proof of the lemma.
+35
+
+Proof of Claim 6.6. First, we show that
+0.75
+
+−O(s+γx,b m+log |z|)
+· Pr[(Qt|z )[mn] = x].
+Pr[Q2t
+|z = xb] ≥ 2
+
+Since t = tm (z) dominates m · τ (|z|), for each t-time program Π that is given z and produces x as a
+prefix, there exists a 2t-time program Π′ that is given z and produces xb as follows: Π′ first executes
+Π in t steps (with auxiliary input z) and then truncates it to the first mn bits (which corresponds
+to x). Then, Π′ executes h for each xi in x to obtain b̃ = h(x1 ) ◦ · · · ◦ h(xm ) and takes bit-wise xor
+with e ∈ {0, 1}m , where ei = h(xi ) ⊕ bi , to obtain b. Finally Π′ outputs xb.
+Notice that the error vector e has Hamming weight γx,b m and by Fact 3.8, it is reconstructed
+0.75 m + log |z|)-size program when τ is large enough. Thus, the description size of Π′
+from an O(γx,b
+is at most
+0.75
+0.75
+|Π| + O(log |Π| + |h| + γx,b
+m + log |z|) ≤ |Π| + O(|h| + γx,b
+m + log |z|).
+
+Thus, we have
+0.75
+
+−O(s+γx,b m+log |z|)
+Pr[Q2t
+· Pr[(Qt|z )[mn] = x],
+|z = xb] ≥ 2
+
+where the probability on the right sums over all t-time programs Π that are given z and produce x
+as a prefix.
+By contrast, we have
+t
+
+t
+
+t
+cd (x,b|z)
+Pr[Q2t
+≤ Pr[(Qt|z )[mn+m] = xb] · 2cd (x,b|z) .
+|z = xb] ≤ Pr[Q|z = xb] · 2
+
+Thus, we conclude
+Pr[(Qt|z )[mn+m] = xb|(Qt|z )[mn] = x] =
+
+Pr[(Qt|z )[mn+m] = xb]
+Pr[(Qt|z )[mn] = x]
+t
+
+0.75
+
+≥ 2−c0 (s+cd (x,b|z)+γx,b m+log |z|)
+⋄
+
+by selecting large enough c0 > 0.
+
+6.2
+
+Description-Restricted Reduction to Inverting Auxiliary-Input Functions
+
+Next, we extend the reduction in the previous section to inverting an auxiliary-input function via a
+description-restricted context-sensitive FAIN reduction, which completes the proof of Lemma 6.3.
+Lemma 6.7. Let D = {Dz,z ′ }z∈Z,z ′ ∈{0,1}r(z) , where Z ⊆ {0, 1}∗ and r(z) ≤ poly(|z|), be a samplable
+distribution satisfying the assumptions of Lemma 6.5 with error function η.
+For every ε, δ ∈ (0, 1/2), there exist a constant c := cε,δ > 0 and η0 > 0 such that the following
+holds for every polynomial-time computable polynomially bounded sample-size function m = m(z, z ′ ):
+there exist a polynomial-time nonadaptive randomized oracle machine h and an auxiliary-input
+function {fz }z∈Z such that if η(z) ≤ η0 for every long enough z ∈ Z, then for every long enough
+z ∈ Z and every oracle I that inverts fz ,
+
+
+
+
+ I
+
+′
+′
+Pr′ m(z, z ) < c · (s(z, z ) + log |z|) or Pr Pr h (S, x, z) = b ≥ 1 − ε ≥ 1 − δ ≥ 1 − o|z| (1),
+z
+
+S
+
+h,(x,b)
+
+where S consists of m(z, z ′ ) independent samples from Dz,z ′ , and (x, b) ∼ Dz,z ′ .
+36
+
+To show the lemma, we use the following result.
+Theorem 6.8 ([IL90; HN23]). For every samplable distribution D = {Dz }z∈Z , where Z ⊆ {0, 1}∗ ,
+every constant c, and every sufficiently large polynomial-time computable polynomially bounded time
+bound t = t(z), there exist a polynomial-time randomized nonadaptive oracle machine UE and an
+auxiliary-input function {fz }z∈Z such that for every long enough z ∈ Z and every oracle I that
+inverts fz ,
+
+
+
+
+1
+1
+t(z)
+I
+Pr ∀i ∈ [|x|] ∆tv UE (z, x[i−1] ), Next1 (x[i−1] ; Q|z ) ≤ c ≥ 1 − c .
+x∼Dz
+|z|
+|z|
+Proof of Lemma 6.7. Apply Lemma 6.5 with error parameter ε2 δ/16, and let c0 be the samplecomplexity constant obtained there. We take the sample-complexity constant c in this lemma to be
+at least c0 . Now fix an arbitrary polynomial-time computable polynomially bounded sample-size
+function m = m(z, z ′ ), and let tm (z) be the corresponding time bound in Lemma 6.5.
+We define a samplable distribution D′ = {Dz′ }z∈Z as follows: sample z ′ ∼ {0, 1}r(z) , put m =
+m(z, z ′ ), draw (x1 , b1 ), . . . , (xm , bm ) ∼ Dz,z ′ , and output the string y = x1 ◦ · · · ◦ xm ◦ b1 ◦ · · · ◦ bm .
+We apply Theorem 6.8 for D′ with the time bound tm and obtain a randomized polynomial-time
+oracle machine UE and an auxiliary-input function {fz }z∈Z such that for every long enough z ∈ Z
+and every oracle I that inverts fz ,
+
+
+
+
+1
+1
+tm (z)
+I
+≥ 1 − 2.
+Pr
+∀i
+∈
+[|y|]
+∆
+UE
+(z,
+y
+),
+Next
+(y
+;
+Q
+)
+≤
+tv
+1 [i−1]
+[i−1]
+|z
+′)
+⊗m(z,z
+|z|
+|z|
+z ′ ∼{0,1}r(z) ,y∼D
+z,z ′
+
+By Markov’s inequality,
+
+
+
+
+
+
+1
+1
+1
+tm (z)
+I
+Pr′
+Pr
+∀i ∈ [m] ∆tv UE (z, xb<i ), Next1 (xb<i ; Q|z ) ≤
+≥1−
+≥1−
+,
+z
+|z|
+|z|
+|z|
+(x1 ,b1 ),...,(xm ,bm )
+where m = m(z, z ′ ) and xb<i = x1 ◦ · · · ◦ xm ◦ b1 ◦ · · · ◦ bi−1 .
+By Lemma 6.5 and the union bound, it holds that with probability 1 − o|z| (1) over the choice of
+′
+z , either m(z, z ′ ) < c · (s(z, z ′ ) + log |z|), or both
+
+
+
+
+1
+1
+tm (z)
+I
+Pr
+∀i ∈ [m] ∆tv UE (z, xb<i ), Next1 (xb<i ; Q|z ) ≤
+≥1−
+1
+1
+m
+m
+|z|
+|z|
+(x ,b ),...,(x ,b )
+and
+
+h
+
+
+i
+ε2 δ
+t (z)
+Next1 xb<i ; Q|zm
+= bi ≥ 1 −
+16
+(x1 ,b1 ),...,(xm ,bm ),i,Next1
+Pr
+
+hold, where again m = m(z, z ′ ). Below we only consider z ′ for which the second statement holds;
+for z ′ satisfying the first statement, the disjunction in the statement is already true.
+Now we consider a randomized polynomial-time oracle machine h defined as
+hI (S, x∗ , z; i) = UEI (z, xbi→∗
+<i )
+1
+i−1 x∗ xi ◦ · · · ◦ xm ◦ b1 ◦
+where i ∼ [m] is a part of internal randomness, m = |S|, xbi→∗
+<i := x ◦ · · · ◦ x
+1
+1
+m
+m
+· · · ◦ b<i , and S = {(x , b ), . . . , (x , b )}.
+When (x1 , b1 ), . . . , (xm , bm ) and (x∗ , b∗ ) are independently and identically distributed according
+∗
+i
+to Dz,z ′ , the pair (xbi→∗
+<i , b ) is identically distributed as (xb<i , b ). Thus, it holds that
+
+
+
+
+1
+1
+tm (z)
+I
+∗
+i→∗
+Pr ∆tv h (S, x , z; i), Next1 (xb<i ; Q|z ) ≤
+≥1−
+S,x∗
+|z|
+|z|
+
+37
+
+where i ∼ [m], and
+
+
+i
+ε2 δ
+t (z)
+Next1 xbi→∗
+; Q|zm
+= b∗ ≥ 1 −
+.
+<i
+16
+S,(x∗ ,b∗ ),i,Next1
+Pr
+
+h
+
+By Markov’s inequality,
+
+Pr∗ ∗ Pr
+S,x
+
+
+h
+
+
+i
+εδ
+ε
+tm (z)
+i→∗
+∗
+≥1− .
+Next1 xb<i ; Q|z
+=b ≥1−
+b ,i,Next1
+4
+4
+
+By the union bound, it holds that with probability at least 1 − (εδ/4 + 1/|z|) ≥ 1 − εδ/2 over the
+choice of S and x∗ ,
+ I
+
+Pr
+h (S, x∗ , z; i) = b∗
+∗
+b ,h
+h
+
+
+i
+
+
+tm (z)
+tm (z)
+Next1 xbi→∗
+= b∗ − ∆tv hI (S, x∗ , z; i), Next1 (xbi→∗
+)
+≥ ∗ Pr
+<i ; Q|z
+<i ; Q|z
+b ,i,Next1
+
+≥1−
+
+ε
+1
+ε
+−
+≥1− .
+4 |z|
+2
+
+(16)
+
+By Markov’s inequality,
+h
+εi
+Pr Pr
+[Equation
+(16)
+holds]
+≥
+1
+−
+≥ 1 − δ.
+S x∗
+2
+Thus, with probability at least 1 − δ over S,
+ I
+ ε
+ε
+h (S, x∗ , z; i) ̸= b∗ ≤ · 1 + 1 · = ε.
+2
+2
+(x∗ ,b∗ ),h
+Pr
+
+Therefore, combining this conclusion with the first statement m(z, z ′ ) < c · (s(z, z ′ ) + log |z|), we
+obtain
+
+
+
+
+ I
+
+Pr′ m(z, z ′ ) < c · (s(z, z ′ ) + log |z|) or Pr
+Pr
+h (S, x∗ , z) = b∗ ≥ 1 − ε ≥ 1 − δ ≥ 1−o|z| (1).
+S
+
+z
+
+h,(x∗ ,b∗ )
+
+Since UE is nonadaptive, it is easily verified that h is also nonadaptive.
+Now, we prove Lemma 6.3.
+Proof of Lemma 6.3. For a large enough constant C, fix a sufficiently large ℓ ∈ N and consider
+ε(ℓ),γ
+GapC·ℓ Sℓ -DMMSA.
+ε(ℓ),γ
+Let z = (D, w, 1n , s) be an instance of GapC·ℓ Sℓ -DMMSA. Let R be the reduction in
+Lemma 5.1, where we select a large enough polynomial λ(·) and let λ := λ(|z|). Then R(z, z ′ ),
+where z ′ ∼ {0, 1}λ , produces a distribution Ez,z ′ over samples. Let Nz,z ′ denote the length of a
+sample after identifying (x, b) with x ◦ b. Recall from the proof of Lemma 5.1 that, in addition to
+the formal advice-complexity witness via U , the construction gives a fixed sampler SR with ℓ bits
+of local advice. Let qR be the seed-length polynomial of SR . Thus, for each (z, z ′ ), there exists a
+function
+βz,z ′ : {0, 1}qR (Nz,z′ ) → {0, 1}ℓ
+such that the distribution of
+SR (1Nz,z′ , βz,z ′ (r), r)
+38
+
+for r ∼ {0, 1}qR (Nz,z′ ) is statistically identical to Ez,z ′ . For the concrete choice of βz,z ′ given in the
+proof of Lemma 5.1, the map r 7→ βz,z ′ (r) is polynomial-time computable given (z, z ′ ). Moreover,
+SR is total, runs in polynomial time, and never outputs ⊥.
+Let εext := 1/4 − 5γ/4. Let cext be the sample-complexity constant guaranteed by Lemma 6.7
+for ε = εext and δ = 1/32. We apply Lemma 6.7 to the polynomial-time computable polynomially
+bounded sample-size function
+m0 (z, z ′ ) := ⌈cext (⌈2sλ⌉ + log |z|)⌉ ,
+and obtain h and {fz }. For the current instance, write s′ := ⌈2sλ⌉ and m := m0 (z, z ′ ); this value
+is independent of z ′ . We also define a randomized oracle machine H given access to I as follows:
+H I (x; r̄, z, z ′ ) := hI (Sz,z ′ ,r̄ , x, z).
+Here r̄ = (r1 , . . . , rm ) is composed of m random seeds for SR , and
+Sz,z ′ ,r̄ = {(x1 , b1 ), . . . , (xm , bm )},
+where
+(xi , bi ) = SR (1Nz,z′ , βz,z ′ (ri ), ri )
+for each i ∈ [m]. By construction,
+m = O(s′ + log |z|) = O(λs + log |z|).
+In the completeness argument below, Lemma 5.1 gives s′ as a uniform upper bound on the hypothesis
+size for all z ′ , so this choice of m makes the lower-bound statement in Lemma 6.7 false for every z ′ .
+For each z ′ ∈ {0, 1}λ , r̄ ∈ ({0, 1}qR (Nz,z′ ) )m , and ρ ∈ {0, 1}a(|z|) (where a is a computable
+function), we define the event Ez,z ′ ,r̄ as follows:
+ρ
+Event Ez,z
+′ ,r̄ : We perform the empirical estimation of the quantity
+
+Pr
+
+[H I(-,z;ρ) (x; r̄, z, z ′ ) = b]
+
+(x,b)∼Ez,z′
+
+with additive accuracy error ±(1/16 − 5γ/16) and failure probability at most 2−|z| by
+using polynomially (in |z|) many samples from Ez,z ′ . Let p̃ be the approximation value.
+Then, it holds that p̃ ≥ 5/8 + 15γ/8.
+ρ
+Notice that given (z, z ′ , r̄), the trial whether Ez,z
+′ ,r̄ occurs is performed in polynomial time in |z|
+given access to I(-, z; ρ).
+Now we describe the polynomial-time randomized oracle machine A that attempts to solve
+ε(ℓ),γ
+GapC·ℓ Sℓ -DMMSA. For a given instance z and oracle access to I(-, z; ρ), the algorithm AI(-,z;ρ) (z)
+ρ
+empirically estimates the quantity Prz ′ ,r̄,E [Ez,z
+′ ,r̄ ] with additive accuracy error ±1/32 and failure
+probability at most 2−|z| . This is performed in polynomial time in |z|, and the queries to I are
+made nonadaptively since hI is nonadaptive. Let q̃ be the estimation value. If q̃ ≥ 13/16, then A
+outputs 1; otherwise, A outputs 0.
+We have seen that A is nonadaptive. Thus, it suffices to show the following claims:
+
+Claim 6.9. For every oracle O, computable function a, and for every long enough instance z, if z
+is an yes instance, and O(-, z; ρ) inverts fz for all ρ ∈ {0, 1}a(|z|) , then
+Pr [AO(-,z;ρ) (z) = 1] ≥ 1 − 2−|z| .
+
+A,ρ
+
+39
+
+Claim 6.10. For each total Turing machine I, computable function a, and for every long enough
+instance z, if z is a no instance, and OI (-, z; ρ) inverts fz for all ρ ∈ {0, 1}a(|z|) , then
+Pr [AOI (-,z;ρ) (z) = 0] > 3/4.
+
+A,ρ
+
+ρ
+Proof of Claim 6.9. It suffices to show that Prz ′ ,r̄,E [Ez,z
+′ ,r̄ ] ≥ 7/8 for all ρ because it implies that
+ρ
+q̃ ≥ ′Pr [Ez,z
+′ ,r̄ ] − 1/32 ≥ 27/32 > 13/16
+z ,r̄,E
+
+with probability at least 1 − 2−|z| over the choice of randomness. In this case, A outputs 1.
+When z is an yes instance, Lemma 5.1 shows that for every z ′ , there exists a polynomial-time
+program h∗ of size s′ = ⌈2sλ⌉ such that
+Pr
+
+[h∗ (x) = b] ≥ 1 − ε(ℓ).
+
+(x,b)∼Ez,z′
+
+Thus, as long as z is an yes instance and ℓ is sufficiently large, Ez,z ′ satisfies the conditions of
+Lemma 6.5. For all ρ ∈ {0, 1}a(|z|) , Lemma 6.7 (recall that it was applied for εext = 1/4 − 5γ/4 and
+δ = 1/32) shows that if O(-, z; ρ) inverts fz , then
+"
+#
+h
+i 3 5γ
+15
+1
+Pr
+hO(-,z;ρ) (S, x, z) = b ≥ +
+Pr
+− o(1) ≥
+≥1−
+′
+z ,S h,(x,b)∼Ez,z′
+4
+4
+32
+16
+for long enough z. Namely, it holds that
+"
+#
+h
+i 3 5γ
+15
+Pr
+Pr
+H O(-,z;ρ) (x; r̄, z, z ′ ) = b ≥ +
+≥ .
+′
+z ,r̄ (x,b)∼Ez,z′
+4
+4
+16
+For any z ′ and r̄ satisfying the event above, with probability at least 1 − 2−|z| over the choice of
+ρ
+randomness for Ez,z
+′ ,r̄ ,
+h
+i
+p̃ ≥
+Pr
+H O(-,z;ρ) (x; r̄, z, z ′ ) = b − (1/16 − 5γ/16) ≥ 11/16 + 25γ/16 > 5/8 + 15γ/8,
+(x,b)∼Ez,z′
+
+where the last inequality follows from γ < 1/5.
+Thus,
+ρ
+Pr [Ez,z
+′ ,r̄ ] ≥
+
+z ′ ,r̄,E
+
+15
+7
+· (1 − 2−|z| ) ≥ ,
+16
+8
+⋄
+
+as desired.
+Proof of Claim 6.10. For each instance z, we define the test Tz for r̄ and ρ as follows:
+"
+#
+h
+i 1 5γ
+1
+Tz (r̄, ρ) = 1 ⇐⇒ Pr
+Pr
+H OI (-,z;ρ) (x; r̄, z, z ′ ) = b ≥ +
+≥ .
+2
+2
+2
+z ′ ∼{0,1}λ (x,b)∼Ez,z′
+We claim that if z is long enough, then
+Pr [AOI (-,z;ρ) (z) = 1] ≥ 1/4 =⇒ Pr [Tz (r̄, ρ) = 1] ≥ 1/16.
+r̄,ρ
+
+A,ρ
+
+(17)
+
+First, we assume (17) and prove the claim by contraposition. We assume that PrA,ρ [AOI (-,z;ρ) (z) =
+0] ≤ 3/4 and derive that z is not a no instance.
+40
+
+Since A always outputs 0 or 1, we have PrA,ρ [AOI (-,z;ρ) (z) = 1] ≥ 1/4. Thus, by (17), we have
+Prr̄,ρ [Tz (r̄, ρ) = 1] ≥ 1/16.
+Let GIz = {(r̄, ρ) : Tz (r̄, ρ) = 1}. Since Prr̄,ρ [(r̄, ρ) ∈ GIz ] = Prr̄,ρ [Tz (r̄, ρ) = 1] ≥ 1/16 > 0, it
+holds that GIz ̸= ∅. In addition, because I is fixed and total, the set GIz is decidable by exhaustive
+enumeration given (z, I): the number of possible z ′ and samples is finite, every computation of
+I halts, and the map r 7→ βz,z ′ (r) is computable given (z, z ′ ). Thus, by letting (r̄∗ , ρ∗ ) be the
+lexicographically first element in GIz , we have
+K(r̄∗ , ρ∗ ) ≤ O(K(GIz )) ≤ O(|z| + |I|).
+Since Tz (r̄∗ , ρ∗ ) = 1,
+"
+Pr
+
+z ′ ∼{0,1}λ
+
+Remember that
+
+h
+
+Pr
+
+H
+
+OI (-,z;ρ∗ )
+
+(x,b)∼Ez,z′
+
+i 1 5γ
+(x; r̄ , z, z ) = b ≥ +
+2
+2
+∗
+
+∗
+
+′
+
+#
+
+1
+≥ .
+2
+
+∗
+
+H OI (-,z;ρ ) (x; r̄, z, z ′ ) = hOI (-,z;ρ ) (Sz,z ′ ,r̄ , x, z),
+where
+(xi , bi ) = SR (1Nz,z′ , βz,z ′ (ri ), ri )
+for each i ∈ [m]. Fix z ′ and write r̄∗ = (r∗,1 , . . . , r∗,m ). Let ai := βz,z ′ (r∗,i ) ∈ {0, 1}ℓ for each
+i ∈ [m]. Consider the time-unbounded program h∗z ′ that hardwires z, I, a shortest description of
+(r̄∗ , ρ∗ ), and a1 , . . . , am . On input x, it reconstructs Sz,z ′ ,r̄∗ by computing
+(xi , bi ) = SR (1Nz,z′ , ai , r∗,i )
+∗
+
+for each i ∈ [m], and then outputs hOI (-,z;ρ ) (Sz,z ′ ,r̄∗ , x, z). Since |z ′ | = λ is determined by z, the
+description size of h∗z ′ (as a time-unbounded program) is at most
+K(r̄∗ , ρ∗ ) + |z| + |I| + mℓ + O(log |z|) ≤ O(λs + log |z|)ℓ + O(|z| + |I|).
+Since the DMMSA size parameter s is inverse-polynomially lower bounded and the machine I is
+fixed in this soundness argument, by choosing the polynomial λ = λ(|z|) sufficiently large we have,
+for every long enough z,
+O(λs + log |z|)ℓ + O(|z| + |I|) ≤ C0 · λsℓ
+for a large enough constant C0 > 0.
+Namely, with probability at least 1/2 over the choice of z ′ , there exists a program h∗ of description size at most C0 · ℓ · s · λ satisfying that
+Pr
+
+[h∗ (x) = b] ≥
+
+(x,b)∼Ez,z′
+
+1 5γ
++
+.
+2
+2
+
+By choosing C sufficiently large, say so that C0 ≤ 0.98C, and applying Lemma 5.1, z is not a no
+ε(ℓ),γ
+instance of GapC·ℓ Sℓ -DMMSA.
+In the remainder, we observe the implication (17), which completes the proof.
+ρ
+Suppose that PrA,ρ [AOI (-,z;ρ) (z) = 1] ≥ 1/4. Then, it holds that Prz ′ ,r̄,E [Ez,z
+′ ,r̄ ] ≥ 25/32 with
+probability at least 1/8 over ρ; otherwise, for at least (7/8)-fraction of ρ, with probability 1 − 2−|z|
+over the choice of randomness for A,
+ρ
+q̃ ≤ ′Pr [Ez,z
+′ ,r̄ ] + 1/32 < 26/32 = 13/16,
+z ,r̄,E
+
+41
+
+and PrA [AOI (-,z;ρ) (z) = 1] = 1 − PrA [AOI (-,z;ρ) (z) = 0] ≤ 2−|z| . Thus,
+Pr [AOI (-,z;ρ) (z) = 1] ≤
+
+A,ρ
+
+1
+1
++ 2−|z| < ,
+8
+4
+
+which contradicts the assumption.
+ρ
+Furthermore, for any ρ satisfying that Prz ′ ,r̄,E [Ez,z
+′ ,r̄ ] ≥ 25/32, it holds that
+#
+"
+h
+i 1 5γ
+3
+OI (-,z;ρ)
+′
+≥
+Pr
+Pr
++
+.
+H
+(x;
+r̄,
+z,
+z
+)
+=
+b
+≥
+z ′ ,r̄ (x,b)∼Ez,z′
+2
+2
+4
+
+(18)
+
+Otherwise, with probability at least 1/4 over z ′ and r̄, it holds that with probability at least 1−2−|z|
+ρ
+over the choice of randomness in Ez,z
+′ ,r̄ ,
+h
+i
+p̃ ≤
+Pr
+H OI (-,z;ρ) (x; r̄, z, z ′ ) = b + (1/16 − 5γ/16)
+(x,b)∼Ez,z′
+
+< (1/2) + 5γ/2 + 1/16 − 5γ/16 = 9/16 + 35γ/16 < 5/8 + 15γ/8,
+where the last inequality follows from γ < 1/5. Therefore, Prz ′ ,r̄,E [¬Ez,z ′ ,r̄ ] ≥ (1/4) · (1 − 2−|z| ) >
+ρ
+7/32, which contradicts that Prz ′ ,r̄,E [Ez,z
+′ ,r̄ ] ≥ 25/32.
+By Markov’s inequality, Equation (18) implies
+#
+#
+" "
+h
+i 1 5γ
+1
+1
+OI (-,z;ρ)
+′
+≥
+≥ .
+H
+(x; r̄, z, z ) = b ≥ +
+Pr[Tz (r̄, ρ) = 1] = Pr Pr′
+Pr
+r̄
+r̄
+z
+2
+2
+2
+2
+(x,b)∼Ez,z′
+Thus, we obtain
+Pr[Tz (r̄, ρ) = 1] ≥
+r̄,ρ
+
+1 1
+1
+· = ,
+8 2
+16
+⋄
+
+as desired.
+
+6.3
+
+CoAM Bound for Description-Restricted Context-Sensitive FAIN Reductions
+
+In this section, we present the proof of Theorem 6.4. Below, we consider AM protocols as satisfying
+the following modified syntax: Any verifier V of an AM protocol rejects the given instance (as the
+standard formulation) by outputting ⊥ or halts and outputs some message in {0, 1}∗ (which means
+accepting). For an AM-protocol (P, V ) and common input x, let ⟨P, V ⟩(x) denote the resulting
+message.
+The following is the crucial lemma.
+Lemma 6.11 ([AGGM06; ABX08]). For every polynomial-time FAIN reduction R to inverting an
+auxiliary-input f = {fx }, there exist an AM protocol (P, V ), a total Turing machine M , and a
+polynomial p such that
+• OM (-, x; ρ) inverts fx for all x ∈ {0, 1}∗ and ρ ∈ {0, 1}p(|x|) ;
+• for all large enough x,
+
+
+1
+∆tv ⟨P, V ⟩(x), OM (-, x; ρ)|R(x) ≤
+,
+|x|
+
+where OM (-, x; ρ)|R(x) = (OM (q 1 , x; ρ), . . . , OM (q k , x; ρ)) for queries q 1 , . . . , q k produced by
+R(x);
+42
+
+• for all large enough x and for any prover P̃ ,
+
+
+h
+i
+1
+∆tv ⟨P̃ , V ⟩(x), OM (-, x; ρ)|R(x) ≤ Pr ⟨P̃ , V ⟩(x) = ⊥ +
+.
+rR ,ρ
+|x|
+The proof is implicit in [AGGM06]. Below, we highlight the ideas.
+Proof (sketch). For each polynomial-time FAIN reduction R, the AM-protocol (P, V ) performs as
+follows on common input x (let k := k(|x|) be the query complexity):
+• Let zx be the unique auxiliary-input queried by R(x). Although R queries strings of the form
+(zx , y), we omit the first element zx below for readability.
+• The verifier V randomly selects a threshold τ from polynomially many candidates from [2, 3]
+and defines τ -light and τ -heavy queries as follows:
+y is τ -heavy ⇐⇒ Pr[y ∼ Qx ] ≥ τ · Pr[y = fzx (r)]
+r
+
+y is τ -light ⇐⇒ Pr[y ∼ Qx ] < τ · Pr[y = fzx (r)],
+r
+
+where Qx is a distribution of queries by R(x) at a position selected uniformly at random.
+• The verifier V execute R(x) ℓ := poly(|x|) times and obtain ℓ sets of queries ȳ (1) , . . . , ȳ (ℓ)
+(i.e., each ȳ (i) is composed of k queries). Then, V sends them and make the prover return
+the value of |fz−1
+(y)| for each query y contained in the sets with the claim whether y is τ x
+heavy or τ -light (building upon the lower-bound protocol, the entropy estimation protocol,
+and the hiding protocol, see [AGGM06, Appendix D]). As a result, with probability at least
+1 − 1/(4|x|) over the choice of verifier’s randomness (used up to this stage), it holds that (i)
+the honest prover P that sends the correct sizes and claims is accepted, and (ii) as long as the
+prover is not rejected, all but 1/p(|x|)-fraction sets ȳ (i) satisfy that the claims about τ -heavy
+and τ -light are correct, and for all τ -light queries y in it, the claimed size s̃y satisfies that
+(1 − 1/p(|x|))|fz−1
+(y)| ≤ s̃y ≤ (1 + 1/p(|x|))|fz−1
+(y)|.
+x
+x
+
+(19)
+
+where p is a sufficiently large polynomial.
+• Next, V selects a value j from 0, 1, . . . , m − 1 uniformly at random, where m = poly(n) is a
+large enough polynomial. Then, for each claimed size s̃y , the verifier calculates
+ℓ̃y = ⌊log(s̃y /(1 + j/m))⌋
+and selects a poly(n)-wise independent hash function hy : {0, 1}nx → {0, 1}ℓ̃y −c log n , where
+poly is a large enough polynomial, nx is the input size of fzx , and c is a large enough absolute
+constant selected. Then, we can show that with probability at least 1 − 1/(4|x|) over the
+choice of j, it holds that
+ℓ̃y = ⌊log |fz−1
+(y)|⌋
+(20)
+y
+for all τ -light queries y satisfying Equation (19) (see [AGGM06, Lemma 11.1]). Furthermore,
+by letting hy random enough, we can observe that with probability 1 − 1/(4|x|), it holds
+ℓ̃y −c log n ) ∩ f −1 (y) is bounded by a fixed polynomial q(|x|) for all
+that the size of Iy = h−1
+y (0
+zx
+τ -light queries y satisfying Equations (19) and (20). Thus, V can expect the prover to send
+43
+
+all elements in Iy for such y’s. Let I˜y ⊆ Iy be the set sent by the prover. Note that whether
+I˜y ⊆ Iy is easily checked. In addition, V checks whether |I˜y | ≤ q(|x|) for all y claimed to
+be τ -light, and the average of |I˜y | (taken over y claimed as τ -light) is enough close to the
+expected size (i.e., a fixed polynomial), and if not, V rejects the proof. We can show that the
+average of |Iy | (i.e., the correct value) passes this test with probability at least 1 − 1/(8|x|)
+(over the choice of {hy }).
+• We can prove that for j and {hy } satisfying the events above (selected with probability at
+least 1 − 5/(8|x|) by the union bound), (i) the honest prover P that sends Iy correctly is not
+rejected, and (ii) as long as the prover is not rejected, the prover must send correct Iy for
+each τ -light query y in all but 1/(8|x|)-fraction of query sets (we call such a query set good ),
+and these good sets are a subset of the sets for which the prover sends the correct claim about
+τ -heavy and τ -light (see [AGGM06, Theorem 10 and Remark 9]).
+• Finally, the verifier selects the random position i from [ℓ] and answers the i-th query set as
+follows: for each query y in the set, (i) if y is claimed as τ -heavy, then V does not return any
+inverse, and (ii) if y is claimed as τ -light, then V returns the lexicographically first element in
+Iy′ (this must be an inverse of y). Notice that, as long as the i-th query set is good, V answers
+each τ -light query y by the lexicographically first element in Iy .
+Now, we define a Turing machine M as follows: On input (zx , y, x) and shared randomness
+ρshared and (independent) random seeds ρind ,
+• M first selects the threshold τ ∈ [2, 3] by using ρshared as V does.
+• Then, M determines whether the query is τ -light or τ -heavy according to R and fzx (which
+takes exponential time).
+• If y is τ -heavy, then M does not return any inverse of y.
+• If y is τ -light, then M selects poly(n)-wise independent hash function hy : {0, 1}nz → {0, 1}ℓy −c log n
+by using ρind as V does, where nz is the input size of fz and ℓy = ⌊log |fz−1 (y)|⌋. Then M
+ℓy −c log n ) ∩ f −1 (y) (if I = ∅ and
+returns lexicographically the first element in Iy = h−1
+y
+z
+y (0
+−1
+fz (y) ̸= ∅, M returns some inverse of y).
+We can observe that the M -based oracle OM (-, x; ρ) inverts {fzx } for all x and ρ because for
+any choice of τ ∈ [2, 3], M returns some inverse as long as y ∈ Imfz is τ -light, and it holds that
+X
+X
+Pr[fzx (r) is τ -heavy] =
+Pr[y = fzx (r)] ≤
+τ −1 Pr[y ∼ Qx ] ≤ 1/2.
+r
+
+y:τ -heavy
+
+r
+
+y:τ -heavy
+
+Namely,
+
+
+Pr OM (zx , fzx (r), x; ρ) ∈ fz−1
+(fzx (r)) ≥ 1/2.
+x
+r
+
+We have seen that, with probability at least
+
+
+1
+5
+1
+1
+1−
++
++
+=1−
+4|x| 8|x| 8|x|
+|x|
+over the choice of V ’s randomness, any prover P̃ is forced to answer to the queries produced by
+R(x) as O(-, x; ρ), i.e., no inverse for all τ -heavy queries and lexicographically the first element in
+ℓy −c log n ) ∩ f −1 (y) for all τ -light queries y unless it is rejected. Thus, we obtain that
+Iy = h−1
+y (0
+z
+44
+
+
+
+h
+i
+1
+∆tv ⟨P̃ , V ⟩(x), OM (-, x; ρ)|R(x) ≤ Pr ⟨P̃ , V ⟩(x) = ⊥ +
+.
+rR ,ρ
+|x|
+By the correctness for the honest prover P , we also obtain that
+
+1
+∆tv ⟨P, V ⟩(x), OM (-, x; ρ)|R(x) ≤
+.
+|x|
+
+Now, we complete the proof of Theorem 6.4.
+Proof of Theorem 6.4. Let R be a description-restricted context-sensitive FAIN reduction from a
+promise problem Π to inverting an auxiliary-input function {fz }. Let (P0 , V0 ), M , and p be the AM
+protocol, Turing machine, and polynomial obtained by applying Lemma 6.11 for R, respectively.
+We construct a coAM-protocol (P, V ) as follows: For a given common input x, (P, V ) first
+executes R(x) to obtain a query set and (P0 , V0 )(x), where V0 embeds the query set at the random
+position i on which V outputs answers (see the proof of Lemma 6.11). If V0 rejects the proof, then
+V outputs 0. Otherwise, V0 must output an answer set for the query by R(x). In this case, V
+continues executing R(x) with the answer set and outputs 1 if R(x) = 0 (otherwise, V outputs 0).
+First, we show the completeness. Suppose that the given x is long enough and a no instance.
+Then, by Lemma 6.11,
+ 3
+1
+Pr[⟨P, V ⟩(x) = 1] ≥ Pr [ROM (-,x;ρ) (x) = 0] − ∆tv ⟨P0 , V0 ⟩(x), OM (-, x; ρ)|R(x) ≥ −
+.
+R,ρ
+4 |x|
+
+(21)
+
+Next, we show the soundness. Let P̃ be an arbitrary prover. Note that P̃ induces a prover P̃0
+for V0 since V first performs as V0 . Let x be a long enough yes instance.
+For contradiction, suppose that
+Pr[⟨P̃ , V ⟩(x) = 1] > 2/3.
+Then, it must hold that Pr[⟨P̃0 , V ⟩(x) = ⊥] < 1/3 since V outputs 0 in such cases. Thus, by
+Lemma 6.11,
+
+ 1 1
+1
+2
+< ,
+Pr[⟨P̃ , V ⟩(x) = 1] ≤ Pr [ROM (-,x;ρ) (x) = 0] + ∆tv ⟨P˜0 , V0 ⟩(x), OM (-, x; ρ)|R(x) < + +
+R,ρ
+4 3 |x|
+3
+which is a contradiction. Therefore, we have
+Pr[⟨P̃ , V ⟩(x) = 1] ≤ 2/3.
+
+(22)
+
+From Equations (21) and (22), we conclude that Π ∈ coAM.
+
+6.4
+
+CoAM bound for Problems Reducible to GapLearn
+
+In this section, we prove Theorem 1.12 using an approach similar to that of Theorem 6.1. We begin
+by formally defining the relevant concepts.
+We say that a promise problem Π = (Πyes , Πno ) is paddable if, for every polynomial p, there
+exists a polynomial-time computable function f such that for every x ∈ Πyes ∪ Πno ,
+• |f (x)| ≥ p(|x|), and
+45
+
+• if x ∈ Πyes (resp. x ∈ Πno ), then f (x) ∈ Πyes (resp. f (x) ∈ Πno ).
+We also define a parametric-honest nonadaptive reduction from a promise problem Π to Gapε,γ
+σ Learn[ℓ]
+as a polynomial-time randomized oracle machine that satisfies the standard properties of a nonadaptive reduction and, additionally, the following: there exists a constant ξ > 0 such that for every
+instance x of Π, every query (1n , 1s , E) made by R(x) satisfies n ≥ |x|ξ and s ≥ |x|ξ .
+Note that if a paddable problem is reducible to Gapε,γ
+σ Learn[ℓ] via a parametric-honest nonadaptive reduction, then for any fixed polynomial p, we can assume that the reduction R(x) only
+makes queries to instances (1n , 1s , E) such that n ≥ p(|x|) and s ≥ p(|x|), by padding the original
+instance to one of sufficiently large polynomial length relative to p and ξ.
+Because of Theorem 6.4, it suffices to show the following lemma for Theorem 1.12.
+Lemma 6.12. For every constant γ ∈ (0, 1), there exists a constant C such that for every ε(ℓ) = o(1)
+and every sufficiently large ℓ ∈ N, the following holds: If a paddable promise problem Π is reducible
+ε(ℓ),γ
+to GapC·ℓ Learn[ℓ] via a parametric-honest nonadaptive reduction, then Π is reducible to inverting
+an auxiliary-input function f = {fz } via a description-restricted context-sensitive FAIN reduction.
+Proof. Let z be an instance of Π, and let R be a parametric-honest nonadaptive reduction. Without
+loss of generality, by randomly permuting the queries, we may assume that the marginal distribution
+of each query is identical and can be sampled given z simply by executing R. Let λ(·) be a sufficiently
+large polynomial to be specified later. Since Π is paddable, we can assume that every query (1n , 1s , E)
+in the domain satisfies n, s ≥ λ(|z|), and we define λ := λ(|z|).
+For each randomness z ′ ∼ {0, 1}poly(|z|) used by the sampler for the marginal query distribution,
+let Ez,z ′ denote the corresponding distribution over samples, let n(z, z ′ ) denote its sample length,
+and let sq (z ′ ) denote the size parameter in the corresponding GapLearn query. Since the queries
+ε(ℓ),γ
+are instances of GapC·ℓ Learn[ℓ], by Definition 3.11, for each pair (z, z ′ ) there exists a function
+2(n(z,z ′ )+1)
+
+αz,z ′ : {0, 1}2
+
+→ {0, 1}≤ℓ
+
+such that U (αz,z ′ (r), r, n(z, z ′ ) + 1) outputs ⊥ with probability at most 1/4, and, conditioned
+on a non-⊥ output, the resulting distribution of labeled examples is within statistical distance
+′
+2−2(n(z,z )+1) of Ez,z ′ . Thus, samples can be approximated by rejection sampling from U , discarding
+⊥ outcomes. Let q := q(|z|) be the query complexity of R, and let p(|z|) := 4q(|z|).
+Let c := cγ ≥ 1 be the sample-complexity constant obtained from Lemma 6.7, and define the
+polynomial-time computable polynomially bounded sample-size function
+
+
+m0 (z, z ′ ) := c · (sq (z ′ ) + log |z|) .
+Applying Lemmas 6.5 and 6.7 to this sample-size function, we obtain a randomized oracle machine
+h and a polynomial-time computable function f = {fz } such that for every long enough z ∈ {0, 1}∗
+and every oracle I that inverts fz ,
+
+
+
+
+ I
+ 3 γ
+3
+1
+′
+∗ ′
+Pr′ m0 (z, z ) < c · (s (z ) + log |z|) or Pr Pr h (S, x, z) = b ≥ +
+≥
+≥1−
+,
+S,h (x,b)
+z
+4 4
+4
+4p(|z|)
+(23)
+where S consists of m0 (z, z ′ ) independent samples from Ez,z ′ , (x, b) ∼ Ez,z ′ , and s∗ (z ′ ) is the minimum size polynomial-time program h such that
+Pr
+
+[h(x) = b] ≥ 1 − ε(ℓ).
+
+(x,b)∼Ez,z′
+
+46
+
+We present an efficient and nonadaptive oracle machine A such that for every total Turing machine M and for every long enough z, if M (-, z) inverts fz , the algorithm AM (-,z) solves
+ε(ℓ),γ
+GapC·ℓ Learn[ℓ] correctly for all z ′ satisfying the event in Equation (23). By the union bound,
+with probability at least 1 − q(|z|)/p(|z|) ≥ 3/4, it correctly answers all queries from R(z), resulting
+in a description-restricted context-sensitive FAIN reduction from Π to inverting f .
+Below, we fix z arbitrarily and drop the description “, z” from M (-, z). Let n and s be the
+parameters of the GapLearn instance generated from z ′ , so that s = sq (z ′ ) and m0 (z, z ′ ) = ⌈c(s +
+log |z|)⌉.
+By the standard probabilistic argument, taking N = O(log |z|) independent sample sets S 1 , . . . , S N ,
+each of size m0 (z, z ′ ), allows us to reduce the confidence error of learning from 1/4 to 1/8p(|z|), i.e.,
+
+
+ M i
+ 3 γ
+1
+Pr
+∃i ∈ [N ] s.t. Pr h (S , x, z) = b ≥ +
+≥1−
+.
+1
+N
+4 4
+8p(|z|)
+(x,b)
+S ,...,S ,h
+The algorithm A is given access to samples drawn from Ez,z ′ and a size parameter 1s , sets
+m to be m0 (z, z ′ ) = ⌈c(s + log |z|)⌉, and checks whether the following occurs: For each sample
+set S̄ = (S 1 , . . . , S N ) and the randomness for h, let ES̄,h be the event that there exists i ∈ [N ]
+such that the empirical estimation of the probability Pr(x,b) [hM (S i , x, z) = b] within accuracy error
+±(1 − γ)/16 and negligible confidence error exceeds (5 + 3γ)/8. This trial is examined by using
+samples drawn from Ez,z ′ . The algorithm A empirically estimates the probability that ES̄,h occurs
+within accuracy ±1/(32p(|z|)) with negligible confidence error. If the estimated probability is at
+least 1 − 3/(16p(|z|)), the algorithm A outputs 1; otherwise, A outputs 0.
+As in the proof of Claim 6.9, we can observe that if s∗ (z ′ ) ≤ s, the event above occurs with
+probability 1 − negl(n) (over the randomness of A). Therefore, A outputs 1 with probability at least
+1 − negl(n) if the given instance is a Yes instance and selected by using the random seed z ′ satisfying
+Equation (23).
+By contrast, suppose that for given (Ez,z ′ , 1s ), the algorithm A outputs 1 with probability at
+least 1/3. We claim that
+
+
+
+ 1 γ
+1
+Pr
+∃i ∈ [N ] s.t. Pr hM (S i , x, z) = b ≥ +
+≥1−
+.
+2 2
+4p(|z|)
+(x,b)
+S 1 ,...,S N ,h
+Otherwise, with probability at least 1/4p(|z|) over S̄ = (S 1 , . . . , S N ) and h, the event ES̄,h occurs
+with negligible probability. Thus, ES̄,h occurs with probability at most 1 − 1/(4p(|z|)) + negl(|z|) ≪
+1 − 3/(16p(|z|)) − 1/(32p(|z|)), and hence A outputs 1 only when the empirical estimation fails.
+The failure of the emprical estimation occurs only with negligible probability, which implies that A
+outputs 1 with negligible probability. This is a contradiction.
+Let Z ′ be the set of z ′ such that z ′ satisfies the event in Equation (23) and A outputs 1 for Ez,z ′
+with probability at least 1/3. First, we consider the case of Z ′ ̸= ∅.
+Then, we have
+
+
+
+ 1 γ
+1
+Pr
+∃i ∈ [N ] s.t. Pr hM (S i , x, z) = b ≥ +
+≥1−
+.
+(24)
+2 2
+4p(|z|)
+(x,b)
+z ′ ∼Z ′ ,S 1 ,...,S N ,h
+Since each rejection-sampling trial succeeds with probability at least 3/4, a standard tail bound
+for geometric random variables gives a universal constant B⊥ such that, for every m and P ≥ 2, if
+T1 , . . . , Tm are the stopping times of m independent rejection samples, then
+
+
+m
+X
+1
+Pr  ⌈log(Tj + 1)⌉ ≤ B⊥ (m + log P ) ∧ ∀j Tj ≤ ⌈2B⊥ (m+log P ) ⌉ ≥ 1 −
+.
+16P
+j=1
+
+47
+
+P
+The stopping indices can then be included in a standard tuple description using O( j log(Tj +1)+m)
+bits.
+Let
+nmax (z) := max
+n(z, z ′ ),
+mmax (z) := max
+m0 (z, z ′ ),
+′
+′
+′
+′
+z ∈Z
+
+z ∈Z
+
+and put Lmax (z) := 22(nmax (z)+1) and tz = ⌈2B⊥ (mmax (z)+log p(|z|)) ⌉. A string w consists of a finite
+i ∈ {0, 1}Lmax (z) for i ∈ [N ], j ∈ [m
+collection of random tapes rj,t
+max (z)], and t ∈ [tz ], together with
+M
+one common random tape long enough for executing h in the maximum-size experiment. For a
+particular z ′ , write
+i
+i
+′
+rj,t
+[z ′ ] := rj,t
+[22(n(z,z )+1) ] .
+We define a test for w as TzM (w) = 1 if and only if with probability at least 1−1/2p(|z|) over z ′ ∼ Z ′ ,
+there exist i ∈ [N ], stopping indices t1 , . . . , tm0 (z,z ′ ) ∈ [tz ], and advice strings a1 , . . . , am0 (z,z ′ ) ∈
+{0, 1}≤ℓ such that
+m0 (z,z ′ )
+X
+
+⌈log(tj + 1)⌉ ≤ B⊥ m0 (z, z ′ ) + log p(|z|) ,
+j=1
+i [z ′ ], n(z, z ′ )+1) ̸= ⊥ for every j ∈ [m (z, z ′ )], and, for the sample set S i = {(xi , bi )}
+U (aj , rj,t
+0
+j j j∈[m0 (z,z ′ )]
+j
+defined by
+i
+[z ′ ], n(z, z ′ ) + 1),
+xij ◦ bij = U (aj , rj,t
+j
+
+it holds that
+
+
+ 1 γ
+Pr hM (S i , x, z) = b ≥ + .
+2 2
+(x,b)
+
+M
+M
+M
+Let GM
+z be a good seed set defined as Gz = {w : Tz (w) = 1}. To see that Gz ̸= ∅, draw w uniformly and generate the sample sets in Equation (24) by the rejection sampler using the witnessing
+advice functions αz,z ′ . By parametric honesty and padding, the total statistical-distance loss over
+all samples is negligible in |z|; moreover, the stopping-index tail bound above fails with probability
+at most 1/(16p(|z|)). Combining these facts with Equation (24) gives a positive probability of w
+satisfying the test TzM . Notice that GM
+z is recursively enumerable given (z, M ): for each finite
+candidate w, all quantified domains in the definition of TzM (w) are finite, M is total, and U is fixed.
+∗
+Thus, if w∗ is the first element of GM
+z found by universal search, then (i) K(w ) ≤ O(|z| + |M |), and
+(ii) with probability at least 1 − 1/2p(|z|) over z ′ ∼ Z ′ , it holds that there exist i∗ ∈ [N ], stopping
+indices t1 , . . . , tm0 (z,z ′ ) , and advice strings a1 , . . . , am0 (z,z ′ ) ∈ {0, 1}≤ℓ satisfying the stopping-index
+∗
+bound above and, for S i reconstructed from w∗ ,
+∗
+
+Pr [hM (S i , x, z) = b] ≥
+(x,b)
+
+1 γ
++ .
+2 2
+∗
+
+For such a fixed z ′ , write m = m0 (z, z ′ ). The program reconstructs S i using the m selected
+rejection trials in row i∗ ; the value n(z, z ′ ) is the input length of this learning instance and can also
+∗
+be hardwired with O(log |z|) bits. Writing h∗ := hM (S i , -, z), its description size is at most
+
+
+m
+m
+X
+X
+|h∗ | ≤ K(w∗ ) + K(i∗ ) +
+|aj | + O 
+log(tj + 1) + m + O(|z|)
+j=1
+
+j=1
+
+≤ m · ℓ + O(B⊥ (m + log p(|z|))) + O(|z| + |M |)
+≤ C ′ · s · ℓ,
+
+48
+
+by selecting large enough λ and then taking ℓ sufficiently large; here s ≥ λ(|z|) by parametric honesty
+and the fixed machine M is absorbed into the polynomial choice of λ. Thus, these instances are
+ε(ℓ),γ
+not No instances for GapC·ℓ Learn[ℓ], for a sufficiently large constant C depending only on c and
+B⊥ . Therefore, A outputs 1 (with probability at least 1/3) as a false positive for at most 1/2p(|z|)fraction of z ′ satisfying the event in Equation (23) for both cases of Z ′ ̸= ∅ and Z ′ = ∅.
+Thus, by the union bound, the error probability that A cannot output the correct answer (with
+probability at least 2/3) is at most 1/4p(|z|) + 1/2p(|z|) ≤ 1/p(|z|) over the choice of instances.
+
+6.5
+
+One-Way Functions from Average-Case Hardness
+
+In this section, we prove Theorems 1.5 and 1.10.
+Theorem 6.13 (Theorem 1.10 Item 1). For every σ ∈ N, let C[σ] be the class of monotone functions
+that admit secret sharing of total size σ. For every constant γ ∈ [0, 1/5), there exists C ≥ 1 such
+ε(σ),γ
+that for every ε(σ) = o(1) and every sufficiently large σ ∈ N, if GapC·σ C[σ]-CMMSA ∈
+/ BPP, then
+(Π, D) ∈
+/ Avg1/poly BPP for some Π ∈ NP and samplable distribution D.
+ε(σ),γ
+
+Proof. Let Π := GapC·σ C[σ]-CMMSA. By the reduction from CMMSA to DMMSA and Lemma 6.3,
+there exist an auxiliary-input function f = {fx } and a description-restricted context-sensitive FAIN
+reduction R from Π to inverting f for some C ≥ 1. Thus, Π ∈
+/ BPP implies the existence of an
+auxiliary-input one-way function, which in turn implies (Π, D) ∈
+/ Avg1/poly BPP for some Π ∈ NP and
+samplable distribution D by Proposition 3.3.
+Theorem 6.14 (Theorem 1.10 Item 2). For every σ ∈ N, let C[σ] be the class of monotone functions
+that admit secret sharing of total size σ. For every constant γ ∈ [0, 1/5), there exists C ≥ 1 such that
+ε(σ),γ
+for every ε(σ) = o(1) and every sufficiently large σ ∈ N, if (GapC·σ C[σ]-CMMSA, D) ∈
+/ Avg1/p BPP
+for some samplable distribution D and polynomial p, then there exists an infinitely-often one-way
+function.
+Proof. Let D = {Dn }n∈N be an arbitrary samplable distribution, where Dn is a distribution over
+ε(σ),γ
+instances of instance size n for Π = GapC·σ C[σ]-CMMSA. Let p be an arbitrary polynomial.
+By the reduction from CMMSA to DMMSA and Lemma 6.3, there exist an auxiliary-input function f = {fx } and a description-restricted context-sensitive FAIN reduction R from Π to inverting
+f.
+Now, we define a one-way function g = {gn } as follows: for each n ∈ N,
+gn (r, rf ) := (x, fx (rf )),
+where x ∼ Dn sampled by using r, and rf is a random seed for fx . Since D is samplable, g is
+polynomial-time-computable function.
+Suppose that there is no one-way function. By the standard amplification from weak one-way
+functions to strong one-way functions, for a negligible function ν(n), there exists a polynomial-time
+randomized algorithm M such that for every n ∈ N,
+
+
+Pr M (gn (r, rf ); ρ) ∈ gn−1 (gn (r, rf )) ≥ 1 − ν(n),
+r,rf ,ρ
+
+where ρ denotes the random tape of M . By Markov’s inequality,
+
+
+p
+p
+−1
+−1
+Pr Pr [M (x, fx (rf ); ρ) ∈ Dn (x) × fx (fx (rf ))] ≥ 1 − ν(n) ≥ 1 − ν(n).
+x∼Dn
+
+ρ,rf
+
+49
+
+(25)
+
+where Dn−1 (x) represents the seed set for the sampler of Dn such that x is sampled.
+Let M ′ be the Turing machine that outputs the second element of M .
+We construct the algorithm A that solves Π on average as follows: For a given x ∼ Dn , the
+algorithm A first empirically estimates the probability that M ′ (x, fx (rf ); ρ) inverts fx (rf ) over the
+choice of (ρ, rf ) within additive accuracy 1/100 and confidence probability at least 1 − negl(n). If
+the estimated probability is at least 49/50, then A executes ROM ′ (-,x;ρ) (x) independently a constant
+number of times and outputs the majority answer. Otherwise, A outputs ⊥. Recall that since M ′
+halts in polynomial time, A can simulate these executions in polynomial time.
+Since the failure of the empirical estimation occurs only with negligible probability, we first
+ignore it. If x passes the empirical test, then
+Pr [M ′ (x, fx (rf ); ρ) ∈ fx−1 (fx (rf ))] ≥
+
+ρ,rf
+
+49
+1
+97
+−
+=
+.
+50 100
+100
+
+Let Gx be the set of random tapes ρ for which M ′ (-, x; ρ) inverts fx , i.e.,
+1
+Pr[M ′ (x, fx (rf ); ρ) ∈ fx−1 (fx (rf ))] ≥ .
+rf
+2
+The preceding inequality implies Prρ [ρ ∈ Gx ] ≥ 47/50. For every fixed ρ ∈ Gx , the deterministic
+machine obtained from M ′ by hardwiring ρ satisfies the fixed-randomness premise of the reduction
+definition; hence the reduction R outputs the correct answer with probability at least 3/4 over
+its own randomness. Therefore one execution of ROM ′ (-,x;ρ) (x) is correct with probability at least
+(47/50) · (3/4) > 2/3, and the constant repetition above boosts this probability to at least 3/4.
+Furthermore, by Equation (25) and the choice of negligible ν, at least with probability 1 − 1/p(n)
+over x ∼ Dn , the instance x passes the test.
+Therefore, we conclude that for every n ∈ N,
+
+
+1
+Pr Pr[A(x) = Π(x)] ≥ 3/4 ≥ 1 −
+,
+x∼Dn A
+p(n)
+and for all n ∈ N and x ∈ Support(Dn ),
+Pr [A(x) ∈ {Π(x), ⊥}] ≥ 1 − negl(n),
+A
+
+where the negligible terms from empirical estimation are absorbed by the confidence parameters
+and the final constant repetition.
+ε(σ),γ
+Thus, Π = GapC·σ C[σ]-CMMSA ∈ Avg1/p BPP.
+Next, we prove Theorem 1.5. The implication from the existence of one-way functions (Item 1)
+to the average-case hardness of GapLearn (Item 3) immediately follows from the well-known fact
+that a pseudorandom function is constructed from any one-way function [GGM86; HILL99] and it
+implies the average-case hardness of PAC learning under the uniform distribution even allowing any
+polynomially large hypothesis [Val84] (see also [HN23]). The implication from Item 3 to Item 2 is
+immediate because Item 3 requires σ(n) ≥ Cℓ, and an algorithm for the smaller gap Cℓ also solves
+every larger-gap promise problem. Thus, we will see only the remaining direction.
+Theorem 6.15 (Theorem 1.5 Item 2 ⇒ Item 1). If there is no infinitely-often one-way function,
+then there exists a constant C such that for every ε(ℓ), γ(ℓ) = o(1), every sufficiently large ℓ ∈ N,
+ε(ℓ),γ(ℓ)
+every samplable distribution D = {Dn }n over instances of GapC·ℓ
+Learn[ℓ], and every polynomial
+ε(ℓ),γ(ℓ)
+p, there exists a randomized algorithm that solves GapC·ℓ
+Learn[ℓ] on average with probability at
+least 1 − 1/p(n) over Dn for every n ∈ N.
+50
+
+Proof. Fix ℓ and write ε := ε(ℓ) and γ := γ(ℓ). Let D = {Dn }n∈N be an arbitrary samplable
+distribution as in the statement and p be an arbitrary polynomial. We define D = {Dn,r } as
+follows: for each n ∈ N and random seed r for sampling from Dn , the seed r determines an instance
+(1n , 1sq (r) , E), and Dn,r is the corresponding distribution over samples in {0, 1}n ×{0, 1}. Recall that
+Dn,r is samplable with advice complexity ℓ. As in the previous subsection, reconstructed samples
+are obtained by rejection sampling from U on the canonical (n + 1)-bit encoding, discarding ⊥
+outcomes; their conditional distribution is within statistical distance 2−2(n+1) of Dn,r .
+Let c ≥ 1 be the sample-complexity constant obtained from Lemma 6.7, and define the polynomialtime computable polynomially bounded sample-size function
+m0 (n, r) := ⌈c · (sq (r) + log n)⌉ .
+Applying Lemmas 6.5 and 6.7 to this sample-size function, we obtain a randomized oracle machine
+h and a polynomial-time computable function f = {fn } such that for every large enough n ∈ N and
+every oracle I that inverts fn ,
+
+
+
+
+ I
+ 3 γ
+3
+1
+∗
+n
+Pr m0 (n, r) < c · (s (r) + log n) or Pr Pr h (S, x, 1 ) = b ≥ +
+≥
+≥1−
+,
+r
+S,h (x,b)
+4 4
+4
+4p(n)
+where S consists of m0 (n, r) independent samples from Dn,r , (x, b) ∼ Dn,r , and s∗ (r) is the minimum
+size polynomial-time program h such that
+Pr
+
+[h(x) = b] ≥ 1 − ε.
+
+(x,b)∼Dn,r
+
+Suppose that there is no one-way function. Again using the standard weak-to-strong amplification of one-way functions, for a negligible function ν(n), there exists a polynomial-time randomized
+algorithm M such that for every n ∈ N,
+Pr[M (1n , fn (u); ρ) ∈ fn−1 (fn (u))] ≥ 1 − ν(n),
+ρ,u
+
+where ρ is the random tape of M . Let Gn be the set of tapes ρ for which M (-; ρ) inverts fn with
+probability at least 1/2 over u. Then Prρ [ρ ∈ Gn ] ≥ 1 − 2ν(n). Applying the preceding guarantee
+with the deterministic oracle I = M (-; ρ) for each ρ ∈ Gn and then averaging over ρ (viewing this
+tape as part of the randomness of hM ), and absorbing the negligible loss by the choice of ν, gives
+
+
+
+
+
+ 3 γ
+3
+1
+Pr m0 (n, r) < c · (s∗ (r) + log n) or Pr Pr hM (S, x, 1n ) = b ≥ +
+≥
+≥ 1−
+, (26)
+r
+S,h (x,b)
+4 4
+4
+4p(n)
+where S has size m0 (n, r).
+Below, we consider only such values of r and present an algorithm A that performs correctly for
+these values of r.
+By the standard probabilistic argument, taking N = O(log n) independent sample sets S 1 , . . . , S N ,
+each of size m0 (n, r), allows us to reduce the confidence error of learning from 1/4 to 1/8p(n), i.e.,
+
+
+
+ 3 γ
+1
+Pr
+∃i ∈ [N ] s.t. Pr hM (S i , x, 1n ) = b ≥ +
+≥1−
+.
+4 4
+8p(n)
+(x,b)
+S 1 ,...,S N ,h
+The algorithm A is given access to samples drawn from Dn,r and a size parameter 1s , sets m
+to be m0 (n, r) = ⌈c(s + log n)⌉, and checks whether the following occurs: For each sample set
+S̄ = (S 1 , . . . , S N ) and the randomness for h, let ES̄,h be the event that there exists i ∈ [N ] such
+51
+
+that the empirical estimation of the probability Pr(x,b) [hM (S i , x, 1n ) = b] within accuracy error
+±(1 − γ)/16 and negligible confidence error exceeds (5 + 3γ)/8. This trial is examined by using
+samples drawn from Dn,r . The algorithm A empirically estimates the probability that ES̄,h occurs
+within accuracy ±1/(32p(n)) with negligible confidence error. If the estimated probability is at
+least 1 − 3/(16p(n)), the algorithm A outputs 1; otherwise, A outputs 0.
+As in the proof of Claim 6.9, we can observe that if s∗ (r) ≤ s, the event above occurs with
+probability 1 − negl(n) (over the randomness of A). Therefore, A outputs 1 with probability at least
+1 − negl(n) if the given instance is a Yes instance and selected by using the random seed r satisfying
+Equation (26).
+By contrast, suppose that for given (Dn,r , 1s ), the algorithm A outputs 1 with probability at
+least 1/3. We claim that
+
+
+ M i
+ 1 γ
+1
+n
+Pr
+∃i ∈ [N ] s.t. Pr h (S , x, 1 ) = b ≥ +
+≥1−
+.
+2 2
+4p(n)
+(x,b)
+S 1 ,...,S N ,h
+Otherwise, with probability at least 1/4p(n) over S̄ = (S 1 , . . . , S N ) and h, the event ES̄,h occurs
+with negligible probability. Thus, ES̄,h occurs with probability at most 1 − 1/(4p(n)) + negl(n) ≪
+1 − 3/(16p(n)) − 1/(32p(n)), and hence A outputs 1 only when the empirical estimation fails. The
+failure of the empirical estimation occurs only with negligible probability, which implies that A
+outputs 1 with negligible probability. This is a contradiction.
+Let R be the set of r such that r satisfies the event in Equation (26) and A outputs 1 for Dn,r
+with probability at least 1/3. First, we consider the case where R =
+̸ ∅.
+Then, we have
+
+
+ M i
+ 1 γ
+1
+n
+Pr
+≥1−
+.
+(27)
+∃i ∈ [N ] s.t. Pr h (S , x, 1 ) = b ≥ +
+1
+N
+2 2
+4p(n)
+(x,b)
+r∼R,S ,...,S ,h
+The same stopping-index tail bound gives, for every m and P ≥ 2,
+
+
+m
+X
+1
+Pr  ⌈log(Tj + 1)⌉ ≤ B⊥ (m + log P ) ∧ ∀j Tj ≤ ⌈2B⊥ (m+log P ) ⌉ ≥ 1 −
+,
+16P
+j=1
+
+where T1 , . . . , Tm are the stopping times
+P of m independent rejection samples. As above, these indices
+can be encoded as a tuple using O( j log(Tj + 1) + m) bits.
+Let mmax (n) := maxr∈R m0 (n, r) and tn = ⌈2B⊥ (mmax (n)+log p(n)) ⌉. A string w consists of a finite
+i ∈ {0, 1}22(n+1) for i ∈ [N ], j ∈ [m
+collection of random seeds rj,t
+max (n)], and t ∈ [tn ], together
+M
+with one common random tape long enough for executing h in the maximum-size experiment. We
+define a test for w as TnM (w) = 1 if and only if with probability at least 1−1/2p(n) over r ∼ R, there
+exist i ∈ [N ], stopping indices t1 , . . . , tm0 (n,r) ∈ [tn ], and advice strings a1 , . . . , am0 (n,r) ∈ {0, 1}≤ℓ
+such that
+m0 (n,r)
+X
+
+⌈log(tj + 1)⌉ ≤ B⊥ m0 (n, r) + log p(n) ,
+j=1
+i , n + 1) ̸= ⊥ for every j ∈ [m (n, r)] and, for the sample set S i = {(xi , bi )}
+U (aj , rj,t
+0
+j j j∈[m0 (n,r)]
+j
+defined by
+i
+xij ◦ bij = U (aj , rj,t
+, n + 1),
+j
+
+it holds that
+
+
+ 1 γ
+Pr hM (S i , x, 1n ) = b ≥ + .
+2 2
+(x,b)
+52
+
+M
+M
+M
+Let GM
+n be a good seed set defined as Gn = {w : Tn (w) = 1}. To see that Gn ̸= ∅, draw w
+uniformly and generate the sample sets in Equation (27) by the rejection sampler using the witnessing advice functions for the corresponding distributions Dn,r . Their joint distribution is within
+statistical distance at most N mmax (n)2−2(n+1) = negl(n) of the product of the target distributions;
+moreover, the stopping-index tail bound above fails with probability at most 1/(16p(n)). Combining
+these facts with Equation (27) gives a positive probability of w satisfying the test TnM . Notice that
+n
+GM
+n is recursively enumerable given (1 , M ): for each finite candidate w, all quantified domains in
+the definition of TnM (w) are finite, M is total, and U is fixed. Thus, if w∗ is the first element of
+∗
+GM
+n found by universal search, then (i) K(w ) ≤ O(log n + |M |), and (ii) with probability at least
+1 − 1/2p(n) over r ∼ R, it holds that there exist i∗ ∈ [N ], stopping indices t1 , . . . , tm0 (n,r) , and
+∗
+advice strings a1 , . . . , am0 (n,r) ∈ {0, 1}≤ℓ satisfying the stopping-index bound above and, for S i
+reconstructed from w∗ using the corresponding rejection trials and advice strings,
+∗
+
+Pr [hM (S i , x, 1n ) = b] ≥
+(x,b)
+
+1 γ
++ .
+2 2
+∗
+
+For such a fixed r, write m = m0 (n, r). Writing h∗ := hM (S i , -, 1n ), its description size is at most
+
+
+m
+m
+X
+X
+|h∗ | ≤ K(w∗ ) + K(i∗ ) +
+|aj | + O 
+log(tj + 1) + m + O(log n)
+j=1
+
+j=1
+
+≤ m · ℓ + O(B⊥ (m + log p(n))) + O(log n + |M |)
+≤ C ′ · s · ℓ,
+where the last inequality holds by assuming log n ≤ s and taking n large enough, ℓ sufficiently
+large, and C ′ large enough to absorb the fixed machine M and the stopping-index cost; otherwise,
+we can efficiently find the hypothesis of size s by brute-force search. Thus, these instances are not
+No instances for Gapε,γ
+C·ℓ Learn[ℓ], for a sufficiently large constant C depending only on c and B⊥ .
+Therefore, A outputs 1 (with probability at least 1/3) as a false positive for at most 1/2p(n)-fraction
+of r satisfying the event in Equation (26) in both cases of R =
+̸ ∅ and R = ∅.
+Thus, by the union bound, the error probability that A cannot output the correct answer (with
+probability at least 2/3) is at most 1/4p(n) + 1/2p(n) ≤ 1/p(n) over the choice of instances.
+
+7
+
+Open Problems
+
+We list a couple of open problems.
+• Can we explain the difficulty of matching the inapproximability factors in Corollary 1.4
+and Theorem 1.5? For example, is there an oracle under which the factor in Theorem 1.5
+cannot be improved further?
+• Can we establish sharp thresholds to rule out Heuristica for agnostic learning? Previous
+work [HN21] is insufficient, as it relies on agnostic boosting [Fel10; KK09], which causes a
+cubic blowup in hypothesis size when boosting accuracy to a constant.
+• Can we prove Theorems 1.3 and 1.8 in the realizable case where ε = 0?
+• Can we prove Theorems 1.3 and 1.8 for a superconstant function ℓ = ω(1)?
+
+53
+
+• Can we establish a similar sharp threshold result for other related problems, such as MINKT∗
+and MCSP∗ , by using or extending the techniques developed in this paper? Here, MINKT∗
+(resp. MCSP∗ ) is the problem of, given a partial string (resp. a partial truth table), determining
+the size of the minimum program (resp. minimum circuit) that produces a string consistent
+with the partial string.
+
+Acknowledgment
+Shuichi Hirahara was supported by JST, FOREST Grant Number JPMJFR226Y. Mikito Nanashima
+was supported by JST, ACT-X Grant Number JPMJAX24CJ. We thank an anonymous reviewer for
+pointing out that the Occam bound is not necessary for our proof, which simplified the argument.
+
+References
+[ABBGKLPSV23]
+
+Divesh Aggarwal, Huck Bennett, Zvika Brakerski, Alexander Golovnev, Rajendra Kumar, Zeyong Li, Spencer Peters, Noah Stephens-Davidowitz, and Vinod
+Vaikuntanathan. “Lattice Problems beyond Polynomial Time”. In: Proceedings
+of the Symposium on Theory of Computing (STOC). 2023, pp. 1516–1526. doi:
+10.1145/3564246.3585227.
+
+[ABFKP08]
+
+Michael Alekhnovich, Mark Braverman, Vitaly Feldman, Adam R. Klivans, and
+Toniann Pitassi. “The complexity of properly learning simple concept classes”.
+In: J. Comput. Syst. Sci. 74.1 (2008), pp. 16–34. doi: 10.1016/j.jcss.2007.
+04.011.
+
+[ABMP01]
+
+Michael Alekhnovich, Samuel R. Buss, Shlomo Moran, and Toniann Pitassi.
+“Minimum Propositional Proof Length Is NP-Hard to Linearly Approximate”.
+In: J. Symb. Log. 66.1 (2001), pp. 171–191. doi: 10.2307/2694916.
+
+[ABX08]
+
+Benny Applebaum, Boaz Barak, and David Xiao. “On Basing Lower-Bounds
+for Learning on Worst-Case Assumptions”. In: Proceedings of the Symposium
+on Foundations of Computer Science (FOCS). 2008, pp. 211–220. doi: 10 .
+1109/FOCS.2008.35.
+
+[ACMTV21]
+
+Eric Allender, Mahdi Cheraghchi, Dimitrios Myrisiotis, Harsha Tirumala, and
+Ilya Volkovich. “One-Way Functions and a Conditional Variant of MKTP”. In:
+Proceedings of the Foundations of Software Technology and Theoretical Computer Science (FSTTCS). 2021, 7:1–7:19. doi: 10.4230/LIPIcs.FSTTCS.2021.
+7.
+
+[AGGM06]
+
+Adi Akavia, Oded Goldreich, Shafi Goldwasser, and Dana Moshkovitz. “On
+basing one-way functions on NP-hardness”. In: Proceedings of the Symposium
+on Theory of Computing (STOC). 2006, pp. 701–710. doi: 10.1145/1132516.
+1132614.
+
+[AN21]
+
+Benny Applebaum and Oded Nir. “Upslices, Downslices, and Secret-Sharing
+with Complexity of 1.5n ”. In: Proceedings of the International Cryptology Conference (CRYPTO). 2021, pp. 627–655. doi: 10 . 1007 / 978 - 3 - 030 - 84252 9_21.
+
+54
+
+[AR08]
+
+Michael Alekhnovich and Alexander A. Razborov. “Resolution Is Not Automatizable Unless W[P] Is Tractable”. In: SIAM J. Comput. 38.4 (2008), pp. 1347–
+1363. doi: 10.1137/06066850X.
+
+[BB15]
+
+Andrej Bogdanov and Christina Brzuska. “On Basing Size-Verifiable One-Way
+Functions on NP-Hardness”. In: Proceedings of the Theory of Cryptography
+Conference (TCC). 2015, pp. 1–6. doi: 10.1007/978-3-662-46494-6_1.
+
+[Ben23]
+
+Huck Bennett. “The Complexity of the Shortest Vector Problem”. In: SIGACT
+News 54.1 (2023), pp. 37–61. doi: 10.1145/3586165.3586172.
+
+[BFKL93]
+
+Avrim Blum, Merrick L. Furst, Michael J. Kearns, and Richard J. Lipton.
+“Cryptographic Primitives Based on Hard Learning Problems”. In: Proceedings
+of the International Cryptology Conference (CRYPTO). 1993, pp. 278–291. doi:
+10.1007/3-540-48329-2_24.
+
+[BL88]
+
+Josh Cohen Benaloh and Jerry Leichter. “Generalized Secret Sharing and Monotone Functions”. In: Proceedings of the International Cryptology Conference
+(CRYPTO). 1988, pp. 27–35. doi: 10.1007/0-387-34799-2_3.
+
+[BT06a]
+
+Andrej Bogdanov and Luca Trevisan. “Average-Case Complexity”. In: Foundations and Trends in Theoretical Computer Science 2.1 (2006). doi: 10.1561/
+0400000004.
+
+[BT06b]
+
+Andrej Bogdanov and Luca Trevisan. “On Worst-Case to Average-Case Reductions for NP Problems”. In: SIAM J. Comput. 36.4 (2006), pp. 1119–1159. doi:
+10.1137/S0097539705446974.
+
+[CDKM00]
+
+Robert D. Carr, Srinivas Doddi, Goran Konjevod, and Madhav V. Marathe.
+“On the red-blue set cover problem”. In: Proceedings of the Symposium on
+Discrete Algorithms (SODA). 2000, pp. 345–353.
+
+[CJW20]
+
+Lijie Chen, Ce Jin, and R. Ryan Williams. “Sharp threshold results for computational complexity”. In: Proceedings of the Symposium on Theory of Computing (STOC). 2020, pp. 1335–1348. doi: 10.1145/3357713.3384283.
+
+[CNW16]
+
+Moses Charikar, Yonatan Naamad, and Anthony Wirth. “On Approximating
+Target Set Selection”. In: Proceedings of the Approximation, Randomization,
+and Combinatorial Optimization (APPROX/RANDOM). 2016, 4:1–4:16. doi:
+10.4230/LIPICS.APPROX-RANDOM.2016.4.
+
+[CT06]
+
+Thomas M. Cover and Joy A. Thomas. Elements of information theory (2. ed.)
+Wiley, 2006. isbn: 978-0-471-24195-9.
+
+[Dan16]
+
+Amit Daniely. “Complexity theoretic limitations on learning halfspaces”. In:
+Proceedings of the Symposium on Theory of Computing (STOC). 2016, pp. 105–
+117. doi: 10.1145/2897518.2897520.
+
+[DFKRS11]
+
+Irit Dinur, Eldar Fischer, Guy Kindler, Ran Raz, and Shmuel Safra. “PCP
+Characterizations of NP: Toward a Polynomially-Small Error-Probability”. In:
+Comput. Complex. 20.3 (2011), pp. 413–504. doi: 10.1007/s00037-011-00144.
+
+[DHK15]
+
+Irit Dinur, Prahladh Harsha, and Guy Kindler. “Polynomially Low Error PCPs
+with polyloglog n Queries via Modular Composition”. In: Proceedings of the
+Symposium on Theory of Computing (STOC). 2015, pp. 267–276. doi: 10 .
+1145/2746539.2746630.
+55
+
+[DLS14]
+
+Amit Daniely, Nati Linial, and Shai Shalev-Shwartz. “From average case complexity to improper learning complexity”. In: Proceedings of the Symposium on
+Theory of Computing (STOC). 2014, pp. 441–448. doi: 10 . 1145 / 2591796 .
+2591820.
+
+[DS04]
+
+Irit Dinur and Shmuel Safra. “On the hardness of approximating label-cover”.
+In: Inf. Process. Lett. 89.5 (2004), pp. 247–254. doi: 10.1016/j.ipl.2003.
+11.007.
+
+[DS16]
+
+Amit Daniely and Shai Shalev-Shwartz. “Complexity Theoretic Limitations
+on Learning DNF’s”. In: Proceedings of the Conference on Learning Theory
+(COLT). 2016, pp. 815–830.
+
+[DV21]
+
+Amit Daniely and Gal Vardi. “From Local Pseudorandom Generators to Hardness of Learning”. In: Proceedings of the Conference on Learning Theory (COLT).
+2021, pp. 1358–1394.
+
+[Fel10]
+
+Vitaly Feldman. “Distribution-Specific Agnostic Boosting”. In: Innovations in
+Computer Science - ICS 2010, Tsinghua University, Beijing, China, January
+5-7, 2010. Proceedings. 2010, pp. 241–250.
+
+[FF93]
+
+Joan Feigenbaum and Lance Fortnow. “Random-Self-Reducibility of Complete
+Sets”. In: SIAM J. Comput. 22.5 (1993), pp. 994–1005. doi: 10.1137/0222061.
+
+[FS12]
+
+Yoav Freund and Robert E Schapire. “Boosting: Foundations and Algorithms.
+Adaptive computation and machine learning”. In: MIT Press 2 (2012), p. 8.
+
+[GGM86]
+
+Oded Goldreich, Shafi Goldwasser, and Silvio Micali. “How to construct random
+functions”. In: J. ACM 33.4 (1986), pp. 792–807. doi: 10.1145/6490.6503.
+
+[GK23]
+
+Halley Goldberg and Valentine Kabanets. “Improved Learning from Kolmogorov
+Complexity”. In: Proceedings of the Computational Complexity Conference (CCC).
+2023, 12:1–12:29. doi: 10.4230/LIPICS.CCC.2023.12.
+
+[GL22]
+
+Suprovat Ghoshal and Euiwoong Lee. “A characterization of approximability
+for biased CSPs”. In: Proceedings of the Symposium on Theory of Computing
+(STOC). 2022, pp. 989–997. doi: 10.1145/3519935.3520072.
+
+[GM84]
+
+Shafi Goldwasser and Silvio Micali. “Probabilistic Encryption”. In: J. Comput.
+Syst. Sci. 28.2 (1984), pp. 270–299. doi: 10.1016/0022-0000(84)90070-9.
+
+[GM97]
+
+Michael H. Goldwasser and Rajeev Motwani. “Intractability of Assembly Sequencing: Unit Disks in the Plane”. In: Algorithms and Data Structures, 5th
+International Workshop, WADS ’97, Halifax, Nova Scotia, Canada, August 68, 1997, Proceedings. 1997, pp. 307–320. doi: 10.1007/3-540-63307-3_70.
+
+[GMW91]
+
+Oded Goldreich, Silvio Micali, and Avi Wigderson. “Proofs that Yield Nothing But Their Validity for All Languages in NP Have Zero-Knowledge Proof
+Systems”. In: J. ACM 38.3 (1991), pp. 691–729. doi: 10.1145/116825.116852.
+
+[HILL99]
+
+Johan Håstad, Russell Impagliazzo, Leonid A. Levin, and Michael Luby. “A
+Pseudorandom Generator from any One-way Function”. In: SIAM J. Comput.
+28.4 (1999), pp. 1364–1396. doi: 10.1137/S0097539793244708.
+
+[HILNO23]
+
+Shuichi Hirahara, Rahul Ilango, Zhenjian Lu, Mikito Nanashima, and Igor C.
+Oliveira. “A Duality between One-Way Functions and Average-Case Symmetry
+of Information”. In: Proceedings of the Symposium on Theory of Computing
+(STOC). 2023, pp. 1039–1050. doi: 10.1145/3564246.3585138.
+56
+
+[Hir22]
+
+Shuichi Hirahara. “NP-Hardness of Learning Programs and Partial MCSP”. In:
+Proceedings of the Symposium on Foundations of Computer Science (FOCS).
+2022, pp. 968–979. doi: 10.1109/FOCS54457.2022.00095.
+
+[Hir23]
+
+Shuichi Hirahara. “Capturing One-Way Functions via NP-Hardness of MetaComplexity”. In: Proceedings of the Symposium on Theory of Computing (STOC).
+2023, pp. 1027–1038. doi: 10.1145/3564246.3585130.
+
+[HLN24]
+
+Shuichi Hirahara, Zhenjian Lu, and Mikito Nanashima. “Optimal Coding for
+Randomized Kolmogorov Complexity and Its Applications”. In: Proceedings of
+the Symposium on Foundations of Computer Science (FOCS). 2024, pp. 369–
+378. doi: 10.1109/FOCS61266.2024.00030.
+
+[HN21]
+
+Shuichi Hirahara and Mikito Nanashima. “On Worst-Case Learning in Relativized Heuristica”. In: Proceedings of the Symposium on Foundations of Computer Science (FOCS). 2021, pp. 751–758. doi: 10.1109/FOCS52979.2021.
+00078.
+
+[HN23]
+
+Shuichi Hirahara and Mikito Nanashima. “Learning in Pessiland via Inductive Inference”. In: Proceedings of the Symposium on Foundations of Computer
+Science (FOCS). 2023, pp. 447–457. doi: 10.1109/FOCS57990.2023.00033.
+
+[HN24]
+
+Shuichi Hirahara and Mikito Nanashima. “One-Way Functions and Zero Knowledge”. In: Proceedings of the Symposium on Theory of Computing (STOC).
+2024, pp. 1731–1738. doi: 10.1145/3618260.3649701.
+
+[HS17]
+
+Shuichi Hirahara and Rahul Santhanam. “On the Average-Case Complexity
+of MCSP and Its Variants”. In: Proceedings of the Computational Complexity
+Conference (CCC). 2017, 7:1–7:20. doi: 10.4230/LIPIcs.CCC.2017.7.
+
+[IL89]
+
+Russell Impagliazzo and Michael Luby. “One-way Functions are Essential for
+Complexity Based Cryptography (Extended Abstract)”. In: Proceedings of the
+Symposium on Foundations of Computer Science (FOCS). 1989, pp. 230–235.
+doi: 10.1109/SFCS.1989.63483.
+
+[IL90]
+
+Russell Impagliazzo and Leonid A. Levin. “No Better Ways to Generate Hard
+NP Instances than Picking Uniformly at Random”. In: Proceedings of the Symposium on Foundations of Computer Science (FOCS). 1990, pp. 812–821. doi:
+10.1109/FSCS.1990.89604.
+
+[Ila23]
+
+Rahul Ilango. “SAT Reduces to the Minimum Circuit Size Problem with a Random Oracle”. In: Proceedings of the Symposium on Foundations of Computer
+Science (FOCS). 2023, pp. 733–742. doi: 10.1109/FOCS57990.2023.00048.
+
+[Imp11]
+
+Russell Impagliazzo. “Relativized Separations of Worst-Case and Average-Case
+Complexities for NP”. In: Proceedings of the Conference on Computational
+Complexity (CCC). 2011, pp. 104–114. doi: 10.1109/CCC.2011.34.
+
+[Imp95]
+
+Russell Impagliazzo. “A Personal View of Average-Case Complexity”. In: Proceedings of the Structure in Complexity Theory Conference. 1995, pp. 134–147.
+doi: 10.1109/SCT.1995.514853.
+
+[IRS22]
+
+Rahul Ilango, Hanlin Ren, and Rahul Santhanam. “Robustness of average-case
+meta-complexity via pseudorandomness”. In: Proceedings of the Symposium on
+Theory of Computing (STOC). 2022, pp. 1575–1583. doi: 10.1145/3519935.
+3520051.
+57
+
+[ISN93]
+
+Mitsuru Ito, Akira Saito, and Takao Nishizeki. “Multiple Assignment Scheme
+for Sharing Secret”. In: J. Cryptol. 6.1 (1993), pp. 15–20. doi: 10 . 1007 /
+BF02620229.
+
+[KK09]
+
+Adam Kalai and Varun Kanade. “Potential-Based Agnostic Boosting”. In: Advances in Neural Information Processing Systems 22: 23rd Annual Conference
+on Neural Information Processing Systems 2009. Proceedings of a meeting held
+7-10 December 2009, Vancouver, British Columbia, Canada. 2009, pp. 880–888.
+
+[Ko91]
+
+Ker-I Ko. “On the Complexity of Learning Minimum Time-Bounded Turing
+Machines”. In: SIAM J. Comput. 20.5 (1991), pp. 962–986. doi: 10 . 1137 /
+0220059.
+
+[Lee06]
+
+Troy Lee. “Kolmogorov Complexity and Formula Size Lower Bounds”. PhD
+thesis. University of Amsterdam, 2006.
+
+[Liv10]
+
+Noam Livne. “On the Construction of One-Way Functions from Average Case
+Hardness”. In: Innovations in Computer Science - ICS 2010, Tsinghua University, Beijing, China, January 5-7, 2010. Proceedings. 2010, pp. 301–309.
+
+[LP20]
+
+Yanyi Liu and Rafael Pass. “On One-way Functions and Kolmogorov Complexity”. In: Proceedings of the Symposium on Foundations of Computer Science
+(FOCS). 2020, pp. 1243–1254. doi: 10.1109/FOCS46700.2020.00118.
+
+[LP21]
+
+Yanyi Liu and Rafael Pass. “On the Possibility of Basing Cryptography on
+EXP̸= BPP”. In: Proceedings of the International Cryptology Conference (CRYPTO).
+2021, pp. 11–40. doi: 10.1007/978-3-030-84242-0_2.
+
+[LP22]
+
+Yanyi Liu and Rafael Pass. “On One-Way Functions from NP-Complete Problems”. In: Proceedings of the Computational Complexity Conference (CCC).
+2022, 36:1–36:24. doi: 10.4230/LIPIcs.CCC.2022.36.
+
+[LP23a]
+
+Yanyi Liu and Rafael Pass. “On One-Way Functions and Sparse Languages”. In:
+Proceedings of the Theory of Cryptography Conference (TCC). 2023, pp. 219–
+237. doi: 10.1007/978-3-031-48615-9_8.
+
+[LP23b]
+
+Yanyi Liu and Rafael Pass. “One-Way Functions and the Hardness of (Probabilistic) Time-Bounded Kolmogorov Complexity w.r.t. Samplable Distributions”. In: Proceedings of the International Cryptology Conference (CRYPTO).
+2023, pp. 645–673. doi: 10.1007/978-3-031-38545-2_21.
+
+[LS24]
+
+Zhenjian Lu and Rahul Santhanam. “Impagliazzo’s Worlds Through the Lens
+of Conditional Kolmogorov Complexity”. In: Proceedings of the International
+Colloquium on Automata, Languages, and Programming (ICALP). 2024, 110:1–
+110:17. doi: 10.4230/LIPICS.ICALP.2024.110.
+
+[LV19]
+
+Ming Li and Paul M. B. Vitányi. An Introduction to Kolmogorov Complexity
+and Its Applications, 4th Edition. Texts in Computer Science. Springer, 2019.
+isbn: 978-3-030-11297-4. doi: 10.1007/978-3-030-11298-1.
+
+[MZ26]
+
+Dor Minzer and Kai Zhe Zheng. “Near Optimal Hardness of Approximating
+k-CSP”. In: Proceedings of the Symposium on Theory of Computing (STOC)
+(2026).
+
+58
+
+[Nan21]
+
+Mikito Nanashima. “On Basing Auxiliary-Input Cryptography on NP-Hardness
+via Nonadaptive Black-Box Reductions”. In: Proceedings of the Innovations
+in Theoretical Computer Science Conference (ITCS). 2021, 29:1–29:15. doi:
+10.4230/LIPIcs.ITCS.2021.29.
+
+[Nao91]
+
+Moni Naor. “Bit Commitment Using Pseudorandomness”. In: J. Cryptol. 4.2
+(1991), pp. 151–158. doi: 10.1007/BF00196774.
+
+[NOV06]
+
+Minh-Huyen Nguyen, Shien Jin Ong, and Salil P. Vadhan. “Statistical ZeroKnowledge Arguments for NP from Any One-Way Function”. In: Proceedings
+of the Symposium on Foundations of Computer Science (FOCS). 2006, pp. 3–
+14. doi: 10.1109/FOCS.2006.71.
+
+[NR06]
+
+Moni Naor and Guy N. Rothblum. “Learning to impersonate”. In: Proceedings
+of the International Conference on Machine Learning (ICML). 2006, pp. 649–
+656. doi: 10.1145/1143844.1143926.
+
+[OW93]
+
+Rafail Ostrovsky and Avi Wigderson. “One-Way Fuctions are Essential for
+Non-Trivial Zero-Knowledge”. In: Proceedings of the Symposium on Theory of
+Computing (STOC). 1993, pp. 3–17. doi: 10.1109/ISTCS.1993.253489.
+
+[Pei16]
+
+Chris Peikert. “A Decade of Lattice Cryptography”. In: Found. Trends Theor.
+Comput. Sci. 10.4 (2016), pp. 283–424. doi: 10.1561/0400000074.
+
+[RS21]
+
+Hanlin Ren and Rahul Santhanam. “Hardness of KT Characterizes Parallel
+Cryptography”. In: Proceedings of the Computational Complexity Conference
+(CCC). 2021, 35:1–35:58. doi: 10.4230/LIPIcs.CCC.2021.35.
+
+[Sch90]
+
+Robert E. Schapire. “The Strength of Weak Learnability”. In: Mach. Learn. 5
+(1990), pp. 197–227. doi: 10.1007/BF00116037.
+
+[Sol64a]
+
+Ray J. Solomonoff. “A Formal Theory of Inductive Inference. Part I”. In: Inf.
+Control. 7.1 (1964), pp. 1–22. doi: 10.1016/S0019-9958(64)90223-2.
+
+[Sol64b]
+
+Ray J. Solomonoff. “A Formal Theory of Inductive Inference. Part II”. In: Inf.
+Control. 7.2 (1964), pp. 224–254. doi: 10.1016/S0019-9958(64)90131-7.
+
+[TV07]
+
+Luca Trevisan and Salil P. Vadhan. “Pseudorandomness and Average-Case
+Complexity Via Uniform Reductions”. In: Computational Complexity 16.4 (2007),
+pp. 331–364. doi: 10.1007/s00037-007-0233-x.
+
+[Vad17]
+
+Salil P. Vadhan. “On Learning vs. Refutation”. In: Proceedings of the Conference on Learning Theory (COLT). 2017, pp. 1835–1848.
+
+[Val84]
+
+Leslie G. Valiant. “A Theory of the Learnable”. In: Commun. ACM 27.11
+(1984), pp. 1134–1142. doi: 10.1145/1968.1972.
+
+[Vio05]
+
+Emanuele Viola. “On Constructing Parallel Pseudorandom Generators from
+One-Way Functions”. In: Proceedings of the Conference on Computational Complexity (CCC). 2005, pp. 183–197. doi: 10.1109/CCC.2005.16.
+
+[Wat12]
+
+Thomas Watson. “Relativized Worlds without Worst-Case to Average-Case
+Reductions for NP”. In: TOCT 4.3 (2012), 8:1–8:30. doi: 10.1145/2355580.
+2355583.
+
+[Wee06]
+
+Hoeteck Wee. “Finding Pessiland”. In: Proceedings of the Theory of Cryptography Conference (TCC). 2006, pp. 429–442. doi: 10.1007/11681878_22.
+
+59
+
+A
+
+An Approximation Algorithm for DNF-MMSA
+
+We present an elementary approximation algorithm for DNF-MMSA based on LP relaxation.
+Theorem A.1. Given a collection of monotone DNF formulas of size ℓ (i.e., the number of terms)
+and a weight function w for variables such that there exists an assignment of weight at most s∗ and
+satisfies at least (1 − ϵ)-fraction of the monotone DNF formulas, it is feasible in polynomial time to
+find a satisfying assignment of weight at most ℓ · s∗ /(1 − η) that satisfies at least (1 − ϵ/η)-fraction
+of the monotone DNF formulas for any parameter η > 0.
+Moreover, when all the DNF constraints are satisfiable by an assignment of weight s∗ (i.e.,
+ϵ = 0), the algorithm finds an assignment of weight at most ℓ · s∗ that satisfies all the constraints.
+Proof. First, we consider the case in which ϵ > 0. Let x1 , . . . , xn bePthe variables for the given
+collection of DNFs and w : [n] → [0, 1] be the weight function, i.e.,
+i w(i) = 1. Let m be the
+number of DNFs. We introduce new variables z1 , z2 , . . . , zm for each DNF in the collection and
+yi,1 , yi,2 , . . . , yi,ji for each term in the i-th DNF (i.e., ji ≤ ℓ).
+We represent the MMSA instance as the following integer programming (IP):
+X
+min
+w(i)xi
+i∈[n]
+
+s.t.
+
+X
+
+zi ≥ (1 − ϵ)m
+
+i∈[m]
+
+X
+
+yi,j ≥ zi
+
+∀i ∈ [m]
+
+j∈[ji ]
+
+xk ≥ yi,j
+
+∀(i, j) and a variable xk relevant to the j-th term in the i-th DNF
+
+xk , yi,j , zi ∈ {0, 1}
+
+∀i, j, k
+
+it is not hard to see that the optimal value vIP of the above IP is at most s∗ . Now we relax the range
+{0, 1} to [0, 1] and solve the resulting linear programming (LP) in P
+polynomial time. Let α ∈ [0, 1]n
+be the resulting assignment to x1 , . . . , xn . Then the value w(α) = w(i)αi is at most vIP ≤ s∗ .
+We round α to a binary assignment α̃ ∈ {0, 1}n as follows: for each i ∈ [n],
+(
+1 if (ℓ/(1 − η)) · αi ≥ 1
+α̃i =
+0 otherwise.
+Then, w(α̃) ≤ (ℓ/(1 − η)) · w(α) ≤ (ℓ/(1 − η))s∗ . Thus, it suffices to observe that α̃ satisfies at least
+(1 − ϵ/η)-fraction of the monotone DNF formulas.
+We consider the values assigned to yi,j ’s and zi ’s. Since Ei [zi ] ≥ 1 − ϵ, by Markov’s inequality, at
+least (1−ϵ/η)-fraction of zi takes the value at least 1−η. For such i, there must exist yi,j ≥ (1−η)/ℓ
+since yi,j ≥ 0. For such (i, j), the relevant variable xk must take the value at least (1 − η)/ℓ, which
+must be assigned to 1 in α̃. Thus, α̃ satisfies these at least (1 − ϵ/η)-fraction of the monotone DNF
+formulas.
+In the satisfiable case where ϵ = 0, the same algorithm for η = 0 finds an assignment of weight
+at most ℓ · s∗ that satisfies all the constraints.
+
+B
+
+Advice Complexity of Sampling
+
+In this appendix, we demonstrate the robustness of advice complexity of sampling. We first recall
+the definition of the advice complexity of sampling from Definition 3.11.
+60
+
+Definition B.1 (Advice complexity of sampling). A distribution D over {0, 1}n is said to be sam2n
+plable with advice complexity ℓ if there exists a function α : {0, 1}2 → {0, 1}≤ℓ such that every
+computation U (α(r); r, n) halts with an output in {0, 1}n ∪ {⊥},
+Pr
+
+22n
+
+r∼{0,1}
+
+1
+[U (α(r); r, n) = ⊥] ≤ ,
+4
+
+and the distribution of U (α(r); r, n) conditioned on U (α(r); r, n) ̸= ⊥ has statistical distance at most
+2−2n from D. The function α need not be computable.
+To compare this definition with Definition 1.1, it is instructive to think that α(r) consists of a
+constant-size description dS for a sampling procedure S and an advice string.
+Definition B.2 (Coding property). We say that a distribution D over {0, 1}n has a coding property
+with error A if
+K(x | n) ≤ − log D(x) + A
+for every x ∈ Support(D).
+Definition B.3 (∞-Rényi divergence). For two distributions P and Q over {0, 1}n such that
+Support(P ) ⊆ Support(Q), define
+
+
+P (x)
+x ∈ Support(P ) .
+∆∞ (P ∥ Q) := log max
+Q(x)
+Definition B.4 (Universal distribution). The universal distribution over {0, 1}n , denoted by mn ,
+is defined by
+X
+2−K(x|n)
+mn (x) :=
+,
+Zn :=
+2−K(y|n) .
+Zn
+n
+y∈{0,1}
+
+We now present the equivalence among the three different measures up to a constant factor.
+Proposition B.5. Let D = {Dn }n∈N be a family of distributions such that Support(Dn ) ⊆ {0, 1}n ,
+and let ℓ : N → N satisfy ℓ(n) ≥ 1 and ℓ(n) = o(n). The following are equivalent.
+1. Dn is samplable with advice complexity O(ℓ(n)) for all sufficiently large n.
+2. ∆∞ (Dn ∥ mn ) = O(ℓ(n)) for all sufficiently large n.
+3. Dn has a coding property with error O(ℓ(n)) for all sufficiently large n.
+Proof. We first observe the equivalence between Items 2 and 3. Item 2 is equivalent to
+− log mn (x) ≤ − log Dn (x) + O(ℓ(n))
+
+(28)
+
+for every x ∈ Support(Dn ). By definition, − log mn (x) = K(x | n)+log Zn . Since K(y | n) ≤ n+O(1)
+for every y ∈ {0, 1}n , we have Zn ≥ Ω(1); and Zn ≤ 1 follows from Kraft’s inequality. Thus
+| log Zn | = O(1), and (28) is equivalent to Item 3.
+We prove Item 3 ⇒ Item 1. Assume that, for some constant C ≥ 1,
+K(x | n) ≤ − log Dn (x) + Cℓ(n)
+
+(29)
+
+for every x ∈ Support(Dn ) for all sufficiently large n. Since ℓ(n) = o(n), we have Cℓ(n) ≤ n for all
+sufficiently large n.
+61
+
+Consider the following fixed sampling procedure. Its advice string contains two integers T and
+2n
+t. Using the random string r ∈ {0, 1}2 , it reads T pairs
+(d(1) , v (1) ), . . . , (d(T ) , v (T ) ),
+
+d(i) ∈ {0, 1}2n ,
+
+v (i) ∈ {0, . . . , 23n+3 − 1}.
+
+If t = 0, the procedure outputs ⊥. Otherwise, it dovetails the computations U (y; n) over all prefixes
+y of d(t) and outputs the first value in {0, 1}n that appears. The output is unique because the
+domain of U is prefix-free.
+We now specify the advice string. For a uniformly random d ∈ {0, 1}2n , let X(d) = x if
+U (y; n) = x ∈ {0, 1}n for some prefix y of d, and leave X(d) undefined if no such prefix exists.
+Define
+X
+Q(x | n) :=
+2−|y| ≥ 2−K(x|n) .
+y∈{0,1}≤2n :U (y;n)=x
+
+It follows from (29) that
+Dn (x)
+≤ 1.
+Cℓ(n)
+2
+Q(x | n)
+
+(30)
+
+For every x ∈ {0, 1}n , define the threshold
+θx := 23n+3 · Dn (x)/(2Cℓ(n) Q(x | n)).
+By (30), we have 0 ≤ θx ≤ 23n+3 . Set T := 2Cℓ(n)+3 . Since Cℓ(n) ≤ n, the T pairs above use
+at most T (5n + 3) ≤ 22n bits for all sufficiently large n. Call the i-th trial accepting if X(d(i) ) is
+defined and, for x := X(d(i) ),
+v (i) < ⌊θx ⌋.
+For a given random string r, define t to be the first accepting index in [T ]. If no such index exists,
+define t := 0. The advice program α(r) is the fixed procedure together with self-delimiting encodings
+of T and t, and therefore
+|α(r)| ≤ 2⌈log(T + 1)⌉ + O(log log(T + 2)) = O(ℓ(n)).
+With this choice of t, every advised computation halts with an output in {0, 1}n ∪ {⊥}.
+It remains to analyze the distribution. For a fixed i ∈ [T ], let x(i) = X(d(i) ) if X(d(i) ) is defined,
+and leave x(i) undefined
+otherwise. Let Ai (x) be the event that the i-th trial accepts with output
+S
+x, and let Ai := x∈{0,1}n Ai (x). Define p := Pr[Ai ].
+We need two estimates. First, we show that one trial accepts with probability large enough, so
+the procedure rarely outputs ⊥. For every x ∈ {0, 1}n , the probability that x(i) = x is Q(x | n),
+and
+Pr[Ai (x)] = Q(x | n) 2−(3n+3) ⌊θx ⌋.
+Replacing θx by ⌊θx ⌋ decreases it by less than one, and hence
+Pr[Ai (x)] ≥ 2−Cℓ(n) Dn (x) − 2−(3n+3) Q(x | n).
+P
+Summing over x, and using x Q(x | n) ≤ 1, we obtain
+p ≥ 2−Cℓ(n) − 2−(3n+3) ≥ 2−Cℓ(n)−1
+
+(31)
+
+(32)
+
+for all sufficiently large n. Therefore, the sampling procedure outputs ⊥ exactly when no trial
+accepts, and
+1
+Pr[U (α(r); r, n) = ⊥] = (1 − p)T ≤ exp(−pT ) ≤ e−4 < .
+4
+62
+
+Second, we show that rounding down changes the conditional output distribution by only a
+negligible amount. Rounding down can only decrease the acceptance probability, and by (31), for
+every x ∈ {0, 1}n ,
+0 ≤ 2−Cℓ(n) Dn (x) − Pr[Ai (x)] ≤ 2−(3n+3) Q(x | n).
+Summing over x gives
+0 ≤ 2−Cℓ(n) − p ≤ 2−(3n+3) .
+The numerator in the following bound is exactly the total probability mass lost by rounding down,
+so the output distribution of one trial conditioned on acceptance has statistical distance at most
+2−Cℓ(n) − p
+≤ 2Cℓ(n)−(3n+3)+1 ≤ 2−2n
+p
+
+(33)
+
+from Dn . Conditioned on a non-⊥ output, the first accepting trial has the one-trial output distribution conditioned on acceptance, so (33) proves the required sampling guarantee. This proves Item 3
+⇒ Item 1.
+We prove Item 1 ⇒ Item 3. Assume that Dn is samplable with advice complexity Ln = O(ℓ(n)),
+witnessed by a function α. Define
+
+
+X
+Pn (x) := Er∼{0,1}22n 
+2−|a|  .
+a:U (a;r,n)=x
+
+The family {Pn } is a uniformly lower
+Psemicomputable semimeasure: one can dovetail all computations, and Kraft’s inequality gives x Pn (x) ≤ 1. Since the actual advice program is one of the
+terms in the sum,
+(34)
+Pn (x) ≥ 2−Ln Pr[U (α(r); r, n) = x].
+r
+
+If Dn
+
+(x) ≥ 2−2n+1 , then
+1
+Pr[U (α(r); r, n) = x | U (α(r); r, n) ̸= ⊥] ≥ Dn (x) − 2−2n ≥ Dn (x).
+r
+2
+
+Since the non-⊥ probability is at least 3/4, (34) gives
+Pn (x) ≥
+
+3 −Ln
+Dn (x).
+2
+8
+
+It follows from the coding theorem for lower semicomputable semimeasures (see, e.g., [Lee06; LV19])
+that
+K(x | n) ≤ − log Dn (x) + Ln + O(1).
+If instead 0 < Dn (x) < 2−2n+1 , then − log Dn (x) > 2n − 1, whereas a literal description gives
+K(x | n) ≤ n + O(1), and the same inequality follows for all sufficiently large n. Since Ln = O(ℓ(n)),
+Item 3 follows.
+
+ECCC
+
+63
+https://eccc.weizmann.ac.il
+
+ISSN 1433-8092
+
+

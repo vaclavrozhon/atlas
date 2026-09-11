@@ -1,0 +1,1154 @@
+                                                                Dynamic Connectivity with Expected
+                                                              Polylogarithmic Worst-Case Update Time
+                                                              Simon Meierhans∗                 Maximilian Probst Gutenberg∗
+                                                                 ETH Zurich                            ETH Zurich
+                                                             mesimon@inf.ethz.ch               maximilian.probst@inf.ethz.ch
+arXiv:2510.08297v1 [cs.DS] 9 Oct 2025
+
+
+
+
+                                                                                           Abstract
+                                                   Whether a graph G = (V, E) is connected is arguably its most fundamental property. Nat-
+                                                urally, connectivity was the first characteristic studied for dynamic graphs, i.e. graphs that
+                                                undergo edge insertions and deletions. While connectivity algorithms with polylogarithmic
+                                                amortized update time have been known since the 90s, achieving worst-case guarantees has
+                                                proven more elusive.
+                                                   Two recent breakthroughs have made important progress on this question: (1) Kapron,
+                                                King and Mountjoy [SODA’13; Best Paper] gave a Monte-Carlo algorithm with polylogarithmic
+                                                worst-case update time, and (2) Nanongkai, Saranurak and Wulff-Nilsen [STOC’17, FOCS’17]
+                                                obtained a Las-Vegas data structure, however, with subpolynomial worst-case update time.
+                                                Their algorithm was subsequently de-randomized [FOCS’20].
+                                                   In this article, we present a new dynamic connectivity algorithm based on the popular
+                                                core graph framework that maintains a hierarchy interleaving vertex and edge sparsification.
+                                                Previous dynamic implementations of the core graph framework required subpolynomial update
+                                                time. In contrast, we show how to implement it for dynamic connectivity with polylogarithmic
+                                                expected worst-case update time.
+                                                   We further show that the algorithm can be de-randomized efficiently: a deterministic static
+                                                algorithm for computing a connectivity edge-sparsifier of low congestion in time T (m) · m on an
+                                                m-edge graph yields a deterministic dynamic connectivity algorithm with O(T  e (m)) worst-case
+                                                update time. Via current state-of-the-art algorithms [STOC’24], we obtain T (m) = mo(1) and
+                                                recover deterministic subpolynomial worst-case update time.
+
+
+                                        1       Introduction
+                                        The fully-dynamic connectivity problem is one of the most central problems on dynamic graphs. In
+                                        its most basic form, it asks to maintain whether a dynamic graph is connected. This has been the
+                                        first problem on dynamic graphs that has been studied, and continues to be researched extensively
+                                        [SP75, CH78, Har82, Fre85, HK95, HdLT01, Tho00, PT07, KKM13, WN13, Wan15, GKKT15,
+                                        NS17, WN17, NSWN17, CGL+ 20, GRST21, HHK+ 23].
+                                             Many techniques that later found broad application in (dynamic) graph algorithms were de-
+                                        veloped in the context of connectivity. These include reductions from general to sparse graphs
+                                        [Fre85, EGIN97], topology-trees and top trees [Fre97, AHLT05], reductions from fully-dynamic to
+                                            ∗
+                                            The research leading to these results has received funding from grant no. 200021 204787 of the Swiss National
+                                        Science Foundation. Simon Meierhans is supported by a Google PhD Fellowship.
+
+
+                                                                                               1
+decremental graphs [HK95, HdLT01], the emergency planning setting [PT07], and most recently
+the development of expander pruning techniques [WN17, NS17, NSWN17, SW19].
+    Although deterministic algorithms with amortized polylogarithmic update time were developed
+in the 90s [HK95, HdLT01], turning amortized into worst-case bounds has proven much more
+challenging. To date, finding a deterministic algorithm with polylogarithmic worst-case update
+time remains a major open problem.
+The Kapron-King-Mountjoy algorithm. In 2013, Kapron, King, and Mountjoy [KKM13]
+presented a breakthrough algorithm that maintains a spanning tree of a dynamic graph with worst-
+case polylogarithmic update time—an achievement that was awarded the SODA’13 best paper
+award. Their algorithm maintains a spanning tree, and whenever a tree edge gets deleted, it re-
+connects the tree with another edge crossing this cut as long as such an edge exists. If there is
+exactly one edge left in the cut after the deletion, the authors show that this edge can be found via
+a simple bit trick. Then, they show that adequately sub-sampling the graph reduces to this case.
+Although this step is algorithmically simple, the analysis is highly non-trivial.
+    This elegant algorithm has two major drawbacks:
+
+   • Monte-Carlo property: Sub-sampling only works with high probability, and if the algo-
+     rithm fails to recover an edge, it is impossible to know if we got very unlucky or if the graph
+     is truly disconnected. Thus, the algorithm is only correct with high probability.
+
+   • Oblivious adversary assumption: the algorithm only succeeds if updates are independent
+     of the internal state of the algorithm. This means, in particular, that an adversary with access
+     to the underlying spanning tree can foil the algorithm.
+
+The Nanongkai-Saranurak-Wulff-Nilsen Algorithm. In 2017, Nanongkai, Saranurak and
+Wulff-Nilsen [NSWN17], building on [WN17, NS17], presented a Las-Vegas algorithm for maintain-
+ing a minimum spanning tree that was subsequently de-randomized in [CGL+ 20]. Their algorithm is
+based on expander graph contractions, and combines them with ideas that date back to [Fre85]. To
+dynamically maintain expander graphs, they developed expander pruning. The ensuing expander
+framework was highly influential in both static and dynamic algorithms, and expander pruning has
+among others led to breakthrough algorithms for computing expander decompositions [SW19], and
+is heavily used in the currently fastest and arguably simplest algorithm for solving decremental and
+static minimum-cost flow [vdBCK+ 24].
+    While this algorithm addresses the drawbacks of the [KKM13]-algorithm, it again has two major
+drawbacks:
+
+   • Subpolynomial Overhead: The framework from [NSWN17] seems to inherently incur
+     subpolynomial worst-case update times. Even with optimal static subroutines, the algorithm
+     cannot achieve polylogarithmic worst-case bounds.
+
+   • Algorithmic Complexity: The framework is technically intricate, and its de-randomization
+     via [CGL+ 20] only further exacerbates this fact.
+
+While the algorithmic complexity may not be inherent – recent work [GRST21] achieves similar
+results with greater simplicity and smaller subpolynomial factors – the subpolynomial overhead
+appears fundamental to their contraction-based approach.
+
+
+
+                                                 2
+Our Contribution. We present the first Las-Vegas algorithm for the dynamic connectivity prob-
+lem with polylogarithmic worst-case time.
+
+Theorem 1.1. There is an algorithm that dynamically maintains a maximal spanning forest of a
+dynamic graph G with polylogarithmic expected worst-case update time. The algorithmic guarantees
+hold against an adaptive adversary1 with access to the maximal spanning forest.2
+
+    Our algorithm is both conceptually simple and natural for dynamic connectivity.3 The key
+technical contribution is implementing the highly influential dynamic core graph framework – which
+also underlies state-of-the-art algorithms for maintaining distances [CKL+ 22, KMPG24, KMZ25],
+electrical voltages [CGH+ 20], and cuts [vdBCK+ 24] – with only polylogarithmic overhead. While
+connectivity is arguably simpler than these problems, we believe our techniques can inspire progress
+on other dynamic graph problems.
+    Although our algorithm remains randomized, it outlines a clear path to the ultimate goal:
+a deterministic algorithm for fully-dynamic connectivity with polylogarithmic worst-case update
+time. We show that a fast deterministic algorithm for computing connectivity sparsifiers with low
+congestion yields such a result.
+
+Definition 1.2 (Graph Embedding). For graph G = (V, E) and subgraph H = (V, E ′ ) ⊆ G, we
+say ΠG7→H is an embedding if each edge e = (u, v) ∈ E is mapped to a uv-path ΠG7→H (e) in H.
+We define the congestion of an edge e′ ∈ H to be the number of paths ΠG7→H (e) that contain e′ ,.
+The congestion of ΠG7→H is defined to be the maximal congestion achieved by any e′ ∈ H.
+
+Theorem 1.3. Let G = (V, E) be an m-edge graph. Given an algorithm A that given G computes
+in deterministic time T (m) · m a subgraph H ⊆ G with O(n)
+                                                      e    edges along with an embedding ΠG7→H
+                      m
+of congestion T (m) · n . Then, there is a deterministic algorithm for the dynamic connectivity
+problem on a graph with m edges with worst-case update time O(T
+                                                             e (m)).
+
+     Theorem 1.3 gives a clear path towards an efficient deterministic algorithm. While currently,
+there is not even a randomized algorithm achieving polylogarithmic T (m), it is relatively straight-
+forward to achieve subpolynomial T (m) using expander embedding techniques implemented via
+efficient shortest path data structures (see [CKL+ 22, VDBCK+ 23, CKGS23, KMPG24, KMZ25]).
+Thus, we retrieve a deterministic dynamic connectivity algorithm with subpolynomial worst-case
+update time.
+     We point out that the maximal spanning forest maintained by our algorithm only undergoes at
+most 2 edge updates per update to G and thus changes can be outputted explicitly. Our algorithm
+also works against a non-oblivious adversary, i.e. an adversary that has access to the entire internal
+state of the algorithm including its random bits. Finally, we remark that by the black box reduction
+from [BFH21], the polylogarithmic expected worst-case update time could be transformed into an
+update time that is polylogarithmic with high probability.
+   1
+      In fact, our algorithm is non-oblivious, i.e., it works even against an adversary that has access to the entire state
+of the algorithm, including its random bits.
+    2
+      Our algorithm explicitly outputs changes to the spanning forest and ensures that it undergoes at most 2 edge
+updates per update to G.
+    3
+      We remark that any algorithm maintaining a spanning forest can be used to maintain a (1 + ϵ) approximate
+minimum spanning tree of a weighted graph G = (V, E, w) with an additional multiplicative overhead of log(U )/ϵ in
+the update time where w(e) ∈ [1, U ] (See Corollary 3.17).
+
+
+
+                                                            3
+1.1    Overview
+The Dynamic Core Graph Framework. The dynamic core graph framework solves graph
+problems by maintaining a hierarchy that alternates between two types of sparsification: vertex-
+sparsifiers (called core graphs) and edge-sparsifiers.
+     Consider an input graph G with n vertices and m = O(n)
+                                                          e     edges. Then, one cannot substantially
+reduce the number of edges in G without compromising important graph properties. Instead, the
+framework selects a forest F consisting of n/κ components for some parameter κ, then contracts
+these components in G to reduce the vertex count to n/κ. The graph after contraction is called
+a core graph and denoted by C(G, F ). While C(G, F ) does not necessarily reduce the number of
+edges, edge sparsification can now aim to reduce the edge count to O(n/κ).
+                                                                       e
+     The central challenge in implementing this framework is finding a forest F such that the core
+graph C(G, F ) either preserves the desired property from G or allows efficient extraction of this
+property. When dynamizing this approach, the time to update C(G, F ) after an update to G
+typically scales polynomially in κ. It is therefore desirable to choose κ small and iterate the vertex
+and edge sparsification process until the problem size becomes small. This yields a hierarchy with
+Λ = Θ(logκ m) levels.
+     The key challenge in maintaining such a hierarchy dynamically is using core graphs and edge
+sparsifiers that can be maintained with small recourse. That is, for some small parameter τ , each
+insertion or deletion to graph G should cause at most τ changes in C(G, F ) and its sparsifier. Since
+core graphs and their edge sparsifiers operate on top of each other, recourse multiplies across levels.
+Previous approaches obtained a total recourse bound of at most τ O(Λ) across the hierarchy for each
+update to G.
+     Previous algorithms choose subpolynomial κ (i.e., κ = mo(1) ) and typically achieve τ = O(1),
+                                                                                                 e
+resulting in subpolynomial overhead. In contrast, we need polylogarithmic κ (i.e., κ = O(1)), which
+                                                                                          e
+yields subpolynomial (or larger) recourse bounds unless the recourse per level is at most one,
+i.e., τ ≤ 1! This requires highly efficient algorithms combined with extremely careful analysis.
+
+Formal Definition of the Dynamic Core Graph Framework. Given a graph G = (V, E),
+its core graph with respect to a spanning forest F ⊆ G is the graph C(G, F ) obtained from G
+by contracting the tree components in F into single vertices and removing self-loops. An edge
+sparsifier H ⊆ G is a graph that preserves some property of G while being substantially sparser.
+Typically, for G having n vertices, one aims for H to have only O(n)e       edges.
+    The core graph framework maintains a hierarchy G0 , H0 , G1 , H1 , . . . , G
+                                                      b    b    b  b           bΛ , H
+                                                                                    b Λ (for Λ = Θ(logκ n)).
+The graph G  b 0 is the input graph G. For i ≥ 0, H   b i is an edge sparsifier of G     b i , and for i > 0,
+Gi = C(Hi−1 , Fi ) is the core graph of Hi−1 obtained by contracting along the tree components of
+ b        b                               b
+some forest Fi .
+    This completes the formal description of the core graph framework. Before proceeding, we note
+an important subtlety: deletion of an edge from a forest Fi splits one of its components into two,
+resulting in a vertex split of the corresponding vertex in Gb i (and H
+                                                                     b i ). Thus, besides handling edge
+updates, one must also control recourse for such vertex splits.
+
+Connectivity in the Core Graph Framework. While connectivity is arguably the simplest
+graph property to maintain, we believe this problem provides an excellent testbed for refining
+current techniques. We first outline a static version of our algorithm:
+
+
+
+                                                     4
+    • Implementing the core graphs: To form the core graphs, we find forests Fi in the graphs
+      Hb i−1 such that each component consists of at most κ vertices.4 In our algorithm, we choose
+      κ = O(1)
+            e    since an edge deletion to Fi might require investigating an entire component of Fi
+      to update G b i . Since contractions preserve connectivity, the forest Fi serves as a certificate for
+      the connectivity of vertices contracted into super-vertices in G  bi .
+
+    • Implementing the edge sparsification: We first find a ϕ-expander decomposition of G
+                                                                                        bi ,
+      which is a vertex partition X1 , X2 , . . . , Xη such that:
+
+         1. for each 1 ≤ ℓ ≤ η, Gb i [Xℓ ] is a ϕ-expander meaning for every cut (S, Xℓ \ S), |E(S, Xℓ \
+            S)| ≥ ϕ · min{volGbi (S), volGbi (Xℓ \ S)}, and
+                                                                  b i [Xℓ ] is q · ϕ · m for some
+         2. the number of edges not in any such expander subgraph G
+            q = O(1).
+                e
+
+      We choose ϕ such that q · ϕ · m ≤ m/4, which can be achieved with ϕ = Ω(1). e     Then, we let H  bi
+      be the graph obtained from these edges, and add for each expander graph Gi [Xℓ ] a spanning
+                                                                                      b
+      tree Tℓ . This effectively reduces the number of edges in H b i by a factor of 2, i.e., H
+                                                                                              b i consists
+      of less than half the number of edges in Hb i−1 .
+      Clearly, the connectivity on expanders is preserved in H b i by the spanning trees Tℓ , and the
+      remaining connectivity information is simply added to Hb i . Thus, Hb i preserves the connectivity
+      information of Gi .
+                       b
+
+We interleave the above vertex sparsification and edge sparsification and, if G is connected, obtain a
+hierarchy where GbΛ = H b Λ consists of only polylogarithmically many vertices for some Λ = O(log m).
+Both core graphs and edge sparsification can be implemented in O(m)   e     randomized time via the
+classic techniques of Frederickson [Fre85] and the seminal result on expander decompositions from
+[SW19].
+
+Controlling the Recourse in the Dynamic Algorithm. We next outline how to dynamize the
+algorithm above. As mentioned, the key challenge is controlling the recourse across the hierarchy.
+Recall that we cannot afford recourse per level larger than 1, as this would result in unacceptable
+blow-up over the levels. However, since edge insertions do not affect the connectivity certificates
+(i.e., the forests) of higher levels in the hierarchy, we can essentially ignore insertions and add them
+only to the top level graph G   bΛ .
+     On the other hand, an edge deletion might indeed require us to restore some connectivity
+information. There are three possible scenarios for how the deletion of an edge e can affect a level
+i in the hierarchy:
+
+   1. if e is in Fi , the deletion results in a vertex split of a vertex in G
+                                                                            b i (and H
+                                                                                     b i ).
+
+   2. if e is in H
+                 b i , then it can be processed as an edge deletion to our edge sparsifier.
+
+   3. if e is in neither, then we can ignore the effect of removing e as no certificate at a higher level
+      requires it.
+   4
+     This is slightly imprecise, we rather aim for each component to be incident to at most κ volume with respect to
+H
+b i−1 .
+
+
+
+                                                         5
+    We show that in both of the first two cases, we can compensate for the deletion of e by adding
+only O(1)
+       e    new edges to Hb i . Note that adding edges can be treated like edge insertions and thus
+effectively ignored and forwarded to the highest level of the hierarchy.
+    Of course, once we have added many edges to G        b Λ (and Hb Λ ), these graphs are no longer of
+polylogarithmic size. This can be mitigated by rebuilding graphs at level i and higher every 2i
+steps and factoring in edges that have been inserted since the last rebuild. Our approach achieves
+O(1)
+ e    worst-case update time under the assumption that edge deletions result at each level in adding
+at most O(1)
+          e    edges to the sparsifier H
+                                       b i . To do so, we distribute the computation of a rebuild over
+sufficiently many updates.
+
+Dynamic Edge Sparsification. It remains to describe how to dynamize our edge sparsification
+procedure. Recall that we only have to react to vertex splits/edge deletions.
+    Let us first discuss how to deal with the more standard update of an edge deletion: when an
+edge e is deleted from an expander graph G[Xb ℓ ], we apply expander pruning techniques to prune out
+a set Pℓ ⊆ Xℓ of volume O(1) such that Gi [Xℓ \ Pℓ ] is still a Ω(1)-expander.
+                           e                b                      e             We rely on the recent
+new expander pruning algorithm from [MGS25] that allows us to process many edge deletions to
+the expander while growing Pi only O(1) e    in volume at each step.5
+    Since the added volume to Pℓ is in O(1), e       we can afford to simply add all edges incident to
+Pℓ to Hi (only one of the expander graphs can contain the deleted edge e). We are almost done
+       b
+restoring the invariants from initialization. However, we still have to deal with the case that Tℓ
+might be no longer spanning Xℓ \ Pℓ but instead only be a forest (for technical reasons, we delete
+edges incident to Pℓ from Tℓ , however, crucially, we do not remove them from H      b i ). In this case,
+let C be the smallest connected component of the forest, then we have from the expander property
+that a Ω(1)-fraction
+        e             of the edges incident to C leave C. We use random sampling to find such an
+edge and add it to Tbi and H b i . We then repeat this procedure until Tℓ is spanning again.
+    Finally, the case of a vertex split can be handled similarly: by carefully constructing our hier-
+archy, we can ensure that each vertex in G    b i is incident to at most O(1)
+                                                                         e    edges. We then simulate
+a vertex split by removing all incident edges to the vertex and then re-inserting the two result-
+ing vertices with all their edges. This process can be simulated with an additional blow-up by a
+O(1)-factor
+ e           in the recourse in terms of insertions.
+
+Putting It All Together. Let us briefly review the algorithm: we have given an implementation
+of the dynamic core graph framework where we obtain extremely tight control over the recourse
+by only passing edge deletions up the hierarchy to be processed and by collecting O(1)
+                                                                                   e     new edges
+to be inserted to potentially recover connectivity and adding them only to the top level graph. To
+keep graphs small across the hierarchy, we use periodic rebuilds.
+    In our discussion, we have omitted many details to highlight the main conceptual ideas. The
+reader is referred to Section 3 for rigorous definitions and proofs.
+
+De-randomization of the dynamic connectivity data structure. Finally, let us briefly
+sketch how to obtain a deterministic data structure by following the same framework. Assume
+that edge sparsifier H
+                     b i can be computed along with an embedding Π b b from G
+                                                                    Gi 7→Hi
+                                                                                b i into H
+                                                                                         b i with
+congestion α (see Definition 1.2). Consider the following dynamic update strategy: whenever an
+   5
+   The seminal work in [SW19] achieves this guarantee only via amortization; some steps might not grow Pi at all,
+some grow it significantly. It is crucial for our algorithm to have worst-case guarantees.
+
+
+                                                       6
+edge e is deleted from H  b i , find all edges e′ from G  b i with e ∈ Π b b (e′ ) and simply add them to
+                                                                           Gi 7→Hi
+Hb i . Clearly, the algorithm only adds at most α edges at each level. And, clearly, H              b i preserves
+                                       b                                        ′
+the connectivity information of Gi at all times: for every edge e in Gi , either there still is an
+                                                                                       b
+explicit path between its endpoints in H    b i , or the edge e′ is itself in H b i . For α = O(1)
+                                                                                              e    and assuming
+such a sparsifier Hi along with an embedding can be computed in deterministic near-linear time,
+                    b
+this yields a deterministic dynamic connectivity algorithm with polylogarithmic worst-case update
+time.
+      We give a more detailed discussion of the reduction and other approaches towards efficient
+de-randomization in Section 3.7.
+
+
+2     Preliminaries
+Misc.      We let [n] = 1, . . . , n, and [n]0 = 0, . . . , n.
+
+Graphs.       We let G = (V, E) denote a graph with vertex set V and edge set E ⊆ V × V . For
+            P degG (v) denote the number of edges adjacent to vertex v and for any A ⊆ V , we let
+v ∈ V , we let
+volG (A) = a∈A degG (a) denote the volume of A.
+                                          def
+    For A, B ⊆ V , we let E(A, B) = {(u, v) ∈ E : u ∈ A ∧ v ∈ B} be the set of edges with one
+endpoint in A and one endpoint in B. For A ⊂ V , we let G[A] denote the induced subgraph on
+A, i.e. G[A] = (A, E(A, A)). For notational convenience, we sometimes write G ∪ E ′ instead of
+(V, E ∪ E ′ ) and G \ E ′ instead of (V, E \ E ′ ).
+    In a graph G = (V, E), we call a vertex set ∅ ⊂ A ⊆ V connected (in G) if E(B, A \ B) ̸= ∅
+for all B such that ∅ ⊊ B ⊊ A. If additionally E(A, V \ A) = ∅, the we refer to A as a connected
+component of G. We call the partition of the vertex set into such components the connected
+components of G.
+
+Trees and Forests. We call a graph G = (V, E) a tree if it is connected and has exactly |V | − 1
+edges. We call a collections of trees a forest. We usually use T and F to refer to graphs that are
+trees and forests respectively.
+     We call a forest F a spanning forest of G if they share the same vertex set and F ⊆ G and say
+it is a maximal spanning forest if F and G additionally share the same connected components.
+
+Dynamic Graphs. A dynamic graph G is a graph whose vertex and edge sets change over time.
+Formally, we define such a dynamic graph as a tuple of sequences ((G(i) )i∈[T ]0 , (U (i) )i∈[T ] ). Then,
+the entry G(0) refers to the intitial graph, and G(i) is obtained by applying the update sequence
+U (i) to G(i−1) . An update sequence U (i) may contain updates of the following types.
+
+    1. Edge Insertion: Adds a new edge to the edge set of the graph.
+
+    2. Edge Deletion: Deletes an edge from the edge set of the graph.
+
+    3. Vertex Split: Replaces a vertex v in the graph with two new vertices v ′ and v ′′ . Every edge
+       incident to v becomes incident to either v ′ or v ′′ .
+
+
+
+
+                                                          7
+3     Dynamic Maximal Spanning Forest via Core Graphs
+In this section, we describe how to maintain a maximal spanning forest of a graph with only
+polylogarithmic update time.
+
+Theorem 3.1. Assume to be given an edge-dynamic graph G = (V, E), initially consisting of m
+edges undergoing a sequence of at most m edge insertions/deletions. Then, there is a data structure
+with initialization time O(m)
+                         e    that explicitly maintains an edge-dynamic forest F ⊆ G at any step
+with worst-case update time O(1)
+                            e     (holding w.h.p.), such that F remains a maximal spanning forest
+of G at all times.
+
+    Note that Theorem 1.1 claims expected worst case update time instead of polylogarithmic
+worst-case update time. These guarantees are equivalent up to polylogarithmic loss in efficiency by
+a black box reduction from [BFH21].
+    By standard reductions (See [Fre85]), we assume w.l.o.g. that the input graph G = (V, E) has
+maximum degree 3 at all times. To further simplify the exposition, we first describe a version of
+our algorithm that achieves the guarantees in Theorem 3.1 with amortized update time O(1).e     We
+discuss a de-amortization of our algorithm via standard techniques in Section 3.5.
+
+3.1   The Main Algorithm
+Our algorithm maintains a hierarchy of core graphs. We start by giving the definition.
+
+Definition 3.2 (Core Graph). Given a graph G = (V, E) and a spanning forest F we let C(G, F )
+denote the graph obtained from G via contracting the tree components in F into single vertices and
+removing self-loops.
+
+Remark 3.3. When C(G, F ) is clear from context, we denote for each vertex u ∈ V , by u          b the
+image of u under the contraction operation. For each edge e = (u, v) ∈ E, we denote by eb either
+the edge (b          b ̸= vb or an empty pointer ⊥ for u
+          u, vb) for u                                 b = vb. We also say that u is in the pre-image
+of u
+   b and e is in the pre-image of eb.
+
+    Observe that for core graph C(G, F ) and F ⊆ G, we have that for every u, v ∈ V , u and v are
+                   b and vb are connected in C(G, F ). This directly follows because the contracted
+connected in G iff u
+components are connected, which is certified by the corresponding tree. We exploit this fact (often
+implicitly) throughout.
+    As in previous dynamic algorithms that employed core graphs, the key to efficiency of our data
+structure is that whenever we take a core graph, the underlying forest F has each tree T in F
+incident to small volume. We make this constraint qualitative and say F is κ-shattering if the
+volume incident to each tree is at most κ.
+
+Definition 3.4 (Shattering Forest). Given graphs G = (V, E) and H ⊆ G, we call a forest F ⊆ G
+consisting of trees T1 , . . . , Tη a κ-shattering forest with respect to H if volH (V (Ti )) ≤ κ for all
+i ∈ 1, . . . , η and V (G) = V (F ).
+
+     Our data structure maintains a hierarchy over Λ+1 layers for Λ = ⌈log2 m⌉+4. At initialization
+and after every update, we update the hierarchy one layer after another in increasing order of i,
+i.e. we process layer i before processing layer i + 1. We let time t refer to the number of updates to
+G processed, that is, initialization takes place at time 0, and the processing after the t-th update
+
+                                                   8
+                                                         def 
+to t takes place at time t. We define for 0 ≤ i ≤ Λ, xi = 2Λ−i−3 . Then, we re-initialize layer i
+                                                                    
+
+at every time step t divisible by xi .
+    We let F0 = (V, ∅), G
+                        b 0 = G, H
+                                 b 0 = G, H0 = G at all times. At time t, at each layer i = 1, . . . , Λ,
+the data structure maintains:
+   1. Fi : A spanning forest with Fi ⊆ Fi−1 ∪ Hi−1 . We distinguish as follows:
+         • If t is divisible by xi : Fi is re-initialized to be κ-shattering forest w.r.t. Hi−1 where
+              def
+           κ = 8 · 108.
+         • Otherwise: if at time t an edge e is deleted from G, we also remove e from Fi (to ensure
+           Fi ⊆ Fi−1 ∪ Hi−1 ). Otherwise, Fi is not updated.
+      b i : The current core graph C(Fi ∪ Hi−1 , Fi ).
+   2. G
+
+   3. H
+      b i : A connectivity sparsifier of G                            bi ⊆ G
+                                           b i at all times. That is, H    b i and u, v ∈ V b are connected
+                                                                                           Hi
+      H
+      b i iff they are connected in G b i . Again, we distinguish as follows:
+
+         • If t is divisible by xi : we rebuild H
+                                                b i to be of size at most O(|V b |).
+                                                                              Hi
+         • Otherwise: after every update to G, Hi−1 ∪ Fi is updated before updating H            b i . For every
+           insertion of edge e = (u, v) to Hi−1 ∪ Fi , we add the edge eb = (b                    b ̸= vb (w.r.t.
+                                                                                  u, vb) to Hi if u
+                                                                                            b
+           Gb i ). Further, we will show that there is at most one deletion to Hi−1 ∪ Fi per update to
+           G at a later stage.
+           If such an edge deletion occurs, say edge e = (u, v) is deleted from Hi−1 ∪ Fi . Let
+           bOLD , vbOLD refer to u, v in the graph G
+           u                                          b i before processing at time t, and u      bNEW , vbNEW
+                                                  bOLD = vbOLD .
+           after. In particular, if e ∈ Fi , then u
+           Then, we simlate that u     bOLD and vbOLD are deleted from H  b i , identify a set of edges ∆E    bi
+           that ensures that upon being added, Hi \ {bb      u, vb} ∪ ∆Ei is a connectivity sparsifier of
+                                                                        b
+           Gb i \ {buNEW , vbNEW } and finally add to H                 bNEW , vbNEW along with all their
+                                                       b i the vertices u
+           edges incident in G       b 7→ vbOLD ?
+                                bi . u
+                            b i , that is Hi = (V, {e | eb ∈ E(H
+   4. Hi : The pre-image of H                                  b i )}).
+    We update each of these components in the order that they are listed. We observe that every
+forest Fi ⊆ G. Further, our algorithm maintains the following key invariant for the hierarchy, whose
+proof is deferred to Section 3.4.
+Invariant 3.5. For any layer i ∈ [Λ], we have
+             (#connected components in Fi ) ≤ (#connected components in G) + 2Λ−i−1 .
+    We let FΛ be the spanning forest that our algorithm outputs. By Invariant 3.5 and FΛ ⊆ G,
+FΛ is a maximal spanning forest of G.
+    We store each forest Fi in a link-cut tree data structure with worst-case update time O(log2 n)
+[DSST86]. This link-cut tree data structure additionally guarantees that a copy of the whole data
+structure can be made in worst-case time O(log2 n).6
+    We give the missing implementation details in the sections below and then analyze the main
+data structure, which yields Theorem 3.1.
+   6
+    This data structure falls into the more general category of persistent data structures [DSST86]. The copying is
+then emulated by storing differences to the moment that data structure was copied.
+
+
+                                                        9
+3.2    Implementing the Re-initialization of Fi
+Below, F[ v, x] 7→ Fi−1 [v, x]
+
+The re-initialization procedure. Recall that Fi is re-initialized to be a κ-shattering forest
+w.r.t. Hi−1 . Let us now describe the precise procedure: We let Ei be the set of edges in Fi−1 that
+are incident to an endpoint of an edge in EHi−1 . The algorithm first computes the branch free set
+Bi of VEi in Fi−1 , i.e. Bi is the set of all vertices in VEi and all vertices v ∈ V for which there
+exist three vertices x, y, z ∈ VEi in the component of v such that Fi−1 [v, x], Fi−1 [v, y], Fi−1 [v, z] are
+pairwise disjoint. Then, it constructs the graph A    bi = C(Fi−1 ∪ Hi−1 , Fi−1 \ Bi ) where Fi−1 \ Bi
+denotes the forest Fi−1 where all edges incident to Bi are removed (See Figure 1). The reason for
+not directly computing a shattering forest of H   b i−1 is that it does not have sufficiently bounded
+degree.
+
+
+
+
+Figure 1: The black edges form a tree of Fi−1 , and the dashed red edges are in Hi−1 . Then, the
+(red) endpoints of the edges in Hi−1 are included in the branch free set Bi . Finally, the blue vertices
+are added to Bi , such that the paths between adjacent vertices in Bi become disjoint. The green
+shaded parts are contracted to obtain graph A  bi . The graph inherits maximum degree 3 from G.
+
+    We then take an arbitrary maximal spanning forest Fbi of Abi . For each component Tb in Fbi of
+size at least κ, we invoke the algorithm in Lemma 3.6 below with parameter κ/9. We let Ebi be the
+set of all edges returned by these procedures.
+
+Lemma 3.6 (see [Fre85], Lemma 1). For an n-vertex connected tree T with maximum degree 3,
+and a positive integer z such that n ≥ 3z − 2, there is an algorithm that runs in time O(n) and
+returns a set E ′ ⊆ E(T ) such that each connected component in T \ E ′ contains at least z and at
+most 3z − 2 vertices.
+
+   For components of size less than κ, we compute an arbitrary spanning tree. Finally, we let Fi
+consist of the union formed by the pre-image of Fbi \ E
+                                                      bi and forest Fi−1 \ B.
+
+Analysis.    Let us briefly analyze the re-initialization procedure.
+
+Claim 3.7. After re-initialization, Fi is κ-shattering with respect to Hi−1 . For every connected
+component C of G, the forest Fi [C] is either a tree, or it consists of at most 108
+                                                                                 κ · |EHi−1 [C] | compo-
+nents. Finally, |EAbi | ≤ 5 · |EHi−1 |.
+
+Proof. By construction, we have for each u ∈ Bi that u  b in core graph A  bi have u = ub. Since
+V (EHi−1 ) ⊆ Bi , we have that every super-vertex u
+                                                  b in Ai stemming from contraction of a non-
+                                                        b
+singleton set U is spanned by some tree TU ⊆ Fi−1 that is not incident to any edge in Hi−1 .
+
+
+
+                                                    10
+     We next prove that Ai has maximum degree 3 and thus the assumption of Lemma 3.6 is satisfied
+for Fbi ⊆ A
+          bi : we first note that vertices u        b with u  b = u for some u ∈ V have maximum degree 3 since
+Fi−1 ∪ Hi−1 ⊆ G and G having maximum degree 3. Further observe that each u                   b stemming from the
+contraction of a non-singleton set U has at most 2 edges leaving in Fi−1 . Otherwise, we can find
+for each subtree T1 , T2 , . . . , Tk for k ≥ 3 dangling from these edges at least one vertex b1 , b2 , . . . , bk
+from Bi in the respective subtree which implies that for some vertex u ∈ U , the intersection of
+paths Fi−1 [b1 , b2 ], Fi−1 [b2 , b3 ], Fi−1 [b1 , b3 ] is u and thus u is a branching vertex. But since Bi ∩ U is
+empty, this yields a contradiction.
+     Next, fix any connected component C of G. We use the well-known fact that the branch
+free set Bi ∩ C of set |VEHi−1 [C] | is at most twice as large as the underlying set, i.e. |Bi ∩ C| ≤
+2 · |VE
+      Hi−1 [C]
+              | ≤ 4 · |EHi−1[C]
+                                  |. It follows that, for C    b being the connected component C after applying
+the same contractions that produced Ai , we have |VAi [C] b | ≤ 12 · |EHi−1 [C] | since there are no edges
+between vertices u b stemming from the contraction of non-singleton sets and the vertices u     b stemming
+from singleton sets have maximum degree 3. This yields, by Lemma 3.6, that Fbi [C] \ E           bi [C] is κ-
+shattering w.r.t. the graph A bi (each cluster has at most 3κ/9 − 2 < κ/3 vertices, each of degree at
+most 3) and that there are at most |VAi |/(κ/9) ≤ 108 κ · |EHi | connected components.
+    It then remains that ’uncontracting’ the vertices u   b stemming from non-singleton sets U in
+Fi [C] \ Ei [C] such that the trees TU spanning U are added again, does not connect any vertices
+ b       b
+in Bi ∩ C, but also does not create additional components. Thus, Fi [C] is κ-shattering w.r.t.
+Hi−1 [C] ⊆ Fi−1 [C] ∪ Hi−1 [C] and the number of components is again at most 108       κ · |EHi [C] |.
+    Finally, the number of edges from Fi−1 that are in A  bi can be bounded because contracting the
+paths between vertices in the branch free sets yields trees with at most 2 · |EHi−1 | vertices, and
+therefore also edges. For every such contracted path, we add at most 2 edges to A        bi . Therefore, the
+total number of edges in Ai is bounded by 5 · |EHi−1 | as desired.
+                           b
+
+                                                                               e H |).
+Claim 3.8. The algorithm to re-initialize forest Fi can be implemented in time O(|E i−1
+
+
+Proof. Let us follow the insights used in Claim 3.7. We can find the set Bi of branching vertices
+in time O(|Bi | log n) by slightly augmenting the link-cut tree data structure on Fi−1 (for details,
+see [vdBCK+ 24]). Thus, we can construct the graph A                             e H ||). Comput-
+                                                          bi explicitly in time O(|E
+                                                                                      i−1
+                                                              e H |) as does the procedure from
+ing a maximal spanning forest of Fbi statically takes time O(|E      i−1
+
+Lemma 3.6 to compute edge set E                                           e H |) by making a copy
+                                   bi . We can then construct Fi in time O(|E
+                                                                                i−1
+of Fi−1 (using persistence), removing all edges incident to vertices in Bi , and adding the pre-images
+of all edges in Fbi \ E
+                      bi .
+
+
+3.3    Implementing the Connectivity Sparsifier H
+                                                b i of G
+                                                       bi
+In this section, we describe how to maintain connectivity sparsifiers H
+                                                                      b i of G
+                                                                             b i with the required
+guarantees.
+
+Expanders and Expander Decompositions. Expanders have been crucial in many previous
+connectivity data structures [PT07, NS17, WN17, NSWN17] and we also heavily employ them in
+our construction. We state a seminal result in the area.
+
+
+
+
+                                                       11
+Definition 3.9 (Expander Decomposition). For a graph G and some set A ⊆ V , we let volG (A) =
+P                                                                              |E(A,V \A)|
+   a∈A degG (a) denote the volume of A. We then call G a ϕ-expander if volG (A) ≥ ϕ for every
+set A ⊃ ∅ such that volG (A) ≤ volG (V )/2.
+    We say a partition X1 , . . . , Xη of the vertex set V is a ϕ-expander decomposition of quality q if
+
+   1. |{(u, v) ∈ E(Xi , Xj ) : i ̸= j}| ≤ q · ϕ · m and
+
+   2. G[Xi ] is a ϕ-expander for all 1 ≤ i ≤ η.
+
+Theorem 3.10 (Expander Decomposition, See Theorem 1.2 in [SW19]). Given a graph G = (V, E)
+with m edges and n vertices, and a parameter ϕ, there is a randomized
+                                                                       algorithm
+                                                                                   that computes a
+                                                3               m log4 m
+ϕ-expander decomposition of quality γexp = O(log m) in time O       ϕ      . The algorithm succeeds
+w.h.p.
+
+    It is well-known that expanders are relatively robust to updates, meaning that most of the
+expander remains well-connected, and efficient algorithms exist to uncover these well-connected
+parts by pruning small parts that are potentially poorly connected. Here, we use a very recent
+result that achieves O(1)
+                     e    worst-case update times and recourse.
+
+Theorem 3.11 (Worst-Case Pruning, See Theorem 1.3 in [MGS25]). Given a ϕ-expander G =
+                                                     ϕm
+(V, E) with n vertices and m edges undergoing up to γprune edge deletions for γprune = O(1),
+                                                                                       e     there
+                                                                                      ϕ
+is an algorithm that explicitly maintains a set A such that G[V \ A] remains a γprune   - expander.
+Every deletions/vertex split is processed in time γprune /ϕ and the set A grows by at most γprune /ϕ2
+                                                           2
+
+vertices after each update.
+
+The Connectivity Sparsifier.            Equipped with these tools we are now ready to describe the
+algorithm to maintain H
+                      bi:
+
+      • If t is divisible by xi : We re-compute H   b i as follows. We first compute a ϕsparse -expander
+        decomposition X1 , X2 , . . . , Xη of the current graph G b i for ϕsparse = 1/(20γexp ) = Θ(1)
+                                                                                                  e    where
+        γexp is the quality parameter in Theorem 3.10. It then initializes a data structure Pj on each
+        ϕsparse -expander D bj = G b i [Xj ].
+
+        Finally, we compute a spanning tree Tbj for each expander D    b j and re-initialize H
+                                                                                             b i as the
+        union of all trees Tbj and the set of edges crossing between expanders, i.e. the set {(u, v) ∈
+        EGbi (Xj , Xk ) | j ̸= k}.7
+
+      • Otherwise: As already mentioned previously, we will show that at every time step t, Hi−1 ∪ Fi
+        undergoes at most one edge deletion.
+        Let us now describe how to update H  b i such that it is again a connectivity sparsifier of G
+                                                                                                    bi .
+        We first handle the edge deletion to Hi−1 ∪ Fi (if it occurs):
+
+           – Let e = (u, v) be the edge that is deleted. For each zb ∈ {b    uOLD , vbOLD } (for e ∈ Fi ,
+             u
+             b OLD = vbOLD ), we do the following: we first remove all edges incident to zb from Hbi.
+  7
+    If the graph D
+                 b j is disconnected, we restart the entire data structure. This only happens when the expander
+decomposition algorithm from Theorem 3.10 fails.
+
+
+
+                                                      12
+            If there is a graph Db j as described above that contains zb, then we also remove all incident
+            edges to zb from Dj and inform the pruning data structure Pj . If no such graph D
+                              b                                                                         b j exists,
+            we do nothing in this step. Otherwise, if the data structure Pj received the maximum
+            number of updates already, we add D      b j to H b i and then set D  b j to be the empty graph.
+            Otherwise, let ∆A be the set of vertices outputted by Pj due to the updates caused.
+            Clearly, zb ∈ ∆A. Add all edges incident to ∆A in D        b j to Hb i (if e ∈ Fi , replace ub = vb by
+            the new vertices u b and vb resulting from the vertex split and move the edges incident to
+            b to the right endpoint). Additionally, add 2 · γprune · κ/ϕsparse edges from D
+            u                                                                                       bj \ H
+                                                                                                         b i to H
+                                                                                                                bi
+            (as long as such edges exist).
+            Then, induce the tree Tbj and the graph D      b j on vertex set V b \ ∆A. After inducing, the
+                                                                                 Dj
+            tree Tbj is potentially a forest. To remedy this, while there are components C1 , C2 , . . . , Cν
+            for ν ≥ 2, take the smallest such connected component, say C1 , and sample uniformly
+            at random an edge incident to C1 in D       b j until an edge fb is found that leaves C1 . Add
+            the edge fb to Tbj and H  b j and repeat the process.8
+            Finally, add the new projections u   bNEW , vbNEW back into H     b i together with their incident
+            edges (now potentially with different endpoints).
+
+       Then, we handle the set of edge insertions to Hi−1 ∪ Fi :
+
+         – For every edge e inserted, if eb = ⊥, we do nothing; otherwise we add eb to H
+                                                                                       bi.
+
+Analysis.      Again, let us analyze the procedures.
+
+Claim 3.12. At all times H
+                         b i remains a connectivity sparsifier of G
+                                                                  bi .
+
+Proof. For the re-initialization procedure, correctness follows immediately since spanning trees are
+clearly connectivity sparsifiers of connected graphs.
+    In our update procedure, we have that insertions to Hi−1 ∪ Fi are added to H     b i if they are added
+to Gi , and thus connectivity is preserved.
+    b
+    Let us now analyze the deletion of an edge (u, v) ∈ Hi−1 ∪ Fi : we first delete the images of
+endpoints u   bOLD , vbOLD with all their incident edges from Hb i . Then, we prune some vertices from
+graphs D b j , add the edges incident to the pruned vertex set to H  b i and then add the (fixed) tree Tbj
+to Hi for each affected graph.
+    b
+    But this implies that H   b i consists of spanning trees of connected components formed by each
+Dj and all remaining edges in G
+ b                                   b i by the end of the update. Thus, clearly, H b i is a connectivity
+sparsifier of H b i at any time.
+
+Claim 3.13. At each time t divisible by xi , graph Hi consists of at most 108   κ · |EHi−1 | + 2γexp ·
+ϕsparse · |EHi−1 | edges. At each time t not divisible by xi , Hi undergoes at most one edge deletion
+and at most 4i · κ2 · γprune /ϕ2sparse edge insertions.
+
+Proof. At each time t divisible by xi , layer i is rebuilt. Let us first bound the number of edges it
+contains after a rebuild.
+   8
+    If re-connecting takes time ≫ O(log n) · γprune /ϕsparse , we re-start the whole data structure. We show that this
+only happens with probability 1/nC for some large constant C.
+
+
+
+
+                                                         13
+    By Claim 3.7, we have |EAbi | ≤ 5·|EHi−1 |. We directly obtain |EGbi | ≤ |EAbi | ≤ 5·|EHi−1 |. We first
+bound the number of edges between expander components Xj in the expander decomposition. By
+Theorem 3.10, the total number of such edges is bounded by ϕsparse |EGbi | ≤ 5 · γexp · ϕsparse · |EHi−1 |.
+All other edges in H b i are part of spanning trees Tbj of expander components Xj . We notice that
+singleton compoents do not contribute any edges. Therefore, the total number of such edges is at
+most 108κ |EHi−1 |. This concludes the proof of the first part of the claim.
+    If the update at time t is an insertion, then Hi undergoes at most one insertion and no deletions.
+Therefore, we focus on edge deletions. Since Hi ⊆ G, a deletion to G clearly only causes one deletion
+to Hi .
+    Recall that after every deletion, each layer j ≤ i outputs a set of edges ∆E     bj , and Hi is updated
+                         S
+by adding the edge set j≤i ∆Ej . We first bound the size of the set ∆E      bj for every j. If both mapped
+endpoints of the edge are not contained in some graph D     b k at this layer, the set is empty. Otherwise,
+let us assume that the data structure Pk has not yet processed the maximum number of updates.
+In that case simulating the edge deletion/vertex split on D    b k takes at most κ/3 edge deletions to Pk .
+Each of these will cause up to κγprune /ϕ2sparse edges to enter the set ∆Ej by Theorem 3.11. Finally
+another κ2γprune /ϕsparse arbitrary edges are added. Afterwards, the tree Tbk is repaired. Since there
+are at most κγprune /ϕ2sparse edge deletions to Tbk , this adds at most κγprune /ϕ2sparse extra edges.
+    Finally, we observe that whenever Pk processed the maximum amount of deletions, the extra
+edges added in each previous step ensure that every edge incident to Dk is already in the graph
+Hk .
+    In this proof, we ignored failures. Whenever such a failure occurs with probability 1/nC for
+some large constant C, we re-start the whole algorithm and therefore t is re-set to 0.
+
+Claim 3.14. The re-initialization of H                                            e H |) with
+                                     b i and Hi can be implemented to run in time O(|E
+                                                                                        i−1
+
+high probability. For every other update, the algorithm requires expected time O(1) to update H
+                                                                                e             bi
+and Hi .
+                                              e H |) by Claim 3.8. Then, we compute an
+Proof. We first compute the tree Fi in time O(|E    i−1
+
+expander decomposition of the resulting core graph A                                  e H |)
+                                                    bi . This graph contains at most O(|E
+                                                                                            i−1
+edges by Claim 3.7. Therefore, the runtime of computing said expander decomposition follows
+from ϕsparse = Ω(1)
+               e     and Theorem 3.10. Finally, we initialize the pruning data structures on the
+                                              e H |) by Theorem 3.11. This concludes the
+expander components, which takes total time O(|E     i−1
+runtime analysis of the re-initialization.
+   We analyze the time spend with pruning and recomputing trees separately.
+   • The pruning data structure takes total time O(1)
+                                                 e     to prune at most κ edges by Theorem 3.11
+     and the definition of our algorithm, where we use that κ = O(1).
+                                                                 e
+
+   • The sampling procedure succeeds with probability γprune /ϕsparse = Ω(1).
+                                                                            e       Therefore, the
+     expected update time follows directly from the fact that the total number of new edges added
+     to the tree is at most 4κ2 · γprune /ϕ2sparse = O(1).
+                                                     e
+
+All other operations can be implemented in time O(1).
+                                                e
+
+3.4    Analyzing the Main Algorithm
+To analyze the correctness of our algorithm, we first prove the main invariant.
+
+                                                    14
+Proof of Invariant 3.5. We first observe that for i = 0, we have F0 = (V, ∅) for every t, and therefore
+the number of connected components in F0 [C] is |C| = |C|/20 as desired.
+   We then strengthen the invariant for i > 0 to enable our proof.
+   • Strengthened Invariant: For every layer i ≥ 0 and time t, we have
+
+         (#connected components in Fi ) ≤ (#connected components in G) + 2Λ−i−2 + (t − ti ).
+      where ti denotes the largest timestamp such that ti ≤ t and xi is divisible by ti .
+We prove the strengthened invariant by induction on i and t.
+    For t = 0 and i = 0 we have F0 = (V, ∅), and thus the number of connected components in F0
+is |V | ≤ 2Λ−2 as desired. Then, we fix some timestamp t and layer i, and assume the strengthened
+invariant holds for all pairs layers j and timesteps t′ such that either j < i and t′ ≤ t or t′ < t.
+There are two cases to consider.
+   • xi is divisible by t: In this case, the layer i gets rebuilt. By the induction hypothesis, we
+     have that Fi−1 contains at most 2Λ−i−1 more components than G because t − ti−1 ≤ 2Λ−i−2
+     throughout by the definition of our algorithm. Therefore, the claim follows from Claim 3.7
+     since κ = 8 · 108.
+   • Otherwise: In this case, we invoke the induction hypothesis for t − 1 and i.
+      If the update is an edge deletion, then this can cause the number of connected components
+      in Fi to go up by at most one. Therefore the strengthened invariant follows directly.
+      If the update is an edge insertion, we distinguish two cases. Either the endpoints were already
+      in the same connected component at time t − 1. In this case, the strengthened invariant
+      follows by induction since the forest Fi remains unchanged. Or the edge insertions connects
+      two previously disconnected components C1 and C2 . Then we have that the total number of
+      connected components of Fi remains the same, but the number of connected components in
+      G decreases by exactly one. Therefore, the invariant again follows.
+We finally observe that t − ti ≤ 2Λ−i−3 . Therefore, the strengthened invariant implies the desired
+invariant.
+
+Lemma 3.15. The amortized update time is O(1).
+                                         e
+
+Proof. We first prove that |EHi | = O(x
+                                      e i ) by induction. For our proof, we again work with a
+strengthened invariant.
+    • Strengthened Invariant: |EHi | ≤ 4i · κ2 · γprune /ϕ2sparse 2Λ−i + (t − ti ) , where ti denotes the
+                                                                                  
+
+      largest timestamp such that ti ≤ t and xi is divisible by ti .
+For i = 0, the claim follows for every t ≤ m since |EH0 | ≤ m ≤ 2Λ where we recall that x0 > m
+and therefore the layer 0 never gets rebuilt. Then, we again fix some timestamp t and layer i, and
+assume the strengthened invariant holds for all pairs layers j and timestamps t′ such that either
+j < i and t′ ≤ t or t′ < t.
+   • xi is divisible by t: In this case, the layer i gets rebuilt. By the induction hypothesis, we
+     have that Hi−1 contains at most 4(i − 1) · κ2 · γprune /ϕ2sparse (2Λ−i−1 + 2Λ−i−2 ) edges because
+     t − ti−1 ≤ 2Λ−i−2 throughout by the definition of our algorithm. Therefore, the invariant
+     follows from Claim 3.13 since κ = 8 · 108 and ϕsparse = 1/(20γexp ).
+
+                                                   15
+   • Otherwise: In this case, we invoke the induction hypothesis for t − 1 and i. If the update is
+     an edge deletion, then this can cause the number of connected components in Fi to go up by
+     at most one. Then, the invariant directly follows from Claim 3.13.
+
+Finally, we observe that the invariant implies |EHi | = O(x    e i ) by our choice of parameters and
+Theorem 3.11. Therefore, the claim directly follows because layer i gets re-initialized after xi time
+steps, and the cost of re-initialization of layer i is O(H
+                                                       e i−1 ) = O(x
+                                                                 e i ) Lemma 3.15. All other updates
+take worst-case time O(1) by Lemma 3.15, so the total update time follows by summing over the
+                        e
+Λ = O(log m) layers.
+    Finally, failures happen with sufficiently low probability to amortize away a full rebuild.
+
+Theorem 3.1. Assume to be given an edge-dynamic graph G = (V, E), initially consisting of m
+edges undergoing a sequence of at most m edge insertions/deletions. Then, there is a data structure
+with initialization time O(m)
+                         e    that explicitly maintains an edge-dynamic forest F ⊆ G at any step
+with worst-case update time O(1)
+                            e     (holding w.h.p.), such that F remains a maximal spanning forest
+of G at all times.
+
+Proof. Follows directly from Invariant 3.5 and Lemma 3.15.
+
+3.5   De-amortization
+As presented, our algorithm only achieves amortized update times. This deficit is remedied via
+standard de-amortization techniques.
+    We observe that the only amortized part in the update time bound is the re-initialization, which
+happens in regular intervals. This allows pre-computing such re-initializations in the background
+and swapping them in at the opportune moment to obtain an algorithm with worst-case update
+times.
+    We remark that this technique heavily relies on pointer switching. Concretely, the algorithm
+cannot output changes to the forest explicitly, and instead provide query access to the forest.
+However, in Section 3.6, we provide a black-box reduction that shows that such an algorithm
+suffices to maintain an explicit tree.
+
+3.6   Maintaining an Explicit Forest
+In this section, we provide a simple reduction from explicit to implicit forest maintenance.
+
+Lemma 3.16. Assume to be given a worst-case O(1) e   update time dynamic connectivity algorithm
+that provides query access to a maximal spanning forest. Then, there is a worst-case O(1)
+                                                                                     e    update
+time dynamic connectivity algorithm that explicitly maintains a maximum spanning forest via at
+most 2 updates per step.
+
+Proof. The algorithm initially computes an explicit maximal spanning forest F . In the following,
+we let F ′ denote the implicitly maintained forest which we query. We assume that both are stored
+in link-cut tree data structures [DSST86].
+    Whenever an edge is inserted, the algorithm first checks if it crosses tree components in F . If
+so, it adds it to F .
+    Whenever an edge (u, v) is deleted from F , the algorithm checks if u and v are in the same
+component in F ′ . If so, it needs to repair the tree F . To do so, it sets x ← u, y ← v. Then, it uses
+
+                                                  16
+the link-cut tree to obtain the midpoint z of the path F ′ [x, y]. It then checks if z is in the same
+components as u in F . If so, we set x ← z. Otherwise, we set y ← z. We continue until the edge
+(x, y) is in F ′ . Then, we add this edge to F .
+    This procedure terminates in O(1)e    steps since the length of the path is halved in every step.
+Furthermore, x is always in the same component of F as u, and y is always in the same component
+as v. Therefore, the edge (x, y) repairs the tree in F as desired.
+    Other updates do not affect the connected components of the graph.
+
+   Similarly to Lemma 3.16, we can also obtain an algorithm that maintains a (1 + ϵ) approximate
+minimum spanning tree for a graph with edge weights in [1, U ].
+
+Corollary 3.17. Assume to be given a worst-case O(1)
+                                                   e    update time dynamic connectivity algorithm
+that provides query access to a maximal spanning forest. Then, there is a worst-case O(log(U
+                                                                                      e        )/ϵ)
+update time algorithm that explicitly maintains a (1 + ϵ) minimum spanning forest of a weighted
+graph G with edge weights in [1, U ] via at most 2 updates per step.
+
+Proof. For i = 0, . . . , k = O(log(U/ϵ)), let Gi be the subgraph of G that only contains edges with
+weight at most (1 + ϵ)i .
+    We then maintain an explicit spanning forest for each of the graphs Gi . We observe that the
+connected components of Gi contain the connected components for Gj whenever j < i. We say an
+edge has level i if Gi is the first graph in which it appears.
+    We then maintain a minimum level spanning tree, i.e. a spanning tree of minimum total level.
+Whenever an edge (u, v) of level i in that tree gets deleted, we first check if the corresponding
+spanning forest got repaired. Otherwise, we search for the lowest level j > i such that u and v are
+in the same forest and locate a repairing edge via binary search as in the proof of Lemma 3.16.
+    When a new edge is inserted, we search for the highest level edge in the cycle formed by the
+maintained approximate minimum spanning tree and the edge via the same technique. If this level
+is higher than the level of the newly inserted edge, then we replace it in the tree.
+    This procedure clearly maintains a minimum level spanning tree and can be implemented to
+run in time O(k).
+             e
+    The claim follows since for every edge e in the tree, there is no edge of with weight < w(e)/(1+ϵ)
+that connects the tree components after deleting the edge e.
+
+3.7   A path towards De-randomization
+The connectivity sparsifier is the only randomized part of our algorithm. There, randomness is used
+to quickly compute an expander decomposition, and to maintain a spanning tree of an expander
+graph.
+    The broadest path towards de-randomizing this algorithm is to provide a connectivity sparsifier
+H ⊆ G of G with an explicit embedding ΠG7→H from G to H (see Definition 1.2). Such an
+embedding maps each edge e = (u, v) that is present in G to a uv-path ΠG7→H (e) in H, and ensures
+that every edge in H appears on at most α·|EG |/|EH | such paths for some parameter α. The ability
+to statically compute such a sparsifier suffices, because it can be maintained by simply adding all
+edges whose embedding paths are broken to the sparsifier. More precisely, given an edge e from G
+is deleted, then we add to H all edges e′ where e ∈ ΠG7→H (e′ ).
+    The algorithm only adds at most α · |EG |/|EH | edges to H by definition of α. Since we ensure
+for each graph Gb i in the hierarchy that |E(G
+                                             b i )| = O(|V
+                                                      e    (G
+                                                            b i )|), i.e. the number of edges exceeds the
+
+
+                                                   17
+number of vertices by at most a polylogarithmic factor, we only add for each level O(α)   e     edges to
+the hierarchy across all levels.
+     Further, H preserves the connectivity information of G at all times: for every edge e′ in G,
+either there still is an explicit path between its endpoints in H, or the edge e′ is itself in H. Thus,
+it is simple to show by induction on the levels that the connectivity algorithm remains correct.
+     Via the same analysis as in previous sections, we derive that the new algorithm runs in worst-
+case update time O(α  e + T (m)) where T (m) · m is the runtime of the algorithm that statically
+computes sparsifier and embedding. For α = O(T (m)), this yields Theorem 1.3.
+     A sparsifier as described above along with a low-congest embedding can be obtained rather
+directly via edge-decremental APSP [KMPG24, KMZ25] using ideas similar to [CKL+ 22, CKGS23],
+but the total time incurred by these data structures is currently m1+o(1) instead of O(m)  e     for any
+m edge graph. This yields an immediate de-randomization of our algorithm with subpolynomial
+worst-case update time.
+     Another plausible way toward deterministic algorithms is to de-randomize the components
+of our algorithm more directly. A fundamental stepping stone would be the development of a
+deterministic near-linear time algorithm to compute expander decompositions. The current state-
+of-the-art algorithm takes time m1+o(1) . In developing such an algorithm, one can also hope to
+derive techniques that allow us to route more efficiently in expander graphs. Most concretely,
+interpreting each edge in G as a commodity that has to be embedded into H, computing an
+embedding boils down to solving a k-commodity routing problem for k = Θ(n).  e      Recent techniques
+       +                                                               1+ϵ
+[HHL 24] can solve such problems approximately in time O((m + k) ) for arbitrarily small ϵ > 0.
+                                                             e
+
+
+Acknowledgments
+We thank Yu-Cheng Yeh and the anonymous reviewers for comments that improved the presentation
+of this article.
+
+
+
+
+                                                  18
+4    References
+[AHLT05]    Stephen Alstrup, Jacob Holm, Kristian De Lichtenberg, and Mikkel Thorup. Main-
+            taining information in fully dynamic trees with top trees. ACM Trans. Algorithms,
+            1(2):243–264, October 2005. 1
+
+[BFH21]     Aaron Bernstein, Sebastian Forster, and Monika Henzinger. A deamortization ap-
+            proach for dynamic spanner and dynamic maximal matching. ACM Transactions
+            on Algorithms (TALG), 17(4):1–51, 2021. 3, 8
+
+[CGH+ 20]   Li Chen, Gramoz Goranci, Monika Henzinger, Richard Peng, and Thatchaphol Sara-
+            nurak. Fast dynamic cuts, distances and effective resistances via vertex sparsifiers. In
+            2020 IEEE 61st Annual Symposium on Foundations of Computer Science (FOCS),
+            pages 1135–1146. IEEE, 2020. 3
+
+[CGL+ 20]   Julia Chuzhoy, Yu Gao, Jason Li, Danupon Nanongkai, Richard Peng, and
+            Thatchaphol Saranurak. A deterministic algorithm for balanced cut with appli-
+            cations to dynamic connectivity, flows, and beyond. In 2020 IEEE 61st Annual
+            Symposium on Foundations of Computer Science (FOCS), pages 1158–1167. IEEE,
+            2020. 1, 2
+
+[CH78]      Francis Chin and David Houck. Algorithms for updating minimal spanning trees.
+            Journal of Computer and System Sciences, 16(3):333–344, 1978. 1
+
+[CKGS23]    Li Chen, Rasmus Kyng, Maximilian Probst Gutenberg, and Sushant Sachdeva. A
+            simple framework for finding balanced sparse cuts via apsp. In Symposium on Sim-
+            plicity in Algorithms (SOSA), pages 42–55. SIAM, 2023. 3, 18
+
+[CKL+ 22]   Li Chen, Rasmus Kyng, Yang P. Liu, Richard Peng, Maximilian Probst Gutenberg,
+            and Sushant Sachdeva. Maximum flow and minimum-cost flow in almost-linear
+            time. In 2022 IEEE 63rd Annual Symposium on Foundations of Computer Science
+            (FOCS), pages 612–623, 2022. 3, 18
+
+[DSST86]    James R Driscoll, Neil Sarnak, Daniel Dominic Sleator, and Robert Endre Tarjan.
+            Making data structures persistent. In Proceedings of the eighteenth annual ACM
+            symposium on Theory of computing, pages 109–121, 1986. 9, 16
+
+[EGIN97]    David Eppstein, Zvi Galil, Giuseppe F. Italiano, and Amnon Nissenzweig. Spar-
+            sification—a technique for speeding up dynamic graph algorithms. J. ACM,
+            44(5):669–696, September 1997. 1
+
+[Fre85]     Greg N Frederickson. Data structures for on-line updating of minimum spanning
+            trees, with applications. SIAM Journal on Computing, 14(4):781–798, 1985. 1, 2, 5,
+            8, 10
+
+[Fre97]     Greg N. Frederickson. Ambivalent data structures for dynamic 2-edge-connectivity
+            and k smallest spanning trees. SIAM Journal on Computing, 26(2):484–538, 1997.
+            1
+
+
+
+                                               19
+[GKKT15]    David Gibb, Bruce Kapron, Valerie King, and Nolan Thorn. Dynamic graph con-
+            nectivity with improved worst case update time and sublinear space, 2015. 1
+
+[GRST21]    Gramoz Goranci, Harald Räcke, Thatchaphol Saranurak, and Zihan Tan. The ex-
+            pander hierarchy and its applications to dynamic graph algorithms. In Proceedings of
+            the 2021 ACM-SIAM Symposium on Discrete Algorithms (SODA), pages 2212–2228.
+            SIAM, 2021. 1, 2
+
+[Har82]     Dov Harel. On line maintenance of the connected components of dynamic graphs.
+            Unpublished manuscript, 5:95–97, 1982. 1
+
+[HdLT01]    Jacob Holm, Kristian de Lichtenberg, and Mikkel Thorup. Poly-logarithmic deter-
+            ministic fully-dynamic algorithms for connectivity, minimum spanning tree, 2-edge,
+            and biconnectivity. J. ACM, 48(4):723–760, July 2001. 1, 2
+
+[HHK+ 23]   Shang-En Huang, Dawei Huang, Tsvi Kopelowitz, Seth Pettie, and Mikkel Thorup.
+            Fully dynamic connectivity in o(log n(log log n)2 ) amortized expected time. Theo-
+            retiCS, Volume 2, May 2023. 1
+
+[HHL+ 24]   Bernhard Haeupler, D Ellis Hershkowitz, Jason Li, Antti Roeyskoe, and Thatchaphol
+            Saranurak. Low-step multi-commodity flow emulators. In Proceedings of the 56th
+            Annual ACM Symposium on Theory of Computing, pages 71–82, 2024. 18
+
+[HK95]      Monika Rauch Henzinger and Valerie King. Randomized dynamic graph algorithms
+            with polylogarithmic time per operation. In Proceedings of the Twenty-Seventh
+            Annual ACM Symposium on Theory of Computing, STOC ’95, page 519–527, New
+            York, NY, USA, 1995. Association for Computing Machinery. 1, 2
+
+[KKM13]     Bruce M Kapron, Valerie King, and Ben Mountjoy. Dynamic graph connectivity in
+            polylogarithmic worst case time. In Proceedings of the twenty-fourth annual ACM-
+            SIAM symposium on Discrete algorithms, pages 1131–1142. SIAM, 2013. 1, 2
+
+[KMPG24]    Rasmus Kyng, Simon Meierhans, and Maximilian Probst Gutenberg. A dynamic
+            shortest paths toolbox: Low-congestion vertex sparsifiers and their applications. In
+            Proceedings of the 56th Annual ACM Symposium on Theory of Computing, STOC
+            2024, page 1174–1183, New York, NY, USA, 2024. Association for Computing Ma-
+            chinery. 3, 18
+
+[KMZ25]     Rasmus Kyng, Simon Meierhans, and Gernot Zöcklein. Bootstrapping Dynamic
+            APSP via Sparsification. In Anne Benoit, Haim Kaplan, Sebastian Wild, and Grze-
+            gorz Herman, editors, 33rd Annual European Symposium on Algorithms (ESA 2025),
+            volume 351 of Leibniz International Proceedings in Informatics (LIPIcs), pages
+            113:1–113:15, Dagstuhl, Germany, 2025. Schloss Dagstuhl – Leibniz-Zentrum für
+            Informatik. 3, 18
+
+[MGS25]     Simon Meierhans, Maximilian Probst Gutenberg, and Thatchaphol Saranurak. Ex-
+            pander pruning with polylogarithmic worst-case recourse and update time. In
+            Proceedings of the 2026 Annual ACM-SIAM Symposium on Discrete Algorithms
+            (SODA), 2025. 6, 12
+
+                                             20
+[NS17]       Danupon Nanongkai and Thatchaphol Saranurak. Dynamic spanning forest with
+             worst-case update time: adaptive, las vegas, and o(n1/2 − ϵ)-time. In Proceedings of
+             the 49th Annual ACM SIGACT Symposium on Theory of Computing, STOC 2017,
+             page 1122–1129, New York, NY, USA, 2017. Association for Computing Machinery.
+             1, 2, 11
+[NSWN17]     Danupon Nanongkai, Thatchaphol Saranurak, and Christian Wulff-Nilsen. Dynamic
+             minimum spanning forest with subpolynomial worst-case update time. In 2017 IEEE
+             58th Annual Symposium on Foundations of Computer Science (FOCS), pages 950–
+             961, 2017. 1, 2, 11
+[PT07]       Mihai Patrascu and Mikkel Thorup. Planning for fast connectivity updates. In 48th
+             Annual IEEE Symposium on Foundations of Computer Science (FOCS’07), pages
+             263–271. IEEE, 2007. 1, 2, 11
+[SP75]       Philip M. Spira and A Pan. On finding and updating spanning trees and shortest
+             paths. SIAM Journal on Computing, 4(3):375–380, 1975. 1
+[SW19]       Thatchaphol Saranurak and Di Wang. Expander Decomposition and Pruning:
+             Faster, Stronger, and Simpler, pages 2616–2635. 2019. 2, 5, 6, 12
+[Tho00]      Mikkel Thorup. Near-optimal fully-dynamic graph connectivity. In Proceedings of
+             the thirty-second annual ACM symposium on Theory of computing, pages 343–350,
+             2000. 1
+[VDBCK+ 23] Jan Van Den Brand, Li Chen, Rasmus Kyng, Yang P Liu, Richard Peng, Maxi-
+            milian Probst Gutenberg, Sushant Sachdeva, and Aaron Sidford. A deterministic
+            almost-linear time algorithm for minimum-cost flow. In 2023 IEEE 64th Annual
+            Symposium on Foundations of Computer Science (FOCS), pages 503–514. IEEE,
+            2023. 3
+[vdBCK+ 24] Jan van den Brand, Li Chen, Rasmus Kyng, Yang P. Liu, Simon Meierhans, Maxi-
+            milian Probst Gutenberg, and Sushant Sachdeva. Almost-Linear Time Algorithms
+            for Decremental Graphs: Min-Cost Flow and More via Duality . In 2024 IEEE 65th
+            Annual Symposium on Foundations of Computer Science (FOCS), pages 2010–2032,
+            Los Alamitos, CA, USA, October 2024. IEEE Computer Society. 2, 3, 11
+[Wan15]      Zhengyu Wang. An improved randomized data structure for dynamic graph connec-
+             tivity, 2015. 1
+[WN13]       Christian Wulff-Nilsen. Faster deterministic fully-dynamic graph connectivity. In
+             Proceedings of the Twenty-Fourth Annual ACM-SIAM Symposium on Discrete Al-
+             gorithms, SODA ’13, page 1757–1769, USA, 2013. Society for Industrial and Applied
+             Mathematics. 1
+[WN17]       Christian Wulff-Nilsen. Fully-dynamic minimum spanning forest with improved
+             worst-case update time. In Proceedings of the 49th Annual ACM SIGACT Sym-
+             posium on Theory of Computing, STOC 2017, page 1130–1143, New York, NY,
+             USA, 2017. Association for Computing Machinery. 1, 2, 11
+
+
+                                              21
+

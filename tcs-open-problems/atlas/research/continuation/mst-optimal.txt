@@ -1,0 +1,961 @@
+An Optimal Minimum Spanning Tree Algorithm
+
+SETH PETTIE AND VIJAYA RAMACHANDRAN
+The University of Texas at Austin, Austin, Texas
+
+
+Abstract. We establish that the algorithmic complexity of the minimum spanning tree problem is equal
+to its decision-tree complexity. Specifically, we present a deterministic algorithm to find a minimum
+spanning tree of a graph with n vertices and m edges that runs in time O(T ∗ (m, n)) where T ∗ is the
+minimum number of edge-weight comparisons needed to determine the solution. The algorithm is
+quite simple and can be implemented on a pointer machine.
+    Although our time bound is optimal, the exact function describing it is not known at present. The
+current best bounds known for T ∗ are T ∗ (m, n) = Ä(m) and T ∗ (m, n) = O(m · α(m, n)), where α is
+a certain natural inverse of Ackermann’s function.
+    Even under the assumption that T ∗ is superlinear, we show that if the input graph is selected from
+G n,m , our algorithm runs in linear time with high probability, regardless of n, m, or the permutation of
+edge weights. The analysis uses a new martingale for G n,m similar to the edge-exposure martingale
+for G n,p .
+Categories and Subject Descriptors: F.2.0 [Analysis of Algorithms and Problem Complexity]:
+General; G.2.2 [Discrete Mathematics]: Graph Theory—graph algorithms; G.3 [Probability and
+Statistics]
+General Terms: Algorithms, Theory
+Additional Key Words and Phrases: Graph algorithms, minimum spanning tree, optimal complexity
+
+
+
+1. Introduction
+The minimum spanning tree (MST) problem has been studied for much of this
+century and yet despite its apparent simplicity, the problem is still not fully under-
+stood. Graham and Hell [1985] give an excellent survey of results from the earliest
+known algorithm of Borůvka [1926] to the invention of Fibonacci heaps, which
+were central to the algorithms in Fredman and Tarjan [1987] and Gabow et al.
+[1986]. Chazelle [1997] presented an MST algorithm based on the Soft Heap
+[Chazelle 2000a] having complexity O(mα(m, n) log α(m, n)), where α is a cer-
+tain inverse of Ackermann’s function. Recently Chazelle [2000b] modified the
+
+A preliminary version of this article appeared in Proceedings of the 27th International Colloquium on Automata,
+Languages and Programming (ICALP) (Geneva, Switzerland). Springer-Verlag, New York, 2000.
+Part of this work was supported by Texas Advanced Research Program Grant 003658-0029-1999.
+S. Pettie was also supported by an MCD Graduate Fellowship.
+Authors’ address: The University of Texas at Austin, Department of Computer Science, Taylor Hall 2.124
+(Mailcode 0500), Austin, TX 78712, e-mail: {seth;vlr}@cs.utexas.edu.
+Permission to make digital or hard copies of part or all of this work for personal or classroom use is
+granted without fee provided that copies are not made or distributed for profit or direct commercial
+advantage and that copies show this notice on the first page or initial screen of a display along with the
+full citation. Copyrights for components of this worked owned by others than ACM must be honored.
+Abstracting with credit is permitted. To copy otherwise, to republish, to post on servers, to redistribute
+to lists, or to use any component of this work in other works requires prior specific permission and/or
+a fee. Permissions may be requested from Publications Dept., ACM, Inc., 1515 Broadway, New York,
+NY 10036 USA, fax +1 (212) 869-0481, or permissions@acm.org.
+°
+C 2002 ACM 0004-5411/02/0100–0016 $5.00
+
+
+
+Journal of the ACM, Vol. 49, No. 1, January 2002, pp. 16–34.
+An Optimal Minimum Spanning Tree Algorithm                                         17
+
+algorithm in Chazelle [1997] to bring down the running time to O(m · α(m, n)).
+Later a similar algorithm of the same running time was presented by Pettie [1999],
+which gives an alternate exposition of the O(m · α(m, n)) result. This is the tightest
+time bound for the MST problem to date, though not known to be optimal.
+   All algorithms mentioned above work on a pointer machine [Tarjan 1979a] un-
+der the restriction that edge weights may only be subjected to binary comparisons.
+If, in addition, we have access to a stream of perfectly random bits, Karger et al.
+[1995] showed that the MST can be computed in linear time with high probabil-
+ity. Fredman and Willard [1994] gave a deterministic linear time MST algorithm
+under the unit-cost RAM model, assuming edge weights are integers represented
+in binary.
+   It is still unknown whether these more powerful models are necessary to compute
+the MST in linear time. However, in this article, we give a deterministic, comparison-
+based MST algorithm that runs on a pointer machine in O(T ∗ (m, n)) time, where
+T ∗ (m, n) is the number of edge-weight comparisons needed to determine the MST
+on any graph with m edges and n vertices. Additionally, we show that our algorithm
+runs in linear time for the vast majority of graphs, regardless of the number of edges
+in the graph or the permutation of edge weights.
+   Because of the nature of our algorithm, its exact running time is not known.
+This might seem paradoxical at first. The source of our algorithm’s optimality,
+and its mysterious running time, is the use of precomputed “MST decision trees”
+whose exact depth is unknown but nonetheless provably optimal. The technique
+of obtaining optimal algorithms via precomputation was used in a simpler setting
+in Larmore [1990] for searching convex matrices and in Dixon et al. [1992] for
+MST sensitivity analysis. We should point out that precomputing optimal deci-
+sion trees does not increase the constant factor hidden by big-Oh notation, nor
+does it result in a nonuniform algorithm. A trivial lower bound on the running
+time of our algorithm is Ä(m); the best upper bound, O(mα(m, n)), is due to
+Chazelle [2000b].
+   Our optimal MST algorithm should be contrasted with the complexity-theoretic
+result that any optimal verification algorithm for some problem can be used to
+construct an optimal algorithm for the same problem [Jones 1997]. Though asymp-
+totically optimal, this construction hides astronomical constant factors and proves
+nothing about the relationship between algorithmic complexity and decision-tree
+complexity. See Section 8 for a discussion of these and other related issues.
+   In the next sections, we review some well-known MST results that are used by our
+algorithm. In Section 3, we prove a key lemma and give a procedure for partitioning
+the graph in an MST-respecting manner. Section 4 gives an overview of our optimal
+algorithm and discusses the structure and use of precomputed decision-trees for the
+MST problem. Section 5 gives the algorithm and a proof of optimality. Section 6
+shows how the algorithm may be modified to run on a pointer machine. In Section 7,
+we show our algorithm runs in linear-time with high probability if the input graph
+is selected at random. Sections 8 and 9 discuss related problems and algorithms,
+open questions, and the actual complexity of MST.
+
+2. Preliminaries
+The input is an undirected graph G = (V, E) where each edge is assigned a distinct
+real-valued weight. By convention, |V | = n and |E| = m. The minimum spanning
+18                                                S. PETTIE AND V. RAMACHANDRAN
+
+
+forest (MSF) problem asks for a spanning acyclic subgraph of G having the least
+total weight. In this article, we assume for convenience that the input graph is
+connected, since otherwise we can find its connected components in linear time
+and then solve the problem on each connected component. Thus, the MSF problem
+is identical to the minimum spanning tree problem.
+   It is well known that one can identify edges provably in the MSF using the cut
+property, and edges provably not in the MSF using the cycle property. The cut
+property states that the lightest edge crossing any partition of the vertex set into
+two parts must belong to the MSF. The cycle property states that the heaviest edge
+in any cycle in the graph cannot be in the MSF.
+   2.1. BORŮVKA STEPS. The earliest known MSF algorithm is due to Borůvka
+[1926]. The algorithm is quite simple: It proceeds in a sequence of stages, and in each
+stage, or Borůvka step, it identifies a forest F consisting of the minimum-weight
+edge incident to each vertex in the graph G, then forms the graph G 1 = G\F as the
+input to the next stage. Here G\F denotes the graph derived from G by contracting
+edges in F (by the cut property these edges belong to the MSF.) Each Borůvka step
+takes linear time, and since the number of vertices is reduced by at least half in
+each step, Borůvka’s algorithm takes O(m log n) time.
+   Our optimal algorithm uses a procedure called Boruvka2(G; F, G 0 ). This proce-
+dure executes two Borůvka steps on the input graph G and returns the contracted
+graph G 0 as well as the set of edges F identified as part of the MSF during these
+two steps.
+   2.2. DIJSKTRA-JARNÍK-PRIM ALGORITHM. Another early MSF algorithm that
+runs in O(m log n) time is the one by Jarnı́k [1930], rediscovered by Dijkstra [1959]
+and Prim [1957]. We refer to this algorithm as the DJP algorithm. Briefly, the DJP
+algorithm grows the MSF T one edge at a time. Initially, T is an arbitrary vertex.
+In each step of the DJP algorithm, T is augmented with the least-weight edge
+(x, y) such that x ∈ T and y 6∈ T . By the cut property, all edges added to T are in
+the MSF.
+   LEMMA 2.1. Let T be the tree formed after the execution of some number of
+steps of the DJP algorithm. Let e and f be two arbitrary edges, each with exactly
+one endpoint in T, and let g be the maximum weight edge on the path from e to f
+in T. Then g cannot be heavier than both e and f .
+   PROOF. Let P be the path in T connecting e and f, and assume the contrary,
+that g is the heaviest edge in P ∪ {e, f }. Now consider the moment when g is
+selected by DJP and let P 0 be the portion of P present in the tree. There are exactly
+two edges in (P − P 0 ) ∪ {e, f } that are eligible to be chosen by the DJP algorithm
+at this moment, one of which is the edge g. If the other edge is in P, then by our
+choice of g it must be lighter than g. If the other edge is either e or f, then by our
+assumption it must be lighter than g. In both cases, g could not be chosen next by
+the DJP algorithm, a contradiction.
+   2.3. THE DENSE CASE ALGORITHM. The algorithms presented in Fredman and
+Tarjan [1987], Gabow et al. [1986], Chazelle [1997, 2000b], and Pettie [1999] will
+find the MSF of a graph in linear time if the graph is sufficiently dense, that is,
+has a sufficiently large edge-to-vertex ratio. For our purposes, sufficiently dense
+will mean m/n ≥ log(3) n. All of the above algorithms run in linear time for that
+An Optimal Minimum Spanning Tree Algorithm                                          19
+
+density, the simplest of which is easily that of Fredman and Tarjan [1987]. This
+algorithm executes a number of phases, where the purpose of each phase is to
+amplify the “nominal density” of the graph by contracting a large number of MSF
+edges; here the nominal density is the ratio m/n 0 , where m, as usual, is the number
+of edges in the original graph, and n 0 is the number of vertices in the current graph.
+Each phase of the algorithm runs in O(m + n) time, and works by executing the
+DJP algorithm many times, each for a limited number of steps. If n 0 is the number
+of vertices  before a phase, the number of vertices after the phase is no more than
+n 0/2m/n , hence no more than log∗ n − log∗ (m/n) phases are needed.
+        0
+
+
+    The procedure DenseCase(G; F) takes as input an n-node graph G and returns
+the MSF F of G in linear time for graphs with density at least log(3) n.
+    Our optimal algorithm will actually call DenseCase on a graph derived from
+an n-node, m-edge graph by contracting vertices so that the number of vertices
+is reduced by a factor of at least log(3) n. The number of edges in the contracted
+graph is no more than m. Hence, DenseCase will run in O(m + n) time on such
+a graph.
+   2.4. SOFT HEAP. The main data structure used by our algorithm is the Soft Heap
+[Chazelle 2000a]. The Soft Heap is a kind of priority queue that gives us an optimal
+trade-off between accuracy and speed. It is parameterized by an error tolerance ²,
+and supports the following operations:
+—MakeHeap(): returns an empty soft heap.
+—Insert(S, x): insert item x into heap S.
+—Findmin(S): returns item with smallest key in heap S.
+—Delete(S, x): delete x from heap S.
+—Meld(S1 , S2 ): create new heap containing the union of items stored in S1
+                 and S2 , destroying S1 and S2 in the process.
+   All operations take constant amortized time, except for Insert, which takes
+O(log(1/²)) time. To save time the Soft Heap allows items to be grouped together
+and treated as though they have a single key. An item adopts the largest key of any
+item in its group, corrupting the item if its new key differs from its original key.
+Thus, the original key of an item returned by Findmin (i.e., any item in the group
+with minimum key) is no more than the keys of all uncorrupted items in the heap.
+The guarantee is that after n Insert operations, no more than ²n corrupted items are
+in the heap. The following result is shown in Chazelle [2000a].
+   LEMMA 2.2. Fix any parameter 0 < ² < 1/2, and beginning with no prior data,
+consider a mixed sequence of operations that includes n inserts. On a Soft Heap,
+the amortized complexity of each operation is constant, except for insert, which
+takes O(log(1/²)) time. At most ²n items are corrupted at any given time.
+
+
+3. A Key Lemma and Procedure
+   3.1. A ROBUST CONTRACTION LEMMA. It is well known that if T is a tree
+of MSF edges, we can contract T into a single vertex while maintaining the in-
+variant that the MSF of the contracted graph plus T gives the MSF for the graph
+before contraction.
+20                                                S. PETTIE AND V. RAMACHANDRAN
+
+
+   In our algorithm, we find a tree of MSF edges T in a corrupted graph, where
+some of the edge weights have been increased due to the use of a Soft Heap. In the
+lemma given below, we show that useful information can be obtained by contracting
+certain corrupted trees, in particular those constructed using some number of steps
+from the Dijkstra–Jarnik–Prim (DJP) algorithm. Ideas similar to these are used in
+Chazelle’s [1997] algorithm and more explicitly in the recent algorithm of Chazelle
+[2000b] (see also Pettie [1999]).
+   Before stating the lemma, we need some notation and preliminary concepts. Let
+V (G) and E(G) be the vertex and edge sets of G, and n and m be their cardinality,
+respectively. Let the G-weight of an edge be its weight in graph G (the G may be
+omitted if implied from context).
+   For the following definitions, M and C are subgraphs of G. Denote by G ⇑ M
+some graph derived from G by raising the weight of each edge in M by ar-
+bitrary amounts (these edges are said to be corrupted). Let MC be the set of
+edges in M with exactly one endpoint in C. Let G\C denote the graph obtained
+by contracting all connected components induced by C, that is, by replacing
+each connected component with a single vertex and reassigning edge endpoints
+appropriately.
+   Definition 3.1. A subgraph C is said to be DJP-contractible with respect to G
+if after executing the DJP algorithm on G for some number of steps, with a suitable
+start vertex in C, the tree that results is a spanning tree for C.
+  LEMMA 3.2. Let M be a set of edges in a graph G. If C is a subgraph of
+G that is DJP-contractible with respect to G ⇑ M, then MSF(G) is a subset of
+MSF(C) ∪ MSF(G\C − MC ) ∪ MC .
+    PROOF. Each edge in C that is not in MSF(C) is the heaviest edge on some
+cycle in C. Since that cycle exists in G as well, that edge is not in MSF(G). So we
+need only show that edges in G\C that are not in MSF(G\C − MC ) ∪ MC are also
+not in MSF(G).
+   Let H = G\C − MC ; hence, we need to show that no edge in H − MSF(H ) is
+in MSF(G). Let e be in H − MSF(H ), that is, e is the heaviest edge on some cycle
+χ in H . If χ does not involve the vertex derived by contracting C, then it exists in
+G as well and e 6∈ MSF(G). Otherwise, χ forms a path P in G whose endpoints,
+say x and y, are both in C. Let the end edges of P be (x, w) and (y, z). Since H
+includes no corrupted edges with one endpoint in C, the G-weight of these edges
+is the same as their (G ⇑ M)-weight.
+   Let T be the spanning tree of C ⇑ M derived by the DJP algorithm, Q be the
+path in T connecting x and y, and g be the heaviest edge in Q. Notice that P ∪ Q
+forms a cycle. By our choice of e, it must be heavier than both (x, w) and (y, z),
+and by Lemma 2.1, the heavier of (x, w) and (y, z) is heavier than the (G ⇑ M)-
+weight of g, which is an upper bound on the G-weights of all edges in Q. So with
+respect to G-weights, e is the heaviest edge on the cycle P ∪ Q and cannot be
+in MSF(G).
+
+   3.2. THE PARTITION PROCEDURE. Our algorithm uses the Partition procedure
+that is given below. This procedure finds DJP-contractible subgraphs C1 , . . . , Ck in
+which edges are progressively being corrupted by the Soft Heap. Let MCi contain
+only those corrupted edges with one endpoint in Ci at the time it is completed.
+An Optimal Minimum Spanning Tree Algorithm                                             21
+
+
+
+
+                              FIG. 1. The Partition procedure.
+
+
+  Each subgraph Ci will be DJP-contractible with respect to a graph derived from
+G by several rounds of contractions and edge deletions. When Ci is finished, it is
+contracted and all incident corrupted edges are discarded. By applying Lemma 3.2
+repeatedly, we see that after Ci is built, the MSF of G is a subset of
+                                  Ã                      !
+            [i                          [ i       [
+                                                  i           [i
+               MSF(C j ) ∪ MSF G\            Cj −    MC j ∪       MC j .
+            j=1                           j=1        j=1         j=1
+
+
+   The Partition procedure is shown in Figure 1. The arguments appearing before the
+semicolon are inputs; the others are outputs. C = {C1 , . . . , Ck } is a set of subgraphs
+of G, and MC is a set of corrupted edges with endpoints in different Ci ’s. No edge
+will appear in more than one of MC , C1 , . . . , Ck .
+   Initially, Partition sets every vertex to be live. The objective is to convert each
+vertex to dead, signifying that it is part of a component Ci with ≤ maxsize vertices
+and part of a conglomerate of ≥Smaxsize vertices, where a conglomerate is a con-
+nected component of the graph E(Ci ). Intuitively a conglomerate is a collection
+of Ci ’s linked by common vertices. This scheme for growing components is similar
+to the one given in Fredman and Tarjan [1987].
+   We grow the Ci ’s one at a time according to the DJP algorithm, except that we
+use a Soft Heap. A component is done growing if it reaches maxsize vertices or if
+it attaches itself to an existing component. Clearly, if a component does not reach
+maxsize vertices, it has linked to a conglomerate of at least maxsize vertices. Hence,
+all its vertices can be designated dead. Upon completion of a component Ci , we
+discard the set of corrupted edges with one endpoint in Ci .
+22                                                  S. PETTIE AND V. RAMACHANDRAN
+
+
+  The running time of Partition is dominated by the heap operations, which depend
+on ². Each edge is inserted into a Soft Heap no more than twice (once for each
+endpoint), and extracted no more than once. We can charge the cost of dismantling
+the heap to the insert operations which created it; hence, the total running time is
+O(m log(1/²)). By Lemma 2.2, the number of discarded edges is bounded by the
+number of insertions scaled by ²; thus, |MC | ≤ 2²m. Thus, we have
+    LEMMA 3.3. Given a graph G, any 0 < ² < 1/2, and a parameter maxsize, Par-
+tition finds edge-disjoint subgraphs MC , C1 , . . . , Ck in time O(|E(G)| · log(1/²))
+while satisfying several conditions:
+(a) For all v ∈ V (G), there is some i such that v ∈ V (Ci ).
+(b) For all i, |V (Ci )| ≤ maxsize.
+                                   S
+(c) For each conglomerate P ∈ i Ci , |V (P)| ≥ maxsize.
+(d) |E(MC )| ≤ 2² · |E(G)|.
+                 S                        S
+(e) MSF(G) ⊆ i MSF(Ci ) ∪ MSF(G\( i Ci ) − MC ) ∪ MC .
+   We observe that the full suite of soft heap operations is not needed as we never
+employ the meld operation. We can therefore use a more space-efficient version of
+the soft heap where its nodes are placed in an array and the links between them
+represented implicitly, as in a binary heap.
+
+
+4. Overview of the Optimal Algorithm
+Here is an overview of our optimal MSF algorithm.
+—In the first stage, we find DJP-contractible
+                                  S           subgraphs C1 , C2 , . . . , Ck with their
+ associated set of edges MC = i MCi , where MCi consists of corrupted edges
+ with one endpoint in Ci .
+—In the second stage we S find the MSF Fi of each Ci , and the MSF F0 of the
+ contracted graph G\( i CiS   ) − MC . By Lemma 3.2, the MSF of the whole graph
+ is contained within F0 ∪ ( i Fi ) ∪ MC . Note that, at this point, we have not
+ identified any edges as being in the MSF of the original graph G.
+—In the third stage, we find some MSF edges, via Borůvka steps, and recurse on
+ the graph derived by contracting these edges.
+   We execute the first stage using the Partition procedure described in the pre-
+vious section.
+   We execute the second stage with optimal decision trees. Essentially, these are
+hardwired algorithms designed to compute the MSF of a graph using an optimal
+number of edge-weight comparisons. In general, decision trees are much larger
+than the size of the problem that they solve and finding optimal ones is very time
+consuming. We can afford the cost of building decision trees by guaranteeing that
+each one is extremely small. At the same time, we make each conglomerate formed
+by the Ci to be sufficiently large so that the MSF F0 of the contracted graph can be
+found in linear time using the DenseCase algorithm.
+   Finally, in the third stage, we have a reduction in vertices due to the Borůvka steps,
+and a reduction in edges due to the application of Lemma 3.2. In our optimal algo-
+rithm, both vertices and edges reduce by a constant factor, thus resulting in the re-
+cursive applications of the algorithm on graphs with geometrically decreasing sizes.
+An Optimal Minimum Spanning Tree Algorithm                                                             23
+
+   4.1. DECISION TREES. Consider a computation that takes as input a fixed graph
+G and computes the minimum spanning tree for G for any given permutation of
+edge weights. If we are only interested in the edge-weight comparisons performed,
+this computation can be described in terms of an MSF decision tree for G. An
+MSF decision tree is a rooted tree having an edge-weight comparison associated
+with each internal node (e.g., weight (x, y) < weight (w, z)). Each internal node
+has exactly two children, one representing that the comparison is true, the other
+that it is false. The leaves of the tree list off the edges in some spanning tree of
+the graph. An MSF decision tree for G is said to be correct if the edge-weight
+comparisons encountered on any path from the root to a leaf uniquely identify
+the spanning tree at that leaf as the MSF. A decision tree for G is said to be
+optimal if it is correct and there exists no correct decision tree for G with
+lesser depth.
+   Let us bound the time needed to find optimal              decision trees for all graphs on
+                                                  (r2 )
+r vertices by brute force search. There are 2 such graphs and for each graph we
+must check all possible decision trees bounded by a sufficient depth. Since the DJP
+algorithm uses no more than r (r − 1) comparisons on any            2
+                                                                        graph on r vertices, a
+depth of r 2 is sufficient. Hence, the tree has fewer than 2r internal nodes. There are
+<r 4 possibilities for each    internal node (its comparison must identify two edges);
+                        r 2 +2
+hence, there are <r 2 distinct decision trees to check. To determine if a decision
+tree is correct, we generate all possible permutations of the edge weights and for
+each, solve the MSF problem on the given graph. Now we simultaneously check
+all permutations against a decision tree as follows: First, we place all permutations
+at the root; then move them to the left or right child depending on the truth or
+falsity of the edge-weight comparison with respect to each permutation. We repeat
+this step until all permutations reach a leaf. If for each leaf, all permutations
+sharing that leaf agree on the MSF, then the decision tree is correct. This process
+takes no longer than (r 2 + 1)! for each decision tree, hence the total time required
+to find an 2optimal decision tree for all graphs2 on fewer than r vertices is bounded
+      2    r +2                                    r +o(r )
+by 2r · r 2 · (r 2 + 1)!, which is less than 22             . Setting r = log(3) n allows us to
+precompute all optimal decision trees in o(n) time.1
+   Observe that, in the high-level algorithm we gave in Section 4, if the maximum
+size of each component Ci is sufficiently small, the components can be organized
+into a relatively small number of groups of isomorphic components (ignoring edge
+weights). For each group, we use a single precomputed optimal decision tree to
+determine the MSF of components in that group.
+   In our optimal algorithm, we use a procedure DecisionTree(G; F ), which takes
+as input a collection of graphs G, each with at most r vertices, and returns their
+minimum spanning forests in F using the precomputed decision trees.
+
+
+5. The Algorithm
+As discussed above, the optimal MSF algorithm is as follows: First, precompute the
+optimal decision trees for all graphs with ≤ log(3) n vertices. Next, divide the input
+graph into subgraphs C1 , C2 , . . . , Ck , discarding the set of corrupted edges MCi as
+
+                              √
+1
+    We can set r as high as       log log n − 1; however, this provides no benefit to our algorithm.
+24                                                          S. PETTIE AND V. RAMACHANDRAN
+
+
+each Ci is completed. Use the decision trees found earlier to compute the MSF Fi
+of each Ci , then contract each connected component spanned by F1 ∪ · · · ∪ Fk
+(i.e., each conglomerate) into a single vertex. The resulting graph has ≤n/ log(3) n
+vertices since each conglomerate has at least log(3) n vertices by Lemma 3.3. Hence,
+we can use the DenseCase algorithm to compute its MSF F0 in time linear in m.
+At this point, by Lemma 3.2 the MSF is now contained in the edge set F0 ∪ · · · ∪
+Fk ∪ MC1 ∪ · · · ∪ MCk . On this graph, we apply two Borůvka steps, reducing the
+number of vertices by a factor of four, and then compute recursively. The algorithm
+is given below.
+   Let ² = 1/8 (this is used by the Soft Heap in the Partition procedure).
+   Precompute optimal decision trees for all graphs with ≤ log(3) n 0 vertices, where
+n 0 is the number of vertices in the original input graph.
+
+     OptimalMSF(G)
+         If E(G) = ∅ then Return(∅)
+         r := dlog(3) |V (G)|e
+         Partition(G, r, ²; M, C)
+         DecisionTree(C; F)
+         Let k := |C| and let C = {C1 , . . . , Ck }, F = {F1 , . . . , Fk }
+         G a := G\(F1 ∪ · · · ∪ Fk ) − M
+         DenseCase(G a ; F0 )
+         G b := F0 ∪ F1 ∪ · · · ∪ Fk ∪ M
+         Boruvka2(G b ; F 0 , G c )
+         F := OptimalMSF(G c )
+         Return(F ∪ F 0 )
+
+   Apart from recursive calls and using the decision trees, the computation per-
+formed by OptimalMSF is clearly linear since Partition takes O(m log(1/²)) time,
+and owing to the reduction in vertices, the call to DenseCase also takes lin-
+ear time. For ² = 1/8, the number of edges passed to the final recursive call is
+≤m/4 + n/4 ≤ m/2, giving a geometric reduction in the number of edges. Since
+no MSF algorithm can do better than linear time, the bottleneck, if any, must lie in
+using the decision trees, which are optimal by construction.
+   More concretely, let T (m, n) be the running time of OptimalMSF. Let T ∗ (m, n)
+be the optimal number of comparisons needed to determine the MSF on any graph
+with n vertices and m edges and let T ∗ (H ) be the optimal number of compar-
+isons needed on a specific graph H . That is, T ∗ (m, n) = max{T ∗ (H ) : |V (H )| =
+n, |E(H )| = m}. We also refer to T ∗ as the decision-tree complexity of MSF, as it
+corresponds to the height of an optimal decision-tree. The recurrence relation for
+T is given below. For the base case, note that the graphs in the recursive calls will
+be connected if the input graph is connected. Hence, the base case graph has no
+edges and one vertex, and we have T (0, 1) equal to a constant
+                                   X                        ³m n ´
+                    T (m, n) ≤           c1 T ∗ (Ci ) + T     ,    + c2 · m.
+                                     i
+                                                             2 4
+
+   It is straightforward to see that, if T ∗ (m, n) = O(m), then the above recurrence
+gives T (m, n) = O(m). One can also show that T (m, n) = O(T ∗ (m, n)) for many
+natural functions for T ∗ (including m · α(m, n)). However, to show that this result
+An Optimal Minimum Spanning Tree Algorithm                                           25
+
+holds no matter what the function describing T ∗ (m, n) is, we need to establish some
+results on the decision tree complexity of the MSF problem, which we do in the
+next section.
+
+  5.1. SOME RESULTS FOR MSF DECISION TREES. In this section, we establish
+some results on MSF decision trees that allow us to establish our main result that
+OptimalMSF runs in O(T ∗ (m, n)) time.
+  PROPOSITION 5.1. For m, n > 2, T ∗ (m, n) ≥ m/2.
+  PROPOSITION 5.2. For n 0 > n, T ∗ (m, n 0 ) ≥ T ∗ (m, n), and for m 0 > m,
+T (m 0 , n) ≥ T ∗ (m, n).
+  ∗
+
+
+   Proposition 5.1 is true since for m, n > 2 every edge can be placed on some
+cycle, and must therefore participate in at least one comparison. Proposition 5.2
+holds since we can always add isolated vertices or edges of very high weight, neither
+of which affects the MSF.
+   We now state a property that is used by Lemmas 5.4 and 5.5.
+  PROPERTY 5.3. Let H be a graph which is the union of edge-disjoint sub-
+graphs C1 , . . . , Ck . The structure of H dictates that MSF (H ) = MSF (C1 ) ∪ · · · ∪
+MSF (Ck ).
+   If C1 , . . . ,S
+                  Ck are the components returned by Partition, it can be seen that the
+graph H = i Ci satisfies Definition 5.3 since every simple cycle in this graph
+must be contained in exactly one of the Ci . To see this, consider any simple cycle
+and let i be the largest index such that CSi contains an edge in the cycle. Since each
+Ci shares no more than one vertex with j<i C j , this cycle cannot contain an edge
+      S
+from j<i C j .
+   LEMMA 5.4. If Property 5.3 holds for H, then there exists an optimal MSF deci-
+sion tree for H that makes no comparisons of the form e < f where e ∈ Ci , f ∈ C j
+and i 6= j.
+   PROOF. Consider a subset P of the permutations of all edge weights where for
+e ∈ Ci , f ∈ C j and i < j, it holds that weight(e) < weight( f ). Permutations
+in P have two useful attributes that can be readily verified. First, any number of
+intercomponent comparisons shed no light on the relative weights of edges in the
+same component. Second, any spanning forest of a component is the MSF of that
+component for some permutation in P.
+   Now consider any optimal decision tree T for H . Let T 0 be the subtree of T that
+contains only leaves that can be reached by some permutation in P. Each intercom-
+ponent comparison node in T 0 must have only one child, and by the first attribute,
+the MSF at each leaf was deduced using only intracomponent comparisons. By the
+second attribute, T 0 must determine the MSF of each component correctly, and thus
+by Property 5.3 it must determine the MSF of the graph H correctly. Hence, we
+can contract T 0 into a correct decision tree T 00 by replacing each one-child node
+with its only child.
+                                                               P
+   LEMMA 5.5. If Property 5.3 holds for H, then T ∗ (H ) = i T ∗ (Ci ).
+26                                                S. PETTIE AND V. RAMACHANDRAN
+
+
+   PROOF. Given optimal decision trees Ti for the Ci we can construct a decision
+tree for G by replacing each leaf of T1 by T2 , and in general replacing each leaf
+of Ti by Ti+1 and by labeling each leaf of the last tree by the union of the labels
+of the original trees along this path. Clearly, P the height of this tree is the sum of
+the heights of the Ti , and hence T ∗ (G) ≤            ∗
+                                                    i T (C i ). So we need only prove
+that no optimal decision tree for G has height less than the sum of the heights of
+the Ti .
+   Let T be an optimal decision tree for G that has no intercomponent compar-
+isons (as guaranteed by Lemma 5.4). We show that T can be transformed into
+a “canonical” decision tree T 0 for G of the same height as T, such that in T 0,
+all comparisons for Ci precede all comparisons for Ci+1 , for each i, and further,
+the subtrees of T 0 containing intra-Ci comparisons are all identical. That is, they
+have the same shape and the same comparisons are associated with correspond-
+ing nodes. This establishes the desired result since T 0 must contain a path that
+is the concatenation of the longest path in an optimal decision tree for each of
+the Ci .
+   We first prove this result for the case when there are only two components, C1
+and C2 . Assume inductively that the subtrees rooted at all vertices at a certain depth
+d in T have been transformed to the desired structure of having the C1 comparisons
+occur before he C2 comparisons, and with all subtrees for C2 within each of the
+subtrees rooted at depth d being identical. (This is trivially the case when d is equal
+to the height of T .)
+   Consider any node v at depth d − 1. If the comparison at that node is a C1
+comparison, then all C2 subtrees at descendent nodes must compute the same set of
+leaves for C2 . Hence, the subtree rooted at v can be converted to the desired format
+simply by replacing all C2 subtrees by one having minimum depth (note that there
+are at most two different C2 subtrees: all those descending from v’s left child (right
+child) are identical). If the comparison at v is a C2 comparison, we know that the
+C1 subtrees rooted at its left child x and its right child y must both compute the
+same set of leaves for C1 . Hence, we pick the C1 subtree of smaller height (without
+loss of generality, let its root be x) and replace v by x, together with the C1 subtree
+rooted at x. We then copy the comparison at node v to each leaf position of this
+C1 subtree. For each such copy, we place one of the isomorphic copies of the C2
+subtree that is a descendant of x as its left subtree, and the C2 subtree that is a
+descendant of y as its right subtree. The subtree rooted at x, which is now at depth
+d − 1, is now in the desired form; it computes the same result as in T, and there
+was no increase in the height of the tree. Hence, by induction, T can be converted
+into canonical decision tree of no greater height.
+   Assume inductively that the result hold for up to k − 1 ≥ 2 components. The
+result easily extends to k components by noting that we can group the first k − 1
+components as C10 and let Ck be C20 . By the above method, we can transform T to a
+canonical tree in which the Ck comparisons appear as leaf subtrees. We now strip
+the Ck subtrees from this canonical tree and then, by the inductive assumption, we
+can perform the transformation for remaining k − 1 components.
+  COROLLARY 5.6. Let the S  Ci be the components formed by the Partition routine
+P ∗ to graph∗ G, let H ∗= i Ci and let G have m edges and n vertices. Then,
+applied
+  i T (C i ) = T (H ) ≤ T (m, n).
+     COROLLARY 5.7. For any m and n, 2 · T ∗ (m, n) ≤ T ∗ (2m, 2n).
+An Optimal Minimum Spanning Tree Algorithm                                           27
+
+   We can now solve the recurrence relation for the running time of OptimalMSF
+given in the previous section.
+             X                    ³m n ´
+ T (m, n) ≤      c1 T ∗ (Ci ) + T     ,    + c2 · m
+               i
+                                    2 4
+                                ³m n ´
+          ≤ c1 T ∗ (m, n) + T       ,     + c2 · m (Corollary 5.6)
+                                  2 ³4
+                                      m n´
+          ≤ c1 T ∗ (m, n) + c · T ∗     ,     + c2 · m (assume inductively)
+                        ³             2´ 4
+                                c
+          ≤ T ∗ (m, n) c1 + + 2c2 (Corollary 5.7 and Propositions 5.1, 5.2)
+                                2
+          ≤ c · T ∗ (m, n) ( for c = 2c1 + 4c2 ; this completes the induction).
+  This gives us the desired theorem.
+  THEOREM 5.8. Let T ∗ (m, n) be the decision-tree complexity of the MSF prob-
+lem on graphs with m edges and n nodes. Algorithm OptimalMSF computes the
+MSF of a graph with m edges and n vertices deterministically in O(T ∗ (m, n)) time.
+
+6. Avoiding Pointer Arithmetic
+We have not precisely specified what is required of the underlying machine
+model. Upon examination, the algorithm does not seem to require the full power
+of a random access machine (RAM). No bit manipulation is used and arith-
+metic can be limited to just the increment operation. However, if procedure
+DecisionTree is implemented in the obvious manner, it will require using a ta-
+ble lookup, and thus random access to memory. In this section, we outline the
+pointer machine [Tarjan 1979a] a model that does not allow random access to
+memory, and describe some techniques we use for implementing the Decision-
+Tree procedure on a pointer machine. Our method is similar to that described in
+Buchsbaum et al. [1998], but we ensure that the time overhead in performing the ta-
+ble look-ups during a call to DecisionTree is linear in the size of the current input to
+DecisionTree.
+   A pointer machine distinguishes pointers from all other data types. The only
+operations allowed on pointers are assignment, comparison for equality and deref-
+erencing. Memory is organized into records, each of which holds some constant
+number of pointers and normal data words (integers, floats, etc.). Given a pointer
+to a particular record, we can refer to any pointer or data word in that record in
+constant time. On nonpointer data, the usual array of logical, arithmetic, and binary
+comparison operations are allowed.
+   Every MSF decision tree solves the MSF problem on a particular graph topology:
+we call this the generic graph. In order to solve the MSF problem on an actual graph,
+we bind corresponding edges of the actual and generic graphs, such that given one
+edge the other can be found in constant time. Comparisons in the MSF decision
+tree refer to edges in the generic graph; hence, they too can be translated into
+comparisons in the actual graph in constant time.
+   We match up identical actual graphs and generic graphs using the method
+given in Buchsbaum et al. [1998]. If all graphs have fewer than r vertices we
+represent the graphs as a string of numbers between 1 and r , then perform
+a lexicographic sort [Aho et al. 1974] on all the graphs (both actual and generic).
+28                                                S. PETTIE AND V. RAMACHANDRAN
+
+
+A generic graph will appear adjacent to all identical actual graphs. All that remains
+to be done is bind the actual graphs to the appropriate generic graph and run the
+associated MSF decision tree. If the
+                                   2
+                                       total size of all actual subgraphs is s (s ≤ m),
+the sorting step takes O(s + r 2 2r ) time, which is O(m + n) for r = log(3) n. The
+lexicographic sort guarantees that in the recursive calls it suffices to scan an initial
+prefix of the sorted list whose size is linear in the size of the current graph.
+
+7. Performance on Random Graphs
+Even if we assume that MST has some super-linear complexity, we show below that
+our algorithm runs in linear time for nearly all graphs, for arbitrarily chosen edge
+weights. This improves upon the expected linear-time result of Karp and Tarjan
+[1980], which depended on the edge weights being chosen randomly. Our result
+may also be compared with the randomized algorithm of Karger et al. [1995],
+which is shown to run in O(m) time with high probability. However, for any given
+graph the Karger et al. [1995] algorithm can be made to run in Ä(m log n) time
+by an adversary that controls the edge weights. In contrast, we show below that
+our algorithm runs in linear time for the vast majority of graphs, for every possible
+assignment of edge weights.
+   None of the earlier published MST algorithms appear to have this property of
+running in linear time with high probability on random graphs for all edge-weights.
+Using the analysis of this section and suitably souped-up versions of earlier algo-
+rithms [Fredman and Tarjan 1987; Gabow et al. 1986; Chazelle 2000b], we may
+obtain similar high probability results.
+   Our analysis hinges on the observation that for sparse random graphs, with high
+probability any subgraph constructed by the Partition routine has only a miniscule
+number in edges in excess of the number of spanning forest edges in that subgraph.
+The MST of such graphs can be computed in linear time, and hence the computation
+on optimal decision trees takes linear time on these graphs.
+   Throughout this section, α will denote α(m, n).
+                                                                             n
+   The random graph model G n,m [Erdös and Rényi 1961] assigns all ((m2 )) graphs
+with m edges equal probability. In G n, p any graph on m edges is assigned probability
+            n
+p m (1 − p)(2 )−m . In other words, each possible edge is included independently with
+probability p.
+   THEOREM 7.1. The MST of a graph can be found in linear time with probability
+(1) 1 − exp(−Ä(m/α 2 )), for a graph drawn from Gn,m
+(2) 1 − exp(−Ä( pn 2/α 2 )), for a graph drawn from Gn, p .
+   Both (1) and (2) hold regardless of the permutation of edge weights.
+   In the next section, we describe the edge-addition martingale for the G n,m model.
+In Section 7.2, we use this martingale and Azuma’s inequality to prove part (1) of
+Theorem 7.1. Part (2) is shown to follow from part (1).
+  7.1. THE EDGE-ADDITION MARTINGALE. It was observed Erdös and Rényi
+[1961] that a random graph from the Gn,m model can be generated in an incre-
+mental fashion as follows: We begin with n labeled vertices, adding one random
+edge at a time that was not previously selected. Let X i be a random edge such that
+Xi 6= X j for j < i, and G i = {X 1 , . . . , X i } be the graph made up of the first i
+edges, with G 0 being the graph on n vertices having no edges.
+An Optimal Minimum Spanning Tree Algorithm                                                       29
+
+  A martingale is a sequence of random variables Y0 , . . . , Ym such that
+E[Yi | Yi−1 ] = Yi−1 for 0 < i ≤ m. We now prove that if g is any graph-theoretic
+function and g E (G i ) = E[g(G m )|G i ], then g E (G i ), for 0 ≤ i ≤ m is a martingale.
+   LEMMA 7.2. The sequence g E (Gi ) = E[g(G m ) | G i ], for 0 ≤ i ≤ m, is a
+martingale, where g is any graph theoretic function, G 0 is the edge-free graph on
+n vertices, and G i is derived from G i−1 by adding a random edge not in Gi−1
+to Gi−1 .
+                    j
+   PROOF. Let X i = {X i , . . . , X j }. Given that G i−1 has been fixed,
+                     X
+     E[g E (G i )] =   Pr[X i = xi | G i−1 ]
+                        X i =xi
+                              X             £ m           ¯                 ¤ ¡              ¢
+                                                      m ¯
+                        ·                 Pr X i+1 = xi+1   G i−1 , X i = xi · g G i−1 ∪ xim
+                              m
+                            X i+1 =xi+1
+                                    m
+                            X         £           ¯     ¤ ¡              ¢
+                  =                 Pr X im = xim ¯G i−1 · g G i−1 ∪ xim
+                        X im =xim
+                  = E[g(G m ) | G i−1 ] = g E (G i−1 ).
+  We call the sequence proved to be a martingale in Lemma 7.2 the edge-addition
+martingale in contrast to the edge-exposure martingale for G n, p .
+  We now recall the well-known Azuma’s inequality (see, e.g., Alon and
+Spencer [1992]).
+   THEOREM 7.3 (AZUMA’S INEQUALITY ). Let Y0 , . . . , Ym be a martingale with
+  i − Yi−1 | ≤ 1 for 0 < i ≤ m. Let λ > 0 be arbitrary. Then Pr[|Ym − Y0 | >
+|Y√
+λ m] < exp(−λ2 /2).
+  To facilitate the application of Azuma’s inequality to our edge-addition martin-
+gale, we establish the following lemma:
+  LEMMA 7.4. Consider the sequence proved to be a martingale in Lemma 7.2.
+Let g be any graph-theoretic function such that |g(G) − g(G 0 )| ≤ 1 for any pair of
+graphs G and G 0 of the form G = H ∪ {e} and G 0 = H ∪ {e0 }, for some graph H .
+Then |g E (G i ) − g E (G i−1 )| ≤ 1, for 0 < i ≤ m.
+   PROOF. g E (G i ) and g E (G i−1 ) are the average of g(G i ∪ X i+1
+                                                                   m
+                                                                       ) and g(G i−1 ∪
+  m           m         m
+X i ) where X i+1 and X i range over their possible outcomes, given G i and G i−1 ,
+                                                  m
+respectively. We identify each outcome of X i+1      with equal-size disjoint sets of
+                m                                 m
+outcomes of X i that cover all outcomes of X i . Then g E (G i−1 ) may be regarded
+as an average of set averages. If, for each set corresponding to an outcome P of
+  m
+X i+1 , we establish that the set average differs from g(G i ∪ P) by no more than 1,
+the Lemma follows.
+   The correspondence is as follows: Let G i = G i−1 ∪ {a} (i.e., X i = a). For each
+            m                                                              j
+outcome xi+1   , the corresponding set consists of outcomes of the form xi+1 a x mj+1
+for i < j ≤ m (i.e., the same graph but a appears at different times), and of the
+           m                                                                 m
+form xi xi+1   where xi ranges over all edges not appearing in G i−1 and xi+1   . For
+each outcome P = xi+1 of X i+1 and all Q in P’s associated set, |g(G i ∪ P) −
+                        m         m
+
+g(G i−1 ∪ Q)| ≤ 1 since the graphs differ in at most one edge. Clearly, |g(G i ∪ P)
+− AVG Q {g(G i−1 ∪ Q)}| ≤ 1 holds as well, where the average is over outcomes Q
+in P’s associated set.
+30                                                     S. PETTIE AND V. RAMACHANDRAN
+
+
+   7.2. ANALYSIS. We define the excess of a subgraph H to be |E(H )| − |F(H )|,
+where F(H ) is any spanning forest of H. Let f (G) be the maximum excess of the
+graph made up of intracomponent edges, where the sets of components range over
+all possible sets returned by the Partition procedure. (Recall that the size of any
+component is no more than k = maxsize = log(3) n.)
+   Define f E (G i ) = E[ f (G m )|G i ].
+   The key observation leading to our linear-time result is that each pass of our
+optimal algorithm definitely runs in linear time if f (G) ≤ m/α(m, n). To see
+this, note that if this bound on f (G) holds, we can reduce the total number of
+intracomponent edges to ≤2m/α in linear time using log α Borůvka steps, and
+then, clearly, the MST of the resulting graph can be determined in O(m) time. We
+show below that if a graph is randomly chosen from Gn,m , f (G) ≤ m/α(m, n) with
+high probability.
+   We now show that Lemma 7.4 applies to the graph-theoretic function f , and then
+apply Azuma’s inequality to obtain our desired result.
+
+  LEMMA 7.5. Let G = H ∪ {e} and G 0 = H ∪ {e0 } be two graphs on a set of
+labeled vertices that differ by no more than one edge. Then | f (G) − f (G 0 )| ≤ 1.
+
+   PROOF. Suppose without loss of generality that f (G) − f (G 0 ) > 1, then we
+could apply the optimal set of components of G to G 0. Every intracomponent edge
+of G remains an intracomponent edge, except possibly e. This can reduce the
+excess by no more than one, a contradiction. The possibility that e0 may become an
+intracomponent edge can only help the argument.
+
+  LEMMA 7.6.          f E (G 0 ) = o(m/α).
+
+   PROOF. Notice that if m/n ≥ αk, it is simply impossible to have m/α intra-
+component edges, so we assume m/n < αk.
+   An upper bound on f E (G 0 ) is the expected number of indices i such that edge X i
+completed a cycle of length ≤k in G i−1 , since all edges which caused f to increase
+must have satisfied this criterion. Let pi be the probability that X i completed a
+cycle of length ≤k. By bounding the number of such cycles, and the probability
+they exist in the graph, we have
+                                              Ã j−1              !
+                               X
+                               k               Y       i −`
+                         pi <     n     j−2
+                                                 ¡n ¢
+                              j=3           `=1 2 − (` − 1)
+                                     Ã        ! j−1
+                              1X  k
+                                        nm
+                            <            ¡n ¢        (recall that i ≤ m)
+                              n j=3       2
+                                µ k−1 ¶
+                                     m
+                            =O k k                   if m = Ä(n)
+                                       n
+                                µ 2¶
+                                    m
+                         or = O                      if m = o(n)
+                                    n3
+                                    P
+     In either case, f E (G 0 ) ≤   i pi = o(m/α).
+An Optimal Minimum Spanning Tree Algorithm                                             31
+
+  LEMMA 7.7. Let G be chosen from G n,m . Then Pr[ f (G) > m/α]                        <
+exp(−Ä(m/α 2 )).
+
+  √PROOF. By applying Azuma’s inequality,
+                                       √                  √ Pr[| f E (G m )− f E (G 0 )| >
+                                                 we have that
+λ m] < exp(−λ2/2). Setting λ = m/α − f E (G 0 )/ m gives the lemma. Note
+that, by Lemma 7.6, f E (G 0 ) is quite insignificant.
+  We are now ready to prove Theorem 7.1.
+    PROOF. We examine only the first log k passes of our optimal algorithm, since
+all remaining passes certainly take o(m) time. Lemma 7.7 assures us that the first
+pass runs in linear time with high probability. However, the topology of the graph
+examined in later passes does depend on the edge weights. Assuming the Borůvka
+steps contract all parts of the graph at a constant rate, which can easily be enforced,
+a partition of the graph in one pass of the algorithm corresponds to a partition of
+the original graph into components of size less than k c, for some fixed c. Using k c
+in place of k does not affect Lemma 7.6, which gives the Theorem for G n,m , that
+is, part (1). For G n, p , note that the probability that there are not 2( pn 2 ) edges is
+exponential in −Ä( pn 2 ); hence, the probability that the algorithm fails to run in
+linear time is dominated by the bound in part (1).
+   For the sparse case where m < n/α, Theorem 7.1 part (1) holds with proba-
+bility 1, and for p < 1/nα, by a Chernoff bound, part (2) holds with probability
+1 − exp(−Ä(n/α)).
+
+8. Discussion
+An intriguing aspect of our algorithm is that we do not know its precise deter-
+ministic running time although we can prove that it is within a constant factor of
+optimal. Results of this nature have been obtained in the past for sensitivity anal-
+ysis of minimum spanning trees [Dixon et al. 1992] and convex matrix searching
+[Larmore 1990]. Also, for the problem of triangulating a convex polygon, it was
+observed in Dixon et al. [1992] that an alternate linear-time algorithm could be
+obtained using optimal decision trees on small subproblems. However, these ear-
+lier algorithms make use of decision trees in more straightforward ways than the
+algorithm presented here.
+   As noted in Section 4.1, the construction of optimal decision trees takes sublin-
+ear time. Thus, it is important to observe that our use of decision trees does not
+result in a large constant factor in the running time. Further, this construction of
+optimal decision trees is performed by a straightforward brute-force search; hence,
+the resulting algorithm is uniform (i.e., it is a fixed algorithm that works for all
+problem sizes).
+   It was mentioned in the introduction that an optimal algorithm can be con-
+structed for any problem, given an optimal verification algorithm for that problem.
+We briefly sketch this construction [Jones 1997]. Consider a problem that has an
+optimal verification algorithm that runs in time Ver(n). The above-mentioned con-
+struction produces an algorithm that enumerates programs P1 , P2 , . . . for some
+machine model and executes them incrementally as follows: for each i ≥ 1, for
+every two operations executed by program Pi , program Pi+1 executes one operation.
+Whenever any of the programs halts the verifier checks its output for correctness.
+The algorithm terminates once the verifier determines that a correct output has been
+32                                               S. PETTIE AND V. RAMACHANDRAN
+
+
+produced by one of the programs. If PC is the optimal program for the problem with
+running time Opt(n), then this construction gives an algorithm that takes no more
+than 2C+1 (Opt(n) + Ver(n)) steps. Since C is a constant and Ver(n) = O(Opt(n)),
+this gives an algorithm that is within a constant factor of Opt(n).
+   Using a linear-time MST verification algorithm such as Dixon et al. [1992],
+King [1997], and Buchsbaum et al. [1998], the above construction yields an
+optimal MST algorithm; however, it is unsatisfactory for several reasons. It is
+truly impractical since it asks for an enumeration of all possible algorithms
+and its constant factor is exponential in the position of the actual optimal algo-
+rithm in this enumeration. Further, it sheds no light on the relation between the
+algorithmic and decision-tree complexity of the problem. Our result, in con-
+trast, has a very reasonable constant factor in the running time, and it is ro-
+bust in that it ties the algorithmic complexity of MST to its decision-tree com-
+plexity, a limiting factor in any machine model. It is not always the case that
+algorithmic complexity and decision-tree complexity are asymptotically equiva-
+lent: for instance, two sorting-type problems whose decision-tree complexity and
+algorithmic complexity provably diverge are described in Goddard et al. [1993]
+and [Pettie and Ramachandran [2002a, Sect. 8]. In fact, one can easily con-
+coct simple problems that are NP-hard but nevertheless have polynomial-depth
+decision-trees.
+
+9. Conclusion
+We have presented a deterministic MSF algorithm that is provably optimal. The
+algorithm runs on a pointer machine, and on graphs with n vertices and m edges,
+its running time is O(T ∗ (m, n)), where T ∗ (m, n) is the decision-tree complex-
+ity of the MSF problem on n-node, m-edge graphs. Also, on random graphs our
+algorithm runs in linear time with high probability for all possible edge-weights. In
+fact, a hybrid of our algorithm and the randomized algorithm of Karger et al.
+[1995] runs in expected linear time using only log∗ n random bits [Pettie and
+Ramachandran 2000b]. Although the exact running time of our algorithm is not
+known, we have shown that the time bound depends only on the number of
+edge-weight comparisons needed to determine the MSF, and not on any data
+structural issues.
+   Determining the worst-case complexity of our algorithm is the main open ques-
+tion remaining in the MSF problem; however, there is a subtler open question.
+We have given an optimal uniform algorithm for the MSF problem that uses pre-
+computed decision trees. Is there an optimal uniform algorithm that does not use
+precomputed decision trees (or some similar technique)? More generally, are there
+problems where precomputation is necessary? One may wish to study this issue in
+a simpler setting, say the MSF verification problem on a pointer machine. Here,
+there is still an α(m, n) factor separating the best pointer machine algorithm that
+uses precomputed decision trees [Buchsbaum et al. 1998] and the one which does
+not [Tarjan 1979b].
+   One may also ask for the parallel complexity of the MSF problem. Here, re-
+solved recently were the deterministic time complexity [Chong et al. 2001] and the
+randomized work-time complexity [Pettie and Ramachandran 1999] of the MSF
+problem on the EREW PRAM. An open question that remains here is to obtain a
+deterministic work-time optimal parallel MSF algorithm. Parallelizing our optimal
+An Optimal Minimum Spanning Tree Algorithm                                                           33
+
+algorithm is not at all straightforward. Although handling decision trees does not
+present any problems in the parallel context, we still need a method for identifying
+contractible components in parallel and a base case algorithm that performs linear
+work for graph-densities of log(3) n. Existing sequential algorithms that are suit-
+able for the base case, such as the one in Fredman and Tarjan [1987] are also not
+easily parallelizable.
+
+REFERENCES
+AHO, A. V., HOPCROFT, J. E., AND ULLMAN, J. D. 1974. The Design and Analysis of Computer Algorithms.
+  Addison-Wesley, Reading, Mass.
+ALON, N., AND SPENCER, J. 1992. The Probabilistic Method. Wiley, New York.
+    o
+BORUVKA, O. 1926. O jistém problému minimaálním. Moravské Pr̆írodovĕdecké Spolec̆nosti 3, 37–58.
+  (In Czech.)
+BUCHSBAUM, A. L., KAPLAN, H., ROGERS, A., AND WESTBROOK, J. R. 1998. Linear-time pointer-
+  machine algorithms for least common ancestors, MST verification, and dominators. In Proceedings of
+  the ACM Symposium on the Theory of Computing. ACM, New York, 279–288.
+CHAZELLE, B. 1997. A faster deterministic algorithm for minimum spanning trees. In Proceedings of the
+  IEEE Symposium on Foundations of Computing Science. IEEE Computer Society Press, Los Alamitos,
+  Calif., 22–31.
+CHAZELLE, B. 2000a. The soft heap: An approximate priority queue with optimal error rate. J. ACM 47,
+  6, 1012–1027.
+CHAZELLE, B. 2000b. A minimum spanning tree algorithm with inverse-Ackermann type complexity.
+  J. ACM 47, 6, 1028–1047.
+CHONG, K. W., HAN, Y., AND LAM, T. W. 2001. Concurrent threads and optimal parallel minimum
+  spanning trees algorithm. J. ACM 48, 2, 297–323.
+DIJKSTRA, E. W. 1959. A note on two problems in connexion with graphs. Numer. Math. 1, 269–271.
+DIXON, B., RAUCH, M., AND TARJAN, R. E. 1992. Verification and sensitivity analysis of minimum
+  spanning trees in linear time. SIAM J. Comput. 21, 1184–1192.
+ERDÖS, P., AND RÉNYI, A. 1961. On the evolution of random graphs. Bull. Inst. Internat. Statist. 38,
+  343–347.
+FREDMAN, M. L., AND TARJAN, R. E. 1987. Fibonacci heaps and their uses in improved network opti-
+  mization algorithms. J. ACM 34, 596–615.
+FREDMAN, M., AND WILLARD, D. E. 1994. Trans-dichotomous algorithms for minimum spanning trees
+  and shortest paths. J. Comput. Syst. Sci. 48, 3, 533–551.
+GABOW, H. N., GALIL, Z., SPENCER, T., AND TARJAN, R. E. 1986. Efficient algorithms for finding
+  minimum spanning trees in undirected and directed graphs. Combinatorica 6, 109–122.
+GRAHAM, R. L., AND HELL, P. 1985. On the history of the minimum spanning tree problem. Ann. Hist.
+  Comput. 7, 43–57.
+GODDARD, W., KENYON, C., KING, V., AND SCHULMAN, L. 1993. Optimal randomized algorithms for
+  local sorting and set-maxima. SIAM J. Comput. 22, 2, 272–283.
+JARNÍK, V. 1930. O jistém problému minimaálním. Moravské Pr̆írodovĕdecké Spolec̆nosti 6, 57–63.
+  (In Czech.)
+JONES, N. 1997. Computability and Complexity: From a Programming Perspective. MIT Press,
+  Cambridge, Mass.
+KARGER, D. R., KLEIN, P. N., AND TARJAN, R. E. 1995. A randomized linear-time algorithm to find
+  minimum spanning trees. J. ACM 42, 321–328.
+KARP, R. M., AND TARJAN, R. E. 1980. Linear expected-time algorithms for connectivity problems.
+  J. Algorithms 1, 4, 374–393.
+KING, V. 1997. A simpler minimum spanning tree verification algorithm. Algorithmica 18, 2, 263–270.
+LARMORE, L. L. 1990. An optimal algorithm with unknown time complexity for convex matrix searching.
+  Infor. Process. Lett. 36, 147–151.
+PETTIE, S. 1999. Finding minimum spanning trees in O(mα(m, n)) time. Tech. Rep. TR99-23. Univ. of
+  Texas at Austin, Austin, Tex.
+PETTIE, S., AND RAMACHANDRAN, V. 1999. A randomized time-work optimal parallel algorithm for
+  finding a minimum spanning forest. In Proceedings of RANDOM ’99. Lecture Notes in Computer Science,
+  vol. 1671. Springer-Verlag, New York, 233–244.
+34                                                         S. PETTIE AND V. RAMACHANDRAN
+
+
+PETTIE, S., AND RAMACHANDRAN, V. 2002a. Computing shortest paths with comparisons and additions.
+  In Proceedings of the 13th ACM-SIAM Symposium on Discrete Algorithms. ACM, New York, 267–276.
+PETTIE, S., AND RAMACHANDRAN, V. 2002b. Minimizing randomness in minimum spanning tree, parallel
+  connectivity, and set maxima algorithms. In Proceedings of the 13th ACM-SIAM Symposium on Discrete
+  Algorithms. ACM, New York, 713–722.
+PRIM, R. C. 1957. Shortest connection networks and some generalizations. Bell Syst. Tech. J. 36, 1389–
+  1401.
+TARJAN, R. E. 1979a. A class of algorithms which require nonlinear time to maintain disjoint sets.
+  J. Comput. Syst. Sci. 18, 2, 110–127.
+TARJAN, R. E. 1979b. Applications of path compression on balanced trees. J. ACM 26, 4, 690–715.
+
+RECEIVED AUGUST 2000; REVISED OCTOBER 2001; ACCEPTED NOVEMBER 2001
+
+
+
+
+Journal of the ACM, Vol. 49, No. 1, January 2002.
+

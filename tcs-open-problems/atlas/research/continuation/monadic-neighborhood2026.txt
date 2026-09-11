@@ -1,0 +1,1263 @@
+                                                     Neighborhood Complexity and Radius-1 Merge-Width
+                                                           in Monadically Dependent Graph Classes∗
+                                                 Jan Dreier, Nikolas Mählmann, Rose McCarty, Michał Pilipczuk, Szymon Toruńczyk
+
+
+
+                                                                                               Abstract
+                                                      Monadic dependence is a proposed structural dividing line for fixed-parameter tractability of
+                                                  first-order model checking on hereditary graph classes. A graph class is monadically dependent if
+                                                  the class of all graphs cannot be interpreted in its vertex-colored members using a fixed first-order
+                                                  formula. We prove two structural consequences of monadic dependence. First, every monadically
+                                                  dependent class has almost linear neighborhood complexity: for every graph G in the class and
+arXiv:2607.10941v1 [cs.DM] 12 Jul 2026
+
+
+
+
+                                                  every set A ⊆ V (G), the family {NG (v)∩A : v ∈ V (G)} has size |A|1+o(1) . Second, every n-vertex
+                                                  graph in a monadically dependent class has radius-1 merge-width no(1) . Here, merge-width is the
+                                                  decomposition parameter of Dreier and Toruńczyk based on construction sequences; its radius-r
+                                                  version measures local reachability among parts through already resolved pairs. This settles the
+                                                  radius-1 case of the conjectured connection between monadic dependence and almost bounded
+                                                  merge-width and provides the first decomposition-based structural description of monadically
+                                                  dependent graph classes. Our proof is algorithmic: we give an O(n5 )-time algorithm that,
+                                                  given an n-vertex graph G such that |{NG (v) ∩ A : v ∈ V (G)}| ⩽ O(|A|d ) for every A ⊆ V (G),
+                                                  computes a construction sequence witnessing radius-1 merge-width O(n1−1/d log n).
+
+
+                                         1        Introduction
+                                         In the first-order model checking problem, the input is a graph (or other structure) and a sentence φ of
+                                         first-order logic, and the task is to decide whether φ is true in G. This fundamental problem captures
+                                         many concrete problems of interest, including k-Clique, k-Dominating Set, and k-Independent Set,
+                                         and has been the focus of decades of research aimed at understanding which structural restrictions
+                                         on the input graph render the problem tractable.
+                                              A landmark result of Grohe, Kreutzer, and Siebertz [22] established that first-order model
+                                         checking is fixed-parameter tractable on every nowhere dense graph class; the running time of the
+                                         algorithm is of the form f (|φ|) · n1+o(1) , where f is a function depending on the class and the o(1)
+                                         term also depends on the class. For monotone (subgraph-closed) graph classes, nowhere denseness is
+                                         precisely the dividing line between (fixed-parameter) tractability and intractability [19, 22]. However,
+                                         there are natural tractable classes — such as classes of bounded clique-width [11] or twin-width [9] —
+                                         that are not monotone, contain dense graphs, and hence lie beyond the scope of this classification.
+                                             ∗
+                                             NM received funding from the European Union through an ERA Fellowship with grant agreement No. 101334340
+                                         – LoCoMoDe. RM was supported by the National Science Foundation under Grant No. DMS-2452111. MP was
+                                         supported by the project BOBR that has received funding from the European Research Council (ERC) under the
+                                         European Union’s Horizon 2020 research and innovation programme, grant agreement No. 948057. SzT received
+                                         funding from the European Research Council (ERC) with grant agreement No. 101126229 – BUKA.
+    The search for the exact tractability boundary among all hereditary (induced-subgraph-closed)
+graph classes has converged on a notion from Shelah’s classification theory: monadic dependence [4].
+A graph class C is monadically dependent if one cannot interpret all graphs in vertex-colored
+graphs from C using a fixed first-order formula. Monadic dependence precisely captures the known
+tractability boundaries in all settings where a complete classification exists: it is equivalent to
+nowhere denseness for monotone classes [2], to monadic stability for orderless classes [27], and to
+bounded twin-width for classes of ordered graphs [8]. This has led to the following conjecture, which
+is now the central open problem in the area.
+
+Conjecture 1 (e.g., [1, 8, 14, 21]). Let C be a hereditary class of graphs. Then the first-order model
+checking problem is fixed-parameter tractable on C if and only if C is monadically dependent.
+
+    The hardness direction of Conjecture 1 was recently confirmed: first-order model checking
+is AW[∗]-hard on every hereditary graph class that is not monadically dependent [15]. (Here,
+AW[∗] is a parameterized complexity class that can be understood as the parameterized analogue
+of PSPACE. In particular, it is strongly believed that AW[∗]̸=FPT.) Tractability has been established
+for increasingly general subclasses: nowhere dense classes [22], structurally nowhere dense classes [14],
+and monadically stable classes [12]. Yet the full tractability direction for all monadically dependent
+classes remains open.
+    Very recently, Dreier and Toruńczyk [16] suggested a possible line of attack towards Conjecture 1.
+Inspired by twin-width [9] and flip-width [33], they introduced a family of graph parameters called
+merge-width, indexed by a radius parameter r ∈ N. They conjectured that every monadically
+dependent class has almost bounded merge-width (i.e., for every fixed r, the radius-r merge-width of
+n-vertex graphs in the class is no(1) ), and showed that first-order model checking is fixed-parameter
+tractable on graphs of bounded merge-width, provided a suitable decomposition called a construction
+sequence is supplied on input. A possible route towards Conjecture 1 is then as follows:
+   • For a sufficiently high radius r depending on the given sentence φ, compute a construction
+     sequence of the input graph G whose radius-r merge-width is |V (G)|o(1) .
+   • Then, use the obtained construction sequence to solve the model checking problem by an
+     extension of the method from [16].
+In this work, we advance this line of work by the following contributions:
+Result I: We prove that monadically dependent graph classes have almost linear neighborhood
+    complexity, as defined below.
+Result II: We leverage the bound on the neighborhood complexity to prove that monadically
+    dependent classes have almost bounded radius-1 merge-width. This provides a first step
+    towards the conjecture of Dreier and Toruńczyk. Importantly, our proof yields a polynomial-
+    time algorithm that computes a construction sequence of radius-1 width no(1) .
+We now describe these results and their relevance in more detail.
+
+Neighborhood complexity is a fundamental quantitative notion used in the study of well-
+structured graph classes. For a graph G and vertex set A ⊆ V (G), the neighborhood complexity
+of A is the number of distinct sets of the form N (v) ∩ A for v ∈ V (G), where N (v) denotes the
+neighborhood of v. We say that a graph class C has almost linear neighborhood complexity if for
+every G ∈ C and every A ⊆ V (G),
+
+                                 {N (v) ∩ A : v ∈ V (G)} ⩽ |A|1+o(1) .
+
+
+                                                   2
+We remark that the o(1) term hides a dependence on the graph class C .
+    In the language of set systems, this says that the set system of neighborhoods in graphs from
+C has an almost linear shatter function, or VC density 1. Neighborhood complexity has played
+a central role in the algorithmic theory of sparse and dense graph classes alike. It is known to be
+almost linear for nowhere dense classes [20], and more generally, all monadically stable classes [12],
+and all classes of almost bounded merge-width [5]. All these classes are monadically dependent.
+    Almost linear neighborhood complexity serves as a powerful entry point for establishing a range of
+quantitative structural properties. For example, a classic result of Welzl [34] shows that every graph
+class with almost linear neighborhood complexity admits vertex orderings with crossing number
+no(1) . The key observation made in [12] was that Welzl orderings with crossing number no(1) can
+be used to efficiently construct sparse neighborhood covers with overlap no(1) . These covers serve
+as a key ingredient in the model checking algorithms for nowhere dense and monadically stable
+classes [22, 14, 12].
+    Whether monadically dependent classes also have almost linear neighborhood complexity was
+posed as an open problem in [12]. Our first main result answers this question affirmatively.
+
+Theorem 2. Let C be a monadically dependent graph class. Then for every G ∈ C and A ⊆ V (G),
+
+                                    {N (v) ∩ A : v ∈ V (G)} ⩽ |A|1+o(1) .
+
+As usual, the o(1) term hides a dependence on the graph class C . Equivalently, we prove that for
+every ε > 0 there is some c = c(ε, C ) so that the cardinality above is bounded by c|A|1+ε . This result
+is essentially tight as already nowhere dense classes can have superlinear neighborhood complexity1 .
+    The proof of the corresponding statement for monadically stable classes in [12] relies on a
+reduction to the nowhere dense case using tools from stability theory (Shelah’s 2-rank/branching
+index). Our proof of Theorem 2 has a similar global structure, but uses induction on the VC-
+dimension instead of the branching index. This introduces technical difficulties which we overcome
+using ideas concerning set systems of bounded VC-dimension, originating in the work of Sauer and
+Shelah [31, 32], and Haussler, Littlestone, Warmuth [23, 24] in computational learning theory, such
+as the unit-distance graph (also called the Hamming graph).
+    Combined with known results for graphs of almost linear neighborhood complexity, Theorem 2
+has several immediate applications.
+
+Corollary 3. For every monadically dependent graph class C , every n-vertex graph G ∈ C admits:
+       • a vertex order (also called a spanning path) with crossing number no(1) [34],
+         which can be computed in time (n + m) · no(1) [13],
+       • a neighborhood cover with overlap no(1) and strong radius 2 [12],
+       • a spanner with stretch 4 and n1+o(1) edges2 ,
+       • an no(1) -bit adjacency labeling scheme/implicit representation [3, 6],
+       • an algorithm solving All-Pairs Shortest Path in time n2+o(1) ,
+         by combining [7, Thm. 6.2] and [17, Lem. 13] (see also [35, Thm. 11]).
+
+   Previously, the results mentioned in Corollary 3 were known in more restrictive regimes where
+almost linear neighborhood complexity was settled, such as nowhere dense classes [20], monadically
+   1
+     The class C := {G | maxdegree(G) ⩽ girth(G)} is nowhere dense but has unbounded average degree [29, Lem. 8].
+The class of 1-subdivisions of graphs from C is still nowhere dense and has superlinear neighborhood complexity.
+   2
+     Take the neighborhood cover from the previous item. For each cluster C with center v, keep for each vertex in C
+the edges of a shortest path to v. See for example [28] for the definition of a spanner.
+
+
+                                                         3
+stable classes [12], and classes of almost bounded merge-width [5]. (The equivalence of the last
+one with monadic dependence on hereditary classes is the subject of the conjecture of Dreier and
+Toruńczyk [16].)
+    While neighborhood complexity has rich structural and algorithmic consequences, the overarching
+goal — fixed-parameter tractable first-order model checking on monadically dependent classes —
+demands more. Monadic dependence is defined by forbidding certain patterns to be interpretable in
+graphs from the class, a characterization that is inherently non-constructive. On the other hand,
+algorithms require decompositions. For nowhere dense classes, this role is played by generalized
+coloring numbers, which underlie most algorithmic applications. As discussed above, the working
+hypothesis is that the right analogue for monadically dependent classes is provided by merge-width.
+
+Merge-width is a family of graph parameters introduced by Dreier and Toruńczyk [16] that unifies
+several central structural measures, including treewidth, degeneracy, twin-width, clique-width, and
+generalized coloring numbers. The underlying notion of a decomposition is called a construction
+sequence: starting from the partition into singletons, it builds the graph by repeatedly either merging
+two parts, or resolving all currently unresolved vertex pairs between two parts as edges or as
+non-edges. The radius-r merge-width measures how many parts any vertex can reach via a path
+consisting of at most r resolved vertex pairs at any point during the construction.
+    Graph classes of bounded merge-width — where the radius-r merge-width is bounded by a constant
+for each fixed r ∈ N — include all classes of bounded expansion and all classes of bounded twin-width,
+unifying the two frameworks. The model checking problem for first-order logic is fixed-parameter
+tractable on graph classes of bounded merge-width, given a witnessing construction sequence [16].
+This unifies the model checking results for bounded expansion [19] and bounded twin-width [9].
+    Relaxing this condition, a class C has almost bounded merge-width if for each fixed r ∈ N, the
+n-vertex graphs in C have radius-r merge-width at most no(1) (where the o(1) term depends on both
+the radius r and the class C ). This parallels the characterization of nowhere dense classes via almost
+bounded generalized coloring numbers. It is conjectured [16] that almost bounded merge-width
+coincides with monadic dependence for hereditary classes. One direction holds: almost bounded
+merge-width implies monadic dependence [15]. The other direction is open, however our second
+main result settles it for r = 1:
+
+Theorem 4. Let C be a monadically dependent graph class. Then every n-vertex graph G ∈ C has
+radius-1 merge-width at most no(1) .
+
+   Our techniques are algorithmic, not just existential, and they apply to all graphs, not just
+graphs from monadically dependent classes. Our algorithm returns a construction sequence of small
+radius-1 width for any graph with polynomial neighborhood complexity. More precisely, we prove
+the following theorem. We note that the value of the constant k in our theorem primarily comes
+from the constant in Haussler’s Packing Lemma [24].
+
+Theorem 5. There is an algorithm that, given an n-vertex graph G, computes in time O(n5 ) a
+construction sequence for G with the following guarantee: For all real numbers c and d ⩾ 1, there
+exists an integer k = k(c, d) so that if G is an n-vertex graph such that for every nonempty A ⊆ V (G),
+
+                                  {N (v) ∩ A : v ∈ V (G)} ⩽ c|A|d ,
+
+then the construction sequence has radius-1 merge-width at most k · n1−1/d log n.
+
+
+
+                                                  4
+    If G is drawn from a monadically dependent class C , then Theorem 2 guarantees almost linear
+neighborhood complexity, and the algorithm computes a construction sequence with radius-1 merge-
+width no(1) , implying Theorem 4. Similarly, if G belongs to a class C of bounded merge-width, then
+G has linear neighborhood complexity by [5], and so the algorithm returns a construction sequence
+of radius-1 merge-width O(log n) (hiding a constant depending on the class). Notably, the algorithm
+is oblivious to the values of d and c and its running time is always just O(n5 ). Theorem 5 itself
+is obtained by a greedy procedure with an iterative reweighing technique similar to the one used
+by Welzl [34].
+    We did not optimize the running time O(n5 ) of the algorithm. A construction sequence of radius-1
+merge-width O(log n) gives rise to a very particular signed tree model with O(n log n) transversal
+pairs. For graphs of bounded twin-width, signed tree models with O(n log n) transversal pairs can
+also be constructed in randomized time O(m + n) log n [35, Thm. 4]. We leave for future research
+the question of whether construction sequences of width O(log n) can be obtained in a similar time
+for all graphs of linear neighborhood complexity.
+
+
+2    Neighborhood Complexity
+In this section we give a high-level overview of the proof of Theorem 2. The complete proof can be
+found in Section A. We begin by introducing the relevant notions.
+
+Transductions and monadic dependence A transduction T is specified by a number k and
+a first-order formula φ(x, y) in the signature consisting of a binary adjacency symbol and k unary
+relation symbols. Given a graph G, define T (G) as the set of graphs H which can be obtained as
+follows: first expand G by interpreting the k unary predicates arbitrarily; then construct a graph on
+vertex set V (G) and edges uv with u = ̸ v such that φ(u, v) ∨ φ(v, u) holds in the expanded structure;
+finally, take an arbitrary induced subgraph H of the resulting graph.
+     For example, the two formulas φ1 (x, y) := ¬E(x, y) and φ2 (x, y) := E(x, y)∨∃z (E(x, z)∧E(z, y))
+specify (with k = 0) transductions producing S  the complement and the square of a graph, respectively.
+     For a graph class C , we define T (C ) := {T (G) | G ∈ C }. If C and D are graph classes, then
+C transduces D if D ⊆ T (C ) for some transduction T . A graph class is monadically dependent
+if it does not transduce the class of all graphs. (This is the transduction formulation of monadic
+dependence; the original definition is model-theoretic, and the equivalence follows from the work of
+Baldwin and Shelah [4].) Since transducibility is transitive (by composing the defining first-order
+formulas and unary expansions), if C is monadically dependent and C transduces D, then also D is
+monadically dependent.
+     It is well-known that if C is a monadically dependent graph class that does not contain Kt,t as a
+subgraph, for some t, then C is nowhere dense. This follows e.g. by combining the results of [2]
+and [18]; see [30, Lemma 35] or [25, Lemma 13.7] for a direct argument. The definition of nowhere
+denseness will not be relevant here, only the fact that such classes are known to have almost linear
+neighborhood complexity [20]. Combining these results, we obtain the following corollary.
+
+Corollary 6. Fix t ∈ N and a monadically dependent class C of graphs. Then for every G ∈ C that
+does not contain Kt,t as a subgraph and every A ⊆ V (G),
+
+                                {N (v) ∩ A : v ∈ V (G)} ⩽ |A|1+o(1) ,
+
+where the o(1) term depends on both t and C .
+
+
+                                                  5
+Set systems and VC-dimension A set system on a set D is a set F of subsets of D. If F is a
+set system on D and X ⊆ D, then by F⇂X we denote the set system {X ∩ F | F ∈ F} on X. The
+VC-dimension of F is the maximal size of a set X such that F⇂X = 2X , and is −∞ if F = ∅. For a
+graph G, we write VCdim(G) to denote the VC-dimension of the set system {N (v) | v ∈ V (G)} on
+V (G). A graph class C has bounded VC-dimension if there exists d ∈ N such that VCdim(G) ⩽ d for
+all G ∈ C . It is easy to see that every monadically dependent graph class has bounded VC-dimension.
+    Let F be a set system on V , and let v ∈ V . We say that A and B are a v-pair if A, B ∈ F and
+A△B = {v}, that is, if v is the unique element on which A and B differ. If A ∈ F is in some v-pair
+then A is v-positive if v ∈ A and is v-negative otherwise. The following observation underlies the
+inductive proof of the fundamental Sauer-Shelah-Perles lemma (see for instance [26, Lemma 5.9]). We
+leverage this lemma in our proof of Theorem 2. (Claims marked with ♣ are proved in the appendix.)
+
+Lemma 7 (♣). For every nonempty set system F on a set V and every v ∈ V , the following two
+set systems on V have VC-dimension strictly smaller than the VC-dimension of F :
+
+                    {F ∈ F | F is v-positive}   and   {F ∈ F | F is v-negative}.
+
+    The Hamming graph of a set system F, denoted as Hamming(F), is the graph with vertex set F,
+where two sets A, B ∈ F are adjacent if and only if |A△B| = 1. We use a lemma due to Haussler,
+Littlestone, and Warmuth [23, Lemma 2.4] (see also [24, Lemma 2]).
+
+Lemma 8. The Hamming graph of a set system F of VC-dimension d has at most d|F| edges.
+
+Corollary 9. Let F be a set system of VC-dimension d, whose Hamming graph H has m edges.
+Then H has at least m/d non-isolated vertices.
+
+Proof. Let G ⊆ F = V (H) be the set of non-isolated vertices of H. Then G is a set system of
+VC-dimension at most d with m = |E(H)| Hamming edges, so m ⩽ d|G| by Lemma 8.
+
+Bipartite Graphs as Set Systems In the proof of Theorem 2, it will be enough to consider
+bipartite graphs G = (A, B, E). Every bipartite graph G = (A, B, E) induces a set system
+{N (b) | b ∈ B} on A, and we denote this set system by B/A. Notice that |B/A| = |B| if B does not
+contain any pair of twins, that is, two vertices with equal neighborhoods. More generally, for A′ ⊆ A
+and B ′ ⊆ B, we view B ′ /A′ as the set system {N (b) ∩ A′ | b ∈ B ′ } on A′ .
+    We define two auxiliary bipartite graphs from G = (A, B, E) – the positive merge graph and the
+negative merge graph – as follows. Both graphs have parts A and B/A. We include edges {a, F }
+with a ∈ A and F ∈ B/A such that F is a-positive or a-negative, respectively, in the set system
+B/A on A. For instance, we include {a, F } as an edge of the positive merge graph if there exists a
+set F ′ ∈ B/A such that F ∆F ′ = {a} and a ∈ F . In this case F ′ = F − {a}, and we also include
+{a, F ′ } in the negative merge graph. The intuition is that removing a from the domain causes F and
+F ′ to merge, i.e., F − {a} = F ′ . Note that a set F ∈ B/A is non-isolated in the Hamming graph of
+B/A if and only if it is non-isolated in at least one of the merge graphs of B/A. The advantage of
+merge graphs over the Hamming graph is that they allow us to describe subsets of B using vertices
+of A. Moreover, Lemma 7 yields the following.
+
+Lemma 10. Let G = (A, B, E) be a bipartite graph and let v ∈ A. Then the neighborhood of v
+in both the positive merge graph and the negative merge graph is a set system of strictly smaller
+VC-dimension than B/A.
+
+
+
+
+                                                 6
+High-level Overview We now give an overview of the proof of Theorem 2. It is enough to show
+that if B is a monadically dependent class of bipartite graphs, and G = (A, B, E) ∈ B has no twins
+in B, then |B| ⩽ |A|1+o(1) . As B is monadically dependent, the VC-dimension of B/A is bounded
+by some d ∈ N depending only on B.
+    The crux of the argument is to find sets A1 ⊆ A and B1 ⊆ B with |B1 | ⩾ |B|/ polylog(|A|), and
+a partition P1 of B1 so that for each part P of P1 , all vertices of P have distinct neighborhoods on
+A1 , and P/A1 has a VC-dimension at most d − 1. Moreover, the partition P1 should be definable by
+a fixed transduction. We now sketch this construction.
+    We would like the Hamming graph of B/A to have many edges so that we can apply Corollary 9.
+However, even if |B/A| is much larger than |A|, its Hamming graph may be sparse or even edgeless
+(think of the set system of even-sized subsets of [n]). The next lemma shows that after restricting to
+a suitable A1 ⊆ A, one obtains a dense Hamming graph.
+
+Lemma 11 (Special case of Lem. 19). Let G = (A, B, E) be a bipartite graph without twins in B and
+|B| > 2. Then there is a set A1 ⊆ A s.t. the Hamming graph of B/A1 has at least 2 ln|B|
+                                                                                     |A|+2 edges.
+
+    Let A1 ⊆ A be as in Lemma 11 and let B ′ ⊆ B be a maximal subset with no twins towards A1 , so
+that B/A1 = B ′ /A1 . By Corollary 9, the Hamming graph of B ′ /A1 has at least |B|/(d(2 ln |A| + 2))
+non-isolated vertices. Each such vertex is non-isolated in either the positive or the negative merge
+graph of B ′ /A1 . Thus, one of the two merge graphs has at least |B|/(2d(2 ln |A| + 2)) non-isolated
+vertices in B ′ /A1 ; by symmetry, assume it is the positive merge graph. Note that by Lemma 10, the
+neighborhood of each vertex in A1 in the positive merge graph of B ′ /A1 has VC-dimension smaller
+than d. We now wish to make these neighborhoods disjoint so that we can find a partition of B ′ /A1 .
+To do so, we use the following lemma from [12] to find a large subset B1 ⊆ B ′ and a set A′1 ⊆ A1
+such that every vertex in B1 has exactly one neighbor in A′1 .
+
+Lemma 12 ([12, Lemma 10]). Let G = (X, Y, E) be a bipartite graph with no isolated vertices. Then
+there are X ′ ⊆ X and Y ′ ⊆ Y with |Y ′ | ⩾ 150|Yln||X| such that every vertex in Y ′ has exactly one
+neighbor in X ′ .
+
+     By applying Lemma 12 to the positive merge graph of B ′ /A1 restricted
+                                                                          to its non-isolated vertices,
+we obtain sets A′1 ⊆ A1 and B1 ⊆ B ′ with |B1 | ⩾ Ω |B|/(d log2 |A|) such that every vertex in B1
+has exactly one neighbor in A′1 in the positive merge graph of B/A1 . Let P1 partition B1 into the
+neighborhoods (in the positive merge graph) of vertices in A′1 . By Lemma 10, for each part P ∈ P1 ,
+the set system P/A1 has VC-dimension at most d − 1. The key point is that while we achieved a
+major progress in reducing the VC-dimension, this came only at a cost of restricting attention to a
+set B1 that is still large compared with B, losing only a polylogarithmic multiplicative factor. So
+repeating this argument d times preserves a subset of size |B|/ polylog(|A|)d .
+     We then induct on each part of P1 , in parallel. On a high level, the resulting process is as follows.
+Starting from all vertices of B, we keep a large subset Bi ⊆ B, a set Ai ⊆ A, and a partition Pi
+of Bi , so that each part P ∈ Pi is specified by i vertices of A and has no twins towards Ai , and
+the set system P/Ai has VC-dimension at most d − i. Each step loses only a polylog(|A|) factor
+in the size of Bi and lowers the VC-dimension by one. The next step can be carried as long as
+|Pi | < |Bi |/2, and the process is terminated once |Pi | ⩾ |Bi |/2. This must happen in step i = d at
+the latest, since then for each P ∈ Pd , the set system P/Ad has VC-dimension 0, so |P | = 1 and
+thus |Pd | = |Bd |. Once the process terminates, we have that:
+   • Bi is still almost as large as B: |Bi | ⩾ |B|/ polylogd (|A|), and
+   • Pi contains many parts: |Pi | ⩾ |Bi |/2.
+
+
+                                                    7
+   The bipartite graph with sides Pi and A, where each part P ∈ Pi is adjacent to the i ⩽ d vertices
+encoding it, is Kd+1,d+1 -free and transducible from G by a fixed transduction. Applying Corollary 6
+then gives |Pi | ⩽ |A|1+o(1) . Combining the inequalities yields |B| ⩽ |A|1+o(1) , as desired.
+
+
+3    Radius-1 Merge-Width
+This section is dedicated to proving Theorem 5, which shows how to efficiently compute a construction
+sequence with small radius-1 merge-width. We begin by defining the relevant terms.
+
+Merge-Width Consider a vertex set V . A construction sequence is a sequence of steps, maintaining
+a partition P of V and a partition of V2 into three sets: edges E, non-edges N , and unresolved
+pairs U . Initially, P partitions V into singletons, and every pair in V2 is unresolved. In each step,
+                                                                         
+
+one of three operations is performed:
+    • merge two parts A, B ∈ P, A ̸= B, replacing the two parts by their union A ∪ B,
+    • resolve positively a pair of parts A, B ∈ P (possibly A = B), declaring all the unresolved pairs
+      {a, b} ∈ U with a ∈ A, b ∈ B as edges, that is, moving them from U to E, or
+    • resolve negatively a pair of parts A, B ∈ P (possibly A = B), declaring the corresponding
+      unresolved pairs as non-edges, that is, moving them from U to N .
+In the end, we require that P has one part, and that every pair from V2 is resolved as either an
+                                                                             
+
+edge or a non-edge. We thus say this is a construction sequence of the graph G = (V, E), where E is
+the final edge set of the process.
+    The radius-r width of a construction sequence is the smallest integer k such that at every step in
+the sequence, for every vertex v ∈ V , at most k parts of the current partition P can be reached from
+v by a path of length ⩽ r in the graph (V, E ∪ N ). Finally, the radius-r merge-width of a graph G is
+the minimum radius-r width over all construction sequences of G.
+    Observe that for any construction sequence of a graph G, at any given step, for any two parts
+A, B of the partition P, the unresolved vertex pairs ab with a ∈ A and b ∈ B are either all edges
+of G, or are all non-edges in G. See Figure 1 for an example illustrating radius-1 merge-width.
+
+Fractional Twins Our algorithm is built on techniques from computational geometry and the
+combinatorics of set systems related to VC-dimension and δ-separated set systems. In particular,
+our algorithm uses the multiplicative weight update technique of Welzl [34, 10]. In order to apply
+this technique, we now describe how graphs with small neighborhood complexity contain weighted
+near twins, i.e. pairs of vertices with almost the same neighborhood.
+    For a graph G with distinct vertices u and v, we write ∆G (u, v) := (N (u)△N (v)) ∪ {u, v} for
+the set of all vertices that are either equal to u or v or adjacent to exactly one of u and v. We omit
+the subscript whenever the graph is clear from context.
+    For a positive real number p, we say that a graph G has p-fractional twins if for every weight
+function w : V (G) → Z+ , there exist distinct vertices u, v ∈ V (G) such that
+
+                                      w (∆(u, v)) ⩽ p · w(V (G)).                          (1)
+
+For a set S ⊆ V (G) we denote w(S) := v∈S w(v). Any pair of vertices u and v satisfying (1) is
+                                           P
+called a pair of p-fractional twins with respect to w.
+    The following lemma is a corollary of Haussler’s Packing Lemma [24].
+
+
+
+                                                  8
+                     resolve             merge               merge              resolve
+
+
+
+
+                                                                                            merge
+
+
+
+                     merge              resolve              merge              resolve
+
+
+
+
+Figure 1: A construction sequence of a graph witnessing radius-1 merge-width at most three. The
+resolved pairs are drawn as     (edges) and    (non-edges). The unresolved pairs are drawn in an
+aggregated way as (edges) and (non-edges) connecting parts, and as background colors within
+each part. The first and sixth displayed stages each present several resolve steps. Figure replicated
+with permission from [16, Fig. 4].
+
+Lemma 13 (♣). For all real numbers c and d ⩾ 1, there exists an integer r = r(c, d) so that if G is
+an n-vertex graph such that n ⩾ 2 and for every nonempty A ⊆ V (G),
+
+                                    {N (v) ∩ A : v ∈ V (G)} ⩽ c|A|d ,
+
+then G has (r · n−1/d )-fractional twins.
+   Next we show how to find a single pair of fractional twins with respect to two different weight
+functions simultaneously. We note that the auxiliary function w below is just a weighted average.
+Lemma 14 (♣). Let p > 0, let G be a graph with p-fractional twins, and let w1 , w2 : V (G) → Z+ .
+Then there exist distinct vertices u and v that are 3p-fractional twins with respect to both w1 and
+w2 . Moreover, given an arbitrary graph G and functions w1 , w2 : V (G) → Z+ as input (i.e., without
+any knowledge of p), such vertices u and v can be found by computing an auxiliary weight function
+w and selecting u and v to minimize w(∆(u, v)). If G has at most n vertices and every vertex has
+weight at most 2n with respect to both w1 and w2 , then this algorithm runs in time O(n4 ).
+
+Finding Construction Sequences Now we prove the main theorem about radius-1 merge-width.
+Theorem 5. There is an algorithm that, given an n-vertex graph G, computes in time O(n5 ) a
+construction sequence for G with the following guarantee: For all real numbers c and d ⩾ 1, there
+exists an integer k = k(c, d) so that if G is an n-vertex graph such that for every nonempty A ⊆ V (G),
+
+                                    {N (v) ∩ A : v ∈ V (G)} ⩽ c|A|d ,
+
+then the construction sequence has radius-1 merge-width at most k · n1−1/d log n.
+Proof. The algorithm directly constructs the construction sequence in n − 1 rounds,       each consisting
+                                                                                       V
+of several resolve operations followed by a single merge. We write Pi and Ri ⊆ 2 for the partition
+and the set of resolved vertex pairs at the beginning of round i = 0, 1, . . . , n − 2, where |Pi | = n − i.
+Along with these, we maintain the following additional information:
+
+                                                     9
+   • a leader Li (P ) ∈ P for each part P ∈ Pi ; we write Li (x) for the leader of the part containing x;
+   • the leader graph Gi , the subgraph of G induced by the leaders {Li (P ) : P ∈ Pi }; and
+   • a weight function wi : V (Gi ) → Z+ .
+    Let r = r(c, d) denote the integer from Lemma 13. Since the assumption of the theorem holds not
+only for G but trivially also for every induced subgraph of G, by Lemma 13 every induced subgraph
+of G with ℓ ⩾ 2 vertices has (r · ℓ−1/d )-fractional twins. In particular, since at every stage we merge
+exactly two parts, the leader graph Gi has exactly n − i vertices. Thus Gi has r(n − i)−1/d -fractional
+twins. We now give the algorithm.
+
+ The algorithm. Let G0 = G and P0 be the partition of V (G) into n singleton sets, and R0 = ∅.
+ For each P ∈ P0 , let its leader L0 (P ) be the unique vertex x ∈ P and set w0 (x) = 1.
+  For i = 0, 1, 2, . . . , n − 2, do the following.
+  1. Apply Lemma 14 to the weight function wi of Gi and the weight function w1 assigning every
+     vertex of Gi weight 1; that is, compute a weighted average of these two weight functions and
+     then find distinct vertices ui and vi so that ∆Gi (ui , vi ) has minimum weight with respect to
+     this weighted average. Thus we are guaranteed that
+
+            wi (∆Gi (ui , vi )) ⩽ 3r(n − i)−1/d · wi (V (Gi )),   and                                     (2)
+               |∆Gi (ui , vi )| = w1 (∆Gi (ui , vi )) ⩽ 3r(n − i)−1/d · w1 (V (Gi )) ⩽ 3r(n − i)1−1/d .   (3)
+
+     Rename ui and vi so that |Pi (ui )| ⩾ |Pi (vi )|, where Pi (w) denotes the part of Pi containing w.
+  2. For each part Q ∈ Pi with Li (Q) ∈ ∆Gi (ui , vi ), resolve Pi (vi ) and Q: positively if vi and
+     Li (Q) are adjacent, negatively otherwise. Add the resolved vertex pairs to Ri to obtain Ri+1 .
+     (In particular, since ui ∈ ∆Gi (ui , vi ), this step resolves P(ui ) and P(vi ).)
+  3. Let Pi+1 be the partition of V (G) formed by merging Pi (ui ) and Pi (vi ) into a single new
+     part, whose leader is ui . All other parts keep their leaders.
+  4. Mirroring the multiplicative weight update strategy of Welzl [34, 10], set for each leader x in
+     the new leader graph Gi+1 ,
+
+                               2 max(wi (ui ), wi (vi )) if x = ui ,
+                               
+                               
+                   wi+1 (x) :=   2wi (x)                  if x ∈ ∆Gi (ui , vi ) \ {ui , vi },
+                                                          otherwise.
+                               
+                                 wi (x)
+                               
+
+
+
+    We claim that the algorithm indeed computes a construction sequence for the graph G. The
+intuition is that for each unresolved pair {x, y} ∈
+                                                  / Ri with x and y in different parts, the adjacency
+between x and y agrees with the adjacency between their leaders Li (x) and Li (y). Any time this
+invariant would be violated by a leader change, the pair is resolved beforehand in Step 2.
+Claim 15 (♣). The algorithm computes a construction sequence of G.
+   We next bound the radius-1 merge-width of the computed construction sequence. We begin by
+bounding the number of times the leader of a vertex can change. This is the only place where we
+use the choice of which vertex becomes the new leader in step 3 of the algorithm. Essentially, this
+choice balances the “tree of how leaders change”, ensuring that it has logarithmic height.
+
+
+
+                                                       10
+Claim 16 (♣). For each vertex x ∈ V (G), there are at most log2 n + 1 different vertices which are
+ever leaders for the part containing x. That is, |{Li (x) : i ∈ {0, 1, . . . , n − 1}}| ⩽ log2 n + 1.
+   Finally, we bound for each vertex the number of rounds i such that its leader can appear in
+∆Gi (ui , vi ). The proof of this claim very closely resembles the multiplicative weight update strategy
+of Welzl [34, 10]. This claim is the only place where we use inequality (2).
+Claim 17 (♣). For each vertex x ∈ V (G), there are at most Oc,d (n1−1/d + log n) many integers
+i ∈ {0, 1, . . . , n − 2} so that Li (x) ∈ ∆Gi (ui , vi ).
+We will next use Claim 16 and Claim 17 to bound the width of the construction sequence. In each
+round i of the algorithm, multiple resolve steps are performed, followed by a single merge step.
+During each such step, the set of resolved edges is a subset of Ri+1 and the width is measured in
+the partition Pi (for the resolve steps) or in Pi+1 (for the merge step). The width of a single step
+can therefore be upper bounded by the width achieved for Pi and Ri+1 : the finest partition and the
+most resolved edges. As Pi and Pi+1 only differ in one part, up to a difference of 1, the following
+claim suffices to bound the width of the entire construction sequence.
+Claim 18. For each i ∈ {0, 1, 2, . . . , n − 1} and vertex x ∈ V (G), x has neighbors in at most
+Oc,d (n1−1/d log n) different parts of Pi in the graph (V (G), Ri ).
+
+Proof. Fix x ∈ V (G). Our goal is to bound the number of parts of Pi which contain a vertex y such
+that {x, y} ∈ Ri by Oc,d (n1−1/d log n). Each relevant pair {x, y} is resolved at a unique round j ⩽ i.
+Disregarding the single part Pi (x), we can assume that x and y are in different parts of Pi . Then
+x and y are also in different parts of the finer partition Pj , and exactly one of them is in Pj (vj ).
+Recall that vj does not become the leader of the merged part. We distinguish two cases.
+    First, we bound the number of parts of Pi which contain a vertex y so that {x, y} was resolved
+at time j with x ∈ Pj (vj ). Then Lj (x) ̸= Lj+1 (x). By Claim 16, there are at most log2 n such
+rounds j. Moreover, by inequality (3), there are at most 3r(n − j)1−1/d ⩽ 3rn1−1/d different parts
+of Pj that y could be contained in. Since Pi is coarser than each Pj , this case contributes at most
+3rn1−1/d log2 n ⩽ Oc,d (n1−1/d log n) parts reachable in Pi .
+    Next, we bound the number of parts of Pi which contain a vertex y so that {x, y} was resolved at
+time j with y ∈ Pj (vj ). At each round j, there is at most one such part, namely Pj (vj ). Moreover,
+Lj (x) ∈ ∆Gj (uj , vj ) by definition. By Claim 17, there are only Oc,d (n1−1/d + log n) such rounds j.
+    Summing the two cases, |{Pi (y) : {x, y} ∈ Ri |} ⩽ Oc,d (n1−1/d log n), as claimed.
+
+   Having bounded the width of the computed construction sequence, it remains to bound the
+running time. The bottleneck is applying Lemma 14 in each of the n rounds (step 1). Since Gi has
+at most n vertices and wi assigns weight at most 2n to each vertex, each application runs in time
+O(n4 ), giving an overall runtime of O(n5 ).
+
+
+References
+ [1] Algorithms, Logic and Structure Workshop in Warwick – Open Problem Ses-
+     sion.    https://warwick.ac.uk/fac/sci/maths/people/staff/daniel_kral/alglogstr/
+     openproblems.pdf, 2016. [Online; accessed 23-Jan-2023].
+
+ [2] Hans Adler and Isolde Adler. Interpreting nowhere dense graph classes as a classical notion of
+     model theory. European Journal of Combinatorics, 36:322–330, 2014.
+
+
+
+
+                                                  11
+ [3] Noga Alon. Implicit representation of sparse hereditary families. Discrete & Computational
+     Geometry, 72(2):476–482, July 2023.
+
+ [4] John T Baldwin and Saharon Shelah. Second-order quantifiers and the complexity of theories.
+     Notre Dame Journal of Formal Logic, 26(3):229–303, 1985.
+
+ [5] Marthe Bonamy and Colin Geniet. χ-boundedness and neighbourhood complexity of bounded
+     merge-width graphs. Arxiv preprint 2504.08266, 2025.
+
+ [6] Édouard Bonnet, Julien Duron, John Sylvester, and Viktor Zamaraev. Adjacency labeling
+     schemes for small classes. In 16th Innovations in Theoretical Computer Science Conference,
+     ITCS 2025, LIPIcs, pages 21:1–21:22. Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2025.
+
+ [7] Édouard Bonnet, Colin Geniet, Eun Jung Kim, Stéphan Thomassé, and Rémi Watrigant.
+     Twin-width III: Max Independent Set, Min Dominating Set, and Coloring. In 48th International
+     Colloquium on Automata, Languages, and Programming, ICALP 2021, volume 198 of LIPIcs,
+     pages 35:1–35:20. Schloss Dagstuhl – Leibniz-Zentrum für Informatik, 2021.
+
+ [8] Édouard Bonnet, Ugo Giocanti, Patrice Ossona de Mendez, Pierre Simon, Stéphan Thomassé,
+     and Szymon Toruńczyk. Twin-width IV: Ordered graphs and matrices. In 54th Annual ACM
+     Symposium on Theory of Computing, STOC 2022, pages 924–937, 2022.
+
+ [9] Édouard Bonnet, Eun Jung Kim, Stéphan Thomassé, and Rémi Watrigant. Twin-width I:
+     tractable FO model checking. Journal of the ACM, 69(1):1–46, 2021.
+
+[10] Bernard Chazelle and Emo Welzl. Quasi-optimal range searching in spaces of finite VC-dimension.
+     Discrete Comput. Geom., 4(5):467–489, 1989.
+
+[11] Bruno Courcelle, Johann A Makowsky, and Udi Rotics. Linear time solvable optimization
+     problems on graphs of bounded clique-width. Theory of Computing Systems, 33(2):125–150,
+     2000.
+
+[12] Jan Dreier, Ioannis Eleftheriadis, Nikolas Mählmann, Rose McCarty, Michał Pilipczuk, and
+     Szymon Toruńczyk. First-order model checking on monadically stable graph classes. In 65th
+     IEEE Annual Symposium on Foundations of Computer Science, FOCS 2024, pages 21–30. IEEE,
+     2024.
+
+[13] Jan Dreier and Clemens Kuske. Near-linear time computation of Welzl orders on graphs with
+     linear neighborhood complexity. Arxiv preprint 2602.14625, 2026.
+
+[14] Jan Dreier, Nikolas Mählmann, and Sebastian Siebertz. First-order model checking on struc-
+     turally sparse graph classes. In 55th Annual ACM Symposium on Theory of Computing, STOC
+     2023, pages 567–580. ACM, 2023.
+
+[15] Jan Dreier, Nikolas Mählmann, and Szymon Toruńczyk. Flip-breakability: A combinatorial
+     dichotomy for monadically dependent graph classes. In 56th Annual ACM Symposium on Theory
+     of Computing, STOC 2024, pages 1550–1560. ACM, 2024.
+
+[16] Jan Dreier and Szymon Toruńczyk. Merge-width and first-order model checking. In 57th Annual
+     ACM Symposium on Theory of Computing, STOC 2025, pages 1944–1955. ACM, 2025.
+
+
+
+
+                                                12
+[17] Lech Duraj, Filip Konieczny, and Krzysztof Potępa. Better diameter algorithms for bounded
+     VC-dimension graphs and geometric intersection graphs. In 32nd Annual European Symposium
+     on Algorithms, ESA 2024, LIPIcs, pages 51:1–51:18. Schloss Dagstuhl – Leibniz-Zentrum für
+     Informatik, 2024.
+[18] Zdeněk Dvořák. Induced subdivisions and bounded expansion. European Journal of Combina-
+     torics, 69:143–148, 2018.
+[19] Zdeněk Dvořák, Daniel Král, and Robin Thomas. Testing first-order properties for subclasses of
+     sparse graphs. J. ACM, 60(5):36:1–36:24, 2013.
+[20] Kord Eickmeyer, Archontia C. Giannopoulou, Stephan Kreutzer, O-joung Kwon, Michał
+     Pilipczuk, Roman Rabinovich, and Sebastian Siebertz. Neighborhood complexity and ker-
+     nelization for nowhere dense classes of graphs. In 44th International Colloquium on Automata,
+     Languages, and Programming, ICALP 2017, LIPIcs, pages 63:1–63:14. Schloss Dagstuhl –
+     Leibniz-Zentrum für Informatik, 2017.
+[21] Jakub Gajarský, Petr Hliněný, Jan Obdržálek, Daniel Lokshtanov, and M. S. Ramanujan. A
+     new perspective on FO model checking of dense graph classes. In 31st Annual ACM/IEEE
+     Symposium on Logic in Computer Science, LICS 2016, pages 176–184. ACM, 2016.
+[22] Martin Grohe, Stephan Kreutzer, and Sebastian Siebertz. Deciding first-order properties of
+     nowhere dense graphs. Journal of the ACM, 64(3):1–32, 2017.
+[23] D. Haussler, N. Littlestone, and M.K. Warmuth. Predicting 0, 1-functions on randomly drawn
+     points. Information and Computation, 115(2):248–292, 1994.
+[24] David Haussler. Sphere packing numbers for subsets of the Boolean n-cube with bounded
+     Vapnik-Chervonenkis dimension. Journal of Combinatorial Theory, Series A, 69(2):217–232,
+     1995.
+[25] Nikolas Mählmann. Monadically Stable and Monadically Dependent Graph Classes: Characteri-
+     zations and Algorithmic Meta-Theorems. PhD thesis, University of Bremen, 2024.
+[26] Jiří Matoušek. Geometric Discrepancy. Springer Berlin Heidelberg, 1999.
+[27] Jaroslav Nešetřil, Patrice Ossona de Mendez, Michał Pilipczuk, Roman Rabinovich, and
+     Sebastian Siebertz. Rankwidth meets stability. In 2021 ACM-SIAM Symposium on Discrete
+     Algorithms, SODA 2021, pages 2014–2033. SIAM, 2021.
+[28] David Peleg and Alejandro A Schäffer. Graph spanners. Journal of Graph Theory, 13(1):99–116,
+     1989.
+[29] Michał Pilipczuk and Sebastian Siebertz. Chapter 1: Measuring sparsity. Lecture notes for the
+     course Sparsity, winter term 2017/18, University of Warsaw, 2017.
+[30] Wojciech Przybyszewski and Szymon Toruńczyk. Flipping and forking. ArXiv preprint
+     2505.16745, 2025.
+[31] Norbert Sauer. On the density of families of sets. Journal of Combinatorial Theory, Series A,
+     13(1):145–147, 1972.
+[32] Saharon Shelah. A combinatorial problem; stability and order for models and theories in
+     infinitary languages. Pacific Journal of Mathematics, 41(1):247–261, 1972.
+
+                                                13
+[33] Szymon Toruńczyk. Flip-width: Cops and robber on dense graphs. In 64th IEEE Annual
+     Symposium on Foundations of Computer Science, FOCS 2023, pages 663–700. IEEE Computer
+     Society, 2023. Full version available at https://arxiv.org/abs/2302.00352.
+[34] E. Welzl. Partition trees for triangle counting and other range searching problems. In Fourth
+     Annual Symposium on Computational Geometry, SoCG 1988, page 23–33. ACM, 1988.
+[35] Édouard Bonnet, Colin Geniet, Eun Jung Kim, and Sungmin Moon. Fast shortest path in
+     graphs with sparse signed tree models and applications. Arxiv preprint 2602.16605, 2026.
+
+
+A     Neighborhood Complexity
+In this appendix, we give the full proof of Theorem 2. We begin by introducing the relevant notions.
+
+A.1    Preliminaries
+Asymptotic notation. Throughout this section, subpoly(n) denotes an unspecified function
+f : N → R⩾0 such that for every fixed ε > 0 we have f (n) ⩽ nε for large enough n. We write
+subpolyk (n) when f may additionally depend on a fixed parameter k, and similarly we write
+subpolyC (n) when f may depend on a fixed class of graphs C . (So this notation is the same as
+writing no(1) , nok (1) , or noC (1) . However, we introduce the new notation as to make the variables
+and parameters explicit.) Similarly, polylog(n) denotes an unspecified function bounded by p(log n)
+for some polynomial p, and polylogk (n) allows dependence of the polynomial on a fixed parameter k.
+
+Graphs. A graph G consists of a set V of vertices and a set E ⊆ V2 of edges, which are denoted
+                                                                       
+
+V (G) and E(G), respectively. For a graph G with disjoint subsets A, B ⊆ V (G), let G[A, B] denote
+the bipartite graph (A, B, E ′ ) that is semi-induced by A and B, where E ′ contains those edges of G
+with one endpoint in A and one endpoint in B.
+
+Structures. A graph is viewed as a relational structure, equipped with a binary relation symbol
+E denoting adjacency. A unary expansion of a relational structure A is obtained from A by adding
+several unary relations (also called unary predicates) to A.
+
+A.2    A simple lemma on VC-dimension
+Lemma 7 (♣). For every nonempty set system F on a set V and every v ∈ V , the following two
+set systems on V have VC-dimension strictly smaller than the VC-dimension of F :
+                    {F ∈ F | F is v-positive}   and   {F ∈ F | F is v-negative}.
+Proof of Lemma 7. It is enough to prove the claim for the family F+ of all v-positive sets in F; the
+argument for the family of v-negative sets is symmetric. If F+ = ∅, then VCdim(F+ ) = −∞ and
+there is nothing to prove.
+   Suppose F+ shatters a set X ⊆ V . Since every set in F+ contains v, we must have v ∈    / X. For
+each Y ⊆ X, choose FY ∈ F+ with FY ∩ X = Y . As FY is v-positive, there is a set FY′ ∈ F such
+that FY′ △FY = {v}. Then FY′ ∩ X = Y , while exactly one of FY and FY′ contains v. Hence
+                       {FY ∩ (X ∪ {v}), FY′ ∩ (X ∪ {v})} = {Y ∪ {v}, Y }.
+Since this holds for every Y ⊆ X, the family F shatters X ∪ {v}. Therefore, VCdim(F) ⩾ |X| + 1, so
+VCdim(F+ ) ⩽ VCdim(F) − 1. This proves that F+ has VC-dimension strictly smaller than F.
+
+                                                 14
+A.3      Exhibiting many Hamming edges
+We prove the following generalization of Lemma 11.
+Lemma 19. Let G = (A, B, E) be a bipartite graph with |A| = n > 1, and let P be a partition of B.
+Suppose                                 X
+                                  m :=       |P/A| > 2|P|.
+                                                P ∈P
+Then there is a set X ⊆ A such that
+                             X                                      m
+                                 |E(Hamming(P/X))| ⩾                       .
+                                                                2 ln n + 2
+                             P ∈P
+
+Proof. Let H(n) := 1 + 1/2 + . . . + 1/n be the nth harmonic number. Initially, set X := A. As long
+as there is a vertex v ∈ X such that
+                            X                                   m
+                               (|P/X| − |P/(X − {v})|) ⩽                ,
+                                                            2|X| · H(n)
+                          P ∈P
+
+remove v from X and repeat. Otherwise, if there is no such v, terminate.
+Claim 20. At the end of the process, the set X is nonempty.
+Proof. At any point in the process, consider the sum
+                                                 X
+                                       µ(X) :=      |P/X|.
+                                                       P ∈P
+
+Initially, when X = A, this sum is equal to m by definition. In each step of the process, when a
+vertex v is removed from X, the sum decreases by
+                         X                                m       1
+                               |P/X| − |P/(X − {v})| ⩽           ·    .
+                                                          2H(n) |X|
+                          P ∈P
+
+Hence, if we remove all n elements from X, the sum decreases by at most
+                                                                     n
+              m     1         m       1                m     1       m     X 1  m
+                  ·     +          ·       + ... +         ·     =       ·     = .
+            2H(n) n         2H(n) n − 1              2H(n) 1       2H(n)     i  2
+                                                                                 i=1
+
+This means µ(∅) ⩾ µ(A) − m/2 = m/2. On the other hand we have
+                                  X          X             m
+                           µ(∅) =    |P/∅| =     1 = |P| < ;
+                                                           2
+                                        P ∈P             P ∈P
+
+a contradiction which proves the claim.
+   For every part P ∈ P and every vertex v ∈ X, the quantity
+                                        |P/X| − |P/(X − {v})|
+is exactly the number of edges of Hamming(P/X) whose endpoints differ on v. Therefore every edge
+of every graph Hamming(P/X) is counted exactly once when we sum over v ∈ X, and hence
+    X                           XX
+       |E(Hamming(P/X))| =            (|P/X| − |P/(X − {v})|)
+  P ∈P                           v∈X P ∈P
+                                       X         m                   m           m          m
+                                   >                     = |X| ·             =       ⩾             .
+                                             2|X| · H(n)         2|X| · H(n)   2H(n)   2 ln(n) + 2
+                                       v∈X
+
+
+
+
+                                                       15
+A.4    Proof of Theorem 2
+Theorem 2 will follow directly from the next lemma.
+
+Lemma 21. Let B be a monadically dependent class of bipartite graphs G = (A, B, E) with no
+twins in B. Then
+                              |B| ⩽ |A| · subpolyB (|A|).                               (4)
+
+   We first argue that Lemma 21 implies Theorem 2.
+
+Proof of Theorem 2. Let B be the class of all bipartite graphs G[A, B] such that G ∈ C and
+A, B ⊆ V (G) are disjoint, and no two vertices in B have equal neighborhoods in A. As C transduces
+B, the class B is monadically dependent. For a graph G ∈ C and set A ⊆ V (G), let B ⊆ V (G) − A
+be maximal such that no two vertices in B have equal neighborhoods in A. Then
+
+       {NG (v) ∩ A | v ∈ V (G)} ⩽ {NG (v) ∩ A | v ∈ A} + {NG (v) ∩ A | v ∈ B} ⩽ |A| + |B|,
+
+Applying Lemma 21 to G[A, B] ∈ B yields the theorem.
+
+    We now proceed to the proof of Lemma 21. The following notion encapsulates the invariant used
+in the inductive proof.
+
+Definition 22. Let G = (A, B, E) be a bipartite graph and k ∈ N. A k-sparsification consists of:
+   • sets A0 ⊆ A and B0 ⊆ B, and
+   • functions f1 , . . . , fk : B0 → A,
+such that the mapping b 7→ (N (b) ∩ A0 , f1 (b), . . . , fk (b)) is an injection from B0 to 2A0 × Ak . For
+such a k-sparsification we define:
+   • The associated partition P as the partition of B0 such that two vertices b, b′ are in the same
+     part of P if and only if fj (b) = fj (b′ ) for all j = 1, . . . , k. Note that vertices in the same part
+     of P have pairwise distinct neighborhoods in A0 ;
+   • The size as s = |B0 |;
+   • The dimension as maxP ∈P VCdim(P/A0 ); and
+   • The complexity as the least c ⩾ 0 such that there are first-order formulas φ1 (x, y), . . . , φk (x, y)
+     of quantifier rank ⩽c, each using ⩽c unary predicates, and there is an expansion G′ of G with
+     c unary predicates, such that φj defines fj in G′ for j = 1, . . . , k, so that
+
+                          fj (b) = a ⇐⇒ G′ |= φj (b, a) for all b ∈ B0 and a ∈ A.
+
+We say that a sparsification is terminal if its size s and associated partition P satisfy s ⩽ 2|P|, and
+nonterminal otherwise.
+
+   Note that a bipartite graph G = (A, B, E) with no twins in B has a trivial 0-sparsification with
+A0 = A and B0 = B. Its associated partition is P = {B}, size s = |B|, and complexity is 0. We
+prove the following, for bipartite graphs G from a monadically dependent class B:
+   1. a nonterminal k-sparsification can be improved to a (k + 1)-sparsification with strictly smaller
+      dimension, by losing only a polylog(|A|) factor in the size, and increasing the complexity only
+      by a constant (Lemma 25);
+   2. repeating this argument, we reach a terminal sparsification after at most d steps, where d
+      upper bounds the VC-dimension of every G in B (Lemma 26);
+
+                                                    16
+   3. a terminal k-sparsification of G ∈ B of bounded complexity has size s ⩽ |A| · subpolyB,k (|A|)
+      (Lemma 24).
+Combining these three points yields a terminal k-sparsification with k ⩽ d and size s satisfying
+
+                                     |B|
+                                               ⩽ s ⩽ |A| · subpolyB,d (|A|).
+                                polylogd (|A|)
+
+This proves the inequality (4) in Lemma 21. We now prove the necessary lemmas.
+
+Lemma 23. For every k, c ∈ N there is a transduction Tk,c with the following property. Let
+G = (A, B, E) be a bipartite graph with a k-sparsification of complexity c, consisting of sets A0 ⊆
+A, B0 ⊆ B and functions f1 , . . . , fk : B0 → A. Consider the bipartite graph H = (A, B0 , E ′ ) with
+NH (b) = {fj (b) | j ∈ [k]} for b ∈ B0 . Then H ∈ Tk,c (G).
+
+Proof. Fix k, c ∈ N. Up to logical equivalence, there are only finitely many binary formulas of
+quantifier rank at most c over the signature consisting of the adjacency relation and c unary predicates.
+Hence there are only finitely many k-tuples of such formulas; list them as
+
+                                    φ̄1 , . . . , φ̄m ,   φ̄t = (φt1 , . . . , φtk ).
+
+   Let Tk,c be the transduction that guesses:
+   • c unary predicates for the witness expansion from the definition of complexity,
+   • two unary predicates L, R marking the sets A and B0 , and
+   • unary predicates S1 , . . . , Sm used as global flags selecting one of the tuples φ̄1 , . . . , φ̄m .
+It then applies the formula
+                                                                                                
+                                                          m
+                                                          _                     k
+                                                                                _
+                       ψ(x, y) := L(x) ∧ R(y) ∧                 ∃z St (z) ∧            φtj (y, x) ,
+                                                          t=1                   j=1
+
+where the inner disjunction is interpreted as false when k = 0, and finally takes the induced subgraph
+on L ∪ R.
+    Now suppose G comes with a k-sparsification of complexity c as in the statement. By definition
+of complexity, after choosing a suitable expansion of G by c unary predicates, there is some index
+t ∈ [m] such that φt1 , . . . , φtk define the functions f1 , . . . , fk on B0 . Interpret L as A, R as B0 ,
+interpret St as V (G), and interpret all other flags St′ as empty. For this choice of unary predicates,
+the graph produced by ψ has exactly the edges {a, b} with a ∈ A, b ∈ B0 , and a = fj (b) for some
+j ∈ [k]. Therefore, the induced subgraph on A ∪ B0 is precisely the graph H = (A, B0 , E ′ ) with
+
+                             NH (b) = {fj (b) | j ∈ [k]}            for every b ∈ B0 .
+
+Hence, H ∈ Tk,c (G).
+
+Lemma 24. Let B be a monadically dependent class of bipartite graphs and let k, c ∈ N. Let
+G = (A, B, E) ∈ B have a terminal k-sparsification of complexity at most c and size s. Then
+
+                                          s ⩽ |A| · subpolyB,c,k (|A|).
+
+Proof. Let A0 ⊆ A, B0 ⊆ B, and f1 , . . . , fk : B0 → A witness the given k-sparsification, and let P
+be the associated partition. We prove that |P| ⩽ |A| · subpolyB,c,k (|A|), which will imply the claim
+
+                                                          17
+as s ⩽ 2|P| by terminality. Choose a set B ∗ ⊆ B0 containing exactly one vertex from each part of
+the associated partition P.
+    By Lemma 23, there is a transduction Tk,c such that the bipartite graph H0 with parts A and B0
+and edges {{b, fj (b)} | b ∈ B0 , j ∈ [k]} belongs to Tk,c (G). Since transductions allow taking induced
+subgraphs, the graph H := H0 [A ∪ B ∗ ] also belongs to Tk,c (G).
+    Each vertex of B ∗ has degree at most k in H, so H is Kk+1,k+1 -free. Moreover, distinct vertices
+of B ∗ lie in different parts of P, hence their tuples
+
+                                                   (f1 (b), . . . , fk (b))
+
+are pairwise distinct. Therefore, for every set S ⊆ A, there are at most |S|k vertices b ∈ B ∗ with
+NH (b) = S, because each coordinate of the above tuple must then belong to S. Since every such S
+has size at most k, there are in fact at most k k such vertices (with 00 = 1). Consequently,
+
+                                        |P| = |B ∗ | ⩽ k k · {NH (b) | b ∈ B ∗ } .
+
+   Since Tk,c (B) is again monadically dependent and H ∈ Tk,c (B), applying Corollary 6 with
+t = k + 1 yields
+
+                 {NH (b) | b ∈ B ∗ } = {NH (b) ∩ A | b ∈ B ∗ } ⩽ |A| · subpolyB,c,k (|A|).
+
+The two inequalities, together with s ⩽ 2|P|, prove the statement.
+
+   The next lemma is the key ingredient of the proof of Theorem 2.
+
+Lemma 25. Suppose G = (A, B, E) has a nonterminal k-sparsification of size s, dimension d, and
+complexity c. Then there is a (k + 1)-sparsification of G with:
+   • size at least Ω( d·log2s(|A|) ),
+   • dimension at most d − 1,
+   • complexity at most c + 5.
+
+Proof. Let A0 ⊆ A, B0 ⊆ B, and f1 , . . . , fk : B0 → A witness the given k-sparsification. Let P be
+its associated partition. Since the sparsification is nonterminal, we have s > 2|P|. For every part
+P ∈ P, the functions f1 , . . . , fk are constant on P , so the injectivity condition in the definition of a
+sparsification implies that the map b 7→ NG (b) ∩ A0 is injective on P . Therefore,
+
+                                         |P/A0 | = |P |        for every P ∈ P,
+
+and hence                                 X                 X
+                                                |P/A0 | =          |P | = |B0 | = s.
+                                         P ∈P               P ∈P
+
+In particular, d ⩾ 1, since otherwise every set system P/A0 would have VC-dimension 0 and hence
+size 1, contradicting s > 2|P|. In particular, |A0 | > 1, since otherwise every set system P/A0 would
+have size at most 2, contradicting s > 2|P|.
+    Apply Lemma 19 to the bipartite graph G[A0 , B0 ] and the partition P of B0 . Since
+                                        X
+                                            |P/A0 | = s > 2|P|,
+                                                P ∈P
+
+
+
+
+                                                             18
+we obtain a set A1 ⊆ A0 such that
+                           X                                                  s
+                               |E(Hamming(P/A1 ))| ⩾                                  .                              (5)
+                                                                       2 ln |A0 | + 2
+                                  P ∈P
+
+    Choose a set B ∗ ⊆ B0 so that for each part P ∈ P,
+
+                                               (P ∩ B ∗ )/A1 = P/A1
+
+and no two vertices in P ∩ B ∗ have equal neighborhoods in A1 . Thus, the map b 7→ NG (b) ∩ A1 is a
+bijection from P ∩ B ∗ to P/A1 .
+    For each P ∈ P, let HP be the Hamming graph of P/A1 , with vertex set identified with P ∩ B ∗
+(identified using the previously constructed bijection between the two). Let H ∗ be the disjoint union
+of the graphs HP , for P ∈ P. Then V (H ∗ ) = B ∗ and, by (5),
+                                            X                     s
+                                |E(H ∗ )| =    |E(HP )| ⩾                 .
+                                                           2 ln |A0 | + 2
+                                                 P ∈P
+
+   For each P ∈ P, let MP+ and MP− denote the positive and negative merge graphs of P/A1 . Let
+M and M − be the disjoint unions of the graphs MP+ and MP− , respectively, identified along the
+  +
+
+common part A1 . As A1 ⊆ A0 , we have VCdim(P/A1 ) ⩽ VCdim(P/A0 ) ⩽ d for every P ∈ P. Then
+Corollary 9 implies that HP has at least |E(HP )|/d non-isolated vertices. Summing over P ∈ P, we
+infer that H ∗ has at least
+                                    |E(H ∗ )|           s
+                                              ⩾
+                                        d       d(2 ln |A0 | + 2)
+non-isolated vertices. Every such vertex is non-isolated in at least one of M + and M − , so for some
+σ ∈ {+, −} the graph M σ has at least
+                                                           s
+                                                                                                                     (6)
+                                                  2d(2 ln |A0 | + 2)
+
+non-isolated vertices in B ∗ .
+    We now choose a large subset on which each vertex has a unique M σ -neighbor. We apply
+Lemma 12 to the bipartite graph obtained from M σ by removing the isolated vertices. We obtain
+sets A′1 ⊆ A1 and B1 ⊆ B ∗ such that every vertex of B1 has exactly one neighbor in A′1 in M σ , and
+                                                             
+                                                       s
+                                     |B1 | ⩾ Ω                  ,
+                                                 d · log2 |A|
+
+because |A1 | ⩽ |A0 | ⩽ |A|.
+     Define fk+1 : B1 → A′1 by mapping each b ∈ B1 to its unique neighbor in A′1 in the graph M σ .
+                                                                   −1
+Let P1 be the family of all nonempty sets of the form fk+1              (v) ∩ P , where P ∈ P and v ∈ A′1 .
+    We claim that A1 , B1 , and the functions f1 , . . . , fk , fk+1 form a (k + 1)-sparsification of G.
+Indeed, if b, b′ ∈ B1 lie in different parts of P, then (f1 (b), . . . , fk (b)) ̸= (f1 (b′ ), . . . , fk (b′ )). If they
+lie in the same part P ∈ P, then NG (b) ∩ A1 ̸= NG (b′ ) ∩ A1 whenever b ̸= b′ . This is because we
+have chosen B ∗ ⊇ B1 such that all vertices in P ∩ B ∗ have pairwise different neighborhoods on A1
+in G. Hence, the map
+                                b 7→ (NG (b) ∩ A1 , f1 (b), . . . , fk (b), fk+1 (b))
+is injective on B1 . Moreover, by construction, P1 is exactly the associated partition of this new
+sparsification.
+
+                                                          19
+                                                                           −1
+   We now verify the claimed properties. First, let P ′ ∈ P1 . Then P ′ = fk+1 (v) ∩ P for some P ∈ P
+and v ∈ A1 . The set system P /A1 is a subfamily of the neighborhood of v in the σ-merge graph of
+          ′                  ′
+
+P/A1 , so Lemma 10 yields
+
+                 VCdim(P ′ /A1 ) ⩽ VCdim(P/A1 ) − 1 ⩽ VCdim(P/A0 ) − 1 ⩽ d − 1,
+
+where the second inequality holds as A1 ⊆ A0 . Thus, the new sparsification has dimension at most
+d − 1. Second, the size of the new sparsification is
+
+                                                     s′ := |B1 |,
+
+and by the choice of B1 we have                                         
+                                            ′                   s
+                                           s ⩾Ω                              .
+                                                          d · log2 |A|
+    Finally, let G′ be an expansion of G witnessing that the original k-sparsification has complexity c,
+and let φ1 , . . . , φk be formulas defining f1 , . . . , fk in G′ . Expand G′ further by five unary predicates
+marking the sets A1 , A′1 , B1 , B ∗ , and a set S which is all of V (G) if σ = + and empty if σ = −.
+Using the formulas φ1 , . . . , φk , the relation of belonging to the same part of P is first-order definable
+with quantifier rank at most c + 1. Consequently, the edge relation of M σ on B ∗ × A1 is also
+first-order definable with quantifier rank at most c + 2: for b ∈ B ∗ and a ∈ A1 , we ask whether
+there exists b′ ∈ B ∗ in the same part of P such that NG (b) ∩ (A1 − {a}) = NG (b′ ) ∩ (A1 − {a})
+and b, b′ differ on a in the direction prescribed by σ. Restricting this relation to B1 × A′1 gives a
+formula defining the function fk+1 , of quantifier rank at most c + 2. Thus the new sparsification has
+complexity at most c + 5. (We only used quantifier rank c + 2, but c + 5 many unary predicates.)
+
+Lemma 26. Let G = (A, B, E) be a bipartite graph with no twins in B, with |A| > 1, and with
+B= ̸ ∅. Suppose VCdim(B/A) ⩽ d for some d. Then for some i ⩽ d, the graph G has a terminal
+i-sparsification of complexity at most 5i and size s such that
+                                                          |B|
+                                                s⩾                  .
+                                                     polylogd (|A|)
+
+Proof. Set n := |A| and m := |B|. Let S0 be the trivial 0-sparsification of G, given by A0 := A and
+B0 := B. Since there are no twins in B, this is indeed a sparsification, with size s0 = m, dimension
+at most d, and complexity c0 = 0.
+   For j = 0, 1, 2, . . ., construct Sj recursively as follows. Write sj , dj , and cj for the size, dimension,
+and complexity of Sj , and write Pj for its associated partition.
+   If Sj is terminal, or if j = d, stop and set i := j. Otherwise, Lemma 25 yields a (j+1)-sparsification
+Sj+1 of size sj+1 and complexity cj+1 such that
+                                                                          
+                                                  sj                   sj
+                                 sj+1 ⩾ Ω                  ⩾ Ω                  ,
+                                             dj · log2 n          d · log2 n
+
+while cj+1 ⩽ cj + 5 and dj+1 ⩽ dj − 1.
+   Let 0 ⩽ i ⩽ d be the index for which the above construction stops. Repeated application of the
+above bounds gives
+                                 m
+                     si ⩾                       and         ci ⩽ 5i              and   di ⩽ d − i.
+                            polylogd (n)
+We argue that Si is terminal, which will yield the conclusion for s := si .
+
+                                                           20
+   If i < d, then Si is terminal by construction. Suppose now that i = d. Then Sd has dimension 0.
+Let P ∈ Pd . By definition of the associated partition, the functions f1d , . . . , fdd are constant on P .
+Since Sd is a sparsification, the map b 7→ NG (b) ∩ Ad is injective on P . Hence, the vertices of P
+have pairwise different neighborhoods on Ad , and we have |P/Ad | = |P |. Furthermore, as di = 0,
+the set system P/Ad has VC-dimension 0, and hence size 1. Thus, also |P | = 1 for every P ∈ Pd ,
+and therefore
+                                      sd = |Bd | = |Pd | ⩽ 2|Pd |.
+So Sd is terminal as well.
+
+    We now prove Lemma 21, which we restate here for convenience.
+
+Lemma 21. Let B be a monadically dependent class of bipartite graphs G = (A, B, E) with no
+twins in B. Then
+                              |B| ⩽ |A| · subpolyB (|A|).                               (4)
+
+Proof. Fix now a graph G = (A, B, E) ∈ B, and let n := |A| and m := |B|. If |A| ⩽ 1 or |B| = 0
+then the statement is trivial, so suppose |A| ⩾ 2 and |B| ⩾ 1. As B is monadically dependent, the
+set system B/A has VC-dimension bounded by a constant d depending only on B. By Lemma 26,
+for some i ⩽ d, the graph G has a terminal i-sparsification of size s and complexity at most 5i such
+that
+                                                   m
+                                          s⩾               .
+                                              polylogd (n)
+By Lemma 24, as i ⩽ d, we have
+                                          s ⩽ n · subpolyB,d (n).
+Combining the two inequalities, we obtain
+
+                        m ⩽ n · polylogd (n) · subpolyB,d (n) ⩽ n · subpolyB (n),
+
+which proves (4).
+
+
+B      Radius-1 Merge-Width
+In this section we include the proofs that were omitted from Section 3 about merge-width.
+    Before beginning the main proofs, we need to state Haussler’s Packing Lemma [24]. We state an
+equivalent formulation in terms of bipartite graphs. This is equivalent to the usual version for set
+systems: take X to be the ground set and {N (v) : v ∈ Y } to be the set system. We refer the reader
+to [26, Lem. 5.14] for another statement of the lemma.
+
+Lemma 27 ([24]). For all real numbers c and d ⩾ 1, there exists an integer t = t(c, d) so that for
+any integer δ ⩾ 1, if H = (X, Y, E) is a bipartite graph such that
+    1. for all distinct vertices u, v ∈ Y , there are at least δ vertices in X which are adjacent to exactly
+       one of u and v, and
+   2. for every nonempty A ⊆ X, we have |{N (v) ∩ A : v ∈ Y }| ⩽ c|A|d ,
+then |Y | ⩽ max t · (|X|/δ)d , 1 .
+                                
+
+    Now we can use Lemma 27 to prove the key lemma about fractional twins.
+
+
+
+
+                                                     21
+Lemma 13 (♣). For all real numbers c and d ⩾ 1, there exists an integer r = r(c, d) so that if G is
+an n-vertex graph such that n ⩾ 2 and for every nonempty A ⊆ V (G),
+
+                                   {N (v) ∩ A : v ∈ V (G)} ⩽ c|A|d ,
+
+then G has (r · n−1/d )-fractional twins.
+
+Proof. Let t = t(c + 1, d) be the integer from Lemma 27, and write V for V (G).
+    Fix a weight function w : V → Z+ . We define a bipartite graph H = (X, Y, E) with Y = V and
+|X| = 2w(V ), as follows. For each vertex v of G, we place 2w(v) vertices in X, called the copies
+of v: w(v) of them have neighborhood NG (v) in H, and the remaining w(v) have neighborhood {v}
+in H. We call the former neighborhood copies and the latter self copies of v.
+    We verify condition (2) of Lemma 27 with constant c + 1.
+Claim 28. For every nonempty A ⊆ X, we have |{NH (v) ∩ A | v ∈ Y }| ⩽ (c + 1)|A|d .
+
+Proof. Consider a nonempty set A ⊆ X, and let A′ ⊆ V be the set of vertices of G with at least one
+copy in A. Since each element of A is a copy of exactly one vertex, |A′ | ⩽ |A|. For u ∈ Y with no
+copy in A, the set NH (u) ∩ A consists exactly of the neighborhood copies in A of vertices in NG (u),
+which is determined by NG (u) ∩ A′ . Hence,
+
+         |{NH (v) ∩ A | v ∈ Y }| ⩽ |A′ | + |{NG (v) ∩ A′ | v ∈ V }| ⩽ |A| + c|A|d ⩽ (c + 1)|A|d .
+
+   We apply Lemma 27 contrapositively with δ := r · n−1/d w(V ), where r = r(c, d) is chosen below.
+Using |X| = 2w(V ), the bound from Lemma 27 gives
+                                            !                         !
+                                        |X| d
+                                                            d
+                                                               2
+                       |Y | ⩽ max t ·         , 1 ⩽ max t ·        n, 1 .
+                                         δ                     r
+
+    Choosing r large enough so that t · (2/r)d < 1, the right-hand side is less than n = |Y |, a
+contradiction. So condition (1) of Lemma 27 must fail: there exist distinct u, v ∈ Y such that fewer
+than δ vertices of X are adjacent to exactly one of u and v. It remains to show that w(∆G (u, v)) ⩽ δ.
+The w(u) self copies of u, the w(v) self copies of v, and for each x ∈ ∆G (u, v) \ {u, v}, the w(x)
+neighborhood copies of x, are all distinct elements of X adjacent to exactly one of u and v. Hence
+w(∆G (u, v)) = w(u) + w(v) + w(∆G (u, v) \ {u, v}) < δ = rn−1/d w(V ), as desired.
+
+    The next lemma shows how to obtain a single pair of vertices which are fractional twins with
+respect to two weight functions simultaneously.
+
+Lemma 14 (♣). Let p > 0, let G be a graph with p-fractional twins, and let w1 , w2 : V (G) → Z+ .
+Then there exist distinct vertices u and v that are 3p-fractional twins with respect to both w1 and
+w2 . Moreover, given an arbitrary graph G and functions w1 , w2 : V (G) → Z+ as input (i.e., without
+any knowledge of p), such vertices u and v can be found by computing an auxiliary weight function
+w and selecting u and v to minimize w(∆(u, v)). If G has at most n vertices and every vertex has
+weight at most 2n with respect to both w1 and w2 , then this algorithm runs in time O(n4 ).
+
+Proof. Denote V := V (G). Without loss of generality, we may assume that w1 (V ) ⩾ w2 (V ). Now,
+for each vertex x ∈ V , set
+
+                               w(x) = w1 (x) + w2 (x) · ⌈w1 (V )/w2 (V )⌉ .
+
+
+                                                   22
+Then w(V ) ⩽ 2w1 (V ) + w2 (V ) ⩽ 3w1 (V ) where the extra w2 (V ) is used to handle parity. Now, let
+u and v be distinct vertices of G which are p-fractional twins with respect to w. Then
+
+                          w1 (∆(u, v)) ⩽ w(∆(u, v)) ⩽ p · w(V ) ⩽ 3p · w1 (V ),
+
+so u and v are 3p-fractional twins with respect to w1 . To prove 3p-fractional twins with respect to
+w2 , we have by definition
+
+                      w2 (∆(u, v)) · ⌈w1 (V )/w2 (V )⌉ = w(∆(u, v)) − w1 (∆(u, v)).
+
+So in particular
+                      w2 (∆(u, v)) · (w1 (V )/w2 (V )) ⩽ w(∆(u, v)) ⩽ 3p · w1 (V ).
+Dividing the leftmost and the rightmost side by (w1 (V )/w2 (V )), we obtain w2 (∆(u, v)) ⩽ 3p · w2 (V ),
+as desired.
+    Now, notice that every vertex has weight at most 2O(n) with respect to w. So we may find
+such vertices u and v by iterating through all O(n2 ) pairs of vertices u and v, and then computing
+w(∆(u, v)) in O(n2 ) time. (Here we represent the weights of size 2O(n) as bitstrings of length O(n),
+which we can add and compare in time O(n).)
+
+   We conclude this section by proving three claims which are all part of the proof of Theorem 5.
+The reader may wish to refer back to that proof.
+
+Claim 15 (♣). The algorithm computes a construction sequence of G.
+
+Proof. By induction on i, we maintain two invariants at the beginning of round i:
+   • Every pair of vertices within the same part of Pi is resolved.
+   • For every unresolved pair {x, y} ̸∈ Ri with x and y in different parts of Pi , x is adjacent to y
+     if and only if Li (x) is adjacent to Li (y).
+     Together, these invariants prove the claim: At round n − 1, only a single part is left, and by the
+first item every pair is resolved. Moreover, Step 2 resolves a pair {x, y} positively if and only if their
+leaders are adjacent. By the second item, this is the case if and only if x and y are adjacent. Hence,
+every pair is resolved according to their adjacency in the graph, proving the claim.
+     At i = 0, every vertex is its own leader and every part is a singleton, so both items hold trivially.
+Assume both hold at round i, and we verify them at round i + 1.
+     To prove the first invariant, observe that the only new part of Pi+1 is Pi (ui ) ∪ Pi (vi ). Pairs
+within Pi (ui ) or within Pi (vi ) are already resolved by induction. Since ui ∈ ∆Gi (ui , vi ), Step 2
+resolves Pi (ui ) and Pi (vi ), resolving all pairs in Pi (ui ) ∪ Pi (vi ) and proving the invariant.
+     To prove the second invariant, let {x, y} ̸∈ Ri+1 with x and y in different parts of Pi+1 . Then
+{x, y} was unresolved also at round i, and x, y are in different parts of Pi as well (since parts only
+merge). The only leader that changes from round i to i+1 is that of vertices in Pi (vi ): from vi
+to ui . If neither x nor y is in Pi (vi ), then both leaders are unchanged and the invariant carries over
+from round i. So suppose x ∈ Pi (vi ) (the other case is symmetric). Since x and y are in different
+parts of Pi+1 , we have y ∈    / Pi (ui ) ∪ Pi (vi ), so Li+1 (y) = Li (y). Since {x, y} was not resolved at
+round i, we have Li (y) ∈  / ∆Gi (ui , vi ), meaning Li (y) has the same adjacency to ui and vi . Again,
+the invariant carries over from round i.
+
+
+Claim 16 (♣). For each vertex x ∈ V (G), there are at most log2 n + 1 different vertices which are
+ever leaders for the part containing x. That is, |{Li (x) : i ∈ {0, 1, . . . , n − 1}}| ⩽ log2 n + 1.
+
+                                                    23
+Proof. Consider a rooted forest on V (G) that evolves with the algorithm. At round 0, there are n
+single-vertex trees, one per part. At round i, when parts Pi (ui ) and Pi (vi ) merge, we make vi a
+child of ui , joining the two trees with ui as root. After all n−1 rounds, this yields a single rooted
+tree T on V (G). The distinct leaders of a vertex x across all rounds are exactly its ancestors in T
+(including x itself), so the claim is equivalent to T having height at most log2 n.
+    We show by induction on i that for each part P ∈ Pi , the tree corresponding P has height
+at most log2 |P |. At round 0 this holds since each tree has height 0. When Pi (ui ) and Pi (vi )
+merge, the height of the new tree is max(hu , 1 + hv ), where hu and hv are the heights of the
+two subtrees. By induction, hu ⩽ log2 |Pi (ui )| ⩽ log2 |Pi (ui ) ∪ Pi (vi )|. Since |Pi (ui )| ⩾ |Pi (vi )|,
+we have 1 + hv ⩽ 1 + log2 |Pi (vi )| = log2 (2|Pi (vi )|) ⩽ log2 (|Pi (ui )| + |Pi (vi )|). Both are at most
+log2 |Pi (ui ) ∪ Pi (vi )|, completing the induction.
+
+Claim 17 (♣). For each vertex x ∈ V (G), there are at most Oc,d (n1−1/d + log n) many integers
+i ∈ {0, 1, . . . , n − 2} so that Li (x) ∈ ∆Gi (ui , vi ).
+Proof. Denote the total weight as ti := wi (V (Gi )) for each i. Then t0 = n. We first show that for
+every i ∈ {0, 1, . . . , n − 2},
+                                   ti+1 ⩽ ti + wi (∆Gi (ui , vi )).
+Indeed, by Step 4 of the algorithm, every leader in ∆Gi (ui , vi )\{ui , vi } doubles its weight, contributing
+an increase of exactly wi (∆Gi (ui , vi ) \ {ui , vi }). Moreover, by Step 4, vi disappears and ui receives
+weight 2 max(wi (ui ), wi (vi )), so the net change on {ui , vi } is
+            2 max(wi (ui ), wi (vi )) − wi (ui ) − wi (vi ) = |wi (ui ) − wi (vi )| ⩽ wi (ui ) + wi (vi ).
+Hence the displayed inequality holds. Using (2), we obtain
+                                            
+                 ti+1 ⩽ ti 1 + 3r(n − i)−1/d       for every i ∈ {0, 1, . . . , n − 2}.
+
+Therefore, using t0 = n,
+                                   n−2
+                                   Y                            n 
+                                                                  Y              
+                        tn−1 ⩽ n            1 + 3r(n − i)−1/d = n     1 + 3ri−1/d .
+                                    i=0                                         i=2
+
+    Let                            
+                           m :=        i ∈ {0, 1, . . . , n − 2} : Li (x) ∈ ∆Gi (ui , vi )   .
+Every time Li (x) ∈ ∆Gi (ui , vi ), the weight of the current leader of x at least doubles from round i
+to round i + 1. Iterating over the m relevant rounds, we obtain wn−1 (Ln−1 (x)) ⩾ 2m , and therefore
+(using 1 + y ⩽ ey ),
+                                                  n                              n
+                                                                                          !
+                                                 Y                             X
+             m                                                −1/d                   −1/d
+            2 ⩽ wn−1 (Ln−1 (x)) ⩽ tn−1 ⩽ n            1 + 3ri        ⩽ n exp 3r     i       .
+                                                           i=2                                   i=2
+
+Since i−1/d is decreasing,
+                                              n
+                                              X                     Z n
+                                                         −1/d
+                                                     i          ⩽         i−1/d di.
+                                               i=2                    1
+
+If d = 1, this integral is log n, so m ⩽ Oc (log n). If d > 1, this integral is Od (n1−1/d ), so
+m ⩽ Oc,d (n1−1/d ). In either case
+
+                                             m ⩽ Oc,d (n1−1/d + log n).
+
+
+                                                                 24
+

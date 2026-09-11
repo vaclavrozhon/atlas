@@ -1,0 +1,942 @@
+                                          Network coding in undirected graphs is either very helpful
+                                                            or not helpful at all
+
+                                                       Mark Braverman ∗ 1 , Sumegha Garg †1 , and Ariel Schvartzman ‡1
+                                                             1 Department of Computer Science, Princeton University
+arXiv:1608.06545v1 [cs.IT] 23 Aug 2016
+
+
+
+
+                                                                                      August 24, 2016
+
+
+
+                                                                                            Abstract
+                                                   While it is known that using network coding can significantly improve the throughput of
+                                               directed networks, it is a notorious open problem whether coding yields any advantage over
+                                               the multicommodity flow (MCF) rate in undirected networks. It was conjectured in [9] that the
+                                               answer is ‘no’. In this paper we show that even a small advantage over MCF can be amplified
+                                               to yield a near-maximum possible gap.
+                                                   We prove that any undirected network with k source-sink pairs that exhibits a (1 + ε) gap
+                                               between its MCF rate and its network coding rate can be used to construct a family of graphs G 0
+                                               whose gap is log(| G 0 |)c for some constant c < 1. The resulting gap is close to the best currently
+                                               known upper bound, log(| G 0 |), which follows from the connection between MCF and sparsest
+                                               cuts.
+                                                   Our construction relies on a gap-amplifying graph tensor product that, given two graphs
+                                               G1 , G2 with small gaps, creates another graph G with a gap that is equal to the product of the
+                                               previous two, at the cost of increasing the size of the graph. We iterate this process to obtain a
+                                               gap of log(| G 0 |)c from any initial gap.
+
+
+
+
+                                            ∗ mbraverm@princeton.edu. Supported in part by an NSF CAREER award (CCF-1149888), NSF CCF-1525342, a
+                                         Packard Fellowship in Science and Engineering, and the Simons Collaboration on Algorithms and Geometry.
+                                            † sumeghag@cs.princeton.edu
+                                            ‡ acohenca@cs.princeton.edu
+
+
+
+                                                                                                1
+1   Introduction
+The area of network coding addresses the following basic problem: in a distributed communi-
+cation scenario, can one use coding to outperform packet routing-based solutions? While the
+problem of communicating information over a network can be viewed as the process of moving
+information packets between terminals, a key distinction between moving packets and moving
+commodities is that information packets can be re-encoded by intermediate nodes. For example, a
+node which receives packets P1 and P2 can calculate and transmit the bitwise XOR packet P1 ⊕ P2
+to its neighbor. This operation has no analogue in multicommodity flow scenarios.
+     Whether (and to what extent) this ability confers any benefits over the simple routing-based
+solution, depends on the specific goal of the communication at hand. Such goals may include
+uni-cast and multi-cast throughput, error-resilience and security, to name a few. These questions
+have been the subject of active study in the recent past. A summary of major directions can be
+found in the books [11, 12], and surveys [3, 13].
+     In this paper we focus on noiseless unicast communication. The network is a capacitated graph
+G with k source-sink terminal pairs (si , ti ). Each source vertex si wants to transmit an information
+stream to ti . The network coding rate NC( G ) is the maximum rate at which transmission between
+all pairs can happen simultaneously, given the capacity constraints.
+     If we forbid coding, and restrict nodes to forwarding information packets that they receive, the
+problem becomes equivalent to multicommodity flow over G — the very well-studied problem of
+maximizing the rate MCF( G ) at which commodities are moved from sources to sinks subject to
+the capacity constraints (see e.g. [2] for background). Clearly, the multicommodity rate can always
+be achieved — but can it be beaten using “bit tricks”?
+     If the graph G is directed, there are well-known examples which show that coding can improve
+throughput in a very dramatic way [1, 5]. There is a family of examples G, where the gap between
+the multicommodity flow rate and network coding throughput is as large as O(| G |). Despite
+substantial effort, it is not clear whether coding confers any benefit over routing in undirected
+networks. Li and Li [9] conjectured that the answer is ‘no’. This conjecture is currently open.
+     It is known that the Li and Li conjecture holds in some special cases. Naturally, it holds when-
+ever the sparsity of the graph matches the multicommodity flow rate. For cases where these quan-
+tities are not equal, [6] and [7] show that the conjecture is true for the Okamura-Seymour graph
+and [1, 6] show it for an infinite family of bipartite graphs. Empirical evidence also suggests that
+the conjecture is true [10].
+     One simple case where coding rate cannot exceed capacity is the case when the channel is a
+single edge: two parties cannot be sending messages to each other at a total rate exceeding the
+channel’s capacity. This is a simple consequence of Shannon’s Noiseless Coding Theorem. As
+a simple corollary, the sparsest cut in G provides an upper bound for the network coding rate
+NC( G ). The sparsity of a cut (U, V \ U ) is defined as
+
+                                                      Capacity(U, V \ U )
+                            Sparsity(U, V \ U ) :=                                                 (1)
+                                                      Demand(U, V \ U )
+
+If we merge the vertices on either side of the cut, the network coding rate becomes Sparsity(U, V \
+U ). Merging nodes can only increase network coding rate, and thus we have NC( G ) ≤ Sparsity(U, V \
+U ). Since the sparsity of G is defined as the minimum of (1) over all cuts, we have NC( G ) ≤
+Sparsity( G ).
+
+
+                                                  2
+    As discussed below, the multicommodity flow problem is very well-studied. In the one com-
+modity case, the Max-Flow Min-Cut Theorem asserts that sparsity is equal to the flow rate. In
+the multicommodity case, the sparsity is still an upper bound on the multicommodity flow rate
+MCF( G ), but it might be loose by a factor of log | G |:
+
+                         Sparsity( G )/O(log | G |) ≤ MCF( G ) ≤ Sparsity( G ).                         (2)
+
+Thus the advantage one can gain for network coding over undirected graphs is at most O(log | G |):
+
+               NC( G )/O(log | G |) ≤ Sparsity( G )/O(log | G |) ≤ MCF( G ) ≤ NC( G ).                  (3)
+
+The Li and Li conjecture asserts that the rightmost ‘≤’ is indeed an equality. Our main result is
+that either the conjecture is true, or it must be nearly ‘completely false’: the gap between NC( G )
+and MCF( G ) can be as high as poly-logarithmic in | G |.
+
+Theorem 1.1. Given a graph G that achieves a gap of 1 + e between the multicommodity flow    rate and
+                                                                                                     c the
+                                                                   e that achieve a gap of O log | G
+network coding rate, we can construct an infinite family of graphs G                               e| for
+some constant c < 1 that depends on the original graph G.
+
+   In order to prove Theorem 1.1, we will show a simpler construction that can be applied repeat-
+edly.
+
+Theorem 1.2. Given a graph G of size n with a gap of 1 + e between the multicommodity flow rate and
+                                                                   2
+the network coding rate, we can create another graph G 0 of size nc and a gap of (1 + e)2 , where c depends
+on the diameter of the graph G.
+
+Proof outline. The main part of the construction is to define a graph tensor on graphs G1 and G2
+that have gaps of 1 + e1 and 1 + e2 respectively, between the multicommodity flow rate and the
+network coding rate, which gives a new graph G with a gap of (1 + e1 )(1 + e2 ) while keeping
+a check on the size of G. We can then take a graph with a small gap and tensor it with itself
+to produce a graph with an even larger gap. Repeatedly tensoring the output of the previous
+iteration with itself will give us Theorem 1.1.
+    In G2 , network coding allows us to send more information from every source to its correspond-
+ing sink than what simple flows allow. We construct a gadget for the graph tensor exploiting this
+fact as in Figure 2. We replace each edge of G1 by a copy of G2 with endpoints at a deterministic
+source-sink pair. We keep the source-sink pairs of G1 and edges of G2 .
+    For simplicity, assume that each edge in Figure 1 has capacity 1. Then the effective capacity at
+each edge seen by G1 under network coding is more than that under flows. Intuitively, replacing
+each edge with a source-sink pair of G2 should give network coding a “capacity advantage” of
+(1 + e2 ) over multicommodity flow. Since the information transferred grows linearly with the
+capacity, the new information exchanged between source-sink pairs in the gadget under network
+coding should be (1 + e1 )(1 + e2 ) times the information exchanged under flows.
+    We need to be careful because G2 exhibits a gap only when we need to send information from
+all sources simultaneously. We address this by adding more copies of G1 to the graph tensor and
+replacing its edges with other source-sink pairs of the copies of G2 as in Figure 3. In each copy of
+G1 we replace all edges with the same source-sink pair of G2 . At the same time, each copy of G2
+
+
+                                                    3
+          Figure 1: Graph G1 and G2 .                     Figure 2: Basic gadget that embeds a copy of
+                                                          G2 into each edge of G1 . The edges coming
+                                                          out of the copies will be used to connect to
+                                                          other copies of the outer graph (G1 ). Labelled
+                                                          source-sink pairs of G2 are just for reference.
+                                                          The thin edges are just an artifact and their re-
+                                                          spective end points represent a single vertex.
+
+
+
+
+(a) A cheating path is highlighted with dashed            (b) An honest path is highlighted with dotted
+edges.                                                    edges.
+
+Figure 3: Two copies of G1 (with source-sink pairs s1 − t1 , s2 − t2 and s10 − t10 , s20 − t20 , respectively)
+have 8 edges. These edges are replaced with 4 copies of G2 , each copy having two source-sink
+pairs. All edges in the first copy of G1 are replaced with s1X -t1X source-sink pairs of G2 ; edges in
+the second copy of G2 are replaced with s2X -t2X source-sink pairs of G2
+
+
+
+
+                                                      4
+serves to replace the same edge in all copies of G1 . This is done to facilitate the proof of the upper
+bound on the MCF rate in the resulting graph.
+    Our work is not done here. It is easy to get a lower bound on the network coding rate on the
+final graph G by just showing a network coding solution. For this, informally, we just compose
+the network coding solutions for G1 and G2 . The hard part is to get an upper bound on the
+multicommodity flow rate. Since MCF is a linear program, we can upper bound the value of
+multicommodity flows by looking at the dual solution of its relaxed linear program. This dual,
+described in Section 2, involves computing shortest distances between source-sink pairs under
+some metric. This metric readily tensorizes: we can take the length of an edge in a copy of G2 to
+be the product of the length of that edge in G2 times the length of the edge(s) in G1 this particular
+copy of G2 is replacing. The problem is to get the lengths of whole paths to tensorize.
+    What could go wrong? Consider Figure 3. We would ideally want the dotted paths as in
+Figure 3b to be the shortest path between S1 and T1 in G 0 , since its length is the length of the
+shortest s1 − t1 path in G1 times the length of the shortest s1X − t1X path in G2 . Unfortunately,
+during the tensoring operation we inadvertently introduce additional s1 − t1 paths that do not
+correspond to “products” of paths from G1 and G2 . For example, the dashed path in Figure 3a is a
+“cheating” path which can make the distance between s1 and t1 shorter than expected. We deter
+the use of “cheating” paths by increasing the number of hops between different copies of G1 that
+a path has to take before it reaches the same copy again. The technical ingredient which prevents
+such cheating is in the design of the bipartite graph which tells which copy of G1 should use which
+copies of G2 (and how to connect them). To prevent cheating, the bipartite graph will need to be
+of high girth. The crucial part of the construction is thus constructing high girth bipartite graphs
+while still keeping check on the size so as to get a O(log(size)c ) (c < 1) gap when the tensor is
+applied repeatedly.
+
+Discussion. A natural question arises: Can we have a tensor construction that starts with a
+graph G having some gap between the multicommodity flow rate and the network coding rate
+and outputs a graph G 0 with gap ω (log(| G 0 |)), thus contradicting (3) and proving the Li and Li
+conjecture? We address this question with respect to our construction in Section 4. We show that
+the MCF vs. Sparsest Cut gap tensorizes for our construction, and thus the tensorization process
+on its own cannot cause the gap to exceed O(log | G 0 |).
+    At the same time, if one’s goal is to prove the conjecture, it might be easier to reach a contra-
+diction to the gap being (log | G |)c than to a constant gap.
+
+
+2    Preliminaries
+In this section we introduce the problems that we will be interested in studying and any relevant
+notation. Where appropriate, we use the same notation and definitions as [1, 5].
+    When G = (V, E) is a graph, we specify vertex set of G with V ( G ) when the underlying
+graph G is not clear from the context. Similarly E( G ) represents the edge set for graph G. The set
+{1, 2, ..., n} is represented by [n]. I ( G ) denotes the set of k source-sink pairs (si , ti ), i ∈ [k], si , ti ∈ V.
+Given a bipartite graph B = (V1 , V2 , E), we denote the left side of the graph by V1 ( B) and the right
+by V2 ( B). A bipartite graph is (r, s) bi-regular when each vertex on the left side has degree r
+whereas each vertex on right side has degree s.
+
+
+
+                                                          5
+2.1     Network coding
+Definition 2.1. An instance of the k-pairs communication problem consists of
+
+      • a graph G = (V, E),
+
+      • a capacity function c : E → R+ ,
+
+      • a set I of commodities of size k, each of which can be described by a triplet of values (si , ti , di )
+        corresponding to the source node, the sink node and the demand of commodity i.
+
+    In line with [1], for undirected graphs we consider each edge e as two directed edges ~e, e~,
+whose capacities will be defined later. It will also be convenient to think of source and sink nodes
+as edges. Therefore, for every source and sink pair (si , ti ), we create new nodes Si , Ti and connect
+them via single edges to si , ti respectively. These edges are of unbounded capacity and we will
+refer to these as the source and sink edges respectively. Every source Si wants to communicate a
+message to its sink.
+    We give the formal definition of a network coding solution in Appendix A. Let Mi be the set
+of messages the i-th source-sink pair wants to communicate, and M = ∏i Mi . Let ∆(e) be the
+alphabet of characters available at edge e. Informally, the solution to a network coding problem
+must specify for each edge e a function f e : M → ∆(e), which dictates the character transmitted
+on that edge. The function f e must be computable from the characters on the incoming edges at
+the sender end point. The message at the source and sink edges of any commodity must agree.
+    The network coding rate (henceforth known as coding rate) is the largest value r such that
+for each source-sink pair at least r · di information is transmitted while preserving the capacity
+constraint on all edges.
+
+2.2     Multicommodity flow problems and sparsity cuts.
+A flow problem consists of a graph G = (V, E) with k commodities together with k pairs of
+nodes (si , ti ) and quantities di . The goal is to transmit di units of commodity i from si to ti while
+keeping the total sum of commodities that go through a given edge e below its capacity c(e).
+There are many optimization problems surrounding this problem. We will focus on the following
+one: what is the largest λ such that at least λ fraction of each commodity’s demand is routed?
+This is justified by assuming that no commodity is prioritized over another and that all resources
+are shared. We refer to this quantity as the flow rate of the graph. There are well-known linear
+programming formulations for these problems (see LP 5 in Section B in the appendix). Since we
+will be interested in providing provable upper bounds to the flow rate, it will suffice to look at
+the dual of this problem. In particular, we use the variables on the following dual LP to provide
+upper bounds on the flow rate of the sequence of graphs we create. We will refer to the w(u,v) as
+the weight of edge (u, v) in the dual solution.
+
+
+
+
+                                                       6
+                   minimize ∑ w(u,v) c(u, v)
+                              u,v
+                   subject to ∑ l (si , ti )di ≥ 1         (Distance Constraint)
+                              (si ,ti )                                                              (4)
+                                 ∑ w(u,v) ≥ l (si , ti ) ∀i ∈ [k], p ∈ Pi
+                              (u,v)∈ p
+
+                             w(u,v) ≥ 0                    ∀(u, v) ∈ E ∧ ∀(u, v) = (si , ti )
+    This LP introduces a semi-metric on the graph which assigns weights to the edges. l (si , ti ) is
+the shortest distance between i −th source-sink pair w.r.t. this metric. The goal is to minimize
+the weighted length of the edges of the graph while maintaining a certain separation between
+the source-sink pairs. Zero weight edges can be problematic for our graph tensor since they may
+reduce the weighted girth of the graph in ways we cannot account for. Our tensor, however, does
+not produce new zero weight edges. Therefore it suffices for our purposes to show that we can
+get rid of them at the beginning of the construction.
+
+Lemma 2.2. If G is a graph such that the gap between the flow rate and the coding rate is (1 + e), a new
+graph G 0 can be constructed such that the gap does not decrease and all the edge weights in LP (4) are
+non-zero.
+
+Proof. We defer the proof of this lemma to Section B of the appendix.
+
+      Interestingly, this lemma is not true for directed graphs.
+
+
+3     Construction
+In this section we present the construction of our graph tensor and prove our main results, The-
+orems 1.1 and 1.2. The construction takes two graphs with small gaps and tensors them in such
+a way that the resulting graph has a gap equal to the product of the previous gaps. Iteratively
+tensoring a graph with a small gap with itself will yield our main results.
+    Throughout this section, when referring to a graph Gi = (Vi , Ei ), i ∈ [2], k i is the number of
+source-sink pair, vi the number of vertices and mi the number of edges. The capacity of edge e ∈ Ei
+will be denoted by cie .
+
+3.1     Overview
+As mentioned in Section 1, we need a bijection between the graph tensor on G1 and G2 and bipar-
+tite graphs. We represent the copies of G1 by numbered nodes on the left side of the bipartite graph
+(say B) and copies of G2 by nodes on the right side of B. We add an edge (i, j) in B when an edge
+in the i-th copy of G1 got replaced by the j-th copy of G2 aligned at a specific source-sink pair. But
+this definition of bipartite graph B loses information about which specific edge was replaced with
+which specific source-sink pair. Thus, we consider a variant of bipartite graphs: colored bipartite
+graphs, which have two colors associated with each edge. We will use the first color to represent
+the edge that got replaced in a copy of G1 and the other to represent the source-sink pair of G2 that
+replaced that edge. Thus, edges of B get colored from the set [m1 ] × [k2 ]. Note that each vertex on
+
+
+                                                       7
+the left side has degree m1 and that on right hand side has degree k2 . The formal description of
+colored bipartite graphs and graph tensor based on this idea is given in Subsection 3.2.
+    As discussed in Section 1, we can avoid “cheating” paths by increasing the number of hops that
+a dashed path (Figure 3) needs to take to come back to the same copy of G1 . Our first requirement
+would be for the colored bipartite graph B to have high girth. Lemma D.1 states the existence
+of nearly optimal sized high girth bipartite graphs and Subsection 3.2.2 shows how to construct
+specific colored bipartite graphs (as in Subsection 3.2) of high girth.
+    Is having a high girth B sufficient for the number of hops to be large? No. When G2 has
+two sources at the same vertex, the end points (on source side) of the edges in copies of G1 that
+these two source-sink pairs replaced will collapse on the same vertex implying that we can move
+between these copies of G1 instantly without traveling along any edge in the tensored graph. But,
+we would have travelled two consecutive edges in B. To remedy this, we condition on the graph
+G2 to have all sources and sinks lying on distinct vertices. Note that the length of the cheating
+paths is defined with respect to the weights of edges in a dual solution. Thus, we cannot just
+transfer the source/sinks to leaves at the corresponding vertex through infinite capacity edges as
+they would always get weight 0 in the dual. In Subsection 3.2.1, we present a way to modify graph
+G2 to satisfy the above condition.
+    The multicommodity flow rate for the tensored graph is upper bounded by constructing a dual
+solution for it based on dual solutions for graphs G1 and G2 . In Subsection 3.2.3, we show the dual
+construction and prove that the gap of the tensored graph is the xproduct of the previous gaps
+given appropriate girth.
+    The last subsection of this section contains the details of repeated tensoring to get Theorem 1.1.
+
+3.2     Graph Tensor
+Definition 3.1. Colored Bipartite Graph: We define Bn1 ,n2 ,d1 ,d2 ,g,q1 ,q2 to be the set of bipartite graphs
+(V1 , V2 , E) with girth g, |V1 | = n1 , |V2 | = n2 , such that degree of each vertex in V1 and V2 is d1 and
+d2 respectively and each edge is given a color le in [q1 ] × [q2 ]. Note that n1 d1 = n2 d2 .
+Definition 3.2. T ( G1 , G2 , B) is defined to be the graph tensor on directed graphs G1 and G2 based
+on the colored bipartite graph B.
+      For T ( G1 , G2 , B) to be defined, we need B to satisfy the following properties:
+   1. B ∈ Bn1 ,n2 ,m1 ,k2 ,g,m1 ,k2 for some n1 , g ∈ {1, 2, ...}.
+           • G1 has m1 edges and G2 has k2 source-sink pairs. Therefore the degrees of each node on
+             left and right side should be m1 and k2 , respectively.
+           • As mentioned in Subsection 3.1, edges must be colored in the set [m1 ] × [k2 ].
+   2. ∀v ∈ V2 , the set Bv = {be | e is incident to v and le = ( ae , be )} is the complete set [k2 ]. We
+      want each source-sink pair of a copy of G2 to replace some edge in a copy of G1 .
+   3. ∀u ∈ V1 , the set Au = { ae |e is incident to u and le = ( ae , be )} is the complete set [m1 ]. This
+      ensures that each edge in a copy of G1 is replaced.
+   4. ∀v ∈ V2 , the set Av = { ae | e is incident to v and le = ( ae , be )} has cardinality 1. To define
+      capacities in the new tensored graph naturally, we want that each source-sink pairs in a copy
+      of G2 replaces some unique edge in the corresponding copies of G1 .
+
+                                                             8
+   5. ∀u ∈ V1 , the set Bu = {be | e is incident to u and le = ( ae , be )} has cardinality 1. This ensures
+      that each edges in a copy of G1 is replaced by the same source-sink pair in different copies
+      of G2 .
+We construct the graph T ( G1 , G2 , B) as follows:
+
+   • Enumerate the n1 nodes in V1 ( B) and n2 nodes in V2 ( B): u(1) , u(2) , ..., u(n1 ) and v(1) , .., v(n2 )
+     respectively.
+                                            (1)     (2)       (m )
+   • Enumerate all the edges in G1 : eG1 , eG1 , ..., eG1 1 .
+   • Create n1 copies of G1 (vertices and source-sink pairs) and n2 copies of G2 (vertices and
+                                                                   ( j)
+     edges). Represent the jth copy of graph Gi , i ∈ {1, 2} by Gi . Let u(i) ∈ V1 ( B) represent the
+     i-th copy of G1 and v(i) ∈ V2 ( B) represent the i-th copy of G2 .
+   • For every edge e = (u(i) , v( j) ) colored ( p, k ), merge the vertices aG(i) and skG( j) , and tkG( j)
+                                                                                       1          2           2
+                                             ( p)
+        and bG(i) in T ( G1 , G2 , B). Here, e (i) = ( aG(i) , bG(i) ) is the pth edge in the i-th copy of G1 and
+                1                            G1           1          1
+
+        (skG( j) , tkG( j) ) is the kth source-sink pair of the jth copy of G2 . Informally, we are replacing
+            2       2
+        each edge in a copy of G1 by a copy of G2 with end points aligned with the kth source-sink
+        pair. Set the capacity of every edge e0 in this jth copy of G2 to be c1e( p) c2e0 . This can be done
+                                                                                     G1
+        consistently due to Property (4).
+   • Make all the edges undirected.
+
+   We define a tensor on directed graphs to allow for composition of network coding solutions of
+G1 and G2 . The direction of an edge in G1 tells us how to align the source-sink pair of G2 on that
+edge. An example of a tensor is the graph in Figure 3.
+
+3.2.1    Standard Forms and Graph Extensions
+Without loss of generality, we assume that for the graph G, all the demands di , i ∈ [| I ( G )|] are
+equal. Otherwise, we can just divide the demands into small demands of size x such that x divides
+all the initial rational demands. As discussed in Subsection 3.1, we want all sources and sinks to
+lie on distinct vertices. For all the dual solutions D that we mention, we assume that D does
+not contain any zero weight edges. This is justified by Lemma 2.2 and the fact that new duals
+constructed while tensoring, which will be defined later, don’t create zero weight edges. We say a
+graph-dual pair (G, D) is in standard form when all the assumptions above are satisfied.
+     We now present a construction whose goal is to make all si , ti , i ∈ [k ] lie on distinct vertices.
+Definition 3.3. Given a graph G = (V, E) with all demands being equal to d, and a dual solution
+D with zNC G
+         (D)
+             ≥ 1 + ε, ∀α, 0 < α < ε, construct a new graph Gα such that all si , ti , i ∈ [k] lie on
+                                                                         NC               +ε
+distinct vertices and Gα has a dual solution Dα ( G ) with z( Dα (GGα )) being at least 11+ α . Gα is defined
+as the α-Extension of G given D. z( D ) is the objective value of dual solution D.
+   Here, we just move the sources/sinks at a vertex to the leaves of the new edges added at this
+vertex while keeping edge capacities and dual weights in check. The detailed description of Gα
+and Dα ( G ) is given in Section C of the Appendix.
+
+                                                          9
+3.2.2    Colored Bipartite Graph Construction
+We need small, colored bipartite graphs for every degree and girth to define the graph tensor on
+any two graphs with gaps. We construct such graphs using biregular bipartite graphs with high
+girth. The following lemma states the existence of nearly-optimal sized colored bipartite graphs.
+
+Lemma 3.4. ∀r, s, g ≥ 3, there exists a colored bipartite graph Crsg ∈ Bn1 ,n2 ,r,s,2g,r,s with n1 , n2 ≤
+(9rs) g+3 .
+Proof. We defer the detailed construction and proof of the next lemma to Section D of the Ap-
+pendix.
+
+3.2.3    Gap Amplification
+We are given G1 and G2 in standard form with Gi , i ∈ [2] having gap (1 + ε i ). Let Ni be the optimal
+network coding solution for Gi , i ∈ [2]. Construct a directed graph G10 from G1 by replacing each
+(undirected) edge e = (u, v) ∈ E( G1 ) of capacity c1e with 2 directed edges (u, v) and (v, u) of
+capacities c1eu and c1ev respectively. Here, c1eu and c1ev are the capacities of edge e used by N1 in the
+defined directions. Note that c1eu + c1ev ≤ c1e . Without loss of generality, assume c1eu + c1ev = c1e ,
+as we can always increase one of the capacities without changing the network coding solution
+to get the equality. Similarly, construct G20 from G2 based on N2 . G10 and G20 has m10 = 2m1 and
+m20 = 2m2 edges respectively.
+
+Definition 3.5. Tensor(G1 , G2 , D1 , D2 ) is defined as T ( G10 , G20 , B0 ), where B0 = Cm10 k2 g , 2g = w2l12wl12 .
+Here, l1 and l2 are the maximum dual distances between any source-sink pair in the dual solutions
+D1 of G1 and D2 of G2 respectively. w1 > 0 and w2 > 0 are the minimum edge weights in the dual
+D1 and D2 respectively.
+
+    Define Dual( G1 , G2 , D1 , D2 ) to be the specific dual solution for Tensor(G1 , G2 , D1 , D2 ) that would
+be constructed in proof of Lemma 3.8.
+                                                                                                V ( B0 )  V ( B0 )
+    All the demands in the graph Tensor(G1 , G2 , D1 , D2 ) are equal to d1qd2 where q = 1k2 = 2m1 .
+Here, di is the demand of each commodity in graph Gi , i ∈ [2]. We use such a scaling to have a
+simple description of Dual( G1 , G2 , D1 , D2 ) in terms of D1 and D2 .
+    We prove the gap amplification part of Theorem 1.2 next. The details of how size grows are in
+the next subsection.
+
+Theorem 3.6. Given graphs G1 and G2 in standard form and dual solutions D1 and D2 respectively, such
+        NCG
+that z( D )i ≥ 1 + ε i , i ∈ [2], G = Tensor( G1 , G2 , D1 , D2 ) has a dual solution D = Dual( G1 , G2 , D1 , D2 )
+          i
+
+such that zNC G
+            (D)
+                ≥ (1 + ε 1 )(1 + ε 2 ).
+
+    In the next two lemmas, we lower bound the network coding rate and upper bound the mul-
+ticommodity flow rate of G.
+
+Lemma 3.7. The coding rate for G is at least r1 r2 (1 + ε 1 )(1 + ε 2 )q where r1 and r2 are objective values of
+dual solutions D1 and D2 respectively.
+
+Proof Sketch. The proof follows from composing the optimal network coding solutions of G1 and
+G2 . The details are given in Section E of the Appendix.
+
+                                                         10
+Lemma 3.8. D has objective value at most r1 r2 q where r1 and r2 are the objective values of dual solutions
+D1 and D2 respectively.
+
+Proof Sketch. G = T ( G10 , G20 , B0 ) where variables are as defined in Definition 3.5. For every edge
+e ∈ E( G ), e is the undirected version of an edge in a copy of G20 (of say e2 in G20 ) and this copy of G20
+must have replaced a unique edge (say e1 ∈ E( G10 )) in different copies of G10 . Edges e1 and e2 are
+directed edges but have undirected counterparts in G1 and G2 . Let w1e1 and w2e2 be the weights
+given to the counterpart edges of e1 and e2 in dual solutions D1 and D2 respectively. Give weight
+we = w1e1 w2e2 to edge e in D. Note that ∀e, we > 0 if w1e1 , w2e2 > 0∀e1 , e2 . Thus, non-zero dual
+solutions D1 and D2 give a non-zero dual solution D to graph G. We still need to show that D is
+a valid dual solution for G. Since B0 has girth at least w2l12wl12 and G2 is in standard form, the dotted
+paths (as in Figure 3) are the shortest paths with respect to dual D. We can then write the distances
+between source-sink pairs in G in terms of the distance of this source-sink pair in G1 w.r.t. D1 and
+the distance of the source-sink pair in G2 that replaced edges in this copy of G1 w.r.t. D2 . This
+allows us to easily show the satisfiability of the distance constraint for D when demands are as
+specified in Definition 3.5.
+     The detailed proof is given in Section E of the Appendix. There we also show z( D ) = nk21 z( D1 )z( D2 ) =
+qr1 r2 .
+
+Proof. of Theorem 3.6: It follows from just dividing the lower bound on the network coding rate
+of G and the upper bound on the objective value of D obtained in Lemma 3.7 and Lemma 3.8.
+
+   In the next subsection, we show how to repeatedly apply this construction. Note that, we can
+only apply the tensor construction on graphs in standard form. The following lemma allows us to
+tensor the new graph obtained with itself.
+
+Lemma 3.9. Given G1 and G2 in standard form, Tensor( G1 , G2 , D1 , D2 ) is also in standard form.
+
+Proof. We defer the proof of this lemma to Section E of the Appendix.
+
+3.2.4    Iterative Tensoring
+In the next two statements size refers to the number of vertices in the graph Ai . The calculation of
+the size involves calculating the required girth at each iteration and the size of the colored bipartite
+graph used to tensor at each iteration.
+
+Theorem 3.10. Given a graph A = (V, E) with gap (1 + ε), we can construct a sequence of graphs
+                                               i                           2i + 1
+Ai = (Vi , Ei ) with gap at least (1 + 2ε )2 , size at most (3cm )(4c1 )             where cm and c1 are absolute constants.
+                                                                    1+ ε
+Proof. We defer the proof to Section F of the Appendix. Let α = 1+   ε/2 − 1. The proof first considers
+the α-Extension of A to start the recursion with a graph in standard form, then recursively defines
+pairs of tensored graphs and duals ( Ai , Di ) such that the gap increases geometrically.
+                                                                                                                log(gap)
+Proof. of Theorem 1.1: Now, we calculate an expression for the gap in terms of size. log(1+ε/2) ≥
+        log log(size)−log log 3cm
+2i ≥            log(16c21 )
+                                  .   Thus, we get a sequence of graphs with gap at least Ω((log(size))c2 )
+                                                                                    log(1+ε/2)
+where c2 is an absolute positive constant less than 1 equal to                       log(16c21 )
+                                                                                                 .
+
+
+
+                                                          11
+4     Limits of the Construction
+4.1   Sparsity Squares
+In this subsection, we show that the construction we present can not be used “as is” to prove the Li
+and Li conjecture. The requirement for the underlying bipartite graph to have a high girth seems
+to heavily contribute to the size of the graph in the next iteration. Can we do better in terms of
+size to yield a gap of ω (log | G |) by choosing a smaller bipartite graph at every iteration while
+still having a clever upper bound on the multicommodity flow in the new graph? The answer is
+no. Theorem 4.1 states that for every colored bipartite graph B, the tensor of G1 and G2 with B
+as basis has sparsity of at least the product of the sparsities of G1 and G2 when the demands are
+all 1 in all the graphs. With the appropriate demands, this means that the sparsity grows exactly
+like the coding rate as in Lemma 3.7. Thus, for any iterative tensoring procedure that starts with
+a graph G with NC/MCF gap and repeatedly tensors the graph at the ith iteration (Gi ) with itself
+or with G based on a colored bipartite graph Bi will end up with a graph G 0 with ω (log | G 0 |) gap.
+Hence we can start with a graph H with a gap between the flow rate and the sparsity and apply
+this procedure to get a graph H 0 with ω (log | H 0 |) gap between the flow rate and the sparsity,
+contradicting the bounds from [8]. This means that through iterative tensoring, if we were able to
+prove the conjecture, we would also prove the statement that there exists no graphs with sparsity-
+multicommodity flow rate gap which is clearly false.
+
+Theorem 4.1. For any G1 , G2 , B for which G = T ( G10 , G20 , B) is defined (G10 and G20 are directed graphs
+obtained from G1 and G2 by directing each edge arbitrary in two directions such that new capacities add up
+to the previous),
+                             Sparsity( G ) ≥ Sparsity( G1 ) · Sparsity( G2 ).
+when the demands of G1 , G2 and G are all scaled to 1.
+
+Proof. We defer the proof to Section G in the Appendix.
+
+
+References
+ [1] M. Adler, N. J. A. Harvey, K. Jain, R. Kleinberg, and A. Rasala Lehman. 2006. On the Capacity
+     of Information Networks. In Proceedings of the Seventeenth Annual ACM-SIAM Symposium on
+     Discrete Algorithm (SODA ’06). Society for Industrial and Applied Mathematics, Philadelphia,
+     PA, USA, 241–250.
+
+ [2] R. K. Ahuja, T. L. Magnanti, and J. B. Orlin. 1993. Network Flows: Theory, Algorithms, and
+     Applications. Prentice-Hall, Inc., Upper Saddle River, NJ, USA.
+
+ [3] C. Fragouli and E. Soljanin. 2007. Network Coding Applications. Found. Trends Netw. 2, 2
+     (Jan. 2007), 135–269.
+
+ [4] Z. Furedi, F. Lazebnik, A. Seress, V. A. Ustimenko, and A. J Woldar. 1995. Graphs of pre-
+     scribed girth and bi-degree. Journal of Combinatorial Theory, Series B 64, 2 (1995), 228–239.
+
+ [5] N. J. A. Harvey, R. Kleinberg, and A. Rasala Lehman. 2004. Comparing Network Coding
+     with Multicommodity Flow for the k-pairs Communication Problem. (2004).
+
+
+                                                     12
+ [6] K. Jain, V. V. Vazirani, and G. Yuval. 2006. On the Capacity of Multiple Unicast Sessions in
+     Undirected Graphs. IEEE/ACM Trans. Netw. 14, SI (June 2006), 2805–2809.
+
+ [7] G. Kramer and S. A. Savari. 2006. Edge-Cut Bounds on Network Coding Rates. J. Netw. Syst.
+     Manage. 14, 1 (March 2006), 49–67.
+
+ [8] T. Leighton and S. Rao. 1999. Multicommodity Max-flow Min-cut Theorems and Their Use
+     in Designing Approximation Algorithms. J. ACM 46, 6 (Nov. 1999), 787–832.
+
+ [9] Z. Li and B. Li. 2004. Network Coding in Undirected Networks. (2004).
+
+[10] Z. Li, B. Li, D. Jiang, and L. C. Lau. 2005. On achieving optimal throughput with network cod-
+     ing. In INFOCOM 2005. 24th Annual Joint Conference of the IEEE Computer and Communications
+     Societies, 13-17 March 2005, Miami, FL, USA. 2184–2194.
+
+[11] M. Medard and A. Sprintson. 2012. Network Coding: Fundamentals and Applications. Elsevier.
+
+[12] R. W. Yeung. 2008. Information theory and network coding. Springer Science & Business Media.
+
+[13] R. W. Yeung, S.-Y. R. Li, N. Cai, and Z. Zhang. 2005. Network Coding Theory: Single Sources.
+     Commun. Inf. Theory 2, 4 (Sept. 2005), 241–329.
+
+
+
+A     Definition of Network Coding
+Let M(i ) be the set of all messages si wants to send, and let M = Πi M(i ). For every v ∈ V, let
+In(v) ⊆ E denote the set of edges incident to e.
+
+Definition A.1. A network coding solution for a graph G specifies for each edge directed e ∈ E an
+alphabet Γ(e) and a function f e : M → Γ(e) specifying the symbol transmitted on edge e. This
+must satisfy the following two conditions:
+
+    • Correctness: each sink node receives the message from its corresponding source, i.e. f T (i) =
+      f S (i ) .
+
+    • Causality: every message transmitted on edge e is computable from information received at
+      its tail vertex at a time prior to the message’s transmission.
+
+Definition A.2. A causal computation of a network consists of
+
+    • A sequence of edges e1 , ..., eT where each edge can appear multiple times.
+
+    • A sequence of alphabets Λ1 , ..., Λ T .
+
+    • A sequence of coding functions ρ1 , ..., ρ T , which in turn satisfy
+
+        1. For each function ρt such that et = (u, v) is not a source edge, the value of ρt is uniquely
+           determined by the values of the functions in the set {ρ x : x < t, et ∈ In(u)}.
+        2. For each edge e, the Cartesian product of the alphabets in the set {Λi : ei = e} is equal
+           to Γ(e).
+
+                                                    13
+        3. For each edge e, the set of coding functions {ρi : ei = e} together define the coding
+           function f e specified by the network coding solution.
+
+    At this point we are equipped with the tools needed to define the network coding rate, the
+information-theoretic equivalent of the flow rate.
+
+Definition A.3. A network coding solution for a graph G achieves a rate r if there exists a constant
+b ≥ 0 such that
+
+    • H (S(i )) ≥ r · di · b for each commodity i
+
+    • for each edge e ∈ E, H (~e) + H (e~) ≤ c(e) · b,
+
+where by H (~e) we denote the entropy of edge ~e. The coding rate is defined to be the supremum of
+the rates of all network coding solutions.
+
+
+B    Multicommodity Flows
+The standard LP formulation for concurrent multicommodity flow problems is written below. It
+has a variable for every path p ∈ Pi , where Pi is the set of all paths between si and ti . We want to
+find the largest rate λ that can be concurrently sent between all source-sink pairs subject to the path
+variables being non-negative and not exceeding the capacity of any edge over all commodities.
+
+                                 maximize                        λ
+                                 subject to     ∑ f ( p) ≥ λdi        ∀i ∈ [ k ]
+                                                p∈ Pi
+
+                                               ∑ f ( p) ≤ c(e)         ∀e ∈ E                       (5)
+                                              p:e∈ p
+
+                                                         f ( p) ≥ 0         ∀p
+                                                             λ≥0
+
+Proof. of Lemma 2.2: We contract all the edges with zero weight in the dual. We need to show
+that the gap does not decrease. Removing a zero dual variable from a multicommodity solution
+cannot improve the flow rate, since the distances and the dual objective remains the same. We
+can use the same coding solution for the new graph with the exception that we now compose the
+encoding on the edges that were contracted. This shows that the flow rate does not increase and
+the coding rate does not decrease, proving that their ratio does not decrease.
+
+
+C    Standard Form
+This section gives the detailed description of Gα and Dα ( G ). Let k v be the number of sources and
+sinks at vertex v ∈ V ( G ). In the graph Gα , add k v edges (leaves) at v with capacity z( D )d(1 + ε)
+and shift all the sources or sinks at v to the unique endpoints of these leaves. As each source sends
+≥ z( D )d(1 + ε) amount of information in an optimal network coding solution and can still send
+z( D )d(1 + ε), the network coding rate doesn’t decrease below z( D )(1 + ε). We construct Dα ( G ) as
+follows:
+
+
+                                                        14
+Figure 4: (2,3) Bi-regular bipartite graph with               Figure 5: Intermediate graph when one set of
+girth 4.                                                      colors have been assigned.
+
+
+    1. For each edge originally in G, assign the same weights as in D.
+
+    2. Give weight kd(1α+ε) to the new edges.
+
+Distances in the dual don’t decrease, so Dα ( G ) is a valid solution. Since we added k new edges,
+                                                                           NCG           +ε
+z( Dα ( G )) = kz( D )d(1 + ε) kd(1α+ε) + z( D ) = z( D )(1 + α). Thus, z( Dα ( G ))
+                                                                                     ≥ 11+ α.
+
+
+D     Colored Bipartite Graph Construction
+In this section, we give a construction for a colored bipartite graph CB in Bn1 ,n2 ,r,s,2g,r,s ∀r, s, g ≥ 3
+with n1 , n2 ≤ rs(9rs) g+2 . We start with (r, s) biregular bipartite graph with girth at least 2g.
+Lemma D.1. [4] ∀r, s, g ≥ 3, there exists a (r, s) bi-regular bipartite graph with girth at least 2g and
+having at most n = (9rs) g+2 vertices.
+    This lemma follows from Theorem E in [4].
+
+Proof. of Lemma 3.4.: Let B(r, s, g) be a graph satisfying the above property. For simplicity, denote
+B(r, s, g) by just B = (V1 , V2 , E). Denote the coloring for every edge e by ( ae , be ). First we construct
+an intermediate graph H in Bn10 ,n20 ,r,s,2g,1,s (n10 = s|V1 |, n20 = s|V2 |) as follows:
+                                                                                (1)     (s)
+    1. Enumerate all the edges incident to a vertex v ∈ V2 as ev , ..., ev .
+                                                                                      (1)     (1)       (s)    (s)
+    2. Add s copies of V to graph H. Enumerate these copies as (V1 , V2 ), ..., (V1 , V2 ).
+               ( j)                                                      (i )
+    3. ∀v j ∈ V2 , j ∈ [s], ∀i ∈ [s], corresponding to edge ev = (u, v) ∈ E( B), add an edge e from v j
+                                [( j+i −2)mod s]+1
+       to u[( j+i−2mod s)+1] ∈ V1                    (copy of u in [( j + i − 2)mod s] + 1-th copy of V1 ). Set
+                                                                  ( j)
+       be = [( j + i − 2)mod s] + 1. Therefore, ∀u j ∈ V1 , edges e0 incident at u j have be0 = j (same
+       color).
+                      ( j)                                 (i )                                     (( j+i −2mod s)+1
+For a vertex v ∈ V2 , the edge corresponding to ev comes from a vertex in V1                     . Thus,
+all edges incident to v have distinct colors.
+    We still need to show that the girth of H is at least 2g. For this, we show that a cycle C of length
+c in H implies a cycle of length ≤ c in B. As all the edges incident to a vertex in H correspond to
+different edges in B, when we project back C to a cycle C 0 in B, no two consecutive edges in C 0 are
+the same implying C 0 has no cycle of length 2. Thus, C 0 must have a cycle of length 3 ≤ c0 ≤ c. B
+has girth at least 2g, so the girth of H cannot be smaller.
+
+                                                         15
+Figure 6: Final colored bipartite graph with girth 4.
+
+
+
+
+                         16
+   Now, we repeat the process for H = ( H1 , H2 ) to get graph CB with H1 playing the role of V2
+and H2 playing the role of V1 in the above algorithm. This time we assign ae ∈ [r ] and make r
+copies of H. We can see that as was the case for be , each vertex in a copy of H1 gets r distinct ae
+values and each vertex in a copy of H2 gets the same ae depending on which copy it belongs to.
+The girth doesn’t decrease on going from H to CB giving us the result we claim.
+
+    An example of a colored bipartite graph in B12,18,3,2,4,3,2 is given in Figure 6. We start with K2,3
+as in Figure 4 with girth 4. Then, we construct the intermediate graph in B4,6,3,2,4,1,2 as shown in
+Figure 5. The color of the edge depends on the copy it is incident to on the lower side. For a vertex
+on the upper side, we send edges to correct vertices in distinct copies cyclically.
+
+
+E         Gap Amplification Proofs
+Proof. of Lemma 3.7: Graph G1 has a network coding rate of at least r1 (1 + ε 1 ) and hence each
+source sends r1 (1 + ε 1 )d1 amount of information to its corresponding sink, and similarly for G2 .
+This is true even for the directed graphs G10 and G20 by definition. While constructing T ( G10 , G20 , B0 ),
+we aligned the source-sink pair in the same direction as the directed edge. This allows us to
+compose the network coding solutions (N2 over N1 ) to get the information sent from each source
+in G to be at least r1 r2 (1 + ε 1 )(1 + ε 2 )d1 d2 . This is due to the fact that as we are replacing edges in
+G10 by a source-sink pair of a copy of G20 , the effective capacity seen by the replaced edge (e) with
+                                                                                            r1 r2 (1+ε 1 )(1+ε 2 )d1 d2
+capacity c1e is now c1e r2 (1 + ε 2 )d2 . Thus, the coding rate for graph G is at least (demand          in graph G) =
+r1 r2 (1+ε 1 )(1+ε 2 )d1 d2 q
+            d1 d2             = r1 r2 (1 + ε 1 )(1 + ε 2 )q.
+
+Proof. of Lemma 3.8: Here, we prove that D is indeed a valid dual solution. B0 has n1 = k2 q nodes
+on the left side. Let l1 (si , ti ) denote the shortest distance between i-th source-sink pair with respect
+to dual D1 . Let l2 (si , ti ) denote the shortest distance between i-th source-sink pair with respect to
+dual D2 .
+     Let G10u and G20u be the undirected version of the graphs G10 and G20 respectively. G10u and G20u
+are graphs G1 and G2 where each edge is divided into 2 edges with capacities adding up to the
+previous one. Construct dual solutions D10 and D20 for G10u and G20u such that each divided edge
+still gets the same weight as in dual solutions D1 and D2 . The distances between source-sink pairs
+                                                                       (y) (y)
+remain the same. In G, calculate the shortest distance i.e. l (si , ti ) between source-sink pair
+    (y)     (y)
+(si , ti ) which corresponds to the i-th source-sink pair (si , ti ) in the y-th copy of G10u (finally, we
+make the graph undirected). In this copy of G10u , assume that we replaced each edge with the jy -th
+source-sink pair of G20u (this is unique due to Property (2) in Definition 3.2). Therefore, according
+          (y) (y)                                                                                            (y)
+to D, l (si , ti ) ≤ l1 (si , ti )l2 (s jy , t jy ) (these correspond to dotted paths). Any other path from si
+      (y)
+to ti involves traversing to another copy of G10u through a copy of G20u that replaced edges in
+this copy of G10u . This transition from a copy of G10u to another copy of G10u in G corresponds to
+two consecutive edges in the bipartite graph B0 . Any such path in G having no loops would thus
+have to make at least g of these transitions to revert back to the original copy of G10u containing
+the source. Here, the girth of graph B0 is at least 2g. Each transition involves crossing at least one
+edge (in a copy of G20 ) with weight at least w1 w2 in D because G2 , being in standard form, has all
+sources and sinks lying on distinct vertices and vertices of a copy of G10 connect only to the vertices
+of a copy of G20 carrying a unique source or sink. Thus, such a path would have distance at least
+
+
+                                                               17
+gw1 w2 = wl21 lw1 2 w1 w2 ≥ l1 l2 using l1 , l2 , w1 , w2 from Definition 3.5. The cheating paths have distance
+                             (y)   (y)
+at least l1 l2 implying l (si , ti ) = l1 (si , ti )l2 (s jy , t jy ). The left hand side of the distance constraint
+                                         (y)     (y)
+in LP 4 becomes ∑ik=1 ,n1,y1 =1 d1qd2 l (si , ti ), where the first expression in the summand is the demand
+of source-sink pairs in G.
+
+         k1 ,n1                          k1 ,n1
+                d1 d2 ( y ) ( y )               d1 d2                           d 1 d 2 n1                k1
+          ∑ q i i    l ( s , t    ) =     ∑ q 1 i i 2 jy jy
+                                                      l ( s , t ) l ( s , t ) =
+                                                                                  q y∑
+                                                                                           l 2 jy jy ∑ l1 ( si , ti )
+                                                                                              ( s , t )
+       i =1,y=1                       i =1,y=1                                          =1              i =1
+                                                                   !                                 !
+                                           k2                               k1
+                            1 n                                                                              n1
+                           = · 1
+                            q k2          ∑ d 2 l2 ( s j , t j )            ∑ d 1 l1 ( s i , t i )       ≥
+                                                                                                             qk2
+                                                                                                                 =1
+                                          j =1                          i =1
+
+     The second to last equality follows from the fact that there are total n1 copies of G10 , jy is fixed for
+fixed y-th copy of G10 and each l2 (s j , t j ) (j ∈ [k2 ]) is thus counted nk21 time. The last inequality follows
+from D10 and D20 being valid dual solutions of G10u and G20u respectively (distance constraints).
+     The value of z( D10 ) for graph G10u is r1 . D10 assigns the same dual weights as that of D1 for
+the divided edges and is a valid dual solution for G10 , and similarly for D20 . We can see from the
+construction of D and the edge capacities that z( D ) = nk21 z( D10 )z( D20 ) = qr1 r2 . D is a function of
+G1 , G2 , D1 , D2 .
+
+Proof. of Lemma 3.9: Demands are equal for all source-sink pairs in G =Tensor(G1 , G2 , D1 , D2 ) by
+definition. We need to prove that all sources and sinks in G still lie on distinct vertices. We don’t
+add any new source-sink pairs and thus, each source-sink pair lies on distinct vertices on a copy
+of G10 . While constructing T ( G10 , G20 , B0 ), we merge a vertex v in a copy of G10 with a source or a sink
+vertex of a copy of G20 and since each vertex contains a unique source or sink of G20 , no two vertices
+from different copies of G10 are merged together. This implies that all sources and sinks still lie on
+distinct vertices of G.
+
+
+F    Proof of Theorem 3.10
+Proof. Using Lemma 2.2, we can assume that graph A has an optimal dual solution D with all
+dual variables being non-zero. It is without loss of generality that A has equal demands for all
+source-sink pairs. Define A∗ to be the α-Extension of A given D and D ∗ = Dα ( A) (1 + α = 1+      1+ ε
+                                                                                                    ε/2 ).
+        ∗
+Let A have cn vertices, cm edges and ck source-sink pairs having cd demand each. Without loss
+of generality we can assume that cm ≥ ck , cn as otherwise we can just divide some edges into
+multiple edges with reduced capacities. Let l be the largest distance between any source-sink pair
+in the dual D ∗ and w > 0 be the minimum weight of an edge in dual D ∗ . We also know that
+NC A∗       +ε
+z( D∗ )
+        ≥ 11+         ε
+              α = 1 + 2 . As the objective value of any dual solution is at least the flow rate, we get
+that A∗ has a gap of at least (1 + 2ε ). A∗ is in standard form. Ai is defined iteratively as follows:
+
+
+
+
+                                                                       18
+  A0 = A∗ , D0 = D ∗ , ε 0 = 2ε .
+
+  For i ≥ 1:
+
+  ε i is such that (1 + ε i ) = (1 + ε i−1 )2 .
+
+  Di =Dual( Ai−1 , Ai−1 , Di−1 , Di−1 ).
+
+ Ai =Tensor( Ai−1 , Ai−1 , Di−1 , Di−1 ).
+Note that ∀i, Ai is in standard form using Lemma 3.9 and thus iterative tensoring is valid. Through
+                                              NC A                                             NC A
+Theorem 3.6, we know that if z( D i−1) ≥ (1 + ε i−1 ), then z( D )i ≥ (1 + ε i−1 )2 = 1 + ε i . As zNC  A∗
+                                                                                                     ( D∗ )
+                                                                                                            =
+                                                 i −1                                                i
+                NC A                          i
+1 + 2ε , we get z( D )i ≥ 1 + ε i = (1 + ε/2)2 ∀i by induction. The objective value of any dual solution
+                    i
+is at least the flow rate implying that the gap between coding and flow rate for Ai is at least
+          i
+(1 + 2ε )2 .
+    To see how the size of Ai grows, we first calculate the required girth (2gi ) at each iteration.
+From the construction of Di = Dual( Ai−1 , Ai−1 , Di−1 , Di−1 ) in the proof of Lemma 3.8 we see that
+                                                                         i          i
+wi = wi2−1 , li ≤ li2−1 . By induction, we have that for all i, wi = w2 and li ≤ l 2 , where l and w
+                                                                                                                                      i −1
+                                                                                                                           l2      ( l 2 )2          l 2i
+are as defined in Subsection 3.2.4 From Definition 3.5, we have that gi = wi2−1 ≤                                                       2 i −1 2 = ( w ) .
+                                                                                                                            i −1   (w         )
+                         i
+Therefore, gi ≤ ( wl )2 ∀i ≥ 1. Let c = wl ≥ 1.
+   Now, we establish an upper bound on the size of the graph. Recall Ai is the T ( Ai0−1 , Ai0−1 , Bi )
+where Bi = Cmi0−1 ki−1 gi and mi0−1 = 2mi−1 . Ai0−1 is the directed graph constructed according to the
+optimal network coding solution of Ai−1 . Let n1i = |Vi ( Bi )|, n2i = |V2 ( Bi )|. From Lemma 3.4,
+                                                        2i
+n1i ≤ (9mi−1 k i−1 ) gi +3 ≤ (9mi−1 k i−1 )c +3 .
+    Note that mi = kni−1i1 m Ai0−1 m Ai0−1 = kni−1i1 (4m2i−1 ) and k i = n1i k i−1 . Each edge in Ai0−1 is replaced
+by a copy of Ai0−1 and each copy is counted k i−1 times implying vi ≤ 2mi−1 vi−1 kni−1i1 .
+    Moreover, mkii = 4( mkii−−11 )2 . By induction, k i ≤ mi as ck ≤ cm . Likewise, we get that mvii = 2 mvii−−11 ≥
+1∀i.
+                                                                                       2i                    2i
+mi ≤ 4ni (m2i−1 ) ≤ 4m2i−1 (9mi−1 k i−1 ) gi +3 ≤ (9m2i−1 ) gi +4 = (3mi−1 )2c +8 ≤ (3mi−1 )2(c+1) +8 ≤
+                2i
+(3mi−1 )4(c+1) ∀i ≥ 1 (c ≥ 1).
+   Let c1 = c + 1.
+                                2i + 1
+Claim F.1. mi ≤ (3cm )(4c1 )             .
+                                                                                                 2
+Proof. For i = 0, the right hand side evaluates to (3cm )(4c1 ) ≥ cm , which is equal to the left hand
+side. Now we assume that the statement is true for i − 1 and prove for i where i ≥ 1. mi ≤
+                                                                                  i       i
+           2i                  2i        2i                  2i   2i   2i   (4c )2 4c21                        2i + 1       i                i +1
+(3mi−1 )4c1 ≤ (3(3cm )(4c1 ) )4c1 = 3(4c1 ) 4c1 +4c1 cm 1                                     ≤ (3cm )(4c1 )            as 42 +1 + 4 ≤ 42           ∀i ≥ 1.
+                                                                                                           2i + 1
+    We have vi ≤ mi . Thus, the size of graph Ai is at most (3cm )(4c1 )                                            .
+
+
+G     Proof of Theorem 4.1
+Proof. Think of G1 and G2 as undirected G10 and G20 ; their sparsity remains the same. Let H be the
+set of edges on the cut that achieves the sparsest cut on G separating n source-sink pairs. Consider
+
+
+                                                                            19
+partitioning this set into sets Hi = {e1i , e2i , ..., ehi i } according to which copy of G2 (or equivalently
+G20 ), the edge belongs to in G. Hi denotes the edges belonging to the i-th copy of G2 , | Hi | = hi .
+                               (2)
+Note that | H | = ∑i hi . Let ni be the number of source and sink pairs that Hi separates in the i-th
+copy of G2 . These cuts have capacity ∑e∈ Hi c2e in G2 . By construction, each of these source-sink
+pairs would have replaced an edge in some copy of G1 (or equivalently undirected G10 ). Assume
+                 (2)
+the k-th (k ∈ [ni ]) source-sink pair replaced edge ei in the jik -th copy of G1 (All source-sink pairs
+replace the same edge). Mark this edge in the jik -th copy of G1 (which has now been replaced in
+                                  (2)
+G). The i-th copy of G2 makes ni marks. Let Fj be the set of all such marked edges in the j-th
+                                 (1)
+copy of G1 . Let Fj cut n j            source-sink pairs in G1 . Any source-sink pair that gets cut in G by H
+                                                                                         (1)
+must be cut in G1 under Fj by construction. Therefore, ∑ j n j ≥ n. It is not an equality because
+there could be a source-sink pair that gets cut by Fj but not by H in G, due to paths that travel
+from the source to other copies of G1 through connecting copies of G2 and come back at the sink.
+The theorem follows from the following inequalities:
+
+                                                                       ∑e∈ Hi c2e
+          ∑ ce = ∑ c1e ∑ c2e = ∑ ni c1e
+                                                         (2)
+                             i                                     i       (2)
+          e∈ H         i         e∈ Hi             i                     ni
+                                                                                                    !
+                 ≥∑                                                                 ∑
+                            (2)                                                            (2)
+                           ni c1ei Sparsity( G2 ) = Sparsity( G2 )                        ni c1ei
+                       i                                                             i
+                                                                                                                     (6)
+                                                                                                   (1) ∑e∈ Fj 1e
+                                                                                                             c
+                 = Sparsity( G2 ) ∑ ∑ c1e  = Sparsity( G2 ) ∑ n j                                      (1)
+                                                                                                                   
+                                               j e∈ Fj                                         j        nj
+                                                              !
+                                            ∑
+                                                        (1)
+                 ≥ Sparsity( G2 )                      nj         Sparsity( G1 ) ≥ n (Sparsity( G1 ) · Sparsity( G2 ))
+                                               j
+
+    The first equality follows from the definition of edge capacities in G in terms of edge capacities
+                                  (2)
+in G1 and G2 . Since Hi cuts ni source-sink pairs in a copy of G2 , the first inequality follows
+from the Sparsity( G2 ) being the smallest ratio for all the cuts. The first equality on the third line
+follows from the fact that an edge belongs to Fj only when the corresponding source-sink pair
+that replaced this edge in G1 is cut by the cut corresponding to that copy of G2 and i-th copy of
+G2 result in exactly ni such edges distributed amongst Fj s. Therefore, ∑e∈nH e ≥ Sparsity( G1 ) ·
+                        (2)                                                        c
+
+Sparsity( G2 ) =⇒ Sparsity( G ) ≥ Sparsity( G1 ) · Sparsity( G2 ).
+
+
+
+
+                                                                           20
+

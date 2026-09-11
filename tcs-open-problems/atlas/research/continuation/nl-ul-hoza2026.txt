@@ -1,0 +1,941 @@
+                    Electronic Colloquium on Computational Complexity, Report No. 124 (2026)
+
+
+
+
+Deterministic, Oblivious Isolation for Space-Bounded Computation
+                      Requires Large Weights
+                                        William M. Hoza
+                                 Department of Computer Science
+                                    The University of Chicago
+                                   williamhoza@uchicago.edu
+
+
+                                                  Abstract
+       For a directed graph G = (V, E), we say that a weight function ρ : E → [M ] is min-isolating
+   if the minimum-weight path from u to v is unique for each pair of vertices u, v ∈ V such that
+   v is reachable from u. If we could efficiently construct a polynomially-bounded min-isolating
+   weight function for any given digraph (or even just for layered digraphs), it would follow that
+   NL = UL, thanks to work by Reinhardt and Allender (SICOMP 2000).
+       Van Melkebeek and Prakriya constructed an explicit, deterministic, min-isolating weight
+   function for layered digraphs (SICOMP 2019). Their weight function is oblivious, i.e., it is
+   a single weight function that works for all width-w length-n layered digraphs simultaneously,
+   assigning a weight to each possible edge in the digraph without needing to know which edges
+   are actually present. However, they use weights of magnitude M = 2Θ(log n·log w) instead of the
+   desired M = poly(wn).
+       In this work, we prove that every deterministic, oblivious weight function that is min-isolating
+   for width-w length-n layered digraphs must use weights of magnitude 2Ω(log w·log n) . This rules
+   out one possible method of proving NL = UL. Our proof is based on a connection with coding
+   theory. A solid burst error is a vector e ∈ Znq such that the support of e is an interval. Using
+   spectral graph theory methods, we prove that every code C ⊆ Znq that can detect solid burst
+   errors with Hamming weight up to d must satisfy |C| ≤ q n−Ω(log d) , which is optimal. The best
+   prior bound, by Das (BEEI 2012), says |C| ≤ q n /(d + 1) assuming the code is linear.
+
+
+
+
+                                                       i
+                                                                                                     ISSN 1433-8092
+1     Introduction
+1.1   The NL vs. UL Problem
+What is the nature of nondeterministic computation? Is it more powerful than deterministic
+computation? And if it is more powerful, what is the source of its power?
+    We can approach the latter question by studying restricted forms of nondeterministic computation.
+We tie the nondeterministic algorithm’s hands behind its back, as it were, in order to investigate
+how much of the algorithm’s power lies in its “hands.”
+    In this paper, we study an appealing model called unambiguous computation. We say that
+a nondeterministic algorithm is unambiguous if the number of accepting computational paths is
+always either zero or one. We focus on unambiguous space-bounded computation. The class of
+languages that can be decided by unambiguous log-space algorithms is denoted UL.
+    Clearly, L ⊆ UL ⊆ NL. Evidence suggests that UL = NL. This evidence is based on the concept
+of isolation.
+Definition 1.1 (Min-isolating weight function). Let G = (V, E) be a digraph and let M ∈ N. We
+say that a weight function ρ : E → [M ] is min-isolating for G if, for all vertices u, v ∈ V such that v
+is reachable from u, there is a unique path of minimal weight from u to v with respect to ρ.
+    Reinhardt and Allender designed an unambiguous algorithm to decide reachability, given an N -
+vertex digraph G = (V, E) and a min-isolating weight function ρ : E → [M ], using O(log N + log M )
+bits of space [RA00]. Reachability in general digraphs is complete for NL. Consequently, to
+prove NL = UL, it would suffice to design a deterministic, log-space algorithm that constructs
+polynomially-bounded min-isolating weights for any given digraph. Such a weight function always
+exists, thanks to Mulmuley, Vazirani, and Vazirani’s famous Isolation Lemma [MVV87]; the challenge
+is to find it. This problem has been solved for various special classes of digraphs, such as planar
+graphs, bounded-genus graphs, and bounded-treewidth graphs [ADR05; ABCDR09; BTV09; TV12;
+DKTV12; AGGT16; DKMTVZ20; DGJMST21; CGT26], but the general case remains open.
+
+1.2   Oblivious Isolation
+One appealing approach for constructing min-isolating weights is to design a single “oblivious”
+weight function that assigns a weight to each “potential edge,” without knowing which edges are
+actually present.
+Definition 1.2 (Oblivious weight function). Let G be a class of digraphs on the vertex set V
+without parallel edges and let M ∈ N. A (deterministic) oblivious weight function is a function
+ρ : V 2 → [M ]. We say that ρ is min-isolating for G if, for every digraph G = (V, E) ∈ G, the weight
+function ρ|E is min-isolating for G.
+   For example, Bourke, Tewari, and Vinodchandran proved that the following oblivious weight
+function is min-isolating for directed grid graphs with n rows and n columns [BTV09]:
+                              
+                                  4
+                              n
+                                       if (u, v) points east or west
+                                  4
+                    ρ(u, v) = n + i if (u, v) points north and is in column i
+                              
+                               4
+                                n − i if (u, v) points south and is in column i.
+
+They remark, “Although we are unable to come up with a weight function for more general class of
+graphs that works for solving NL = UL problem, our result indicates that such a task may not be
+all that difficult” [BTV09].
+
+                                                   1
+   Another example comes from Tewari and Vinodchandran’s work on planar digraphs [TV12],
+which generalize directed grid graphs. Let G be the class of planar digraphs with straight-line
+embeddings into [n] × [n] ⊆ R2 . Tewari and Vinodchandran proved that the following oblivious
+weight function is min-isolating for G [TV12]:
+
+                              ρ((x, y), (x′ , y ′ )) = 2n4 + (y ′ − y) · (x′ + x).
+
+1.3    Layered Digraphs and Our Contribution
+In this work, we focus on layered digraphs. A width-w length-n layered digraph is a digraph on
+the vertex set {0, 1, . . . , n} × [w] in which each edge has the form ((i − 1, a), (i, a′ )) for some i ∈ [n]
+and some a, a′ ∈ [w]. For convenience, we represent such an edge by the triple (i, a, a′ ), so an
+oblivious weight function for width-w length-n layered digraphs can be represented by a function
+ρ : [n] × [w]2 → [M ].
+     The reachability problem for layered digraphs is complete for NL, essentially because layer i
+in the graph can correspond to time step i in the nondeterministic computation. Van Melkebeek
+and Prakriya studied min-isolation for layered digraphs [vMP19], and one of their “warm-up”
+constructions fits into our “oblivious weight function” framework. They construct an oblivious
+weight function ρ : [n] × [w]2 → [M ] that is min-isolating for width-w length-n layered digraphs,
+using weights of quasipolynomial magnitude M = 2O(log n·log(wn)) . A slight refinement of their
+analysis shows that the following oblivious weight function works, with the improved bound
+M = 2O(log n·log w) :
+                                                                       r
+                                    ρ(i, a, a′ ) = a′ · (5w)max{r≥0 : 2 divides i} .
+(See Appendix A.) If Van Melkebeek and Prakriya’s quasipolynomial weight bound could be improved
+further to M = poly(wn), it would follow that NL = UL. Unfortunately, our main result says that
+their simple weight function is essentially optimal.
+
+Theorem 1.3 (Lower bound for min-isolating oblivious weight functions). Let n, w ≥ 2 and M ∈ N.
+For every oblivious weight function ρ : [n] × [w]2 → [M ], if ρ is min-isolating for width-w length-n
+layered digraphs, then M ≥ 2Ω(log n·log w) .
+
+    We hope that Theorem 1.3 helps to explain why the NL vs. UL problem has not been resolved
+in the years since Bourke, Tewari, and Vinodchandran made their optimistic remark [BTV09].
+
+1.4    Implications for Seeded Isolation
+Theorem 1.3 rules out one approach for proving NL = UL, but there are others. One way to evade
+Theorem 1.3 would be to work with a different class of graphs G instead of layered digraphs. A
+second approach would be to assign weights in a non-oblivious way, i.e., take the full description
+of the graph into account when computing the edge weights. A third approach, which we feel is
+most promising, would be to design a weight assignment generator [vMP19]. A weight assignment
+generator can be defined as a collection of oblivious weight functions. Precisely:
+
+Definition 1.4 (Min-isolating weight assignment generator [vMP19]). Let G be a class of digraphs
+on the vertex set V without parallel edges and let s, M ∈ N. A weight assignment generator is
+a function GEN : {0, 1}s × V 2 → [M ]. The parameter s is called the seed length of the generator.
+We say that GEN is min-isolating for G if, for every digraph G = (V, E) ∈ G, there exists a seed
+x ∈ {0, 1}s such that the weight function ρx is min-isolating for G, where ρx (u, v) = GEN(x, u, v)
+for every edge (u, v) ∈ E.
+
+
+                                                       2
+    Non-explicitly, there exists a weight assignment generator GEN : {0, 1}s × [N ]2 → [M ] that is
+min-isolating for all N -vertex digraphs, with s = O(log N ) and M = poly(N ). If we could construct
+an explicit generator with the same parameters, it would follow that NL = UL, thanks to Reinhardt
+and Allender’s work [RA00].
+    Van Melkebeek and Prakriya introduced the concept of a weight assignment generator and used
+it to prove NL ⊆ UL3/2 [vMP19]. The concept is also implicit in earlier proofs, such as Reinhardt
+and Allender’s proof that NL ⊆ UL/poly [RA00] and Allender, Reinhardt, and Zhou’s proof that
+NL = UL assuming plausible circuit lower bounds [ARZ99].
+    Our main result (Theorem 1.3) concerns generators with seed length zero. As it turns out, there
+is a simple reduction from the problem of constructing a generator with seed length o(log(wn)) to
+the problem of constructing a generator with seed length zero. Consequently, Theorem 1.3 implies
+that every min-isolating weight assignment generator for width-w length-n layered digraphs with
+seed length o(log(wn)) uses weights of magnitude 2Ω(log w·log n) . (See Theorem 5.3.) We hope that
+our work helps to clarify the role of the seed in weight assignment generators.
+
+1.5     Proof Overview
+1.5.1    Coding Theory
+The proof of our main result (Theorem 1.3) is based on a connection with coding theory. Let ρ be
+an oblivious weight function that is min-isolating for width-w length-n layered digraphs. Let P and
+P ′ be two distinct paths that both start at vertex u in layer 0 and end at vertex v in layer n. If
+the set of layers in which P and P ′ differ forms an interval, then the weights of P and P ′ under ρ
+must be unequal, because there exists a graph in which P and P ′ are the only paths from u to v.
+Consequently, if a collection of paths from u to v all have equal weight, then the internal vertices of
+those paths define a code C ⊆ Zn−1w   that can detect so-called “solid burst errors,” defined below.
+Definition 1.5 (Solid burst error). A vector e ∈ Znq is a solid burst error if there exist 1 ≤ i ≤ j ≤ n
+such that supp(e) = {i, i + 1, . . . , j}, where supp(e) denotes the support of e.
+Definition 1.6 (Error detection). Let C ⊆ Znq and E ⊆ Znq \ {0}. We say that C can detect errors
+in E if, for every codeword x ∈ C and every error e ∈ E, we have x + e ∈
+                                                                       / C.
+    For context, a burst error of length at most d is a vector e ∈ Znq such that supp(e) is a subset of
+some interval {i, i + 1, . . . , i + d − 1}. The problem of detecting/correcting burst errors is natural and
+well-motivated. After all, when data is transmitted or stored in practice, it is perfectly reasonable to
+expect that errors will tend to be localized to a small region in time or space. See, e.g., McEliece’s
+textbook [McE02] for an overview of the subject. However, in this paper, we focus on the lesser-
+known solid burst error model, i.e., whenever there are errors in positions i, j ∈ [n], we assume there
+are also errors in all positions between i and j. The solidness assumption is arguably unnatural,
+but still, the coding community has shown some interest in solid burst errors. For example, see the
+references [Sch64; SS69; ML86; Jai02; HMH08; LB12; Das12].
+    It turns out that the assumption of solid burst errors is extremely helpful for error detection.
+We show that there is a code C ⊆ Znq that can detect solid burst errors with Hamming weight up to
+d with cardinality |C| = q n−O(log d) . (See Appendix B.) Remarkably, we can even take d = n, so C
+can detect all solid burst errors, regardless of Hamming weight. Our code construction is closely
+related to Van Melkebeek and Prakriya’s oblivious weight function [vMP19]. The key to proving
+Theorem 1.3 is a matching impossibility result.
+Theorem 1.7 (Bound on codes detecting solid burst errors). Let d ≤ n and q ≥ 2. Let C ⊆ Znq ,
+and suppose C can detect all solid burst errors with Hamming weight up to d. Then |C| ≤ q n−Ω(log d) .
+
+                                                     3
+    Our code construction and impossibility result improve prior work by Das [Das12]. For each
+prime power q and each n ∈ N, Das presented a code C ⊆ Fnq that can detect solid burst errors;
+when q = 2, his code has cardinality 2n−Θ(log d) , which matches our construction, but when q > 2,
+his code has cardinality q n−Θ(d) , which is worse than our construction. On the impossibility side,
+Das proved that every linear code C ⊆ Fnq that detects solid burst errors with weight up to d must
+satisfy |C| ≤ q n /(d + 1). Our bound is quantitatively stronger when q is large, and our bound does
+not assume linearity.
+
+1.5.2    Spectral Graph Theory
+The proof of our code bound (Theorem 1.7) uses spectral graph theory. In general, for any symmetric
+set E ⊆ Znq \ {0}, a code C can detect errors in E if and only if C is an independent set in the
+Cayley graph Cay(Znq , E). To bound the independence number of Cay(Znq , E) where E is the set
+of solid burst errors, we use Hoffman’s ratio bound [Hof74]. Hoffman’s ratio bound is a bound on
+the independence number of any regular undirected graph in terms of the smallest eigenvalue of
+the graph’s adjacency matrix. Crucially, Hoffman’s ratio bound holds even for weighted graphs,
+so we have the freedom to re-weight the edges of Cay(Znq , E) before applying the bound. The key
+technical step in the proof is the construction of a good distribution over intervals that we can use
+to re-weight the edges of Cay(Znq , E). In particular, using an inductive argument, we show that for
+every α ∈ [0, 1/2] and every power of two n, there is a distribution over nonempty intervals I ⊆ [n]
+such that for every A ⊆ [n], we have E[(−α)|A∩I| ] ≥ −(2α)log n (Lemma 3.2).
+    There is prior work in coding theory that uses Hoffman’s ratio bound and generalizations
+thereof [AA19; AKR24; ANR25; AAR25; APR25]. Our contribution is to show how to apply
+Hoffman’s bound to the specific case of solid burst errors.
+    The spectral graph theory argument described above works well when q ≥ 4. For q = 2, 3, we
+use a different and simpler argument: we construct a clique of size Ω(n) in Cay(Znq , E) and then
+apply the clique-coclique bound.
+
+1.5.3    The Constant-Width Case
+Theorem 1.7 readily implies that oblivious min-isolation for width-w length-n layered digraphs
+requires weights of magnitude M ≥ n1 · 2Ω(log n·log w) . If w is sufficiently large, then the n1 factor
+has no asymptotic effect, completing the proof of our main result (Theorem 1.3). However, when
+w is a small constant, we need a separate argument. We use elementary Fourier analysis and the
+pigeonhole principle to prove that every oblivious weight function that is min-isolating for width-2
+length-n digraphs must use weights of magnitude Ω(n).
+
+1.6     Organization
+After some preliminaries in Section 2, we prove our bound on codes detecting solid burst errors in
+Section 3. Next, in Section 4, we use our code bound to prove our main result: a lower bound on
+the weights of oblivious weight functions that are min-isolating for layered digraphs. In Section 5,
+we extend our main result to the case of a weight assignment generator with a short seed. In
+Appendix A, we present Van Melkebeek and Prakriya’s oblivious weight function [vMP19], and in
+Appendix B, we present a construction of a code that detects solid burst errors.
+
+
+
+
+                                                  4
+2    Preliminaries
+In this section, we review standard graph theory concepts.
+Definition 2.1 (Independence number and clique number). Let G be an undirected graph. We
+define α(G) to be the size of the largest independent set in G, and we define ω(G) to be the size of
+the largest clique in G. If X is a set of vertices in a graph with edge weights, then X is considered
+“independent” if all edges between vertices in X have weight zero, and X is considered to be a
+“clique” if there is an edge with nonzero weight between every two vertices in X.
+Definition 2.2 (Cayley graphs). Let Γ be a finite abelian group and let Z : Γ → R. We define
+Cay(Γ, Z) to be a weighted digraph on the vertex set Γ. For every x, e ∈ Γ, there is an edge (x, x + e)
+with weight Z(e). We say that Z is symmetric if Z(e) = Z(−e) for every e ∈ Γ; in this case,
+Cay(Γ, Z) is undirected. If Z is the indicator function for a set E, then we will also write Cay(Γ, E)
+instead of Cay(Γ, Z).
+   One can define Cayley graphs in greater generality – for example, one can allow nonabelian
+groups – but Definition 2.2 is sufficient for this paper. For us, the group Γ will always be Znq , where
+Zq denotes the integers modulo q. Undirected Cayley graphs satisfy the clique-coclique bound :
+Lemma 2.3 (Clique-coclique bound). Let Γ be a finite abelian group and let E be a symmetric
+subset of Γ. Then
+                            ω(Cay(Γ, E)) · α(Cay(Γ, E)) ≤ |Γ|.
+Proof. Let {x1 , x2 , . . . , xk } be a clique. For each T ⊆ Γ, we can let Ti = T + xi − x1 for i ∈ [k]. If
+T1 , . . . , Tk are not all disjoint, say x ∈ Ti ∩ Tj , then x = a + xi − x1 = a′ + xj − x1 for some a, a′ ∈ T ,
+hence a − a′ = xj − xi ∈ E, demonstrating that T is not an independent set. Therefore, if T is an
+independent set, then |T | · k ≤ |Γ|.
+
+    The clique-coclique bound holds more generally for all “vertex-transitive” graphs. See, e.g., the
+textbook by Godsil and Meagher [GM15].
+    Hoffman’s ratio bound is a different way to upper bound the independence number of a regular
+graph. See Haemers’ work [Hae21] for the history of the bound. We include a proof of the bound
+for convenience.
+Theorem 2.4 (Hoffman’s ratio bound [Hof74]). Let G be an undirected graph on N vertices with real
+edge weights in which the (weighted) degree of each vertex is 1. Let W be the (weighted) adjacency
+                                                                                             ε
+matrix of G. Let ε > 0, and assume that every eigenvalue of W is at least −ε. Then α(G) ≤ 1+ε  ·N.
+Proof. Let 1S be the indicator vector of an independent set of size µN , and let 1 be the all-ones
+vector. On the one hand,
+                 (1S − µ1)⊤ W (1S − µ1) = 1⊤          ⊤         ⊤        2 ⊤
+                                           S W 1S − µ1S W 1 − µ1 W 1S + µ 1 W 1
+                                            =0          − µ2 N      − µ2 N        + µ2 N
+                                            = −µ2 N.
+On the other hand, by the spectral theorem for real symmetric matrices, W has an orthonormal
+eigenbasis. By expressing 1S − µ1 with respect to this basis, we get
+          (1S − µ1)⊤ W (1S − µ1) ≥ −ε · ∥1S − µ1∥22 = −ε · (µN · (1 − µ)2 + (1 − µ)N · µ2 )
+                                                           = −ε · (1 − µ) · µN.
+                   µ                       ε
+Consequently, ε ≥ 1−µ , which implies µ ≤ 1+ε .
+
+                                                       5
+   There is a clean formula for the eigenvalues of a Cayley graph. Recall that if Γ is a finite abelian
+group, without loss of generality Γ has the form Γ = Zq1 × Zq2 × · · · × Zqn for some q1 , . . . , qn ∈ N.
+For each x ∈ Γ, the character function χx : Γ → C is given by
+                                                         n
+                                                                     !
+                                                 √      X   xi · e i
+                                χx (e) = exp 2π −1 ·                   .
+                                                              qi
+                                                             i=1
+
+Theorem 2.5 (Eigenvalues of Cayley graphs [Lov75]). Let Γ be a finite abelian group and let
+Z : Γ → R. Let W be the (weighted) adjacency matrix of Cay(Γ, Z). Then the eigenvalues of W are
+given by                                   X
+                                     λx =     Z(e) · χx (e)
+                                                  e∈Γ
+
+for x ∈ Γ. If Z is symmetric, then these eigenvalues are all real.
+
+    If Z is a probability distribution, then the formula becomes λx = Ee∼Z [χx (e)].
+
+
+3     Solid Burst Error Detection
+In this section, we prove our bound on the cardinality of a code that can detect solid burst errors
+with Hamming weight up to d (Theorem 1.7). We mainly focus on the case d = n, and handle
+smaller d at the end. We use two distinct techniques. First, in Section 3.1, we present a simple
+argument based on the clique-coclique bound. This method works well when q is constant, but it
+provably does not give good bounds when q is large. Then, in Section 3.2, we use Hoffman’s ratio
+bound to get good bounds when q ≥ 4.
+
+3.1    The Clique-Coclique Method
+Proposition 3.1 (Clique number bounds). Let n, q ≥ 2 and let E be the set of solid burst errors in
+Znq . Then ω(Cay(Znq , E)) = Θ(n · q 2 ) and α(Cay(Znq , E)) ≤ O(q n−2 /n).
+
+   We split the proof into three parts: the clique number lower bound, the clique number upper
+bound, and the independence number upper bound.
+
+Proof that the clique number is Ω(n · q 2 ). Define
+
+                      X = {0i ab1n−i−2 : a is even, b is odd, and 0 ≤ i ≤ n − 2},
+
+where 0i or 1i denotes i consecutive zeroes or ones respectively. Then |X| = (n−1)·⌊ 2q ⌋·⌈ 2q ⌉ = Ω(n·q 2 ).
+Now consider two vectors in X, say x = 0i ab1n−i−2 and y = 0j cd1n−j−2 , where i ≤ j. Then:
+
+    • x and y agree in positions 1, 2, . . . , i, because they both have zeroes in these positions.
+
+    • x and y disagree in positions i + 2, i + 3, . . . , j, j + 1, because x has odd values in these positions
+      and y has even values in these positions.
+
+    • x and y agree in positions j + 3, j + 4, . . . , n, because they both have ones in these positions.
+
+Therefore, regardless of whether x and y agree in positions i + 1 and j + 2, the set of positions
+where they disagree is an interval, hence X is a clique.
+
+
+
+                                                        6
+Proof that the clique number is O(n · q 2 ). Let X be a set of vertices. We will prove that either
+|X| ≤ (n − 1) · q 2 or else X is not a clique.
+    First, suppose that for every x ∈ X, there is some i ∈ [n − 1] such that for every y ∈ X \ {x}, we
+have (xi , xi+1 ) ̸= (yi , yi+1 ). In this case, we get an injective map x 7→ (i, xi , xi+1 ), demonstrating
+|X| ≤ (n − 1) · q 2 .
+    Otherwise, fix some counterexample x ∈ X. If there is some y ∈ X \ {x} that is not adjacent to
+x, then X is not a clique and we are done. Assume now that x is adjacent to every y ∈ X \ {x}.
+Then for every i ∈ [n − 1], there is some y ∈ X \ {x} such that x − y ∈ E and (xi , xi+1 ) = (yi , yi+1 ).
+It follows that either supp(x − y) ⊆ [i − 1], or else supp(x − y) ⊆ {i + 2, . . . , n}. In the first case,
+we refer to y as a “left witness” for i, and in the second case, we refer to y as a “right witness” for i.
+Trivially, there cannot be a left witness for i = 1, and there cannot be a right witness for i = n − 1.
+Therefore, there is some i ∈ {2, 3, . . . , n − 1} such that there is a right witness y for i − 1 and there is
+a left witness z for i. This means supp(x − y) ⊆ {i + 1, . . . , n} and supp(x − z) ⊆ [i − 1]. Therefore:
+
+   • y and z disagree somewhere to the left of position i.
+
+   • y and z agree in position i.
+
+   • y and z disagree somewhere to the right of position i.
+
+This demonstrates that y − z ∈
+                             / E, hence X is not a clique, completing the proof that the clique
+                 2
+number is O(n · q ).
+
+Proof that the independence number is O(q n−2 /n). This follows from the clique-coclique bound
+(Lemma 2.3).
+
+    If q is constant, then Proposition 3.1 tells us that α(Cay(Znq , E)) ≤ q n−Ω(log n) , which is what we
+are aiming for. However, when q is large, we need a different approach.
+
+3.2    The Ratio Bound Method
+In this subsection, we use Hoffman’s ratio bound (Theorem 2.4) to bound the cardinality of codes
+that can detect solid burst errors. To apply Hoffman’s ratio bound, we would like to design a good
+distribution over solid burst errors. The first step is to design a good distribution over intervals.
+
+Lemma 3.2 (A good distribution over intervals). Let n be a power of two and let α ∈ [0, 1/2].
+There exists a distribution Iα,n over subsets of [n] such that for every A ⊆ [n], we have
+
+                                        E [(−α)|A∩I| ] ≥ −(2α)log n .                                     (1)
+                                      I∼Iα,n
+
+Furthermore, every set in the support of Iα,n is a nonempty interval.
+
+Proof. If n = 1, we define Iα,n to be [1] with probability 1. If n ≥ 2, we define Iα,n by the following
+recursive sampling procedure.
+
+   • With probability 1 − 2α, output [n].
+
+   • With probability α, output a sample from Iα,n/2 .
+
+   • With probability α, sample I ∼ Iα,n/2 and output {i + n/2 : i ∈ I}.
+
+
+
+
+                                                      7
+For convenience, define EA,n = EI∼Iα,n [(−α)|A∩I| ]. By induction on n, we will prove
+                              (
+                                −(2α)log n + (1 − 2α) · α|A| if |A| is even
+                       EA,n ≥
+                                −(2α)log n                     if |A| is odd.
+
+For the base case, suppose n = 1. Then I = [1] and EA,1 = (−α)|A| .
+
+   • If A = [1], then EA,1 = (−α)1 = −α > −1 = −(2α)log 1 .
+
+   • If A = ∅, then EA,1 = (−α)0 = 1 > −2α = −(2α)log 1 + (1 − 2α) · α0 .
+
+Now, for the inductive step, assume n ≥ 2. Let L = A ∩ [n/2] and let R = {i ∈ [n/2] : n/2 + i ∈ A}.
+Then
+                         EA,n = α · (EL,n/2 + ER,n/2 ) + (1 − 2α) · (−α)|A| .
+If |A| is even, then
+
+              EA,n = α · (EL,n/2 + ER,n/2 ) + (1 − 2α) · α|A|
+                       ≥ α · (−2 · (2α)log(n/2) ) + (1 − 2α) · α|A|        by induction
+                       = −(2α)log n + (1 − 2α) · α|A| .
+
+On the other hand, if |A| is odd, then either |L| or |R| is even. Assume without loss of generality
+that |R| is even. Then
+
+     EA,n = α · (EL,n/2 + ER,n/2 ) − (1 − 2α) · α|A|
+          ≥ α · (−2 · (2α)log(n/2) + (1 − 2α) · α|R| ) − (1 − 2α) · α|A|   by induction
+          = −(2α)log n + (1 − 2α) · (α|R|+1 − α|A| )
+          ≥ −(2α)log n                                                     because |R| + 1 ≤ |A|.
+
+    Now that we have a good distribution over intervals, we extend it to get an appropriate
+distribution over solid burst errors.
+
+Lemma 3.3 (A good distribution over solid burst errors). Let n be a power of two and let q ≥ 4.
+There exists a symmetric distribution Z over solid burst errors in Znq such that for every x ∈ Znq , we
+have                                                      log n
+                                                       2
+                                     E [χx (e)] ≥ −               .
+                                    e∼Z               q−1
+(Recall that since Z is symmetric, Ee∼Z [χx (e)] is real.)
+
+Proof. We define Z by the following sampling procedure.
+
+   1. Sample I ∼ Iα,n , where α = 1/(q − 1) and Iα,n is the distribution from Lemma 3.2.
+
+   2. Sample u ∈ (Zq \ {0})I uniformly at random.
+
+   3. Output e, where ei = ui if i ∈ I and ei = 0 if i ∈
+                                                       / I.
+
+
+
+
+                                                        8
+Clearly, e is always a solid burst error. Furthermore, for any x ∈ Znq , we have
+                                       "               "           √                   !##
+                                                               2π · −1 X
+                    E [χx (e)] = E            E          exp            ·     xi · u i
+                   e∼Z          I∼Iα,n u∈(Zq \{0})I                q
+                                                                          i∈I
+                                       "                           √             #
+                                         Y                       2π · −1 · xi · ui
+                               = E                E        exp
+                                I∼Iα,n       ui ∈Zq \{0}               q
+                                         i∈I
+                                                     
+                                           Y −1 
+                               =    E             
+                                   I∼Iα,n    q − 1
+                                               i∈I
+                                              xi ̸=0
+                                               log n
+                                         2
+                               ≥−
+                                        q−1
+by Lemma 3.2.
+
+Corollary 3.4 (Bound on codes that detect all solid burst errors, q ≥ 4). Let n be a power of two
+and let q ≥ 4. Let E be the set of solid burst errors in Znq . Then
+                                                                      log n
+                                                               2
+                            α(Cay(Znq , E)) ≤ q n ·                             = q n−Ω(log n) .
+                                                              q−1
+Proof. Let Z be the distribution from Lemma 3.3. We have
+
+                                    α(Cay(Znq , E)) ≤ α(Cay(Znq , Z)),
+
+simply because the support of Z is a subset of E. Let W be the (weighted) adjacency matrix of
+Cay(Znq , Z). By Theorem 2.5 (eigenvalues of Cayley graphs), every eigenvalue of W has the form
+Ee∼Z [χx (e)] for some x ∈ Znq . By Lemma 3.3, each such eigenvalue satisfies
+                                                                           log n
+                                                                       2
+                                        E [χx (e)] ≥ −                               .
+                                        e∼Z                           q−1
+By Hoffman’s ratio bound (Theorem 2.4), it follows that
+                                                            2 log n                            log n
+                                                         ( q−1 )
+                                                                                     
+                                                                                          2
+                       α(Cay(Znq , Z)) ≤ q n ·                2 log n     ≤q ·  n
+                                                                                                        .
+                                                       1 + ( q−1 )                       q−1
+
+3.3    Solid Burst Errors of Bounded Hamming Weight
+To complete the proof of Theorem 1.7 (our bound on the size of codes that detect solid burst errors
+with Hamming weight up to d), we just need to tie up a couple of loose ends:
+
+Proof of Theorem 1.7. If d = n and n is a power of two, then the theorem follows from either
+Proposition 3.1 (if q < 4) or Corollary 3.4 (if q ≥ 4). To handle the remaining cases, let En,d be
+the set of solid burst errors in Znq with Hamming weight at most d. Let C be an independent set
+in Cay(Znq , En,d ). Let m be the largest power of two such that m ≤ d. For each z ∈ Zn−m q   , let
+             m                                                        m
+Cz = {x ∈ Zq : xz ∈ C}. Then Cz is an independent set in Cay(Zq , Em,m ). Therefore,
+                                 X
+                          |C| ≤       |Cz | ≤ q n−m · q m−Ω(log m) = q n−Ω(log d) .
+                                z∈Zn−m
+                                   q
+
+
+
+                                                              9
+4        Oblivious Weight Functions
+We have completed the proof of our bound on the cardinality of codes that detect solid burst errors
+(Theorem 1.7). In this section, we use that bound to prove our main result (Theorem 1.3), which
+says that oblivious weight functions that are min-isolating for layered digraphs must use large
+weights. The connection between min-isolation and detecting solid burst errors is given by the
+following lemma. For convenience, we index the vertices in each layer using Zw instead of [w].
+Lemma 4.1 (Min-isolation =⇒ code). Let n, w, M ∈ N where n, w ≥ 2. Assume that there exists
+an oblivious weight function ρ : [n] × Z2w → [M ] that is min-isolating for width-w length-n layered
+digraphs. Then there exists a code C ⊆ Zn−1
+                                          q   that can detect all solid burst errors, where q = w and
+           n−1
+|C| ≥ qM n .
+Proof. For each x ∈ Zn−1
+                     q   , define
+                                                      n
+                                                      X
+                                            ϕ(x) =           ρ(i, xi−1 , xi ) ∈ [M n],
+                                                       i=1
+
+where x0 = xn = 0.1 Let E be the set of solid burst errors in Zn−1
+                                                               q   . We claim that ϕ is a proper
+                                                                                                            n−1
+coloring of Cay(Zn−1  q  , E), hence one of the color classes is an independent set of size at least qM n .
+To prove it, let x, y ∈ Zn−1  q   and suppose x − y ∈ E. Define a width-w length-n layered digraph
+G = ({0, 1, . . . , n} × Zw , E), where the edge set E is given by
+
+                     E = {((i − 1, xi−1 ), (i, xi )) : i ∈ [n]} ∪ {((i − 1, yi−1 ), (i, yi )) : i ∈ [n]},
+
+where x0 = y0 = xn = yn = 0. Because x − y ∈ E, there are exactly two paths from (0, 0) to (n, 0)
+in G, one with weight ϕ(x) and one with weight ϕ(y). Since ρ is min-isolating for G, we must have
+ϕ(x) ̸= ϕ(y).
+
+    If w is large enough, then we can complete the proof of our main result (Theorem 1.3) by
+simply combining Lemma 4.1 and Theorem 1.7. However, when w is small, Lemma 4.1 is too weak.
+Therefore, we now present a separate argument to bound the weights in an oblivious weight function
+that is min-isolating for width-2 layered digraphs. For convenience, we index the vertices in each
+layer using {±1} instead of [2].
+Proposition 4.2 (Lower bound for min-isolation of width-2 layered digraphs). Let n, M ∈ N where
+n ≥ 3. Let ρ : [n] × {±1}2 → [M ] be an oblivious weight function that is min-isolating for width-2
+length-n layered digraphs. Then M ≥ (n − 2)/24.
+Proof. We prove the contrapositive. Assume M < (n−2)/24; we will prove that ρ is not min-isolating.
+We use elementary Fourier analysis of Boolean functions; see, e.g., O’Donnell’s textbook [O’D14].
+For each t ∈ [n], define a Boolean function ρt : {±1}2 → [M ] by ρt (b, b′ ) = ρ(t, b, b′ ). The Fourier
+expansion of ρt has the form
+                                                     At Bt     Ct ′ D t
+                                     ρt (b, b′ ) =     +   ·b+   ·b +   · b · b′
+                                                     4   4     4      4
+for some integers At , Bt , Ct , Dt ∈ [−4M, 4M ]. For any possible path P , say
+
+                                     P = ((i, bi ), (i + 1, bi+1 ), . . . , (j + 1, bj+1 )),
+    1
+        Intuitively, ϕ is somewhat analogous to a “parity check matrix” of a linear code.
+
+
+                                                                 10
+the weight of P is given by
+            j+1
+            X
+  ρ(P ) =           ρt (bt−1 , bt )
+            t=i+1
+              j+1                                                        j                               j+1
+                           !                                                                     !
+              X   At             Bi+1 · bi Cj+1 · bj+1                   X (Bt+1 + Ct ) · bt             X   Dt · bt−1 · bt
+        =                      +          +            +                                             +                        .
+                       4            4          4                                      4                             4
+             t=i+1                                                       t=i+1                           t=i+1
+
+For such a path P , we define the “opposite” path P ∗ by flipping the signs of all the internal vertices
+but leaving the endpoints unchanged, i.e.,
+
+                               P ∗ = ((i, bi ), (i + 1, −bi+1 ), . . . , (j, −bj ), (j + 1, bj+1 )).
+
+The difference in weight between P and P ∗ is given by
+                               j
+                                                      !
+                             X    (Bt+1 + C t ) · b t     Di+1 · bi · bi+1 Dj+1 · bj · bj+1
+           ρ(P ) − ρ(P ∗ ) =                            +                 +                 .                                 (2)
+                                        2                        2                2
+                                       t=i+1
+
+Motivated by the expression above, greedily choose signs σ1 , σ2 , . . . , σn−1 ∈ {±1} such that for every
+i ∈ [n − 1], we have
+                                Xi
+                                    (Bt+1 + Ct ) · σt ∈ [−8M, 8M ].
+                                            t=1
+
+For each i ∈ [n − 1], define
+                                                   i
+                                                   X
+                                 Qi = Di+1 +             (Ct + Bt+1 ) · σt ∈ [−12M, 12M ].
+                                                   t=1
+
+These integers Q1 , Q2 , . . . , Qn−1 all lie in a set of size 24M + 1 < n − 1. Therefore, by the pigeonhole
+principle, there exist 1 ≤ i < j ≤ n − 1 such that Qi = Qj . Now define a path
+
+                                 P = ((i, bi ), (i + 1, bi+1 ), . . . , (j, bj ), (j + 1, bj+1 )),
+
+where bi = −σi+1 ; bt = σt for every i + 1 ≤ t ≤ j; and bj+1 = σj . Let G be a width-2 length-n
+graph consisting only of the edges in P and P ∗ . By construction, there are exactly two paths from
+(i, bi ) to (j + 1, bj+1 ), namely P and P ∗ . But by Eq. (2), we have
+                                         j
+                                                                     !
+                                         X (Bt+1 + Ct ) · bt                 Di+1 · bi · bi+1 Dj+1 · bj · bj+1
+            ρ(P ) − ρ(P ∗ ) =                                            +                   +
+                                                         2                          2                2
+                                       t=i+1
+                                         j
+                                                                     !
+                                         X (Bt+1 + Ct ) · σt                 Di+1 Dj+1
+                                  =                                      −       +
+                                                         2                    2    2
+                                       t=i+1
+                                    1
+                                  = · (Qj − Qi )
+                                    2
+                                  = 0.
+
+Thus, ρ is not min-isolating for G.
+
+
+
+                                                                11
+   We are now ready to prove our main result (Theorem 1.3), which says that every oblivious
+weight function that is min-isolating for width-w length-n layered digraphs must use weights of
+magnitude 2Ω(log w·log n) .
+
+Proof of Theorem 1.3. Let C be a large enough constant. We split into four cases depending on
+how w and n compare to C.
+
+    • Suppose w, n ≥ C. By Lemma 4.1, there is a code C ⊆ Zn−1
+                                                           q   that can detect all solid burst
+                                            n−1                                            n−1
+      errors, where q = w and |C| ≥ qM n . By Theorem 1.7, we have |C| ≤ qΩ(log(n−1))
+                                                                            q
+                                                                                      . Therefore,
+      M ≥ n1 · 2Ω(log w·log(n−1)) = 2Ω(log w·log n) .
+
+    • Suppose 2 ≤ n ≤ C < w. Let ρ′ be ρ restricted to [2] × [w]2 . Then ρ′ is min-isolating for
+      width-w length-2 layered digraphs. Therefore, by Lemma 4.1, there is a code C ⊆ Z1q that
+                                                                   q    1
+      can detect all solid burst errors, where q = w and |C| ≥ 2M     . On the other hand, such a code
+      trivially must satisfy |C| ≤ 1, so M ≥ w/2 = 2 Ω(log n·log w) .
+
+    • Suppose 2 ≤ w ≤ C < n. Let ρ′′ be ρ restricted to [n]×[2]2 . Then ρ′′ is min-isolating for width-2
+      length-n layered digraphs. Therefore, by Proposition 4.2, we have M ≥ n−2    24 = 2
+                                                                                           Ω(log w·log n) .
+
+
+    • Suppose 2 ≤ w, n ≤ C. Then we use the trivial bound M ≥ 2.
+
+
+
+
+5    Weight Assignment Generators
+We have completed the proof of our main result (Theorem 1.3). In this section, we extend our main
+result to the case of weight assignment generators with a short seed, as discussed in Section 1.4.
+The proof consists of two trivial reductions that convert weight assignment generators (with seeds)
+into oblivious weight functions (with no seeds).
+
+Lemma 5.1 (Eliminating a seed of length o(log w)). Assume there exists a weight assignment
+generator GEN : {0, 1}s × [n] × [w]2 → [M ] that is min-isolating for width-w length-n layered digraphs.
+Then there exists an oblivious weight function ρ : [n] × [w′ ]2 → [M ] that is min-isolating for width-w′
+length-n layered digraphs, where w′ = ⌊w/2s ⌋.
+
+Proof. Let A1 , A2 , . . . , A2s be disjoint subsets of [w], each of size ⌊w/2s ⌋. For each seed x ∈ [2s ],
+define an oblivious weight function ρx : [n] × A2x → [M ] by the rule ρx (i, a, a′ ) = GEN(x, i, a, a′ ).
+Suppose that for every seed x, there exists a width-w′ length-n layered digraph Gx (with vertices
+indexed by Ax ) such that ρx is not min-isolating for Gx . Define a width-w length-n layered digraph
+G by taking the union of all the edge sets of the Gx graphs. Then GEN is not min-isolating for
+G.
+
+Lemma 5.2 (Eliminating a seed of length o(log n)). Assume there exists a weight assignment
+generator GEN : {0, 1}s × [n] × [w]2 → [M ] that is min-isolating for width-w length-n layered digraphs.
+Then there exists an oblivious weight function ρ : [n′ ] × [w]2 → [M ] that is min-isolating for width-w
+length-n′ layered digraphs, where n′ = ⌊n/2s ⌋.
+
+Proof. Let I1 , I2 , . . . , I2s be disjoint intervals that are subsets of [n] of size ⌊n/2s ⌋. For each seed x ∈
+[2s ], define an oblivious weight function ρx : Ix × [w]2 → [M ] by the rule ρx (i, a, a′ ) = GEN(x, i, a, a′ ).
+Suppose that for every seed x, there exists a width-w length-n′ layered digraph Gx (with layers
+
+
+                                                        12
+indexed by Ix ) such that ρx is not min-isolating for Gx . Define a width-w length-n layered digraph
+G by taking the union of the edge sets of all the Gx graphs. Then GEN is not min-isolating for
+G.
+
+Theorem 5.3 (Generators with short seeds must use large weights). Let w, n ≥ 2 and let s, M ∈ N.
+Let GEN : {0, 1}s × [n] × [w]2 → [M ]. Assume that GEN is min-isolating for width-w length-n layered
+digraphs. Then either s ≥ Ω(log(wn)) or else M ≥ 2Ω(log n·log w) .
+               √                                                                                √
+Proof. If 2s < w, then by Lemma 5.1 and Theorem 1.3, we have M ≥ 2Ω(log w·log n) . If 2s < n,
+                                                                                          √    √
+then by Lemma 5.2 and Theorem 1.3, we have M ≥ 2Ω(log w·log n) . Finally, if 2s ≥ max{ w, n},
+then s ≥ Ω(log(wn)).
+
+AI Disclosure
+This work was done with significant assistance from GPT 5.5 Pro. Almost all proof ideas in this
+paper came from ChatGPT. Furthermore, although the author wrote the paper manually, the author
+read AI-generated reviews of drafts of the paper as part of his writing process. The author takes
+responsibility for all claims made in the paper.
+
+
+Acknowledgments
+I thank OpenAI for giving me complimentary access to ChatGPT Pro. I thank Dieter van Melkebeek
+and Alicia Torres Hoza for helpful comments on drafts of this paper.
+
+
+References
+[AA19]          Bahman Ahmadi and Fatemeh Alinaghipour. “New upper bounds on the size of
+                binary codes”. In: Iran. J. Sci. Technol. Trans. A Sci. 43.3 (2019), pp. 923–928.
+                doi: 10.1007/s40995-017-0468-6.
+[AAR25]         Aida Abiad, Gianira N. Alfarano, and Alberto Ravagnani. “Eigenvalue bounds
+                and alternating rank-metric codes”. In: Journal of Algebra and Its Applications
+                24.13n14 (2025), p. 2541011. doi: 10.1142/S0219498825410117.
+[ABCDR09]       Eric Allender, David A. Mix Barrington, Tanmoy Chakraborty, Samir Datta, and
+                Sambuddha Roy. “Planar and grid graph reachability problems”. In: Theory Comput.
+                Syst. 45.4 (2009), pp. 675–723. doi: 10.1007/s00224-009-9172-z.
+[ADR05]         Eric Allender, Samir Datta, and Sambuddha Roy. “The Directed Planar Reachability
+                Problem”. In: Proceedings of Foundations of Software Technology and Theoretical
+                Computer Science (FSTTCS). 2005, pp. 238–249. doi: 10.1007/11590156_19.
+[AGGT16]        Rahul Arora, Ashu Gupta, Rohit Gurjar, and Raghunath Tewari. “Derandomizing
+                Isolation Lemma for K3,3 -free and K5 -free Bipartite Graphs”. In: Proceedings of
+                the 33rd Symposium on Theoretical Aspects of Computer Science (STACS). 2016,
+                10:1–10:15. doi: 10.4230/LIPIcs.STACS.2016.10.
+[AKR24]         Aida Abiad, Antonina P. Khramova, and Alberto Ravagnani. “Eigenvalue Bounds
+                for Sum-Rank-Metric Codes”. In: IEEE Trans. Inf. Theory 70.7 (2024), 4843–4855.
+                doi: 10.1109/TIT.2023.3339808.
+
+
+
+                                                13
+[ANR25]      Aida Abiad, Alessandro Neri, and Luuk Reijnders. “Eigenvalue bounds for the
+             distance-t chromatic number of a graph and their application to Lee codes”. In:
+             Journal of Algebra and Its Applications 24.13n14 (2025), p. 2541024. doi: 10.1142/
+             S0219498825410245.
+[APR25]      Aida Abiad, Loes Peters, and Alberto Ravagnani. “The Eigenvalue Method in
+             coding theory”. In: Canadian Journal of Mathematics (2025), 1–41. doi: 10.4153/
+             S0008414X25101600.
+[ARZ99]      Eric Allender, Klaus Reinhardt, and Shiyu Zhou. “Isolation, Matching, and Counting
+             Uniform and Nonuniform Upper Bounds”. In: Journal of Computer and System
+             Sciences 59.2 (1999), pp. 164–181. doi: 10.1006/jcss.1999.1646.
+[BTV09]      Chris Bourke, Raghunath Tewari, and N. V. Vinodchandran. “Directed Planar
+             Reachability Is in Unambiguous Log-Space”. In: ACM Trans. Comput. Theory 1.1
+             (Feb. 2009). doi: 10.1145/1490270.1490274.
+[CGT26]      Neelabjo Shubhashis Choudhury, Chetan Gupta, and Raghunath Tewari. “Reach-
+             ability in Graphs with Polynomially Many Surface Non-separating Cycles is in
+             UL”. In: Proceedings of the International Workshop on Combinatorial Algorithms
+             (IWOCA). 2026, pp. 190–203. doi: 10.1007/978-3-032-27732-9_14.
+[Das12]      Pankaj Kumar Das. “Codes detecting and correcting solid burst errors”. In: Bulletin
+             of Electrical Engineering and Informatics 1.3 (2012), pp. 225–232. url: https:
+             //beei.org/index.php/EEI/article/view/240.
+[DGJMST21]   Samir Datta, Chetan Gupta, Rahul Jain, Anish Mukherjee, Vimal Raj Sharma,
+             and Raghunath Tewari. “Reachability and Matching in Single Crossing Minor Free
+             Graphs”. In: Proceedings of the 41st IARCS Annual Conference on Foundations of
+             Software Technology and Theoretical Computer Science (FSTTCS). 2021, 16:1–16:16.
+             doi: 10.4230/LIPIcs.FSTTCS.2021.16.
+[DKMTVZ20]   Samir Datta, Pankaj Kumar, Anish Mukherjee, Anuj Tawari, Nils Vortmeier, and
+             Thomas Zeume. “Dynamic Complexity of Reachability: How Many Changes Can
+             We Handle?” In: Proceedings of the 47th International Colloquium on Automata,
+             Languages, and Programming (ICALP). 2020, 122:1–122:19. doi: 10.4230/LIPIcs.
+             ICALP.2020.122.
+[DKTV12]     Samir Datta, Raghav Kulkarni, Raghunath Tewari, and N. V. Vinodchandran.
+             “Space complexity of perfect matching in bounded genus bipartite graphs”. In: J.
+             Comput. System Sci. 78.3 (2012), pp. 765–779. doi: 10.1016/j.jcss.2011.11.002.
+[GM15]       Christopher Godsil and Karen Meagher. Erdős–Ko–Rado Theorems: Algebraic
+             Approaches. Cambridge Studies in Advanced Mathematics. Cambridge University
+             Press, 2015. doi: 10.1017/CBO9781316414958.
+[Hae21]      Willem H. Haemers. “Hoffman’s ratio bound”. In: Linear Algebra and its Applica-
+             tions 617 (2021), pp. 215–219. doi: 10.1016/j.laa.2021.02.010.
+[HMH08]      Gou Hosoya, Toshiyasu Matsushima, and Shigeichi Hirasawa. “A Combined Matrix
+             Ensemble of Low-Density Parity-Check Codes for Correcting a Solid Burst Erasure”.
+             In: IEICE TRANSACTIONS on Fundamentals E91-A.10 (2008), pp. 2765–2778.
+             doi: 10.1093/ietfec/e91-a.10.2765.
+[Hof74]      Alan Hoffman. Unpublished work. 1974.
+
+
+
+                                            14
+[Jai02]         Sapna Jain. “Solid burst error detecting cyclic codes”. In: Proceedings of the
+                ICM Satellite Conference in Algebra and Related Topics. 2002, pp. 390–400. doi:
+                10.1142/9789812705808_0031.
+[LB12]          L. A. Lastras-Montaño and M. Blaum. “On codes for structured bursts”. In:
+                Proceedings of the 2012 IEEE International Symposium on Information Theory.
+                2012, pp. 284–288. doi: 10.1109/ISIT.2012.6284044.
+[Lov75]         L. Lovász. “Spectra of graphs with transitive groups”. In: Period. Math. Hungar.
+                6.2 (1975), pp. 191–195. doi: 10.1007/BF02018821.
+[McE02]         Robert McEliece. The Theory of Information and Coding. 2nd ed. Encyclopedia
+                of Mathematics and its Applications. Cambridge University Press, 2002. doi: 10.
+                1017/CBO9780511606267.
+[ML86]          Sunil Kumar Muttoo and Shankar Lal. “A reversible code over GF (q)”. In: Kyber-
+                netika 22.1 (1986), pp. 85–91. url: http://eudml.org/doc/28698.
+[MVV87]         Ketan Mulmuley, Umesh V. Vazirani, and Vijay V. Vazirani. “Matching is as easy
+                as matrix inversion”. In: Combinatorica 7.1 (1987), pp. 105–113. doi: 10.1007/
+                BF02579206.
+[O’D14]         Ryan O’Donnell. Analysis of Boolean Functions. Cambridge University Press, 2014.
+                doi: 10.1017/CBO9781139814782. url: https://arxiv.org/abs/2105.10386.
+[RA00]          Klaus Reinhardt and Eric Allender. “Making Nondeterminism Unambiguous”.
+                In: SIAM Journal on Computing 29.4 (2000), pp. 1118–1131. doi: 10 . 1137 /
+                S0097539798339041.
+[Sch64]         George A. Schillinger. A class of solid burst error correcting codes. Tech. rep.
+                Polytechnic Institute of Brooklyn, N.Y. Microwave Research Institute, 1964.
+[SS69]          S. Shiva and C. Sheng. “Multiple solid burst-error-correcting binary codes (Corresp.)”
+                In: IEEE Transactions on Information Theory 15.1 (1969), pp. 188–189. doi:
+                10.1109/TIT.1969.1054242.
+[TV12]          Raghunath Tewari and N. V. Vinodchandran. “Green’s theorem and isolation
+                in planar graphs”. In: Information and Computation 215 (2012), pp. 1–7. doi:
+                10.1016/j.ic.2012.03.002.
+[vMP19]         Dieter van Melkebeek and Gautam Prakriya. “Derandomizing Isolation in Space-
+                Bounded Settings”. In: SIAM Journal on Computing 48.3 (2019), pp. 979–1021.
+                doi: 10.1137/17M1130538.
+
+
+A     Van Melkebeek and Prakriya’s Oblivious Weight Function
+In this appendix, we present Van Melkebeek and Prakriya’s oblivious weight function for layered
+digraphs [vMP19], or rather the slight refinement that we mentioned in Section 1.3.
+
+Proposition A.1 (Oblivious min-isolation for layered digraphs [vMP19]). Let n, w ≥ 2. Define
+ρ : [n] × [w]2 → N by the formula
+                                                                 r
+                             ρ(i, a, a′ ) = a′ · (5w)max{r≥0 : 2 divides i} .
+
+Then ρ is min-isolating for width-w length-n layered digraphs.
+
+
+                                                   15
+Proof. Let G be a width-w length-n layered digraph. Let u and v be vertices such that v is
+reachable from u, say u = (s, as ) and v = (s + ℓ, as+ℓ ). We will prove by induction on ℓ that the
+minimum-weight path from u to v is unique. The base cases ℓ = 0 and ℓ = 1 are trivial, so assume
+ℓ ≥ 2. Let ν2 (i) denote the largest r such that 2r divides i. Define
+
+                             R = max{ν2 (s + 1), ν2 (s + 2), . . . , ν2 (s + ℓ − 1)}.
+
+Let k ∈ {s + 1, s + 2, . . . , s + ℓ − 1} be such that ν2 (k) = R. For every r ≤ R, there must be fewer
+than 2R+1−r multiples of 2r among s + 1, s + 2, . . . , s + ℓ − 1, because otherwise one of them would
+be a multiple of 2R+1 , contradicting the maximality of R. In particular, k is unique.
+   Let P be a path from u to v, say P = ((s, as ), (s + 1, as+1 ), . . . , (s + ℓ, as+ℓ )). Let P ′ be another
+path from u to v, and suppose P and P ′ pass through different vertices in layer k, i.e., P ′ passes
+through (k, a′k ) where a′k ̸= ak . Without loss of generality, assume ak < a′k . Then
+
+                              s+ℓ
+                              X
+                   ρ(P ) =           ai · (5w)ν2 (i)
+                             i=s+1
+                                                                    R−1
+                                                                    X
+                         ≤ as+ℓ · (5w)ν2 (s+ℓ) + ak · (5w)R +             2R+1−r · w · (5w)r
+                                                                    r=0
+                                                                    R
+                                                                    X
+                         = as+ℓ · (5w)ν2 (s+ℓ) + ak · (5w)R +             2∆+1 · w · (5w)R−∆
+                                                                    ∆=1
+                                                                             ∞ 
+                                                                                         !
+                                                                                 2 ∆
+                                                                             X    
+                                           ν2 (s+ℓ)        R
+                         < as+ℓ · (5w)                + (5w) ·   ak + 2w ·
+                                                                                   5w
+                                                                             ∆=1
+                                                                                   
+                                       ν2 (s+ℓ)       R                        2
+                         = as+ℓ · (5w)          + (5w) · ak + 2w ·
+                                                                             5w − 2
+                         ≤ as+ℓ · (5w)ν2 (s+ℓ) + (5w)R · (ak + 1)
+                         ≤ ρ(P ′ ).
+
+Therefore, all minimum-weight paths from u to v pass through the same vertex in layer k, say
+(k, a∗ ). Consequently, every minimum-weight path from u to v consists of a minimum-weight path
+from u to (k, a∗ ), which is unique by induction, followed by a minimum-weight path from (k, a∗ ) to
+v, which is also unique by induction.
+
+
+B     A Code that Detects Solid Burst Errors
+As we explain in Section 4, oblivious weight functions that are min-isolating for layered digraphs
+imply codes that detect solid burst errors. If we combined that black-box reduction with Van
+Melkebeek and Prakriya’s oblivious weight function [vMP19], we would get a code C ⊆ Znq that can
+detect all solid burst errors, with cardinality |C| ≥ q n−O(log n) . In this section, we generalize the
+construction to the case that we have a bound on the Hamming weight of the error.
+
+Proposition B.1 (A code that detects solid burst errors, cf. [vMP19]). Let q, d ≥ 2 and n ∈ N.
+There exists a code C ⊆ Znq such that C can detect solid burst errors with Hamming weight up to d
+and |C| ≥ q n−O(log d) .
+
+
+
+                                                          16
+Proof sketch. Assume without loss of generality that d is a power of two. For each 0 ≤ i < log d,
+define
+                                 Si = {k · 2i ∈ [d] : k is odd}.
+and
+                                         Ti = {j ∈ [n] : (j mod d) ∈ Si }.
+Furthermore, define
+                                        Tlog d = {j ∈ [n] : (j mod d) = 0}.
+The sets T0 , T1 , . . . , Tlog d are disjoint. The code is given by
+                                                                                         
+                                                                            X            
+                               C = x ∈ Znq : ∀i ∈ {0, 1, . . . , log d},            xj = 0 .
+                                                                                         
+                                                                             j∈Ti
+
+
+Clearly, |C| ≥ q n−log d−1 . To prove correctness, we first show by induction on d that for every
+nonempty interval I ⊆ [d − 1], there is some i ∈ {0, 1, . . . , log d − 1} such that |Si ∩ I| = 1. For
+the base case, if d = 2, this is trivial because I = S0 = {1}. Now, for the inductive step, assume
+d > 2. If d/2 ∈ I, then we can take i = log d − 1, because Slog d−1 = {d/2}. Otherwise, I is entirely
+contained in either [d/2 − 1] or else {d/2 + 1, . . . , d − 1}, so the claim follows by induction.
+     Now we prove that for every nonempty interval I ⊆ [n] with |I| ≤ d, there is some i ∈
+{0, 1, . . . , log d} such that |I ∩ Ti | = 1. If I contains a multiple of d, then it contains exactly one
+multiple of d, so we can let i = log d. Otherwise, I mod d is an interval subset of [d − 1], so by our
+first claim, there is some i ∈ {0, 1, . . . , log d − 1} such that |(I mod d) ∩ Si | = 1, hence |I ∩ Ti | = 1.
+     Finally, let x ∈ C and let e be a solid burst error with Hamming weight at most d. By the above
+argument, there is some i ∈ {0, 1, . . . , log d} such that |Ti ∩ supp(e)| = 1. Consequently,
+                                                                      
+                                  X                  X            X
+                                     (x + e)j =         xj  +      ej  ̸= 0,
+                                 j∈Ti                 j∈Ti            j∈Ti
+
+so x + e ∈
+         / C.
+
+
+
+
+                                                                                         ECCC                          ISSN 1433-8092
+                                                          17
+                                                                                         https://eccc.weizmann.ac.il
+

@@ -1,0 +1,2825 @@
+                      Electronic Colloquium on Computational Complexity, Report No. 162 (2025)
+
+
+
+
+      Succinct Zero-knowledge Proofs from One-way Functions:
+                        The Blackbox Way
+                      Eden Florentz – Konopnicki∗                     Ron D. Rothblum†
+
+                                              November 1, 2025
+
+
+
+                                                    Abstract
+          Zero-knowledge proofs allow to encode a computation so that it can be verified without
+      revealing any additional information beyond its correctness. In this work we focus on proofs
+      that are statistically sound meaning that even an unbounded prover cannot make the verifier
+      accept a false statement, except with negligible probability, and computationally zero-knowledge.
+      The seminal result of Goldreich, Micali and Wigderson (CRYPTO 1986) shows that, assuming
+      the existence of a one-way function, such zero-knowledge proofs exist for all languages in NP.
+          Some of the early protocols, such as that of GMW, have a large polynomial overhead in
+      communication compared to the original NP witness. A line of works has shown that in many
+      cases this communication overhead can be avoided. Most recently, Athamnah et al. (TCC 2024)
+      constructed zero-knowledge proofs for all bounded-depth NP relations, where the communication
+      complexity is only larger by an additive factor than the original NP witness. The main caveat
+      of their result is that the protocol makes a non-blackbox use of the one-way function.
+          In this work we show that such succinct zero-knowledge proofs exist for the same class of
+      NP relations, where the protocol makes only a blackbox use of a one-way function. Our protocol
+      achieves a negligible soundness error, in contrast to recent works which can achieve, at best, an
+      inverse polynomial error.
+
+
+
+
+∗
+    Technion, Taub Faculty of Computer Science. Email: eden.konop@gmail.com
+†
+    Succinct. Email: rothblum@gmail.com
+
+
+                                                         1
+
+
+                                                                                                     ISSN 1433-8092
+Contents
+1 Introduction                                                                                           3
+  1.1 Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    4
+  1.2 Techniques . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       5
+  1.3 Open Questions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       9
+  1.4 Organization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      10
+
+2 Preliminaries                                                                                      10
+  2.1 Computational Indistinguishably . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 10
+  2.2 Multilinear Extension . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+  2.3 Commitment Schemes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+  2.4 Error Correcting Codes . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+  2.5 Interactive Proofs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+  2.6 Zero-Knowledge Proofs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+  2.7 Multi-Party Computation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+
+3 Polynomial Commitment Schemes                                                                         16
+
+4 Basic Polynomial Commitment                                                                    18
+  4.1 Proof of Lemma 4.1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 18
+
+5 Succinct Polynomial Commitment                                                                 24
+  5.1 Proof of Lemma 5.1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 24
+
+6 Succinct Zero-Knowledge Proofs                                                                 35
+  6.1 Random Padding of Multilinear Extensions . . . . . . . . . . . . . . . . . . . . . . . 36
+  6.2 Proof of Lemma 6.2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+  6.3 Using Lemma 6.1 to derive Theorem 1.1 . . . . . . . . . . . . . . . . . . . . . . . . . 48
+
+
+
+
+                                                    2
+1    Introduction
+Zero-knowledge proofs, introduced in the pioneering work of Goldwasser, Micali, and Rackoff
+[GMR89], are a fundamental tool in cryptography. These proofs enable a prover to convince
+a verifier of the validity of a given computational statement without revealing any additional
+information. There exist several different notions of zero-knowledge proofs. In this work, we
+focus on constructing computational zero-knowledge proofs with statistical soundness, meaning that
+soundness holds against any computationally unbounded malicious prover, while the zero-knowledge
+property holds against a computationally bounded (potentially malicious) verifier.
+     In their seminal work, Goldreich, Micali, and Wigderson [GMW86] constructed a zero-knowledge
+proof for the graph 3-coloring problem. As this problem is NP complete, their result implied that
+all NP languages can be proved in zero-knowledge. Their result relies on the existence of a one-way
+function (an assumption that is also known to be necessary [OW93, HN24]).
+     The GMW protocol has a relatively large polynomial overhead in communication. This is due
+to a combination of two facts: first, the NP witness needs to be reduced to a 3-coloring of a related
+graph, and second, the 3-coloring protocol itself has (at least) a quadratic overhead. An exciting line
+of work [IKOS09, KR08, GKR15, GGI+ 15, NR22, HVW23, AFR24] has asked whether this overhead
+is inherent, or can a zero-knowledge proof be as short as the underlying NP witness?
+     The state-of-the-art is a recent result by Athamnah et al. [AFR24] who constructed zero-
+knowledge proof with only additive communication overhead (i.e., (1 + o(1)) · |w| bits) for any NP
+relation that can be verified in low-depth or low-space, while relying only on a one-way function.
+Gentry et al. [GGI+ 15] construct such a protocol for all NP relations, but based on the existence
+of a fully homomorphic encryption (FHE) scheme — a significantly stronger assumption. As it
+is known (under standard complexity assumptions) that statistically sound zero-knowledge proofs
+are highly unlikely to be shorter than the witness size [GH98, GVW01], we refer to zero-knowledge
+proofs with such additive communication overhead as succinct zero-knowledge proofs.
+     The protocols underlying [AFR24,GGI+ 15] make a non blackbox use of the underlying cryptographic
+primitive (the one-way function in [AFR24] and the FHE in [GGI+ 15]). This means that the prover
+and verifier algorithms depend explicitly on the code of the underlying primitives, rather than merely
+invoking them as a blackbox sub-routine or oracle. Such a non blackbox use introduces significant
+overhead and is therefore highly undesirable in practice. Thus, a natural question posed by Hazay et
+al. [HVW23] is whether there exist succinct zero-knowledge proofs that make a black-box use of the
+underlying primitives.
+     Hazay et al. [HVW23] gave an initial positive answer to this question by constructing such
+succinct blackbox zero-knowledge proofs, but only achieve a constant soundness error. It is important
+to note that the standard approach of soundness amplification via repetition cannot be employed
+in this case as it increases the communication multiplicatively. Athamnah et al. [AFR24] slightly
+improved their result and reduced the soundness error to 1/poly (for the case of low-depth NP
+relations, and assuming only a one-way function). Still, these results fall short of the desired
+requirement of a negligible soundness error. We continue the line of work of [HVW23, AFR24] and
+ask:
+
+        Do there exist succinct zero-knowledge proofs for NP (with a negligible soundness
+                 error) that only make a black-box use of a one-way function?
+
+
+
+
+                                                 3
+1.1   Results
+Our main result is a positive answer to this question for the case of NP relations that are verifiable
+by bounded-depth circuits.
+Theorem 1.1. Assume that one-way functions exist and let δ > 0 be a parameter. Let R be an NP
+relation with input size n and witness size m, that is computable by a (non-uniform) circuit family
+C of size S = S(n) and depth D = D(n), and assume that n ≤ poly(m).
+    Then R has a zero-knowledge proof with perfect completeness, and soundness error δ in which
+the verifier, prover and simulator all only make a black-box use of the one-way function. The
+communication complexity is
+                           m + m2/3 · poly D, log(S), log(m), λ, log(1/δ)
+                                                                          
+
+where λ is the security parameter. The prover and verifier run in polynomial time, the protocol is
+public-coin and the number of rounds is poly(D, log(S), log(1/δ)).
+    Theorem 1.1 also implies a zero-knowledge proof for general NP relations with communication
+that is only additively larger than the size of the verification circuit and only make a black-box
+use of the one-way function. This follows from the fact that any NP relation can be converted into
+a new logarithmic-depth relation in which the witness includes the values assigned to all gates in
+the evaluation of the verification circuit (via the Cook–Levin theorem). Hence, the witness size is
+proportional to the circuit size.
+Corollary 1.2. Assume the existence of one-way functions. Let R be an NP relation that can be
+verified by a circuit of size S using unbounded fan-in AND, OR, and XOR gates. Then R has a
+zero-knowledge proof with soundness error δ, in which the verifier, prover and simulator all only
+make a black-box use of the one-way function. The communication complexity is
+                                 S + S 2/3 · poly log(S), λ, log(1/δ)
+                                                                      
+
+where λ is the security parameter. The prover and verifier run in polynomial time, the protocol is
+public-coin and the number of rounds is poly(log(S), log(1/δ)).
+    A key component in our protocol is a new construction of a statistically binding polynomial
+commitment scheme (PCS) (see Definition 3.1). Such a commitment scheme allows a sender to
+commit to a large polynomial P so that later it can prove correctness of evaluations queries of the
+form “P (x) = y”. The computationally binding analog of this notion is central in the construction
+of succinct argument-systems, but interestingly the statistical counterpart has not been previously
+studied. Our main technical contribution is a succinct PCS for multilinear polynomials, over any
+sufficiently large field, in which the communication is only additively larger than the description size
+of the polynomial. While multilinear polynomials are typically defined over inputs that are a power
+of two, to allow encoding witnesses of arbitrary length, we extend the definition by interpreting the
+string as a multilinear polynomial after padding with zeroes up to the next power of two (although
+importantly, the communication should be proportional to the unpadded length).
+Theorem 1.3. Assume the existence of a one-way function. Then, for every δ > 0 there exists a
+polynomial commitment scheme for strings of length m over a finite field F s.t |F| = Ω̃(m2/3 /δ),
+with binding error δ and communication complexity
+                                     m + m2/3 · poly(λ, log(1/δ))
+
+                                                   4
+field elements for the commitment and
+
+                                      k · m2/3 · poly(λ, log(1/δ))
+
+field elements for the opening, where k is the number of points to be opened and λ is a computational
+security parameter.
+
+1.2   Techniques
+Recall that our goal is to construct a zero-knowledge proof with two key properties: first, it should be
+succinct (meaning that the communication is only additively longer than the witness) and second, all
+algorithms should use the underlying one-way function as a blackbox. Following [IKOS09, HVW23,
+AFR24] we will do so in two steps. First, we construct a distributed zero-knowledge protocol in
+which there is a single prover and a set of verifiers who can communicate both with the prover and
+among themselves. For the zero-knowledge property, we require that any subset of t of the verifiers
+learn nothing beyond the validity of the statement (i.e., their views can be simulated). We then
+show how to compile this distributed protocol into a monolithic (i.e., one with a single verifier) by
+having the prover commit to the communication transcript and allow the verifier to open a subset
+of the views.
+
+GKR-based Distributed Zero-Knowledge Protocol. For the distributed-verifier zero-knowledge
+protocol, we rely on the doubly-efficient GKR protocol for bounded-depth computations [GKR15]
+to prove that w ∈ Cx , where Cx = C(x, w) is the circuit C with x hardcoded.
+     Recall that the GKR protocol is an interactive proof that processes the circuit layer-by-layer,
+using the sumcheck protocol to transition from layer to layer. We make the protocol distributed
+between the k verifiers by having the prover, in each step of the protocol, send an additive secret
+sharing of the relevant GKR messages to the verifier. At the end of the protocol the k-verifiers run
+an off-the-shelf MPC protocol to check that the GKR verifier would have accepted.
+     There is one hiccup with the above strategy. At the end of the protocol the GKR verifier needs
+to access the witness. Specifically, it needs to compute the multilinear extension of the witness at a
+given point. Unfortunately, incorporating this test into the off-the-shelf MPC protocol would yield
+a non-succinct protocol.
+     Instead, intuitively, we would like for the prover to first commit to the witness w (before the
+GKR interaction starts) and then, at the end, to provide a “zero-knowledge” evaluation proof. This
+is exactly what a polynomial commitment scheme (PCS) enables. Indeed PCS’s have emerged as a
+fundamental component in the construction of computationally-sound proof-systems. Unfortunately,
+all existing constructions of PCS’s are only computationally binding — in particular, the computationally
+unbounded cheating prover that we consider could easily violate the binding property of such a
+commitment. Somewhat surprisingly, the notion of a statistical binding PCS has not been considered
+in the literature.
+     Thus, we introduce and construct a statistically binding multilinear PCS. With this primitive
+in hand, our protocol is as follows:
+
+  1. The prover commits to the witness using a succinct PCS.
+
+  2. The prover and k-verifiers run the GKR protocol. The prover messages are secret-shared
+     between the k verifiers.
+
+                                                   5
+   3. The verifiers run an MPC protocol to check that the interactive part of the GKR protocol is
+      valid (this part does not rely on the witness).
+
+   4. The prover gives an evaluation proof for the multilinear evaluation of the witness needed to
+      conclude GKR.
+
+As our main technical contribution we construct a succinct PCS. Namely, a statisically binding PCS
+in which the commitment and evaluation proofs are only larger than the witness by a small additive
+factor. We describe the construction in Section 1.2.1 below but first we simply assume that such a
+succicnt PCS exists and focus on compiling the protocol into one with a single monolithic verifier.
+
+Compilation to a Monolithic Verifier. To convert the distributed protocol to the standard
+monolithic verifier setting, the prover commits to all interactive messages and sends these commitments
+to the verifier. The prover then simulates the MPC in its head, committing to all parties’ views.
+The verifier randomly chooses a subset of the parties to open and checks for consistency.
+    A problem that we run into is that when compiling the distributed zero-knowledge protocol into
+a monolithic one, the prover provides the opening for some threshold t of the k players. However,
+in a usual MPC it suffices for just one of the players to cheat and so the soundness error is at best
+1/k.
+    To reduce this error one could just repeat the entire protocol, but doing so loses the strong notion
+of succinctness we target. A different approach to this problem, suggested in [IKOS09, Section 4],
+is to rely on a robust MPC protocol.1 Unfortunately their approach seems to be limited to offering
+only honest-verifier zero-knowledge, or achieves malicious-verifier zero-knowledge but requires using
+private-coins.
+    To achieve a public-coin protocol, that is zero-knowledge against malicious verifiers, we therefore
+take a different approach. The idea is to repeat only the distributed GKR protocol λ times.
+Crucially, we do so without recommitting to w each time. Rather, the prover commits to w once
+and then provides evaluation proofs for the λ desired locations. This yields a negligible soundness
+while keeping communication overhead low. Since the repetition is performed sequentially, and
+no information is revealed between repetitions, the setting is essentially the same as sequential
+repetition. The simulator therefore has a constant probability of guessing correctly in each repetition,
+and the repetitions do not compromise the zero-knowledge property.
+
+Evaluation Point Leakage? The protocol above requires opening some λ points of the multilinear
+extension of the witness w. These points fully depend on w and so may reveal information about
+it. To address this, we pad w with a small amount of randomness and commit to this padded
+version. We show that padding with only λ field elements makes the λ provided evaluations reveal
+no information about w, for most sets of evaluation points. Moreover, we show that the “bad”
+evaluation points (for which random padding is insufficient) is easy to recognize and so the prover
+can refuse to reveal the evaluation points in this rare case. We believe this fact may be of independent
+interest and useful in other contexts.
+    1
+      In our context, since the MPC function accepts if the prover lies in just one of the inputs, we would require in
+addition to the robust MPC, to utilize a verifiable secret sharing (VSS) scheme to distribute the messages (instead
+of the standard additive secret sharing). One can then use the MPC to safely reconstruct, ensuring that no small set
+of players can change the output by modifying their input.
+
+
+
+
+                                                          6
+1.2.1   Succinct PCS
+Thus, to enable our GKR based approach we need to construct a succinct polynomial commitment
+scheme (PCS). This scheme allows us to commit to a polynomial while later opening selected
+evaluations, keeping the rest hidden. We construct a succinct PCS in which the commitment is
+only larger than the polynomial’s description by an additive factor, and with a sub-linear evaluation
+proof. Interestingly, the construction is heavily inspired by Ligero [AHIV23], a computationally-
+sound proof-system, which, as pointed out by Golovnev et al. [GLS+ 23], can also be interpreted as
+a computationally sound PCS.
+     Let F be a finite field and let f : {0, 1}d → F be a description of a multilinear polynomial
+fˆ : Fd → F (which extends f ) to which we want to commit. We first rearrange f as an mr × mc
+matrix, where mr · mc = 2d , and the specific choices of these parameters will be determined later.
+     We pad the matrix with random values as follows. First, we add q additional random columns,
+where q is an additional parameter to be determined below, and then also add a single random row.
+Note that this increases the size of the matrix to (mc + q) · (mr + 1) = 2d + q · mr + mc + q which,
+by setting q = o(mc ), we can afford.
+     The rows of the matrix are then each encoded using the Reed-Solomon code. As we will be
+committing to all of A, we need to be careful here — for example, we cannot afford to use a
+code with rate 1/2 as it would double our communication complexity. Rather, we use a Reed-
+Solomon code with rate 1 − ε. Thus, ignoring the random padding which is small, the size of A is
+      mc
+mr · 1−ε  ≈ (1 + ε) · 2d .
+     Denote the encoded matrix by A. The prover then commits to the columns of A. Here we use
+a standard cryptographic commitment scheme, that has an additive overhead in the cryptographic
+security parameter λ. Such a commitment follows easily from the existence of a PRG G (with a
+sufficiently large stretch): to commit to a string α, just output α⊕G(s) plus a standard commitment
+to s, where s is a random seed of the PRG. Thus, the length of a commitment to the columns of A
+is:
+                                                 (mr + λ)
+num-cols × col-commitment-length ≈ (mc + q) ·             ≈ (1 + ε) · 2d + λ · mc + q · mr + λ · q .
+                                                                                                  
+                                                   1−ε
+    Thus, the commitment to f is just a commitment to the columns of A. Note that since the
+column commitment is statistically binding, the overall commitment binds the sender to a particular
+matrix A. In a proper commitment the rows of A should all be Reed-Solomon codewords. Before
+describing the evaluation proof, lets consider a dishonest commitment in which at least one of the
+rows of A is far from being a valid codeword. Following [AHIV23], we detect this by having the
+verifier select a random linear combination of the rows of A that the prover should send back to it.
+    Using the so-called “proximity gaps” lemma, shown in [AHIV23] (or actually a variant by
+Diamond and Posen [DP23]), if one of the rows of A is far from a valid codeword, then so is
+the random linear combination. Thus, a cheating prover must send a false combination. This can
+then be detected by having the verifier sample sufficiently many columns of A, which the prover
+opens. Since the Reed-Solomon code has distance ε, we need to sample λ/ε columns to get a 2−λ
+error. As each column has size mr the overall communication here is λ · mr /ε.
+    Thus the overall communication (for both commitment and evaluation) is approximately:
+
+                           (1 + ε) · 2d + O λ · mc + (q + λ/ε) · mr + λ · q .
+                                                                           
+
+
+
+
+                                                 7
+Beyond the 2d factor, the main additive factors are (1) ε · 2d , (2) λ · mc and (3) (q + λ/ε) · mr .
+Setting mr = 2d/3 , mc = 22d/3 , ε = 2−d/3 and q = O(2d/3 ) balances between these and we obtain
+overall communication 2d + 22d/3 · poly(λ, log(1/δ).
+    In terms of hiding, the additional row makes the result of the random linear combination be
+truly random and in particular, not reveal anything about the message. Similarly, the λ random
+columns that were added, makes the λ revealed columns also entirely random (here we use the
+secret-sharing property of the Reed-Solomon code).
+    Thus, the prover is forced to commit to a matrix Ã whose rows are close to Reed-Solomon
+codewords, Let f : {0, 1}d → F denote the function obtained by correcting the rows of A to the
+nearby codewords and viewing the result matrix as a truth table of a function (as in the commitment
+process). We show that A acts as a commitment to the function f .
+    Let us now consider an opening proof and suppose that the prover claims that fˆ(z) = v, where
+z ∈ Fd and v ∈ F, even though this is not the case. We interpret z as z = (z1 , z2 ) ∈ Fd/3 × F2d/3 .
+In the opening protocol, the prover then commits to the multilinear polynomial g(·) = fˆ(·, z2 ).
+This commitment is itself via a PCS. One approach is to construct it by recursion. However, we
+observe that this commitment is only for a message of size 2d/3 and so we can afford to use a simpler
+approach — specifically, we construct a “basic” PCS, which has a small super-linear overhead that
+we can afford here as the input is sublinear (see Section 4 for details on this basic scheme).
+    The verifier uses the basic PCS to check that ĝ(z2 ) = v. Note that in an honest execution this
+should be true since:
+                              X                     X
+                    ĝ(z2 ) =   eq(z2 , b) · g(b) =   eq(z2 , b) · f (z1 , b) = fˆ(z1 , z2 )
+                             b                             b
+
+(where eq is the multilinear equality polynomial, see Section 2.2). In contrast, if the prover is
+cheating, it must send a wrong g̃ ̸= g.
+    To catch this, the verifier samples a random evaluation point r ∈ F2d/3 and asks the prover to
+send combo(·) = fˆ(·, r). (The astute reader may notice that this message is similar to the random
+linear combination of the rows that we used above, and indeed we can use the same message for
+both tests).
+    If the prover sends the correct combo that corresponds to A, the verifier can detect an inconsistency
+                     ˆ
+by checking that combo(z    1 ) = ĝ(r). Note that in an honest execution this should be true since:
+
+
+                                           X
+                           \ 1) =
+                           combo(z                  eq(z1 , b1 ) · combo(b1 )
+                                            b1
+                                           X
+                                       =            eq(z1 , b1 ) · fˆ(b1 , r)
+                                            b1
+                                           X
+                                       =            eq(z1 , b1 ) · eq(r, b2 ) · f (b1 , b2 )
+                                           b1 ,b2
+                                           X
+                                       =            eq(r, b2 ) · f (z1 , b2 )
+                                            b2
+                                           X
+                                       =            eq(r, b2 ) · g(b2 )
+                                            b2
+                                       = ĝ(r).
+
+
+                                                           8
+    Thus, a cheating prover must send the wrong message combo (relative to f ). In this case, as
+above, the verifier can detect this by sampling λ · 2d/3 random columns of A and asking the prover
+to decommit to them.
+
+Handling Padding. The above suffices for a succinct PCS to a function f : {0, 1}d → F. In
+our application however, we need to commit to a witness w whose length may not be a power of
+two. Typically, one would just pad w to the next power of two, which at most doubles its length.
+However, since we aim for a truly additive overhead, we cannot afford to do so.
+    Instead, when rearranging f as a matrix, we consider a version that pads the rows and columns
+with zeros. Importantly, we cannot afford to encode this padded version, but are still able to make
+a variant of the above approach go through, see Section 5 for details.
+
+Can we Generically Compile a Succinct Zero-knowledge IOP? Loosely speaking, our
+proof can be viewed as using a zero-knowledge interactive oracle proof (IOP) that is inspired by
+Ligero [AHIV23] and then compiling it into a statistically binding zero-knowledge proof using
+commitments. Given that, one might wonder if one could just generically compile any succinct
+zero-knowledge IOP, in particular the one constructed by Ron-Zewi and Weiss [RW24], which has
+appealing parameters — the communication is only additively larger than the witness, and the
+query complexity is a constant.
+    To compile such an IOP, what we need is a succinct statistically binding commitment with
+a local opening (aka a vector commitment). As usual, in our context by succinct we mean that
+the length of the commitment is only additively larger than the message. One way to construct a
+statistically binding commitment with local opening is to commit separately to each symbol — but
+this is not succinct as the overall commitment grows multiplicatively with the security parameter.
+    An alternative approach, implicit in a protocol of Nassar and Rothblum [NR22] is to use a
+pseudorandom function (PRF) to mask the IOP oracles. The prover can then reveal the desired
+PRF values using an additional zero-knowledge proof. The problem with this approach is that it
+seems necessary for this additional zero-knowledge proof to make a non-blackbox use of the PRF.
+    Thus, our approach is different. At a high-level we utilize the fact that the Ligero based IOP
+can be thought of as an IOP with sub-linear length over a large alphabet. Using this perspective
+we can afford to separately commit to each of the symbols (i.e., follow the naive approach above),
+while retaining succinctness.
+
+1.3   Open Questions
+The main open question in this line of research is whether one can construct a succinct zero-
+knowledge proof for all NP relations, based solely on one-way functions (recall that such a result
+can be obtained assuming FHE [GGI+ 15]). This question remains unknown even in the non black
+box setting. As a matter of fact, such a result is not known even if one allows a poly(m) overhead in
+communication, where poly is a fixed polynomial that is independent of the circuit size (and recall
+that m is the witness size).
+     While our protocol achieves communication roughly (1+o(1))·m, the o(1) factor is roughly m−1/3
+which seems sub-optimal (in particular it is worse than what is achievable in the non-blackbox setting
+[AFR24]). A natural question therefore is whether it is possible to construct an even more succinct
+zero-knowledge proof (and PCS), with only poly-logarimmic additive overhead in communication
+(i.e., communication m + poly(log m, λ, log(1/δ))).
+
+                                                  9
+   Finally, we believe the notion of a statistically binding PCS may be of independent interest.
+Due to the important role that their computationally binding counterparts play, it seems possible
+that additional applications might be found.
+
+1.4   Organization
+We start with preliminaries in Section 2. In Section 3 we define our notion of a statistically binding
+PCS. In Section 4 we construct our basic PCS scheme and then in Section 5 we construct the
+succinct PCS. Finally, in Section 6 we give our succinct zero-knowledge protocol.
+
+
+2     Preliminaries
+We start with basic notions and facts from probability theory.
+
+Definition 2.1. Let D, D′ be two distributions over a finite domain, their statistical distance is
+defined by:
+                                            1X
+                              SD(D, D′ ) =        D(y) − D′ (y) .
+                                            2 y
+
+Proposition 2.2. Let S be a (non-empty) finite set, and let S ′ ⊆ S. Then, the statistical distance
+                                                                ′|
+between the uniform distributions over S and over S ′ is 1 − |S
+                                                              |S| .
+
+Proof. Let D be the uniform distribution over S, and let D′ be the uniform distribution over S ′ .
+Using Definition 2.1,
+                                                                                  
+                               1    X                          X
+                  SD(D, D′ ) =               D(y) − D′ (y) +        D(y) − D′ (y) 
+                               2
+                                   y∈S\S ′                     y∈S ′
+                                            ′
+                                                                 
+                               1 |S\S |           ′     1    1
+                             =                + |S | ·    −
+                               2     |S|               |S| |S ′ |
+                                   |S ′ |
+                             =1−          .
+                                   |S|
+
+
+
+    In this work we will be considering a notion that we refer to as k-wise identical distributions
+[BIVW16] — namely, distributions whose projects to any k points is identically distributed (this
+relaxes the notion of k-wise independence that requires the distribution to be uniform).
+
+Definition 2.3 (k-wise identical). Let X and Y be distributions over strings of length n. We say
+that X and Y are k-wise identical if for any set S ⊆ [n] of k indices it holds that XS and YS are
+identically distributed.
+
+2.1   Computational Indistinguishably
+Next, we define computational indistinguishibility.
+
+
+
+                                                 10
+Definition 2.4. Let D = {Dλ }λ∈N , E = {Eλ }λ∈N be two distribution ensembles indexed by a
+security parameter λ. We say that the ensembles are computationally indistinguishable, denoted
+   c
+D ≈ E, if for any family of polynomial size circuits {Cλ }λ∈N , the following quantity is a negligible
+function in λ:
+                                   Pr [Cλ (x) = 1] − Pr [Cλ (x) = 1] .
+                                  x←Dλ                     x←Eλ
+
+Fact 2.5 (Computational Data-Processing Inequality). If the distributions D and E are computationally
+indistinguishable, and A is a PPT algorithm, then A(D) and A(E) are also computationally indistinguishable.
+
+Fact 2.6. Let n, k ∈ N such that n > k. Let X and Y be two distributions over [n]
+                                                                                   
+                                                                                  k (i.e., subsets
+                              c
+of [n] of size k), such that X ≈ Y , and let D and E be two distributions over Σn , for some alphabet
+Σ, s.t D and E are k-wise identical. Then:
+                                                       c
+                                           (X, DX ) ≈ (Y, EY ).
+
+Proof. Consider the hybrid distribution H = (X, EX ). From the definition of k-wise identical
+distributions, it follows that H is identical to (X, DX ). The fact that H is identical to (Y, EY )
+                               c
+follows from the fact that X ≈ Y and Fact 2.5.
+
+2.2   Multilinear Extension
+In this work we extensively use the multilinear extension of functions, defined as follows.
+
+Definition 2.7 (Multilinear Extension). Let f : {0, 1}d → F be a function. The multilinear
+extension fˆ : Fd → F is the unique function defined as:
+                                             X
+                                    fˆ(z) =        eq(b, z) · f (b)
+                                                b∈{0,1}d
+
+where eq(b, z) is the multilinear basis function given by:
+                                          d 
+                                          Y                                    
+                             eq(b, z) =         (1 − zj ) · (1 − bj ) + zj · bj .
+                                          j=1
+
+Proposition 2.8 ( [VSBW13]). Given f : {0, 1}d → F and a point x ∈ Fd , the multilinear extension
+fˆ(x) can be computed by an arithmetic circuit of size O(2d ).
+
+2.3   Commitment Schemes
+Next, we define commitment schemes. We focus on non-interactive statistically binding commitments
+in the common random string (CRS) model, which can be constructed from one-way functions.
+
+Definition 2.9 (Commitment scheme). A commitment scheme in the CRS model, with δ-binding
+error, is a tuple of probabilistic polynomial-time algorithms (Gen, Com, V er) with the following
+semantics:
+
+  1. crs ← Gen(1λ ), where crs is referred to as the common reference string.
+
+                                                      11
+  2. For any string m ∈ {0, 1}∗ : (com, dec) ← Com(crs, m).
+  3. For any com, dec, m ∈ {0, 1}∗ : {0, 1} ← V er(crs, com, m, dec).
+The scheme must satisfy the following requirements:
+  1. Correctness: V er always accepts in an honest execution, i.e, for any string m and any
+     security parameter λ,
+                                                                   
+                              Pr          V er(crs, com, m, dec) = 1 = 1.
+                                crs←Gen(1λ )
+                            (com,dec)←Com(crs,m)
+
+
+  2. Hiding: For any two strings m1 , m2 ∈ {0, 1}∗ and any common reference string crs, the
+     distribution of the commitment of m1 and m2 are computationally indistinguishable, i.e,
+                                                                                          c
+     if we denote by Comc only the commitment part of Com then: {Comc (crs, m1 )}λ∈N ≈
+     {Comc (1λ , crs, m2 )}λ∈N .
+  3. Binding: For every λ ∈ N, with probability at least 1 − δ over the common reference string,
+     any commitment com∗ has at most one value m that can be accepted by V er, i.e,
+                                                                                             
+                                                                        m0 ̸= m1 ,
+                Pr       ∃m1 , m2 , dec1 , dec2 ∈ {0, 1}∗ : V er(crs, com∗ , m1 , dec1 ) = 1, < 2−λ .
+            crs←Gen(1λ )
+                                                             V er(crs, com∗ , m2 , dec2 ) = 1
+Fact 2.10. Let com be a commitment scheme, let D be an efficiently samplable distribution, and
+let A be a PPT algorithm that outputs strings of length λ. Then, the distributions (D, com(A(D)))
+and (D, com(0λ )) are computationally indistinguishable.
+Fact 2.11. Let com be a commitment scheme and let (X, Y ) and (X ′ , Y ′ ) be efficiently samplable
+                                 c
+joint distributions, such that X ≈ X ′ and Y and Y ′ are supported over strings of length λ. Then,
+the distributions (X, com(Y )) and (X ′ , com(Y ′ )) are computationally indistinguishable.
+   We use the construction of a non-interactive commitment in the CRS model, due to [Nao91]
+(building also on [HILL99]).
+Theorem 2.12 ( [HILL99, Nao91]). Assuming the existence of one-way functions, for any δ > 0
+there exists a commitment scheme in the CRS model with binding error δ such that the size of a
+commitment for a message of length ℓ, as well as the verification complexity, are poly(ℓ, λ)·log(1/δ).
+   The above commitment scheme can be extended to have a length that is only additively larger
+than the message, as follows.
+Proposition 2.13. Assuming the existence of one-way functions, for any δ > 0 there exists a
+commitment scheme in the CRS model with binding error δ such that the size of a commitment for
+a message of length ℓ, as well as the verification complexity, are ℓ + poly(λ) · log(1/δ).
+Proof Sketch. The existence of a one-way function implies the existence of a pseudorandom generator
+G (via [HILL99]) and a non-interactive commitment scheme com (in the CRS model) via Theorem 2.12.
+    Now, to commit to a message m, generate a seed s and send (com(s), G(s) ⊕ m). Hiding follows
+from the hiding property of the commitment scheme and the pseudorandomness of G. Binding
+follows from the binding of the commitment.
+
+                                                    12
+2.4    Error Correcting Codes
+The Hamming distance between two strings s, s′ ∈ Fn is the number of entries on which they differ:
+
+                                     ∆(s, s′ ) = |{i ∈ [n] : si ̸= s′i }|.
+
+The relative Hamming distance is equal to the Hamming distance divided by n.
+
+Definition 2.14 (Linear Code). A linear code over an alphabet F is an injective linear function
+C : Fk → Fℓ(k) .
+
+Definition 2.15 (Minimum Relative Distance). The minimum relative distance of a code C : Fk →
+Fℓ(k) , denoted by d is:
+                                         ∆(C(m), C(m′ ))
+                                   min ′
+                                  m̸=m        ℓ(k)
+
+Theorem 2.16 (Rephrasing of [DP23, Theorem 3.1]). Fix an arbitrary        linear code C : Fk → Fn ,
+                                                                  n·d−1
+                                                                        
+with relative distance d and a proximity parameter e ∈ 0, . . . ,   3     . Suppose that the function
+u : {0, 1}log(m)    n
+                 → F satisfies:
+                                                                e+1
+                                Pr   [∆ (û(r), C) ≤ e] > 2 · log(m) ·
+                                                                     ,
+                            r∈Flog m                             |F|
+                                                      m−1       
+where û is the multilinear extension of u. Then ∆ u(i) i=0 , C m ≤ e, where C m is the m-fold
+interleaving of the code C.
+
+Definition 2.17 (Reed-Solomon [RS60] code). Let F be a finite field, and let k, n ∈ N with k ≤
+n ≤ |F|. Fix distinct evaluation points α1 , . . . , αn ∈ F. The Reed Solomon code RSn,k is the linear
+code defined by
+                                   n                                k−1
+                                                                    X           o
+                                                                        mi · X i .
+                                                           
+                       RSn,k (m) = p(α1 ), . . . , p(αn ) p(X) =
+                                                                         i=0
+
+Equivalently, each message m ∈ Fk is identified with the coefficient vector of a polynomial of degree
+less than k, and its encoding is the evaluation of this polynomial on the points α1 , . . . , αn .
+
+Definition 2.18 (λ-Hiding Code). A λ-hiding code is a linear code C : Fk → Fℓ(k) with the following
+property: for every two messages m0 , m1 ∈ Fk , the distributions
+
+                                (C(m0 ; r))r←Fλ      and    (C(m1 ; r))r←Fλ
+
+are λ-wise identical (see Definition 2.3).
+
+Lemma 2.19. The Reed Solomon code is a λ-hiding code.
+
+Proof. Let α1 , . . . , αn denote the evaluation points of the RS code. Given a message m = (m0 , . . . , mk−1 ) ∈
+Fk , sample r = (r0 , . . . , rλ−1 ) ← Fλ uniformly, and define
+                                                                                                         
+RSn,k (m; r) = p(α1 ), . . . , p(αn ) p(x) = r0 + r1 x + · · · + rλ−1 xλ−1 + m0 xλ + · · · + mk−1 xk+λ−1 .
+                                       
+
+
+
+
+                                                      13
+   This can also be written as,
+
+                1 α1 α12 · · ·      α1λ−1             α1 α1λ+1 · · ·      α1k+λ−1
+                                                 λ                                
+                                              r0                                      m0
+               1 α2 α2 · · ·
+                           2        α2λ−1         λ
+                                            r1  α2 α2
+                                                           λ+1
+                                                                ···       α2k+λ−1 
+                                                                                    m1 
+                                                                                        
+                                                                                                      (λ)
+RSn,k (m; r) =  . .     .. . .                .
+                                       ..   .   ..
+                                                   +        ..  ..                     .
+                                                                              ..   .    = Vn,λ ·r+Vn,k ·m
+               
+                .. ..    .     .       .      .       .     .     .           .       .
+                                                                               
+                                                                                         
+                   1 αn αn2 · · ·   αnλ−1    rλ−1       λ
+                                                      αn αnλ+1  ···       αnk+λ−1       mk−1
+               |           {z             }         |          {z                   }
+                           Vn,λ                                     (λ)
+                                                                   Vn,k
+
+                   (λ)
+where Vn,λ and Vn,k together form the Vandermonde matrix of dimension n × (λ + k). Now, fix any
+subset S ⊆ [n] with |S| = λ.
+    Since any λ rows of Vn,λ form a Vandermonde matrix, by a standard property of Vandermonde
+matrices, the submatrix VS,λ , (where AS is the restriction of A to the coordinates in S if A is a
+vector, and to the rows in S if A is a matrix), has full rank λ.
+    For a given message m ∈ Fk the projection of RSn,k (m; r) to coordinates in S is equal to
+            (λ)
+VS,λ · r + VS,k · m. Since r ← Fλ is uniform, the distribution VS,λ · r is uniform over Fλ .
+    Consequently, for any two messages m, m′ ∈ Fk , the projected distributions
+
+                           (RSn,k (m; r)S )r∼Fλ   and (RSn,k (m′ ; r)S )r∼Fλ
+
+are identically distributed.
+
+
+2.5   Interactive Proofs
+We first recall the notion of an interactive proof [GMR89].
+
+Definition 2.20 (Interactive Proof). A pair of interactive machines (P, V ) is called an interactive
+proof system for a language ℓ with soundness error ε = ε(λ) > 0, if V is a probabilistic polynomial-
+time machine, and the following conditions hold for every security parameter λ ∈ N:
+
+   • Completeness: For every x ∈ L, the verifier V accepts with probability 1 when interacting
+     with P on common input (x, 1λ ).
+
+   • Soundness: For every x ∈ / L, and every prover P ∗ , the verifier V accepts with probability at
+     most ε(λ) when interacting with P ∗ on common input (x, 1λ ).
+
+We say that an interactive proof has an efficient prover if P can be implemented in (probabilistic)
+polynomial-time. In the context of an interactive proof for an NP relation, the honest prover is
+given access to an NP witness as an auxiliary input.
+
+   We remark that all interactive proofs that we construct in this work will have an efficient prover.
+
+The Interactive Proof-System of [GKR15]. Our construction will build on the interactive
+proof-system of [GKR15]. This protocol relies on the multi-linear extension (see Definition 2.7).
+We state their result in a way that will be convenient for our construction.
+
+
+
+                                                   14
+Theorem 2.21 (Follows from [GKR15, Theorem 1.5]). Let ℓ be a language computable by a (non-
+uniform) circuit family C of size S = S(n) and depth D = D(n). Let F = F(n) be a constructible
+field ensemble. Then, there exists a three phase public-coin interactive proof (P, Vinteractive , Vpost , Veval )
+with the following properties
+
+   1. In the interactive phase (P, Vinteractive ), P gets as input (C,x) and Vinteractive gets only the
+      parameters S and D. The prover P runs in time poly(S), and the verifier Vinteractive runs
+      in time D · poly(log(S), log(|F|)). Denote by transcript all messages sent between the parties.
+      The communication complexity of the interactive phase is poly(D, log(S), log(|F|)).
+
+   2. From transcript and the circuit C we can derive z ∈ Fd , α ∈ F and ⟨C⟩ ∈ {0, 1}poly(D,log(S),log(|F|))
+      in time poly(S).
+                                             
+   3. Vpost gets as input transcript, ⟨C⟩, z) and either accept or rejects. Vpost performs a test on
+      (transcript, ⟨C⟩, z) and runs in time poly(D, log(S), log(|F|)
+
+   4. Veval gets as input (α, z) and just checks the claim x̂(z) = α. Veval runs in time poly(D, log(S), log(|F|).
+
+The interactive protocol obtained by first running the interactive phase, then having the verifier
+derive ⟨C⟩, x̂(z) and running Vpost , and finally deriving αfrom the
+                                                                    transcript and running Veval on
+                                                                  D log S
+(x, z, α) has perfect completeness and soundness error O            |F|     .
+
+    We remark that [GKR15, Theorem 1.5] does not separate the proof-system into three phases as
+above. However, such a separation follows easily using the fact that the GKR protocol is holographic,
+meaning that the verifier only needs to make a single query to the low degree extension of the input
+prior to the interaction, and subsequently runs in poly(D, log(S), log(|F|)) time.
+
+2.6    Zero-Knowledge Proofs
+Next, we define (computationally) zero-knowledge proofs [GMR89].
+
+Definition 2.22 (Zero-knowledge proofs). Let (P, V ) be an interactive proof system for an NP
+relation R with security parameter λ. The proof-system (P, V ) is computational zero-knowledge if
+for every polynomial-time interactive machine V̂ there exists a probabilistic polynomial-time machine
+Sim, called the simulator, such that for every ensemble (x, w) = (xλ , wλ )λ , with (xλ , wλ ) ∈ R the
+following distribution ensembles are computationally indistinguishable:
+       n                  o
+              P (w)
+    • V iew         x, 1λ     , and
+               V̂             λ∈N
+
+   •       Sim x, 1λ λ∈N ,
+                   
+
+               P (w)
+                       x, 1λ is the content of the random tape of V̂ and the messages sent and received
+                            
+where V iew
+               V̂
+by V̂ in an interaction with P on common input (x, 1λ ).
+
+    For simplicity we use here the standalone definition but remark that our results can be extended
+to the setting of auxiliarly input zero-knowledge.
+
+
+
+
+                                                      15
+2.7    Multi-Party Computation
+We consider the following multi party computation model: n parties wish to evaluate a function
+defined jointly on their n private inputs. While there are many variations of this model, we focus on
+the one where the output of all of the parties should be the same (aka “secure function evaluation”).
+The communication between parties is synchronous and all pairwise communication channels are
+secure. Additionally, following [IKOS09], we also allow an OT-channel between every two parties.
+In each round, each party can perform local computations on all its view (input and all messages
+seen up to that round), send messages to any other party and read all its incoming messages. A
+protocol in this setting, is a specification for each of the n parties.
+
+Definition 2.23 (Correctness). Given a deterministic n-party functionality f (w1 , ..., wn ) (where
+input wi belongs to party i), we say that Π realizes f with perfect correctness if for all inputs
+w1 , . . . , wn , the probability that the output of some party is different from the output of f is 0, where
+the probability is over the randomness of all of the parties.
+
+Definition 2.24 (t-Privacy). Let 1 ≤ t < n. We say that Π realizes f with perfect t-privacy if there
+exists a PPT simulator Sim such that for any inputs w1 , . . . , wn , and every set of corrupted parties
+T ⊂ [n], where |T | ≤ t, the joint views of parties in T (which includes their inputs, randomness and
+received messages) is distributed identically to Sim(T, (wi )i∈T , f (w1 , . . . , wn )).
+
+   We will rely on the classical construction of a secure MPC protocol against t ≤ n−1 corruptions,
+which has perfect semi-honest security in the OT-hybrid model, due to Goldreich, Micali and
+Wigderson [GMW87].
+
+Theorem 2.25 ( [GMW87]). For any n-input functionality f , computable by a circuit of size S,
+there is an n-party protocol in the OT-hybrid model with perfect correctness and perfect (n − 1)-
+privacy. The parties run in time poly(S, n).
+
+
+3     Polynomial Commitment Schemes
+Definition 3.1 (Polynomial Commitment Scheme). A polynomial commitment scheme (PCS) with
+δ binding error is a tuple (C, P, V ), where C is a probabilistic polynomial time algorithm and (P, V )
+are a pair of probabilistic polynomial time interactive machines with the following syntax:
+
+    • For any function f : {0, 1}d → F : (com, dec) ← C(1λ , f )
+
+    • P and V interaction:
+
+         – The common input : com, ⃗z ∈ (Fd )k , ᾱ ∈ Fk .
+                                                        
+
+         – P gets dec as an additional input.
+         – At the end of the interaction, the verifier outputs either 0 or 1.
+
+      We denote by (V, Pdec )(1λ , com, ⃗z, ᾱ) the output of V when interacting with P given the input
+      as above, where λ is the security parameter.
+
+The scheme must satisfy the following requirements:
+
+
+
+                                                     16
+   • Correctness: For any function f : {0, 1}d → F, any set of k distinct inputs ⃗z = (z1 , . . . , zk ) ∈
+     (Fd )k , and any security parameter λ,
+                                          h                                      i
+                                 Pr         (Pdec , V )(1λ , com, ⃗z, fˆ(⃗z)) = 1 = 1,
+                               (com,dec)←C(1λ ,f )
+
+
+     where f (⃗z) = (fˆ(z1 ), . . . f (zk )) ∈ Fk , and fˆ is the multilinear extension of f .
+
+
+   • Binding: For any commitment com∗ , there exist a multilinear polynomial fcom∗ : Fd → F
+     such that the following holds. For every prover P ∗ any security parameter λ, and any set of k
+     input and output values: (z1 , . . . , zk ) ∈ (Fd )k , (α1 , . . . , αk ) ∈ Fk , such that ∃i, fcom∗ (zi ) ̸= αi
+     it holds that,          h                                                             i
+                          Pr (P ∗ , V )(1λ , com∗ , z1 , . . . , zk , α1 , . . . , αk ) = 1 < δ.
+
+   • Commitment Hiding: For every distribution F over d-variate functions from {0, 1}d to F
+     it holds that C(F ) is a commitment in the sense of Definition 2.9.
+
+   • Evaluation Hiding: For a given f : {0, 1}d → F, Denote by (C, P, V ∗ )(f )k the view of the
+     full execution which consist of:
+                                                                                                                         
+                com, z1 , f (z1 ), . . . zk , f (zk ), (V ∗ , Pdec )(1λ , com, z1 , . . . , zk , f (z1 ), . . . , f (zk ))
+
+     generated as follows:
+
+         – (dec, com) ← C(f ).
+         – V ∗ receives com and selects k points z1 , . . . , zk ∈ Fd . P receives com, dec and the points
+           that V ∗ chose and provides the corresponding evaluations f (z1 ), . . . , f (zk ).
+         – V ∗ and P then run the (V ∗ , Pdec )(1λ , com, ⃗z, f (⃗z)) protocol .
+
+     For every probabilistic polynomial-time machine V ∗ and for every pair of k-wise identical
+     distributions F1 , F2 over d-variate multilinear functions (i.e., functions defined uniquely by a
+     function from {0, 1}d to F), it holds that
+
+                                          (C, P, V ∗ )(F1 )k ≈c (C, P, V ∗ )(F2 )k .
+
+Remark 3.2 (On Padded Polynomials). In this work our focus is on communication complexity
+and we care even about very small multiplicative factors. In particular, we will sometimes want
+to commit to multilinear polynomials representing data of length that is not a power of 2. The
+straightforward solution of padding to the next power of 2 does not work for us, as we would like to
+avoid a potential doubling of the communication.
+    Accordingly, we extend the definition of the polynomial commitment scheme to strings of arbitrary
+length m (not necessarily a power of two) by interpreting the string as a multilinear polynomial after
+padding with zeroes up to the next power of two. However, we analyze the communication complexity
+with respect to original length m (rather than 2⌈log m⌉ ).
+
+
+
+
+                                                           17
+4     Basic Polynomial Commitment
+In this section, we present a basic polynomial commitment scheme. While the scheme is not
+optimized for communication efficiency, it is conceptually simple and will also serve as a building
+block for the succinct polynomial commitment that we construct in Section 5. Thus, the main result
+that we prove in this section is the following lemma.
+
+Lemma 4.1. Assume the existence of a one-way function. Then, for every δ = δ(d) ∈ (0, 1)
+there exists a polynomial commitment scheme for d-variate multilinears over a finite field F, with
+binding error δ and communication complexity        2d · log( 1δ ) · poly(λ) · log(|F|) for the commitment and
+     d                     1
+                                         
+O (2 · poly(λ) + k) · log( δ ) · log(|F|) for the opening, where k is the number of points to be opened,
+and λ is the security parameter.
+
+    The rest of this section is devoted to proving Lemma 4.1.
+
+4.1    Proof of Lemma 4.1
+We first describe a protocol with constant binding error (specifically 0.6), and then extend it via
+repetition to reduce the binding error to δ which then implies the lemma (see Remark 4.3 for details).
+   By Theorem 2.12, the existence of a one-way function implies the existence of a standard bit-
+commitment Com in the CRS model, with binding error 0.1. We assume that a fixed CRS is
+chosen that is indeed statistically binding and the protocol below is relative to this fixed CRS.
+The protocol (with binding error 0.6), which establishes Lemma 4.1 (up to the aforementioned
+repetitions) is described in Fig. 1. We proceed to the analysis.
+
+Correctness. Let f : {0, 1}d → F be a function, z1 , . . . , zk ∈ Fd be a sequence of points and
+α1 , . . . , αk ∈ F s.t. αi = fˆ(zi ), for every i ∈ [k].
+     If the prover is honest, the commitment and decommitment pass the verifier’s check in Step 4a of
+the evaluation protocol. Since f0 , f1 are an additive secret sharing of f , it holds that fˆ0 (zi )+ fˆ1 (zi ) =
+fˆ(zi ) = αi , for every i ∈ [k], and so the check in Step 4b passes. Since P sends the correct
+evaluations of f0 and f1 in Step 1, the check in Step 4c also passes and so the verifier accepts.
+
+Binding. We first note that with all but 0.1 probabililty, the commitment scheme is perfectly
+binding. Let us assume that this is the case.
+     Let com∗ be a (possibly maliciously generated) polynomial commitment. Recall that com∗
+should consist of commitments to two functions f0∗ , f1∗ : {0, 1}d → F. By the binding property of
+the commitment scheme (see Definition 2.9) there exists at most one such f0∗ and f1∗ that can pass
+the verifier’s decommitment check. We assume wlog that f0∗ and f1∗ indeed exist since otherwise
+the verifier will reject with probability at least 21 in Step 3. We define fcom∗ = f0∗ + f1∗ .
+     Let z1 , . . . , zk ∈ (Fd )k and α1 , ..., αk ∈ Fk such that there exists j ∗ ∈ [k] such that fˆcom∗ (zj ∗ ) ̸=
+                                                                                                       (σ)
+αj ∗ , and let P ∗ be a malicious prover strategy. For every σ ∈ {0, 1} and i ∈ [k], let βi be the
+claimed evaluations sent by P ∗ in Step 1.
+                                (0)  (1)               (0)    (1)
+     If P ∗ sends values βj , βj such that βj + βj ̸= αj , then the verifier V rejects in Step 4b
+                                   (0)    (1)
+and so we may assume that βj + βj = αj , for all j ∈ [k].
+    Since f0∗ (zj ∗ ) + f1∗ (zj ∗ ) = fcom∗ (zj ∗ ) ̸= αj ∗ , the prover must be dishonest in at least one of the
+                    (0)                   (1)
+values: either βj ∗ ̸= f0∗ (zj ∗ ) or βj ∗ ̸= f1∗ (zj ∗ ). Therefore, with probability at leasts 1/2, it holds
+
+                                                        18
+                               Basic Polynomial Commitment Scheme
+
+C(f, 1λ ), where f : {0, 1}d → F:
+   1. Generate an additive secret sharing f0 , f1 : {0, 1}d → F of f (that is, f0 : {0, 1}d → F is chosen
+      uniformly at random and f1 = f − f0 ).
+   2. For b ∈ {0, 1}, generate:
+                                              (comb , decb ) ← Com(fb ).
+
+   3. Set com = (com0 , com1 ) and dec = (dec0 , f0 , dec1 , f1 ).
+
+
+
+                                Basic Polynomial Evaluation Protocol
+
+Common Input: commitment com = com0 , com1 , points z1 , . . . , zk ∈ Fd , evaluation claims
+                                                 
+
+α1 , . . . , αk ∈ F and security parameter 1λ .
+Prover’s Additional Input: decommitment dec = dec0 , f0 , dec1 , f1 .
+                                                                   
+
+                                                                                  (σ)
+   1. For every σ ∈ {0, 1} and i ∈ [k], the prover P computes the evaluations βi        = fˆσ (zi ) and sends
+      them to V .
+   2. V randomly chooses b ← {0, 1} and sends it to P .
+   3. P sends (fb , decb ) to V .
+   4. V checks:
+       (a) The decommitment decb is a valid decommitment to fb .
+                                                (0)      (1)
+       (b) For every i ∈ [k], it holds that βi        + βi     = αi .
+                                                          (b)
+        (c) For every i ∈ [k], it holds that fˆb (zi ) = βi .
+      If all checks pass then V accepts, otherwise it rejects.
+
+
+
+                                         Figure 1: Basic Protocol
+
+
+
+
+                                                         19
+that V chooses the index b (in Step 2) on which the prover lied. Then, either P ∗ sends an invalid
+decommitment and V rejects in Step 4a, or P ∗ successfully decommits and V rejects in Step 4c due
+to an incorrect evaluation.
+    Overall, the verifier accepts here with probability at most 21 . Accounting also for the probability
+that the commitment is not binding, we get a binding error of 0.6.
+
+Commitment Hiding. The commitment hiding property follows immediately from the fact that
+the polynomial commitment C(F ) just consists of a pair of standard commitments.
+
+Evaluation Hiding. Let F1 , F2 be k-wise identical distributions over d-variate multilinears and
+let V ∗ be a probabilistic polynomial time verifier. We show that
+
+                                        (C, P, V ∗ )(F1 ) ≈c (C, P, V ∗ )(F2 ),
+
+where we recall that (see Definition 3.1)
+                                                                                                                        
+  C, P, V ∗ (F )k = C(f ), ⃗z, f (⃗z), f0 (⃗z), f1 (⃗z), b, decfb = (comf0 , comf1 ), ⃗z, f (⃗z), f0 (⃗z), f1 (⃗z), b, decfb
+
+and where,
+
+    • f ∼ F and f0 , f1 are a random secret sharing of f as in Step 1.
+
+    • ⃗z = (z1 , . . . , zk ) are the k points chosen by V ∗ (which may depend on the commitment) and
+       b is the selection bit chosen by V ∗ (which may depend both on the commitment and the
+       evaluation sent by P in Step 1).
+
+    • comf0 and comf1 are the (standard) commitments to the secret sharing components f0 and f1 ,
+      respectively, as defined in Step 1, and decf0 and decf1 are the corresponding decommitments.
+
+The proof loosely follows the structure of the zero knowledge proof for the 3-coloring protocol
+in [Gol01, Section 4.4.2.3].
+    Assume, toward a contradiction, that the ensembles (C, P, V ∗ )(F1 )k and (C, P, V ∗ )(F2 )k are
+distinguishable. Let Z1 , Z2 ∈ (Fd )k be the opening points chosen by V ∗ , and let B1 , B2 ∈ {0, 1}
+be the bit chosen by V ∗ in Step 2, both with respect to the interaction over C(F1 ) and C(F2 ),
+respectively. Note that these random variables may depend on the commitment and previous
+messages during the interaction. For every fixed (⃗z, b) ∈ (Fd )k × {0, 1}, let:
+
+    • µ⃗z,b (Fi ) denote the output of the full interaction given Fi as input, conditioned on V ∗ ’s query
+      being (⃗z, b); and
+
+    • p⃗z,b (Fi ) denote the probability that V ∗ selects (⃗z, b) during the interaction with P given Fi as
+      input.
+
+Proposition 4.2. For every pair (⃗z, b) ∈ (Fd )k ×{0, 1} it holds that p⃗z,b (F1 )−p⃗z,b (F2 ) is negligible.
+
+Proof. Assume towards a contradiction that there exists a pair (⃗z, b) such that p⃗z,b (F1 ) − p⃗z,b (F2 )
+is non-negligible. Denote by PrC(Fi ) [⃗z] the probability that V ∗ queries ⃗z given C(Fi ), and by
+PrC(Fi ) [b | ⃗z] the probability that V ∗ queries b when interacting over C(Fi ), conditioned on having
+already chosen ⃗z.
+
+                                                           20
+   Suppose first that PrC(Fi ) [⃗z] = 0 for some i ∈ {0, 1}. By assumption they cannot both be zero,
+so wlog assume that PrC(F1 ) [⃗z] = 0 and PrC(F2 ) [⃗z] > 0. Then
+
+                      p⃗z,b (F1 ) − p⃗z,b (F2 ) = p⃗z,b (F2 ) = Pr [⃗z] · Pr [b | ⃗z] ≤ Pr [⃗z],
+                                                                     C(F2 )       C(F2 )            C(F2 )
+
+so if the left-hand side were non-negligible, then PrC(F2 ) [⃗z] would also be non-negligible. However,
+the hiding property of the commitment together with Fact 2.5 implies that
+
+                                                        Pr [⃗z] − Pr [⃗z]
+                                                       C(F1 )        C(F2 )
+
+is negligible so we get a contradiction.
+    Thus, we may assume that PrC(Fi ) [⃗z] > 0 for both i ∈ {0, 1}. Observe that:
+
+                       p⃗z,b (Fi ) = Pr V ∗ queries (⃗z, b) = Pr [⃗z] · Pr [b | ⃗z].
+                                                          
+                                         C(Fi )                                 C(Fi )     C(Fi )
+
+    Now consider,
+
+       Pr [⃗z] · Pr [b | ⃗z] − Pr [⃗z] · Pr [b | ⃗z] =                Pr [⃗z] · Pr [b | ⃗z] − Pr [⃗z] · Pr [b | ⃗z]
+      C(F1 )    C(F1 )          C(F2 )        C(F2 )                 C(F1 )       C(F1 )            C(F1 )       C(F2 )
+                                                                                                                
+                                                                 + Pr [⃗z] · Pr [b | ⃗z] − Pr [⃗z] · Pr [b | ⃗z]
+                                                                   C(F1 )   C(F2 )        C(F2 )    C(F2 )
+                                                                                                     
+                                                                ≤ Pr [⃗z] · Pr [b | ⃗z] − Pr [b | ⃗z]
+                                                                  C(F1 )     C(F1 )        C(F2 )
+                                                                                                    
+                                                                 + Pr [b | ⃗z] · Pr [⃗z] − Pr [⃗z] .
+                                                                       C(F2 )              C(F1 )       C(F2 )
+
+where the last step follows from the triangle inequality. Since the left-hand side is assumed to be
+non-negligible, at least one of the terms on the right hand side must also be non-negligible. However,
+from the hiding property of the commitment and Fact 2.5, we know that
+
+                                                        Pr [⃗z] − Pr [⃗z]
+                                                       C(F1 )        C(F2 )
+
+is negligible. Hence,
+                                                   Pr [b | ⃗z] − Pr [b | ⃗z]
+                                                  C(F1 )             C(F2 )
+
+must be non-negligible, which we will contradict next.
+Claim 4.2.1. Let f ∼ F1 and g ∼ F2 , it holds that
+                                                         c                                             
+          (comf0 , comf1 ), ⃗z, f (⃗z), f0 (⃗z), f1 (⃗z) ≈ (comg0 , comg1 ), ⃗z, g(⃗z), g0 (⃗z), g1 (⃗z)
+
+where f0 and f1 (resp. g0 and g1 ) form an additive secret sharing of f (resp. g).
+
+Proof. Since f and g are k-wise identical, it follows that,
+                                                             
+                                        ⃗z, f (⃗z) ≡ ⃗z, g(⃗z) .
+
+    Moreover, since f0 , f1 and g0 , g1 are random secret sharings of f and g, respectively, we have,
+                                                                                       
+                              ⃗z, f (⃗z), f0 (⃗z), f1 (⃗z) ≡ ⃗z, g(⃗z), g0 (⃗z), g1 (⃗z) .
+
+                                                                21
+From the hiding property of the commitment, we conclude that,
+                                                             c                                             
+              (comf0 , comf1 ), ⃗z, f (⃗z), f0 (⃗z), f1 (⃗z) ≈ (comg0 , comg1 ), ⃗z, g(⃗z), g0 (⃗z), g1 (⃗z) .
+
+
+
+   Now, we could construct a (non-uniform) distinguisher between the distributions
+
+        (comf0 , comf1 ), ⃗z, f (⃗z), f0 (⃗z), f1 (⃗z) and (comg0 , comg1 ), ⃗z, g(⃗z), g0 (⃗z), g1 (⃗z) .
+                                                                                                       
+
+
+The distinguisher (which has z and b hardcoded) simply runs V ∗ on its input and outputs 1 if V ∗
+selects b, and 0 otherwise. This contradicts Claim 4.2.1, completing the proof of Proposition 4.2.
+
+    Recall that we assumed that the ensembles (C, P, V ∗ )(F1 )k and (C, P, V ∗ )(F2 )k are distinguishable.
+Next, we show that there exists a fixed (⃗z, b) ∈ (Fd )k × {0, 1} such that a distinguisher can
+distinguish (C, P, V ∗ )(F1 )k and (C, P, V ∗ )(F2 )k even conditioned on this choice, despite the fact
+                 c
+that p⃗z,b (F1 ) ≈ p⃗z,b (F2 ).
+    Using the distinguisher between (C, P, V ∗ )(F1 )k and (C, P, V ∗ )(F2 )k and an averaging argument,
+we obtain that there exists a probabilistic polynomial-time algorithm A, a polynomial q(·), and an
+infinite sequence of integers d such that, for each d in the sequence, and F1 , F2 being k-wise identical
+distributions over d-bit functions from {0, 1}d to F, there exist a choice (⃗z, b) such that
+                                                                                                    1
+                  p⃗z,b (F1 ) · Pr[A(µ⃗z,b (F1 )) = 1] − p⃗z,b (F2 ) · Pr[A(µ⃗z,b (F2 )) = 1] ≥         .
+                                                                                                   q(λ)
+
+   This further implies, the following:
+
+   1. p⃗z,b (F1 ) > 2·q(λ)
+                       1
+                           .
+
+   2. p⃗z,b (F1 ) − p⃗z,b (F2 ) < 8·q(λ)
+                                     1
+                                         2.
+
+
+   3. Pr[A(µ⃗z,b (F1 )) = 1] − Pr[A(µ⃗z,b (F2 )) = 1] > 2·q(λ)
+                                                           1
+                                                               .
+
+To see this, note that Item 2 follows immediately from Proposition 4.2. Given Item 2 we conclude
+that p⃗z,b (F1 ) · Pr[A(µ⃗z,b (F1 ))] − p⃗z,b (F1 ) · Pr[A(µ⃗z,b (F2 ))] ≥ 2·q(λ)
+                                                                              1
+                                                                                  and Items 1 and 3 follow.
+   We now show that this contradicts the following claim:
+
+Claim 4.2.2. Let (⃗z, b) ∈ (Fd )k × {0, 1} be a fixed query from V ∗ . Denote
+                                                                                             
+                           H0 = (comf0 , comf1 ), ⃗z, f (⃗z), f0 (⃗z), f1 (⃗z), b, fb , decfb ,
+                                                                                             
+                           H1 = (comg0 , comg1 ), ⃗z, g(⃗z), g0 (⃗z), g1 (⃗z), b, gb , decgb ,
+                                              c
+where f ∼ F1 and g ∼ F2 , then H0 ≈ H1 .
+
+Proof. We show that the two distributions are indistinguishable in a step-by-step manner, as follows:
+
+   1. Since f and g are k-wise identical, we have that:
+
+                                                    (⃗z, f (⃗z)) ≡ (⃗z, g(⃗z)).
+
+
+                                                            22
+   2. Since f0 , f1 and g0 , g1 are random secret sharings of f and g, respectively, together with the
+      previous item, we obtain::
+
+                                   (⃗z, f (⃗z), f0 (⃗z), f1 (⃗z), b) ≡ (⃗z, g(⃗z), g0 (⃗z), g1 (⃗z), b).
+
+   3. Because each share fb and gb is individually uniform, except where constrained by the shared
+      evaluations (f (⃗z) or g(⃗z), respectively), it follows that:
+
+                                                                     c
+                               (⃗z, f (⃗z), f0 (⃗z), f1 (⃗z), b, fb ) ≈ (⃗z, g(⃗z), g0 (⃗z), g1 (⃗z), b, gb ).
+
+   4. Finally, by the commitment hiding property of the commitment scheme and Fact 2.5, we
+      conclude:
+                                                                     c                                                           
+        (comf0 , comf1 ), ⃗z, f (⃗z), f0 (⃗z), f1 (⃗z), b, fb , decfb ≈ (comg0 , comg1 ), ⃗z, g(⃗z), g0 (⃗z), g1 (⃗z), b, gb , decgb .
+
+
+
+    Now define A′ as the algorithm that runs the full interaction and checks whether (⃗z, b) was
+selected by V ∗ . If so, it runs A; otherwise, it outputs 0. Then we have:
+
+  Pr[A′ (H0 )] − Pr[A′ (H1 )] = p⃗z,b (F1 ) · Pr[A(µ⃗z,b (F1 ))] − p⃗z,b (F2 ) · Pr[A(µ⃗z,b (F2 ))]
+
+                                   ≥ p⃗z,b (F1 ) · Pr[A(µ⃗z,b (F2 ))] − Pr[A(µ⃗z,b (F1 ))]
+                                       − Pr[A(µ⃗z,b (F2 ))] · p⃗z,b (F2 ) − p⃗z,b (F1 )
+                                   ≥ p⃗z,b (F1 ) · Pr[A(µ⃗z,b (F2 ))] − Pr[A(µ⃗z,b (F1 ))] − p⃗z,b (F2 ) − p⃗z,b (F1 )
+                                         1        1         1
+                                   >          ·       −
+                                     2 · q(λ) 2 · q(λ) 8 · q(λ)2
+                                          1
+                                   =           ,
+                                     8 · q(λ)2
+
+   which contradicts Claim 4.2.2. Therefore, we reach a contradiction and conclude that
+                                                                 c
+                                         (C, P, V ∗ )(F1 )k ≈ (C, P, V ∗ )(F2 )k .
+
+Communication Complexity: The prover first commits to two d-variate multilinears, sending a
+message of length 2d · poly(λ) · log(|F|). The verifier then sends k values, and the prover responds by
+sending 2k evaluations, requiring a message of length 2k · log(|F|). Finally, the prover decommits to
+one of the functions as requested by the verifier, requiring a message of length 2d · poly(λ) · log(|F|).
+   Overall, taking into consideration also the repetitions, the total communication complexity is:
+
+           Commitment: 2d · poly(λ) · log(|F|), Opening: O (2d · poly(λ) + k) · log(|F|) .
+                                                                                            
+
+
+Remark 4.3 (Amplification). As shown above, the protocol described in Fig. 1 has a binding error
+of 0.6. To reduce this error to δ > 0, we repeat each of the commitment and evaluations phases
+O(log(1/δ)) times in parallel.
+
+
+                                                                23
+    Note that the hiding property of the commitment is indistinguishibility based (rather than a
+simulation based one). Therefore, by the evaluation hiding property and a standard hybrid argument,
+the opening proofs can be done simultaneously.
+    As for the binding property, since for each repetition the probability that P can convince V of a
+wrong opening is at most 0.6, and the secret sharings are independent, we obtain the desired binding
+bound.
+
+
+5     Succinct Polynomial Commitment
+In this section, we prove Theorem 1.3 by constructing a succinct polynomial commitment scheme
+for strings of length m. The commitment communication complexity is only slightly more than m
+field elements and the evaluation proof is sublinear in m.
+     To prove Theorem 1.3 we construct a PCS that uses a base PCS as a blackbox. Theorem 1.3
+then follows immediately from the following lemma by combining it with the base PCS given in
+Lemma 4.1.
+
+Lemma 5.1. Assume there    exist a polynomial commitment for d-variate multilinears over a finite
+                                                    
+                           1
+field F, such that |F| = Ω δ · m + log(1/δ) · log(m) , with binding error 5δ and communication
+                                2/3
+
+complexity Ccom (2d ), Copen (2d , k) where k is the number of openings.
+   Then, there exist a polynomial commitment scheme for any string of length m with binding error
+δ and communication complexity at most
+
+                                        m + m2/3 · poly(λ, log(1/δ))
+
+field elements for the commitment and
+
+                   O(m2/3 · log(1/δ)) + k · Ccom (m1/3 ) + Copen (m1/3 , 2) + poly(λ)
+                                                                           
+
+
+field elements for the opening, where k is the number of points to be opened and λ is a security
+parameter.
+
+5.1    Proof of Lemma 5.1
+Let (Cbase , Pbase , Vbase ) be the base polynomial commitment scheme and let Com be a standard bit-
+commitment scheme with additive overhead2 (see Proposition 2.13). We set both commitments to
+have a binding error 5δ . The succinct polynomial commitment scheme and the opening protocol that
+establish Lemma 5.1 are presented in Fig. 2 and Fig. 3, respectively. We proceed to the analysis.
+
+Correctness. Let s ∈ {0, 1}m be a string, let z1 , . . . , zk ∈ Fd be points. For every i ∈ [k], let
+αi = ŝ(zi ), where ŝ denotes the multilinear extension of s (see Definition 2.7), padded with zeros to
+have length that is a power of 2.
+    If the prover is honest, then the commitment and decommitment are valid, and the test in Step
+7 of the evaluation protocol passes.
+   2
+     Our assumption that a basic PCS exists implies also the existence of a standard commitment scheme which in
+turn implies the existence of a one-way function. A commitment with additive overhead can then be obtained using
+Proposition 2.13.
+
+
+                                                      24
+                               Succinct Polynomial Commitment Scheme
+
+Ingredients:
+      • A λ-hiding code (see Definition 2.18) E : Fk → Fℓ(k) with blocklength ℓ(k).
+      • A standard bit-commitment scheme Com with additive overhead (as in Proposition 2.13).
+Commitment: C(s, 1λ ), where s ∈ {0, 1}m :
+   1. Let mr , mc ∈ [m] such that mr · mc = m.a View the input s as a matrix S ∈ Fmr ×mc in the
+      natural way. That is, by setting
+                                          S[i, j] = s(i−1)·mc +j
+        for all i ∈ [mr ] and j ∈ [mc ].
+   2. (Random Padding:) Sample uniformly at random a matrix R ∈ Fmr×q and a vector R′ ∈ Fmc .
+                                                                 S  R
+      Construct the extended matrix A ∈ F(mr +1)×(mc +q) as A =       .
+                                                                R′T 0
+   3. (Encode Rows:) Let GE ∈ Fℓ(mc +q)×(mc +q) denote the generator matrix of the code E, for
+      messages of length mc + q. Compute
+
+                                                      Ã = A · (GE )T .
+
+        (In other words, use E to encode the rows of A.)
+   4. (Commit to Columns:) For each j ∈ [ℓ(mc + q)], compute
+                                                              
+                                     (comj , decj ) ← Com Ã(j) ,
+
+        where Ã(j) denotes the j-th column of Ã.
+   5. Output:
+
+                                                        dec = Ã(1) , dec1 , . . . , Ã(ℓ(mc +q)) , decℓ(mc +q) .
+                                                                                                              
+                 com = com1 , . . . , comℓ(mc +q) ,
+  a                                                                                     √
+      We assume such a factorization exists; otherwise we can pad s with at most            m zeroes.
+
+
+
+
+                                           Figure 2: Succinct PCS
+
+
+
+
+                                                         25
+                      Succinct Polynomial Evaluation Protocol
+                                                        
+Common Input: commitment com = com1 , . . . , comℓ(mc +q) , points z1 , . . . , zk ∈ Fd , evaluations
+α1 , . . . , αk ∈ F and security parameter 1λ .                                             
+Prover’s Additional Input: decommitment dec = Ã(1) , dec1 , . . . , Ãℓ(mc +q) , decℓ(mc +q) .
+
+   1. Let dr = ⌈log(mr )⌉ and dc = ⌈log(mc )⌉. We extend S, R, R′ into functions as follows:
+
+          • Let S̄ : {0, 1}dr × {0, 1}dc → F such that S̄(i, j) = Si,j if i, j (viewed as integers) are within
+            the index range of S, and S̄(i, j) = 0 otherwise.
+          • Let R̄ : {0, 1}dr × {0, 1}dc → F (resp. R̄′ : {0, 1}dr × {0, 1}dc → F) as Ri,j (resp. (R′T )i,j ) ,
+            if (i, j) is within the index range of R (resp. R′T ) and 0 otherwise.
+          • Define v : {0, 1}1+dr +1+dc → F as
+
+               v(b1 , i, b2 , j) = (1 − b1 ) · (1 − b2 ) · S̄(i, j) + (1 − b1 ) · b2 · R̄(i, j) + b1 · (1 − b2 ) · R̄′ (i, j).
+
+                                                                                                                    (r)
+          • For every i ∈ [k], define the function gi : {0, 1}1+dr → F as gi (b1 , x) = v̂(b1 , x, 0, zi ), where
+             (r)
+            zi ∈ Fdc are the last dc bits of zi and v̂ is the multilinear extension of v.
+                                                              (i)    (i)                                 (i)
+   2. For every i ∈ [k], the prover P computes (cbase , dbase ) ← Cbase (gi ) and sends cbase to V .
+   3. V chooses a random evaluation point ρ ← F1+dr \0Fdr , and sends it to P .
+   4. P computes and sends h : {0, 1}1+dc → F defined as h(b2 , x) = v̂(ρ, b2 , x) to V .
+   5. V chooses j1 , . . . jq ∈ [ℓ(mc + q)] at random and sends them to P .
+   6. For every t ∈ [q], the prover P sends (Ã(jt ) , decjt ) to V .
+   7. For every t ∈ [q], the verifier V checks that decjt is a valid decommitment for Ã(jt ) .
+   8. Denote by Eh = E (h(i))i∈{1,...,mc ,2dc +1,...,dc +q} i.e., the encoding of the non-zero padded entries
+                                                           
+
+      of h, where i denotes the binary encoding of the corresponding integer.
+      The verifier then checks that
+                                                                     (j )                   (j )
+                                                X
+                                  E
+                                  bh (jt ) =             eq(i, ρ) · Ãi t + eq(2dr , ρ) · Ãmtr +1 .
+                                               i∈[mr ]
+
+
+      where the integer argument of eq (see Definition 2.7) is understood as its binary encoding and
+        (j )
+      Ãi t is the i-th entry of Ã(jt ) .
+   9. For every i ∈ [k], the verifier V and prover P emulate the base PCS evaluation protocol
+                                                            (i)                      (ℓ)
+      (Pbase , Vbase ) with respect to: (1) the commitment cbase , (2) the points 0zi and ρ, (3) the claimed
+                                  (r)                                            (i)
+      evaluations αi and h(0, zi ), which serve as common input, and with dbase as the prover’s auxiliary
+      input. If all tests pass (Step 8 and Step 9) then V accepts. Otherwise it rejects.
+
+
+
+                          Figure 3: Succinct Polynomial Evaluation Protocol
+
+
+
+                                                               26
+                1+dr   1+dc
+   Let V ∈ F2     ×2     be the matrix obtained by arranging the values v(i, j) (see Step 1) in a
+matrix in the natural way. Thus, V has the form
+                                                       
+                                            S    0 R 0
+                                         0      0 0 0
+                                   V = (R )′ T
+                                                        ,
+                                                 0 0 0
+                                            0    0 0 0
+
+where S, R, and R′ are defined in Step 2 of Fig. 2 and the zeros represent all-zero matrices of the
+appropriate sizes.
+   The matrix A (from Step 2 of Fig. 2) can be obtained from V (by removing the padding blocks)
+and vice versa. These adjustments yield the equality in Step 8, details follow.
+   From the definition of h and Definition 2.7, in an honest execution we have
+                            X        X                                       X
+        h(x) = v̂(ρ, x) =                    eq(i, ρ) · eq(j, x) · v(i, j) =   eq(i, ρ) · v(i, x).
+                              i∈{0,1}1+dr j∈{0,1}1+dc                              i
+
+
+   Equivalently, in vector notation, h defined over {0, 1}1+dc can be written as,
+
+                                                   h = eqρT · V,
+                1+dr
+where eqρ ∈ F2      denotes the vector eqρ (b) = eq(ρ, b) for every b ∈ {0, 1}1+dr (where we view
+b simultaneously as a bit vector and an integer in the natural way). In Step 8 only the nonzero
+columns of V are encoded, i.e. the (inherently) zero coordinates of h are omitted. Thus
+                                                  T
+                                    S             R
+                                                                            0 R′ 0
+                                                              T                        
+                           T  0                 0          S
+                          eqρ · (R′ )T
+                 E h = GE                                                           · eqρ .
+                                                     = GE
+                                                  0          RT           0 0 0
+                                    0             0
+
+   By Definition 2.7 we have
+                                               bh (jt ) = eqjT · Eh ,
+                                               E              t
+
+
+where eqjt ∈ Fℓ(mc +q) denotes the vector eqjt (b) = eq(j t , b)  for every b ∈ {0, 1}log(ℓ(mc +q)) . Now
+                                                             S  T     0 R′ 0
+since, some of the columns of the resulting matrix GE ·          T               are inherently zero (due
+                                                          (R)         0 0 0
+to the zero columns), we obtain:
+
+                                                             R′
+                                                    T                  
+                              bh (jt ) = eqjT · GE    S
+                             E                                      · eq
+                                                                      ¯  ρ ,
+                                             t
+                                                     (R)T 0
+
+where eq
+      ¯ ρ ∈ Fmr +1 denotes the entries of eqρ after omitting the zeros. That is,
+                                                                       
+                                                         eq(0, ρ)
+                                                            ..
+                                                             .
+                                                               
+                                            eq
+                                            ¯ρ =
+                                                               
+                                                                
+                                                eq(mr − 1, ρ)
+                                                   eq(2dr , ρ).
+
+
+                                                        27
+                        ST      R′
+                                    
+      Since AT =                         and jt ∈ {0, 1}1+dc it follows from the definition of eq(·, ·) that,
+                        RT      0
+
+                                   bh (jt ) = eqjT · GE · AT · eq
+                                   E                           ¯ρ
+                                                  t
+
+                                                = (Ã(jt ) )T · eq
+                                                                ¯ρ
+                                                                        (j )                  (j )
+                                                   X
+                                                =          eq(i, ρ) · Ãi t + eq(2dr , ρ) · Ãmtr +1 ,
+                                                   i∈[mr ]
+
+where Ã(jt ) is the jt -th column of Ã = A · (GE )T as defined in Step 4 of Fig. 2. Hence, the check in
+Step 8 passes.
+   For Step 9, we have:
+              (ℓ)                (ℓ)       (r)
+       ĝi (0, zi ) = v̂(0, zi , 0, zi )
+                                                  (ℓ)     (r)
+                              X
+                    =                   eq(b, 0, zi , 0, zi ) · v(x)
+                          x∈{0,1}1+dr +1+dc
+                                                                              (ℓ)                     (r)
+                                  X
+                    =                              eq(b1 , 0) · eq(x1 , zi ) · eq(b2 , 0) · eq(x2 , zi ) · v(b1 , x1 , b2 , x2 )
+                          b1 ∈{0,1},x1 ∈{0,1}dr
+                          b2 ∈{0,1},x2 ∈{0,1}dc
+                                                                   (ℓ)              (r)
+                             X             X
+                    =                                eq(x1 , zi ) · eq(x2 , zi ) · v(0, x1 , 0, x2 )
+                          x1 ∈{0,1}dr x2 ∈{0,1}dc
+                                                                   (ℓ)              (r)
+                             X             X
+                    =                                eq(x1 , zi ) · eq(x2 , zi ) · S̄(x1 , x2 )
+                          x1 ∈{0,1}dr x2 ∈{0,1}dc
+                    (1)     X          X                     (ℓ)              (r)
+                    =                           eq(x1 , zi ) · eq(x2 , zi ) · s(x1 −1)mc +x2
+                          x1 ∈[mr ] x2 ∈[mc ]
+
+                    = ŝ(zi ) = αi ,
+
+where (1) follows from the definition of S̄ (Step 1 in Fig. 3) and S (Step 1 in Fig. 2). Also, by
+                   (r)             (r)
+definition, ĥ(0, zi ) = v̂(ρ, 0, zi ) = ĝi (ρ). Hence, by the completeness of the base polynomial
+commitment protocol, the check in Step 9 passes, and the verifier accepts.
+
+Binding. Note that in Step 3 of the evaluation proof protocol, the verifier samples ρ from the
+set F1+dr \ 0Fdr . In the binding proof, however, we consider a variant of the protocol in which
+the verifier instead samples ρ uniformly from F1+dr . This is sufficient since, by Proposition 2.2,
+the statistical distance between the two distributions is |F|1
+                                                               . Therefore, any adversary that breaks
+binding with probability ϵ in the real protocol would also succeed in the modified protocol with
+probability at least ϵ − |F|
+                           1
+                             .
+    Let com be a polynomial commitment generated by a possibly malicious prover. Recall that
+             ∗
+
+com∗ is supposed to consist of a set of valid commitments com∗ = (com1 , . . . , comℓ(mc +q) ). By the
+binding property of the commitment scheme3 (see Definition 2.9) there exists at most one value mi
+that can pass the verifier’s decommitment check for comi . Let mi ∈ Fmr +1 be the unique message
+in case it exists, and set mi = 0 otherwise (i.e., if no such mssage exists).
+  3
+    Since we are using a commitment scheme in the CRS model, the commitment is binding with probability at least
+1 − 2−λ over the choice of the common reference string.
+
+
+                                                                         28
+    Let e = ℓ(mc4+q)·d (where d is the relative distance of the code) be a proximity parameter. Define
+B : {0, 1}1+dr → Fℓ(mc +q) by,
+                                                            
+                             m1,j+1 , . . . , mℓ(mc +q),j+1 ,  j ∈ {0, . . . mr − 1},
+                            
+                    B(j) =     m1,mr +1 , . . . , mℓ(mc +q),mr +1 , j = 2dr ,
+                                                                    otherwise.
+                            
+                              0,
+                            
+
+where mi,j denotes the j-th entry of mi , and j is interpreted as a binary string when used as input
+to B, and as an integer when used
+                                as an    index.
+                                      2dr +1 −1 2dr +1 
+   If the Hamming distance ∆ B(j) j=0           ,E        > e, by Theorem 2.16, we obtain:
+                                      h           i                 e+1
+                                Pr    ∆ B̂(ρ), E ≤ e ≤ 2 · (dr + 1) ·      .
+                             ρ∈Fdr +1                                  |F|
+
+Assume that the event in the above equation does not hold — that is, ∆(B̂(ρ), E) > e. Let h∗
+be the function sent by P ∗ in Step 4. Then there are more than e columns of B̂(ρ) that disagree
+with E(h∗ ). The probability that the verifier does not select any of these columns when opening q
+columns in Step 5, and therefore fails to detect the error and reject, is at most
+                                                                        q
+                        ℓ(mc + q) − e         ℓ(mc + q)                e
+                                                          ≤ 1−                   .
+                              q                   q               ℓ(mc + q)
+                                     2dr +1 −1 2dr +1 
+Overall we get that in case ∆ B(j) j=0          ,E        > e the verifier rejects with all but 2 · (dr +
+      |F| + (1 − ℓ(mc +q) ) probability.
+1) · e+1            e      q
+                                        2dr +1 −1 2dr +1 
+    Thus, we may assume that ∆ B(j) j=0            ,E        ≤ e. For every j ∈ [2dr +1 ] define sj ∈
+Fℓ(mc +q) to be the message whose codeword under E is closest to B(j), i.e., sj = arg minS ∆ E(S), B(j) .
+                                                                                                       
+
+   Define v : F1+dr +1+dc → F,
+
+                                                     if x < mc
+                                           
+                                           si,x
+                                           
+                             v(i, b2 , x) = si,x−2dc if 2dc ≤ x < 2dc +q ,                       (1)
+                                                     otherwise
+                                           
+                                            0
+                                           
+
+where si,x denotes the x-th coordinate of si . We treat i and x as binary strings when given as inputs
+to v, and as integers when used as indices.
+    Finally, define s ∈ Fmr ·mc = Fm by
+
+                                          smc ·(x1 −1)+x2 = v(0, x1 , 0, x2 ),
+
+where x1 ∈ [mr ] and x2 ∈ [mc ] are interpreted as binary strings when used as inputs to v, and si
+denoted the i-th value of s.
+    Let z1 , . . . , zk ∈ (Fd )k and α1 , ..., αk ∈ Fk such that there exists j ∗ ∈ [k] such that ŝ(zj ∗ ) ̸= αj ∗
+(where ŝ is defined over s padded with zeroes), and let P ∗ be a malicious prover strategy. We
+assume wlog that P ∗ is deterministic. Denote by gi∗ and h∗ the functions committed to and sent by
+P ∗ in Steps 2 and 4, respectively.
+    Consider the following cheating strategies:
+
+                                                          29
+                                                                               (r)
+  1. P ∗ sends in Step 2 a commitment to gj∗∗ (b, x) = v̂(b, x, 0, zj ∗ ) (when v is as defined in Eq. (1)).
+     In this case,
+                                                       (ℓ)
+                                            ĝj∗∗ (0, zj ∗ ) ̸= αj ∗ ,
+     since
+                                           (ℓ)             (ℓ)      (r)
+                                 ĝj∗∗ (0, zj ∗ ) = v̂(0, zj ∗ , 0, zj ∗ ) = ŝ(zj ∗ ) ̸= αj ∗ .
+     By the binding property of the base polynomial commitment, the verifier rejects in Step 9
+     with probability at least 1 − 5δ .
+                                                                                 (r)
+  2. P ∗ sends in Step 2 a commitment to gj∗∗ (b, x) ̸= v̂(b, x, 0, zj ∗ ) and in Step 4 it sends h∗ (x) =
+     v̂(ρ, x), where ρ is chosen by V in Step 3:
+                                                                                       (r)
+        • By the Schwartz-Zippel lemma, since gj∗∗ (x) ̸= v(b, x, 0, zj ∗ ),
+
+                                                                  (r)    dr + 1
+                                           Pr gj∗∗ (ρ) = v(ρ, 0, zj ∗ ) ≤
+                                             
+                                                                                 .
+                                                                            |F|
+
+                                                 (r)
+        • Otherwise, if gj∗∗ (ρ) ̸= v(ρ, 0, zj ∗ ), then from the binding property of the base polynomial
+          commitment, with probability at least 1 − 5δ the verifier rejects in Step 9.
+
+     Overall, in this case V rejects with probability 1 − dr|F|
+                                                             +1
+                                                                − 5δ .
+
+                                                                               (r)
+  3. P ∗ sends in Step 2 a commitment to gj∗∗ (b, x) ̸= v̂(b, x, 0, zj ∗ ) and in Step 4 it sends h∗ (b2 , x) ̸=
+     v(ρ, b2 , x). Since v ̸= h, the relative distance between their encoding is at least d. However,
+     since v is defined as the closest message consistent with the commitment, and the commitment
+     is at most e far from any encoding, the encoding of v is at most e far from the commitment.
+     Therefore, the relative distance between the encoding of h and the commitment is at least d −
+     ℓ(mc +q) . Thus, the probability that the verifier accepts in Step 8 is exactly    the probability that
+         e
+                                                                                                          q
+     none of the q checks reveal a column on which the two encodings disagree, 1 − d − ℓ(mec +q)                 .
+
+   Overall we get that V accepts with probability at most
+                    2δ       e      q                  q    d · e
+                                                                    r
+                      + 1−             + 1 − d − ℓ(mec +q)     +O         .
+                    5      ℓ(mc + q)                                |F|
+
+Commitment Hiding. Recall that C(F ) consist of a set of standard commitments. Commitment
+hiding now follows from the hiding property of the commitment (together with a standard hybrid
+argument).
+
+Evaluation Hiding. Let S1 , S2 be k-wise identical distributions over strings of length m. We
+show that for every probabilistic polynomial time verifier V ∗ ,
+
+                                     (C, P, V ∗ )(S1 ) ≈c (C, P, V ∗ )(S2 ).
+
+Recall that (see Definition 3.1)                             
+                                                     C, P, V ∗ (S) =
+
+                                                          30
+                                                                                                                 
+                                                                                 (ℓ)                  (r) 
+        C(s), ⃗z, ŝ(⃗z), {combase (gi )}i∈[k] , ρ, h, check-h, {Interact gi , 0zi , ρ , ŝ(zi ), ĥ(0zi ) }i∈[k]
+
+where,
+
+   • C(s) is the polynomial commitment as defined in Fig. 2.
+
+   • check-h = (jt )t∈[q] , {Ã(jt ) , decjt }t∈[q] , where (jt )t∈[q] denotes the q openings chosen by V ∗ in
+     Step 5, and {Ã(jt ) , decjt }t∈[q] are the data and decommitments sent by P in Step 6.
+                     (ℓ)                  (r) 
+   • Interact gi , 0zi , ρ , ŝ(zi ), ĥ(0zi ) is the base PCS evaluation proof (Pbase , Vbase ) relative
+                                                                                 (ℓ)
+        to the commitment to gi sent in Step 2, the points (0zi , ρ) and the claimed evaluations
+                       (r)
+        (ŝ(zi ), ĥ(0zi )).
+
+    Similarly to the evaluation hiding proof in the basic polynomial commitment scheme (see
+Section 4.1) this proof follows loosely the structure of the zero knowledge proof for the 3-coloring
+protocol in [Gol01, Section 4.4.2.3].
+    Assume toward a contradiction that the two ensembles (C, P, V ∗ )(S1 ) and (C, P, V ∗ )(S2 ) are
+distinguishable. Let Z1 , Z2 ∈ (Fd )k be the opening points chosen by V ∗ , and let ρ1 , ρ2 ∈ Fdr +1 ,
+and J1 , J2 := (jt )t∈[q] where jt ∈ [ℓ(mc + q) be the strings sent in Steps 3 and 6 chosen by V ∗ ,
+both with respect to the interaction over C(S1 ) and C(S2 ), respectively. Note that these random
+variables may depend on the commitment and previous messages during the interaction. For every
+fixed (⃗z, ρ, j), we define two random variables:
+
+   1. Let µ⃗z,ρ,j (Si ) denote the output of the full interaction given Si , conditioned on V ∗ ’s request
+      being (⃗z, ρ, j).
+
+   2. Let p⃗z,ρ,j (Si ) denote the probability that V ∗ selects (⃗z, ρ, j) when interacting with P given Si
+      as input.
+
+Proposition 5.2. For every tuple ⃗z ∈ (Fd )k , ρ ∈ Fdr +1 \0Fdr , and j ∈ [ℓ(mc + q)]q it holds that
+p⃗z,ρ,j (S1 ) − p⃗z,ρ,j (S2 ) is negligible.
+
+Proof. Assume towards contradiction that there exists a tuple (⃗z, ρ, j) s.t p⃗z,ρ,j (S1 ) − p⃗z,ρ,j (S2 )
+is not negligible. We first argue that the interaction up to those choices is computationally
+indistinguishable. This is captured by the following claim:
+Claim 5.2.1. It holds that:
+
+  1. Let s(1) ∼ S1 and s(2) ∼ S2 ,then,
+                                                       (1)       c                                   (2)
+                    C(s(1) ), ⃗z, ŝ(1) (⃗z), (Cbase (gi ))i∈[k] ≈ C(s(2) ), ⃗z, ŝ(2) (⃗z), (Cbase (gi ))i∈[k] ,
+                                                                                                               
+
+                 (b)
+        where gi       is defined with respect to s(b) as in Step 2.
+
+  2. Let s(1) ∼ S1 , s(2) ∼ S2 , it holds that,
+                                              (1)                 c                                   (2)
+           C(s(1) ), ⃗z, ŝ(1) (⃗z), (Cbase (gi ))i∈[k] , ρ, h(1) ≈ C(s(2) ), ⃗z, ŝ(2) (⃗z), (Cbase (gi ))i∈[k] , ρ, h(2) ,
+                                                                                                                          
+
+
+        where h(b) is defined with respect to s(b) and ρ as defined in Step 4.
+
+
+                                                             31
+Proof. We prove the two parts of the claim:
+
+   1. Let s(1) ∼ S1 and s(2) ∼ S2 , since s(1) and s(2) are k-wise identical, it follows that:
+
+                                           ⃗z, ŝ(1) (⃗z) ≡ ⃗z, ŝ(2) (⃗z) ,
+                                                                         
+
+
+      and from the commitment hiding property,
+                                                                   c
+                                          C(s(1) ), ⃗z, ŝ(1) (⃗z) ≈ C(s(2) ), ⃗z, ŝ(2) (⃗z) .
+                                                                                             
+
+
+      By Fact 2.11 and the commitment hiding property of the PCS, we conclude that,
+                                                        (1)       c                                   (2)
+                     C(s(1) ), ⃗z, ŝ(1) (⃗z), (Cbase (gi ))i∈[k] ≈ C(s(2) ), ⃗z, ŝ(2) (⃗z), (Cbase (gi ))i∈[k] .
+                                                                                                                
+
+
+   2. Recall
+
+      h(b) (x) = v̂(ρ, x)
+                     X               X
+               =                               eq(ρ, i) · eq(x, j) · v(i, j)
+                     i∈{0,1}1+dr j∈{0,1}1+dc
+                       X           X                                               X              X
+               =                             eq(ρ, 0i) · eq(x, j) · v(0i, j) +                            eq(ρ, 1i) · eq(x, j) · v(1i, j)
+                     i∈{0,1}dr j∈{0,1}1+dc                                       i∈{0,1}dr j∈{0,1}1+dc
+               (1)      X          X                                                X             X
+               =                             eq(ρ, 0i) · eq(x, j) · v(0i, j) +                            eq(ρ, 1i) · eq(x, j) · R̄′ (i, j)
+                     i∈{0,1}dr j∈{0,1}1+dc                                       i∈{0,1}dr j∈{0,1}1+dc
+               (2)      X          X                                               X
+               =                             eq(ρ, 0i) · eq(x, j) · v(0i, j) +             eq(ρ, 10dr ) · eq(x, j) · R̄′ (0dr , j)
+                     i∈{0,1}dr j∈{0,1}1+dc                                       j∈[mc ]
+
+
+      where (1) follows from the definition of v (see Step 1) and (2) from the definition of R̄′ .
+      Now since we chose ρ ∈ F1+dr \ 0Fdr , we have eq(ρ, 10dr ) ̸= 0, and since R̄′ (0dr , j) = Rj′ is
+      uniformly random for j ∈ [mc ] (see Step 2 in Fig. 2), it follows that h is uniformly random.
+      Therefore, by the previous item, we conclude that,
+                                            (1)                 c                                   (2)
+         C(s(1) ), ⃗z, ŝ(1) (⃗z), (Cbase (gi ))i∈[k] , ρ, h(1) ≈ C(s(2) ), ⃗z, ŝ(2) (⃗z), (Cbase (gi ))i∈[k] , ρ, h(2) .
+                                                                                                                        
+
+
+
+
+   Now, denote by PrC(Si ) [⃗z] the probability that V ∗ queries ⃗z given C(Si ), by PrC(Si ) [ρ | ⃗z] the
+probability that V ∗ queries ρ when interacting over C(Si ), conditioned on having already chosen ⃗z,
+and by PrC(Si ) [j | ⃗z, ρ] the probability that V ∗ queries j when interacting over C(Si ), conditioned
+on having already chosen ⃗z and ρ.
+   Suppose PrC(Si ) [⃗z] = 0 or PrC(Si ) [⃗z, ρ] = 0 for some i ∈ {0, 1}. By assumption it cannot be for
+both S1 and S2 , so wlog let PrC(S1 ) [⃗z] = 0, PrC(S2 ) [⃗z] > 0 and PrC(Si ) [⃗z, ρ] > 0. Then
+
+          p⃗z,ρ,j (S1 ) − p⃗z,ρ,j (S2 ) = p⃗z,ρ,j (S2 ) = Pr [⃗z] · Pr [ρ | ⃗z] · Pr [j | ρ, ⃗z] ≤ Pr [⃗z],
+                                                           C(S2 )      C(S2 )         C(S2 )               C(S2 )
+
+
+
+
+                                                              32
+so if the left-hand side were non-negligible, then PrC(S2 ) [⃗z] would also be non-negligible. However,
+the hiding property of the commitment together with Fact 2.5 implies that
+
+                                                         Pr [⃗z] − Pr [⃗z]
+                                                        C(S1 )         C(S2 )
+
+is negligible so we get a contradiction.
+    Therefore, PrC(Si ) [⃗z] > 0 and PrC(Si ) [ρ | ⃗z] > 0 for both i ∈ {0, 1}. By the definition of joint
+probability, Observe that for every i ∈ {0, 1},
+
+                                     p⃗z,b (Si ) = Pr [⃗z] · Pr [ρ | ⃗z] · Pr [j | ⃗z, ρ].
+                                                  C(Si )         C(Si )          C(Si )
+
+    Consider now,
+
+
+p⃗z,ρ,j (S1 ) − p⃗z,ρ,j (S2 ) =     Pr [⃗z] · Pr [ρ | ⃗z] · Pr [j | ⃗z, ρ] − Pr [⃗z] · Pr [ρ | ⃗z] · Pr [j | ⃗z, ρ]
+                                   C(S1 )     C(S1 )             C(S1 )              C(S2 )        C(S2 )    C(S2 )
+                                                                                     
+                            ≤ Pr [⃗z] · Pr [ρ | ⃗z] · Pr [j | ⃗z, ρ] − Pr [j | ⃗z, ρ]
+                              C(S1 )   C(S1 )           C(S1 )         C(S2 )
+                                                                                    
+                             + Pr [⃗z] · Pr [j | ⃗z, ρ] · Pr [ρ | ⃗z] − Pr [ρ | ⃗z]
+                                    C(S1 )     C(S2 )                  C(S1 )             C(S2 )
+                                                                                             
+                                  + Pr [ρ | ⃗z] · Pr [j | ⃗z, ρ] ·          Pr [⃗z] − Pr [⃗z]
+                                    C(S2 )         C(S2 )                  C(S1 )         C(S2 )
+
+                            ≤       Pr [j | ⃗z, ρ] − Pr [j | ⃗z, ρ] +            Pr [ρ | ⃗z] − Pr [ρ | ⃗z] +         Pr [⃗z] − Pr [⃗z] ,
+                                   C(S1 )               C(S2 )                  C(S1 )             C(S2 )        C(S1 )       C(S2 )
+
+(where the last step follows from the triangle inequality) is not negligible. Thus one of the terms
+must also be non-negligible. However, from the hiding property of the commitment and Fact 2.5,
+we know that PrC(S1 ) [⃗z]−PrC(S2 ) [⃗z] is negligible. If PrC(S1 ) [ρ | ⃗z]−PrC(S2 ) [ρ | ⃗z] is not negligible we
+get a contradiction to Claim 5.2.1 (item 1) and if PrC(S1 ) [j | ⃗z, ρ] − PrC(S2 ) [j | ⃗z, ρ] is not negligible
+we get a contradiction to Claim 5.2.1(item 2). This concludes the proof of Proposition 5.2
+
+    We assumed that the ensembles (C, P, V ∗ )(S1 ) and (C, P, V ∗ )(S2 ) are distinguishable. Similarly
+to the PCS base evaluation hiding proof (see Section 4.1) by an averaging argument, there exists a
+probabilistic polynomial-time algorithm A, a polynomial ξ(·), and an infinite sequence of integers d
+such that, for each d in the sequence, and S1 , S2 being k-wise identical distributions over strings of
+length d, there exist a choice (⃗z, ρ, j) such that
+                                                                                                             1
+                p⃗z,ρ,j (S1 ) · Pr[A(µ⃗z,ρ,j (S1 )) = 1] − p⃗z,ρ,j (S2 ) · Pr[A(µ⃗z,ρ,j (S2 )) = 1] ≥            .
+                                                                                                            ξ(λ)
+
+    This further implies, the following:
+
+   1. p⃗z,ρ,j (S1 ) > 2·ξ(λ)
+                         1
+                             .
+
+   2. p⃗z,ρ,j (S1 ) − p⃗z,ρ,j (S2 ) < 8·ξ(λ)
+                                         1
+                                            2.
+
+
+   3. Pr[A(µ⃗z,ρ,j (S1 )) = 1] − Pr[A(µ⃗z,ρ,j (S2 )) = 1] > 2·ξ(λ)
+                                                               1
+                                                                   .
+
+
+
+                                                                  33
+    Item 2 follows immediately from Proposition 5.2. Given Item 2 we conclude that p⃗z,ρ,j (S1 ) ·
+                                                                 1
+Pr[A(µ⃗z,ρ,j (S1 ))] − p⃗z,ρ,j (S1 ) · Pr[A(µ⃗z,ρ,j (S2 ))] ≥ 2·ξ(λ) and Items 1 and 3 follow.
+   We now show that this contradicts the following claim:
+
+Claim 5.2.2. Let ⃗z, ρ, j be a fixed choice of V ∗ , denote:
+                                                                                                                                  
+                                         (1)                                       (1)                                  (r) 
+H0 = C(s(1) ), ⃗z,ŝ(1) (⃗z), {combase (gi )}i∈[k] , ρ, h(1) , check-h, {Interact gi , 0ziℓ , ρ , ŝ(1) (zi ), ĥ(1) (0zi ) }i∈[k]
+                                                                                               
+                                                                                                                                  
+                                         (2)                                       (2)                                  (r) 
+H1 = C(s(2) ), ⃗z,ŝ(2) (⃗z), {combase (gi )}i∈[k] , ρ, h(2) , check-h, {Interact gi , 0ziℓ , ρ , ŝ(2) (zi ), ĥ(2) (0zi ) }i∈[k]
+                                                                                               
+
+                                                      c
+    where s(1) ∼ S1 and s(2) ∼ S2 then, H0 ≈ H1 .
+
+Proof. We first recall,
+
+    • C(s) is the polynomial commitment as defined in Fig. 2 consisting of a set of standard
+      commitments.
+
+    • check-h = j, {Ã(j) , decj }j∈j , where {Ã(j) , decj }j∈j are the data and the decommitment sent by
+      P in Step 6.
+                                             (r) 
+    • Interact gi , 0ziℓ , ρ , ŝ(zi ), ĥ(0zi ) is the base PCS evaluation proof (Pbase , Vbase ) relative
+                            
+                                                          (ℓ)                                                   (r)
+       to the commitment to gi the points (0zi , ρ) and the claimed evaluation (ŝ(zi ), ĥ(0zi )).
+
+From the definition of g (b) for b ∈ {0, 1} (Step 2) since s(1) and s(2) are k-wise identical we have
+that g (1) and g (2) are also k-wise identical. Thus from the evaluation hiding property of the basic
+commitment and an hybrid argument we have,
+                                                                                                                    
+                              (1)                     (r)             (1)   (ℓ)                          (r) 
+   ⃗z, ŝ(1) (⃗z), {combase (gi )}i∈[k] , ρ, ĥ(1) (0zi ), {Interact gi , 0zi , ρ , ŝ(1) (zi ), ĥ(1) (0zi ) }i∈[k]
+
+                                                                c
+                                                                ≈
+                                                                                                                      
+                              (2)                                       (2)   (ℓ)                          (r) 
+   ⃗z, ŝ(2) (⃗z), {combase (gi )}i∈[k] , ρ, ĥ(2) (z (r) ), {Interact gi , 0zi , ρ , ŝ(2) (zi ), ĥ(2) (0zi ) }i∈[k]
+
+Next, since h(b) for b ∈ {0, 1} is distributed as a uniformly random function consistent with ĥ(i) (0z (r) )
+(see the explanation in 2 within the proof of Claim 5.2.1) we have
+                                                                                                                  
+                                  (1)                               (1)   (ℓ)                          (r) 
+       ⃗z, ŝ(1) (⃗z), {combase (gi )}i∈[k] , ρ, ĥ(1) , {Interact gi , 0zi , ρ , ŝ(1) (zi ), ĥ(1) (0zi ) }i∈[k]
+
+                                                                c
+                                                               ≈
+                                                                                                                  
+                                  (2)                               (2)   (ℓ)                          (r) 
+       ⃗z, ŝ(2) (⃗z), {combase (gi )}i∈[k] , ρ, ĥ(2) , {Interact gi , 0zi , ρ , ŝ(2) (zi ), ĥ(2) (0zi ) }i∈[k]
+
+    From the definition of λ-hiding code(see Definition 2.18) we obtain,
+                                                                                                                          
+                            (1)                         (j)                 (1)   (ℓ)                          (r) 
+ ⃗z, ŝ(1) (⃗z), {combase (gi )}i∈[k] , ρ, h(1) , j, {Ã1 }j∈j , {Interact gi , 0zi , ρ , ŝ(1) (zi ), ĥ(1) (0zi ) }i∈[k]
+
+                                                                c
+                                                                ≈
+
+
+                                                                34
+                                                                                                                         
+                            (2)                         (j)                 (2)   (ℓ)                          (r) 
+ ⃗z, ŝ(2) (⃗z), {combase (gi )}i∈[k] , ρ, h(2) , j, {Ã2 }j∈j , {Interact gi , 0zi , ρ , ŝ(2) (zi ), ĥ(2) (0zi ) }i∈[k] ,
+          (j)
+where Ãi is the j-th column of the matrix Ãi , as defined in Step 4 of Fig. 2, given s(i) .
+    Finally, by combining the above and applying Fact 2.5 to perform the commitment and decommitment
+on the columns in order to generate check-h, and Fact 2.10 to add the commitments for the remaining
+                                                                                  c
+columns, we obtain exactly the distributions H0 and H1 , thus establishing H0 ≈ H1 .
+
+    Now define A′ as the algorithm that runs the full interaction and checks whether (⃗z, ρ, j) was
+selected by V ∗ . If so, it runs A; otherwise, it outputs 0. Then we have:
+
+ Pr[A′ (H0 )] − Pr[A′ (H1 )] = p⃗z,ρ,j (S1 ) · Pr[A(µ⃗z,ρ,j (S1 ))] − p⃗z,ρ,j (S2 ) · Pr[A(µ⃗z,ρ,j (S2 ))]
+
+                                ≥ p⃗z,ρ,j (S1 ) · Pr[A(µ⃗z,ρ,j (S2 ))] − Pr[A(µ⃗z,ρ,j (S1 ))]
+                                    − Pr[A(µ⃗z,ρ,j (S2 ))] · p⃗z,ρ,j (S2 ) − p⃗z,ρ,j (S1 )
+                                ≥ p⃗z,ρ,j (S1 ) · Pr[A(µ⃗z,ρ,j (S2 ))] − Pr[A(µ⃗z,ρ,j (S1 ))] − p⃗z,ρ,j (S2 ) − p⃗z,ρ,j (S1 )
+                                      1        1         1
+                                >          ·       −
+                                  2 · ξ(λ) 2 · ξ(λ) 8 · ξ(λ)2
+                                       1
+                                =           ,
+                                  8 · ξ(λ)2
+    which contradicts Claim 5.2.2. Therefore, we reach a contradiction and conclude that
+                                                             c
+                                         (C, P, V ∗ )(S1 ) ≈ (C, P, V ∗ )(S2 ).
+
+Communication Complexity. The commitment consists of ℓ(mc +q)) commitments for messages
+of length mr + 1. Thus, the overall size of the commitment is: (mr + poly(λ)) · (ℓ(mc + q).
+    For the opening protocol, the prover P first sends for every i ∈ [k] a base PCS commitment
+for a multilinear polynomial on dr + 1-variables, which has length Ccom (2dr +1 ). Then, V chooses
+ρ and P sends the description of h, which has length 2dc +1 · log(|F|). The prover P then opens q
+columns by sending the decommitments of total size q · (mr + poly(λ)). For the last step we apply
+k openings of length Copen (2dr +1 , 2). Overall we get:
+
+    • Commitment: mr + poly(λ) log(1/δ) · ℓ(mc + q).
+                                              
+
+    • Opening: 2dc +1 + mr · q + k · Ccom (2dr +1 ) + Copen (2dr + 1, 2) + poly(λ).
+                                                                        
+
+
+Remark 5.3. By choosing mc = m2/3 and mr = m1/3 and utilizing the linear code of Reed-Solomon
+                                                                 −1/3
+(Definition 2.17) with ℓ(k) = (1 + m−1/3 )k and fixing q = O( 1+m
+                                                               m−1/3
+                                                                      ) log( 1δ ) we obtain Lemma 5.1
+
+
+6     Succinct Zero-Knowledge Proofs
+In this section we prove Theorem 1.1 by constructing a succinct zero-knowledge proof for bounded-
+depth NP relations.
+    We first consider the case of arithmetic circuits over a sufficiently large finite field and then show
+how the case of Boolean circuits follows easily (by packing bits of the witness and emulating the
+Boolean circuit using an arithmetic one).
+
+                                                             35
+Lemma 6.1. Assume that one-way functions exist and let δ > 0 be a parameter. Let R be an
+NP relation with input size n and witness size m, that is computable by a (non-uniform) arithmetic
+circuit family C of size S = S(n) and depth D = D(n) over a finite field F s.t. |F| = Ω 1δ · D log(S) ·
+                 
+log(m) · log(1/δ) , and assume that n ≤ poly(m).
+    Then R has a zero-knowledge proof with perfect completeness, and soundness error δ in which
+the verifier, prover and simulator all only make a black-box use of the one-way function. The
+communication complexity is
+
+                m + m2/3 · poly λ, log(1/δ) + log(1/δ) · poly λ, D, log(S), log(|F|)
+                                                                                   
+
+
+field elements where λ is the security parameter. The prover and verifier run in polynomial time,
+the protocol is public-coin and the number of rounds is log(1/δ) · poly(D, log(S)).
+
+   Lemma 6.1 follows immediately from the next lemma combined with the succinct PCS from
+Theorem 1.3.
+
+Lemma 6.2. Assume that one-way functions exist, and assume there exists a polynomial commitment
+for strings of length m with binding 4δ and communication complexity Ccom (m), Copen (m, k) for k
+openings.
+    Let R be an NP relation with input size n and witness size m, that is computable by a (non-
+uniform) circuit family C of size S = S(n) and depth D = D(n) and assume n ≤ poly(m).
+Then the relation R has a zero-knowledge            proof with perfect completeness, and soundness error
+3δ       D log(S)+log(m+log(1/δ)) log(1/δ) 
+ 4 +  O                F                     , in which the verifier, prover and simulator all only make a
+black-box use of the one-way function. The communication complexity is
+
+    Ccom (m + log(1/δ)) + Copen (m + log(1/δ), log(1/δ)) + log(1/δ) · poly(λ, D, log(S), log(|F|)).
+
+where λ is the security parameter and F a finite field.
+
+Section Organization. In Section 6.1 we show that a short random padding of a string suffices
+to make its multilinear evaluations at a set of points look random. Using this fact, in Section 6.2
+we prove Lemma 6.2. Finally, in Section 6.3 we show how to derive Theorem 1.1 from Lemma 6.1.
+
+6.1    Random Padding of Multilinear Extensions
+Let d, λ ∈ N be parameters. We use yi ∈ {0, 1}d to denote the i-th binary vector in lexicographic
+order.
+   For a sequence of points ⃗z = (z1 , . . . , zλ ) ∈ (Fd )λ , let M⃗z ∈ Fλ×λ be a matrix defined as:
+
+                                         M⃗z [i, j] = eq(yj , zi ),
+
+for all i, j ∈ [λ].
+
+Definition 6.3. We say that ⃗z is good if M⃗z has full rank.
+
+Lemma 6.4. With probability 1 − λ·d     z ∈ (Fd )λ , it holds that M⃗z has full rank.
+                                 F over ⃗
+
+
+
+
+                                                    36
+Proof. Each entry of M⃗z is a polynomial of total degree at most d (since the (i, j)-th entry is
+eq(yj , zi )). Thus, that the determinant of M⃗z can be expressed as the polynomial:
+
+                                                            X                   λ
+                                                                                Y
+                                           det(M⃗z ) =            sign(σ) ·           eq(yσ(i) , zi ).
+                                                           σ∈Sλ                 i=1
+
+Each term is a product of λ polynomials, each with total degree at most d, so the total degree of
+the polynomial det(M (⃗z)) is at most dλ.
+    Next, we show that this polynomial is not identically zero. Indeed, taking zj = yj for every
+j ∈ [λ], the matrix M becomes the identity matrix, whose determinant is equal to 1. Hence,
+det(M (⃗z)) is not identically zero.
+    Since det(M (⃗z)) is a non-zero multivariate polynomial of total degree at most λ · d, and each zi
+is chosen uniformly from Fd , by the Schwartz-Zippel lemma we have:
+                                                                                       λ·d
+                                                      Pr [det(M⃗z ) = 0] ≤                 ,
+                                                    z ∈(Fd )λ
+                                                    ⃗                                  |F|
+and the lemma follows
+                                                                                                             d
+Lemma 6.5. Let x ∈ {0, 1}m , and define x′ = r∥x, where x′ ∈ {0, 1}2 and r ∈ Fλ is chosen
+uniformly at random. Let f be the multilinear extension of x′ and let ⃗z ∈ (Fd )λ be a good sequence
+of points (as per Definition 6.3). Then f (z) = (f (z1 ), . . . , f (zλ )) is distributed identically to the
+uniform distribution over Fλ .
+Proof. Let ⃗z ∈ (Fd )λ be the good set of points and recall that this means that M⃗z has full rank.
+   We now observe that for each j ∈ [λ],
+            2 d                           λ+m                             λ                              λ+m
+                                                                                                                                         (j)
+            X                             X                               X                              X
+f (zj ) =          eq(yi , zj ) · x′i =           eq(yi , zj ) · xi−λ +         eq(yi , zj ) · ri =              eq(yi , zj ) · xi−λ + ⟨M⃗z , r⟩,
+            i=1                           i=λ+1                           i=1                            i=λ+1
+                                                                                                                                        (2)
+             (j)
+where M⃗z denotes the j-th          row of M⃗z . Let E⃗z ∈ F
+                                                               λ×d be a matrix whose j-th row is equal to
+
+ eq(yλ+1 , zj ), . . . eq(yd , zj ) . Thus, we can use Eq. (2) to write f (⃗z) as:
+
+                                                        f (⃗z) = E⃗z · x + M⃗z · r.
+
+    Since M (⃗z) has full rank, we have that M (⃗z) · r is uniformly distributed over Fλ and therefore,
+so is E⃗z · x + M⃗z · r.
+
+
+6.2       Proof of Lemma 6.2
+Let R be an NP-relation, let (Cpcs , Ppcs , Vpcs ) be a polynomial commitment scheme and Com be
+a standard bit-commitment scheme with additive overhead (see Proposition 2.13).4 We set both
+commitments to have a binding error 4δ .
+    The interactive protocol for R that establishes Lemma 6.2 is presented in Fig. 4.
+    We proceed to show that the protocol satisfies the desired properties.
+   4
+       For sake of readability we omit the CRS from the notation.
+
+
+                                                                    37
+                                Succinct Zero Knowledge Protocol
+
+Common Input: x ∈ {0, 1}n and security parameter 1λ .
+Prover’s Additional Input: witness w ∈ {0, 1}m , such that (x, w) ∈ R.
+
+
+  1. P samples a uniformly random string r ∈ {0, 1}ℓ . Denote by ω = r∥w the concatenation
+     of r and w, and let ω̂ be the multilinear extension of ω.
+
+  2. P computes (cpcs , dpcs ) ← Cpcs (ω) and sends cpcs to V .
+
+  3. For t = 1, . . . , ℓ:
+
+       (a) P and V emulate the interactive phase of the GKR protocol (see (P, Vinteractive ) in
+           Theorem 2.21) on input (Cx , ω) (where Cx denotes the circuit that computes the
+           relation R with x hardcoded, extended to accept ℓ additional input bits, which do
+           not affect the output) as follows: in every round i ∈ [r], the prover does not send the
+                       (t)
+           message mi directly, but rather generates an additive secret sharing of the message
+                 (t)           (t)     (t)                                       (t)       (t)
+           s.t mi,1 ⊕ · · · ⊕ mi,k = mi , and sends to V commitments to mi,1 , . . . , mi,k . We
+                                                                                               (t)
+            denote the coins sent from V to P in the t-th repetition of this stage as coinsV .
+      (b)     i. P derives zt ∈ Fd and ⟨C⟩ (by Theorem 2.21 it can do so from Step 3a).
+             ii. P executes (“in its head”) the following k-party MPC protocol:
+                                              (t)   (t)                   (t)      (t)
+                   • Player j input: (coinsV , bj , zt , ω̂(zt )), where bj = (mi,j )i∈[r] .
+                                                                                           L (t)
+                   • Functionality: (1) verify that ω̂(zt ) can be correctly derived from       bj
+                                                                                          j∈[k]
+                                                                 
+                                               (t) L (t) 
+                     and (2) that Vpost coinsV ,      bj , ⟨C⟩, zt accepts.
+                                                          j∈[k]
+            iii. P sends commitments to the views of the k parties in the MPC protocol.
+       (c) V randomly chooses a party qt ∈ [k] and sends it to P .
+
+  4. If ⃗z = (z1 , . . . , zℓ ) is not good (see Definition 6.3) V accepts and halts.
+
+  5. For every t ∈ [ℓ] and j ∈ [k]\{qt }, the prover P decommits to everything related to j in
+                            (t)
+     iteration t, namely (mi,j )i∈[r] , and the view of party j, in the t-th iteration.
+
+  6. V checks that for every t ∈ [ℓ]: (1) all inputs of the parties are correct, (2) all their views
+     are consistent (3) all parties properly followed the specification of the MPC protocol, and
+     (4) all of the parties accepted. If any test fails then V rejects.
+
+  7. Finally, V and P emulate the PCS evaluation protocol (Ppcs , Vpcs ) with respect to the
+     commitment cpcs , the points (zt )t∈[ℓ] and the claimed evaluations ω̂(zt ) (that V received
+     from the MPC). If Vpcs accepts then V accepts. Otherwise it rejects.
+
+
+
+                             Figure 4: Succinct Zero-Knowledge Proof for R
+
+                                                     38
+6.2.1   Completeness
+Let (x, w) ∈ R. If (P, V ) follow the protocol, then for each iteration t ∈ [ℓ] the GKR interactive
+phase is executed correctly, and the input to each player j is
+                                          (t) (t)                   
+                                     coinsV , bj , zt , ω̂(zt ), ⟨C⟩ ,
+                                           (t)
+where zt can be easily derived from coinsV .
+   The MPC protocol performs two checks:
+   • Vpost accepts: The input to Vpost in Step 3(b)ii is
+                                                 (t)
+                                                     M (t) 
+                                            coinsV ,     bj ,
+                                                      j∈[k]
+
+                                        (t)     (t) 
+     where, by construction, j∈[k] bj = mi i∈[r] . Hence, the input is the transcript of a valid
+                               L
+
+     interaction between PGKR and Vinteractive . Therefore, Vpost ’s input in each iteration of Step 3
+     corresponds to a valid run of the GKR protocol, and Vpost accepts.
+                                                                                     (t)
+   • ω̂(zt ) is derived correctly: ω̂(zt ) can be correctly obtained from     j∈[k] bj , i.e., from the
+                                                                           L
+     transcript of the interactive phase. In a valid GKR execution, the prover outputs ω̂(zt ), which
+     is then derived from the transcript.
+    Thus, both checks pass, and by the perfect completeness of the MPC protocol, the players
+accept. Since P follows the protocol, it can open all commitments correctly, so all checks in Step 6
+pass. Additionally, in the (unlikely event) that z is not good, in Step 4 the verifier also accepts.
+    Finally, by the perfect completeness of the polynomial commitment scheme, the verifier accepts
+the openings.
+
+6.2.2   Soundness
+Let x ∈
+      / LR and let P ∗ be a cheating prover strategy. Without loss of generality, we assume that
+P is deterministic.
+  ∗
+
+    We first note that by Lemma 6.5, the probability that ⃗z is not good is at most O(log(m+ℓ))ℓ
+                                                                                           |F|   .
+Thus, we may assume that ⃗z is good (and in particular the verifier does not accept in Step 4).
+    Our commitment is defined with respect to a CRS and is binding with probability 1 − 4δ . We
+assume that it is indeed binding.
+    Consider the following possible behaviors of P ∗ :
+  1. It cheats in all the rounds of Step 3 (distributed GKR and MPC). This happens either when the
+     behavior of one of the parties in the MPC protocol transcript, as defined by the commitment,
+     does not follow the protocol specification. Or a pair of views is inconsistent, i.e., messages
+     sent by one party are not received correctly by the other parties.
+
+  2. It produces an invalid decommitment in Step 5.
+
+  3. It runs in at least one round of Step 3 (the MPC) correctly and sends a valid decommitment
+     to all the required views and messages, and then attempts to cheat in the evaluation proof
+     interactive protocol of the PCS.
+
+                                                 39
+    In the first case, if one of the parties in the MPC protocol deviates from the specification in a
+given iteration, the verifier V selects that party and rejects with probability k1 . Otherwise, if a pair
+of views is inconsistent, the inconsistent pair of parties is selected with probability k2 . Therefore,
+the overall probability that P ∗ misbehaves in all ℓ iterations of Step 3 while V does not reject is at
+             ℓ
+least 1 − k1 , since the verifier’s choices in different iterations are independent.
+    In the second case, the verifier will reject when checking the decommitments in Step 6.
+    In the third case, assume that all commitments can be opened in exactly one way, and that
+P ∗ simulates the MPC protocol correctly in at least one iteration t∗ on the inputs derived from
+the opening of the commitments, as defined in the protocol. Since x ∈       / LR , for any w∗ it holds
+that (x, w ) ∈
+           ∗    / R, and therefore the circuit Cx does not accept w . Let w∗ be the function that
+                                                                       ∗
+
+P committed to in Step 2, and let αt∗ be the value derived from the transcript of the interactive
+  ∗
+
+phase of the GKR protocol in the t∗ -th iteration, as defined in Theorem 2.21 (in a correct run,
+αt∗ = ŵ∗ (zt∗ )).
+    We distinguish two cases:
+
+   1. αt∗ = ŵ∗ (zt∗ ). By Theorem 2.21, this
+                                            implies  that Veval accepts. For a false statement, this
+                                             D log S
+      happens with probability at most O       |F|    .
+
+ (ii) αt ̸= ŵ∗ (zt∗ ). In this case, acceptance can only occur if the polynomial commitment opens
+      inconsistently, by the binding property of the PCS, this happens with probability at most 4δ .
+
+    Overall, the probability that V accepts is at most 2δ + (1 − k1 )ℓ + O D log(S)
+                                                                                     O(log(m+ℓ))ℓ
+                                                                              |F|    +     |F|     .
+
+6.2.3   Zero-knowledge
+Let V ∗ be a probabilistic polynomial-time (potentially malicious) verifier. Without loss of generality
+we assume that V ∗ is deterministic. We construct a simulator S for V ∗ in Fig. 5 and proceed to
+the analysis.
+    Note that the simulator S is allowed to rewind, and it does so in Step 2d. The analysis proceeds
+in two main steps:
+
+   • We show that rewinding rarely fails. The probability that S fails in Step 2d after κ rewind
+     attempts is negligible (see Corollary 6.7).
+
+   • We show that conditioned on the rewinding not failing, the output of the simulator is computationally
+     indistinguishable from the verifier’s view in a real execution of the protocol (see Proposition 6.8).
+
+Since the probability of rewinding failure is negligible, the statistical distance between the unconditional
+output of the simulator and its output conditioned on success is also negligible. Therefore, once
+we prove that the simulator’s output conditioned on success (i.e., qt = qt∗ for every t ∈ [ℓ]) is
+computationally indistinguishable from the real view, it follows that the (unconditioned) simulator
+and the real view are themselves computationally indistinguishable.
+
+Proposition 6.6. Let κ be the number of rewind attempts per round and let t ∈ [ℓ] be a fixed round.
+The probability that S ever fails its rewinding in round t (i.e., qt ̸= qt∗ in Step 2d in all κ rewind
+attempts) is at most
+                                                    1 κ
+                                                      
+                                              (1 − 2k   .
+
+
+                                                   40
+                                        The Simulator for V ∗
+
+Input: main input x ∈ L and security parameter 1λ .
+
+  1. S computes (cpcs , dpcs ) ← Cpcs (w∗ ), where w∗ ∈ {0, 1}m+ℓ is random and sends cpcs to
+     V ∗.
+
+  2. For t = 1, . . . ℓ:
+
+      (a) S emulates with V ∗ the interactive phase of the GKR protocol (see (P, Vinteractive ) in
+          Theorem 2.21) on input (Cx , w∗ ) as follows: In every round i ∈ [r], the simulator S
+                              (t)            (t)
+          randomly chooses m̃i,1 , . . . , m̃i,k and sends to V ∗ commitments to them. We denote
+                                                                            (t)
+            the coins sent from V ∗ to S during this stage by coinsV ∗ , and the entire interaction
+                                                                                     (t)
+            (the commitments to all shares as well as the verifier’s coins) by tr]
+                                                                                 GKR .
+      (b) Repeat these steps at most κ times:
+              i. S derives zt ∈ Fd and the circuit ⟨C⟩ (see Item 2) of Theorem 2.21).
+             ii. S chooses a random player qt uniformly from [k].
+            iii. S runs the MPC simulator SM P C (see Definition 2.24) for all parties except qt ,
+                 wrt the functionality described in Step 3(b)ii of the protocol. We denote SM P C ’s
+                 output for party q ∈ [k] \ {qt } by v]
+                                                      iewq .
+            iv. S sets the view of the remaining party qt to a default value v]       iewqt = 0|view| ,
+                 and sends to V ∗ the commitments to (v]     iewi )i∈[k] . Denote these commitments
+                 by com(v iewi )i∈[k] .
+                          ]
+       (c) V ∗ responds with a party qt∗ .
+      (d)     • If qt ̸= qt∗ , then S rewinds V ∗ to Step 2b.
+              • If qt = qt∗ , then S continues to the next step.
+
+  3. 
+     If ⃗z = (z1 , . . . , zℓ ) is not good (see Definition     6.3) S halts and outputs:
+                        GKR , {com(v iew i )}i∈[k] , Tqt t∈[ℓ] .
+                  ∗
+                                                        
+       x, Cpcs (ŵ ), tr]          ]
+
+                                                    f (t) (i), dec
+  4. S sends, for every t ∈ [ℓ], the decommitments {dec         f (t) (i)}i∈[k]\{q } , where dec
+                                                                                             f (t) (i)
+                                                        m          v              t             m
+             (t)                                               (t)
+     and dec
+          f (i) are the decommitments to the message m̃ and to party i’s view, sent in
+               v                                                        i
+     the t-th iteration, respectively.
+
+  5. S and V ∗ run the evaluation protocol (Ppcs , Vpcs ) for the polynomial commitment cpcs at
+     the points {zt }t∈[ℓ] .
+
+  6. S outputs
+                                                                                                    
+            x, cpcs , tr]
+                        GKR , {com(v]iew  )}    , q
+                                         i i∈[k] t t∈[ℓ] , { dec
+                                                             f  m (i), dec
+                                                                       f   v (i)}           )
+                                                                                 i∈[k]\{qt } t∈[ℓ] , χ  ,
+
+     where χ = (Ppcs , Vpcs )(cpcs , ⃗z, w∗ (⃗z)) is the interactive opening protocol for the polynomial
+     commitment, ⃗z is computed from coinsV ∗ , and w∗ (⃗z) is given from the MPC protocol in
+     Step 2(b)iii.
+
+                                                     41
+
+                                        Figure 5: The Simulator
+Proof. Let mt be the message transcript prior to round t, let qt ∈ [k] be the choice of party of the
+simulator in one attempt in the t-th round, and let ρt denote the randomness used by the simulator
+to commit in that attempt. Let u∗(mt ,qt ,ρt ) denote the choice made by V ∗ in this attempt, given the
+previous transcript mt and the simulator’s choices and randomness qt and ρt .
+    Since the commitment scheme is computationally hiding, the verifier’s choice cannot significantly
+depend on the simulator’s choice and randomness qt , ρt , or on the values hidden inside the commitments.
+Thus, for any two choices and randomness values (q ′ , ρ′ ) and (q ′′ , ρ′′ ) used in the commitments, and
+any fixed message prefix m, we have for every q and every polynomial p:
+                                                                                           1
+                            Pr[u∗(m,q′ ,ρ′ ) = q] − Pr[u∗(m,q′′ ,ρ′′ ) = q] ≤                  .
+                                                                                          p(n)
+
+    That is, the choice of V ∗ is nearly independent of the committed values and the simulator choice.
+It follows that, conditioning on success in all previous rounds (that is some previous transcript),
+the success probability for one attempt in round t is close to k1 − p(n)
+                                                                      1
+                                                                         . That is:
+
+    Pr[one rewind fails in step t] = E       Pr[u∗(mt ,qt ,ρt ) ) ̸= qt ]
+                                                                        
+                                     qt ,ρt
+                                             X
+                                                   Pr[u∗(mt ,q,ρ) = q ∗ ]
+                                                                           
+                                    ≤ E
+                                       qt ,ρt
+                                                    q ∗ ̸=qt
+                                                h X                                        1 i
+                                    = E                        Pr[u∗(mt ,0,0) = q ∗ ] +
+                                       qt ,ρt                                             p(n)
+                                                    q ∗ ̸=qt
+                                          h X                           i k−1
+                                    =E            Pr[u∗(mt ,0,0) = q ∗ ] +
+                                     qt                                    p(n)
+                                         q ∗ ̸=qt
+                                        h X                             i k−1
+                                    =E            Pr[u∗(mt ,0,0) = q ∗ ] +
+                                     q∗                                    p(n)
+                                         qt ̸=q ∗
+                                                                        k − 1    k−1 k−1
+                                    = k − 1 E Pr[u∗(mt ,0,0) = q ∗ ] +               =    +
+                                                   q∗                           p(n)    k   p(n)
+
+    and by choosing p(n) = 2k 2 we get that the probability to fail one attempt of rewind is at most
+     1
+1 − 2k , Since the rewinding only changes (qt , ρt ), every rewinding iteration is independent. Hence,
+the probability that the simulator fails to succeed in iteration i after κ independent rewind attempts
+is at most
+                                                     1 κ
+                                                       
+                                                1−         .
+                                                    2k
+
+
+   From the union bound and Corollary 6.7, we obtain the following corollary:
+
+Corollary 6.7. The probability that the simulator succeeds in all ℓ rounds is at least
+
+                                                    1 κ
+                                                     
+                                       1−ℓ 1−           .
+                                                   2k
+
+By choosing κ = O(k · λ − log(ℓ)) this probability of failure is made negligible in λ.
+
+
+
+                                                               42
+     Denote by S̄(x) the distribution of S(x) conditioned on the rewinding in Step 2d succeeding
+(i.e., conditioned on qt = qt∗ for all t ∈ [ℓ]).
+                                                          P (w)
+Proposition 6.8. The ensembles S̄(x) and {V iewV∗                 (x, λ)}x∈L are computationally indistinguishable.
+
+Proof. The proof loosely follows the structure of the zero knowledge proof for the 3-coloring protocol
+                                                       (1)         (ℓ)
+in [Gol01, Section 4.4.2.3]. Let cV ∗ = (coinsV ∗ , . . . , coinsV ∗ ) denote the coins chosen by V ∗ in
+Step 3a in Fig. 4 or 2a in Fig. 5 (for P and S, respectively), and let T̄ = (q1 , . . . , qℓ ) denote the
+                                                                   (i)
+set of parties selected by the verifier. Note that both coinsV ∗ and qi may depend on the previous
+                                                       P (w)
+interaction. For x ∈ L, both S̄(x) and {V iewV ∗ (x, λ)}x∈L are sequences of one of the following
+two forms, depending on z (see Step 4 of 4 and Step 3 of Fig. 5).
+                                                                                                       
+             x, ref, Cpcs (ω), {distributedGKRt , qt , open-postGKRt }t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ω̂(⃗z)) ,
+                                                                                
+                                   x, ref, Cpcs (ω), {distributedGKRt , qt }t∈[ℓ] .
+
+   • distributedGKRt is the t-th iteration of Step 3 :
+                                                                          
+                                                                  (t)
+                              distributedGKRt = trGKRt , {com(viewi )}i∈[k] .
+
+   • open-postGKRt is the opening of the commitment for Tqt = [k]\{qt } in Step 5:
+                                                                         
+                            open-postGKRt = {dec(t)
+                                                 m  (i), dec(t)
+                                                            v   (i)} i∈Tqt .
+
+
+
+
+   • ⃗z = (z1 , . . . , zℓ ) ∈ (Fd )ℓ are the values from the distributed GKR execution that can be derived
+                                     (1)          (ℓ)
+      from coinsV ∗ = (coinsV ∗ , . . . , coinsV ∗ ) (see Item 2 in Theorem 2.21).
+
+   • ω̂(⃗z) = (ω̂(z1 ), . . . , ω̂(zℓ )) ∈ Fℓ are the evaluations of ω̂ on these values, computed and checked
+     in the MPC in Step 3(b)ii.
+
+   • (Ppcs , Vpcs )(⃗z, ω̂(⃗z)) denotes the opening protocol of the polynomial commitment. Here, Vpcs
+     is run by V ∗ , and Ppcs is run by either P or S.
+
+                                                                                      P (w)
+Assume toward a contradiction that the ensembles {S̄(x)}x∈L and {V iewV ∗ (x)}x∈L are distinguishable.
+Define:
+
+   • µcV ∗ ,T̄ (x): the output of the simulator S̄(x) conditioned on V ∗ requesting cV ∗ , T̄ .
+
+   • pcV ∗ ,T̄ (x): the probability that V ∗ requests cV ∗ , T̄ when interacting with S̄(x);
+                                          P (w)
+   • νcV ∗ ,T̄ (x): the real view V iewV ∗ (x) conditioned on V ∗ requesting cV ∗ , T̄ .
+
+   • fcV ∗ ,T̄ (x): the probability that V ∗ requests cV ∗ , T̄ in the real execution with P (x, w).
+
+Lemma 6.9. For every cV ∗ and T̄ ∈ [k]ℓ it holds that |pcV ∗ ,T̄ (x) − fcV ∗ ,T̄ (x)| is negligible.
+
+
+
+                                                        43
+Proof. Assume toward contradiction, that the difference is non-negligible. Then there exists an
+index i∗ ∈ [ℓ] such that one of the following holds (conditioning on the interaction history up to
+round i∗ ):
+
+   1. The probability that V ∗ requests qi∗ in the real execution with P (x, w) differs non-negligibly
+      from the probability that V ∗ requests qi∗ when interacting with S̄(x).
+                                                       (i∗ )
+   2. The probability that V ∗ requests coinsV ∗ in the real execution with P (x, w) differs non-
+                                                             (i∗ )
+      negligibly from the probability that V ∗ requests coinsV ∗ when interacting with S̄(x).
+
+   Either case would contradict the following claim.
+                                                                           (1)                    (i)
+Claim 6.9.1. For every i ∈ [ℓ], and every fixed sequence coinsV ∗ , q1 , . . . , qi−1 , coinsV ∗ , denote:
+                                                                                        
+              H0 = x, ref, Cpcs (ω), {distributedGKRt , qt }t∈[i−1] , distributedGKRi
+                                                                                           
+              H1 = x, ref, Cpcs (w∗ ), {distributed
+                                              ^ GKRt , qt }t∈[i−1] , distributed
+                                                                             ^ GKR ,
+                                                                                          i
+
+
+          c
+then, H0 ≈ H1 .
+                                                                    
+                                                          (t)
+Proof. Recall distributedGKRt = trGKRt , {com(viewi )}i∈[k] is the t-th iteration of Step 3 and
+                                         (t)
+                                                 
+     ^ GKRt = tr^
+distributed           GKRt ,{com(v ] iewi )}i∈[k] , the t-th iteration of Step 2.
+    From the commitment hiding property of the PCS,
+                                                                                         
+                       x, ref, Cpcs (ω), {distributedGKRt , qt }t∈[i−1] , distributedGKRi
+
+                                                           c
+                                                          ≈
+                                                                                            
+                         x, ref, Cpcs (w∗ ), {distributedGKRt , qt }t∈[i−1] , distributedGKRi .
+
+    Now recall that distributedGKRt ( resp. distributed
+                                                 ^ GKRt ) consist of commitments to secret shares
+computed by P (resp., S), followed by commitments to the parties’ views in the MPC. Therefore, by
+the hiding property of the commitment and a standard hybrid argument, we conclude the claim.
+
+    If case 1 holds, then we can build a (non-uniform) distinguisher that, given the distribution up
+to round i∗ , outputs 1 if qi∗ is chosen and 0 otherwise.
+    If case 2 holds, then by Fact 2.5 we may add to the distribution at the i∗ -th iteration the
+commitments to the messages in Step 3a of Fig. 4 or 2a of Fig. 5(for P or S, respectively)
+up to the point where the chosen coins in round i∗ diverge. The resulting distribution remains
+indistinguishable. Once again, we can construct a (non-uniform) distinguisher that feeds V ∗ with the
+distribution up to round i∗ and outputs 1 if the verifier’s coins match, and 0 otherwise contradicting
+Claim 6.9.1.
+    Thus we conclude the proof of Lemma 6.9.
+
+
+
+
+                                                          44
+    By an averaging argument, there exists a probabilistic polynomial time algorithm A, a polynomial
+h(·), infinitely many n, and inputs x and a request pair cV ∗ T̄ such that:
+                                                                                                   1
+                  fcV ∗ ,T̄ (x) · Pr[A(µcV ∗ ,T̄ (x))] − pcV ∗ ,T̄ (x) · Pr[A(νcV ∗ ,T̄ (x))] ≥        .
+                                                                                                  h(n)
+This further implies, the following:
+                                           1
+                         fcV ∗ ,T̄ (x) ≥ 2h(n) ,                                                           (3)
+                                                             1
+                         |pcV ∗ ,T̄ (x) − fcV ∗ ,T̄ (x)| ≤ 8h(n) 2,                                        (4)
+                          Pr[A(µcV ∗ ,T̄ (x)) = 1] − Pr[A(νcV ∗ ,T̄ (x)) = 1]           1
+                                                                                    ≥ 2h(n) .              (5)
+
+Eq. (4) follows from Lemma 6.9 using a suitably large polynomial. We conclude that fcV ∗ ,T̄ (x) ·
+                                                                 1
+Pr[A(µcV ∗ ,T̄ (x))] − fcV ∗ ,T̄ (x) · Pr[A(νcV ∗ ,T̄ (x))] ≥ 2·h(n) and Eqs. (3) and (5) follow.
+   We now show that this contradicts the following two claim:
+ Claim 6.9.2. Let coinsV ∗ and (q1 , . . . , qℓ ) ∈ [k]ℓ be a fixed randomness choice of the verifier s.t
+⃗z = (z1 , . . . , zℓ ) ∈ (Fd )ℓ (uniquely derived from coinsV ∗ ) is good (see Definition 6.3), denote:
+                                                                                                       
+       H0 = x, ref, Cpcs (ω), {distributedGKR , qt , open-postGKRt }t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ˆ(ω)(⃗z)
+                                                                                                           
+       H1 = x, ref, Cpcs (w∗ ), {distributedGKR , qt , open-postGKRt }t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ˆ(w∗ )(⃗z)
+
+           c
+then, H0 ≈ H1 .
+
+Proof. We first show that the messages sent in the clear, together with the decommitted message, are
+computationally indistinguishable in the two cases: when V ∗ interacts with P , and when it interacts
+with the simulator. We then add the commitments to the remaining messages and conclude the
+proof. For simplicity of notation, we use Tt to denote the selected set, namely Tt = {1, . . . , k} \ qt .
+   Thus, first denote,
+                                                         (t)
+                                                                                                       
+                                (t)           (t)
+          A0 = Cpcs (ŵ∗ ), (m̃i )i∈Tt , coinsV ∗ , (v]
+                                                      iewi )i∈[Tt ] t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ŵ∗ (⃗z))
+                                                                   
+                                                                                                     
+                                (t)           (t)        (t)       
+          A3 = (Cpcs (ω̂), (mi )i∈Tt , coinsV ∗ , (viewi )i∈[Tt ] t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ω̂(⃗z)) ,
+
+where recall that:
+
+   • mi is the share for party i of the GKR message in the real interaction (Fig. 4, Step 3a),
+     and m̃i is the corresponding share of a random message in the simulation (Fig. 5, Step 2a).
+         (t)           (t)       (t)          (t) 
+      (m̃i )i∈T , coinsV ∗ and (mi )i∈T , coinsV ∗ are the transcripts of the interaction phase of
+     the GKR protocol in the t-st step (without the commitment) in the simulator and in the real
+     interaction, respectively.
+            (t)
+   • v]
+      iewi consists of the input for party i followed by the output of SM P C for the party i.
+            (t)
+   • viewi the input for party i followed by the view of that party in the MPC protocol (all in
+     the real interaction).
+
+                                                           45
+   The proof is via a hybrid argument. Consider the following hybrid distributions:
+                                                 (t)
+                                                                                               
+                      (t)            (t)
+A0 := Cpcs (ŵ∗ ), (m̃i )i∈Tt , coinsV ∗ , (v]iewi )i∈[Tt ] t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ŵ∗ (⃗z))
+                                                           
+
+     
+                     (t)            (t)          (t)                          (t)                                        
+   = Cpcs (ŵ∗ ), (m̃i )i∈Tt , coinsV ∗ , (i^                          nputi )i∈Tt ) t∈[ℓ] , ] Ppcs , Vpcs (⃗z, ŵ∗ (⃗z))
+                                                                                                         
+                                             nputi )i∈Tt , SM P C ((i^
+                 (t)
+         nputi = m̃i (t) , zt , ŵ∗ (zt )), is the input to party i in iteration t derived by the simulator.
+  where i^
+                                                                                                                  
+                    (t)              (t)          (t)                   (t)     
+A1 := Cpcs (ω̂), (m̃i )i∈Tt , coinsV ∗ , (inputi )i∈Tt , SM P C ((inputi )i∈Tt ) t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ω̂(⃗z))
+                   (t)               
+  where (inputk = (m̃i , ⃗z, ω̂(⃗z)
+                                                                                                                  
+                    (t)              (t)          (t)                   (t)     
+A2 := Cpcs (ω̂), (mi )i∈Tt , coinsV ∗ , (inputi )i∈Tt , SM P C ((inputi )i∈Tt ) t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ω̂(⃗z))
+                 (t)
+  where inputi = mi (t) , zt , ŵ∗ (zt )), is the input to party i in iteration t derived by the prover.
+                                                                                       
+                   (t)              (t)         (t)                       
+A3 := Cpcs (ω̂), (mi )i∈Tt , coinsV ∗ , (viewi )i∈[Tt ] t∈[ℓ] , Ppcs , Vpcs (⃗z, ω̂(⃗z))
+
+Note that A0 is the output of the simulator. In A1 , we change the commitment and all related
+components (namely, the input to the simulator and the PCS) from w∗ to ω. A2 is defined similarly
+to A1 , but with mi instead of m̃i . Finally, A3 is the view in a real interaction with P that is with
+a real execution of the MPC instead of the simulator.
+     c
+A0 ≈ A1 : since z is good and from the proof of Lemma 6.5, it holds that ω̂(⃗z) is uniformly
+distributed. Thus, since ŵ∗ is a random multilinear low degree polynomial ŵ∗ (⃗z) is also uniform
+and ŵ∗ (⃗z) ≡ ω̂(⃗z) and the two distributions are k-wise independent. Thus from the binding property
+of the polynomial commitment,
+                                                                  c                                                
+           Cpcs (ŵ∗ ), ⃗z, ŵ∗ (⃗z), (Ppcs , Vpcs )(⃗z, ŵ∗ (⃗z)) ≈ Cpcs (ω̂), ⃗z, ω̂(⃗z), (Ppcs , Vpcs )(⃗z, ω̂(⃗z))
+
+                                          (t)
+Since coinsV ∗ is fixed , and (m̃i )i∈[Tt ] is a secret sharing, and the restriction of an additive secret
+sharing to any set of k − 1 shares is uniformly random, it follows that:
+                                                                                                      
+                                   (t)           (t) 
+                   Cpcs (ŵ∗ ), (m̃i )i∈T , coinsV ∗ t∈[ℓ] , ⃗z, ŵ∗ (⃗z), (Ppcs , Vpcs )(⃗z, ŵ∗ (⃗z))
+
+                                                                 c
+                                                                ≈
+                                                                                                         
+                                         (t)            (t) 
+                           Cpcs (ω̂), (m̃i )i∈Tt , coinsV ∗ t∈[ℓ] , ⃗z, ω̂(⃗z), (Ppcs , Vpcs )(⃗z, ω̂(⃗z))
+                                                                         c
+From Fact 2.5 (applying SM P C ) we conclude that A0 ≈ A1 .
+
+A1 ≡ A2 : Recall (mi )i∈[k] is the distribution of the additive secret sharing of the GKR messages
+as in Fig. 4, Step 3a, whereas (m̃i )i∈[k] is the distribution of a secret sharing of a random message
+in Fig. 5, Step 2a.
+     Since the restriction of an additive secret sharing to any set of k − 1 shares is uniformly random,
+                    (t)                                      (t)
+it follows that (mi )i∈Tt is distributed identically to (m̃i )i∈Tt .
+     Thus, since the rest of the distributions are simply computed in the same manner for both
+distributions similarly to the previous case, we conclude A1 ≡ A2 .
+
+                                                                46
+                                                                                                                (t)
+A2 ≡ A3        By the (k−1)-privacy of the MPC protocol (see Definition 2.24), it holds that {(viewi )}i∈[Tt ]
+                                                     (t)
+is distributed identically to SM P C ((inputi )i∈Tt ). Thus, since the input and the rest of the hybrids
+are identical in the two cases, we have that A2 ≡ A3 .
+                                         c
+   Thus, we conclude that A0 ≈ A3 . Denote:
+                                                         (t)
+                                                                                                              
+                           (t)             (t)                          (t) 
+C0 := Cpcs (ŵ∗ ), (com(m̃i ))i∈Tt , coinsV ∗ , com(v]
+                                                     iewi ) i∈[Tt ] , dec t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ŵ∗ (⃗z))
+                                                                                                           
+                         (t)             (t)          (t)                
+C1 := Cpcs (ω̂), (com(mi ))i∈Tt , coinsV ∗ , com(viewi ) i∈[Tt ] , dec(t) t∈[ℓ] , (Ppcs , Vpcs )(⃗z, ω̂(⃗z)) ,
+            (t)         (t)        (t)                       (t)         (t)                                   (t)
+where dec = {decm (i), decv (i)}i∈Tt and decm (i), decv (i) are the decommitments to m̃i and
+party i’s view, in the t-st repetition respectively.
+    C0 and C1 are computed from A0 and A3 by the same procedure – committing to (m̃i )i∈T , and
+                                                                                        c
+  iewi )i∈T , or to (mi )i∈T ) and (viewi )i∈T . Thus, by Fact 2.5, we conclude that C0 ≈ C1 .
+(v^
+    Finally, from the hiding of the commitment and Fact 2.10 we can add the commitment to the
+remaining parties in each repetition t ∈ [ℓ] and the claim follows.
+
+Claim 6.9.3. Let (coinsV ∗ , (q1 , . . . , qℓ ) be a fixed randomness choice of the verifier s.t ⃗z = (z1 , . . . , zℓ )
+(uniquely derived from coinsV ∗ ), is good (see Definition 6.3) denote:
+                                                                                 
+                        H0 = x, ref, Cpcs (ω), {distributedGKR , T qt }t∈[ℓ]
+                                                                                  
+                        H1 = x, ref, Cpcs (w∗ ), {distributedGKR , T qt }t∈[ℓ]
+           c
+then, H0 ≈ H1 .
+Proof. The argument follows the proof of Claim 6.9.2, with the final part of the distribution omitted.
+Hence, the claim concerning ⃗z is unnecessary here.
+    We now construct the distinguisher A′ , that is given as input a sample corresponding either
+to the interaction of V ∗ with the simulator or with P , i.e., an instance of H0 or H1 as defined in
+Claims 6.9.2 and 6.9.3, depending on the coins chosen by V ∗ . The distinguisher A′ then checks
+whether the transcript is consistent with cV ∗ and T̄ . If so, A′ feeds the corresponding conditioned
+view to A; otherwise, it outputs 0.
+    Then,
+ Pr[A′ (H0 ) = 1] − Pr[A′ (H1 ) = 1] = fcV ∗ ,T̄ (x) Pr[A(µcV ∗ ,T̄ (x)) = 1] − pcV ∗ ,T̄ (x) Pr[A(νcV ∗ ,T̄ (x)) = 1]
+                                             ≥ fcV ∗ ,T̄ (x) · Pr[A(µcV ∗ ,T̄ (x))] − Pr[A(νcV ∗ ,T̄ (x))]
+                                                 − Pr[A(νcV ∗ ,T̄ (x))] · pcV ∗ ,T̄ (x) − fcV ∗ ,T̄ (x)
+                                             ≥ fcV ∗ ,T̄ (x) · Pr[A(µcV ∗ ,T̄ (x))]
+
+                                                 − Pr[A(νcV ∗ ,T̄ (x))] − pcV ∗ ,T̄ (x) − fcV ∗ ,T̄ (x)
+                                                 1      1    1
+                                             ≥       ·    −
+                                               2h(n) 2h(n) 8h(n)2
+                                                 1
+                                             =        ,
+                                               8h(n)2
+
+                                                              47
+which is non-negligible, contradicting either Claim 6.9.2 or Claim 6.9.3, depending on the coins
+chosen by V ∗ . This concludes the proof.
+
+6.2.4    Communication Complexity
+The prover first commits to w padded with a uniformly random string of length ℓ, sending a message
+of length Ccom (m + ℓ).
+    Next, the prover and verifier execute the interactive phase ℓ times. This phase has communication
+complexity poly(D, log(S), log(|F|)), and since the protocol is secret-shared among k parties and
+then committed, the communication per round is k · poly(λ, D, log(S), log(|F|)). Afterwards, P
+sends commitments to the views of all k parties in the MPC. The input for each party consists
+           (t) (t)
+of coinsV , bj , zt , ω̂(zt ), ⟨C⟩ (where bj = (mi,j )i∈[r] , the messages from Step 3a), each of size
+                                  
+
+poly(D, log(S), log(|F|)). The circuit computed by the MPC has size poly(D, log(S), log(|F|)), as
+derived from the complexity of Vpost in Theorem 2.21.
+    Since each party runs in time polynomial in the input size and the circuit size, the resulting view
+has size at most poly(k, D, log(S), log(|F|)). The corresponding commitment and decommitments,
+each of size poly(λ, D, log(S), log(|F|)). Finally, P and V execute (Ppcs , Vpcs ) on ℓ points, contributing
+Copen (m + ℓ, ℓ) communication.
+    Overall, the total communication complexity is
+
+                  Ccom (m + ℓ) + Copen (m + ℓ, ℓ) + ℓ · poly(λ, k, D, log(S), log(|F|)).
+
+By setting ℓ = log(4/δ) and k = 3 we achieve Lemma 6.2.
+
+6.3     Using Lemma 6.1 to derive Theorem 1.1
+Recall that we are given a Boolean circuit C : {0, 1}n × {0, 1}m → {0, 1}. Let F be finite field,
+                                                                               ′    ′
+n′ = n/ log(|F|) and m′ = m/ log(|F|). Consider the arithmetic circuit C ′ : Fn × Fm that operates
+as follows:
+                                          ′                       ′
+   1. Compute from the input x ∈ Fn and witness w ∈ Fm a redundant representation x′ ∈ Fn
+      and w′ ∈ Fm by unpacking the individual bits of each field element into log(F) field elements.
+
+   2. Output C ′ (x′ , w′ ), where the Boolean operations are replaced with the corresponding field
+      operations.
+
+   Applying Lemma 6.1 to C ′ we obtain Theorem 1.3.
+
+
+Acknowledgements
+Eden Florentz – Konopnicki is funded by the European Union (ERC, FASTPROOF, 101041208).
+Views and opinions expressed are however those of the author(s) only and do not necessarily reflect
+those of the European Union or the European Research Council.
+
+
+
+
+                                                    48
+References
+[AFR24]    Noor Athamnah, Eden Florentz-Konopnicki, and Ron D. Rothblum. Rate-1 zero-
+           knowledge proofs from one-way functions. In Elette Boyle and Mohammad Mahmoody,
+           editors, Theory of Cryptography - 22nd International Conference, TCC 2024, Milan,
+           Italy, December 2-6, 2024, Proceedings, Part I, volume 15364 of Lecture Notes in
+           Computer Science, pages 319–350. Springer, 2024. 3, 5, 9
+
+[AHIV23] Scott Ames, Carmit Hazay, Yuval Ishai, and Muthuramakrishnan Venkitasubramaniam.
+         Ligero: lightweight sublinear arguments without a trusted setup. Des. Codes Cryptogr.,
+         91(11):3379–3424, 2023. 7, 9
+
+[BIVW16] Andrej Bogdanov, Yuval Ishai, Emanuele Viola, and Christopher Williamson. Bounded
+         indistinguishability and the complexity of recovering secrets. In Matthew Robshaw
+         and Jonathan Katz, editors, Advances in Cryptology - CRYPTO 2016 - 36th Annual
+         International Cryptology Conference, Santa Barbara, CA, USA, August 14-18, 2016,
+         Proceedings, Part III, volume 9816 of Lecture Notes in Computer Science, pages 593–
+         618. Springer, 2016. 10
+
+[DP23]     Benjamin E Diamond and Jim Posen. Proximity testing with logarithmic randomness.
+           Cryptology ePrint Archive, 2023. 7, 13
+
+[GGI+ 15] Craig Gentry, Jens Groth, Yuval Ishai, Chris Peikert, Amit Sahai, and Adam D. Smith.
+          Using fully homomorphic hybrid encryption to minimize non-interactive zero-knowledge
+          proofs. J. Cryptol., 28(4):820–843, 2015. 3, 9
+
+[GH98]     Oded Goldreich and Johan Håstad. On the complexity of interactive proofs with
+           bounded communication. Inf. Process. Lett., 67(4):205–214, 1998. 3
+
+[GKR15]    Shafi Goldwasser, Yael Tauman Kalai, and Guy N. Rothblum. Delegating computation:
+           Interactive proofs for Muggles. J. ACM, 62(4):27:1–27:64, 2015. 3, 5, 14, 15
+
+[GLS+ 23] Alexander Golovnev, Jonathan Lee, Srinath T. V. Setty, Justin Thaler, and Riad S.
+          Wahby. Brakedown: Linear-time and field-agnostic snarks for R1CS. In Helena
+          Handschuh and Anna Lysyanskaya, editors, Advances in Cryptology - CRYPTO 2023
+          - 43rd Annual International Cryptology Conference, CRYPTO 2023, Santa Barbara,
+          CA, USA, August 20-24, 2023, Proceedings, Part II, volume 14082 of Lecture Notes in
+          Computer Science, pages 193–226. Springer, 2023. 7
+
+[GMR89]    Shafi Goldwasser, Silvio Micali, and Charles Rackoff. The knowledge complexity of
+           interactive proof systems. SIAM J. Comput., 18(1):186–208, 1989. 3, 14, 15
+
+[GMW86] Oded Goldreich, Silvio Micali, and Avi Wigderson. How to prove all NP-statements in
+        zero-knowledge, and a methodology of cryptographic protocol design. In Andrew M.
+        Odlyzko, editor, Advances in Cryptology - CRYPTO ’86, Santa Barbara, California,
+        USA, 1986, Proceedings, volume 263 of Lecture Notes in Computer Science, pages 171–
+        185. Springer, 1986. 3
+
+
+
+
+                                              49
+[GMW87] Oded Goldreich, Silvio Micali, and Avi Wigderson. How to play any mental game or
+        A completeness theorem for protocols with honest majority. In Alfred V. Aho, editor,
+        Proceedings of the 19th Annual ACM Symposium on Theory of Computing, 1987, New
+        York, New York, USA, pages 218–229. ACM, 1987. 16
+
+[Gol01]    Oded Goldreich. The Foundations of Cryptography - Volume 1: Basic Techniques.
+           Cambridge University Press, 2001. 20, 31, 43
+
+[GVW01] Oded Goldreich, Salil P. Vadhan, and Avi Wigderson. On interactive proofs with a
+        laconic prover. In Fernando Orejas, Paul G. Spirakis, and Jan van Leeuwen, editors,
+        Automata, Languages and Programming, 28th International Colloquium, ICALP 2001,
+        Crete, Greece, July 8-12, 2001, Proceedings, volume 2076 of Lecture Notes in Computer
+        Science, pages 334–345. Springer, 2001. 3
+
+[HILL99]   Johan Håstad, Russell Impagliazzo, Leonid A. Levin, and Michael Luby.        A
+           pseudorandom generator from any one-way function. SIAM J. Comput., 28(4):1364–
+           1396, 1999. 12
+
+[HN24]     Shuichi Hirahara and Mikito Nanashima. One-way functions and zero knowledge, 2024.
+           3
+
+[HVW23]    Carmit Hazay, Muthuramakrishnan Venkitasubramaniam, and Mor Weiss. Beyond
+           MPC-in-the-head: Black-box constructions of short zero-knowledge proofs. In Guy N.
+           Rothblum and Hoeteck Wee, editors, Theory of Cryptography - 21st International
+           Conference, TCC 2023, Taipei, Taiwan, November 29 - December 2, 2023, Proceedings,
+           Part I, volume 14369 of Lecture Notes in Computer Science, pages 3–33. Springer, 2023.
+           3, 5
+
+[IKOS09]   Yuval Ishai, Eyal Kushilevitz, Rafail Ostrovsky, and Amit Sahai. Zero-knowledge proofs
+           from secure multiparty computation. SIAM J. Comput., 39(3):1121–1152, 2009. 3, 5, 6,
+           16
+
+[KR08]     Yael Tauman Kalai and Ran Raz. Interactive PCP. In Luca Aceto, Ivan Damgård,
+           Leslie Ann Goldberg, Magnús M. Halldórsson, Anna Ingólfsdóttir, and Igor Walukiewicz,
+           editors, Automata, Languages and Programming, 35th International Colloquium, ICALP
+           2008, Reykjavik, Iceland, July 7-11, 2008, Proceedings, Part II - Track B: Logic,
+           Semantics, and Theory of Programming & Track C: Security and Cryptography
+           Foundations, volume 5126 of Lecture Notes in Computer Science, pages 536–547.
+           Springer, 2008. 3
+
+[Nao91]    Moni Naor. Bit commitment using pseudorandomness. J. Cryptol., 4(2):151–158, 1991.
+           12
+
+[NR22]     Shafik Nassar and Ron D. Rothblum. Succinct interactive oracle proofs: Applications
+           and limitations. In Yevgeniy Dodis and Thomas Shrimpton, editors, Advances in
+           Cryptology - CRYPTO 2022 - 42nd Annual International Cryptology Conference,
+           CRYPTO 2022, Santa Barbara, CA, USA, August 15-18, 2022, Proceedings, Part I,
+           volume 13507 of Lecture Notes in Computer Science, pages 504–532. Springer, 2022. 3,
+           9
+
+                                               50
+[OW93]     Rafail Ostrovsky and Avi Wigderson. One-way functions are essential for non-trivial
+           zero-knowledge. In Second Israel Symposium on Theory of Computing Systems, ISTCS
+           1993, Natanya, Israel, June 7-9, 1993, Proceedings, pages 3–17. IEEE Computer Society,
+           1993. 3
+
+[RS60]     Irving S Reed and Gustave Solomon. Polynomial codes over certain finite fields. Journal
+           of the society for industrial and applied mathematics, 8(2):300–304, 1960. 13
+
+[RW24]     Noga Ron-Zewi and Mor Weiss. Zero-knowledge iops approaching witness length. In
+           Leonid Reyzin and Douglas Stebila, editors, Advances in Cryptology - CRYPTO 2024
+           - 44th Annual International Cryptology Conference, Santa Barbara, CA, USA, August
+           18-22, 2024, Proceedings, Part X, volume 14929 of Lecture Notes in Computer Science,
+           pages 105–137. Springer, 2024. 9
+
+[VSBW13] Victor Vu, Srinath Setty, Andrew J Blumberg, and Michael Walfish. A hybrid
+         architecture for interactive verifiable computation. In 2013 IEEE Symposium on Security
+         and Privacy, pages 223–237. IEEE, 2013. 11
+
+
+
+
+                                               51
+                                                                       ECCC                          ISSN 1433-8092
+
+                                                                       https://eccc.weizmann.ac.il
+

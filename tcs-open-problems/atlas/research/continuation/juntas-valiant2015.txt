@@ -1,0 +1,2560 @@
+            Finding Correlations in Subquadratic Time,
+with Applications to Learning Parities and the Closest Pair Problem ∗
+                                             Gregory Valiant
+                                           Stanford University
+                                        gregory.valiant@gmail.com
+
+                                              August 29, 2013
+
+
+                                                   Abstract
+      Given a set of n d-dimensional Boolean vectors with the promise that the vectors are chosen uni-
+      formly at random with the exception of two vectors that have Pearson–correlation ρ (Hamming dis-
+      tance d· 1−ρ
+                2 ), how quickly can one find the two correlated vectors? We�present an algorithm
+                                                                                           �      which,
+                                                                                5−ω
+      for any constant � > 0, and constant ρ > 0, runs in expected time O n 4−ω +� + nd < O(n1.62 +
+      nd), where ω < 2.4 is the exponent of matrix multiplication. This is the first subquadratic–time
+      algorithm for this problem for which ρ does not appear in the exponent of n, and improves upon
+      O(n2−O(ρ) ), given by Paturi et al. [29], the Locality Sensitive Hashing approach of [18] and the
+      Bucketing Codes approach of [13].
+           Applications and extensions of this basic algorithm yield significantly improved algorithms for
+      several other problems:
+      Approximate Closest Pair: For any suﬃciently small constant � > 0, given n d-dimensional
+      vectors, our algorithm returns a pair of vectors whose Euclidean (or Hamming) distance√        diﬀers
+      from that of the closest pair by a factor of at most 1 + �, and runs in time O(n2−Θ( �) ). The best
+      previous algorithms (including Locality Sensitive Hashing) have runtime O(n2−O(�) ).
+      Learning Sparse Parities with Noise: Given samples from an instance of the learning
+      parities with noise problem where each example has length n, the true parity set has size at
+      most k << n, and the noise rate is η, our algorithm identifies the set of k indices in time
+        ω+�
+                     1                      1
+      n 3 k poly( 1−2η    ) < n0.8k poly( 1−2η ). This is the first algorithm with no dependence on η in
+                                                        �� ��
+      the exponent of n, aside from the trivial O nk ≈ O(nk ) brute-force algorithm, and for large
+      noise rates (η > 0.4), improves upon the results of Grigorescu et al. [15] that give a runtime of
+                2      k        1
+      n(1+(2η) +o(1)) 2 poly( 1−2η ).
+      Learning k-Juntas with Noise: Given uniformly random length n Boolean vectors, together
+      with a label, which is some function of just k << n of the bits, perturbed by noise rate η,
+      return the set of relevant indices. Leveraging the reduction of Feldman et al. [14] our result for
+                                                                                      ω+�
+                                                                                                    1
+      learning k-parities implies an algorithm for this problem with runtime n 3 k poly(2k , 1−2η      ) <
+        0.8k       k     1                                                              ck
+      n      poly(2 , 1−2η ), which is the first runtime for this problem of the form n with an absolute
+      constant c < 1.
+      Learning k-Juntas without Noise: Given uniformly random length n Boolean vectors, to-
+      gether with a label, which is some function of k << n of the bits, return the set of relevant
+      indices. Using a modification of the algorithm of Mossel et al. [24], and employing our algorithm
+      for learning sparse parities with noise via the reduction of Feldman et al. [14], we obtain an algo-
+                                                  ω+�
+      rithm for this problem with runtime n 4 k poly(2k , n) < n0.6k poly(2k , n), which improves on the
+                            ω+1
+      previous best of n ω k ≈ n0.7k poly(2k , n) of Mossel et al. [24].
+  ∗
+    A preliminary version of a portion of this work appeared at the IEEE Symposium on Foundations of Computer
+Science (FOCS) 2012, as “Finding Correlations in Subquadratic Time, with Applications to Learning Parities and
+Juntas” [37].
+
+
+                                                       1
+1     Introduction
+One of the most basic statistical tasks is the problem of finding correlations in data. In some settings,
+the data is gathered with the specific goal of ascertaining the set of correlated or anti-correlated
+variables; in many other settings, the identification of correlated features is used repeatedly as a
+key data analysis primitive within the context of more complex algorithms. This prompts the basic
+question: how quickly can one find correlated features in data?
+    With the recent rise of big data, this question has immediate practical relevance. To give one
+concrete example, in the case of genome-wide association studies (GWAS), it is the computational
+challenge of eﬃciently inferring the structural relationships between the millions of genetic markers
+that is the bottleneck in unlocking information into the genetic factors that predict disease and
+health risks (see e.g. [22, 40]).
+    Perhaps the most simple formalization of this problem of finding correlations is the following:
+Given a set of n d-dimensional Boolean vectors with the promise that the vectors are chosen uniformly
+at random from the Boolean hypercube, with the exception of two vectors that have Pearson–
+correlation ρ (Hamming distance d· 1−ρ 2 ), how quickly can one find the correlated pair? This problem
+was, apparently, first posed by Leslie Valiant in 1988 as the light bulb problem [38]. The first positive
+solution was provided by Paturi et al. [29], who gave an n2−Θ(ρ) algorithm. Curiously, this basic
+setting arises as a special case of various problems that are central to theoretical computer science.
+    Perhaps most obviously, the light bulb problem is a special case of the approximate closest pair
+problem: given a set of vectors, how can one quickly find two vectors with near-minimal Hamming,
+or Euclidean distance? Surprisingly, previous algorithms obtained comparable runtimes for the light
+bulb problem and approximate closest pair problem; phrased diﬀerently, in contrast to our algorithms,
+these algorithms do not significantly leverage the randomness in the light bulb problem, and the fact
+that nearly all the pairwise distances are extremely concentrated near d/2.
+    The light bulb problem is also easily recognized as a special case of learning parity with noise1 :
+                                                                                    n
+                                                   � (x, y), where x ∈ {−1, +1} is chosen uniformly
+suppose one is given access to a sequence of examples
+at random, and y ∈ {−1, +1} is set so that y = z j∈S xi , for some fixed, though unknown set S ⊂ [n],
+where z ∈ {−1, +1} is chosen to be −1 independently for each example with probability η ∈ [0, 1/2).
+In the case where the noise rate η = 0, the problem of recovering the set S is easy: given n such
+examples, with high probability one can recover the set S by Gaussian elimination—translating this
+problem into a problem over F2 , S is given simply as the solution to a set of linear equations. From
+an information theory standpoint, the addition of some nonzero amount of noise (η > 0) does not
+change the problem significantly; for constant η, given O(n) examples, with high probability there
+will only be one set S ⊂ [n] where the parities of the corresponding set of indices of the examples
+are significantly correlated with the labels. From a computational standpoint, the addition of the
+noise seems to change the problem entirely. In contrast to the simple polynomial-time algorithm for
+the noise-free case, when given a small constant amount of noise, the best known algorithm, due to
+                              O( n )
+Blum et al. [8] takes time 2 log n .
+    This problem of learning parity with noise is, increasingly, understood to be a central problem in
+learning theory. Additionally, this problem reoccurs in various forms in several areas of theoretical
+computer science, including coding theory as the problem of decoding random binary linear codes,
+and in cryptography in the form of the “learning with errors” problem that underlies lattice-based
+cryptosystems, see e.g. [31, 9].
+   1
+     In particular, the light bulb problem is the problem of learning parity with noise where the true parity has size
+k = 2. To see one direction of the reduction, given a matrix whose rows consist of samples from an instance of parity
+with noise, if one simply throws out the data points that have an odd label, the columns in the remaining matrix will
+be uniformly random, except with the two columns corresponding to the indices of the true parity being correlated.
+
+
+
+                                                          2
+    Our results for learning parities apply to the setting in which the true parity set S is much smaller
+than n, say k := |S| = O(log n). This problem of learning k-parities is especially relevant to Learning
+Theory, as was revealed by a series of reductions given in work of Feldman et al. [14], showing that
+the problem of learning k-parities (under the uniform distribution, with random classification noise)
+is at least as hard as the problems of learning k-juntas (where the labels are an arbitrary function of
+k bits), learning 2k -term DNFs from uniformly random examples, and the variants of these problems
+in which the noise is adversarial (rather than random). The existence of such a reduction should
+not be surprising: the problem of learning a parity with noise is the problem of finding a heavy
+low-degree fourier coeﬃcient, given the promise that one exists; in the case of learning a k = log(n)
+sized junta, for example, one knows that there will be at most 2k significant fourier coeﬃcients.
+Intuitively, the presence of more heavy low-degree fourier coeﬃcients should, if anything, facilitate
+the task of finding such a coeﬃcient. For reference, the specific statements of the reductions are
+given in Appendix A.
+    All of our results rely on fast matrix multiplication: our results for the light bulb problem and
+learning parity with noise use the fact that n×n matrices may be multiplied in time O(nω ), for ω < 3,
+with the best known bound of ω < 2.372 [42]. Our results for the Closest Pair problem rely on fast
+rectangular matrix multiplication—namely that for any � > 0, for α < 0.29, the product of an n × nα
+and nα ×n matrix may be computed in time O(n2+� ) [11]. While the matrix multiplication does some
+of the algorithmic heavy lifting, our approach introduces some new metric embedding machinery, in
+particular the “Chebyshev embedding” for the approximate closest pair problem, which may be of
+independent interest and utility.
+
+1.1   Related Work
+Historically, the first line of work on finding close pairs of vectors focussed on “nearest neighbor
+search”: given a set of vectors how can one preprocess them such that given a new vector, one can
+eﬃciently find the vector in the set that is closest of the new vector (with respect to some metric–
+typically Euclidean distance, or Hamming distance in the Boolean setting)? For such problems, there
+are typically two parameters of interest: the amount of space required to store the preprocessed set
+of vectors, and the amount of time required to perform a single query.
+    The earliest work on this question considered the case in which the n points lie in very low
+dimensional space, d = 1, 2, 3, . . . . In the case that d = 1, each point is a real number, and one can
+simply sort the list of numbers, and store the sorted list. Given a new number, one can perform a
+binary search over the sorted list to find the closest number. Thus the storage space is linear in the
+size of the input, and each query requires O(log n) comparisons. For d ≥ 2, the analogous scheme
+corresponds to partitioning the space into n regions, indexed by the points in the set, where the
+region corresponding to the ith point xi consists of those points that are closer to xi than to any of
+the other n − 1 points in the set.
+    In the case of d = 2, such a partition of the plane is known as the Voronoi diagram of the set
+of n points, and yields space bounds and query time analogous to the d = 1 setting. Unfortunately,
+such schemes suﬀer a curse of dimensionality and do not generalize well to higher dimensions; while
+the query time remains polynomial in d log n, the space required to store such partitions scales as
+O(n�d/2� ) [10], and quickly cease to be preferable to performing the brute-force comparisons (see, for
+example, [23, 41]). On the practical side, there has been considerable work in developing reasonable
+data structures to partition slightly higher dimensional Euclidean spaces (d < 20), starting with the
+notion of k-dimensional trees (kd–trees), introduced by Bentley [6] (see [34] for a summary including
+more recent developments).
+    In an eﬀort to overcome some of the diﬃculties of returning the exact closest point, starting in
+
+
+                                                   3
+the late 1990’s, significant eﬀort was spent considering the c–approximate nearest neighbor problem
+in which the goal of returning the closest point is relaxed to the more modest goal of returning a
+point whose distance is at most a multiplicative factor of c = 1 + � larger than that of the closest
+point. Additionally, a small probability of failure is allowed. In many practical settings, such a
+relaxation is essentially equivalent to the exact nearest neighbor problem. Starting with the results
+of Kushilevitz et al. [20] and Indyk and Motwani [18], algorithms requiring space that is polynomial
+in n and d, with query time polynomial in d log n were given (for constant � > 0).
+    Introduced in work of Indyk and Motwani [18], the concept of locality sensitive hashing oﬀered
+both sublinear query time, as well as subquadratic space, thereby yielding nontrivial algorithms for
+                                                                                                      1
+the approximate closest pair problem. Specifically, they gave an algorithm with query time O(n 1+� )
+                    1
+and space O(n1+ 1+� ). (Throughout, we ignore log n factors, and the additive dn term in the space.)
+The basic idea was to use a series of hashing functions that all have the property that close points
+have a higher probability of hashing to the same bucket. To perform a given query, one simply hashes
+the query point, and then checks the subset of the n data points that have also been hashed to those
+buckets. Since the original paper, there have been a number of improvements in the parameters, and
+generalizations from Hamming and Euclidean distance to other �p metrics [12, 28, 3]. The current
+state of the art for the 1 + � nearest neighbor problem under the Euclidean metric is given in Andoni
+                                                                                              1
+and Indyk [3], achieving query time and space O(dnα ), O(n1+α ), respectively, for α = (1+�)    2 + o(1).
+
+These results were recently shown to be essentially tight in the sense that for any scheme based on
+                                                  1
+locality sensitive hashing, the exponent α ≥ (1+�)  2 − o(1) [25, 26]. (See [4] for a survey on locality
+
+sensitive hashing.)
+    For the problem of finding a pair of points whose distance is at most a factor of 1 + � further than
+that of the closest pair of points, by simply running the nearest–neighbor search n times—once for
+                                                              1                 1
+                                                                           1+
+each vector—one obtains algorithms with runtimes O(n1+ 1+� ), and O(n (1+�)2 ), respectively in the
+Hamming and Euclidean settings which are the best previously known algorithms for these problems.
+For small �, these runtimes are roughly O(n2−� ), and O(n2−2� ), respectively.
+
+1.1.1   The Light Bulb Problem
+The light bulb problem is the problem of finding a single planted pair of correlated vectors from
+among a set of random Boolean vectors:
+Definition 1. Given a set of n vectors in {−1, +1}d , with the promise that the vectors are chosen
+uniformly at random with the exception of two vectors that have Pearson–correlation ρ (Hamming
+distance d · 1−ρ
+              2 ), the light bulb problem with parameters n, d, ρ is the problem of recovering the true
+correlated pair of vectors.
+    The light bulb problem is easily seen to be a special case of the approximate closest pair problem.
+To see the correspondence in parameters, for suﬃciently large dimension, d, the Hamming distance
+between the correlated vectors will be at most 1−ρ  2 d whereas, with high probability, the Hamming
+distance between any other pair of vectors will be close to d2 . Thus solving the 1 + � approximate
+                                   1
+closest pair problem for 1 + � ≈ 1−ρ  will, with high probability, return the correlated pair of vectors.
+    This special setting of the approximate closest pair problem captures much of the challenge
+of the more general problem in the rigorous sense that the lower bounds for locality sensitive are
+based on this planted correlation setting [25, 26]. The fact that the light bulb problem is the
+hardest setting for locality sensitive hashing, together with the fact that this setting has structure
+that can be leveraged—namely that, with high probability, the inner products between most of the
+“uninteresting” pairs of vectors will be extremely tightly concentrated around zero—make the light
+bulb problem a natural starting point for eﬀorts to improve upon locality sensitive hashing.
+
+                                                   4
+   Despite this, the light bulb problem has received much less attention than the nearest-neighbor
+problem; the early work on locality sensitive hashing seemed unaware that somewhat similar ideas
+had appeared nearly a decade earlier in the work of Paturi et al. [29], which gave an algorithm for
+                                                    ρ+1
+                                              log  2
+                                           1+ log 1/2
+the light bulb problem with runtime O(n              ), which is slightly better than that given by the
+application of locality sensitive hashing for the Hamming cube given in [18]. More recently, Dubiner
+introduced the “Bucketing Codes” approach [13], which is similar in spirit to the approach of Andoni
+                                                                                              2
+and Indyk [3], and yields an algorithm for the light bulb problem with a runtime of O(n ρ+1 ).
+    For small values of ρ, all these approaches yield runtimes of n2−O(ρ) , with [13] achieving the best
+asymptotic runtime of O(n2−2ρ ), in the limit as ρ → 0.
+    For our results on the light bulb problem, and closest pair problem, we will perform some metric
+embeddings: the hope is to construct some embedding f : Rd → Rm with the property that if �u, v�
+is large, then the inner product of the images of u and v, �f (u), f (v)� will also be large, and if the
+inner product is small, the inner product of the images is tiny. For the light bulb problem, we will
+be able to choose the embedding f to be a simple “XOR”/“tensor” embedding, which sets each
+coordinate of f (u) to be the product of entries of u. Such an embedding has appeared previously
+in several contexts, and was used by Lyubashevsky [21] to show that given few examples from an
+instance of learning parity with noise, one can generate new “simulated” examples, that can be used
+in place of actual examples.
+    Our results for the approximate closest pair problem will require a more sophisticated embedding.
+In fact, it seems unlikely that we would be able to construct a single embedding f with the desired
+properties (see Fact 10). Instead of using a single embedding, we will construct a pair of embeddings,
+f, g : Rd → Rm with the property that �f (u), g(v)� is large [small] if �u, v� is large [small]. This
+observation that a pair of embeddings can be more versatile than a single embedding was also
+fruitfully leveraged by Alon and Naor in their work on approximating the cut norm of a matrix [2].
+
+1.1.2   Parities, Juntas, and DNFs
+The problem of learning parity with noise is defined as follows:
+Definition 2. An example (x, y) from an (n, k, η)-instance of parity with noise, consists�of x ∈
+{−1, +1}n , chosen uniformly at random, together with a label y ∈ {−1, +1} defined by y = z· i∈S xi ,
+where z ∈ {−1, +1} is chosen independently of x to be −1 with probability η, for some fixed set S ⊂ [n]
+with |S| = k.
+    The problem of learning parity with noise is the task of recovering the set S, given access to a set
+of example pairs (x, y).
+    In the case that the noise rate η = 0, by translating the entries of the examples from being in
+{−1, 1} to being elements of F2 , this problem of recovering the set S is simply the task of solving a
+linear system of equations over F2 , since the dot product (over F2 ) of each example with the indicator
+of S will yield the label. Such a linear system can trivially be solved in time O(n3 ) via Gaussian
+elimination, irrespective of k = |S|.
+    In contrast to the setting of solving systems of noisy linear equations over the real numbers,
+there is no easy least squares regression algorithm over finite fields. For even a small positive noise
+rate, η > 0, the complexity of this problem seems to change drastically; algorithms such as Gaussian
+elimination will no longer work, as they proceed by adding and subtracting examples from other
+examples, and the noise in the labels of the corrupted examples will thereby be spread throughout
+the set of examples until there is essentially no signal left in the final output of the algorithm.
+    It is worth stressing that the diﬃculty of this problem is strictly computational. From an infor-
+mation theoretic standpoint, the addition of a small amount of noise does not change the problem
+
+                                                      5
+significantly—given O(n) examples, Chernoﬀ bounds yield that with overwhelming probability, the
+true parity set S will be the only set for which the product of the corresponding indices correlates
+significantly with the labels.
+     Interest in this problem of learning parity with noise was sparked by the results of Blum et
+al. [8], who first showed that there exists a class of functions that can be learned in polynomial-time
+with a constant amount of random classification noise, but which, provably, cannot be eﬃciently
+learned in the statistical query (SQ) learning model. The SQ learning framework, introduced by
+Kearns in 1993 [19], sought to abstract and formalize the restricted manner in which many types of
+learning algorithms interact with data. Specifically, given a distribution over labelled examples, an
+SQ algorithm interacts with the data via the following protocol: it describes a function, f1 from an
+example/label pair to {0, 1}, and then receives the average value of that function over the examples,
+with the addition of a small amount of (potentially adversarial) noise. The algorithm then produces
+a second query, f2 , and receives a perturbed expectation of that function, and so on. This framework
+captures many learning algorithms: stochastic gradient descent, the perceptron algorithm, etc. The
+salient feature of all SQ algorithms, is that because they only interact with the data via receiving
+noisy expectations, they are robust to modest amounts of random classification noise. Intuitively,
+the main limitation of SQ algorithms is that they can not interact directly with the data, precluding
+algorithms such as Gaussian elimination which seem to require access to the actual data points.
+     Blum et al. [8] showed that parity functions on O(log n log log n) bit strings with constant noise
+rate can be learned in polynomial time, whereas the earlier results of Blum et al. [7] imply that
+any SQ algorithm provably requires a super-polynomial number of queries (provided the noise rate
+of each query is at least inverse polynomial). Phrased diﬀerently,   �
+                                                                        they
+                                                                          �
+                                                                             presented an algorithm for
+                                                                        n
+                                                                  O
+learning parity with noise over n bit strings, with runtime 2         log n
+                                                                              , whereas any SQ algorithm
+provably required runtime 2Ω(n) .                                                  �       �
+                                                                                       n
+                                                                               O
+    Their algorithm proceeds by obtaining a huge number of examples, 2 log n , and then performs
+a sort of “block” Gaussian elimination in which the vast number of examples is leveraged to ensure
+                             √
+that sets of no more than O( n) examples are added together, as opposed to O(n) that would occur
+in typical Gaussian elimination. This reduction in the number of examples that are added together
+implies that the level of noise in the output (which increases geometrically with every additional
+addition of an example), is significantly reduced, allowing for a slightly sub-exponential algorithm.
+    This algorithm prompted several other works, including work by Lyubashevsky [21], who showed
+that a similar approach could be applied to a much smaller�
+                                                              set �of examples O(n1+� ) and still obtain
+                                                              n
+                                                        O
+a sub-exponential, though slightly larger, runtime of 2 log log n . The algorithm of Blum et al. was
+also shown to have applications to various lattice problems, including the shortest lattice vector [1].
+    The assumption that the noise in each example’s label is determined independently seems crucial
+for the hardness of learning parity with noise. In the case in which noise is added in a structured
+manner—for example, if examples arrive in sets of three, with the promise that exactly one out of
+each set of three examples has an incorrect label, the recovery problem can be solved in polynomial
+time, as was shown by Arora and Ge [5].
+    More recently, with the surge of attention on lattice problems prompted by the development of
+lattice-based cryptosystems, there has been much attention on the related problem of learning with
+errors (LWE). The LWE problem, introduced by Regev in 2005 [31], corresponds to the problem
+of learning parity with noise with two modifications: instead of working over F2 the LWE is over a
+larger finite field, and every example is perturbed by adding a small amount of (discrete) Gaussian
+noise. One of the attractions of basing cryptosystems on the LWE problem is that it has been shown
+to be as hard as the worst–case hardness of lattice problems such as GapSVP (the decision variant of
+the shortest lattice vector problem), and SIVP (the shortest independent vectors problem) [31, 30].
+
+
+                                                   6
+See [32], for a relatively recent survey on LWE. There are no known such hardness reductions for
+learning parity with noise.
+
+1.2   Sparse Parities and Juntas
+Our results will concern the problem of learning sparse parities with noise. Specifically, this is the
+problem of learning parities with noise in the special case when the size of the parity set k = |S| is
+known to be very small. Such a restriction� �    clearly makes the problem easier, as one could simply
+perform a brute-force search over all nk ≈ nk sets of k indices. In light of the subexponential algo-
+rithm of Blum et al. [8] for learning large parities, it is tempting to hope that analogous savings over
+the brute-force approach can be achieved in the sparse setting, perhaps yielding an no(k) algorithm,
+though no such algorithm is known, and adapting the approach of Blum et al. to the sparse setting
+seems problematic.
+     This problem of learning sparse parities is especially relevant to learning theory, as several other
+basic problems in learning theory have been reduced to it. In 2006, Feldman et al. [14], showed that
+algorithms for learning k-sparse parities with noise can be used to learn k-juntas—functions from
+{0, 1}n → {0, 1} which only depend on the values of k << n of the indices (see Definition 5)—and
+learning 2k -term DNF, from uniformly random examples.
+     The reductions of Feldman et al. transform instances of k-juntas or 2k -term DNF into instances
+of parity with noise, with a parity of size ≤ k, by adding some specially designed extra noise, which
+zeros out nearly all the heavy Fourier coeﬃcients of the juntas or DNF. With some reasonable
+probability, however, exactly one heavy Fourier coeﬃcient will remain, in which case this process
+has created an instance of parity with noise. It is worth stressing that such a transformation adds
+a large amount of noise—corresponding to noise rate η = 21 − 21k , thus motivating the development
+of algorithms for sparse parity with noise that are very noise robust; for example, algorithms whose
+                                   1
+runtimes depend only as poly( 1/2−η     ), as opposed to having the noise rate in the exponent of n.
+     For completeness, in Appendix A we include formal statements of the reductions of Feldman
+et al. [14], which we use to obtain improved algorithms for learning k-juntas and DNF from our
+algorithm for learning parities. We now briefly summarize the previous algorithmic work on learning
+sparse parities and k-juntas.
+     For the problem of learning k-sparse parities with noise, in a recent paper, Grigorescu et al. [15]
+adapt the approach of Hopper and Blum [16] to the noisy setting to give an algorithm that runs
+                1           2
+in time poly( 1−2η )n((1+2η) +o(1))k/2 . In particular, as the noise rate goes to 0, the performance of
+this algorithm tends to O(nk/2 ), and as the noise rate tends towards 12 , the dependency on n tends
+towards O(nk ).
+     For the problem of learning juntas over the uniform distribution, Mossel et al. [24] show that
+                                                                      ωk
+size k juntas can be learned in the absence of noise, in time n ω+1 poly(2k ) ≈ n0.70k poly(2k ). This
+result leverages a powerful characterization of k-juntas: in particular, they show that any k-junta
+either has a nonzero Fourier coeﬃcient of degree at most d, or, when regarded as a polynomial over
+F2 , the k-junta has degree at most k − d. Their result follows from balancing a brute-force search
+for low-degree Fourier coeﬃcients, with solving a large system of linear equation (using fast matrix
+multiplication) to find the low-degree representation over F2 in the case that the brute-force search
+did not find any heavy Fourier coeﬃcients. As this approach involves solving a large system of linear
+equations, the assumption that there is no noise is necessary. In particular, for constant noise η,
+prior to our results, no algorithm for learning k-juntas with noise η > 0 running in time O(nck ) for
+any constant c < 1 was previously known.
+     For the problem of (�, δ) PAC-learning s-term DNF under the uniform distribution, the results
+
+
+
+                                                   7
+of Grigorescu et al. [15] imply a runtime of
+                                           1 1                          s
+                                   poly(log , , s)n(1−Õ(�/s)+o(1)) log � ,
+                                           δ �
+                                   s
+which improves upon the O(nlog � ) of Verbeurgt [39] from 1990.
+
+
+2     Summary of Results and Techniques
+We provide a summary of our main theorems, and outline the intuitions and techniques leveraged to
+obtain each result.
+
+2.1    Main Theorems
+We begin by stating our main results for the light bulb problem, and finding approximate closest
+pairs of points. We then give our results for learning parity with noise, and state its corollaries for
+learning juntas, both with and without noise, and DNFs.
+
+Theorem 1. Consider a set of n vectors in {−1, 1}d and constants ρ, τ ∈ [0, 1] with ρ > τ such
+that for all but at most s pairs u, v of distinct vectors, |�u, v�| ≤ τ d. There is an algorithm that, with
+probability 1 − o(1), will output all pairs of vectors whose inner product is least ρd. Additionally, the
+runtime of the algorithm is
+                         �                              �    �                   log ρ �
+                                           5−ω
+                                               +ω log ρ                   1.62+3 log
+                       Õ sdn1/(4−ω) + n 4−ω log τ ≤ O sdn0.7 + n                    τ   ,
+
+where ω < 2.4 is the exponent of matrix multiplication, and the Õ notation hides polylogarithmic
+factors of n.
+
+   The above theorem together with basic Chernoﬀ bounds immediately yields the following corollary
+bounding the complexity of the light bulb problem in the setting in which the dimension d is near
+the information theoretic limit of O( log
+                                        ρ2
+                                          n
+                                            ).
+
+Corollary 3. For any constants ρ, � > 0, there exists a constant c� dependent on � such that for
+d ≥ c� log
+         ρ2
+           n
+             , there is an algorithm that, with probability 1 − o(1), will find a planted set of ρ-correlated
+vectors from among n random vectors in {±1}d , and will run in time
+                                               5−ω
+                                          Õ(n 4−ω +� ) ≤ O(n1.62 ),
+
+were ω > 2.4 is the exponent of matrix multiplication.
+
+    We stress that the runtimes given in the above results diﬀers in nature from those given by pre-
+vious approaches in that the dependence on the correlation, ρ, has been removed from the exponent
+of n, yielding significant improvements in the asymptotic performance for small values of ρ.
+
+Theorem 2. Given n vectors in Rd and suﬃciently small approximation parameter � > 0, with
+probability 1 − o(1) our algorithm will return a pair of vectors u, v such ||u − v|| ≤ (1 + �)d∗ , where
+d∗ is the (Euclidean) distance between the closest pair of vectors. Additionally, the algorithm runs
+in time                                    �      √        �
+                                              2−Ω( �)
+                                         O n          + nd .
+
+
+
+                                                      8
+2.1.1      Parities, Juntas, and DNFs
+Definition 4. An example (x, y) from an (n, k, η)-instance of parity with noise, consists�of x ∈
+{−1, +1}n , chosen uniformly at random, together with a label y ∈ {−1, +1} defined by y = z· i∈S xi ,
+where z ∈ {−1, +1} is chosen independently of x to be −1 with probability η, for some fixed set S ⊂ [n]
+with |S| = k.
+
+    Corollary 3 can be leveraged to yield an algorithm for an (n, k, η) instance of parity with noise with
+            5−ω+�
+runtime nk 8−2ω poly( 1−2η
+                         1                    1
+                            ) ≈ n0.81 poly( 1−2η ). We are able to very slightly improve this exponent
+via a related, though alternate approach to obtain the following:
+
+Theorem 3. For any fixed � > 0, for suﬃciently large n and k, given examples from an (n, k, η)
+instance of parity with noise, with probability 1 − o(1), our algorithm will correctly return the true
+set of k parity bits. Additionally, the algorithm will run in time
+                                    ω+�            1                       1
+                                  n 3 k poly(          ) < n0.80k poly(        ).
+                                                1 − 2η                  1 − 2η
+    The above theorem has immediate implications for the problems of learning juntas and DNFs,
+via the reductions of Feldman et al. [14], which are summarized in Theorems A.1 and A.2 and
+Corollary A.3 in the Appendix:
+
+Definition 5. An example (x, y) from a (n, η)-instance of a noisy k-junta consists of x ∈ {−1, +1}n ,
+chosen uniformly at random, together with a label y ∈ {−1, +1} defined by y = z · f (xS ), where
+z ∈ {−1, +1} is chosen independently of x to be −1 with probability η, f is a fixed though unknown
+function f : {−1, +1}k → {−1, +1}, and xS denotes the indices of x occurring in a fixed (though
+unknown) set S ⊂ [n] with |S| = k.
+
+       The above theorem together with Theorem A.1 immediately implies the following corollary:
+
+Corollary 6. For suﬃciently large n and k given access to examples from an (n, η) instance of a
+noisy k-junta, with constant probability our algorithm will correctly return the true set of k � ≤ k
+relevant indices, and truth table for the function. Additionally, the algorithm has runtime, and
+sample complexity bounded by
+                                  ω+�            1                           1
+                                n 3 k poly(          ) < n0.80k poly(2k ,        ).
+                                              1 − 2η                      1 − 2η
+    For the problem of learning juntas without noise, one can further improve the exponent by
+combining our improved algorithm for parity with noise, with the approach of Mossel et al. [24].
+Theorem 3 together with Corollary A.3 yields the following corollary for learning juntas without
+noise, where the exponent is obtained by setting α = 34 in the statement of Corollary A.3 so as to
+equate the two arguments of the max operation:2
+
+Corollary 7. For suﬃciently large n and k given access to examples from an (n, η) instance of a
+noisy k-junta with η = 0, with constant probability our algorithm will correctly return the true set of
+k � ≤ k relevant indices, and truth table for the function. Additionally, the algorithm has runtime,
+and sample complexity bounded by
+                                        ω+�
+                                     n 4 k poly(2k , n) < n0.60k poly(2k , n).
+   2
+   I am grateful to Vitaly Feldman for drawing my attention to this corollary—that an improved algorithm for learning
+small parities that is very noise-robust yields an improved algorithm for learning k-juntas without noise.
+
+
+                                                         9
+Definition 8. An example (x, y) from a r-term DNF over n bits under the uniform distribution
+consists of x ∈ {−1, +1}n , chosen uniformly at random, together with a label y ∈ {−1, +1} given by
+a fixed (though unknown) r-term DNF applied to x.
+
+    The following corollary follows from first arguing that an analog of Theorem 3 holds (Theorem 6)
+in which the sample complexity has been reduced, and then applying Theorem A.2.
+
+Corollary 9. For suﬃciently large n and k, there exists an algorithm that (�, δ)–PAC learns r-term
+DNF formulae over n bits from uniformly random examples that runs in time
+                                          �     �
+                                            1 r             r
+                                     poly    ,    n0.80 log � ,
+                                            δ �
+
+where the logarithm is to the base 2.
+
+2.2   Technique Overview
+In this section we provide a high-level overview of the main techniques. Throughout, we favor clarity
+over optimization of the constants. For the light-bulb and closest pair problems, because we are
+concerned with improving the dependency on the error parameter � beyond constant factors, there
+is little distinction between the Hamming setting and Euclidean setting (and, for example, one can
+easily convert Euclidean unit vectors into ±1 vectors by simply choosing a random rotation of the
+unit sphere, then truncating coordinates according to their signs). Thus the following techniques
+will apply both to the Hamming and Euclidean settings, and we do not belabor the distinction in
+this overview.
+    Light Bulb Problem: Section 3 begins by describing an improved algorithm for the light bulb
+problem that applies to the setting where the dimension of the vectors is rather large, d ≈ n2/3 , and,
+in particular, is much larger than the dimension required to information theoretically recover the
+true planted correlated pair. This improved algorithm leverages the following two basic observations
+about this high-dimensional light bulb setting, neither of which can be exploited within the locality
+sensitive hashing framework:
+
+   • With the exception of the correlated pair of vectors, given a large amount of data (high di-
+     mensional vectors) the inner product between pairs of vectors is extremely tightly concentrated
+     around a single value.
+
+   • One need not iteratively solve n nearest neighbor search problems, one for each vector; instead,
+     one can perform many such searches simultaneously.
+
+    The XOR/Tensor Embedding: Given the ability to eﬃciently solve the light bulb problem
+in the setting in which the amount of data is rather large, the natural question is whether one can
+reduce the low-dimensional setting, in which the inner products between typical vectors are less
+tightly concentrated, to the high-dimensional setting in which the “uninteresting” inner products
+have significant concentration. Specifically, given a set of vectors just over the information theoretic
+dimension, we are hoping to project them into a significantly higher dimensional space in such a
+way that the inner product between the planted pair remains relatively large, but the pairwise inner
+products between all the other vectors become tightly concentrated (about zero). It is worth stressing
+that this embedding into a higher dimensional space is, in some sense, the antithetical approach to
+locality sensitive hashing in which one projects into a lower-dimensional space then buckets the
+resulting projections.
+
+
+                                                  10
+    Formally, we are searching for some metric embedding f : Rd → Rm , for some m > d, such
+that for all unit vectors u, v ∈ Rd , if �u, v� is large, then �f (u), f (v)� is relatively large, yet if �u, v�
+is small, then �f (u), f (v)� is as small as possible. The “XOR/tensor” embedding (scaled so as to
+map unit vectors to unit vectors), in which each vector is replaced by its degree q tensor power, is
+one such embedding. Letting f be such an embedding, we have �f (u), f (v)� = (�u, v�)q , and hence
+the multiplicative gap between “big” inner products and “small” inner products is amplified by an
+exponent of q. While the dimensionality of the image m = dq , one can implicitly subsample indices
+of the projections so as to ensure that the dimensionality of the vectors remains << n. Our main
+result for the light bulb problems is obtained by selecting q ≈ log n to be as large as possible, up until
+the magnitude of the noise in the inner products introduced by the subsampling begins to swamp the
+discrepancy between the image of the “big” inner product and the “small” inner products. We note
+that such an embedding has been used in a variety of other settings, including by Lyubashevsky [21]
+to show that given few examples from an instance of learning parity with noise, one can generate
+new “simulated” examples, in much the same way as we are creating new dimensions of data in the
+light bulb setting. The use of such embeddings in the nearest-neighbor setting, or closest-pair setting
+is novel.
+    Two Embeddings are Better than One—The Chebyshev Embedding: If one tries to
+apply the above approach to obtain an algorithm for finding a pair of unit vectors whose inner
+product is within an additive � from that of the pair with maximal inner product, one would obtain
+an algorithm with runtime O(n2−Θ(�) ); namely, a comparable dependence on � as would be obtained
+via locality sensitive hashing, but with worse constants. How could one improve upon this runtime?
+The natural hope is that one could employ a better embedding than the XOR/tensor embedding
+to achieve better concentration in the “uninteresting” inner products. Unfortunately, a classical
+structural result of Schoenberg from the 1940s suggests that this embedding is, in some sense,
+optimal:
+
+Fact 10 (Schoenberg [35]). Consider a function g : R → R which has the property that for any d,
+there exists f : S d−1 → Rm such that �f (u), f (v)� = g (�u, v�) for all u, v ∈ S d−1 , where S d−1 denotes
+the d-dimensional spherical shell. The Taylor expansion of g about 0 has exclusively nonnegative
+coeﬃcients (and converges uniformly).
+
+    Note that the degree q XOR/tensor embedding corresponds to the function g(x) = xq , which,
+among degree q polynomials with non-negative coeﬃcients, is, in some sense optimal for our purposes
+of amplifying the gap between the small and large inner products.
+    The crucial idea, however, is that we are not restricted to a single embedding. In particular, we
+can use two embeddings, f, h and create two copies of our vectors, and project each according to a
+diﬀerent embedding, and then consider inner products across these two sets of vectors. Given such
+a pair of embeddings, we are no longer limited to Schoenberg’s characterization; it is not hard to
+see that given any polynomial, p, one can design a pair of embeddings f, h such that for all vectors
+u, v �f (u), h(v)� = p (�u, v�) . Indeed, the XOR/tensor embedding shows how to obtain monomials
+p(x) = xq , and by negating h, the corresponding embedding yields p(x) = −xq , and an embedding
+corresponding to p1 + p2 can be obtained simply by appending the embeddings corresponding to p1
+and p2 .
+    Given the ability to fashion embeddings that implement any polynomial, the question is which
+polynomial to use? If we are in the setting in which all pairwise inner products lie in the interval
+[α, β], and we hope to find a pair of vectors with inner product at least β − �, then we wish to employ
+a polynomial that is as small as possible on the interval [α, β − �], and as large as possible outside
+this interval. Chebyshev polynomials, scaled appropriately are such extremal polynomials:
+
+
+                                                      11
+Fact. (e.g. Thm. 2.37 of [33]) For any x �∈ [−1, 1],
+                                  �                                        �
+                    Tq (x) = max |p(x)| : p ∈ Pq and supy∈[−1,1] |p(y)| ≤ 1 ,
+where Tq is the degree q Chebyshev polynomial (of the first kind), and P denotes the set of all degree
+q polynomials with real coeﬃcients.
+    By employing a pair of embeddings that realize a “Chebyshev embedding”, we are able to obtain
+an algorithm for finding pairs of unit
+                                     √ vectors √ with inner product within an additive √� from that of
+the maximal pair, in time O(n2−Θ( �) ). The � arises because Tq (1 + �)/Tq (1) ≈ eq � , in contrast
+to the polynomial p(x) = xq for which p(1 + �) ≈ eq� , which would lead to a runtime of O(n2−Θ(�) ).
+There are a number of details that we have not discussed in this overview, including why we are
+restricted in the degree of the polynomial.
+    This use of a pair of embeddings to eschew Schoenberg’s characterization of what is implementable
+via a single embedding was also fruitfully leveraged by Alon and Naor in their work on approximating
+the cut norm of a matrix [2]. Our Chebyshev embedding appears to be novel, and because of its
+extremal nature, we believe it might be useful in other setting that are amenable to the use of a pair
+of embeddings.
+     From Maximal Inner Product to Closest Pair: In Section 4.2 we describe a reduction from
+the general 1 + � approximate closest pair problem, to the problem of finding a pair of unit vectors
+whose inner product is within an additive � of that of the maximal pair. While this section is rather
+involved, the techniques are, perhaps, less widely applicable than those of the other sections. The
+first step of this reduction shows how to convert the general problem into one in which all vectors
+have unit norm. Given this, provided that the minimum distance is bounded away from 0 (e.g.
+the maximum inner product is bounded away from 1), up to constant factors, finding the �-closest
+pair is equivalent to finding the c� maximal inner product. The main challenge of the reduction is
+handling the case when one has a set of unit vectors whose closest pair is extremely close. If this
+minimal distance is > 1/n0.9 , we can handle this case via another application of the “XOR/tensor”
+embedding to eﬀectively increase all distances. If the minimal distance is < 1/n0.9 , we argue that
+we can eﬃciently cluster the points into sets of rather close points, with the property that after
+subtracting oﬀ the mean of each set and converting the set back into a set of unit vectors, the
+minimum distance is now > 1/n0.9 , and this process does not significantly alter the relative distances
+between diﬀerent pairs of points.
+    Learning Parity with Noise: Given the ability to learn a parity with noise over n-bit strings,
+where the size of the parity set is c in time nα , one can generally obtain an algorithm for learning
+parities of size k that runs in time roughly nkα/c . To illustrate, consider taking an instance of parity
+with noise where the size of the parity set is 2c. One can form the instance of parity with noise
+over n2 -bit strings by creating an index corresponding to each of the pairs of original indices, and
+populating them with the XOR of the two corresponding values. If the original instance had a set of
+2c indices whose XOR was correlated with the label, then the resulting instance (over n2 -bit strings)
+would have several sets of c indices whose XOR would correlate with the label, and hence one could
+apply an algorithm for learning parities of size c, with runtime (n2 )α to find the set of c indices in the
+larger instance, corresponding to 2c indices in the original instance. Of course, the larger instance
+lacks the strong independence assumptions of the actual distribution of examples that the original
+instance had, though most algorithms should be robust to these mild dependencies.
+    This reduction, together with our most basic result for finding correlations (the light bulb prob-
+lem), immediately yields an algorithm for learning parities of size k with noise η in time roughly
+        5−ω
+    k              1                         1
+O(n 2(4−ω) poly( 1/2−η )) < O(n0.81k poly( 1/2−η ). The extreme noise robustness is due to the fact that
+the correlation did not appear in the exponent of n in our algorithm for finding correlations.
+
+                                                    12
+    We obtain the very slightly improved exponent of ωk/3 < 0.8k by directly designing an algorithm
+for the k = 3 setting, as opposed to the k = 2 setting corresponding to the problem of finding
+correlations. Given an example x, y, for x = (x1 , . . . , xn ) and y is the corresponding label from an
+instance of parity with noise with k = 3, for any i, Pr[xi = 1|y = 1] = 1/2. Similarly, Pr[xi xj = 1|y =
+1] = 1/2 for distinct i, j ∈ [n]. The improved algorithm for finding parities rests on the following
+observation about parity sets of size k = 3: if the bits of x are not chosen uniformly at random, but
+instead are chosen independently to be 1 with probability 12 + α, for some small bias α, then the
+above situation no longer holds. In such a setting, it is still the case that Pr[xi = 1|y = 1] ≈ 12 + α,
+however
+                                  �
+                                    1
+                                      + Θ(α) if i and j are both in the true parity set,
+            Pr[xi xj = 1|y = 1] = 21         2
+                                    2 + Θ(α ) if i or j is not in the set of parity bits.
+                                                                                                  √
+    The punchline of the above discrepancy is that very small biases—even a bias of α = 1/ n can
+be quite helpful. Given such a bias, for any pair i, j ∈ [n], for suﬃciently large n, even n · polylog (n)
+examples will be suﬃcient to determine whether i and j are both in the parity set by simply measuring
+the correlation between the ith and jth indices for examples with even label,   � � namely estimating
+Pr[xi xj = 1|y = 1] based on the examples. How does one compute these n2 correlations between
+vectors of length npolylog (n) in time o(n3 )? By (fast) matrix multiplication. It is worth stressing
+that, provided this argument is sound, the resulting algorithm will be extremely noise-robust, since
+the discrepancy between Pr[xi xj = 1|y = 1] in the cases that i, j are both parity bits and the case
+that they are not will degrade linearly as η → 1/2.
+    It should now be intuitively clear how to extend this approach from the small-biased setting to
+                                                                                              √
+the setting in which the examples are generated uniformly at random, since a bias of 1/ n is quite
+                                                                                                       √
+modest. In particular, with constant probability, a random length–n example will have at least n2 + n
+positive indices, thus simply filtering the examples by removing those with fewer than n/2 positive
+indices should be suﬃcient to instill the necessary bias (at the minor expense of independence).
+
+
+3    A New Algorithm for the Light Bulb Problem
+We begin by presenting our new approach to the light bulb problem; our improved algorithm for
+finding the closest pair of vectors in the general setting will build upon this approach. There are two
+essential features of the light bulb problem which we exploit:
+
+    • With the exception of the correlated pair of vectors, the Hamming distance between pairs of
+      vectors is tightly concentrated around a single value, d/2.
+
+    • One need not iteratively solve n nearest neighbor search problems, one for each vector; instead,
+      one can eﬀectively perform many such searches simultaneously.
+
+We now provide an intuitive overview of how we exploit these features. We begin by assuming that
+we can choose the dimension of the vectors, d.
+    Given a d × n matrix X with entries in {−1, +1} whose columns are uniformly random, with the
+exception of a pair of ρ-correlated columns, one naive approach to finding the correlated columns
+is to simply compute W = X t X, the matrix whose i, jth entry is the inner product between the
+ith and jth columns of matrix X. With overwhelming probability, the largest oﬀ-diagonal entry of
+W will correspond to the correlated columns, as that entry will have value roughly dρ, whereas all
+the other oﬀ-diagonal √
+                      entries have expected value 0, and will be tightly concentrated around 0, with
+standard deviation O( d). The obvious issue with this approach is that W has n2 entries, precluding
+
+
+                                                   13
+a sub–quadratic runtime. This remains an issue even if the number of rows, d is taken to be near
+the information theoretic limit of O( logρ2
+                                           n
+                                             ).
+    Our approach is motivated by the simple observation that if two columns of X are highly corre-
+lated, then we can compress X, by simply aggregating sets of columns. If one randomly partitions
+the n columns into, say, n2/3 sets, each of size n1/3 , and then replaces each set of columns by a single
+vector, each of whose entries is given by the sum (over the real numbers) of the corresponding entries
+of the columns in the set, then we have shrunk the size of the matrix from d × n, to a d × n2/3 matrix,
+Z (that now has integer entries in the range [−n1/3 , n1/3 ]). It is still the case that most pairs of
+columns of Z will be uncorrelated. If, in the likely event that the two original correlated columns are
+assigned to distinct sets, the two columns of Z to which the two correlated columns contribute, will
+be slightly correlated. Trivially, the expected inner product of these two columns of Z is ρd, whereas
+the inner product between                                                                          2/3
+                        √ any two other columns of Z has expected value 0, and variance O(n d).
+                           2/3                      2/3   2
+Thus provided ρd >> n d, and hence d >> n /ρ , there should be enough data to pick out the
+correlated columns of matrix Z, by computing W � = Z t Z, and then finding the largest oﬀ-diagonal
+element. This computation of the product of an n2/3 × n2/3 /ρ2 matrix with its transpose, via fast
+matrix multiplication, is relatively cheap, taking time n2ω/3 poly(1/ρ) ≤ n1.6 · poly(1/ρ), where ω is
+the exponent of matrix multiplication.
+    Once one knows which two columns of Z contain the original correlated columns of W , one can
+simply brute-force check the inner products between all pairs of columns of W that contribute to
+the two correlated columns of Z, which takes time dn2/3 . (One could also recursively apply the
+algorithm on the two relevant sets of n1/3 columns, though this would not improve the asymptotic
+running time.) The computation, now, is dominated by the size of the initial n2/3 /ρ2 × n > n1.66
+matrix! It is also clear that the runtime of this algorithm will depend only inverse polynomially
+on the correlation–in particular, ρ will not appear in the exponent of n. Optimizing the tradeoﬀ
+between the size of the initial matrix, and the time spent computing the product, yields an exponent
+of (5 − ω)/(4 − ω) < 1.62.
+    Because our more general results will build oﬀ these ideas, we formally describe a slight extension
+of the above algorithm that applies to sets of vectors whose only guarantee is that most of the pairwise
+inner products are small, with the exception of a small number of large inner products. Since we
+will no longer make any assumptions that the entries of the vectors are chosen independently, our
+algorithm will employ a fairly standard trick of randomly flipping the signs of each vector to achieve
+pairwise independence between the inner products of diﬀerent pairs of vectors. The author is grateful
+to Rasmus Pagh for pointing out this approach for dealing with a lack of independence.
+
+
+
+
+                                                   14
+   Algorithm 11. Vector Aggregation
+   Input: Two m × n matrices X, X � with entries xi,j , x�i,j ∈ R, a constant α ∈ (0, 1], and an integer
+   s ≤ n2−2α .
+   Output: s pairs of indices, (c, c� ) ∈ [n].
+      • Repeat the following 10 log n times:
+            – Randomly partition [n] into n1−α disjoint subsets, each of size nα , denoting the
+              sets S1 , . . . , Sn1−α .
+            – For each i = 1, 2, . . . , 10 log n do the following:
+                 ∗ Select n coefficients q1 , . . . , qn ∈ {−1, +1} at random.
+                                                                           �
+                 ∗ Form the m × n1−α matrix Z i with entries zj,k     i
+                                                                         =   �∈Sk q� · xj,� . and the m × n
+                                                                                                            1−α
+
+                           �i                i         �          �
+                   matrix Z with entries qj,k = �∈Sk q� · xj,� .
+                 ∗ Let W i = (Z i )† Z �i .
+                                                                                               10 log n
+            – Define the n1−α × n1−α matrix W with wi,j = quartile{|wi,j
+                                                                       1      2
+                                                                         |, |wi,j |, . . . , |wi,j      |.} where
+              quartile is the smallest value greater than the lowest 75% of the entries.
+            – Find the largest s entries of W , and for each such entry wi,j using a brute-force
+              search, taking time O(mn2α ) compute all the pairwise inner products between columns
+              of X indexed by Si and columns of X � indexed by Sj , and record those indices and
+              inner product values of the largest s inner products computed. If this algorithm is
+              being run in the setting with X = X � then do the above brute-force search on the
+              largest s off-diagonal entries of W .
+      • Traverse the list of 10s log n saved indices and inner products, and output the s pairs
+        with the largest inner products.
+
+
+    We remark that the final brute-force search step of the above algorithm can be replaced by a
+recursive application of the entire algorithm to each subset of 2nα vectors, though for most ranges
+of parameters of interest, including the light bulb problem, the runtime of this brute-force search
+component is dominated by the computation of the matrix product W i = (Z i )† Z �i .
+    The following proposition describes the performance of the above algorithm, and the proof is
+a straightforward application of tail bounds, arguing that if the pair of partitions Sj , Sk have the
+property that for all � ∈ Sj and h ∈ Sk the inner product of the �th column of X and hth column
+of X � is bounded by τ , then with high probability the entry of W corresponding to Sj , Sk satisfies
+wj,k ≤ 3nα τ, in which case with high probability any entry wj � ,k� corresponding to sets that contains
+a pair of columns with large inner product will be detected and searched in the second-to-last step
+of the algorithm.
+Proposition 12. The algorithm Vector-Aggregation, when given as input s, α, and two m × n
+matrices with the property that for at most s pairs of columns u, v with u a column of X and v a
+column of X � , |�u, v�| ≤ τ, with probability 1 − o(1) will output all pairs of columns whose inner
+product is greater than 12nα τ. Additionally, the runtime of the above algorithm is
+                                 �                                    �
+                               Õ mn + smn2α + timeM ult(n1−α , m) ,
+where timeM ult(k, �) is the time it takes to multiply a k × � matrix by its a � × k matrix, and the Õ
+hides a polylogarithmic factor of n.
+                                               �        �    �2 �
+    Note that trivially, timeM ult(k, �) = O �ω max 1, k�         where ω < 2.4 is the exponent of matrix
+multiplication, since this trivially holds if k ≤ �, and if k > �, this this product can be computed via
+           � �2
+a series of k� computations of a � × � square matrix product. We use this bound in the following
+corollary for the light bulb problem, which follows from the above proposition by basic Chernoﬀ
+bounds.
+
+                                                        15
+Corollary 13. For any constant � > 0, the algorithm Vector-Aggregation, when given as input
+       1
+α = 2(4−ω) , and s = 1, and two copies of the matrix X whose columns consist of the vectors given
+                                                                 2α+�
+in an n, d, ρ instance of the light bulb problem with d = n ρ2 , will output the true pair of correlated
+columns with probability 1 − o(1), and will run in time
+                                      � 5−ω �
+                                         n 4−ω +�
+                                    O             < n1.62 · poly(1/ρ).
+                                           ρ2ω
+
+    The proof of Proposition 12 will rely on the following extremely crude anti-concentration lemma
+                           i of W i contains a contribution from a pair of columns with large inner
+to argue that if an entry wj,k
+                                                                                                   i will
+product, then with a reasonable probability over the random choice of q1 , . . . , qn , the entry wj,k
+not be too small.
+Lemma 14. Given a t×t matrix A with entries ai,j , for q1 , . . . , qt , r1 , . . . , rt ∈ {±1} chosen uniformly
+at random,                                                      
+                                 �                 1                      1
+                           Pr |     qi rj ai,j | ≥ max ai,j  ≥ .
+                                                   4  i,j                 4
+                                           i,j
+
+Proof. Assume without    � loss of generality� that a1,1 = maxi,j �   ai,j , and for ease of notation, define
+a = q1 r1 a1,1 . Let b = i≥2 qi r1 ai,1 , c = j≥2 q1 rj a1,j , and d = i,j≥2 qi rj ai,j . For a given assignment
+to the qi , rj , if the sum in question has magnitude less than a/4, if |a + b| ≥ a/2 then by flipping
+q1 the sum would have magnitude at least a/4. Similarly, in the case that |a + c| ≥ a/2 if r1 were
+flipped, the sum would also have magnitude at least a/4. If neither of these conditions hold, then
+|b + c| ≥ a, in which case by flipping both q1 and r1 , the magnitude of the sum in question will be
+at least 34 a ≥ a/4. Hence for every assignment to r2 , . . . , rn and q2 , . . . , qn there is at least a 1/4
+probability over the randomness in the assignment to r1 , q1 that the sum in question exceeds a/4,
+and the lemma holds.
+
+Proof of Proposition 12. We begin by analyzing the value of wj,k            i , viewed as a random variable
+
+over the choice of the n coeﬃcients q1 , . . . , qn . Letting X� denote the �th column of matrix X, by
+definition                                        �
+                                    i
+                                  wj,k   =               q� qh �X� , Xh� �,
+                                                 �∈Sj ,h∈Sk
+
+which is the sum of n2α pairwise inner products of columns of the original matrices, each with a
+coeﬃcient of ±1. Since the coeﬃcients of these inner products are pairwise independent, and each
+contribution has expectation 0 (since the probability of coeﬃcients ±1 are equally likely), their
+contributions to the variance of wj,k     i sums. Hence the contribution to w i contributed by pairs of
+                                                                                         j,k
+columns u, v with �u, v� ≤ τ has variance bounded by n2α τ 2 . Hence by Chebyshev’s inequality, with
+probability at most 1/9, this contribution will not exceed 3nα τ in magnitude. Given a partition
+S1 , . . . , Sn1−α , for Sj , Sk such that all pairs of inner products between columns indexed by Sj of X
+and columns indexed by Sk of X � are at most τ , tail bounds on the binomial distribution yields that
+with probability > 1 − 1/n2 over the randomness in the 10 log n choices of coeﬃcients q1 , . . . , qn ,
+the top quartile of the magnitudes of wj,k       1 , . . . , w 10 log n will be at most 3nα τ , and thus by a union
+                                                              j,k
+bound over the n2−2α ≤ n2 entries of W , with high probability no such element wj,k will be this
+large. To conclude, by Lemma 14 with probability at least 1/4, for any pair of sets Sj , Sk for which
+at least one of the contributing inner products �X� , Xh� � > 12nα τ, the corresponding entry satisfies
+   i | > 3nα τ, and hence, crudely, with probability at least 1/4 the top quartile, w , of these 10 log k
+|wj,k                                                                                            j,k
+choices of i will be at least this value. Hence for any pair of columns that have inner product at
+
+                                                        16
+least 12nα τ, the probability that it is discovered in each of the 10 log n rounds of the algorithm is
+at least (1 − nα−1 ) · 1/4 where the first factor is the probability, in the case that X = X � that the
+two indices do not end up in the same partition Sj ; if X �= X � then this factor vanishes, as we look
+in the diagonal entries of W . Thus with probability 1 − o(1), all such large inner products will be
+discovered by the end of the algorithm.
+    To analyze the runtime of the algorithm, note that, up polylogarithmic factors the runtime is
+either dominated by the computation of the matrices Z, Z � , taking time O(mn), the brute-force search
+phase, taking time at most O(smn2α ), or the computation of the matrix product W i = (Z i )† Z �i . �
+
+3.1   Projecting Up
+The algorithm Vector Aggregation described above shows how to eﬃciently find significantly
+correlated vectors from among a large number of extremely weakly correlated vectors. In this section,
+we describe a metric embedding which will amplify the gap between the “significantly” correlated
+vectors and the “weakly” correlated vectors.
+    As applied to the light bulb problem (Corollary 13), the algorithm of the previous section succeeds
+                                                      1
+provided that the points have dimension d ≥ n 4−ω +� /ρ2 ≈ n0.62 /ρ2 . What happens if d is quite
+small? Information theoretically, one should still be able to recover the correlated pair even for
+d = O(log n/ρ2 ). How can one adapt the Vector-Aggregation approach to the case when d
+is near this information theoretic boundary? We will perform a metric embedding that carefully
+projects the vectors into a larger space in such a way so as to guarantee that the projected vectors
+act like vectors corresponding to an n, d� , ρ� instance of the light bulb problem for some d� > d, and
+ρ� < ρ, with the property that d� is suﬃciently large so as ensure that the approach of the previous
+section succeeds. We rely crucially on the fact that ρ does not appear in the exponent of n in the
+runtime, since this transformation will yield ρ� << ρ.
+    While our embedding can be described more generally, we begin by describing it in the setting
+in which the entries of the vectors in question are ±1. Consider randomly selecting a small set of
+the rows of the matrix whose columns consist of the set of vectors. We will produce a new row
+by component–wise multiplication. We term such a process of generating new dimensions (rows) as
+“XORing together a set of rows”, and we claim that the new row of data thus produced is reasonably
+faithful. In particular, if two columns are completely correlated, then the result of XORing together
+a number of rows will produce a row for which the values in the two correlated columns will still
+be identical. If the correlation is not 1, but instead ρ, after combining q rows, the corresponding
+columns will only be ρq correlated, as XORing degrades the correlation. Recall, however, that the
+algorithm of the previous section was extremely noise robust, and thus we can aﬀord to degrade the
+correlation considerably. For constant ρ, we can certainly take q = o(log n) without increasing the
+exponent of n in the runtime.
+    Note that as we are viewing the vectors as having entries in {−1, 1}, this XORing of sets of rows
+is simply component-wise multiplication of the rows. Equivalently, it can be seen as replacing each
+column with a sample of the entries of the qth tensor power of the column.
+    In the context of learning parity with noise, this expansion approach was used by Lyuba-
+shevsky [21] to show that given few examples from an instance of learning parity with noise, one
+can generate new “simulated” examples, that can be used in place of actual examples. In contrast
+to the current setting, the challenge in that work was arguing that the new instances are actually
+information theoretically indistinguishable from new examples (with higher noise rate). To prove
+this strong indistinguishability, Lyubashevsky employed the “Leftover Hash Lemma” of Impagliazzo
+and Zuckerman [17].
+    In our setting, we do not need any such strong information theoretic guarantees; Proposition 12
+
+
+                                                  17
+only requires some guarantees on the inner products of pairs of columns, which are given by repeated
+application of the following trivial lemma, together with Chernoﬀ bounds:
+
+Lemma 15. Given vectors u, v, w, z ∈ Rd with �u, v� = ρ1 d and �w, z� = ρ2 d, for i, j chosen
+uniformly at random from [d],
+                                  E[(ui wj ) · (vi zj )] = ρ1 ρ2 .
+                                                      2
+    Phrased diﬀerently, letting x ∈ Rd be the vector whose entries are given by the d2 entries
+of the outer-product uwt , and y is given by the entries of vz t , then �x, y� = ρ1 ρ2 d2 . Elementary
+concentration bounds show that provided one samples suﬃciently many indices of this outer product,
+the inner product between the sampled vectors will be close to this expected value (normalized by
+the dimension).
+
+Proof. The proof follows from the independence of i, j, the facts that E[ui vi ] = ρ1 , E[wj zj ] = ρ2 , and
+the basic fact that the expectation of the product of independent random variables is the product of
+their expectations.
+
+   We now describe our algorithm, which applies more generally than the light bulb problem setting,
+and can alternately be viewed as an algorithm for approximating the product of two ±1 matrices,
+under the assumption that the product has only a moderate number of large entries.
+
+
+   Algorithm 16. Expand and Aggregate
+   Input: An m × n matrix X with entries xi,j ∈ {−1, +1}, real numbers ρ, τ ∈ (0, 1), with ρ > τ, and
+   an integer s > 0
+   Output: A set of s pairs of indices (c, c� ) ∈ [n].
+                    1
+       • Set α = 2(4−ω) , for ω < 2.4 is the exponent of matrix multiplication.
+                          log ρ
+                      2α+ log
+       • Let m� = n           τ   log4 n, and q = −2loglogn τ .
+       • If m� ≥ n, calculate all pairwise inner products, taking time O ((m� )ω ).
+       • Otherwise, we create an m� × n matrix Y with entries in {−1, +1}:
+            – For each of the m� rows of Y , select a list t1 , . . . , tq with each ti selected uniformly
+              �q random from [m], and set the jth component of the corresponding row to be
+              at
+                i=1 xti ,j .
+
+       • Output the result of running algorithm Vector-Aggregation on input Y with the parameters
+         α and s, where the brute-force searches can be performed on the original columns of X.
+
+
+
+    The intuition of the above algorithm is that the matrix Y resulting from the XOR/tensor ex-
+pansion step has the property that the expected inner product between any two “bad” columns
+is bounded in magnitude by m� τ q = m� √1n , and the expected inner product of a “good” pair of
+                                      − 2log ρ
+vectors will be m� ρq = m� n      >> m� √1n . Chernoﬀ bounds will then guarantee that all inner
+                                          log τ
+                                                                       √
+products are closely concentrated about their expectations, to within ± m� polylog n, and hence
+the matrix Y satisfies the assumptions of Proposition 12 in which case the output of algorithm
+Vector-Aggregation will be as desired.
+   The performance of the above algorithm is summarized by the following theorem:
+Theorem 1 Consider a set of n vectors in {−1, 1}d and constants ρ, τ ∈ [0, 1] with ρ > τ such that
+for all but at most s pairs u, v of distinct vectors, |�u, v�| ≤ τ d. There is an algorithm that, with
+
+
+
+                                                                  18
+probability 1 − o(1), will output all pairs of vectors whose inner product is least ρd. Additionally, the
+runtime of the algorithm is
+                         �                              �  �                  log ρ �
+                                           5−ω
+                                               +ω log ρ                1.62+3 log
+                       Õ sdn1/(4−ω) + n 4−ω log τ ≤ O sdn0.7 + n                 τ   ,
+
+where ω < 2.4 is the exponent of matrix multiplication, and the Õ notation hides polylogarithmic
+factors of n.
+    The above theorem together with basic Chernoﬀ bounds immediately yields Corollary 3, describ-
+ing an algorithm for the light bulb problem in the setting in which the dimension d is near the
+information theoretic limit of O( log
+                                    ρ2
+                                      n
+                                        ).
+Corollary 3 For any constants ρ, � > 0, there exists a constant c� dependent on � such that for
+d ≥ c� log
+         ρ2
+           n
+             , there is an algorithm that, with probability 1 − o(1), will find a planted set of ρ-correlated
+vectors from among n random vectors in {±1}d , and will run in time
+                                                   5−ω
+                                               Õ(n 4−ω +� ) ≤ O(n1.62 ),
+
+were ω > 2.4 is the exponent of matrix multiplication.
+
+Proof of Theorem 1. From the independent generation of each row of Y , and the fact that all en-
+tries are either ±1, a union bound over Chernoﬀ bounds guarantees that with probability√ 1 − o(1),
+all the n2 pairwise inner products between columns of Y will be within an additive m� log n of
+their expectations. By Lemma 15, for a pair of columns of X with inner product with magni-
+tude at most τ m, the expected inner product
+                                        √     of the corresponding columns of matrix Y will have
+magnitude at most m� τ q = m� n−1/2 ≤ m� , and hence by the above tail bounds will be at most
+ √                α+ log ρ
+2 m� log n = 2n 2 log τ log3 n with the claimed probability. Similarly, for a pair of columns with
+inner product at least ρd, with the claimed probability the inner product between the correspond-
+                                          √                − log ρ  √               2α+ 2log ρ
+ing columns of Y will be at least m� ρq − m� log n = m� n 2 log τ − m� log n ≥ 12 n       log τ log4 n.
+
+                   α+ 2log ρ
+Letting τ � = 2n        log τ   log3 n, note that for suﬃciently large n, the “big” inner products satisfy
+     2α+ 2log ρ
+                                    α+ log ρ
+1
+2n           log4 n ≥ 12nα · 2n 2 log τ log3 n = 12nα τ � , and hence the requirements of Proposition 12
+           log τ
+
+are satisfied with probability 1 − o(1) over the randomness in the construction of matrix Y , and the
+theorem follows from Proposition 12.                                                                  �
+
+
+4       The Chebyshev Embedding, and Closest-Pair Problem
+We now abstract and refine the main intuitions behind the Expand and Aggregate algorithm,
+to yield our algorithm for the general approximate closest pair problem, which will work in both the
+Boolean and Euclidean settings. We extend the ideas of the previous section in two steps. First we
+consider the problem of finding a pair of vectors whose inner product is within an additive � from
+that of the pair with maximal inner product, given that all vectors have unit norm. Accomplishing
+this step will require the Chebyshev embedding—a more powerful embedding than the XOR/tensor
+embedding of the previous setting. In Section 4.2 we then extend our algorithm for finding the
+approximately maximal inner product from a set of unit vectors, to the general problem of finding
+a pair of vectors whose Euclidean distance is within a multiplicative (1 + �) from that of the closest
+pair.
+
+
+
+
+                                                          19
+4.1   The Chebyshev Embedding
+The Vector-Aggregation algorithm of the previous section relies, crucially, on the tight concen-
+tration around 0 of the inner products of the uncorrelated vectors. In the case of Proposition 12,
+this concentration came “for free”, because we assumed that the dimensionality of the data was
+large ≈ n0.6 . To obtain Theorem 1, we needed to work to obtain suﬃciently tight concentration. In
+particular, we performed a metric embedding f : {−1, +1}d → {−1, +1}m , with the crucial property
+that for an appropriately chosen integer q, for u, v ∈ {−1, +1}d ,
+                                                      �       �
+                                     �f (u), f (v)�     �u, v� q
+                                                    ≈            .
+                                          m               d
+    The key property of this mapping x → xq is that if one pair of vectors has an inner product that
+is a factor of (1 + �) larger than than that of any other pair, after performing this mapping, the inner
+product of the image of the close pair will now be a factor of (1 + �)q >> 1 + � larger than that of the
+images of any other pair of vectors; thus the “gap” has been significantly expanded. Of course, we
+can not take q to be arbitrarily large, as we would like to maintain a subquadratic amount of data
+and thus m << n, and the variance in the inner products that arises from the subsampling process
+                                                                                                   √
+(choosing which subsets of the rows to XOR) will be O(m). Thus if q is so large that the O( m)
+standard deviation in the inner product dominates the mρq inner product of the images of the closest
+pair, all the signal in the data will be lost and the algorithm will fail. (Phrased more generally, if q
+is too large, the distortion caused by projecting to a lower dimensional space will swamp the signal.)
+    A not-so-simple calculation shows that if we try to obtain an algorithm for the problem of finding
+a pair of unit vectors with inner product within � of the maximal inner product (or the (1 + �)
+approximate closest pair problem) via this Expand and Aggregate approach, we would end up
+with an algorithm with runtime n2−O(�) . Can we do any better? To simplify the exposition, assume
+that we are told that there is a “good” pair of vectors with inner product at least 1/2+ �, and that all
+other pairs of vectors are “bad” and have inner product in the range [−1/2, 1/2]. In order to improve
+upon this runtime of n2−O(�) , we need an improved embedding—one that damps the magnitudes
+of the “bad” pairs of vectors as much as possible, while preserving the inner product between the
+closest pair. Specifically, we seek a mapping fc : Rd → Rm with the following properties:
+   • For all u, v ∈ Rd , if �u, v� ≥ 12 + �, then �fc (u), fc (v)� ≥ c.
+   • For all u, v ∈ Rd , if �u, v� ∈ [− 12 , 12 ], then �fc (u), fc (v)� is as small as possible.
+   • For all u ∈ Rd , fc (u) can be computed reasonably eﬃciently.
+    The dimension of the image, m, is not especially important, as we could always simply choose
+a random subset of the dimensions to project onto while roughly preserving the inner products
+(provided this can all be computed eﬃciently). In general, it is not clear what the optimal such
+embedding will be, or how extreme a “gap amplification” we can achieve. A classical result of
+Schoenberg from the 1940s [35], however, characterizes the what can be achieved via a specific type
+of embedding. Formally, he characterized the set of functions g : R → R which have the property
+that for any d, there exists f : S d−1 → Rm such that �f (u), f (v)� = g (�u, v�) for all u, v ∈ S d−1 ,
+where S d−1 denotes the d-dimensional spherical shell. In particular, he showed that a necessary
+and suﬃcient condition for such functions g is that their Taylor expansion about 0 has exclusively
+nonnegative coeﬃcients (and converges uniformly). It is not hard to see that for such polynomials g
+of a given degree, the XOR/tensor embedding g(x) = xq has the optimal gap amplification.
+    The crux of our improved Chebyshev embedding is the realization that we are not constrained to
+a single embedding. For our purposes, if we can construct a pair of embeddings, f, h : S d−1 → Rm
+with the property that �f (u), h(v)� = g (�u, v�) , for some function g with superior gap amplification,
+then we can create two copies of the set of vectors in question, embed one copy according to f
+
+                                                        20
+and the other according to h, and then consider inner products across the two sets. The power of
+two embeddings, is that we can realize any polynomial g. To see this, note that the XOR/tensor
+embedding can realize any monic polynomial p(x) = xq , given a pair of embeddings f, h, by setting
+f = −h one can obtain negative monomials p(x) = −xq , and by simply concatenating the embeddings
+that realize polynomials p1 , p2 , one obtains an embedding that realizes p1 + p2 .
+    Given this power of two embeddings, the question is now which polynomials should we use? The
+following fact suggests an embedding which, at least among a certain class of embeddings, will be
+optimal.
+
+Fact. (e.g. Thm. 2.37 of [33]) For any x �∈ [−1, 1],
+                                  �                                        �
+                    Tq (x) = max |p(x)| : p ∈ Pq and supy∈[−1,1] |p(y)| ≤ 1 ,
+
+where Tq is the degree q Chebyshev polynomial (of the first kind), and P denotes the set of all degree
+q polynomials with real coeﬃcients.
+
+   Perhaps the most surprising aspect of this simple fact is that a single polynomial, Tq captures this
+extremal behavior for all x. The following fact quantifies the properties of the Chebyshev polynomials
+that we will rely on:
+                                 √       q
+                                                 √       q
+                                     2               2
+Fact 17. Letting Tq (x) := (x− x −1) +(x+
+                                     2
+                                          x −1)
+                                                denote the qth Chebyshev polynomial (of the first
+kind), the following hold:
+
+   • Tq (x) has leading coeﬃcient 2q−1 .
+
+   • Tq (x) has q distinct real roots, all lying within the interval [−1, 1].
+
+   • For x ∈ [−1, 1], |Tq (x)| ≤ 1.
+                                             √
+   • For δ ∈ (0, 1/2], Tq (1 + δ) ≥ 12 eq δ .
+
+Proof. The first 3 properties are standard facts about Chebyshev  � polynomials (see,
+                                                                                 √ e.g. [36]). To
+verify the fourth fact, note that for δ in the prescribed range, √ (1 + δ)2 − 1 ≥ 2δ, and we have
+                                       √              √
+the following: Tq (1 + δ) ≥ 12 (1 + δ + 2δ)q ≥ 12 (1 + 2δ)q ≥ 12 eq δ .
+
+    To illustrate the high-level idea, we return to our example above in which we hope to isolate a
+pair of vectors with “large” inner product 1/2 + � from among a set of vectors with “small” inner
+products in the range [−1/2, 1/2]. We will construct an embedding corresponding to the monic
+polynomial P (x) = Tq (2x)/22q−1 , where Tq (x) is the qth Chebyshev polynomial (of the first kind).
+Note that since Tq (x) has q roots, all in the interval [−1, 1], the polynomial P (x) will also have q real
+roots in the interval [−1/2, 1/2]. The corresponding mappings f, h, constructed as described above,
+will have the property that �f (u), g(v)� = P (�u, v�) /2q . Roughly, we will choose q = O(log n), and
+hence the √the multiplicative gap between the “large” inner product and the “small” inner products
+                      √                                                         √
+          q �/2
+will be e       = nO � , hence we will be able to aggregate sets of nO( �) vectors in the Vector
+Aggregation algorithm. We will ensure that the image of the original vectors have dimension
+m << n0.29 , hence the most √ computationally expensive step √   of our algorithm will be the computation
+of the product of an n 1−Θ(  �) × m matrix and an m × n    1−Θ(    �) matrix, using fast rectangular matrix
+                                                                        √
+multiplication (see Fact 23), which will have runtime O(n        2(1−Θ(   �) ). We now formally define the
+
+Chebyshev embedding. We define this embedding in the setting in which the vectors in question have
+values ±1; this uniformity ensures that the entries of the vectors returned by the embedding have the
+same magnitudes, and hence are amenable to Chernoﬀ bounds to guarantee that the inner products
+
+
+                                                         21
+between the returned vectors are concentrated about their expectations. In the following section
+in which we use this embedding, we give a general√ procedure for converting a set of arbitrary unit
+vectors to a set of unit vectors with entries ±1/ d, while roughly preserving the inner products.
+
+
+   Algorithm 18. Chebyshev Emebedding
+   Input: Two m × n matrices X, X � with entries xi,j ∈ {±1}, real numbers τ − , τ + ∈ [−1, 1] with τ − <
+   τ + and integers q and m� .
+   Output: Two m� × n matrices Y, Y � with entries yi,j ∈ {±1}.
+      • Let Tq denote the degree q Chebyshev polynomial (of the first kind), with roots at
+        r1 , . . . , rq ∈ (0, 1).
+      • Each of the m� rows of the output matrices Y, Z are populated as follows:
+            – We will populate two sets of q vectors s1 , . . . , sq , and t1 , . . . , tq each of length n as
+              follows. For i = 1, . . . , q :
+                 ∗ With probability 1/2, choose a random index j ∈ [m] and set both si to be the jth
+                   row of X and ti to be the jth row of X � .
+                 ∗ Let ci = τ − + 1+r
+                                   2
+                                      i
+                                        (τ + −τ − ) be the location of the ith root of Tq after the support
+                   has been scaled so that the roots lie within [τ − , τ + ] rather than [−1, 1].
+                 ∗ With probability 1−c     4
+                                              i
+                                                set both si and ti to be the all ones vectors.
+                 ∗ With probability 1+c
+                                      4
+                                        i
+                                          set si to be the all ones vector, and ti to be the all
+                   minus ones vector.
+            – Define the ith rows of Y and Y � to be the component-wise products of the si ’s and
+              ti ’s respectively:
+                                                 q                q
+                                                �            �
+                                                                  �
+                                         Yi,j =    s� (j), Yi,j =   t� (j),
+                                                        �=1              �=1
+
+              where s� (j) and t� (j) denote the jth entries of the vectors s� and t� , respectively.
+
+
+
+   The following proposition characterizes the Chebyshev embedding.
+
+Proposition 19. Let Y, Y � be the matrices output by the algorithm Chebyshev Embedding on
+input X, X � , τ + , τ − , q, m� . With probability
+                                                  √ 1 − o(1) over the randomness in the construction of
+Y, Y � , for all i, j ∈ [n], �Yi , Yj� � is within m� log n from the value
+                                �                          �
+                                    �Xi , Xj� � − τ −                               1
+                           Tq            +      −
+                                                      2 − 1 · m� · (τ + − τ − )q · 3q−1 ,
+                                      τ −τ                                        2
+
+where Tq is the degree q Chebyshev polynomial of the first kind. Additionally, the algorithm runs in
+time O(m� nq).
+
+    In particular, the above proposition states that the value of the inner products of columns of Y, Y �
+are concentrated around the Chebyshev polynomial that has been scaled so that its roots lie in the
+interval [τ − , τ + ], evaluated at the inner product of the corresponding columns of X, X � , multiplied
+by an appropriate scaling factor.
+                                                                                    √
+Proof of Proposition 19. The fact that all inner products are concentrated within ± m� log n about
+their expectations follows from the fact that each row of Y, Y � is generated independently, and all
+entries of these matrices are ±1, and hence a union bound over basic Chernoﬀ bounds yields the
+desired concentration. We now analyze the expectation of the inner products. Let u, u� be columns
+
+
+
+                                                          22
+                                                                                         �
+of X, X � respectively, and v, v � the corresponding columns of Y, Y � . Letting x = �u,u �
+                                                                                       m , by Lemma 15,
+
+                                                            q
+                                                            � x − ci
+                                        E[�v, v � �] = m�              ,
+                                                                  2
+                                                            i=1
+
+where ci is the location of the ith root of the qth Chebyshev polynomial after the roots have been
+scaled to lie in the interval [τ − , τ + ]. The proposition now follows from noting that the qth Chebyshev
+polynomial has leading coeﬃcient 2q−1 , whereas the above expression when expressed as a polynomial
+in x has leading coeﬃcient 1/2q , disregarding the factor of the dimension m� , and then noting that if
+one has two monic degree q polynomials, P and Q where the roots of Q are given by scaling the roots
+of P by a factor of α, then the values at corresponding locations diﬀer by a multiplicative factor of
+1/αq ; since the roots of Tq lie between [−1, 1] and the roots of the polynomial constructed in the
+embedding lie between [τ − , τ + ], this corresponds to taking α = τ + −τ  2
+                                                                             −.                         �
+
+4.2   Finding Vectors with Maximal Inner Product
+We now describe how to employ the Chebyshev embedding of the previous section to obtain an
+algorithm for finding a pair of vectors with inner product within � from that of the maximal inner
+product, for arbitrary Euclidean vectors with unit norm. The rough outline is to first convert the
+set of vectors into vectors with entries ±1, then apply the Chebyshev embedding, and then simply
+run the Vector Aggregation algorithm from Section 3.
+
+
+   Algorithm 20. Make Uniform
+   Input: An m × n matrix X with entries xi,j ∈ R whose columns have unit Euclidean norm, and δ ∈
+   (0, 1).
+   Output: An m� × n matrix Y with entries yi,j ∈ {±1}, where m� = 10 δlog
+                                                                        2
+                                                                           n
+                                                                             .
+       • For each i = 1, . . . , m� , select a random unit vector v ∈ Rm , and let w = v t X. For all j =
+         1, . . . , n, set yi,j = sign(wj ).
+
+
+
+   The following basic lemma characterizes the performance of the above algorithm:
+
+Lemma 21. Letting Y denote the output of running Algorithm 20 on input X, δ, where X is a
+matrix whose columns have unit norm, with probability 1 − o(1/n2 ), for all pairs i, j ∈ [n],
+                           �            �                      ��
+                           � �Yi , Yj �      cos−1 (�Xi , Xj �) ��
+                           �
+                           � m� − 1 − 2              π           � ≤ δ,
+
+where Xi , Yi denote the ith columns of X and Y , respectively. And thus if �Yi , Yj � ≥ maxk�=� �Yk , Y� �−
+δm� , then with probability 1 − o(1), �Xi , Xj � ≥ maxk�=� �Xk , X� � − 2πδ. Additionally, the runtime of
+the algorithm is O( mnδlog
+                        2
+                           n
+                             ).
+
+Proof. Letting α denote the angle between Xi and Xj , hence �Xi , Xj � = cos(α), for any k ∈ [m� ],
+
+                                                   1                        α
+                                Pr[yk,i yk,j = −     �
+                                                       ] = Pr [r ∈ [0, α]] = ,
+                                                   m                        π
+where r ← U nif [0, π], is selected uniformly at random from the interval [0, π]. Hence
+                                                               α
+                                          E[�Yi , Yj �] = 1 − 2 .
+                                                               π
+
+                                                       23
+Since all entries yi,j ∈ ± √1 � , and the diﬀerent dimensions are chosen independently, a union bound
+                            m
+over n2 Chernoﬀ bounds yields that with the claimed probability, all pairwise inner products will be
+within ±δ of their expectations.
+    The second claim follows from noting that the above guarantees that if �Yi , Yj � ≥ maxk�=� �Yk , Y� �−
+δ, then with the claimed probability the expected inner product of Yi and Yj is at most 2δ smaller
+than that of the maximal expected inner product, and hence the angle between the corresponding
+columns of X is at most 2πδ smaller than that of the optimal pair, and hence the inner products of
+the corresponding columns of X are at most 2πδ smaller than the optimal inner product, since the
+magnitude of the derivative of the cosine function is at most 1.
+
+   We now describe the main algorithm of this section:
+
+
+   Algorithm 22. Approximate Maximal Inner-Product
+   Input: An m × n matrix X with entries xi,j ∈ R whose columns have unit Euclidean norm, and
+   � ∈ (0, 1).
+   Output: Two distinct indices c1 , c2       ∈    [n], s.t. with probability 1 − o(1), �Xc1 , Xc2 � ≥
+   maxi�=j �Xi , Xj � − �, where Xc denotes the cth column of matrix X.
+       • Let X � denote the m� × n matrix with m� = O( log�2
+                                                             n
+                                                               ) resulting from applying algorithm 20
+         ( Make Uniform) to matrix X with input parameter δ = �/2π.
+       • Choose n1.5 random pairs of distinct columns of X � , for each pair compute their inner
+         product and let vmax be the maximum such inner product divided by m� .
+       • Define m�� = n0.2 and q = 50
+                                    1
+                                      log n and let Y, Y � be the m�� × n matrices returned by running
+         algorithm Chebyshev Embedding on inputs X � , X � , q, m�� and with τ − := −1, τ + := vmax .
+                                                                                                √
+       • Run algorithm Vector Aggregation on the matrices Y, Y � with s := n, and α := 100δ , and
+         return the indices corresponding to the largest of the s returned inner products if it is
+         at least vmax , otherwise output the indices corresponding to vmax .
+
+
+
+Theorem 4. The algorithm Approximate Maximal Inner-Product, when run on an m × n
+matrix X, whose columns have unit Euclidean norm and a suﬃciently small constant approximation
+parameter � > 0 will, with probability at least 1 − o(1), output a pair of indices c1 , c2 such that
+�Xc1 , Xc2 � ≥ maxi�=j �Xi , Xj � − �, where Xi denotes the ith column of matrix X. Additionally, the
+                                              1 √
+runtime of the algorithm is Õ(mn + n2− 200 � ), where the Õ hides a polylogarithmic factor of n.
+Additionally, by repeating the algorithm and outputting the pair with maximum inner product over
+all runs, the probability of failure can be reduced exponentially.
+
+    The proof of the above theorem will follow relatively easily from the guarantees on the Chebyshev
+Embedding and the Vector Aggregation algorithms given by Proposition 12 and Proposition 19.
+Additionally, we will rely on fast rectangular matrix multiplication—namely that suﬃciently skinny
+matrices can be multiplied in nearly quadratic time. The following result of Coppersmith summarizes
+this fact.
+
+Fact 23 (Coppersmith [11]). For any positive γ > 0, provided β < .29, the product of a k × k β with
+a k β × k matrix can be computed in time O(k 2+γ ).
+
+Proof of Theorem 4. By Lemma 21, with probability 1 − o(1) the matrix X � returned by the Make
+Uniform algorithm will have the property that any pair of columns whose inner product is within
+an additive m� δ = m� �/2π of the inner product of the maximal pair, will correspond to a pair of
+columns of the original matrix X whose inner product is within an additive � of that of the maximal
+
+
+                                                    24
+pair. We now argue that the remainder of the algorithm, with high probability, will find columns of
+X � whose inner product is within δm� from that of the maximal pair.
+    If vmax m� is within δm� from the maximal inner product, then the algorithm trivially succeeds.
+Otherwise, by a Chernoﬀ bound, with probability at least 1 − o(1) there are at most n pairs of
+columns whose inner product is greater than vmax m� , since if this were not the case, we would have
+                          √
+expected to see at least n such pairs in the set of n1.5 random pairs surveyed, but instead we saw
+no such pairs. Hence in this case, there are at most n pairs with inner product greater than vmax m� ,
+and there is some pair with inner product at least (vmax + δ)m� . We now argue that the properties
+of the Chebyshev embedding together with the guarantees on the performance of the Aggregate
+Vectors algorithm will guarantee that with high probability, all pairs of columns with inner product
+at least (vmax + δ)m� ) will be returned.
+    Note that with probability 1 − o(1) it will be the case that vmax > −1/2 simply because for any
+constant c > 0, there can not be a super-constant fraction of unit vectors with inner products less
+than −c, hence with this probability (1 + vmax ) > 1/2. By Proposition 19 with probability 1 − o(1),
+for all pairs of columns Xi� , Xj� of matrix X such that �Xi� , Xj� � ≤ vmax m� , the corresponding inner
+                                                                            1
+                                                                                   √
+product of their Chebyshev embeddings will satisfy |�Yi , Yj� �| ≤ m�� 2q 23q−1  + m�� log n ≤ 3n0.18 for
+suﬃciently large n, by our choice of m�� and q. Letting i, j denote the indices of the columns with the
+largest inner product which we are assuming is at least (vmax + δ)m� , and k, � denoting indices of any
+                                                                                 �Yi ,Y � �
+pair of columns with �Xk� , X�� � ≤ vmax m� , Proposition 19 also yields that �Yi ,Yj� � ≥ 12 Tq (1 + δ), where
+                                                                   √                j
+
+the factor of two is a crude way of dealing with the additive ± m�� log n error in the inner products
+introduced via the randomness of the Chebyshev embedding, which is insignificant in comparison to
+              m��
+(1 + vmax )q 23q−1 , which is a lower bound on the expected inner product of the images of a pair of
+               �
+columns of X whose inner product                         �
+                                     √ is at least
+                                               √ vmax m .          √
+                                  1 q δ      1   δ/50
+    By Fact 17, Tq (1 + δ) > 2 e         = 2n         >> nα = n δ/100 for suﬃciently large n, hence
+the conditions of Proposition 12 hold, and with high probability the execution of the Aggregate
+Vectors algorithm will output all pairs of indices corresponding to columns of X � whose inner
+products are at least (vmax + δ)m� .
+    To conclude our proof of the theorem, note that runtime of the above algorithm, up to poly-
+logarithmic factors of n, is either dominated by the Õ(mn) time to perform Make Uniform,
+or is dominated by the computation of the matrix   √     product in the Vector Aggregation algo-
+rithm: timeM     ult(n 1−α    ��
+                           , m ) = timeM ult(n  1− �/2π/100 0.2
+                                                           , n ). By Fact 23, this runtime is bounded
+          √
+by O(n2− �/150+γ ) for any positive constant γ. The theorem now follows from taking γ to be a
+                                 √
+suﬃciently small multiple of �.                                                                              �
+
+4.3    The Approximate Closest Pair
+Given the algorithm of the previous section for finding an additively approximate maximal inner
+product in a set of unit vectors, there are two minor hurdles to address in order to obtain an
+algorithm for finding a multiplicatively (1 + �) approximation to the closest pair of points from
+among an arbitrary set of vectors. The first hurdle is translating the problem of finding a close pair
+of arbitrary vectors, to finding a close pair of unit vectors. This can be relatively easily accomplished
+by adding a rather large randomly chosen vector v to all other vectors, then normalizing the vectors
+so as to have unit norm. Provided the vector v has magnitude significantly more than the maximum
+magnitude of all the vectors of interest, and the dimensionality of the space is suﬃciently high so as to
+guarantee that v is nearly orthogonal to the chords connecting all pairs of the vectors of interest, this
+operation will have low distortion (and will simply scale all distances by roughly the same factor).
+Algorithm 25 (Standardize) given below accomplishes this transformation.
+
+
+                                                      25
+    Having reduced the problem to the setting in which all vectors have unit norm, the “law of cosines”
+||v − w||2 = ||v||2 + ||w||2 − 2�v, w�, relates the distance between vectors to the inner products. This
+will allow us to very easily translate between multiplicative 1 + � bounds on the distance and additive
+c·� bounds on the inner product (for a constant c), provided that the closest distance is not too small.
+If the closest distance is too small for an additive guarantee on the inner product to correspond to
+a meaningful multiplicative guarantee on the distance, we have two approaches. If the minimum
+distance is at least 1/n0.9 , we can amplify this distance, while only increasing the multiplicative
+gap between distances via an analog of the XOR/tensor embedding. Algorithm 31 (Approximate
+Closest Pair (large α)) addresses this setting. If the minimum distance is less than 1/n0.9 , then,
+since all vectors have unit norm, intuitively, we should be able to find it with a divide-and-conquer
+approach. Since either there are only a few pairs of points that are very close in which case we can
+easily pick them oﬀ, or there is a large set of points that are all extremely close in which case we will
+be able to subtract oﬀ their mean, and rescale that cluster of points; such a transformation has the
+property that it eﬀectively increases the minimal distance by a factor of 1/z, where z is the diameter
+of the cluster of points. Algorithm 29 (Approximate Closest Pair (small α)) addresses this
+setting.
+    We note that we may assume that we know the distance between the closest pair, up to a factor
+of 2, by, for example, running the locality sensitive hashing algorithm of [18], which returns a (1 + �� )
+factor approximate closest pair, for �� = 1.
+
+Fact 24 (From [3]). For any constant γ > 0, locality sensitive hashing can be used to approximate the
+minimum distance between a set of n vectors in d-dimensional Euclidean space, up to a multiplicative
+factor of 2, in time O(dn5/4+γ ).
+
+   The following algorithm reduces the problem of finding a close pair of points among arbitrary
+vectors, to finding a close pair of points among unit vectors.
+
+
+   Algorithm 25. Standardize
+   Input: A d × n matrix X with entries xi,j ∈ R, constant � ∈ (0, 1).
+   Output: A m� × n matrix Y with all columns having unit norm, and m� = log3 n.
+       • Perform a Johnson-Lindenstrauss transformation of the columns of X into dimension m� to
+         yield matrix X � .
+       • Let c denote the magnitude of the largest column of X � .
+       • Choose a random m� -dimensional vector v of length 8c/�.
+       • Let matrix Y be the result of adding v to each column of X � , and normalizing all columns
+         so as to have unit norm.
+
+
+
+Proposition 26. Letting Y denote the result of algorithm Standardize on input X and �, with
+probability 1 − o(1/poly(n)) for all sets of four columns Y1 , Y2 , Y3 , Y4 of matrix Y , with X1 , . . . , X4
+being the corresponding columns of matrix X, it holds that
+
+                                 ||Y1 − Y2 || ||X3 − X4 ||
+                                             ·             ∈ [1 − �, 1 + �].
+                                 ||Y3 − Y4 || ||X1 − X2 ||
+
+Proof. With probability at least 1 − o(1/poly(n)), the Johnson-Lindenstrauss transformation will
+preserve all distances up to a multiplicative factor of 1 + �/8, hence we proceed with the proof
+assuming this is the case. For any given vector Xi� − Xj� , the length of its projection onto the plane
+                                Xi� +Xj�
+orthogonal to the vector v +        2    , will decrease by a factor of o(1/ log n) < �/8 with probability
+
+                                                     26
+1−o(1/poly(n)) over the choice of v. Note that the only diﬀerence between this projection of Xi� −Xj�
+and 8cYi /� − 8cYj /� is due to the scaling factor to make the images of Xi� , Xj� unit vectors, and the
+discrepancy between this scaling factor and 8c/� is at most a factor of 2c+8c/�
+                                                                             8c/�  = 1 + �/4. Thus by
+the triangle inequality with the claimed probability, the ratios of all pairs of pairwise distances are
+preserved, up to a multiplicative factor of �.
+
+    The following algorithm finds a (1 + �) approximate closest pair from among a set of unit vectors,
+                                                                  1
+given that the distance between the closest pair is at least α > n0.9 .
+
+
+   Algorithm 27. Approximate Closest Pair (large α)
+   Input: A d × n matrix X with entries xi,j ∈ R with d = log3 n whose columns have unit norm,
+   and constant � ∈ (0, 1), and α > 1/n0.9 such that the closest pair of columns have distance in the
+   range [α, 2α].
+   Output: A pair of indices.
+       • If α > 0.2 return the best result found in log2 n runs of algorithm Approximate Maximal
+         Inner-Product on input X, and �/20.
+                                                                                                   π
+       • Otherwise, define the d × n matrix Z as follows: for each i ∈ [d], select a set of q = � 2α �
+         uniformly random unit vectors v1 , . . . , vq and for all j ∈ [n], set
+                                                           � q        �
+                                                             � †
+                                               zi,j = sign      X j vk ,
+                                                        k=1
+
+         where Xj is the jth column of matrix X.
+       • Return the best result found in log2 n runs of algorithm Approximate Maximal
+         Inner-Product
+           √           with error parameter �/20 and input matrix Z with all entries scaled by
+         1/ d so as to make them have unit norm.
+
+
+
+   The following proposition characterizes the performance of the above algorithm.
+Proposition 28. For any constant � > 0, Algorithm 31 ( Approximate Closest Pair (large
+α)), when given as input n unit vectors in Rd with d = log3 n, whose closest pair have distance lying
+in the interval [α, 2α], with probability 1 − o(1/poly(n)) will output a pair with Euclidean distance at
+most a factor of (1 + �) larger than that
+                                       √      of the minimal pair. Additionally, provided α > 1/n0.9 , the
+runtime of the algorithm is Õ(n  2−Θ(   �) ).
+Proof. In the case that α > 0.2, the proposition follows from noting that provided the distance
+between the closest pair is bounded below by a constant, the task of returning the approximate closest
+pair to a multiplicative factor of 1 + � is the same the task of returning the pair with approximately
+maximal inner product to additive c� for some constant c. Specifically, given that the closest pair has
+distance at least 0.2 the law of cosines yields that the maximal inner product is at most 1−0.08+o(1)
+and hence an additive approximation of the maximal inner product to within �/20 will yield the
+desired multiplicative guarantee on the distance.
+    In the�case that α < 0.2, consider two columns Xi , Xj that form an angle of β (and hence have
+distance (1 − cos β)2 + sin2 β). For each random vector v, we have that E[sign(Xi† v·Xj† v)] = 1−2 βπ ,
+and since expectations of independent random variables multiply, we have that for each k,
+                                                       �       �
+                                                            2β q
+                                        E[zk,i zk,j ] = 1 −      .
+                                                             π
+Consider the pair of columns of X with minimal distance δ ∗ ∈ [α, 2α], and hence form an angle
+β ∗ ∈ [α/2, 2α], in which case the expected inner product between the corresponding columns of Z
+
+                                                   27
+              �      �π/2α                             �      �π/2α
+is at most d 1 − απ         ≤ 0.65d, and is at least d 1 − 4α
+                                                            π       ≥ 0.11d. By the same calculation,
+the image of any pair of columns of X whose distance was a multiplicative factor of at least (1 + �)
+larger than δ ∗ will have expected inner product at least a multiplicative factor of (1 + �/2) smaller
+than that of the image of the pair with distance δ ∗ . By a union bound over Chernoﬀ bounds, since
+d = log 3 n, with probability 1 − o(1/poly(n)) the inner products between any two columns of Z diﬀers
+from their expectations by o(1), and hence finding the pair with inner product within an additive
+�/20 will correspond to finding a multiplicative 1 + � approximation to the closest pair of original
+vectors.
+    To bound the runtime, note that provided α < 1/n0.9 , the runtime of all components of the
+algorithm aside from the calls to Approximate Maximal Inner-Product, take time bounded by
+Õ(n/α) = Õ(n1.9 ).
+
+    Finally, we address the setting in which the closest pair might be extremely close, having distance
+     1
+< n0.9 . Here, the diﬃculty is that we cannot compute a suﬃciently high powered XOR/tensor
+embedding without spending super-quadratic time. Instead, we note that if the minimum distance
+is so small, we can recursively divide the set of points into small clusters, that are all far apart in
+relation to the minimal distance. If all clusters are small, then we can trivially find the closest pair by
+brute force search with each cluster. If we have a large cluster (with tiny diameter), then we can can
+simply subtract oﬀ the mean of the cluster; after re-normalizing via the Standardization algorithm,
+Algorithm 25, the resulting points will have unit norm, and the smallest distance will have increased
+to at least 1/n0.8 , and we can apply the algorithm Approximate Closest Pair (large α).
+
+
+
+
+                                                    28
+   Algorithm 29. Approximate Closest Pair (small α)
+   Input: A d × n matrix X with entries xi,j ∈ R whose columns have unit norm, and constant � ∈
+   (0, 1), and α < 1/n0.9 such that the closest pair of columns have distance in the range [α, 2α].
+   Output: A pair of indices c1 , c2 ∈ [n].
+      • Let v1 , . . . , vn denote the n columns of X.    We recursively split up these vectors:
+            – Project all vectors onto a random d dimensional unit vector and sort the resulting
+              projections, x1 ≤ . . . ≤ xn , assume wlog xi is the proj. of vi .
+            – We now traverse the list: we ‘‘pause’’ at some xi , if there are fewer than n0.6
+              points with projected value in the interval [xi − 2α, xi ]. If we have ‘‘paused’’ at xi
+              we do one of two procedures:
+            – if |{j : xj < xi }| ≤ n0.9 :
+                 ∗ Brute force search for the closest pair of points from the set {vj : xj < xi }.
+                   Store the closest pair and their distance, and remove all points vj (and their
+                   projections xj ) for which xj ≤ xi − 2α from all further computations. Continue
+                   traversing the list (with those points removed).
+            – if |{j : xj < xi }| > n0.9 :
+                 ∗ Save set Si := {vj : xj ≤ xi }, and continue traversing the list with all points vj
+                   s.t. xj ≤ xi − 2α removed.
+            – Having finished traversing the list, if we have not stored any sets Si , then we
+              can simply compare the stored closest pair distances, and output the minimum.
+              Otherwise, let S1 , . . . , Sk denote the sets that are stored. For each set Si do the
+              following:
+                 ∗ For ease of notation, let S denote Si . Note that points in S had projections
+                   xi in sets of contiguous intervals of width 2α; each interval had ≥ n.6 points,
+                   hence all xi are within 2αn.4 .
+                             √
+                 ∗ Choose n random pairs of vectors from S, and compute their distances. Let µ
+                                               √
+                   be the median of these n distances. If µ > αn0.6 , then output ERROR.
+                 ∗ Otherwise, randomly select v ∈ S, sample n0.1 distances between v and randomly
+                   chosen v � ∈ S; repeat until one has found a v that has distance at most 2αn0.6
+                   from at least 1/4 of the points in S.
+                 ∗ Let 0 = d1 ≤ . . . ≤ d|S| be the distances beween v and all points in S. Find c ∈
+                   [2αn0.6 , 4αn0.6 ] s.t. |{i : di ∈ [c, c + 2α]}| < n0.4 .
+                 ∗ For each of the at most n0.4 points in S with di ∈ [c, c + 2α], via a brute force
+                   search check all O(n1.4 ) distances between such points and all other points in
+                   S, recording the smallest such distance.
+                 ∗ Construct the sets T := {vi : di < c}, and T � := {vi : di > c + 2α}. We recurse the
+                   whole algorithm on the set of points T � noting that |T � | < 34 |S|.
+                 ∗ We now address the set T : subtract v from all points in T and run algorithm
+                   Standardize on the resulting points, and then run algorithm Approximate Closest
+                   Pair (large α) with parameter �/2 on the results of running Standardize on
+                   the set T with parameter �/2. (Since all points in T were distance at most
+                   4αn0.6 from v, after subtracting off v, and running the Standardize algorithm,
+                   the distance of the closest pair will have increased by a factor of Ω( αn10.6 ),
+                   and hence the minimum distance will be >> 1/n0.9 and hence will be amenable to
+                   running the ‘‘large α’’ variant of the closest pair algorithm.)
+      • Compare the closest pairs returned by all branches of the algorithm, and return the
+        closest.
+
+
+Proposition 30. Algorithm 29 ( Approximate Closest Pair (small α)), on input a set of n
+unit vectors in d = log3 n dimensional space, � > 0, and α ≤ 1/n0.9 such that the closest pair of points
+has distance in the interval [α, 2α] will output
+                                              √ the (1 + �) approximate closest pair with probability
+1 − o(1/poly(n)), and runs in time Õ(n2−Θ( �) ).
+
+                                                         29
+Proof. Each time that the algorithm “pauses” at a projected value xi , if no set is saved during that
+pause, then a brute-force-search is performed on at most n0.9 vectors, which are then removed from
+all subsequent computation. If the closest pair involves one of those points, then we will find it, since
+our projection onto a random unit vector only decreases distances.
+     If a set S is “saved”, then the vectors correspond to a set of vectors that ended up unusually
+close together in the projection. In particular, note that
+                                                         √ the projection onto a random unit vector,
+in expectation, shrinks distances by a factor of Θ(1/  √ d), and, crudely, the probability that a given
+distance is decreased by a factor of more than 100/ d is bounded by 1/10, and hence the probability
+                                   √
+that the median of a subset of n randomly chosen pairwise distances from points in set S is more
+than αn0.6 is o(1/poly(n)), since, based on the proximity of the projections of these points, the
+distances should be ˜(αn0.4 ). Given this, with probability 1 − o(1/poly(n)) the sampling approach
+will find a vector v that has the desired distance from at least 1/4 the points of S, and the sets
+T, T � we be constructed as desired and have the claimed size. Note that the step that chooses the
+threshold distance c between the elements of T and T � , and then brute-force searches, and discards
+all points within this critical distance [c, c + 2α] ensures that if the closest pair of points lies in S,
+then the pair was either found in the brute-force phase, or is contained within either T or T � .
+     The crux of the algorithm is the fact that we subtract the vector v from all points in set T . Since,
+by construction, all points in this set have distance at most 4αn0.6 from v, after v is subtracted from
+all the points, the ratio of the minimum distance in set T − v to the maximum modulus of these
+points is now at least 4αnα0.6 = n−0.6 /4. Hence by Proposition 26, the result of running Standardize
+on this set will yield a set of unit vectors for which the ratio of the distances have been distorted by
+at most a factor of (1 + �/2), and the minimum distance is at least Θ(n−0.6 /�) >> 1/n0.9 .
+     To analyze the runtime of the algorithm, note that all branches of the algorithm terminate, with
+the exception of the recursive call to the sets T � . Nevertheless, with each call the number of points
+in each set considered decreases by a factor of at least 3/4, since |T � | ≤ 34 |S|, and the total number
+of points in the union of all such sets is at most n(1 + o(1)), from the fact that in the initial creation
+of sets Si , at most a n0.6 /n0.9 fraction of points end up being assigned to more than one of the sets
+Si .
+
+   For completeness, we state the general closest-pair algorithm:
+
+
+   Algorithm 31. Approximate Closest Pair
+   Input: A d × n matrix X with entries xi,j ∈ R, constant � ∈ (0, 1).
+   Output: A pair of indices.
+       • Let Y be the m × n matrix output by algorithm Standardize on input X with parameter �/4.
+       • Using locality sensitive hashing, find α such that the minimum distance between pairs of
+         columns of Y is in the interval [α, 2α].
+       • If α ≥ 1/n0.9 return the results of running Approximate Closest Pair (large α) on input
+         Y, �/2, and α.
+       • If α < 1/n0.9 return the results of running Approximate Closest Pair (small α) on input
+         Y, �/2, and α.
+
+
+
+    Theorem 2, which we restate below for convenience, characterizes the performance of the above
+algorithm, and follows immediately from Fact 24, and Propositions 28 and 30:
+Theorem 2 Given n vectors in Rd and suﬃciently small approximation parameter � > 0, with
+probability 1 − o(1) our algorithm will return a pair of vectors u, v such ||u − v|| ≤ (1 + �)d∗ , where
+
+
+
+                                                   30
+d∗ is the (Euclidean) distance between the closest pair of vectors. Additionally, the algorithm runs
+in time                                   �      √        �
+                                        O n2−Ω( �) + nd .
+
+
+
+
+5     Learning Parities and Juntas
+The problem of finding a ρ-correlated pair of Boolean vectors from among n random vectors is easily
+seen to be equivalent to solving the parity with noise problem, in the special case that the size of
+the true parity set is k = 2; the correspondence between the correlation ρ and noise rate η is given
+by η = 1/2 − ρ/2. To see one direction of the equivalence, note that given an instance of such a
+parity with noise problem, if one removes all examples that have label 1, one will be left with a set
+of examples in which the two true parity indices are correlated. One could thus use the algorithm
+                                                                    5−ω
+                                                                         k       1                     1
+of Proposition 12 to find the pair of parity indices in time n 2(4−ω) poly( 1/2−η   ) < n1.62 poly( 1/2−η ),
+where ω < 2.4 is the exponent of matrix multiplication.
+    In general, given an algorithm for solving the parity with noise problem for parities of some
+fixed size c in time O(nα ), one may attempt to adapt it to obtain an algorithm for the parity with
+                                                                           α
+noise problem for parities of any value k > c that runs in time O(nk c ) by performing the    � n following
+                                                                                                   �
+transformation: for each length n example with label �, transform it into a length N = k/c           ≈ nk/c
+example with label �, where each index represents the XOR (or product in the ±1 setting) of some set
+of k/c of the indices of the original example. If the original set of examples contained a set of k indices
+whose XOR is correlated with the labels, then the transformed examples will contain (several) sets of
+c indices whose XOR is correlated with the labels. One can now simply apply the original �algorithm      �
+for finding parities of size c to the transformed set of examples, to yield a runtime of O (nk/c )α .
+The minor diﬃculty, of course, is that the transformed examples are no longer uniformly random bit
+strings, though most algorithms should be robust to the type of dependencies that are introduced
+by this transformation.
+    The above transformation motivates the search for improved algorithms for finding small constant–
+sized parities (k = 2, 3, 4, . . .). Given the existence of a subquadratic time algorithm for the case
+k = 2, a natural hope is that one can design better and better algorithms for larger k, perhaps with
+the eventual hope of yielding an no(k) algorithm.
+    While the above reduction together with Proposition 12 (corresponding to k = 2) yields an
+algorithm for learning k-sparse parities with runtime
+                                5−ω
+                                      k          1                        1
+                             n 2(4−ω) poly(           ) < n0.81k poly(         ),
+                                              1/2 − η                  1/2 − η
+
+we instead consider the k = 3 case directly, and obtain an exponent of < 0.80k. While the constant
+in the exponent is only very slightly better than what is yielded from leveraging the k = 2 setting,
+this alternate approach is intuitively appealing and may be of independent interest.
+
+5.1   A Little Bias Goes a Long Way
+As for the results of Sections 3 and 4, our k = 3 algorithm uses fast matrix multiplication to find a pair
+of correlated vectors. The crux of the approach is that a parity function has reasonably heavy low-
+degree Fourier coeﬃcients if one changes from the uniform distribution over the Boolean hypercube
+to a slightly biased product distribution. The required bias is very small, thereby allowing one to
+
+
+
+                                                      31
+eﬃciently subsample a set of uniformly random examples so as to simulate a set of examples with
+the desired bias. In the remainder of this section we describe the main idea behind the algorithm.
+     Given an example x, y, for x = (x1 , . . . , xn ) from an (n, 3, η)-instance of parity with noise (with
+three parity bits), for any i, Pr[xi = 1|y = 1] = 1/2. Similarly, Pr[xi xj = 1|y = 1] = 1/2 for distinct
+i, j ∈ [n]. The improved algorithm for finding parities rests on the following observation about parity
+sets of size k = 3: if the bits of x are not chosen uniformly at random, but instead are chosen
+independently to be 1 with probability 12 + α, for some small bias α, then the above situation no
+longer holds. In such a setting, it is still the case that Pr[xi = 1|y = 1] ≈ 12 + α, however
+                                   �
+                                     1
+                                       + Θ(α) if i and j are both in the true parity set,
+             Pr[xi xj = 1|y = 1] = 21           2
+                                     2 + Θ(α ) if i or j is not in the set of parity bits.
+                                                                                                  √
+    The punchline of the above discrepancy is that very small biases—even a bias of α = 1/ n can
+be quite helpful. Given such a bias, for any pair i, j ∈ [n], for suﬃciently large n, even n · polylog (n)
+examples will be suﬃcient to determine whether i and j are both in the parity set by simply measuring
+the correlation between the ith and jth indices for examples with even label,   �n� namely estimating
+Pr[xi xj = 1|y = 1] based on the examples. How does one compute these 2 correlations between
+vectors of length npolylog (n) in time o(n3 )? By (fast) matrix multiplication. It is worth stressing
+that, provided this argument is sound, the resulting algorithm will be extremely noise-robust, since
+the discrepancy between Pr[xi xj = 1|y = 1] in the cases that i, j are both parity bits and the case
+that they are not will degrade linearly as η → 1/2.
+    It should now be intuitively clear how to extend this approach from the small-biased setting to
+                                                                                              √
+the setting in which the examples are generated uniformly at random, since a bias of 1/ n is quite
+                                                                                                       √
+modest. In particular, with constant probability, a random length–n example will have at least n2 + n
+positive indices, thus simply filtering the examples by removing those with fewer than n/2 positive
+indices should be suﬃcient to instill the necessary bias (at the minor expense of independence). In
+the following sections we make this approach rigorous.
+
+5.2   Learning Parity by Adding Bias
+As in the case of learning a parity of size k = 3, outlined in the previous section, for the general case
+                                  √
+of parities of size k a bias of 1/ n in the examples will be suﬃcient. There are many approaches to
+achieving this bias; algorithmically, the most simple approach is to take examples, and reject those
+                                √
+which have fewer than n2 + n positive indices. While this approach can be made to work, the
+conditioning on the total weight being large greatly complicates the analysis. Thus we instead argue
+that one can filter the examples in such a way that the distribution of the examples that remain is
+very close in total variational distance (�1 distance) to the distribution in which the examples are
+actually generated by independently choosing the value of each index with probability 12 + √1n . Thus
+the result of applying our algorithm to the filtered examples will, with high probability be identical
+to the result of applying the algorithm to a set of examples generated according to the idealized
+process which selects the value of each index of each example independently, to be 1 with probability
+          √
+1/2 + 1/ n, and thus it suﬃces to perform the analysis of the simpler setting in which indices are
+chosen independently.
+    We first state the simple filtering process, and then prove that the resulting distribution of
+examples has the desired property. Throughout, we let Bin[r, p] denote the binomial random variable
+representing the number of heads that occur after flipping r i.i.d. coins that each land heads with
+probability p.
+
+
+
+                                                    32
+   Algorithm 32. Make Biased Examples
+   Input: An m × n matrix X with entries xi,j ∈ {−1, +1}, a desired bias α ∈ (0, 12 ), and t ∈ [n].
+   Output: an m� × n matrix Y, for some m� ≤ m, consisting of a subset of the rows of X.
+                    Pr[Bin[n, 1  ]>t]
+                               2
+      • Define r = Pr Bin[n, 1 +α]>t    .
+                     [       2        ]
+      • For each row xi = xi,1 , . . . , xi,n of X:
+            – let si be the number of 1’s in xi .
+            – If si ≥ t discard row xi .
+            – Otherwise, if si < t, then include row xi in matrix Y with probability
+
+                          Pr[Bin[n, 12 + α] = si ]
+                     r·                                    (Note that this quantity is always bounded by 1.)
+                            Pr[Bin[n, 12 ] = si ]
+
+
+
+Proposition 33. The algorithm make biased examples when given as input an m × n matrix X
+                                                                                         √
+chosen with each entry being 1 independently with probability 1/2, α = √1n , and t = n2 + n k log
+                                                                                               4 ,
+                                                                                                  n
+
+will output matrix Y satisfying the two following properties:
+   • The total variation distance between the distribution from which each row of Y is chosen and
+     the distribution on rows defined by the process of picking each of the n elements independently
+                                                      2
+     to be 1 with probability 12 + α, is at most n−Θ(k log n)
+                                              mr 2                                              1   k
+   • With probability at least 1 − e− 32 , Y has at least mr
+                                                          4 rows, where r ≥ n
+                                                                              −( 2 + 4 )
+                                                                                         .
+
+   The following lemma will be useful in the proof of the above proposition.
+Lemma 34. For Bin[n, p] denoting a binomially distributed random variable, for α > 0 with
+                √
+α = o(1) and s > n + αn,
+                                    Pr[Bin[n, 12 ] > n2 + s]          1
+                                                              ≥           √ ,
+                                  Pr[Bin[n, 12 + α] > n2 + s]   (1 + 2α)2s n
+for suﬃciently large n.
+                                                                1    n                  1     n
+Proof.
+� n � 1We first lowerbound the numerator; trivially, Pr[Bin[n, 2 ] > 2 + s] > Pr[Bin[n, 2 ] = 2 + s] =
+                                                                                    �
+ n
+ 2
+   +s 2n . We now upper bound the denominator. To this order, note that for any s ≥ s, we have
+                                             � n � 1
+          Pr[Bin[n, 12 + α] = n2 + s� + 1]    n
+                                                +s� +1 ( 2 + α)
+                                           =  �
+                                              2
+                                                  n
+                                                     � 1
+            Pr[Bin[n, 12 + α] = n2 + s� ]       n
+                                                  +s� ( 2 − α)  2
+                                                            1
+                                               n − 2s�      2 +α
+                                         =               ·
+                                             2 + n + 2s 12 − α
+                                                       �
+                                                     √                   1
+                                               n − 2( n + αn)              +α
+                                         ≤             √              · 21
+                                             2 + n + 2( n + αn) 2 − α
+                                                           √
+                                                         4 n − 4α + 2                       1
+                                         = 1−          √                             ≤1− √ ,
+                                                 (n + 2 n + 2αn + 2)(1 − 2α)                 n
+                                                         �n          �n �
+for suﬃciently large n. This shows that we may bound i= n +s i (1/2 − α)i (1/2 + α)n−i by the
+                                                                2
+geometric series
+    �      �                            ∞
+                                        �               �         �
+        n              n
+                         −s        n            1 i           n               n              n   √
+      n      (1/2 − α) 2 (1/2 + α) 2 +s
+                                          (1 − √ ) = n              (1/2 − α) 2 −s (1/2 + α) 2 +s n.
+      2 +s                                       n
+                                                     i=0   2 +s
+
+
+                                                                33
+Thus the desired ratio is at least
+                                         � n �1
+                                          n
+                                            +s 2n                           1
+                         � n �            2
+                                           n
+                                             −s            n
+                                                             +s   √ ≥            √ .
+                                                                               2s n
+                          n
+                            +s   (1/2 − α) 2   (1/2 + α)   2       n  (1 + 2α)
+                          2
+
+
+
+
+Proof of Proposition 33. Each row of Y is distributed as a length-n string with each bit equaling
+1 independently with probability α, conditioned on the total number of 1’s to be at most t. This
+distribution has variation distance at most 2 Pr[Bin[n, 12 +α] > t] from the corresponding distribution
+                                                                                                  (n( 1        2
+                                                                                              −       2 +α)−t)
+in which no conditioning occurs. By standard Chernoﬀ bounds, Pr[Bin[n, 12 +α] > t] ≤ e (1−2α)n .
+    The expected number of rows of Y will be at least m · r · (1 − q), where q = Pr[Bin[n, 12 + α] > t],
+and thus this expectation is trivially at least mr
+                                                2 . Since each row of the input X is inserted into Y
+                                                                                           mr 2
+                                                                                    − 32
+independently, with probability at least 2r , by a Chernoﬀ bound, Pr[|Y | < mr
+                                                                            4 ] < e      . Using the
+lower bound on r of Lemma 34 yields the claim.
+
+    We now state the general algorithm for learning parities of size k. Note that throughout, we
+assume that we know the size of the true parity set. This is without loss of generality, as we can
+always simply try k = 1, 2, 3, . . ., and lose at most a factor of k in our runtime. Additionally, we
+aim to find the parity with some constant probability. Since we can always verify whether the
+returned parity set is correct (with all but inverse exponential probability), by simply repeating the
+algorithm many times this constant probability of success can become probability 1 − δ at an extra
+multiplicative expense of log 1δ . Finally, we assume that k is divisible by 3. This is without loss of
+generality, as we can always insert up to two extra bits in each example and multiply the label by
+their values so as to yield examples from an instance of size at most n + 2 where the size of the parity
+is actually divisible by 3.
+
+
+   Algorithm 35. Learn Parity with Noise
+   Input: An m × n matrix X with entries xi,j ∈ {−1, +1}, a length m vector v ∈ {−1, +1}m of
+   labels, a parameter k that is divisible by 3, and an arbitrarily small constant � > 0.
+   Output: a set of k indices.
+      • Let Y be the result of running        make biased examples on matrix X, with α =    √1    and t =
+                                                                                              n
+                  n√
+        n
+        2
+          + k log
+               4
+                     n.
+      • Remove all rows from Y whose corresponding label (in vector v) is −1, and take the
+                   nk/3(1+�)
+        first m� = (1−2η)                                          �
+                          2+� of the remaining rows to form the m × n matrix Y .
+                                                                                   �
+
+                                  �   �
+      • Generate the m�      ×      n
+                                    k   matrix Z by taking each row of Y � , and generating a row of Z
+                  �n�               3
+        of length k/3 , with each position zi,S corresponding to a set S        ⊂    [n] of k/3 distinct
+                                       �     �
+        indices, and setting zi,S = j∈S yi,j .
+                    �n�       �n�
+      • Compute the k/3     × k/3   matrix C = Z t Z. For convenience, we regard the elements of C
+        as being indexed by a pair of sets S, S � ⊂ n with |S| = k/3, thus cS,S � is the entry
+        corresponding to the product of the two columns of Z corresponding to the sets S and S � .
+      • For every pair of subsets S, S �        ⊂    [n] with S and S � each consisting of k/3 distinct
+        elements, if S ∩ S � �= ∅, set cS,S � = 0.
+      • Let cS1 ,S2 , be the largest element of matrix C. Look in the column CS1 corresponding
+        to set S1 , and let S3 be the set that maximizes cS1 ,S3 subject to the constraint that
+        S3 ∩ S2 = ∅. Output S1 ∪ S2 ∪ S3 .
+
+
+
+
+                                                     34
+                                                                                           2k (1+�)
+                                                                                 n 3
+Theorem 5. For any fixed � > 0, for suﬃciently large n and k given m = (1−2η)         2+� examples from
+
+an (n, k, η) instance of parity with noise, with probability 1 − o(1/n), the algorithm Learn Parity
+with Noise, when given as input the m × n matrix of examples, and length m vector of labels, will
+correctly return the true set of k parity bits. Additionally, the algorithm will run in time
+                                           ��      k
+                                                           �ω �
+                                                 n 3 (1+�)
+                                        O                       .
+                                               (1 − 2η)2+�
+
+   The crux of the proof of Theorem 5 is that, given that applying make biased examples to
+matrix X yields a matrix Y with suitably biased elements, the matrix Z inherits some bias from Y .
+In particular, the fact that each entry of Z is given as the product of k/3 entries of X should not
+completely erase the bias. While the bias will decrease exponentially in k, the length of the rows of
+Z�are correspondingly larger, and we are only hoping that the bias of each element of Z is roughly
+1/ |Z|. The following basic lemma guarantees this.
+                         �
+Lemma 36. Let z = si=1 wi , where each wi ∈ {−1, +1} is chosen independently to be 1 with
+probability 12 + α. Then Pr[z = 1] = 12 + 2s−1 αs .
+
+Proof. Letting p = 12 − α, we have the following:
+                                                         s
+                                                         �                           � �
+                                                                                      s
+                         Pr[z = 1] − Pr[z = −1] =              (−1)i pi (1 − p)s−i
+                                                                                      i
+                                                         i=0
+                                                 = ((1 − p) − p)s
+                                                 = (1 − 2p)s = 2s αs ,
+
+
+
+Proof of Theorem 5. Proposition 33 guarantees that with probability at least 1 − o(1/n) there will
+                    k (1+�)
+                    n3
+be at least m� = (1−2η)  2+� examples with which to populate matrix Y . Additionally, Proposition 33
+
+guarantees that the total variational distance between the distribution from which matrix Y is drawn
+and the distribution defined by choosing each index independently to be 1 with probability 21 + √1n
+is o(1/n), hence with the claimed probability the algorithm will perform identically as in the case
+that the elements of matrix Y were actually generated according to this independent model. For the
+remainder of the proof, we argue as if matrix Y is generated in that fashion.
+    We now consider the matrix Z. Let zS , zS � be two element of the row z of Z corresponding
+to disjoint sets S, S � ⊂ �
+                          [n], and let � denote the label corresponding to row z before any noise has
+been added. Let w = j∈S∪S � yj , denote the random variable representing zS zS � . For notational
+convenience, define
+                                �h/2�              � �
+                                � 1
+                                       2i 1    h−2i h    1�           �
+                     F (β, h) =  ( − β) ( + β)         =    1 + 2h β h ,
+                                  2       2         2i   2
+                                i=0
+
+which is the probability computed in Lemma 36 that when h identical independent coins that land
+heads with probability 12 + β are tossed, an even number of heads occurs. Letting s denotes the
+
+
+
+
+                                                    35
+number of parity bits in S ∪ S � , we have the following, where α = √1n :
+
+                                F (α, s)F (α, 2k
+                                               3 − s)F (α, k − s)
+       Pr[w = 1|� = 1] =
+                                             F (α, k)
+                                                       (1 − F (α, s))(1 − F (α, 2k
+                                                                                 3 − s))(1 − F (α, k − s))
+                                                   +
+                                                                             F (α, k)
+                                1 + (2α)2k/3 + (2α)k + (2α)5k/3−2s
+                           =                                       ,
+                                           2(1 + (2α)k )
+where the numerator of first line is computing the probability that w = 1 and � = 1.
+   In the case that s = 2k/3, which occurs when both S and S � are subsets of the set of parity bits,
+then we can lowerbound the above as
+                                 1 + (2α)k/3    1 (2α)k/3           2k/3   1 (2α)k/3
+             Pr[w = 1|� = 1] ≥                ≥   +         −  (2α)      ≥   +        ,
+                                2(1 + (2α)k )   2      2                   2     3
+since α = o(1). In the case that s ≤ 2k/3 − 1, we upperbound the quantity as follows:
+                                             1 + 2(2α)k/3+2    1 (2α)k/3
+                               Pr[w = 1|� = 1] ≤            ≤ +           ,
+                                                    2          2     100
+since α = o(1). Letting �∗ denote the true label, corrupted with independent noise η < 1/2, we have
+                               1 (2α)k/3                                     1 (2α)k/3
+      Pr [w = 1|�∗ = 1] ≥        +       (1 − 2η), and    Pr [w = 1|�∗ = 1] ≤ +        (1 − 2η).
+  s=2k/3                       2    3                  s≤2k/3−1              2   100
+    Putting the pieces together, letting m� denote the number of rows of matrix Z, which is at least
+   k
+ n 3 (1+�)
+(1−2η)2+�
+             , we have that for any entry cS,S � of matrix C corresponding to two disjoint sets S, S � , where
+                                                                       √ k/3
+                                                                m� (2/ n)
+S and S � are not both subsets of the parity bits, E[cS,S � ] ≤ 2    100     (1 − 2η). On the other hand,
+                                                                      �  √ k/3
+                                                                    m (2/ n)
+if S, S � are both subsets of the parity bits, then E[cS,S � ] ≥ 2       3      (1 − 2η), and since these
+                                     �
+quantities have variance at most m , for any constant �, via a union bound over Chernoﬀ bounds,
+taking n large yields that with probability 1 − o(1/n), all the entries of C corresponding to pairs of
+disjoint sets that are not both subsets of the true parity bits will be smaller than all the entries that
+correspond to pairs of subsets of the true parity bits.
+
+5.3     Reducing the Sample Complexity
+In order to obtain our desired corollary for learning DNF (Corollary 9), we must reduce the number
+of examples used in our Learn Parity with Noise algorithm. Intuitively, provided one has a very
+noise–robust algorithm, such reduction in sample complexity is easy; one simply takes a very small
+number of examples—in fact, min(n1+� , poly(k) log n) will suﬃce—and then “manufactures” many
+examples by XORing together small sets of the actual examples. Provided the initial noise in the
+labels is η, if we XOR togetherq q examples, then the XOR of the labels will be the correct label with
+probability at least 12 + (1−2η)
+                             2   .
+
+
+   Algorithm 37. Make More Examples
+   Input: An m × n matrix X with entries xi,j ∈ {−1, +1}, a length m vector v ∈ {−1, +1}m of
+   labels, a positive integer q < m, an integer m� .
+   Output: An m� × n matrix Y , and a length m� vector w of labels.
+        • For each i ∈ [m� ], randomly choose a set
+                                                  � T ⊂ [m], with |T | = q, create row y� i of Y , by
+          assigning the jth component of yi to be �∈T x�,j , and letting the ith label be j∈T vj .
+
+
+
+                                                         36
+    Ideally, we would be able to apply the algorithm Learn Parity With Noise in a black-box
+fashion to the output of running make more examples on a small number of actual examples, as
+was done in [21]. Unfortunately, because the noise in the generated examples will increase with q
+in the exponent, we will not be able to take suﬃciently large q so as to yield the necessary claim
+that the distribution of resulting examples is close in total variation distance to the desired uniform
+distribution.
+    Instead, we argue that the distribution of a small number (namely, k) of the columns of the
+generated examples are close to uniform. The idea is that we will argue that the distribution of the
+values in the k parity columns are close to uniform, which will let us apply our Chernoﬀ bound to
+argue that with very high probability, the “good” entries cS,S � of the matrix C generated in Learn
+Parity With Noise, corresponding to S, S � subsets of the true parity set, will be “large”. For all
+the “bad” entries of C, we will not be able to apply Chernoﬀ bounds; however, using the fact that the
+rows are pairwise independent, we will apply Chebyshev’s inequality to argue that with probability�n�
+at least 1/2, each “bad” element will be small. Thus after running the whole algorithm log( k/3        )
+times, we can argue that with high probability, in every run, the “good” coordinates will be large,
+whereas for a “bad” element,
+                      �n�       in each run of the algorithm, it will be small with probability at least
+1/2. Thus after log( k/3 ) runs, with high probability the only elements that were never “small”
+will correspond to entries whose row and column correspond to subsets of the true parity set, as
+desired. We now make this roadmap rigorous. We begin by defining what it means for a family of
+hash functions to be universal, and state the Leftover Hash Lemma.
+
+Definition 38. Let H be a family of hash functions from A to B, and let H ∈ H be chosen uniformly
+at random. H is a universal family of hash functions if for all distinct a, a� ∈ A, Pr[H(a) = H(a� )] ≤
+ 1
+|B| .
+
+Lemma 39 (Leftover Hash Lemma [17]). For A ⊂ {0, 1}m , with |A| ≥ 2r , and |B| = {−1, +1}r−�
+for some � > 0, if H is a universal family of hash functions from A to B, then with probability at
+least 1 − 2−�/4 , a uniformly random H ∈ H will satisfy Dtv [H(a), U nif (B)] ≤ 2−�/4 , where a is a
+random element of A, U nif (B) denotes the uniform distribution on B, and Dtv is the total variation
+distance.
+
+   The following basic fact will also be useful.
+
+Fact 40. Given a vector v ∈ {−1, +1}m , such that m( 12 + p) indices of v are +1, then for a random
+set T ⊂ [m], with |T | = q,
+                                �             �    �              � �
+                                            1        2mp − q + 1 q
+                            Pr[   vi = 1] ≥     1+                      .
+                                            2          m−q+1
+                                i∈T
+
+Proposition 41. Given an m × n matrix X and vector of labels v consisting of m examples from
+an instance of parity with noise with noise rate η, integer q ≤ m(1−2η)
+                                                                   4    , and integer m� , for any
+                                                                     q log m
+                                                                           q −k
+fixed set S ⊂ [n] with |S| = k, with probability at least 1 − 2− 4    , the algorithm make more
+examples on input X, v, q, m , will output a matrix Y such that the m� × k submatrix YS defined
+                              �
+
+as the subset of the columns of Y corresponding to indices in S, will have total variation distance
+              q log m
+                    q −k
+at most m� 2−    4    from the distribution on matrices given by assigning each element to be ±1
+independently with probability 1/2.
+                                                              m −k
+                                                   (q−1) log q−1
+    Additionally, with probability at least 1 − 2−    4     , the distribution of the rows of YS cor-
+responding to the set of correct labels, will diﬀer from that corresponding to the set of incorrect
+
+
+                                                   37
+                                                               m −k
+                                                    (q−1) log q−1
+labels by total variation distance at most 2m� 2−          4
+                                                                               � 1 − 2η
+                                                             . Finally, provided      � > 4m
+                                                                                              −0.4
+                                                                                            �q � , with
+                                                                                1   1  1−2η
+probability at least 1−o(1/m), the number of correct labels will be at least m� 2 + 2    4      −m�0.6 .
+
+Proof. We will first apply the Leftover Hash Lemma (Lemma 39). Note that each choice of matrix
+X defines a hash function from the set A := {T : T ⊂ [m], |T | = q} to the set B = {−1, +1}k ,
+via the mapping that considers the columns of X corresponding to indices in set S, and XORs
+each coordinate of the rows of X with indices in set T (as described in the algorithm make more
+examples). Trivially, this family of hash functions is universal, since for two sets T �= T � , supposing
+that i ∈ T, i �∈ T � , the image of T and T � will diﬀer
+                                                     � � XORing      with a uniformly random string
+                                                             q log m
+(namely, the ith row of X). Next, note that |A| = m   q  ≥  2      q and thus Lemma 39 implies that
+
+                                    q log m
+                                          q −k
+                                −
+with probability at least 1 − 2       4     over the choice of matrix X, we will have that the distance
+                                                                                      q log m−2k
+between each row of Y and the uniform distribution over {−1, +1}k is at most 2−             8    . A union
+                    �
+bound over our m rows yields the desired claim.
+    We now reason about labels. With probability at least 1 − o(1/m), the number of correct labels
+                                                        m(1−2η)              m(1−2η)
+in the original vector v of labels will be at least m
+                                                    2 +    2    − m0.6 > m
+                                                                         2 +     4   . Thus by Fact 40,
+with this probability the expected number of correct labels in vector w will be at least
+                     � �      �                       � ��        �       �        � �
+                   � 1          m(1 − 2η)/2 − q + 1 q            � 1    1 1 − 2η q
+                 m       1+                                  ≥m       +                 ,
+                      2               m−q+1                         2 2      4
+
+and thus with probability at least 1 − o(1/m) over the initial
+                                                           � choice
+                                                                 � of the
+                                                                       � �v labels, and the choice
+                                                                              q
+of the sets that generate the m� new examples, at least m� 12 + 12 1−2η 4      − m�0.6 of the labels w
+will be correct.
+    We now argue that for a given “manufactured” example, the correctness of the label is essentially
+independent of the values of the chosen set of k indices. We proceed as in [21], and note that,
+assuming there is at least one incorrectly labelled example in v (if not, then the independence is
+trivial), letting Xodd , Xeven denote the sets of subsets T ⊂ [m] with |T | = q for which the number
+                                                                                                �m�
+of corresponding label is incorrect (correct). With probability 1 − o(1/m), |Xeven | > |Xodd | > q−1  ,
+and thus (since the correctness of the original labels are chosen independently of the corresponding
+example) we may apply Lemma 39 as above, to conclude that the distribution of the values of the
+k bits is distributed nearly uniformly over the 2k values. In particular, with probability at least
+                    m −k
+         (q−1) log q−1
+1 − 2−      2      , the distribution of the k bits conditioned on the label being correct will diﬀer
+from the distribution conditioned on the label being incorrect by at most total variation distance
+                    m −k
+         (q−1) log q−1
+1 − 2−          4          .
+
+   We now describe our algorithm for solving instances of parity with noise, that uses few examples.
+
+
+
+
+                                                      38
+   Algorithm 42. Learn With Few Examples
+   Input: Positive integers k, r, q, m� an r ·m×n matrix X with entries xi,j ∈ {−1, +1}, and a length
+   r · m vector v ∈ {−1, +1}m of labels.
+   Output: A set S ⊂ [n] with |S| = k.
+       • For i = 1 to r
+            – Let matrix X � , and labels v � be the output of running algorithm make more examples
+              on input X i , v i , q, m� , where X i is the m × n submatrix of X consisting of rows i · m + 1
+              through rows (i + 1)m, and v i is the corresponding vector of labels.
+            – Let matrix Y be the result of running make biased examples on matrix X with
+                                         n√
+              α = √1n and t = n2 + k log
+                                      4
+                                            n.
+            – Remove all rows of Y with labels −1, and denote the resulting smaller m�� × n matrix
+              Y �.
+                                  �n�
+            – Generate the m�� × k/3    matrix Z by taking each row of Y � , and generating a row of
+                     �n�
+              length k/3 with each position z�,S corresponding to a set S ⊂ [n] of k/3 (distinct)
+                                         �      �
+              indices, and setting z�,S = j∈S y�,j .
+                          �n� �n�
+            – Compute the k/3 × k/3 matrix C = Z t Z, and let mi := m�� .
+                                               i
+
+
+       • Let the set P arityBits be the union of all pairs of disjoint sets of size k/3, S, S � , that
+                                                 √ k/3
+                                          mi (2/ n)
+         have the property that ciS,S � >        3
+                                                       for each i ∈ [r], where ciS,S � denotes the index of
+                  i                            �
+         matrix C indexed by the sets S, S , as in algorithm Learn Parity with Noise.
+       • If |P arityBits| =
+                          � k output F AIL, otherwise output the set P arityBits.
+
+
+
+Theorem 6. The algorithm Learn With Few Examples, when run on input k, r := 100k log n,
+           2k (1+�)
+          n 3                          n 2k/q
+q, m� := (1−2η) 3q , and m = 100 · rq (1−2η)6 examples from an (n, k, η) instance of parity with noise,
+
+will return the correct set of k parity bits with probability at least 1 − o(1). Additionally, the number
+of examples used is m; for suﬃciently large constant q, the number of examples is bounded by n�k ,
+and the total runtime of the algorithm is bounded by
+                                            �          �
+                                                  1          k
+                                       poly              · n 3 (1+�)ω ,
+                                              (1 − 2η)
+
+where ω < 2.4 is the matrix multiplication exponent.
+                                                       � �.4
+Proof. The proof follows from noting first that m� < m/r q    , and thus with probability 1 − o(1), in
+all r runs, no two choices of random subsets of [m] of size q chosen in the construction of X � will
+be equal, and thus with this probability, the rows of X � (and thus Y and Y � ) will all be pairwise
+independent. Thus, from the proof of Theorem 5 and Chebyshev’s inequality, for each pair S,√S � of
+                                                                                               i         k/3
+disjoint sets of size k/3 that are not both subsets of the true set of parity bits, ciS,S � ≤ m (2/ 3 n)
+with probability at least 1/2. Since each of the r runs are independent, the probability that such a
+                                                                     1
+bad pair of sets remains after all r = 100k log n runs is at most n100k , and thus via a union bound
+                    � n �2
+over the at most k/3 such pairs of bad sets, with probability 1 − o(1), no such bad pairs of sets
+will appear in the final output set P arityBits.
+    By Proposition 41, and our choice of parameters, with probability 1 − o(1/n), the total variation
+distance between the assignment of the values to the k true parity columns of matrix X � in a given
+run, and if they were chosen uniformly is at most o(1/n), and thus with probability 1−o(1), after the
+r runs, the algorithm must perform identically to the performance in the case that these columns were
+chosen uniformly at random, and thus the arguments of the proof of Theorem 5, and, in particular,
+
+
+                                                      39
+the Chernoﬀ bound, guarantees that with probability 1 − o(1) in all r runs, √every pair of disjoint
+                                                                                    i          k/3
+sets S, S � of size k that are subsets of the parity bits, will satisfy ciS,S � > m (2/ 3 n)         , as desired.
+
+
+6    Further Directions: Beyond Fast Matrix Multiplication
+Beyond the more obvious open questions posed by these improved algorithms, one very relevant
+direction for future work is to give algorithms that improve over the brute-force search in practice,
+for modest-sized datasets. For instance:
+
+      Does there exist an algorithm for finding a pair of 0.05-correlated Boolean vectors from
+      among n = 100, 000 uniformly random Boolean vectors that significantly beats brute-force-
+      search, in practice?
+
+    There are two natural angles to this question. The first is to try to improve fast matrix multiplica-
+tion implementations. While the algorithms described in this work rely on fast matrix multiplication,
+they do not require an especially accurate multiplication. In particular, our algorithms would still
+succeed if they used a noisy matrix multiplication, or even an algorithm that ”misplaced” a constant
+fraction of the cross-terms. (For example, for n × n matrices A, B, C, in computing AB = C, the
+entry ci,j should be the sum of n cross terms ai,k ·bk,j ; our algorithms would be fine if only, say, half of
+these cross terms ended up contributing to ci,j .) Tolerating such “sloppiness” seems unlikely to allow
+for faster asymptotic bounds on the runtime (at least within the Coppersmith–Winograd frame-
+work), though it may significantly reduce the overhead on some of the more practically expensive
+components of the Coppersmith-Winograd framework.
+    The second approach to yielding a practical algorithm would be to avoid fast matrix multiplication
+entirely. Our Vector Aggregation algorithm of Section 3 seems natural (if many pairwise inner
+products are extremely small, we should “bucket” them in such a way that we can process them in
+bulk, yet still be able to detect which bucket contains the large inner product). Nevertheless, if one
+replaces the fast matrix multiplication step with the naive cubic-time multiplication, one gets no
+improvement over the quadratic brute-force search. It seems that no clever bucketing schemes (in
+the “aggregation” step, one need not simply add the vectors over the reals. . . ), or fancy embeddings
+can remove the need for fast matrix multiplication.
+    One intuitive explanation for the diﬃculty of avoiding fast matrix multiplication is via the con-
+nection between finding correlations, and learning parity with noise. The statistical query (SQ) lower
+bound of Blum et al. [7], informally, implies that any algorithm that will beat brute-force-search must
+be highly non-SQ; in particular, it must perform nontrivial operations that intertwine at least log n
+rows of the matrix whose columns are the given vectors. Fast matrix multiplication is clearly such
+an algorithm.
+    Given this intuitive need for a non-SQ component of the algorithm, perhaps the most likely
+candidate for an oﬀ-the-shelf algorithm that might replace fast matrix multiplication, is the Fast
+Fourier Transform. In a recent paper, Pagh gives an extremely clean and practically viable algorithm
+for computing or approximating the product of two matrices given the promise that their product
+is sparse, or has small Frobenius norm after one removes a small number of large entries [27]. The
+algorithmic core of Pagh’s approach is the computation of a Fourier transform. Perplexingly, despite
+the fact that Pagh’s results specifically apply to the type of matrix products that we require for our
+algorithms that find correlations and parities, it does not seem possible to improve on the trivial
+brute-force search runtimes by using Pagh’s matrix multiplication algorithm.
+
+
+
+
+                                                       40
+References
+ [1] M. Ajtai, R. Kumar, and D. Sivakumar. A sieve algorithm for the shortest lattice vector problem.
+     In Proceedings of the ACM Symposium on Theory of Computing (STOC), pages 601–610, 2001.
+
+ [2] N. Alon and A. Naor. Approximating the cut-norm via Grothendiecks inequality. In Proceedings
+     of the ACM Symposium on Theory of Computing (STOC), pages 72–80, 2004.
+
+ [3] A. Andoni and P. Indyk. Near-optimal hashing algorithms for approximate nearest neighbor
+     in high dimensions. In IEEE Symposium on Foundations of Computer Science (FOCS), pages
+     459–468, 2006.
+
+ [4] A. Andoni and P. Indyk. Near–optimal hashing algorithms for approximate nearest neighbor in
+     high dimensions. Communications of the ACM, 51(1):117–122, 2008.
+
+ [5] S. Arora and R. Ge. New algorithms for learning in presence of errors. In International Collo-
+     quium on Automata, Languages and Programming (ICALP), pages 403–415, 2011.
+
+ [6] J.L. Bentley. Multidimensional binary search trees used for associative searching. Communica-
+     tions of the ACM, 18(9):509–517, 1975.
+
+ [7] A. Blum, M. Furst, J. Jackson, M. Kearns, Y. Mansour, and S. Rudich. Weakly learning DNF
+     and characterizing statistical query learning using Fourier analysis. In Proceedings of the ACM
+     Symposium on Theory of Computing (STOC), pages 253–262, 1994.
+
+ [8] A. Blum, A. Kalai, and H. Wasserman. Noise-tolerant learning, the parity problem, and the
+     statistical query model. Journal of the ACM (JACM), 50(4):507–519, 2003.
+
+ [9] Z. Brakerski and V. Vaikuntanathan. Eﬃcient fully homomorphic encryption from (standard)
+     LWE. In IEEE Symposium on Foundations of Computer Science (FOCS), 2011.
+
+[10] K. Clarkson. A randomized algorithm for closest–point queries. SIAM Journal on Computing,
+     17(4):830–847, 1988.
+
+[11] D. Coppersmith. Rectangular matrix multiplication revisited. Journal of Complexity, 13(1):42–
+     49, 1997.
+
+[12] M. Datar, N. Immorlica, P. Indyk, and V. Mirrokni. Locality–sensitive hashing scheme based on
+     p-stable distributions. In Proceedings of the 20th ACM Symposium on Computational Geometry
+     (SoCG), pages 253–262, 2004.
+
+[13] M. Dubiner. Bucketing coding and information theory for the statistical high dimensional nearest
+     neighbor problem. CoRR, abs/0810.4182, 2008.
+
+[14] V. Feldman, P. Gopalan, S. Khot, and A. Ponnuswami. New results for learning noisy parities
+     and halfspaces. In IEEE Symposium on Foundations of Computer Science (FOCS), 2006.
+
+[15] E. Grigorescu, L. Reyzin, and S. Vempala. On noise-tolerant learning of sparse parities and
+     related problems. In The 22nd International Conference on Algorithmic Learning Theory (ALT),
+     2011.
+
+[16] N. J. Hopper and A. Blum. Secure human identification protocols. In ASIACRYPT, pages
+     52–66, 2001.
+
+
+                                                 41
+[17] R. Impagliazzo and D. Zuckerman. How to recycle random bits. In IEEE Symposium on
+     Foundations of Computer Science (FOCS), pages 248–253, 1989.
+
+[18] P. Indyk and R. Motwani. Approximate nearest neighbors: towards removing the curse of
+     dimensionality. In Proceedings of the ACM Symposium on Theory of Computing (STOC), 1998.
+
+[19] M. Kearns. Eﬃcient noise-tolerant learning from statistical queries. Journal of the ACM,
+     45(6):983–1006, 1998.
+
+[20] E. Kushilevitz, R. Ostrovsky, and Y. Rabani. Eﬃcient search for approximate nearest neighbor
+     in high dimensional spaces. SIAM Journal on Computing, 30(2):457–474, 2000.
+
+[21] V. Lyubashevsky. The parity problem in the presence of noise, decoding random linear codes,
+     and the subset sum problem. In RANDOM, pages 378–389, 2005.
+
+[22] J. Marchini, P. Donnelly, and L.R. Cardon. Genome-wide strategies for detecting multiple loci
+     that influence complex diseases. Nature Genetics, 37(4):413–417, 2005.
+
+[23] S. Meiser. Point location in arrangements of hyperplanes. Information and Computation,
+     106(2):286–303, 1993.
+
+[24] E. Mossel, R. O’Donnell, and R. Servedio. Learning functions of k relevant variables. Journal
+     of Computer and System Sciences, 69(3):421–434, 2004.
+
+[25] R. Motwani, A. Noar, and R. Panigraphy. Lower bounds on locality sensitive hashing. In
+     Proceedings of the ACM Symposium on Computational Geometry (SoCG), pages 154–157, 2006.
+
+[26] R. O’Donnell, Y. Wu, and Y. Zhou. Optimal lower bounds for locality sensitive hashing (except
+     when q in tiny). In Innovations in Theoretical Computer Science (ITCS), pages 275–283, 2011.
+
+[27] R. Pagh. Compressed matrix multiplication. In Innovations in Theoretical Computer Science
+     (ITCS), 2012.
+
+[28] R. Panigraphy. Entropy–based nearest neighbor search in high dimensions. In Proceedings of
+     the 17th ACM-SIAM Symposium on Discrete Algorithms (SODA), 2006.
+
+[29] Ramamohan Paturi, Sanguthevar Rajasekaran, and John H. Reif. The light bulb problem. In
+     Conference on Learning Theory (COLT), pages 261–268, 1989.
+
+[30] C. Peikert. Public–key cryptosystems from the worst-case shortest vector problem. In Proceed-
+     ings of the ACM Symposium on Theory of Computing (STOC), pages 333–342, 2009.
+
+[31] O. Regev. On lattices, learning with errors, random linear codes, and cryptography. Journal of
+     the ACM, 56(6):1–40, 2009.
+
+[32] O. Regev. The learning with errors problem. Invited survey in IEEE Conference on Computa-
+     tional Complexity (CCC), 2010.
+
+[33] T.J. Rivlin. The Chebyshev Polynomials. John Wiley and Sons, 1974.
+
+[34] H. Samet. Foundations of Multidimensional and Metric Data Structures. Elsevier, 2006.
+
+[35] I.J. Schoenberg. Positive definite functions on spheres. Duke Mathematical Journal, 9(1):96–108,
+     1942.
+
+
+                                                 42
+[36] G. Szegö. Orthogonal polynomials, 4th edition. American Mathematical Society, Colloquium
+     Publications, 23. Providence, RI, 1975.
+
+[37] G. Valiant. Finding correlations in subquadratic time, with applications to learning parities and
+     juntas. In IEEE Symposium on Foundations of Computer Science (FOCS), 2012.
+
+[38] L. Valiant. Functionality in neural nets. In First Workshop on Computational Learning Theory,
+     pages 28–39, 1988.
+
+[39] K. A. Verbeurgt. Learning DNF under the uniform distribution in quasipolynomial time. In
+     Conference on Learning Theory (COLT), pages 314–326, 1990.
+
+[40] X. Wan, C. Yang, H. Xue, N. Tang, and W. Yu. Detecting two-locus associations allowing for
+     interactions in genome-wide association studies. Bioinformatics, 26(20):2517–2525, 2010.
+
+[41] R. Weber, H.J. Schek, and S. Blott. A quantitative analysis and performance study for
+     similarity–search methods in high–dimensional spaces. In The 24th International Conference on
+     Very Large Databases (VLDB), 1998.
+
+[42] V. Vassilevska Williams. Multiplying matrices faster than Coppersmith–Winograd. In Proceed-
+     ings of the ACM Symposium on Theory of Computing (STOC), 2012.
+
+
+A     Learning Juntas and DNF via Sparse Parities
+We formally state the results of Feldman et al. [14] which reduce the problem of learning Juntas and
+DNF to the problem of learning parity with noise. The main intuition, and proof approach of [14] is
+that the problem of learning parities with noise is the problem of finding a heavy Fourier coeﬃcient,
+given the promise that one exists; in the case of learning a k-junta, one knows that there will be at
+most 2k significant Fourier coeﬃcients. The reduction proceeds by essentially peppering the labels
+with random XORs, so that after the peppering process, with some decent probability, exactly one
+Fourier coeﬃcient will have survived, in which case the problem has been successfully transformed
+into the problem of learning a parity of size k with noise. It is worth stressing that this reduction
+results in an instance with a very large noise rate—noise 12 − 21k , thus highlighting the importance
+of considering the problem of learning parities with noise in the setting in which the noise-rates
+approach 1/2. Below we give formal statements of these reductions.
+
+Theorem A.1 (Feldman et al. [14]). Given an algorithm that learns parities of size k on length n
+strings (under the uniform distribution) with noise rate η ∈ [0, 12 ) that runs in time T (n, k, η), there
+exists an algorithm that learns k-juntas under the uniform distribution with noise rate η � that runs
+in time                             �                             �
+                                        2k         1 1 − 2η �
+                                  O k2 · T (n, k, −             ) .
+                                                   2       2k
+Theorem A.2 (Feldman et al. [14]). Given an algorithm that learns parities of length k on length
+n strings (under the uniform distribution) with noise rate η ∈ [0, 12 ) that takes S(n, k, η) examples
+and runs in time T (n, k, η), there exists an algorithm that (�, δ)–PAC learns r-term DNF formulae
+under the uniform distribution that runs in time
+             �       �                              �   �                             �2 �
+               r4           �        � 1                         �       � 1
+          Õ      · T n, log Õ(r/�) , − Õ(�/r) · S n, log Õ(r/�) , − Õ(�/r)             .
+               �2                       2                                  2
+
+
+
+                                                   43
+    Additionally, as Feldman observed, an improved algorithm for learning parities of size k can be
+used, via the reduction of Feldman et al. [14] to yield an improvement in runtime of the approach
+of Mossel et al. [24] for the problem of learning k-juntas without noise. The key observation of
+Mossel et al. is that either a k-junta has a heavy Fourier coeﬃcient of degree at most d, or, when
+represented as a polynomial over F2 , has degree at most k − d. Their algorithm proceeds by brute
+force-searching for a heavy Fourier coeﬃcients of order at most αk for some appropriately chosen α;
+if none are found, then the junta is found by solving a linear system over n(1−α)k variables. Given
+an improved algorithm for learning parities with noise, using the reduction of Feldman et al., one
+improves upon the brute-force search component of the algorithm of Mossel et al. [24]. The following
+corollary quantifies this improvement.
+
+Corollary A.3. Given an algorithm that learns parities of length j on length n strings (under the
+uniform distribution) with noise rate η ∈ [0, 12 ) that runs in time T (n, j, η), for any α ∈ (0, 1), there
+exists an algorithm that learns k-juntas without noise under the uniform distribution in time
+                                 �                                �
+                                            1        1    ωk(1−α)
+                             max T (n, αk, − αk ), n                poly(n).
+                                            2 2
+
+
+
+
+                                                    44
+

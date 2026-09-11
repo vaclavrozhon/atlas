@@ -1,0 +1,27 @@
+import sys
+from pathlib import Path
+sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
+from authoring import finish, ref, step, paragraph
+
+finish('median-of-medians-groups-of-three',
+ id='TCS-0475',
+ title='Does ordinary median-of-medians selection with groups of three run in linear time?',
+ area='Data structures and compressed data',criterion='tightness',question_type='yes_no',
+ formal=r'''Is there an absolute constant C such that the fixed deterministic comparison algorithm Select3 below uses at most Cn key comparisons on every sequence A of n distinct ordered keys and every requested rank $1\le k\le n$? Its output must be the k-th smallest key. The question concerns the one-grouping-pass algorithm exactly as specified; all recursive pivot-selection comparisons count toward the same cost.''',
+ definitions=r'''Define Select3(A,k) as follows. If |A| <= 3, sort a copy by insertion sort and return its k-th element. Otherwise put the first $3q$ elements, where $q=\lfloor |A|/3\rfloor$, into consecutive disjoint triples. Obtain each triple's median by sorting a copy using compare-exchanges (1,2), (2,3), (1,2); this leaves A unchanged. Let B be these q medians in group order. Set $p=\mathrm{Select3}(B,\lceil q/2\rceil)$. Scan all of A, including its at most two ungrouped final elements, comparing each key with p and forming L of keys below p and R of keys above p, preserving their original order. If k=|L|+1 return p; if k<=|L| return Select3(L,k); otherwise return Select3(R,k-|L|-1). One comparison returns the relative order of two keys at unit cost. The algorithm stores subsequences explicitly and uses no randomization, arithmetic on keys, or reuse of comparison outcomes beyond this description. These rounding and base-case conventions make the source's algorithm fully specified.''',
+ answer_criterion='Prove the stated comparison bound for every input sequence and every requested rank, or give a family of inputs and ranks for which comparisons divided by n are unbounded. An O(n log n) upper bound alone is not a refutation of linear time. A different small-group selection algorithm is not a positive answer for Select3.',
+ context=[
+  paragraph('Selection asks for one position in sorted order without requiring the whole sorted sequence. The pivot controls how much work can be discarded: after finding it, only the side containing the requested rank is relevant. Here the pivot itself must be selected recursively from the medians of small groups. Its quality and the cost of obtaining it therefore have to be analyzed together.'),
+  paragraph('The familiar three-group analysis bounds two recursive subproblems by roughly n/3 and 2n/3, plus a linear scan. This gives an O(n log n) upper bound. It does not exhibit an input on which both recursive calls repeatedly realize their separate worst cases. They are linked: the median list is made of elements from the very array that is partitioned. An adversarial construction cannot freely choose the two subproblems independently.', 'small'),
+  paragraph('A useful distinction is between the grouping size and the number of grouping passes. The repeated-step method groups the medians into triples again before selecting a pivot recursively. That modified algorithm has a linear-time analysis, but it makes a different recursive call from Select3. The present question preserves the simpler, single-pass rule.', 'small'),
+  paragraph('For a proof attempt, the stable ordering in L and R matters because it determines the triples at the next call. Fixing these details turns an informal discussion of small groups into one mathematical proposition. A positive answer would establish that the standard recurrence loses an asymptotic factor; a negative answer must capture actual coupled executions, rather than just solve the upper-bound recurrence.')],
+ why='This is a compact fundamental algorithm-analysis problem: even for a textbook primitive, independently worst-case recursive bounds may not be simultaneously attainable. It provides a concrete place to develop sharper tools for dependent subproblems or an explicit adversary.',
+ importance=dict(score=69,method='editorial',assessed_on='2026-09-10',reason='A basic unresolved analysis of a canonical selection rule, valuable for understanding dependent recursion. Its algorithm-specific scope places it below general adaptive-data-structure and compressed-access barriers.'),
+ progress=[
+  step('2019','Chen and Dumitrescu give linear-time modified small-group algorithms and leave ordinary three-group selection unresolved. Their Conjecture 1 asks for o(n log n), which is weaker than the linear bound asked here.','small'),
+  step('2025','Kozma restates the three-group question as open at the Adaptive and Scalable Data Structures seminar.','seminar')],
+ references=[
+  ref('seminar','Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)','László Kozma (problem contributor)',2025,'https://doi.org/10.4230/DagRep.15.5.1','Section 5.10'),
+  ref('small','Selection Algorithms with Small Groups','Ke Chen; Adrian Dumitrescu',2019,'https://adriandumitrescu.org/select.pdf','Author manuscript dated 31 January 2019; Sections 1–3 and 8; Conjecture 1')],
+ status='source_open',status_note='The 2025 primary seminar source states this as open. Searches through 10 September 2026 did not locate a later resolution. The explicit rounding conventions are editorial; the ordinary algorithm and stable partition rule follow the cited author manuscript.',
+ formulation_reviewed_on='2026-09-10')

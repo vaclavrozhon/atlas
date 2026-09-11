@@ -1,0 +1,823 @@
+                                                                                                                                                                     2026-08-18
+
+
+
+                                         Improving the matrix multiplication exponent
+                                         with modern optimization and AlphaEvolve
+                                         Emilien Dupont*,1 , Marvin Eisenberger*,1 , Borislav Kozlovskii*,1 , Abbas Mehrabian*,1 , Francisco J. R. Ruiz*,1 ,
+                                         Abigail See*,1 , Renfei Zhou*,2 , Josh Alman3 , Virginia Vassilevska Williams4 and Matej Balog1
+                                         * Equal contribution in alphabetical order, 1 Google DeepMind, 2 Carnegie Mellon University, 3 Columbia University, 4 MIT
+
+
+
+
+                                         The current best bounds on the matrix multiplication exponent 𝜔 are obtained through a refinement
+                                         of the laser method called combination loss analysis (Duan et al., 2023; Williams et al., 2024; Alman
+                                         et al., 2025). In this note, we address the optimization problem at the core of this approach and propose
+                                         several improvements. First, we reformulate the optimization problem allowing us to solve it in a larger
+                                         setting than was previously possible. Second, we leverage recent advances in machine learning to design
+                                         a new optimization algorithm for this problem. Finally, we refine the resulting optimization algorithm
+                                         with AlphaEvolve. Our combined approach yields an upper bound of 𝜔 < 2.371177, improving the
+                                         previous best bound of 2.371339.
+arXiv:2608.16884v1 [cs.DS] 17 Aug 2026
+
+
+
+
+                                         1. Introduction
+                                         From accelerating machine learning computations to enabling realistic computer graphics, matrix
+                                         multiplication is a fundamental operation underpinning critical applications in computer science.
+                                         Despite its prominence, the computational complexity of matrix multiplication—the number of
+                                         arithmetic operations needed to multiply large matrices—is unknown, and determining it is a major
+                                         open question in theoretical computer science (Bläser, 2013).
+                                             The pioneering work of Strassen (Strassen, 1969) showed that two 𝑛 × 𝑛 matrices can be multiplied
+                                         in sub-cubic time—specifically, O ( 𝑛𝜔+𝑜 (1) ) operations for 𝜔 < 2.81—spurring a line of work attempting
+                                         to further reduce the complexity exponent 𝜔 (Pan, 1978; Bini et al., 1979; Schönhage, 1981; Romani,
+                                         1982; Coppersmith and Winograd, 1981; Strassen, 1986; Coppersmith and Winograd, 1990; Stothers,
+                                         2010; Williams, 2012; Le Gall, 2014; Alman and Williams, 2024; Duan et al., 2023; Williams et al.,
+                                         2024; Alman et al., 2025). All improvements in the past 40 years rely on the laser method, a
+                                         mathematical technique to indirectly design matrix multiplication algorithms. The current best bound
+                                         is achieved by a refinement of the laser method called combination loss analysis (Duan et al., 2023), a
+                                         technique that requires solving a non-convex optimization problem as part of the computer-assisted
+                                         proof, and yields 𝜔 < 2.371339 (Alman et al., 2025).
+                                             Here, we improve the bound to 𝜔 < 2.371177 using a two-step approach. First, we leverage recent
+                                         advances in machine learning and adjacent areas to address the non-convex optimization problem
+                                         of combination loss analysis using a gradient descent approach; this alone improves the previous
+                                         state-of-the-art (SOTA) bound by ≈ 0.97 × 10−4 . Second, we use AlphaEvolve (Novikov et al., 2025)
+                                         to improve our optimization algorithm; this raises the improvement over the SOTA to ≈ 1.62 × 10−4 .
+
+                                                                                      Duan et al. (2023)                2.371866
+                                                                                      Williams et al. (2024)            2.371552
+                                                                                      Alman et al. (2025)               2.371339
+                                                                                      This note                         2.371177
+
+                                                                                    Table 1 | Recent improvements to 𝜔.
+
+
+                                         Corresponding author(s): edupont@google.com
+                                         © 2026 Google. All rights reserved
+                  Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+    The optimization problem at the core of combination loss analysis is formulated in Alman et al.
+(2025), where it was also shown that any feasible solution provides an upper bound on 𝜔. To achieve
+our new bound, we target a slightly different optimization problem. Specifically, combination loss
+analysis has a parameter—the maximum recursion level, denoted by ℓ∗ —that introduces a trade-off
+between the complexity of the optimization (which grows doubly exponentially in ℓ∗ ) and the best
+possible bound on 𝜔 it can achieve. The previous SOTA bound was found with ℓ∗ = 3 (Alman et al.,
+2025). In contrast, our gradient-based optimization, implemented in Jax (Bradbury et al., 2018),
+allows for hardware parallelization and can handle ℓ∗ = 4 (the number of optimizable parameters
+increases from approximately 25k to 7 million when moving from ℓ∗ = 3 to ℓ∗ = 4).
+    In this note, we describe the full optimization problem from Alman et al. (2025) in detail, explain
+how we numerically solved it and applied AlphaEvolve to it, and finally show how we rigorously
+certified the resulting omega bound.
+
+
+2. Optimization problem
+The high-level structure of the optimization problem can be captured by a rooted tree, where every
+node is associated with a collection of optimizable parameters. Integers 𝑞 ≥ 1 and ℓ∗ ≥ 2 are fixed as
+hyperparameters. Intuitively, the tree structure describes a recursive way to decompose the tensor
+      ℓ∗
+𝐶𝑊𝑞⊗2 into smaller tensors, where 𝐶𝑊𝑞 is the Coppersmith-Winograd tensor (Coppersmith and
+Winograd, 1990); see Alman et al. (2025) for more details about this correspondence. We start by
+defining the tree structure, and will then define the optimizable parameters associated to its nodes.
+
+2.1. Tree structure
+
+Denote [ 𝑘] := {1, . . . , 𝑘 }. Each non-root node 𝑇 in the tree is associated with a level, a shape 𝑠𝑇 , and a
+region 𝑟𝑇 , defined as follows.
+
+   • The level of a non-root node is a positive integer ℓ ∈ {2, 3, . . . , ℓ∗ }, describing its depth in the
+     tree; higher is closer to the root. Direct children of the root node have level ℓ∗ , which is a
+     hyperparameter fixed in advance.
+   • A level-ℓ shape is a triple 𝑠 = ( 𝑠𝑋 , 𝑠𝑌 , 𝑠𝑍 ), where 𝑠𝑋 , 𝑠𝑌 , 𝑠𝑍 are non-negative integers summing to
+     2ℓ . We use
+                                     Sℓ := ( 𝑖, 𝑗, 𝑘) ∈ ℤ3≥0 𝑖 + 𝑗 + 𝑘 = 2ℓ
+                                               
+
+     to denote the set of all level-ℓ shapes. We use dimensions 𝑋, 𝑌 , 𝑍 to refer to the indices of the
+     three coordinates in a shape.
+   • There are six regions, indexed by an integer 𝑟 ∈ [6]. Each region is associated with 𝜋𝑟 , the 𝑟 -th
+     permutation over symbols { 𝑋, 𝑌 , 𝑍 } in lexicographic order.
+
+We call a non-root node 𝑇 a positive-shape node if all coordinates in its shape 𝑠𝑇 are positive. Otherwise
+it is a zero-shape node. The root node is denoted by 𝐺 and does not have the aforementioned
+attributes—level, shape, and region.
+   Next, we define the tree structure by describing the child nodes for different types of nodes.
+
+   • Root: For every region 𝑟 ∈ [6] and level-ℓ∗ shape 𝑠 ∈ Sℓ∗ , the root 𝐺 has a child at level ℓ∗ with
+     shape 𝑠 and region 𝑟 , denoted as 𝐺 [ 𝑠, 𝑟 ].
+   • Positive-shape node: For every level-ℓ shape 𝑠 = ( 𝑠𝑋 , 𝑠𝑌 , 𝑠𝑍 ), we define
+                      Split( 𝑠) := 𝑢 ∈ Sℓ −1 0 ≤ 𝑢𝑋 ≤ 𝑠𝑋 , 0 ≤ 𝑢𝑌 ≤ 𝑠𝑌 , 0 ≤ 𝑢𝑍 ≤ 𝑠𝑍 .
+                                  
+
+
+                                                                                                             2
+                   Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+     Fixing a positive-shape node 𝑇 at level ℓ ≥ 3, for every region 𝑟 ∈ [6] and level-( ℓ − 1) shape
+     𝑢 ∈ Split( 𝑠𝑇 ), the node 𝑇 has a child at level ℓ − 1 with shape 𝑢 and region 𝑟 , denoted as 𝑇 [𝑢, 𝑟 ].
+     Note that the region index 𝑟 of the child can be different from that of 𝑇 itself.
+   • Zero-shape nodes and level-2 positive-shape nodes do not have child nodes. We call them
+     the leaves.
+
+
+2.2. Optimizable parameters
+
+Next we list the free variables of the optimization problem, grouped by the associated node on the
+tree. For any finite set 𝐷, we use Δ ( 𝐷) to denote the simplex of probability distributions on 𝐷:
+                                          (                             )
+                                                           ∑︁
+                                Δ ( 𝐷) := 𝑝 : 𝐷 → [0, 1]      𝑝( 𝑥) = 1
+                                                                     𝑥∈𝐷
+
+
+
+Root node. The optimizable parameters associated with the root node 𝐺 are:
+
+   • A distribution 𝐴𝐺 = ( 𝐴𝐺(1) , . . . , 𝐴𝐺(6) ) ∈ Δ ( [6]) over the six regions;
+   • For 𝑟 ∈ [6], a distribution 𝛼𝐺( 𝑟 ) ∈ Δ (Sℓ∗ ) over all level-ℓ∗ shapes.
+
+
+Positive-shape node. Each level-ℓ positive-shape node 𝑇 with ℓ ≥ 3 is associated with the following
+parameters:
+
+   • A distribution 𝐴𝑇 = ( 𝐴𝑇(1) , . . . , 𝐴𝑇(6) ) ∈ Δ ( [6]) over the six regions;
+   • For 𝑟 ∈ [6], a distribution 𝛼𝑇( 𝑟 ) ∈ Δ (Split( 𝑠𝑇 )), where 𝑠𝑇 is the shape of 𝑇 .
+
+
+Zero-shape node. For a level ℓ and an integer 𝑎 with 0 ≤ 𝑎 ≤ 2ℓ , we define
+                                            
+                                                                2∑︁
+                                                                   ℓ −1       
+                                                                              
+                                                           2ℓ −1
+                                     Cℓ,𝑎 := 𝐿 ∈ {0, 1, 2}
+                                            
+                                                                             
+                                                                              
+                                                                        𝐿𝑝 = 𝑎 .
+                                                                             
+                                                                 𝑝=1         
+                                                                             
+This is the set of length-2ℓ −1 vectors over {0, 1, 2} whose entries sum to 𝑎. A distribution over Cℓ,𝑎 is
+called a level-ℓ complete split distribution of 𝑎.
+    For every level-ℓ zero-shape node 𝑇 , let 𝑊 ∈ { 𝑋, 𝑌 , 𝑍 } be the first dimension where 𝑠𝑇,𝑊 is nonzero.
+𝑇 is then associated with a complete split distribution 𝛽𝑇,𝑊 ∈ Δ (Cℓ,𝑠 ).
+                                                                                   𝑇,𝑊
+
+
+
+
+Level-2 node. The only remaining nodes are level-2 nodes with shapes (1, 1, 2), (1, 2, 1), or (2, 1, 1),
+which are the only valid strictly positive shapes for level 2, since their coordinates must sum to 22 = 4.
+Each such node is associated with a scalar 𝜇𝑇 ∈ [0, 1/2].
+
+
+2.3. Derived quantities
+
+With the free variables fixed, all remaining quantities can be computed deterministically. In the
+following, all logarithms and entropies are in base two. For a distribution 𝜌 with finite support, we
+denote its entropy by                          ∑︁
+                                   𝐻 ( 𝜌) := −       𝜌 ( 𝑥 ) log 𝜌 ( 𝑥 ) .
+                                                      𝑥 ∈supp( 𝜌 )
+
+
+                                                                                                           3
+                    Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+We also use 𝐻 ( 𝑝1 , 𝑝2 , . . . , 𝑝𝑘 ) to denote the entropy of a distribution over [ 𝑘] with probability masses
+𝑝1 , . . . , 𝑝𝑘 . If 𝐷 is a set
+                            ∑︁ of shapes and 𝜌 ∈ Δ ( 𝐷), let 𝜌𝑊 denote the marginal of 𝜌 in coordinate 𝑊 ,
+namely, 𝜌𝑊 ( 𝑤) :=                 𝜌 ( 𝑎). Define
+                     𝑎 ∈ 𝐷:𝑎𝑊 =𝑤
+
+                                             𝐻 𝐷max ( 𝜌) :=                  sup                     𝐻 ( 𝜌′ ) ,                           (1)
+                                                                           𝜌′ ∈ Δ ( 𝐷 )
+                                                                 ′ =𝜌 for 𝑊 ∈ { 𝑋,𝑌 ,𝑍 }
+                                                                𝜌𝑊   𝑊
+
+
+as well as the penalty notion
+                                                    𝑃 𝐷 ( 𝜌) := 𝐻 𝐷max ( 𝜌) − 𝐻 ( 𝜌) .
+
+
+Masses. Each non-zero-shape node 𝑇 of the tree has a real number 𝑚𝑇 ∈ [0, 1] associated with it,
+called its mass. The masses of non-root nodes are computed top-down as follows:
+
+    • The root 𝐺 has 𝑚𝐺 = 1.
+    • For the children of the root, we set
+                                                         (𝑟 )       (𝑟 )
+                                          𝑚𝐺 [ 𝑠,𝑟 ] := 𝐴𝐺 · 𝛼𝐺 ( 𝑠) ,                      ∀ 𝑠 ∈ Sℓ∗ , 𝑟 ∈ [6] .
+
+    • For any positive-shape node 𝑇 of level ℓ ≥ 3, we set
+                                                              
+                                     (𝑟 )   (𝑟 )    (𝑟 )
+                  𝑚𝑇 [ 𝑢,𝑟 ] = 𝑚𝑇 · 𝐴𝑇 · 𝛼𝑇 ( 𝑢) + 𝛼𝑇 ( 𝑠𝑇 − 𝑢) ,                                         ∀ 𝑢 ∈ Split( 𝑠𝑇 ) , 𝑟 ∈ [6] .
+
+
+Complete split distributions. Every level-ℓ non-root          node 𝑇 carries, for each dimension 𝑊 ∈
+{ 𝑋, 𝑌 , 𝑍 }, a complete split distribution 𝛽𝑇,𝑊 ∈ Δ Cℓ,𝑠 . These distributions are calculated as follows.
+                                                          
+                                                                              𝑇,𝑊
+
+
+         ® := (0, 0, . . . , 0) and 2
+     Let 0                          ® := (2, 2, . . . , 2) denote vectors of length 2ℓ −1 . For a zero-shape node
+𝑇 , let 𝑊0 ∈ { 𝑋, 𝑌 , 𝑍 } be the first zero coordinate of 𝑠𝑇 , 𝑊1 be the first nonzero coordinate of 𝑠𝑇 , and
+𝑊2 be the other coordinate. 𝛽𝑇,𝑊0 is the point mass distribution at the length-2ℓ −1 vector 0;            ® 𝛽
+                                                                                                              𝑇,𝑊1
+was defined as optimizable parameters in section 2.2; 𝛽𝑇,𝑊2 := 𝛽𝑇,𝑊1 , where for any complete split
+                                                                              ∨
+
+distribution 𝛽 , we define
+                                             ® 𝐿) := 𝛽 ( 𝐿) ,
+                                       𝛽 ∨ ( 2−                   ∀ 𝐿 ∈ supp( 𝛽 ) .
+                                                                                          ® − 𝐿 sum to
+(Notice, in particular, that if the components of 𝐿 sum to 𝑠𝑇,𝑊1 , then the components of 2
+2·2 ℓ −1
+         − 𝑠𝑇,𝑊1 = 𝑠𝑇,𝑊2 , keeping the mapping validly within the correct domain.)
+    For a positive-shape node 𝑇 at level ℓ ≥ 3, we define
+                             ∑︁
+                      (𝑟 )            (𝑟 )
+                    𝛽𝑇,𝑊 :=
+                                                                              
+                                    𝛼𝑇 ( 𝑢) · 𝛽𝑇 [ 𝑢,𝑟 ] ,𝑊 × 𝛽𝑇 [ 𝑠 −𝑢,𝑟 ] ,𝑊 ,                                   ∀ 𝑟 ∈ [6] ,
+                                                                                                 𝑇
+                                   𝑢 ∈Split( 𝑠𝑇 )
+
+
+where × denotes the Cartesian product of complete split distributions; that is, if 𝐿left and 𝐿right are
+two sequences of length 2ℓ −2 in supports of 𝛽left := 𝛽𝑇 [ 𝑢,𝑟 ] ,𝑊 and 𝛽right := 𝛽𝑇 [ 𝑠𝑇 −𝑢,𝑟 ] ,𝑊 , respectively, then
+we form a new sequence 𝐿, of length 2ℓ −1 , by concatenating 𝐿left and 𝐿right , and letting
+
+                                      ( 𝛽left × 𝛽right ) ( 𝐿) := 𝛽left ( 𝐿left ) · 𝛽right ( 𝐿right ) .
+
+Then, the complete split distributions of 𝑇 are calculated by
+                                                                      6
+                                                                     ∑︁
+                                                                                 (𝑟 )     (𝑟 )
+                                                       𝛽𝑇,𝑊 :=                𝐴𝑇 𝛽𝑇,𝑊 .
+                                                                     𝑟 =1
+
+
+                                                                                                                                           4
+                     Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+    The only remaining case is a level-2 positive-shape node, which must have shape (1, 1, 2), (2, 1, 1),
+or (1, 2, 1). For a node 𝑇 with shape (1, 1, 2), recall that 𝜇𝑇 ∈ [0, 1/2] is the only optimizable parameter
+associated with 𝑇 . We let 𝛿𝑎,𝑏 denote the point mass at ( 𝑎, 𝑏) ∈ {0, 1, 2}2 and set
+                              1       1
+                  𝛽𝑇,𝑋 = 𝛽𝑇,𝑌 = 𝛿0,1 + 𝛿1,0 ,    𝛽𝑇,𝑍 = 𝜇𝑇 𝛿0,2 + 𝜇𝑇 𝛿2,0 + (1 − 2 𝜇𝑇 ) 𝛿1,1 .                                                                                (2)
+                              2       2
+Similarly, for a node 𝑇 with shape (2, 1, 1), we set
+                              1       1
+                 𝛽𝑇,𝑌 = 𝛽𝑇,𝑍 = 𝛿0,1 + 𝛿1,0 ,     𝛽𝑇,𝑋 = 𝜇𝑇 𝛿0,2 + 𝜇𝑇 𝛿2,0 + (1 − 2 𝜇𝑇 ) 𝛿1,1 ,
+                              2       2
+and for a node 𝑇 with shape (1, 2, 1), we set
+                              1       1
+                 𝛽𝑇,𝑋 = 𝛽𝑇,𝑍 = 𝛿0,1 + 𝛿1,0 ,     𝛽𝑇,𝑌 = 𝜇𝑇 𝛿0,2 + 𝜇𝑇 𝛿2,0 + (1 − 2 𝜇𝑇 ) 𝛿1,1 .
+                              2       2
+
+Retained exponent at root node. Next, we define how to calculate the retained exponent 𝐸𝐺
+associated with the root 𝐺 , which will be obtained from intermediate quantities 𝐸𝐺( 𝑟 ) for regions 𝑟 ∈ [6].
+We start by introducing how to compute 𝐸𝐺(1) for region 𝑟 = 1, where 𝜋1 is the identity permutation.
+In all summations below, 𝑠 ranges over Sℓ∗ . We will use the symbols *, +, and < in our notation below
+as mnemonic placeholders corresponding to the dimensions, indicating the meanings “unconstrained
+/ any value”, “strictly positive”, and “strictly less than the parent’s coordinate”, respectively. We define
+                                                                                                   ∗
+                                                                                            2ℓ                                                   
+                                                                                                        𝛼𝐺 ( *, 𝑗, +) · 𝐻 𝛽¯𝐺,𝑌 ,*, 𝑗,+ ,
+                                      ∑︁                                                      ∑︁
+                         (1)                      (1)                                                     (1)                         (1)
+                       𝜂𝐺,𝑌 :=                  𝛼𝐺 ( 𝑠) · 𝐻 𝛽𝐺 [ 𝑠,1] ,𝑌 +                                                                                                    (3)
+                                    𝑠 : 𝑠𝑍 =0                                                     𝑗=0
+
+where
+                                                                                                               1
+                                                                          𝛽¯𝐺,𝑌 ,*, 𝑗,+ :=
+                                   ∑︁                                                                                            ∑︁
+          (1)                                     (1)                         (1)                                                               (1)
+         𝛼𝐺 ( *, 𝑗, +) :=                        𝛼𝐺 ( 𝑠) ,                                              (1)
+                                                                                                                                              𝛼𝐺 ( 𝑠) · 𝛽𝐺 [ 𝑠,1] ,𝑌 .
+                             𝑠 : 𝑠𝑌 = 𝑗, 𝑠𝑍 >0                                                     𝛼𝐺 ( *, 𝑗, +) 𝑠 : 𝑠 = 𝑗, 𝑠 >0
+                                                                                                                             𝑌        𝑍
+
+We then define
+                                                                                                          ∗
+                                                                                                      2ℓ                                               
+                                                                                                               𝛼𝐺 ( +, +, 𝑘) · 𝐻 𝛽¯𝐺,𝑍,+,+,𝑘 ,
+                                     ∑︁                                                                 ∑︁
+                   (1)                                  (1)                                                     (1)                           (1)
+                 𝜂𝐺,𝑍 :=                             𝛼𝐺 ( 𝑠) · 𝐻 𝛽𝐺 [ 𝑠,1] ,𝑍 +                                                                                               (4)
+                               𝑠 : 𝑠 𝑋 =0 or 𝑠𝑌 =0                                                      𝑘=0
+
+where
+                                                                                                                1
+                                                                          𝛽¯𝐺,𝑍,+,+,𝑘 :=
+                               ∑︁                                                                                                     ∑︁
+   (1)                                            (1)                         (1)                                                                         (1)
+  𝛼𝐺 ( +, +, 𝑘) :=                               𝛼𝐺 ( 𝑠) ,                                              (1)
+                                                                                                                                                        𝛼𝐺 ( 𝑠) · 𝛽𝐺 [ 𝑠,1] ,𝑍 .
+                     𝑠 : 𝑠 𝑋 >0, 𝑠𝑌 >0, 𝑠𝑍 =𝑘                                                       𝛼𝐺 ( +, +, 𝑘) 𝑠 : 𝑠 >0, 𝑠 >0, 𝑠 =𝑘
+                                                                                                                              𝑋           𝑌     𝑍
+
+                                                         (1)
+To avoid the issue of denominators 𝛼𝐺 (·) being zero, we regard 0 · undefined := 0, so that Equation (3)
+and Equation (4) are always well-defined.
+    The quantity 𝐸𝐺(1) is then given by
+                        n                                                     o
+           𝐸𝐺 := min 𝐻 𝛼𝐺 𝑋 − 𝑃 Sℓ∗ 𝛼𝐺 , 𝐻 𝛽¯𝐺,𝑌 ,*,*,* − 𝜂𝐺,𝑌 , 𝐻 𝛽¯𝐺,𝑍,*,*,* − 𝜂𝐺,𝑍 ,
+            (1)               (1)        (1)     (1)      (1)       (1)          (1)
+                                                                                                                                                                              (5)
+where
+                                 𝛽¯𝐺,𝑊,*,*,* :=
+                                                         ∑︁
+                                   (1)                              (1)
+                                                                  𝛼𝐺 ( 𝑠) · 𝛽𝐺 [ 𝑠,1] ,𝑊 ,                          ∀ 𝑊 ∈ { 𝑋, 𝑌 , 𝑍 } .
+                                                        𝑠 ∈ Sℓ∗
+
+
+   For 𝑟 = 2, . . . , 6, we define 𝐸𝐺( 𝑟 ) by applying the same formula Equation (5) after relabeling the
+coordinates 𝑋, 𝑌 , 𝑍 as 𝜋𝑟 ( 𝑋 ) , 𝜋𝑟 (𝑌 ) , 𝜋𝑟 ( 𝑍 ), and replacing the region index 1 with 𝑟 . Finally, we set
+                                                                                6
+                                                                               ∑︁
+                                                                                           (𝑟 )         (𝑟 )
+                                                                   𝐸𝐺 :=               𝐴𝐺 · 𝐸 𝐺 .
+                                                                                𝑟 =1
+
+
+                                                                                                                                                                                   5
+                         Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+Retained exponents at level ℓ ≥ 3. For each positive-shape node 𝑇 at level ℓ ≥ 3, we will calculate
+                           (𝑟 )
+intermediate quantities 𝐸𝑇,𝑊    for each region 𝑟 ∈ [6] and 𝑊 ∈ { 𝑋, 𝑌 , 𝑍 }. These quantities will later be
+aggregated to form the retained exponent of level ℓ. Note that the region index 𝑟 in the calculation
+can be different from the region index 𝑟𝑇 of node 𝑇 itself. As in the above, we start by defining the
+quantities for region 𝑟 = 1 where 𝜋1 is the identity permutation. In the summations below, 𝑢 ranges
+over Split( 𝑠𝑇 ).
+    We first define
+                                          ∑︁                                                                    
+                           (1)                        (1)                 (1)
+                         𝜂𝑇,𝑌 :=                   𝛼𝑇 ( 𝑢) + 𝛼𝑇 ( 𝑠𝑇 − 𝑢) · 𝐻 𝛽𝑇 [ 𝑢,1] ,𝑌
+                                       𝑢 : 𝑢𝑍 =0
+
+                                          min{ 𝑠𝑇,𝑌 , 2ℓ −1 }                                                                                                              (6)
+                                                                                                                                                       
+                                                                                                                                            ¯(1)
+                                                   ∑︁
+                                                                    (1)                     (1)
+                                      +                            𝛼𝑇 ( *, 𝑗, +) + 𝛼𝑇 ( *, 𝑠𝑇,𝑌 − 𝑗, <) · 𝐻 𝛽𝑇,𝑌 ,*, 𝑗,+ ,
+                                                   𝑗=0
+
+where                                              ∑︁                                                                                   ∑︁
+                   (1)                                              (1)                   (1)                                                           (1)
+                  𝛼𝑇 ( *, 𝑗, +) :=                                𝛼𝑇 ( 𝑢) ,           𝛼𝑇 ( *, 𝑠𝑇,𝑌 − 𝑗, <) :=                                          𝛼𝑇 ( 𝑢) ,
+                                             𝑢 : 𝑢𝑌 = 𝑗, 𝑢𝑍 >0                                                                     𝑢 : 𝑢𝑌 =𝑠𝑇,𝑌 − 𝑗,
+                                                                                                                                       𝑢𝑍 <𝑠𝑇,𝑍
+
+                                                         1                                                                                              
+        𝛽¯𝑇,𝑌 ,*, 𝑗,+ :=
+                                                                                                ∑︁
+            (1)                                                                                                    (1)                  (1)
+                               (1)                          (1)
+                                                                                      ·                           𝛼𝑇 ( 𝑢) + 𝛼𝑇 ( 𝑠𝑇 − 𝑢) · 𝛽𝑇 [ 𝑢,1] ,𝑌 .
+                           𝛼𝑇 ( *, 𝑗, +) + 𝛼𝑇 ( *, 𝑠𝑇,𝑌 − 𝑗, <)                           𝑢 : 𝑢𝑌 = 𝑗, 𝑢𝑍 >0
+
+We also define
+                                               ∑︁                                                                               
+                           (1)                                     (1)          (1)
+                         𝜂𝑇,𝑍 :=                                  𝛼𝑇 ( 𝑢) + 𝛼𝑇 ( 𝑠𝑇 − 𝑢) · 𝐻 𝛽𝑇 [ 𝑢,1] ,𝑍
+                                      𝑢 : 𝑢 𝑋 =0 or 𝑢𝑌 =0
+
+                                          min{ 𝑠𝑇,𝑍 , 2ℓ −1 }                                                                                                              (7)
+                                                                                                                                                       
+                                                                                                                                            ¯(1)
+                                                ∑︁
+                                                                    (1)                     (1)
+                                      +                           𝛼𝑇 ( +, +, 𝑘) + 𝛼𝑇 ( <, <, 𝑠𝑇,𝑍 − 𝑘) · 𝐻 𝛽𝑇,𝑍,+,+,𝑘 ,
+                                                 𝑘=0
+
+where
+                                               ∑︁                                                                                             ∑︁
+            (1)                                                     (1)                   (1)                                                                       (1)
+         𝛼𝑇 ( +, +, 𝑘) :=                                          𝛼𝑇 ( 𝑢) ,          𝛼𝑇 ( <, <, 𝑠𝑇,𝑍 − 𝑘) :=                                                   𝛼𝑇 ( 𝑢) ,
+                                     𝑢 : 𝑢 𝑋 >0, 𝑢𝑌 >0, 𝑢𝑍 =𝑘                                                                      𝑢 : 𝑢 𝑋 <𝑠𝑇,𝑋 , 𝑢𝑌 <𝑠𝑇,𝑌 ,
+                                                                                                                                          𝑢𝑍 =𝑠𝑇,𝑍 − 𝑘
+
+
+                                                    1                                                                                                          
+     𝛽¯𝑇,𝑍,+,+,𝑘 :=
+                                                                                                  ∑︁
+      (1)                                                                                                                (1)                  (1)
+                         (1)                          (1)
+                                                                                ·                                       𝛼𝑇 ( 𝑢) + 𝛼𝑇 ( 𝑠𝑇 − 𝑢) · 𝛽𝑇 [ 𝑢,1] ,𝑍 .
+                      𝛼𝑇 ( +, +, 𝑘) + 𝛼𝑇 ( <, <, 𝑠𝑇,𝑍 − 𝑘)                          𝑢 : 𝑢 𝑋 >0, 𝑢𝑌 >0, 𝑢𝑍 =𝑘
+
+Again, as we define 0 · undefined := 0, Equation (6) and Equation (7) are well-defined even when
+some denominators 𝛼𝑇(1) are zeros.
+           (1)
+    Then, 𝐸𝑇,𝑊 are given by
+                                                                                        
+                                                (1)                 (1)
+                                              𝐸𝑇,𝑋 := 𝑚𝑇 𝐴𝑇   · 𝐻 𝛼𝑇(1) 𝑋 − 𝑃Split( 𝑠 ) 𝛼𝑇(1) ,
+                                                                                     𝑇
+                                                                              
+                                               (1)        (1)      (1)       (1)
+                                              𝐸𝑇,𝑌 := 𝑚𝑇 𝐴𝑇 · 𝐻 𝛽𝑇,𝑌 − 𝜂𝑇,𝑌 ,                                                                                               (8)
+                                                                              
+                                               (1)        (1)      (1)       (1)
+                                              𝐸𝑇,𝑍 := 𝑚𝑇 𝐴𝑇 · 𝐻 𝛽𝑇,𝑍 − 𝜂𝑇,𝑍 .
+
+                                             (𝑟 )           (𝑟 )               (𝑟 )
+    For regions 𝑟 = 2, . . . , 6, we define 𝐸𝑇,𝜋         , 𝐸𝑇,𝜋         , and 𝐸𝑇,𝜋        by applying Equation (6), Equa-
+                                                  𝑟 (𝑋 )         𝑟 (𝑌 )             𝑟 (𝑍)
+tion (7), and Equation (8) after relabeling coordinates 𝑋, 𝑌 , 𝑍 as 𝜋𝑟 ( 𝑋 ) , 𝜋𝑟 (𝑌 ) , 𝜋𝑟 ( 𝑍 ) and replacing
+region index 1 by 𝑟 .
+
+                                                                                                                                                                             6
+                   Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+   To calculate the retained exponent for level ℓ ∈ [3, ℓ∗ ], we let Tℓ + denote the set of positive-shape
+nodes at level ℓ. Then, the retained exponent at level ℓ is given by
+
+                                        6
+                                       ∑︁       
+                                                
+                                                 ∑︁ ( 𝑟 ) ∑︁ ( 𝑟 ) ∑︁ ( 𝑟 ) 
+                                                                                           
+                                𝐸 ℓ :=      min
+                                                                                          
+                                                                                           
+                                                         𝐸𝑇,𝑋 ,         𝐸𝑇,𝑌 ,         𝐸𝑇,𝑍 .
+                                                
+                                                𝑇 ∈ T +                                   
+                                       𝑟 =1
+                                                 ℓ             𝑇 ∈ Tℓ+        𝑇 ∈ Tℓ+     
+                                                                                           
+
+Retained exponent at level 2. For a positive level-2 node 𝑇 of shape (1, 1, 2), we define
+                                          
+                         𝐸𝑇,𝑋 , 𝐸𝑇,𝑌 , 𝐸𝑇,𝑍 := 𝑚𝑇 · 1, 1, 𝐻 𝜇𝑇 , 𝜇𝑇 , 1 − 2 𝜇𝑇 .                                        (9)
+                                                                              
+
+
+Similarly, for a node 𝑇 of shape (2, 1, 1), we define
+                                              
+                             𝐸𝑇,𝑋 , 𝐸𝑇,𝑌 , 𝐸𝑇,𝑍 := 𝑚𝑇 · 𝐻 𝜇𝑇 , 𝜇𝑇 , 1 − 2 𝜇𝑇 , 1, 1 ,
+                                                                                  
+
+
+and for a node 𝑇 of shape (1, 2, 1), we define
+                                            
+                           𝐸𝑇,𝑋 , 𝐸𝑇,𝑌 , 𝐸𝑇,𝑍 := 𝑚𝑇 · 1, 𝐻 𝜇𝑇 , 𝜇𝑇 , 1 − 2 𝜇𝑇 , 1 ,
+                                                                              
+
+
+Then, letting T2+ denote the set of positive-shape nodes at level 2, the retained exponent at level 2 is
+given by
+                                       
+                                                                                 
+                                                                                  
+                                        ∑︁             ∑︁             ∑︁
+                             𝐸2 := min
+                                                                                 
+                                                                                  
+                                                𝐸𝑇,𝑋 ,         𝐸𝑇,𝑌 ,         𝐸𝑇,𝑍 .
+                                       
+                                       𝑇 ∈ T +                                   
+                                        2             𝑇 ∈ T2+        𝑇 ∈ T2+     
+                                                                                  
+
+Local matrix size for zero-shape nodes. For every zero-shape node 𝑇 , we let 𝑊0 ∈ { 𝑋, 𝑌 , 𝑍 } be the
+first zero coordinate of 𝑠𝑇 and 𝑊1 be the first nonzero coordinate of 𝑠𝑇 . Then, we define the local
+matrix size of 𝑇 , written ( 𝑀𝑇,𝑋 , 𝑀𝑇,𝑌 , 𝑀𝑇,𝑍 ), as
+                                                                                                                   !
+                                                 ∑︁
+             𝑀𝑇,𝑊0 := 𝑚𝑇 · 𝐻 𝛽𝑇,𝑊1 +                                                       ℓ −1
+                                                                                                  ] 𝐿 𝑝 = 1 · log 𝑞 ;
+                                                                              
+                                                               𝛽𝑇,𝑊1 ( 𝐿) ·       𝑝 ∈ [2
+                                             𝐿 ∈supp( 𝛽𝑇,𝑊 )
+                                                          1
+
+
+the other two coordinates in the local matrix size are zeros.
+
+
+Local matrix size for (1, 1, 2)-nodes. For a node 𝑇 with shape (1, 1, 2), we define its local matrix
+size as                           
+                 𝑀𝑇,𝑋 , 𝑀𝑇,𝑌 , 𝑀𝑇,𝑍 := 𝑚𝑇 · (1 − 2 𝜇𝑇 ) log 𝑞, (1 − 2 𝜇𝑇 ) log 𝑞, 2 𝜇𝑇 log 𝑞 . (10)
+                                                                                            
+
+Similarly, for a node 𝑇 with shape (2, 1, 1), we define its local matrix size as
+                                    
+                   𝑀𝑇,𝑋 , 𝑀𝑇,𝑌 , 𝑀𝑇,𝑍 := 𝑚𝑇 · 2 𝜇𝑇 log 𝑞, (1 − 2 𝜇𝑇 ) log 𝑞, (1 − 2 𝜇𝑇 ) log 𝑞 ,
+                                                                                              
+
+
+and for a node 𝑇 with shape (1, 2, 1), we define its local matrix size as
+                                   
+                  𝑀𝑇,𝑋 , 𝑀𝑇,𝑌 , 𝑀𝑇,𝑍 := 𝑚𝑇 · (1 − 2 𝜇𝑇 ) log 𝑞, 2 𝜇𝑇 log 𝑞, (1 − 2 𝜇𝑇 ) log 𝑞 .
+                                                                                             
+
+
+
+
+                                                                                                                         7
+                     Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+2.4. Final assembly
+
+Finally, we define the total retained exponent as
+                                                                            ℓ∗
+                                                                           ∑︁
+                                                𝐸total := 𝐸𝐺 + 𝐸2 +              𝐸ℓ ,
+                                                                           ℓ=3
+
+and define the total matrix size as
+                                                   (                                             )
+                                                       ∑︁            ∑︁                 ∑︁
+                                   𝑀total := min            𝑀𝑇,𝑋 ,         𝑀𝑇,𝑌 ,            𝑀𝑇,𝑍 ,
+                                                    𝑇∈L              𝑇∈L            𝑇∈L
+
+where L is the set of leaves. We can now write the full optimization problem.
+
+                    minimize Ω
+                                                                                                             (11)
+                                                       ∗
+                    subject to 𝐸total + 𝑀total · Ω ≥ 2ℓ −1 log( 𝑞 + 2) ,
+                               all free variables lie in the domains stated in section 2.2.
+
+Theorem 1 (Alman et al. (2025)). Any feasible solution of Equation (11) implies 𝜔 ≤ Ω, where 𝜔 is
+the asymptotic matrix multiplication exponent.
+
+
+2.5. Dealing with maximum entropies
+
+Among the quantities introduced above, 𝐻 𝐷max ( 𝜌) is the only type that cannot be computed analytically.
+However, it is easy to see that replacing each occurrence of 𝐻 𝐷max in the computation of 𝐸total with its
+upper bound can only decrease 𝐸total , so any solution that satisfies the constraints in Equation (11)
+after this replacement is feasible for Equation (11) itself, and still yields a valid upper bound 𝜔 ≤ Ω.
+In this section, we describe how to derive an upper bound of 𝐻 𝐷max ( 𝜌).
+      For a set 𝐷 of shapes and a probability distribution 𝜌 ∈ Δ ( 𝐷), a valid certificate for 𝐻 𝐷max ( 𝜌) consists
+of:
+
+      1. a distribution 𝑦 ∈ Δ ( 𝐷) satisfying 𝑦 ( 𝑎) > 0 for every 𝑎 ∈ 𝐷 and 𝑦𝑊 = 𝜌𝑊 for every 𝑊 ∈ { 𝑋, 𝑌 , 𝑍 };
+      2. a real number 𝜆 0 and, for each 𝑊 ∈ { 𝑋, 𝑌 , 𝑍 } and each marginal value 𝑤 ∈ { 𝑎𝑊 | 𝑎 ∈ 𝐷 }, a real
+         number 𝜆 𝑊 ( 𝑤) (these values play the role of Lagrange multipliers for the maximization defining
+         𝐻 𝐷max ( 𝜌)); and
+      3. a real number 𝜀 ≥ 0 satisfying, for every 𝑎 = ( 𝑎𝑋 , 𝑎𝑌 , 𝑎𝑍 ) ∈ 𝐷,
+
+                                    log 𝑦 ( 𝑎) − 𝜆 0 + 𝜆 𝑋 ( 𝑎𝑋 ) + 𝜆 𝑌 ( 𝑎𝑌 ) + 𝜆 𝑍 ( 𝑎𝑍 ) ≤ 𝜀.         (12)
+                                                                                           
+
+Lemma 1. For any valid certificate, we have 𝐻 ( 𝑦 ) ≤ 𝐻 𝐷max ( 𝜌) ≤ 𝐻 ( 𝑦 ) + 2𝜀.
+
+Proof. The left inequality follows from the definition: 𝑦 has the same marginals as 𝜌, so it is feasible
+for the maximization defining 𝐻 𝐷max ( 𝜌) (see Equation (1)).
+   For the right inequality, fix any 𝜌′ ∈ Δ ( 𝐷) with 𝜌𝑊
+                                                       ′ = 𝜌 for all 𝑊 ∈ { 𝑋, 𝑌 , 𝑍 }; to prove the right
+                                                            𝑊
+inequality we need only show 𝐻 ( 𝜌 ) ≤ 𝐻 ( 𝑦 ) + 2𝜀.
+                                   ′
+
+
+   The entropy function 𝐻 is concave on Δ ( 𝐷), and since 𝑦 is strictly positive, 𝐻 is differentiable at 𝑦
+with ∇ 𝐻 ( 𝑦 ) 𝑎 = − log 𝑦 ( 𝑎) − log 𝑒 (recall that all logarithms are in base 2). Therefore
+
+                                          𝐻 ( 𝜌′ ) ≤ 𝐻 ( 𝑦 ) + ∇ 𝐻 ( 𝑦 ) , 𝜌′ − 𝑦 .
+
+                                                                                                                    8
+                    Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+Write 𝑔 ( 𝑎) := 𝜆 0 + 𝜆 𝑋 ( 𝑎𝑋 ) + 𝜆 𝑌 ( 𝑎𝑌 ) + 𝜆 𝑍 ( 𝑎𝑍 ), and view 𝑔, log 𝑦 , and the constant log 𝑒 as vectors indexed
+by 𝑎 ∈ 𝐷. Then,
+                                                ∑︁ ′                         ∑︁ ∑︁
+     𝑔 + log 𝑒, 𝜌′ − 𝑦 = 𝜆 0 + log 𝑒 ·                                                   𝜆 𝑊 ( 𝑎𝑊 ) · 𝜌′ ( 𝑎) − 𝑦 ( 𝑎)
+                                                                                                                      
+                                                          𝜌 ( 𝑎) − 𝑦 ( 𝑎) +
+                                              𝑎∈ 𝐷                         𝑊 ∈ { 𝑋,𝑌 ,𝑍 } 𝑎 ∈ 𝐷
+                                                              ∑︁               ∑︁
+                           = 𝜆 0 + log 𝑒 · (1 − 1) +                                                      ′
+                                                                                                            ( 𝑤) − 𝑦𝑊 ( 𝑤) = 0,
+                                                                                                                       
+                                                                                              𝜆 𝑊 ( 𝑤) · 𝜌𝑊
+                                                          𝑊 ∈ { 𝑋,𝑌 ,𝑍 } 𝑤 ∈ { 𝑎𝑊 | 𝑎 ∈ 𝐷 }
+
+
+where the last step uses 𝜌𝑊
+                          ′ = 𝜌 = 𝑦 for each 𝑊 ∈ { 𝑋, 𝑌 , 𝑍 }. Hence,
+                               𝑊   𝑊
+
+                           ∇ 𝐻 ( 𝑦 ) , 𝜌′ − 𝑦 = 𝑔 − log 𝑦, 𝜌′ − 𝑦 ≤ 𝜀 · ∥ 𝜌′ − 𝑦 ∥ 1 ≤ 2𝜀,
+
+where the first inequality uses Equation (12) and the second one uses the fact that the ℓ1 -distance
+between two probability distributions is at most 2. Thus, 𝐻 ( 𝜌′ ) ≤ 𝐻 ( 𝑦 ) + 2𝜀, proving the lemma. □
+
+
+3. Solving the optimization problem numerically
+We wish to numerically minimize Ω from Equation (11) while satisfying all the constraints, with
+𝑞 = 5 and ℓ∗ = 4. In Alman et al. (2025), this was done (for ℓ∗ = 3) via a sequential quadratic
+programming (SQP) algorithm using the software package SNOPT (Gill et al., 2002). In contrast, we
+take a gradient-based approach to tackle the non-convex minimization. We develop an algorithm
+applying several techniques from machine learning and adjacent areas, such as optimal transport.
+
+
+3.1. Differentiable objective
+
+To apply a gradient-based optimization algorithm, we need a differentiable objective function to be
+optimized. However, obtaining a differentiable objective from Equation (11) is challenging due to
+the problem constraints. Since most of the parameters to be optimized are distributions, this creates
+the constraints that the probabilities must be non-negative and must add up to one. To sidestep that
+issue and obtain unconstrained optimization, we parameterize distributions in terms of their logits,
+and obtain the distribution by applying the softmax operation on the free parameters. We initialize
+the algorithm with random (logit) parameters.
+    The other relevant set of constraints comes from the maximum entropy distributions. Given
+an input probability distribution, we must find the distribution with maximum entropy that shares
+the same marginals as the input. This is reminiscent of a problem that typically arises in optimal
+transport, where the Sinkhorn-Knopp algorithm (Sinkhorn and Knopp, 1967) is used to obtain a
+stable and differentiable objective (Cuturi, 2013). Thus, unlike Alman et al. (2025), we do not treat
+the maximum entropy distributions (and the corresponding Lagrange multipliers) as free parameters
+to be optimized together with the rest of distributions; rather, we obtain the maximum entropy
+distributions (and the Lagrange multipliers) using the Sinkhorn-Knopp algorithm.
+    We compute the gradients of the objective using automatic differentiation. To improve stability, we
+employ implicit differentiation for backpropagating through the Sinkhorn-Knopp algorithm (Cuturi
+et al., 2020; Eisenberger et al., 2022). We update the parameters using Adam (Kingma and Ba, 2015).
+
+
+3.2. Software implementation
+
+To obtain a fast algorithm that can leverage hardware platforms (such as GPUs) and scale up to level
+ℓ∗ = 4 (with nearly 7 million parameters to optimize) we implement our algorithm in Jax (Bradbury
+et al., 2018), applying some techniques to improve efficiency. The key to an effective speed-up is
+
+                                                                                                                                  9
+                 Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+finding a new representation for the problem, switching from a loop over graph nodes (as done in the
+SQP implementation from Alman et al. (2025)) to a naturally parallelizable computation over tensors.
+In the implementation from Alman et al. (2025), the free parameters are stored in the nodes of a
+graph where updates happen through message-passing (both from child nodes to parent nodes and
+vice versa). The graph is non-uniform enough (e.g., different nodes have different number of children
+and different types of them) to make parallelization hard, but we solve this via two techniques. Firstly,
+we introduce phantom nodes in the graph with masking; as a trade-off, we pay the cost of increasing
+the number of optimization parameters by up to a factor of 3. Secondly, we cluster the nodes into
+a limited number of highly specialized groups (“stages”). With these techniques, we are able to
+represent the full graph with multi-dimensional tensors, enabling parallel processing over a number
+of axes (up to 10), challenging the limits of tensor-processing backends.
+
+
+3.3. Applying AlphaEvolve
+
+We use AlphaEvolve (Novikov et al., 2025) to further improve the optimization algorithm. Specifically,
+we let AlphaEvolve modify the optimization program, which is then executed (taking approximately 5
+hours on a single GPU) to output a bound on omega. AlphaEvolve then evolves the code to minimize
+omega. We found improved results by using AlphaEvolve’s “evolving constructions” feature, where
+the optimization algorithm at each generation starts at the best solution point found by the parent
+algorithm.
+
+
+4. Rigorous verification of the omega upper bound
+To rigorously certify our omega bound, we run a separate verification step computing all quantities in
+rational arithmetic to guard against floating point errors. More specifically, we round the floating point
+solution obtained at the end of the optimization to rational numbers, ensuring the maximum-entropy
+certificates stay valid. We then evaluate all derived quantities in exact rational arithmetic, and replace
+each logarithm with a rational bound rounded in the proper direction that ensures each constraint in
+Equation (11) is satisfied, so the certified bounds are free from numerical errors. We are preparing a
+repository in which we will release the verification code and our discovered solution.
+
+
+5. Discussion
+In this note, we improve the SOTA upper bound on 𝜔 to 2.371177. Our improvement is comparable in
+magnitude to most improvements in the last 40 years since 𝜔 < 2.376 was attained by Coppersmith
+and Winograd (1990). We achieve this by leveraging modern optimization techniques and AlphaEvolve
+to design a better optimization algorithm for the problem described by Alman et al. (2025). While
+further modest improvements may be obtained in this manner, achieving larger improvements to 𝜔
+likely requires new mathematical ideas and is an exciting area of research.
+
+
+Acknowledgments. The work presented in this note was motivated by initial conversations during
+the Complexity and Linear Algebra program at Simons Institute for the Theory of Computing in Fall
+2025.
+
+
+
+
+                                                                                                         10
+                 Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+References
+J. Alman and V. V. Williams. A refined laser method and faster matrix multiplication. TheoretiCS, 3
+   (11261), 2024.
+
+J. Alman, R. Duan, V. V. Williams, Y. Xu, Z. Xu, and R. Zhou. More Asymmetry Yields Faster Ma-
+   trix Multiplication, pages 2005–2039. Society for Industrial and Applied Mathematics, 2025.
+   doi: 10.1137/1.9781611978322.63. URL https://epubs.siam.org/doi/abs/10.1137/1.
+   9781611978322.63.
+D. Bini, M. Capovani, F. Romani, and G. Lotti. O ( 𝑛2.7799 ) complexity for 𝑛 × 𝑛 approximate matrix
+  multiplication. Information Processing Letters, 8(5):234–235, 1979. ISSN 0020-0190.
+
+M. Bläser. Fast matrix multiplication. Theory of Computing, pages 1–60, 2013.
+
+J. Bradbury, R. Frostig, P. Hawkins, M. J. Johnson, C. Leary, D. Maclaurin, G. Necula, A. Paszke, J. Van-
+   derPlas, S. Wanderman-Milne, and Q. Zhang. JAX: composable transformations of Python+NumPy
+   programs, 2018. URL http://github.com/jax-ml/jax.
+
+D. Coppersmith and S. Winograd. On the asymptotic complexity of matrix multiplication. In 22nd
+  Annual Symposium on Foundations of Computer Science (sfcs 1981), pages 82–90, 1981.
+
+D. Coppersmith and S. Winograd. Matrix multiplication via arithmetic progressions. Journal of
+  Symbolic Computation, 9(3):251–280, 1990. ISSN 0747-7171. Computational algebraic complexity
+  editorial.
+
+M. Cuturi. Sinkhorn distances: lightspeed computation of optimal transport. In International
+ Conference on Neural Information Processing Systems, pages 2292—-2300, 2013.
+
+M. Cuturi, O. Teboul, J. Niles-Weed, and J.-P. Vert. Supervised quantile normalization for low-rank
+ matrix approximation. In International Conference on Machine Learning, 2020.
+
+R. Duan, H. Wu, and R. Zhou. Faster matrix multiplication via asymmetric hashing. In 2023 IEEE
+  64th Annual Symposium on Foundations of Computer Science (FOCS), pages 2129–2138, 2023. doi:
+  10.1109/FOCS57990.2023.00130.
+
+M. Eisenberger, A. Toker, L. Leal-Taixé, F. Bernard, and D. Cremers. A unified framework for implicit
+  Sinkhorn differentiation. In IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages
+ 499–508, 2022.
+
+P. E. Gill, W. Murray, and M. A. Saunders. SNOPT: An SQP algorithm for large-scale constrained
+   optimization. SIAM Journal on Optimization, 12(4):979–1006, 2002.
+
+D. P. Kingma and J. Ba. Adam: A method for stochastic optimization. In International Conference on
+  Learning Representations (ICLR), 2015.
+
+F. Le Gall. Algebraic complexity theory and matrix multiplication. In Proceedings of the 39th
+   International Symposium on Symbolic and Algebraic Computation, ISSAC ’14, page 23, New York,
+   NY, USA, 2014. Association for Computing Machinery. ISBN 9781450325011.
+
+A. Novikov, N. Vũ, M. Eisenberger, E. Dupont, P.-S. Huang, A. Z. Wagner, S. Shirobokov, B. Kozlovskii,
+  F. J. R. Ruiz, A. Mehrabian, M. P. Kumar, A. See, S. Chaudhuri, G. Holland, A. Davies, S. Nowozin,
+  P. Kohli, and M. Balog. AlphaEvolve: A coding agent for scientific and algorithmic discovery. arXiv,
+  2025. URL https://arxiv.org/abs/2506.13131.
+
+
+                                                                                                         11
+                 Improving the matrix multiplication exponent with modern optimization and AlphaEvolve
+
+
+
+V. Y. Pan. Strassen’s algorithm is not optimal trilinear technique of aggregating, uniting and canceling
+   for constructing fast algorithms for matrix operations. In 19th Annual Symposium on Foundations of
+   Computer Science, pages 166–176, 1978.
+
+F. Romani. Some properties of disjoint sums of tensors related to matrix multiplication. SIAM Journal
+   on Computing, 11(2):263–267, 1982.
+
+A. Schönhage. Partial and total matrix multiplication. SIAM Journal on Computing, 10(3):434–455,
+  1981.
+
+R. Sinkhorn and P. Knopp. Concerning nonnegative matrices and doubly stochastic matrices. Pacific
+  Journal of Mathematics, 21:343–348, 1967.
+
+A. J. Stothers. On the complexity of matrix multiplication. Phd thesis, University of Edinburgh,
+  Edinburgh, United Kingdom, 2010.
+
+V. Strassen. Gaussian elimination is not optimal. Numerische mathematik, 13(4):354–356, 1969.
+
+V. Strassen. The asymptotic spectrum of tensors and the exponent of matrix multiplication. In 27th
+   Annual Symposium on Foundations of Computer Science, pages 49–54, 1986.
+
+V. V. Williams. Multiplying matrices faster than Coppersmith-Winograd. In Proceedings of the Forty-
+   Fourth Annual ACM Symposium on Theory of Computing, STOC ’12, page 887–898, New York, NY,
+   USA, 2012. Association for Computing Machinery. ISBN 9781450312455.
+
+V. V. Williams, Y. Xu, Z. Xu, and R. Zhou. New Bounds for Matrix Multiplication: from Al-
+  pha to Omega, pages 3792–3835. Society for Industrial and Applied Mathematics, 2024.
+  doi: 10.1137/1.9781611977912.134. URL https://epubs.siam.org/doi/abs/10.1137/
+  1.9781611977912.134.
+
+
+
+
+                                                                                                         12
+

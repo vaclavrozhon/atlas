@@ -1,0 +1,649 @@
+                                    Learning juntas
+           Elchanan Mossel                            Ryan O’Donnell∗
+          Microsoft Research                   MIT Department of Mathematics
+        mossel@microsoft.com                   odonnell@theory.lcs.mit.edu
+                                  Rocco A. Servedio†
+                            Department of Computer Science
+                                 Columbia University
+                               rocco@deas.harvard.edu
+
+
+
+                                            Abstract
+          We consider a fundamental problem in computational learning theory: learning an
+      arbitrary Boolean function which depends on an unknown set of k out of n Boolean
+      variables. We give an algorithm for learning
+                                             ω
+                                                   such functions from uniform random exam-
+                                         k
+      ples which runs in time roughly (n )  ω+1 , where ω < 2.376 is the matrix multiplication
+      exponent. We thus obtain the first polynomial factor improvement on the naive n k
+      time bound which can be achieved via exhaustive search. Our algorithm and analysis
+      exploit new structural properties of Boolean functions.
+
+
+
+
+  ∗
+    Supported by NSF grant 99-12342.
+  †
+    Supported by an NSF Mathematical Sciences Postdoctoral Research Fellowship and by NSF grant CCR-
+98-77049. This research was performed while the third author was at Harvard University.
+1     Introduction
+1.1    Background and motivation
+One of the most important and challenging issues in machine learning is how to learn effi-
+ciently and effectively in the presence of irrelevant information. Many real-world learning
+problems can be modeled in the following way: we are given a set of labeled data points and
+we wish to find some hypothesis which accurately predicts the label of each data point. An
+oft-encountered situation in this framework is that each data point contains a large amount
+of information (i.e., each data point is a high dimensional vector of attribute values over a
+fixed large set of attributes), but only a small unknown portion of this information is relevant
+to the label of the data point (i.e., the label is determined by a function which only depends
+on a few of the attributes). For example, in a computational biology scenario each data
+point may correspond to a long DNA sequence, and the label may be some property which
+depends only on a small unknown active part of this sequence.
+    In this paper we consider the following learning problem which Blum [3] and Blum
+and Langley [4] proposed as a clean formulation of learning in the presence of irrelevant
+information: Let f be an unknown Boolean function over an n-bit domain which depends
+only on an unknown subset of k  n variables. Such a function is called a k-junta. Given a
+data set of labeled examples hx, f (x)i, where the points x are independently and uniformly
+chosen random n-bit strings, can the function f be learned by a computationally efficient
+algorithm? (We give a precise description of what it means to “learn f ” in Section 2.)
+Note that a naive brute force search over all possible subsets of k relevant variables can be
+performed in time roughly nk ; we would like to have an algorithm which runs faster than
+this.
+    We believe that the problem of efficiently learning k-juntas is the single most important
+open question in uniform distribution learning. In addition to being natural and elegant,
+learning juntas is at the heart of the most notorious open problems in uniform distribution
+learning, namely learning DNF formulas and decision trees of superconstant size. Since every
+k-junta can be expressed as a decision tree or DNF formula of size 2k , it is clear that efficient
+algorithms for learning 2k -size decision trees or DNFs would also be efficient algorithms
+for learning k-juntas. But in fact more is true: obtaining efficient algorithms for decision
+trees or DNFs requires that we be able to efficiently learn juntas. Specifically, any size-k
+decision tree is also a k-junta, and any k-term DNF is -indistinguishable (under the uniform
+distribution) from a k log(k/)-junta. Thus, learning ω(1)-size decision trees or ω(1)-term
+DNFs in polynomial time is equivalent to learning ω(1)-juntas in polynomial time.
+    We note that learning from uniform random examples seems to be the model in which this
+problem has the right amount of difficulty. As described in Section 5, allowing the learner to
+make membership queries makes the problem too easy, while restricting the learner to the
+statistical query model makes the problem provably hard.
+
+1.2    Our results
+We give the first learning algorithm for the problem of learning k-juntas which achieves a
+polynomial factor improvement over brute force exhaustive search. Under the uniform dis-
+
+
+                                                1
+tribution,
+   ω
+             our algorithm exactly learns an unknown k-junta with confidence 1 − δ in time
+n ω+1 k · poly(2k , n, log(1/δ)), where ω is the exponent in the time bound for matrix multipli-
+cation. Since Coppersmith and Winograd [7] have shown that ω < 2.376, our algorithm runs
+in time roughly N .704 where N ≈ nk is the running time of a naive brute force approach.
+Our algorithm and analysis exploit new structural properties of Boolean functions which
+may be of independent interest.
+     We note that since this learning problem was first posed by Blum in 1994, little progress
+has been made. The first improvement over the trivial nk time bound of which we are aware
+                                                                                            1/4
+is a recent algorithm due to A. Kalai and Mansour [12] which runs in time roughly n k−Ω(k ) .
+                                                 1/2
+Mansour [18] later improved this to nk−Ω(k ) . (In recent work Fischer et al. have studied
+the problem of testing k-juntas [8], but the learning and testing problems seem to require
+different techniques.)
+
+1.3    Organization
+In Section 2 we formally define the learning problem and give some background on polyno-
+mial representations of Boolean functions. In Section 3 we present the learning algorithms
+which allow us to reduce the learning problem to some questions about representing Boolean
+functions as polynomials. In Section 4 we prove the necessary new structural properties
+of Boolean functions and thus obtain our learning result. Finally, in Section 5 we use the
+developed machinery to analyze several variants of the juntas problem.
+
+
+2     Preliminaries
+The learning model we consider is a uniform distribution version of Valiant’s Probably Ap-
+proximately Correct (PAC) model [21] which has been studied by many researchers, e.g.,
+[6, 10, 11, 14, 15, 17, 22, 23]. In this model a concept class C is a collection ∪ n≥1 Cn of
+Boolean functions, where each c ∈ Cn is a function on n bits. Let f ∈ Cn be an unknown
+target function. A learning algorithm A for C takes as input an accuracy parameter 0 <  < 1
+and a confidence parameter 0 < δ < 1. During its execution A has access to an example or-
+acle EX(f ) which, when queried, generates a random labeled example hx, f (x)i where x is
+drawn uniformly from {0, 1}n . A outputs a hypothesis h which is a Boolean function over
+{0, 1}n ; the error of this hypothesis is defined to be error(h, f ) = Pr[h(x) 6= f (x)]. (Here
+and in the remainder of the paper, unless otherwise indicated all probabilities are taken over
+x chosen uniformly at random from {0, 1}n .) We say that A is a uniform-distribution PAC
+learning algorithm for C if the following condition holds: for every f ∈ C and every , δ,
+with probability at least 1 − δ algorithm A outputs a hypothesis h which has error(h, f ) ≤ .
+For the purposes of this paper the accuracy parameter  will always be 0, so our goal is to
+exactly identify the unknown function.
+    A Boolean function f : {0, 1}n → {0, 1} is said to depend on the ith variable if there exist
+inputs x, y ∈ {0, 1}n which differ only in the ith coordinate and which have f (x) 6= f (y).
+Equivalently, we say that such a variable is relevant to f . If the function f has at most
+k relevant variables then we call f a k-junta. The concept class we consider in this paper
+is the set of k-juntas over n variables, i.e., Cn = {f : {0, 1}n → {0, 1} s.t. f is a k-junta}.
+
+
+                                               2
+Equivalently, each function f ∈ Cn is defined by a subset R = {i1 , . . . , ik0 } ⊂ {1, . . . , n} of
+k 0 ≤ k relevant variables and a truth table of 2k bits corresponding to all possible settings
+                                                  0
+
+
+of these variables.
+     We are most interested in the case where k is O(log n) or even a large constant value.
+For such k the number of possible sets of relevant variables is n(1−o(1))k . Hence the naive
+learning algorithm which performs an exhaustive search over all possible subsets of relevant
+variables will take time n(1−o(1))k .
+
+2.1    Representing Boolean functions as polynomials
+A Boolean function g on n bits is a mapping {F, T}n → {F, T}. There are many possible
+ways to represent g as a multilinear polynomial. Since our analysis will use several different
+representations, we give a general definition which encompasses all of the cases we will need:
+
+Definition 1 Let F be a field and let f, t ∈ {−1, 0, 1} be distinct elements of F. We say that
+a multilinear polynomial p hF, f, ti-represents g if p : Fn → F has the following properties:
+
+   • for all inputs in {f, t}n , p outputs a value in {f, t}; and,
+
+   • p and g induce the same mapping when F and T are identified with f and t in the
+     input and output.
+
+Note that since f 2 , t2 ∈ {0, 1}, the assumption that p is multilinear is without loss of gener-
+ality. It is well known that the hF, f, ti-representation of g always exists and is unique; for
+completeness we give a simple proof below.
+
+Proposition 2 Every Boolean function g has a unique multilinear hF, f, ti-representation.
+
+Proof: The condition that p is a multilinear polynomial which represents g is equivalent
+to a system of 2n linear equations in 2n unknowns, where the unknowns are the coefficients
+on the 2n multilinear monomials. Let An denote the 2n × 2n matrix arising from this linear
+system, so the columns of An correspond to monomials and the rows correspond to truth
+assignments. It suffices to prove that An has full rank; we now prove this by induction.
+                                            
+    In the case n = 1 we have A1 = 11 ft which has full rank over any field    since f 6= t. In
+                                                                                              
+                                                                                An−1 f An−1
+the general case, one can rearrange the rows and columns of An to get An = An−1 tAn−1 ,
+where the columns on the left correspond to monomials not containing xn and the others
+correspond to monomials
+                           containing xn. By performing elementary row operations on this
+                        (f − t)An−1  0
+matrix, one can get           0     An−1   . Since f 6= t and An−1 has full rank by induction,
+this has full rank.                                                                           2
+
+    The fields we will consider in this paper are the two-element field F2 and the field R
+of real numbers. In F2 we will represent bits by f = 0, t = 1, and in R we will usually
+represent bits by f = 1, t = −1.
+
+Definition 3 Given a Boolean function g on n bits:
+
+                                                 3
+    • We write gF2 for the multilinear polynomial which hF2 , 0, 1i-represents g, and we say
+      that gF2 F2 -represents g. Note that gF2 can be viewed as a parity of ANDs since F2
+      multiplication corresponds to AND and F2 addition corresponds to parity.
+
+    • We write gR for the multilinear polynomial which hR, +1, −1i-represents g, and we
+      say that gR R-represents g. Note that gR is precisely the “Fourier representation” of
+      g. As is standard,
+                 Q       we write ĝ(S) for the coefficient of xS in gR , where xS denotes the
+      monomial i∈S xi . We call ĝ(S) the “S Fourier coefficient of g.”
+
+    As an example, if g = PARITY n then we have gF2 = x1 +x2 +· · ·+xn and gR = x1 x2 · · · xn .
+Note that there is a huge difference in the degrees of these two polynomial representations;
+we will be very interested in the degree of Boolean functions under various representations.
+We observe that for a given field this degree is independent of the exact choice of f, t. This
+is because we can pass back and forth between any two such choices by nonconstant linear
+transformations on the inputs and outputs, and under such transformations the monomials
+of highest degree can never vanish. Thus we can make the following definition:
+
+Definition 4 degF (g) is defined to be deg(p) where p is any hF, f, ti-representation of g.
+
+Hence we have degF2 (PARITYn ) = 1 and degR (PARITYn ) = n. In general degF2 (g) ≤
+degR (g):
+
+Fact 5 For any Boolean function g, degF2 (g) ≤ degR (g).
+
+Proof: Let p be the hR, 0, 1i-representation of g and let gF2 be the F2 -representation of g.
+We have                            "               !                 !#
+                              X             Y          Y
+                    p(x) =           p(z)       xi         (1 − xi )    .
+                             z∈{0,1}n        i:zi =1    i:zi =0
+
+This polynomial clearly has integer coefficients; gF2 is obtained by reducing the coefficients
+of p mod 2, and this operation can only decrease degree.                                    2
+
+
+3     Learning tools
+In this section we give the learning algorithms we will use for solving the junta problem. We
+first show that it suffices to give a learning algorithm which can identify a single relevant
+variable. We then give two learning algorithms that look for relevant variables. Our algo-
+rithm for learning k-juntas will end up trying both algorithms and we shall prove in Section
+4 that at least one of them always works.
+    Throughout this section, f will denote a k-junta on n bits, R will denote the set of
+variables on which f depends, k 0 will denote |R| (so 0 ≤ k 0 ≤ k), and f 0 will denote the
+                 0
+function {F, T}k → {F, T} given by restricting f to R.
+
+
+
+
+                                                4
+3.1    Finding a single relevant variable is enough
+Proposition 6 Suppose that A is an algorithm running in time nα · poly(2k , n, log(1/δ))
+which can identify at least one variable relevant to f with confidence 1 − δ (assuming f
+is nonconstant). Then there is an algorithm for exactly learning f which runs in time
+nα · poly(2k , n, log(1/δ)).
+Proof: First note that if f is nonconstant then for uniform random inputs each output value
+occurs with frequency at least 1/2k . Hence we can decide whether or not f is a constant
+function with confidence 1 − δ in time in time poly(2k , n, log(1/δ)).
+      Next, suppose ρ is any restriction fixing at most k bits. We claim that we can run any
+learning algorithm on f |ρ with a slowdown of at most poly(2k ). To do so, we only need to
+transform the example oracle for f into one for f |ρ ; this is easily done by rejecting all samples
+hx, f (x)i for which x does not agree with ρ. Since ρ fixes at most k bits, the probability
+that a random x agrees with ρ is at least 2−k . Hence with probability 1 − δ we can get M
+samples for f |ρ by taking M · poly(2k ) log(M/δ) samples from the oracle for f .
+      We now show how to identify all the variables R on which f depends in the requisite
+amount of time. By induction, suppose we have identified some relevant variables R 0 ⊆ R.
+For each of the 2|R | possible restrictions ρ which fix the bits in R0 , consider the function
+                        0
+
+
+f |ρ . Since f |ρ is also a k-junta, A can identify some variables relevant to f |ρ (or else we can
+check that f |ρ is constant). By running A (with the slowdown described above) for each
+possible ρ, we will identify new variables to add into R 0 . We repeatedly add new variables
+to R0 , testing all restrictions on these variables, until all of the restricted subfunctions are
+constant. It is clear that at this point we will have identified all variables relevant to f .
+      Note that R0 grows by at least one variable at each stage, and so we will never run A
+more than k2k times. Further, we can get confidence 1 − δ/k2k for each run — even after
+the rejection-sampling slowdown — in time nα · poly(2k , n, log(1/δ)). Hence we can identify
+R in time nα · poly(2k , n, log(1/δ)) with confidence 1 − δ.
+      Finally, once R is identified it is easy to learn f exactly. Simply draw poly(2 k , log(1/δ))
+samples; with probability 1 − δ we will see every possible bit setting for R so we can build
+f ’s truth table and output this as our hypothesis.                                               2
+
+3.2    The Fourier-based learning algorithm
+We describe a simple Fourier-based algorithm for trying to identify a variable relevant to
+f . The algorithm is based on the “Low Degree” learning algorithm of Linial, Mansour, and
+Nisan [15] (see also [16]). As with the Low Degree algorithm, our Fourier-based algorithm
+tries to learn the unknown function f by estimating all of f ’s Fourier coefficients fˆ(S) with
+1 ≤ |S| ≤ α. Unlike the Low Degree algorithm, our algorithm can stop as soon as it finds a
+nonzero coefficient, since all variables in the associated monomial must be relevant to f .
+    We first show how to compute the exact value of any desired Fourier coefficient:
+Proposition 7 We can exactly calculate any Fourier coefficient fˆ(S) with confidence 1 − δ
+in time poly(2k , n, log(1/δ)).
+Proof: We view bits as being ±1, as in the R-representation. After multilinear reduction we
+see that the polynomial xS fR (x) has fˆ(S) as its constant coefficient. Since E[xT ] = 0 for all
+
+                                                5
+nonempty subsets T , linearity of expectation lets us conclude that E[xS fR (x)] = fˆ(S). We
+can clearly compute the value of xS fR (x) in linear time given a labeled example hx, f (x)i. By
+standard Chernoff bounds, poly(2k , log(1/δ)) independent samples of the ±1 random variable
+xS fR (x) are sufficient for computing the expectation to within ±1/2k+1 with confidence 1−δ.
+Since f and f 0 have the same Fourier expansion and f 0 is a function on at most k variables,
+fˆ(S) must be of the form a/2k for some integer a ∈ [−2k , 2k ]. Hence by rounding the
+empirical expectation to the nearest integer multiple of 1/2k we will get the exact value of
+fˆ(S) with confidence 1 − δ.                                                                   2
+
+   The next proposition says that if f 0 has a nonzero Fourier coefficient of small (but
+nonzero) degree, then we can efficiently identify some variables relevant to f .
+
+Proposition 8 If fˆ0 (S) 6= 0 for some S with 1 ≤ |S| ≤ α, then we can identify at least one
+relevant variable for f with confidence 1 − δ in time nα · poly(2k , n, log(1/δ)).
+
+Proof: We use Proposition 7 to compute each Fourier coefficient fˆ(S), 1 ≤ |S| ≤ α,
+with confidence 1 − δ/nα . Since there are at most nα possible sets S, with confidence
+1 − δ we will obtain the exact values of all the desired Fourier coefficients in time at most
+nα · poly(2k , n, log(1/δ)). Since f and f 0 have the same Fourier coefficients, we will find an
+S with fˆ(S) 6= 0. It is easy to see that every variable in S must be relevant to f ; for if f is
+does not depend on xi then fˆ(S) = E[xS fR (x)] = E[xi ]E[xS−i fR (x)] = 0 · E[xS−i fR (x)] = 0.
+2
+
+3.3    The F2 -based learning algorithm
+In this subsection we show that if f 0 is a low-degree polynomial over F2 , then in fact we can
+learn f 0 exactly. Here we view True and False as 1 and 0 respectively.
+    Recall the following well-known result from computational learning theory [9]:
+
+Theorem 9 Let g : {0, 1}N → {0, 1} be a parity function on an unknown subset of the N
+Boolean variables x1 , . . . , xN . There is a learning algorithm B which, given access to labeled
+examples hx, g(x)i drawn from any probability distribution D on {0, 1} N , outputs a hypothesis
+h (which is a parity of some subset of x1 , . . . , xN ) such that with probability 1 − δ we have
+Prx∈D [h(x) 6= g(x)] ≤ . Algorithm B runs in time O(( N + log1/δ )ω ) where ω < 2.376 is the
+exponent for matrix multiplication.
+
+The idea behind Theorem 9 is simple: since g is a parity function, each labeled example
+hx, g(x)i corresponds to a linear equation over F2 where the ith unknown corresponds to
+whether xi is present in g. Algorithm B draws O( N + log1/δ ) examples and solves the resulting
+system of linear equations to find some parity over x1 , . . . , xN which is consistent with all of
+the examples. Well-known results in PAC learning theory [5] imply that such a consistent
+parity will satisfy the , δ criterion.
+   Now suppose degF2 (f 0 ) = α ≤ k. Then f 0 is a F2 -linear combination (i.e., a parity) over
+the set of monomials (conjunctions) in x1 , . . . , xn of degree up to α. This lets us learn f 0 in
+time roughly nωα :
+
+
+                                                6
+Proposition 10 If degF2 (f 0 ) = α, then we can learn f exactly in time nωα ·poly(2k , n, log(1/δ))
+with confidence 1 − δ. (Hence we can certainly identify a variable on which f depends.)
+Proof: Consider the expanded variable space consisting of all monomials over x1 , . . . , xn
+of degree at most α. There are at most N = nα variables in this space. Run algorithm B
+from Theorem 9 on this variable space, with  set to 2−(k+1) . That is, given an example
+hx, f (x)i, translate it to the example h(xS )|S|≤α , f (x)i, and run B using this new example
+oracle. Simulating a draw from this new oracle takes time N · poly(n), so constructing all the
+necessary examples for B takes time N 2 · poly(2k , n, log(1/δ)). Solving the resulting system
+of equations takes time N ω · poly(2k , n, log(1/δ)). Hence the total time for the algorithm is
+nωα · poly(2k , n, log(1/δ)) as claimed.
+    We now argue that B’s output hypothesis is precisely the F2 -representation of f. Let D
+be the distribution over the expanded variable space induced by the uniform distribution
+on x1 , . . . , xn . Since f 0 (equivalently f ) is a parity over the expanded variable space, the
+output of B will be a parity hypothesis h over the expanded variable space which satisfies
+Prx∈D [h(x) 6= f (x)] ≤ 2−(k+1) . View both f and h as F2 -polynomials of degree α over the
+original variables x1 , . . . , xn .
+    If f and h are not identical, then f + h 6≡ 0 and we have Pr[f (x) 6= h(x)] = Pr[f (x) +
+h(x) 6= 0]. Now since degF2 (f + h) ≤ α and f + h is not identically 0, the polynomial f + h
+must be nonzero on at least a 2−α ≥ 2−k fraction of the points in (F2 )n . (This is a slightly
+nonstandard form of the Schwartz-Zippel Lemma; see [20] for an explicit proof.) But this
+contradicts the fact that Prx∈D [h(x) 6= f (x)] ≤ 2−(k+1) .                                     2
+
+
+4     Learning juntas via new structural properties of Boolean
+      functions
+With our learning tools in hand we are ready to give the algorithm for learning k-juntas.
+The basic idea is to show that every Boolean function f 0 must either have a nonzero Fourier
+coefficient of “not too large” positive degree, or must be a polynomial over F2 of “not too
+large” degree. Then by Propositions 8 and 10, in either case we can find a relevant variable
+for f 0 without performing a full-fledged exhaustive search.
+    The Fourier learning algorithm described earlier fails only on functions whose low-degree
+Fourier coefficients are all zero (except for possibly the constant coefficient; if this is nonzero
+the Fourier algorithm can still fail). Let us make a definition for such functions:
+Definition 11 Suppose that g satisfies ĝ(S) = 0 for all 1 ≤ |S| < t. If ĝ(∅) is also 0 then
+we say that g is strongly balanced up to size t. If ĝ(∅) is nonzero we say that g is strongly
+biased up to size t.
+   These definitions were essentially first made by Bernasconi in [2]. The justification of
+the terminology is this: if g is strongly balanced up to size t, then it is easy to show that
+every subfunction of g obtained by fixing 0 ≤ ` ≤ t − 1 bits is balanced (i.e. is true with
+probability exactly 1/2). Similarly, if g is strongly biased up to size t then it is easy to show
+that every such subfunction has the same bias as g itself.
+   We now show that strongly balanced functions have low F2 -degree:
+
+                                                7
+Theorem 12 Let g ∈    / {PARITY n , ¬PARITYn } be a Boolean function on n bits which is
+strongly balanced up to size t. Then degF2 (g) ≤ n − t.
+
+Proof: Given such a g, let h = g ⊕PARITY n . Then hR = gR ·x1 x2 · · · xn . By assumption, gR
+has zero coefficient on all monomials xS with |S| < t. By multilinear reduction (x2i = 1) we
+see that hR has zero coefficient on all monomials xS with |S| > n−t. Hence degR (h) ≤ n−t,
+so by Fact 5, degF2 (h) ≤ n − t. But since g = h ⊕ PARITY n , the F2 -representation of g
+is simply gF2 (x) = hF2 (x) + x1 + · · · + xn . Adding a degree 1 polynomial to hF2 does not
+increase degree (since g is neither PARITY n nor its negation, h is not a constant function
+and hence degF2 (h) ≥ 1), and consequently degF2 (g) ≤ n − t.                               2
+
+The bound n − t in Theorem 12 is best possible. To see this, consider the function
+
+                         g(x) = (x1 ∧ · · · ∧ xn−t ) ⊕ xn−t+1 ⊕ · · · ⊕ xn .
+
+This function has F2 -representation gF2 (x) = x1 · · · xn−t +xn−t+1 +· · ·+xn so degF2 (g) = n−t.
+Moreover, g is balanced and every subfunction of g fixing fewer than t bits is also balanced,
+since to make g unbalanced one must restrict all of xn−k+1 , . . . , xn .
+   It remains to deal with strongly biased functions. Our next theorem shows that no
+Boolean function can be strongly biased up to too large a size:
+
+Theorem 13 If g is a Boolean function on n bits which is strongly biased up to size t, then
+t ≤ 23 n.
+                         P
+Proof: Let gR (x) = S cS xS be the R-representation of g. Since g is strongly biased up
+to size t we have 0 < |c∅ | < 1 and cS = 0 for       P all 0 < |S| < t. As in Theorem 12, we let
+h = g ⊕ PARITY n so hR (x) = c∅ x1 x2 · · · xn + |S|≤n−t c0S xS , where c0S = c[n]\S .
+     Let h0 : {+1, −1}n → {1+c∅ , 1−c∅ , −1+c∅ , −1−c∅ } be the real-valued function given by
+h0 (x) = hR (x) − c∅ x1 x2 · · · xn ; note that deg(h0 ) ≤ n − t. Furthermore, for x ∈ {+1, −1}n we
+have h0 (x) ∈ {1 + c∅ , 1 − c∅ } iff hR (x) = +1, and h0 (x) ∈ {−1 + c∅ , −1 − c∅ } iff hR (x) = −1.
+Since 0 < |c∅ | < 1 we have that {1+c∅ , 1−c∅ } and {−1+c∅ , −1−c∅ } are disjoint two-element
+sets.
+     Let p : R → R be the degree 3 polynomial which maps 1 + c∅ and 1 − c∅ to +1 and
+−1 − c∅ and −1 + c∅ to −1. Now consider the polynomial p ◦ h0 . By construction p ◦ h0 maps
+{+1, −1}n → {+1, −1}, and p ◦ h0 R-represents h. But the R-representation of h is unique,
+so after multilinear reduction p ◦ h0 must be identical to hR . Since c∅ 6= 0, we know that
+degR (h) is exactly n. Since p has degree exactly 3 and deg(h0 ) ≤ n − t, we conclude that
+3(n − t) ≥ n, whence t ≤ 23 n.                                                                    2
+
+   O. Regev [19] communicated to us an alternate proof of Theorem 13 which we include
+here with his permission:
+Proof: (Regev) Let gR (x) be as in the previous proof. Let U be any set of maximal size
+such that cU 6= 0; since g is nonconstant  P strongly biased up to size t we have |U | ≥ t.
+                                          and
+                           2
+                                 P
+Consider expanding gR (x) = ( S cS xS )( T cT xT ); there will be a nonzero coefficient on
+the cross-term x∅ xU . But gR (x)2 must be identically 1 after multilinear reduction, since gR
+
+                                                 8
+takes on only the values ±1. Thus the nonzero coefficient on xU must be cancelled in the
+expansion. But if t > 23 n then cT = 0 for all 1 ≤ |T | ≤ 23 n, and so all nonzero cross-terms
+not involving the constant term c∅ will be on terms xV with V < 23 n. This contradicts the
+fact that the xU term must be cancelled.                                                     2
+
+The bound 32 n in Theorem 13 is best possible. To see this, let n = 3m and consider the
+function
+                                              2m
+                                                    !   n
+                                                              !
+                                              M       ^ M
+                       f (x1 , . . . , xn ) =    xi         xi .
+                                                i=1           i=m+1
+
+It is easy to see that this function is unbalanced, and also that its bias cannot change under
+any restriction of fewer than 2m bits (to change the bias, one must set bits 1 . . . 2m or
+m + 1 . . . 3m or 1 . . . m, 2m + 1 . . . 3m).
+    We can now prove our main theorem:
+
+Theorem 14 The class of k-juntas over n ωbits can be exactly learned under the uniform
+distribution with confidence 1 − δ in time n ω+1 k · poly(2k , n, log(1/δ)).
+
+Proof: Let f be a k-junta on n bits and f 0 be the function on at most k bits given by
+                                                     ω
+restricting f to its relevant variables. Let t = ω+1    k > 32 k. If f 0 is strongly balanced up
+to size t then by Theorem 12 f 0 is an F2 -polynomial of degree at most k − t = k/(ω + 1).
+By Proposition 10 f 0 can be learned in time (nk/(ω+1) )ω · poly(2k , n, log(1/δ)). On the other
+hand, suppose f 0 is not strongly balanced up to size t. By Theorem 13, f 0 cannot be strongly
+biased up to size t, since t > 32 k. Hence f 0 has a nonzero Fourier coefficient of degree less
+than t and greater than 0. So by Proposition 8, some relevant variable for f can be identified
+in time nt · poly(2k , n, log(1/δ)).                                        ω
+    In either case, we can identify some relevant variable for f in time n ω+1 k ·poly(2k , n, log(1/δ)).
+Proposition 6 completes the proof.                                                                  2
+
+
+5     Variants of the junta learning problem
+We can use the ideas developed thus far to analyze some variants and special cases of the
+juntas learning problem.
+
+5.1     Some easier special cases
+For various subclasses of k-juntas, the learning problem is more easily solved.
+    Monotone juntas: It is easy to verify that if f 0 is a monotone function, then fˆ0 ({i}) > 0
+for every relevant variable xi . (Use the fact that fˆ0 ({i}) = E[xi f 0 (x)] = Pr[f (x) = xi ] −
+Pr[f (x) 6= xi ].) Hence monotone juntas can be learned in time poly(2k , n, log(1/δ)) using the
+Fourier learning algorithm of Proposition 8.
+    Random juntas: As observed in [4], almost every k-junta on n variables can be learned
+in time poly(2k , n, log(1/δ)). To see this, observe that if a function f 0 on k bits is chosen
+uniformly at random, then for every S we have fˆ0 (S) = 0 only if exactly half of all inputs
+
+                                                  9
+                                                   2k
+                                                       2k
+have f 0 (x) = xS . This occurs with probability 2k−1  /2 = O(1)/2k/2 . Consequently, with
+overwhelming probability in terms of k — at least 1 − O(k)/2k/2 — a random function on
+k variables will have every Fourier coefficient of degree 1 nonzero, and hence we can learn
+using Proposition 8.
+      Symmetric juntas: A symmetric k-junta is a junta whose value depends only on how
+many of its k relevant variables are set to 1. We can learn any symmetric k-junta in time
+  2
+n 3 k · poly(2k , n, log(1/δ)), which somewhat improves on our bound for arbitrary k-juntas. To
+prove this, we show that every symmetric function f 0 on k variables, other than parity and
+its negation, has a nonzero Fourier coefficient fˆ0 (S) for 1 ≤ |S| < 23 k. Hence we can identify
+                                            2
+at least one relevant variable in time n 3 k · poly(2k , n, log(1/δ)) using Proposition 8, and we
+can use the algorithm of Proposition 6 since the class of symmetric functions is closed under
+subfunctions.
+      To prove this claim about the Fourier coefficients of symmetric functions, first note that
+      0
+if f is not balanced then by Theorem 13 it must have a nonzero Fourier coefficient of positive
+degree less than 32 k. Otherwise, if f 0 is balanced and is neither parity nor its negation, then
+g := f 0 ⊕PARITYk is a symmetric nonconstant function and degR (g) < k; this last fact follows
+because the x1 x2 · · · xk coefficient of g is the constant coefficient of f 0 , and f 0 is balanced.
+By a result of von zur Gathen and Roche [24], every nonconstant symmetric function g on
+k variables has degR (g) ≥ k − O(k .548 ). Hence ĝ(S) 6= 0 for some k − O(k .548 ) ≤ |S| < k, so
+fˆ0 ([n] \ S) 6= 0 and 1 ≤ |[k] \ S| ≤ O(k .548 ) ≤ 23 k.
+      In [24] von zur Gathen and Roche conjecture that every nonconstant symmetric Boolean
+function f 0 on k variables has degR (f ) ≥ k − O(1). We note that if a somewhat stronger
+conjecture were true — that every nonconstant symmetric function has a nonzero Fourier
+coefficient of degree d for some k − O(1) ≤ d ≤ k − 1 — then using the above approach
+we could learn symmetric juntas in poly(2k , n, log(1/δ)) time. (The von zur Gathen/Roche
+conjecture does not appear to suffice since f 0 could conceivably have a nonzero Fourier
+coefficient of degree k and yet have no nonzero Fourier coefficients of degree k − O(1).)
+
+5.2    Other learning models
+Blum and Langley observed [4] that if the learning algorithm is allowed to make membership
+queries for the value of the target junta at points of its choice, then any k-junta can be
+learned in time poly(2k , n, log(1/δ). By drawing random examples, the learner will either
+determine that the function is constant or it will obtain two inputs x and y with f (x) 6= f (y).
+In the latter case the learner then selects a path in the Hamming cube between x and y and
+queries f on all points in the path. The learner will thus find two neighboring points z and
+z 0 on which f has different values, so the coordinate in which z and z 0 differ is relevant. The
+learner then recurses as in Proposition 6.
+     While membership queries make the problem of learning juntas easy, casting the problem
+in the more restrictive statistical query learning model of Kearns (see [13] for background
+on this model) makes   the problem provably hard. The class of k-juntas over n variables
+                     n
+contains at least k distinct parity functions, and for any two distinct parity functions
+xS 6= xT we have that E[xS xT ] = 0. Consequently, an information-theoretic lower bound of
+Bshouty and Feldman [1] implies that any statistical query algorithm for learning k-juntas
+
+
+                                                 10
+under the uniform distribution must have q/τ 2 ≥ nk , where q is the number of statistical
+                                                           
+
+queries which the algorithm makes and τ ∈ (0, 11 is the additive error tolerance required for
+each query. Thus, as noted earlier, the PAC model of learning from random examples seems
+to be the right framework for the juntas problem.
+    We close by observing that if the uniform distribution is replaced by a product measure
+in which Pr[xi = T] = pi , then for almost every choice of (p1 , . . . , pn ) ∈ [0, 1]n , k-juntas
+are learnable in time poly(2k , n, log(1/δ)). In particular, we claim that for every product
+distribution except for a set of measure zero in [0, 1]n , every k-junta f has nonzero correlation
+with every variable on which it depends, and consequently a straightforward variant of
+the Fourier-based learning algorithm will identify all relevant variables in the claimed time
+bound. This is a consequence of the following easily verified fact:
+
+Fact 15 If f 0 is neither a single variable nor its negation and f 0 depends on xi , then
+Ep1 ,...,pn [f 0 (x)xi ], when viewed formally as a multivariable polynomial in p1 , . . . , pn , is a non-
+constant polynomial.
+
+Consequently, the set of points (p1 , . . . , pn ) ∈ [0, 1]n on which this polynomial takes value 0
+has measure 0. The union of all such sets for all (finitely many) choices of i and f 0 still has
+measure 0, and the claim is proved.
+
+
+6     Conclusion
+A major goal for future research is to give an algorithm which runs in polynomial time for
+k = log n or even k = ω(1). We hope that further study of the structural properties of
+Boolean functions will lead to such an algorithm. Right now, the bottleneck preventing an
+improved runtime for our algorithm is the case of strongly balanced juntas. A. Kalai has
+asked the following question:
+Question: Is it true that for any Boolean function f on k bits which is strongly balanced up to
+size 23 k, there is a restriction fixing at most 23 k bits under which f becomes a parity function?
+
+If the answer were yes, then it would be straightforward to give a learning algorithm for
+                            2
+k-juntas running in time n 3 k . (Of course, another way to get such an algorithm would be to
+give a quadratic algorithm for matrix multiplication!)
+    Finally, we close by observing that there are still several important generalizations of the
+k-junta problem for which no algorithm with running time better than n (1−o(1))k is known.
+Can we learn juntas under any fixed nonuniform product distribution? Can we learn ternary
+juntas (i.e. functions on {0, 1, 2}n with k relevant variables) under uniform? There are many
+directions for future work.
+
+
+7     Acknowledgements
+We would like to thank Adam Kalai and Yishay Mansour for helpful discussions and for
+telling us about [12, 18]. We also thank Oded Regev for allowing us to include his proof of
+Theorem 13.
+
+                                                    11
+References
+ [1] N. Bshouty andV. Feldman. On using extended statistical queries to avoid membership
+     queries. Journal of Machine Learning Research, 2:359–395, 2002.
+
+ [2] A. Bernasconi. On a hierarchy of boolean functions hard to compute in constant depth.
+     Discrete Mathematics & Theoretical Computer Science, 4:2:79–90, 2001.
+
+ [3] A. Blum. Relevant examples and relevant features: Thoughts from computational learn-
+     ing theory. In AAAI Fall Symposium on ‘Relevance’, 1994.
+
+ [4] A. Blum and P. Langley. Selection of relevant features and examples in machine learning.
+     Artificial Intelligence, 97(1-2):245–271, 1997.
+
+ [5] A. Blumer, A. Ehrenfeucht, D. Haussler, and M. Warmuth. Occam’s razor. Information
+     Processing Letters, 24:377–380, 1987.
+
+ [6] N. Bshouty, J. Jackson, and C. Tamon. More efficient PAC learning of DNF with mem-
+     bership queries under the uniform distribution. In Proceedings of the Twelfth Annual
+     Conference on Computational Learning Theory, pages 286–295, 1999.
+
+ [7] D. Coppersmith and S. Winograd. Matrix multiplication via arithmetic progressions.
+     In Proceedings of the Nineteenth Symposium on Theory of Computing, pages 1–6, 1987.
+
+ [8] E. Fischer, G. Kindler, D. Ron, S. Safra, and A. Samorodnitsky. Testing juntas. In
+     Proceedings of the 43rd IEEE Symposium on Foundations of Computer Science, 2002.
+
+ [9] D. Helmbold, R. Sloan, and M. Warmuth. Learning integer lattices. SIAM Journal on
+     Computing, 21(2):240–266., 1992.
+
+[10] J. Jackson. An efficient membership-query algorithm for learning DNF with respect to
+     the uniform distribution. Journal of Computer and System Sciences, 55:414–440, 1997.
+
+[11] J. Jackson, A. Klivans, and R. Servedio. Learnability beyond AC 0 . In Proceedings of
+     the 34th ACM Symposium on Theory of Computing, 2002.
+
+[12] A. Kalai and Y. Mansour. Personal communication, 2001.
+
+[13] M. Kearns. Efficient noise-tolerant learning from statistical queries. Journal of the
+     ACM, 45(6):983–1006, 1998.
+
+[14] L. Kucera, A. Marchetti-Spaccamela, and M. Protassi. On learning monotone DNF
+     formulae under uniform distributions. Information and Computation, 110:84–95, 1994.
+
+[15] N. Linial, Y. Mansour, and N. Nisan. Constant depth circuits, Fourier transform and
+     learnability. Journal of the ACM, 40(3):607–620, 1993.
+
+[16] Y. Mansour. Learning Boolean functions via the Fourier transform, pages 391–424.
+     1994.
+
+
+                                             12
+[17] Y. Mansour. An O(nlog log n ) learning algorithm for DNF under the uniform distribution.
+     Journal of Computer and System Sciences, 50:543–550, 1995.
+
+[18] Y. Mansour. Personal communication, 2001.
+
+[19] O. Regev. Personal communication, 2003.
+
+[20] S. Rudich.        Problem set 6 model solutions.            Available at
+     http://www-2.cs.cmu.edu/˜rudich/complexity/handouts/Probsets/Probset6/.
+
+[21] L. Valiant. A theory of the learnable. Communications of the ACM, 27(11):1134–1142,
+     1984.
+
+[22] K. Verbeurgt. Learning DNF under the uniform distribution in quasi-polynomial time.
+     In Proceedings of the Third Annual Workshop on Computational Learning Theory, pages
+     314–326, 1990.
+
+[23] K. Verbeurgt. Learning sub-classes of monotone DNF on the uniform distribution. In
+     Proceedings of the Ninth Conference on Algorithmic Learning Theory, pages 385–399,
+     1998.
+
+[24] J. von zur Gathen and J. Roche.       Polynomials with two values.      Combinatorica,
+     17(3):345–362, 1997.
+
+
+
+
+                                             13
+

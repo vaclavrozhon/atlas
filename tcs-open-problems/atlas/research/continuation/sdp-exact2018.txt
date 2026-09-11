@@ -1,0 +1,854 @@
+    Exact algorithms for semidefinite programs
+           with degenerate feasible set∗
+            Didier Henrion†              Simone Naldi‡             Mohab Safey El Din§
+                                          February 5, 2018
+
+
+                                                 Abstract
+            Let A0 , . . . , An be m × m symmetric matrices with entries in Q, and let A(x) be
+        the linear pencil A0 + x1 A1 + · · · + xn An , where x = (x1 , . . . , xn ) are unknowns. The
+        linear matrix inequality (LMI) A(x)  0 defines the subset of Rn , called spectrahedron,
+        containing all points x such that A(x) has non-negative eigenvalues. The minimization
+        of linear functions over spectrahedra is called semidefinite programming (SDP). Such
+        problems appear frequently in control theory and real algebra, especially in the context
+        of nonnegativity certificates for multivariate polynomials based on sums of squares.
+            Numerical software for solving SDP are mostly based on the interior point method,
+        assuming some non-degeneracy properties such as the existence of interior points in
+        the admissible set. In this paper, we design an exact algorithm based on symbolic
+        homotopy for solving semidefinite programs without assumptions on the feasible set,
+        and we analyze its complexity. Because of the exactness of the output, it cannot
+        compete with numerical routines in practice but we prove that solving such problems
+        can be done in polynomial time if either n or m is fixed.
+
+
+1       Introduction
+Let x = (x1 , . . . , xn ) be variables, and A0 , A1 , . . . , An m × m symmetric matrices with entries
+in the field Q of rational numbers. The goal of this article is to design algorithms for solving
+the semidefinite programming (SDP) problem
+
+                                        inf `(x) s.t. x ∈ S (A)                                         (1.1)
+
+where `(x) = `1 x1 + · · · + `n xn is a linear function and S (A) is the solution set in Rn of the
+linear matrix inequality (LMI)
+
+                                A(x) := A0 + x1 A1 + · · · + xn An  0.                                 (1.2)
+    ∗
+     Mohab Safey El Din is supported by the ANR grant Games and the PGMO grant Gamma.
+    †
+     LAAS-CNRS, Université de Toulouse, CNRS, Toulouse, France; Faculty of Electrical Engineering, Czech
+Technical University in Prague, Czech Republic.
+   ‡
+     Univ. Limoges, XLIM, UMR 7252; F-87000 Limoges, France
+   §
+     Sorbonne Université, CNRS, INRIA, Laboratoire d’Informatique de Paris 6, LIP6, Équipe PolSys, 4
+place Jussieu, F-75252, Paris Cedex 05, France
+
+                                                     1
+In the previous formula, the constraint A(x)  0 means that A(x) is positive semidefinite,
+that is, that all its eigenvalues are non-negative. The set S (A), called spectrahedron, is a
+convex and basic semi-algebraic, as affine section of the cone of positive semidefinite matrices.
+    Linear matrix inequalities and semidefinite programs appear frequently in several applied
+domains, e.g. for stability queries in control theory [11]. They also appear as a central object
+in convex algebraic geometry and real algebra for computing certificates of non-negativity
+based on sums of squares [8, 9] following the technique popularized notably by the seminal
+work of Lasserre [21] and Parrilo [25]. Since the LMI A(x)  0 defines the feasible set of
+SDP, LMI is also known as the SDP feasibility problem.
+    Even though SDP can be solved in polynomial time to a fixed accuracy via the ellipsoid
+algorithm, the complexity status of this problem in the Turing or in the real numbers model is
+still an open question in computer science (see [26, 2]). On the other hand, very few algebraic
+methods that can represent an alternative to classical approaches from optimization theory
+have been developed.
+    In this paper, we aim at designing a symbolic algorithm for solving the SDP in (1.1),
+without any assumption on the feasible set S (A), but with genericity assumptions on the
+objective function `. It returns an algebraic representation of a feasible solution.
+
+1.1    State of the art
+Numerical methods have been developed for solving SDP problems, the most efficient of
+which are based on the interior point method [23]. This amounts to constructing an algebraic
+primal-dual curve called central path, whose points (xµ , yµ ) are solutions to the quadratic
+semi-algebraic problems
+
+                         A(x)Y (y) = µ Im      A(x)  0      Y (y)  0.                     (1.3)
+
+Above, Y (y) must be read as a square matrix lying in a space of matrices dual to that of
+A(x). For small but positive µ, when the LMI has strictly feasible solutions, the points xµ
+lie in the interior of S (A), and converge to a boundary point for µ → 0+ . Moreover, barrier
+logarithmic functions have been extended from the classical setup of linear programming to
+the semidefinite cone, and can be used to solve (1.1) when S (A) has interior points.
+    By the way, there are several obstacles to interior-point strategies. First, S (A) has empty
+interior in several situations, for instance when S (A) consists of sums-of-squares certificates
+of a polynomial with rational coefficients that does not admit rational certificates, see [33]
+for a class of such examples. Moreover, as proved in [15], when classical assumptions on the
+given SDP fail to be satisfied, for instance in absence of strict complementarity, the central
+path might fail to converge to the optimal face. Finally, even in presence of interior points,
+it is very hard to estimate the degree of the central path (that represents a complexity
+measure for path-following methods) in practical situations and explicit examples of central
+paths with exponential curvature have been computed [1].
+    The several existing variants of the interior-point algorithm are implemented in software
+running in finite precision, to cite a few SeDuMi [35], SDPT3 [36] and MOSEK [3]. The
+expected running time is essentially polynomial in n, m, log(η −1 ) (where η is the precision)
+and in the bit-length of the input [4, Ch.1,Sec.1.4]. Whereas these numerical routines run
+quite efficiently on huge instances, they may fail on degenerate situations, even on medium
+
+
+                                               2
+or small size problems. This has motivated for instance the development of floating point
+libraries for SDP working in extended precision [20].
+    Symbolic computation has been used in the context of SDP to tackle several related
+problems. First, it should be observed that S (A) is a semi-algebraic set in Rn defined by
+sign conditions on the coefficients of the characteristic polynomial t 7→ det(t Im − A(x)).
+Hence, classical real root finding algorithms for semi-algebraic sets such as [6, 7, 28, 5]
+can be used to solve SDP exactly. Using such algorithms leads to solve SDP in time mO(n) .
+Algorithms for solving diophantine problems on linear matrix inequalities has been developed
+in [14, 31].
+    More recently, algorithms for solving exactly generic LMI [17] and generic rank-constrained
+SDP [22] have been designed, with runtime polynomial in n (the number of variables, or
+equivalently the dimension of the affine section defining S (A)) if m (the size of the matrix)
+is fixed. Because of the high degrees needed to encode the output [24], they cannot com-
+pete with numerical software but on small size problems offer a nice complement to these
+techniques in situations where numerical issues are encountered. In both cases, genericity
+assumptions on the input are required. This means that for some special problems (lying
+in some Zariski closed subset of the space spanned by the entries of matrices Ai ), these
+algorithms cannot be applied.
+
+1.2    Outline of the main contributions
+In this paper, we remove the genericity assumptions on the feasible set SA of the input
+SDP that were required in our previous work [17], and we show that optimization of generic
+linear functions over SA can be performed without significant extra cost from the complexity
+viewpoint.
+   Our precise contributions are as follows.
+   • We design an algorithm for solving the SDP in (1.1) without any assumption on the
+     defining matrix A(x), with genericity assumptions on the objective function;
+   • we prove that this algorithm uses a number of arithmetic operations which is polyno-
+     mial in n when m is fixed, and viceversa;
+   • we report on examples showing the behaviour of the algorithm on small-size but de-
+     generate instances.
+The main tool is the construction of a homotopy acting on the matrix representation A(x)
+rather than on the classical complementarity conditions as in (1.3). This allows to preserve
+the LMI structure along the perturbation.
+   We use similar techniques from real algebraic geometry as those in [17], based on transver-
+sality theory [12], to prove genericity properties of the perturbed systems. We also investigate
+closedness properties of linear maps restricted to semi-algebraic sets in a more general setting
+in Section 2, generalizing similar statements for real algebraic sets in [29, 16].
+
+1.3    General notation
+For a matrix of polynomials f ∈ R[x]s×t in x = (x1 , . . . , xn ), we denote by Z(f ) the complex
+algebraic set defined by the entries of f . If f ∈ R[x]s , the Jacobian matrix of f is denoted by
+
+                                               3
+Df := (∂fi /∂xj )ij . A set S ⊂ Rn defined by sign conditions on a finite list of polynomials
+is called a basic semi-algebraic set, and a finite union of such sets is called a semi-algebraic
+set.
+   Let Sm (Q) be the space of m × m symmetric matrices with entries inPQ, and S+           m (Q)
+                                                                                  n
+the cone of positive semidefinite matrices in Sm (Q). Let A(x) = A0 + i=1 xi Ai , with
+Ai ∈ Sm (Q). One can associate to A(x) the hierarchy of algebraic sets
+
+                   Dr (A) = {x ∈ Rn : rank A(x) ≤ r}, r = 1, . . . , m − 1
+
+defined by the minors of A(x) of a fixed size. The set Dr is called a determinantal variety.
+We recall the definition of incidence variety in the context of semidefinite programming,
+introduced by the authors in [17]. For r ∈ {1, . . . , m − 1}, let Y = Y (y) be a m × (m − r)
+matrix of unknowns yi,j . Let ι ⊂ {1, . . . , m} be a subset of cardinality m − r, and Yι the
+submatrix of Y corresponding to lines in ι. The incidence variety for Dr (A) is the algebraic
+set
+               Vr,ι (A) = {(x, y) ∈ Cn × Cm(m−r) : A(x)Y (y) = 0, Yι = Im−r }.
+We have defined previously the spectrahedron S (A) = {x ∈ Rn : A(x)  0}, associated to
+A(x).
+  Let B ∈ Sm (Q) and ε ∈ [0, 1]. In this paper, we consider a 1-parameter family of linear
+matrices                                             X
+                           A(x) + εB = (A0 + εB) +       xi Ai
+perturbing A(x) in direction B.
+
+
+2    Preliminaries
+In this section, we prove some results of topological nature on spectrahedra and their defor-
+mations. Before doing that, we need to recall basics about infinitesimals and Puiseux series
+rings. More details can be found in [7].
+   An infinitesimal ε is a positive element which is transcendental over R and smaller than
+any positive real number. The Puiseux series field
+                                  (                                  )
+                                    X
+                          Rhεi =        ai εi/q : i0 ∈ Z, q ∈ N − {0}
+                                    i≥i0
+
+
+is a real closed one [10, Ex.1.2.3]. An element z = i≥i0 ai εi/q is bounded over R if i0 ≥
+                                                       P
+0. In that case, one says that its limit when ε tends to 0 is a0 and we write it limε z.
+The limε operator is a ring homomorphism between Rhεi and R. We extend it over Rhεin
+coordinatewise. Also given a subset Q ⊂ Rhεin , we denote by limε Q the subset of Rn of
+points which are the images by limε of bounded elements in Q.
+   Given a semi-algebraic set S ⊂ Rn defined by a semi-algebraic formula with coefficients
+in R, we denote by ext(S, Rhεi) the solution set of that formula in Rhεin .
+   For a linear pencil A(x) = A0 + x1 A1 + · · · + xn An of m × m symmetric linear matrices
+and a m × m positive definite matrix B, we consider the spectrahedron S (A + εB) in Rhεi.
+Our first result relates S (A) ⊂ Rn with S (A + εB) ⊂ Rhεin .
+
+
+                                               4
+Lemma 1 Using the above notation, S (A) is included in (the interior of ) S (A + εB).
+
+Proof : Let x∗ ∈ S (A). By definition of positive semi-definiteness, for any vector v ∈ Rm ,
+v t A(x∗ )v ≥ 0. Since ε is a positive infinitesimal and B is positive definite, we deduce that
+for any vector v ∈ Rm \ {0}, 0 < v t A(x∗ )v + v t εBv = v t (A(x∗ ) + εB)v. We deduce that
+A + εB is positive definite at x∗ , hence x∗ is in (the interior of) S (A + εB), as requested. 
+   Further, we identify the set of linear forms ` = `1 x1 + · · · + `n xn with Cn , the linear form
+` being identified to the point `1 , . . . , `n . By a slight abuse of notation we also denote by `
+the map x 7→ `(x).
+
+Lemma 2 Let R be a real closed field, C be an algebraic closure of R and S ⊂ Rn be a
+closed semi-algebraic set. There exists a non-empty Zariski open set L (S) ⊂ Cn such that
+for ` ∈ L (S) ∩ Rn , `(S) is closed for the Euclidean topology.
+
+Proof : Our proof is by induction on the dimension of S. When S has dimension 0, the
+statement is immediate.
+   We let now d ∈ N \ {0}, assume that the statement holds for semi-algebraic sets of
+dimension less than d and that S has dimension d. By [10, Th.2.3.6], it can be partitioned
+as a finite union of closed semi-algebraically connected semi-algebraic manifolds S1 , . . . , SN .
+Note that each Si is still semi-algebraic. We establish below that there exist non-empty
+Zariski open sets L (Si ) ⊂ Cn such that for ` ∈ L (Si ) ∩ Rn , `(Si ) is closed for the Euclidean
+topology. Taking the intersections of those finitely many non-empty Zariski open set is then
+enough to define L (S).
+   Let 1 ≤ i ≤ N . If the dimension of Si is less than d, we apply the induction assumption
+and we are done. Assume now that Si has dimension d. Let V ⊂ Cn be the Zariski closure
+of Si and C be the semi-algebraically connected component of V ∩ Rn which contains Si . By
+[18, Prop.17], there exists a non-empty Zariski open set Λ1,i ⊂ Cn such that for ` ∈ Λ1,i ∩Rn ,
+`(C) is closed.
+   By definition of C and using [10, Ch.2.8], C has dimension d, as Si . We denote by Ti ⊂ Rn
+the boundary of Si . Observe that it is a closed semi-algebraic set of dimension less than
+d [10, Ch.2.8]. Using the induction assumption, we deduce that there exists a non-empty
+Zariski open set Λ2,i ⊂ Cn such that for ` ∈ Λ2,i ∩ Rn , `(Ti ) is closed. We claim that one
+can define L (Si ) as the intersection Λ1,i ∩ Λ2,i , i.e. for ` ∈ L (Si ) ∩ Rn , `(Si ) is closed.
+   Indeed, assume that the boundary of `(Si ) is not empty (otherwise there is nothing to
+prove) and take a in this boundary. Without loss of generality, assume also that for all
+x ∈ Si , `(x) ≥ a. We need to prove that a ∈ Si .
+   Assume first that for all η > 0, `−1 ([a, a + η]) has a non-empty intersection with Ti . Since
+`(Ti ) is closed by construction, we deduce that there exists x ∈ Ti such that `(x) = a. Since
+Si is closed by construction and Ti is its boundary, we deduce that x ∈ Si and then that
+a ∈ `(Si ).
+   Assume now that for some η > 0, `−1 ([a, a + η]) has an empty intersection with Ti . Then,
+we deduce that `−1 ([a, a + η]) ∩ Si = `−1 ([a, a + η]) ∩ C. Besides, since `(C) is closed, there
+exists x ∈ C such that `(x) = a. Because, `−1 ([a, a + η]) ∩ Si = `−1 ([a, a + η]) ∩ C, we deduce
+that x ∈ Si which ends the proof.                                                                  
+
+Lemma 3 Let A(x) be as above and let B be a positive definite m × m matrix. There exists
+a non-empty Zariski open set l 1 ⊂ Cn such that for ` ∈ l 1 ∩ Rn the following holds:
+
+                                                 5
+    • `(S (A)) is closed for the Euclidean topology
+
+    • `(S (A + εB)) is closed for the Euclidean topology.
+
+Proof : Since S (A) ⊂ Rn is a closed semi-algebraic set, one can apply Lemma 2 and deduce
+that there exists a non-empty Zariski open set l 1 0 ⊂ Cn such that for ` ∈ l 1 0 ∩ Rn , `(S (A))
+is closed for the Euclidean topology.
+     The spectrahedron S (A + εB) ⊂ Rhεin is also a closed semi-algebraic set. Applying
+Lemma 2 with R = Rhεi, one deduces that there exists a non-empty Zariski open set
+l ε00 ⊂ Chεin such that for ` ∈ l ε00 ∩ Rhεin, `(S (A + εB)) is closed for the Euclidean topology.
+Since any non-empty Zariski open set l ε 00 ⊂ Chεin contains a non-empty Zariski open set of
+Cn , we pick one such set, denoted by l 1 00 and take finally l 1 = l 1 0 ∩ l 1 00 .            
+
+Lemma 4 Let ` in l 1 ∩ Rn where l 1 is the non-empty Zariski open set defined in Lemma 3.
+   Assume that there exists x∗ ∈ S (A) such that `(x∗ ) lies in the boundary of `(S (A)).
+Then, there exists x∗ε ∈ S (A + εB) such that `(x∗ε ) lies in the boundary of `(S (A + εB))
+and limε x∗ε = x∗ .
+   Viceversa, if x∗ε ∈ S (A + εB) lies in the boundary of `(S (A + εB)), and S (A) 6= ∅, then
+`(limε x∗ε ) lies in the boundary of `(S (A)).
+
+Proof : Fix r ∈ R positive and let B(x∗ , r) be the ball centered at x∗ of radius r. Further
+we abuse notation by denoting ext(S (A), Rhεi) by S (A).
+    Recall that S (A) is contained in S (A + εB) (Lemma 1) and observe that S (A + εB)
+is infinitesimally close to S (A) (because of the continuity of the eigenvalues of A(x) + εB
+when x ranges over S (A + εB)).
+    This implies that there exists ρε in the boundary of `(S (A + εB) ∩ ext(B(x∗ , r))) and
+which is infintesimally close `(x∗ ). Since S (A + εB) ∩ ext(B(x∗ , r) is closed and bounded,
+`(S (A + εB) ∩ ext(B(x∗ , r)) is closed for the Euclidean topology. Then, there exists x∗ε ∈
+S (A + εB) ∩ ext(B(x∗ , r) such that `(x∗ε ) = ρε . Since this is true for any r ∈ R positive, we
+deduce the equality limε x∗ε = x∗ .
+    Viceversa, suppose that x∗ε ∈ S (A + εB) is such that `(x∗ε ) lies in the boundary of
+`(S (A + εB)). Hence `(x∗ε ) minimizes ` on S (A + εB). Let y ∈ S (A). From Lemma 1, we
+know that y ∈ S (A + εB). Since orders are preserved under limit, and by the continuity of
+`, we get that
+                         `(x∗ ) = `(lim x∗ε ) = lim `(x∗ε ) ≤ lim `(y) = `(y).
+                                   ε          ε           ε
+
+By the arbitrarity of y we deduce that x minimizes ` on S (A), hence `(x∗ ) lies in the
+                                             ∗
+
+boundary of `(S (A)).                                                                
+
+
+3     Homotopy for semidefinite systems
+We consider the original linear matrix inequality A(x)  0 and its solution set S (A). In
+this section, we prove that one gets regularity properties under the the deformation of S (A)
+described in the previous sections.
+
+
+
+
+                                                  6
+3.1    Regularity of perturbed incidence varieties
+Let B ∈ Sm (Q) and ε ∈ [0, 1]. We say that A + εB is regular if, for every r = 1, . . . , m and
+ι ⊂ {1, . . . , m} with ]ι = m−r, the algebraic set Vr,ι (A+εB) is smooth and equidimensional,
+of co-dimension m(m − r) + m−r+1
+                                           n+m(m−r)
+                                   2
+                                        in C           .
+   The following proposition states that such a property holds almost everywhere if the
+perturbation follows a generic direction.
+
+Proposition 5 There exists a non-empty Zariski open set B1 ⊂ Sm (C) such that, for all
+r ∈ {0, . . . , m}, ι ⊂ {1, . . . , m} with ]ι = m − r, and for B ∈ B1 ∩ Sm (Q), the following
+holds. For every ε ∈ (0, 1], out of a finite set, the matrix A + εB is regular.
+
+Proof : We suppose w.l.o.g. that r is fixed and ι = {1, . . . , m − r}. Let B be an unknown
+m×m symmetric matrix. For ε ∈ (0, 1], we get a matrix A+εB = A(x)+εB, which is bilinear
+in the two groups of variables x, B. Let f (ε) = f (ε) (x, y, B) be the polynomial system given
+by the (i, j)−entries of (A + εB)Y with i ≥ j, and by all entries of Yι − Im−r . By [17, Lemma
+3.2], Z(f (ε) ) = Z((A + εB)Y, Yι − Im−r ), and remark that ]f (ε) = m(m − r) + m−r+1
+                                                                                          
+                                                                                       2
+                                                                                           .
+   We now proceed with a transversality argument. Consider the map (with abuse of nota-
+tion)
+                                                m+1                        m−r+1
+                     f (1) : Cn × Cm(m−r) × C( 2 ) −→ Cm(m−r)+( 2 )
+                                           (x, y, B) 7−→       f (1) (x, y, B).
+We claim that 0 is a regular value of the map f (1) (the claim is proved in the last paragraph).
+This implies by Thom’s Weak Transversality [30, Prop. B.3] that there is a Zariski open
+set Br,ι ⊂ Sm (C) such that, if B ∈ Br,ι , then 0 is a regular value of the section map
+(x, y) 7→ f (1) (x, y, B).
+   We define B1 := ∩r ∩ι Br,ι , which is a finite intersection of Zariski open sets, hence
+Zariski open. Now, for a fixed B ∈ B1 , consider the line tB, t ∈ R, in Sm (C). Let F1 ∈ C[B]
+be the generator of the ideal of all polynomials vanishing over the algebraic hypersurface
+Sm (C) \ B1 . Then, since B ∈ B1 by construction, t 7→ F1 (tB) does not vanish identically,
+hence it vanishes exactly deg F1 many times (counting multiplicities). We deduce that,
+εB ∈ B1 except for finitely many values of ε. We conclude that for all r andι, Vr,ι (A + εB)
+is smooth and equidimensional of co-dimension ]f (ε) = m(m − r) + m−r+1      2
+                                                                                  , for ε ∈ (0, 1]
+except for finitely many values.
+   We prove now our claim. It follows by argument similar to the proof of [17, Prop.3.4].
+Consider the derivatives of polynomials in f (1) (x, y, B) with respect to the (i, j)−entries of
+B, with either i ≤ m − r or j ≤ m − r, and those with respect to yi,j with i ∈ ι. It is
+straightforward to check that this gives a maximal submatrix of the jacobian matrix Df (1)
+whose determinant is non-zero, proving that 0 is actually a regular value of f (1) .            
+
+3.2    Critical points on perturbed LMI
+Let B ∈ Sm (Q) and let A + εB be the perturbed linear pencil defined above. For a fixed
+ε < 1, we consider the stratification of the hypersurface Z(det(A + εB)) given by the varieties
+Dr (A + εB) of multiple rank defects of A + εB, and their lifted incident sets Vr,ι
+                                                                                  (A + εB).
+                                                                            m−r+1
+   For r < m and ι ⊂ {1, . . . , m} with ]ι = m − r, let c  := m(m − r) +     2
+                                                                                   . We recall
+from the proof of Proposition 5 that f (ε) ∈ R[x, y]c consists of the (i, j)−entries of A(ε) Y
+
+                                                7
+with i ≥ j, and by all entries of Yι − Im−r . We define the Lagrange system Lagr,ι (A + εB) as
+follows:
+                                        (ε)
+                                      fi (x, y) = 0, i = 1, . . . , c
+                               c
+                                                                                         (3.1)
+                                                   
+                              X         (ε)         `
+                                  zi ∇fi (x, y) =
+                                                    0
+                                 i=1
+             n
+where ` : R → R is linear. As in Section 2, we abuse the notation of `, and identifying it
+with the vector (`1 , . . . , `n ) ∈ Rn giving `(x) = `1 x1 + · · · + `n xn , hence ` = ∇`.
+   The set Z(f (ε) ) = Vr,ι (A + εB) is smooth for generic B thanks to Proposition 5. Hence
+a solution (x∗ , y ∗ , z ∗ ) of system (3.1) is a critical point (x∗ , y ∗ ) of the restriction of ` to
+Vr,ι (A + εB), equipped with a Lagrange multiplier z ∗ ∈ Cc . Such a solution is called of rank
+r if rank (A(x∗ ) + εB) = r.
+
+Proposition 6 There are two non-empty Zariski-open sets B2 ⊂ Sm (C) and l 2 ⊂ Cn such
+that, for B ∈ B2 ∩ Sm (Q), ` ∈ l 2 ∩ Qn , and ε ∈ (0, 1] out of a finite set, the following
+holds. Suppose that ` has a minimizer or maximizer x∗ε on S (A + εB). The projection on
+the x−space of the union, for ι ⊂ {1, . . . , m}, ]ι = m − r, of the solution sets of rank r of
+system (3.1), is finite and contains x∗ε .
+
+Proof : Let r ≤ m − 1 and ι ⊂ {1, . . . , m}. Recall by [22, Th. 4] that a minimizer or
+a maximizer x∗ for the SDP inf{`(x) : A(x) + εB  0}, with rank (A(x∗ ) + εB) = r, is a
+critical point of the restriction of ` to Dr (A + εB). Moreover, [22, Lem. 2] implies that such
+critical points can be computed as projection on the x−space, of the critical points of the
+restriction of ` to Vr,ι (A + εB), for some ι (here we mean the extension (x, y) 7→ `(x) of ` to
+the (x, y)−space). Thus we only need to prove the finiteness of solutions of rank r of system
+(3.1), for a generic perturbation matrix B and a generic linear function `, uniformly on ε.
+     We denote by g (ε) = z T Df (ε) − (`, 0)T (the polynomials in the second row of (3.1)). The
+system (f () , g () ) is square, for a fixed . Consider the polynomial map (f (1) , g (1) ) sending
+(x, y, B, z, l) to (f (1) (x, y, B), g (1) (x, y, B, z, l)), where B and l are variables for B and `, of
+the right size. As in the proof of Proposition 5, for generic B the rank of Df (1) is maximal.
+Hence, following mutatis mutandis the proof of [22, Prop.3], we conclude that the jacobian
+matrix of (f (1) , g (1) ) has full rank at every point in Z(f (1) , g (1) ) of rank r. Hence there exist
+non-empty Zariski open sets Br,ι ⊂ Sm (C), l r,ι ⊂ Cn such that if (B, `) ∈ Br,ι × l r,ι then
+system (3.1) has finitely many solutions of rank r, for ε = 1. We define B2 := ∩r ∩ι Br,ι and
+l 2 := ∩r ∩ι l r,ι and we conclude the same disregarding r and ι.
+     Let F2 ∈ C[B, l] be the generator of the ideal of all polynomials vanishing over (Sm (C) ×
+   n
+C ) \ (B2 × l 2 ). Then F2 (B, `) 6= 0, which implies that t 7→ F2 (tB, `) has finitely many
+roots, hence (εB, `) ∈ (B2 × l 2 ) almost everywhere in (0, 1]. We conclude the proof by
+defining the claimed finite set as the union of (1) the set of roots of F2 and (2) the finite set
+constructed in Proposition 5.                                                                          
+  Note that the transversality techniques used in the proofs of Propositions 5 and 6 are
+non-constructive. Indeed they prove the existence of the discriminants F1 ∈ C[B] and F2 ∈
+C[B, l], but do not construct them effectively. If we knew F1 , F2 one could use separation
+bounds for real roots of univariate polynomials (e.g. [19]) to get upper bounds for the
+minimum of the finite sets.
+
+
+                                                   8
+3.3     The degree of the homotopy curve
+We consider the Lagrange system (3.1), r < m and ι ⊂ {1, . . . , m} with ]ι = m − r.
+For a given homotopy parameter ε ∈ (0, 1) out of the union of the finite sets defined in
+Propositions 5 and 6, the system has finitely many solutions of rank r. When ε converges
+to 0, these solutions draw a (possibly reducible) semi-algebraic curve. This can also be seen
+as a semi-algebraic subset of dimension 1 in Rhεin . We denote this curve by Cr,ι .
+   Contrarily to the classical homotopy based on the central path, whose points lie in the
+interior of the feasible set, we have constructed homotopy curves containing optimal solutions
+of given rank of perturbed semidefinite programs. This allows to derive degree bounds that
+depend on this rank.
+
+Proposition 7 Let r, ι be fixed, let Cr,ι be the curve of solutions or rank r of the Lagrange
+system (3.1), for positive small enough ε, and Zar(Cr,ι ) be its complex Zariski closure. Then
+
+                                   deg Zar(Cr,ι ) ≤ (1 + 2r(m − r)) · θ1
+
+where
+                                X  c          n
+                                                         
+                                                            r(m − r)
+                                                                    
+                           θ1 =                                                               (3.2)
+                                k
+                                   n−k   c + k − r(m − r)      k
+
+Proof : We first compute a polynomial system equivalent to (3.1). We make the substitution
+Yι = Im−r that eliminates variables {yi,j : i ∈ ι} in the vector f (ε) defining the incidence
+variety Vr,ι (A + εB), hence we suppose f (ε) ∈ Q[ε, x, y]c , with c = m(m − r) − m−r
+                                                                                                
+                                                                                             2
+                                                                                                  =
+(m−r)(m+r+1)                                     m−r
+                                                     
+       2
+               and y = {yi,j : i 6∈ ι}. (Indeed, 2 is the number of redundancies eliminated
+by [17, Lemma 3.2] recalled in the proof of Proposition 5.) Above we have intentionally
+abused of the notation of f (ε) and c. Next, the new polynomials fi do not depend on y \ y.
+                                    (ε)
+Hence, defining g := ci=1 zi ∇fi (x, y) − (∇`, 0)T ∈ Q[ε, x, y, z], with z = (z1 , . . . , zc ), one
+                      P
+has ]g = ]x + ]y = n + r(m − r).
+    We conclude that the Lagrange system (3.1) is given after reduction by the entries of
+f (ε) and g, that are multilinear in the three groups of variables ξ := (ε, x), y and z. The
+multidegree with respect to (ξ, y, z) is respectively
+                     (ε)
+   • mdeg(ξ,y,z) (fi ) = (1, 1, 0), for i = 1, . . . , c
+
+   • mdeg(ξ,y,z) (gi ) = (0, 1, 1), for i = 1, . . . , n
+
+   • mdeg(ξ,y,z) (gn+j ) = (1, 0, 1), for j = 1, . . . , r(m − r)
+We compute below a multilinear Bézout bound of deg Zar(Cr,ι ) (see [30, App.H.1]). This is
+given by the sum of the coefficients of the polynomial
+
+                               P = (s1 + s2 )c (s2 + s3 )n (s1 + s3 )r(m−r)
+                                                r(m−r)+1
+modulo the monomial ideal I = hsn+2   1  , s2      , sc+1
+                                                      3 i. Since the maximal admissible power
+modulo I of s1 (resp. of s2 , s3 ) is n + 1 (resp. r(m − r), c) and since P is homogeneous of
+degree c + n + r(m − r) we get
+                                r(m−r) c            r(m−r)−1 c            r(m−r) c−1
+                   P ≡ θ1 sn1 s2      s3 + θ2 sn+1
+                                               1   s2       s3 + θ3 sn+1
+                                                                     1   s2     s3
+
+                                                      9
+modulo I, where θi = θi (m, n, r) are the corresponding coefficiens in the expansion of P ,
+hence the bound is θ1 + θ2 + θ3 . Just by expanding P and by solving a linear system over Z
+one gets the expression in (3.2), within the range 0 ≤ k ≤ min{n − c + r(m − r), r(m − r)}. A
+similar formula holds for θ2 where n − k + 1 substitutes n − k in the first binomial coefficient.
+We deduce that                                  
+                                       c−n+k
+                           θ2 ≤ max                θ1 ≤ r(m − r)θ1 .
+                                  k    n−k+1
+Moreover the expression of θ3 equals that of θ2 except for the second binomial coefficient
+which is smaller, hence θ3 ≤ θ2 ≤ r(m − r)θ1 , and we conclude.                         
+   Recall that the algorithm in [17] solves LMI under genericity properties that cannot be
+assumed in the context of this paper. It avoids the use of homotopy. We expect that in
+degenerate situations the degree of the homotopy curve will exceed that of the univariate
+representation computed in the regular case. We prove that this degree gap is controlled,
+namely, that the extra factor is linear in n and in the rank-corank coefficient r(m − r).
+
+Proposition 8 Let θ = θ(m, n, r) be the bound computed in [17, Prop.5.1]. For all r and ι
+as above, deg Zar(Cr,ι ) ≤ (1 + 2r(m − r)) nθ.
+
+Proof :PLet θ1 be the expression
+                       P         in (3.2). We prove that θ1 ≤ nθ and we conclude. Indeed,
+let θ = k ak and θ1 = k bk . Then
+                                   bk           n
+                                      =
+                                   ak   c + k − r(m − r)
+                                             P
+that does not exceed n for all k. Hence θ1 ≤ k nak = nθ.                                           
+
+
+4     Algorithm
+4.1     Description
+This section contains the formal description of a homotopy-based algorithm for solving the
+semidefinite program in (1.1), called DegenerateSDP.
+  We first define the data structures we use to represent algebraic sets of dimension 0 and 1
+during the algorithm. A zero-dimensional parametrization of a finite set W ⊂ Cn is a vector
+Q = (q0 , q1 , . . . , qn , q) ∈ Q[t]n+2 such that q0 , q are coprime and
+
+                       W = {a ∈ Cn : ai = qi (t)/q0 (t), q(t) = 0, ∃t ∈ R} .
+
+Similarly a one-dimensional parametrization of a curve C ⊂ Cn is a vector Q = (q0 , q1 , . . . , qn , q) ∈
+Q[t, u]n+2 with q0 , q coprime and
+
+                  C = {a ∈ Cn : ai = qi (t, u)/q0 (t, u), q(t, u) = 0, ∃t, u ∈ R} .
+
+Abusing notation we denote by Z(Q) the sets in the right part of the previous equalities.
+If Q is a list of parametrizations, Z(Q) denotes the union of Z(Qi ) for Qi in Q. These
+representations for finite sets and curves are standard in real algebraic geometry, and are
+called parametrizations in the sequel. By convention, (1) is a parametrization for ∅.
+   We also define the following subroutines manipulating this kind of representations:
+
+                                                 10
+      • ODP. With input a polynomial system f = (f1 , . . . , fs ) defining a one-dimensional al-
+        gebraic set Z(f ), and a set of variables x, it returns a one-dimensional parametrization
+        of the projection of Z(f ) on the x−space.
+
+      • CUT. Given a one-dimensional parametrization Q of the zero set Z(f ) ⊂ Cn+1 of
+        polynomials f1 , . . . , fs ∈ Q[ε, x], it returns a zero-dimensional parametrization of the
+        projection on the x−space of the limit of Z(f ) for ε → 0+ .
+
+      • UNION. Given two parametrizations Q1 , Q2 , it returns a parametrization Q such that
+        Z(Q) = Z(Q1 ) ∪ Z(Q2 ).
+   The input of DegenerateSDP is the m × m n−variate symmetric linear matrix A(x)
+defining the spectrahedron S (A), and a linear form `. The output is a list Q = [Q1 , . . . , Qm−1 ]
+of zero-dimensional parametrizations.
+   Below we describe each step of the algorithm.
+
+ 1: procedure DegenerateSDP(A, `)
+ 2:    Generate B ∈ Sm (Q)
+ 3:    Q ← []
+ 4:    for r = 1, . . . , m − 1 do
+ 5:       Qr ← (1)
+ 6:       for ι ⊂ {1, . . . , m} with ]ι = m − r do
+ 7:           L ← Lagr,ι (A + εB)
+ 8:           Qr,ι ← ODP(L)
+ 9:           Qr ← UNION(Qr , Qr,ι )
+10:          Q ← [Q, CUT(Qr )]
+11:       return Q
+
+   Note that ε in the previous formal description is treated as variable, so that the polyno-
+mials in L at step 7 define a curve. Remark that all solutions satisfy det A(x) = 0 hence
+rank A(x) ≤ m − 1.
+   We show in Theorem 9 that DegenerateSDP is correct and computes solutions to
+the original linear matrix inequality as limits of perturbed solutions. We use the results of
+Sections 2 and 3 and refer to the notation of Zariski open sets constructed in Lemma 3 and
+4, and in Proposition 5 and 6.
+
+Theorem 9 Let A be a m×m n−variate symmetric linear matrix. Let B ∈ B1 ∩B2 ∩S+
+                                                                             m (Q),
+                     n
+and ` ∈ l 1 ∩ l 2 ∩ Q .
+  A. If A(x∗ ) = 0 for some x∗ ∈ Rn , then x∗ is a minimizer in (1.1) or ` is unbounded from
+     below on SA .
+
+  B. Otherwise, Q = DegenerateSDP(A) fulfils the following condition. If x∗ ∈ S (A)
+     is a minimizer in (1.1) then x∗ ∈ S (A) ∩ Z(Q). Viceversa, if S (A) 6= ∅, and ` is not
+     unbounded from below on S (A), then S (A) ∩ Z(Q) contains a minimizer in (1.1).
+
+Proof : First, suppose that A(x∗ ) = 0 for some x∗ ∈ Rn . Then A0 = − i x∗i Ai , hence
+                                                                           P
+A(x) = (x1 − x∗1 )A1 + · · · + (xn − x∗n )An . We deduce that SA is the image under the
+
+                                                 11
+translation x 7→ x + x∗ of a cone, that is: either SA = {x∗ }, in which case ` ≡ `(x∗ ) on SA ,
+and x∗ is a minimizer for (1.1), or SA is an unbounded convex cone with origin in x∗ . In
+the second case, since ` is linear, either its infimum on SA is attained at the origin x∗ , or its
+maximum is attained in x∗ and ` is unbounded from below on SA .
+    We prove the first sentence in (B). Assume that x∗ ∈ S (A) is a minimizer in (1.1). Then
+`(x∗ ) lies in the boundary of `(S (A)). By Lemma 4, we get that there exists x∗ε ∈ S (A+εB)
+such that `(x∗ε ) lies in the boundary of `(S (A + εB)) and limε x∗ε = x∗ . Hence for ε > 0, x∗ε
+is a minimizer of ` on `(S (A+εB)) ⊂ Rn . By Proposition 6, there exists r ∈ {1, . . . , m−1},
+ι ⊂ {1, . . . , m} with ]ι = m − r, yε∗ and zε∗ , such that (x∗ε , yε∗ , zε∗ ) is a solution of the Lagrange
+system Lagr,ι (A + εB). We deduce that for ε > 0, x∗ε is parametrized by the one-dimensinal
+parametrization Qr,ι = ODP(L) computed at step 8 of DegenerateSDP, hence by Qr . We
+deduce that Q parametrizes the limit x∗ = limε x∗ε , that is x∗ ∈ S (A) ∩ Z(Q).
+    We finally come to the second sentence in (B). Since ` is not unbounded on S (A),
+and S (A) 6= 0, then the same holds for ` on S (A + εB). By Lemma 3, `(S (A)) and
+`(S (A + εB)) are closed intervals. We deduce that the boundary of `(S (A + εB)) is non-
+empty. Let x∗ε be such that `(x∗ε ) lies in the boundary of `(S (A + εB)). Since S (A) 6= ∅,
+by 4 x∗ := limε x∗ε ∈ S (A) ∩ Z(Q) is such that `(x∗ ) lies in the boundary of `(S (A)), hence
+a minimizer of the SDP in (1.1).                                                                          
+
+4.2     Complexity analysis
+This section contains a rigourous analysis of the arithmetic complexity of DegenerateSDP.
+Let us first give an overview of the algorithms that are used to perform the subroutines in
+DegenerateSDP.
+   The computation of a one-dimensional parametrization of the homotopy curve Zar(Cr,ι )
+at step 8, that is the routine ODP, is done in two steps. First, we instantiate the system
+Lagr,ι (A + εB) to a generic ε = ε. By Proposition 6 we deduce that the obtained system
+is zero-dimensional. We use [32] to compute a zero-dimensional rational parametrization of
+this system.
+   The second steps consists in lifting the parameter ε and in computing a parametric geo-
+metric resolution of Lagr,ι (A + εB) with the algorithm in [34], that is, a parametric analogue
+of [13]. In our context, there is only one parameter, that is ε.
+   The routine CUT can be performed via the algorithm in [27] and, finally, the cost of the
+routine UNION is given in [30, Lem.G.3].
+   To keep notations simple, let L = (L1 , . . . , LN ) ∈ Q[ε, t1 , . . . , tN ] be the polynomials
+defining the Lagrange system (3.1), in the reduced form as in the proof of Proposition (7).
+Hence N = c + n + r(m − r), where c = (m − r)(m + r + 1)/2. The complex algebraic set
+Zar(Cr,ι ) = Z(L) is a curve whose degree is bounded by Proposition 7.
+
+Theorem 10 Let L and N be as above. Under the assumptions of Theorem 9, the output
+Q = DegenerateSDP(A, `) is returned within
+                                                     !
+                              X m
+                                                 4 2
+                        Oe n           r(m − r)N θ
+                                r
+                                    r
+
+                                    e ) = O(T loga (T )) for some a and θ ≤                   m2 +n 3
+                                                                                                    
+arithmetic operations over Q, where O(T                                                        n
+                                                                                                      .
+
+                                                    12
+Proof : Let ε ∈ (0, 1) be generic, and let L be equal to the system L where ε is instantiated
+to ε. Let θ be the value computed in [17, Prop.5.1], that bound the number of solution of
+L = 0 in CN . By the same proposition one gets
+                                       3                   3
+                                   c+n          m(m − r) + n
+                            θ≤              ≤                    ,
+                                     n                n
+from which the claimed bound uniform in r.
+           0     0         0                                                           0
+    Let L = (L1 , . . . , LN ) be a polynomial vector of lenght N such that Li has the same
+                                                                                                 0
+multilinear structure as Li , for i = 1, . . . , N . Let H(T, t1 , . . . , tN ) = T L + (1 − T )L . By
+[32, Prop.5], the complexity of computing a univariate representation of Z(L) is in O(N      e 3 θθ0 )
+         0                                     0
+where θ = deg, Z(H). By [17, Lem.5.4], θ ∈ O(N min{n, c}θ). Hence the complexity of the
+first step of ODP is in
+                                        O(min{n,
+                                        e            c}N 4 θ2 ).
+Next, let π : CN +1 → C be the projection (ε, t1 , . . . , tN ) 7→ ε. By [17, Prop.5.1], a generic
+fiber of π has degree bounded by θ. Proposition 8 implies that deg Zar(Cr,ι ) is bounded above
+by (1 + 2r(m − r)) nθ. We apply the bound in [34, Cor.1], and we get a complexity in
+                                    e nr(m − r)N 4 θ2 ,
+                                                            
+                                    O
+
+for the parametric resolution step in ODP. By [32, Lem.13], the complexity of CUT is in
+Oe (N 3 θθ0 ), hence in
+                                     e min{n, c}N 4 θ2 .
+                                                      
+                                    O
+The complexity of UNION is in O(N      e θ2 ) at each step, by [30, Lem.G.3]. This shows that
+the most expensive step is the lifting step.
+   The previous complexity bounds depend on r, and hold for all r = 1, . .. , m, and for all
+index subsets ι ⊂ {1, . . . , m}. We conclude by summing up with weight mr , the number of
+subsets ι ⊂ {1, . . . , m} of cardinality m − r.                                           
+   We note that N can be bounded above by n + 2m2 uniformly in r. The complexity of
+DegenerateSDP given by Theorem 10 is polynomial in n when m is fixed. Moreover, for
+a generic perturbation matrix B, [17, Prop.] allows to deduce the inequality n ≥ m−r+1
+                                                                                         
+                                                                                     2
+                                                                                           :
+this implies that when n is fixed, then m is bounded above and hence the complexity is still
+polynomial.
+
+
+5     Example
+In this final section we develop a degenerate example in low dimension, showing how our
+algorithm works from a geometric viewpoint.
+   Consider the 2 × 2 semidefinite representation of a point (p1 , p2 ) ∈ R2 :
+                                                               
+                              2            p 1 − x1 x2 − p 2
+                (x1 , x2 ) ∈ R : A(x) :=                        0 = {(p1 , p2 )} .
+                                           x2 − p 2 x1 − p 1
+
+The interior of S (A) := {(p1 , p2 )} in R2 is empty, and moreover S (A), corresponding to
+the intersection of the 2−dimensional linear space of matrices in the pencil A(x) with the
+the 3−dimensional cone of 2 × 2 symmetric matrices, has co-dimension 2 in R2 .
+
+                                                 13
+  We first construct the incidence varieties Vr,ι (A). For r = 0, the incidence variety is
+smooth, but for r = 1 and ι = {1}, this is the following algebraic curve in C3
+                     V1,{1} = Z((x2 − p2 )y + p1 − x1 , (x1 − p1 )y + x2 − p2 )
+having two complex singularities lifting (p1 , p2 ), precisely at (p1 , p2 , ±i), with i2 = −1.
+    According to Proposition 5, we can desingularize the varieties Vr,ι (A) by applying a suf-
+ficiently generic homotopy
+                                                                           
+                                  p 1 − x1 x2 − p 2               b11 b12
+                     A + εB =                              +ε
+                                  x2 − p 2 x1 − p 1               b12 b22
+perturbing the constant term of A. The set Vr,ι (A + εB) is smooth and equidimensional for
+generic B, and the expected number of critical points of the restriction of a generic linear
+function `(x1 , x2 ) = `1 x1 + `2 x2 is finite for each ε.
+   In Figure 1 we plot the semi-algebraic curve of solutions to the perturbed systems for
+a fixed linear objective function. Eliminating variables y and z from the Lagrange system
+Lagr,ι (A + εB), one gets a one-dimensional complex curve, representing the Zariski closure
+of the red curves in Figure 1.
+
+
+
+
+Figure 1: Homotopy curves in red and linear objective function in blue, for generic B (left)
+and for B = I2 (right)
+
+    For the special choice B = I2 , the real trace of the homotopy curve is the line orthogonal to
+`, that is parallel to the zero set of `⊥ (x1 , x2 ) = `2 x1 −`1 x2 and passing through (p1 , p2 ), while
+if B is drawn randomly the homotopy curve has degree 2. For instance, for (p1 , p2 ) = (1, 1),
+the homotopy curve constructed by DegenerateSDP is given by the equality
+    2241769 x21 + 115046296 x1 x2 + 65669911 x22 − 119529834 x1 − 246386118 x2 + 182957976 = 0
+where `(x1 , x2 ) = 88x1 − 94x2 is the objective function, and with perturbation matrix
+                                                       
+                                              80 −68
+                                     B=                    .
+                                             −68 109
+We finally remark that, even if the choice B = I2 exhibits a degenerate behaviour in the
+sense described above, from the point of view of the homotopy constructed in this work
+B = I2 exhibits a generic behaviour: one can check by hand that the incidence variety
+Vr,ι (A + εI2 ) is singular if and only if ε = 0. Indeed, Vr,ι (A + εI2 ) is defined by the vanishing
+of f (ε) = (ε − x1 + x2 y, x2 + εy + x1 y), and the 2 × 2 minors of Df (ε) combined with f (ε) = 0
+imply that y = ±i and 0 = x2 = ε − x1 = ε + x1 hence x1 = x2 = ε = 0.
+
+                                                   14
+References
+ [1] X. Allamigeon, P. Benchimol, S. Gaubert, and M. Joswig, Long and winding
+     central paths, arXiv preprint arXiv:1405.4161, (2014).
+
+ [2] X. Allamigeon, S. Gaubert, and M. Skomra, Solving generic nonarchimedean
+     semidefinite programs using stochastic game algorithms, Proceedings of ISSAC 2016,
+     Waterloo, Canada, (2016).
+
+ [3] E. Andersen and K. Andersen, Mosek: High performance software for large-scale
+     lp, qp, socp, sdp and mip, , March, (2013).
+
+ [4] M. Anjos and J.-B. Lasserre, Introduction to semidefinite, conic and polyno-
+     mial optimization, in Handbook on semidefinite, conic and polynomial optimization,
+     Springer, 2012, pp. 1–22.
+
+ [5] B. Bank, M. Giusti, J. Heintz, and M. Safey El Din, Intrinsic complexity
+     estimates in polynomial optimization, Journal of Complexity, (2014), pp. –.
+
+ [6] S. Basu, R. Pollack, and M.-F. Roy, A new algorithm to find a point in every cell
+     defined by a family of polynomials, in Quantifier elimination and cylindrical algebraic
+     decomposition, Springer-Verlag, 1998.
+
+ [7]      , Algorithms in real algebraic geometry, vol. 10 of Algorithms and Computation in
+       Mathematics, Springer-Verlag, second ed., 2006.
+
+ [8] G. Blekherman, Nonnegative polynomials and sums of squares, Journal of the Amer-
+     ican Mathematical Society, 25 (2012), pp. 617–635.
+
+ [9] G. Blekherman, P. Parrilo, and R. Thomas, Semidefinite optimization and
+     convex algebraic geometry, vol. 13, Siam, 2013.
+
+[10] J. Bochnak, M. Coste, and M.-F. Roy, Real algebraic geometry, vol. 36 of Ergeb-
+     nisse der Mathematik und ihrer Grenzgebiete, Springer-Verlag, 1998.
+
+[11] S. Boyd, L. El Ghaoui, E. Feron, and V. Balakrishnan, Linear matrix in-
+     equalities in system and control theory, vol. 15, Siam, 1994.
+
+[12] M. Demazure, Bifurcations and catastrophes: geometry of solutions to nonlinear prob-
+     lems, Springer Science & Business Media, 2013.
+
+[13] M. Giusti, G. Lecerf, and B. Salvy, A Gröbner-free alternative for polynomial
+     system solving, Journal of Complexity, 17 (2001), pp. 154–211.
+
+[14] Q. Guo, M. Safey El Din, and L. Zhi, Computing rational solutions of linear
+     matrix inequalities, in ISSAC’13, 2013, pp. 197–204.
+
+[15] M. Halická, E. de Klerk, and C. Roos, On the convergence of the central path in
+     semidefinite optimization, SIAM Journal on Optimization, 12 (2002), pp. 1090–1099.
+
+
+
+                                             15
+[16] D. Henrion, S. Naldi, and M. Safey El Din, Real root finding for determinants
+     of linear matrices, Journal of Symbolic Computation, 74 (2015), pp. 205–238.
+
+[17]       , Exact algorithms for linear matrix inequalities, SIAM J. Optim., 26 (2016),
+       pp. 2512–2539.
+
+[18] D. Henrion, S. Naldi, and M. Safey El Din, Real root finding for determinants
+     of linear matrices, Journal of Symbolic Computation, 74 (2016), pp. 205–238. cited By
+     3.
+
+[19] A. Herman, H. Hong, and E. Tsigaridas, Improving Root Separation Bounds,
+     Journal of Symbolic Computation, (2017). (to appear).
+
+[20] M. Joldes, J.-M. Muller, and V. Popescu, Implementation and performance
+     evaluation of an extended precision floating-point arithmetic library for high-accuracy
+     semidefinite programming, ARITH 2017, London, UK, July 24-26 2017, (2017).
+
+[21] J.-B. Lasserre, Global optimization with polynomials and the problem of moments,
+     SIAM J. Optim., 11 (2001), pp. 796–817.
+
+[22] S. Naldi, Solving rank-constrained semidefinite programs in exact arithmetic, vol. 20-
+     22-July-2016, Association for Computing Machinery, 2016, pp. 357–364.
+
+[23] Y. Nesterov and A. Nemirovsky, Interior-point polynomial algorithms in convex
+     programming, vol. 13 of Studies in Applied Mathematics, SIAM, Philadelphia, 1994.
+
+[24] J. Nie, K. Ranestad, and B. Sturmfels, The algebraic degree of semidefinite
+     programming, Mathematical Programming, 122 (2010), pp. 379–405.
+
+[25] P. Parrilo, Semidefinite programming relaxations for semialgebraic problems, Math-
+     ematical Programming Ser.B, 96 (2003), pp. 293–320.
+
+[26] M. Ramana, An exact duality theory for semidefinite programming and its complexity
+     implications, Mathematical Programming, 77 (1997), pp. 129–162.
+
+[27] F. Rouillier, M.-F. Roy, and M. Safey El Din, Finding at least one point in
+     each connected component of a real algebraic set defined by a single equation, Journal
+     of Complexity, 16 (2000), pp. 716–750.
+
+[28] M. Safey El Din, Testing sign conditions on a multivariate polynomial and applica-
+     tions, Mathematics in Computer Science, 1 (2007), pp. 177–207.
+
+[29] M. Safey El Din and E. Schost, Polar varieties and computation of one point
+     in each connected component of a smooth real algebraic set, in ISSAC’03, ACM, 2003,
+     pp. 224–231.
+
+[30] M. Safey El Din and E. Schost, A nearly optimal algorithm for deciding con-
+     nectivity queries in smooth and bounded real algebraic sets, Journal of the ACM, 63
+     (2017).
+
+
+
+                                            16
+[31] M. Safey El Din and L. Zhi, Computing rational points in convex semialgebraic
+     sets and sum of squares decompositions, SIAM Journal on Optimization, 20 (2010),
+     pp. 2876–2889.
+
+[32] M. Safey El Din and ric Schost, Bit complexity for multi-homogeneous polynomial
+     system solvingapplication to polynomial minimization, Journal of Symbolic Computa-
+     tion, 87 (2018), pp. 176 – 206.
+
+[33] C. Scheiderer, Sums of squares of polynomials with rational coefficients., Journal of
+     the European Mathematical Society, 18 (2016), pp. 1495–1513.
+
+[34] É. Schost, Computing parametric geometric resolutions, Appl. Algebra Engrg. Comm.
+     Comput., 13 (2003), pp. 349–393.
+
+[35] J. F. Sturm, Using SeDuMi 1.02, a MATLAB toolbox for optimization over symmetric
+     cones, Optim. Methods Softw., 11/12 (1999), pp. 625–653.
+
+[36] K.-C. Toh, M. Todd, and R. Tütüncü, Sdpt3 – a matlab software package for
+     semidefinite programming, version 1.3, Optimization methods and software, 11 (1999),
+     pp. 545–581.
+
+
+
+
+                                           17
+

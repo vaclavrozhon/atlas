@@ -1,0 +1,1386 @@
+                Electronic Colloquium on Computational Complexity, Report No. 155 (2025)
+
+
+
+
+                    Lower Bounds for Linear Operators
+                                          Young Kun Ko
+
+Department of Computer Science and Engineering, Pennsylvania State University
+
+                                     Email: ykko@psu.edu
+
+
+                                        October 22, 2025
+
+
+                                              Abstract
+   We consider a static data structure problem of computing a linear operator under cell-probe
+model. Given a linear operator M ∈ Fm×n2   , the goal is to pre-process a vector X ∈ Fn2 into a
+data structure of size s to answer any query ⟨Mi , X⟩ in time t. We prove that for a random
+operator M , any such data structure requires:
+
+                                  t ≥ Ω(min{log(m/s), n/ log s}).
+
+This result overcomes the well-known logarithmic barrier in static data structures [MNSW98,
+Sie04, PD06, PTW08, Pǎ11, DGW19] by using a random linear operator. Furthermore, it
+provides the first significant progress toward confirming a decades-old folklore conjecture: that
+non-linear pre-processing does not substantially help in computing most linear operators.
+    A straightforward modification of our proof also yields a wire lower bound of Ω(n · log1/d (n))
+                                                                                           O(n)×n
+for depth-d circuits with arbitrary gates that compute a specific linear operator M ∈ F2          ,
+even against some small constant advantage over random guessing. This bound holds even for
+circuits with only a small constant advantage over random guessing, improving upon longstand-
+ing results [RS03, Che08a, Che08b, GHK+ 13] for a random operator.
+    Finally, our work partially resolves the communication form of the Multiphase Conjec-
+ture [Pat10] and makes progress on Jukna-Schnitger’s Conjecture [JS11, Juk12]. We address the
+former by considering the Inner Product (mod 2) problem (instead of Set Disjointness) when
+                                                        1/3
+the number of queries m is super-polynomial (e.g., 2n ), and the total update time is m0.99 .
+Our result for the latter also applies to cases with super-polynomial m.
+
+
+
+
+                                                   1
+                                                                                                 ISSN 1433-8092
+1    Introduction
+A fundamental, long-standing question in the theory of computation is:
+
+     Can non-linear computation provide an advantage in computing a linear operator?
+
+    The intuition that non-linear computation offers no significant help has persisted for over 70
+years since the seminal work in circuit design by Shannon [Sha49]. For instance, Lupanov [Lup56]
+and later Valiant [Val77, Val92] drew on this idea to study the complexity of linear operators. This
+belief underpins major open problems like matrix rigidity–the search for a linear operator that
+cannot be computed by small, shallow circuits with linear gates (See the surveys [Lok09, Ram20]
+and references therein). Despite its widespread acceptance, this intuition has remained a folklore
+belief. Only recently did Jukna and Schnitger [JS11, Juk12] formalize it as an informal conjecture:
+non-linear gates do not help in computing a linear operator.
+    This conjecture extends naturally to the cell-probe model [Yao81], the most powerful model
+of computation for data structures. In this model, we only count memory accesses (probes), while
+all computation is free. An input is pre-processed into a data structure of s cells (here, we assume
+1-bit cells, as we work over F2 ). To answer a query, an algorithm can probe up to t cells and
+perform arbitrary computation on their contents. Because of its strength, a lower bound in this
+model applies to any reasonable data structure.
+    This raises an analogous question for data structures: for a cell-probe data structure designed
+to compute ⟨Mi , X⟩ for a linear operator M , can non-linear pre-processing of the input X reduce
+the query time? This can be seen as a cell-probe analogue of the Jukna-Schnitger conjecture (See
+Section 2 of [DGW19] for detailed discussion).
+    Assuming this intuition is true has led to fruitful research on restricted models where pre-
+processing is linear or from related classes (See [Fre81, Cha90, Lar14, Aga17, DGW19, AFKL19,
+GPRW22] and references therein). These models are also deeply connected to matrix rigidity
+[DGW19, NRR20]. However, challenging this intuition, there are cases where highly efficient non-
+linear data structures exist for linear problems with no known linear equivalents [KU11].
+    Our primary goal is to rigorously establish that for most linear operators, non-linear pre-
+processing provides no significant advantage. This, in turn, implies an analogous result for
+circuit complexity.
+
+Previous Results Progress on this front has been stalled by technical barriers in the cell-probe
+model. The primary tool for static cell-probe lower bounds is essentially a counting argument. A
+seminal result by Miltersen [Mil93] shows that for almost all non-linear problems, if the space s is
+slightly smaller than the number of possible outputs m (e.g., s = m0.99 ), then the query time must
+be large (t ≥ Ω(n0.99 )). If we assume linear pre-processing is optimal for linear problems, a similar
+counting argument yields strong lower bounds.
+     However, this argument breaks down completely when arbitrary non-linear pre-processing is
+allowed. The number of possible functions to compute even a single pre-processed bit is astronomical
+    n
+(22 ), rendering a simple counting argument over all possible data structures useless.
+     Prior to our work, the best lower bound for an arbitrary linear problem was derived from
+techniques used for explicit data structure problems [MNSW98, Sie04, PD06, PTW08, Pǎ11]. These
+techniques hit a ceiling known as the logarithmic barrier, yielding bounds of the form:
+
+                                                   log |Q|
+                                                           !
+                                                        n
+                                          t≥Ω                .                                     (1)
+                                                    log ns
+
+
+                                                  2
+where |Q| = m is the number of distinct queries. Breaking this barrier for an explicit data structure
+is a holy-grail problem, with connections to major open questions in branching programs and circuit
+complexity [MNSW98, DGW19, Vio18].
+     In summary, it was previously unknown if any linear problem was truly hard against non-linear
+data structures. For decades, it was not ruled out that highly efficient non-linear data structures
+(e.g., with t = O(1) and s = |Q|0.1 ) might exist for all linear problems.
+
+1.1     Further Connections
+1.1.1    Multiphase Program: Communication versus Cell-Probe
+A more recent motivation for our work is its connection to the communication version of the
+Multiphase Conjecture [Pat10, Tho13, Bra22], a problem in 3-player Number-on-Forehead (NOF)
+communication.
+Definition 1.1 (Multiphase Communication Game [Pat10]). The 3-player Number-On-Forehead
+(NOF) communication game is defined as follows
+    • The inputs are distributed as follows: Merlin receives the linear operator M ∈ {0, 1}m×n and
+      the vector X ∈ {0, 1}n . For a given query index i ∈ [m], Alice receives M and i, while Bob
+      receives T and i.
+    • Merlin sends a single-shot message of length m0.99 to Bob.
+    • Alice and Bob proceed in standard two-party communication to output ⟨Mi , X⟩ 1 for any given
+      i ∈ [m].
+    The Multiphase Conjecture (Communication Version) then states that for some m = poly(n),
+Alice and Bob then must communicate nε for some constant ε > 0. The original motivation in
+[Pat10] behind the conjecture is its consequence in dynamic cell-probe lower bound.
+Definition 1.2 (Multiphase Problem). Consider the following explicit dynamic data structure
+problem
+    • M is given as a pre-processing input. Pre-process the data structure using |M | · tu time.
+    • Then X as a sequence is given as updates, updating the data structure using |X| · tu total
+      time.
+    • For any i ∈ [m], the data structure must be able to output ⟨Mi , X⟩ in tq time.
+    The key observation in [Pat10] is that a polynomial lower bound for the Multiphase Game would
+imply a polynomial lower bound on max{tu , tq } for the Multiphase Problem, which is also known
+as the Multiphase Conjecture (Cell-Probe Version). The word “Multiphase Conjecture” has been
+used interchangeably to denote either the communication version of the conjecture or the cell-probe
+version of the conjecture.
+    To avoid any confusion, we will denote the communication conjecture as Multiphase Conjecture
+(Communication), the dynamic data structure conjecture as Multiphase Conjecture (Cell-Probe),
+and making progress on either one of these conjectures as the Multiphase Program. The main goal
+for the rest of the section is the following: (i) group the previous results depending on which conjec-
+ture they make a progress on; then (ii) illustrate why the Multiphase Conjecture (Communication)
+is a different ball game compared to the Multiphase Conjecture (Cell-Probe).
+   1
+     Originally, the conjecture was phrased in Merlin sending a message of length o(m), then Alice and Bob proceeding
+to output DISJ(Mi , X). However, analogous implications hold from this slightly weaker conjecture
+
+
+                                                         3
+Previous Results on the Multiphase Program Despite its significance, the Multiphase Pro-
+gram had limited progress for the first 10 years after its inception namely [CEEP12, CGL15,
+BL15]. [CGL15, BL15] tackle the Multiphase Conjecture (Cell-Probe), giving a lower bound of
+max{tu , tq } ≥ Ω(log n). But it should be noted that their bounds do not carry over to the Multi-
+phase Conjecture (Communication) due to the limitation of the technique involved.
+    There are results on the Multiphase Conjecture (Communication) as well. [CEEP12] first tried
+to tackle the Multiphase Conjecture (Communication), but their argument only works for a very
+restricted model of communication. Only recently [KW20] developed a tool to tackle the Multiphase
+Conjecture (Communication) for two rounds of communication between Alice and Bob. This was
+extended to a more general class of functions by [DL20].
+
+Separation between Communication and Cell-Probe An intuitive high-level explanation
+on why tackling the Multiphase Game is a harder task is the following. Recall that in the reduction
+due to [Pat10], Merlin assumes the role of updates, and Alice assumes the role of query algorithm.
+But in the Multiphase Game, (a) Merlin only needs to send cells written by the update algorithm,
+as Merlin knows both M and X. We do not charge for reading the cells during the update; (b)
+Alice is given the linear operator M . Thus, communication is needed for Alice to learn about X to
+compute ⟨Mi , X⟩. On the other hand, if we were to directly approach the Multiphase Problem and
+give a cell-probe lower bound, the counting arguments in [CGL15, BL15] crucially rely on the fact
+that (a) the update algorithm has no prior knowledge on M , thus must probe into pre-processed
+cells to learn M ; (b) the query algorithm has no prior knowledge on both M and X. The query
+algorithm must learn about both M and X by probing into the pre-processed and updated cells.
+    An explicit example of the separation between the two models exists as well. There exists an
+explicit function that is easy in the communication model while hard in dynamic cell-probe model,
+separating the two models. Consider the setting where each Mi has a single non-zero entry. This
+is so-called indexing problem, as each Mi only asks which coordinate of X to output. [BL15]
+(Theorem 1) shows that if tu ≤ o(m), tq ≥ Ω(n) for so-called non-adaptive query. This easily
+translates to tq ≥ Ω(log n) for general query, by simulating all possible adaptive queries in a single
+non-adaptive query.
+    We will now show why we cannot expect to show such statement for the indexing problem in
+the communication model. First of all, Merlin’s message is too long. We cannot show an analogous
+statement in the communication model, as n · tu , which would be the length of Merlin’s message, is
+already larger than m. If Merlin is allowed to send a message of length m, Merlin can simply write
+the answers for all possible queries. Bob then only needs to a single bit to announce the answer.
+Notice that this stems from the difference listed as (a).
+    Even if we relax the condition on the update to say n · tu ≤ o(m), thereby Merlin sending a
+message of length o(m), we still run into separation, as we cannot give tq ≥ Ω(log n) for indexing
+problem. Such a result would contradict [Dru12] which combined with the argument from [Vio18]
+gives a communication protocol with O(k 3 ) communication between Alice and Bob while Merlin
+only gives an advice of length O(n/k) when m = O(n).2 This shows that even if we give (a) for
+free, (b) is still crucial, separating the two model.
+    Now that we have established the fact that the Communication model is provably stronger
+than its dynamic cell-probe analogue, we would like to discuss evidences on how hard can it be,
+which has direct connection to our problem. Ko and Weinstein [KW20] observed that the Multi-
+phase Communication Game can simulate a static cell-probe data structure for some random linear
+operator M over the input X – the main problem of our interest.
+                                                                                             
+   2                                                                              n log n
+       One could also obtain O(k2 ) communication with advice of length O       k log log n
+
+
+
+                                                         4
+    Merlin sends all the contents of the pre-processing. Alice then simulates the query using the
+two-party communication between Bob. This is possible as Alice knows M , the linear opera-
+tor in question. Therefore, resolving the Multiphase Conjecture (Communication) would imply
+Jukna-Schnitger Conjecture in its cell-probe analogue. In particular, the Multiphase Conjecture
+(Communication) implies a static cell-probe lower bound of the form
+
+                                                 |Q| c
+                                                    
+                                           t≥                                                 (2)
+                                                  s
+
+for some small constant c > 0 against arbitrary linear operators with |Q|-many outputs. Note
+that this is a super-exponential improvement over (1). Therefore, Ko and Weinstein (see Section
+5 of [KW20]) phrased the connection as a major setback for the full resolution of Multiphase
+Conjecture (Communication), rather than adding the stakes for the Multiphase Conjecture (Com-
+munication). We emphasize that no such connection arises for the Multiphase Conjecture for the
+Multiphase Conjecture (Cell-Probe).
+
+1.1.2    Other Connections
+Our work also connects to index coding with side information [BYBJK11], the complexity of error-
+correcting codes [GHK+ 13], and function inversion in cryptography [CGK19]. These diverse con-
+nections all stem from the same high-level question: can non-linear computation help compute
+linear functions?
+
+1.2     Our Result
+Our main contribution is a query time lower bound that breaks the logarithmic barrier for a random
+linear operator:                                      
+                                                   |Q|
+                                         t ≥ Ω log                                              (3)
+                                                    s
+This provides the first formal evidence supporting the half-century-old intuition that non-linear pre-
+processing offers little advantage for most linear operators. For example, when space s = |Q|0.99
+(storing nearly all answers), previous bounds gave only a trivial t ≥ Ω(1). Our bound gives a much
+stronger t ≥ Ω(log |Q|). This affirms the cell-probe version of Jukna-Schnitger’s Conjecture when
+the number of queries is super-polynomial.
+    Formally, we prove the following statement:
+
+Theorem 1.3 (Main). For every t, s, m ≥ ω(1) and a collection S ⊂ Fn2 such that m ≥ ω(s · 25t ),
+and log |S| ≥ 104 · t log s, there must exist some m linear functions from S say Q that does not
+admit a data structure using s-space and t-probes per query.
+
+When applied to the set of all linear functions S = Fn2 , this theorem yields our main trade-off.
+
+1.2.1    Implications
+Our result has direct implications in three key areas:
+
+Static Data Structures We establish the existence of “hard” linear operators, providing the
+first non-trivial lower bounds against arbitrary non-linear pre-processing in the high-space regime
+when s is |Q|0.99 . This is a significant improvement over any existing arguments, which fail in this
+setting.
+
+                                                  5
+Circuit Complexity Our data structure bounds translate to new circuit lower bounds. Consider
+Valiant’s depth-2 circuit with arbitrary gates [Val77] computing a linear operator x 7→ M x with
+M ∈ Fm×n    , m0.99 -gates in the middle layer, and at most τ -wires per output gate. Our result
+         2                     √
+directly implies that if t ≤ o( n) and m ≥ 2O(t) , there must exist a linear operator M that requires
+τ ≥ Ω(t). This partially resolves an open problem of Jukna-Schnitger [JS11, Juk12] on whether
+arbitrary gates can help in computing an arbitrary linear operator for a super-polynomial number
+of outputs.
+    Furthermore, if we turn to a general depth d circuit with arbitrary gates (unbounded fan-in),
+we can also replace the inverse Ackermann-type lower bounds due to [GHK+ 13] on linear operators
+with poly-logarithmic decay in depth d. Our bound also supersedes the best-known explicit bound,
+which are not linear operators, due to [RS03, Che08a, Che08b] when d ≥ 4. See Section 4 for
+details.
+
+Multiphase Communication Game A general way to phrase our result is a progress in the
+Multiphase Conjecture (Communication). While the notation of our proof is used specifically to
+handle the static data structure lower bound, a careful examination of our proof shows that our
+result indeed resolves the Multiphase Conjecture (Communication) [Pat10] when the number of
+possible queries m is super-polynomial.
+    Since any progress on the Multiphase Conjecture (Communication) implies a corollary for the
+Multiphase Conjecture (Cell-Probe), our lower bound then implies the following corollary for the
+Multiphase Problem.
+Corollary 1.4. For the Multiphase Problem, if the total update time n · tu ≤ O(m0.99 ) (i.e. slightly
+less than writing down answers to all possible queries) then the query time must be tq ≥ Ω(n1/2 )
+We suspect further reductions to various explicit dynamic data structure problems from Corollary
+1.4. Note that a trivial data structure exists for the above explicit dynamic data structure instance,
+achieving tq = O(n) by simply reading Mi and X to compute ⟨Mi , X⟩. This is important because
+one could have otherwise devised a dynamic data structure problem which selects arbitrary functions
+f1 , . . . , fm : {0, 1}n → {0, 1}, and outputs fi (X) at the query phase.
+      Using Miltersen’s counting argument [Mil93], one can readily demonstrate the existence of
+functions f1 , . . . , fm such that, if the total update time n · tu = O(m0.99 ), then tq ≥ Ω(n0.99 ).
+However, mainly due to requiring an arbitrary function fi , which requires 2n -bits to describe per
+query, this prohibits any trivial query algorithm of tq = O(n), as one needs to read about fi , nor
+reduces to any interesting problem in dynamic data structure. 3
+
+1.2.2    Technical Contribution
+The main technical ingredient of our work is the extension of the analysis of Multiphase Game [KW20,
+DL20] to exponentially small advantage regimes using average min-entropy introduced in [DORS08].
+We suspect that our technique to be a critical component in fully resolving the Multiphase Pro-
+gram [Pat10, Tho13, Bra22]. Analyzing the small advantage regime is crucial for data structure
+lower bounds, as demonstrated in recent breakthroughs in dynamic data structure lower bounds
+[LWY20, LY25].
+   The main technical contribution in [KW20] shows that after Merlin’s message, if Alice and then
+Bob each speak once and correctly output DISJ(Mi , X) with s = o(m), then Alice and Bob must
+               √
+communicate Ω( n) bits. [DL20] extended the result to ⟨Mi , X⟩ with Ω(n) bits of communication.
+   3
+     Another way to view this phenomenon is that our instance requires small linear bits (n-bits) per query, while
+Miltersen’s counting argument requires exponential bits per query.
+
+
+                                                        6
+    The key open problem posed in [KW20] is to extend the previous result to the setting where
+Alice, Bob then Alice speaks (i.e. one extra round compared to [KW20, DL20]). This has con-
+nections to the fundamental question of linear vs. non-linear circuits as remarked in [KW20]. We
+reduce the general setting with t-rounds of communication to a setting where Alice and then Bob
+speak with reduced correctness, via following observation.
+    Alice does the following: she picks a single random t-probe decision tree path. Then Alice sends
+the path to Bob. Bob checks if the path is consistent with U , Merlin’s message. If yes, Bob outputs
+the same output as the end of the path. Otherwise Bob simply makes a random guess about the
+output. The main observation is that Bob would say yes with 2−t probability. If Bob says Yes,
+then the protocol is correct. Otherwise, we get 0 advantage. Therefore, this would result in Ω(2−t )
+advantage over random guessing.
+    We then focus on the setting in which Alice and then Bob each speak once, with Bob guessing
+the value of ⟨Mi , X⟩ with a small advantage over a random guessing. That is, we consider the
+small advantage regime. Unfortunately, previous arguments [KW20, DL20] incurred a constant
+blowup in error, making them insufficient for any meaningful bound for small advantage regimes.
+In fact, as observed in two-party Disjointness [BM13], analyzing small advantage regime often
+requires different tools from that of small error regime. Our technical novelty here is to leverage the
+average min-entropy framework introduced in [DORS08] instead of standard information theoretic
+arguments using KL-divergence, and carefully choose random variables that fit the framework
+of [KW20]. Average min-entropy allows us to naturally bound the ℓ2 -norm of the probability
+distribution, which then can be then used to argue about the underlying discrepancy.
+
+
+2     Preliminary
+2.1   Information Theory
+In this section, we provide the necessary background on information theory and information com-
+plexity that are used in this paper. For further reference, we refer the reader to [CT06].
+
+Definition 2.1 (Entropy). The entropy of a random variable X is defined as
+                                          X                       1
+                               H(X) :=        Pr[X = x] log             .
+                                          x
+                                                              Pr[X = x]
+
+Similarly, the conditional entropy is defined as
+                                   "                                            #
+                                     X                                1
+                   H(X|Y ) := EY        Pr[X = x|Y = y] log                       .
+                                      x
+                                                                Pr[X = x|Y = y]
+
+Fact 2.2 (Conditioning Decreases Entropy). For any random variable X and Y
+
+                                          H(X) ≥ H(X|Y )
+
+With entropy defined, we can also quantify the correlation between two random variables, or how
+much information one random variable conveys about the other.
+
+Definition 2.3 (Mutual Information). Mutual information between X and Y (conditioned on Z)
+is defined as
+                            I(X; Y |Z) := H(X|Z) − H(X|Y Z).
+
+
+                                                   7
+Similarly, we can also define how much one distribution conveys information about the other dis-
+tribution.
+
+Definition 2.4 (KL-Divergence). KL-Divergence between two distributions µ and ν is defined as
+                                                  X              µ(x)
+                                  DKL (µ||ν) :=       µ(x) log        .
+                                                  x
+                                                                 ν(x)
+
+To bound mutual information, it suffices to bound KL-divergence, due to the following fact.
+
+Fact 2.5 (KL-Divergence and Mutual Information). The following equality between mutual infor-
+mation and KL-Divergence holds
+
+                           I(A; B|C) = EB,C [DKL (A|B=b,C=c ||A|C=c )] .
+
+Fact 2.6 (Pinsker’s Inequality). For any two distributions P and Q,
+                                                      r
+                                        1                   1
+                         ∥P − Q∥T V = ∥P − Q∥1 ≤                 D(P ||Q)
+                                        2                2 log e
+We also make use of the following facts on Mutual Information throughout the paper.
+
+Fact 2.7 (Chain Rule). For any random variable A, B, C and D
+
+                             I(AD; B|C) = I(D; B|C) + I(A; B|CD).
+
+Fact 2.8. For any random variable A, B, C and D, if I(B; D|C) = 0
+
+                                     I(A; B|C) ≤ I(A; B|CD).
+
+Proof. By the chain rule and non-negativity of mutual information,
+
+               I(A; B|C) ≤ I(AD; B|C) = I(B; D|C) + I(A; B|CD) = I(A; B|CD).
+
+
+
+Fact 2.9. For any random variable A, B, C and D, if I(B; D|AC) = 0
+
+                                     I(A; B|C) ≥ I(A; B|CD).
+
+Proof. By the chain rule and non-negativity of mutual information,
+
+               I(A; B|CD) ≤ I(AD; B|C) = I(A; B|C) + I(B; D|AC) = I(A; B|C).
+
+
+
+2.2   ℓ2 -norm of a distribution
+Another good measure of the randomness of a distribution is its ℓ2 -norm. The more “spread out”
+a distribution is, the smaller its ℓ2 -norm. We introduce the following definitions to argue about the
+ℓ2 -norm of a distribution.
+
+
+
+                                                  8
+Definition 2.10. We define the renyi entropy H2 (A) and min-entropy H∞ (A) as
+                                                              !
+                                              X
+                              H2 (A) := − log      Pr[A = a]2
+                                                         a
+                                                             
+                                 H∞ (A) := − log max Pr[A = a]
+                                                             a
+
+Fact 2.11 (Renyi Entropy). Let A be a random variable. Then
+
+                                     H(A) ≥ H2 (A) ≥ H∞ (A)
+
+In particular, for any fixed b we have
+
+                                   H2 (A|B = b) ≥ H∞ (A|B = b)
+
+   We use the following simple claim to argue about ℓ∞ -norm of a distribution when its KL-
+divergence with the uniform distribution is small.
+
+Claim 2.12. Let D be a distribution and U a uniform distribution over some S ⊂ {0, 1}n . Then
+if D(D||U) < t with t > 1, then for every α > 2 there exists an event E such that
+                                                    1
+                                        D(E) ≥ 1 −
+                                                    α
+                                        H∞ (D|E ) ≥ log |S| − 2αt
+
+Proof. We partition X depending on D(X). Let E denote the set of X such that
+
+                                                   D(X)
+                                             log        < αt
+                                                   U(X)
+
+Since D(D||U) < t, by Markov’s inequality 1 − D(E) < 1/α. With α > 2, for any X that is in the
+support of D|E , we have
+
+                D|E (X) ≤ 2 · D(X) ≤ 2αt+1 · U(X) = 2− log |S|+αt+1 ≤ 2− log |S|+2αt
+
+which then gives H∞ (D|E ) ≥ log |S| − 2αt.
+
+   We prove the following lemma to bound the ℓ2 -norm of a distribution.
+
+Lemma 2.13. Let A, B be random variables where B has at most 2λ possible values. Then
+                             "                   #
+                              X
+                        Eb∼B     Pr[A = a|B = b]2 ≤ 2−H∞ (A)+λ
+                                    a
+
+   We use the following lemma on “average” min-entropy.
+
+Definition 2.14 (Average Min-Entropy).
+                             h                   i          h             i
+        H̃∞ (A|B) = − log Eb∼B max Pr[A = a|B = b] = − log Eb∼B 2−H∞ (A|B=b)
+                                     a
+
+   This leads to the following proposition
+
+
+                                                     9
+Proposition 2.15.                    "                      #
+                                      X
+                              Eb∼B        Pr[A = a|B = b]2 ≤ 2−H̃∞ (A|B)
+                                      a
+
+Proof.                  X
+                              Pr[A = a|B = b]2 = 2−H2 (A|B=b) ≤ 2−H∞ (A|B=b)
+                          a
+
+Therefore,              "                      #
+                         X                           h            i
+                 Eb∼B         Pr[A = a|B = b]2 ≤ Eb∼B 2−H∞ (A|B=b) = 2−H̃∞ (A|B)
+                         a
+
+where the last equality holds from the definition of average min-entropy.
+
+Lemma 2.16 (Lemma 2.2 of [DORS08]). Let A, B be random variables. Then if B has at most
+2λ possible values, then
+                         H̃∞ (A|B) ≥ H̃∞ (A, B) − λ ≥ H∞ (A) − λ.
+
+   We are now ready to prove Lemma 2.13
+Proof of Lemma 2.13. First, observe that Lemma 2.16 implies
+                                   h          i
+                      − log Eb∼B 2−H∞ (A|B=b) ≥ H∞ (A) − λ
+
+which is equivalent to (by switching sides and taking as exponents)
+                                                    h           i
+                                2−H∞ (A)+λ ≥ Eb∼B 2−H∞ (A|B=b)
+
+Now using Fact 2.11, you get
+                                                                "                    #
+                 h              i       h              i          X
+                    −H∞ (A|B=b)            −H2 (A|B=b)                             2
+             Eb∼B 2               ≥ Eb∼B 2               = Eb∼B     Pr[A = a|B = b] .
+                                                                   a
+
+which is the desired inequality.                                                             □
+   Using the ℓ2 norm, the following claim (so-called Lindsey’s Lemma) bounds the discrepancy of
+the Hadamard matrix under a product distribution.
+
+Claim 2.17 (Lindsey’s Lemma). Let H be a Hadamard matrix. Let P and Q be distributions.
+Then
+                               P T HQ ≤ ∥P ∥2 ∥Q∥2 · 2n/2
+
+Proof. Recall that the operator norm of the Hadamard matrix is exactly
+
+                                              ∥H∥2 = 2n/2
+
+Then by the definition of the operator norm,
+
+                                       P T HQ
+                                                 ≤ ∥H∥2 = 2n/2
+                                      ∥P ∥2 ∥Q∥2
+
+Rearranging the inequality, we obtain the desired claim.
+
+
+
+                                                   10
+3     Main Proof
+In this section, we prove the following main theorem.
+
+Theorem 3.1 (Main). For every t, s, m ≥ ω(1) and a collection S ⊂ Fn2 such that m ≥ ω(s · 25t ),
+and log |S| ≥ 104 · t log s, there must exist some m linear functions from S say Q that does not
+admit a data structure using s-space and t-probes per query.
+
+3.1    Compression and Random Process
+We prove this by contradiction. We will start with the following assumption. Suppose for any
+M1 , . . . , Mm ∈ S ⊆ Fn2 (these are fixed and publicly known), there exists a data structure under
+the cell-probe model which pre-processes any given X ∈ Fn2 using s-space and answers χMi (X) :=
+(−1)⟨Mi ,X⟩ for any given i ∈ [|Q|] = [m] using t-probe. This implies the following procedure exists
+in the cell-probe model.
+
+                            ⃗ = M1 , . . . , Mm . Given i ∈ [m], the querier makes t queries to U , using
+    1. The querier is given M
+       a decision tree T of depth t.
+
+    2. At the leaf node of the deicision tree T , the querier outputs the final guess in {±1} which is
+       guaranteed to be χMi (X).
+
+                      Protocol 1: Static Data structure with adaptive probes
+
+    We now argue that an effective static data structure implies an too-good-to-be true communica-
+tion process in the so-called Multiphase Communication Game. While Pătraşcu [Pat10] considered
+computing the Disjointness of Mi and X, here we consider computing the inner product over mod
+2 between Mi and X.
+    The above data structure implies the existence of the following (t + 1)-round communication
+process (between 3 players) under the independent uniform distribution for all M1 , . . . , Mm ∈ S ⊆
+Fn2 and uniform distribution for X ∈ Fn2 where Merlin sends a single-shot message of length s,
+U (M1 , . . . , Mm , X) to Bob. Then Alice and Bob proceed in t-round communication to compute
+χMi (X). By the correctness of the underlying static data structure, this process correctly outputs
+the inner product of Mi and X for any values of i ∈ [m].
+
+    1. Alice holds M1 , . . . , Mm and i ∈ [m]. Bob holds X and i ∈ [m]. Merlin holds M1 , . . . , Mm , X.
+
+    2. Merlin sends U (M1 , . . . , Mm , X) to Bob using s bits.
+
+    3. Alice sends a location q ∈ [s] (given in her decision tree T ) using log s-bits to Bob. Bob
+       replies with the queried bit Uq .
+
+    4. Repeat the Step 3 for t rounds.
+
+    5. Alice announces χMi (X).
+
+                          Protocol 2: t + 1-round Communication Process
+
+   We denote this as a process, rather than a protocol, to contrast with the usual two-party
+communication protocol. Due to the side information U that Bob has on Alice’s input, the usual
+
+
+                                                    11
+techniques for two-party communication complexity (namely cut-and-paste or rectangular property)
+do not hold. Therefore, we call this a communication process instead of a communication protocol.
+
+Compression Overview The hope is to show that if s is sufficiently small then t must be large
+for such a (t + 1)-round communication process. Unfortunately, current techniques are insufficient
+to provide a complete lower bound for such a general process. Instead, we would like to “com-
+press” the communication between Alice and Bob with a loss in parameters, resulting in a 3-round
+communication process between Merlin, Alice, and Bob. We can manage this setting from the
+technique developed in [KW20].
+    The high-level intuition is for Alice to randomly sample a path in her decision tree, along with
+the final answer. Bob simply checks whether or not queried bits indeed matches with U . If it
+matches, Bob announces the answer as given in Alice’s message. Otherwise, Bob simply makes an
+independent random guess. We formally state the compression as following.
+
+Formal Compression Here is the formal description of our compressed 3-round communication
+process.
+
+   1. Merlin sends U (M1 , . . . , Mm , X) to Bob using s bits.
+
+   2. Let Pi ∈ ([s], {0, 1})t × {±1}, namely query i’s (i) the sequence of the addresses probed by
+      the probing algorithm; (ii) the probed result and; (iii) the final answer (i.e. the contents of
+      a path in the decision tree used by Alice) Note that there are at most 2t many possible Pi .
+      Alice picks a Pi = pi such that
+                                                                ⃗ = m]
+                                      pi := arg max Pr[Pi = pi |M   ⃗
+                                                      X
+
+      then sends to Bob using t log s + t + 1 bits.
+
+   3. Bob checks if Pi agrees with U . If yes, set Bi as 1. Output Zi , which is the notation for Bob’s
+      guess of χMi (X), as the final output value in Pi . Otherwise, set Bi as 0. Output Zi as ±1
+      each with probability 1/2 independently at random.
+
+        Protocol 3: Communication Process between Alice and Bob for Adaptive Probe
+
+Remark 3.2. Observe that our argument works against even a general three party communica-
+tion, where after Merlin’s message, Alice and Bob proceed to communicate t bits using t-rounds
+of communication (i.e. a single bit per round). As long as Alice’s bits are a function of previous
+transcript, and her input (M1 , . . . , Mm , i); and Bob’s bits are a function of previous transcript, his
+input (X, i) and Merlin’s message, the above compression scheme works. Bob simply needs to check
+if the response chosen by the path is consistent with his actual response.
+    Due to Remark 3.2, the rest of proof also works against arbitrary Number-On-Forehead three
+party communication, thereby attacking the Multiphase Conjecture (Communication). However,
+for conciseness, we stick to above notations against static data structure lower bound.
+
+Random Process from Protocol 3 Here is the plan for the remainder of the proof. Given a
+too-good-to-be true compressed communication process (Protocol 3), we would like to “extract” a
+random process Z from our compressed communication process which would violate some combina-
+torial property. We will show that some choice of Z (after some conditioning E which is introduced
+
+                                                   12
+due to technical reasons) satisfies three properties simultaneously: conditioned on Z, large average
+Min-Entropy on Mi and X, low correlation between Mi and X, while achieving a good advantage
+over randomly guessing χMi (X). Then in Section 3.2, we will then show that such a choice of Z
+cannot exist, resulting in a contradiction.
+    Given the formal description of our compression, we formally state our random process Z. Pick
+a sequence of random distinct numbers P of length ℓ ≤ m/100 in [m], an instance of which we will
+denote as (ρ1 , . . . , ρℓ ), and random J ∈ [ℓ], an instance of which we will denote as j. Then we write
+
+                                 Z := P, J, PP<J , MP<J , PPJ , BPJ , ZPJ
+
+which is the set of random “path” of coordinates along with Alice’s compressed messages and Si ’s
+along the path. We also include Bob’s output (whether or not PPJ agrees with U ) for the particular
+J of our choosing. For brevity, we write ZAlice for
+
+                                    ZAlice := P, J, PP<J , MP<J , PPJ
+
+that is Z without BPJ (i.e. Bob’s message) and the final guess ZPJ due to Bob’s message. We
+                                                                         ⃗ and independent ran-
+emphasize here that ZAlice is completely determined by M1 , . . . , Mm = M
+domness P, J, and has no dependence on X (Bob’s input) which is a crucial property of ZAlice and
+why the variable is named so.
+
+3.1.1   Large Average Min-Entropy
+In this section, using the communication process Z, first, we argue on large average Min-Entropy
+for MPJ and X conditioned on Z. As a comparison, we remark that [KW20, DL20] extract Z = z
+with a small KL-divergence which is directly implied by small mutual information between Z and
+respective MPJ and X.
+    We start with the following lemma which directly follows from the technique used in [KW20].
+Lemma 3.3. If |P| = ℓ = |Q|/100 then
+
+                    I(MPJ ; ZAlice ) = EzAlice [D(MPJ |ZAlice =zAlice ||MPJ )] ≤ 3t log s
+
+    We attach the proof of Lemma 3.3 in the appendix for completeness, as it is exactly the same
+as in [KW20]. What Lemma 3.3 guarantees is ZAlice such that conditioning on which has low
+divergence with original uniform distribution on MPJ .
+    The following is the main lemma of this section, which combined with Lemma 3.3, we can
+extract large average Min-Entropy part for MPJ and X.
+Lemma 3.4 (Large Average Min-Entropy). For any setting of fixed ZAlice = zAlice such that
+
+                                     D(MPJ |ZAlice =zAlice ||MPJ ) ≤ β
+
+with β > 2, there exists an associated event E with
+
+          Pr [E|ZAlice = zAlice ] ≥ 3/4
+          H(E|ZAlice , MPJ ) = 0
+          H̃∞ (Mρj |Zρj Bρj , E = 1, ZAlice = zAlice ) + H̃∞ (X|Zρj Bρj , E = 1, ZAlice = zAlice )
+          ≥ n + log |S| − 10β
+
+   Towards proving the lemma, we first prove the following two propositions.
+
+                                                     13
+Proposition 3.5. Suppose
+                                  D(MPJ |ZAlice =zAlice ||MPJ ) ≤ β.
+Then there exists an event E with Pr[E|ZAlice = zAlice ] ≥ 3/4 such that
+
+                          H(E|ZAlice , MPJ ) = 0
+                          H∞ (Mρj |ZAlice = zAlice , E = 1) ≥ log |S| − 8β
+
+Proof. Recall that Claim 2.12 gives an event E where if the underlying distribution has low KL-
+divergence with the uniform distribution over S, conditioned on E, the distribution has large H∞ .
+As
+                                  D(Mρj |ZAlice =zAlice ||Mρj ) ≤ β.
+with MPJ being the uniform distribution over S, we can apply Claim 2.12 to give an event E which
+is completely determined by ZAlice and MPJ (as E is determined by MPJ under fixed ZAlice ) such
+that
+                         H∞ (Mρj |ZAlice = zAlice , E = 1) ≥ log |S| − 8β
+with
+                                     Pr[E|ZAlice = zAlice ] ≥ 3/4
+by setting the appropriate parameter (α = 4 in Claim 2.12).
+
+   The next proposition is H∞ bound for X.
+Proposition 3.6. For any setting of ZAlice = zAlice , and E = 1, we have
+
+                                H∞ (X|ZAlice = zAlice , E = 1) = n.
+                                                                    ⃗ = M1 , . . . , Mm (Alice’s
+Proof. First, by our setting of ZAlice and E, which depends only on M
+input),
+                                                      ⃗ ; X) = 0.
+                                 I(ZAlice , E; X) ≤ I(M
+Therefore, for any setting of ZAlice and E = 1, we get
+
+                                H∞ (X|ZAlice = zAlice , E = 1) = n.
+
+
+
+   We are now ready for the proof of Lemma 3.4
+Proof of Lemma 3.4. Due to Proposition 3.5, there exists an event E, that is completely
+determined by corresponding Sρj such that
+
+                          H(E|ZAlice , MPJ ) = 0
+                           Pr[E|ZAlice = zAlice ] ≥ 3/4
+                          H∞ (Mρj |ZAlice = zAlice , E = 1) ≥ log |S| − 8β
+
+which further implies that, due to Lemma 2.16, as Zρj Bρj is 2-bit,
+
+                    H̃∞ (Mρj |Zρj Bρj , ZAlice = zAlice , E = 1) ≥ log |S| − 8β − 2.           (4)
+
+Due to Proposition 3.6, and Lemma 2.16, for any setting of ZAlice we have
+                                                                
+                         H̃∞ X|Zρj Bρj , ZAlice = zAlice , E = 1 ≥ n − 2                       (5)
+
+
+                                                  14
+Then adding (4) and (5), we obtain our desired lemma as
+                                              
+           H̃∞ X|Bρj , ZAlice = zAlice , E = 1 + H̃∞ (Mρj |Bρj , ZAlice = zAlice , E = 1)
+              ≥ n + log |S| − 8β − 4 ≥ n + log |S| − 10β.
+
+where the last inequality holds from our assumption β > 2.                                                □
+
+3.1.2    Low Correlation
+Finally, we show that the correlation between MPJ and X is small in expectation over random Z
+and conditioned on E, which essentially follows the analogous argument in [KW20] using the Chain
+Rule in Mutual Information (Fact 2.9).
+
+Lemma 3.7 (Low Correlation).
+
+                                                            2|U |   2s
+                                   I(MPJ ; X|Z, E = 1) ≤          =
+                                                             |P|     ℓ
+
+Proof. We use an analogous technique from [KW20]. First, note that
+
+                             I(MPJ ; X|Z, E = 1) ≤ I(MPJ ; U X|Z, E = 1)
+
+Now we plug in the definition of Z as the concatenation of ZAlice , ZPj BPj along with E = 1. Then,
+for any fixed ZAlice = zAlice , we get
+
+        I(MPJ ; U X|ZAlice = zAlice , E = 1, Zρj Bρj ) ≤ I(MPJ ; U X|ZAlice = zAlice , E = 1, Bρj )
+
+As I(Zρj ; U X|Bρj , ZAlice = zAlice , E = 1, MPJ ) = 0. If Bρj = 1, Zρj is completely determined from
+zAlice . Otherwise it is an independent random variable. Then
+
+  I(MPJ ; U X|ZAlice = zAlice , E = 1, Bρj ) ≤ I(MPJ ; U X|ZAlice = zAlice , E = 1)
+                  1
+   ≤                            I(MPJ ; U X|ZAlice = zAlice , E) ≤ 2 · I(MPJ ; U X|ZAlice = zAlice , E)
+     Pr[E = 1|ZAlice = zAlice ]
+   ≤ 2 · I(MPJ ; U X|ZAlice = zAlice )
+
+where the inequalities hold by Fact 2.9 along with
+
+          I(MPJ ; Bρj |ZAlice = zAlice , E = 1, U X) ≤ H(Bρj |ZAlice = zAlice , E = 1, U X) = 0
+
+and the properties of E guaranteed by Lemma 3.4, namely Pr[E = 1|ZAlice = zAlice ] ≥ 3/4 and
+
+                  I(E; U X|ZAlice = zAlice , MPJ ) ≤ H(E|ZAlice = zAlice , MPJ ) = 0.
+
+   Next, we bound I(MPJ ; U T |ZAlice ) term. Note that I(MPJ ; X|ZAlice ) = 0 as
+
+                                                                    ⃗ ; X) = 0
+                         I(MPJ ; X|ZAlice ) ≤ I(MPJ ZAlice ; X) ≤ I(M
+
+Next, we consider I(MPJ ; U |ZAlice , X) then plugging in the definition of ZAlice ,
+
+                     I(MPJ ; U |ZAlice , X) = I(MPJ ; U |P, J, PPJ , PP<J , MP<J , X)
+                      ≤ I(PPJ , MPJ ; U |P, J, PP<J , MP<J , X).
+
+
+                                                    15
+Then taking the expectation over the random coordinate J (by standard direct-sum technique), as
+all other variables are chosen independently of J, we get
+                           I(PPJ , MPJ ; U |P, J, PP<J , MP<J , X)
+                                  ℓ
+                             1X
+                           =    I(PPj , MPJ ; U |P, J = j, PP<j , MP<J , T )
+                             ℓ
+                                j=1
+                                  ℓ
+                             1X
+                           =    I(PPj , MPJ ; U |P, PP<j , MP<J , T )
+                             ℓ
+                                j=1
+                            I(PP , MP ; U |P, T )   H(U )  s
+                           =                      ≤       ≤ .
+                                    ℓ                ℓ     ℓ
+This completes the proof of the lemma.
+
+3.1.3   Good Advantage
+We also have the following simple observation on the advantage of Protocol 3 over a random
+guessing.
+Lemma 3.8 (Advantage). Fix any M     ⃗ . For any i ∈ [m], the probability of Protocol 3 outputting
+                                    1+2−t
+χMi (X) correctly over X is at least 2
+Proof. If we fix M ⃗ , first observe that X is independently at random. As M     ⃗ completely determines
+Alice’s message, Pi , the only remaining part of the protocol is Bi and Zi . There are two possible
+scenarios for Bi . If U agrees with Pi , or not, that is if Bi = 1 or not. If Bi = 1, this implies that the
+last bit in Pi is indeed χMi (X) due to the correctness of the original t + 1-round Communication
+Process Protocol 2. If Bi = 0, the process takes a random guess. Therefore, the probability of
+being correct can be written exactly as
+                                      1                                  1  1 + PrX [Bi = 1]
+        Pr[Bi = 1] + Pr[Bi = 0] ·       = Pr[Bi = 1] + (1 − Pr[Bi = 1]) · =
+         X             X              2   X                 X            2         2
+Therefore it suffices to bound PrX [Bi = 1]. Observe that we choose Pi as the maximum likelihood
+path. Therefore PrX [Pi ] ≥ 21t , as there are at most 2t many possible Pi . Denote Pi′ as the true
+decision tree path given by fixed M ⃗ and T . Then PrX [Bi = 1] = PrX [Pi = P ′ ] = PrX [Pi ], that is
+                                                                              i
+the probability of path Pi over possible T ’s. Then, we get
+                                                            1
+                                             Pr[Bi = 1] ≥
+                                             X              2t
+Therefore, the probability of outputting χMi (X) correctly is at least
+                                        1 + PrX [Bi = 1]   1 + 2−t
+                                                         ≥
+                                               2              2
+
+
+    This immediately implies the following corollary, which we will use towards our final contradic-
+tion.
+Corollary 3.9. For any setting of ZAlice = zAlice , Mρj , and E = 1 (which are all completely
+              ⃗ , P, J)
+determined by M
+                                                                            1 + 2−t
+                      Pr[Zρj = χMρj (X)|Mρj , ZAlice = zAlice , E = 1] ≥
+                                                                               2
+
+                                                    16
+3.2     Combinatorial Lemma
+The main corresponding combinatorial lemma to the [KW20, DL20] is the following. This shows
+that no random process that achieves even the slightest advantage over random guessing with low
+correlation and large average min-entropy can exist.
+
+Lemma 3.10. No setting of a random process Z = z and C, which contains zout can simultaneously
+satisfy all three of the following inequalities for any γ ≥ 3
+                             h                                          i
+                    EC|Z=z EMi ,X|C=c,Z=z [χMi (X) · zout |C = c, Z = z] ≥ 2−γ+2           (6)
+                    H̃∞ (Mi |C, Z = z) + H̃∞ (X|C, Z = z) ≥ n + 2γ                                  (7)
+                                           −2γ
+                    I(Mi ; X|C, Z = z) ≤ 2                                                          (8)
+
+Proof. For the sake of contradiction, suppose such z and C exists. First as zout is ±1, we can write
+
+         EMi ,X|C=c,Z=z [χMi (X) · zout |C = c, Z = z] = EMi ,X|C=c,Z=z [χMi (X)|C = c, Z = z]      (9)
+
+Then we can use the ℓ1 bound to have
+
+      EMi ,X|C=c,Z=z [χMi (X)|C = c, Z = z] ≤ |Mi |C=c,Z=z · H · X|C=c,Z=z |                       (10)
+                                             + ∥Mi |C=c,Z=z × X|C=c,Z=z − (Mi , X)|C=c,Z=z ∥1      (11)
+
+   We bound the expectation of (11). Our KL-divergence term is then equal to the mutual in-
+formation between Mi and X conditioned on Z = z. Namely, using the chain rule for the KL
+divergence,
+
+      D(Mi , X|Z=z ||Mi |Z=z × X|Z=z ) = D(X|Z=z ||X|Z=z ) +Ex∼X|Z=z [D(Mi |X=x,Z=z ||Mi |Z=z )]
+                                         |     {z       }
+                                                  =0
+                                       = I(Mi ; X|Z = z)
+
+Then, due to Pinsker’s inequality (Fact 2.6), we have
+                                                                  p
+             ∥Mi |C=c,Z=z × X|C=c,Z=z − (Mi , X)|C=c,Z=z ∥1 ≤ 2    I(Mi ; X|C = c, Z = z)
+
+Then taking expectation over C and applying Jensen’s inequality,
+
+  EC|Z=z [∥Mi |C=c,Z=z × X|C=c,Z=z − (Mi , X)|C=c,Z=z ∥1 ] ≤ 2 I(Mi ; X|C, Z = z) ≤ 2−γ+1
+                                                              p
+                                                                                                   (12)
+
+where the last bound holds from (8).
+   Next, we bound (10). Due to Claim 2.17 and Cauchy-Schwarz Inequality,
+                                                      h                                       i
+      EC|Z=z [|Mi |C=c,Z=z · H · X|C=c,Z=z |] ≤ EC|Z=z 2n/2 · ∥Mi |C=c,Z=z ∥2 · ∥X|C=c,Z=z ∥2
+               q
+       ≤ 2n/2 · EC|Z=z ∥Mi |C=c,Z=z ∥22 · EC|Z=z ∥X|C=c,Z=z ∥22
+                                                               
+
+
+Proposition 2.15 implies
+
+                              EC|Z=z ∥Mi |C=c,Z=z ∥22 ≤ 2−H̃∞ (Mi |C,Z=z)
+                                                    
+
+                              EC|Z=z ∥X|C=c,Z=z ∥22 ≤ 2−H̃∞ (X|C,Z=z)
+                                                   
+
+
+                                                   17
+which would in turn imply
+      q
+        EC|Z=z ∥Mi |C=c,Z=z ∥22 · EC|Z=z ∥X|C=c,Z=z ∥22 ≤ 2−(H̃∞ (Mi |C,Z=z)+H̃∞ (X|C,Z=z))/2
+                                                    
+
+              n+2γ
+       ≤ 2−    2     = 2−n/2 · 2−γ
+
+which then implies (10) is upper bounded by
+
+                                         (10) ≤ 2n/2 · 2−n/2 · 2−γ = 2−γ                             (13)
+
+   Therefore, we get
+                                h                                                   i       3
+                       EC|Z=z       EMi ,X|C=c,Z=z [χMi (X) · zout |C = c, Z = z]       ≤            (14)
+                                                                                            2γ
+which contradicts (6).
+
+3.3   Combining the lemmas
+Finally, we combine the lemmas from the previous two sections to prove the main theorem via
+contradiction. Recall the statement of our main theorem.
+Theorem 3.1 (Main). Let t, s, m ≥ 100 be parameters such that m = |Q| ≥ ω(s · 23t ), log |S| ≥
+40 · t log s. Consider any data structure which answers m many linear functions from a collection
+S ⊆ Fn2 say Q. There must exist some Q such that there is no data structure for Q using s-space,
+t probes per query.
+Proof. We will prove via contradiction. Suppose otherwise. Then we know that Protocol 3 must
+exist as well with the provided definitions of ZAlice , E, and Z. Our goal is to show that there exists
+a setting of ZAlice = zAlice , E = 1 and Zρj Bρj that would violate Lemma 3.10, thus leading to a
+contradiction.
+    First, we will fix ZAlice = zAlice , E = 1 which satisfies large average Min-Entropy and low
+correlation simultaneously. That is, we will fix ZAlice = zAlice , E = 1 such that
+                                                           6s
+          I(MPJ ; X|ZAlice = zAlice , E = 1, Zρj Bρj ) ≤                                             (15)
+                                                            ℓ
+          H̃∞ (Mρj |Zρj Bρj , E = 1, ZAlice = zAlice ) + H̃∞ (X|Zρj Bρj , E = 1, ZAlice = zAlice )
+          ≥ n + log |S| − 300t log s                                                                 (16)
+
+   Over the random choice of ZAlice = zAlice , Lemma 3.3 and Lemma 3.4 implies that
+
+H̃∞ (Mρj |Zρj Bρj , E = 1, ZAlice = zAlice )+H̃∞ (X|Zρj Bρj , E = 1, ZAlice = zAlice ) ≥ n+log |S|−30t log s
+
+Lemma 3.7 implies that over the random choice of ZAlice = zAlice ,
+                                                                               2s
+                             I(MPJ ; X|ZAlice = zAlice , E = 1, Zρj Bρj ) ≤
+                                                                                ℓ
+Due to Markov argument, there exists ZAlice = zAlice which simultaneously satisfy both (15) and
+(16).
+   On the other hand, Corollary 3.9 implies that for any setting of ZAlice = zAlice , E = 1 and Sρj
+
+                                                                                1 + 2−t
+                        Pr[Zρj = χMρj (X)|Mρj , ZAlice = zAlice , E = 1] ≥
+                                                                                   2
+
+                                                        18
+or equivalently                                                 h                    i
+                       EMρj ,X|Zρ Bρ ,Z                             χMρj (X) · Zρj       ≥ 2−t   (17)
+                                 j     j   Alice =zAlice ,E=1
+
+   Then consider (15), (16) and (17). To obtain a desired contradiction with Lemma 3.10, setting
+γ = t + 2 in the lemma, it suffices to have
+
+                               n + log |S| − 30t log s ≥ n + 2(t + 2)
+                               6s
+                                  ≤ 2−2(t+2)
+                                ℓ
+which is implied by
+
+                                     40t log s ≤ log |S|
+                                     6s22(t+2) ≤ s · 23t ≤ ℓ = |Q|/100
+
+These conditions are implied by the choice of parameters given in the statement of the theorem.
+This would contradict Lemma 3.10, completing the proof of the theorem.
+
+
+4     Wire Lower Bound for Circuits with Arbitrary Gates
+In this section, we show that a random linear operator satisfies one of the conditions laid out by
+[Vio18] to obtain a breakthrough for lower bounds in circuits with arbitrary gates. This shows that
+a random linear operator does beat the state-of-the-art lower bounds given in [Che08a, Che08b,
+GHK+ 13].
+
+4.1     Circuit with Arbitrary Gates
+In this section, we formally define a circuit with arbitrary gates. (See Chapter 13 of [Juk12] and
+[Dru12] for further references) We would like to compute a Boolean operator f : {0, 1}n → {0, 1}m
+using a circuit where a gate can compute any function with unbounded fan-in. Note that this is the
+strongest possible model of circuit as computations are given for free. Therefore, its lower bound
+should apply to all possible models of circuit. Furthermore, it is meaningless to count the number
+of gates, as any f can be computed with m gates. What we measure instead is information transfer,
+quantified by the number of wires. Then a trivial upper-bound is n · m, while a trivial lower bound
+is max{n, m}. Assuming m > n, a non-trivial lower bound on the number of wires would be of the
+form ω(m).
+    In this unrealistically powerful model, we want to study the trade-off between the number of
+wires required for f as a function of the depth of the circuit d, output size m and input size n.
+Here we consider the setting where m = O(n).
+
+4.1.1    Previous Results
+In order to describe the previous results, we need the following definition.
+                           √
+Definition 4.1. λ1 (n) = ⌊ n⌋, λ2 (n) = ⌈log n⌉. For d ≥ 3, λd (n) := λ∗d−2 (n) where ∗ denotes the
+number of times the function must be applied to n to reach a value ≤ 1.
+
+   Due to a simple counting argument, most arbitrary operators require Ω̃(n2 )-wires [JS10]. How-
+ever, if we turn to finding an explicit (or even semi-explicit) operator with ω(n)-wires, the best
+explicit bound known (an improvement over [RS03]) is due to Cherukhin’s Bound Ωd (n · λd−1 (n))
+
+                                                         19
+[Che08b, Che08a, Dru12]. However, the operator in consideration is not (and cannot be) a lin-
+ear operator, though explicit. On the other hand, if we turn to finding some hard linear operator,
+[GHK+ 13] shows that computing any “good” linear error correcting code4 requires Ω(n·λ2·⌊d/2⌋ (n))-
+many wires.
+
+              Depth    [Che08b, Che08a]       [GHK+ 13]                       Our Result
+                             √
+              d=2      Ω(n · n)               Ω(n · (log(n)/ log log(n))2 )   Ω(n · log1/2 (n))
+              d=3      Ω(n · log(n))          Ω(n · log log(n))               Ω(n · log1/3 (n))
+              d=4      Ω(n · log log(n))      Ω(n · log∗ (n))                 Ω(n · log1/4 (n))
+              d        Ωd (n · λd−1 (n))      Ω(n · λ2·⌊d/2⌋ (n))             Ω(n · log1/d (n))
+
+                   Table 1: Wire lower bounds for Circuits with Arbitrary Gates
+
+    The primary technical reason for the rapid decay of wire lower bounds with increasing depth is
+the reliance on the so-called superconcentrator technique [Val75, Pip77, DDPW83, Pud94, PR94,
+RTS00, GHK+ 13] or more refined Strong Multiscale Entropy (SME) approach [RS03, Che08b,
+Che08a, Juk12]. These are the only previously known methods–aside from naive counting–for
+establishing lower bounds on circuits with arbitrary gates. Moreover, the limitations of these
+techniques are well-documented. For instance, [DDPW83, Pud94, RTS00, GHK+ 13] exhibited
+superconcentrators with small circuits. [Dru12] demonstrated that neither the SME approach nor
+a generalization of [GHK+ 13] can yield further improvements.
+
+4.1.2    Our Result
+We show a wire lower bound which only suffers a polynomial decay per depth d compared to the
+inverse Ackermann function type bound in previous works at the cost of using a random linear
+operator. In particular, we show the following theorem.
+
+Theorem 4.2. For most linear operators M : {0, 1}n → {0, 1}O(n) , when computed by a circuit of
+depth d requires
+                                   w ≥ Ω(n · log1/d (n))
+
+   For depth-2 circuit, our bound is weaker than that of [GHK+ 13]. But we get a super-exponential
+improvement for d ≥ 3. We also beat Cherukhin’s Bound [Che08b, Che08a] for d ≥ 4. This also
+implies a superlinear wire lower bound as long as d = o(log log n). The result is summarized in
+Table 1.
+   We remark that such lower bound is only possible with an approach that is drastically different
+from superconcentrator or SME due to known limitations of these techniques [DDPW83, Pud94,
+RTS00, Dru12].
+
+Separation between Representing a Linear Operator This also gives an exponentially
+stronger separation between “representing” a linear operator [Juk10, Dru12, Juk12] and “comput-
+ing” a linear operator under circuits with arbitrary gates. A circuit C represents a linear operator
+f if there exists some basis B ⊂ Fn2 such that for every b ∈ B, f (b) = C(b). Note that if a circuit
+is a linear circuit, representing and computing are equivalent tasks. But for non-linear circuits,
+they are not necessarily equivalent. Drucker [Dru12] showed that most linear operators can be rep-
+resented by a circuit with O(n) wires in depth-3, while [GHK+ 13] shows Ω(n log log n)-wire lower
+   4
+    most linear operators are “good” linear error correcting codes due to Gilbert-Varshamov bound holding for
+random linear operators [GRS22]. And there are explicit constructions of “good” linear error correcting codes.
+
+
+                                                     20
+bound for computing a linear operator, giving a separation for two tasks for non-linear circuits.
+Our result implies Ω(n log1/3 n) lower bound.
+
+4.2   Proof of Theorem 4.2
+We use the following theorem to translate the cell-probe lower bound to circuit wire lower bound.
+
+Theorem 4.3 (Theorem 2.3 of [Vio18]). Suppose the operator f : {0, 1}n → {0, 1}m has a circuit of
+depth d with w wires, consisting of unbounded fan-in, arbitrary gates. Then f has a data structure
+with space s = n + r and time (w/r)d for any r.
+
+    We show the following lemma which follows from modifying the proof of Theorem 3.1. Note that
+this is stronger than what is necessary as we show a lower bound against small constant advantage
+over random guessing.
+
+Lemma 4.4. For random linear operator M : {0, 1}n → {0, 1}m with m = 109 · n, any cell-
+probe data structure which correctly outputs fi (x) with probability at least 2/3 for all i ∈ [m] using
+s = 1.01n-space must have t ≥ Ω(log n).
+
+    Note that Lemma 4.4 and Theorem 4.3 directly imply Theorem 4.2.
+Proof Sketch. Here we sketch and highlight the required modification to the main proof. Suppose
+there exists a cell-probe data structure for most random linear operator f : {0, 1}n → {0, 1}m using
+s = 1.01n-space with t ≤ 0.1 log n.
+    We replace Protocol 3. We redefine Pi to represent the entire decision tree rather than a single
+path within it. Instead of sending a single path in the decision tree, as t ≤ 0.1 log n, we can afford
+to send the whole decision tree using 2t · log s = o(n0.2 )-bits. Then Bob can compute the whole
+outcome of the decision tree using U . Furthermore, the correctness of the cell-probe data structure
+guarantees Alice and Bob correctly output the answer with probability > 2/3. Therefore, the
+random variable Bi is unnecessary and we can have Zi as the output.
+    With this change, we leave the reader to verify that we can replace (15) and (16) in Theorem
+3.1 as
+                                                         6s    1
+             I(MPJ ; T |ZAlice = zAlice , E = 1, Zρj ) ≤     ≤ 5                                  (18)
+                                                          ℓ   10
+             H̃∞ (Mρj |Zρj , E = 1, ZAlice = zAlice ) + H̃∞ (X|Zρj , E = 1, ZAlice = zAlice )
+              ≥ 2n − n0.2                                                                         (19)
+
+while Zρj · χMρj (X) is ≥ 1/3 in expectation. This then violates Lemma 3.10 by taking γ as the
+appropriate constant.                                                                       □
+
+Remark 4.5. The simple modification can also be adapted to a carefully manipulated version of
+the original argument in [KW20, DL20], thereby giving the same t ≥ Ω(log n) bound when the data
+structure is guaranteed to output the correct answer all the time. However, as noted from the sketch
+of the proof, the new argument works against circuits obtaining some Ω(1) advantage over random
+guessing. That is our proof works against the circuit C’s such that for every i ∈ [m]
+
+                                                             1 + Ω(1)
+                                    Pr [Ci (x) = fi (x)] ≥
+                                     x                           2
+where Ci denotes the i-th output of the circuit C. The argument from [KW20, DL20] cannot be
+used to handle such small advantage regime.
+
+                                                   21
+5   Acknowledgment
+We thank Sasha Golovnev for his feedback in the earlier draft of the paper. A part of this work
+was done while attending DIMACS Workshop on Lower Bounds and Frontiers in Data Structures
+2022.
+
+
+
+
+                                              22
+References
+[AFKL19]   Peyman Afshani, Casper Benjamin Freksen, Lior Kamma, and Kasper Green Larsen.
+           Lower Bounds for Multiplication via Network Coding. In Christel Baier, Ioannis
+           Chatzigiannakis, Paola Flocchini, and Stefano Leonardi, editors, 46th International
+           Colloquium on Automata, Languages, and Programming (ICALP 2019), volume 132 of
+           Leibniz International Proceedings in Informatics (LIPIcs), pages 10:1–10:12, Dagstuhl,
+           Germany, 2019. Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik.
+[Aga17]    Pankaj K. Agarwal. Simplex Range Searching and Its Variants: A Review. In Martin
+           Loebl, Jaroslav Nešetřil, and Robin Thomas, editors, A Journey Through Discrete
+           Mathematics, pages 1–30. Springer International Publishing, Cham, 2017.
+[BL15]     Joshua Brody and Kasper Gren Larsen. Adapt or Die: Polynomial Lower Bounds for
+           Non-Adaptive Dynamic Data Structures. THEORY OF COMPUTING, 11:19, 2015.
+[BM13]     Mark Braverman and Ankur Moitra. An information complexity approach to extended
+           formulations. In Proceedings of the forty-fifth annual ACM symposium on Theory of
+           Computing, pages 161–170, Palo Alto California USA, June 2013. ACM.
+[Bra22]    Mark Braverman. Communication and information complexity. Proc. Int. Cong. Math.
+           2022, 2022.
+[BYBJK11] Ziv Bar-Yossef, Yitzhak Birk, T. S. Jayram, and Tomer Kol. Index Coding With
+          Side Information. IEEE Transactions on Information Theory, 57(3):1479–1494, March
+          2011.
+[CEEP12]   Arkadev Chattopadhyay, Jeff Edmonds, Faith Ellen, and Toniann Pitassi. A Little
+           Advice Can Be Very Helpful. In Proceedings of the Twenty-Third Annual ACM-SIAM
+           Symposium on Discrete Algorithms, pages 615–625. Society for Industrial and Applied
+           Mathematics, January 2012.
+[CGK19]    Henry Corrigan-Gibbs and Dmitry Kogan. The Function-Inversion Problem: Barriers
+           and Opportunities. In Dennis Hofheinz and Alon Rosen, editors, Theory of Cryptog-
+           raphy, volume 11891, pages 393–421. Springer International Publishing, Cham, 2019.
+           Series Title: Lecture Notes in Computer Science.
+[CGL15]    Raphael Clifford, A. Grønlund, and K. G. Larsen. New Unconditional Hardness Re-
+           sults for Dynamic and Online Problems. In 2015 IEEE 56th Annual Symposium on
+           Foundations of Computer Science, pages 1089–1107, October 2015.
+[Cha90]    Bernard Chazelle. Lower Bounds for Orthogonal Range Searching: Part II. The Arith-
+           metic Model. J. ACM, 37(3):439–463, 1990.
+[Che08a]   Dmitriy Yu Cherukhin. Lower Bounds for Boolean Circuits with Finite Depth and
+           Arbitrary Gates. Electronic Colloquium on Computational Complexity (ECCC), TR08-
+           032, 2008.
+[Che08b]   Dmitriy Yu. Cherukhin. Lower Bounds for Depth-2 and Depth-3 Boolean Circuits
+           with Arbitrary Gates. In Edward A. Hirsch, Alexander A. Razborov, Alexei Semenov,
+           and Anatol Slissenko, editors, Computer Science – Theory and Applications, volume
+           5010, pages 122–133. Springer Berlin Heidelberg, Berlin, Heidelberg, 2008. Series Title:
+           Lecture Notes in Computer Science.
+
+                                               23
+[CT06]      Thomas M. Cover and Joy A. Thomas. Elements of Information Theory (Wiley Series
+            in Telecommunications and Signal Processing). Wiley-Interscience, New York, NY,
+            USA, 2006.
+
+[DDPW83] Danny Dolev, Cynthia Dwork, Nicholas Pippenger, and Avi Wigderson. Supercon-
+         centrators, generalizers and generalized connectors with limited depth. In Proceedings
+         of the fifteenth annual ACM symposium on Theory of computing - STOC ’83, pages
+         42–51, Not Known, 1983. ACM Press.
+
+[DGW19]     Zeev Dvir, Alexander Golovnev, and Omri Weinstein. Static data structure lower
+            bounds imply rigidity. In Proceedings of the 51st Annual ACM SIGACT Symposium
+            on Theory of Computing, STOC 2019, pages 967–978, Phoenix, AZ, USA, June 2019.
+            Association for Computing Machinery.
+
+[DL20]      Pavel Dvořák and Bruno Loff. Lower Bounds for Semi-adaptive Data Structures via
+            Corruption. LIPIcs, Volume 182, FSTTCS 2020, 182:20:1–20:15, 2020. Artwork Size:
+            15 pages, 547135 bytes ISBN: 9783959771740 Medium: application/pdf Publisher:
+            Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+
+[DORS08]    Yevgeniy Dodis, Rafail Ostrovsky, Leonid Reyzin, and Adam Smith. Fuzzy Extractors:
+            How to Generate Strong Keys from Biometrics and Other Noisy Data. SIAM Journal
+            on Computing, 38(1):97–139, January 2008.
+
+[Dru12]     Andrew Drucker. Limitations of Lower-Bound Methods for the Wire Complexity of
+            Boolean Operators. In 2012 IEEE 27th Conference on Computational Complexity,
+            pages 170–180, June 2012. ISSN: 1093-0159.
+
+[Fre81]     Michael L. Fredman. A Lower Bound on the Complexity of Orthogonal Range Queries.
+            J. ACM, 28(4):696–705, 1981.
+
+[GHK+ 13] Anna Gál, Kristoffer Arnsfelt Hansen, Michal Koucký, Pavel Pudlák, and Emanuele Vi-
+          ola. Tight Bounds on Computing Error-Correcting Codes by Bounded-Depth Circuits
+          With Arbitrary Gates. IEEE Transactions on Information Theory, 59(10):6611–6627,
+          October 2013.
+
+[GPRW22] Alexander Golovnev, Gleb Posobin, Oded Regev, and Omri Weinstein. Polynomial
+         Data Structure Lower Bounds in the Group Model. SIAM Journal on Computing,
+         pages FOCS20–74–FOCS20–101, March 2022.
+
+[GRS22]     Venkatesan Guruswami, Atri Rudra, and Madhu Sudan. Essential Coding Theory.
+            2022.
+
+[JS10]      S. Jukna and G. Schnitger. Circuits with arbitrary gates for random operators, 2010.
+            Version Number: 1.
+
+[JS11]      Stasys Jukna and Georg Schnitger. Min-rank conjecture for log-depth circuits. J.
+            Comput. Syst. Sci., 77(6):1023–1038, 2011.
+
+[Juk10]     Stasys Jukna. Representing (0, 1)-matrices by boolean circuits. Discrete Mathematics,
+            310(1):184–187, January 2010.
+
+[Juk12]     Stasys Jukna. Boolean function complexity: advances and frontiers, volume 27.
+            Springer Science & Business Media, 2012.
+
+                                               24
+[KU11]     Kiran S. Kedlaya and Christopher Umans. Fast Polynomial Factorization and Modular
+           Composition. SIAM J. Comput., 40(6):1767–1802, 2011.
+
+[KW20]     Young Kun Ko and Omri Weinstein. An Adaptive Step Toward the Multiphase Con-
+           jecture. In 2020 IEEE 61st Annual Symposium on Foundations of Computer Science
+           (FOCS), pages 752–761, Durham, NC, USA, November 2020. IEEE.
+
+[Lar14]    Kasper Green Larsen. On Range Searching in the Group Model and Combinatorial
+           Discrepancy. SIAM J. Comput., 43(2):673–686, 2014.
+
+[Lok09]    Satyanarayana V. Lokam. Complexity Lower Bounds using Linear Algebra. Found.
+           Trends Theor. Comput. Sci., 4(1-2):1–155, 2009.
+
+[Lup56]    Oleg B Lupanov. On rectifier and switching-and-rectifier schemes. In Dokl. Akad.
+           Nauk SSSR, volume 111, pages 1171–1174, 1956. Issue: 6.
+
+[LWY20]    Kasper Green Larsen, Omri Weinstein, and Huacheng Yu. Crossing the Logarith-
+           mic Barrier for Dynamic Boolean Data Structure Lower Bounds. SIAM Journal on
+           Computing, 49(5):STOC18–323–STOC18–367, January 2020.
+
+[LY25]     Kasper Green Larsen and Huacheng Yu. Super-Logarithmic Lower Bounds for Dy-
+           namic Graph Problems. SIAM Journal on Computing, pages FOCS23–42–FOCS23–69,
+           February 2025.
+
+[Mil93]    Peter Bro Miltersen. The Bit Probe Complexity Measure Revisited. In STACS 1993,
+           pages 662–671, 1993.
+
+[MNSW98] Peter Bro Miltersen, Noam Nisan, Shmuel Safra, and Avi Wigderson. On Data Struc-
+         tures and Asymmetric Communication Complexity. J. Comput. Syst. Sci., 57(1):37–49,
+         1998.
+
+[NRR20]    Sivaramakrishnan Natarajan Ramamoorthy and Cyrus Rashtchian. Equivalence
+           of Systematic Linear Data Structures and Matrix Rigidity. LIPIcs, Volume 151,
+           ITCS 2020, 151:35:1–35:20, 2020. Artwork Size: 20 pages, 605863 bytes ISBN:
+           9783959771344 Medium: application/pdf Publisher: Schloss Dagstuhl – Leibniz-
+           Zentrum für Informatik Version Number: 1.0.
+
+[Pat10]    Mihai Patrascu. Towards polynomial lower bounds for dynamic problems. In
+           Leonard J. Schulman, editor, Proceedings of the 42nd ACM Symposium on Theory
+           of Computing, STOC 2010, Cambridge, Massachusetts, USA, 5-8 June 2010, pages
+           603–610. ACM, 2010.
+
+[PD06]     Mihai Patrascu and Erik D. Demaine. Logarithmic Lower Bounds in the Cell-Probe
+           Model. SIAM J. Comput., 35(4):932–963, April 2006.
+
+[Pip77]    Nicholas Pippenger. Superconcentrators. SIAM Journal on Computing, 6(2):298–304,
+           June 1977.
+
+[PR94]     P. Pudlák and V. Rödl. Some combinatorial-algebraic problems from complexity the-
+           ory. Discrete Mathematics, 136(1):253–279, December 1994.
+
+
+
+
+                                             25
+[PTW08]   Rina Panigrahy, Kunal Talwar, and Udi Wieder. A Geometric Approach to Lower
+          Bounds for Approximate Near-Neighbor Search and Partial Match. In 2008 49th An-
+          nual IEEE Symposium on Foundations of Computer Science, pages 414–423, Philadel-
+          phia, PA, USA, October 2008. IEEE.
+
+[Pud94]   P. Pudlak. Communication in bounded depth circuits. Combinatorica, 14(2):203–216,
+          June 1994.
+
+[Pǎ11]   Mihai Pǎtraşcu. Unifying the Landscape of Cell-Probe Lower Bounds. SIAM J. Com-
+          put., 40(3):827–847, 2011.
+
+[Ram20]   C. Ramya. Recent Progress on Matrix Rigidity – A Survey, September 2020.
+          arXiv:2009.09460 [cs].
+
+[RS03]    Ran Raz and Amir Shpilka. Lower Bounds for Matrix Product in Bounded Depth
+          Circuits with Arbitrary Gates. SIAM Journal on Computing, 32(2):488–513, January
+          2003.
+
+[RTS00]   Jaikumar Radhakrishnan and Amnon Ta-Shma. Bounds for Dispersers, Extractors,
+          and Depth-Two Superconcentrators. SIAM Journal on Discrete Mathematics, 13(1):2–
+          24, January 2000.
+
+[Sha49]   Claude. E. Shannon. The synthesis of two-terminal switching circuits. The Bell System
+          Technical Journal, 28(1):59–98, January 1949. Conference Name: The Bell System
+          Technical Journal.
+
+[Sie04]   Alan Siegel. On Universal Classes of Extremely Random Constant-Time Hash Func-
+          tions. SIAM J. Comput., 33(3):505–543, 2004.
+
+[Tho13]   Mikkel Thorup. Mihai PǎTraşCu: Obituary and Open Problems. SIGACT News,
+          44(1):110–114, March 2013.
+
+[Val75]   Leslie G. Valiant. On non-linear lower bounds in computational complexity. In Pro-
+          ceedings of seventh annual ACM symposium on Theory of computing - STOC ’75,
+          pages 45–53, Albuquerque, New Mexico, United States, 1975. ACM Press.
+
+[Val77]   Leslie G. Valiant. Graph-theoretic arguments in low-level complexity. In G. Goos,
+          J. Hartmanis, P. Brinch Hansen, D. Gries, C. Moler, G. Seegmüller, J. Stoer, N. Wirth,
+          and Jozef Gruska, editors, Mathematical Foundations of Computer Science 1977, vol-
+          ume 53, pages 162–176. Springer Berlin Heidelberg, Berlin, Heidelberg, 1977.
+
+[Val92]   Leslie G. Valiant. Why is Boolean Complexity Theory Difficult? In Poceedings of
+          the London Mathematical Society Symposium on Boolean Function Complexity, pages
+          84–94, New York, NY, USA, 1992. Cambridge University Press. event-place: London,
+          United Kingdom.
+
+[Vio18]   Emanuele Viola. Lower bounds for data structures with space close to maximum imply
+          circuit lower bounds. In ECCC, volume 25, 2018.
+
+[Yao81]   Andrew Chi-Chih Yao. Should Tables Be Sorted? J. ACM, 28(3):615–628, July 1981.
+
+
+
+
+                                             26
+A     Omitted Proof
+We restate the lemma.
+                        |Q|    m
+Lemma 3.3. If |P| = ℓ = 100 = 100 then
+
+                   I(MPJ ; ZAlice ) = EzAlice [D(MPJ |ZAlice =zAlice ||MPJ )] ≤ 3 · t log s
+
+Proof. We plug in the definition of ZAlice .
+
+                   I(MPJ ; ZAlice ) = I(MPJ ; P, J, PP<J , MP<J , PPJ , )
+                    = I(MPJ ; P, J, PP<J , MP<J ) + I(MPJ ; PPJ |P, J, PP<J , MP<J )
+                                                    |             {z               }
+                                                                   ≤t log s+t+1
+
+                    ≤ I(MPJ ; P, J, PP<J , MP<J ) + t log s + t + 1
+
+Now we upper bound I(MPJ ; P, J, PP<J , MP<J ) term. We first know that due to J and P being
+chosen independently at random
+
+                      I(MPJ ; PJ, PP<J , MP<J ) = I(MPJ ; P, PP<J , MP<J |P, J)
+
+Now consider a fixed J = j.
+
+       I(MPJ ; P, PP<j , MP<J |P, J = j) = I(MPJ ; PP<j , MP<J |P) = I(MPJ ; PP<j |MP<J , P)
+
+Now consider fixed P<j = ρ<j . Then the above term becomes
+
+                                                           1       X
+            I(MPJ ; Pρ<j |Mρ<j , P<j = ρ<j , Pj ) =                  I(Mi ; Pρ<j |Mρ<j )
+                                                       m − (j − 1)
+                                                                     i∈ρ
+                                                                      / <j
+                     1                                    j
+             ≤               I(S[m]−ρ<j ; Pρ<j |Mρ<j ) ≤     (t log s + t + 1) ≤ 0.1t log s
+                 m − (j − 1)                             m−ℓ
+
+due to Fact 2.8 and the last inequality holds due to our choice of ℓ
+   As the inequality holds for any fixed j and P<j = ρ<j ,
+
+                        I(MPJ ; ZAlice ) ≤ t log s + t + 1 + 0.1t log s ≤ 3 · t log s
+
+completing the proof of our lemma.
+
+
+
+
+                                                                                  ECCC                          ISSN 1433-8092
+                                                     27
+                                                                                  https://eccc.weizmann.ac.il
+

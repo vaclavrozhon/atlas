@@ -1,0 +1,1451 @@
+                                                Structural Corrections to the Bethe Approximation of the
+                                                                        Permanent
+                                                                            Ijay Narang∗              Will Perkins†
+arXiv:2608.31061v1 [cs.DS] 31 Aug 2026
+
+
+
+
+                                                                                           Abstract
+                                                    We study deterministic approximation algorithms for the permanent of a nonnegative matrix
+                                                through the Bethe permanent, an approximation computable in polynomial time. The tight
+                                                analysis of Anari and Rezaei√gives a universal comparison between the permanent and the Bethe
+                                                permanent within a factor ( 2)n . The simple example of the unweighted 4-cycle C4 (or a union
+                                                of disjoint C4 ’s) shows that this bound is tight.
+                                                    We show that such 4-cycle obstructions can be identified and exploited algorithmically. Given
+                                                a Bethe optimizer, our algorithm identifies nearly isolated weighted 2 × 2 blocks and peels
+                                                off a vertex-disjoint family of them. If the total weighted correction is large, we can improve
+                                                the √Bethe approximation; if it is small, we show that the Bethe permanent is within a factor
+                                                            n
+                                                 √ 2 −nε) of the truth. Combining these facts, we obtain a deterministic polynomial time
+                                                of (
+                                                ( 2 − ε) -approximation algorithm for the permanent of an arbitrary nonnegative n × n matrix,
+                                                where ε > 0 is some absolute constant.
+
+
+
+
+                                           ∗
+                                             School of Computer Science, Georgia Institute of Technology, inarang3@gatech.edu
+                                            †
+                                             School of Computer Science, Georgia Institute of Technology, wperkins@gatech.edu. Supported in part by NSF
+                                         grant CCF-2309708.
+1     Introduction
+Given an n × n matrix A, its permanent is defined as per(A) = σ∈Sn ni=1 Aiσ(i) . When A is a 0/1
+                                                                P       Q
+matrix, one can view A as the bi-adjacency matrix of a bipartite graph G, and accordingly per(A) is
+the number of perfect matchings of G. For a general nonnegative matrix, the same expression is the
+sum of edge-weighted perfect matchings in the support graph of A.
+     The permanent plays a central role in complexity theory, lying at the heart of questions about
+tractability and the power of randomness in computation. Computing the permanent of a matrix A
+exactly is #P -hard [Val79], while computing the determinant of A has a polynomial-time algorithm.
+Furthermore, even deciding the sign of per(A) is difficult [AA13, GS18], motivating the restricted
+case of nonnegative matrices.
+     On the randomized side, a breakthrough approach to approximately sampling perfect matchings
+via Markov chains was initiated by Broder [Bro86] and culminated in an FPRAS (Fully Polynomial
+Randomized Approximation Scheme) for the permanent of nonnegative matrices [JS89, JSV04].
+That is, for every ε > 0, there is a randomized algorithm running in time polynomial in n and 1/ε
+which outputs, with probability at least 2/3, a (1 + ε)-multiplicative approximation to per(A).
+     Constructing an algorithm without randomness, however, remains elusive. No fully polynomial-
+time approximation scheme (FPTAS) is known, even for 0/1 matrices. Consequently, polynomial-
+time deterministic algorithms for the permanent are usually studied through their exponential
+approximation rate. We say that a deterministic algorithm gives a cn -approximation to the permanent
+if, on input A, it outputs a quantity f (A) satisfying
+
+                                    f (A) ≤ per(A) ≤ cn f (A).                                 (1.1)
+
+    The classical matrix-scaling approach of Linial, Samorodnitsky, and Wigderson gives an en -
+                                                                                   n
+approximation [LSW00]; Gurvits and Samorodnitsky [GS14] then gave    √ na 1.9022 -approximation.
+The sharpest known deterministic polynomial-time guarantee is the ( 2) -approximation obtained
+by Anari and Rezaei via the Bethe permanent [AR25]. Improved guarantees are known in certain
+special cases, such as constant-degree expanders [GK10].
+    The main contribution of this paper is a polynomial-time deterministic algorithm for approximat-
+ing the permanent of a nonnegative matrix with a better approximation ratio (by an exponential
+factor) than the Bethe permanent. Our main result is the following:
+
+Theorem 1.1. There exists a constant√ε > 0 and a deterministic, polynomial-time algorithm that,
+given a matrix A ∈ Rn×n                     n
+                    ≥0 , produces a ( 2 − ε) multiplicative approximation for per(A).
+
+   Our algorithm and proof are based on a careful post-processing and analysis of the worst-case
+behaviour of the Bethe permanent. Therefore, before we discuss our techniques and outline our
+proofs, we review the Bethe permanent.
+
+1.1   The Bethe Permanent
+Given a nonnegative matrix A with per(A) > 0, define the probability measure µA on perfect
+matchings by
+                                            n
+                                            Y
+                                   µA (σ) ∝   Aiσ(i) .                               (1.2)
+                                                 i=1
+
+The normalizing constant of this probability distribution is exactly per(A). The distribution µA
+induces marginals on each edge: the probability that edge is included in the perfect matching drawn
+
+
+                                                 1
+from µA . We collect these marginals in the matrix P ∈ Rn×n , where
+
+                                          Pij = Pr{σ(i) = j}.                                    (1.3)
+                                               µA
+
+We refer to the above matrix as the matrix of true marginals. Since every perfect matching uses
+exactly one edge incident to each vertex, the sum marginals of edges incident to any given vertex is
+1. Therefore P lies in the support-restricted perfect matching polytope
+
+                         P(A) := {X ∈ Bn : Xij = 0 whenever Aij = 0} .                           (1.4)
+
+Here Bn denotes the Birkhoff polytope of doubly stochastic matrices.
+    By the standard self-reducibility equivalence between approximate sampling and approximate
+counting, sufficiently accurate access to the true marginal matrix P would yield an FPTAS for
+per(A). Moreover, one possible route to computing P is to express it as an optimization problem via
+the Gibbs variational principle. However, the resulting objective includes the entropy of distributions
+on perfect matchings with prescribed edge marginals and is computationally intractable in general.
+    This motivates replacing the exact Gibbs variational problem with the Bethe free energy, a
+variational approximation originally arising in statistical physics and important in statistics and
+machine learning as well. For additional information on the general Bethe free energy, see for
+example, [YFW05, MM09, CY13]. Specialized to the perfect matching model, this relaxation gives
+the Bethe permanent.
+    For a nonnegative matrix A ∈ Rn×n≥0 and a doubly stochastic matrix P ∈ Bn , define
+
+                                   X        Aij
+                                                                           
+                       β(A, P ) :=   Pij log     + (1 − Pij ) log(1 − Pij ) ,
+                                             Pij
+                                    i,j
+
+with the conventions 0 log 0 = 0 and 0 log(0/0) = 0. If Pij > 0 while Aij = 0, the corresponding
+summand is interpreted as −∞. The Bethe permanent of A is then defined as
+                                                             
+                                perB (A) := exp max β(A, P ) .                              (1.5)
+                                                        P ∈Bn
+
+Importantly, the Bethe permanent is computable (to arbitrary accuracy) in polynomial time [Von13].
+Additionally, we will write
+                                                    X                         X
+      ϕ(t) = −t log t + (1 − t) log(1 − t), Φ(P ) =     ϕ(Pij ),    EA (P ) =    Pij log Aij .
+                                                            i,j                   i,j
+
+so that
+                                      β(A, P ) = EA (P ) + Φ(P )
+whenever P is supported on the positive entries of A. It is also useful to consider P
+                                                                                    the Bethe entropy
+term on a vertex-by-vertex level. To that end, we define ψ : ∆m → R by ψ(p) = i ϕ(pi ). A useful
+property of ψ is that it is concave over the probability simplex.
+
+Lemma 1.2 ([Von13]). The function ψd is concave on ∆d . Consequently, for every p, q ∈ ∆d ,
+                                   
+                                p+q       1        1
+                           ψd          − ψd (p) − ψd (q) ≥ 0.
+                                 2        2        2
+
+
+
+                                                    2
+    Note that
+         P Lemma 1.2 implies that the Bethe objective is concave on its feasible region. Indeed,
+EA (P ) = i,j Pij log Aij is linear in P , while each row Pi,∗ ∈ ∆n , so P 7→ ψ(Pi,∗ ) is concave, giving
+that Φ, and therefore β(A, ·), is concave on P(A). Thus maximizing β is equivalent to minimizing
+the convex function −β, so perB (A) is computable to polynomial precision by standard convex
+optimization methods [Von13, BV04]. Because of this efficient computability, much work has gone
+into understanding the relationship between the permanent and Bethe permanent. In the following
+theorem, the lower bound is a result of [Sch98, Gur11] and the upper bound is from [AR25].
+                                                n×n             n×n
+                               Qnmatrix A ∈ R≥0 , define P ∈ R≥0 to be the matrix of marginals
+Theorem 1.3. For any nonnegative
+induced by the measure µA (σ) ∝ i=1 Aiσ(i) . Then
+                                         √                    √
+                    perB (A) ≤ per(A) ≤ ( 2)n perB (A; P ) ≤ ( 2)n perB (A),             (1.6)
+
+where perB (A; P ) = exp(β(A, P )), the Bethe permanent evaluated at P .
+    The lower bound was originally proved via an inequality by Schrijver [Sch98, Gur11] and admits
+alternative proofs and generalizations via lifts [Csi17] and stable polynomials [AOG17]. In contrast,
+the upper bound proof of [AR25] follows an entropy comparison framework similar to that of [Rad97]
+for Bregman’s Inequality [Bre73].
+    Additionally, we note that both the upper and lower bounds are tight: the lower bound is tight
+by the identity matrix, and the upper bound is tight by the following extremal example.
+Example 1.4. Consider the unweighted cycle C4 . Then, its set of Bethe optimal solutions is given
+by the one-parameter family                              
+                                   p     1−p
+                                                  p ∈ [0, 1] .
+                                 1−p       p
+                                 per(G)
+A direct computation gives that per       = 2, and thus a set of n/2 disjoint C4 ’s gives an approximation
+          √ n                       B (G)
+ratio of ( 2) .
+   A natural question is whether a disjoint set of C4 ’s is the unique worst-case example, and after
+accounting for edges with
+                       √ marginals   equal to 0 or 1, it is. However, one can construct many examples
+            per(A)                n that can potentially look very different.
+with ratio per  (A) = ( 2 − o(1))
+              B
+
+
+
+
+Figure 1: As the outer cycle length tends to infinity, the edges inside each displayed weighted 2 × 2
+gadget have true marginals tending to 1/2, while the connector edges between successive gadgets have
+marginals tending to 0. Thus the marginal vector becomes arbitrarily close to that of disconnected
+C4 -like components, even though the support graph is connected.
+
+                                                    3
+    Motivated by such examples, a core idea of our proof is to show that any nonnegative matrix A
+which attains a near worst-case approximation ratio must behave like a collection of disjoint weighted
+2 × 2 blocks whose two local orientation products are nearly balanced. This naturally lends itself to
+the following dichotomy: either the Bethe permanent performs much better than the worst-case, or it
+has weighted C4 -like behavior. We are able to correct this behavior via a post-processing algorithm
+that peels off weighted 2 × 2 components.
+
+1.2    Outline of the Proof
+We begin by observing that we can exactly correct weighted 4-cycles. Indeed, consider
+                                                   
+                                                a b
+                                         C=           .
+                                                c d
+
+The two local matching orientations have weights U = ad and V = bc. A direct computation gives
+that perB (C) = max{U, V } and per(C) = U + V . Thus, the exact correction factor is
+
+                                            per(C)      min{U, V }
+                                   sC =             =1+            .                                  (1.7)
+                                           perB (C)     max{U, V }
+
+    In a general matrix, however, a 2 × 2 block need not be isolated. Perfect matchings may enter
+or leave the block through boundary edges. We therefore look for blocks which are nearly isolated.
+This leads to the following definition.
+
+Definition 1.5. Let A ∈ Rn×n   ≥0 and let P ∈ P(A). For a block Q = ({ℓ1 , ℓ2 }, {r1 , r2 }), with all four
+entries Aℓi rj positive, define
+
+                                UQ := Aℓ1 r1 Aℓ2 r2 ,        VQ := Aℓ1 r2 Aℓ2 r1 ,
+
+                              min{UQ , VQ }
+                      θQ :=                 ,       sQ := 1 + θQ ,              gQ := log sQ .
+                              max{UQ , VQ }
+The P -leakage of Q is
+                                           2
+                                           X      X                   2
+                                                                      X      X
+                            leakP (Q) :=                    Pℓi r +                    Pℓrj .
+                                           i=1 r∈{r
+                                                / 1 ,r2 }             j=1 ℓ∈{ℓ
+                                                                           / 1 ,ℓ2 }
+
+We say that Q is λ-admissible for (A, P ) if leakP (Q) ≤ λ.
+
+    Given A and P , let Γλ (A, P ) denote the total score produced by the greedy algorithm that orders
+all λ-admissible blocks by decreasing gQ and selects a block whenever it is vertex-disjoint from all
+previously selected blocks. That is,
+                                                      X
+                                       Γλ (A, P ) =       log sQ ,                               (1.8)
+                                                        Q∈Cgr
+
+where Cgr is the greedy vertex-disjoint collection.
+   The Bethe approximation performs worst when it handles many high-score weighted 2 × 2
+obstructions. We show that when the Bethe optimizer has large total obstruction score, there exists
+an algorithm that corrects these obstructions.
+
+
+
+                                                        4
+Theorem 1.6. Fix τ > 0. There exist λ0 = λ0 (τ ) > 0 and ε = ε(τ ) > 0 such that the following
+holds for every 0 < λ ≤ λ0 .
+    Let A ∈ Rn×n                              ∗
+              ≥0 satisfy per(A) > 0, and let P be a Bethe optimizer. If
+
+                                          Γλ (A, P ∗ ) ≥ τ n,
+
+then Algorithm 2 outputs a number Lout satisfying
+                                                   √
+                                  Lout ≤ per(A) ≤ ( 2 − ε)n Lout .
+
+    The underlying algorithmic idea is that when a solution to the Bethe variational problem has
+many weighted 2 × 2 defects, we can construct an auxiliary weighted matrix which provably has
+significantly smaller permanent, but similar Bethe value. By analyzing the structural differences
+between these matrices, we are able to produce a better approximation of the permanent.
+    To handle the case of small total obstruction score, we show that then the Bethe approximation
+ratio is already significantly improved. This is given by the following result.
+
+Theorem 1.7. There exist constants λ > 0, τ > 0, and ε > 0 such that the following holds.
+  Let A ∈ Rn×n                              ∗
+           ≥0 satisfy per(A) > 0, and let P be a Bethe optimizer. If
+
+                                          Γλ (A, P ∗ ) < τ n,
+
+then                                              √
+                             perB (A) ≤ per(A) ≤ ( 2 − ε)n perB (A).
+
+   Our proof of Theorem 1.7 is a stability refinement of the row-exposure framework of Anari and
+Rezaei [AR25]. For the true marginal matrix P , the energy term cancels exactly:
+
+                              log per(A) − β(A, P ) = H(µA ) − Φ(P ).
+
+Thus the comparison problem becomes purely entropic. The Anari–Rezaei one-row slack terms are
+nonnegative and vanish only at two-point extremizers with masses (1/2, 1/2). Thus a near-extremal
+ratio forces almost all rows of the true marginal matrix to be close to such two-point vectors.
+    This row-wise conclusion alone does not imply C4 -structure: the near-1/2 edges could form longer
+paths or cycles. We rule out this possibility through a block-exposure entropy argument, which
+shows that non-C4 components incur a linear entropy loss. Hence near-extremal true marginals must
+organize into C4 -components. We then show that most of these true-tight components have small
+leakage with respect to the Bethe optimizer P ∗ , and that their two weighted orientations are√nearly
+balanced. Therefore, if Γλ (A, P ∗ ) is small, the Bethe ratio is already bounded away from ( 2)n .
+
+Independent work After finishing and submitting this paper, we learned of independent work of
+Anari [Ana26] with a similar main result, but different algorithm.
+
+Organization. The remainder of this paper is organized as follows. Section 2 contains our
+algorithm, and Sections 3 and 4 contain the proofs of Theorems 1.6 and 1.7 respectively. These two
+theorems together immediately imply Theorem 1.1.
+
+AI Use Statement AI (ChatGPT 5.5 Plus) was used to check the mathematical proofs as well as
+spelling and grammar. It also suggested ideas that helped simplify Lemma 4.5.
+
+
+                                                  5
+2    The Algorithm
+We now give the deterministic approximation algorithm. The algorithm first checks whether the
+support of A contains a perfect matching. If not, then per(A) = 0 and the algorithm returns 0.
+Otherwise, it computes a Bethe optimizer P ∗ , identifies a greedy vertex-disjoint family of low-leakage
+2 × 2 blocks with respect to P ∗ , and either returns the uncorrected Bethe permanent or applies the
+correction subroutine described below. The constants λ and τ are fixed absolute constants chosen so
+that the two guarantees in Theorems 1.6 and 1.7 apply. For simplicity we describe the algorithms as
+using exact Bethe optimizers and exact Bethe values. Standard convex optimization computes the
+required quantities to inverse-polynomial additive accuracy, and the resulting error can be absorbed
+by decreasing the final constant ε.
+
+Algorithm 1 Deterministic weighted Bethe correction algorithm
+Require: A nonnegative matrix A ∈ Rn×n  ≥0 .
+Ensure: A lower estimate Lout ≤ per(A).
+ 1: If the support of A has no perfect matching, return 0.
+ 2: Use the fixed constants λ, τ > 0 small enough for Theorems 1.6 and 1.7.
+ 3: Compute
+                                             b∗ := max β(A, X),
+                                                    X∈P(A)
+
+    and let P ∗ ∈ arg maxX∈P(A) β(A, X).
+ 4: Compute the greedy vertex-disjoint collection C of λ-admissible blocks from Definition 1.5 and Equation
+              P by decreasing score gQ = log sQ .
+    (1.8), ordered
+ 5: Set S := Q∈C log sQ = Γλ (A, P ∗ ).
+ 6: if S < τ n then
+ 7:     return Lout := perB (A) = exp(b∗ ).
+ 8: else
+ 9:     Run Algorithm 2 on input (A, P ∗ , C).
+10:     return its output Lout .
+11: end if
+
+
+    Note that Algorithm 1 runs in polynomial time. It requires a check for the existence of a perfect
+matching, a computation of the Bethe permanent, the additional step of computing Γλ (A, P ∗ ), and
+a search over O(n4 ) possible 2 × 2 blocks.
+    Algorithm 2 is designed to repair the places where the Bethe approximation loses weighted
+factors due to local ambiguity. In a weighted 2 × 2 block C = ({ℓ1 , ℓ2 }, {r1 , r2 }), the true matching
+model has two local orientations: the parallel orientation {(ℓ1 , r1 ), (ℓ2 , r2 )} with weight UC , and
+the cross orientation {(ℓ1 , r2 ), (ℓ2 , r1 )} with weight VC . The weighted Bethe correction factor is
+sC = 1 + min{UC , VC }/ max{UC , VC }.
+    The algorithm makes this correction explicit. For each selected 2 × 2 block, the algorithm keeps
+the heavier local orientation intact and deletes one edge from the lighter orientation, choosing the
+deleted edge according to the P ∗ -masses. The resulting matrix A◦ is then modified on boundary
+edges: edges leaving a selected left vertex are divided by the local correction factor sC . After this is
+done across all selected blocks, the resulting estimate approximates the weighted number of perfect
+matchings in the modified matrix by the Bethe permanent and then multiplies by the product of the
+local correction factors.
+    Below is the explicit pseudocode for the correction procedure.
+
+
+
+
+                                                      6
+Algorithm 2 Bethe guided weighted C4 -correction subroutine
+Require: A nonnegative matrix A, a Bethe optimizer P ∗ , and a vertex-disjoint collection C of λ-admissible
+    blocks.
+Ensure: A lower estimate Lout ≤ per(A).
+ 1: Initialize A◦ ← A.
+ 2: for each C ∈ C do
+ 3:     Write L(C) = {ℓ1 , ℓ2 } and R(C) = {r1 , r2 }.
+ 4:     Set
+                                                                          min{UC , VC }
+                     UC = Aℓ1 r1 Aℓ2 r2 ,   VC = Aℓ1 r2 Aℓ2 r1 , sC = 1 +                .
+                                                                          max{UC , VC }
+ 5:    if UC ≥ VC then
+ 6:        Let b := Pℓ∗1 r2 and c := Pℓ∗2 r1 .
+ 7:        if b ≤ c then
+ 8:            Delete (ℓ1 , r2 ) from A◦ .
+ 9:        else
+10:            Delete (ℓ2 , r1 ) from A◦ .
+11:        end if
+12:    else
+13:        Let a := Pℓ∗1 r1 and d := Pℓ∗2 r2 .
+14:        if a ≤ d then
+15:            Delete (ℓ1 , r1 ) from A◦ .
+16:        else
+17:            Delete (ℓ2 , r2 ) from A◦ .
+18:        end if
+19:    end if
+20: end for
+21: Define a weighted matrix H on the support of A◦ as follows.
+22: for each positive entry e = (ℓ, r) of A◦ do
+23:    if ℓ ∈ L(C) for some C ∈ C, and r ∈     / R(C) then
+24:        Set He := A◦e /sC .
+25:    else
+26:        Set He := A◦e .
+27:    end if
+28: end for
+29: Compute the weighted Bethe permanent perB (H).
+30: return                                                 !
+                                                   Y
+                                         Lout :=         sC   perB (H).
+                                                   C∈C
+
+
+
+
+    It is straightforward to see that√Algorithm 2 runs in polynomial time. To verify that the worst
+case approximation ratio is indeed ( 2 − ε)n , we must show that when Γλ (A, P ∗ ) < τ n, the quantity
+ per(A)              √       n                        ∗
+perB (A) is at most ( 2 − ε) , and that when Γλ (A, P ) ≥ τ n, the correction procedure leads to the
+claimed correction. These two properties follow from Theorems 1.7 and 1.6 respectively.
+
+
+3    Proof of Theorem 1.6
+Proof. The algorithmic procedure which achieves this guarantee is exactly Algorithm 2. Our proof
+proceeds by analyzing its steps and the resulting approximation ratio.
+   Let P ∗ be the Bethe optimizer under consideration. Let C be the collection of blocks selected by
+
+
+
+                                                    7
+the greedy procedure in Algorithm 1, and set
+                                       X
+                                 S :=      log sC = Γλ (A, P ∗ ).
+                                                C∈C
+
+By assumption, S ≥ τ n. Since the components in C are vertex-disjoint, and each uses two left
+vertices, we also have |C| ≤ n/2.
+    Recall that Algorithm 2 constructs a matrix A◦ by deleting one internal edge from each component
+C ∈ C. We will show that the Bethe free energy of A◦ is roughly similar to that of A by constructing
+a feasible point P ◦ ∈ P(A◦ ). Fix a component C ∈ C, and write its vertices as
+                                L(C) = {ℓ1 , ℓ2 },                 R(C) = {r1 , r2 }.
+For notational convenience write
+                          a = Pℓ∗1 r1 ,       b = Pℓ∗1 r2 ,       c = Pℓ∗2 r1 ,   d = Pℓ∗2 r2 .
+Since C is λ-admissible, the total P ∗ -leakage from the two rows and two columns of C is at most λ.
+In particular, the two internal row sums and the two internal column sums all lie in [1 − λ, 1].
+    Suppose first that UC ≥ VC , so that the parallel orientation is at least as heavy as the cross
+orientation. If b ≤ c, Algorithm 2 deletes (ℓ1 , r2 ) and we define
+                      a◦ = a + b,             b◦ = 0,             c◦ = c − b,        d◦ = d + b.
+Equivalently,
+                    Pℓ◦1 r1 = a + b,      Pℓ◦1 r2 = 0,        Pℓ◦2 r1 = c − b,      Pℓ◦2 r2 = d + b.
+All edges outside selected blocks keep their P ∗ value. Observe that this solution preserves the two
+row sums and the two column sums. Furthermore, the non-negativity constraints are met because
+c◦ = c − b ≥ 0, and a◦ ≤ 1, d◦ ≤ 1 by the original row and column constraints for P ∗ . Therefore the
+new values remain feasible, and the deleted edge receives value 0. The case c < b is symmetric. If
+UC < VC , we perform the same alternating-cycle transformation with the roles of the two orientations
+reversed. Since the components of C are vertex-disjoint, these local transformations are compatible
+and yield a feasible point P ◦ ∈ P(A◦ ).
+    We now compare the Bethe objective of P ◦ with that of P ∗ . The energy term does not decrease.
+Indeed, in the case UC ≥ VC and b ≤ c, the internal energy change is
+                                              Aℓ1 r1 Aℓ2 r2         UC
+                                      b log                 = b log    ≥ 0.
+                                              Aℓ1 r2 Aℓ2 r1         VC
+   It remains to control the Bethe entropy term. We use the following elementary estimate.
+Claim 3.1. There is an absolute constant C > 0 such that the following holds for all sufficiently
+small λ > 0. Let                                   
+                                            x11 x12
+                                      B=
+                                            x21 x22
+be a nonnegative 2 × 2 matrix whose two row sums and two column sums all lie in [1 − λ, 1]. Then
+                                          2
+                                          X
+                                                  ϕ(xij ) ≤ Cλ log(1/λ).
+                                          i,j=1
+
+Consequently, if B ′ is another nonnegative 2 × 2 matrix with the same row and column sums, then
+                              2
+                              X                      2
+                                                     X
+                                         ′
+                                      ϕ(Bij )≥              ϕ(Bij ) − Cλ log(1/λ).
+                              i,j=1                 i,j=1
+
+
+                                                              8
+Proof of Claim 3.1. Set x = x11 . Since the first row sum is in [1 − λ, 1], the entry x12 differs from
+1 − x by at most λ. Since the first column sum is in [1 − λ, 1], the entry x21 differs from 1 − x by at
+most λ. Finally, since the second row sum and first column sum both lie in [1 − λ, 1], the entry x22
+differs from x by at most λ.
+    Note that the function ϕ satisfies
+
+                        |ϕ(u) − ϕ(v)| ≤ Cλ log(1/λ)        whenever |u − v| ≤ λ,
+
+for all u, v ∈ [0, 1] and all sufficiently small λ. Along the exactly closed face (x, 1 − x, 1 − x, x) we
+have
+                                  ϕ(x) + ϕ(1 − x) + ϕ(1 − x) + ϕ(x) = 0.
+Combining these two facts gives the desired bound. The final assertion follows by applying the same
+bound to both B and B ′ .
+
+   Applying Claim 3.1 to each selected block and using the nondecrease of the energy term gives
+
+                                β(A◦ , P ◦ ) ≥ β(A, P ∗ ) − C1 λ log(1/λ)n.
+
+By definition, β(A, P ∗ ) = log perB (A), and since P ◦ is feasible for A◦ , this implies
+
+                      log perB (A◦ ) ≥ β(A◦ , P ◦ ) ≥ log perB (A) − C1 λ log(1/λ)n.                (3.1)
+
+    With this fact in hand, we leverage the difference between A◦ and A in order to explicitly correct
+the Bethe error on A. Let M(A◦ ) denote the set of perfect matchings in the support of A◦ . For a
+matching M ∈ M(A◦ ), say that a component C ∈ C is closed by M if the two left vertices of C are
+matched by M to the two right vertices of C.
+     On each closed component C, the matching M uses the unique internal perfect matching of C
+which remains in A◦ and corresponds to the heavier orientation. Since A contains both internal
+perfect matchings of C, we may flip independently on each closed component. The total weighted
+contribution from the two choices on C is multiplied by exactly sC .
+     Moreover, two distinct matchings M, M ′ ∈ M(A◦ ) generate disjoint flip orbits in the support of
+A. Indeed, if two matchings in A◦ differed by a nontrivial flip on some C ∈ C, then one of them
+would use the internal edge deleted from A◦ , contradicting membership in M(A◦ ).
+     Recall that Algorithm 2 defines a weighted matrix H by dividing boundary edges leaving selected
+left vertices by their local sC . For M ∈ M(A◦ ), let bC (M ) be the number of selected left vertices of
+C which are matched outside R(C). Then
+                                                        Y −b (M )
+                                      wH (M ) = wA (M )    sC C    ,
+                                                        C∈C
+                  Q
+where wA (M ) = e∈M Ae . If C is closed by M , then bC (M ) = 0. If C is not closed by M , then at
+least one selected left vertex is matched outside R(C), so bC (M ) ≥ 1. Therefore
+                                     !
+                                Y                             Y
+                                   sC wH (M ) ≤ wA (M )              sC .
+                               C∈C                            C closed by M
+
+The right-hand side is exactly the weighted contribution of the flip orbit generated from M . Summing
+over M ∈ M(A◦ ) gives                        !
+                                       Y
+                                          sC per(H) ≤ per(A).                                    (3.2)
+                                        C∈C
+
+
+                                                    9
+Since perB (H) ≤ per(H) by Theorem 1.3, the output of Algorithm 2 is indeed a lower bound:
+                                            !
+                                     Y
+                            Lout =       sC perB (H) ≤ per(A).
+                                         C∈C
+
+   It remains to compare perB (H) with perB (A). Since H is obtained from A◦ by dividing boundary
+edges of each selected block C by sC , we have
+                                                   X           X X
+                       β(H, P ◦ ) = β(A◦ , P ◦ ) −   (log sC )           ◦
+                                                                        Pℓr .
+                                                   C∈C         ℓ∈L(C) r∈R(C)
+                                                                       /
+
+The transformation from P ∗ to P ◦ does not change boundary edge values. Since each selected block
+is λ-admissible, its selected-left boundary mass is at most λ. Therefore
+                         X            X X               X
+                                                  ◦
+                            (log sC )           Pℓr  ≤λ     log sC ≤ λn log 2.
+                       C∈C         ℓ∈L(C) r∈R(C)
+                                           /             C∈C
+
+Combining this with (3.1) gives
+                             log perB (H) ≥ log perB (A) − C2 λ log(1/λ)n                        (3.3)
+for an absolute constant C2 . Now, by Equation (3.3),
+                                            !
+                                      Y
+                              Lout =     sC perB (H)
+                                       C∈C
+                                   = exp(S) perB (H)
+                                   ≥ exp(S − C2 λ log(1/λ)n) perB (A).
+Plugging in the above and using Theorem 1.3, we obtain
+                                                          √
+                             per(A)                      ( 2)n
+                                    ≤ exp(C2 λ log(1/λ)n) S
+                              Lout                         e
+                                      h√                          in
+                                    ≤    2 exp{−τ + C2 λ log(1/λ)} .
+
+as S ≥ τ n. Choosing λ0 = λ0 (τ ) > 0 small enough so that C2 λ log(1/λ) < τ /2 whenever 0 < λ ≤ λ0
+gives the result
+                                 per(A) √ −τ /2 n        √
+                                        ≤     2e        = ( 2 − ε)n
+                                  Lout
+for some ε = ε(τ ) > 0.
+
+
+4    Proof of Theorem 1.7
+The proof has three parts. First, we use the row-exposure entropy comparison of Anari and
+Rezaei [AR25] to show that near equality in the Bethe upper bound forces almost all true marginal
+rows to be close to two-point vectors. Second, we prove a block-exposure refinement showing that
+these two-point rows must organize into C4 -components; longer paths and cycles lose a linear amount
+of entropy. Third, we transfer this true-marginal structure to the Bethe optimizer P ∗ using concavity
+of the Bethe entropy, and show that the corresponding weighted 2 × 2 blocks have nearly balanced
+orientation products. We will signpost our use of the results of [AR25]; we recommend the reader
+also review their methodology.
+    We begin with the following useful definition.
+
+                                                   10
+Definition 4.1. Given a doubly stochastic matrix P ∈ Rn×n , we say a row i is δ-two point if there
+exist two distinct indices j1 , j2 such that
+                                           1                        1
+                                  Pij1 −     ≤ δ,          Pij2 −     ≤ δ.
+                                           2                        2
+                                                                                           √
+    At a high level, our proof proceeds by first showing that if the worst-case ratio of ( 2 − o(1))n
+is achieved, then true marginals must look like two-point rows, and furthermore that they will be
+organized according to 4-cycles. Once we have shown this, we show that most of these true-tight
+4-cycles are low-leakage blocks for the Bethe optimizer and have nearly balanced weighted orientation
+products. This presence of many high-score admissible blocks contradicts the assumption that
+Γλ (A, P ∗ ) is small.
+    Before we proceed to the analysis, we note that, although the matrix A is weighted, the comparison
+at the true marginal matrix is purely entropic.
+Observation 4.2. Let P be the true marginal matrix of µA . Then
+
+                               log per(A) − β(A, P ) = H(µA ) − Φ(P ).
+
+Consequently,
+                                          per(A)
+                                   log            ≤ H(µA ) − Φ(P ).
+                                         perB (A)
+   Indeed, under µA , log µA (M ) = log wA (M ) − log per(A), so
+
+                               log per(A) = H(µA ) + EµA log wA (M ).
+                         P
+Since EµA log wA (M ) = e Pe log Ae = EA (P ), the identity follows.
+    Thus, throughout the proof, we will work with the quantity H(µA ) − Φ(P ).
+    We can now begin with the following lemma. The strategy of its proof is similar to the coordinate
+merging framework utilized in [AR25]. We will also utilize the following consequences of their analysis:
+the row-slack decomposition, the coordinate-merging monotonicity lemma, and the three-dimensional
+equality cases of the one-row inequality.
+Lemma 4.3. Fix δ > 0 sufficiently small and κ > 0. There exists a constant c = c(δ, κ) > 0 such
+that the following holds.
+    Let A ∈ Rn×n
+               ≥0 have per(A) > 0. Let P denote the true marginal matrix of the Gibbs measure µA .
+If at least κn rows of P are not δ-two point, then
+                                          per(A)    √    n
+                                                  ≤   2−c .
+                                         perB (A)
+Equivalently, if
+                                          per(A)    √    n
+                                                  >   2−c ,
+                                         perB (A)
+then all but at most κn rows of P are δ-two point.
+Proof. Let µ = µA , and let M ∼ µ. For ℓ ∈ L, write M (ℓ) for the right vertex matched to ℓ. For a
+probability vector p = (p1 , . . . , pm ) ∈ ∆m , define
+                                                                                      
+                                           m                     m
+                         √                X             X        X
+             Λ(p) := log 2 − Eπ             pk log      pj  −   (1 − pk ) log(1 − pk ) ,
+                                     k=1            j: j≥π k        k=1
+
+
+                                                     11
+where π is a uniformly random ordering of [m], and j ≥π k means that j = k or j appears after k in
+the ordering π. All expressions are interpreted with the usual convention 0 log 0 = 0.
+   We use the following consequence of the row-exposure analysis of [AR25]. Applied to the true
+marginal matrix P , it gives the row-slack decomposition
+                                                     √    X
+                               H(M ) − Φ(P ) ≤ n log 2 −      Λ(Pℓ,· ).
+                                                               ℓ∈L
+
+Moreover, the one-row inequality of [AR25] gives Λ(p) ≥ 0 for every probability vector p.
+   We claim that there exists a constant γ(δ) > 0 such that every probability vector p which is not
+δ-two point satisfies Λ(p) ≥ γ(δ). Let p = (p1 , . . . , pm ) ∈ ∆m be a probability vector which is not
+δ-two point. Zero coordinates do not affect the row expression, so we delete all zero coordinates.
+Starting from the remaining positive coordinates, repeatedly merge the two currently smallest
+coordinates until only three coordinates remain. If fewer than three positive coordinates remain,
+append zero coordinates. Let H(p) ∈ ∆3 be the resulting three-coordinate vector.
+   We now justify that every merge used above is allowed by the coordinate-merging monotonicity
+lemma of [AR25]. Suppose that at some stage there are r > 3 active coordinates, and let a ≤ b be
+the two smallest active masses. Since the total mass is 1, we have
+                                                       2  1
+                                             a+b≤        ≤ .
+                                                       r  2
+Thus the merging of [AR25] (Proof of Lemma 13) implies that these merges cannot increase the
+one-row slack, and hence
+                                      Λ(p) ≥ Λ(H(p)).
+Let                                                           
+                                         1 1      1      1      1 1
+                            E3 :=         , ,0 ,    , 0,    , 0, ,     .
+                                         2 2      2      2      2 2
+We claim that H(p) is bounded away from E3 by a quantity depending only on δ. Write the
+coordinates of H(p) in increasing order as q1 ≤ q2 ≤ q3 .
+    We first record a simple property of the smallest-coordinate merging procedure. If one of the
+final coordinates is not an original coordinate of p, then its mass is at most 2q1 . Indeed, suppose
+a final coordinate w was created at its last internal merge by merging two active blocks of masses
+a ≤ b. At that moment, a and b were the two smallest active masses, so every active block outside
+this merge had mass at least b. If w = q1 , then w ≤ 2q1 is immediate. Otherwise, q1 descends from
+an active block outside this merge. Since subsequent merges only increase masses, we have q1 ≥ b.
+Hence w = a + b ≤ 2b ≤ 2q1 .
+    Now fix an absolute constant a0 > 0 sufficiently small and take δ > 0 sufficiently small. Suppose,
+for contradiction, that dist1 (H(p), E3 ) < a0 δ. Since E3 is invariant under coordinate permutations,
+after sorting coordinates increasingly this implies
+                                                          
+                                                       1 1
+                                   (q1 , q2 , q3 ) − 0, ,       < a0 δ.
+                                                       2 2 1
+
+In particular,
+                                                  1                    1
+                         q1 < a0 δ,        q2 −     < a0 δ,     q3 −     < a0 δ.
+                                                  2                    2
+For a0 and δ chosen sufficiently small, this gives q2 > 2q1 and q3 > 2q1 . From the property proved
+above, neither q2 nor q3 can be a merged coordinate. Therefore q2 and q3 must both be original
+
+                                                     12
+coordinates of p. But then
+
+                                     1                           1
+                              q2 −     < a0 δ < δ,        q3 −     < a0 δ < δ,
+                                     2                           2
+
+so p has two original coordinates within δ of 1/2. This contradicts the assumption that p is not
+δ-two point. Therefore dist1 (H(p), E3 ) ≥ a0 δ. Now note that the function Λ is continuous on ∆3
+and moreover, the equality-case form of [AR25] gives
+
+                             Λ(q) = 0       ⇐⇒        q ∈ E3        for q ∈ ∆3 .
+
+By compactness,
+                        γ(δ) := inf {Λ(q) : q ∈ ∆3 , dist1 (q, E3 ) ≥ a0 δ} > 0.
+Consequently,
+                                        Λ(p) ≥ Λ(H(p)) ≥ γ(δ),
+proving the claim. Now assume that at least κn rows of P are not δ-two point. Applying the
+row-slack lower bound to these rows gives
+                                      X
+                                          Λ(Pℓ,· ) ≥ κn γ(δ).
+                                          ℓ∈L
+
+Plugging this into the row-slack decomposition gives
+                                                           √
+                                H(M ) − Φ(P ) ≤ n log          2 − κn γ(δ).
+
+Since
+                log per(A) = H(M ) + EA (P )         and         β(A, P ) = EA (P ) + Φ(P ),
+we have                                                                  √
+                   log per(A) − β(A, P ) = H(M ) − Φ(P ) ≤ n log             2 − κn γ(δ).
+Since P is feasible for the Bethe variational problem, β(A, P ) ≤ log perB (A), and therefore
+
+                              per(A)    √         n  √
+                                      ≤   2 e−κγ(δ) < ( 2 − c(δ, κ))n .
+                             perB (A)
+
+
+
+    Note that the above Lemma only gives us that most rows are δ-two point, and nothing about
+their structure. In order to argue about their structure, we first generalize the machinery of [AR25]
+to an entropy comparison on blocks.
+
+Lemma 4.4. Let A ∈ Rn×n  ≥0 satisfy per(A) > 0, and let µA be the Gibbs measure on perfect
+               P = (Pℓr ) be the true marginal matrix. For S ⊆ L, write XS := (M (ℓ))ℓ∈S and
+matchings.PLet P
+ΦS (P ) := ℓ∈S r∈R ϕ(Pℓr ). Then
+                                                                     √
+                      H(M ) − Φ(P ) ≤ H(XS ) − ΦS (P ) + (n − |S|) log 2.
+
+Proof. Let T := L \ S. By the chain rule for entropy,
+
+                                     H(M ) = H(XS ) + H(M | XS ).
+
+
+                                                     13
+Since XS records the partners of all rows in S, the conditional randomness in M after XS is revealed
+is exactly the randomness of the remaining weighted matching on the rows T . Thus
+
+                                 H(M | XS ) = Ex [H(MT | XS = x)],
+
+where x ranges over feasible values of XS , and MT := (M (ℓ))ℓ∈T .
+   Fix a feasible value x of XS . Let Rx ⊆ R be the set of right vertices not used by the partial
+matching x. Conditional on XS = x, the remaining matching is distributed according to the Gibbs
+measure of the residual weighted matrix
+
+                                           Ax := A[T × Rx ].
+
+Let Qx = (Qxℓr ) denote the true marginals of this residual Gibbs measure, extended to all r ∈ R by
+setting Qxℓr := 0 for r ∈
+                        / Rx .
+    Applying Theorem 1.3 to the residual matrix Ax and evaluating the Bethe objective at its true
+marginals gives                                       √     XX
+                           H(MT | XS = x) ≤ |T | log 2 +           ϕ(Qxℓr ).
+                                                                 ℓ∈T r∈R
+Indeed, the residual energy term cancels from the comparison between the logarithm of the residual
+partition function and the Bethe objective evaluated at Qx . Taking expectation over x, we obtain
+                                                       "               #
+                                               √         XX
+                                                                    x
+                          H(M | XS ) ≤ |T | log 2 + Ex          ϕ(Qℓr ) .                     (4.1)
+                                                                ℓ∈T r∈R
+
+    Now, observe that for every ℓ ∈ T and r ∈ R, we have Ex Qxℓr = Pℓr by the law of total expectation.
+Additionally, because the function ψd is concave on the probability simplex (Lemma 1.2), we have
+for each fixed ℓ ∈ T ,                 "           #
+                                         X            X
+                                               x
+                                    Ex      ϕ(Qℓr ) ≤     ϕ(Pℓr ).
+                                         r∈R               r∈R
+Summing over ℓ ∈ T , we get
+                                                      √        XX
+                              H(M | XS ) ≤ |T | log       2+             ϕ(Pℓr ).
+                                                               ℓ∈T r∈R
+
+Combining this with the chain rule and subtracting Φ(P ) gives
+                                                                    √
+                     H(M ) − Φ(P ) ≤ H(XS ) − ΦS (P ) + (n − |S|) log 2.
+
+
+
+   Putting together the above two ingredients will enable us to prove the C4 structure of the true
+marginals.
+Lemma 4.5. Fix 0 < α < 1. There exists δ0 > 0 such that for every 0 < δ ≤ δ0 , there exists a
+constant c = c(α, δ) > 0 with the following property.
+   Let A ∈ Rn×n
+              ≥0 satisfy per(A) > 0. Let P denote the true marginal matrix of the Gibbs measure µA
+and define Pδ to be the subgraph of the support of A consisting of all edges e satisfying |Pe − 1/2| ≤ δ.
+   If
+                                         per(A)      √      n
+                                                  >    2−c ,
+                                        perB (A)
+then the threshold graph Pδ has C4 -components spanning at least (1 − α)n left vertices.
+
+                                                   14
+Proof. Let M ∼ µA . For ℓ ∈ L, write M (ℓ) for the right vertex matched to ℓ. Additionally, let
+h2 (p) := −p log p − (1 − p) log(1 − p) denote the binary entropy function, and define
+
+                                             ω(δ) :=     sup       |ϕ(x)|.
+                                                       |x−1/2|≤δ
+
+Observe that since ϕ(1/2) = 0, we have ω(δ) → 0 as δ → 0. Additionally, set ρ(δ) := 2h2 (2δ) + 2δ +
+2ω(δ) and choose δ0 > 0 sufficiently small so that, for every 0 < δ ≤ δ0 ,
+                                      1                        1
+                                 δ<          and       γδ :=     log 2 − ρ(δ) > 0.
+                                      6                        6
+Fix such a δ, and set
+                                      Cδ := 2h2 (2δ) + 2 log 2 + 1 + 2ω(δ).
+Additionally, choose 0 < η < 1 small enough so that η ≤ α4 and Cδ η ≤ 14 γδ α. Let ctp = ctp (δ, η) > 0
+be the constant given by Lemma 4.3, applied with parameters δ and η. Finally define
+                                         √               
+                                  cstr := 2 1 − e−γδ α/2 > 0,
+
+and set c := min{ctp , cstr }.
+   Now suppose
+                                              per(A)    √    n
+                                                      >   2−c .
+                                             perB (A)
+Since c ≤ ctp , Lemma 4.3 implies that all but at most ηn left vertices are δ-two point. Applying the
+same lemma to AT gives the analogous statement for right vertices.
+    Hence there exist sets Lbad ⊆ L and Rbad ⊆ R such that |Lbad | ≤ ηn, |Rbad | ≤ ηn, and every
+vertex in (L \ Lbad ) ∪ (R \ Rbad ) is δ-two point. For every vertex outside these exceptional sets,
+there are at least two incident edges in Pδ . On the other hand, Pδ has maximum degree at most 2.
+Indeed, if some vertex were incident to three edges of Pδ , then the sum of the corresponding true
+marginals would be at least 3(1/2 − δ) > 1, a contradiction. Therefore every non-exceptional vertex
+has exactly two incident edges in Pδ , and every connected component of Pδ is a path or a cycle.
+    Let H be the collection of connected components of Pδ which are not C4 ’s. Enumerate them as
+H = {H1 , . . . , Ht }. For each i, write
+
+                            Li := L(Hi ),          Ri := R(Hi ),         Fi := E(Hi ),
+
+and write S := ti=1 Li and m := |S| = ti=1 |L√
+                S                      P
+                                                i |. We will prove that if m is a positive fraction of
+n, then the Bethe ratio is bounded away from ( 2)n .
+    We will do this by bounding the entropy of the matching distribution on long cycles and paths.
+To do this, expose the random vector XS := (M (ℓ))ℓ∈S as follows.
+
+   1. For each i ∈ [t], reveal
+                                           Ai := {ℓ ∈ Li : (ℓ, M (ℓ)) ∈
+                                                                      / Fi },
+      the set of rows in Hi whose matching edge is not an edge of the Pδ -component Hi . Also reveal
+
+                                          Bi := {r ∈ Ri : (M −1 (r), r) ∈
+                                                                        / Fi },
+
+      the set of columns in Hi whose matching edge is not an edge of Hi .
+
+   2. For each i ∈ [t], reveal the actual destinations of the exceptional rows: Yi := (M (ℓ))ℓ∈Ai .
+
+                                                         15
+   3. Lastly, for each i ∈ [t], reveal the remaining internal matching inside Hi , denoted by Zi .
+    The collection ((Ai , Bi , Yi , Zi ))ti=1 determines XS . Hence, by the chain rule and entropy subad-
+ditivity,
+                          H(XS ) ≤ H((Ai , Bi )ti=1 ) + H((Yi )ti=1 | (Ai , Bi )ti=1 )
+                                         + H((Zi )ti=1 | (Ai , Bi , Yi )ti=1 ).
+   We now bound these three terms. Consider the entropy of the exceptional sets. If ℓ ∈ Li \ Lbad ,
+then the two Pδ -edges of Hi incident to ℓ both have marginal at least 1/2 − δ. Therefore
+                                                          
+                                                      1
+                                 P(ℓ ∈ Ai ) ≤ 1 − 2     − δ = 2δ.
+                                                      2
+Similarly, if r ∈ Ri \ Rbad , then P(r ∈ Bi ) ≤ 2δ. Thus, by entropy subadditivity,
+                                            t          t
+                                                              !
+                                           X           X
+                           t
+               H((Ai , Bi )i=1 ) ≤ h2 (2δ)     |Li | +   |Ri | + log 2(|Lbad | + |Rbad |).
+                                             i=1           i=1
+
+Since every component of Pδ is a path or a cycle, ||Li | − |Ri || ≤ 1 for every i. If |Li | =
+                                                                                            ̸ |Ri |, then Hi
+is a path whose larger side contains an endpoint. That endpoint has degree at most 1 in Pδ , and
+therefore cannot be δ-two point. Hence each imbalanced component can be charged to a vertex of
+Lbad ∪ Rbad . Consequently,
+                                t
+                                X
+                                      ||Li | − |Ri || ≤ |Lbad | + |Rbad | ≤ 2ηn.
+                                i=1
+                 P
+In particular,    i |Ri | ≤ m + 2ηn, and therefore
+
+                         H((Ai , Bi )ti=1 ) ≤ 2mh2 (2δ) + (2h2 (2δ) + 2 log 2)ηn.                      (4.2)
+
+   Next, we bound the entropy of the exceptional destinations. For ℓ ∈ Li , set
+                                              X
+                                      qℓ :=         Pℓr .
+                                                     r: (ℓ,r)∈F
+                                                             / i
+
+Let Wℓ be the random variable equal to M (ℓ) if ℓ ∈ Ai , and equal to a dummy symbol ∗ otherwise.
+Then (Yi )ti=1 is determined by (Wℓ )ℓ∈S together with the sets Ai . Hence
+                                                          t X
+                                                          X
+                       H((Yi )ti=1 | (Ai , Bi )ti=1 ) ≤              H(Wℓ | 1{ℓ∈Ai } )
+                                                          i=1 ℓ∈Li
+                                                          t X
+                                                          X            X
+                                                     ≤                           −Pℓr log Pℓr .
+                                                          i=1 ℓ∈Li r: (ℓ,r)∈F
+                                                                           / i
+
+    Finally, bound the entropy of the internal choices Zi . Once Ai , Bi , Yi have been revealed, the
+remaining vertices of Hi must be matched using only edges of Hi . If Hi is a path, deleting vertices
+leaves a disjoint union of paths, and each path has at most one perfect matching. Thus a path
+component contributes at most one internal choice. If Hi is a cycle, then either some vertex has
+been deleted, leaving a disjoint union of paths, or no vertex has been deleted, in which case the cycle
+has exactly two alternating perfect matchings. Therefore a cycle component contributes at most
+log 2 to the entropy, while a path component contributes zero.
+
+                                                          16
+    Let ccyc be the number of cycle components in H. Since the C4 -components were excluded, every
+cycle in H has at least 3 left vertices. Hence ccyc ≤ m/3. Consequently,
+                                                                               m
+                                      H((Zi )ti=1 | (Ai , Bi , Yi )ti=1 ) ≤      log 2.                     (4.3)
+                                                                               3
+    Combining the three entropy bounds gives
+                                                      t X
+                                                      X             X                         m
+                     H(XS ) ≤ 2mh2 (2δ) +                                    −Pℓr log Pℓr +     log 2
+                                                                                              3
+                                                      i=1 ℓ∈Li r: (ℓ,r)∈F
+                                                                       / i
+
+                                      + (2h2 (2δ) + 2 log 2)ηn.
+    We now compare the entropy with the Bethe contribution from the same rows. Define
+                                                          t XX
+                                                          X
+                                            ΦS (P ) =                    ϕ(Pℓr ).
+                                                          i=1 ℓ∈Li r∈R
+
+By Lemma 4.4,
+                                                 √                       m
+           H(M ) − Φ(P ) ≤ (n − m) log               2 + 2mh2 (2δ) +       log 2 + (2h2 (2δ) + 2 log 2)ηn
+                                                                         3
+                                       t X
+                                       X              X                                   Xt X
+                                  +                            (−Pℓr log Pℓr − ϕ(Pℓr )) −          ϕ(Pe )
+                                        i=1 ℓ∈Li r: (ℓ,r)∈F
+                                                         / i                                   i=1 e∈Fi
+                                                 √        m
+                             ≤ (n − m) log 2 + 2mh2 (2δ) + log 2 + (2h2 (2δ) + 2 log 2)ηn
+                                                           3
+                                   Xt X     X               Xt
+                                 +               Pℓr + ω(δ)    |Fi |,
+                                        i=1 ℓ∈Li r: (ℓ,r)∈F
+                                                         / i                  i=1
+
+where the last inequality follows from −Pℓr log Pℓr − ϕ(Pℓr ) ≤ Pℓr and from |Pe − 1/2| ≤ δ for every
+internal edge e ∈ Fi .
+    Rows in Li \ Lbad contribute at most 2δ, while rows in Lbad contribute at most their total row
+mass. Since |Lbad | ≤ ηn,
+                                   Xt X     X
+                                                   Pℓr ≤ 2δm + ηn.
+                                         i=1 ℓ∈Li r: (ℓ,r)∈F
+                                                          / i
+                                  P
+Also, |Fi | ≤ |Li | + |Ri | and   i |Ri | ≤ m + 2ηn, so
+                                           t X
+                                           X
+                                       −              ϕ(Pe ) ≤ ω(δ)(2m + 2ηn).
+                                           i=1 e∈Fi
+
+Plugging these bounds in, we get
+                                                       m√
+                H(M ) − Φ(P ) ≤ (n − m) log                 2+
+                                                          log 2 + (2h2 (2δ) + 2δ + 2ω(δ))m
+                                                        3
+                                      + (2h2 (2δ) + 2 log 2 + 1 + 2ω(δ))ηn
+                                         √
+                                  = n log 2 − γδ m + Cδ ηn.
+Using log per(A) − β(A, P ) = H(M ) − Φ(P ) and log perB (A) ≥ β(A, P ), this implies
+                                          per(A)         √
+                                  log             ≤ n log 2 − γδ m + Cδ ηn.                                 (4.4)
+                                         perB (A)
+
+                                                               17
+    Let C be the union of the C4 -components of Pδ . Every left vertex not spanned by C is either in S
+or in Lbad . Therefore the number of left vertices not spanned by C is at most m + |Lbad | ≤ m + ηn.
+    Now suppose, toward contradiction, that C spans fewer than (1 − α)n left vertices. Then
+m + ηn > αn, and hence, using η ≤ α/4, we have m > (α − η)n ≥ 34 αn. Plugging this into (4.4)
+gives
+                                       per(A)          √     1
+                                  log          ≤ n log 2 − γδ αn,
+                                      perB (A)               2
+where we used Cδ η ≤ γδ α/4. Exponentiating, we get
+
+                                per(A)    √           n √         n
+                                        ≤    2 e−γδ α/2 =   2 − cstr ,
+                               perB (A)
+
+a contradiction since c ≤ cstr .
+
+    Now that we have characterized the behavior of the true marginals under the worst-case ratio,
+all that remains is showing that this same behavior transfers to weighted low-leakage blocks for the
+Bethe optimizer and that the corresponding weighted orientation products are nearly balanced. Such
+a structure is described by the following definition.
+
+Definition 4.6. Let P be the true marginal matrix, and let Pρ be the threshold graph consisting of
+all edges e with |Pe − 1/2| ≤ ρ. A block
+
+                                             Q = ({s1 , s2 }, {r1 , r2 })
+
+is called a true ρ-tight C4 -component if the four edges (s1 , r1 ), (s1 , r2 ), (s2 , r1 ), (s2 , r2 ) form a
+connected component of Pρ . In particular, each internal edge of Q has true marginal in [1/2−ρ, 1/2+ρ],
+and for every i, j ∈ {1, 2},
+                                X                        X
+                                      Psi r ≤ 2ρ,              Psrj ≤ 2ρ.
+                                r∈{r
+                                 / 1 ,r2 }                    s∈{s
+                                                               / 1 ,s2 }
+
+    The following Lemma shows that when ρ is sufficiently small, such tight C4 ’s can be detected by
+the Bethe permanent.
+
+Lemma 4.7. For every 0 < λ < 1/10 and every ζ > 0, there exist constants ρ = ρ(λ, ζ) > 0 and
+εtr = εtr (λ, ζ) > 0 such that the following holds.
+    Let A ∈ Rn×n                                                                        ∗
+                ≥0 satisfy per(A) > 0, with true marginal matrix P and Bethe optimizer P . Suppose
+
+                                              per(A)         √
+                                      log             ≥ n log 2 − εtr n.
+                                             perB (A)
+
+Let Q be a row-disjoint collection of true ρ-tight C4 ’s for P . Then all but at most ζn members Q ∈ Q
+are λ-admissible for (A, P ∗ ). Moreover every member Q ∈ Q satisfies
+
+                                                   sQ ≥ 2 − λ.
+
+   We defer its proof to the next subsection. For now, assuming it is true, we can finish the proof of
+Theorem 1.7 as follows.
+
+
+
+
+                                                         18
+Proof of Theorem 1.7. Choose constants 0 < α < 1/3 and 0 < ζ < (1 − α)/2. Fix 0 < λ < 1/10
+sufficiently small, to be specified below, and apply Lemma 4.7 with this choice of parameters λ and ζ.
+Let ρ0 = ρ0 (λ, ζ) > 0 and εtr = εtr (λ, ζ) > 0 be the constants from that lemma. Apply Lemma 4.5
+with the above fixed value of α.
+    Choose 0 < ρ ≤ ρ0 small enough so that Lemma 4.5 applies with tolerance ρ and additionally
+2ρ < 1/2 − ρ0 . Let cstr = cstr (α, ρ) > 0 be the corresponding constant. Thus, if
+
+                                         per(A)     √
+                                                 > ( 2 − cstr )n ,
+                                        perB (A)
+
+then the true marginal graph Pρ contains a vertex-disjoint union of C4 ’s spanning at least (1 − α)n
+left vertices.
+    Set                                          
+                                    1 1−α
+                              c0 :=            − ζ log(2 − λ) > 0
+                                    4     2
+                                                                                            √
+                                                                                          2
+and choose any 0 < τ < c0 . Finally choose ε > 0 small enough that 0 < ε < cstr and log √2−ε  ≤ εtr .
+                                                                                            ∗
+We claim that this choice proves the theorem. Suppose, toward contradiction, that Γλ (A, P ) < τ n
+but                                           √
+                                   per(A) > ( 2 − ε)n perB (A).
+Since ε < cstr , Lemma 4.5 gives a vertex-disjoint collection Q of true ρ-tight C4 ’s spanning at least
+(1 − α)n left vertices, i.e. |Q| ≥ 1−α
+                                    2 n. Moreover,
+
+                                      per(A)          √
+                               log            > n log( 2 − ε)
+                                     perB (A)
+                                                                  √
+                                                     √             2
+                                              = n log 2 − n log √
+                                                                  2−ε
+                                                     √
+                                              ≥ n log 2 − εtr n.
+
+We claim that every true ρ-tight C4 -component is also a true ρ0 -tight C4 -component. Indeed, the
+four internal edges are within ρ ≤ ρ0 of 1/2. Moreover, for every vertex of the block, the total
+marginal mass leaving the block is at most 2ρ. Hence every external incident edge has marginal at
+most 2ρ < 1/2 − ρ0 , and therefore no external incident edge belongs to the threshold graph Pρ0 .
+    Thus Lemma 4.7 applies to Q. All but at most ζn members of Q are λ-admissible for (A, P ∗ ),
+and every member of Q has score at least log(2 − λ). Therefore the maximum total score of a
+vertex-disjoint collection of λ-admissible blocks is at least
+                                                 
+                                        1−α
+                                              − ζ n log(2 − λ).
+                                          2
+
+The greedy algorithm that defines Γλ (A, P ∗ ) obtains at least a 1/4 fraction of the optimum score:
+each selected block uses four vertices, and a vertex-disjoint optimum block can be charged to the
+first greedy block with which it intersects. Hence
+
+                                         Γλ (A, P ∗ ) ≥ c0 n > τ n,
+
+contradicting the assumption Γλ (A, P ∗ ) < τ n.
+
+
+
+
+                                                    19
+4.1    Proof of Lemma 4.7
+Recall the notation
+                                                                                                 d
+                                                                                                 X
+                ϕ(x) := −x log x + (1 − x) log(1 − x),                ψd (x1 , . . . , xd ) :=         ϕ(xi ).
+                                                                                                 i=1
+
+When the dimension is clear, we simply write ψ, and recall that by Lemma 1.2, it is concave.
+
+Claim 4.8. Define T : ∆d → ∆3 by
+                                                                          d
+                                                                                     !
+                                                                          X
+                                    T (x1 , . . . , xd ) =    x1 , x2 ,         xi       .
+                                                                          i=3
+
+Then, for all p, q ∈ ∆d ,
+                                                         
+                   p+q      1        1              Tp + Tq    1          1
+              ψd           − ψd (p) − ψd (q) ≥ ψ3             − ψ3 (T p) − ψ3 (T q).
+                     2      2        2                 2       2          2
+
+Proof. It suffices to prove that merging two coordinates cannot increase the Jensen gap, and the
+result follows by iterating. Denote the two coordinates being merged in p by u, v, and in q the
+corresponding coordinates by u′ , v ′ . The loss in ψ from merging these two coordinates is
+
+       D(u, v) := ϕ(u) + ϕ(v) − ϕ(u + v) = ϕ(u) + ϕ(v) + ϕ(1 − u − v) = ψ3 (u, v, 1 − u − v).
+
+Thus D is concave on the triangle {(u, v) : u ≥ 0, v ≥ 0, u + v ≤ 1} by Lemma 1.2. Therefore
+
+                              u + u′ v + v ′
+                                            
+                                                  1          1
+                          D         ,          ≥ D(u, v) + D(u′ , v ′ ).
+                                2        2        2          2
+
+Equivalently, the Jensen gap before merging is at least the Jensen gap after merging. Iterating gives
+the claim.
+
+   The next claim also exploits the concavity of the Bethe objective on the simplex.
+
+Claim 4.9. Let P ∗ be a Bethe optimizer and let P be the true marginal matrix. Suppose that, for
+some εtr > 0,
+                                     per(A)         √
+                                log          ≥ n log 2 − εtr n.
+                                    perB (A)
+Then
+
+   1. 0 ≤ log perB (A; P ∗ ) − log perB (A; P ) ≤ εtr n.
+            h  P +P ∗                              i
+      P          ℓ,·   ℓ,·    1             1     ∗ ) ≤ εtr n.
+   2.   ℓ∈L ψ        2      − 2 ψ(P ℓ,· ) − 2 ψ(Pℓ,·     2
+
+Proof. Since P ∗ is a Bethe optimizer,
+
+                                 perB (A; P ) ≤ perB (A; P ∗ ) = perB (A).
+
+Therefore the difference in the first item is nonnegative. Also, by Theorem 1.3,
+                                                  √
+                              log per(A) ≤ n log 2 + log perB (A; P ).
+
+                                                         20
+On the other hand, the hypothesis gives
+                                                           √
+                                log per(A) ≥ n log              2 − εtr n + log perB (A).
+
+Combining the previous two displays proves the first item.
+   For the second, set P = (P + P ∗ )/2. By concavity of X 7→ log perB (A; X) on the matching
+polytope,
+                                         1                 1
+                     log perB (A; P ) ≥ log perB (A; P ) + log perB (A; P ∗ ).
+                                         2                 2
+On the other hand, by optimality of P ,∗
+
+
+                                       log perB (A; P ) ≤ log perB (A; P ∗ ).
+
+Thus
+                                         1                    1
+                     0 ≤ log perB (A; P ) −log perB (A; P ) − log perB (A; P ∗ )
+                                         2                    2
+                        1                                        εtr
+                     ≤ (log perB (A; P ∗ ) − log perB (A; P )) ≤     n.
+                        2                                         2
+The linear energy term EA cancels from the Jensen gap, so the left-hand side equals
+                          X   Pℓ,· + Pℓ,·∗                           
+                                                  1           1      ∗
+                              ψ                − ψ(Pℓ,· ) − ψ(Pℓ,· ) .
+                                      2           2           2
+                                ℓ∈L
+
+This proves the claim.
+
+Claim 4.10. For every α > 0, there exist constants ρrow = ρrow (α) > 0 and κ = κ(α) > 0 such that
+the following holds.
+    Let p, q ∈ ∆d . Suppose that p is ρrow -tight on coordinates 1 and 2, i.e.
+                                1                               1                  X
+                         p1 −     ≤ ρrow ,               p2 −     ≤ ρrow ,               pi ≤ ρrow ,
+                                2                               2
+                                                                                   i≥3
+                                P
+and suppose that q satisfies      i≥3 qi ≥ α. Then
+                                                    
+                                               p+q        1        1
+                                      ψd                 − ψd (p) − ψd (q) ≥ κ.
+                                                2         2        2
+
+Proof. Define p∗ = (1/2, 1/2, 0). Since p is ρrow -tight,
+
+                                                         1       1  X
+                          ∥T p − p∗ ∥1 ≤ p1 −              + p2 − +   pi ≤ 3ρrow .
+                                                         2       2
+                                                                             i≥3
+
+For u, v ∈ ∆3 , define                                         
+                                                         u+v          1        1
+                                J(u, v) := ψ3                        − ψ3 (u) − ψ3 (v).
+                                                          2           2        2
+We show that J(p∗ , v) is bounded below by a positive constant whenever v3 ≥ α. Let v = (a, b, c) ∈ ∆3
+with c ≥ α, and define
+                               f (t) := ψ3 ((1 − t)p∗ + tv),   t ∈ [0, 1].
+Then                                                     
+                                     1−t            1−t
+                           f (t) = ϕ     + ta + ϕ       + tb + ϕ(tc).
+                                      2              2
+
+                                                                21
+By Lemma 1.2, f is concave on [0, 1]. It is not affine, because ϕ(0) = 0 and, as x ↓ 0,
+
+                                        ϕ(x) − ϕ(0)
+                                                    −→ +∞.
+                                             x
+Since c ≥ α > 0, the third term ϕ(tc) gives limt↓0 (f (t) − f (0))/t = +∞. Therefore
+                                        
+                                        1      1          1
+                                     f       > f (0) + f (1).
+                                        2      2          2
+
+Equivalently, J(p∗ , v) > 0 whenever v3 ≥ α. The set Kα := {v ∈ ∆3 : v3 ≥ α} is compact, and
+v 7→ J(p∗ , v) is continuous. Hence
+
+                                     κ0 (α) := min J(p∗ , v) > 0.
+                                               v∈Kα
+
+By continuity of J on ∆3 × Kα , after decreasing ρrow (α) > 0 if necessary, we may ensure that
+whenever ∥u − p∗ ∥1 ≤ 3ρrow and v ∈ Kα , one has
+                                               P J(u, v) ≥ κ0 (α)/2. Set κ(α) := κ0 (α)/2. Now take
+u = T p and v = T q. Since p is ρrow -tight and i≥3 qi ≥ α, the result follows from Claim 4.8.
+
+   The next claim says that a true-tight C4 has nearly balanced orientation products.
+
+Claim 4.11. There is an absolute constant C > 0 such that the following holds. Let Q =
+({s1 , s2 }, {r1 , r2 }) be a true ρ-tight C4 -component for the Gibbs measure of A, with ρ < 1/20.
+Then
+                                    min{As1 r1 As2 r2 , As1 r2 As2 r1 }
+                                                                        ≥ 1 − Cρ.
+                                    max{As1 r1 As2 r2 , As1 r2 As2 r1 }
+In particular sQ ≥ 2 − Cρ.
+
+Proof. Let
+                                 D := Pr[M (s1 ) = r1 , M (s2 ) = r2 ]
+                                       µA
+
+and
+                                 X := Pr[M (s1 ) = r2 , M (s2 ) = r1 ].
+                                       µA
+
+Because Q is true ρ-tight, each internal edge marginal is within ρ of 1/2, and each row and column
+leakage from Q is at most 2ρ. If the event M (s1 ) = r1 occurs but M (s2 ) ̸= r2 , then column r2 is
+matched from outside {s1 , s2 }, an event of probability at most 2ρ. Therefore
+                                                          1
+                                      D ≥ Ps1 r1 − 2ρ ≥     − 3ρ.
+                                                          2
+Also D ≤ Ps1 r1 ≤ 1/2 + ρ. The same argument gives
+                                        1           1
+                                          − 3ρ ≤ X ≤ + ρ.
+                                        2           2
+   Conditioned on Q being internally closed, the residual outside problem is identical for the parallel
+and cross orientations. Hence
+                                         D     As r As r
+                                            = 1 1 2 2.
+                                         X     As1 r2 As2 r1
+Since both D and X lie in [1/2 − 3ρ, 1/2 + ρ], their ratio is between 1 − Cρ and (1 − Cρ)−1 for an
+absolute constant C, proving the claim.
+
+                                                  22
+    With the above claims in hand, we now prove Lemma 4.7.
+Proof of Lemma 4.7. Fix 0 < λ < 1/10 and ζ > 0. Choose α := λ4 . Let ρrow = ρrow (α) and κ = κ(α)
+be the constants from Claim 4.10. Choose ρ > 0 small enough so that
+                                       1               1
+                                  ρ ≤ ρrow ,      ρ< ,       Cρ ≤ λ,
+                                       2               20
+where C is the constant from Claim 4.11. Lastly, define εtr := κζ. Let Q be a row-disjoint collection
+of true ρ-tight C4 ’s for the true marginal matrix P , and suppose
+                                          per(A)          √
+                                     log          ≥ n log 2 − εtr n.
+                                         perB (A)
+Call a row si bad if it belongs to some Q = {s1 , s2 , r1 , r2 } ∈ Q and satisfies
+                                           X
+                                                  Ps∗i r ≥ α.
+                                                  r∈{r
+                                                   / 1 ,r2 }
+
+We show that there are few bad rows. Fix a bad row si belonging to such a Q ∈ Q. Since Q is a
+true ρ-tight C4 -component for P , the two internal true marginals in row si are within ρ of 1/2, and
+                                        X
+                                              Psi r ≤ 2ρ ≤ ρrow .
+                                           r∈{r
+                                            / 1 ,r2 }
+
+Also ρ ≤ ρrow , so after relabeling r1 , r2 as coordinates 1, 2, the row Psi ,· is ρrow -tight in the sense of
+Claim 4.10. Since si is bad,                    X
+                                                      Ps∗i r ≥ α.
+                                                  r∈{r
+                                                   / 1 ,r2 }
+Therefore Claim 4.10 implies that this row contributes at least κ to the Jensen gap:
+                              Psi ,· + Ps∗i ,·
+                                              
+                                                  1            1
+                          ψ                      − ψ(Psi ,· ) − ψ(Ps∗i ,· ) ≥ κ.
+                                     2            2            2
+By Lemma 1.2, every row Jensen gap is nonnegative. On the other hand, by Claim 4.9, the total
+row Jensen gap is at most εtr n/2. Thus the number of bad rows is at most
+                                             εtr       ζ
+                                                  n = n.
+                                             2κ        2
+Since Q is row-disjoint, the number of blocks in Q containing at least one bad row is also at most
+ζn/2. In particular, all but at most ζn/2 blocks in Q have both Bethe row leakages less than α.
+   Now fix such a good block Q = {s1 , s2 , r1 , r2 } ∈ Q. Then
+                                     X
+                                          Ps∗i r < α       (i = 1, 2).
+                                        r∈{r
+                                         / 1 ,r2 }
+
+We next show that the two Bethe column leakages are also small. Since P ∗ is feasible, all row and
+column sums equal 1. Therefore
+                            X                    X                          2 X
+                                                                            X 2
+                                       ∗                     ∗
+                                      Psr1
+                                           +                Psr2
+                                                                 =2−                  Ps∗i rj
+                         s∈{s
+                          / 1 ,s2 }            s∈{s
+                                                / 1 ,s2 }                   i=1 j=1
+                                                                                               
+                                                                      2
+                                                                      X             2
+                                                                                    X
+                                                                  =         1 −          Ps∗i rj 
+                                                                      i=1           j=1
+                                                                      2
+                                                                      X         X
+                                                                  =                    Ps∗i r < 2α.
+                                                                      i=1 r∈{r
+                                                                           / 1 ,r2 }
+
+
+                                                             23
+Thus the total row leakage is less than 2α and the total column leakage is less than 2α. Hence
+                                      leakP ∗ (Q) < 4α = λ.
+So all but at most ζn members of Q are λ-admissible. Finally, by Claim 4.11 and the choice of ρ,
+every member Q ∈ Q satisfies sQ ≥ 2 − λ. This proves the lemma.
+
+
+References
+[AA13]    Scott Aaronson and Alex Arkhipov. The computational complexity of linear optics. Theory
+          of Computing, 9(4):143–252, 2013. Preliminary version in STOC 2011.
+[Ana26]   Nima Anari. Beyond the bethe approximation of the permanent.             arXiv preprint
+          arXiv:2608.28031, 2026.
+[AOG17] Nima Anari and Shayan Oveis Gharan. A generalization of permanent inequalities and
+        applications in counting and optimization. In Proceedings of the 49th Annual ACM
+        SIGACT Symposium on Theory of Computing, pages 384–396, New York, NY, USA, 2017.
+        ACM.
+[AR25]    Nima Anari and Alireza Rezaei. A tight analysis of Bethe approximation for permanent.
+          SIAM Journal on Computing, 54(4):FOCS19–81–FOCS19–101, 2025. Special section for
+          FOCS 2019.
+[Bre73]   Lev M. Bregman. Some properties of nonnegative matrices and their permanents. Soviet
+          Mathematics Doklady, 14:945–949, 1973. Russian original in Doklady Akademii Nauk
+          SSSR, 211:27–30, 1973.
+[Bro86]   Andrei Z. Broder. How hard is it to marry at random? (On the approximation of the
+          permanent). In Proceedings of the 18th Annual ACM Symposium on Theory of Computing,
+          pages 50–58, New York, NY, USA, 1986. ACM.
+[BV04]    Stephen Boyd and Lieven Vandenberghe. Convex Optimization. Cambridge University
+          Press, Cambridge, 2004.
+[Csi17]   Péter Csikvári. Lower matching conjecture, and a new proof of Schrijver’s and Gurvits’s
+          theorems. Journal of the European Mathematical Society, 19(6):1811–1844, 2017.
+[CY13]    Michael Chertkov and Adam B. Yedidia. Approximating the permanent with fractional
+          belief propagation. Journal of Machine Learning Research, 14(62):2029–2066, 2013.
+[GK10]    David Gamarnik and Dmitriy Katz. A deterministic approximation algorithm for comput-
+          ing the permanent of a 0,1 matrix. Journal of Computer and System Sciences, 76(8):879–
+          883, 2010.
+[GS14]    Leonid Gurvits and Alex Samorodnitsky. Bounds on the permanent and some applications.
+          In Proceedings of the 55th Annual IEEE Symposium on Foundations of Computer Science,
+          pages 90–99. IEEE, 2014.
+[GS18]    Daniel Grier and Luke Schaeffer. New hardness results for the permanent using linear
+          optics. In Rocco A. Servedio, editor, 33rd Computational Complexity Conference (CCC
+          2018), volume 102 of Leibniz International Proceedings in Informatics (LIPIcs), pages
+          19:1–19:29, Dagstuhl, Germany, 2018. Schloss Dagstuhl–Leibniz-Zentrum für Informatik.
+
+                                               24
+[Gur11]   Leonid Gurvits. Unleashing the power of Schrijver’s permanental inequality with the
+          help of the Bethe approximation. Technical Report TR11-169, Electronic Colloquium on
+          Computational Complexity, 2011. arXiv:1106.2844.
+
+[JS89]    Mark Jerrum and Alistair Sinclair. Approximating the permanent. SIAM Journal on
+          Computing, 18(6):1149–1178, 1989.
+
+[JSV04]   Mark Jerrum, Alistair Sinclair, and Eric Vigoda. A polynomial-time approximation
+          algorithm for the permanent of a matrix with nonnegative entries. Journal of the ACM,
+          51(4):671–697, 2004.
+
+[LSW00] Nathan Linial, Alex Samorodnitsky, and Avi Wigderson. A deterministic strongly polyno-
+        mial algorithm for matrix scaling and approximate permanents. Combinatorica, 20(4):545–
+        568, 2000.
+
+[MM09]    Marc Mezard and Andrea Montanari. Information, physics, and computation. Oxford
+          University Press, 2009.
+
+[Rad97]   Jaikumar Radhakrishnan. An entropy proof of Bregman’s theorem. Journal of Combina-
+          torial Theory, Series A, 77(1):161–164, 1997.
+
+[Sch98]   Alexander Schrijver. Counting 1-factors in regular bipartite graphs. Journal of Combina-
+          torial Theory, Series B, 72(1):122–135, 1998.
+
+[Val79]   Leslie G. Valiant. The complexity of computing the permanent. Theoretical Computer
+          Science, 8(2):189–201, 1979.
+
+[Von13]   Pascal O. Vontobel. The Bethe permanent of a nonnegative matrix. IEEE Transactions
+          on Information Theory, 59(3):1866–1901, 2013.
+
+[YFW05] Jonathan S. Yedidia, William T. Freeman, and Yair Weiss. Constructing free-energy
+        approximations and generalized belief propagation algorithms. IEEE Transactions on
+        Information Theory, 51(7):2282–2312, 2005.
+
+
+
+
+                                               25
+

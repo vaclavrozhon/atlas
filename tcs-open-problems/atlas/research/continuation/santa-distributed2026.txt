@@ -1,0 +1,2692 @@
+                                                        Distributed Santa Claus via Global Rounding∗
+                                                            Tijn de Vos †○
+                                                                         r ‡ Leo Wennmann §○
+                                                                                           r Malte Baumecker †
+
+                                                                       r Yannic Maus †○
+                                                                       ○              r Florian Schager †
+
+
+                                                                                         May 1, 2026
+arXiv:2604.27983v1 [cs.DS] 30 Apr 2026
+
+
+
+
+                                                                                            Abstract
+                                                    In this paper, we consider the Santa Claus problem in the CONGEST model. This NP-
+                                                hard problem can be modeled as a bipartite graph of children and gifts where an edge
+                                                indicates that a child desires a gift. Notably, each gift can have a different value. The goal
+                                                is to assign the gifts to the children such that the least happy child is as happy as possible.
+                                                Even though this is a well-studied problem in the sequential setting, we obtain the first
+                                                results the distributed setting. In particular,
+                                                                                          √     we show that the complexity    of computing an
+                                                O(log n/ log log n)-approximation is Θ̂( n + D) rounds, where our Ω(   e √n + D)-round lower
+                                                bound is even stronger and holds for any approximation.
+                                                    This lower bound is in stark contrast to related allocation tasks like maximum matching
+                                                and load balancing, where there exist poly log n-round approximation algorithms. Since
+                                                Santa Claus is a max-min allocation problem, there are many more global dependencies.
+                                                Our lower bound construction shows that the non-existence of short augmenting paths does
+                                                not guarantee a good approximation, thereby ruling out many techniques used for matching
+                                                and related problems.
+                                                    Instead, our algorithm exploits that Santa Claus, despite its non-linear objective function,
+                                                can be modeled as a linear program (LP). In contrast to maximum matching, it is not
+                                                a packing (or covering) LP, because it has both packing and covering constraints. We
+                                                provide the first CONGEST solver that solves mixed packing and covering LPs in O(D ·
+                                                poly(log n, ε−1 )) rounds. Based on a fractional solution obtained by the solver, we obtain
+                                                an integral solution via an involved global rounding approach. The LP solver, as well as
+                                                the rounding technique we present, may both be of independent interest for the distributed
+                                                community and further our knowledge on the complexity of approximation in distributed
+                                                optimization.
+
+
+
+
+                                            ∗
+                                              This research was funded in whole or in part by the Austrian Science Fund (FWF) https://doi.org/10.
+                                         55776/P36280 and https://doi.org/10.55776/I6915. For open access purposes, the author has applied a CC
+                                         BY public copyright license to any author-accepted manuscript version arising from this submission. This research
+                                         was also supported by Dutch Research Council (NWO) project "The Twilight Zone of Efficiency: Optimality of
+                                         Quasi-Polynomial Time Algorithms" [grant number OCEN.W.21.268].
+                                            †
+                                              TU Graz
+                                            ‡
+                                              The    author    ordering    was    randomized   using     https://www.aeaweb.org/journals/policies/
+                                         random-author-order/ generator. It is requested that citations of this work list the authors separated
+                                         by \textcircled{r} instead of commas.
+                                            §
+                                              University of Southern Denmark
+
+
+                                                                                                1
+Contents
+1 Introduction                                                                                     3
+  1.1 Our Contribution . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     3
+  1.2 Technique in a Nutshell . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      5
+       1.2.1 Computing an Approximate LP Solution . . . . . . . . . . . . . . . . . . .            5
+       1.2.2 Efficiently Eliminating Cycles in Gift Graph via Global Rounding . . . . .            6
+       1.2.3 Computing an Integral Gift Assignment . . . . . . . . . . . . . . . . . . .           7
+       1.2.4 Lower Bound . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       8
+  1.3 Related Work and Other Approaches . . . . . . . . . . . . . . . . . . . . . . . . .          8
+       1.3.1 Sequential Santa Claus Approximations . . . . . . . . . . . . . . . . . . .           8
+       1.3.2 Distributed Rounding . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        9
+  1.4 Future Directions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    9
+
+2 Distributed Santa Claus                                                                     11
+  2.1 Efficiently Eliminating Cycles in Gift Graphs via Global Rounding . . . . . . . . 11
+      2.1.1 Cycle Rounding Algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+      2.1.2 Proof of the Cycle Rounding Lemma . . . . . . . . . . . . . . . . . . . . . 14
+  2.2 Linear Programming Formulation . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+  2.3 Computing an Integral Gift Assignment . . . . . . . . . . . . . . . . . . . . . . . 17
+      2.3.1 Big Gift Clustering . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+      2.3.2 Small Gift Assignment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+  2.4 Proof of the Approximation Factor . . . . . . . . . . . . . . . . . . . . . . . . . . 22
+
+3 Lower Bounds                                                                                    24
+
+4 Solver for Mixed Packing-Covering LPs                                                       29
+  4.1 Solving the Feasibility Problem . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+      4.1.1 The Algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 30
+      4.1.2 Proof of Correctness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 32
+  4.2 Reducing Optimization to Feasibility . . . . . . . . . . . . . . . . . . . . . . . . . 34
+  4.3 Implementation in CONGEST . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+
+References                                                                                        38
+
+A A Counterexample for Naive Sparsification                                                       46
+
+B CONGEST Primitives                                                                              47
+
+
+
+
+                                                 2
+1        Introduction
+A wide variety of optimization problems have attracted considerable attention in the distributed
+setting [KMW06; SHKK+12; HSS16; KMW16; AKO18; BCDE+19; BBHO+19; Gha19; ABL20;
+BO20; EGK20; BFKL21; RGHZ+22; ZGYH+22; CL21; CL23a; FGGK+23; HS23; IKY24;
+MS25; CS26]. Perhaps surprisingly, it still remains an interesting open question which dis-
+tributed optimization problems are hard to solve. Sometimes, the answer seems straight-forward:
+there are optimization problems like shortest path, min cut, and max flow that clearly have
+global dependencies and require Ω(D) rounds, even for approximations [SHKK+12]. On the
+other hand, there are problems with only local constraints like maximal independent set and
+coloring that allow for polylogarithmic-round algorithms [Gha19; HSS16]. For other problems,
+the complexity is less apparent. For example, approximating maximum independent set and
+minimum 2-dominating set require global knowledge [BCDE+19; EGK20], while approximating
+vertex cover, minimum dominating set, load balancing, and maximum matching do not [KMW16;
+ABL20; HS23]. The complete landscape of which problems are hard to approximate is still un-
+clear. In this paper, we aim to take a meaningful step towards filling the gaps by studying an
+allocation problem called the Santa Claus problem—as it was first coined in the seminal paper of
+Bansal and Sviridenko [BS06]. Informally, we help Santa Claus in his annual quest of trying to
+fulfill the children’s gift wishlists by distributing gifts to the children such that the least happy
+child is as happy as possible.
+     More formally, we are given a set of gifts G and a set of children C where each gift g ∈ G
+has a fixed value vg ≥ 0. Encoding the children’s wishlists as a bipartite graph G = (C ∪ G, E),
+our goal is to find disjoint sets of gifts Gc ⊆ N (c) ⊆ G for all children c ∈ C according to the
+objective function                                    X
+                                            max min       vg .
+                                                       c∈C
+                                                              g∈Gc
+Santa Claus, also referred to as the restricted assignment case or max-min fair allocation, has
+been extensively studied in the sequential setting [BD05; BS06; Fei08; AFS12; AKS15; PS16;
+CM18; JR20; DRZ20; CM22; HS25]. Note that some papers consider the scheduling formulation
+of Santa Claus, where the goal is to find an assignment of jobs (gifts) to machines (children)
+that maximizes the minimal machine load. Other variants of Santa Claus like the matroid,
+submodular, budgeted, unrestricted, and online versions have also been studied [CCK09; DRZ20;
+BGR21; SHPK22; BLMR+24; BMR25; RRW25].
+
+1.1        Our Contribution
+Notably, Santa Claus has not yet been studied in a distributed setting. In this paper, we consider
+the CONGEST model [Pel00], where a communication network is abstracted as an n-node graph,
+and the vertices communicate with each other through the edges of the graph in synchronous
+rounds by sending a message of O(log n) bits to each neighbor. The complexity measure is
+the number of communication rounds until every node has produced its output, e.g., each child
+knows which gift it receives and each gift knows to which child it is assigned.
+
+Distributed Hardness. Santa Claus is a max-min fair allocation problem where the max-min
+property creates global dependencies that require considerable amount of communication. This
+is reflected by the fact that computing a multiplicative approximation, i. e. an integral solution
+that is only a multiplicative factor worse than the optimum, is already hard. More formally, we
+show the following lower bound.1
+Theorem 1. Any CONGEST algorithm that computes any multiplicative approximation of the
+                                      e √n + D) rounds in the worst case.
+integral Santa Claus problem requires Ω(
+    1                                                    b ) := O(f 1+o(1) ) for any function f .
+        Throughout, we write O(f
+                             e ) := O(f poly log f ) and O(f
+
+
+                                                          3
+    In particular, this means that even computing a polynomial approximation is hard. This
+lower bound is a juxtaposition to other allocations problems like matching and load balancing.
+In particular, bipartite perfect matching is a special case of Santa Claus: Consider the case
+where the number of children is equal to the number of gifts, then each child must receive
+exactly one gift to maximize the minimum happiness. Consequently, such an assignment only
+exists if and only if there is a perfect matching. For maximum matching, there is a structural
+theorem by [HK73] with the following property: If there are no short augmenting paths in a given
+feasible matching, then it is a good approximation of the optimum. The proof of Theorem 1
+shows there is no such property for Santa Claus: even if a approximation is bad, there can be
+no short augmenting paths (see Remark 25). Therefore, many of the approaches and techniques
+used to solve matching simply do not transfer. The same argument also juxtaposes Santa Claus
+and its dual—the min-max allocation problem called load balancing. As for matching, there
+are (polylogarithmic) algorithms for load balancing in both LOCAL and CONGEST [FHS15;
+HKPR18; OBL18; BO20; ABL20], which often rely on augmenting paths. Hence, the techniques
+used in solving the load balancing problem do not transfer to Santa Claus either.
+
+CONGEST Algorithm for Santa Claus. In this paper, we present the first multiplicative
+approximation for Santa Claus that can be computed in an almost-optimal number of CONGEST
+rounds. We consider this our main contribution.
+
+Theorem 2. There exists a randomized CONGEST algorithm that, given a weighted bipartite
+graph G = (C ∪ G, E) on n vertices and vertex values vg ∈ R≥0 for all g ∈ G, computes w. h. p.
+                                                                    b √n + D) rounds.
+an O(log n/ log log n)-approximation for the Santa Claus problem in O(
+
+    In a nutshell, we start by computing a fractional solution to a suitable linear program (LP)
+relaxation of the problem, and then employ a combination of global and local rounding steps to
+compute an integral solution where each child is assigned a subset of gifts such that the total
+value is not much worse than the optimum. Note that in the integral solution, each gift is either
+assigned to one child or not at all.
+
+Linear Programming. As the max-min objective is technically non-linear, we start by ex-
+plaining why the Santa Claus problem can be modeled as an LP. By a standard binary search
+framework, the following decision variant of Santa Claus is equivalent to an α-approximation for
+the Santa Claus problem for some α > 1: Given a threshold T ≥ 0, either compute a solution
+of value T /α or determine that the optimal value of the Santa Claus Problem is less than T .2
+Intuitively, the threshold T can be thought of as the optimal fractional value found by binary
+search. Throughout, we assume that T is known. The big advantage of the decision variant is
+that it can be formulated as an LP as we explain in more detail in Section 1.2.1.
+    However, formulating Santa Claus as an LP can only be advantageous if we can actually
+solve the respective LP (formulation) efficiently in the distributed setting. This is not the
+case for all classes of LPs, as the fastest general distributed LP solver takes n1.5+o(1) rounds
+[Vos23]. While there are exponentially faster distributed solvers for either packing or covering
+LPs [KMW06; GKM17; CL23b], and specific packing and covering problems [JRS02; KMW16;
+BEG18; BHR18], there are no solvers for mixed packing and covering LPs like Santa Claus. It
+is easy to see that Santa Claus is in fact a mixed packing and covering LP: we want to ensure
+that all children get a value of at least T (covering constraints) while each gift can be assigned
+at most once (packing constraints). Building on prior sequential and parallel work [MRWZ16],
+we complement the world of existing distributed LP solvers by providing the first LP solver for
+mixed packing and covering LPs (also known as positive LPs) in the CONGEST model.
+   2
+    In particular, for some T larger than the optimal value the LP is not no longer feasible, i. e. there does not
+exist a solution that satisfies all constraints.
+
+
+
+                                                        4
+Theorem 3 (Simplified version of Theorem 29). There is a deterministic CONGEST      algorithm  
+                                                                                   e D log3 3 n
+that provides a (1 + ε)-approximate solution for mixed packing and covering LPs in O     ε
+rounds.
+
+    In particular, Theorem 3 is a distributed implementation of the PRAM algorithm by Ma-
+honey, Rao, Wang, and Zhang [MRWZ16]. The Ω(    e √n+D) lower bound of Theorem 1 shows that
+solving Santa Claus is harder than solving packing or covering LPs. This is supported by the fact
+that one can approximate several packing or covering problems, like maximum matching and
+maximum independent set, in poly log n-rounds when restricting to sparse graph classes [CS26],
+where we show that Santa Claus still requires Ω(D) rounds.
+
+1.2     Technique in a Nutshell
+In this section, we explain how to obtain an O(log n/ log log n)-approximation for distributed
+Santa Claus in the CONGEST model. On a high level, we follow the sequential approach of
+Bansal and Sviridenko [BS06] that consists of computing a fractional solution using an LP and
+then diligently rounding it to an integral solution. However, significant changes are necessary to
+make the sequential algorithm suitable for the distributed setting which we point out throughout
+the following explanation.
+    Throughout, we consider the Santa Claus problem in form of the bipartite graph G =
+(C ∪ G, E) where an edge {c, g} ∈ E is present if a child c ∈ C desires the gift g ∈ G. Further, let
+n = |C ∪ G|, m = |E| and α = O(log n/ log log n). For the rest of this exposition, consider the
+parameter T as the globally known optimal (integral) value of the Santa Claus problem. In the
+actual algorithm, we determine T via a global binary search without affecting the total runtime.
+
+1.2.1    Computing an Approximate LP Solution
+The first important step is to choose the right LP formulation of the Santa Claus problem. The
+challenge is that sequential LPs do not correspond to communication graphs, and can often be
+solved exactly in polynomial time3 using a standard LP solver. When using distributed LP tech-
+niques, we are restricted to LP formulations that correspond to the communication graph and we
+can only compute approximate fractional solutions. Here, we are heavily deviating from [BS06],
+because they use the configuration LP 4 that does not correspond to the communication graph
+and has exponentially many variables.
+    Therefore, we use the highly non-trivial, polynomial-size LP formulation due to Davies,
+Rothvoss and Zhang [DRZ20] that has a constant integrality gap, i. e. any optimal integer
+solution is a constant factor away from an optimal fractional solution. In Section 1.3.1, we
+explain why this does not directly lead to a constant factor approximation. For this formu-
+lation, we partition the set of gifts G into big gifts B := {g ∈ G : vg ≥ T /α} and small
+gifts S := {g ∈ G : vg < T /α}. Importantly, as we are showing an α-approximation, any child
+that receives one big gift is satisfied and does not require any more gifts. Let Cg ⊆ C denote
+the subset of children that are interested in the gift g ∈ G, then we refer to the following LP as
+   3
+    In (sequential) approximation algorithms, the polynomial running time is often not even explicitly stated.
+   4
+    In the configuration LP, there exist exponentially many variables for all possible subsets of gifts that have a
+total value of at least T . In the sequential setting, this can be solved in polynomial time by finding a solution to
+the dual LP via a polynomial-time separation oracle and the Ellipsoid method.
+
+
+
+
+                                                         5
+SantaLP(T ) throughout.
+                   X                                X           
+                           vs ucs ≥ T · 1 −                ucb              ∀c ∈ C
+                s∈S:c∈Cs                       b∈B:c∈Cb
+                                            X
+                              ucs ≤ 1 −              ucb                    ∀s ∈ S, ∀c ∈ Cs
+                                          b∈B:c∈Cb
+                       X
+                              ucg ≤ 1                                       ∀g ∈ G
+                       c∈Cg
+
+                              ucg ≥ 0                                       ∀c ∈ C, ∀g ∈ G
+
+Since this LP can be somewhat tricky to understand, it can be beneficial to ignore the gray
+parts and get some intuition for a simpler formulation5 without the distinction between gift
+sizes. Both formulations ensure that each child receives at least a total value of T and that all
+gifts are (fractionally) assigned at most once. Additionally, the non-trivial formulation ensures
+that each child who is not satisfied with big gifts alone receives the rest of the value from more
+than α small gifts—thereby ensuring that an optimal integral solution is only a constant factor
+away. For an in-depth explanation of the constraints, see Section 2.2.
+    Using Theorem 3, we can compute an approximate fractional solution to SantaLP(T ) in
+O(D·poly
+ e          log n) rounds of CONGEST. More precisely, we compute a feasible fractional solution u
+to SantaLP(T /2). Based on the size distinction between gifts, let u = (x, y) where x and y denote
+the assignments for the big and small gifts, respectively. From here on out, let G denote the
+bipartite gift graph based on the fractional solution u where an edge {c, g} of weight ucg ∈ [0, 1]
+is present if ucg > 0. Similarly, let Gx = (C ∪ B, E) denote the big gift graph between children
+and big gifts where an edge {c, b} ∈ E of weight xcb is present if xcb > 0.
+
+1.2.2    Efficiently Eliminating Cycles in Gift Graph via Global Rounding
+A crucial, reoccurring subroutine in the computation of our integral gift assignment in Sec-
+tion 1.2.3, i. e. our α-approximation, is the efficient elimination of cycles in subgraphs of G via
+global rounding. For the sake of simplicity, we explain our algorithm only for the general gift
+graph G that is restricted to its fractional edges. Our goal is to reduce G to a forest. In the
+sequential setting, the algorithm is simple: For all even cycles C in the bipartite graph G, par-
+tition C into two disjoint matchings C1 and C2 and decrease the edge weight in C1 at the same
+rate as the edge weights in C2 increase. Eventually, at least one edge weight becomes integral
+and is removed. We repeat this process until there are no more cycles left in G.
+    However, a naive implementation of this sequential procedure is prohibitively expensive.
+Since each cycle might be of length O(n) and we are only guaranteed to remove one edge in each
+iteration, this leads to a total runtime of O(nm) rounds—a time in which one can trivially solve
+any problem in CONGEST by gathering the whole instance in a node. Therefore, our CONGEST
+algorithm is substantially more involved. Based on a cycle cover algorithm [PY19; RGHZ+22],
+we design a cycle rounding algorithm that finds and eliminates many disjoint short cycles in
+                        √
+parallel and takes Ô( n + D) rounds. The high-level idea of our approach to eliminating cycles
+is to repeat the following steps restricted to the graph with only fractional edges:
+
+ (1) Compute a low diameter decomposition, obtaining clusters with small diameter and m/10
+     inter-cluster edges.
+
+ (2) Within each cluster, carefully extract a Eulerian subgraphs using T -joins.
+
+ (3) Compute short cycle covers: every edge appears in at least one cycle of length no(1) .
+   5
+    To be precise, there are two polynomial-size LP formulations without the gift size distinction (besides the
+configuration LP) whose integrality gaps can be unbounded or as large as Ω(m), see [BS06] for more details.
+
+
+                                                           6
+ (4) Select a maximal set of disjoint cycles using an MIS algorithm on a virtual graph.
+
+ (5) Round all cycles in parallel such that at least one edge in each cycle becomes integral.
+
+We show that each iteration makes a 1/no(1) fraction of the remaining edges integral. Then
+we repeat all steps on all remaining fractional edges. After log n · no(1) iterations, the graph G
+becomes a tree.
+     A priori, we cannot guarantee any progress once the graph becomes very sparse, that is,
+when there are n − 1 + n/10 edges left. In this case, the number of inter-cluster edges can be
+as large as n/10 such that the remainder is already a tree and no further edges are rounded. In
+order to avoid this and make our algorithm efficient, we apply the two following tricks: First, we
+simplify our graph to G′ by repeatedly removing all vertices of degree one. Second, we contract
+all long paths. Together, this results in a graph G′′ where the average degree is > 2. This means
+that (1 − ε)|E(G′′ )| ≥ |V (G′′ )| − 1, and we can still make progress. Since G′′ is not a subgraph pf
+the communication graph G (but also contains contractions), each ‘round’ on G′′ takes several
+rounds on G. We show that we can simulate each round on G′′ with O(         e √n + D) rounds on G.
+Multiplying this overhead with the number of rounds per iteration and the number of iterations
+       b √n + D).
+gives O(
+
+1.2.3     Computing an Integral Gift Assignment
+Based on the feasible fractional solution (x, y) to SantaLP(T /2), we explain how to compute
+an integral gift assignment (X, Z) such that each child receives a value of T /α. Our algorithm
+can be characterized by the following three steps where each step takes O(e √n + D) rounds in
+CONGEST.
+
+   1. Clustering of Big Gifts. With the goal to compute multiple clusters of big gifts, we
+      use our cycle rounding algorithm to compute a fractional solution (x′ , y) that corresponds
+      to an acyclic subgraph Gx′ ⊆ Gx . However, the resulting forest T ′ does not yet have
+      all properties we require to compute an integral assignment for all gifts. Thus, as a next
+      step, we compute a fractional solution (x∗ , y) where Gx∗ ⊆ Gx′ is a sub-forest T ∗ ⊆ T ′ of
+      children and big gifts with the crucial property that for each tree T ∈ T ∗ we can always
+      find one child in T to be satisfied in small gifts while all remaining children receive one
+      big gift. Recall that any child is satisfied by one big gift.
+
+   2. Randomized Selection of Small Gifts. For each tree T ∗ , we randomly select exactly
+      one child to receive only small gifts and propagate the choice to all other nodes in T ∗ .
+      Importantly, the random selection happens independently and in parallel for all T ∗ such
+      that all respective decisions whether a small gift is assigned to a tree are in fact independent.
+      Using a concentration and union bound, each small gift is w. h. p. (fractionally) assigned
+      to at most β = O(log n/ log log n) trees and exactly one child within each tree. After
+      downscaling the solution by β, each gift is fractionally assigned to at most one child and
+      each selected child receives a value of T /β. Notably, the random selection directly implies
+      the integral big gift assignment X, i. e. we simply root all T ∗ in their respectively chosen
+      children and assign the big gifts to their respective child node using the crucial property.
+        Naively, rooting a tree takes diameter rounds. Since we consider the big gift forest Gx∗ ,
+        each T ∗ can have diameter n. By using broadcast primitives on a compressed virtual
+                                                                 e √n + D) rounds.
+        graph, we show how to root all T ∗ in Gx∗ in parallel in O(
+
+   3. Integral Assignment of Gifts. Lastly, we consider the subgraph of small gifts and
+      randomly selected children with the goal to compute an integral assignment of small gifts.
+      Using our cycle rounding algorithm as a subroutine again, we first eliminate all cycles in
+      our small gift graph—this requires a careful adaption of the edge weights such that the
+
+
+                                                  7
+        rounding takes both the fractional solution and the values of the small gifts into account.
+        In a second step, we round our fractional small gift assignment to an integral assignment Z
+        such that each gift is assigned to at most one child and each child receives a value of T /α
+        where α = 2β. The high-level idea of the rounding is as follows: For a fixed child c ∈ C
+        that receives small gifts, let kc denote the (fractional) number of small gifts it receives in
+        the fractional solution. Then we round it such that each child receives ⌊kc ⌋ small gifts and
+        thus loses at most one small gift. In the worst case, this is the most valuable gift of value
+        at most T /α and each child receives a value of at least T /β − maxs∈S vs = T /α.
+
+1.2.4     Lower Bound
+We prove Theorem 1 via a reduction from set-disjointness in the two-party model to the Santa
+Claus problem in CONGEST. In particular, we construct a family of lower bound graphs where
+deciding whether Santa Claus admits a solution of size 1 or 0 corresponds to the decision whether
+a certain set-disjointness instance is a “yes”- or a “no”-instance. Observe that any multiplicative
+approximation is also able to distinguish between a 1- and a 0-instance. Combining our reduction
+with the restricted bandwidth of our lower bound graphs and the long-standing lower bound
+of Ω(n) for set-disjointness in the two-party communication model [Raz92], we obtain the claimed
+lower bound.
+
+1.3     Related Work and Other Approaches
+1.3.1      Sequential Santa Claus Approximations
+As a result of several papers [BS06; Fei08; AKS15; CM18; DRZ20], the current state-of-the-art
+for sequential Santa Claus is a (4 + ε)-approximation by Cheng and Mao [CM22]. It remains
+an interesting open question whether the approximation factor can be improved to match the
+hardness result by [LST90; BD05] who showed that unless P = N P there cannot exist a poly-
+nomial time (2 − ε)-approximation for Santa Claus. This raises the important question why we
+follow the first approach of [BS06] in our CONGEST algorithm and did not obtain a constant
+approximation based on the works of [Fei08; AKS15; CM18; DRZ20; CM22]. The answer is
+two-fold.
+    Bansal and Sviridenko [BS06] also show how to extend the approach followed in this paper to
+obtain a O(log log n/ log log log n) approximation via the sequential Lovász Local Lemma (LLL).
+Improving upon these ideas with iterative applications of LLL, Feige [Fei08] showed the first
+constant factor approximation.6 As the applications of distributed LLL either requires bounds
+on the number of small gifts that are adjacent to a big gift cluster (and vice versa) or subsampling
+of configurations of the configuration LP, it is highly unclear if this approach can be successfully
+transferred to the distributed setting.
+    Any sequential algorithm of [AKS15; CM18; DRZ20; CM22] is inherently global and combi-
+natorial, i. e. they do not require to solve an LP for an initial fractional solution. On a high level,
+they rely on polynomially many iterations of finding augmenting paths in the gift graph that
+improve upon the current gift assignment. Intuitively, one can hope that that all augmenting
+paths are short as long as we are far away from an optimal solution, because this would allow us
+to augment many paths in parallel. However, the proof of our Ω(       e √n + D)-round lower bound
+(see Remark 25) shows that such an approach must fail: Even if we are far away from an optimal
+solution, the augmenting paths can still be of length D. This is also the reason why the constant
+integrality gap of SantaLP(T ) does not automatically imply a constant approximation, as our
+approximation factor can only be as good as the guarantee that we maintain during our rounding
+   6
+    At the time, it was a non-constructive result that was later shown to be constructive by a result of [HSS11]
+that made LLL constructive for the several applications in Feige’s result.
+
+
+
+
+                                                       8
+procedure. It remains an open question whether a different approach that does not rely on the
+augmenting paths leads to a better approximation factor for our CONGEST algorithm.
+    A more general version of Santa Claus, also called unrestricted Santa Claus, considers the
+case where each child c ∈ C desires a gift g ∈ G with a different value vcg ≥ 0. Known as a notori-
+ously difficult open problem, the state-of-the-art is a max{poly(log |G|), |G|ε }-approximation by
+Chakrabarty, Chuzhoy, and Khanna [CCK09]. In recent years, Bamas and Rohwedder [BR23]
+showed a poly(log log |G|)-approximation for what Bateni, Charikar, and Guruswami [BCG09]
+identified as another central special case of Santa Claus—the problem of max-min degree ar-
+borescence as it captures much of its difficulty. However, this still leaves a significant gap to the
+known hardness by [LST90; BD05] that also holds for the unrestricted case.
+
+1.3.2    Distributed Rounding
+On a high-level, our algorithm computes a fractional solution to Santa Claus and then rounds
+it to an integral solution. Although distributed rounding is well-studied, the challenge we face
+are distinct from existing work. Mainly following one recipe, previous work on local rounding in
+distributed algorithms can be described as follows: Start with a suitable fractional solution—
+usually an uniform distributionPover all possible output labels—of the problem. Next, define a
+linear objective function Φ = v∈V Φv . Then pick a set S of vertices such that changing the
+fractional labels of any vertex v ∈ S does not affect Φw for any w ∈ S \{v}. Round the fractional
+labels in S to integral labels and remove S from the graph. Repeat this procedure until the
+graph is empty. This produces a partial solution for a constant fraction of vertices in the graph.
+Hence, recursing on the remaining subgraph for O(log n) iterations solves the problem on the
+entire graph. This general method is responsible for many recent breakthroughs in the LOCAL
+model; see [Fis20; GK21; GGR21; FGGK+23; GG23; GG24]. This approach relies on a few key
+assumptions that are violated for Santa Claus: First of all, it assumes that any valid partial
+solution can always be extended to a proper solution of the same objective value. Secondly, it
+assumes that it is always possible to round a fractional solution without loss in objective value.
+This is clearly impossible for Santa Claus, as illustrated by the following simple instance: There
+are two children and one gift of value 1 desired by both children. The optimal fractional solution
+has value 1/2 but any integral assignment has value 0.
+     For global problems, rounding is less common. The only rounding algorithm in CONGEST
+                                       e √m + D) rounds [FGLP+21]. The important subroutine
+we are aware of is for flow and takes O(
+of finding a Eulerian tour has since been improved to O( e √n + D) rounds [RGHZ+22] which can
+be seen as the starting point of the cycle rounding detailed in Section 2.1.1. However, we cannot
+use their algorithm, as our input graph does not have the structure required by [FGLP+21;
+RGHZ+22].
+
+1.4     Future Directions
+In some sense, the cycle rounding subroutine of Section 2.1.1 can be seen as a sparsification
+procedure: it significantly reduces the number of fractional edges while maintaining the fact that
+it is a feasible fractional solution. To some extend, this rounding technique is content-oblivious:
+it is rounding the values of a fractional solution of a linear program. Further research is required
+to find out under which circumstances such a sparsification can be used in other optimization
+problems. For Santa Claus, it already raises the question whether this sparsification can be
+run directly on the entire fractional solution—thereby considerably simplifying our algorithm.
+It turns out that this is not possible, which requires some care to see. Such a sparsification
+step essentially removes any edges that attain weight 0 through rounding. However, an optimal
+integral solution does not need to be a subset of the non-zero fractional edges (see Example 43 in
+Section A). Importantly, when we apply this sparsification step as a subroutine in our algorithm,
+we diligently guarantee that there exists a good integral solution that is a subset of the fractional
+
+
+                                                 9
+edges. We leave as an open question which other optimization problems can be approached in
+a similar manner.
+
+
+
+
+                                           10
+2     Distributed Santa Claus
+Throughout this section, we show the following approximation for the Santa Claus problem.
+
+Theorem 2. There exists a randomized CONGEST algorithm that, given a weighted bipartite
+graph G = (C ∪ G, E) on n vertices and vertex values vg ∈ R≥0 for all g ∈ G, computes w. h. p.
+                                                                    b √n + D) rounds.
+an O(log n/ log log n)-approximation for the Santa Claus problem in O(
+
+    Crucially, our approximation requires multiple times that we can efficiently eliminate cycles
+from a (sub-)graph as shown in Section 2.1. After applying our mixed packing and covering LP
+solver (see Theorem 29) to compute an initial fractional assignment of gifts to children using
+the LP formulation in Section 2.2, we show how the pivotal cycle-elimination subroutine is used
+to compute an integral gift assignment in Section 2.3. Finally, we put all the pieces together
+in Section 2.4 and show that the CONGEST algorithm described throughout this section has
+w. h. p. an approximation factor of α = O(log n/ log log n).
+
+2.1     Efficiently Eliminating Cycles in Gift Graphs via Global Rounding
+In this section, we provide a CONGEST algorithm that efficiently eliminates cycles in a (sub-)
+graph. More formally, we show the following lemma.
+
+Lemma 4 (Cycle Rounding). Let G = (V, E) be a CONGEST communication network and G′ =
+                                                                                         b √n + D)-
+(V, E ′ ) be a subgraph with edge weights w : E ′ → [0, 1]. There exists a deterministic O(
+round algorithm that computes edge weights w′ : E ′ → [0, 1] such that
+                    ′
+       P                    P
+   1.      v∈N (u) w (uv) =   v∈N (u) w(uv) for every u ∈ V ; and
+
+    2. There exists some forest F ⊆ E ′ such that all edges e ∈ E ′ \ F have integral value w′ (e).
+
+    The idea of the rounding procedure is simple: for any cycle in G′ , we find the edge of
+minimum or maximum weight w (depending on which is closer to 0 or 1) and alternatingly
+increase or decrease all weights around the cycle by w. Although correctness of such an algorithm
+is straightforward, it is tricky to efficiently implement it in the distributed setting. There exist
+CONGEST implementations of this procedure for rounding flow [FGLP+21; RGHZ+22; FV23],
+cumulating in a O(e √n + D)-round algorithm. However, these algorithm are tailored to graphs
+with specific properties. In particular, (1) the sum of all edge weights for any vertex needs to be 1
+and (2) the graph should be Eulerian, i.e., each node has even degree. The latter property implies
+that it can be decomposed into a union of cycles. Overcoming the challenges of dropping these
+assumptions requires several new ideas. In our approach, we bypass (1) completely. Moreover,
+we introduce a preprocessing step so that allows use to reduce to the case where the graph is
+Eulerian.
+
+2.1.1    Cycle Rounding Algorithm
+Let G′ denote the graph induced by all edges with non-integral weights. The high-level idea of
+the cycle rounding algorithm of Lemma 4 is to repeat the following two steps in each iteration:
+(1) We prune G′ by removing all edges which cannot be covered by a cycle. (2) For each Eulerian
+graphs that we extract from the remaining graph, we compute a short cycle cover and round
+all cycles in parallel. This guarantees that at least one edge in each cycle becomes integral. We
+show that each iteration makes a 1/no(1) fraction of the remaining edges integral. Throughout
+the rest of this section, we explain both of these steps in more detail, for an overview refer to
+Algorithm 1.
+
+
+
+
+                                                 11
+ Algorithm 1: Cycle Rounding
+   Input : A subgraph G′ = (V, E ′ , w) of the CONGEST network G = (V, E).
+   Output: G = (V, E ′ , w′ ) such that w′ satisfies Lemma 4.
+ 1 for no(1) iterations do
+                       ▷ Each iteration makes a 1/no(1) fraction of remaining edges integral
+ 2    V ← V , E ← {e ∈ E : w(e) ∈
+        ′         ′                    / Z}, G′ = (V ′ , E ′ ).
+ 3    repeat
+ 4        Remove all nodes of degree 1 from G′ .                                   ▷ Lemma 5
+ 5        Contract all odd paths of degree 2 nodes in G′ .                        ▷ Lemma 45
+ 6    until there are no nodes of degree 1 in G′ .
+ 7    Compute a (1/10, no(1) )-low diameter decomposition S1 , . . . , Sk on G′ . ▷ Lemma 7
+ 8    for i ∈ [k] in parallel do
+ 9        T ← {v ∈ Si : degG′ [Si ] (v) is odd}.
+10        Compute a T -join Fi on G′ [Si ].                                        ▷ Lemma 9
+11        Compute a (n , n )-cycle cover Ui on G [Si ] \ Fi .
+                         o(1)  o(1)                         ′                     ▷ Lemma 11
+12        for C ∈ Ui in parallel do
+13           Round C.                               ▷ At least one edge on C becomes integral
+
+
+
+    Step 1: Simplify the Graph. Let G′ = (V, E ′ ) denote our graph restricted to only
+fractional edges E ′ = {e ∈ E : w(e) ∈   / Z}. Using the following lemma, we compress our
+graph G by removing parts of it that cannot be covered by cycle. To be precise, we simulate
+         ′
+
+the procedure that iteratively removes all nodes of degree 1.
+Lemma 5. Let G = (V, E) denote a CONGEST communication network and let F ⊆ G be a
+                                 e √n + D)-round CONGEST algorithm that roots every tree
+forest. There is a deterministic O(
+T ∈ F at an arbitrary vertex r ∈ T and informs everyone of their parent in the tree.
+    For the proof, refer to Appendix B. Tailored to our algorithm, we use the above lemma with
+the following operations inspired by Miller and Reif [MR89].
+   • Rake: All edges incident to a vertex of degree one are removed.
+
+   • Compress: All paths of degree two vertices that have at least a length of two are contracted
+     into a single edge.
+Repeatedly using the above operations results in a significantly compressed graph G′′ .
+
+    Step 2: Orienting Cycles in Simplified Graph. The goal of our next step is to orient
+cycles in G′′ . Since our subroutines for making the graph Eulerian (see Lemma 9) and for finding
+a cycle cover in a Eulerian graph (see Lemma 11) take time proportional to the diameter, we
+start by computing a low diameter decomposition of G′′ .
+Definition 6. Given an undirected, unweighted graph G = (V, E), a (β, d)-low diameter decom-
+position is a partition of V into subsets S1 , . . . , Sk such that
+   • The diameter of G[Si ] is at most d for each i ∈ [k];
+
+   • The number of edges with endpoints belonging to different pieces is at most βm.
+    Low diameter decompositions are well studied in the CONGEST model [MPX13; RG20;
+CG21; FGV21; GGR21; REGH22; GGHI+23; RHG23]. We use a deterministic version stated
+in Lemma 7 which has slightly worse bounds than its randomized counterparts, but simplifies
+our analysis and does not incur a higher asymptotic runtime.
+
+                                               12
+Lemma 7 ([CS20]). There exists a deterministic algorithm that computes a (1/10, no(1) )-low
+diameter decomposition in no(1) rounds of CONGEST.
+
+    With Lemma 7, we decompose G′′ into clusters S1 , . . . , Sk of small diameter and with few
+additional edges. For each cluster Si , we carve out a sparse graph Fi such that the remain-
+der G′′ [Si ] \ Fi is Eulerian. The technical term for such a graph Fi is a T -join.
+
+Definition 8. Let G = (V, E) be an unweighted, undirected graph. For an even set of vertices
+T ⊆ V , we call a subset H ⊆ E a T -join if degH (v) is odd for v ∈ T and even for v ∈ V \ T .
+
+   We can efficiently compute a T -join using the following algorithm.
+
+ Algorithm 2: Computing a T -join
+   Input : Communication network G = (V, E), an even set of vertices T ⊆ V .
+   Output: An acyclic T -join H ⊆ E.
+ 1 Compute a BFS-tree S ⊆ G rooted at an arbitrary node r ∈ T .
+ 2 H ←∅
+ 3 for i = D, . . . , 1 do
+ 4    for each u ∈ S : dist(u, r) = i in parallel do
+                                                   ▷ Su denotes the subtree of S rooted at u.
+ 5        if |T ∩ Su | is odd then
+ 6            H ← H ∪ {{u, p(u)}}                        ▷ p(u) denotes the parent of u in S
+
+ 7 return H
+
+
+
+
+Lemma 9. Algorithm 2 computes an acyclic T -join in O(D) rounds in the CONGEST model.
+
+Proof. First, we argue the correctness of Algorithm 2. Note that for every node u ∈ T , the
+degree degH (u) cannot change after checking the parity of |T ∩ Su |. Thus, it is sufficient to show
+that after processing {u, p(u)}, each vertex v ∈ T ∩ Su has odd degree degH (v) in H and every
+vertex in Su \ T has even degree. We prove the claim via induction on the height hu of Su .
+    Base case (hu = 0). In this case, the tree Su contains only u. If u ∈ T , we keep {u, p(u)}, so
+degH (u) = 1. If u ∈/ T , we do not keep {u, p(u)}, so degH (u) = 0. In both cases, the induction
+hypothesis is satisfied.
+    Induction step (hu > 0). By induction hypothesis, it holds for all v ∈ T ∩ Su \ {u}. Hence,
+we only need to show it for u. Note that any child of u in Su ∩ H has an odd number of nodes
+from T in its subtree. Let Cu (H) denote the number of children in Su ∩ H, then we distinguish
+four exhaustive cases.
+
+  1. Case: u ∈ T
+
+        • If Cu (H) is odd, then the number of nodes from T including u is even, and {u, p(u)}
+          is not included. Thus, degH (u) = Cu (H) is odd.
+        • If Cu (H) is even, then the number of nodes from T including u is odd, and {u, p(u)}
+          is included. Hence, degH (u) = Cu (H) + 1 is odd.
+
+  2. Case: u ∈
+             /T
+
+        • If Cu (H) is odd, then the number of nodes from T is odd, and {u, p(u)} is included.
+          Thus, degH (u) = Cu (H) + 1 is even.
+        • If Cu (H) is even, then the number of nodes from T is even, and {u, p(u)} is not
+          included. Hence, degH (u) = Cu (H) is even.
+
+
+                                                13
+In all cases, the induction hypothesis is satisfied. Since later steps do not influence the de-
+gree degH (v) for v ∈ Su , it holds that H is a T -join. Computing the BFS-tree S takes O(D)
+rounds in CONGEST. Further, since all vertices on the same level in S can be processed inde-
+pendently in parallel, it also takes O(D) rounds to grow H into a T -join. Finally as a subgraph
+of a spanning tree, H has to be acyclic.
+
+    Using Lemma 9 with T = {v ∈ Si : degG′′ [Si ] (v) is odd}, the remainder G′′ [Si ]\Fi is Eulerian
+and we can decompose it into disjoint cycles. However, these cycles can be of large diameter,
+which makes it expensive to round them. In the worst case, only one edge disappears in each
+iteration. Parter and Yogev [PY19] showed that any graph can be decomposed into short cycles
+and additional O(n log n) edges. As it is not straightforward what to do with the last O(n log n)
+edges, we take a more nuanced approach using cycle covers.
+
+Definition 10. A (d, c)-cycle cover is a collection of cycles U in a graph G such that
+
+  1. Each edge is contained in at least one cycle;
+
+  2. Each edge is contained in at most c cycles; and
+
+  3. Each cycle is of length at most d.
+
+   Within their proof for short cycle decomposition, Parter and Yogev [PY19] use a lemma
+that computes (d, c)-cycle covers in a bridgeless graph. A bridge is an edge whose removal
+makes the graph disconnected and thus cannot be covered by a cycle. The following lemma is a
+derandomization of their result by Rozhoň, Grunau, Haeupler, Zuzic, and Li [RGHZ+22].
+
+Lemma 11 ([RGHZ+22]). Given ε ∈ (0, 1] and a bridgeless n-vertex graph G = (V, E) with
+diameter D, there exists a deterministic CONGEST algorithm that computes a (d, c)-cycle cover
+U with d = no(1) · D and c = no(1) in no(1) · D rounds.
+
+    As G′′ [Si ] \ Fi is Eulerian, it is also bridgeless and we can compute a cycle cover Ui with
+Lemma 11. As a last step, we simply round all cycles C ∈ Ui such that at least one edge in each
+cycle becomes integral.
+
+2.1.2   Proof of the Cycle Rounding Lemma
+Putting all the pieces together, we finally prove our cycle rounding algorithm of Lemma 4.
+
+Proof of Lemma 4. We describe an iterative process, such that in each iteration, a 1/no(1) -
+fraction of the remaining edges (minus some forest) becomes integral. After log n·no(1) iterations,
+all edges apart from some remaining forest become integral. See Algorithm 1 for an overview of
+the algorithm.
+    Each iteration consists of two steps, which we detail below. We make our progress in the
+second step, where we need to compute a T -join (Lemma 9) and a cycle cover (Lemma 11).
+Both procedures have a round complexity that depends on the diameter of G. So we have a first
+step that removes tree-like parts of the graph and computes a low diameter decomposition on
+the remainder, giving the graph on which we make progress low diameter.
+    1. Simplifying the graph. Our goal is to remove any part of the remaining graph that
+cannot be covered by a cycle. In other words, we remove the tree-like part of the graph. More
+precisely, we give an efficient implementation of the algorithm that iteratively removes all edges
+that connect to a vertex of degree 1. Let F denote these edges. We find this set F by the Rake
+& Compress procedure of Lemma 5, tailored to this application. We run O(log n) iterations of
+the following algorithm.
+
+   • Rake: Remove all edges incident to a vertex of degree one.
+
+
+                                                 14
+   • Compress: Contract all paths of degree two vertices of length at least two into a single
+     edge.
+    Formally, we apply the Rake & Compress procedure in Lemma 5 with the forest F as defined
+above. This seems contradictory: we apply Lemma 5 with F as input to find F . However, it
+is crucial here that Lemma 5 does not require that all the edges in F know that they are in F :
+only the leaves need to be aware of this at any moment in time. Hence, we can perform each
+Rake operation in 1 round. As detailed in Lemma 5, we can perform each Compress operation
+    e √n + D) rounds. Note that for this step, we compress all paths of degree two vertices, not
+in O(
+only the paths within the tree. This is necessary, since a priori it is not possible to know which
+paths are part of the tree. However, this does not incur more rounds: Lemma 45 shows that we
+can contract such paths with at most O(  e √n + D) overhead.
+    At the end of this process, we consider the original (uncompressed) graph without all removed
+edges. This is a graph without degree 1 vertices. However, we can still have many degree 2
+vertices. We now run one iteration of Compress, but contract slightly less aggressively:
+   • Compress’: Contract all paths of degree two vertices of an odd number of edges into a
+     single edge. Replace the weight of this edge by the minimum weight on the path.
+      The reason to only contract odd number of edges, is that the graph now remains bipartite.
+We perform Compress’ in O(      e √n + D) rounds, again using Lemma 45, which also ensures that,
+when round a contracted edge, we can forward the weight change to all edges on the path in
+ e √n + D) rounds.
+O(
+      Number of edges left. After O(log n) iterations of (i) and (ii), we have reduced to a graph
+with fewer nodes and edges. We denote this graph by G′ with n′ nodes and m′ edges. We claim
+                ′
+that m′ ≥ 6n   5 . This can be seen as follows. Note that after a Compress operation, no two degree
+                                                       ′
+2 nodes can be adjacent. If there are at least 3n    5 nodes with degree 2, all non-adjacent, then we
+                    ′    6n′                       3n′                                             2n′
+have m′ ≥ 2 · 3n   5 = 5 . If we have at most 5 nodes with degree 2, then we have at least 5
+                                                                     ′       3n′      6n′
+nodes with degree at least three, so in total at least m′ ≥ (3 · 2n 5 + 2 · 5 )/2 = 5 .
+      Reducing the diameter. Next, we compute a low diameter decomposition with Lemma 7,
+                                                                         ′
+that decomposes into parts S1 , . . . , Sk with no(1) diameter and m   10 additional edges. Algorith-
+mically, we continue to work on each of the clusters Si in parallel – in the analysis, we consider
+all clusters simultaneously.
+      2. Orienting cycles in each cluster. Let T = TiSdenote all odd degree nodes, with
+                                                             S
+Ti the odd degree nodes in Si . We compute a T -join F = Fi that is a forest by computing
+a Ti -join Fi using Lemma 9 in no(1) -rounds on the virtual graph. By Lemma 45 this takes
+O(no(1) · O( e √n + D)) rounds on the communication network G. Now Si \ Fi is Eulerian, hence
+bridgeless. We compute a (d, c)-cycle cover U for c = d = no(1) on this graph in no(1) rounds
+using Lemma 11. Again by Lemma 45 this takes O(no(1) · O(       e √n + D)) = O(  b √n + D) rounds on
+the communication network G. To obtain a good set of disjoint cycles, we compute a maximal
+independent set on these cycles. Hereto, we construct a virtual graph Ĝ of the cycles in U, where
+to cycles are connected if they share an edge. Now we run a deterministic O(poly log n)-round
+CONGEST algorithm for MIS on Ĝ [CPS20; GGR21]. Note that sending messages along the
+cycles incurs an additional multiplicative simulation overhead of c · d = no(1) .
+      Parter and Yogev [PY19] show that a maximal set of cycles covers an Ω(1/(cd))-fraction of
+the edges. We repeat the argument here for completeness: each cycle C ∈ U intersects with at
+most |C| · c many cycles in U. Thus, when we add the cycle C into the collection D we cover
+|C| many edges. When we remove the |C| · c cycles that intersect with C, we remove the cover
+of at most |C| · c · d many edges in G′ that appear on these cycles. That is, at each iteration,
+the ratio between the number of edges we cover and the number of edges that the covering cycle
+removed is at least 1/dc.
+      This means that we have a set of disjoint cycles of length no(1) each, covering at least
+           ′
+    ′
+(m − m                o(1) edges in total, where the −m′ /10 term comes from the inter-cluster edges
+         10 − |F |)/n
+
+
+                                                 15
+of the low diameter decomposition and the −|F | from the T -join. We can round a cycle by
+traversing it on the virtual graph in no(1) rounds. Since the cycles are edge-disjoint, we can
+round all cycles in parallel. Again by by Lemma 45, this takes no(1) · O(     b √n + D) rounds on the
+communication network. Since each cycle makes at least one edge integral and each cycles has
+length no(1) , this makes at least ( 10
+                                     9
+                                        m′ − |F |)/no(1) · no(1)
+                                                             1       9
+                                                                 = ( 10 m′ − |F |)/no(1) edges integral.
+    Iterative improvement. We now repeat Steps 1 and 2, each time starting with all remain-
+ing fractional edges of G = (V, E) – so all pruning and contraction steps are undone and the
+T -join forest F is added back in to the graph.
+    If we would omit Step 1, the algorithm does not guarantee to make progress when m′ = O(n),
+since then 109
+               m′ − |F | could be 0, and no further edges are rounded. However, by Step 1, we
+                ′
+have m′ ≥ 5 , or equivalently n′ ≤ 65 m′ and hence 10
+              6n                                              9
+                                                                m′ − |F | ≥ 109
+                                                                                m′ − 56 = 151
+                                                                                              m′ . Hence
+we always remove a 15 /n 1   o(1) = 1/n -factor of the edges that are not part of the T -join
+                                         o(1)
+
+forest F . The edges that survive this iteration are the edges in F , together with all edges on
+the cycles that did not become integral. Thus, the number of fractional edges decreases to
+m′′ ≤ |F | + (1 − 1/no(1) )(m′ − |F |), or equivalently m′′ − |F | ≤ (1 − 1/no(1) )(m′ − |F |). Hence,
+we claim that m′ = |F | after log n · no(1) iterations and thus we are only left with a forest of
+fractional edges.
+
+2.2    Linear Programming Formulation
+Let OPT denote the optimal value of the Santa Claus problem. By a standard binary search
+framework, the following decision variant of the Santa Claus problem is equivalent to an α-
+approximation algorithm for some α > 1: Given a threshold T ≥ 0, either compute a solution
+of value T /α or determine that OPT < T . Intuitively, the threshold T can be thought of as the
+optimal value that was found by binary search. Throughout, we assume that T is known and
+partition the set of gifts into big gifts B := {g ∈ G : vg ≥ T /α} and small gifts S := {g ∈ G :
+vg < T /α}. Originally introduced by [LST90], this distinction has become the standard in the
+literature on Santa Claus. Importantly, as we are showing an α-approximation, any child that
+receives one big gift is satisfied and does not require any more gifts. Due to that insight, we
+implicitly assume that all big gifts have a value of T for the rest of the section.
+    In order to compute a fractional solution, we use the following non-trivial LP of Davies,
+Rothvoss and Zhang [DRZ20] (this expanded version was first used in [RRW25]) that we refer
+to as SantaLP(T ) throughout.
+                                                !
+                X                        X
+                   vs · zcs ≥ T · 1 −       xcb                ∀c ∈ C                        (1)
+                s∈S                            b∈B
+                                        X
+                            zcs ≤ 1 −         xcb                 ∀c ∈ C, s ∈ S                     (2)
+                                        b∈B
+                      X
+                            xcb ≤ 1                               ∀b ∈ B                            (3)
+                      c∈C
+                      X
+                            xcb ≤ 1                               ∀c ∈ C                            (4)
+                      b∈B
+                      X
+                            zcs ≤ 1                               ∀s ∈ S                            (5)
+                      c∈C
+                      xcb , zcs ≥ 0                               ∀c ∈ C, b ∈ B, s ∈ S              (6)
+
+During the following explanation of the constraints, it is helpful to think of an integral solution:
+Constraints (3) and (4) ensure that each big gift b is assigned to at most one child c and vice
+versa. If child c is assigned a big gift b, then zcs = 0 and c does not receive any small gifts as
+
+
+                                                     16
+enforced by Constraint (2). Otherwise, we have zcs ≤ 1 and c is compensated in small gifts only.
+The same argument applies to Constraint (1), where the right-hand side is zero if c is assigned
+a big gift or T if it is not. In the latter case, child c receives at least a value of T in small gifts.
+Constraint (5) guarantees that each small gift is assigned at most one time.
+    Furthermore, Constraints (1) and (2) enforce the fundamental property that any child c ∈ C
+that receives small gifts with zc > 0|S| is always assigned more than α many gifts. More
+formally, let Sc ⊆ S denote the set of small gifts that c receives. By definition of the small gifts
+and Constraints (2) and (1) follows that
+                                              !                            !
+      X               X                X            |Sc |           X           |Sc | X
+           vs · zcs <     T /α · 1 −       xcb =          ·T · 1−       xcb ≤        ·    vs · zcs .
+                                                     α                           α
+      s∈Sc          s∈Sc              b∈B                             b∈B            s∈Sc
+
+Consequently, any child c with zc > 0|S| is assigned strictly more than α many small gifts. Thus,
+it is always possible to scale the small gift assignment of c to be of value T , i. e. we set
+                                                  1
+                                    zc′ =        P          · zc ≤ 1|S|
+                                            1−    b∈B xcb
+
+such that s∈Sc vs · zcs  ′ ≥ T . While z ′ is not necessarily a feasible solution to SantaLP(T )
+            P
+anymore, we use this property to compute our approximation.
+    Given a fractional solution (x, y) ∈ [0, 1]|C|·|G| to SantaLP(T ), the vectors x ∈ [0, 1]|C|·|B|
+and y ∈ [0, 1]|C|·|S| denote the assignments for the big and small gifts, respectively. In addition,
+let Gx = (C ∪ B, E) denote the big gift graph between children c ∈ C and big gifts b ∈ B
+where an edge {c, b} ∈ E of weight xcb is present if xcb > 0. Similarly, we define the small gift
+graph Gy = (C ∪ S, E ′ ) for c ∈ C and s ∈ S where each edge {c, s} ∈ E ′ of weight ycs is present
+if ycs > 0.
+
+2.3     Computing an Integral Gift Assignment
+Starting from an optimal fractional solution (x, y) to SantaLP(T ), we show how to compute
+an integral gift assignment (X, Z) such that each child receives a value of T /α throughout this
+section.
+
+2.3.1    Big Gift Clustering
+As a first step, we transform an optimal fractional solution (x, y) to SantaLP(T ) into another
+feasible fractional solution (x′ , y) that corresponds to an acyclic subgraph Gx′ ⊆ Gx . Similar
+to Bansal and Sviridenko [BS06], our goal is to cluster children and big gifts in Gx′ such that
+we can always find one child in the cluster to be satisfied in small gifts while all remaining
+children receive exactly one big gift. Recall that any child is satisfied with receiving one big gift
+of value T and any non-zero small gift assignment can be scaled to a value of T , as explained
+in Section 2.2. We start by showing that the result of removing cycles from Gx as described in
+Section 2.1 still corresponds to a feasible solution to SantaLP(T ).
+
+Corollary 12 (Acyclic Big Gift Graph). Let (x, y) be a feasible fractional solution to SantaLP(T ).
+    b √n + D) rounds of CONGEST, we can compute another feasible solution (x′ , y) such that
+In O(
+the corresponding big gift graph Gx′ ⊆ Gx is a forest.
+
+Proof. Applying Lemma 4 to Gx = (C∪B, E) results in aP        sparse subgraph GxP          b √n+D)
+                                                                                 ′ ⊆ Gx in O(
+
+rounds of CONGEST. From property (2) follows that c∈C x′cb ≤ 1 and b∈B x′cb ≤ 1. Thus,
+the Constraints (3) and (4) are still satisfied. Since y does not change, the Constraints (1), (5)
+and (2) are also still satisfied. Hence, (x′ , y) is a feasible solution to SantaLP(T ).
+
+   The following lemma uses similar arguments as Bansal and Sviridenko [BS06, Lemma 6].
+
+                                                      17
+Lemma 13 (Big Gift Clusters). Let (x′ , y) be the fractional solution computed in Corollary 12.
+    e √n + D) rounds of CONGEST, we can compute a feasible fractional solution (x∗ , y) to
+In O(
+SantaLP(T ) such that the corresponding big gift graph Gx∗ is a forest where we have for any
+tree T ∗ = (C ∗ ∪ B ∗ , E ∗ ) that
+   1. Each big gift b ∈ B ∗ has degree at most two in T ∗ ;
+   2. For any c ∈ C ∗ , there always exists an integral assignment of big gifts b ∈ B ∗ to the
+      remaining C ∗ \{c} children; and
+   3. If we cannot assign a big gift to every child c ∈ C ∗ , then the total value in small gift
+      assignments in each T ∗ must be at least T /2, i. e. we have
+                                        XX
+                                                 vs ycs ≥ T /2.                             (7)
+                                              c∈C ∗ s∈S
+
+Proof. Let T = (C ∪ B, E) be a tree in Gx′ , then distinguish two cases in the pruning process.
+If T contains just one child c ∈ C, then Properties 1 and 2 are is trivially satisfied. Since (x′ , y)
+is a feasible solution to SantaLP(T ) and c is isolated in Gx′ , it receives a total value of T in
+small gifts alone and Property 3 is satisfied.
+    If T contains at least one big gift, then we prune T as follows: Using Lemma 5, we root T
+at an arbitrary child in O(e √n + D) rounds and orient all edges in T towards the root. For each
+big gift b ∈ B with deg(b) =: d > 2, there is at most one child c ∈ N (b) with x′cb > 1/2. We
+select d − 2 children c1 , . . . , cd−2 such that x′ci b ≤ 1/2 for all i = 1, . . . , d − 2. For each selected
+child ci , we remove the edge (ci , b) from the graph which disconnects the components of its two
+endpoints.
+    Let T ∗ = (C ∗ ∪ B ∗ ) ⊆ T be a tree after the pruning process, then there are two different
+cases. If T ∗ contains a big gift b as a leaf, all children in C ∗ can receive a big gift. Let c ∈ C ∗
+be the only child neighboring b in T ∗ , then we can assign b to c, root T ∗ at c and assign each
+big gift to its only child.
+    If all leaves are children, we show that there exists an integral assignment of the big gifts in
+B ∗ to the children in C ∗ \ {c}. As each big gift has degree at most two, we can root T ∗ at c and
+assign each big gift b ∈ B ∗ to its only child. Therefore, every child in C ∗ \ {c} can receive a big
+gift in this assignment and we have |B ∗ | = |C ∗ | − 1. It remains to show Property 3. First, we
+show that at most one child in C ∗ loses an edge during the pruning process. By construction,
+each child can only lose the edge to its parent gift. Let c1 , c2 be two children that lost an edge
+during the pruning process, then the path between c1 and c2 traverses one of their parents.
+Thus, c1 and c2 cannot be in the same connected component after the pruning. Let c∗ ∈ C ∗
+be the child that lost an edge to a big gift b ∈ B \ B ∗ . Since (x′ , y) is a feasible solution to
+SantaLP(T ), it follows from Constraint (1) that
+                                                                              !
+                               XX                                XX
+                                         vs · ycs ≥ T · |C ∗ | −          x′cb .
+                               c∈C ∗ s∈S                        c∈C ∗ b∈B
+
+Using x′c∗ b ≤ 1/2 and c∈C ∗ x′cb ≤ 1 for all b ∈ B ∗ , it holds that
+                         P
+
+                   XX                   X X
+                        x′cb = x′c∗ b +           x′cb ≤ 1/2 + |B ∗ | = |C ∗ | − 1/2.
+                   c∈C ∗ b∈B                c∈C ∗ b∈B ∗
+
+Together, both equations yield Equation (7).
+
+    Importantly, even though T ∗ is a tree in the big gift graph Gx∗ , any child c ∈ C ∗ with a non-
+zero small gift assignment is still connected to more than α many small gifts in Gy∗ . Together
+with Equation (7), this is crucial when randomly picking one child c ∈ C ∗ for each T ∗ to be
+compensated in small gifts of value at least T /α in the next subsection.
+
+                                                      18
+2.3.2    Small Gift Assignment
+In the following, we compute an integral small gift assignment Z of value T /α for exactly one
+child c in each tree T ∗ computed in Lemma 13. This automatically implies an integral big gift
+assignment X by rooting all trees T ∗ in their respective roots c and assign all big gifts to their
+child nodes (see Lemma 17).
+    First, we show that we can randomly pick exactly one child c in each tree T ∗ to be satisfied in
+a fractional small gift assignment. We use the following Chernoff bound from [Kus25, Corollary
+13] to bound the number of times that one small gift is fractionally assigned to a child.
+
+Lemma 14 (Chernoff Bound).                           ∈ [0, 1] be independent random variables with
+                               Pn Let X1 , . . . , XnP
+means p1 , . . . , pn . Let µ = i=1 pi and let X = ni=1 Xi . Then, for any r ≥ 2 with 1 ≤ rµ,
+
+                                          P[X ≥ rµ] ≤ O(1/r)Ω(rµ) .
+
+    The most important insight to the following lemma is that the random selection happens
+independently and in parallel for all T ∗ such that all respective decisions whether a small gift is
+assigned to a tree are in fact independent. More formally, we show the following lemma.
+
+Lemma 15 (Randomized Selection). Let (x∗ , y) be the fractional solution to SantaLP(T ) com-
+puted in Lemma 13. In O(  e √n + D) rounds of CONGEST, we can transform y into a fractional
+small gift assignment z such that for some β = O(log n/ log log n) it holds that
+
+  1. W. h. p. for all T ∗ there is one child c ∈ T ∗ such that s∈S vs · zcs ≥ T /β.
+                                                              P
+
+               P
+  2. W. h. p. c∈C zcs ≤ 1 for all s ∈ S.
+
+Proof. Let p ∈ [n] denote the number of disjoint big gift clusters that x∗ induces and assume
+w. l. o. g. that these clusters are (C1 , B1 ), (C2 , B2 ), . . . , (Cp , Bp ). If |Bi | ≥ |Ci |, then all children
+in Ci receives exactly one big gift and no small gifts. Otherwise, if |Bi | = |Ci |P                    − 1, then
+we pick one child to be satisfied with small gifts. For all c ∈ Ci , let VS (c) :=                        s∈S vs ycs
+denote the totalPvalue that c receives in small gifts. By Property (3) of Lemma 13, we have
+that VS (Ci ) := c∈Ci VS (c) ≥ T /2.
+    For each (Ci , Bi ), we first define a probability distribution and then randomly pick exactly
+one child in Ci . The weight of each child corresponds to its relative value of small gifts that it
+contributes to the cluster.
+                          P More precisely, for each c ∈ Ci , we set pc := VS (c)/VS (Ci ). Clearly,
+this definition satisfies c∈Ci pc = 1 for all i ∈ [p].
+
+CONGEST implementation. Next, we show how we can implement this random process for
+each cluster in parallel. We implement a Rake and Compress style procedure that decomposes
+each cluster (Ci , Bi ) in parallel. Since |Bi | = |Ci | − 1, every leaf in the cluster has to be a kid.
+Thus, due to property 1 in Lemma 13 we get that every gift b ∈ Bi has degree two. Hence, we
+may contract all paths P = (c, b, c′ ), where b ∈ Bi and c, c′ ∈ Ci to the single edge {c, c′ }. Thus,
+we create a virtual tree T that contains only the children in Ci . Now we iteratively apply the
+following two operations to T . Define T0 := T and w0 : V (T ) → [0, 1] by w(c) = pc and obtain
+(Ti+1 , wi+1 ) from (Ti , wi ) as follows:
+
+    • Rake: Remove each child c ∈ Ci of degree one from Ti and send wi (c) to its only neighbor
+      in Ti .
+
+    • Compress: Contract each path P of at least two degree-2 vertices into a single vertex c
+      and gather the weights of all vertices in P at c.
+
+    • For each surviving vertex c, set wi+1 (c) as wi (c) plus the sum of all weights sent to c.
+
+
+
+                                                        19
+First, we observe that after O(log n) iterations of Rake and Compress we have decomposed the
+entire tree [CP19]. Let Vi,1 := {v ∈ V (Ti ) : deg(v) = 1}, Vi,2 := {v ∈ V (Ti ) : deg(v) = 2} and
+Vi,3 := {v ∈ V (Ti ) : deg(v) ≥ 3}. If |Vi,2 | < 3/5 · |V (Ti )|, then due to |Vi,1 | > |Vi,3 | we have that
+|Vi,1 | > 1/5 · |V (Ti )| and thus a constant fraction of vertices are removed in a single iteration.
+Otherwise, if |Vi,2 | ≥ 3/5 · |V (Ti )|, then there are at most |Vi,1 | + |Vi,3 | − 1 connected components
+in the subgraph of T induced by Vi,2 . Since at most one vertex survives in every connected
+component, this implies that at least 1/5 · |V (Ti )| vertices are removed from Ti . Further, we
+observe that due to Lemma 45 each iteration can be implemented in O(                  e √n + D) rounds of
+CONGEST.
+     Now we show how to use this decomposition to efficiently sample a vertex from every cluster
+in parallel. Let Tk denote the last non-empty tree computed by the above procedure. Note
+that every vertex of Tk must have been removed by the Rake operation and thus Tk contains at
+most two vertices. We first sample a vertex from Tk according to the probability distribution
+wk . Now we show how to use repeated subsampling to sample a vertex from T according to the
+probabilities pc for c ∈ Ci . Suppose that we have sampled a vertex vi+1 from Ti+1 . Let Compressi
+be the (possibly empty) set of vertices that were contracted into vi+1 by the Compress operation
+on Ti . If Compressi ̸= ∅, then vi+1 picks exactly one vertex from Compressi ∪{vi+1 } according to
+the probability distribution pi (v) := wi (v)/wi+1 (vi+1 ). Then it broadcasts the random decision
+to all vertices in Compressi within O(    e √n+D) rounds using Lemma 45. Denote the picked vertex
+as vic . Next, let Rakei be the (possibly empty) set of vertices neighboring vic in Ti that were
+removed from Ti due to the Rake operation. Again, vic randomly picks a vertex from Rakei ∪{vic }
+and broadcasts this decision to all vertices in Rakei . This takes one round on Ti and according
+to Lemma 45 one round on Ti can be simulated in O(         e √n + D) rounds on G. After k iterations,
+this yields a randomly sampled vertex from T according to probability distribution w0 (c) = pc .
+Since k = O(log n) the repeated subsampling procedure takes O(           e √n + D) rounds in total.
+
+Scaling Small Gifts. Let Cs = {ci : i = 1, . . . , p} ⊆ C denote the set of children chosen
+to receive small gifts where each ci uniquely identifies cluster pair i ∈ [p]. We define a new
+fractional small gift assignment z as follows:
+                                      (
+                                        ycs · T /VS (c), if c ∈ Cs ,
+                               zcs :=
+                                        0,               otherwise.
+
+Using Constraints (1) and (2) of SantaLP(T ), we get for all c ∈ C and s ∈ S that
+                                                          ! P
+                                                     X
+                                                        ∗            vs · ycs
+             zcs ≤ ycs · T /VS (c) ≤ T /VS (c) · 1 −   xcb ≤ s∈S              = 1.                      (8)
+                                                                   VS (c)
+                                                              b∈B
+
+Further, it holds that s∈S vs zcs = T for all children c ∈ Cs .
+                       P
+    As a last step, we show that the random choice of z (fractionally) assigns each small gift to
+at most β many children with high probability. For each small gift s ∈ S and cluster pair i,
+define the random variable Zis ∈ [0, 1] by Zis := zci s . For a fixed gift s ∈ S, the p many random
+variables {Zis : i ∈ [p]} are independent, because the random selection of children ci happens
+independently in all p clusters. For each small gift s ∈ S, we have that
+                                     
+                               X          X                XX
+                           E     Zis  =     E [Zis ] =            pc · zcs .
+                                i∈[p]         i∈[p]             i∈[p] c∈Ci
+
+Recall that pc = Vs (c)/Vs (Ci ). Then we get that
+                                                     P
+                                                         c∈Ci ycs
+                  X             XX                X                  X
+               E      Zis  =         pc · zcs =   T·            ≤2   ycs ≤ 2,                         (9)
+                                                        VS (Ci )
+                    i∈[p]        i∈[p] c∈Ci           i∈[p]                    c∈C
+
+
+                                                      20
+where the last inequality follows from Constraint (5) of SantaLP(T ). Let β = C · log n/ log log n
+for a sufficiently large constant C, then using Lemma 14 it holds that
+                                                             
+                    X                   X                  X
+                P      Zis > β  = P     Zis > β/2 · E    Zis  ≤ O(2/β)Ω(β)
+                  i∈[p]                i∈[p]                          i∈[p]
+
+                                 = O(log log n/ log n)         Ω(log n/ log log n)
+                                                                                     = 2−Ω(log n) .
+
+Further, we have that              X               X                 X
+                                           Zis =           zci s =         zcs .
+                                   i∈[p]           i∈[p]             c∈C
+
+Using a union bound over all small gifts, we see that each small gift is w. h. p. fractionally
+assigned at most β times. As a last step, each child c ∈ Cs locally scales down their small gift
+assignment by β such that zc ∈ [0, 1]S . Consequently, each child receives w. h. p. a total value
+of T /β and each small gift is w. h. p. fractionally assigned at most once.
+
+    Intuitively, the parameter β measures the distance to the optimal solution where each small
+gift is assigned at most once. Therefore, it is closely related to our approximation factor by α =
+4β. As the last step, we round z to an integral assignment Z of small gifts, such that no gift is
+assigned to multiple children. The high-level    idea of the rounding can be described as follows:
+For a fixed child c ∈ Cs , let kc =     s∈S zcs denote the (fractional) number of small gifts c
+                                      P
+receives in solution z. Next we show how to round this fractional solution such that each child
+receives ⌊kc ⌋ small gifts. Hence, each child loses the value of at most one small gift. In the
+worst case, this is the most valuable gift of value maxs∈S vs and each child receives a value of
+at least T /β − maxs∈S vs . More formally, we show the following lemma.
+Lemma 16 (Integral Assignment). Let z be the fractional small gift assignment in Lemma 15.
+   b √n + D) rounds, we can compute an integral small gift assignment Z such that w. h. p.
+In O(
+                                            X                    T
+                               ∀c ∈ Cs :          vs · Zcs ≥       − max vs .                         (10)
+                                                                 β   s∈S
+                                            s∈S
+
+Proof. We prove the lemma in two steps: First we remove all cycles in Gz to obtain the for-
+est Gz ′ ⊆ Gz , then we integrally assign the gifts for each tree of Gz ′ such that each child loses
+at most one gift. Our algorithm consists of two parts, first we remove cycles and then we round
+the remaining forest.
+    Algorithm Part 1. Lemma 4 shows how to remove cycles in a weighted graph. We cannot
+apply this lemma directly to Gz , since we have two types of weights: we have the fractional
+weights on the edges zcs , but we also have the weights of the small gifts vs . We apply Lemma 4
+to Gz with an auxiliary weight function w and two small adjustment. First, we describe this
+weight function. In order to ensure that the cycle removal maintains the total value of T /β for
+each child, we set the edge weights to wcs := zcs · vs for all c ∈ Cs and s ∈ S. These weights are
+no longer in [0, 1] as in Lemma 4. We give the two adjustments to the algorithm. First, to round
+each cycle, we compute w := min{wcs , vs − wcs } and alternatingly change the edge weights to
+  ′ = w ± w. At the same time we update z ′ = w ′ /v for all c ∈ C and s ∈ S. By the choice
+wcs      cs                                    cs      cs s              s
+of w, at least one edge in each cycle becomes integral with zcs ′ ∈ {0, 1} while we have z ′ ∈ [0, 1]
+                                                                                          cs
+for all other edges. This leads us to the second adjustment: we remove an edge {c, s} from
+Gz if wcs ∈ {0, vs }, which corresponds to zcs ∈ {0, 1} being integral. Note that removing an
+edge zcs = 1 means that the small gift s is permanently assigned to child c and zcs = 0 means
+the child forgoes on the gift.
+    These two adjustment do not affect correctness or the running time in Lemma 4, hence we
+eliminate cycles from Gz in O( b √n + D) rounds. Finally, we obtain the edge weights in Gz ′ by
+scaling zcs
+          ′ = w /v for all c ∈ C and s ∈ S. We are left with the acyclic graph G ′ .
+                 cs s             s                                                   z
+
+
+                                                      21
+    Algorithm Part 2. Next, we show how to round the remaining forest Gz ′ . For each tree T
+in Gz ′ , we permanently assign small gifts s ∈ S to children c ∈ Cs starting from the leaves.
+We root T at an arbitrary child c ∈ T . Then, each gift is assigned to its parent in the tree.
+Since each child has at most one parent in T , it loses at most maxs∈S vs in value and thus
+Equation (10) holds.
+    Round Complexity. A naive distributed implementation of this algorithm takes diameter(T )
+rounds, which could be as big as n − 1. Next we show how to implement this algorithm in
+ b √n + D) rounds.
+O(
+    The main observation hereto is that on a path, all nodes are determined by what happens
+on the endpoints. This can be seen as follows: consider a path that ends in a degree 1 vertex. If
+this is a gift, then all odd edges on the path are rounded up to 1 and all even edges are deleted.
+If the last vertex is a child, then all odd edges are deleted and all even edges are rounded up to
+1. Hence, each edge only needs to know 1) is the endpoint of the path a gift or a child and 2) are
+there an odd or even number of edges till this endpoint. Hence, all paths can be contracted and
+unrolled once the endpoints are known. We perform this with a version of Rake and Compress;
+see Lemma 5:
+
+   • Rake: Decide on all edges incident to a vertex of degree one.
+
+   • Compress: Contract all paths into a single edge, storing on the edge whether this contains
+     an odd or even number of vertices.
+
+   By the same proof as Lemma 5, the graph is empty after O(log n) iterations and each iteration
+                    b √n + D) rounds.
+can be performed in O(
+
+    We conclude with the following lemma that shows how to efficiently compute an integral big
+gift assignment X.
+
+Lemma 17. Let x∗ be the fractional big gift assignment in Lemma 13 and Z the integral small
+gift assignment in Lemma 16. In O(   e √n + D) rounds of CONGEST, we can compute a big gift
+assignment X for all c ∈ C with Zc = 0|S| .
+           e √n + D) rounds, we root all trees T ∗ in parallel at their respective children c∗
+Proof. In O(
+with Zc∗ ̸= 0|S| using Lemma 5. By Lemma 13, each big gift in T ∗ has degree at most 2. Thus,
+we integrally assign each child its parent big gift. Hence, we computed a big gift assignment X
+    e √n + D) rounds.
+in O(
+
+2.4   Proof of the Approximation Factor
+We conclude the previous subsections with the proof of Theorem 2.
+
+Proof of Theorem 2. Let β = O(log n/ log log n) be as in Lemma 15 and α = 4β. Through-
+out this proof, we explicitly state which α is used in the LP formulation of Santa Claus by
+writing SantaLPα (T ). We compute an α-approximation in two steps: First, we determine a
+value T ≥ OPT via global binary search and repeatedly approximately solving SantaLPα (T )
+for different values of T . Recall that OPT denotes the optimal (integral) value of the Santa
+Claus problem. Second, we carefully round an approximate solution (x, y) into an integral
+solution (X, Z) that is an O(log n/ log log n)-approximation.
+    Find Optimal Value and Fractional Solution. Let ε = 1/2 and V = g∈G vg denote
+                                                                                P
+the total sum of gift values. In O(D) rounds, we elect a leader that coordinates the binary
+search. The goal of our binary search is to find a value T such that SantaLPα/2 (T /2) is feasible
+and T ≥ OPT. Let a, d ∈ {0, . . . , V } with a ≤ d, then we maintain the following invariant for
+our search interval [a, d]: SantaLPα/2 (a) is feasible and d ≥ OPT. This is trivially satisfied in
+the beginning, as SantaLPα/2 (0) is always feasible and d = V ≥ OPT.
+
+                                               22
+    In each of the following steps, the leader communicates the next value T = ⌊(a + d)/2⌋
+to all other nodes in O(D) rounds. Based on T and α, all gift nodes can locally distinguish
+whether they belong to the big gifts B := {g ∈ G : vg ≥ T /α} or the small gifts S := {g ∈
+G : vg < T /α}. Observe that the gift size distinction is the same for both SantaLPα (T ) and
+SantaLPα/2 (T /2), thus they only differ in Constraint (1). Next, we try to compute a feasible
+fractional solution (x, y) to SantaLPα/2 (T /2) using Theorem 29. Depending on the outcome,
+the leader adjusts the search interval to [T, d] if SantaLPα/2 (T /2) is feasible and [a, T ] otherwise.
+Once our search interval contains a single value, we have determined our value T and stop. Note
+that by Theorem 29, our solution (x, y) only undershoots the covering Constraint (1) such that
+for all c ∈ C, it holds that                                     !
+                                 X               T        X
+                                     vs · ycs ≥ · 1 −        xcb .
+                                                 2
+                                  s∈S                      b∈B
+
+Since binary search takes at most O(log V ) steps, where each step takes O(D    e    + D · log3 n)
+rounds due to Theorem 29, we can find T ≥ OPT and a feasible fractional solution (x, y)
+to SantaLPα/2 (T /2) in O(D
+                          e · log3 n · log V ) rounds of CONGEST.
+    Round to Integral Solution. Based on (x, y), we compute a series of feasible fractional
+solutions to SantaLPα/2 (T /2) where all transformations take O( b √n + D) rounds. With Corol-
+lary 12, we obtain a fractional solution (x′ , y) such that Gx′ is acyclic. Using Lemma 13, we
+compute a fractional solution (x∗ , y) where Gx∗ is a forest of highly structured trees T ∗ . Based
+on y, we use Lemma 15 to compute a fractional small gift assignment z such that all children
+in Cs receive w. h. p. a total value of T /2β in small gifts. As a last step, with Lemma 16, we
+obtain an integral small gift assignment Z where each child c ∈ Cs receives w. h. p. at least a
+value of
+                                   T               2T    T    T
+                                      − max vs ≥      − = ,
+                                   2β    s∈S        α    α    α
+where the inequality follows from the definition of small gifts S and α. By Lemma 17, we compute
+an integral big gift assignment X where each child receives exactly one big gift of value at
+                                                                                b √n+D·log V )
+least T /α. Hence, we computed w. h. p. an O(log n/ log log n)-approximation in O(
+rounds of CONGEST.
+
+
+
+
+                                                  23
+3    Lower Bounds
+The goal of this section is to prove the hardness result of the Santa Claus problem in the
+CONGEST model. In fact, we show a lower bound of Ω(      e √n + D) rounds to decide whether
+a solution of non-zero value exists. Additionally, this result implies that any (multiplicative)
+approximation to the integral Santa Claus problem also obeys this lower bound. A simpler
+version of the CONGEST construction also shows a diameter lower bound for the same problem
+in the LOCAL model. Moreover, we show that solving the fractional version of the Santa Claus
+problem exactly also requires at least diameter rounds in the distributed setting.
+
+Theorem 1. Any CONGEST algorithm that computes any multiplicative approximation of the
+                                      e √n + D) rounds in the worst case.
+integral Santa Claus problem requires Ω(
+
+    We construct a family of graphs SCn with O(n) nodes and O(log n) diameter, such that
+solving the Santa Claus problem on SCn is as hard as solving the set-disjointness problem on
+               √
+sets of size O( n) in the two-party model. Our construction is motivated by the construction
+of Peleg and Rubinovich [PR00].
+                                                                                                  √
+Construction. The construction we use for the lower bound is a graph consisting of n
+                               √
+disjoint paths of length O( n), where each path is its own Santa Claus instance with value 0
+or 1 depending on the input for Alice and Bob. To reduce the diameter of the graph, we add a
+binary tree of height O(log n) on top of the paths, allowing for shortcuts between the endpoints
+of the graph. This yields a graph of diameter O(log n), and finally, we show that the bandwidth
+of the binary tree is so small that the graph still needs Ω(      e √n + D) rounds to solve the Santa
+Claus problem on all paths.
+                                        √                                          √
+    Formally, let n ∈ N such that n ∈ N. The graph SCn consists of n disjoint paths Pi of
+         √
+length 2 n − 1 and are alternating child-gift paths, where each gift has a value of 1, which are
+                                            √
+connected by a full binary tree T with n child leaves ℓ1 , . . . , ℓ√n . Each leaf ℓj connects to the
+jth gift gji of every path Pi . To ensure that we are considering a Santa Claus instance, the levels
+of the tree T are alternating between children and gifts, e.g., the parents of the leaves are gifts.
+In particular, we want the binary tree not to interfere with the solution of the paths, nor change
+the overall optimal solution size. To ensure that, we also add a private gift pc to each gift child
+                                   √
+cT ∈ V (T ). Formally, we have n copies P1 , . . . , P√n of the path P:
+                                  √                         √
+    • V (P) = {cj | j = 1, . . . , n} ∪ {gj | j = 1, . . . , n − 1},
+                                         √                                     √
+    • E(P) = {{cj , gj } | j = 1, . . . , n} ∪ {{gj , c(j+1) } | j = 1, . . . , n − 1},
+
+and we denote gifts and children of the path Pi as cij , and gji respectively.
+    Finally, since we want to reduce the Santa Claus instance to a set-disjointness problem in
+the two-party model, we explain how the input for Alice and Bob influences the construction.
+                                √
+Both Alice and Bob receive a n-bit binary string, a1 a2 . . . a√n and b1 b2 . . . b√n . Alice and Bob
+                                             √
+are both child nodes and are connected to n + 1 many gifts. One of those gifts is a private
+gift pA (resp. pB ) that is used to make Alice (resp. Bob) happy, i.e., they have exclusive access
+                              √                                     √
+to that gift. The remaining n gifts giA (resp. giB ), i = 1, . . . , n, are connected to Alice (resp.
+Bob) and the leftmost child of the path Pi ci1 (resp. rightmost child ci√n ). The values of giA and
+(giB ) is given by ai and bi , respectively.
+
+Remark 18. The graph SCn has O(n) nodes and diameter D = O(log n).
+
+Lemma 19. Any distributed algorithm that decides whether there exists a solution of value 1 in
+the graph SCn also solves the set-disjointness problem for
+
+                                 A = {i | ai = 0},        B = {i | bi = 0}.
+
+                                                     24
+                                                  T
+
+
+
+                a1                                                                  b1
+         P1
+
+                a2                                                                  b2
+         P2
+
+                a3                                                                  b3
+         P3
+
+Alice           a4                                                                  b4           Bob
+         P4
+
+
+
+              a√n−1                                                                 b√n−1
+         P√n−1
+
+                a√n                                                                 b√ n
+         P√ n
+
+        Figure 1: The lower bound graph SCn . Boxes are gifts, and circles are children.
+
+                                                √
+Proof. If A ∩ B = ∅, then for every i ∈ [ n] at least one of ai or bi is 1. Without loss of
+generality assume that ai = 1, then we can assign the gift giA with value ai = 1 to ci1 and for the
+rest of the ith path assign gji to ci(j+1) , and thus every child cij gets assigned one gift of value
+1. The children in the binary tree, as well as Alice and Bob, get assigned their private gifts of
+value 1, and thus also get assigned at least one gift each.
+    On the other hand, if A ∩ B ̸= ∅, there exists at least one index i such that ai = bi = 0.
+                              √                        √
+Thus, the ith path contains n children, but only n − 1 gifts of value 1, and since each child
+is only adjacent to the gifts of that path, at least one child cannot get assigned any gift. Thus,
+the value of this instance is 0.
+                                                                                         √
+    It is well known that the set-disjointness problem defined in Lemma 19 needs Ω( n) bits of
+                                                       √
+communication, since the bit strings are of length n [Raz92]. Thus, due to Lemma 19, Alice
+                                              √
+and Bob need to communicate at least Ω( n) bits to solve the given Santa Claus instance.
+    To bound the number of bits Alice and Bob can communicate in T rounds on the SCn
+graphs, we will need the notion of moving cuts, inspired by [PR00].
+Definition 20. Let G = (V, E) be a graph with two distinguished nodes P     a, b (Alice and Bob). A
+moving cut is an assignment ℓ : E → Z≥0 . We say ℓ has capacity C = e∈E ℓ(e) and distance
+T if d1+ℓ (a, b) ≥ T , where d1+ℓ (v, w) denotes the shortest path distance from v to w when each
+edge has cost 1 + ℓ(e).
+Lemma 21. Let G = (V, E) be a graph where each edge carries k bits of information per round,
+and let a, b ∈ V be distinguished nodes (Alice and Bob). Suppose ℓ : E → Z≥0 is a moving-cut
+of capacity C and distance T between a and b. Then any distributed protocol that completes in
+at most T − 1 rounds can communicate at most C · k bits from a to b.
+Proof. This is also motivated by [Pel00], and a proof of the exact statement can be found
+in [Gor25].
+
+                                                 25
+   Finally, to prove that any set-disjointness protocol on the graphs SCn , and hence the Santa
+                                     e √n) rounds, we construct a moving cut of small capacity,
+Claus problem, must run for at least Ω(
+but large distance:
+Lemma 22. For every γ > 0 and every n ∈ N there exists a moving cut ℓn in SCn with
+                                1√                                1√
+                                                                    
+            capacity(ℓn ) = O      n log n , distance(ℓn ) = Ω       n .
+                                γ                                 γ
+Proof. Set ℓ(e) = 0 for all edges that are not part of the binary tree. Also set ℓ(e) = 0 for all
+edges between children and their private gifts in the binary tree. Let the height of a tree node be
+the distance to the leaves, i.e., the level of the leaves is 0, and the level of their parents is 1, and
+                             √
+the level of the root is log( n) = O(log n). Assign to the parent edge of each node with height
+                       h                               √
+h the value ℓ(e) = ⌊ 2γ ⌋. Since there are at most n/2h nodes at height h, the total capacity of
+the moving cut ℓ is at most
+                         O(log n) √           O(log n) √
+                                    n 2h                          1√
+                                                                           
+                           X                    X        n
+                                      ·    =               =O        n log n .
+                                  2h γ                  γ         γ
+                           h=0                  h=0
+                                                                           √ 
+    To check that any path from Alice to Bob is at least of length Ω γn in the 1 + ℓ distance,
+we observe that if we shortcut 2k edges of a path Pi via the tree, we have to use a path in T
+that uses at least one node of height ⌈log k⌉. Thus, a path of length 2k (in one of the Pi ’s) can
+be replaced with a path in the tree of (1 + ℓ) distance at least
+                                  ⌈log k⌉             ⌈log k⌉
+                                   X             2h−1   X 2h
+                                            2·        =      ≥ k/γ.
+                                                  γ       γ
+                                   h=1                    h=1
+
+Lemma 23. In the SCn graph, any distributed algorithm that uses k-bit messages per edge per
+round to decide whether there is a solution to the Santa Claus problem of value at least 1 requires
+e √n/k) rounds.
+Ω(
+Proof. By Lemma 19, any distributed algorithm that decides whether there exists a solution to
+the Santa Claus problem of value at least 1 also solves set-disjointness for
+                                A = {i | ai = 0},         B = {i | bi = 0}.
+From [Raz92] we know that any distributed protocol solving this set-disjointness instance (of
+        √                  √
+size Θ( n)) requires Ω( n) bits of communication between Alice and Bob. By Lemma 22, with
+γ = c · k · log n (for a sufficiently large constant c > 0), we know that there exists a moving cut
+ℓn with
+                                         √                          √        
+                                             n                              n
+                     capacity(ℓn ) = O          , distance (ℓn ) = Ω              .
+                                           ck                          ck log n
+By Lemma 21, in T − 1 = distance(ℓn ) − 1 rounds one can transmit at most capacity(ℓn ) · k =
+   √
+O( n/c) bit from Alice to Bob. This is insufficient to solve set-disjointness, and hence decide
+the Santa Claus problem. Thus, any algorithm requires at least T = Ω( e √n) rounds.
+
+Proof of Theorem 1. We argue that any CONGEST multiplicative approximation algorithm that
+computes a (local) solution to the Santa Claus problem also solves the decision problem described
+in Lemma 23. If the solution size is 1, then any (multiplicative) approximation algorithm will
+output a solution of size > 0, and thus all children get assigned at least one gift of value 1. On
+the other hand, if the solution size is 0, at least one child gets no gift of value > 0. Let xA (resp.
+xB ) be a bit that indicates whether all children Alice (resp. Bob) has access of get at least one
+gift. In particular, xA = 1 if and only if all children that Alice has access of get at least one gift.
+Now Alice and Bob can exchange xA and xB and output xA ∧ xB , and thus decide whether it is
+a 0 or 1 instance; which implies the Ω(e √n) lower bound by Lemma 23 with k = O(log n).
+
+                                                     26
+   If we move to the stronger LOCAL model, a simpler instance shows that we still need at least
+diameter rounds to compute any (multiplicative) approximation to the integral Santa Claus
+problem.
+Lemma 24. Any LOCAL algorithm that computes any (multiplicative) approximation of the
+integral Santa Claus problem requires Ω(D) rounds in the worst case.
+Proof. Consider an alternating child-gift path P of length 2n − 1, similar to the paths used in
+the construction of SCn . Note that P starts and ends with a child node, i.e., we have n child
+nodes and n − 1 gift nodes. We consider three instances:
+  1. I1 : the path ends with children on both ends (we do not change P ),
+
+  2. I2 : we add one gift to the leftmost child of the path,
+
+  3. I3 : we add one gift to the rightmost child of the path.
+Observe that I1 has solution size 0, since there are more children than gifts, and I2 and I3 have
+a solution of size 1, which can be obtained by assigning each gift to its left (resp. right) child
+neighbor; see Figure 2. Thus, any approximation algorithm needs to learn in which direction
+the gifts have to be assigned, i.e., in particular, the middle gift of the path needs to know if
+it gets assigned to its left or right child neighbor. This can only be decided if this gift knows
+whether there is an additional gift at the left or right end of the path. Therefore, any LOCAL
+approximation algorithm takes at least D/2 = Ω(D) rounds.
+
+
+
+                           Figure 2: Gift assignment for instance I2 .
+
+    The lower bound family of graphs SCn and also the single path construction show that
+the non-existence of short augmenting paths does not imply a good approximation, i.e., the
+non-existence of short augmenting paths is not a certificate for a good approximation, thereby
+separating the Santa Claus problem from the Matching problem. By augmenting paths in the
+context of the Santa Claus problem, we refer to alternating gift-child paths that start at an
+unassigned gift and end with a child. Then, assigning the unassigned gift to the first child of
+the path and shifting all gifts along the path frees up the last gift of the path for the endpoint
+(child) of the path. Additionally, we require that augmenting along a path like that increases
+the solution size on that path.
+Remark 25. There exists a family of graphs, with diameter O(log n), and a non-optimal solution
+                                                √
+such that any augmenting path has length Ω( n). There exists a family of graphs and a non-
+optimal solution such that any augmenting path has length Ω(n).
+                                                                                              √
+Proof. The first graph class is SCn . Assume that ai = 1, and bi = 0 for all i = 1, . . . , n.
+Consider the non-optimal solution where, in one path Pi , each gift gji is assigned to cij . Then
+ci√n has no assigned gift of value 1, and thus the solution size is 0. Now the only augmenting
+                                                                                      √
+path increasing the value of the optimal solution is Pi itself, and thus has length Ω( n).
+    The second family of graphs are the path graphs considered in Lemma 24. Again, if all gifts
+are assigned to their left child in the instance I2 , the only augmenting path is the whole path,
+and thus has length Ω(n).
+
+   Secondly, we show that even the fractional relaxation of the Santa Claus problem is already
+hard to solve in the distributed setting via a reduction from the fractional perfect matching
+problem. In fact, we show the more general statement that any general fractional Mixed Packing-
+Covering LP solver requires at least diameter rounds.
+
+                                               27
+Lemma 26. Any distributed algorithm that computes a feasible fractional solution to any Mixed
+Packing-Covering LP takes at least Ω(D) rounds.
+
+Proof. We can model the perfect fractional matching problem for a given graph G = (V, E) as
+a Mixed Packing-Covering LP:
+                          X
+                              xe ≤ 1                         ∀v ∈ V,
+                           e∈δ(v)
+                            X
+                                    xe ≥ 1                      ∀v ∈ V,
+                           e∈δ(v)
+
+                          0 ≤ xe ≤ 1                           ∀e ∈ E.
+
+To solve this problem, any distributed algorithm needs to distinguish between paths of odd
+length (LP is feasible) and paths of even length (LP is infeasible). This implies a lower bound
+of Ω(D) rounds. The lower bound also holds for ∆-regular graphs for any ∆ ≥ 2.
+
+    In general, the feasibility problem and the optimization problem are closely related. In
+the sequential setting, it is easy to use the feasibility problem combined with a binary search
+framework to obtain an approximation for the optimization problem. In the distributed setting,
+this technique already implies a runtime of Ω(D), as we have to (globally) communicate the next
+choice of the value we want to test feasibility for. But since many global problems, such as the
+Santa Claus problem, already incur an Ω(D) lower bound, it is possible to use this technique in
+those cases, as we will see in more detail in Section 4
+
+
+
+
+                                              28
+4    Solver for Mixed Packing-Covering LPs
+In this section, we show how to solve Mixed Packing-Covering LPs in the CONGEST model.
+
+Definition 27 (Mixed Packing-Covering LPs). For given matrices P ∈ Rnp ×m , C ∈ Rnc ×m and
+corresponding vectors p ∈ Rnp , c ∈ Rnc , the Mixed Packing-Covering LP for (P, C, p, c) is the
+optimization problem
+
+                                min{λ | Px ≤ λp, Cx ≥ c, x ≥ 0},                                (11)
+
+where P, C, p, c all have non-negative entries.
+
+    In particular, we consider a bipartite graph G = (V, E) with V = C ∪ X, where |C| = nc + np
+has a node for each covering, and each packing constraint, and |X| = m has a node for each
+variable. We always connect a variable node i ∈ [m] with a packing constraint node jp ∈ [np ] or
+a covering constraint node jc if the corresponding entry of C or P is non-zero, i.e., E = {{i, jp } |
+Pijp ̸= 0} ∪ {{i, jc } | Cijc ̸= 0}. Additionally each packing constraint node jp and each covering
+constraint node jc has access to the jp th row Pjp and the jc th row Cjc respectively. With slight
+abuse of notion we will refer to covering and packing constraints just by j and will not note the
+additional index. Additionally, every node knows np , nc , and m (this could also be computed in
+O(D) rounds).
+    For our application to the Santa Claus problem in Section 2, we are interested in the version
+where we are allowed to violate the covering constraints instead of the packing constraints. Since
+the two formulations are equivalent, it does not matter which one we solve.
+
+Remark 28. For given matrices P ∈ Rnp ×m , C ∈ Rnc ×m and matching vectors p ∈ Rnp , c ∈
+Rnc , the following LP
+
+                                max{γ | Px ≤ p, Cx ≥ γc, x ≥ 0},                                (12)
+
+is equivalent, up to scaling, to the LP in (11). Namely, for any solution x of (11) with value λ,
+e = x/λ is a solution of the LP (12) with value γ := 1/λ and vice versa. Let λ∗ and γ ∗ be the
+x
+value of an optimal solution of (11) and (12), respectively. In particular given a solution (x, λ)
+of the LP (11) such that
+
+                                        λ∗ ≤ λ ≤ (1 + ε)λ∗ ,
+
+then x
+     e = x/λ satisfies
+
+                                       γ ∗ /(1 + ε) ≤ γ ≤ γ ∗ .
+
+Proof. Let (x, λ) be a solution of the LP 11. Let x
+                                                  e = x/λ and γ = 1/λ, then
+
+                                     x = P(x/λ) ≤ λp/λ = p
+                                    Pe
+                                     x = C(x/λ) ≥ c/λ = γc.
+                                    Ce
+
+So (e
+    x, γ) is a feasible solution of the LP 12. More over, if λ∗ ≤ λ ≤ (1 + ε)λ∗ , we have
+
+                            1/γ ∗ = λ∗ ≤ λ ≤ (1 + ε)λ∗ = (1 + ε)/γ ∗ .
+
+Since γ = 1/λ we get γ ∗ /(1 + ε) ≤ γ ≤ γ ∗ .
+
+    In the model described, we will solve Mixed Packing-Covering LPs as follows.
+
+
+
+
+                                                  29
+Theorem 29. There is a deterministic CONGEST algorithm that, given a Mixed Packing-
+Covering LP of the form (12) with m constraints and n variables, computes a feasible solution
+(x, γ), such that
+
+                                         (1 − ε)γ ∗ ≤ γ ≤ γ ∗ ,
+                                                                                  
+                                                                  D log2 n log m
+where γ ∗ denotes the value of the optimal solution, in O
+                                                        e
+                                                                        ε3
+                                                                                       rounds.
+
+   In the remainder of this section, we will prove Theorem 29. In Section 4.3 we show that we
+can implement the algorithm with small messages of size O(log n), therefore we do not address
+message sizes in Section 4.1.
+
+4.1     Solving the Feasibility Problem
+Similar to sequential and parallel approaches for solving Mixed Packing-Covering LPs, we reduce
+it to the (1 + ε)-Feasibility Problem. This reduction is done via a standard binary search and
+scaling argument; for details, see Section 4.2.
+
+Definition 30 ((1 + ε)-Feasibility Problem). For given matrices P, C and matching vectors
+p = 1, c = 1, the Mixed Packing-Covering (1 + ε)-feasibility problem is to either find a x ≥ 0
+such that
+
+                               0 < max(Px)j ≤ (1 + ε) min(Cx)j                                   (13)
+                                     j                        j
+
+or conclude that the following LP is infeasible
+
+                                          Cx ≥ 1
+                                          Px ≤ (1 − 10ε)1                                        (14)
+                                            x ≥ 0.
+
+    To stay consistent with the literature, we formulated the Feasibility Problem w.r.t. formu-
+lation 11 of the Mixed Packing-Covering LPs. As mentioned in Remark 28, it does not matter
+which formulation we consider, since they are equivalent up to scaling. In the remainder of this
+subsection, we will show how we can solve the Feasibility Problem.
+
+Lemma 31 (Solving the Feasibility Problem). There is a deterministic CONGEST         algorithm
+                                                                1000 ln2 n ln( m )
+for the (1 + ε)-Feasibility Problem with round complexity O D ·        ε3
+                                                                               ε
+                                                                                     .
+
+    We implement the parallel algorithm of [MRWZ16] in the CONGEST model and describe
+how this can be done in Section 4.1.1. For completeness, we give a brief overview of their proof
+of correctness in Section 4.1.2, and finally, we show that our implementation meets the running
+time.
+
+4.1.1    The Algorithm
+The goal of this section is to present the algorithm that solves the (1 + ε)-Feasibility Problem
+in the CONGEST model.
+    To read the description, we advise the reader to follow along the pseudocode provided in
+Algorithm 3. Readers familiar with the parallel Mixed Packing-Covering algorithm of [MRWZ16]
+will see that we do the same computation. Still, we distribute them among the constraints and
+variables, dependent on which information is needed. For better readability, we will omit the
+                                                                                (t)
+iteration counter in the following description, i. e. , we write xi instead of xi and so forth.
+
+
+                                                  30
+ Algorithm 3: Distributed Algorithm for the Approximate Feasibility Problem
+   Input : P, C, ε
+   Output: infeasible or xi ≥ 0 at each node i s.t. maxj (Px)j ≤ (1 + ε) minj (Cx)j
+                  1000 ln2 n ln( m
+                                    
+                                   )
+ 1 Let R = O D ·                 ε
+                                       , K = 10 εln n and t = 0 for each variable i do
+                         ε3
+          (0)
+ 2      xi      = m||P1:,i ||∞                        —Each variable j can send pji to the variable i in one round
+              (0)
+ 3      Send xi to all constraints j ∈ N (i)
+ 4 while not Stop and t ≤ R do
+ 5      for each packing constraint j do —j has access to {pji }ni=0 and xi for all i ∈ N (j)
+ 6         if (Pj x(t) ) < K then
+                (t)                                   (t)
+               yj = exp(Pj x(t) ) = exp( i∈N (j) pji xi )
+                                        P
+ 7
+                       (t)                (t)
+ 8                    aij = pji yj for all i ∈ N (j)
+                                                                   (t)      (t)
+ 9                    To each i ∈ N (j) send yj and aij
+                                                             (t)
+10                    else Broadcast Stopp —If one packing constraint broadcasts Stopp , we abort
+
+11      for each covering constraint j do
+12         if (Cj x(t) ) < K then
+                (t)                                     (t)
+               zj = exp(−Cj x(t) ) = exp(− i∈N (j) cji xi ),
+                                          P
+13
+                       (t)                (t)
+14                    bij = cji zj
+                                                                   (t)      (t)
+15                    To each i ∈ N (j) send zj and bij
+                                                             (t)
+16                    else Broadcast Stopc                         —If all covering constrains broadcast Stopc , we abort
+
+17      for each variable i do
+                  Pnp (t)
+18         y (t) = j=1  yj —y (t) and z (t) can be computed in O(D) rounds, see Lemma 36
+                         (t)
+           z (t) = nj=1
+                  P  c
+19                      zj     —Only consider covering constraints that sent values zj , bij
+                             P            (t)
+              (t)                j∈N (i) aij
+20           ai =                  y (t)
+                            P            (t)
+                (t)             j∈N (i) bij
+21           bi =                 z (t)
+                      (t)   ε                   (t)
+22           if ai > (1 − 50  )bi then       —If all variables broadcast "infeasible", return
+               "infeasible"
+                   (t)
+23               ∆i = 0 and Broadcast infeasible(t)
+24               else
+                                                       (t)
+                                 (t)                  ai
+25                           ∆i = 12 (1 −              (t)   ) ∈ [ε/100, 12 ]
+                                                      bi
+
+                (t+1)               (t)                (t)
+26           xi ← xi (1 + K1 ∆i )
+27           t←t+1
+                                                                            (t+1)
+28           To each constraints j ∈ N (i) send xi                                  and t
+
+29 if t > R then                 return "infeasible"
+                                                                              (T )
+30 Let T be the first iteration, where one packing constraint broadcasted Stopp    or all
+                                            (T )
+    covering constraints broadcasted Stopc .
+                                          (T )
+                                         xi
+31 for each variable i do return xi = K
+
+
+
+
+     In the beginning we start with an initial solution xi = m||P1:,i ||∞ , for all i ∈ [m] (Line 3), and
+keep increasing these values until max{maxj (Px)j , minj (Cx)j } ≥ K = 10 εln n . We encode this
+
+
+                                                                           31
+stopping condition in Line 7 and Line 13 for the packing constraints and covering constraints,
+respectively. We encode maxj (Px)j ≥ K by stopping as soon as either one packing constraint
+fulfills (Pj x) > K (Line 11) or all covering constraints fulfill (Cj x) > K (Line 17). In the
+parallel setting, [MRWZ16] delete all covering constraints that have already reached K, we do
+not need to explicitly delete those constraints, but instead they do not contribute anything to
+the computation of bi , since no values zj , bij are sent.
+     We then compute values yj and zj in the packing and covering constraints, respectively.
+                                                                                                   np
+These values are exponentials of one packing or covering constraint and thus the vectors {yi }i=1
+and {zi }ni=1 c
+                 are exponentials of the packing and covering constraints, respectively. In a similar
+fashion, we compute aij , bij and using those we compute ai , bi in each variable i. {ai }m   i=1 and
+{bi }m
+     i=1   can  be interpreted as gradients of lmax(Px) and lmin(Cx)  and  we use  them  to update  x.
+In particular we update an entry xi of x multiplicatively, by a factor dependent on abii , if ai >
+(1 − 50  ε
+           )bi (Line 25). Furthermore, observe that we encode the infeasibility condition {i | ai ≤
+(1− 50 )bi } = ∅ by checking each variable for that condition (Line 23) and if all of them Broadcast
+       ε
+
+infeasible, each variable also returns infeasible.
+
+4.1.2   Proof of Correctness
+In this section, we give a brief overview of why the presented algorithm is correct. Since this is a
+distributed implementation of the algorithm presented in [MRWZ16], we only give an overview
+of the proof strategy.
+    First, we show that Algorithm 3 will terminate and output the correct answer.
+
+Lemma 32 ([MRWZ16]). By duality, the LP (14) is infeasible if there exists y, z ≥ 0 s.t.
+
+                                                    CT z   PT y
+                                        (1 − 10ε)        <      .                                    (15)
+                                                    1T z   1T y
+   Lemma 33 shows that every variable broadcasting "infeasible" certifies the infeasibility of the
+input instance, which shows that it correctly terminates in the case that the input is infeasible.
+
+Lemma 33 ([MRWZ16] ). If the problem instance is feasible, then
+                                                              ε
+                               ∀x ≥ 0, B = {i | ai ≤ (1 −       )bi } ̸= ∅.
+                                                             50
+    On the other hand, if we never output "infeasible", in each iteration of the while loop at least
+                                                                                 2
+on variable xi gets increased by factor of (1+ K1 ∆i ) ≥ (1+ K1 100
+                                                                  ε
+                                                                    ) = (1+ 1000ε ln n ), so the algorithm
+must reach one of the termination conditions after a finite number of iterations. In the rest of this
+section, we will certify that the output x = {xi }ni=1 satisfies 0 < maxj (Px)j ≤ (1+ε) minj (Cx)j .
+For the analysis, we need the soft-max lmax(Px) and soft-min lmin(Cx) in the potential function
+                                                                                          
+                              X                                           X
+          lmax(Px) = ln          exp(Px)j  , and lmin(Cx) = − ln            exp(Cx)j  .
+                               j                                              j
+
+   If we consider the potential function
+
+                                    f (x) = lmax(Px) − lmin(Cx),
+
+we get the following results as shown in [MRWZ16].
+
+Lemma 34. [MRWZ16, Lemma 4] Given maxj (Px(t) )j < 10 εln n and minj (Cx(t) )j < 10 εln n , we
+always have f (x(t) ) ≤ 2 ln n during the execution of Algorithm 3.
+
+
+
+                                                    32
+   This bounds the difference of lmax(Px) and lmin(Cx) by 2 ln n, together with the fact that
+these functions approximate maxj (Px)j and minj (Cx)j :
+
+                           max(Px)j ≤ lmax(Px) ≤ max(Px)j + ln n,
+                            j                           j
+
+                           min(Cx)j ≤ lmin(Cx) ≤ min(Cx)j − ln n.
+                             j                         j
+
+This yields the desired approximation once the terms are large at termination.
+Lemma 35. [MRWZ16, Lemma 5] If the algorithm terminates in line 31, then x = {xi }ni=1
+fulfills x ≥ 0 with 0 < maxj (Px)j ≤ (1 + ε) minj (Cx)j .
+   So far, we have shown that Algorithm 3 will terminate and output {x}ni=1 satisfying (13) or
+terminate earlier and correctly certify that the LP (14) is infeasible. In this section
+                                                                                     we show
+                                                                         1000 ln2 n ln( m )
+                                                                 
+that if the LP (14) is feasible Algorithm 3 will terminate after O D ·        ε3
+                                                                                  ε
+                                                                                      rounds, so
+if it takes more rounds, we can terminate it and output that the LP (14) is infeasible.
+     Essentially, we will show that every iteration of the parallel algorithm of [MRWZ16] runs
+in O(D) rounds in the CONGEST model. Then, using their analysis to bound the number of
+iterations yields the overall desired runtime.
+     First, we show that we can compute the sums y (t) and z (t) efficiently.
+Lemma 36 (Inner Product). Let 0 ≤ t ≤ T . The sums y (t) and z (t) can be computed in O(D)
+rounds.
+Proof. Compute a BFS tree rooted at an arbitrary node v ∈ V , e.g., the largest ID node in
+O(D) rounds. Now starting from the leaves, each node i sends the sum of the value it received
+                          (t)   (t)
+from its children and yi (zi respectively) to its parent. If the node is a constraint, it just
+sends the information forward towards v and does not change it. Then after O(D) rounds the
+two values y (t) and z (t) are stored in v. These can now be broadcasted to all the nodes using
+the computed BFS tree.
+
+Lemma 37. Each iteration of the while loop of Algorithm 3 runs in O(D) rounds.
+Proof. We will consider an arbitrary iteration 0 ≤ t ≤ T .
+    First observe that at the beginning iteration t before the while loop in line 6 starts, each
+                                                                         (t)
+packing constraint jp and each covering constraint jc has access to xi for all i ∈ N (jp ) and i ∈
+                                                                                        (t) (t) (t)
+N (jc ), respectively, which holds due to line 5 and line 29. Thus the computations of yj , aij , zj
+     (t)
+and bij can be executed locally in the node corresponding to the respective constraint. This
+finishes the computations executed at constraints.
+     Since y (t) and z (t) can be seen as inner products Lemma 36 shows that they can be computed
+                                                                               (t) (t) (t)     (t)
+in O(D) rounds. Due to line 11 and line 17, each variable i has access to aij , yj , bij and zj
+for all j ∈ N (i). This allows to execute lines 22 to 28 locally.
+                                                               (t)        (t)
+     Finally, observe that broadcasting the stop tokens Stopp and Stopc can be done in O(D)
+rounds and does not yield congestion, since we can represent each token by 2 bits; one repre-
+senting weather the corresponding constraint wants to stop or not and the other one indicating
+if the sending constraint is a packing or covering constraint. A similar behavior happens for the
+broadcast of "infeasible(t) " in line 25, which can also be done in O(D) rounds.
+
+   The analysis of [MRWZ16] bounds the number of iterations by
+                                                       2              
+                log n     ln n ln(m/ε) ln n ln(m/ε)         log n log(m/ε)
+            O         ·               +                =O                    .                 (16)
+                   ε             ε           ε2                    ε3
+   Now we are ready to prove the main result of this section.
+
+                                                33
+Proof of Lemma 31. Correctness follows by Section 4.1.2. So it suffices to show the desired
+round complexity.
+    Equation (16) bounds the number      of iterations, together with Lemma 37 this shows that
+                                         log2 n log(m/ε)
+                                    
+the algorithm terminates after O D ·            ε3
+                                                             rounds, if it is feasible. By the previous
+discussion, the algorithm terminates earlier and outputs       "infeasible",  or we can stop running the
+                                                   1000 log2 n log(m/ε)
+                                                                        
+algorithm if it did not terminate after O D ·               ε3
+                                                                          iterations and output "infeasi-
+ble". Finally, it might be the case that we have to wait an additional O(D) rounds to gather all
+                                                            (T )
+                      (t)          (t)                     xi
+the stop tokens Stopc and Stopp , so we can return          K      .
+
+4.2    Reducing Optimization to Feasibility
+For completeness, we include a description of the reduction from the optimization problem given
+by the LP 11 (or equivalently 12) to the feasibility problem, see Definition 30. In particular, this
+will complete the proof of Theorem 29. This reduction is done explicitly in [You01] and stated
+implicitly in [MRWZ16].
+    First, observe that we can rescale a given Mixed Packing-Covering LP P, C, c, p such that
+we are solving the problem
+
+                                min{λ | Px
+                                        e ≤ λ · 1, Cx
+                                                   e ≥ 1, x ≥ 0},
+
+where we divide each entry of the jth row of P and C by pj and cj , respectively.
+   We will show that we can solve this formulation approximately, i.e., find a (λ, x) such that
+
+                                         λ∗ ≤ λ ≤ (1 + ε)λ∗ ,
+
+by finding a sequence of solutions to the feasibility problem invoked with P/λ′ , C and ε′ , for
+different λ′ and ε′ , see Definition 30.
+    This will be done in a similar fashion as binary search, and we will see which values of ε′
+and λ′ we chose, namely [You01] showed
+
+Lemma 38 ([You01]). The approximate optimization problem reduces to a sequence of approxi-
+mate feasibility subproblems: O(log log m) subproblems       ′
+                                                         ε = 1/2 and O (log(1/ε)) subprob-
+                                                        with
+                                                       i
+lems where the ith-to-last subproblem has ε′ = Ω ε 34 .
+                                                     
+
+
+    Especially, the runtime is dominated by solving the feasibility problem O(log log m) times
+for ε = 1/2 plus the time of solving one feasibility problem with ε′ = ε. For more details on how
+to choose the subproblems, we refer to [You01].
+    In order to execute a binary search in CONGEST, we have to broadcast the outcome and
+the choice of the next λ′ to all the nodes. This can be done  in O(D) rounds using       Lemma 44.
+                                                                     1000 ln2 n ln( m  )
+Furthermore each of these subproblems can be solved in O D ·                ε′3
+                                                                                    ε′
+                                                                                          rounds using
+Lemma 31. With the overhead of the broadcast for the binary search, we get a total runtime of
+                                                                                 !
+                                1000 ln2 n ln(2m)              1000 ln2 n ln m
+                                                                               ε
+         O log log m · D + D ·                         +D+D·
+                                        1/8                             ε3
+                                                    2       m
+                                                              !
+                                                log   n log
+          = O log log m · D log2 n log m + D ·              ε
+                                                        ε3
+
+to solve a given Mixed Packing-Covering LP. Together with Remark 28, this almost completes
+the proof of Theorem 29. It is left to show how to implement Algorithm 3 with small message
+size, and still high (enough) precision, which we show in Section 4.3.
+
+
+                                                   34
+4.3    Implementation in CONGEST
+In this section, we show that Algorithm 3 can be implemented in the CONGEST model. First,
+we show that we can implement Algorithm 3 with small messages of size O(log n), and secondly,
+we show that the communication models considered in Section 2 and Section 4 are equivalent
+up to constant overhead.
+
+Finite precision and CONGEST Implementation. Observe that the runtime of Theorem 29
+exceeds O(n2 ), when ε < 1/n1.5 = 1/ poly n, and thus we can trivially match the runtime of
+Theorem 29 by the whole graph in and solving the problem locally. Therefore, we only need to
+consider the case, where ε > 1/ poly n.
+Lemma 39. Let ε > 1/ poly n, then Algorithm 3 can be implemented in the CONGEST model
+using only rational messages of O(log n) bits. Additionally, every output value xi is rational.
+Proof. Let δin := ε/100. For every non-zero entry of P and C, replace it by a rational number
+in the interval
+                                         [(1 − δin )α, (1 + δin )α].
+
+    In particular, we obtain rational matrices P,
+                                               b Cb such that entrywise
+
+                   (1 − δin )P ≤ P
+                                 b ≤ (1 + δin )P,         (1 − δin )C ≤ C
+                                                                        b ≤ (1 + δin )C.
+
+Since P, C have non-negative entries and x ≥ 0, for every x ≥ 0 we have
+                                  (1 − δin )Px ≤ Px
+                                                 b ≤ (1 + δin )Px
+
+and
+                                  (1 − δin )Cx ≤ Cx
+                                                 b ≤ (1 + δin )Cx.
+
+Claim 40. Any vector x ≥ 0 satisfying
+                                 b j ≤ (1 + ε/100)(1 + ε/3) min(Cx)
+                             max(Px)                            b j
+                              j                                        j
+
+also satisfies
+                                   max(Px)j ≤ (1 + ε) min(Cx)j .
+                                     j                        j
+
+Proof of Claim 40. If x ≥ 0 satisfies
+                                 b j ≤ (1 + ε/100)(1 + ε/3) min(Cx)
+                             max(Px)                            b j,
+                              j                                        j
+
+then
+                                        1
+                       max(Px)j ≤           max(Px)
+                                                  b j
+                         j           1 − δin j
+                                     (1 + ε/100)(1 + ε/3)
+                                   ≤                      min(Cx)
+                                                               b j
+                                            1 − δin        j
+                                     (1 + ε/100)(1 + ε/3)(1 + δin )
+                                   ≤                                min(Cx)j .
+                                                1 − δin              j
+
+For δin = ε/100, the prefactor is upper bounded by
+                                         (1 + ε/100)2 (1 + ε/3)
+                                                                .
+                                               1 − ε/100
+Using (1 + ε/100)2 ≤ 1 + 3ε/100 and 1/(1 − ε/100) ≤ 1 + 2ε/100 for ε ∈ (0, 1], we obtain
+                 (1 + ε/100)2 (1 + ε/3)
+                                        ≤ (1 + 3ε/100)(1 + ε/3)(1 + 2ε/100) ≤ 1 + ε.
+                       1 − ε/100
+
+                                                     35
+    Thus, solving the rounded instance to accuracy (1 + ε/100)(1 + ε/3) is enough to obtain a
+(1 + ε)-approximate solution for the original instance.
+   Next, we show that the rounded instance can be executed with fixed floating-point precision.
+Claim 41. There exists an absolute constant c > 0 such that if every communicated number is
+rounded to relative precision
+                                                                        ε
+                                   1±δ          with         δ :=           ,
+                                                                      200cR
+where R is the iteration bound from Lemma 31, then the finite-precision execution outputs a
+vector x satisfying
+                             b j ≤ (1 + ε/100)(1 + ε/3) min(Cx)
+                         max(Px)                             b j.
+                            j                                               j
+
+   Additionally, every communicated number can be represented by O(log n) bits.
+    If claim 2 holds, the final output is still a (1+ε)-approximate feasible solution for the original
+instance.
+
+Proof of Claim 41. We consider the execution of Algorithm 3 on the rounded rational instance
+(P, b Every quantity that is ever communicated is replaced by a rational approximation with
+ b C).
+relative error at most δ = ε/(200cR), where c > 0 will be defined later in the proof:
+
+                                         e ← (1 + δ)⌊log1+δ u⌋
+                                         u
+
+Here u
+     e denotes the rounded representation of any communicated quantity u.
+   In one iteration, each communicated value is obtained from previously stored values by a
+constant number of additions, multiplications, divisions, and one evaluation of exp(·). Since all
+quantities that occur before termination satisfy
+
+                                 0 ≤ (Px)    b j ≤ K = 10 ln n ,
+                                      b j , (Cx)
+                                                          ε
+
+the arguments of all exponentials lie in [−K, K], and hence all values yj = exp((Px)
+                                                                                 b j ) and
+            b j ) lie in a range whose logarithm is O(K). Further, taking logarithms of the
+zj = exp(−(Cx)
+update rule
+                                                                      (t)
+                                        (t+1)      (t)
+                                                                 ∆i 
+                                      xi        = xi         1+
+                                                                   K
+yields
+                                                                            (t)
+                                     (t+1)        (t)
+                                                                       ∆ 
+                                log xi     = log xi + log             1+ i .
+                                                                         K
+            (t)
+Since 0 ≤ ∆i ≤ 1/2 and log(1 + u) ≤ u for all u ≥ 0, we obtain
+                                               (t)
+                                             ∆      1
+                                       log 1 + i   ≤    .
+                                               K     2K
+                                                       (t)
+Summing over all R iterations shows that log xi increases by at most O(R/K) over the entire
+execution. Consequently, every transmitted number k ∈ {yj , zj , xi , aij , bij } can be stored in
+normalized floating-point form
+
+                                            k = ± M · 2E
+
+
+                                                       36
+with O(log(R/ε)) bits for the mantissa M and O(log K + log R) bits for the exponent E, since
+R = poly(log n, 1/ε, log m) and ε ≥ 1/ poly(n), this is O(log n) bits in total.
+    It remains to bound the effect of arithmetic rounding. Because all quantities occurring in the
+execution are positive and each newly stored value is computed from previously stored values by
+only constantly many operations, one iteration increases the current relative error by at most a
+multiplicative factor 1 + cδ for some absolute constant c > 0. Hence, if after iteration t every
+stored value approximates the exact value within a factor 1 + ηt , then after the next iteration
+the error is at most
+                                   1 + ηt+1 ≤ (1 + cδ)(1 + ηt ).
+Starting with η0 = 0, induction yields
+
+                                  1 + ηt ≤ (1 + cδ)t ≤ exp(ctδ).
+
+Therefore, for all t ≤ R,
+                                         1 + ηt ≤ exp(cRδ).
+Choosing δ ≤ ε/(200cR) implies
+
+                               exp(cRδ) ≤ exp(ε/200) ≤ 1 + ε/100,
+
+so the total arithmetic error over the entire execution is at most ε/100 multiplicatively.
+
+    Hence, the finite-precision execution computes a solution that is (1 + ε/3)-feasible for the
+rounded instance up to an additional factor 1 + ε/100, and therefore, by Claim 40 it is still a
+(1 + ε)-approximate solution for the original instance. Finally, every communicated quantity
+is rational by construction, and since the update rule multiplies rational numbers by rational
+approximations, every output value xi is rational as well.
+
+Equivalent models. First, let us recall the two different communication models we consider.
+In Section 2, we consider the bipartite input child-gift graph G = (C ∪ G, E) where we always
+have an edge {c, g} ∈ E if the child c desires g, as our communication network. In Section 4,
+we consider the bipartite graph, where nodes are variables and constraints (of the LP), and we
+always connect a variable-node with a constraint-node if the corresponding entry in the matrix
+is non-zero.
+    We show that these two models are equivalent up to a constant round overhead, i.e., we can
+in fact, invoke Algorithm 3 using the communication network of Section 2.
+
+Remark 42. Given a weighted bipartite graph G = (C ∪ G, E) and vertex weights vg ∈ R≥0 for
+all g ∈ G, we can simulate Algorithm 3 with input (SantaLP(T ) , ε), on G such that any round
+of Algorithm 3 takes O(1) rounds.
+
+Proof. We may assume that every entity holds its corresponding constraints of SantaLP(T ), i.e.,
+each child has access to its corresponding constraints 1, 2, and 4, each small gift has access to
+2 and 5, and each big gift has access to 3. Variables are defined on the edges between a child
+and a gift, so we may assume that children take charge of the variable nodes in Algorithm 3.
+Packing/covering constraints are simulated by the corresponding entities that have access to the
+corresponding constraint. Finally, we observe that by the definition of SantaLP(T ) variables
+xcg for a child c and a gift g only show up if there exists an edge {c, g} in G, i.e., entries in the
+packing/covering matrices are positive if and only if there exists an edge in G.
+
+
+
+
+                                                 37
+References
+[ABL20]     Sepehr Assadi, Aaron Bernstein, and Zachary Langley. “Improved Bounds for
+            Distributed Load Balancing”. In: 34th International Symposium on Distributed
+            Computing (DISC 2020). Ed. by Hagit Attiya. Vol. 179. Leibniz International
+            Proceedings in Informatics (LIPIcs). Dagstuhl, Germany: Schloss Dagstuhl –
+            Leibniz-Zentrum für Informatik, 2020, 1:1–1:15. isbn: 978-3-95977-168-9. doi:
+            10.4230/LIPIcs.DISC.2020.1 (cit. on pp. 3, 4).
+[AFS12]     Arash Asadpour, Uriel Feige, and Amin Saberi. “Santa claus meets hypergraph
+            matchings”. In: ACM Trans. Algorithms 8.3 (2012), 24:1–24:9. doi: 10 . 1145 /
+            2229163.2229168 (cit. on p. 3).
+[AKO18]     Mohamad Ahmadi, Fabian Kuhn, and Rotem Oshman. “Distributed Approximate
+            Maximum Matching in the CONGEST Model”. In: 32nd International Symposium
+            on Distributed Computing, DISC 2018, New Orleans, LA, USA, October 15-19,
+            2018. Ed. by Ulrich Schmid and Josef Widder. LIPIcs. Schloss Dagstuhl - Leibniz-
+            Zentrum für Informatik, 2018, 6:1–6:17. doi: 10.4230/LIPICS.DISC.2018.6 (cit.
+            on p. 3).
+[AKS15]     Chidambaram Annamalai, Christos Kalaitzis, and Ola Svensson. “Combinatorial
+            Algorithm for Restricted Max-Min Fair Allocation”. In: Proceedings of the Twenty-
+            Sixth Annual ACM-SIAM Symposium on Discrete Algorithms, SODA 2015, San
+            Diego, CA, USA, January 4-6, 2015. Ed. by Piotr Indyk. SIAM, 2015, pp. 1357–
+            1372. doi: 10.1137/1.9781611973730.90 (cit. on pp. 3, 8).
+[BBHO+19]   Alkida Balliu, Sebastian Brandt, Juho Hirvonen, Dennis Olivetti, Mikaël Rabie,
+            and Jukka Suomela. “Lower Bounds for Maximal Matchings and Maximal Inde-
+            pendent Sets”. In: 60th IEEE Annual Symposium on Foundations of Computer
+            Science, FOCS 2019, Baltimore, Maryland, USA, November 9-12, 2019. Ed. by
+            David Zuckerman. IEEE Computer Society, 2019, pp. 481–497. doi: 10.1109/
+            FOCS.2019.00037 (cit. on p. 3).
+[BCDE+19]   Nir Bachrach, Keren Censor-Hillel, Michal Dory, Yuval Efron, Dean Leitersdorf,
+            and Ami Paz. “Hardness of Distributed Optimization”. In: Proceedings of the 2019
+            ACM Symposium on Principles of Distributed Computing, PODC 2019, Toronto,
+            ON, Canada, July 29 - August 2, 2019. Ed. by Peter Robinson and Faith Ellen.
+            ACM, 2019, pp. 238–247. doi: 10.1145/3293611.3331597. arXiv: 1905.10284
+            (cit. on p. 3).
+[BCG09]     MohammadHossein Bateni, Moses Charikar, and Venkatesan Guruswami. “MaxMin
+            allocation via degree lower-bounded arborescences”. In: Proceedings of the 41st
+            Annual ACM Symposium on Theory of Computing, STOC 2009, Bethesda, MD,
+            USA, May 31 - June 2, 2009. Ed. by Michael Mitzenmacher. ACM, 2009, pp. 543–
+            552. doi: 10.1145/1536414.1536488 (cit. on p. 9).
+[BD05]      Ivona Bezáková and Varsha Dani. “Allocating indivisible goods”. In: SIGecom
+            Exch. 5.3 (2005). Full version with all proofs available at https://newtraell.
+            cs . uchicago . edu / files / tr _ authentic / TR - 2004 - 10 . pdf, pp. 11–18. doi:
+            10.1145/1120680.1120683 (cit. on pp. 3, 8, 9).
+[BEG18]     Leonid Barenboim, Michael Elkin, and Cyril Gavoille. “A fast network-decomposition
+            algorithm and its applications to constant-time distributed computation”. In:
+            Theor. Comput. Sci. 751 (2018), pp. 2–23. doi: 10.1016/J.TCS.2016.07.005
+            (cit. on p. 4).
+
+
+
+
+                                             38
+[BFKL21]    Ruben Becker, Sebastian Forster, Andreas Karrenbauer, and Christoph Lenzen.
+            “Near-Optimal Approximate Shortest Paths and Transshipment in Distributed
+            and Streaming Models”. In: SIAM J. Comput. 50.3 (2021). Announced at DISC
+            2017, pp. 815–856. arXiv: 1607.05127 (cit. on p. 3).
+[BGR21]     Étienne Bamas, Paritosh Garg, and Lars Rohwedder. “The Submodular Santa
+            Claus Problem in the Restricted Assignment Case”. In: 48th International Col-
+            loquium on Automata, Languages, and Programming, ICALP 2021, July 12-16,
+            2021, Glasgow, Scotland (Virtual Conference). Ed. by Nikhil Bansal, Emanuela
+            Merelli, and James Worrell. Vol. 198. LIPIcs. Schloss Dagstuhl - Leibniz-Zentrum
+            für Informatik, 2021, 22:1–22:18. doi: 10.4230/LIPICS.ICALP.2021.22 (cit. on
+            p. 3).
+[BHR18]     Ravi B. Boppana, Magnús M. Halldórsson, and Dror Rawitz. “Brief Announce-
+            ment: Simple and Local Independent Set Approximation”. In: Proceedings of the
+            2018 ACM Symposium on Principles of Distributed Computing, PODC 2018,
+            Egham, United Kingdom, July 23-27, 2018. Ed. by Calvin Newport and Idit Kei-
+            dar. ACM, 2018, pp. 163–165. doi: 10.1145/3212734.3212793 (cit. on p. 4).
+[BLMR+24]   Étienne Bamas, Alexander Lindermayr, Nicole Megow, Lars Rohwedder, and Jens
+            Schlöter. “Santa Claus meets Makespan and Matroids: Algorithms and Reduc-
+            tions”. In: 35th Annual ACM-SIAM Symposium on Discrete Algorithms, (SODA
+            2024). SIAM, 2024, pp. 2829–2860. doi: 10.1137/1.9781611977912.100 (cit. on
+            p. 3).
+[BMR25]     Étienne Bamas, Sarah Morell, and Lars Rohwedder. “The Submodular Santa
+            Claus Problem”. In: Proceedings of the 2025 Annual ACM-SIAM Symposium
+            on Discrete Algorithms, SODA 2025, New Orleans, LA, USA, January 12-15,
+            2025. Ed. by Yossi Azar and Debmalya Panigrahi. SIAM, 2025, pp. 616–640. doi:
+            10.1137/1.9781611978322.19 (cit. on p. 3).
+[BO20]      Leonid Barenboim and Gal Oren. “Distributed Backup Placement in One Round
+            and its Applications to Maximum Matching Approximation and Self-Stabilization”.
+            In: 3rd Symposium on Simplicity in Algorithms, SOSA 2020, Salt Lake City, UT,
+            USA, January 6-7, 2020. Ed. by Martin Farach-Colton and Inge Li Gørtz. SIAM,
+            2020, pp. 99–105. doi: 10.1137/1.9781611976014.14 (cit. on pp. 3, 4).
+[BR23]      Étienne Bamas and Lars Rohwedder. “Better Trees for Santa Claus”. In: Proceed-
+            ings of the 55th Annual ACM Symposium on Theory of Computing, STOC 2023,
+            Orlando, FL, USA, June 20-23, 2023. Ed. by Barna Saha and Rocco A. Servedio.
+            ACM, 2023, pp. 1862–1875. doi: 10.1145/3564246.3585174 (cit. on p. 9).
+[BS06]      Nikhil Bansal and Maxim Sviridenko. “The Santa Claus problem”. In: 38th Annual
+            ACM Symposium on Theory of Computing, (STOC 2006). ACM, 2006, pp. 31–40.
+            doi: 10.1145/1132516.1132522 (cit. on pp. 3, 5, 6, 8, 17).
+[CCK09]     Deeparnab Chakrabarty, Julia Chuzhoy, and Sanjeev Khanna. “On Allocating
+            Goods to Maximize Fairness”. In: 50th Annual IEEE Symposium on Foundations
+            of Computer Science, FOCS 2009, Atlanta, Georgia, USA, October 25-27, 2009.
+            IEEE Computer Society, 2009, pp. 107–116. doi: 10.1109/FOCS.2009.51 (cit. on
+            pp. 3, 9).
+[CG21]      Yi-Jun Chang and Mohsen Ghaffari. “Strong-Diameter Network Decomposition”.
+            In: PODC ’21: ACM Symposium on Principles of Distributed Computing, Virtual
+            Event, Italy, July 26-30, 2021. Ed. by Avery Miller, Keren Censor-Hillel, and
+            Janne H. Korhonen. ACM, 2021, pp. 273–281. doi: 10.1145/3465084.3467933.
+            arXiv: 2102.09820 (cit. on p. 12).
+
+
+                                           39
+[CL21]    Corinna Coupette and Christoph Lenzen. “A Breezing Proof of the KMW Bound”.
+          In: 4th Symposium on Simplicity in Algorithms, SOSA 2021, Virtual Conference,
+          January 11-12, 2021. Ed. by Hung Viet Le and Valerie King. SIAM, 2021, pp. 184–
+          195. doi: 10.1137/1.9781611976496.21 (cit. on p. 3).
+[CL23a]   Yi-Jun Chang and Zeyong Li. “The Complexity of Distributed Approximation of
+          Packing and Covering Integer Linear Programs”. In: Proceedings of the 2023 ACM
+          Symposium on Principles of Distributed Computing, PODC 2023, Orlando, FL,
+          USA, June 19-23, 2023. Ed. by Rotem Oshman, Alexandre Nolin, Magnús M.
+          Halldórsson, and Alkida Balliu. ACM, 2023, pp. 32–43. doi: 10.1145/3583668.
+          3594562. arXiv: 2305.01324 (cit. on p. 3).
+[CL23b]   Yi-Jun Chang and Zeyong Li. “The Complexity of Distributed Approximation of
+          Packing and Covering Integer Linear Programs”. In: Proceedings of the 2023 ACM
+          Symposium on Principles of Distributed Computing, PODC 2023, Orlando, FL,
+          USA, June 19-23, 2023. Ed. by Rotem Oshman, Alexandre Nolin, Magnús M.
+          Halldórsson, and Alkida Balliu. ACM, 2023, pp. 32–43. doi: 10.1145/3583668.
+          3594562 (cit. on p. 4).
+[CM18]    Siu-Wing Cheng and Yuchen Mao. “Restricted Max-Min Fair Allocation”. In: 45th
+          International Colloquium on Automata, Languages, and Programming, ICALP
+          2018, July 9-13, 2018, Prague, Czech Republic. Ed. by Ioannis Chatzigiannakis,
+          Christos Kaklamanis, Dániel Marx, and Donald Sannella. Vol. 107. LIPIcs. Schloss
+          Dagstuhl - Leibniz-Zentrum für Informatik, 2018, 37:1–37:13. doi: 10 . 4230 /
+          LIPICS.ICALP.2018.37 (cit. on pp. 3, 8).
+[CM22]    Siu-Wing Cheng and Yuchen Mao. “Restricted Max-Min Allocation: Integrality
+          Gap and Approximation Algorithm”. In: Algorithmica 84.7 (2022), pp. 1835–1874.
+          doi: 10.1007/S00453-022-00942-Y (cit. on pp. 3, 8).
+[CP19]    Yi-Jun Chang and Seth Pettie. “A Time Hierarchy Theorem for the LOCAL
+          Model”. In: SIAM J. Comput. 48.1 (2019), pp. 33–69. doi: 10.1137/17M1157957
+          (cit. on p. 20).
+[CPS20]   Keren Censor-Hillel, Merav Parter, and Gregory Schwartzman. “Derandomizing
+          local distributed algorithms under bandwidth restrictions”. In: Distributed Com-
+          put. 33.3-4 (2020). Announced at DISC’17, pp. 349–366. doi: 10.1007/S00446-
+          020-00376-1. arXiv: 1608.01689 (cit. on p. 15).
+[CS20]    Yi-Jun Chang and Thatchaphol Saranurak. “Deterministic Distributed Expander
+          Decomposition and Routing with Applications in Distributed Derandomization”.
+          In: 61st IEEE Annual Symposium on Foundations of Computer Science, FOCS
+          2020, Durham, NC, USA, November 16-19, 2020. Ed. by Sandy Irani. IEEE, 2020,
+          pp. 377–388. doi: 10.1109/FOCS46700.2020.00043. arXiv: 2007.14898 (cit. on
+          p. 13).
+[CS26]    Yi-Jun Chang and Hsin-Hao Su. “Narrowing the LOCAL-CONGEST gaps in
+          sparse networks via expander decompositions”. In: Distributed Comput. 39.2 (2026).
+          Announced ad PODC’22, p. 6. doi: 10.1007/S00446-025-00496-6 (cit. on pp. 3,
+          5).
+[DRZ20]   Sami Davies, Thomas Rothvoss, and Yihao Zhang. “A Tale of Santa Claus, Hyper-
+          graphs and Matroids”. In: 31st Annual ACM-SIAM Symposium on Discrete Algo-
+          rithms, (SODA 2020). SIAM, 2020, pp. 2748–2757. doi: 10.1137/1.9781611975994.
+          167 (cit. on pp. 3, 5, 8, 16).
+
+
+
+
+                                          40
+[EGK20]     Yuval Efron, Ofer Grossman, and Seri Khoury. “Beyond Alice and Bob: Improved
+            Inapproximability for Maximum Independent Set in CONGEST”. In: PODC ’20:
+            ACM Symposium on Principles of Distributed Computing, Virtual Event, Italy,
+            August 3-7, 2020. Ed. by Yuval Emek and Christian Cachin. ACM, 2020, pp. 511–
+            520. doi: 10.1145/3382734.3405702 (cit. on p. 3).
+[Fei08]     Uriel Feige. “On allocations that maximize fairness”. In: 19th Annual ACM-SIAM
+            Symposium on Discrete Algorithms (SODA 2008). SIAM, 2008, pp. 287–293 (cit.
+            on pp. 3, 8).
+[FGGK+23]   Salwa Faour, Mohsen Ghaffari, Christoph Grunau, Fabian Kuhn, and Václav
+            Rozhon. “Local Distributed Rounding: Generalized to MIS, Matching, Set Cover,
+            and Beyond”. In: Proceedings of the 2023 ACM-SIAM Symposium on Discrete
+            Algorithms, SODA 2023, Florence, Italy, January 22-25, 2023. Ed. by Nikhil
+            Bansal and Viswanath Nagarajan. SIAM, 2023, pp. 4409–4447. doi: 10.1137/1.
+            9781611977554.CH168 (cit. on pp. 3, 9).
+[FGLP+21]   Sebastian Forster, Gramoz Goranci, Yang P. Liu, Richard Peng, Xiaorui Sun, and
+            Mingquan Ye. “Minor Sparsifiers and the Distributed Laplacian Paradigm”. In:
+            Proc. of the 62nd IEEE Annual Symposium on Foundations of Computer Science,
+            FOCS 2021. IEEE, 2021, pp. 989–999. arXiv: 2012.15675 (cit. on pp. 9, 11, 47).
+[FGV21]     Sebastian Forster, Martin Grösbacher, and Tijn de Vos. “An Improved Random
+            Shift Algorithm for Spanners and Low Diameter Decompositions”. In: 25th Inter-
+            national Conference on Principles of Distributed Systems, OPODIS 2021, Stras-
+            bourg, France, December 13-15, 2021. Ed. by Quentin Bramas, Vincent Gramoli,
+            and Alessia Milani. LIPIcs. Schloss Dagstuhl - Leibniz-Zentrum für Informatik,
+            2021, 16:1–16:17. doi: 10.4230/LIPICS.OPODIS.2021.16. arXiv: 2111.08975
+            (cit. on p. 12).
+[FHS15]     Laurent Feuilloley, Juho Hirvonen, and Jukka Suomela. “Locally Optimal Load
+            Balancing”. In: Distributed Computing - 29th International Symposium, DISC
+            2015, Tokyo, Japan, October 7-9, 2015, Proceedings. Ed. by Yoram Moses. Lec-
+            ture Notes in Computer Science. Springer, 2015, pp. 544–558. doi: 10.1007/978-
+            3-662-48653-5\_36 (cit. on p. 4).
+[Fis20]     Manuela Fischer. “Improved deterministic distributed matching via rounding”.
+            In: Distributed Comput. 33.3-4 (2020), pp. 279–291. doi: 10.1007/S00446-018-
+            0344-4 (cit. on p. 9).
+[FV23]      Sebastian Forster and Tijn de Vos. “Brief Announcement: The Laplacian Paradigm
+            in Deterministic Congested Clique”. In: Proceedings of the 2023 ACM Symposium
+            on Principles of Distributed Computing, PODC 2023, Orlando, FL, USA, June
+            19-23, 2023. Ed. by Rotem Oshman, Alexandre Nolin, Magnús M. Halldórsson,
+            and Alkida Balliu. ACM, 2023, pp. 75–78. doi: 10 . 1145 / 3583668 . 3594577.
+            arXiv: 2304.02315 (cit. on p. 11).
+[GG23]      Mohsen Ghaffari and Christoph Grunau. “Faster Deterministic Distributed MIS
+            and Approximate Matching”. In: Proceedings of the 55th Annual ACM Symposium
+            on Theory of Computing, STOC 2023, Orlando, FL, USA, June 20-23, 2023.
+            Ed. by Barna Saha and Rocco A. Servedio. ACM, 2023, pp. 1777–1790. doi:
+            10.1145/3564246.3585243 (cit. on p. 9).
+[GG24]      Mohsen Ghaffari and Christoph Grunau. “Near-Optimal Deterministic Network
+            Decomposition and Ruling Set, and Improved MIS”. In: 65th IEEE Annual Sym-
+            posium on Foundations of Computer Science, FOCS 2024, Chicago, IL, USA,
+            October 27-30, 2024. IEEE, 2024, pp. 2148–2179. doi: 10 . 1109 / FOCS61266 .
+            2024.00007 (cit. on p. 9).
+
+                                          41
+[GGHI+23]   Mohsen Ghaffari, Christoph Grunau, Bernhard Haeupler, Saeed Ilchi, and Václav
+            Rozhon. “Improved Distributed Network Decomposition, Hitting Sets, and Span-
+            ners, via Derandomization”. In: Proceedings of the 2023 ACM-SIAM Symposium
+            on Discrete Algorithms, SODA 2023, Florence, Italy, January 22-25, 2023. Ed.
+            by Nikhil Bansal and Viswanath Nagarajan. SIAM, 2023, pp. 2532–2566. doi:
+            10.1137/1.9781611977554.CH97. arXiv: 2209.11669 (cit. on p. 12).
+[GGR21]     Mohsen Ghaffari, Christoph Grunau, and Václav Rozhon. “Improved Determin-
+            istic Network Decomposition”. In: Proceedings of the 2021 ACM-SIAM Sympo-
+            sium on Discrete Algorithms, SODA 2021, Virtual Conference, January 10 -
+            13, 2021. Ed. by Dániel Marx. SIAM, 2021, pp. 2904–2923. doi: 10.1137/1.
+            9781611976465.173. arXiv: 2007.08253 (cit. on pp. 9, 12, 15).
+[Gha19]     Mohsen Ghaffari. “Distributed Maximal Independent Set using Small Messages”.
+            In: Proceedings of the Thirtieth Annual ACM-SIAM Symposium on Discrete Al-
+            gorithms, SODA 2019, San Diego, California, USA, January 6-9, 2019. Ed. by
+            Timothy M. Chan. SIAM, 2019, pp. 805–820. doi: 10.1137/1.9781611975482.50
+            (cit. on p. 3).
+[GK21]      Mohsen Ghaffari and Fabian Kuhn. “Deterministic Distributed Vertex Coloring:
+            Simpler, Faster, and without Network Decomposition”. In: 62nd IEEE Annual
+            Symposium on Foundations of Computer Science, FOCS 2021, Denver, CO, USA,
+            February 7-10, 2022. IEEE, 2021, pp. 1009–1020. doi: 10.1109/FOCS52979.2021.
+            00101 (cit. on p. 9).
+[GKM17]     Mohsen Ghaffari, Fabian Kuhn, and Yannic Maus. “On the complexity of local
+            distributed graph problems”. In: Proceedings of the 49th Annual ACM SIGACT
+            Symposium on Theory of Computing, STOC 2017, Montreal, QC, Canada, June
+            19-23, 2017. Ed. by Hamed Hatami, Pierre McKenzie, and Valerie King. ACM,
+            2017, pp. 784–797. doi: 10.1145/3055399.3055471 (cit. on p. 4).
+[Gor25]     Goran Zuzic. Lecture Notes, Principles of Distributed Computing. Accessed: 2026-
+            04-29. 2025 (cit. on p. 25).
+[GPS88]     Andrew V. Goldberg, Serge A. Plotkin, and Gregory E. Shannon. “Parallel Symmetry-
+            Breaking in Sparse Graphs”. In: SIAM J. Discret. Math. 1.4 (1988), pp. 434–446.
+            doi: 10.1137/0401044 (cit. on p. 47).
+[HK73]      John E. Hopcroft and Richard M. Karp. “An n5/2 Algorithm for Maximum
+            Matchings in Bipartite Graphs”. In: SIAM J. Comput. 2.4 (1973), pp. 225–231.
+            doi: 10.1137/0202019 (cit. on p. 4).
+[HKN21]     Monika Henzinger, Sebastian Krinninger, and Danupon Nanongkai. “A Deter-
+            ministic Almost-Tight Distributed Algorithm for Approximating Single-Source
+            Shortest Paths”. In: SIAM J. Comput. 50.3 (2021). Announced at STOC’16. doi:
+            10.1137/16M1097808. arXiv: 1504.07056 (cit. on p. 47).
+[HKPR18]    Magnús M. Halldórsson, Sven Köhler, Boaz Patt-Shamir, and Dror Rawitz. “Dis-
+            tributed backup placement in networks”. In: Distributed Comput. 31.2 (2018),
+            pp. 83–98. doi: 10.1007/S00446-017-0299-X (cit. on p. 4).
+[HS23]      Shang-En Huang and Hsin-Hao Su. “(1 − ε)-Approximate Maximum Weighted
+            Matching in poly(1/ε, log n) Time in the Distributed and Parallel Settings”. In:
+            Proceedings of the 2023 ACM Symposium on Principles of Distributed Comput-
+            ing, PODC 2023, Orlando, FL, USA, June 19-23, 2023. Ed. by Rotem Oshman,
+            Alexandre Nolin, Magnús M. Halldórsson, and Alkida Balliu. ACM, 2023, pp. 44–
+            54. doi: 10.1145/3583668.3594570 (cit. on p. 3).
+
+
+
+                                           42
+[HS25]    Penny Haxell and Tibor Szabó. “Improved Integrality Gap in Max-Min Allocation,
+          or, Topology at the North Pole”. In: Comb. 45.2 (2025), p. 22. doi: 10.1007/
+          S00493-025-00141-7 (cit. on p. 3).
+[HSS11]   Bernhard Haeupler, Barna Saha, and Aravind Srinivasan. “New Constructive As-
+          pects of the Lovász Local Lemma”. In: J. ACM 58.6 (2011), 28:1–28:28. doi:
+          10.1145/2049697.2049702 (cit. on p. 8).
+[HSS16]   David G. Harris, Johannes Schneider, and Hsin-Hao Su. “Distributed (∆ + 1)-
+          coloring in sublogarithmic rounds”. In: Proceedings of the 48th Annual ACM
+          SIGACT Symposium on Theory of Computing, STOC 2016, Cambridge, MA,
+          USA, June 18-21, 2016. Ed. by Daniel Wichs and Yishay Mansour. ACM, 2016,
+          pp. 465–478. doi: 10.1145/2897518.2897533 (cit. on p. 3).
+[IKY24]   Taisuke Izumi, Naoki Kitamura, and Yutaro Yamaguchi. “A Nearly Linear-Time
+          Distributed Algorithm for Exact Maximum Matching”. In: Proceedings of the 2024
+          ACM-SIAM Symposium on Discrete Algorithms, SODA 2024, Alexandria, VA,
+          USA, January 7-10, 2024. Ed. by David P. Woodruff. SIAM, 2024, pp. 4062–
+          4082. doi: 10.1137/1.9781611977912.141 (cit. on p. 3).
+[JR20]    Klaus Jansen and Lars Rohwedder. “A note on the integrality gap of the configu-
+          ration LP for restricted Santa Claus”. In: Inf. Process. Lett. 164 (2020), p. 106025.
+          doi: 10.1016/J.IPL.2020.106025 (cit. on p. 3).
+[JRS02]   Lujun Jia, Rajmohan Rajaraman, and Torsten Suel. “An efficient distributed al-
+          gorithm for constructing small dominating sets”. In: Distributed Comput. 15.4
+          (2002), pp. 193–205. doi: 10.1007/S00446-002-0078-0 (cit. on p. 4).
+[KMW06]   Fabian Kuhn, Thomas Moscibroda, and Roger Wattenhofer. “The price of being
+          near-sighted”. In: Proceedings of the Seventeenth Annual ACM-SIAM Symposium
+          on Discrete Algorithms, SODA 2006, Miami, Florida, USA, January 22-26, 2006.
+          ACM Press, 2006, pp. 980–989 (cit. on pp. 3, 4).
+[KMW16]   Fabian Kuhn, Thomas Moscibroda, and Roger Wattenhofer. “Local Computation:
+          Lower and Upper Bounds”. In: J. ACM 63.2 (2016), 17:1–17:44. doi: 10.1145/
+          2742012 (cit. on pp. 3, 4).
+[Kus25]   William Kuszmaul. “A Simple and Combinatorial Approach to Proving Cher-
+          noff Bounds and Their Generalizations”. In: 2025 Symposium on Simplicity in
+          Algorithms, SOSA 2025, New Orleans, LA, USA, January 13-15, 2025. Ed. by
+          Ioana Oriana Bercea and Rasmus Pagh. SIAM, 2025, pp. 77–93. doi: 10.1137/
+          1.9781611978315.6 (cit. on p. 19).
+[LST90]   Jan Karel Lenstra, David B. Shmoys, and Éva Tardos. “Approximation Algo-
+          rithms for Scheduling Unrelated Parallel Machines”. In: Math. Program. 46 (1990),
+          pp. 259–271. doi: 10.1007/BF01585745 (cit. on pp. 8, 9, 16).
+[MPX13]   Gary L. Miller, Richard Peng, and Shen Chen Xu. “Parallel graph decompositions
+          using random shifts”. In: 25th ACM Symposium on Parallelism in Algorithms and
+          Architectures, SPAA ’13, Montreal, QC, Canada - July 23 - 25, 2013. Ed. by
+          Guy E. Blelloch and Berthold Vöcking. ACM, 2013, pp. 196–203. doi: 10.1145/
+          2486159.2486180. arXiv: 1307.3692 (cit. on p. 12).
+[MR89]    Gary L. Miller and John H. Reif. “Parallel Tree Contraction Part 1: Fundamen-
+          tals”. In: Adv. Comput. Res. 5 (1989), pp. 47–72 (cit. on pp. 12, 47).
+
+
+
+
+                                           43
+[MRWZ16]   Michael W. Mahoney, Satish Rao, Di Wang, and Peng Zhang. “Approximating the
+           Solution to Mixed Packing and Covering LPs in Parallel Õ(ϵ−3 ) Time”. In: 43rd
+           International Colloquium on Automata, Languages, and Programming, ICALP
+           2016, July 11-15, 2016, Rome, Italy. Ed. by Ioannis Chatzigiannakis, Michael
+           Mitzenmacher, Yuval Rabani, and Davide Sangiorgi. Vol. 55. LIPIcs. Schloss
+           Dagstuhl - Leibniz-Zentrum für Informatik, 2016, 52:1–52:14. doi: 10 . 4230 /
+           LIPICS.ICALP.2016.52 (cit. on pp. 4, 5, 30, 32–34).
+[MS25]     Slobodan Mitrovic and Wen-Horng Sheu. “A framework for boosting matching
+           approximation: parallel, distributed, and dynamic”. In: Proceedings of the 37th
+           ACM Symposium on Parallelism in Algorithms and Architectures, SPAA 2025,
+           Portland, OR, USA, 28 July 2025 - 1 August 2025. ACM, 2025, pp. 443–457.
+           doi: 10.1145/3694906.3743312 (cit. on p. 3).
+[OBL18]    Gal Oren, Leonid Barenboim, and Harel Levin. “Distributed Fault-Tolerant Backup-
+           Placement in Overloaded Wireless Sensor Networks”. In: Broadband Communica-
+           tions, Networks, and Systems - 9th International EAI Conference, BROADNETS
+           2018, Faro, Portugal, September 19-20, 2018, Proceedings. Ed. by Victor Sucasas,
+           Georgios Mantas, and Saud Althunibat. Lecture Notes of the Institute for Com-
+           puter Sciences, Social Informatics and Telecommunications Engineering. Springer,
+           2018, pp. 212–224. doi: 10.1007/978-3-030-05195-2\_21 (cit. on p. 4).
+[Pel00]    David Peleg. Distributed Computing: A Locality-Sensitive Approach. SIAM, 2000
+           (cit. on pp. 3, 25, 47).
+[PR00]     David Peleg and Vitaly Rubinovich. “A Near-Tight Lower Bound on the Time
+           Complexity of Distributed Minimum-Weight Spanning Tree Construction”. In:
+           SIAM Journal on Computing 30.5 (2000), pp. 1427–1442. doi: 10.1137/S0097539700369740.
+           eprint: https://doi.org/10.1137/S0097539700369740 (cit. on pp. 24, 25).
+[PS16]     Lukás Polácek and Ola Svensson. “Quasi-Polynomial Local Search for Restricted
+           Max-Min Fair Allocation”. In: ACM Trans. Algorithms 12.2 (2016), 13:1–13:13.
+           doi: 10.1145/2818695 (cit. on p. 3).
+[PY19]     Merav Parter and Eylon Yogev. “Optimal Short Cycle Decomposition in Almost
+           Linear Time”. In: 46th International Colloquium on Automata, Languages, and
+           Programming, ICALP 2019, Patras, Greece, July 9-12, 2019. Ed. by Christel
+           Baier, Ioannis Chatzigiannakis, Paola Flocchini, and Stefano Leonardi. LIPIcs.
+           Full version: https://www.weizmann.ac.il/math/parter/sites/math.parter/
+           files / uploads / main - icalp - cycles - full . pdf. Schloss Dagstuhl - Leibniz-
+           Zentrum für Informatik, 2019, 89:1–89:14. doi: 10.4230/LIPICS.ICALP.2019.89
+           (cit. on pp. 6, 14, 15).
+[Raz92]    Alexander A. Razborov. “On the Distributional Complexity of Disjointness”. In:
+           Theor. Comput. Sci. 106.2 (1992), pp. 385–390. doi: 10.1016/0304- 3975(92)
+           90260-M (cit. on pp. 8, 25, 26).
+[REGH22]   Václav Rozhon, Michael Elkin, Christoph Grunau, and Bernhard Haeupler. “De-
+           terministic Low-Diameter Decompositions for Weighted Graphs and Distributed
+           and Parallel Applications”. In: 63rd IEEE Annual Symposium on Foundations of
+           Computer Science, FOCS 2022, Denver, CO, USA, October 31 - November 3,
+           2022. IEEE, 2022, pp. 1114–1121. doi: 10.1109/FOCS54457.2022.00107. arXiv:
+           2204.08254 (cit. on p. 12).
+
+
+
+
+                                           44
+[RG20]      Václav Rozhon and Mohsen Ghaffari. “Polylogarithmic-time deterministic net-
+            work decomposition and distributed derandomization”. In: Proceedings of the
+            52nd Annual ACM SIGACT Symposium on Theory of Computing, STOC 2020,
+            Chicago, IL, USA, June 22-26, 2020. Ed. by Konstantin Makarychev, Yury Makarychev,
+            Madhur Tulsiani, Gautam Kamath, and Julia Chuzhoy. ACM, 2020, pp. 350–363.
+            doi: 10.1145/3357713.3384298. arXiv: 1907.10937 (cit. on p. 12).
+[RGHZ+22]   Václav Rozhon, Christoph Grunau, Bernhard Haeupler, Goran Zuzic, and Jason
+            Li. “Undirected (1+ϵ)-shortest paths via minor-aggregates: near-optimal deter-
+            ministic parallel and distributed algorithms”. In: STOC ’22: 54th Annual ACM
+            SIGACT Symposium on Theory of Computing, Rome, Italy, June 20 - 24, 2022.
+            Ed. by Stefano Leonardi and Anupam Gupta. ACM, 2022, pp. 478–487. doi:
+            10.1145/3519935.3520074. arXiv: 2204.05874 (cit. on pp. 3, 6, 9, 11, 14, 47).
+[RHG23]     Václav Rozhon, Bernhard Haeupler, and Christoph Grunau. “A Simple Deter-
+            ministic Distributed Low-Diameter Clustering”. In: 2023 Symposium on Sim-
+            plicity in Algorithms, SOSA 2023, Florence, Italy, January 23-25, 2023. Ed. by
+            Telikepalli Kavitha and Kurt Mehlhorn. SIAM, 2023, pp. 166–174. doi: 10.1137/
+            1.9781611977585.CH16. arXiv: 2210.11784 (cit. on p. 12).
+[RRW25]     Lars Rohwedder, Arman Rouhani, and Leo Wennmann. “Cost Preserving Depen-
+            dent Rounding for Allocation Problems”. In: 52nd International Colloquium on
+            Automata, Languages, and Programming, ICALP 2025, July 8-11, 2025, Aarhus,
+            Denmark. Ed. by Keren Censor-Hillel, Fabrizio Grandoni, Joël Ouaknine, and
+            Gabriele Puppis. Vol. 334. LIPIcs. Schloss Dagstuhl - Leibniz-Zentrum für Infor-
+            matik, 2025, 127:1–127:20. doi: 10.4230/LIPICS.ICALP.2025.127 (cit. on pp. 3,
+            16).
+[SHKK+12]   Atish Das Sarma, Stephan Holzer, Liah Kor, Amos Korman, Danupon Nanongkai,
+            Gopal Pandurangan, David Peleg, and Roger Wattenhofer. “Distributed Verifi-
+            cation and Hardness of Distributed Approximation”. In: SIAM J. Comput. 41.5
+            (2012). Announced at STOC ’11, pp. 1235–1265. doi: 10.1137/11085178X. arXiv:
+            1011.3049 (cit. on p. 3).
+[SHPK22]    Max Springer, MohammadTaghi Hajiaghayi, Debmalya Panigrahi, and Moham-
+            mad Reza Khani. “Online Algorithms for the Santa Claus Problem”. In: Advances
+            in Neural Information Processing Systems 35: Annual Conference on Neural Infor-
+            mation Processing Systems 2022, NeurIPS 2022, New Orleans, LA, USA, Novem-
+            ber 28 - December 9, 2022. Ed. by Sanmi Koyejo, S. Mohamed, A. Agarwal,
+            Danielle Belgrave, K. Cho, and A. Oh. 2022. arXiv: 2210.07333 (cit. on p. 3).
+[Vos23]     Tijn de Vos. “Minimum Cost Flow in the CONGEST Model”. In: Structural
+            Information and Communication Complexity - 30th International Colloquium,
+            SIROCCO 2023, Alcalá de Henares, Spain, June 6-9, 2023, Proceedings. Ed.
+            by Sergio Rajsbaum, Alkida Balliu, Joshua J. Daymude, and Dennis Olivetti.
+            Vol. 13892. Lecture Notes in Computer Science. Announced at PODC’23. Springer,
+            2023, pp. 406–426. doi: 10.1007/978-3-031-32733-9\_18. arXiv: 2304.01600
+            (cit. on p. 4).
+[You01]     N.E. Young. “Sequential and parallel algorithms for mixed packing and cover-
+            ing”. In: Proceedings 42nd IEEE Symposium on Foundations of Computer Science.
+            2001, pp. 538–546. doi: 10.1109/SFCS.2001.959930 (cit. on p. 34).
+[ZGYH+22]   Goran Zuzic, Gramoz Goranci, Mingquan Ye, Bernhard Haeupler, and Xiaorui
+            Sun. “Universally-Optimal Distributed Shortest Paths and Transshipment via
+            Graph-Based ℓ1 -Oblivious Routing”. In: Proceedings of the 2022 ACM-SIAM Sym-
+            posium on Discrete Algorithms, SODA 2022, Virtual Conference / Alexandria,
+
+                                           45
+Figure 3: A fractional assignment of gifts in a graph with k children, k − 1 big gifts of value T
+and T small gifts of value 1.
+
+
+               VA, USA, January 9 - 12, 2022. Ed. by Joseph (Seffi) Naor and Niv Buchbinder.
+               SIAM, 2022, pp. 2549–2579. doi: 10.1137/1.9781611977073.100 (cit. on p. 3).
+
+
+A     A Counterexample for Naive Sparsification
+In this section, we provide a counterexample, showing that given a fractional solution to Santa
+Claus, we cannot always find an approximate integral solution that is a subset of non-zero
+fractional edges.
+
+Example 43. Let k be an arbitrary integer. We give an example of a graph, together with an
+optimal fractional solution, where any k-approximation of the optimal integral solution requires
+edges that are not part of the fractional solution. We consider an example with k children, k − 1
+big gifts of value T and T many small gifts of value 1. Consider the graph depicted in Figure 3.
+In this example, each big gift has value T and each small gift has value 1. Every child desires
+every small gift in this example.
+    An optimal integral solution in this example has value T . It consists of assigning k − 1
+children a big gift and assigning one child all the small gifts.
+    We give a fractional solutions of value T as follows. The fractional solution for the big gifts
+is depicted by weights on the edges. Moreover, the fractional solution assigns T /k small gifts
+exclusively to each child (with fractionality 1), depicted by the blue sets. In this solution, each
+child receives (k − 1)/k · T of fractional value by the big gifts and T /k value by small gifts, for
+a total of T .
+    Most edges between children and small gifts now have fractionality 0. That is, the value
+that any child in this tree can get from small gifts alone is capped by T /k, unless edges with
+fractionality 0 can be considered for the integral solution. Since there has to be a child that does
+not receive a big gift in any integer allocation, we can only achieve a value of T /k, if we ignore
+edges with fractionality 0 in this particular fractional assignment.
+
+
+
+
+                                                46
+B      CONGEST Primitives
+In this section, we provide several CONGEST primitive that we use throughout our algorithms.
+For completeness, we provide algorithms and proofs for each procedure.
+
+Broadcast and Convergecast. In the CONGEST model, there are standard Broadcast and
+Convergecast procedures, also known as “pipelining” [Pel00]. Here information is either broad-
+casted from one node or gathered in one. We include a proof here for completeness.
+Lemma 44. There is a CONGEST algorithm that, given a graph G = (V, E) with information of
+t bits divided over the nodes, aggregates this information at a single node v ∈ V in O(t/ log n+D)
+rounds. Conversely, in O(t/ log n + D) rounds we can make t bits known by a single node v ∈ V ,
+known to all nodes in the network.
+Proof. Create a BFS-tree rooted at v ∈ V in O(D) rounds. Upcast the information along this
+tree. For a single bit, this takes at most O(D) rounds. Since each message can contain at most
+O(log n) bits, the congestion can be at most t/ log n, giving a time of O(t/ log n + D) rounds.
+The converse result is obtained by downcasting the information towards the leaves.
+
+Rake and Compress. For our algorithm, we often need to run subroutines on subgraphs of
+our communication network. These subgraphs might contain long paths and thus have a much
+higher diameter compared to our original communication network. To overcome this issue, we
+show how to circumvent the dependency on the diameter of the subgraph by shortcutting via
+the additional edges in the communication graph. Similar techniques are for example used
+in [FGLP+21; RGHZ+22]. We will use two simple operations inspired by Miller & Reif [MR89].
+    • Compress: Contract all paths where all interior nodes have degree two into a single edge.
+    • Rake: Remove all vertices of degree at most one.
+Lemma 45. Let G = (V, E) denote a CONGEST communication network and let G′ ⊆ G denote
+                                                         e √n)-round CONGEST algorithm that
+a bipartite subgraph. Then, there exists a deterministic O(
+computes a set S ⊆ V of shortcut vertices such that
+   1. one round on Compress(G′ ) can be simulated within O( e √n + D) rounds on G and
+
+    2. each contracted edge in Compress(G′ ) can broadcast a message to all edges on its associated
+               e √n + D) rounds on G.
+       path in O(
+Proof. Let P be the set of all paths of at least than two consecutive degree-2 vertices in G′ . For
+                                        √
+any path P ∈ P of length at most O( n), we can simply route messages over this path. Now
+                                  √                       √
+we note that there are at most n paths of length Ω( n). The endpoints of these paths are
+determined in O(e n + D) rounds by stitching together parts of length O(√n). This is easy to
+                  √
+obtain using randomization: sample O(  e √n) vertices uniformly at random denoted by S. This
+                                                    √
+breaks the long paths up into paths of length O( n) between vertices in S. We can also find
+such a set S of vertices deterministically. This can either be done by a hammer, like the overlay
+                                                          √      √                    √
+network in [HKN21], or more directly by computing a ( n, Õ( n))-ruling set in Õ( n) rounds
+(implicit in [GPS88], explicit in [HKN21]).
+   Since P is a set of vertex-disjoint paths, the graph consisting of endpoints of long paths
+                             √                     √
+plus the set S has both O( n) vertices and O( n) edges. It can be made known globally in
+   √
+O( n+D) rounds using Lemma 44. Now all nodes know the endpoints of long paths, and hence
+                                                     √
+messages over these long paths can be routed in O( n + D) rounds, again using Lemma 44.
+
+Lemma 5. Let G = (V, E) denote a CONGEST communication network and let F ⊆ G be a
+                                 e √n + D)-round CONGEST algorithm that roots every tree
+forest. There is a deterministic O(
+T ∈ F at an arbitrary vertex r ∈ T and informs everyone of their parent in the tree.
+
+                                                47
+Proof. We run the following iterative algorithm on every tree T ∈ F in parallel: Define T0 := T
+and obtain Ti+1 from Ti by applying one Rake operation followed by one Compress operation
+on Ti . Now we claim that this procedure terminates after k = ⌈log n⌉ iterations with an empty
+graph Tk+1 . This follows from the fact that in any tree at most half of the vertices have a degree
+greater than two. Now note that Compress removes all vertices of that currently have degree
+two from U , while Rake removes all vertices that currently have degree one from U . Thus,
+every iteration removes at least half of the vertices from U . Finally, we note that none of the
+operations disconnect U and thus U remains a tree throughout the execution of the algorithm.
+     In order to bound the round complexity of our procedure we first inductively prove the
+following invariants:
+
+    1. One round on Ti can be simulated in O( e √n + D) rounds on G.
+
+  2. Any edge e ∈ E(Ti ) corresponds to a path P (e) in T and can send a message to all edges
+                  e √n + D) rounds on G.
+     f ∈ P (e) in O(
+
+    Clearly, T0 = T satisfies the first two invariants with P (e) = {e} for all e ∈ E(T ). Now
+suppose Ti satisfies the two invariants above. To construct Ti+1 , we first perform the Rake
+operation. This operation takes one round on Ti and thus O(        e √n + D) rounds on G. To
+implement the Compress operation, we “uncompress” the graph Ti by replacing each edge e with
+its associated path P (e). Let us call the resulting graph Ti′ . According to invariant 2 this takes
+at most O(e √n + D) rounds on G. Now, since T ′ ⊆ G we can invoke Lemma 45 to compute
+                                                    i
+Ti+1 := Compress(Ti′ ), which ensures that Ti+1 satisfies both invariants.
+    Since every tree Ti+1 can be constructed from Ti in O( e √n + D) rounds and the number of
+iterations to decompose T is bounded by O(log n), the overall runtime to compute the decom-
+             e √n + D).
+position is O(
+    Finally, we show how to use the decomposition to efficiently root T . We traverse the virtual
+subtrees in reverse order. Consider the last non-empty graph Tk in the sequence. Since the last
+operation of the sequence has to be Rake, Tk is either just a single vertex or consists of two
+vertices connected by a single edge. In any case, we can pick a root r in Tk in a single round on
+Tk and (if necessary) orient the only edge towards r. Now suppose all edges in Ti+1 are oriented
+towards a common root r. For every edge e = (u → v) ∈ E[Ti+1 ] we orient all edges on P (e)
+towards v in O(e √n + D) rounds on G. This orients all edge that were removed from Ti by the
+Compress operation. For any vertex v removed by the Rake operation from Ti , we orient all
+incident edges {u, v} from v to u. Hence, after processing all subtrees Tk , . . . , T0 := T we have
+successfully rooted T . Since k = O(log n), the whole algorithm runs in O(   e √n + D) rounds of
+CONGEST.
+
+
+
+
+                                                48
+

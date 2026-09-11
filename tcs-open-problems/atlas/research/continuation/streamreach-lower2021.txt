@@ -1,0 +1,1189 @@
+  Almost Optimal Super-Constant-Pass Streaming Lower Bounds
+                       for Reachability
+                        Lijie Chen                                                      Gillat Kol                                    Dmitry Paramonov
+                              MIT                                                Princeton University                                  Princeton University
+                              USA                                                        USA                                                   USA
+
+            Raghuvansh R. Saxena                                                       Zhao Song                                          Huacheng Yu
+                 Princeton University                                     Institute for Advanced Study                                 Princeton University
+                         USA                                                           USA                                                     USA
+ABSTRACT                                                                                              study is timely as huge graphs naturally arise in many modern
+We give an almost quadratic n 2−o (1) lower bound on the space                                        applications, particularly in those with structured data representing
+consumption of any o( log n)-pass streaming algorithm solving
+                          p                                                                           the relationships between a set of entities (e.g., friendships in a social
+the (directed) s-t reachability problem. This means that any such                                     network). A graph streaming algorithm is typically presented with
+algorithm must essentially store the entire graph. As corollaries,                                    a sequence of graph edges in an arbitrary order and it can read
+we obtain almost quadratic space lower bounds for additional                                          them one-by-one in the order in which they appear in the sequence.
+fundamental problems, including maximum matching, shortest                                            We want the algorithm to only make one or few passes through
+path, matrix rank, and linear programming.                                                            the edge sequence and use limited memory, ideally much smaller
+   Our main technical contribution is the definition and                                              than the size of the graph.
+construction of set hiding graphs, that may be of independent                                            Much of the streaming literature was devoted to the study of
+interest: we give a general way of encoding a set S ⊆ [k] as                                          one-pass algorithms, and for many basic graph problems Ω(n2 )
+a directed graph with n = k 1+o (1) vertices, such that deciding                                      lower bounds were shown, where n is the number of vertices. This
+whether i ∈ S boils down to deciding if ti is reachable from si , for a                               implies that the trivial algorithm that stores the entire graph and
+specific pair of vertices (si , ti ) in the graph. Furthermore, we prove                              then uses an offline algorithm to compute the output is essentially
+that our graph “hides” S, in the sense that no low-space streaming                                    optimal. Such quadratic lower bounds were shown for maximum
+algorithm with a small number of passes can learn (almost) anything                                   matching and minimum vertex cover [26, 31], s-t reachability and
+about S.                                                                                              topological sorting [15, 26, 36], shortest path and diameter [26, 27],
+                                                                                                      minimum or maximum cut [49], maximal independent set [4, 22],
+CCS CONCEPTS                                                                                          dominating set [6, 25], and many others.
+                                                                                                         Recently, the multi-pass streaming setting received quite a bit
+• Theory of computation                              →      Streaming            models;
+                                                                                                      of attention. For some graph problems, it was shown that going
+Communication complexity.
+                                                                                                      from a single pass to even a few passes can reduce the memory
+                                                                                                      consumption of a streaming algorithm dramatically. For example,
+KEYWORDS
+                                                                                                      semi-streaming algorithms (which are algorithms that only use O      H(n)
+Graph Streaming, Communication Complexity, Lower Bounds                                               space and are often considered “tractable”) with few passes were
+ACM Reference Format:                                                                                 designed for various graph problems previously shown to admit
+Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh R. Saxena, Zhao                                  quadratic lower bounds for single pass streaming. These include a
+Song, and Huacheng Yu. 2021. Almost Optimal Super-Constant-Pass                                       two-pass algorithm for minimum cut in undirected graphs [46], an
+Streaming Lower Bounds for Reachability. In Proceedings of the 53rd Annual                            O (1)-pass algorithm for approximate matching [29, 31, 38, 42], an
+ACM SIGACT Symposium on Theory of Computing (STOC ’21), June 21–25,                                   O (log log n)-pass algorithm for maximal independent set [4, 22, 30],
+2021, Virtual, Italy. ACM, New York, NY, USA, 14 pages. https://doi.org/10.
+                                                                                                      and O (log n)-pass algorithms for approximate dominating set
+1145/3406325.3451038
+                                                                                                      [6, 16, 35] and weighted minimum cut [44].
+1     INTRODUCTION
+Graph streaming algorithms are designed to process massive graphs                                     1.1    Our Main Result: Lower Bound for s-t
+and have been studied extensively over the last two decades. This                                            Reachability
+Permission to make digital or hard copies of all or part of this work for personal or                 Our main result is a near-quadratic lower bound on the space
+classroom use is granted without fee provided that copies are not made or distributed                 complexity of any streaming algorithmpthat solves s-t reachability
+                                                                                                      (a.k.a, directed connectivity) and uses o( log n) passes:
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for components of this work owned by others than the
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or
+republish, to post on servers or to redistribute to lists, requires prior specific permission
+                                                                                                         Theorem 1.1 (Reachability). Any randomized o( log n)-pass
+                                                                                                                                                                 p
+and/or a fee. Request permissions from permissions@acm.org.
+STOC ’21, June 21–25, 2021, Virtual, Italy                                                            streaming algorithm that, given an n-vertex directed graph G = (V , E)
+© 2021 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+ACM ISBN 978-1-4503-8053-9/21/06.
+                                                                                                      with two designated vertices s, t ∈ V , can determine whether there is
+https://doi.org/10.1145/3406325.3451038                                                               a directed path from s to t in G requires n 2−o (1) space.
+
+
+
+
+                                                                                                570
+STOC ’21, June 21–25, 2021, Virtual, Italy                                    Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh R. Saxena, Zhao Song, and Huacheng Yu
+
+
+   The s-t reachability problem is amongst the most basic graph                            under the promise that in the n-vertex input graph, either there
+problems1 and was also one of the first to be studied in the context                       are no paths from s to t or there are at least k = n 1−o (1) such
+of streaming [36]. Prior to our work, an almost-quadratic lower                            paths, that are vertex disjoint2 . This stronger statement allows us
+bound was only known for two-pass streaming algorithms by                                  to obtain lower bounds for approximate versions of related graph
+the very recent breakthrough of [9]. Prior to that, a quadratic                            problems (with modest, sub-constant approximation factors), as
+lower bound was shown for one-pass streaming [27, 36]. For p-                              detailed below.
+pass streaming algorithms with p ≥ 3, the best space lower
+bound was Ω(n 1+1/(2p+2) ) [34]. We mention that the hard instance                         1.2      Lower Bounds for Other Streaming
+constructed and analyzed by [9] is easy (admits a semi-streaming                                    Problems
+algorithm), even with only three passes. Additionally, the hard                               Matching, shortest path, and rank. As in the case of the two-
+instance used by [34] to prove their lower bound against p-pass                            pass lower bound for s-t reachability proved by [9], Theorem 1.1
+streaming algorithms can be solved in n 1+1/Ω(p ) space with a single                      also implies multi-pass lower bounds for the shortest path length,
+pass and with O   H(n) space with p + 1 passes. Thus, Theorem 1.1
+                                                                                           maximum bipartite matching size, and matrix rank problems. This
+cannot be shown using the hard instances constructed by previous                           can be shown by (by now standard) reductions: s-t reachability ⪯
+papers, and we indeed design a very different instance.                                    shortest path, and s-t reachability ⪯ maximum matching ⪯ matrix
+   Using a slightly different instance, the techniques used to                             rank.
+prove Theorem      1.1 also give a non-trivial lower bound for more
+                                                                                              Theorem 1.2 (Shortest path). Any randomized o( log n)-pass
+                                                                                                                                                     p
+than o( log n) passes. Specifically, we obtain a lower bound of
+        p
+
+n1+1/O (log log n) on the space used by any streaming algorithm                            streaming algorithm that, given an n-vertex undirected graph G =
+with o(log n/(log log n) 2 ) passes (see Remark 5.2). For p satisfying                     (V , E) and two designated vertices s, t ∈ V , can output the length of
+p = ω (log log n) and p = o(log n/(log log n) 2 ), this improves over                      the shortest path connecting s and t in G requires n 2−o (1) space.
+the Ω(n1+1/(2p+2) ) lower bound of [34]. Still, proving super-linear                          Theorem 1.3 (Matching). Any randomized o( log n)-pass
+                                                                                                                                                     p
+n1+ε space lower bounds for nε -pass streaming algorithms solving s-                       streaming algorithm that, given an n-vertex undirected bipartite
+t reachability with ε > 0 is a great problem that we leave open. (Note                     graph G = (L ⊔R, E) can determine whether G has a perfect matching
+that with O (n)-passes, semi-streaming is possible by implementing                         requires n 2−o (1) space.
+a BFS search).
+                                                                                              Theorem 1.4 (Matrix rank). Any randomized o( log n)-pass
+                                                                                                                                                     p
+   Since the s-t reachability problem is a special case of the s-
+t minimum cut problem in directed graphs, the lower bound in                               streaming algorithm that, given the rows of a matrix M ∈ Fqn×n where
+Theorem 1.1 can also be applied to minimum cut. We note that                               q = ω (n), can determine whether the matrix has full rank requires
+space efficient algorithms are known for the undirected versions                           n2−o (1) space.
+of both these problems: s-t connectivity (the undirected version of
+                                                                                              When it comes to lower bounds, the state of affairs for (exact)
+s-t reachability) has a one-pass semi-streaming algorithm (e.g., by
+                                                                                           shortest path, maximum matching, and matrix rank is similar to that
+                                                                                           of s-t reachability: Ω(n2 ) for one-pass streaming [19, 26], Ω(n 2−o (1) )
+maintaining a spanning forest [26]) and there is also a two-pass
+streaming algorithm for s-t minimum cut in undirected graphs that
+                                                                                           for two passes [9], and Ω(n1+1/(2p+2) ) for any p ≥ 3 [34].
+                                                                                                                                                     √ On the
+only requires O (n 5/3 ) space ([46], see also [3]).
+                                                                                           upper bound front, semi-streaming algorithms with O ( |E|) passes
+                                                                                                                                                               √
+   Technique: Set Hiding. We derive Theorem 1.1 as a special case                          are known for (weighted) maximum matching [40], and with O ( n)
+of a more general framework: given a set S ⊆ [k], we are able to                           passes for shortest path [18]. Understanding the pass-space trade-
+construct a random graph G S that “hides” S, in the sense that for                         offs for these problems is a great goal.
+any two different sets S and S ′ , no small-space streaming algorithm
+                                                                                              Lower bounds for approximation algorithms. Our proofs of
+with a small number of passes can distinguish between G S and G S ′
+                                                                                           the above theorems also give some non-trivial results in the
+with any reasonable advantage. The graph G S we construct has
+                                                                                           approximation setting. Specifically, for constant p, our almost
+only n = k 1+o (1) vertices, out of which k are “designated source                         quadratic lower bounds continue to hold even for p-pass algorithms
+vertices” U = {u 1 , · · · , uk } and k are “designated sink vertices”                     that only give a (1 + ω (log n) −2p )-approximation to the length of
+V = {v 1 , · · · , vk }. There is a directed path from the source ui to                                                                                √
+the sink vi in G S if and only if i ∈ S. See Section 2 for a detailed                      the shortest s-t path (see Theorem 5.1), or a (1 + 2−Ωp ( log n) )-
+sketch of this construction.                                                               approximation to the size of the maximum matching or to the
+   Theorem 1.1 now follows by the following argument: let s := u 1                         rank of a given matrix (see Theorem 5.3 and Corollary 5.6).
+and t := v 1 and observe that G [k ] has a directed path from s                            These lower bounds for approximate maximum matching and
+to t, while G ∅ does not. This suggests that any algorithm for s-t                         approximate matrix rank are possible because our lower bound for
+reachability can also distinguish between G [k] and G ∅ , violating the                    s-t reachability holds even when there are many (vertex) disjoint
+hiding property, which is impossible for a small-space algorithm                           paths from s to t (see Section 1.1). In the reduction from s-t
+with a small number of passes. In fact, this argument proves a                             reachability to maximum matching, the number of such paths
+stronger statement: the s-t reachability problem remains hard even                         translates into the difference in the size of the maximum matchings
+                                                                                           that the streaming algorithm is unable to distinguish between.
+                                                                                           2 To get this, start with the graph G
+                                                                                                                                [k ] and add two vertices, a global source s and a
+1 Time-space tradeoffs for s -t reachability in various graph automata models were
+shown in [10, 23, 24].                                                                     global sink t . Add directed edges from s to every u i and from every v i to t .
+
+
+
+
+                                                                                     571
+Almost Optimal Super-Constant-Pass Streaming Lower Bounds for Reachability                                                                       STOC ’21, June 21–25, 2021, Virtual, Italy
+
+
+                                                                                                   ordering of its edges in a stream) any p-pass (for some small p) low-
+                                                                                                   space streaming algorithm A cannot “learn anything” about S, in
+         u1                                                                v1                      the sense that for any S 1 and S 2 , A cannot distinguish between the
+                                       1 ∈ S                                                       random graphs generated based on S 1 or S 2 except with probability
+         u2                                                                v2                      at most 1/n. We call such a random graph a Set-Hiding graph.4
+                                                                                                       Assuming such a graph construction, the s-t reachability lower
+                                       2 ∈ S
+                                                                                                   bound follows easily. To see this, we set S 1 := ∅ and S 2 := {1},
+         u3                                7                               v3                      let the source s be u 1 and the sink t be v 1 . Then in a Set-Hiding
+                                       3 ∈
+                                         / S                                                       graph that hides S 1 , s cannot reach t; and in a Set-Hiding graph
+         u4                                                                v4                      that hides S 2 , s can reach t. But any p-pass low-space streaming
+                                       4 ∈ S                                                       algorithm cannot distinguish between the two cases. In particular,
+                                                                                                   it is impossible for such an algorithm to solve s-t reachability. In
+                U                                                    V                             the following, we will focus on the construction of such Set-Hiding
+                                                                                                   graphs.
+
+Figure 1: A graph that encodes the set {1, 2, 4} using the                                         2.1      Set-Hiding Graphs Against One-Pass
+reachability from U to V . Vertex ui cannot reach v j for i , j.                                            Algorithms
+                                                                                                   Let us for now set the goal to constructing graphs that hide
+   Since O ε (1)-pass semi-streaming algorithms for (1 + ε)-                                       a set S from any low-space one-pass streaming algorithm, as a
+approximations to the size of the maximum matching and single-                                     demonstration of the idea.
+source shortest path are known [11, 42], our above lower bounds for
+                                                                                                   2.1.1    A New Communication Problem.
+these problems cannot be strengthened to deal with constant ε. A
+                                                 Ω(1/p )
+polynomial (but sub-linear) lower bound of n 1−ε         on the space                                 The problem. It turns out that the indistinguishablility stems from
+complexity of p-pass streaming algorithms that obtain a (1 + ε)-                                   the hardness of the following one-way communication problem:
+                                                                                                                                     (k )
+approximation of maximum matching and of matrix rank was very                                          • Alice gets nK sets (T j ) (j,k ) ∈[n]×[K ] (think of K = log n),
+recently proved by [8].                                                                                   which are subsets of [n];
+   Lower bounds for additional problems. Via other known                                               • Bob gets K indices j 1 , . . . , j K ∈ [n] and K permutations
+reductions, the lower bound in Theorem 1.1 can be shown to                                                π1 , . . . , π K on [n];
+imply lower bounds for additional streaming problems, such as                                          • Alice sends a single message to Bob, whose goal is to learn
+estimating the number of reachable vertices from a given source                                           the set
+                                                                                                                                       K
+                                                                                                                                                 (k )
+                                                                                                                                     M
+[36] and approximating the minimum feedback arc set [15].                                                                       S :=      πk (T j ),
+                                                                                                                                                        k
+   We also consider the linear programming feasibility (LP                                                                                k =1
+feasibility) problem, where given a set of n linear constraints                                          where ⊕ of sets is defined as the coordinate-wise XOR of
+(inequalities) over d variables, one needs to decide if all constraints                                   their indicator vectors, and π (T ) := {π (a) : a ∈ T }.
+can be satisfied simultaneously. We prove that Theorem 1.1 implies                                 In other words, Alice gets K collections of sets, each collection
+a similar lower bound for the LP feasibility problem with d ≈ n, see                               consists of n sets, and each set is over [n]. Then Bob picks one set
+Theorem 5.7 (for the low dimension d ≪ n regime, see [5, 17]). To                                  from each collection, permutes the sets according to his input, and
+this end, we devise a reduction from s-t reachability to LP feasibility                            he wishes to know the ⊕ of the K permuted sets.
+that exploits the fact that our hard s-t reachability instance is a
+layered graph3 .                                                                                      Lower bound. We prove that for any two sets S 1 and S 2 , if Alice’s
+                                                                                                   message has only n 1.99 bits (note that her input has n2 K bits), Bob
+2     TECHNICAL OVERVIEW                                                                           is not able to distinguish between S = S 1 and S = S 2 , except
+                                                                                                   with probability exponentially small in K.5 Note that we prove a
+Our proof proceeds by designing a carefully structured hard
+                                                                                                   much stronger form of lower bound than just a lower bound on the
+instance for s-t reachability. The key component in our lower bound
+                                                                                                   error probability of computing S, such an indistinguishability lower
+proof is a construction that hides a set in a random (directed) graph
+                                                                                                   bound is crucial to obtain the Set-Hiding property of our graph
+from streaming algorithms. Specifically, let S ⊆ [n] be a set, and
+                                                                                                   construction.
+U , V be two sets of n vertices. We will construct a random graph,
+possibly adding more vertices, such that ui (the i-th vertex in U )                                4 In the formal proof, the collection of 2n such random graphs, one for each subset of
+                                                                                                   [n], is called a Set-Hiding generator, and a single (deterministic) graph encoding a
+cannot reach v j (the j-th vertex in V ) for any i , j; and ui can reach                           set is called a Set-Encoding graph. We will not differentiate between the two when
+vi if and only if i ∈ S (see Figure 1). That is, the graph encodes                                 discussing the intuition in this section.
+the set S using the reachability from U to V . The most important
+                                                                                                   5 Careful readers may have noticed that the statement as written here is technically
+
+                                                                                                   false, as Alice could send the parity of the size for each set, taking nK ≪ n 1.99 bits. In
+feature of this random graph construction is that (with a proper                                   this case, Bob learns the parity of S , falsifying the statement for S 1, S 2 with different
+3 While there are known reductions from s -t reachability to LP feasibility, to the                parities. In the actual proof, Alice’s sets as well as Bob’s permutations will be over
+                                                                                                                                          LK             (k )
+best of our knowledge, our reduction is the only one that is both deterministic and                [4n], and the set S is defined to be k =1 πk (T j ) restricted to the first n elements
+                                                                                                                                                         k
+generates Θ(n) dense constraints with super small coefficients ( {0, 1, −1} coefficients),         [n]. It resolves the above parity issue, and the indistinguishability holds in this case.
+as opposed to polynomially large ones.                                                             The arguments below follow as well.
+
+
+
+
+                                                                                             572
+STOC ’21, June 21–25, 2021, Virtual, Italy                                         Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh R. Saxena, Zhao Song, and Huacheng Yu
+
+
+    The communication lower bound proof uses an XOR lemma for                                                                          .
+the INDEX problem, which we prove in this paper. Suppose the
+players only focus on deciding whether 1 ∈ S, then Alice’s input
+can be viewed as K arrays of length n 2 , where the k-th array is the
+                                                    (k )
+concatenation of the n indicator vectors 1(T j ) for j ∈ [n], and                                                                            Tj
+                                                                                                                                       ∈
+Bob’s input chooses one entry from each array. The bit indicating                                       u1                         1
+                                                                                                                                             Tj
+                                                                                                                                                                     v1
+                                                                                                                                       ∈
+1 ∈ S is precisely the XOR of the K chosen bits, i.e., the XOR of the                                                              2
+                                                                                                                                             Tj
+                      (k )                                                                              u2                             /
+                                                                                                                                       ∈                             v2
+πk−1 (1)-th bit in T j for k ∈ [K] (observe that both the index jk and                                                             3
+                                                                                                                                             Tj
+                      k                                                                                                                ∈
+the random permutation πk in the definition of the communication                                        u3                         4                                 v3
+problem are needed to ensure that Alice doesn’t know what entry
+is chosen by Bob in array k).                                                                           u4                                                           v4
+    The standard INDEX lower bound shows that for one array, if the
+communication is less than n 1.99 , from Bob’s view the chosen bit is                                        U                                                   V
+still close to uniform, with bias at most n −Ω(1) . If the players handle
+all K arrays independently, then the K chosen bits are independent                             .                                                                              .
+from Bob’s view. Therefore, their XOR has bias at most n −Ω(K ) , by
+                                                                                                                               RS graph
+the standard result on the XOR of independently random bits. In
+general, an XOR lemma states that this bias bound holds even for
+                                                                                                                                       .
+generic protocols. We prove such an XOR lemma for INDEX by                                                                             (a)
+showing a discrepancy bound (a similar discrepancy bound was                                                                           .
+(implicitly) proved in [32, 33] using a different argument). Finally,
+we apply this XOR lemma and a hybrid argument to prove the
+indistinguishability of any two sets S 1 and S 2 . See the full version
+for the XOR lemma for INDEX and the communication lower bound.
+2.1.2 Constructing                                                      the
+Set-Hiding Graph. To construct the Set-Hiding graph that hides
+                               (k )
+a set S, we first generate (T j ) (j,k ) , (jk )k , (πk )k according to the
+hard input distribution for the communication problem, conditioned                                                                     7
+                                      LK                (k )
+on the final set being S, i.e., S =         k=1 πk (T j k ). Then, we will
+                                                                       (k )
+construct a graph that mimics the computation of kK=1 πk (T j ),
+                                                             L
+
+and use the hardness of this communication problem to argue that
+                                                                       k
+                                                                                                          π −1                                                   π
+                                                                                                    e
+                                                                                                    U                U                               V                    e
+                                                                                                                                                                          V
+low-space streaming algorithms cannot learn anything about S.
+
+   Representing index selection – graphs for (T1 , . . . ,Tn ) and
+                                                                   (k )     (k )               .                                                                              .
+   (k )
+T j . To this end, we do this computation bottom-up, and let us
+   k
+                                         (k )                                                                                          .
+first see how to “compute” the set T j for each k, i.e., select the
+                                         k
+                                 (k )         (k )                                                                                     (b)
+jk -th set from the collection (T1 , . . . ,Tn ). This is done using a
+similar construction to [9], which uses the Ruzsa-Szemerédi graphs
+(RS graphs). The version we use is a bipartite graph on m vertices,                           Figure 2: In (a), the red and blue boxes correspond to two
+whose edges form a disjoint union of t induced matchings of size r                            induced matchings in the RS graph, thin dashed edges exist
+(i.e., r by r bipartite subgraphs consisting of only r matching edges).                       in the original RS graph, but are removed according to T j .
+                                                        √
+Such graphs were shown to exist for r, t = m · 2−Θ( log m) [47].
+   For each k, we first fix such an RS graph with r , t ≥ n. Then, we                                                                                     (k )
+                                         (k )                                                      Representing permutations: graph for πk (T j                  ). Next, we
+associate the j-th matching with set T j , and keep the i-th edge                                                                                         k
+
+                                                   (k )                                       implement the permutation by adding two more layers U   H and VH,
+in the matching if and only if i ∈ T j                    . The RS graph encodes the          and putting a matching corresponding to πk−1 from UH to U , and a
+             (k )        (k )
+collection (T1 , . . . ,Tn ). Intuitively, we work with RS graphs                             matching corresponding to πk from V to VH. Then the reachability
+as they allow us to “pack” many sets into a small graph. We                                        H to VH encodes πk (T (k ) ) (see Figure 2b).
+                                                                                              from U                    j
+select the jk -th set by connecting two vertex sets U and V to the                                                            k
+
+corresponding matching (see Figure 2a). In this way, ui ∈ U can                                                              LK              (k )
+                                   (k )
+                                                                                                 Representing XOR: graph for     k =1 πk (T j k ). The last step is
+reach vi ∈ V if and only if i ∈ T j , i.e., the reachability from U                           to mimic the computation of ⊕ of K sets. We have constructed
+                                               k
+                                        (k )                                                  K graphs such that in k-th graph, the reachability from Uk to Vk
+to V encodes the selected set T j (in the same way as Set-Hiding
+                                 k                                                                           (k )
+graphs would encode S).                                                                       encodes πk (T j ). We wish to combine them into a single graph,
+                                                                                                                 k
+
+
+
+
+                                                                                        573
+Almost Optimal Super-Constant-Pass Streaming Lower Bounds for Reachability                                                      STOC ’21, June 21–25, 2021, Virtual, Italy
+
+                                                                                                                            .
+containing U and V as subsets of vertices, such that the reachability
+                      K π (T (k ) ). The main idea is to use the fact
+from U to V encodes ⊕k=1  k j        k
+that there exists an {∧, ∨, ¬}-formula of size O (K 2 ) that computes
+the XOR of K-bit. For x 1 , . . . , x K ∈ {True, False}, we can write
+x 1 ⊕x 2 ⊕· · ·⊕x K as a small Boolean formula F which only uses AND,                                         Ta                           Tb
+OR and NOT gates. Moreover, we can assume that the NOTs are only
+                                                          (k )
+applied on the x i . F will be applied to the sets πk (T j ) coordinate-
+                                                            k
+                                   (k )
+wisely, computing ⊕kK=1 πk (T j ). We are going to construct the                                                                            7
+                                 k
+graph recursively according to F .                                                                                7
+    For an AND gate in F , suppose its two operands are Ta and
+                                                                                                                                            7
+Tb , and we have constructed a graph containing Ua and Va as
+subsets of vertices that encodes Ta using the reachability from Ua
+to Va , and a graph containing Ub and Vb that encodes Tb using the                               Ua                    Va (= Ub )                            Vb
+reachability from Ub to Vb . Then the coordinate-wise AND of Ta
+and Tb (equivalently, the intersection) can be computed by merging
+Va and Ub into one set (see Figure 3a). For an OR gate in F with
+two operands Ta and Tb , their coordinate-wise OR (equivalently,
+the union) can be computed by merging Ua and Ub into one set,
+                                                                                                                            .
+and merging Va and Vb into one set (see Figure 3b). Eventually, we                                                         (a)
+either reach an input variable corresponding to a graph that encodes                                                        .
+                                                                                                                           Ta
+           (k )
+one πk (T j ), which we have already constructed, or reach the
+           k
+negation of an input variable, which corresponds to the complement
+               (k )
+of one πk (T j ). It suffices to also construct a graph that encodes
+               k
+            (k )                                     (k )                (k )
+[n] \ πk (T j ) for each k. Note that [n] \ πk (T j ) = πk ([n] \ T j ).                                                   7
+             k                                     k                 k
+Therefore, this can be done by applying the construction in the last
+                                                         (k )
+paragraph on the complement of input sets ([n] \ T j ) (j,k ) (and
+with the same indices jk and permutations πk ).
+                                                                                                 .                         Tb
+                                                                                                                                                              .
+    The order of edges in the stream. The above construction
+                                               LK            (k )
+generates a graph that encodes the set S =        k=1 πk (T j k ), which
+we wanted to hide. To determine the order of its edges in the stream,
+observe that the edges in all RS (sub)graphs only depend on the sets                                                       7
+    (k )                                                                                             Ua (= Ub )                                 Va (= Vb )
+(T j ) (j,k ) , and the rest of the graph only depends on the indices
+(jk )k and permutations (πk )k . Hence, in the stream, we will first                                                       7
+give all edges in the RS graphs, then all remaining edges. By the
+standard reduction from one-way communication to streaming
+algorithms and the hardness of the communication problem, we                                                                .
+prove that S is hidden from any n1.99 -space one-pass streaming                                                            (b)
+algorithm.
+                                                                                      Figure 3: (a) shows a graph computing Ta ∧Tb , and (b) shows
+2.2     Generalizing to p Passes                                                      a graph computing Ta ∨ Tb .
+   Hiding the selected sets. The lower bound for the one-way
+communication problem uses the fact that Alice does not know the
+indices and permutations. Equivalently, the streaming algorithm                       permutations (in terms of reachability), but additionally, for any
+does not know the parts encoding (jk )k and (πk )k when it sees                        (jk )k , (πk )k and (jk′ )k , (πk′ )k , any low-space (p − 1)-pass algorithm
+                                   (k )                                               should not be able to distinguish between the subgraphs constructed
+the RS graphs, which encode (T j ) (j,k ) . However, this is not the
+                                                                                      based on them. Suppose we have such gadgets, then we may apply
+case if the algorithm can read the stream even just twice, as it can
+                                                                                      the one-way communication lower bound to the p-th pass (after
+remember the indices and permutations in the first pass so that
+                                                                                      replacing the edges from U to the RS graph and from the RS graph
+the second time it sees the RS graphs, it already knows which sets
+                                                                                      to V in Figure 2a by such gadgets, and replacing the edges from
+are selected. To generalize our hard instance to p passes, the main
+                                                                                      UH and U and the edges from V to VH in Figure 2b). This is because
+idea is to also hide the indices and permutations, from (p − 1)-pass                                                                   (k )
+streaming algorithms.                                                                 when the streaming algorithm sees (T j ) (j,k ) for the p-th time, it
+   More specifically, we wish to construct subgraphs (gadgets) that                   has only scanned the parts encoding the indices and permutations
+                                                                                                                          (k )
+serve the same purposes as the parts encoding the indices and                         p − 1 times (recall that (T j ) (j,k ) appears before all indices and
+
+
+
+
+                                                                                574
+STOC ’21, June 21–25, 2021, Virtual, Italy                                   Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh R. Saxena, Zhao Song, and Huacheng Yu
+
+
+permutations in the stream), and is not able to learn anything about
+them. Therefore, the one-way communication lower bound still                                                            ..             ..
+holds.
+                                                                                                                         .              .
+   Perm-Hiding graphs. To construct such subgraphs, we construct                                          ..                                        ..
+a gadget that allows us to hide each permutation or index separately.
+To be more precise, given a permutation π on [n], we want to
+                                                                                                           . xe2i,1                         e2i,1
+                                                                                                                                            y        .
+construct a (random) graph containing X and Y as subsets of                                       x2i                                       e2i,2
+                                                                                                                                            y            y2i
+vertices, such that for each i ∈ [n], the only vertex in Y that ui can                                         e 2i,2
+                                                                                                               x
+reach is v π (i ) (the “indices” are special cases of the “permutations”,
+and they can also be hidden using such gadgets, see the full version).
+                                                                                              x2i+1                                                      y2i+1
+Moreover, for any π 1 , π 2 , any (p − 1)-pass low-space streaming
+algorithm cannot distinguish between the graphs generated from                                            ..                                        ..
+π1 and π2 . We call such random graphs the Perm-Hiding graphs.                                             .                                         .
+    Hiding structured permutations via Set-Hiding graphs. We first                                                      ..             ..
+ show that (assuming n is even) if π is structured such that for each
+                                                                                                         X
+                                                                                                                         .              .           Y
+i, either π (2i) = 2i and π (2i + 1) = 2i + 1, or π (2i) = 2i + 1 and
+ π (2i + 1) = 2i (i.e., for each i, π either swaps 2i and 2i + 1, or maps
+ both to themselves), then we can construct a Perm-Hiding graph
+ for π using the Set-Hiding graphs against (p − 1)-pass streaming                                                       e
+                                                                                                                        X             e
+                                                                                                                                      Y
+ algorithms. To see this, we add two extra layers X             H, YH of sizes 2n
+                                                                                                                              (a)
+ between X and Y . Denote the vertices in X         H and YH by xHj,1 , xHj,2 and
+vHj,1 , vHj,2 respectively for j ∈ [n]. For all i, we add the following
+ edges from X to X    H and from YH to Y :                                                                              ..            ..
+       • from x 2i to xH2i,1 , xH2i,2 , from x 2i+1 to xH2i+1,1 , xH2i+1,2 , and                                         .             .
+       • from yH2i,1 , yH2i+1,1 to y2i , from yH2i,2 , yH2i+1,2 to y2i+1 .
+ Now if we add an edge from xH2i,1 to yH2i,1 and an edge from
+                                                                                                          ..                                        ..
+xH2i+1,2 to yH2i+1,2 , then x 2i reaches y2i and x 2i+1 reaches y2i+1                                      . xe2i,1                         e2i,1
+                                                                                                                                            y        .
+(see Figure 4a); if we add an edge from xH2i,2 to yH2i,2 and an edge
+ from xH2i+1,1 to yH2i+1,1 , then x 2i reaches y2i+1 and x 2i+1 reaches                           x2i                                       e2i,2
+                                                                                                                                            y            y2i
+                                                                                                               e 2i,2
+                                                                                                               x
+y2i (see Figure 4b). In the other words, such a permutation can
+ always be implemented by placing a set of parallel edges from X                 H            x2i+1                                                      y2i+1
+ to Y . Therefore, to hide π , it suffices to put a Set-Hiding graph
+    H
+ between X    H and YH to hide the corresponding set over [2n]. Since                                     ..                                        ..
+ by the guarantee of Set-Hiding graphs, no low-space algorithm
+ can distinguish between any two sets, we prove that any such two
+                                                                                                           .                                         .
+ permutations cannot be distinguished.                                                                                  ..            ..
+    Similarly, if there is a set of fixed ≤ n/2 disjoint pairs of
+                                                                                                         X
+                                                                                                                         .             .            Y
+ coordinates such that π may only swap two coordinates in a pair,
+ then the same argument from the last paragraph shows that such
+ permutations can be hidden from (p − 1)-pass streaming algorithms
+                                                                                                                        e
+                                                                                                                        X            e
+                                                                                                                                     Y
+ as well, assuming Set-Hiding graphs.
+
+   Hiding general permutations. Finally, we use the fact that there                                                           (b)
+exists d = O (log n) fixed sets of ≤ n/2 disjoint pairs,6 such that
+every permutation π can be decomposed into π = πd ◦ · · · ◦ π2 ◦ π1 ,                      Figure 4: (a) shows the graph that does not swap 2i and 2i + 1,
+where πi may only swap (a subset of) the pairs in the i-th set                             (b) shows the graph that swaps 2i and 2i + 1. The edges from
+(e.g., this is a corollary of the existence of O (log n)-depth sorting                     X to XH and the edges from YH to Y are fixed.
+networks [1]). The final Perm-Hiding graph consists of d blocks
+concatenated with identity matchings, where the i-th block applies
+the construction from the last paragraph to swap pairs in the i-th                            Putting it together. Overall, the p-pass Set-Hiding graphs use the
+set. For each πi , we hide a set in the block using Set-Hiding. By a                       structure from Section 2.1, together with (p − 1)-pass Perm-Hiding
+standard hybrid argument, we conclude that no two permutations                             graphs. The (p − 1)-pass Perm-Hiding graphs, in turn, use (p − 1)-
+can be distinguished.                                                                      pass Set-Hiding graphs, which are constructed recursively.√ One may
+                                                                                           verify that the size of the graph blows up by a factor of 2Θ( log n) in
+6 It is important that the sets do not depend on π .                                       each level of recursion, due to the parameters in RS graphs. Hence,
+
+
+
+
+                                                                                     575
+Almost Optimal Super-Constant-Pass Streaming Lower Bounds for Reachability                                                      STOC ’21, June 21–25, 2021, Virtual, Italy
+
+
+when p = o( log n), the final graph size N is at most n 1+o (1) ,                    ordering of G, respectively. For i ∈ [k], we use Vi (G) to denote
+             p
+
+implying the space lower bound of N 1.99 . See the full version for                  the vertex set of the i-th layer of G. We also use V (G) to denote
+                                                                                     Sk
+the formal construction of Set-Hiding graphs, the construction of                       i=1 Vi (G).
+Perm-Hiding graphs, and the recursive construction that combines                         We say a layered graph G is an (NG , kG , ℓ⃗G ) graph, if G has NG
+them.                                                                                vertices, kG layers and its edge-layer ordering is ℓ⃗G .
+                                                                                                                        k , E), we use First(G) to denote
+                                                                                         For a layered graph G = ((Vi )i=1
+3 PRELIMINARY                                                                        V1 and Last(G) to denote Vk for convenience. For each layer, we
+3.1 Notation                                                                         index all the vertices by consecutive integers starting from 1. For a
+We often use bold font letters (e.g., X ) to denote random variables,                set S of vertices from a single layer of G (that is, S ⊆ Vi for some
+and calligraphic font letters (e.g., X) to denote distributions. For two             i ∈ [k]), we use S [i] to denote the vertex with the i-th smallest
+random variables X and Y , and for Y ∈ supp(Y ), we use (X |Y = Y )                  index in S.
+to denote X conditioned on Y = Y . For two lists a and b, we use                         We note that a directed bipartite graph (all edges go from left
+a ◦ b to denote their concatenation.                                                 side to the right side) is a directed layered graph with two layers
+   For two distributions D1 and D2 on set X and Y respectively.                      (for which the list E⃗ only contains one set of all edges in the graph,
+We use D1 ⊗ D2 to denote their product distribution over X × Y,                      and ℓ⃗ = (1)). Unless explicitly stated otherwise, we will always
+and ∥D1 − D2 ∥ TV to denote the total variation distance between                     use layered graphs or bipartite graphs to refer to their directed
+them.                                                                                versions. (The only place we study undirected graph is in Section 5.1
+   Let n ∈ N. We use [n] to denote the set {1, . . . , n}. For two sets              and Section 5.2.)
+A, B ⊆ [n], we use A ∧ B and A ∨ B to denote the intersection and                        Concatenation of two layered graphs. For two layered graphs
+the union of A and B, respectively. We also use ¬n A to denote the                   G 1 , G 2 such that |Last(G 1 )| = |First(G 2 )|, we use H = G 1 ⊙ G 2 to
+set [n] \ A, and A ⊕ B to denote the set of elements appearing in                    denote their concatenation by identifying Last(G 1 ) and First(G 2 ).
+exactly one of A and B (i.e., the symmetric difference of the sets A                 That is, for each i ∈ [|Last(G 1 )|], we identify the vertex Last(G 1 )[i]
+and B). Note that
+                                                                                     and First(G 2 )[i] . We also set E⃗ (H ) = E⃗ (G 1 ) ◦ E⃗ (G 2 ) to specify the
+                   A ⊕ B = (A ∧ ¬n B) ∨ (¬n A ∧ B).                                  edge-layer ordering of H .
+   When it is clear from the context, we drop the subscript in ¬n                       The layer-arrival model. Our lower bounds actually holds for the
+for simplicity.                                                                      layer-arrival setting, which is stronger than the usually studied
+   We also use Perm([n]) to denote the set of permutations on [n].                   edge-arrival or vertex-arrival models. In the following we formally
+For a predicate P, we use 1(P ) to denote the corresponding Boolean                  define this model.
+value of P, that is, 1(P ) = 1 if P is true, and 0 otherwise.
+                                                                                       Definition 3.1 (Layer-arrival model). Given a layered graph
+                                                                                     G = (V⃗ , E,
+                                                                                               ⃗ ℓ)
+                                                                                                  ⃗ of k layers, a randomized p-pass streaming algorithm
+3.2     Layered Graphs and Layer-Arrival Model
+                                                                                     A with space s in the layer-arrival setting works as follows:
+In this paper we will mostly consider directed layered graphs such
+                                                                                         • The algorithm makes p-pass over the graph, each pass has
+that edges are always from one layer to its succeeding layer. We
+                                                                                            (k − 1) phases. Hence, there are (k − 1) · p phases in total. The
+will also associate an edge-layer ordering to the layered graph G,
+                                                                                            algorithm starts with memory state w 0 = 0s . Additionally, at
+which will be very convenient when we are working with graph
+                                                                                            the beginning A can draw an unbounded number of random
+streaming algorithms.
+                                                                                            bits, from a fixed distribution Drand . These random bits are
+   Directed Layered Graphs. Formally, a directed layered graph                              read-only and A can always access them freely.7
+G is a triple (V⃗ , E,
+                    ⃗ ℓ),
+                       ⃗ such that:                                                      • For i ∈ [p] and j ∈ [k −1], let t = (i −1) ·p +j. In the t-phase, A
+                    k is the collection of G’s layers, where k is the                       can use unlimited computational resource to compute another
+     • V⃗ = (Vi )i=1                                                                        state w t of s bits, given the previous state w t −1 together with
+        number of layers in G;                                                              the edge set E j . (Note that w t is indeed a random variable
+                 k −1 and E
+     • ℓ⃗ = (ℓi )i=1      ⃗ = (Ei ) k −1 is a list of disjoint sets of edges
+                                S i=1                                                       depending on w t −1 and E j , since A is randomized).
+        on the vertex set V = ki=1 Vi . For each i ∈ [k − 1], Ei is the                  • Finally, A’s output only depends on the last state wp (k −1) and
+        set of all the edges in G between Vℓi and Vℓi +1 . All the ℓi are                   its random bits.
+        distinct integers in [k − 1].
+                                                                                        In other words, the streaming algorithm is allowed to access the
+    For each i ∈ [k − 1], we call the set of edges between Vi and                    graph layer by layer, and can use unlimited computational resources
+Vi+1 the i-th edge-layer of G. That is, ℓ⃗ specifies an ordering of                  to process each layer. The only constraint is that it can restore at
+edge-layers of G, we will call it the edge-layer ordering of G. We                   most s bits of information after processing one layer.
+remark that unless some edge-layers are empty, the edge list vector                     Clearly, lower bounds for graph streaming algorithms in the
+E⃗ always uniquely determine the ordering ℓ.    ⃗ In most cases we will              layer-arrival model immediately imply the same lower bounds for
+just specify the edge list vector E⃗ and the ℓ⃗ will be determined from              graph streaming algorithms in the edge-arrival model or vertex-
+the context.                                                                         arrival model.
+    We will use E (G), V⃗ (G), k (G) and ℓ(G)
+                                         ⃗    to denote the set of edges,            7 That is, randomness is free for A and are not charged in the space complexity of A.
+the list of layers of G, the number of layers in G and the edge-layer                This is very important for the hybrid argument used in this paper, see Section 3.4.
+
+
+
+
+                                                                               576
+STOC ’21, June 21–25, 2021, Virtual, Italy                                     Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh R. Saxena, Zhao Song, and Huacheng Yu
+
+
+3.3        Ruzsa-Szemerédi Graphs                                                              Proof. Our proof is based on a standard hybrid argument. For
+A bipartite graph G RS = (L ⊔ R, E) is a called an (r, t )-Ruzsa-                            each j ∈ {0, 1, . . . , k}, let
+Szemerédi graph (RS graph for short) iff its edge-set E can be                                                                        ′
+                                                                                                             Hj = (D1 , . . . , Dj , Dj+1 , . . . , Dk′ )seq
+partitioned into t induced matchings M 1 , . . . , Mt , each of size r .
+  We will use the original construction of RS graphs due to Ruzsa                            Observe that H0 = (D1′ , . . . , Dk′ )seq and Hk = (D1 , . . . , Dk )seq .
+and Szemerédi [47] based on the existence of large sets of integers                          Let A be a p-pass streaming algorithms with space s.
+with no 3-term arithmetic progression, proven by Behrend [12].                                 We claim that for each j ∈ [k],
+
+   Proposition 3.2 ([47]). There is an absolute constant c RS ≥ 1                                                 ∥A(Hj ) − A(Hj−1 )∥TV ≤ ε j .
+       √ for all sufficiently large n, there is an integer N ≤
+such that,                                                                                      Assuming the claim above holds, the lemma follows from the
+n1+c / log n such that there are (n, n)-RS graphs with N vertices on
+      RS
+                                                                                             triangle inequality.
+each side of the bipartition.                                                                   To prove the claim above, we show how to construct another
+                                                    √                                        streaming algorithm B with the same pass and space complexity as
+   For convenience, we define N RS (n) = n1+c / log n . We also
+                                                 RS
+                                                                                             A, such that ∥A(Hj ) − A(Hj−1 )∥TV = ∥B(Dj ) − B(Dj′ )∥TV . Given
+need the following construction of RS graphs with different                                  an input graph G, B first draws sample graphs G 1 ∼ D1 , . . . , G j−1 ∼
+parameters by [28].                                                                          Dj−1 , and then draws sample graphs G j+1 ∼ Dj+1         ′ , . . . ,G ∼ D′ .
+                                                                                                                                                                  k   k
+   Proposition 3.3 ([28]). There is an absolute constant c 2RS > 0                           B then simulates A on the input (G 1 , G 2 , . . . , G k ).
+                                                                                                Recall that our definition of randomized streaming algorithms
+such that, for all sufficiently large n, there are (n, nc 2 / log log n )-RS
+                                                                RS
+                                                                                             (see Definition 3.1) allows unbounded randomness from any fixed
+graphs with 4n vertices on each side of the bipartition.
+                                                                                             distribution (which are independent from the input distribution),
+                                                                                             and the random bits are not counted in space usage. The k − 1
+3.4        Indistinguishability and The Hybrid                                               sample graphs of B are then regarded as B’s randomness. Hence, B
+           Argument                                                                          has the same pass and space complexity of A. Moreover, one can see
+We say two distributions on layered graphs D1 and D2 are ε-                                  that B(Dj ) distributes as A(Hj ) and B(Dj′ ) distributes as A(Hj−1 ).
+indistinguishable for p-pass streaming algorithms with space s                               Since Dj and Dj′ are ε j -indistinguishable for p-pass streaming
+in the layer-arrival model. If for every p-pass streaming algorithm                          algorithms with space s, we have
+A with space s in the layer-arrival model
+                                                                                                     ∥A(Hj ) − A(Hj−1 )∥TV = ∥B(Dj ) − B(Dj′ )∥TV ≤ ε j ,
+                          ∥A(D1 ) − A(D2 )∥TV ≤ ε,
+                                                                                             which completes the proof of the claim.                                   □
+where for each i ∈ [2], A(Di ) is the output distribution of A given
+an input graph drawn from Di .                                                               3.5    Set-Encoding/Perm-Encoding Graphs and
+   Note that the above notation of indistinguishability also                                        Set-Hiding/Perm-Hiding Generators
+generalizes to streaming algorithms in the edge-arrival model or                             3.5.1 Set-Encoding Graphs and Perm-Encoding Graphs. The
+vertex-arrival model. But throughout this paper we will mostly                               following two special layered graphs will be studied throughout
+study indistinguishability with respect to multi-pass streaming                              the paper.
+algorithms in the layer-arrival model. Hence, we will just omit this
+model name whenever it is clear from the context.                                              Definition 3.5 (Set-Encoding Graphs and Perm-Encoding
+   Given t layered graphs G 1 , . . . , G t . They can be treated as a                       Graphs).
+single input to a p-pass streaming algorithm A as follows: there are                            (1) (Set-Encoding Graphs) For a set S ⊆ [n], we say a layered
+p passes, in each pass A process (the edges of) G 1 , . . . , G t in order.                         graph G with first and last layer each having exactly n vertices
+We use (G 1 , . . . , G k )seq to denote this new input to A.                                       is a Set-Encn (S ) graph (i.e., a Set-Encoding graph for the set
+   The following lemma shows that the standard hybrid argument                                      S). If for each (i, j) ∈ [n]×[n], First(G)[i] can reach Last(G)[j]
+also applies to the setting of multi-pass graph streaming algorithms.                               if and only if i = j and i ∈ S.
+The hybrid argument will be used throughout our proofs, and we                                  (2) (Perm-Encoding Graphs) For a permutation π : [n] → [n],
+give a proof here for completeness.                                                                 we say a layered graph G with first and last layer each
+   Lemma 3.4 (Hybrid argument for multi-pass streaming                                              having exactly n vertices is a Perm-Encn (π ) graph (i.e., a
+                                                                                                    Perm-Encoding graph for the permutation π ). If for each
+algorithms). Let k be a positive integer. Let ε ∈ Rk≥0 denote k
+                                                                                                    (i, j) ∈ [n] × [n], First(G)[i] can reach Last(G)[j] if and only
+parameters. Let (D1 , D1′ ), (D2 , D2′ ), . . . , (Dk , Dk′ ) be k pairs of
+                                                                                                    if π (i) = j.
+distributions over graphs. Suppose for each i ∈ [k], Di and Di′ is εi -
+indistinguishable for p-pass streaming algorithms with space s, then                         3.5.2 Set-Hiding Generators and Perm-Hiding Generators. Note
+(D1 , . . . , Dk )seq and (D1′ , . . . , Dk′ )seq are ∥ϵ ∥1 -indistinguishable               that a single Set-Encoding graph (resp. Perm-Encoding graph)
+for p-pass streaming algorithms with space s.8                                               just encodes a set, and does not hide it. Now we formally
+                                                                                             define Set-Hiding generators and Perm-Hiding generators, which
+8(D , . . . , D )
+   1               denotes the distribution obtained by for each i
+               k seq                                                       ∈   [k ],         generate distributions over Set-Enc/Perm-Enc graphs that hides the
+independently drawing D i ← Di , and outputting (D 1, . . . , D k )seq .                     encoded set/permutation from multi-pass streaming algorithms.
+
+
+
+
+                                                                                       577
+Almost Optimal Super-Constant-Pass Streaming Lower Bounds for Reachability                                                    STOC ’21, June 21–25, 2021, Virtual, Italy
+
+
+   Definition 3.6 (ε-secure Set-Hiding generators). Let n ∈ N,                          Overview of the construction. Our construction works recursively.
+and let G be a function from subsets of [n] to distributions over layered            The base case will be generators against 0-pass streaming
+graphs. We say G is ε-Set-Hiding for subsets of [n] against p-pass                   algorithms. Clearly, trivial constructions suffice for this base case
+algorithms with space s, if the following statements hold:                           since 0-pass streaming algorithms cannot read the input at all.
+    (1) For every S ⊆ [n], G(S ) is a distribution over Set-Encn (S )                   Next, for the case against p-pass streaming algorithms,
+        graphs.                                                                      Lemma 4.2 shows how to construct Set-Hiding generators against p-
+    (2) For every two sets S,T ⊆ [n], the distributions G(S ) and G(T )              pass streaming algorithms from Perm-Hiding generators for (p −1)-
+        are ε-indistinguishable for p-pass streaming algorithms with                 pass streaming algorithms, and Lemma 4.3 shows how to construct
+        space s.                                                                     Perm-Hiding generators against p-pass streaming algorithms from
+                                                                                     Set-Hiding generators for p-pass streaming algorithms. The formal
+   Definition 3.7 (ε-secure Perm-Hiding generators). Let n ∈ N,                      proofs of Lemma 4.2 and Lemma 4.3 can be found in the full version.
+and let G be a function from Perm([n]) to distributions over layered
+graphs. We say G is ε-Perm-Hiding for permutations in Perm([n])                          Lemma 4.2 (From Perm-Hiding generators to Set-Hiding
+against p-pass algorithms with space s, if the following statements                  generators). Let n be a sufficiently large integer. Let p, s ∈ N
+hold:                                                                                such that s ≤ n 2 , and let N = N RS (4n). Let ε ∈ [0, 1) such that
+                                                                                     ε ≥ 1/n 10 . Suppose there is a generator GN    PH
+                                                                                                                                      ,p−1 which always outputs
+    (1) For every π ∈ Perm([n]), G(π ) is a distribution over
+        Perm-Encn (π ) graphs.                                                       (N G PH , k G PH , ℓ G PH ) graphs and is (ε/ log n)-Perm-Hiding against
+                                                                                                        ⃗                             2
+
+    (2) For every two permutations π1 , π2 ∈ Perm([n]), the                          (p − 1)-pass streaming algorithms with space s. Then there is a
+                                                                                                     SH such that: (1) it always outputs (N
+                                                                                                                                               G SH , k G SH , ℓ G SH )
+        distributions G(π1 ) and G(π 2 ) are ε-indistinguishable for p-              generator Gn,p                                                            ⃗
+        pass streaming algorithms with space s.                                      graphs, where N G SH = O (N G PH · log n) and k G SH = O (k G PH · log n);
+                                                                                                                                2
+                                                                                     (2) it is ε-Set-Hiding against p-pass streaming algorithms with space
+   For a generator G as in Definition 3.6 and Definition 3.7, we say                 s.
+G always outputs (N G , k G , ℓ⃗G ) graphs, if for all possible inputs x,
+the distribution G(x ) is supported on N G -vertex layered graphs                       Lemma 4.3 (From Set-Hiding generators to Perm-Hiding
+with k G layers and edge-layer ordering ℓ⃗G .                                        generators). Let n be a sufficiently large integer. Let s ∈ N and let
+                                                                                     ε ∈ [0, 1). Suppose there is a generator G3n,p   SH which always outputs
+
+   Remark 3.8. The property that G always outputs (N G , k G , ℓ⃗G )                 (N G SH , k G SH , ℓ⃗G SH ) graphs and is (ε/ log2 n)-Set-Hiding against p-
+graphs for some triple (N G , k G , ℓ⃗G ) is pretty strong since it forces G         pass streaming algorithms with space s. Then there is a generator
+to always output graphs with the same number of vertices, the same                   such that: (1) it always outputs (N G PH , k G PH , ℓ⃗G PH ) graphs where
+number of layers and the same edge-layer ordering. We remark here                    N G PH = O (N G SH · log n) and k G PH = O (k G SH · log n); (2) it is
+that all our constructions in this paper have this property.                         ε-Perm-Hiding against p-pass streaming algorithms with space s.
+   For simplicity, we will often use GnSH (resp. GnPH ) to denote an                   Finally, Theorem 4.1 follows by applying Lemma 4.2
+ε-Set-Hiding (resp. ε-Perm-Hiding) generator G for subsets of [n]                    and Lemma 4.3 repeatedly.
+(resp. permutations in Perm([n])). We may also write Gn,p   SH (resp.
+
+Gn,p ) to indicate that the generator is against p-pass streaming
+  PH                                                                                     Proof of Theorem 4.1. Let N 0 be a sufficiently large constant
+algorithms.                                                                          to be specified later. We will set N 0 so that Lemma 4.2 and Lemma 4.3
+                                                                                     holds for all integers n ≥ N 0 . Let c ≥ 2 be a sufficiently large
+4    CONSTRUCTION OF Set-Hiding                                                      constant to be specified later.
+     GENERATORS                                                                          We will prove the theorem by induction on p. The theorem
+                                                                                     trivially holds when p = 0: since 0-pass streaming algorithm cannot
+In this section, we will give a construction overview of the                         read anything from the input, given an input subset S, one can
+Set-Hiding generators, which summarizes some key technical                           simply output a bipartite graph of size (n, n) such that the i-th
+lemmas which will be proved in the later sections.                                   vertex on the left side is connected to the i-th vertex on the right
+   Now we are ready to state the main theorem of this section.                       side if and only if i ∈ S. Clearly, this output is a Set-Encn (S ) graph.
+   Theorem 4.1 (Main Theorem). There is a constant c > 1 and                             Now, suppose the theorem holds for p − 1, we show              p it holds
+an integer N 0 ∈ N such that for every                                               for p as well. We fix an n ≥ N 0 such that p ≤ c −1 · log n, and
+                                        p p ∈ N and every integer                    we will show how to construct the desired generator Gn,p               SH . Let
+n satisfying n ≥ N 0 and p ≤ c −1 · log n, there is a generator
+  SH such that: (1) it always outputs (N                                             n 2 = N (4n) and n 1 = 3n 2 . We proceed as follows:
+                                                                                              RS
+                                           G SH , k G SH , ℓ G SH ) graphs,
+Gn,p                                                       ⃗
+                           √
+                                                                                         (1) Since n 1 ≥ n ≥ N 0 , it follows that (p − 1) ≤ c −1 · log n 1 .
+                                                                                                                                                           p
+where N G SH ≤ c · n1+cp/ log n and k G SH ≤ c · (c log n) 2p ; (2) it is
+(n −1 )-Set-Hiding against p-pass streaming algorithms with space n 2 .                      Hence, by the induction hypothesis, there is a generator
+                                                                                             GnSH1,p−1
+                                                                                                        such that: (1) it always outputs (N (1) , k (1) , ℓ⃗(1) )
+                                                                                                                                               √
+   We remark that Theorem 4.1 is all we need to prove the lower                                                                      1+c (p−1)/ log n 1
+bounds for streaming algorithms in Section 5. The rest of this                               graphs, where N (1) ≤ c · n 1                              and k (1) ≤
+section is a proof of Theorem 4.1, with key technical lemmas proved                          c · (c log n 1 ) 2(p−1) ; (2) it is ε (1) -Set-Hiding against (p − 1)-
+in later sections.                                                                           pass streaming algorithms with space n 21 , where ε (1) = 1/n 1 .
+
+
+
+
+                                                                               578
+STOC ’21, June 21–25, 2021, Virtual, Italy                                 Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh R. Saxena, Zhao Song, and Huacheng Yu
+
+                                                                                                                                         √
+   (2) Since n 2 ≥ N 0 and n 1 = 3n 2 , combining Lemma 4.3 with                           Finally, since n 1 = 4N RS (4n) ≥ n1+Ω(1/ log n) , setting N 0 to be
+       the generator GnSH   1,p−1
+                                  , there is a generator GnPH   2,p−1
+                                                                         such           sufficiently large, we also have ε (3) = 1/n 1 · (log n 2 ) 2 · (log n) 2 ≤ 1/n.
+       that: (1) it always outputs (N (2) , k (2) , ℓ⃗(2) ) graphs where                This completes the proof.                                                     □
+       N (2) ≤ O (N (1) · log n 2 ) and k (2) ≤ O (k (1) · log n 2 ); (2) it is
+                                                                                          In the full version, we also have the following different
+       ε (2) -Perm-Hiding against (p − 1)-pass streaming algorithms
+                                                                                        construction of Set-Hiding generators.
+       with space n 21 , where ε (2) = ε (1) · (log n 2 ) 2 .
+   (3) Since n ≥ N 0 and n 2 = N RS (4n), combining Lemma 4.2                              Remark 4.4. For every p(n) = o(log n/ log log n), for every
+       with the generator GnPH          , there is a generator Gn,p SH such             sufficiently large integer n, there is a generator Gn,p
+                                                                                                                                            SH
+                                                                                                                                                (n)
+                                                                                                                                                    such that:
+                                  2,p−1
+       that: (1) it always outputs (N (3) , k (3) , ℓ⃗(3) ) graphs, where               (1) it always outputs (N SH , k SH , ℓ⃗ SH ) graphs, where N SH ≤
+                                                                                                                      G      G      G                          G
+        N (3) ≤ O (N (2) · log2 n) and k (3) ≤ O (k (2) · log n); (2) it is             n · (log n)O (p (n)) ; (2) it is (n −1 )-Set-Hiding against p-pass streaming
+                                                                                        algorithms with space n 1+c 2 / log log n .
+                                                                                                                           RS
+        ε (3) -Set-Hiding against p-pass streaming algorithms with
+        space n 2 , where ε (3) = ε (2) · (log n) 2 .
+   Now we verify that the last generator Gn,p       SH satisfies our                    5    LOWER BOUNDS FOR MULTI-PASS
+requirements. Noting that log n 2 = O (log n), it follows that                               STREAMING ALGORITHMS
+                                              √       !                                 In this section, we show that Theorem 4.1 implies our lower bounds
+                                   1+c (p−1)/ log n 1
+           N (3) ≤ O c · log n · n 1
+                             3
+                                                        .         (1)                   for multi-pass streaming algorithms.
+                                                                                             • In Section 5.1, we prove the lower bounds for s-t reachability
+           √ N 0 to be sufficiently large, we have n 1 = 3 · N (4n) ≤
+                                                              RS
+   Setting                                                                                     and s-t undirected shortest-path.
+       RS / log n
+n 1+2c            , and hence                                                                • In Section 5.2, we prove our lower bounds for (approximate)
+                                               q                                               bipartite perfect matching.
+                      log n 1 ≤ log n + 2c RS · log n.             (2)                       • In Section 5.3, we prove our lower bounds for estimating the
+                                                                                               rank of a matrix.
+   Taking log of both sides of Equation 1, it follows that
+                                                          q                                  • In Section 5.4, we prove our lower bounds for linear
+   log N (3) ≤ O (1) + 3 log log n + log n 1 + c (p − 1) · log n 1 .       (3)                 programing in the row-streaming model.
+
+   Setting                          N 0q                   to                           5.1 s-t Reachability and s-t Undirected
+                                                  √ √
+be sufficiently large and noting that x + 2c RS x ≤ x + 2c RS                               Shortest-Path
+for any x > 0, it follows from Equation 2 that                                          As already discussed in Section 2, Theorem 4.1 directly implies
+                      q          q                                                      the following lower bounds for s-t directed connectivity against
+                        log n 1 ≤ log n + 2c RS .         (4)                           multi-pass streaming algorithms.
+   Plugging Equation 2 and Equation 4 in Equation 3 and setting c                         Theorem 5.1 (Detailed version of Theorem 1.1 and
+to be sufficiently large, we have                                                       Theorem 1.2). The following statements hold.
+         log N (3)                                                         (5)              (1) Given an n-vertex directed graph G = (V , E)      p with two
+                                                    q                                           designated vertices s, t ∈ V , no randomized o( log n)-pass
+         ≤ O (1) + 3 log log n + log n + 2c RS · log n                 (6)                      streaming algorithm with space n 2−ε for some constant ε > 0
+                                q                                                               can determine whether s can reach t in G with probability at
+                 + c (p − 1) · ( log n + 2c RS )                                                least 2/3.
+                                                                                            (2) Given an undirected graph G = (V ,pE) and two designated
+                                        q
+         ≤ log n + (3c RS + c (p − 1)) · log n + c (p − 1) · 2c RS
+                                                                                                vertices s, t ∈ V , no randomized o( log n)-pass streaming
+                                                                                                algorithm with space n 2−ε for some constant ε > 0 can output
+                                        q
+         ≤ log n + (5c RS + c (p − 1)) · log n              (cp ≤ log n)
+                                                                  p
+                        q                                                                       the length of the shortest s-t-path in G.
+         ≤ log n + cp · log n.                   (c is sufficiently large)                      Moreover,   for p(n)-pass streaming algorithms where p(n) =
+                                                                                                o( log n), the lower bound above for s-t undirected shortest-
+                                                                                                  p
+   Noting that log n 2 = O (log n) and setting c to be sufficiently                             path still holds if the algorithm is only required to compute
+                                                                                                an (1 + ω (log n) −2p (n ) )-approximation to the length of the
+large, it follows that                                                                                                  2
+
+
+  k (3) ≤ O (log2 n · k (1) )                                                                   shortest path between s and t.
+
+        ≤ (c/10 log2 n) · c · (c log n 1 ) 2(p−1)                                         Proof. We first prove the theorem for s-t reachability, and then
+                                                                 2(p−1)                 show how to adapt the proof for s-t undirected shortest-path.
+                                                       2c RS +
+        ≤ (c/10 log2 n) · c · (c log n) 2(p−1) · *1 + p                                   Lower bounds for s-t reachability.
+                                                        log n -                                                              p Suppose for the sake of
+                                                                                        contradiction that there is p(n) ≤ o( log n) and a constant ε > 0
+                                                 ,
+                                                              (Equation 2)
+                                                                                        such that there is a p(n)-pass streaming algorithm AstReach with
+        ≤ c · (c log n) . (p ≤ c −1 log n and c is sufficiently large)
+                       2p             p
+                                                                                        n2−ε space, which solves s-t reachability with probability at least
+
+
+
+
+                                                                                  579
+Almost Optimal Super-Constant-Pass Streaming Lower Bounds for Reachability                                                      STOC ’21, June 21–25, 2021, Virtual, Italy
+
+
+2/3. We further assume that AstReach outputs 1 if it determines that                   Proof sketch. We will just sketch the proof for s-t reachability
+s can reach t, and 0 otherwise.                                                     here. The proof of s-t undirected shortest-path is identical.
+   By Theorem 4.1 and noting that p(n 2 ) ≤ o( log n), there is                     Suppose for the sake of contradiction that there is p(n) ≤
+                                                   p
+
+m(n) = n 1+o (1) such that for every sufficiently large n, there                    o(log n/(log log n) 2 ) and s (n) = n1+o (1/ log log n) such that there
+                 SH
+is a generator Gn,p         which always outputs (m(n), k G SH , ℓ⃗G SH )           is a p(n)-pass streaming algorithm AstReach with s (n) space, which
+                     (n 2 )
+                                                                                    solves s-t reachability with probability at least 2/3.
+graphs and is (1/10)-Set-Hiding for subsets of [n] against p(n2 )-
+                                                                                       By Remark 4.4 and noting p(n 2 ) ≤ o(log n/ log log n), there is
+pass streaming algorithms with space n 2 . For a layered graph G
+                     SH (∅) or G SH ({1}), we set s = First(G)                      m(n) = n 1+o (1/ log log n) such that for every sufficiently large n,
+in the support of Gn,p          n,p                            [1] and
+                                                                                    there is a generator Gn,p SH        which always outputs m(n)-vertex
+t = Last(G)[1] (s and t do not depend on the choice of graph G).                                                 (n 2 )
+   Since AstReach solves s-t reachability with probability at least                 graphs and is (1/10)-Set-Hiding against p(n 2 )-pass streaming
+                                                                                    algorithms with space n 1+c 2 / log log n . Noting that p(m(n)) ≤ p(n2 )
+                                                                                                                  RS
+2/3, it follows that
+                                                                                                        RS / log log n
+                                                                                    and s (m(n)) ≤ n 2
+                                                                                                    1+c                and applying the same argument as
+                       Pr       [AstReach (G) = 1] ≥ 2/3,
+                 G←Gn,p
+                    SH ( {1})                                                       in Theorem 5.1, we can use AstReach to break the generator Gn,p  SH
+                                                                                                                                                        (n 2 )
+                                                                                                                                                               ,
+                                                                                    which finishes the proof.                                               □
+                      Pr      [AstReach (G) = 0] ≥ 2/3.
+                  G←Gn,p
+                     SH (∅)
+
+                                                                                    5.2     Bipartite Perfect Matching
+The                             above                            means
+that ∥AstReach (Gn,p
+                   SH (∅)) − A
+                                 stReach (Gn,p ({1}))∥TV ≥ 1/3. This
+                                             SH                                     The goal of this section is to prove Theorem 5.3, which has two
+                                                                                    parts : the exact case and the approximate case.
+                           SH
+contradicts the fact that Gn,p (n 2 )
+                                      is (1/10)-Set-Hiding against p(n 2 )-
+pass algorithms with space n 2 , since AstReach takes p(m) ≤ p(n2 )
+passes and m2−ε ≤ n2 space.                                                           pTheorem 5.3 (Detailed version of Theorem 1.3). No
+                                                                                    o( log n)-pass streaming algorithm with n 2−ε space for some ε > 0
+  Lower bounds for s-t undirected shortest-path. We will use the                    can determine whether a bipartite graph G = (L ⊔ R, E) with
+same reduction in [9, Theorem 6]. Again suppose for the sake of                     |L| = |R| = n has a perfect matching with probability at least 2/3.
+contradiction that there is a p(n)-pass streaming algorithm AstUpath                  pMoreover, for p(n)-pass streaming algorithms where p(n) =
+                                                                                    o( log n), the lower bound above still holds if the algorithm is only
+with n 2−ε space, which solves s-t undirected shortest-path with
+                                                                                    required to distinguish with probability at least 2/3 between (1) G
+probability at least 2/3.
+                                                                                    has a perfect matching of size n and (2) G has no
+                                                                                                                                   √ matching of size at
+                 SH
+  Recall that Gn,p   (n 2 )
+                            always outputs graphs with exactly k G SH
+                                                                                    least n · (1 − δ (n)), for some δ (n) = 2−cp (n )/ log n , where c > 1 is
+                                                                                                                                   2
+
+layers. Let G be the undirected version of the layered graph G in the               an absolute constant.
+support of Gn,pSH (∅) or G SH ({1}) (that is, G is obtained by removing
+                           n,p
+the directions on all edges of G), we claim that s can reach t in G
+if and only if the shortest path between s and t in G has length
+exactly k G SH − 1.                                                                    Proof. We will adapt a folklore reduction from reachability to
+    To see the claim above, note that (1) the shortest path between s               perfect matching, which is also used in [9, Theorem 5].
+and t in G has length at least k G SH − 1, since there are k G SH layers in           pSuppose for the sake of contradiction that there is p(n) ≤
+                                                                                    o( log n) and a constant ε > 0 such that there is a p(n)-pass
+G; (2) if s can reach t in G, then the same path gives us a (k G SH − 1)-
+                                                                                    streaming algorithm Amatching with n2−ε space, which determine
+length path from s to t in G, and vice versa. Therefore, AstUpath                   whether a bipartite graph has perfect matching or not with
+                                                                SH (∅) and
+can be similarly used to distinguish the distributions Gn,p                         probability  at least 2/3. By Theorem 4.1 and noting that p(n 2 ) ≤
+Gn,p ({1}), a similar argument as in the case of s-t reachability gives
+   SH                                                                               o( log n), there is m(n) = n1+o (1) and such that for every
+                                                                                      p
+
+us the desired lower bound for s-t undirected shortest-path.                        sufficiently large n, there is a generator Gn,p
+                                                                                                                                 SH
+                                                                                                                                    (n 2 )
+                                                                                                                                           which always
+    Finally, AstUpath is in fact only required to distinguish between
+                                                                                    outputs (m(n), k G SH , ℓ⃗G SH ) graphs and is (1/10)-Set-Hiding for
+(1) the shortest path between s and t in G has length exactly k G SH −1
+                                                                                    subsets of [n] against p(n2 )-pass streaming algorithms with space
+and (2) the shortest path between s and t in G has length at least                  n2 .
+k G SH . By Theorem 4.1 it holds that k G SH ≤ O (log n) 2p (n ) . Hence,
+                                                                 2
+                                                                                        For a layered graph G in the support of Gn,p           SH
+                                                                                                                                                  (n 2 )
+                                                                                                                                                         (∅) or
+it suffices for AstUpath to compute a (1 + (k G SH ) −1 ) approximation                                            Sk GSH −1
+to the shortest path between s and t in G, and the theorem is                       Gn,p (n 2 ) ([n]), let Vmid = i=2
+                                                                                      SH                                     Vi (G). That is, Vmid is the set
+proved by noting ω (log m(n)) 2p (n ) ≥ k SH
+                                      2
+                                                 (recall that G has m(n)            of vertices in the middle layers of G. We will construct a bipartite
+                                              G
+vertices).                                                                □         graph H = (L ∪ R, E H ) 9 as follows:
+
+   Remark 5.2. If we apply Remark 4.4 instead of Theorem 4.1 in
+the proof of Theorem 5.1, then it follows that s-t reachability or s-t
+undirected shortest-path cannot be solved by o(log n/(log log n) 2 )-               9E
+                                                                                       H here is a list of edges, which specify the order that the streaming algorithm read
+pass streaming algorithms with n1+o (1/ log log n) space.                           the graph.
+
+
+
+
+                                                                              580
+STOC ’21, June 21–25, 2021, Virtual, Italy                                          Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh R. Saxena, Zhao Song, and Huacheng Yu
+
+                                                                                                                                                   √
+                                                                                                 By Theorem 4.1, we have m(n) ≤ c · n1+cp (n )/ log n for some
+                                                                                                                                                2
+     Bipartite Perfect               Matching           from       Set-Hiding
+     Generators                                                                                  constant c > 1, the second part of the theorem then follows.
+                                                                                                                                                              □
+         (1) For every vertex v ∈ Vmid , we add a vertex v ℓ to L
+             and a vertex v r to R. For every vertex s ∈ First(G),                                  Remark 5.5. Consider the edge list E H constructed in the proof of
+             we add a vertex s ℓ to L. For every vertex t ∈ Last(G),                             Theorem 5.3, for every left vertex u ℓ ∈ L, its adjacent edges (u ℓ , v r )
+             we add a vertex t r to R.                                                           are listed consecutively in E H . (Except for the edge (u ℓ , v ℓ ), which is
+         (2) Next we enumerate all the (directed) edges (u, v)                                   an auxiliary edge that does not depend on the given graph G.)
+             in G according to their ordering in E⃗ (G), with ties
+             broken according the lexicographically ordera : for                                 5.3     Matrix Rank
+             each edge (u, v) ∈ E (G), we add an edge (u ℓ , v r ) to                            Estimating the rank of an n × n matrix is an interesting problem in
+             E H . (Note that vertices in First(G) has no incoming                               the streaming. There has been several results studying this problem,
+             edges, and vertices in Last(G) has no outgoing ones.)                               we refer the readers to [7, 8, 14, 39]. The goal of this section is
+             For every vertex v ∈ Vmid , we also add an edge                                     present a lower bound for the rank estimation problem.
+             (v ℓ , v r ) to E H .                                                                  The following corollary follows from Theorem 5.3 and the well-
+     a That is, we first enumerate edges in E (G ) in lexicographical order, then
+                                                                                                 known reduction from computing the size of maximum matching
+                                              1
+                              edges in E 2 (G ) and so on                                        for bipartite graphs to computing the rank of matrices (see, e.g., [43,
+                                                                                                 Page 167] and [41]), we will consider the row streaming model in
+                                                                                                 which the streaming algorithms get the rows of the matrix one by
+   From the construction above, one can verify easily that |L| =                                 one in some arbitrary order.
+|R| = |Vmid | + n = m(n) − n. Let n H = |L|. The following claim is
+crucial for the proof.                                                                             pCorollary 5.6 (Detailed version of Theorem 1.4). No
+                                                                                                 o( log n)-pass streaming algorithm with n 2−ε space for some ε > 0
+   Claim 5.4.                                                                                    can determine whether a given matrix M ∈ Fqn×n for some prime
+    (1) If G is a Set-Encn ([n]) graph, then H has a perfect matching                            power q = ω (n) has full rank with probability at least 2/3.
+        of size n H .                                                                              pMoreover, for p(n)-pass streaming algorithms where p(n) =
+    (2) if G is a Set-Encn (∅) graph, then the maximum matching in                               o( log n), the lower bound above still holds if the algorithm is
+        G has at most |Vmid | = n H − n edges.                                                   only required to distinguish with probability at least 2/3 between
+                                                                                                 (1) rank(M ) = √ n and (2) rank(M ) ≤ n · (1 − δ (n)), for some
+   To see Item (1) of Claim 5.4, consider the matching M =                                       δ (n) = 2−cp (n )/ log n , where c > 1 is an absolute constant.
+                                                                                                                2
+
+{(v ℓ , v r ) : v ∈ Vmid }. Note that |M | = |Vmid | = n H −n, and the only
+unmatched vertices are s ℓ and t r for s ∈ First(G) and t ∈ Last(G).                                 Proof. For a bipartite graph G = (L ⊔ R, E) where L =
+For every s ∈ First(G) and t ∈ Last(G), any augmenting path of                                   {u 1 , . . . , un } and R = {v 1 , . . . , vn }, we consider the Edmonds matrix
+this matching M in H between s ℓ and t r corresponds to a directed                               M defined over the variables x⃗ = (x i, j ) (i, j ) ∈[n]×[n] :
+path from s to t in G. If G is a Set-Encn ([n]) graph, we can find
+                                                                                                                                     x i, j
+                                                                                                                                             if (ui , v j ) ∈ E,
+|First(G)| disjoint augmenting paths, in which the i-th path is from                                                     M (i, j) := 
+First(G)[i] to Last(G)[i] .10 This means that H has a matching of
+                                                                                                                                     0       otherwise.
+                                                                                                                                     
+size |M | + n = n H , which is a perfect matching.                                                   Let prime power q = ω (n) be a prime power. We know
+   For Item (2) of Claim 5.4, if G is a Set-Encn (∅) graph, then no                              that rank(M ) (rank of M over the polynomial ring Z [⃗             x] =
+augmenting path between the unmatched vertices s ℓ and t r can                                   Z [x 1,1 , . . . , x n,n ]) equals the size of the maximum matching in
+be found, since for every (i, j) ∈ [n] × [n], First(G)[i] cannot reach                           H . For a vector ⃗r = (r i, j ) (i, j ) ∈[n]×[n] ∈ Fqn×n , we use M (⃗r ) to
+First(G)[j] . Hence, M is a maximum matching of H .                                              denote the matrix over Fq obtained by substituting x i, j by r i, j for
+   Note that H can be generated “on the fly” in the streaming                                    each (i, j) ∈ [n] × [n]. Applying the Schwartz-Zippel lemma, it
+setting. Hence, since Amatching takes p(|L|) ≤ p(n2 ) passes and                                 holds that if all the r i, j are i.i.d. uniform distributed over Fq , then
+(|L|) 2−ε ≤ m(n) 2−ε ≤ n 2 space. By Claim 5.4, Amatching can                                    Pr⃗r [rank(M (⃗r )) = rank(M )] ≥ 1 − o(1).
+be used to distinguish between the distributions Gn,p       SH         (∅) and                       Therefore, computing the size of the maximum matching in G
+                                                                (n 2 )
+                                                                                                 can be reduced to computing the rank of M (⃗r ) over Fq . The proof
+  SH
+Gn,p (n 2 )
+            ([n]), contradicts the security of the generator. This proves
+                                                                                                 is then finished by combing Theorem 5.3 and Remark 5.5.                    □
+the first part of the theorem.
+   Finally, note that Amatching is indeed only required to distinguish                           5.4     Linear Programming
+between (1) H has perfect matching of size |L| = m(n) − n and
+                                                                                                 Linear programming (LP) is a fundamental problem in optimization.
+(2) H has no matching of size greater than |Vmid | = m(n) − 2n.
+                                                                                                 The fastest LP solver for general dense matrix is dense to [37].
+                                                                                                 It takes nω time with O (n 2 ) space, where ω ≈ 2.37286 is the
+10 By the definition of a Set-Enc ([n]) graph, for each i ∈ [n], there exists a directed
+                                 n                                                               exponent of current matrix multiplication [2]. For the situation
+path Pi from First(G )[i ] to Last(G )[i ] in G . We further observe that these n paths
+                                                                                                 where LP has roughly n constraints/variables, it is not known how
+are vertex-disjoint. As otherwise, if Pi share a vertex v with P j for i , j , then it
+means First([G])[i ] can first reach v can then reach Last(G )[j] , which contradicts            to extend the classical result [37] into streaming setting with o(n)
+the definition of Set-Encn ([n]) graphs.                                                         passes and o(n2 ) space. For matrix related problems such as linear
+
+
+
+
+                                                                                           581
+Almost Optimal Super-Constant-Pass Streaming Lower Bounds for Reachability                                                    STOC ’21, June 21–25, 2021, Virtual, Italy
+
+
+regression and low-rank approximation [13, 20, 21, 45, 48], there                  ACKNOWLEDGMENTS
+are two natural streaming models, one is row model and the other                   The authors would like to thank Sepehr Assadi for useful
+is entry model. Our linear programming focuses on the row model,                   discussions.
+which is discussed below.                                                             Lijie Chen is supported by an IBM Fellowship. Zhao Song is
+                                                                                   supported in part by Ma Huateng Foundation, Schmidt Foundation,
+   The row streaming model for LP.. Our lower bounds holds for                     Simons Foundation, NSF, DARPA/SRC, Google and Amazon AWS.
+the feasibility of LP in the row streaming model: in which the
+streaming algorithms get the constraints of the LP one by one in
+some arbitrary order, and is required to decide whether all the                    REFERENCES
+                                                                                    [1] Miklós Ajtai, János Komlós, and Endre Szemerédi. 1983. An O (n log n) sorting
+constraints can be simultaneously satisfied. Note that algorithms in                    network. In Proceedings of the fifteenth annual ACM symposium on Theory of
+the entry streaming model for LP also work in the row streaming                         computing (STOC). 1–9.
+model, hence our lower bounds hold for the entry streaming model                    [2] Josh Alman and Virginia Vassilevska Williams. 2021. A Refined Laser Method
+                                                                                        and Faster Matrix Multiplication. In SODA. https://arxiv.org/pdf/2010.05846.pdf.
+as well.                                                                            [3] Sepehr Assadi, Yu Chen, and Sanjeev Khanna. 2019. Polynomial pass lower
+                                                                                        bounds for graph streaming algorithms. In Proceedings of the 51st Annual ACM
+                                                                                        SIGACT Symposium on Theory of Computing (STOC). 265–276.
+   Theorem 5.7. No o( log n)-pass algorithm with n 2−ε space for
+                        p
+                                                                                    [4] Sepehr Assadi, Yu Chen, and Sanjeev Khanna. 2019. Sublinear algorithms for (∆
+some ε > 0 in the row streaming model can determine if a linear                         + 1) vertex coloring. In Proceedings of the Thirtieth Annual ACM-SIAM Symposium
+program of n variables and n constraints with coefficients in {0, 1} is                 on Discrete Algorithms (SODA). SIAM, 767–786.
+                                                                                    [5] Sepehr Assadi, Nikolai Karpov, and Qin Zhang. 2019. Distributed and Streaming
+feasible or not.                                                                        Linear Programming in Low Dimensions. In Proceedings of the 38th ACM SIGMOD-
+                                                                                        SIGACT-SIGAI Symposium on Principles of Database Systems (PODS). ACM, 236–
+                                                                                        253.
+                                                                                    [6] Sepehr Assadi, Sanjeev Khanna, and Yang Li. 2016. Tight bounds for single-
+                                                                                        pass streaming complexity of the set cover problem. In 48th Annual ACM
+   Proof. We will show a reduction from s-t reachability over                           SIGACT Symposium on Theory of Computing (STOC). Association for Computing
+layered graphs to the feasibility to an LP problem. Consider a                          Machinery, 698–711.
+layered graph G with n vertices and s and t be two vertices in                      [7] Sepehr Assadi, Sanjeev Khanna, and Yang Li. 2017. On estimating maximum
+                                                                                        matching size in graph streams. In Proceedings of the Twenty-Eighth Annual
+G. We construct the following linear program P with n variables:                        ACM-SIAM Symposium on Discrete Algorithms (SODA). SIAM, 1723–1742.
+                                                                                    [8] Sepehr Assadi, Gillat Kol, Raghuvansh R Saxena, and Huacheng Yu. 2020. Multi-
+     LP from s-t Reachability                                                           Pass Graph Streaming Lower Bounds for Cycle Counting, MAX-CUT, Matching
+                                                                                        Size, and Other Problems. In FOCS. https://arxiv.org/pdf/2009.03038.pdf.
+                                                                                    [9] Sepehr Assadi and Ran Raz. 2020. Near-Quadratic Lower Bounds for Two-Pass
+        (1) Variables: For each vertex v of G, we add a variable                        Graph Streaming Algorithms. In FOCS. https://arxiv.org/pdf/2009.01161.pdf.
+            xv to P. Note that as in the standard formulation of                   [10] Greg Barnes and Jeff A Edmonds. 1998. Time–Space Lower Bounds for Directed
+                                                                                        st-Connectivity on Graph Automata Models. SIAM J. Comput. 27, 4 (1998), 1190–
+            LP, all xv are non-negative.                                                1202.
+        (2) Constraints: For each vertex v of G such that v , s,                   [11] Ruben Becker, Andreas Karrenbauer, Sebastian Krinninger, and Christoph
+                                                                                        Lenzen. 2017. Near-Optimal Approximate Shortest Paths and Transshipment in
+            we add a constraint                                                         Distributed and Streaming Models. In DISC, Vol. 91. 7:1–7:16.
+                                   X
+                     xv ≥                      xu                                  [12] Felix A. Behrend. 1946. On sets of integers which contain no three terms in
+                                                                                        arithmetical progression. Proceedings of the National Academy of Sciences of the
+                            u : edge (u, v ) ∈ E (G ))                                  United States of America 32, 12 (1946), 331.
+            to P
+                                                                                   [13] Christos Boutsidis, David P Woodruff, and Peilin Zhong. 2016. Optimal principal
+                                                                                        component analysis in distributed and streaming models. In Proceedings of the
+            We also add two constraints x t ≤ 0 and x s ≥ 1 to P.                       forty-eighth annual ACM symposium on Theory of Computing (STOC). 236–249.
+        (3) Constraints Ordering: The constraints x t ≤ 0                          [14] Marc Bury and Chris Schwiegelshohn. 2015. Sublinear estimation of weighted
+                                                                                        matchings in dynamic data streams. In ESA. 263–274.
+            and x s ≥ 1 come first. Note that each of the                          [15] Amit Chakrabarti, Prantar Ghosh, Andrew McGregor, and Sofya Vorotnikova.
+            other constraints correspond to one vertex v and                            2020. Vertex ordering problems in directed graph streams. In Proceedings of the
+                                                                                        Fourteenth Annual ACM-SIAM Symposium on Discrete Algorithms (SODA). SIAM,
+            all its incoming edges, which are all in the same                           1786–1802.
+            edge-layer of G. We say this edge-layer is the                         [16] Amit Chakrabarti and Anthony Wirth. 2016. Incidence geometries and the pass
+            corresponding edge-layer of that constraint. Then                           complexity of semi-streaming set cover. In Proceedings of the twenty-seventh
+                                                                                        annual ACM-SIAM symposium on Discrete algorithms (SODA). SIAM, 1365–1373.
+            we list all the other constraints in the ordering of                   [17] Timothy M. Chan and Eric Y. Chen. 2007. Multi-Pass Geometric Algorithms.
+            their corresponding edge-layers in ℓ(G)
+                                                  ⃗    (with ties                       Discret. Comput. Geom. 37, 1 (2007), 79–102.
+                                                                                   [18] Yi-Jun Chang, Martin Farach-Colton, Tsan-Sheng Hsu, and Meng-Tsung Tsai.
+            broken arbitrarily).                                                        2020. Streaming complexity of spanning tree computation, In STACS. arXiv
+                                                                                        preprint arXiv:2001.07672.
+                                                                                   [19] Rajesh Chitnis, Graham Cormode, Mohammad Taghi Hajiaghayi, and Morteza
+    Clearly, one can see that if s can reach t in G, then x s ≥ 1 implies               Monemizadeh. 2014. Parameterized streaming: Maximal matching and vertex
+x t ≥ 1 as well, and the LP instance P is not feasible. On the other                    cover. In Proceedings of the twenty-sixth annual ACM-SIAM symposium on Discrete
+                                                                                        algorithms (SODA). SIAM, 1234–1251.
+hand, if s cannot reach t in G, then one can construct an assignment               [20] Kenneth L Clarkson and David P Woodruff. 2009. Numerical linear algebra in
+to all variables x so that for every vertex v which is not reachable                    the streaming model. In Proceedings of the forty-first annual ACM symposium on
+                                                                                        Theory of computing (STOC). 205–214.
+from s, xv is set to 0. Hence, x t = 0 as well and P is then feasible.             [21] Kenneth L Clarkson and David P Woodruff. 2013. Low rank approximation and
+    Finally, since the LP instance can be generated “on the fly”, an                    regression in input sparsity time. In Proceedings of the forty-fifth annual ACM
+algorithm deciding whether P is feasible in the row streaming model                     symposium on Theory of Computing (STOC). 81–90.
+also implies a streaming algorithm deciding whether s can reach t
+                                                                                   [22] Graham Cormode, Jacques Dark, and Christian Konrad. 2019. Independent Sets in
+                                                                                        Vertex-Arrival Streams. In 46th International Colloquium on Automata, Languages,
+in G in the layer-arrival model. This completes the proof.             □                and Programming (ICALP). Schloss Dagstuhl-Leibniz-Zentrum fuer Informatik.
+
+
+
+
+                                                                             582
+STOC ’21, June 21–25, 2021, Virtual, Italy                                      Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh R. Saxena, Zhao Song, and Huacheng Yu
+
+
+[23] Jeff Edmonds. 1993. Time-space trade-offs for undirected st-connectivity on a                 371–383.
+     JAG. In Proceedings of the Twenty-Fifth Annual ACM Symposium on Theory of                [36] Monika Rauch Henzinger, Prabhakar Raghavan, and Sridhar Rajagopalan. 1998.
+     Computing. 718–727.                                                                           Computing on data streams. External memory algorithms 50 (1998), 107–118.
+[24] Jeff Edmonds, Chung Keung Poon, and Dimitris Achlioptas. 1999. Tight lower               [37] Shunhua Jiang, Zhao Song, Omri Weinstein, and Hengjie Zhang. 2021. Faster
+     bounds for st-connectivity on the NNJAG model. SIAM J. Comput. 28, 6 (1999),                  dynamic matrix inverse for faster lps. In 53rd Annual ACM Symposium on Theory
+     2257–2284.                                                                                    of Computing (STOC). arXiv preprint arXiv:2004.07470.
+[25] Yuval Emek and Adi Rosén. 2014. Semi-Streaming Set Cover. In International               [38] Michael Kapralov. 2013. Better bounds for matchings in the streaming model.
+     Colloquium on Automata, Languages, and Programming (ICALP). Springer, 453–                    In Proceedings of the twenty-fourth annual ACM-SIAM symposium on Discrete
+     464.                                                                                          algorithms (SODA). SIAM, 1679–1697.
+[26] Joan Feigenbaum, Sampath Kannan, Andrew McGregor, Siddharth Suri, and Jian               [39] Yi Li and David P Woodruff. 2016. On approximating functions of the singular
+     Zhang. 2004. On graph problems in a semi-streaming model. In International                    values in a stream. In Proceedings of the forty-eighth annual ACM symposium on
+     Colloquium on Automata, Languages, and Programming (ICALP). Springer, 531–                    Theory of Computing (STOC). 726–739.
+     543.                                                                                     [40] S Cliff Liu, Zhao Song, and Hengjie Zhang. 2020. Breaking the n -Pass Barrier: A
+[27] Joan Feigenbaum, Sampath Kannan, Andrew McGregor, Siddharth Suri, and Jian                    Streaming Algorithm for Maximum Weight Bipartite Matching. arXiv preprint
+     Zhang. 2009. Graph distances in the data-stream model. SIAM J. Comput. 38, 5                  arXiv:2009.06106 (2020).
+     (2009), 1709–1727.                                                                       [41] László Lovász and Michael D Plummer. 2009. Matching theory. Vol. 367. American
+[28] Eldar Fischer, Eric Lehman, Ilan Newman, Sofya Raskhodnikova, Ronitt Rubinfeld,               Mathematical Soc.
+     and Alex Samorodnitsky. 2002. Monotonicity testing over general poset domains.           [42] Andrew McGregor. 2005. Finding graph matchings in data streams. In
+     In Proceedings of the thiry-fourth annual ACM symposium on Theory of computing                Approximation, Randomization and Combinatorial Optimization. Algorithms and
+     (STOC). 474–483.                                                                              Techniques. Springer, 170–181.
+[29] Buddhima Gamlath, Sagar Kale, Slobodan Mitrovic, and Ola Svensson. 2019.                 [43] Rajeev Motwani and Prabhakar Raghavan. 1995. Randomized Algorithms.
+     Weighted matchings via unweighted augmentations. In Proceedings of the 2019                   Cambridge University Press.
+     ACM Symposium on Principles of Distributed Computing (PODC). 491–500.                    [44] Sagnik Mukhopadhyay and Danupon Nanongkai. 2020. Weighted min-cut:
+[30] Mohsen Ghaffari, Themis Gouleakis, Christian Konrad, Slobodan Mitrović, and                   sequential, cut-query, and streaming algorithms. In Proceedings of the 52nd Annual
+     Ronitt Rubinfeld. 2018. Improved massively parallel computation algorithms for                ACM SIGACT Symposium on Theory of Computing (STOC). 496–509.
+     mis, matching, and vertex cover. In Proceedings of the 2018 ACM Symposium on             [45] Jelani Nelson and Huy L Nguyên. 2013. OSNAP: Faster numerical linear algebra
+     Principles of Distributed Computing (PODC). 129–138.                                          algorithms via sparser subspace embeddings. In 2013 ieee 54th annual symposium
+[31] Ashish Goel, Michael Kapralov, and Sanjeev Khanna. 2012. On the communication                 on foundations of computer science (FOCS). IEEE, 117–126.
+     and streaming complexity of maximum bipartite matching. In Proceedings of the            [46] Aviad Rubinstein, Tselil Schramm, and Seth Matthew Weinberg. 2018. Computing
+     twenty-third annual ACM-SIAM symposium on Discrete Algorithms (SODA). SIAM,                   exact minimum cuts without knowing the graph. In 9th Innovations in Theoretical
+     468–485.                                                                                      Computer Science (ITCS). Schloss Dagstuhl-Leibniz-Zentrum fur Informatik
+[32] Mika Göös, Sajin Koroth, Ian Mertz, and Toniann Pitassi. 2020. Automating                     GmbH, Dagstuhl Publishing, 39.
+     cutting planes is NP-hard. In Proccedings of the 52nd Annual ACM SIGACT                  [47] Imre Z Ruzsa and Endre Szemerédi. 1978. Triple systems with no six points
+     Symposium on Theory of Computing (STOC). ACM, 68–77.                                          carrying three triangles. Combinatorics (Keszthely, 1976), Coll. Math. Soc. J. Bolyai
+[33] Mika Goos, Toniann Pitassi, and Thomas Watson. 2017. Query-to-Communication                   18 (1978), 939–945.
+     Lifting for BPP. In FOCS.                                                                [48] Zhao Song, David P Woodruff, and Peilin Zhong. 2017. Low rank approximation
+[34] Venkatesan Guruswami and Krzysztof Onak. 2016. Superlinear lower bounds for                   with entrywise l1-norm error. In Proceedings of the 49th Annual ACM SIGACT
+     multipass graph processing. Algorithmica 76, 3 (2016), 654–683.                               Symposium on Theory of Computing (STOC). 688–701.
+[35] Sariel Har-Peled, Piotr Indyk, Sepideh Mahabadi, and Ali Vakilian. 2016. Towards         [49] Mariano Zelke. 2011. Intractability of min-and max-cut in streaming graphs.
+     tight bounds for the streaming set cover problem. In Proceedings of the 35th ACM              Inform. Process. Lett. 111, 3 (2011), 145–150.
+     SIGMOD-SIGACT-SIGAI Symposium on Principles of Database Systems (PODS).
+
+
+
+
+                                                                                        583
+

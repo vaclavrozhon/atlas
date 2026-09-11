@@ -1,0 +1,2215 @@
+                                                   The Probably Approximately Correct Learning Model in
+                                                             Computational Learning Theory
+                                                                                   Rocco A. Servedio
+                                                                                  Columbia University
+arXiv:2511.08791v1 [stat.ML] 11 Nov 2025
+
+
+
+
+                                           1    Introduction
+                                           Leslie Valiant’s 1984 paper “A Theory of the Learnable” [Val84], reproduced in this volume, has the
+                                           unusual distinction of having changed the course of several scientific disciplines. Within theoretical
+                                           computer science it was one of the key works giving rise to the field now known as computational
+                                           learning theory, which may loosely be defined as the rigorous study of learning processes and
+                                           phenomena from the computer science perspective of efficient algorithms and computational com-
+                                           plexity. In the decades since the publication of [Val84], computational learning theory has grown
+                                           into a rich field with strong connections to many other theoretical disciplines such as mathematical
+                                           probability and statistics, information theory, decision theory and more. Beyond the realm of the-
+                                           ory, Valiant’s paper and the Probably Approximately Correct (PAC) model which he introduced in
+                                           it have also had a great impact on the subsequent development of machine learning, a field which
+                                           has already transformed many aspects of science and human society and seems certain to have an
+                                           even greater influence in the future.
+                                               This chapter gives an overview of the Probably Approximately Correct learning model that
+                                           Valiant introduced in [Val84], explaining some of the major results and directions that the field
+                                           has taken in the years since that work. As we shall see, a foundational research program naturally
+                                           emerges from the (remarkably elegant) basic framework of PAC learning given in [Val84], which is
+                                           to delineate the boundary between what is and what is not learnable by computationally efficient
+                                           agents. Indeed, as described below, this is one of the chief scientific goals which is expressly
+                                           advocated in Valiant’s original paper. A particular focus of this chapter is to summarize and
+                                           explain some of the (considerable) progress that has been made towards this goal.
+                                               As we shall see, the research community’s understanding of efficient PAC learnability has come
+                                           a long way since the publication of [Val84]. However, a recurring theme which emerges throughout
+                                           this survey is that Valiant’s work on PAC learning in the 1980s — including [Val84] and [KV94a],
+                                           both of which are included in this volume, and other works — was remarkably prescient in antic-
+                                           ipating major themes and directions which subsequently grew into substantial strands of research
+                                           for the computational learning theory community. Another theme is the interplay of ideas and
+                                           techniques across multiple domains within (and beyond) theoretical computer science, spanning
+                                           domains such as statistics, information theory, algorithms, complexity, cryptography, and more,
+                                           which recur throughout the study of efficient learnability and lend the field of computational learn-
+                                           ing theory much of its intellectual richness.
+                                               Organization. The structure of this article is as follows. In Section 2 we define the basic
+                                           “distribution-free” PAC learning framework which was introduced by Valiant in [Val84] and high-
+
+
+                                                                                             1
+light the central question which this framework gives rise to (and which is the main topic of this
+article):
+
+      Which functions are learnable by computationally efficient algorithms, and which are
+      not?
+
+    Section 3 gives an overview of positive results, namely efficient PAC learning algorithms for
+various important classes of functions in Valiant’s original distribution-free framework as well as in
+a number of variants of the basic framework. The models we consider include ones with and without
+black-box queries, with and without noise corrupting the labels of examples, and distribution-
+specific variants of the original distribution-independent framework. As we shall see, a wide range of
+algorithmic ideas, involving combinatorial and probabilistic reasoning as well as tools from analysis,
+geometry, algebra, probability, and other areas, have been employed in developing efficient learning
+algorithms in these models.
+    Complementing these positive results, Section 4 surveys computational hardness results for PAC
+learning. These are rigorous theoretical statements establishing formal limitations on what can be
+PAC learned by efficient algorithms, based on the presumed intractability of various computa-
+tional problems. That section briefly describes some representation-dependent hardness results,
+which establish computational hardness for PAC learning algorithms that use a particular form
+of hypothesis representation and rely on worst-case hardness assumptions of the P ̸= NP flavor.
+However, most of the emphasis is on representation-independent results, which show that certain
+types of functions are inherently unpredictable; these kinds of results rely on stronger average-case
+(sometimes called “cryptographic”) hardness assumptions. Hardness results of the latter sort are
+of particular interest, as they very directly capture a strong sense in which computational hardness
+limits learning. These types of results were first developed in the paper “Cryptographic Limitations
+on Learning Boolean Formulae and Finite Automata” by Kearns and Valiant [KV94a], which is
+included in this volume.
+
+
+2     The PAC Learning Framework
+We begin this section by giving some intuition and background for the general PAC learning
+framework in Section 2.1. Building on this intuition, Section 2.2 gives a more detailed description
+of the key ingredients of the PAC learning model. As an illustrative example, a simple PAC learning
+algorithm is presented there for learning a basic concept class (the class of all Boolean conjunctions),
+along with a sketch of its analysis. With this foundation in place, Section 2.3 explains the research
+program of determining which classes of Boolean functions are efficiently learnable, which is the
+main subject of this survey.
+
+2.1   Motivation and intuition.
+This subsection concisely introduces the basic ideas of the PAC learning framework. A more
+leisurely treatment, which situates PAC learning theory in a broader context of connections to
+theories of computation and evolution, can be found in [Val13], in particular Chapter 5.
+    To motivate the general setup of the PAC learning model, it is useful to consider a simple
+object recognition scenario. Imagine that a learning agent (such as a small child) finds itself in
+a world with various kinds of objects (such as illustrations of animals in a picture book), with
+
+                                                   2
+the goal of learning to recognize a certain type of object given access to objects which have been
+labeled identifying each one as either a positive or negative example of the target object type. (For
+example, for each picture that is encountered an adult may tell the child whether or not it is a
+picture of a dog.) This is a natural scenario, occurring in some form countless times every day in
+the real world, and it is clear from common experience that effective and efficient learning is indeed
+possible. The PAC learning model offers an abstraction that allows quantitative analysis of the
+abilities and limitations of computationally bounded learning agents in situations of this sort.
+    Let us recast the above scenario using some mathematical terminology. The domain or uni-
+verse of all possible objects (commonly called instances) is a set which we denote by X, and the
+classification rule to be learned (often referred to as the target function or target concept) is a
+function f : X → {0, 1} (we may equivalently consider the subset f −1 (1) ⊆ X of all instances
+which are labeled positively by f ). We assume that there is an unknown and arbitrary probability
+distribution, denoted D, over the set X of unlabeled instances. A learning algorithm is given access
+to independent random (instance, label) pairs (x, f (x)) ∈ X × {0, 1}, where in each pair the in-
+stance x is distributed according to D.1 The goal of a learning algorithm is to output a hypothesis
+function h : X → {0, 1} — intuitively, representing the learner’s “best guess” at the classification
+rule f — which is Probably (i.e. with probability 1 − δ for some small confidence parameter δ)
+Approximately Correct. Here “Approximately Correct” means that for some small error parameter
+ε > 0, the hypothesis h satisfies
+                                        Pr [h(x) ̸= f (x)] ≤ ε.
+                                             x∼D
+
+Note that a learning algorithm which can output an approximately correct hypothesis h can use that
+hypothesis h to make high-accuracy predictions on “future” examples drawn from D; indeed, the
+ability to make high-accuracy predictions implicitly defines a hypothesis function that the learning
+agent is using to make its predictions.
+    To motivate the above (ε, δ)-criterion for successful learnability, we note that in general it may
+be impossible for a learning algorithm to efficiently output an exactly correct hypothesis, since
+doing so may require exhaustive exposure to all possible instances to rule out very rare “corner
+cases”. Moreover, in a probabilistic model such as the one described above, even outputting an ap-
+proximately correct hypothesis cannot be guaranteed with absolute certainty since it is conceivable
+that an unfortunate learning algorithm may only be exposed to a very unrepresentative sample
+of labeled examples because of suffering from poor “luck of the draw”. Thus both the ε and δ
+parameters are necessary given the probabilistic scenario that we consider; fortunately, we shall see
+that both these sources of error ε and δ can be made arbitrarily small.
+    The PAC learning framework has as a central concern both the running time and sample
+complexity (number of labeled examples) required for a learning algorithm to output its hypothesis
+(as well as the running time necessary to evaluate the hypothesis function h; we discuss this further
+in Section 2.2). Finally, a standard learning problem in the PAC setting does not deal with simply
+learning a single unknown concept f ; rather, there is an a priori known-to-the-learner concept class
+C of possible target functions (typically characterized by some type of simple syntactic Boolean
+circuit structure that is shared by all the functions in C), with the promise that the actual unknown
+target function f belongs to C.
+    We briefly discuss some of the intuition behind the basic model sketched above. The unrestricted
+distribution D over the instance space X captures the notion that in general little may be known
+  1
+      Throughout this survey we use bold font such as x to indicate random variables.
+
+
+
+                                                         3
+about the settings in which nature could require a learning algorithm to perform; by requiring our
+learning algorithms to work for arbitrary distributions D, the PAC model minimizes assumptions
+about the environment. Having examples for the learner be independently generated according to
+the fixed distribution D, and assessing the accuracy of the learned hypothesis h with respect to
+the same distribution D, corresponds to the now-standard “train-and-test” paradigm in machine
+learning. More fundamentally, this aligns with the natural intuition that learned experience may
+only be useful in an environment similar or identical to the one in which the learning took place
+(if an animal has learned which plants are good to eat in the savannah but finds itself in a rain
+forest, its learning may not be of use). Finally, there are several reasons for the assumption that
+instances are labeled according to a target function f which belongs to some class C of syntactically
+simple functions. One is that some regularity or “signal in the data” must be present in order for
+any meaningful type of learning to be possible — if each successive example were independently
+labeled by a fresh fair coin toss rather than by a fixed Boolean function f , then clearly it would be
+impossible to learn any useful predictor for the labels of future examples. Another is the fact that we
+are interested in the learning abilities of computationally (running time) and statistically (amount
+of data required) bounded agents; in particular, computational limitations of the learner turn out
+to necessitate the assumption that the underlying classification rule or target function is “not too
+complex.” As is discussed further in Section 2.3, the fundamental goal of research in this area
+is to understand “how complex” are the functions that can be efficiently learned; this complexity
+of functions is naturally captured by a concept class C. Indeed, understanding the complexity of
+Boolean functions by studying associated classes of Boolean circuits is a longstanding and standard
+approach taken in the field of computational complexity theory. As we shall see, a central broad
+message which emerges from the line of work on PAC learning which is surveyed in this chapter is
+that while some simple functions can be learned efficiently, more complex functions often cannot.
+     From a modern point of view the conceptual framework sketched above may seem natural or even
+obvious, but we remark that this is an advantage bestowed by several decades of hindsight. Prior to
+Valiant’s definition of the PAC learning model, there had been various efforts to formalize the study
+of learning from different perspectives: for example, an “inductive inference” model of learning
+grounded in computability theory had been proposed by Gold [Gol67], and a statistical model of
+learning was given by Vapnik [Vap82, Vap98]. But in general, in the early 1980s having a rigorous
+framework for the study of machine learning problems was very far from being a mainstream
+idea; in particular, a highly novel and impactful aspect of the PAC model was the idea that both
+computational and statistical considerations must play central roles in an understanding of effective
+learnability. The further insight that both aspects can be studied in a quantitatively precise way
+led to a rich theory; Valiant’s framework hit a sweet spot between modeling important aspects of
+real learning scenarios and capturing fundamental theoretical issues of statistical and algorithmic
+efficiency in learning.
+     Before entering into a more technical treatment of PAC learning, we note that the version
+of the PAC learning model which we have informally described above and which we present and
+analyze in more detail below does not align perfectly with the discussion in [Val84]. The original
+paper [Val84] additionally considers variants of the model in which learning algorithms may receive
+only partial examples (if each instance in X is an n-bit string x ∈ {0, 1}n , the learning algorithm
+may receive a string in {0, 1, ∗}n where each ∗ coordinate serves as a “don’t know” symbol); it
+also analyzes a range of oracles (sources of information about the target function) beyond just the
+random examples described above. Some subsequent work has considered settings of learning from
+
+
+                                                  4
+partial information in PAC-type frameworks (see for example [BDD98, BDJ+ 98, OS11, DDFS14]),
+but a richer and more fully developed theory has emerged for the full information model and
+consequently that model will be the focus of our discussion. Later in this article we will consider
+different kinds of oracles beyond just random example oracles, including some of the ones that
+Valiant proposed in [Val84].
+
+2.2     The distribution-free PAC learning model and some variants.
+Motivated by the intuitive discussion provided in the previous subsection, we now give a more
+detailed description of the PAC learning model. In this subsection we first focus on defining the so-
+called “distribution-independent” model of PAC learning from random examples, and then sketch
+how this basic model can be altered and extended in various ways (including some extensions
+already proposed for study by Valiant in [Val84]). An excellent source giving detailed definitions
+of the PAC model is [KV94b].
+
+2.2.1    Key ingredients of the PAC framework.
+The instance space. As stated earlier there is a universe or instance space X of possible instances;
+this is the domain for all of the functions which we will think about learning. In principle X can
+be any set, but we will generally consider either the domain of all n-bit strings, i.e. X = {0, 1}n
+(or equivalently X = {−1, 1}n ), or the domain of all n-dimensional real vectors, i.e. X = Rn . Here
+“n” is an asymptotic parameter, and we will be centrally concerned with how the running time and
+sample complexity of our learning algorithms scale as functions of n.
+    Following standard practice, when we consider X = {0, 1}n we typically view the value 1 as
+corresponding to “true” and 0 as corresponding to “false” (when we consider X = {−1, 1}n we
+view −1 as true and 1 as false). It is helpful to think of the set X as consisting of all possible
+representations of objects, where we think of a given object as being described by a vector of n
+Boolean or numerical attributes. For example, the first bit of the vector describing a given object
+might encode whether or not the object is red; the second bit of the vector might encode whether
+or not the object is made of metal; and so on.
+Concepts and concept classes. A concept f over instance space X is simply a Boolean-valued
+function over the domain X, i.e a function mapping X to {0, 1} (or to {−1, 1}; this will sometimes
+be more convenient). A concept can equivalently be viewed as a subset of X.
+    A concept class C over instance space X is simply a set of concepts over X. In principle a concept
+class can be any collection of concepts, but we will most commonly be interested in concept classes
+which correspond to the set of all concepts that can be expressed using some particular type of
+syntactic representation. A paradigmatic example is the concept class C over X = {0, 1}n of all
+functions which are representable as Boolean conjunctions. In this example C consists of the 3n
+functions from {0, 1}n to {0, 1} which are of the form ℓi1 ∧ · · · ∧ ℓij , where each ℓi is either the
+Boolean literal xi or the literal xi and 1 ≤ i1 < · · · < ij ≤ n. (We will give a simple and efficient
+PAC learning algorithm for this concept class in Section 2.2.2.) We will often refer to a concept
+class simply by referring to the representations of the concepts in the class; for example, we will
+refer to “the concept class of all conjunctions” as shorthand for “the concept class of all functions
+which are representable as Boolean conjunctions.”
+Distributions, target concepts, and example oracles. We write D to denote a probability
+
+
+                                                  5
+distribution over the instance space X. Unless otherwise specified, the distribution D may be
+completely arbitrary.
+    In the PAC model of learning a particular concept class C, the learning algorithm is trying to
+learn an unknown target concept, which is a function f that is guaranteed to belong to C but is
+otherwise unknown to the learner. The learner has access to an example oracle, which is a source
+of labeled examples. The example oracle, which we denote by EX(f, D), takes no input, and each
+time it is invoked it outputs a pair (x, f (x)) ∈ X × {0, 1}, where x is independently drawn from D
+and f is the target concept. (We stress that the learning algorithm does not know the identity of
+f within C, and that the distribution D is also unknown to the learner.).
+Hypotheses and hypothesis classes. In the PAC model a learning algorithm makes some
+number m of draws from EX(f, D) to obtain a labeled sample (x1 , f (x1 )), . . . , (xm , f (xm )); then it
+does some computation and outputs a hypothesis h. A hypothesis is a representation of a Boolean
+function from X to {0, 1} (or to {−1, 1}); if a learning algorithm for a concept class C always
+outputs a hypothesis from a particular class H of hypothesis representations, we say that the
+algorithm learns C using H. We will generally be concerned with hypothesis classes consisting of
+those hypotheses that have some specific syntactic structure (such as the hypothesis class of all
+Boolean conjunctions). Later we will also consider the computational complexity of evaluating
+different types of hypothesis representations.
+    The error of a hypothesis h on target concept f under distribution D is defined as
+
+                                  errorD (h, f ) := Pr [h(x) ̸= f (x)].
+                                                   x∼D
+
+    Now we can give a precise definition of Probably Approximately Correct learning, formalizing
+the intuition from Section 2.1. Fix the instance space to be either X = {0, 1}n or X = Rn , and
+fix a concept class C over X. An algorithm A is said to be a PAC learning algorithm for C using
+hypothesis class H if there are functions m(n, ε, δ) and t(n, ε, δ) such that the following holds: Let
+D be any distribution over X and let f be any target concept in C. Let 0 < ε, δ < 1 be any
+accuracy and confidence parameters. Given access to the example oracle EX(f, D) and given the
+parameters ε and δ, the algorithm A makes at most m(n, ε, δ) calls to EX(f, D), runs for time at
+most t(n, ε, δ), and with probability at least 1 − δ it outputs a hypothesis representation h ∈ H
+satisfying errorD (h, f ) ≤ ε. (The time bound t(n, ε, δ) is often informally referred to as the running
+time of the learning algorithm, and the number of oracles calls m(n, ε, δ) is referred to as its sample
+complexity.)
+Discussion, extensions, and variants. We will often be concerned with concept classes whose
+definition involves a size parameter, such as the class C over {0, 1}n of all functions expressible as
+size-s DNF formulas. (A DNF formula is an OR of Boolean conjunctions, which are often called
+terms in this context, and the size of a DNF is the number of terms that are ORed together in it.)
+In such settings the running time and sample complexity will also depend on the size parameter s.
+    As stated earlier, the paramount goal in the PAC learning model is to obtain PAC learning
+algorithms, for various concept classes, which are efficient both in terms of sample complexity and
+running time. Sometimes it is of particular interest to have PAC learning algorithms in which the
+hypothesis class H coincides with the concept class C (or more precisely, in which every hypothesis
+representation h ∈ H represents a function in C); algorithms of this sort are referred to as proper
+PAC learning algorithms. We will also be interested in non-proper PAC learning algorithms, for
+which H need not align with C; however, one important restriction on H is that it would not be
+
+                                                    6
+reasonable to allow an efficient learning algorithm to output a hypothesis representation h which is
+computationally very expensive to evaluate. Thus, we shall only say that a PAC learning algorithm
+runs in time t if any hypothesis it generates can be evaluated on any input x ∈ X in time t as well.
+(This will be true for all of the positive results that we discuss in this chapter.)
+    The framework described above is often referred to as the “distribution-free” PAC learning
+model because of the requirement that a learning algorithm must succeed for any distribution D.
+The original work [Val84] proposed several variants and extensions of this basic model, and a number
+of such variants have been extensively studied in the literature. One natural variant is to restrict
+the model and only require learnability under certain particular types of probability distributions,
+such as the uniform distribution over {0, 1}n or normal distributions over Rn . A different variant
+of the model (proposed already in [Val84]) is to allow the learning algorithm to make “black-box”
+queries on inputs x ∈ X of its choosing. Yet another variant is the “non-realizable” setting, in
+which there need not be a perfect functional relationship between labels and the input instances
+with which they are paired (settings of this sort can also be viewed as allowing noise to be present
+in the labeling of input instances). A range of interesting phenomena manifest themselves in each
+of these variants, and we will discuss each of them as well as some combinations of them later in
+this survey.
+
+2.2.2   An example of distribution-free PAC learning: Learning Boolean conjunctions.
+We instantiate the above framework by considering a concrete example of a PAC learning problem
+(learning Boolean conjunctions) and presenting an efficient PAC learning algorithm for this problem.
+This problem was already discussed in [Val84], where an efficient algorithm was provided for it; our
+analysis here incorporates some subsequent refinements leading to slightly improved quantitative
+bounds, and introduces a tool (Lemma 2.1 below) which will be useful for the subsequent discussion.
+    We take the domain to be X = {0, 1}n . We consider the concept class C, defined earlier, of all
+ n
+3 Boolean functions which are representable as Boolean conjunctions. The following “elimination
+algorithm” works by eliminating those literals from the hypothesis conjunction which logically
+cannot be present in it given the labeled sample:
+
+   • Draw a sample S of m = O( 1ε · (n + log 1δ )) many labeled examples from EX(f, D).
+
+   • Initialize the hypothesis h to be x1 ∧ x1 ∧ · · · ∧ xn ∧ xn , the conjunction of all 2n literals. For
+     each positive example (x, 1) in S, remove any literal ℓ from h such that ℓ evaluates to 0 (false)
+     under x. (So, for example, if n = 4 and there is a positive example (x, 1) in S with x = 1100,
+     then the literals x1 , x2 , x3 and x4 would be removed from h.)
+
+   • Output the resulting hypothesis h.
+
+     It is clear that the elimination algorithm has running time and sample complexity which are
+both poly(n, 1/ε, log(1/δ)) (by the choice of m), and thus the algorithm is computationally and
+statistically efficient. It remains to show that it is PAC, i.e. that for any unknown target conjunction
+f , with probability at least 1 − δ over the draw of the m-element sample S, the resulting hypothesis
+h has errorD (h, f ) ≤ ε.
+     This turns out to be an easy consequence of a more general result about “consistent hypothesis
+finders.” A consistent hypothesis finder for concept class C using hypothesis class H is an algorithm
+A with the following property: for all m, if A is given a sample S of m labeled examples (x, f (x))
+
+                                                    7
+where f is any fixed function in C, then A outputs a hypothesis h ∈ H which is consistent with
+S (i.e. for each pair (x, f (x)) in S, the hypothesis h satisfies h(x) = f (x)). It is easy to see that
+the third step of the elimination algorithm corresponds to a consistent hypothesis finder for the
+class C of Boolean conjunctions using the hypothesis class H = C. Given this, the PAC property of
+the elimination algorithm (with the claimed value of m) follows directly from the following general
+result, which is proved via a simple union bound over “bad” hypotheses (hypotheses h such that
+errorD (h, f ) > ε):
+
+Claim 2.1 ([BEHW87]). Let A be a consistent hypothesis finder for a finite concept class C using a
+finite hypothesis class H. Fix any f ∈ C and any distribution D, and let h be a hypothesis obtained
+by running A on a sample of                                 
+                                           1               1
+                                      m=       ln |H| + ln
+                                           ε               δ
+many independent examples from EX(f, D). Then with probability 1 − δ (over the random sample
+provided to A), the hypothesis h satisfies errorD (h, f ) ≤ ε.
+
+   Thus we have obtained the following theorem:
+
+Theorem 1. The class C of Boolean conjunctions is distribution-free PAC learnable in time
+poly(n, 1/ε, log(1/δ)) using poly(n, 1/ε, log(1/δ)) samples.
+
+Discussion: On accuracy and confidence. The logarithmic dependence on the confidence
+parameter δ which is achieved in the above result is a manifestation of a general phenomenon. As
+shown in [HKLW91], given any PAC-type algorithm which can achieve an ε-accurate hypothesis
+with confidence 0.9 (or 0.01), by independently running the algorithm ℓ = O(log(1/δ)) times
+using accuracy parameter ε/2 instead of ε, with probability 1 − δ/2 at least one of the hypotheses
+h1 , . . . , hℓ thus obtained will have accuracy at least 1 − ε/2. By drawing a small additional number
+of labeled examples from EX(f, D) it is possible to estimate the actual accuracy of each hi to within
+±ε/4 with high confidence, and thus it is possible to obtain an ε-accurate hypothesis with overall
+confidence 1 − δ with a running time and sample complexity dependence of only O(log(1/δ)) on
+the confidence parameter δ. Given this, in our subsequent discussion of running times and sample
+complexities for various learning algorithms we will not mention the confidence parameter δ.
+     In fact, the theory of accuracy boosting [Sch90, Fre95] shows that in the general distribution-free
+PAC learning model, for any learnable concept class it is always possible to achieve a dependence
+on the accuracy parameter ε which is polynomial in 1/ε. This is much less obvious than the simple
+argument for the confidence parameter sketched above (in particular, it is not true in certain vari-
+ants of the model such as the uniform-distribution PAC learning model discussed in Section 3.4).
+A rich theory of accuracy boosting has been developed over the years, encompassing many different
+algorithms (including the well-known AdaBoost algorithm of Freund and Schapire [FS97]) and tech-
+niques. Boosting now constitutes a well-developed and elegant theory, featuring deep connections
+to complexity theory, game theory, optimization, and other areas, and is a highly influential export
+from computational learning theory to more applied areas of machine learning. (For reasons of
+space this survey will not go more deeply into boosting, but see [FS99, Sch03a, SF12] for excellent
+overviews.)
+     Given the fact that accuracy boosting is possible in the distribution-free PAC model, in our
+descriptions of various distribution-free PAC learning results in Section 3.1 we will also omit the
+
+
+                                                   8
+dependence on the accuracy parameter ε. Thus, for conciseness we could rephrase Theorem 1
+as “The class of Boolean conjunctions over n variables is distribution-free PAC learnable in time
+poly(n).” (Note that giving an upper bound on the running time of a learning algorithm clearly
+implies the same upper bound on the sample complexity, since a time-t learning algorithm can use
+at most t examples.)
+Discussion: On computational versus statistical aspects of efficient learnability. Lemma 2.1
+highlights the importance of computational considerations in a theory of efficient learnability. If
+C is any finite concept class, then taking H to be C, a brute-force search algorithm (to find a
+consistent hypothesis in H) will always yield a consistent hypothesis finder, and by Lemma 2.1,
+this means that any finite concept class C can be PAC learned with a sample complexity that is
+only logarithmic in |C|. In other words, the number of samples required to learn any concept in C
+is proportional to the description length which suffices to specify any concept in C. In one sense
+this is a very powerful statement since it tells us, for example, that even as rich a class as C = {all
+poly(n)-size Boolean circuits over {0, 1}n } can be PAC learned using only poly(n) many labeled
+examples. But on the other hand, finding a consistent hypothesis from a prescribed class is often
+a computationally hard problem, as we will see in Section 4.1, and this is precisely why the simple
+Lemma 2.1 is not a panacea for efficient learnability: consistent hypotheses are powerful, but they
+may be hard to come by.
+
+2.3   The PAC learnability research program.
+Given the PAC learning framework that we have described above, a compelling meta-question sug-
+gests itself, which is to understand the running times and sample complexities that can be achieved
+for PAC learning various natural concept classes of Boolean-valued functions. The overarching
+goal is to determine which classes of Boolean functions are efficiently learnable and which are not.
+Already in [Val84] Valiant identified this as a major potential line of research:
+
+      “The results of learnability theory would then indicate the maximum granularity of the
+      single concepts that can be acquired without programming . . . This paper attempts to
+      explore the limits of what is learnable as allowed by algorithmic complexity . . . The
+      identification of these limits is a major goal of the line of work proposed in this paper.”
+
+More recently, in his 2013 book Probably Approximately Correct: Nature’s algorithms for learning
+and prospering in a complex world, Valiant stated that
+
+      “The questions of determining the most expressive classes of functions for which learning
+      is still possible are the most fundamental questions of learning theory.”
+
+    Indeed, in the years since [Val84], a broad research program has been dedicated to this goal, and
+a wide range of positive and negative results on efficient learnability have been established in PAC-
+type frameworks. In this spirit, the main focus of the rest of this article is on surveying the progress
+that has been made towards mapping the boundary of efficient learnability in the distribution-free
+PAC model and some of its chief variants. Since the literature on this topic is vast, our coverage
+will necessarily be incomplete; an attempt has been made to emphasize interesting and digestible
+techniques and concepts, sometimes at the expense of describing the technically most sophisticated
+known results. We will see that while varying the learning model can change the scope of precisely
+
+                                                   9
+which concept classes are efficiently learnable, there is a reassuring high-level robustness to the
+results that have been obtained: more complex functions tend to be hard for efficient algorithms
+to learn, while simpler functions tend to be easy.
+
+
+3     Positive results: PAC Learning Algorithms
+In addition to defining the framework of PAC learning, [Val84] gave a number of results establish-
+ing efficient learnability of several interesting concept classes in the distribution-free PAC learning
+model and some of its variants. We have already seen one such algorithm, for learning Boolean
+conjunctions, in Section 2.2.2, and we will see some more algorithms from [Val84] below. More
+broadly, since [Val84] a wide range of different learning results have been obtained, using many dif-
+ferent techniques, across different variants of the PAC learning model. In this section we will survey
+a number of these variants and algorithms, and discuss some of the key underlying ingredients.
+    Section 3.1 presents some of the main positive results in the distribution-free PAC learning
+model that was defined in Section 2.2.1. Section 3.2 surveys some of the major results in an
+augmentation of the distribution-free PAC learning model, the “PAC + membership query” model,
+in which the learning algorithm is allowed to make black-box queries to the target function in
+addition to receiving random labeled examples. Section 3.3 discusses several extensions of the
+basic distribution-free PAC model to allow for the possibility of having noisy data of various types.
+Finally, Section 3.4 considers “distribution-specific” variants of the PAC learning model, in which
+the background distribution D is assumed to be some particular known “benign” distribution such
+as the uniform distribution over {0, 1}n or the standard Normal distribution N (0, 1)n over Rn .
+We will also consider combinations of the above models; for example, in Section 3.4 we will see
+both distribution-specific algorithms for learning with membership queries and distribution-specific
+agnostic learning algorithms.
+
+3.1   Distribution-free PAC learning from random examples.
+In this section we give an overview of some central algorithmic results for concept classes in the
+distribution-free PAC learning model that was defined in Section 2.2.1. These results can be
+grouped into several general categories based on the core underlying algorithmic technique, and
+our presentation below follows this organization.
+The elimination algorithm for conjunctions and disjunctions. Recall the elimination al-
+gorithm from Section 2.2.2 for the concept class of all Boolean conjunctions over {0, 1}n . It is
+easy to see that a dual algorithm is an efficient PAC learning algorithm for the concept class of
+all Boolean disjunctions (which are ORs, rather than ANDs, of Boolean literals). This dual ver-
+sion uses negative examples to eliminate literals which logically cannot be present in the target
+disjunction.
+    As was already established in [Val84], it is possible to learn significantly richer concept classes
+than just disjunctions or conjunctions with the elimination algorithm (though at the price of an
+increased running time) by using a simple yet powerful technique of feature expansion, which
+plays an important role in many of the results discussed in this section. To explain this, let
+us provide some definitions. A width-k disjunction is an OR of at most k Boolean literals, and
+a k-CNF formula is an AND of any number of width-k disjunctions; for example, the function
+f (x) = (x4 ∨ x6 ) ∧ (x1 ∨ x8 ) ∧ (x4 ∨ x5 ) is a 2-CNF formula. Since there are at most Nk = (2n)k
+
+
+                                                  10
+many width-k disjunctions over n Boolean variables, by viewing each width-k disjunction as a new
+“meta-variable” and running the elimination algorithm for conjunctions over an expanded feature
+space of Nk meta-variables rather than the original n Boolean input variables, we obtain a PAC
+learning algorithm for the class of k-CNF formulas running in time poly(Nk ) = nO(k) .2
+    Using the distributive law, it is easy to see that any k-term DNF formula (an OR of at most
+k conjunctions of any width; for example, f (x) = (x1 ∧ x2 ∧ x3 ∧ x4 ) ∨ (x3 ∧ x5 ∧ x6 ) is a 2-term
+DNF) can be expressed as a k-CNF, and thus the above-described PAC learning algorithm for
+k-CNFs also PAC learns k-term DNFs, using k-CNF formulas as hypotheses. Summarizing the
+above observations, we have
+Theorem 2 ([Val84, PV86]). For any k, the classes Ck-CNF and CDNF(k) of k-CNF formulas and
+k-term DNF formulas over {0, 1}n can each be distribution-free PAC learned in time nO(k) .
+    By Boolean duality the same results hold for the classes Ck-DNF and CCNF(k) of k-DNF formulas
+and k-term CNF formulas respectively.
+    Information-theoretic arguments (which we mention briefly in Section 4) show that as long as k
+is not too close to n, it is impossible for a PAC learning algorithm for Ck-CNF to achieve no(k) sample
+complexity (and hence of course also impossible to achieve no(k) running time). These information
+theoretic results do not apply to CDNF(k) : it is conceivable that there is a PAC learning algorithm
+for k-term DNF formulas running in time poly(n, k). However, four decades after the nO(k) -time
+algorithm for k-term DNF sketched above was given in [Val84], the nO(k) runtime of Theorem 2
+is still the best result known for constant k. (We will see later that if the number of terms k is
+sufficiently large, then faster running times than nO(k) are known.)
+Greedy approaches for decision lists and decision trees. A 1-decision list over {0, 1}n is a
+nested sequence of “if-then-else” rules in which each “if” condition checks a single Boolean literal.
+For example, the decision list depicted in Figure 1 is a 1-decision list of length 3 because three
+rules occur before the default output bit, which in this example is 1. A k-decision list is defined
+analogously but where now each “if” condition can be a conjunction of up to k literals. It is not
+difficult to show that the class of k-decision lists is a strict generalization of both the class of k-CNF
+formulas and the class of k-DNF formulas.
+     Rivest [Riv87] introduced the class of decision lists and gave a simple greedy algorithm which
+is an efficient consistent hypothesis finder for the class of 1-decision lists using the hypothesis class
+of 1-decision lists. An efficient PAC learning algorithm for 1-decision lists follows from Lemma 2.1.
+This extends to a learning algorithm for k-decision lists via the feature expansion technique de-
+scribed earlier in the context of k-DNF formulas (creating a new meta-variable for each length-k
+conjunction), yielding the following:
+Theorem 3 ([Riv87]). For any k, the class Ck-DL of k-decision lists over {0, 1}n can be distribution-
+free PAC learned in time nO(k) .
+    A closely related but more challenging concept class is the class of Boolean decision trees. A
+size-s decision tree over {0, 1}n is an s-leaf rooted full binary tree (each internal node has two
+   2
+    Note that the distribution over the space of possible assignments to the Nk meta-variables induced by this
+transformation is very different from the original distribution over the space of possible assignments to the n underlying
+variables x1 , . . . , xn — indeed, one is a distribution over {0, 1}Nk while the other is a distribution over {0, 1}n . This
+is not a problem because of the PAC guarantee that the elimination algorithm for conjunctions succeeds under any
+possible input distribution.
+
+
+                                                             11
+                                                         x3
+
+
+                                                   x2         1
+
+
+                                              x7         −1
+
+
+                                          1        −1
+
+Figure 1: A 1-decision list “if x3 then output 1 else if x2 then output −1 else if x7 then output −1
+else output 1.”
+
+                                                   x3
+
+
+                                 x5                                        x1
+
+
+                      x1                  1                   x2                     x5
+
+
+
+                1           −1                          -1            x4        −1        1
+
+
+                                                                  1         −1
+
+                        Figure 2: A decision tree of size eight and rank two.
+
+
+childen) with an input variable xi labeling each internal node and an output bit labeling each
+leaf node. The tree computes a Boolean function in the obvious way, by following the root-to-leaf
+path specified by the input assignment; for example, on input 10111 the decision tree depicted in
+Figure 2 would follow the rightmost path and have output 1.
+    Ehrenfeucht and Haussler [EH89] introduced the notion of the rank of a decision tree. The
+rank of a leaf node is zero, and the rank of a tree T with two subtrees T0 , T1 is rank(T ) =
+max{rank(T0 ), rank(T1 )} if rank(T0 ) ̸= rank(T1 ) and is rank(T ) = rank(T0 ) + 1 if rank(T0 ) =
+rank(T1 ). Informally, rank(T ) measures the maximum depth r of a complete 2r -leaf binary tree
+which is contained in T ; note that 1-decision lists correspond precisely to trees of rank 1. Via a
+simple and elegant recursive algorithm which aligns with the recursive definition of rank given above,
+[EH89] gave a consistent hypothesis finder for the class of rank-r decision trees over {0, 1}n using
+the same hypothesis class of rank-r decision trees. Given a sample of m examples that are labeled
+according to some rank-r decision tree over {0, 1}n , their algorithm runs in time O(m · (n + 1)2r ).
+Since any size-s decision tree is easily seen to have rank at most log(s), this yields a quasi-polynomial
+
+
+                                                   12
+time algorithm for learning decision trees:
+
+Theorem 4 ([EH89]). For any s, the class CDT(s) of size-s decision trees over {0, 1}n can be
+distribution-free PAC learned in time nO(log s) .
+
+    Blum [Blu92] subsequently noted that Rivest’s learning algorithm for k-decision lists recovers
+this result, taking k = log(s), by observing that any rank-r decision tree can be expressed as an
+r-decision list. (We will see yet another algorithmic approach which recovers Theorem 4, based on
+polynomial threshold functions, below.)
+Solving systems of linear equations. Another algorithmic approach to PAC learning is based
+on solving systems of equations. Here we work over F2 = {0, 1} and we view {0, 1}n as Fn2 ,
+observing that the AND of two elements of {0, 1} corresponds to multiplication over F2 and the
+XOR (parity) of two elements corresponds to addition over        P F2 .
+                                   n
+    A parity function over {0, 1} is a function f (x) = i∈S xi for some subset S ⊆ [n], where
+addition is done over F2 . The class of all 2n parity functions over {0, 1}n corresponds to the class
+of all linear functions over F2 -valued variables x1 , . . . , xn . It is easy to see that a set of examples
+that have been labeled according to a parity function corresponds to a consistent system of linear
+equations over F2 , and thus Gaussian elimination can be used to solve the system and find a
+consistent parity function in polynomial time. This yields an efficient PAC learning algorithm for
+the concept class of parity functions by Lemma 2.1.
+    A generalization of the class of all parity functions is the class of all F2 -polynomials of degree
+at most some fixed value k. Using the familiar feature expansion technique of creating a new
+meta-variable for each monotone conjunction of up to k Boolean variables, the above consistent
+hypothesis finder for parity functions extends to a consistent hypothesis finder for this class as well,
+and we obtain the following:
+
+Theorem 5 ([FS92, HSW92]). For any k, the class of degree-k F2 polynomials over {0, 1}n can be
+distribution-free PAC learned in time nO(k) .
+
+    Theorem 5 can be viewed as giving a PAC learning algorithm for the class of parity-of-bounded-
+fanin-AND circuits. A related result is that the concept class of AND-of-parity circuits is also PAC
+learnable in poly(n) time [FS92, HSW92]. This is achieved via a simple “closure algorithm” which
+is based on the observation that the set of points in {0, 1}n that are satisfied by an AND-of-parity
+circuit corresponds to a vector subspace of Fn2 , and hence the span of the positive examples is a
+vector subspace of Fn2 (corresponding to an AND-of-parity circuit) which is consistent with the
+                                       2
+sample. Since there are at most 2O(n ) many vector subspaces of Fn2 the claimed learning result
+follows from Lemma 2.1.
+Linear programming and learning linear threshold functions. A linear threshold function
+(LTF) over Rn is a function f (x) = sign(ℓ(x)) where ℓ(x) = w0 + w1 x1 + · · · + wn xn is a real
+linear form and the function sign(·) outputs +1 on non-negative inputs and −1 on negative inputs.
+Linear threshold functions, also known as linear separators and halfspaces, play a fundamental
+and pervasive role throughout both theoretical and applied machine learning; indeed, they feature
+prominently in many of the learning results discussed throughout the rest of this article.
+    An example in Rn that is labeled according to a linear threshold function corresponds to a
+linear inequality in the unknown “variables” w0 , w1 , . . . , wn ; for example, taking n = 3, the la-
+beled example (−2.2, 1.4, 6; +1) corresponds to the inequality “w0 − 2.2w1 + 1.4w2 + 6w3 ≥ 0.”
+
+                                                    13
+Thus the problem of finding a linear threshold function consistent with a sample translates to
+a linear programming feasibility problem, and known efficient algorithms for linear programming
+(e.g. [Kha80, Kar84, Vai96]) can be used to find a feasible solution (a linear threshold function
+consistent with the examples) in polynomial time.3
+    While the above discussion shows that there is a polynomial-time consistent hypothesis finder
+for the class C of n-variable linear threshold functions over Rn using hypothesis class H = C, since
+this hypothesis class is infinite Lemma 2.1 cannot be applied. Fortunately, it turns out that a
+powerful generalization of Lemma 2.1 provides the required tool for the job. Roughly speaking
+(see [BEHW89] for a precise statement) this result, which follows from the pioneering work of
+Vapnik and Chervonenkis [VC71] on uniform convergence of empirical probability estimates, essen-
+tially states that the “ln |H|” term in Lemma 2.1 can be replaced with a combinatorial parameter
+of the hypothesis class H which is known as its Vapnik-Chervonenkis dimension. The Vapnik-
+Chervonenkis dimension of a class of Boolean functions H over domain X (denoted V C(H)) is the
+size of the largest subset of instances S ⊆ X which is shattered by H, meaning that each of the
+2|S| many possible binary labelings of S is achieved by some h ∈ H. Since, as is not too difficult
+to show, the VC dimension of the class of linear threshold functions over Rn is n + 1, we get the
+following fundamental result:
+
+Theorem 6 ([BEHW89]). The class of linear threshold functions over Rn can be distribution-free
+PAC learned in time poly(n).
+
+Learning polynomial threshold functions and applications. Combining the feature expan-
+sion technique that we have seen earlier with the linear threshold function learning algorithm given
+by Theorem 6 leads to a tool of unexpected power. A polynomial threshold function (PTF) of degree
+d is a Boolean function f (x) = sign(p(x)) where p(x1 , . . . , xn ) is a real polynomial of total degree
+at most d. Since any degree-d polynomial over Rn corresponds to a linear function over O(nd )-
+dimensional space via our usual feature expansion technique, the VC dimension of the class of all
+degree-d PTFs is at most O(nd ). By running the linear programming based consistent hypothesis
+finder over this O(nd )-dimensional space, we get the following corollary of Theorem 6:
+
+Theorem 7 ([BEHW89]). For any d, the class of degree-d polynomial threshold functions over Rn
+can be distribution-free PAC learned in time nO(d) .
+
+    An immediate consequence of Theorem 7 is that it lets us automatically transform structural
+results on representing different types of Boolean functions as low-degree polynomial threshold
+functions into algorithmic results for learning the corresponding concept classes. This turns out to
+be a powerful approach, yielding the fastest known running times for PAC learning algorithms for
+a number of concept classes over {0, 1}n .
+    As a first illustration of the power of this technique, we observe that since any k-CNF or k-
+DNF formula is easily seen to be equivalent to some degree-k PTF, Theorem 7 immediately lets
+us recapture Theorem 2. A second illustration is that since any k-decision list is also easily seen
+to be expressible as a degree-k PTF, via Blum’s observation (recall the discussion immediately
+after Theorem 4) we recapture Theorem 4. While these two results have alternate proofs sketched
+   3
+    We remark that this discussion glosses over some subtle issues; one of these is that if the domain is Rn , then
+a single coordinate of a single example is a real number which could in principle require infinitely many bits of
+precision. Another is that the existence of a “strongly polynomial time” algorithm for linear programing is a famous
+open question; we refer the interested reader to [Sch03b] for a discussion of these and related issues.
+
+
+                                                        14
+earlier, for a number of other interesting and important concept classes the PTF approach is the
+only known method which achieves state of the art running times, as described below.
+DNF formulas and other Boolean formulas. A longstanding goal, articulated already in [Val84] and
+reiterated in [Val85], is to develop a poly(n)-time algorithm for learning DNF formulas with poly(n)
+many terms. (The nO(k) running time of Theorem 2 for k-term DNFs is only poly(n) for constant
+k, and for any k which is superlinear in n it is larger than 2n and hence trivial.) Note that any s-leaf
+decision tree is easily seen to be expressible as an s-term DNF formula (simply by including a term
+for each 1-leaf in the decision tree) but the converse is not true, so learning DNF formulas is a more
+challenging problem than learning decision trees. The first non-trivial algorithm for DNF formulas
+with many terms was given by Bshouty√
+                                                 [Bsh96], who gave an algorithm that learns any s-term
+                                                  3/2
+DNF over n variables in time 2    O(  n log s log     n) . At the heart of Bshouty’s algorithm is a structural
+
+result which shows that that any s-term DNF can be expressed as an O((n log n log s)1/2 )-decision
+list (and hence as a PTF of degree O((n log n log s)1/2 )). Tarui and Tsukiji [TT99] subsequently
+gave a different algorithm for learning DNF, which was based on the machinery of “approximate
+inclusion/exclusion” developed by Linial and Nisan [LN90] in combination with hypothesis boosting;
+                                                        1/2
+their algorithm learns s-term DNF in time 2O(n log n log s) . By combining ideas involving Chebyshev
+polynomials (implicit in the work of [TT99]) and decision lists (from [Bsh96]), in [KS04] it was
+shown that any DNF formula with s terms can be expressed as a polynomial threshold function
+of degree O(n1/3 log s). By Theorem 7 this immediately yields the following learning algorithm for
+poly(n)-term DNF (where the tilde-notation hides polylogarithmic factors):
+
+Theorem 8 ([KS04]). The class CDNF(s) of s-term DNF formulas over {0, 1}n can be PAC learned
+             1/3 log s)
+in time 2Õ(n             .
+
+    The PTF approach has also yielded non-trivial PAC learning results for Boolean formulas of
+arbitrary depth and fixed polynomial size. Perhaps surprisingly, quantum computing algorithms
+have played a crucial role in obtaining the necessary structural results. Building on a line of work
+which gave query-efficient quantum algorithms for evaluating Boolean formulas [ACR+ 10, FGG08,
+RS08, Rei09], Lee [Lee09] showed that any s-leaf Boolean formula with AND, OR and NOT gates
+                                                                   √
+can be computed by a polynomial threshold function of degree O( s). Theorem 7 then yields the
+following:
+
+Theorem 9 ([Lee09]).
+                   √     The class of all size-s (s-leaf ) Boolean formulas over {0, 1}n can be PAC
+learned in time nO( s) .
+
+Intersections of low-weight linear threshold functions. Since linear threshold functions play such a
+prominent role throughout machine learning and computational learning theory, it is of significant
+interest to try to develop efficient PAC learning algorithms for functions that are defined in terms of
+several LTFs, such as the intersection (AND) of two or more LTFs. See Figure 3 for an illustration
+of a set of examples that have been labeled according to an intersection of three LTFs. To date
+this effort has only been successful for functions defined in terms of LTFs that have “low weight”
+as described below.
+    The weight of an LTF f over {0, 1}n is the smallest value W such thatPf can be expressed
+as f (x) = sign(w0 + w1 x1 + · · · + wn xn ) where each wi is an integer and ni=1 |wi | = W. Well
+known results of Muroga et al. [MTT61], which were subsequently rediscovered by many authors,
+show that every LTF over {0, 1}n has weight at most 2O(n log n) ; complementing this upper bound,
+
+
+                                                     15
+                                                    −            −
+                                            −
+                                                                     −   −
+                                             −                       −
+                                                                 +
+                                                             +
+                                                    +
+                                  −
+                                      −                  −           +
+                                                −
+
+Figure 3: A collection of two-dimensional data points that have been labeled according to an
+intersection of three LTFs (the decision boundaries for the LTFs are depicted using dashed lines).
+
+
+Håstad [Hås94] has shown that there are n-variable LTFs which have weight 2Ω(n log n) . Known
+distribution-free algorithms for PAC learning intersections or other combinations of LTFs have a
+runtime dependence on the weight W , and are based on the PTF method as described below.
+    Using techniques of Beigel et al. [BRS95] (which were in turn based on classical low-degree
+rational function approximations, due to Newman [New64], for the univariate functions sign(x)),
+Klivans et al. [KOS04] showed that any intersection of k LTFs of weight W is computed by a
+PTF of degree O(k log k log W ). Via a different approach based on Chebyshev polynomials, it is
+also shown√in [KOS04] that any intersection of k LTFs of weight W can be expressed as a PTF of
+degree O( W log k); this gives a stronger bound in cases where W is small and k is large. These
+structural results directly yield the following PAC learning consequences via Theorem 7:
+
+Theorem 10 ([KOS04]). The class      √
+                                        of intersections of k weight-W LTFs over {0, 1}n can be PAC
+learned in time nO(min{k log k log W, W log k}) .
+
+Limitations of the polynomial threshold function approach. Since the polynomial threshold
+function approach to obtaining PAC learning algorithms is so effective, it is natural to try to
+understand its limits. There is an active line of work in computational complexity theory aimed
+at showing that various types of Boolean functions cannot be expressed as low-degree polynomial
+threshold functions. While structural results of this type do not absolutely rule out efficient PAC
+learnability of the concept classes in question, they suggest that new algorithmic techniques may
+be required to learn such classes.
+    The earliest lower bound results of this sort were given by Minsky and Papert [MP68] in their
+celebrated work on “perceptrons.” (In our terminology, a “perceptron” is an LTF and a “perceptron
+of order d” is a degree-d PTF.) They showed that the n-variable parity function has polynomial
+threshold function degree exactly n, and that a particular n1/3 -term DNF formula (the “one-in-a-
+box” function) has polynomial threshold degree Θ(n1/3 ). For both these results the upper bound
+is established by giving an explicit polynomial, and the lower bounds use a simple symmetrization
+argument to reduce the problem to one involving only univariate polynomials.
+    More recently, much more sophisticated techniques have been employed to show that other
+Boolean function classes do not have low-degree PTFs. In [She13a, She13b] Sherstov showed that
+any PTF for the intersection of two weight-n LTFs over {0, 1}n may need to have PTF degree
+Ω(log n), and that any PTF for the intersection of two general (high-weight) halfspaces may need
+to have PTF degree Ω(n). Both lower bounds are optimal up to constant factors, the former by
+
+
+                                                    16
+the results of [KOS04] mentioned earlier and the latter because any n-variable Boolean function
+trivially has PTF degree at most n. These lower bounds use a range of ingredients from polynomial
+and rational function approximation, Fourier analysis, and matrix perturbation theory.
+    A related line of work deals with PTF degree lower bounds for constant-depth circuits that are
+composed of AND, OR and NOT gates (where the AND and OR gates may have unbounded fan-
+in). These are a natural generalization of DNF and CNF formulas, which can be viewed as depth-2
+circuits of this type (the NOT gates are not considered as contributing to the circuit depth), and
+their learnability is of significant interest. Despite much effort, to date no nontrivial distribution-
+free learning algorithms running in time 2o(n) are known even for circuits of depth 3 (though see
+[ST17] for learning algorithms that achieve some slight savings over a trivial 2n runtime). Building
+on a number of earlier results which use a broad spectrum of techniques [She18a, She18b, BT20],
+the current state of the art is due to Sherstov and Wu [SW19], who showed that for any constant
+                                                                     k−1
+k, polynomial-size depth-k circuits may require PTF degree Ω̃(n k+1 ).
+
+3.2   Distribution-free PAC learning with membership queries: the “PAC +
+      MQ” model
+This section deals with the basic distribution-free PAC learning model augmented with the ability
+to make black-box queries to the unknown target function f . In such a query the learner specifies
+an arbitrary element x ∈ X to a black-box oracle and receives as an answer the value f (x) ∈ {0, 1}.
+Such queries are often referred to in the literature as membership queries, since the bit f (x) indicates
+whether or nor x belongs to the set f −1 (1).
+    PAC learning with membership queries is a natural and well-motivated extension of the original
+PAC learning model. There are many settings in which it may be possible to query the label f (x)
+of a specific example x of interest, such as when interacting with a teacher who can answer such
+queries, or when each example x corresponds to a different scientific experiment that be designed
+and carried out by the learner. As we shall see, the ability to make membership queries provides
+significant additional power and expands the classes of functions for which we know of efficient
+learning algorithms.
+Exact learning. The “PAC + MQ” model is closely related to a well-studied exact learning model
+which is known as the model of exact learning from membership and equivalence queries. In this
+framework, which is suitable for finite domains such as X = {0, 1}n , there is no ambient probability
+distribution D over the domain X, and learning proceeds in a sequence of stages. At each stage
+the learner can either make a membership query as described above or an equivalence query. In
+an equivalence query the learner specifies a hypothesis h : X → {0, 1}, which corresponds to the
+question “Is h equivalent to the target function f (in the sense that h(x) = f (x) for every x ∈ X)?”
+If h is equivalent to f then the learning process ends, and otherwise the learner is provided with a
+counterexample, i.e. a point x′ ∈ X such that h(x′ ) ̸= f (x′ ).
+    An easy argument [Ang88] shows that an equivalence query can be efficiently simulated in the
+PAC setting simply by drawing O(log(1/δ)/ε) many random labeled examples from the example
+oracle EX(f, D). If any of these labeled examples has f (x) ̸= h(x) then clearly h ̸= f and the
+required counterexample has been obtained; on the other hand, if h is ε-far from f with respect to
+D (so the PAC learning success criterion has not been achieved) then the probability that h and
+f will agree on O(log(1/δ)/ε) many independent draws from D is at most δ. It follows that if a
+concept class C has an algorithm running in time T in the model of exact learning from membership
+
+
+                                                   17
+and equivalence queries, then it also has an algorithm running in time poly(T, 1/ε) in the PAC +
+MQ model. Indeed, nearly all of the learning algorithms in the PAC + MQ model that we discuss
+below are derived from analogous algorithms in the exact learning framework.
+    As a proof of concept to demonstrate the power afforded by membership queries, we briefly
+consider the problem of learning an unknown k-junta. A Boolean function f : {0, 1}n → {0, 1}
+is a k-junta if f depends on at most k of its n input coordinates; for example, for n = 1000, the
+function f (x1 , . . . , xn ) = (x1 ∧x375 )∨(x1 ∧x888 ) is a 3-junta. Learning k-juntas in the PAC learning
+model without membership queries is a notoriously difficult open problem; despite intensive research
+effort and limited progress on the uniform-distribution restriction of the problem [MOS04, Val15],
+no algorithms with a faster than brute-force nk running time are known in the distribution-free
+PAC model discussed in Section 3.1. In contrast a straightforward approach, which crucially uses
+membership queries to carry out an efficient binary search in order to identify relevant variables,
+provides an algorithm in the model of exact learning from membership and equivalence queries that
+can learn any k-junta in time poly(n, 2k ), and thus a PAC + MQ algorithm with the same running
+time.
+Monotone DNF formulas. A Boolean circuit or DNF formula is said to be monotone if it contains
+only AND and OR gates without any negations; thus a monotone DNF formula F is simply an OR of
+terms F (x) = T1 (x) ∨ · · · ∨ Ts (x) where each term is an AND of Boolean variables with no negations
+allowed. In the original PAC learning model where membership queries are not available, as shown
+by [KLPV87] monotone DNF formulas are essentially no easier to learn than general DNF formulas.
+This is because given a DNF formula F over literals x1 , . . . , xn , x1 , . . . , xn and a distribution D over
+{0, 1}n , there is a corresponding monotone DNF formula F ′ over 2n Boolean variables x′1 , . . . , x′2n ,
+obtained by replacing each un-negated literal xi with x′i and each negated literal xi with x′i+n , and a
+corresponding distribution D′ over {0, 1}2n , where a draw of x′ = (x′1 , . . . , x′2n ) from D′ is obtained
+by drawing (x1 , . . . , xn ) ∼ D and then setting x′i = xi , x′i+n = xi for each i = 1, . . . , n. Learning
+the monotone DNF F ′ under distribution D′ corresponds precisely to learning the original DNF
+F under distribution D, so learning monotone DNF cannot be much easier than learning general
+DNF.
+    If membership queries are allowed, then the above reduction breaks down. (As one way to see
+this, observe that in the context of the above reduction there are at most 2n points in the support
+of distribution D′ even though D′ is a distribution over {0, 1}2n , but a membership oracle could
+query any of the 22n points in {0, 1}2n .) This suggests that membership query algorithms may be
+more powerful than algorithms that can only use random examples for learning monotone DNF,
+and to the best of our current knowledge this seems to be the case. Indeed, already in [Ang88],
+by modifying an algorithm from [Val84] Angluin gave a simple and efficient algorithm for learning
+monotone DNF formulas in the model of exact learning from membership and equivalence queries.
+The algorithm essentially builds the set of monotone terms in the target DNF formula one by one,
+where membership queries are crucially used to discover each successive term by “walking down
+the hypercube.” Translating to the PAC + MQ model, this yields the following:
+Theorem 11 ([Val84, Ang88]). The class of s-term monotone DNF over {0, 1}n is learnable in
+the PAC + MQ model in time poly(n, s).
+
+Exact learning other subclasses of DNF. Apart from monotone DNF, a wide range of polyno-
+mial time learning algorithms have been given for other subclasses of polynomial-size DNF formulas
+in the model of exact learning from membership and equivalence queries, and as explained earlier,
+
+                                                      18
+all these results translate into PAC + MQ learning algorithms. These include polynomial-size Horn
+sentences (these are essentially DNF formulas in which at most one literal per term is negated; the
+learning algorithm for them, at a high level, can be viewed as an extension of the monotone DNF
+learning algorithm) [AFP92]; read-twice DNF (these are DNF formulas in which each variable xi
+may occur at most two times) [AP91, PR95] (see also [Han91]); and poly(n)-leaf decision trees (via
+the “monotone theory” developed in [Bsh95], and via an approach based on learning generalized
+automata in [BBB+ 00]).
+     A particular focus of research effort has been on developing efficient algorithms to learn un-
+restricted k-term DNF for k as large as possible. The current state of the art is that a range of
+different algorithmic approaches can exactly learn k-term DNF over {0, 1}n in time poly(n, 2k ), but
+no faster running times are yet known. Blum and Rudich [BR95] were the first to achieve poly(n, 2k )
+runtime, through an algorithm based on randomized search; a different algorithmic approach is via
+the monotone theory of [Bsh95]. In contrast with these more sophisticated approaches, a relatively
+simple approach based on divide and conquer is given in [Bsh97], and another simple algorithm
+based on automata learning is given in [Kus97].
+Exact learning beyond DNF formulas. Efficient algorithms using membership and equivalence
+querise have also been given for several other natural concept classes. A number of such results have
+been obtained for classes of read-once Boolean formulas (in which each input variable is allowed to
+occur at most once) composed of various kinds of allowed gates [AHK93, BHH95, BHHK94] (see
+also [HGM94]). Roughly speaking, the read-once condition ensures that a single variable has only a
+“local” effect on the target formula, and so membership queries may be used to probe for structural
+information about the formula in the neighborhood of that unique occurrence. A poly(n, s)-time
+algorithm has also been given for the class of multivariate polynomials over Fn2 with at most s
+monomials (equivalently, the class of parities of at most s monotone conjunctions) [SS96].
+     Some of the most powerful techniques for exact learning with membership and equivalence
+queries are based on learning finite automata. This approach was pioneered in the paper of Angluin
+[Ang87], which gave an algorithm that learns any unknown m-state deterministic finite automaton
+in time poly(m, n), where n is the maximum length of any counterexample provided in response
+to an equivalence query. This influential result led to a great deal of follow-up work; here we only
+mention the works [BV96, OSK94, BBB+ 00] on efficiently learning multiplicity automata, which
+are a generalization of deterministic finite automata. In [BBB+ 00] this approach was shown to yield
+efficient algorithms for many interesting concept classes, including decision trees, various subclasses
+of DNF formulas, parity of (not necessarily monotone) conjunctions over {0, 1}n (extending [SS96])
+and other classes of multivariate polynomials, and more.
+    We close this subsection by noting that while most PAC + MQ learning algorithms are for
+concept classes over discrete domains such as {0, 1}n and are based on exact learning, there are
+some exceptions. For example, [KP98] give a PAC + MQ learning algorithm for the class of
+intersections of s LTFs over Rn that essentially4 runs in time poly(n, s, 1/ε) and is not based on
+exact learning (see also [Bau91] for a related result).
+   4
+    See [KP98] for a detailed explanation of the running time dependence on various parameters which arise because
+of the continuous domain Rn , such as the minimum distance between the random examples and the separating
+hyperplanes defining the LTFs in the intersection.
+
+
+
+
+                                                       19
+3.3   PAC learning in the presence of noise.
+As we have defined and discussed it so far, the PAC learning model assumes that all examples
+received by a learning algorithm are labeled correctly. Of course, this may be an unrealistic as-
+sumption; thus it is natural to consider extensions of the basic PAC learning model which allow
+for the possibility of noise in the data. Indeed, already in [Val85] Valiant proposed a variant of his
+original PAC learning model in which noisy examples may occur.
+    Many possible ways to incorporate noise into the PAC learning framework have been considered;
+in this subsection we briefly survey three of the most natural and widely studied noise models for
+PAC learning. These are the malicious noise model (in which adversarial noise can affect both
+instances and their labels), the agnostic learning model (in which adversarial noise can affect
+only labels), and the relatively benign random classification noise model (in which non-adversarial
+“white noise” affects only labels).
+Malicious noise. One of the most difficult noise models for PAC learning is the so-called “mali-
+cious” noise model. In this model, first introduced in [Val85], if the malicious noise rate is η then
+independently each time the example oracle EX(f, D) is invoked and an example (x, f (x)) is drawn
+with x ∼ D, with probability 1 − η the learner receives the true example (x, f (x)) but with the
+remaining η probability the learner receives an arbitrary pair (x′ , b) ∈ X × {0, 1}. Since the pair
+(x′ , b) is arbitrary, it should be viewed as being generated by an omniscient malicious adversary
+(hence the name of the model) whose goal is to thwart the learning algorithm.
+     Valiant [Val85] gave PAC learning algorithms for Boolean conjunctions and k-CNF formulas
+which can handle nonzero, but quite low, rates of malicious noise. [Val85] mentioned the “possibility
+that the learning phenomenon is only feasible with very low error rates,” and this intuition was
+corroborated by the subsequent work of Kearns and Li [KL93]. They showed that under a mild
+technical condition on the concept class C, if the malicious noise rate η exceeds 2ε/(1 + 2ε), then
+no PAC learning algorithm can achieve error rate less than ε, regardless of the number of examples
+or amount of computation time it uses. Thus η = Θ(ε) is an information-theoretic upper bound on
+the malicious noise rate which ε-error PAC learning algorithms can tolerate.
+     On the positive side, [KL93] established an extension of Lemma 2.1 to the malicious noise model:
+any procedure for finding approximately consistent hypotheses from a fixed finite hypothesis class
+H yields a malicious noise tolerant PAC learning algorithm provided that the malicious noise
+rate is not too high (at most Θ(ε)). [KL93] also gave a generic way to modify any polynomial-
+time PAC learning algorithm to handle some nontrivial level of malicious noise, essentially by
+first running the algorithm multiple times to generate a collection of candidate hypotheses and
+then using a fresh sample of random examples to select a high-accuracy final hypothesis from this
+pool of candidates. [KL93] show that this generic approach gives a polynomial-time PAC learning
+algorithm which can handle a malicious noise rate η which is roughly log(s)/s, where s is the
+number of examples needed by the original polynomial-time PAC learner to achieve accuracy Θ(ε)
+(with no malicious noise). Since [KL93], a number of works including [KLS09, ABL17, She21]
+have given PAC learning algorithms for linear threshold functions which can handle higher rates of
+malicious noise than log(s)/s for certain restricted classes of data distributions D, such as uniform
+or log-concave distributions. But in general, it seems quite challenging to give distribution-free
+malicious noise tolerant PAC learning algorithms for nontrivial concept classes which improve on
+the generic log(s)/s result of [KL93].
+
+Agnostic learning. Another way of relaxing the strong assumptions of the standard (noise-free)
+
+                                                 20
+PAC model is provided by the agnostic learning model. This model was introduced by Kearns et
+al. in [KSS94] and was based in part on the decision theoretic learning model studied by Haussler
+in [Hau92].
+     In the agnostic PAC learning model, as in the standard PAC model, the labeled examples
+received by the learning algorithm are assumed to be independently and identically distributed
+(note that this is not the case in the malicious noise model). But unlike standard PAC learning,
+in agnostic learning each labeled example is a pair (x, y) drawn from an arbitrary distribution P
+over labeled examples X × {0, 1}. Thus the examples received by the learner are not assumed to
+be labeled by functions in any particular concept class, and indeed there need not be a functional
+dependence between the input instances x and their associated labels y at all, since the distribution
+P may have a nonzero probability of outputting both (x, 0) and (x, 1). Agnostic learning is also
+sometimes referred to as “non-realizable” PAC learning; the original name for the model was chosen
+“to emphasize the fact that as designers of learning algorithms, we may have no prior knowledge
+about the target function” [KSS94].
+     In agnostically learning a concept class C the crucial quantity (given the distribution P) is the
+value OPTC , which is the minimum possible prediction error of any concept c ∈ C, i.e.,
+
+                                   OPTC = inf     Pr [c(x) ̸= y].
+                                            c∈C (x,y)∼P
+
+The goal of an “agnostic learning algorithm for C” is to generate a hypothesis h (which need not
+belong to C) satisfying error(h, P) ≤ OPTC + ε, where error(h, P) = Pr(x,y)∼P [h(x) ̸= y]; in other
+words, the goal is to predict almost as well as the best concept in C (C is sometimes referred to as
+a “touchstone” class in this context). Agnostic learning can thus be viewed as learning C with a
+fixed distribution of adversarial noise in the labels that affects an OPTC fraction of the examples.
+     [KSS94] gave a range of results indicating that agnostic learning can be quite challenging; in
+particular, they showed that an efficient agnostic learning algorithm for conjunctions implies an
+efficient PAC learning algorithm for DNF. Only a few distribution-free polynomial-time agnostic
+learning algorithms are known, for fairly simple concept classes (though we will see later that more
+is possible for some natural fixed distributions). These include certain one-dimensional “piecewise”
+concepts over the real line [KSS94], certain types of decision trees (over non-Boolean domains) of
+depth at most two [AHM95], certain types of constant-dimensional geometric patterns [GKS97],
+and certain simple types of two-layer neural networks with bounded fan-in [LBW96].
+     In [KKMS08] Kalai et al. gave a general method for agnostic learning which is similar in spirit
+to the “PTF method” described earlier for the original PAC learning model. Recall that the
+PTF method shows that a fairly weak kind of polynomial approximation implies PAC learnability:
+if, for every concept f in a concept class C over {0, 1}n , there is a degree-d polynomial whose
+sign agrees with f , then the class C is PAC learnable in time nO(d) via polynomial-time linear
+programming. Kalai et al. showed, using a polynomial-time algorithm for L1 regression, that if
+every concept in C can be approximated by a low-degree polynomial in a stronger sense, namely
+pointwise approximation, then C is agnostically learnable:
+Theorem 12 ([KKMS08]). Let C be a concept class over {0, 1}n such that for every f ∈ C, there
+is a degree-d polynomial p for which |p(x) − f (x)| < ε for all x. Then C can be agnostically learned
+to error OPTC + ε in time poly(nd , 1/ε).
+   As an application, [KKMS08] used Theorem 12 to give a sub-exponential time algorithm for
+agnostically learning disjunctions (or conjunctions). Incorporating a sharp bound, due to Buhrman
+
+                                                 21
+et al. [BCdWZ99], on the degree of pointwise polynomial approximators for disjunctions in terms
+of the error parameter ε, this result is
+Corollary 1 ([KKMS08, BCdWZ99]). The class C of Boolean√         disjunctions (or conjunctions) is
+                                                     O( n log(1/ε))
+agnostically learnable to accuracy OPTC + ε in time n               .
+
+Random classification noise. Finally, we consider the model of random classification noise
+(RCN). In this noise model, which was proposed by Angluin and Laird [AL88], if the noise rate
+is 0 < η < 1/2 then each example is drawn from EX(f, D) but with probability η the label is
+flipped and the negation of f (x) rather than f (x) is given to the learner as the label of x. Given
+the “non-adversarial” nature of the noise in this model, one might hope that relatively high noise
+rates can (at least sometimes) be tolerated, and this turns out to be the case. Angluin and Laird
+proved a number of general results about this model, and in particular gave an efficient PAC
+learning algorithm for conjunctions in the presence of RCN at any rate η < 1/2 (the efficiency of
+the algorithm degrades inverse polynomially in the parameter 1/2 − η, which can be shown to be
+unavoidable for any algorithm).
+    While a handful of other RCN-tolerant learning algorithms were discovered for some specific
+concept classes in the years following [AL88], a major advance came with the elegant work of
+Kearns [Kea98], which defined a new variant of the PAC learning model called the Statistical
+Query (SQ) learning model. In this model the learning algorithm no longer receives individual
+random examples from EX(f, D); rather, the learner interacts with a “statistical query” oracle
+which provides statistical information about the distribution of labeled examples. More precisely,
+a statistical query oracle is invoked by specifying a property of labeled examples (i.e. a function
+ϕ : X × {0, 1} → {0, 1}) and a tolerance parameter 0 < τ < 1, and in response the oracle returns a
+±τ -additively accurate estimate of Ex∼D [ϕ(x, f (x))], where f is the target function being learned.
+    It is straightforward to show that if a concept class C is efficiently learnable in the SQ model
+then it is also efficiently PAC learnable. (Here “efficient” SQ learning meaning that “not too many”
+queries are made, that all query functions are efficiently evaluable, and that all tolerance parameters
+are “not too small”). The significance of the SQ model for noise-tolerant PAC learning is that, as
+Kearns showed in [Kea98], any concept class C that is efficiently learnable in the SQ model is in
+fact also efficiently learnable in the PAC model even in the presence of random classification noise
+at any noise rate η < 1/2. (As mentioned earlier for the [AL88] result, “efficient” RCN-tolerant
+                                                           1
+PAC learning here allows for an (unavoidable) poly( 1/2−η     ) dependence on the noise rate η.)
+    This turns out to give a powerful and general method for designing RCN-tolerant PAC learning
+algorithms. [Kea98] showed that many known PAC learning algorithms, including most of the
+PAC learning algorithms described so far in this survey, can be shown to have SQ-model analogues,
+and thus the corresponding learning problems can be solved in the RCN model. Subsequent work
+showed that other PAC learning algorithms can be reworked to tolerate RCN using this approach
+as well; in particular, in [BFKV97] Blum et al. gave a new polynomial-time algorithm for learning
+linear threshold functions, and showed that this new algorithm can be recast in the SQ model.
+This means that all of the PAC learning results obtained via the “PTF method”, described earlier,
+extend to the RCN model.
+    Given the results described above it is natural to wonder whether every concept class which
+is efficiently PAC learnable is also efficiently SQ learnable. Since SQ-learnable concept classes
+are PAC-learnable with RCN, this would establish an equivalence between PAC learning with and
+without RCN. Already in [Kea98] Kearns considered this question and gave a negative answer, by
+
+                                                  22
+showing that there is no efficient SQ learning algorithm for the class of parity functions over {0, 1}n
+(recall that, as described earlier, this class is efficiently PAC learnable in the standard model). The
+problem of learning parity with RCN is closely related to longstanding hard problems of decoding
+random linear codes and solving systems of noisy linear equations. Despite much effort no efficient
+algorithm is known for learning parity with RCN, and it is commonly believed that no polynomial-
+time algorithm exists. (The current state of the art is a 2O(n/ log n) -time algorithm for noise rate η
+any constant less than 1/2, due to Blum et al. [BKW03].)
+    We close this discussion of noisy PAC learning with a remark about the SQ model: an at-
+tractive feature is that (as demonstrated by the negative result of [Kea98] for the class of parities
+mentioned above) it is possible to prove unconditional information-theoretic hardness results for
+various learning problems in the SQ framework. A number of techniques have been developed
+for doing this, both for the usual “high-accuracy” learning notion that we have been considering
+throughout this survey and also for a notion of “weak” learning in which the goal is only to achieve
+accuracy slightly greater than 1/2; see e.g. [BFJ+ 94, Sim07, Szö09, Fel12a]. We further remark that
+in the decades since [Kea98] the Statistical Query model has been shown to be of great relevance
+and utility in a number of related areas of theoretical computer science, including the study of
+differential privacy [BDMN05, DMNS06], the study of adaptive data analysis [DFH+ 15], and the
+study of a computational model of evolution that was introduced by Valiant [Fel08, Val09].
+
+3.4   Distribution-specific PAC learning
+The PAC learning model and its variants that we have discussed so far have all been “distribution-
+free,” since the learning algorithm must succeed for any possible (unknown and arbitrarily complex)
+distribution D over the domain X. An important strand of research in computational learning the-
+ory relaxes this requirement by considering distribution-specific PAC learning; so now our learning
+algorithms will only be required to succeed in producing a high-accuracy hypothesis with high
+probability if the background distribution D is some specific, usually known (and usually highly
+structured), distribution, such as a product distribution over {−1, 1}n or a Gaussian distribution
+over Rn .
+    Imposing a strong distributional assumption of this sort arguably runs contrary to the spirit
+of the original distribution-free PAC model, in which the distribution D was meant to capture
+an unknown and arbitrarily complex learning environment. But on the other hand, distribution-
+specific PAC learning turns out to give rise to a host of interesting algorithmic problems with rich
+connections to other areas, and to allow for a much wider range of positive results and algorithmic
+techniques than the original distribution-free model. For this reason, distribution-specific PAC
+learning has been the subject of intensive study.
+    Of course, the first question in the study of distribution-specific learning is what distributions
+will be considered. For learning over the domain {−1, 1}n , product distributions (in which the
+values of all n coordinates are mutually independent) are the most commonly studied type of
+fixed distribution. In this overview we will focus on learning under the uniform distribution over
+{−1, 1}n , which is the simplest and most natural product distribution over the Boolean domain.
+But we first make two remarks: (1) In many cases, analogues of the uniform-distribution results
+we describe can be established for broader classes of product distributions. (2) There is also a
+rich body of work on distribution-specific learning over the continuous domain Rn , with the two
+most intensively studied distributions being the uniform distribution over the unit sphere and the
+Gaussian distribution on Rn . This research has covered a wide range of topics including learn-
+
+                                                  23
+ing intersections of halfspaces [BK97, Vem10]; agnostic learning of geometrically defined concepts
+including intersections of halfspaces, convex sets, sets with bounded Gaussian surface area, and
+polynomial threshold functions [KKMS08, KOS08, DKK+ 23]; and learning halfspaces in the pres-
+ence of malicious noise [KLS09, ABL17]. We also remark that some of these results have been
+extended to somewhat broader classes of distributions such as log-concave distributions over Rn ,
+see e.g. [KKMS08, KKM13, ABL17].
+Uniform-distribution learning. One of the earliest papers to consider uniform-distribution
+learning over {−1, 1}n was due to Kearns, Li, Pitt and Valiant [KLPV87], which showed, among
+other results, that the class of read-once DNF formulas (i.e. DNF formulas in which each variable
+occurs at most once) is PAC learnable in poly(n, 1/ε) time under the uniform distribution (see also
+[PH89]). [KLPV87] also showed, via a reduction, that in the distribution-free PAC model, read-
+once DNF are polynomial-time learnable if and only if the unrestricted class of all poly(n)-size DNF
+is polynomial-time learnable. Since distribution-free PAC learning of unrestricted DNF seems to
+be hard, this was an early indication that uniform-distribution PAC learning can indeed be easier
+than distribution-free PAC learning.
+    In follow-up work, Kearns, Li and Valiant [KLV94] gave more evidence that uniform-distribution
+PAC learning is strictly easier than distribution-free PAC learning. [KLV94] considered the problem
+of learning arbitrary monotone Boolean functions (i.e. functions for which flipping an input bit from
+0 to 1 can never flip the output value from 1 to 0), and gave a poly(n)-time algorithm that achieves
+error rate 1/2 − Ω(1/n) under the uniform distribution (such a performance guarantee is often
+referred to as “weak learning”). In contrast, an easy information-theoretic argument shows that no
+2o(n) -time algorithm can achieve such an error rate in the distribution-free model.
+    To gain some intuition for why uniform-distribution learning can be easier than distribution-free
+PAC learning, it is instructive to consider the problem of learning polynomial-size DNF formulas.
+Under the uniform distribution, any term of length more than t is satisfied by a uniform random
+input with probability only 2−t ; it follows that for any poly(n)-term DNF formula F , there is an
+O(log(n/κ))-DNF formula F ′ such that F and F ′ agree with probability 1 − κ on uniform random
+inputs from {0, 1}n . Building on this observation, [Ver90] proved the following theorem:
+Theorem 13 ([Ver90]). The class of all poly(n)-term DNF formulas is PAC learnable under the
+uniform distribution in time nO(log(n/ε)) , using poly(n/ε) many uniform random labeled examples.
+    In contrast with Theorem 13, recall that for the distribution-free PAC learning model, no faster
+                     1/3
+algorithm than 2Õ(n ) is known for learning the class of poly(n)-term DNF (indeed, an arbitrary
+distribution can have high probability of satisfying a term even of length Θ(n), so the simple
+observation mentioned above does not hold for the distribution-free model).
+    A number of other early results used ad hoc techniques to give efficient uniform-distribution
+learning algorithms for various concept classes [GKS93, Sch94, HM91, Han93, GMH96]. A different
+approach to uniform-distribution learning was pioneered in the influential 1989 paper of Linial,
+Mansour and Nisan [LMN89] (the journal version appeared in 1993 [LMN93]), based on Fourier
+analysis of Boolean functions, which has since emerged as a very useful tool both for uniform-
+distribution learning and in many other branches of theoretical computer science (see [O’D14] and
+the many references therein).
+Fourier analysis of Boolean functions and the low-degree algorithm. We recall only the
+very basics; see the survey [dW08] for a brief introduction or the book of O’Donnell [O’D14] for a
+detailed treatment. The starting point is the simple observation that any function f : {−1, 1}n → R
+
+                                                 24
+has a unique expression as a multilinear polynomial. The Fourier representation of f is simply this
+representation; i.e. writing f : {−1, 1}n → R as
+                                                          X       Y
+                                   f (x1 , . . . , xn ) =   fb(S)   xi ,                        (1)
+                                                        S⊆[n]       i∈S
+
+
+the 2n real coefficients (fb(S))S⊆[n] are the Fourier   coefficients of f . (To motivate this terminol-
+ogy, observe that the 2n parity functions ( i∈S xi )S⊆[n] form an orthonormal basis for the vec-
+                                               Q
+tor space of all real-valued functions over {−1, 1}n , where the relevant inner product
+                                                                                      P bis ⟨f, g⟩ :=
+Ex∼{−1,1}n [f (x)g(x)].) The Fourier L1 -norm of f is the sum of magnitudes             S |f (S)| of f ’s
+
+                            P ∥f ∥1 .b Another
+Fourier coefficients, denoted                   crucial quantity is the Fourier L2 -norm of f , written
+                                b
+                                         2 1/2
+∥f ∥2 , which is equal to ( S⊆[n] f (S) ) . A simple argument using orthonormality of the ba-
+  b
+                                  P
+sis functions gives that ⟨f, g⟩ = S fb(S)b  g (S), and in particular, for any Boolean-valued function
+f : {−1, 1} → {−1, 1}, Parseval’s identity says that ∥fb∥2 = ⟨f, f ⟩ = 1.
+            n
+                                                                2
+    The paper of [LMN93] made two significant contributions. The first of these, the “low-degree
+algorithm,” usesQthe simple fact that each Fourier coefficient fb(S) is equal to Ex∼{−1,1}n [f (x)χS (x)],
+where χS (x) = i∈S xi is the parity (basis) function over the variables in S. From this it can be
+shown that if every concept in C can be approximated by a low-degree polynomial in a fairly
+weak sense (L2 -approximation under the uniform distribution), then C is uniform-distribution PAC
+learnable from random examples. The learning algorithm works simply by estimating each of the
+low-degree Fourier coefficients and using them to build a real-valued hypothesis polynomial, which
+can be easily converted to a Boolean hypothesis:
+
+Theorem 14 (Low-degree algorithm [LMN93]). Let C be a concept class of {−1, 1}-valued functions
+over {−1, 1}n such that for every f ∈ C, there is a degree-d polynomial p for which Ex∼{−1,1}n [(p(x)−
+f (x))2 ] ≤ ε (equivalently, |S|>d fb(S)2 < ε). Then C can be PAC learned to error O(ε) in time
+                            P
+
+nO(d) .
+
+    It is interesting that, as was observed earlier in other settings, there is a close connection between
+a suitable notion of polynomial approximation and learnability.
+    The second contribution of [LMN93] was specific to the class AC0 of constant-depth, polynomial-
+size AND/OR/NOT circuits of unbounded fan-in. These circuits are of great interest in complexity
+theory and are a significant extension of polynomial-size DNF and CNF formulas (the depth-two
+case). Using an important result from complexity theory (Håstad’s influential “switching lemma”
+[Hås86]) and Fourier analysis of Boolean functions, [LMN93] showed that every AC0 circuit has
+almost all of its “Fourier weight” concentrated on degree at most polylog(n). Combining this with
+the low-degree algorithm, they gave a quasi-polynomial time algorithm for learning AC0 :
+
+Theorem 15 ([LMN93]). The class of poly(n)-size, depth-d circuits over {0, 1}n can be PAC
+                             d
+learned in time nO((log(n/ε)) .
+
+     (See [Hås01, Tal17] for some slight quantitative improvements on this bound.)
+     A number of other uniform-distribution learning results have been obtained, based on the low-
+degree algorithm, by establishing Fourier concentration for various classes of functions. A partial
+list of the concept classes for which such Fourier concentration results have been obtained includes
+the class of all “juntas-of-LTFs” (i.e. Boolean functions g(h1 , . . . , hk ) where g is any k-variable
+
+
+                                                   25
+Boolean function and the hi ’s are any LTFs) [KOS04]; various augmentations of AC0 which allow
+for a small number of LTF gates in addition to the usual AND and OR gates [GS10, Kan14]; and
+degree-d polynomial threshold functions [DRST14, HKM14, Kan14].
+The junta barrier. While the positive results described above capture some rather expressive
+classes of functions, on the other hand even fairly simple functions can resist the low-degree al-
+gorithm as far as poly(n)-time learning is concerned. As was discussed earlier, a function f :
+{−1, 1}n → {−1, 1} is a k-junta if it depends on only k of the n input variables, i.e. f (x1 , . . . , xn ) =
+g(xi1 , . . . , xik ) for some i1 < · · · < ik . Since poly(n)-size DNFs, CNFs and decision trees can all
+compute log(n)-juntas, obtaining poly(n)-time learning algorithms for log(n)-juntas is a prerequi-
+site for polynomial-time learning of any of those richer classes. It is easy to see that a k-junta
+can compute the parity function over k variables, and hence it may have no Fourier weight below
+level k, so the low-degree algorithm will not help learn such functions faster than time ≈ nk . In-
+deed, it is a major challenge to give uniform-distribution learning algorithms for k-juntas that run
+much faster than time nk ; intuitively, the chief obstacle is how to identify the k relevant variables
+faster than brute-force search. Despite significant effort only a few positive results [MOS04, Val15]
+are known, with the fastest current uniform-distribution junta learning algorithm, due to Gregory
+Valiant [Val15], running in time ≈ n0.6k .
+Monotone functions. For monotone functions, it is easy to identify relevant variables by estimat-
+ing degree-1 Fourier coefficients, and indeed it is folklore that monotone k-juntas can be learned in
+poly(2k , n) time from uniform random examples. Beyond juntas, learning different kinds of mono-
+tone functions under the uniform distribution has been the focus of much research. Building on the
+aforementioned work of Kearns et al. [KLV94], several authors have studied the problem of learning
+arbitrary monotone Boolean functions. This line of work culminated with a Fourier-based algo-
+rithm, due to O’Donnell and Wimmer [OW13], which learns any monotone f : {−1, 1}n → {−1, 1}
+                                 √
+to within error 1/2 − Ω(log(n)/ n); this accuracy matches an information-theoretic lower bound,
+due to Blum et al. [BBL98], for poly(n)-time algorithms learning monotone functions. On the other
+end of the spectrum of tradeoffs between runtime and error rate, Bshouty and Tamon [BT96] used
+the low-degree
+          √     algorithm to show that any monotone Boolean function can be learned to error ε in
+time nO( n/ε) , and a near-matching lower bound was given by Blais et al. [BCO+ 15]. Several other
+classes of monotone functions have also been studied from the perspective of uniform-distribution
+learning, with the current state-of-the-art results for monotone DNF formulas [Ser04, Fel12b] and
+monotone decision trees [OS07] being heavily based on Fourier techniques.
+Agnostic uniform-distribution learning. Researchers have also considered agnostic uniform-
+distribution learning; in this framework the joint distribution P over {−1, 1}n ×{0, 1} is promised to
+have its marginal distribution over {−1, 1}n be the uniform distribution. The aforementioned work
+of Kalai et al. [KKMS08], shows that by using L1 regression in place of the low-degree algorithm,
+every concept class C that can be learned using the low-degree algorithm (i.e. every class of functions
+that have “Fourier concentration,” or equivalently, have low-degree-polynomial L2 -approximators
+under the uniform distribution) can in fact be agnostically learned under the uniform distribution
+(with a slightly worse running time). Thus, the uniform-distribution learning results mentioned
+above which are based on Fourier concentration, including [BT96, KOS04, GS10, Kan14, DRST14,
+HKM14], all extend to uniform-distribution agnostic learning.
+Uniform-distribution PAC learning with membership queries. A significant body of re-
+search has also considered uniform-distribution PAC learning algorithms which are allowed to make
+
+                                                     26
+membership queries. As we describe below, it turns out that membership queries are very useful
+for uniform-distribution learning; indeed, we have already seen evidence of this in the gap between
+the nΘ(k) fastest-known running time for learning k-juntas under the uniform distribution from
+random examples only [Val15], and the poly(n, 2k ) running time that is achievable if membership
+queries are allowed (recall the discussion of junta learning in Section 3.2).
+     An important tool for uniform-distribution membership-query learning was provided by Kushile-
+vitz and Mansour [KM93]. Building on ideas of Goldreich and Levin [GL89], who gave an effi-
+cient list-decoding algorithm for the Hadamard code in a cryptographic context, [KM93] gave a
+membership-query algorithm for efficiently identifying all “heavy” (large-magnitude) Fourier co-
+efficients of a Boolean function. The key ingredient is a procedure (which makes crucial use of
+membership queries) to estimate the sum of squares of all Fourier coefficients which match a par-
+ticular “prefix” of {1, . . . , n}, i.e. the quantity
+                                                   X
+                                                      fb(S)2 ,                                  (2)
+                                           S⊆[n]:S∩[r]=T
+
+where r is any value in {1, . . . , n} and T is any subset of {1, . . . , r}. Given this procedure, the main
+algorithm of [KM93] uses a “branch-and-prune” approach of considering increasing prefix lengths
+1, 2, . . . while maintaining a set of r-bit prefixes (corresponding to subsets T ⊆ [r]) for which (2)
+is estimated to be at least β. Parseval’s identity ensures that the set of r-bit prefixes that are
+maintained at any stage cannot be of size larger than O(1/β), which is crucial for the efficiency
+of the overall approach. Using the fact that any coefficient S ⊆ [n] such that |fb(S)| ≥ β > 0 will
+always give rise to such a “heavy” prefix, it can be argued that this algorithm efficiently constructs
+a list which contains all “heavy” Fourier coefficients (of magnitude, say, at least 2β) and does not
+contain any “light” Fourier coefficients (of magnitude, say, less than β/2).
+    Given this ability to find “heavy” Fourier coefficients, a bit more analysis yields the following
+result for learning functions with small Fourier L1 norm:
+
+Theorem 16 ([KM93]). The class of all functions from {−1, 1}n to {−1, 1} which have Fourier L1
+norm at most M is learnable, under the uniform distribution with membership queries, to accuracy
+ε in time poly(n, M, 1/ε).
+
+   Kushilevitz and Mansour additionally proved that size-s decision trees have Fourier L1 norm
+at most s, and thereby obtained the following important corollary:
+
+Corollary 2 ([KM93]). The class of size-s decision trees is PAC learnable, under the uniform
+distribution with membership queries, in time poly(n, s, 1/ε).
+
+    We briefly mention a few even more powerful uniform-distribution membership-query learning
+results, proved using a range of different techniques. Going beyond decision trees, Jackson [Jac97]
+gave an efficient algorithm for learning DNF formulas:
+
+Theorem 17 ([Jac97]). The class of s-term DNF formulas is PAC learnable, under the uniform
+distribution with membership queries, in time poly(n, s, 1/ε).
+
+    The [Jac97] algorithm combines the influential technique of accuracy boosting [Sch90, Fre95]
+with the basic [KM93] algorithm, augmented to find “heavy” Fourier coefficients of certain real-
+valued functions which arise through the use of boosting. (See also [Fel10] for a variant of the
+
+                                                    27
+algorithm which uses an alternative approach based on agnostic boosting and does not involve
+finding Fourier coefficients of non-Boolean functions.)
+    Gopalan, Klivans and Meka [GKM12] gave an algorithm which combines ideas from exact
+learning of branching programs using queries [Ang87, BBB+ 00] and complexity-theoretic work on
+approximating LTFs using branching programs [MZ13] to efficiently learn combinations of LTFs
+with membership queries:
+Theorem 18 ([GKM12]). Let CLT F,any,k be the class of all Boolean functions over {0, 1}n which
+can be expressed as g(h1 , . . . , hk ) where each hi is a linear threshold function and g is an arbitrary
+k-variable Boolean combining function. The class CLT F,any,k can be PAC learned with membership
+queries under the uniform distribution over {0, 1}n in time (n/ε)O(k) .
+   In an intriguing result, Carmosino et al. [CIKK16] used a number of advanced ingredients from
+complexity theory, including the “natural proofs” of Razborov and Rudich [RR97] and the Nisan-
+Wigderson pseudorandom generator [NW94], to give a quasi-polynomial time algorithm for learning
+AC0 [p], the class of constant-depth AND/OR/NOT circuits augmented with “mod p” gates:
+Theorem 19 ([CIKK16]). For every prime p ≥ 2, the class of size-s AC0 [p] circuits is PAC
+learnable, under the uniform distribution with membership queries, in time exp(poly(log(ns/ε))).
+    Finally, Gopalan, Kalai and Klivans [GKK08] combined Fourier techniques with tools from
+convex optimization to give an efficient agnostic uniform-distribution membership-query learning
+algorithm for functions with bounded Fourier L1 norm:
+Theorem 20 ([GKK08]). Let C be a concept class over {0, 1}n such that every f ∈ C has Fourier
+L1 norm at most s. Then C can be agnostically learned to error OPTC + ε, under the uniform
+distribution using membership queries, in time poly(n, s, 1/ε).
+    Since, as mentioned earlier, size-s decision trees have Fourier L1 -norm at most s, this gives
+an efficient uniform-distribution membership-query agnostic learning algorithim for decision trees.
+(This result has subsequently been reproved using a number of different approaches, see [KK09,
+Fel10].)
+
+
+4    Hardness of PAC learning
+In this section we discuss computational barriers to efficient PAC learnability of different classes of
+Boolean functions. The results which we describe are rigorous theoretical statements establishing
+formal limitations on what can be PAC learned by efficient algorithms, based on the presumed
+intractability of various computational problems. (See the end of this introductory subsection for
+a brief discussion of why computational hardness assumptions of some sort are required.)
+    The negative results we present come in two general flavors. The first of these, which include
+the earliest negative results for PAC learning (originally given in work of Pitt and Valiant [PV86,
+PV88]), are representation-dependent statements which establish computational hardness for PAC
+learning algorithms that use a particular form of hypothesis representation, such as hardness of
+proper learning. Results of this kind are generally based on NP-hardness; a suite of sophisticated
+techniques and powerful results have been employed in this area, and we briefly survey some of
+this work in Section 4.1. The second strand, which is our main focus, consists of representation-
+independent hardness results, which show that certain types of functions are inherently unpredictable
+
+                                                   28
+no matter what kind of efficiently evaluatable hypothesis representation a learning algorithm may
+use. As we detail in Section 4.2, negative results of this sort were first obtained in the original work
+of Valiant [Val84] and the subsequent work of Kearns and Valiant [KV94a]. Results of this sort were
+first based on hardness assumptions from cryptography; since, broadly speaking, cryptography is
+about representing information in a way which makes it impossible for an adversarial observer to
+learn the information, this should perhaps not be a surprise. However, more recent work has also
+fruitfully employed average-case hardness assumptions arising from complexity theory.
+On the need for assumptions to obtain computational hardness results. We briefly
+remark that our inability to prove strong lower bounds against general models of computation
+in complexity theory carries over to computational learning theory, and necessitates the use of
+unproven hardness assumptions, such as P ̸= NP, in this area as well. To see this, observe that if
+P = NP then there would be a polynomial-time consistent hypothesis finder for any “reasonable”
+concept class (including the class of all unrestricted polynomial-size Boolean circuits), and hence by
+Lemma 2.1 we would get a proper polynomial-time learning algorithm for any such concept class.
+Thus, in order to obtain computational hardness results for learning “reasonable” concept classes,
+we must make computational hardness assumptions which are at least as strong as P ̸= NP.
+    We remark in this context that many information-theoretic lower bounds on learning are well
+known; indeed, the “Fundamental Theorem of Statistical Learning” (to use the terminology of
+[SSBD14]) states that the Vapnik-Chervonenkis dimension of a concept class characterizes, up
+to constant factors, the number of examples which are information-theoretically necessary and
+sufficient for PAC learning [VC71, BEHW89]. This result is easily seen to imply that even the
+broad class of all polynomial-size Boolean circuits can be PAC learned using a polynomial number
+of examples, albeit by an exponential-time algorithm. But as we will see in the rest of this section,
+it turns out that there are profound computational obstacles to obtaining polynomial-time PAC
+learning algorithms for rich concept classes.
+
+4.1    Representation-dependent hardness
+A representation-dependent hardness-of-learning result is a statement of the following general type:
+“Assuming (some computational hardness assumption such as NP ̸= RP), there is no polynomial-
+time PAC learning algorithm which uses hypothesis representations from class H to PAC learn
+concept class C.” The first results of this sort were established in the influential work of Pitt
+and Valiant [PV86, PV88]. This paper gave a range of hardness results, including the following:
+assuming that NP ̸= RP, then (i) for each k ≥ 4, the class of monotone k-term DNF is not
+PAC learnable in polynomial time using the hypothesis class of (2k − 3)-term DNF; (ii) the class
+of monotone read-once (AND, OR, NOT) Boolean formulas5 is not properly PAC learnable in
+polynomial time; (iii) the class of Boolean threshold functions6 is not properly PAC learnable in
+polynomial time. These proofs all work by giving reductions from known NP-complete problems to
+the problem of finding representations of concepts that are consistent with certain sets of labeled
+examples, where the representation must belong to the hypothesis class for which the hardness
+result is being shown.
+    To make this more concrete, we give a simple example of such an argument by sketching a proof
+   5
+   A formula is read-once if each input variable occurs at most once in it.
+   6
+   A Boolean threshold function is a linear threshold function f : {0, 1}n → {0, 1} of the form f (x) = sign(u · x − k),
+where each coordinate ui of u belongs to {0, 1}.
+
+
+
+                                                          29
+                                 1
+
+                                                           S + = 01111                S − = 00111
+                                                                 10111                      10011
+                       2         5         4                     11011                      10110
+                                                                 11101                      01101
+                                                                 11110                      11001
+                                 3                                                          11100
+
+
+Figure 4: An input graph G with n = 5 nodes and m = 6 edges, and the output S + ∪ S − of the
+transformation T .
+
+
+that if NP ̸= RP, then there is no polynomial-time proper PAC learning algorithm for the class
+of 3-term DNF formulas. (Our discussion below follows the argument presented in Chapter 1 of
+[KV94b].) The proof is a reduction from the well-known NP-complete problem of graph 3-coloring:
+given as input an undirected graph, the problem is to determine whether it can be validly vertex-
+colored (meaning that the two endpoints of every edge are assigned different colors) using a palette
+of only three colors.
+    The key to the reduction is a simple mapping M which takes as input a graph with n nodes and
+m undirected edges (which is the input to the 3-coloring problem), and outputs a set S = S + ∪ S −
+of n positively labeled examples and m negatively labeled examples. In more detail, for each vertex
+i ∈ [n] there is a positive example which is the n-bit string with      a 0 in only the i-th coordinate
+                                                                 [n]
+                                                                     
+and 1’s in all other coordinates, and for each edge {i, j} ∈ 2 there is a negative example which
+is the n-bit string with 0s only in positions i and j and 1’s in all other coordinates. (See Figure 4
+for an illustration of a possible input graph and the output of the mapping M on this graph.) The
+crucial property of this mapping, which is not difficult to show, is the following: the graph G has a
+valid vertex-coloring using three colors if and only if there is a three-term DNF formula T1 ∨ T2 ∨ T3
+which labels all of the examples in S + as positive and all of the examples in S − as negative.
+    Given this, the crux of the argument is to show that any polynomial-time proper PAC learn-
+ing algorithm A for the concept class of 3-term DNF formulas could be used to determine, in
+randomized polynomial time, whether or not an input graph can be validly vertex-colored using
+three colors. The idea is to first perform the mapping M on the input graph G and then run the
+learning algorithm A, using the uniform distribution over S + ∪ S − to simulate the example oracle
+EX(c, D).7 Roughly speaking, if the graph has a valid 3-coloring then (with an appropriate set-
+ting of parameters) the PAC learning algorithm will with high probability construct a hypothesis
+3-term DNF which correctly labels all of the examples in S + ∪ S − , whereas if the graph has no
+valid 3-coloring then since no such DNF exists the learning algorithm surely will not output one.
+Thus, by checking whether or not the output of the learning algorithm is a 3-term DNF consistent
+with S + ∪ S − , it is possible to efficiently and correctly (with high probability) determine whether
+or not the graph has a valid 3-coloring.
+Representation-dependent hardness of learning and hardness of approximation. In the
+simple argument sketched above, the hardness of properly learning 3-term DNFs is established using
+the NP-completeness of determining whether or not a graph has a valid 3-coloring. Given this, it
+   7
+     This is where random bits are used, and explains why the conclusion of the argument is about NP versus RP
+rather than NP versus P.
+
+
+                                                     30
+is should not be surprising that result (i) of [PV88] mentioned earlier, namely the hardness of PAC
+learning k-term monotone DNF using (2k − 3)-term DNF hypotheses, is established using the NP-
+hardness of approximating the minimum number of colors needed to color a k-colorable graph. This
+connection between computational hardness of representation-dependent learning and hardness of
+approximation, which was first made in [PV88], turned out to be pivotal in subsequent work. The
+1990s and subsequent decades witnessed an explosion of research in hardness of approximation that
+resulted from the PCP theorem and the techniques employed in its proof;8 this progress in turn led
+to a wide range of different hardness results for representation-dependent learning, some of which
+are briefly summarized below.
+    One line of work gave representation-dependent hardness results in the original distribution-free
+PAC learning model. Results of this sort show that under suitable complexity-theoretic hardness
+assumptions, various specific concept classes C are not PAC learnable in polynomial time using
+various specific hypothesis classes H. [ABF+ 09] showed that DNF formulas and intersections of
+LTFs are not properly PAC learnable unless NP=RP, and that polynomial-size decision trees are not
+properly PAC learnable under a different hardness assumption. [KS08] showed that unless NP=RP,
+for any constant k the class CDNF(2) of two-term DNFs cannot be PAC learned to accuracy 1/2+1/k
+in polynomial time using CDNF(k) hypotheses, and [KS11] showed that under the same assumption,
+for any constant k the class of intersections of two LTFs cannot be PAC learned in polynomial
+time using the hypothesis class of arbitrary functions of k LTFs. Recently [GS21] unified these two
+results by showing hardness of learning CDNF(2) using the hypothesis class of arbitrary functions of
+k LTFs. Even more recently, [KST23b] have shown that under the randomized exponential time
+hypothesis, no PAC learning algorithm for s-term DNFs, size-s decision trees, or log(s)-juntas can
+use DNF hypotheses and run in time nÕ(log log s) time (see [Bsh23] for an extension to monotone
+versions of these classes).
+    A related strand of research proves hardness of representation-dependent agnostic learning.
+Strengthening an earlier result of [BDEL03], [FGKP06] showed that if P ̸= NP, then even if there
+is an LTF that correctly classifies a 1 − ε fraction of a data set of labeled examples over Rn , no
+polynomial-time algorithm can find an LTF that is correct on a 1/2 + ε fraction of the examples,
+for any constant ε > 0 (i.e. it is hard to agnostically properly learn LTFs even to 51% accuracy).
+[GR09] subsequently extended this hardness result to labeled examples over {0, 1}n , and [FGRW09]
+extended it to the setting where there is a Boolean conjunction that correctly classifies 1−ε fraction
+of the examples. [GKS10] established hardness of agnostically learning parities using low-degree
+F2 -polynomial hypotheses, and [DOSW11, BGS18] established hardness of agnostically learning
+LTFs using low-degree PTF hypotheses.
+    Finally, a few papers have even established representation-dependent hardness of proper learning
+when membership queries are allowed. [Fel09] extended the DNF hardness results of [ABF+ 09] by
+showing that if NP ̸= RP then there is no polynomial-time proper PAC learning algorithm for DNF
+formulas even when the learning algorithm has access to an MQ oracle, and [KST23a] extended
+the decision tree hardness results of [ABF+ 09] by showing that under a plausible assumption about
+the exponential-time hardness of SAT, there is no polynomial-time proper PAC learning algorithm
+for decision trees even when the learning algorithm has access to an MQ oracle.
+  8
+      Note that the early work of Pitt and Valiant [PV86, PV88] preceded these developments.
+
+
+
+
+                                                        31
+4.2     Representation-independent hardness
+The representation-dependent hardness results discussed in Section 4.2 provide useful insights for
+designers of learning algorithms, by giving strong evidence that prospective algorithms which use
+various particular hypothesis classes are unlikely to be provably correct and efficient. Even stronger
+evidence of hardness is provided by representation-independent hardness results, which rule out the
+existence of provably correct and efficient learning algorithms that use any kind of efficiently evalu-
+atable hypothesis (under suitable hardness assumptions). Three main approaches have been taken
+to establish such results, based on the cryptographic study of pseudorandomness; on public-key
+cryptography; and, most recently, on average-case hardness assumptions arising from complexity
+theory.
+
+4.2.1    Pseudorandomness
+Already in [Val84] Valiant noted that the cryptographic notion of pseudo-random functions, which
+had just recently been developed at that time in the seminal work of Goldreich, Goldwasser and
+Micali [GGM86], provides a source of concept classes that are information-theoretically learnable
+from polynomially many examples but computationally hard to learn. A pseudo-random function
+family (PRFF) is a class F of functions {fs : s ∈ {0, 1}n }, where each fs : {0, 1}n → {0, 1}
+is computable by a Boolean circuit of poly(n) size, with the following crucial property (roughly
+speaking): any poly(n)-time distinguishing algorithm A which is given black-box oracle access
+(i.e. MQ access) to an unknown f : {0, 1}n → {0, 1} cannot distinguish between the two possibilities
+                                                                                   n
+that (i) f is a truly random function drawn uniformly at random from all 22 functions from
+{0, 1}n to {0, 1}, versus (ii) f = fs is a uniform random member of F, i.e. a “pseudo-random”
+function. Note that F is a set of “only” 2n functions, each of which is efficiently computable. As
+Valiant observed, this definition implies that any PRFF F must be a concept class that is hard
+for any polynomial-time algorithm to learn, even under the uniform distribution and even given
+membership queries. (This is because any polynomial-time learning algorithm for F would, with
+high probability, generate a high-accuracy hypothesis when run on f ∈ F , but could not do so when
+run on a truly random function; since it is easy to estimate the accuracy of a hypothesis using a
+few random examples, such a purported efficient learning algorithm for F would easily yield a
+polynomial-time distinguisher between truly random and pseudo-random functions.) Since various
+widely accepted hardness assumptions, such as the existence of any one-way function [HILL99], are
+known to imply the existence of PRFFs, this shows that under such assumptions the class of all
+poly(n)-size Boolean circuits is not efficiently PAC learnable even under the uniform distribution
+with membership queries.
+     The argument sketched above establishes that if C is a concept class which contains a pseu-
+dorandom function family, then C must be hard to learn. Naor and Reingold [NR04] proved that
+if factoring Blum integers (integers of the form N = pq where p, q are primes congruent to 3
+mod 4) is super-polynomially hard, then depth-5 circuits composed of Majority gates can compute
+pseudorandom functions and hence cannot be learned in polynomial time, even with membership
+queries and even under the uniform distribution. Kharitonov had earlier [Kha93] obtained similar
+hardness-of-learning results, using similar assumptions, via an argument based on the existence
+of suitable pseudorandom generators; [Kha93] also showed, under a stronger but still plausible
+hardness assumption (that random Blum integers are hard to factor even in some sub-exponential
+time bound), that the quasi-polynomial running time of the [LMN93] uniform-distribution learning
+
+
+                                                  32
+algorithm for AC0 circuits is close to best possible, even if membership queries are allowed.
+    A conceptually different approach, first explored in seminal work of Kearns and Valiant [KV94a],
+turns out to establish hardness of learning for different, and in some cases even simpler, classes of
+Boolean circuits than those discussed above. We turn to this approach, and to the work of [KV94a],
+next.
+
+4.2.2    Public-key cryptography.
+One of the central insights underlying [KV94a] is that the existence of secure public-key cryp-
+tosystems (first proposed by Diffie and Hellman [DH76]) implies the hardness of learning problems
+associated with the decryption function of the cryptosystem. Recall that a public-key cryptosystem
+is a scheme that enables two parties, Alice and Bob, to communicate privately even in the presence
+of an eavesdropper Eve who can read the messages that are sent between them. The central notion
+enabling public-key cryptography is that of a “trapdoor function;” intuitively, this is an (encryp-
+tion) function f : {0, 1}n → {0, 1}n that is polynomial-time computable by any party, but which
+is such that the (decryption) function f −1 can only be computed in polynomial time by a party
+which is in possession of certain secret “trapdoor” information. (It is useful to think of the trapdoor
+function as being “created” by one of the parties, and of the trapdoor information as only being
+available to the creator of the trapdoor function.) Trapdoor functions enable public-key cryptogra-
+phy9 in the following way: Alice publishes an algorithm for computing a trapdoor function f which
+she has created, thus making it possible for any party, including Bob, to compute f given an input
+x. To send a message x to Alice, Bob simply computes f (x) and sends the result to her. Since
+Alice created the trapdoor function f and is in possession of the secret trapdoor information, she
+can efficiently invert f on the input f (x) that Bob has provided and thereby recover the original
+message x; but the eavesdropper Eve, even though she is in possession of the encrypted message
+f (x), lacks the trapdoor information which would enable her to invert f , so she is unable to obtain
+x.
+    The first crucial observation of [KV94a] is that the security of such a cryptosystem implies
+that the decryption function f −1 must be hard to learn. The reasoning is as follows: Since the
+eavesdropper Eve can compute f on inputs of her choosing, she can create a data set of “labeled
+examples” of the form (y, f (y)). Viewing each such pair (y, f (y)) as (f −1 (x), x), this means that
+Eve can create a data set of examples labeled by the decryption function f −1 ; if this decryption
+function were efficiently learnable, then Eve would be able to construct a high-accuracy hypothesis
+h for f −1 , which violates the assumed security of the cryptosystem. Of course, a number of technical
+issues have to be dealt with in order to translate this high-level intuition into a formal proof (the
+trapdoor function f must be a permutation or close to a permutation; we ultimately want hard-
+to-learn Boolean functions with single-bit outputs rather than n-bit-string outputs; etc), but the
+central idea is as sketched above.
+    [KV94a] showed that several different number-theoretic problems, each of which is conjectured
+to be hard in the average-case, can serve as the required hard-to-invert decryption functions in the
+framework proposed above. These include factoring Blum integers, inverting the RSA “modular
+exponentiation” function, and detecting quadratic residues. Following [KV94b], we discuss (a
+slightly modified version of) the specific case of inverting the RSA function with exponent 3 in some
+  9
+    More precisely, secure communication from Bob to Alice; secure communication from Alice to Bob can of course
+be achieved simply by swapping the roles of the two parties.
+
+
+
+                                                      33
+detail, towards illustrating a second central idea of [KV94a]. The encryption function f is defined
+as f (x) = fN (x) = x3 mod N , where N = pq is the product of two n-bit primes p, q that are both
+                                                         −1
+congruent to 2 mod 3. The decryption function is fN         (y) = y d mod N , where d = (2(p − 1)(q −
+1) + 1)/3; elementary number theory shows that fN is a bijection from Z∗N = {i ∈ {1, . . . , N −
+                                             −1
+1} : gcd(i, N ) = 1} to itself, and that fN     is as defined above. Intuitively, the secret trapdoor
+                                                                                                  −1
+information is the factorization p, q of N ; given this information it is easy to compute fN          in
+polynomial time. But a widely-accepted cryptographic assumption (the intractability of computing
+discrete cube roots) states that no poly(n)-time algorithm can, given an N which is the product of
+                                                                                                  −1
+random n-bit primes p, q congruent to 2 mod 3 and a random input y, successfully compute fN          (y)
+with 1/poly(n) success probability. Under this assumption, it can be shown that the concept class
+                              −1                                                  −1
+consisting of all functions fN   (x)i (the i-th bit of the n-output-bit function fN  ; note that every
+such functions is computable by a poly(n)-size circuit) cannot be PAC learned in poly(n) time.
+Hence, any class of Boolean circuits that is capable of performing modular exponentiation — i.e.
+of computing functions of the form xd mod N where d, N are O(n)-bit numbers — cannot be PAC
+learned in polynomial time.
+    With the above sketch in hand, we now arrive at a second key insight of [KV94a], which is
+that by using “encoding tricks” to create an augmented version of the input, it is possible to
+significantly reduce the circuit complexity of the decryption function while still maintaining the
+property that the decryption function is hard to learn. In the context of the previous paragraph,
+                                                 −1
+computing the original decryption function fN       (y) = y d mod N using the standard approach of
+“repeated squaring” appears to require circuit depth Ω(n) (recall that d = (2(p − 1)(q − 1) + 1)/3
+                                                                                            −1
+is an n-bit-long integer). The clever observation of [KV94a] is to consider, instead of fN     (y) = y d
+mod N , a variant of this function which is given as its input not the string y but an augmented
+input consisting of a list of successive squared powers of y, i.e.
+                                                                            O(n)
+              (y   mod N, y 2   mod N, y 4    mod N, y 8   mod N, . . . , y 2      mod N )          (3)
+
+(the output of the function is y d mod N as before). As Angluin put it in [Ang92], this amounts
+to “mov[ing] some tasks that are computationally onerous but cryptographically irrelevant into the
+“input”.” (It is interesting to compare this trick with the “feature expansion” technique that was
+useful for obtaining many of the positive results described earlier.)
+    The above-described variant function must still be hard to learn, because it is easy for any
+prospective learning algorithm which receives only the original input y mod N to efficiently con-
+struct the augmented input; so if there were an efficient learning algorithm for the variant function,
+then there would be an efficient learning algorithm for the original function. (The input length of
+the variant function is quadratic in the original input length |y| = O(n), but this is immaterial for
+polynomial-time algorithms.) For a designer of lower bounds for learning algorithms, the consid-
+erable advantage of considering the variant function is that its circuit complexity is (to the best
+of our present knowledge) much lower than the circuit complexity of the original function. This
+is because computing the variant function given Equation (3) as input only requires performing
+                                                                      i
+multiplication mod N of a suitable subset of the input values y 2 mod N , to build the desired
+exponent d using its binary representation. Results of Beame, Cook and Hoover [BCH86] show
+that this “iterated multiplication mod N ” computation can be performed by a Boolean circuit of
+only O(log n) depth. Since such circuits are well-known to be equivalent to the complexity class
+NC1 of poly(n)-size, O(log n)-depth Boolean formulas, this gives the following striking result: under
+a suitable average-case hardness assumption (about factoring integers of the form N = pq where
+
+                                                  34
+p, q are congruent to 2 mod 3), the concept class NC1 has no poly(n)-time PAC learning algorithm.
+Using similar ideas, and building on known reductions from circuit complexity and learning theory
+[CSV84, PW88, Rei87], in [KV94a] it is also shown that under similar hardness assumptions, nei-
+ther the the class of deterministic finite automata of poly(n) size, nor the class of constant-depth
+circuits composed of Majority gates, has a poly(n)-time PAC learning algorithm.
+    A number of subsequent works have built on the ideas of [KV94a] to establish hardness of
+representation-independent learning, based on public-key cryptography, for even more limited con-
+cept classes or for even more powerful learning paradigms; we survey a few such results below.
+    Angluin and Kharitonov [AK95] extended the basic [KV94a] hardness technique by showing
+that the existence of public-key cryptosystems secure against chosen ciphertext attack implies
+hardness of learning for the corresponding decryption functions even if membership queries are
+allowed. Based on known public-key cryptosystems conjectured to be secure against chosen ci-
+phertext attack, [AK95] extended several of the hardness results of [KV94a] to hold even against
+poly(n)-time learning algorithms that can make membership queries. [AK95] also showed, using
+the cryptographic notion of public-key signature schemes, that under a plausible assumption about
+the existence of certain one-way functions, the class of poly(n)-size DNF formulas is either poly(n)-
+time PAC learnable without membership queries, or is not poly(n)-time PAC learnable even if
+membership queries are allowed — in short, “membership queries won’t help.”
+    Klivans and Sherstov [KS09] extended the [KV94a] approach by analyzing lattice-based cryp-
+tosystems due to Regev [Reg04, Reg05] (see also [FGKP06] for related results). [KS09] showed that
+the decryption function for Regev’s cryptosystems can be computed as an intersection of poly(n)
+many degree-2 PTFs. Using a simple feature expansion argument, it can be shown that an effi-
+cient learning algorithm for intersections of degree-2 PTFs yields an efficient learning algorithm for
+intersections of halfspaces. Thus [KS09] showed (among other results) that assuming that there
+does not exist a poly(n)-time approximation algorithm (in a suitable approximation regime) for
+the “unique shortest vector problem” on lattices (which is the hardness assumption underlying the
+Regev cryptosystem), for any constant c > 0 the concept class of intersections of nc halfspaces over
+{0, 1}n has no poly(n)-time PAC learning algorithm.
+    More recently, Applebaum et al. [ABW10] proposed new public-key cryptosystems based on the
+conjectured average-case hardness of various combinatorial problems, and provided some evidence
+for the average-case hardness of these problems. These public-key cryptosystems have decryption
+functions that can be computed by O(log n)-juntas, and thus under the [ABW10] average-case
+hardness assumptions, there is no poly(n)-time PAC learning algorithm for the class of O(log n)-
+juntas.
+
+4.2.3   Hardness based on average-case complexity assumptions.
+The past decade or so has witnessed another exciting line of work on representation-independent
+hardness of learning, based on average-case hardness assumptions from complexity theory. From
+a results perspective, this line of research is notable because it establishes computational hardness
+of learning various concept classes that consist of relatively simple functions, coming quite close to
+classes of functions which are known to be efficiently PAC learnable. From a techniques perspective,
+it is interesting that this new strand of research takes a different approach from prior work and is
+not based on the (presumed) intractability of computing the decryption function of a public-key
+cryptosystem. Instead, the key underlying hardness assumptions are that it is difficult to efficiently
+refute certain particular types of unsatisfiable random constraint satisfaction problems.
+
+                                                 35
+    To explain the general framework, we begin by briefly recalling some relevant background about
+the familiar constraint satisfaction problem (CSP) known as k-SAT. The k-SAT problem is based
+on the OR-predicate of arity k (which we have been referring to as a “clause” of width k); a
+random k-SAT formula of size m is obtained by ANDing together m random clauses of width
+k to form a random k-CNF of size m. In an influential paper, Feige [Fei02] conjectured that if
+m ≥ Cn for a suitably large constant C, then random 3-SAT formulas of size m are hard to
+refute; this means, roughly speaking, that no efficient algorithm can distinguish such a random
+formula from a satisfiable formula of the same size. (It is well known that for such large m, a
+random 3-SAT formula will with overwhelmingly high probability be unsatisfiable.) Feige [Fei02]
+showed that this and related hardness assumptions, which are consistent with the current state of
+the art for known refutation algorithms, lead to surprising consequences in complexity theory and
+hardness of approximation. In a similar spirit, the strand of work we are now discussing showed that
+assumptions of this flavor lead to strong representation-independent hardness-of-learning results.
+    The first result of this sort was due to Daniely, Linial and Shalev-Shwartz [DLS14]. This work
+proposed a rather strong generalization of Feige’s hardness-of-refutation assumption from [Fei02],
+called the “strong random CSP assumption;” this assumption dealt with a range of non-standard
+predicates other than the 3-way OR-predicate, and assumed hardness of refutation even for val-
+ues of m much larger than Cn. Under this new assumption, [DLS14] established representation-
+independent hardness for a number of well-studied concept classes, including ω(1)-size DNF formu-
+las and intersections of ω(1) many halfspaces, as well as some results on representation-independent
+hardness of agnostic learning. The technical details of how [DLS14] does this are beyond the scope
+of this article, but at a very high level, this is accomplished by relating the assumed hardness of
+refutation to the hardness of distinguishing between a sample of correctly labeled examples and a
+sample of randomly labeled examples.
+    As it turns out, soon after the appearance of [DLS14] the specific “strong random CSP as-
+sumption” of [DLS14] was shown to be false by Allen et al. [AOW15], who gave an efficient refuta-
+tion algorithm for this particular problem. However, the general approach introduced by [DLS14]
+turned out to be quite adaptable to using different assumptions, and (at the time that this article
+was written) this general approach is currently the source of quite a number of state-of-the-art
+representation-independent hardness of learning results, based on assumptions that have withstood
+considerable scrutiny, as briefly surveyed below.
+    Daniely et al [DSS16] showed that no poly(n)-time algorithm can learn ω(log n)-term DNF
+formulas, using an assumption that is considerably weaker and more standard than the “strong
+random CSP assumption” of [DLS14]. The assumption of [DSS16], like that of Feige [Fei02], only
+involves the OR-predicate; it is that given any d, there exists some large enough value k(d) such that
+random k(d)-SAT instances are hard to refute. [DSS16] further showed that this same assumption
+implies the hardness of various other learning problems, including learning intersections of ω(log n)
+many halfspaces, agnostically learning conjunctions, halfspaces, or parities, and learning sparse
+PTFs. The DNF and intersection-of-halfspaces hardness results of [DSS16] were subsequently
+strengthened by Daniely and Vardi [DV21] to hold for ω(1)-term DNF and intersections of ω(1)
+many halfspaces, under a slightly different hardness assumption.
+    In [Dan16], Daniely similarly eliminated the need for the non-standard “strong random CSP
+assumption” of [DLS14] to achieve hardness results for agnostically learning a single halfspace. He
+used a hardness assumption based on the k-XOR predicate (corresponding to parity of k variables),
+and showed that if random k-XOR formulas of sufficiently large size are hard to refute, then for
+
+
+                                                 36
+any arbitrarily small constant η > 0, no polynomial-time algorithm can find a hypothesis whose
+accuracy is even 1/2 + 1/poly(n), given examples from a joint distribution D over Rn × {−1, 1} for
+which some halfspace correctly labels a 1 − η fraction of examples from D.
+
+
+5    Conclusion
+We have seen how Valiant’s seminal paper [Val84] gave rise to a rich and multifaceted theory of com-
+putationally efficient learning, which is being actively investigated to this day. Extending beyond
+the scope of this article, in the decades since [Val84] the PAC learning framework has grown to en-
+compass a broad range of topics and questions that go beyond the learnability and non-learnability
+of specific classes of Boolean functions. Within the realm of computational learning theory, these
+include, among many other topics, the study of accuracy boosting methods (which, as mentioned in
+Section 2.2.2, are widespread and useful in computational learning); PAC-style models of learning
+for non-Boolean valued functions; and PAC-style learning in unsupervised scenarios where examples
+are unlabeled. Variants of the PAC learning model have played a central role in investigating a
+variety of other phenomena in learning, including privacy, active learning, memory-sample trade-
+offs, streaming, and reproducibility. Rich connections have also been established between the PAC
+learning framework and many other subfields of theoretical computer science apart from learning,
+including but not limited to property testing, algorithmic game theory, computational complexity,
+statistical algorithms, and cryptography. Zooming out even more, “PAC-style thinking” has had
+a tremendous influence on the development of machine learning over the past forty years, and has
+served as a source of conceptual scaffolding for the study of phenomena such as neural computation
+and evolution [Val00, Val09, Val13]. It will be exciting to see where the next forty years of reflection
+on the ideas from [Val84] take us.
+
+
+Acknowledgements
+I thank the referees for their very helpful comments and corrections, which greatly improved this
+chapter.
+
+References
+[ABF+ 09]   Michael Alekhnovich, Mark Braverman, Vitaly Feldman, Adam R. Klivans, and Toniann Pitassi. The
+            complexity of properly learning simple concept classes. Journal of Computer & System Sciences,
+            74(1):16–34, 2009. 4.1
+[ABL17]     Pranjal Awasthi, Maria-Florina Balcan, and Philip M. Long. The power of localization for efficiently
+            learning linear separators with noise. J. ACM, 63(6):50:1–50:27, 2017. 3.3, 3.4
+[ABW10]     Benny Applebaum, Boaz Barak, and Avi Wigderson. Public-key cryptography from different assump-
+            tions. In Proc. 42nd Annual Symposium on Theory of Computing (STOC), pages 171–180, 2010. 4.2.2
+[ACR+ 10]   Andris Ambainis, Andrew M. Childs, Ben Reichardt, Robert Spalek, and Shengyu Zhang. Any AND-
+            OR formula of size n can be evaluated in time n1/2+o(1) on a quantum computer. SIAM J. Comput.,
+            39(6):2513–2530, 2010. 3.1
+[AFP92]     Dana Angluin, Michael Frazier, and Leonard Pitt. Learning conjunctions of Horn clauses. Machine
+            Learning, 9:147–164, 1992. 3.2
+[AHK93]     Dana Angluin, Lisa Hellerstein, and Marek Karpinski. Learning read-once formulas with queries. J.
+            ACM, 40(1):185–210, 1993. 3.2
+
+
+                                                      37
+[AHM95]     Peter Auer, Robert C. Holte, and Wolfgang Maass. Theory and applications of agnostic PAC-learning
+            with small decision trees. In Proc. Twelfth International Conference on Machine Learning (ICML),
+            pages 21–29, 1995. 3.3
+[AK95]      Dana Angluin and Michael Kharitonov. When won’t membership queries help? Journal of Computer
+            and System Sciences, 50(2):336–355, 1995. 4.2.2
+[AL88]      Dana Angluin and Philip Laird. Learning from noisy examples. Machine Learning, 2(4):343–370, 1988.
+            3.3
+[Ang87]     Dana Angluin. Learning regular sets from queries and counterexamples. Information and Computation,
+            75(2):87–106, 1987. 3.2, 3.4
+[Ang88]     Dana Angluin. Queries and concept learning. Machine Learning, 2:319–342, 1988. 3.2, 11
+[Ang92]     Dana Angluin. Computational learning theory: Survey and selected bibliography. In Proc. 24th Annual
+            Symposium on Theory of Computation (STOC), pages 351–369, 1992. 4.2.2
+[AOW15]     Sarah R. Allen, Ryan O’Donnell, and David Witmer. How to refute a random CSP. In Proc. 56th
+            Annual Symposium on Foundations of Computer Science (FOCS), pages 689–708, 2015. 4.2.3
+[AP91]      Howard Aizenstein and Leonard Pitt. Exact learning of read-twice DNF formulas (extended abstract).
+            In Proc. 32nd Annual Symposium on Foundations of Computer Science, pages 170–179, 1991. 3.2
+[Bau91]     Eric Baum. Neural net algorithms that learn in polynomial time from examples and queries. IEEE
+            Trans. on Neural Networks, 2:5–19, 1991. 3.2
+[BBB+ 00]   Amos Beimel, Francesco Bergadano, Nader H. Bshouty, Eyal Kushilevitz, and Stefano Varricchio. Learn-
+            ing functions represented as multiplicity automata. J. ACM, 47(3):506–530, 2000. 3.2, 3.4
+[BBL98]     Avrim Blum, Carl Burch, and John Langford. On learning monotone boolean functions. In Proc. 39th
+            Annual Symposium on Foundations of Computer Science, pages 408–415, 1998. 3.4
+[BCdWZ99] Harry Buhrman, Richard Cleve, Ronald de Wolf, and Christof Zalka. Bounds for small-error and zero-
+          error quantum algorithms. In Proc. 40th Annual Symposium on Foundations of Computer Science
+          (FOCS), pages 358–368, 1999. 3.3, 1
+[BCH86]     Paul Beame, Stephen A. Cook, and H. James Hoover. Log depth circuits for division and related
+            problems. SIAM J. Comput., 15(4):994–1003, 1986. 4.2.2
+[BCO+ 15]   Eric Blais, Clément Canonne, Igor Oliveira, Rocco A. Servedio, and Li-Yang Tan. Learning circuits with
+            few negations. In Proc. 18th International Workshop on Randomization and Computation (RANDOM),
+            pages 512–527, 2015. 3.4
+[BDD98]     Shai Ben-David and Eli Dichterman. Learning with restricted focus of attention. Journal of Computer
+            & System Sciences, 56(3):277–298, 1998. 2.1
+[BDEL03]    Shai Ben-David, Nadav Eiron, and Philip M. Long. On the difficulty of approximately maximizing
+            agreements. Journal of Computer & System Sciences, 66, 2003. 4.1
+[BDJ+ 98]   Andreas Birkendorf, Eli Dichterman, Jeffrey Jackson, Norbert Klasner, and Hans Ulrich Simon. On
+            restricted-focus-of-attention learnability of Boolean functions. Machine Learning, 30:89–123, 1998. 2.1
+[BDMN05]    Avrim Blum, Cynthia Dwork, Frank McSherry, and Kobbi Nissim. Practical privacy: the sulq frame-
+            work. In Proc. 24th Symposium on Principles of Database Systems, pages 128–138, 2005. 3.3
+[BEHW87]    Anselm Blumer, Andrzej Ehrenfeucht, David Haussler, and Manfred K. Warmuth. Occam’s razor.
+            Information Processing Letters, 24:377–380, 1987. 2.1
+[BEHW89]    Anselm Blumer, Andrzej Ehrenfeucht, David Haussler, and Manfred K. Warmuth. Learnability and the
+            Vapnik-Chervonenkis dimension. J. ACM, 36(4):929–965, 1989. 3.1, 6, 7, 4
+[BFJ+ 94]   Avrim Blum, Merrick L. Furst, Jeffrey Jackson, Michael J. Kearns, Yishay Mansour, and Steven Rudich.
+            Weakly learning DNF and characterizing statistical query learning using Fourier analysis. In Proc. 26th
+            Annual Symposium on Theory of Computing (STOC), pages 253–262, 1994. 3.3
+[BFKV97]    Avrim Blum, Alan Frieze, Ravi Kannan, and Santosh Vempala. A polynomial time algorithm for learning
+            noisy linear threshold functions. Algorithmica, 22(1/2):35–52, 1997. 3.3
+[BGS18]     Arnab Bhattacharyya, Suprovat Ghoshal, and Rishi Saket. Hardness of learning noisy halfspaces using
+            polynomial thresholds. In Proc. Conference On Learning Theory (COLT), pages 876–917, 2018. 4.1
+
+
+                                                       38
+[BHH95]     Nader H. Bshouty, Thomas R. Hancock, and Lisa Hellerstein. Learning boolean read-once formulas over
+            generalized bases. Journal of Computer & System Sciences, 50(3):521–542, 1995. 3.2
+[BHHK94]    Nader H. Bshouty, Thomas R. Hancock, Lisa Hellerstein, and Marek Karpinski. An algorithm to learn
+            read-once threshold formulas, and transformations between learning models. Computational Complexity,
+            4:37–61, 1994. 3.2
+[BK97]      Avrim Blum and Ravi Kannan. Learning an intersection of a constant number of halfspaces under a
+            uniform distribution. Journal of Computer & System Sciences, 54(2):371–380, 1997. 3.4
+[BKW03]     Avrim Blum, Adam Kalai, and Hal Wasserman. Noise-tolerant learning, the parity problem, and the
+            statistical query model. J. ACM, 50(4):506–519, 2003. 3.3
+[Blu92]     Avrim Blum. Rank-r decision trees are a subclass of r-decision lists. Information Processing Letters,
+            42(4):183–185, June 1992. 3.1
+[BR95]      Avrim Blum and Steven Rudich. Fast learning of k-term DNF formulas with queries. Journal of
+            Computer & System Sciences, 51(3):367–373, 1995. 3.2
+[BRS95]     Richard Beigel, Nick Reingold, and Daniel Spielman. PP is closed under intersection. Journal of
+            Computer & System Sciences, 50(2):191–202, 1995. 3.1
+[Bsh95]     Nader H. Bshouty. Exact learning via the monotone theory. Information and Computation, 123(1):146–
+            153, 1995. 3.2
+[Bsh96]     Nader H. Bshouty. A subexponential exact learning algorithm for DNF using equivalence queries.
+            Information Processing Letters, 59(1):37–39, 1996. 3.1
+[Bsh97]     Nader H. Bshouty. Simple learning algorithms using divide and conquer. Computational Complexity,
+            6:174–194, 1997. 3.2
+[Bsh23]     Nader H. Bshouty. Superpolynomial lower bounds for learning monotone classes. In Approximation,
+            Randomization, and Combinatorial Optimization. Algorithms and Techniques, APPROX/RANDOM
+            2023, pages 34:1–34:20, 2023. 4.1
+[BT96]      Nader H. Bshouty and Christino Tamon. On the Fourier spectrum of monotone functions. J. ACM,
+            43(4):747–770, 1996. 3.4
+[BT20]      Mark Bun and Justin Thaler. A nearly optimal lower bound on the approximate degree of AC0 . SIAM
+            J. Comput., 49(4), 2020. 3.1
+[BV96]      Francesco Bergdano and Stefano Varricchio. Learning behaviors of automata from multiplicity and
+            equivalence queries. SIAM J. Comput., 25(6):1268–1280, 1996. 3.2
+[CIKK16]    Marco L. Carmosino, Russell Impagliazzo, Valentine Kabanets, and Antonina Kolokolova. Learning al-
+            gorithms from natural proofs. In Proc. 31st Conference on Computational Complexity (CCC), volume 50,
+            pages 10:1–10:24, 2016. 3.4, 19
+[CSV84]     Ashok K. Chandra, Larry Stockmeyer, and Uzi Vishkin. Constant depth reducibility. SIAM J. Comput.,
+            13(2):423–439, 1984. 4.2.2
+[Dan16]     Amit Daniely. Complexity theoretic limitations on learning halfspaces. In Proc. 48th Annual Symposium
+            on Theory of Computing (STOC), pages 105–117, 2016. 4.2.3
+[DDFS14]    Anindya De, Ilias Diakonikolas, Vitaly Feldman, and Rocco A. Servedio. Nearly optimal solutions for
+            the chow parameters problem and low-weight approximation of halfspaces. J. ACM, 61(2):11:1–11:36,
+            2014. 2.1
+[DFH+ 15]   Cynthia Dwork, Vitaly Feldman, Moritz Hardt, Toniann Pitassi, Omer Reingold, and Aaron Leon Roth.
+            Preserving statistical validity in adaptive data analysis. In Proc. 47th Annual Symposium on Theory of
+            Computing (STOC), pages 117–126, 2015. 3.3
+[DH76]      Whitfield Diffie and Martin E Hellman. New directions in cryptography. IEEE Transactions on Infor-
+            mation Theory, IT-22(6):644–654, November 1976. 4.2.2
+[DKK+ 23]   Ilias Diakonikolas, Daniel M. Kane, Vasilis Kontonis, Christos Tzamos, and Nikos Zarifis. Agnostically
+            learning multi-index models with queries. Available at https://arxiv.org/pdf/2312.16616.pdf, 2023. 3.4
+[DLS14]     Amit Daniely, Nati Linial, and Shai Shalev-Shwartz. From average case complexity to improper learning
+            complexity. In Proc. 46th Annual Symposium on Theory of Computing (STOC), pages 441–448. ACM,
+            2014. 4.2.3
+
+
+                                                       39
+[DMNS06]   Cynthia Dwork, Frank McSherry, Kobbi Nissim, and Adam D. Smith. Calibrating noise to sensitivity in
+           private data analysis. In Third Theory of Cryptography Conference, TCC 2006, volume 3876 of Lecture
+           Notes in Computer Science, pages 265–284. Springer, 2006. 3.3
+[DOSW11]   Ilias Diakonikolas, Ryan O’Donnell, Rocco A. Servedio, and Yi Wu. Hardness results for agnostically
+           learning low-degree polynomial threshold functions. In Proc. 22nd Annual Symposium on Discrete
+           Algorithms (SODA), pages 1590–1606, 2011. 4.1
+[DRST14]   Ilias Diakonikolas, Prasad Raghavendra, Rocco A. Servedio, and Li-Yang Tan. Average sensitivity and
+           noise sensitivity of polynomial threshold functions. SIAM J. Comput., 43(1):231–253, 2014. 3.4
+[DSS16]    Amit Daniely and Shai Shalev-Shwartz. Complexity theoretic limitations on learning DNF’s. In Proc.
+           29th Conference on Learning Theory (COLT), volume 49 of Proceedings of Machine Learning Research,
+           pages 815–830, 2016. 4.2.3
+[DV21]     Amit Daniely and Gal Vardi. From local pseudorandom generators to hardness of learning. In Proc.
+           34th Conference on Learning Theory (COLT), volume 134 of Proceedings of Machine Learning Research,
+           pages 1358–1394, 2021. 4.2.3
+[dW08]     Ronald de Wolf. A Brief Introduction to Fourier Analysis on the Boolean Cube. Number 1 in Graduate
+           Surveys. Theory of Computing Library, 2008. 3.4
+[EH89]     Andrzej Ehrenfeucht and David Haussler. Learning decision trees from random examples. Information
+           and Computation, 82(3):231–246, 1989. 3.1, 4
+[Fei02]    Uriel Feige. Relations between average case complexity and approximation complexity. In Proc. 34th
+           Annual Symposium on Theory of Computing (STOC), pages 534–543, 2002. 4.2.3
+[Fel08]    Vitaly Feldman. Evolvability from learning algorithms. In Proc. 40th Annual Symposium on Theory of
+           Computing (STOC), pages 619–628, 2008. 3.3
+[Fel09]    Vitaly Feldman. Hardness of approximate two-level logic minimization and pac learning with member-
+           ship queries. Journal of Computer & System Sciences, 75(1):13–26, 2009. 4.1
+[Fel10]    Vitaly Feldman. Distribution-specific agnostic boosting. In Proc. 1st Innovations in Computer Science
+           (ICS), pages 241–250, 2010. 3.4, 3.4
+[Fel12a]   Vitaly Feldman. A complete characterization of statistical query learning with applications to evolv-
+           ability. Journal of Computer & System Sciences, 78(5):1444–1459, 2012. 3.3
+[Fel12b]   Vitaly Feldman. Learning DNF Expressions from Fourier Spectrum. In Proc. Conference on Learning
+           Theory (COLT), pages 17.1–17.19, 2012. 3.4
+[FGG08]    Edward Farhi, Jeffrey Goldstone, and Sam Gutmann. A quantum algorithm for the hamiltonian NAND
+           tree. Theory of Computing, 4(1):169–190, 2008. 3.1
+[FGKP06]   Vitaly Feldman, Parikshit Gopalan, Subhash Khot, and Ashok Ponnuswami. New results for learning
+           noisy parities and halfspaces. In Proc. 47th Annual Symposium on Foundations of Computer Science
+           (FOCS), pages 563–576, 2006. 4.1, 4.2.2
+[FGRW09]   Vitaly Feldman, Venkatesan Guruswami, Prasad Raghavendra, and Yi Wu. Agnostic learning of mono-
+           mials by halfspaces is hard. In Proc. 50th Annual Symposium on Foundations of Computer Science
+           (FOCS), pages 385–394, 2009. 4.1
+[Fre95]    Yoav Freund. Boosting a weak learning algorithm by majority.         Information and Computation,
+           121(2):256–285, 1995. 2.2.2, 3.4
+[FS92]     Paul Fischer and Hans Ulrich Simon. On learning ring-sum expansions. SIAM J. Comput., 21(1):181–
+           192, 1992. 5, 3.1
+[FS97]     Yoav Freund and Robert E. Schapire. A decision-theoretic generalization of on-line learning and an
+           application to boosting. Journal of Computer and System Sciences, 55(1):119–139, 1997. 2.2.2
+[FS99]     Yoav Freund and Robert E. Schapire. A short introduction to boosting. J. Japan. Soc. Artif. Intel.,
+           14(5):771–780, 1999. 2.2.2
+[GGM86]    Oded Goldreich, Shafi Goldwasser, and Silvio Micali. How to construct random functions. Journal of
+           the ACM, 33(4):792–807, October 1986. 4.2.1
+[GKK08]    Parikshit Gopalan, Adam Kalai, and Adam R. Klivans. Agnostically learning decision trees. In Proc.
+           47th Annual Symposium on Theory of Computing (STOC), pages 527–536, 2008. 3.4, 20
+
+
+                                                     40
+[GKM12]    Parikshit Gopalan, Adam R. Klivans, and Raghu Meka. Learning functions of halfspaces using prefix
+           covers. Journal of Machine Learning Research - Proceedings Track, 23:15.1–15.10, 2012. 3.4, 18
+[GKS93]    Sally A. Goldman, Michael J. Kearns, and Robert E. Schapire. Exact identification of read-once formulas
+           using fixed points of amplification functions. SIAM J. Comput., 22(4):705–726, 1993. 3.4
+[GKS97]    Sally A. Goldman, Stephen S. Kwek, and Stephen Scott. Agnostic learning of geometric patterns. In
+           Proc. Tenth annual Conference on Computational Learning Lheory, pages 325–333, 1997. 3.3
+[GKS10]    Parikshit Gopalan, Subhash Khot, and Rishi Saket. Hardness of reconstructing multivariate polynomials
+           over finite fields. SIAM J. Comput., 39(6):2598–2621, 2010. 4.1
+[GL89]     Oded Goldreich and Leonid Levin. A hard-core predicate for all one-way functions. In Proc. 21st Annual
+           Symposium on Theory of Computing, pages 25–32, 1989. 3.4
+[GMH96]    Mostefa Golea, Mario Marchand, and Thomas R. Hancock. On learning µ-perceptron networks on the
+           uniform distribution. Neural Networks, 9:67–82, 1996. 3.4
+[Gol67]    E. Mark Gold. Language identification in the limit. Information and Control, 10(5):447–474, 1967. 2.1
+[GR09]     Venkatesan Guruswami and Prasad Raghavendra. Hardness of learning halfspaces with noise. SIAM J.
+           Comput., 39(2):742–765, 2009. 4.1
+[GS10]     Parikshit Gopalan and Rocco A. Servedio. Learning and lower bounds for AC 0 with threshold gates. In
+           Proc. 14th International Workshop on Randomization and Computation (RANDOM), pages 588–601,
+           2010. 3.4
+[GS21]     Suprovat Ghoshal and Rishi Saket. Hardness of learning DNFs using halfspaces. In Proc. 53rd Annual
+           Symposium on Theory of Computing (STOC), pages 467–480, 2021. 4.1
+[Han91]    Thomas R. Hancock. Learning 2µ DNF formulas and kµ decision trees. In Proc. Fourth Annual Workshop
+           on Computational Learning Theory (COLT), pages 199–209, 1991. 3.2
+[Han93]    Thomas R. Hancock. Learning kµ decision trees on the uniform distribution. In Proc. Sixth Annual
+           Conference on Computational Learning Theory (COLT), pages 352–360, 1993. 3.4
+[Hås86]   Johan Håstad. Computational Limitations for Small Depth Circuits. MIT Press, Cambridge, MA, 1986.
+           3.4
+[Hås94]   Johan Håstad. On the size of weights for threshold gates. SIAM J. Discrete Math., 7(3):484–492, 1994.
+           3.1
+[Hås01]   Johan Håstad. A slight sharpening of LMN. Journal of Computer & System Sciences, 63(3):498–508,
+           2001. 3.4
+[Hau92]    David Haussler. Decision theoretic generalizations of the PAC model for neural net and other learning
+           applications. Information and Computation, 100:78–150, 1992. 3.3
+[HGM94]    Thomas R. Hancock, Mostefa Golea, and Mario Marchand. Learning nonoverlapping perceptron net-
+           works from examples and membership queries. Machine Learning, 16(3):161–183, 1994. 3.2
+[HILL99]   Johan Håstad, Russell Impagliazzo, Leonid Levin, and Michael Luby. A pseudorandom generator from
+           any one-way function. SIAM J. Comput., 28(4):1364–1396, 1999. 4.2.1
+[HKLW91]   David Haussler, Michael J. Kearns, Nick Littlestone, and Manfred K. Warmuth. Equivalence of models
+           for polynomial learnability. Information and Computation, 95(2):129–161, 1991. 2.2.2
+[HKM14]    Prahladh Harsha, Adam R. Klivans, and Raghu Meka. Bounding the sensitivity of polynomial threshold
+           functions. Theory Comput., 10:1–26, 2014. 3.4
+[HM91]     Thomas R. Hancock and Yishay Mansour. Learning monotone k-µ DNF formulas on product distribu-
+           tions. In Proc. Fourth Annual Conference on Computational Learning Theory (COLT), pages 179–193,
+           1991. 3.4
+[HSW92]    David Helmbold, Robert Sloan, and Manfred K. Warmuth. Learning integer lattices. SIAM J. Comput.,
+           21(2):240–266, 1992. 5, 3.1
+[Jac97]    Jeffrey R. Jackson. An efficient membership-query algorithm for learning DNF with respect to the
+           uniform distribution. Journal of Computer & System Sciences, 55:414–440, 1997. 3.4, 17, 3.4
+[Kan14]    Daniel M. Kane. The correct exponent for the Gotsman-Linial conjecture. computational complexity,
+           23:151–175, 2014. 3.4
+
+
+                                                      41
+[Kar84]    Narendra Karmarkar. A new polynomial time algorithm for linear programming. Combinatorica, 4:373–
+           395, 1984. 3.1
+[Kea98]    Michael J. Kearns. Efficient noise-tolerant learning from statistical queries. J. ACM, 45(6):983–1006,
+           1998. 3.3
+[Kha80]    Leonid G. Khachiyan. Polynomial algorithms in linear programming. USSR Computational Mathematics
+           and Mathematical Physics, 20(1):53 – 72, 1980. 3.1
+[Kha93]    Michael Kharitonov. Cryptographic hardness of distribution-specific learning. In Proc. 25th Annual
+           Symposium on Theory of Computing (STOC), pages 372–381, 1993. 4.2.1
+[KK09]     Adam Kalai and Varun Kanade. Potential-based agnostic boosting. In Advances in Neural Information
+           Processing Systems 22 (NIPS), pages 880–888, 2009. 3.4
+[KKM13]    Daniel M. Kane, Adam R. Klivans, and Raghu Meka. Learning halfspaces under log-concave densi-
+           ties: Polynomial approximations and moment matching. In Proc. 26th Conference on Learning Theory
+           (COLT), pages 522–545, 2013. 3.4
+[KKMS08]   Adam Kalai, Adam R. Klivans, Yishay Mansour, and Rocco A. Servedio. Agnostically learning halfs-
+           paces. SIAM J. Comput., 37(6):1777–1805, 2008. 3.3, 12, 3.3, 1, 3.4, 3.4
+[KL93]     Michael J. Kearns and Ming Li. Learning in the presence of malicious errors. SIAM J. Comput.,
+           22(4):807–837, 1993. 3.3
+[KLPV87]   Michael J. Kearns, Ming Li, Leonard Pitt, and Leslie G. Valiant. On the learnability of Boolean formulae.
+           In Proc. Nineteenth Annual Symposium on Theory of Computing (STOC), pages 285–295, 1987. 3.2,
+           3.4
+[KLS09]    Adam R. Klivans, Philip M. Long, and Rocco A. Servedio. Learning Halfspaces with Malicious Noise.
+           Journal of Machine Learning Research, 10:2715–2740, 2009. 3.3, 3.4
+[KLV94]    Michael J. Kearns, Ming Li, and Leslie G. Valiant. Learning Boolean formulas. J. ACM, 41(6):1298–
+           1328, 1994. 3.4, 3.4
+[KM93]     Eyal Kushilevitz and Yishay Mansour. Learning Decision Trees Using the Fourier Spectrum. SIAM J.
+           Comput., 22(6):1331–1348, December 1993. 3.4, 3.4, 16, 2, 3.4
+[KOS04]    Adam R. Klivans, Ryan O’Donnell, and Rocco A. Servedio. Learning intersections and thresholds of
+           halfspaces. Journal of Computer & System Sciences, 68(4):808–840, 2004. 3.1, 10, 3.1, 3.4
+[KOS08]    Adam R. Klivans, Ryan O’Donnell, and Rocco A. Servedio. Learning geometric concepts via Gaussian
+           surface area. In Proc. 49th Annual Symposium on Foundations of Computer Science (FOCS), pages
+           541–550, 2008. 3.4
+[KP98]     Stephen Kwek and Leonard Pitt. PAC learning intersections of halfspaces with membership queries.
+           Algorithmica, 22(1/2):53–75, 1998. 3.2, 4
+                                                                                     1/3
+[KS04]     Adam R. Klivans and Rocco A. Servedio. Learning DNF in time 2Õ(n               )
+                                                                                               . Journal of Computer &
+           System Sciences, 68(2):303–318, 2004. 3.1, 8
+[KS08]     Subhash Khot and Rishi Saket. Hardness of minimizing and learning DNF expressions. In Proc. 49th
+           Annual Symposium on Foundations of Computer Science (FOCS), pages 231–240, 2008. 4.1
+[KS09]     Adam R. Klivans and Alexander A. Sherstov. Cryptographic hardness for learning intersections of
+           halfspaces. Journal of Computer & System Sciences, 75(1):2–12, 2009. 4.2.2
+[KS11]     Subhash Khot and Rishi Saket. On the hardness of learning intersections of two halfspaces. Journal of
+           Computer & System Sciences, 77(1):129–141, 2011. 4.1
+[KSS94]    Michael J. Kearns, Robert E. Schapire, and Linda Sellie. Toward efficient agnostic learning. Machine
+           Learning, 17(2/3):115–141, 1994. 3.3
+[KST23a]   Caleb Koch, Carmen Strassle, and Li-Yang Tan. Properly learning decision trees with queries is NP-hard.
+           In Proc. 64th Annual Symposium on Foundations of Computer Science, FOCS 2023, 2023. 4.1
+[KST23b]   Caleb Koch, Carmen Strassle, and Li-Yang Tan. Superpolynomial lower bounds for decision tree learning
+           and testing. In Proc. 2023 ACM-SIAM Symposium on Discrete Algorithms, SODA 2023, pages 1962–
+           1994, 2023. 4.1
+
+
+
+                                                       42
+[Kus97]   Eyal Kushilevitz. A simple algorithm for learning O(log n)-term DNF. Information Processing Letters,
+          61(6):289–292, 1997. 3.2
+[KV94a]   Michael J. Kearns and Leslie G. Valiant. Cryptographic limitations on learning Boolean formulae and
+          finite automata. J. ACM, 41(1):67–95, 1994. 1, 4, 4.2.1, 4.2.2, 4.2.2
+[KV94b]   Michael J. Kearns and Umesh Vazirani. An Introduction to Computational Learning Theory. MIT Press,
+          Cambridge, MA, 1994. 2.2, 4.1, 4.2.2
+[LBW96]   Wee Sun Lee, Peter L. Bartlett, and Robert C. Williamson. Efficient agnostic learning of neural networks
+          with bounded fan-in. IEEE Transactions on Information Theory, 42(6):2118–2132, 1996. 3.3
+[Lee09]   Troy Lee. A note on the sign-degree of formulas. Available at https://arxiv.org/abs/0909.4607, 2009.
+          3.1, 9
+[LMN89]   Nathan Linial, Yishay Mansour, and Noam Nisan. Constant depth circuits, Fourier transform, and
+          learnability. In Proc. 30th Annual Symposium on Foundations of Computer Science (FOCS), pages
+          574–579, 1989. 3.4
+[LMN93]   Nathan Linial, Yishay Mansour, and Noam Nisan. Constant depth circuits, Fourier transform, and
+          learnability. J. ACM, 40(3):607–620, 1993. 3.4, 3.4, 14, 3.4, 15, 4.2.1
+[LN90]    Nathan Linial and Noam Nisan. Approximate inclusion-exclusion. Combinatorica, 10(4):349–365, 1990.
+          3.1
+[MOS04]   Elchanan Mossel, Ryan O’Donnell, and Rocco A. Servedio. Learning functions of k relevant variables.
+          Journal of Computer & System Sciences, 69(3):421–434, 2004. 3.2, 3.4
+[MP68]    Marvin Minsky and Seymour Papert. Perceptrons: An Introduction to Computational Geometry. MIT
+          Press, Cambridge, MA, 1968. 3.1
+[MTT61]   Saburo Muroga, Iwao Toda, and Satoru Takasu. Theory of majority switching elements. J. Franklin
+          Institute, 271(5):376–418, 1961. 3.1
+[MZ13]    Raghu Meka and David Zuckerman. Pseudorandom generators for polynomial threshold functions. SIAM
+          J. Comput., 42(3):1275–1301, 2013. 3.4
+[New64]   Donald J. Newman. Rational approximation to |x|. Michigan Mathematical Journal, 11:11–14, 1964.
+          3.1
+[NR04]    Moni Naor and Omer Reingold. Number-theoretic constructions of efficient pseudo-random functions.
+          J. ACM, 51(2):231–262, 2004. 4.2.1
+[NW94]    Noam Nisan and Avi Wigderson. Hardness versus randomness. Journal of Computer & System Sciences,
+          49:149–167, 1994. 3.4
+[O’D14]   Ryan O’Donnell. Analysis of Boolean Functions. Cambridge University Press, 2014. 3.4
+[OS07]    Ryan O’Donnell and Rocco A. Servedio. Learning monotone decision trees in polynomial time. SIAM
+          J. on Comput., 37(3):827–844, 2007. 3.4
+[OS11]    Ryan O’Donnell and Rocco A. Servedio. The Chow parameters problem. SIAM J. Comput., 40(1):165–
+          199, 2011. 2.1
+[OSK94]   Hiroyuki Ohnishi, Hiroyuki Seki, and Tadao Kasami. A polynomial time learning algorithm for recog-
+          nizable series. IEICE Trans. Inf. Syst. E77-D, 10(5):1077–1085, 1994. 3.2
+[OW13]    Ryan O’Donnell and Karl Wimmer. KKL, Kruskal-Katona, and monotone nets. SIAM J. Comput.,
+          42(6):2375–2399, 2013. 3.4
+[PH89]    Giulia Pagallo and David Haussler. A greedy method for learning µ-DNF functions under the uniform
+          distribution. Technical report, University of California at Santa Cruz, UCSC-CRL-89-12, 1989. 3.4
+[PR95]    Krishnan Pillaipakkamnatt and Vijay Raghavan. Read-twice DNF formulas are properly learnable.
+          Information and Computation, 122(2):236–267, 1995. 3.2
+[PV86]    Leonard Pitt and Leslie G. Valiant. Computational limitations on learning from examples. Technical
+          Report Technical Report TR-05-86, Harvard University, Aiken Computation Lab, 1986. 2, 4, 4.1, 8
+[PV88]    Leonard Pitt and Leslie G. Valiant. Computational limitations on learning from examples. J. ACM,
+          35(4):965–984, 1988. 4, 4.1, 4.1, 8
+
+
+                                                     43
+[PW88]     Leonard Pitt and Manfred K. Warmuth. Reductions among prediction problems: on the difficulty of
+           predicting automata. In Proc. Third Structure in Complexity Theory Conference, pages 60–69, 1988.
+           4.2.2
+[Reg04]    Oded Regev. New lattice-based cryptographic constructions. J. ACM, 51(6):899–942, 2004. 4.2.2
+[Reg05]    Oded Regev. On lattices, learning with errors, random linear codes, and cryptography. In Proc. 35th
+           Annual Symposium on Theory of Computing (STOC), pages 84–93, 2005. 4.2.2
+[Rei87]    John H. Reif. On threshold circuits and polynomial computation. In Proceedings of the Second Annual
+           Conference on Structure in Complexity Theory, pages 118–123. IEEE Computer Society, 1987. 4.2.2
+[Rei09]    Ben Reichardt. Span programs and quantum query complexity: The general adversary bound is nearly
+           tight for every boolean function. In Proc. 50th Annual Symposium on Foundations of Computer Science
+           (FOCS), pages 544–551, 2009. 3.1
+[Riv87]    Ron Rivest. Learning decision lists. Machine Learning, 2(3):229–246, 1987. 3.1, 3
+[RR97]     Alexander Razborov and Steven Rudich. Natural proofs. Journal of Computer & System Sciences,
+           55(1):24–35, 1997. 3.4
+[RS08]     Ben Reichardt and Robert Spalek. Span-program-based quantum algorithm for evaluating formulas. In
+           Proc. 40th Annual Symposium on Theory of Computing (STOC), pages 103–112, 2008. 3.1
+[Sch90]    Robert E. Schapire. The strength of weak learnability. Machine Learning, 5(2):197–227, 1990. 2.2.2, 3.4
+[Sch94]    Robert E. Schapire. Learning probabilistic read-once formulas on product distributions. Machine Learn-
+           ing, 14(1):47–81, 1994. 3.4
+[Sch03a]   Robert E. Schapire. The Boosting Approach to Machine Learning: An Overview, pages 149–171. Springer
+           New York, New York, NY, 2003. 2.2.2
+[Sch03b]   Alexander Schrijver. Preliminaries on algorithms and complexity. In Combinatorial Optimization:
+           Polyhedra and Efficiency. Springer, 2003. 3
+[Ser04]    Rocco A. Servedio. On learning monotone DNF under product distributions. Information and Compu-
+           tation, 193(1):57–74, 2004. 3.4
+[SF12]     Robert E. Schapire and Yoav Freund. Boosting: Foundations and Algorithms. MIT Press, Cambridge,
+           Massachusetts, 2012. 2.2.2
+[She13a]   Alexander A. Sherstov. The intersection of two halfspaces has high threshold degree. SIAM J. Comput.,
+           42(6):2329–2374, 2013. 3.1
+[She13b]   Alexander A. Sherstov. Optimal bounds for sign-representing the intersection of two halfspaces by
+           polynomials. Combinatorica, 33(1):73–96, 2013. 3.1
+[She18a]   Alexander A. Sherstov. Breaking the Minsky-Papert Barrier for Constant-Depth Circuits. SIAM J.
+           Comput., 47(5):1809–1857, 2018. 3.1
+[She18b]   Alexander A. Sherstov. The power of asymmetry in constant-depth circuits.           SIAM J. Comput.,
+           47(6):2362–2434, 2018. 3.1
+[She21]    Jie Shen. Sample-optimal PAC learning of halfspaces with malicious noise. In Proc. 38th International
+           Conference on Machine Learning (ICML), pages 9515–9524, 2021. 3.3
+[Sim07]    Hans Ulrich Simon. A characterization of strong learnability in the statistical query model. In 24th
+           Annual Symposium on Theoretical Aspects of Computer Science (STACS), pages 393–404, 2007. 3.3
+[SS96]     Robert E. Schapire and Linda Sellie. Learning sparse multivariate polynomials over a field with queries
+           and counterexamples. J. Comput. & Syst. Sci., 52(2):201–213, 1996. 3.2
+[SSBD14]   Shai Shalev-Shwartz and Shai Ben-David. Understanding Machine Learning: From Theory to Algo-
+           rithms. Cambridge University Press, Cambridge, UK, 2014. 4
+[ST17]     Rocco A. Servedio and Li-Yang Tan. What circuit classes can be learned with non-trivial savings? In
+           Proceedings of the 8th Innovations in Theoretical Computer Science (ITCS), pages 30:1–30:21, 2017. 3.1
+[SW19]     Alexander A. Sherstov and Pei Wu. Near-optimal lower bounds on the threshold degree and sign-rank
+           of AC0 . In Proc. 51st Annual Symposium on Theory of Computing (STOC), pages 401–412, 2019. 3.1
+
+
+
+                                                      44
+[Szö09]   Balázs Szörényi. Characterizing statistical query learning: Simplified notions and proofs. In Proc. 20th
+           International Conference on Algorithmic Learning Theory (ALT), pages 186–200, 2009. 3.3
+[Tal17]    Avishay Tal. Tight bounds on the Fourier spectrum of AC 0 . In Proc. 32nd Computational Complexity
+           Conference (CCC), pages 15:1–15:31, 2017. 3.4
+[TT99]     Jun Tarui and Tatsuie Tsukiji. Learning DNF by approximating inclusion-exclusion formulae. In Proc.
+           Fourteenth Conference on Computational Complexity (CCC), pages 215–220, 1999. 3.1
+[Vai96]    Pravin M. Vaidya. A new algorithm for minimizing convex functions over convex sets. Math. Prog.,
+           73(3):291–341, 1996. 3.1
+[Val84]    Leslie G. Valiant. A theory of the learnable. Communications of the ACM, 27(11):1134–1142, 1984. 1,
+           2.1, 2.2, 2.2.1, 2.2.2, 2.3, 3, 3.1, 2, 3.1, 3.1, 3.2, 11, 4, 4.2.1, 5
+[Val85]    Leslie G. Valiant. Learning disjunctions of conjunctions. In Proc. Ninth International Joint Conference
+           on Artificial Intelligence (IJCAI), pages 560–566, 1985. 3.1, 3.3
+[Val00]    Leslie G. Valiant. Circuits of the mind. Oxford University Press, 2000. 5
+[Val09]    Leslie G. Valiant. Evolvability. J. ACM, 56(1):3:1–3:21, 2009. 3.3, 5
+[Val13]    Leslie G. Valiant. Probably Approximately Correct: Nature’s Algorithms for Learning and Prospering in
+           a Complex World. Basic Books, New York, 2013. 2.1, 5
+[Val15]    Gregory Valiant. Finding correlations in subquadratic time, with applications to learning parities and
+           the closest pair problem. J. ACM, 62(2):Art. 13, 2015. 3.2, 3.4
+[Vap82]    Vladimir Vapnik. Estimation of Dependences Based on Empirical Data. Springer Series in Statistics,
+           Heidelberg, 1982. 2.1
+[Vap98]    Vladimir Vapnik. Statistical Learning Theory. Wiley-Interscience, New York, 1998. 2.1
+[VC71]     Vladimir Vapnik and Alexey Chervonenkis. On the uniform convergence of relative frequencies of events
+           to their probabilities. Theory Probab. Appl., 16:264–280, 1971. 3.1, 4
+[Vem10]    Santosh Vempala. A random-sampling-based algorithm for learning intersections of halfspaces. J. ACM,
+           57(6:32), 2010. 3.4
+[Ver90]    Karsten A. Verbeurgt. Learning DNF under the uniform distribution in quasi-polynomial time. In Proc.
+           Third Annual Workshop on Computational Learning Theory, pages 314–326, 1990. 3.4, 13
+
+
+
+
+                                                        45
+

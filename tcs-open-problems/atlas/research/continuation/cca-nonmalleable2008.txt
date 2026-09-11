@@ -1,0 +1,863 @@
+Black-Box Construction of a Non-malleable Encryption
+     Scheme from Any Semantically Secure One
+
+        Seung Geol Choi, Dana Dachman-Soled, Tal Malkin , and Hoeteck Wee
+
+                                  Columbia University
+                   {sgchoi,dglasner,tal,hoeteck}@cs.columbia.edu
+
+
+        Abstract. We show how to transform any semantically secure encryption
+        scheme into a non-malleable one, with a black-box construction that achieves
+        a quasi-linear blow-up in the size of the ciphertext. This improves upon the
+        previous non-black-box construction of Pass, Shelat and Vaikuntanathan (Crypto
+        ’06). Our construction also extends readily to guarantee non-malleability under a
+        bounded-CCA2 attack, thereby simultaneously improving on both results in the
+        work of Cramer et al. (Asiacrypt ’07).
+           Our construction departs from the oft-used paradigm of re-encrypting the
+        same message with different keys and then proving consistency of encryptions;
+        instead, we encrypt an encoding of the message with certain locally testable and
+        self-correcting properties. We exploit the fact that low-degree polynomials are
+        simultaneously good error-correcting codes and a secret-sharing scheme.
+        Keywords: Public-key encryption, semantic security, non-malleability, black-
+        box constructions.
+
+
+1 Introduction
+The most basic security guarantee we require of a public key encryption scheme is that
+of semantic security [GM 84]: it is infeasible to learn anything about the plaintext from
+the ciphertext. In many cryptographic applications such as auctions, we would like an
+encryption scheme that satisfies the stronger guarantee of non-malleability [ DDN 00],
+namely that given some ciphertext c, it is also infeasible to generate ciphertexts of some
+message that is related to the decryption of c. Motivated by the importance of non-
+malleability, Pass, Shelat and Vaikuntanathan raised the following question [PSV 06]:
+     It is possible to immunize any semantically secure encryption scheme against
+     malleability attacks?
+Pass et al. gave a beautiful construction of a non-malleable encryption scheme from any
+semantically secure one (building on [DDN 00]), thereby addressing the question in the
+affirmative. However, the PSV construction – as with previous constructions achieving
+non-malleability from general assumptions [ DDN 00, S 99, L 06] – suffers from the curse
+of inefficiency arising from the use of general NP-reductions. In this work, we show
+that we can in fact immunize any semantically secure encryption schemes against
+malleability attacks without paying the price of general NP-reductions:
+
+    The work was partially supported by NSF grants CNS-0716245, CCF-0347839, and SBE-
+    0245014.
+
+R. Canetti (Ed.): TCC 2008, LNCS 4948, pp. 424–441, 2008.
+
+c International Association for Cryptologic Research 2008
+                                 Black-Box Construction of a Non-malleable Encryption          425
+
+      Main theorem (informal). There exists a (fully) black-box construction of a
+      non-malleable encryption scheme from any semantically secure one.
+
+That is, we provide a wrapper program (from programming language lingo) that given
+any subroutines for computing a semantically secure encryption scheme, computes a
+non-malleable encryption scheme, with a multiplicative overhead in the running time
+that is quasi-linear in the security parameter. Before providing further details, let us first
+provide some background and context for our result.
+
+
+1.1 Relationships Amongst Cryptographic Primitives
+
+Much of the modern work in foundations of cryptography rests on general crypto-
+graphic assumptions like the existence of one-way functions and trapdoor permutations.
+General assumptions provide an abstraction of the functionalities and hardness we
+exploit in specific assumptions such as hardness of factoring and discrete log without
+referring to any specific underlying algebraic structure. Constructions based on general
+assumptions may use the primitive guaranteed by the assumption in one of two ways:
+
+Black-box usage: A construction is black-box if it refers only to the input/output
+    behavior of the underlying primitive; we would typically also require that in the
+    proof of security, we can use an adversary breaking the security of the construction
+    as an oracle to break the underlying primitive. (See [ RTV 04] and references within
+    for more details.). As emphasized earlier, our construction is black-box, using only
+    oracle access to the key generation, encryption and decryption functionality of the
+    underlying encryption scheme.
+Non-black-box usage: A construction is non-black-box if it uses the code computing
+   the functionality of the primitive. The PSV construction along with the work it
+   builds on fall into this category: they use an NP reduction applied to the circuit
+   computing the encryption functionality of the underlying encryption scheme in
+   order to provide a non-interactive zero-knowledge proof of consistency.
+
+Motivated by the fact that the vast majority of constructions in cryptography are black-
+box, a rich and fruitful body of work initiated in [IR 89] seeks to understand the
+power and limitations of black-box constructions in cryptography, resulting in a fairly
+complete picture of the relations amongst most cryptographic primitives with respect
+to black-box constructions (we summarize several of the known relations pertaining
+to encryption in Figure 1). More recent work has turned to tasks for which the only
+constructions we have are non-black-box, yet the existence of a black-box construction
+is not ruled out. Two notable examples are general secure multi-party computation
+against a dishonest majority and encryption schemes secure against adaptive chosen-
+ciphertext (CCA2) attacks1 (c.f. [GMW 87, DDN 00]).
+ 1
+     These are encryption schemes that remain semantically secure even under a CCA2 attack,
+     wherein the adversary is allowed to query the decryption oracle except on the given challenge.
+     A CCA1 attack is one wherein the adversary is allowed to query the decryption oracle before
+     (but not after) seeing the challenge.
+426       S.G. Choi et al.
+
+   The general question of whether we can securely realize these tasks via black-box
+access to a general primitive is not merely of theoretical interest. A practical reason
+is related to efficiency, as non-black-box constructions tend to be less efficient due
+to the use of general NP reductions to order to prove statements in zero knowledge;
+this impacts both computational complexity as well as communication complexity
+(which we interpret broadly to mean message lengths for protocols and key size
+and ciphertext size for encryption schemes). Moreover, if resolved in the affirmative,
+we expect the solution to provide new insights and techniques for circumventing
+the use of NP reductions and zero knowledge in the known constructions. Finally,
+given that there has been no formal model that captures non-black-box constructions
+in a satisfactory manner, the pursuit of a positive result becomes all the more
+interesting.
+   Indeed, Ishai et al. [ IKLP 06] recently provided an affirmative answer for secure
+multi-party computation by exhibiting black-box constructions from some low-level
+primitive. Their techniques have since been used to yield secure multi-party compu-
+tation via black-box access to an oblivious transfer protocol for semi-honest parties,
+which is complete (and thus necessary) for secure multi-party computation [H 08]. This
+leaves the following open problem:
+      Is it possible to realize CCA2-secure encryption via black-box access to a
+      low-level primitive, e.g. enhanced trapdoor permutations or homomorphic
+      encryption schemes?
+Previous work pertaining to this problem is limited to non-black-box constructions of
+CCA2-secure encryption from enhanced trapdoor permutations [DDN 00, S 99, L 06];
+nothing is known assuming homomorphic encryption schemes. In work concurrent
+with ours, Peikert and Waters [PW 07] made substantial progress towards the open
+problem – they constructed CCA2-secure encryption schemes via black-box access
+to a new primitive they introduced called lossy trapdoor functions, and in addition,
+gave constructions of this primitive from number-theoretic and worst-case lattice
+assumptions. Unfortunately, they do not provide a black-box construction of CCA2-
+secure encryption from enhanced trapdoor permutations.
+   Our work may also be viewed as a step towards closing this remaining gap (and a
+small step in the more general research agenda of understanding the power of black-
+box constructions). Specifically, the security guarantee provided by non-malleability
+lies between semantic security and CCA2 security, and we show how to derive non-
+malleability in a black-box manner from the minimal assumption possible, i.e., semantic
+security. In the process, we show how to enforce consistency of ciphertexts in a black-
+box manner. This issue arises in black-box constructions of both CCA2-secure and
+non-malleable encryptions. However, our consistency checks only satisfy a weaker
+notion of non-adaptive soundness, which is sufficient for non-malleability but not for
+CCA2-security (c.f. [PSV 06]). As a special case of our result, we obtain a black-box
+construction of non-malleable encryptions from any (poly-to-1) trapdoor function. Our
+results are incomparable with those of Peikert and Waters since we start from weaker
+assumptions but derive a weaker security guarantee.
+                               Black-Box Construction of a Non-malleable Encryption           427
+
+
+                           IND-CCA2
+
+
+                                           NM-q-CCA2
+                                                                eTDP         lossy TDF
+            IND-CCA1        NM-CPA
+
+
+                                                   IND-q-CCA2
+
+
+                            IND-CPA                                 (poly-to-1) TDF
+
+
+Fig. 1. Known relations among generic encryption primitives, and our results. Solid lines indicate
+black box constructions, and dotted lines indicate non-black-box constructions (c.f. [ BHSV 98,
+                     +
+DDN 00, PSV 06, CHH 07, PW 07]). The separations are with respect to black-box reductions, or
+black box shielding reductions (c.f. [ GMR 01, GMM 07]). Our contributions are indicated with the
+thick arrows.
+
+
+Related positive results. A different line of work focuses on (very) efficient con-
+structions of CCA2-secure encryptions under specific number-theoretic assumptions
+[CS 98, CS 04, CHK 04]. Apart from those based on identity-based encryption, these
+constructions together with previous ones based on general assumptions can be
+described under the following framework (c.f. [BFM 88, NY 90, RS 91, ES 02]). Start
+with some cryptographic hardness assumption that allows us to build a semantically
+secure encryption scheme, and then prove/verify that several ciphertexts satisfy certain
+relations in one of two ways:
+ – exploiting algebraic relations from the underlying assumption to deduce additional
+   structure in the encryption scheme (e.g. homomorphic, reusing randomness) [CS 98,
+   CS 04];
+ – apply a general NP reduction to prove in non-interactive zero knowledge (NIZK)
+   statements that relate to the primitive [DDN 00, S 99, L 06].
+None of the previous approaches seems to yield black-box constructions under general
+assumptions. Indeed, our work (also [PW 07]) does not use the above framework.
+
+1.2 Our Results
+As mentioned earlier, we exhibit a black-box construction of a non-malleable en-
+cryption scheme from any semantically secure one, the main novelty being that our
+construction is black-box. While this is interesting in and of itself, our construction also
+compares favorably with previous work in several regards:
+ – Improved parameters. We improve on the computational complexity of previous
+   constructions based on general assumptions. In particular, we do not have to do an
+428        S.G. Choi et al.
+
+      NP-reduction in either encryption or decryption, although we do have to pay the
+      price of the running time of Berlekamp-Welch for decryption. The running time
+      incurs a multiplicative overhead that is quasi-linear in the security parameter, over
+      the running time of the underlying CPA secure scheme. Moreover, the sizes of
+      public keys and ciphertext are independent of the computational complexity of the
+      underlying scheme.
+ – Conceptual simplicity/clarity. Our scheme (and the analysis) is arguably much
+   simpler than many of the previous constructions, and like [PSV 06], entirely
+   self-contained (apart from the Berlekamp-Welch algorithm). We do not need to
+   appeal to notions of zero-knowledge, nor do we touch upon subtle technicalities
+   like adaptive vs non-adaptive NIZK. Our construction may be covered in an
+   introductory graduate course on cryptography without requiring zero knowledge
+   as a pre-requisite.
+ – Ease of implementation. Our scheme is easy to describe and can be easily
+   implemented in a modular fashion.
+We may also derive from our construction additional positive and negative results.
+
+Bounded CCA2 non-malleability. Cramer et al. [CHH+ 07] introduced the bounded
+CCA2 attack, a relaxation of the CCA2 attack wherein the adversary is only allowed
+make an a-priori bounded number of queries q to the decryption oracle, where q is fixed
+prior to choosing the parameters of the encryption scheme. In addition, starting from
+any semantically secure encryption, they obtained2:
+ – an encryption scheme that is semantically secure under a bounded-CCA2 attack
+   via a black-box construction, wherein the size of the public key and ciphertext are
+   quadratic in q; and
+ – an encryption scheme that is non-malleable under a bounded-CCA2 attack via a
+   non-black-box construction, wherein the size of the public key and ciphertext are
+   linear in q.
+Combining their approach for the latter construction with our main result, we obtain an
+encryption scheme that is non-malleable under a bounded-CCA2 attack via a black-box
+construction, wherein the size of the public key and ciphertext are linear in q.
+
+Separation between CCA2 security and non-malleability. Our main construction
+has the additional property that the decryption algorithm does not query the encryption
+functionality of the underlying scheme. Gertner, Malkin and Myers [GMM 07] referred
+to such constructions as shielding and they showed that there is no shielding black-box
+construction of CCA1-secure encryption schemes from semantically secure encryption.
+Combined with the fact that any shielding construction when composed with our
+construction is again shielding, this immediately yields the following:
+      Corollary (informal) There exists no shielding black-box construction of
+      CCA1-secure encryption schemes from non-malleable encryption schemes.
+ 2
+     While semantic security and non-malleability are equivalent under a CCA2 attack [ DDN 00],
+     they are not equivalent under a bounded-CCA2 attack, as shown in [ CHH+ 07].
+                             Black-Box Construction of a Non-malleable Encryption       429
+
+Note that a CCA2-secure encryption scheme is trivially also CCA1-secure, so this also
+implies a separation between non-malleability and CCA2-security for shielding black-
+box constructions.
+
+Our techniques. At a high level, we follow the cut-and-choose approach for con-
+sistency checks from [PSV 06], wherein the randomness used for cut-and-choose is
+specified in the secret key. A crucial component of our construction is a message
+encoding scheme with certain locally testable and self-correcting properties, based on
+the fact that low-degree polynomials are simultaneously good error-correcting codes
+and a secret-sharing scheme; this has been exploited in the early work on secure multi-
+party computation with malicious adversaries [BGW 88]. We think this technique may
+be useful in eliminating general NP-reductions in other constructions in cryptography
+(outside of public-key encryption).
+
+Towards CCA2 Security? The main obstacle towards achieving full CCA2 security
+from either semantically secure encryptions or enhanced trapdoor permutations using
+our approach (and also the [PSV 06] approach) lies in guaranteeing soundness of the
+consistency checks against an adversary that can adaptively determine its queries
+depending on the outcome of previous consistency checks. It seems conceivable that
+using a non-shielding construction that uses re-encryption may help overcome this
+obstacle.
+
+1.3 Overview of Our Construction
+Recall the DDN [DDN 00] and PSV [PSV 06] constructions: to encrypt a message, one
+(a) generates k encryptions of the same message under independent keys, (b) gives a
+non-interactive zero-knowledge proof that all resulting ciphertexts are encryptions of
+the same message, and (c) signs the entire bundle with a one-time signature. It is in step
+(b) that we use a general NP-reduction, which in return makes the construction non-
+black-box. In the proof of security, we exploit that fact that for a well-formed ciphertext,
+we can recover the message if we know the secret key for any of the k encryptions.
+   How do we guarantee that a tuple of k ciphertexts are encryptions of the same
+plaintext without using a zero-knowledge proof and without revealing any information
+about the underlying plaintext? Naively, one would like to use a cut-and-choose
+approach (as has been previously used in [ LP 07] to eliminate zero-knowledge proofs
+in the context of secure two-party computation), namely decrypt and verify that some
+constant fraction, say k/2 of the ciphertexts are indeed consistent. There are two issues
+with this approach:
+ – First, if only a constant number of ciphertexts are inconsistent, then we are unlikely
+   to detect the inconsistency. To circumvent this problem, we could decrypt by
+   outputting the majority of the remaining k/2 ciphertexts.
+ – The second issue is more fundamental: decrypting any of the ciphertexts will
+   immediately reveal the underlying message, whereas it is crucial that we can
+   enforce consistency while learning nothing about the underlying message.
+430     S.G. Choi et al.
+
+   We circumvent both issues by using a more sophisticated encoding of the message m
+based on low-degree polynomials instead of merely making k copies of the message as
+in the above schemes. Specifically, we pick a random degree k polynomial p such that
+p(0) = m and we construct a k × 10k matrix such that the i’th column of the matrix
+comprises entirely of the value p(i). To verify consistency, we will decrypt a random
+subset of k columns, and check that all the entries in each of these columns are the
+same.
+ – The issue that only a tiny number of ciphertexts are inconsistent is handled using
+   the error-correcting properties of low-degree polynomials; specifically, each row of
+   a valid encoding is a codeword for the Reed-Solomon code (and we output ⊥ if it’s
+   far from any codeword).
+ – Low-degree polynomials are also good secret-sharing schemes, and learning a
+   random subset of k columns in a valid encoding reveals nothing about the
+   underlying message m. Encoding m using a secret-sharing scheme appears in the
+   earlier work of Cramer et al. [CHH+ 07], but they do not consider redundancy or
+   error-correction.
+As before, we encrypt all the entries of the matrix using independent keys and then
+sign the entire bundle with a one-time signature. It is important that the encoding also
+provides a robustness guarantee similar to that of repeating the message k times: we
+are able to recover the message for a valid encryption if we can decrypt any row in the
+matrix. Indeed, this is essentially our entire scheme with two technical caveats:
+ – As with previous schemes, we will associate one pair of public/secret key pairs with
+   each entry of the matrix, and we will select the public key for encryption based on
+   the verification key of the one-time signature scheme.
+ – To enforce consistency, we will need a codeword check in addition to the column
+   check outlined above. The reason for this is fairly subtle and we will highlight the
+   issue in the formal exposition of our construction.
+
+Decreasing ciphertext size. To encrypt an n-bit message with security parameter k, our
+construction yields O(k 2 ) encryptions of n-bit messages in the underlying scheme. It is
+easy to see that this may be reduced to O(k log2 k) encryptions by reducing the number
+of columns to O(log2 k).
+
+
+2 Preliminaries and Definitions
+Notation. We adopt the notation used in [PSV 06]. We use [n] to denote {1, 2, . . . , n}.
+If A is a probabilistic polynomial time (hereafter, ppt) algorithm that runs on input
+x, A(x) denotes the random variable according to the distribution of the output of A
+on input x. We denote by A(x; r) the output of A on input x and random coins r.
+Computational indistinguishability between two distributions A and B is denoted by
+   c                                            s
+A ≈ B and statistical indistinguishability by A ≈ B.
+                                 Black-Box Construction of a Non-malleable Encryption          431
+
+2.1 Semantically Secure Encryption
+
+Definition 1 (Encryption Scheme). A triple (Gen, Enc, Dec) is an encryption scheme,
+if Gen and Enc are ppt algorithms and Dec is a deterministic polynomial-time algorithm
+which satisfies the following property:
+
+    Correctness. There exists a negligible function μ(·) such that for all sufficiently
+    large k, we have that with probability 1 − μ(k) over (PK, SK) ← Gen(1k ): for
+    all m, Pr[DecSK (EncPK (m)) = m] = 1.
+
+Definition 2 (Semantic Security). Let Π = (Gen, Enc, Dec) be an encryption scheme
+and let the random variable INDb (Π, A, k), where b ∈ {0, 1}, A = (A1 , A2 ) are ppt
+algorithms and k ∈ N, denote the result of the following probabilistic experiment:
+
+    INDb (Π, A, k) :
+      (PK , SK) ← Gen(1k )
+      (m0 , m1 , STATEA ) ← A1 (PK ) s.t. |m0 | = |m1 |
+      y ← EncPK (mb )
+      D ← A2 (y, STATEA )
+      Output D
+
+(Gen, Enc, Dec) is indistinguishable under a chosen-plaintext (CPA) attack, or seman-
+tically secure, if for any ppt algorithms A = (A1 , A2 ) the following two ensembles are
+computationally indistinguishable:
+                                          c
+                                                                
+                        IND0 (Π, A, k)      ≈ IND1 (Π, A, k)
+                                             k∈N                            k∈N
+
+It follows from a straight-forward hybrid argument that semantic security implies
+indistinguishability of multiple encryptions under independently chosen keys:
+
+Proposition 1. Let Π = (Gen, Enc, Dec) be a semantically secure encryption scheme
+and let the random variable mINDb (Π, A, k, ), where b ∈ {0, 1}, A = (A1 , A2 ) are
+ppt algorithms and k ∈ N, denote the result of the following probabilistic experiment:
+
+    mINDb (Π, A, k, ) :
+     For i = 1, . . . , : (PKi , SKi ) ← Gen(1k )
+     (m10 , . . . , m0 , m11 , . . . , m1 , STATEA ) ← A1 (PK1 , . . . , PK )
+       s.t. |m10 | = |m11 | = · · · = |m0 | = |m1 |
+     For i = 1, . . . , : yi ← EncPKi (mib )
+     D ← A2 (y1 , . . . , y , STATEA )
+     Output D
+
+then for any ppt algorithms A = (A1 , A2 ) and for any polynomial p(k) the following
+two ensembles are computationally indistinguishable:
+                                        c
+                                                                  
+             mIND0 (Π, A, k, p(k))       ≈ mIND1 (Π, A, k, p(k))
+                                            k∈N                                          k∈N
+432       S.G. Choi et al.
+
+2.2 Non-malleable Encryption
+Definition 3 (Non-malleable Encryption [PSV 06]). Let Π = (Gen, Enc, Dec) be an
+encryption scheme and let the random variable NMEb (Π, A, k, ) where b ∈ {0, 1},
+A = (A1 , A2 ) are ppt algorithms and k,  ∈ N denote the result of the following
+probabilistic experiment:
+      NMEb (Π, A, k, ) :
+       (PK , SK) ← Gen(1k )
+       (m0 , m1 , STATEA ) ← A1 (PK ) s.t. |m0 | = |m1 |
+       y ← EncPK (mb )
+       (ψ1 , . . . , ψ ) ← A2 (y, STATEA ) 
+                                              ⊥           if ψi = y
+       Output (d1 , . . . , d ) where di =
+                                              DecSK (ψi ) otherwise
+
+(Gen, Enc, Dec) is non-malleable under a chosen plaintext (CPA) attack if for any ppt
+algorithms A = (A1 , A2 ) and for any polynomial p(k), the following two ensembles
+are computationally indistinguishable:
+                                       c
+                                                                 
+             NME0 (Π, A, k, p(k))       ≈ NME1 (Π, A, k, p(k))
+                                        k∈N                              k∈N
+
+It was shown in [PSV 06] that an encryption that is non-malleable (under Definition 3)
+remains non-malleable even if the adversary A2 receives several encryptions under
+many different public keys (the formal experiment is the analogue of mIND for non-
+malleability).
+
+2.3 (Strong) One-Time Signature Schemes
+Informally, a (strong) one-time signature scheme (GenSig, Sign, VerSig) is an existen-
+tially unforgeable signature scheme, with the restriction that the signer signs at most one
+message with any key. This means that an efficient adversary, upon seeing a signature
+on a message m of his choice, cannot generate a valid signature on a different message,
+or a different valid signature on the same message m. Such schemes can be constructed
+in a black-box way from one-way functions [R 90, L 79], and thus from any semantically
+secure encryption scheme (Gen, Enc, Dec) using black-box access only to Gen.
+
+
+3 Construction
+Given an encryption scheme E = (Gen, Enc, Dec), we construct a new encryption
+scheme Π = (NMGenGen , NMEncGen,Enc , NMDecGen,Dec ), summarized in Figure 2,
+and described as follows.
+
+Polynomial encoding. We identify {0, 1}n with the field GF(2n ). To encode a message
+m ∈ {0, 1}n, we pick a random degree k polynomial p over GF(2n ) such that p(0) =
+m and construct a k × 10k matrix such that the i’th column of the matrix comprise
+entirely of the value si = p(i) (where 0, 1, . . . , 10k are the lexicographically first
+                               Black-Box Construction of a Non-malleable Encryption        433
+
+10k + 1 elements in GF(2n ) according to some canonical encoding). Note that
+(s1 , . . . , s10k ) is both a (k + 1)-out-of-10k secret-sharing of m using Shamir’s secret-
+sharing scheme and a codeword of the Reed-Solomon code W, where
+
+               W = { (p(1), . . . , p(10k) | p is a degree k polynomial }.
+Note that W is a code over the alphabet {0, 1}n with minimum relative distance 0.9,
+which means we may efficiently correct up to 0.45 fraction errors using the Berlekamp-
+Welch algorithm. [tm: add reference]
+
+Encryption. The public key for Π comprises 20k 2 public keys E indexed by a triplet
+(i, j, b) ∈ [k] × [10k] × {0, 1}; there are two keys corresponding to each entry of a
+k×10k matrix. To encrypt a message m, we (a) compute (s1 , . . . , s10k ) as in the above-
+mentioned polynomial encoding, (b) generate (SKSIG , VKSIG) for a one-time signature,
+(c) compute a k × 10k matrix c = (ci,j ) of ciphertexts where ci,j = EncPKvi,ji (sj ), and
+(d) sign c using SKSIG.
+                 ⎛                                                               ⎞
+                    EncPK v1,11 (s1 ) Enc    v1 (s ) · · · Enc    v1    (s     )
+                 ⎜                        PK 1,2  2            PK 1,10k    10k
+                                                                                 ⎟
+                 ⎜                                                               ⎟
+                 ⎜ EncPK v2 (s1 ) EncPKv2 (s2 ) · · · EncPKv2 (s10k ) ⎟
+                 ⎜                                                               ⎟
+                 ⎜                                                               ⎟
+                           2,1               2,2                  2,10k
+
+                 ⎜         ..                ..       ..             ..          ⎟
+                 ⎜          .                 .          .            .          ⎟
+                 ⎝                                                               ⎠
+                   EncPKvk (s1 ) EncPKvk (s2 ) · · · EncPKvk (s10k )
+                         k,1              k,2                k,10k
+
+
+Consistency Checks. A valid ciphertext in Π satisfies two properties: (1) the first row
+is an encryption of a codeword in W and (2) every column comprises k encryptions
+of the same plaintext. We want to design consistency checks that reject ciphertexts
+that are “far” from being valid ciphertexts under Π. For simplicity, we will describe the
+consistency checks as applied to the underlying matrix of plaintexts. The checks depend
+on a random subset S of k columns chosen during key generation.
+     C OLUMN C HECK (column-check): We check that each of the k columns in
+        S comprises entirely of the same value.
+     C ODEWORD C HECK (codeword-check): We find a codeword w that agrees
+        with the first row of the matrix in at least 9k positions; the check fails if no
+        such w exists. Then we check that the first row of the matrix agrees with
+        w at the k positions indexed by S.
+The codeword check ensures that with high probability, the first row of the matrix agrees
+with w in at least 10k − o(k) positions. We explain its significance after describing the
+alternative decryption algorithm in the analysis.
+
+Decryption. To decrypt, we (a) verify the signature and run both consistency checks,
+and (b) if all three checks accept, decode the codeword w and output the result, other-
+wise output ⊥. Note that to decrypt we only need the 20k secret keys corresponding to
+the first row of the matrix and 2k secret keys corresponding to each of the k columns
+in S.
+434     S.G. Choi et al.
+
+
+
+  NMGen(1k ):
+     1. For i ∈ [k], j ∈ [10k], b ∈ {0, 1}, run Gen(1k ) to generate key-pairs
+         (PK bi,j , SKbi,j ).
+     2. Pick a random subset S ⊂ [10k] of size k.
+                                                           
+    Set PK = (PK0i,j , PK1i,j ) | i ∈ [k], j ∈ [10k] and SK = S, (SK0i,j , SK1i,j ) | i ∈
+                     
+    [k], j ∈ [10k] .
+
+  NMEncPK (m):
+     1. Pick random α1 , . . . , αk ∈ GF(2n ) and set sj = p(j), j ∈ [10k] where
+        p(x) = m0 + α1 x + . . . + αk xk .
+     2. Run GenSig(1k ) to generate (SKSIG, VKSIG ). Let (v1 , . . . , vk ) be the binary
+        representation of VKSIG .
+     3. Compute the ciphertext ci,j ← EncPKvi,ji (sj ), for i ∈ [k], j ∈ [10k].
+     4. Compute the signature σ ← SignSKSIG (c) where c = (ci,j ).
+    Output the tuple [c, VKSIG , σ].
+  NMDecSK ([c, VKSIG, σ]):
+     1. (sig-check) Verify the signature with VerSigVKSIG [c, σ].
+     2. Let c = (ci,j ) and VKSIG = (v1 , . . . , vk ). Compute sj = DecSK v1,j1 (c1,j ),
+         j = 1, . . . , 10k and the codeword w = (w1 , . . . , w10k ) ∈ W that agrees with
+         (s1 , . . . , s10k ) in at least 9k positions. If no such codeword exists, output ⊥.
+     3. (column-check) For all j ∈ S, check that DecSKv1,j1 (c1,j ) =
+         DecSKv2,j2 (c2,j ) = · · · = DecSKvk (ck,j ).
+                                              k,j
+     4. (codeword-check) For all j ∈ S, check that sj = wj .
+    If all three checks accept, output the message m corresponding to the codeword
+    w; else, output ⊥.
+
+
+
+                 Fig. 2. T HE N ON -M ALLEABLE E NCRYPTION S CHEME Π
+
+
+   Note that the decryption algorithm may be stream-lined, for instance, by running the
+codeword check only if the column check succeeds. We choose to present the algorithm
+as is in order to keep the analysis simple; in particular, we will run both consistency
+checks independent of the outcome of the other.
+
+4 Analysis
+Having presented our construction, we now formally state and prove our main result:
+Theorem 1. (Main Theorem, restated).
+Assume there exists an encryption scheme E = (Gen, Enc, Dec) that is seman-
+tically secure under a CPA attack. Then there exists an encryption scheme Π =
+(NMGenGen , NMEncGen,Enc , NMDecGen,Dec ) that is non-malleable under a CPA attack.
+                              Black-Box Construction of a Non-malleable Encryption         435
+
+   We establish the theorem (as in [DDN 00, PSV 06], etc) via a series of hybrid
+arguments and deduce indistinguishability of the intermediate hybrid experiments
+from the semantic security of the underlying scheme E under some set of public
+keys Γ . To do so, we will need to implement an alternative decryption algorithm
+NMDec∗ that is used in the intermediate experiments to simulate the actual decryption
+algorithm NMDec in the non-malleability experiment. We need NMDec∗ to achieve
+two conflicting requirements:
+
+ – NMDec∗ and NMDec must agree on essentially all inputs, including possibly
+   malformed ciphertexts;
+ – We can implement NMDec∗ without having to know the secret keys corresponding
+   to the public keys in Γ .
+
+Of course, designing NMDec∗ is difficult precisely because NMDec uses the secret keys
+corresponding to the public keys in Γ .
+   Here is a high-level (but extremely inaccurate) description of how NMDec∗ works:
+Γ is the set of public keys corresponding to the first row of the k × 10k matrix. To
+implement NMDec∗ , we will decrypt the i’th row of the matrix of ciphertexts, for some
+i > 1, which the column check (if successful) guarantees to agree with the first row in
+most positions; error correction takes care of the tiny fraction of disagreements.
+
+
+4.1 Alternative Decryption Algorithm NMDec∗
+
+Let VKSIG∗ = (v1∗ , . . . , vk∗ ) denote the verification key in the challenge ciphertext given
+to the adversary in the non-malleability experiment, and let VKSIG = (v1 , . . . , vk )
+denote the verification key in (one of) the ciphertext(s) generated by the adversary.
+First, we modify the signature check to also output ⊥ if there is a forgery, namely
+VKSIG = VKSIG ∗ . Next, we modify the consistency checks (again, as applied to the
+underlying matrix of plaintexts) as follows:
+
+      C OLUMN C HECK (column-check∗): This is exactly as before, we check that
+         the each of the k columns in S comprises entirely of the same value.
+
+      C ODEWORD C HECK (codeword-check∗): Let i be the smallest value such
+         that vi = vi∗ (which exists because VKSIG = VKSIG∗ ). We find a codeword
+         w that agrees with the i’th row of the matrix in at least 8k positions (note
+         agreement threshold is smaller than before); the check fails if so such w
+         exists. Then we check that the first row of the matrix agrees with w at the
+         k positions indexed by S.
+
+To decrypt, run the modified signature and consistency checks, and if all three checks
+accept, decode the codeword w and output the result, otherwise output ⊥. To implement
+the modified consistency checks and decryption algorithm, we only need the 10k secret
+keys indexed by VKSIG ∗ for each row of the matrix, and as before, the 2k secret keys
+corresponding to each of the k columns in S.
+436     S.G. Choi et al.
+
+Remark on the Codeword Check. At first, the codeword check may seem superfluous.
+Suppose we omit the codeword check, and as before, define w to be a codeword that
+agrees with the first row in 9k positions and with the i’th row in 8k positions in the re-
+spective decryption algorithms; the gap is necessary to take into account inconsistencies
+not detected by the column check. Now, consider a malformed ciphertext ψ for Π where
+in the underlying matrix of plaintexts, each row is the same corrupted codeword that
+agrees with a valid codeword in exactly 8.5k positions. Without the codeword checks,
+ψ will be an invalid ciphertext according to NMDec and a valid ciphertext according
+to NMDec∗ and can be used to distinguish the intermediate hybrid distributions in the
+analysis; with the codeword checks, ψ is an invalid ciphertext according to both. It
+is also easy to construct a problematic malformed ciphertext for the case where both
+agreement thresholds are set to the same value (say 9k).
+
+4.2 A Promise Problem
+Recall the guarantees we would like from NMDec and NMDec∗ :
+ – On input a ciphertext that is an encryption of a message m under Π, both NMDec
+   and NMDec∗ will output m with probability 1.
+ – On input a ciphertext that is “close” to an encryption of a message m under Π,
+   both NMDec and NMDec∗ will output m with the same probability (the exact
+   probability is immaterial) and ⊥ otherwise.
+ – On input a ciphertext that is “far” from any encryption, then both NMDec and
+   NMDec∗ output ⊥ with high probability.
+To quantify and establish these guarantees, we consider the following promise problem
+(ΠY , ΠN ) that again refers to the underlying matrix of plaintexts. An instance is a
+matrix of k by 10k values in {0, 1}n ∪ ⊥.
+
+ ΠY (YES instances) — for some w ∈ W, every row equals w.
+ ΠN (NO instances) — either there exist two rows that are 0.1-far (i.e. disagree in at
+   least k positions), or the first row is 0.1-far from every codeword in W (i.e. disagree
+   with every codeword in at least k positions).
+
+Valid encryptions correspond to the YES instances, while NO instances will correspond
+to “far” ciphertexts. To analyze the success probability of an adversary, we examine
+each ciphertext ψ it outputs with some underlying matrix M of plaintexts (which may
+be a YES or a NO instance or neither) and show that both NMDec and NMDec∗ agree
+on ψ with high probability. To facilitate the analysis, we consider two cases:
+
+ – If M ∈ ΠN , then it fails the column/codeword checks in both decryption
+   algorithms with high probability, in which case both decryption algorithms output
+   ⊥. Specifically, if there are two rows that are 0.1-far, then column check rejects
+   M with probability 1 − 0.9k . On the other hand, if the first row is 0.1-far from
+   every codeword, then the codeword check in NMDec rejects M with probability
+   1 and that in NMDec∗ rejects M with probability at least 1 − 0.9k ; that is, with
+   probability 1 − 0.9k , both codeword checks in NMDec and NMDec∗ rejects M .
+                             Black-Box Construction of a Non-malleable Encryption       437
+
+ – If M ∈ / ΠN , then both decryption algorithms always output the same answer for all
+   choices of the set S, provided there is no forgery. Fix M ∈
+                                                             / ΠN and a set S. The first
+   row is 0.9-close to codeword w ∈ W and we know in addition that every other row
+   is 0.9-close to the first row and thus 0.8-close to w. Therefore, we will recover the
+   same codeword w and message m whether we decode the first row within distance
+   0.1, or any other row within distance 0.2. This means that the codeword checks in
+   both decryption algorithms compare the first row with the same codeword w. As
+   such, both decryption algorithms output ⊥ with exactly the same probability, and
+   whenever they do not output ⊥, they output the same message m.
+
+
+4.3 Proof of Main Theorem
+In the hybrid argument, we consider the following variants of NMEb as applied to Π,
+where VKSIG ∗ denotes the verification key in the ciphertext y = NMEncPK (mb ):
+
+                    (1)            (1)
+Experiment NMEb     — NMEb proceeds exactly like NMEb , except we replace
+sig-check in NMDec with sig-check∗:
+    (sig-check∗) Verify the signature with VerSigVKSIG [c, σ]. Output ⊥ if the
+    signature fails to verify or if VKSIG = VKSIG∗ .
+
+
+                    (2)            (2)
+Experiment NMEb     — NMEb               proceeds exactly like NMEb except we replace
+NMDec with NMDec∗ :
+
+    NMDec∗SK ([c, VKSIG , σ]):
+     1. (sig-check∗) Verify the signature with VerSigVKSIG [c, σ]. Output ⊥ if the
+         signature fails to verify or if VKSIG = VKSIG∗ .
+     2. Let c = (ci,j ) and VKSIG = (v1 , . . . , vk ). Let i be the smallest value
+         such that vi = vi∗ . Compute sj = DecSKvi (ci,j ), j = 1, . . . , 10k and
+                                                     i,j
+         w = (w1 , . . . , w10k ) ∈ W that agrees with (s1 , . . . , s10k ) in at least 8k
+         positions. If no such codeword exists, output ⊥.
+     3. (column-check∗) For all j ∈ S, check that DecSKv1,j1 (c1,j ) = DecSK v2,j2 (c2,j )
+         = · · · = DecSKvk (ck,j ).
+                          k,j
+     4. (codeword-check∗) For all j ∈ S, check that DecSKv1,j1 (c1,j ) = wj .
+    If all three checks accept, output the message m corresponding to the codeword
+    w; else, output ⊥.
+                                                         c                              
+                                                                          (1)
+Claim. For b ∈ {0, 1}, we have NMEb (Π, A, k, p(k)) ≈ NMEb (Π, A, k, p(k))
+
+Proof. This follows readily from the security of the signature scheme.
+                                                         s             
+                                       (1)                          (2)
+Claim. For b ∈ {0, 1}, we have NMEb (Π, A, k, p(k)) ≈ NMEb (Π, A, k, p(k))
+438      S.G. Choi et al.
+
+Proof. We will show that both distributions are statistically close for all possible coin
+tosses in both experiments (specifically, those of NMGen, A and NMEnc) except for
+the choice of S in NMGen. Once we fix all the coin tosses apart from the choice of
+S, the output (ψ1 , . . . , ψp(k) ) of A2 are completely determined and identical in both
+experiments. We claim that with probability 1 − 2p(k) · 0.9k = 1 − neg(k) over the
+choice of S, the decryptions of (ψ1 , . . . , ψp(k) ) agree in both experiments. This follows
+from the analysis of the promise problem in Section 4.2.
+
+Claim. For every ppt machine A, there exists a ppt machine B such that for b ∈ {0, 1},
+                                                                
+                      (2)
+                NMEb (Π, A, k, p(k)) ≡ mINDb (E, B, k, 9k 2 )
+
+Proof. The machine B is constructed as follows: B participates in the experiment
+mINDb (the “outside”) while internally simulating A = (A1 , A2 ) in the experiment
+     (2)
+NMEb .
+ – (pre-processing) Pick a random subset S = {u1 , . . . , uj } of [10k] and run
+   GenSig(1k ) to generate (SKSIG∗ , VKSIG∗ ) and set (v1∗ , . . . , vk∗ ) = VKSIG∗ . Let
+   φ be a bijection identifying {(i, j) | i ∈ [k], j ∈ [10k] \ S} with [9k 2 ].
+ – (key generation) B receives PK 1 , . . . , PK9k2  from the outside and simulates
+   NMGen as follows: for all i ∈ [k], j ∈ [10k], β ∈ {0, 1},
+                                      
+                      β       β         (PKφ(i,j) , ⊥) if β = vi∗ and j ∈/S
+                  (PK i,j , SKi,j ) =
+                                        Gen(1k )       otherwise
+
+ – (message selection) Let (m0 , m1 ) be the pair of messages A1 returns. B then
+   chooses k random values (γu1 , . . . , γuk ) ∈ {0, 1}n and computes two degree
+   k polynomials p0 , p1 where pβ interpolates the k + 1 points (0, mβ ), (u1 , γu1 ),
+                                               φ(i,j)
+   . . . , (uk , γuk ) for β ∈ {0, 1}. B sets mβ      = pβ (j), for i ∈ [k], j ∈ [10k] \ S
+                                   2                 2
+                                  0 , m1 , . . . , m1 ) to the outside.
+   and forwards (m10 , . . . , m9k        1          9k
+
+ – (ciphertext generation) B receives y1 , . . . , y9k2  from the outside (according
+                                                             2
+   to the distribution EncPK 1 (m1b ), . . . , EncPK9k2 (m9k
+                                                           b )) and generates a ciphertext
+   [c, VKSIG∗ , σ] as follows:
+                                      ⎧
+                                      ⎨yφ(i,j)           if j ∈/S
+                               ci,j =
+                                      ⎩Enc vi (γj ) otherwise
+                                            PK i,j
+                                                  ∗
+
+
+
+
+   B then computes the signature σ ← SignSKSIG ∗ (c) and forwards [c, VKSIG ∗ , σ] to
+   A2 . It is straight-forward to verify that [c, VKSIG ∗ , σ] is indeed a random encryption
+   of mb under Π.
+ – (decryption) Upon receiving a sequence of ciphertexts (ψ1 , . . . , ψp(k) ) from A2 ,
+   B decrypts these ciphertexts using NMDec∗ as in NMEb . Note that to simulate
+                                                                    (2)
+
+             ∗
+   NMDec , it suffices for B to possess the secret keys {SKi,j | β = 1 − vi∗ or j ∈ S},
+                                                                   β
+
+   which B generated by itself.
+                             Black-Box Construction of a Non-malleable Encryption      439
+
+Combining the three claims, we conclude that for every ppt adversary A, there is a ppt
+adversary B such that for b ∈ {0, 1},
+                                      c                       
+                                                (1)
+               NMEb (Π, A, k, p(k)) ≈ NMEb (Π, A, k, p(k))
+                s
+                                                                   
+                          (2)
+               ≈ NMEb (Π, A, k, p(k)) ≡ mINDb (E, B, k, 9k 2 )
+                                    c
+By Prop 1, mIND0 (E, B, k, 9k 2 ) ≈ mIND1 (E, B, k, 9k 2 ), which concludes the proof
+of Theorem 1.
+
+5 Achieving Bounded-CCA2 Non-malleability
+We sketch how our scheme may be modified to achieve non-malleability under a
+bounded-CCA2 attack. Here, we allow the adversary to query Dec at most q times
+in the non-malleability experiment (but it must not query Dec on y). The modification
+is the straight-forward analogue of the [CHH+ 07] modification of the [PSV 06] scheme:
+we increase the number of columns in the matrix from 10k to 80(k + q), and the degree
+of the polynomial p and the size of S from k to 8(k + q), and propagate the changes
+accordingly. The analysis is basically as before, except for the following claim (where
+               (1)             (2)                                      (1)      (1)
+NME-q-CCAb , NME-q-CCAb are the respective analogues of NMEb , NMEb ):
+Claim. For b ∈ {0, 1}, we have
+                                   s                         
+                     (1)                       (2)
+         NME-q-CCAb (Π, A, k, p(k)) ≈ NME-q-CCAb (Π, A, k, p(k))
+
+Proof (sketch). As before, we will show that both distributions are statistically close
+for all possible coin tosses in both experiments (specifically, those of NMGen, A and
+NMEnc) except for the choice of S in NMGen. However, we cannot immediately
+deduce that the output of A2 are completely determined and identical in both exper-
+iments, since they depend on the adaptively chosen queries to NMDec, and the answers
+depend on S. Instead, we will consider all 2q possible computation paths of A which
+are determined based on the q query/answer pairs from NMDec. For each query, we
+consider the underlying matrix of plaintexts M :
+ – If M ∈ ΠN , then we assume NMDec returns ⊥.
+ – If M ∈/ ΠN , then we consider two branches depending on the two possible
+   outcomes of the consistency checks.
+We claim that with probability 1 − 2q · p(k) · 0.98(k+q) > 1 − neg(k) over the choice of
+S, the decryptions of (ψ1 , . . . , ψp(k) ) agree in both experiments in all 2q computation
+paths.
+
+Remark on achieving (full) CCA2 security. It should be clear from the preceding
+analysis that the barrier to obtaining full CCA2 security lies in handling queries outside
+ΠN . Specifically, with even just a (full) CCA1 attack, an adversary could query NMDec
+on a series of adaptively chosen ciphertexts corresponding to matrices outside ΠN to
+learn the set S upon which it could readily break the security of our construction.
+440         S.G. Choi et al.
+
+Acknowledgments. This work was initiated while the third and fourth authors were
+visiting IPAM. We would like to thank Vinod Vaikuntanathan for sharing his insights
+on non-malleability over the last two summers.
+
+
+References
+[BFM 88]         Blum, M., Feldman, P., Micali, S.: Non-interactive zero-knowledge and its
+                 applications. In: STOC, pp. 103–112 (1988)
+[BGW 88]         Ben-Or, M., Goldwasser, S., Wigderson, A.: Completeness theorems for non-
+                 cryptographic fault-tolerant distributed computation. In: STOC, pp. 1–10 (1988)
+[BHSV 98]        Bellare, M., Halevi, S., Sahai, A., Vadhan, S.P.: Many-to-one trapdoor functions
+                 and their relation to public-key cryptosystems. In: Goldwasser, S. (ed.) CRYPTO
+                 1988. LNCS, vol. 403, pp. 283–298. Springer, Heidelberg (1990)
+[CHH+ 07]        Cramer, R., Hanaoka, G., Hofheinz, D., Imai, H., Kiltz, E., Pass, R., Shelat, A.,
+                 Vaikuntanathan, V.: Bounded CCA2-secure encryption. In: Kurosawa, K. (ed.)
+                 ASIACRYPT 2007. LNCS, vol. 4833, Springer, Heidelberg (2007)
+[CHK 04]         Canetti, R., Halevi, S., Katz, J.: Chosen-ciphertext security from identity-based
+                 encryption. In: Cachin, C., Camenisch, J.L. (eds.) EUROCRYPT 2004. LNCS,
+                 vol. 3027, pp. 207–222. Springer, Heidelberg (2004)
+[CS 98]          Cramer, R., Shoup, V.: A practical public key cryptosystem provably secure against
+                 adaptive chosen ciphertext attack. In: Krawczyk, H. (ed.) CRYPTO 1998. LNCS,
+                 vol. 1462, pp. 13–25. Springer, Heidelberg (1998)
+[CS 04]          Cramer, R., Shoup, V.: Universal hash proofs and a paradigm for adaptive chosen
+                 ciphertext secure public-key encryption. In: Cachin, C., Camenisch, J.L. (eds.)
+                 EUROCRYPT 2004. LNCS, vol. 3027, pp. 45–64. Springer, Heidelberg (2004)
+[DDN 00]         Dolev, D., Dwork, C., Naor, M.: Nonmalleable cryptography. SIAM J.
+                 Comput. 30(2), 391–437 (2000)
+[ES 02]          Elkind, E., Sahai, A.: A unified methodology for constructing public-key
+                 encryption schemes secure against adaptive chosen-ciphertext attack. Cryptology
+                 ePrint Archive, Report, /024, 2002. (2002), http://eprint.iacr.org/
+[GM 84]          Goldwasser, S., Micali, S.: Probabilistic encryption. J. Comput. Syst. Sci. 28(2),
+                 270–299 (1984)
+[GMM 07]         Gertner, Y., Malkin, T., Myers, S.: Towards a separation of semantic and CCA
+                 security for public key encryption. In: TCC, pp. 434–455 (2007)
+[GMR 01]         Gertner, Y., Malkin, T., Reingold, O.: On the impossibility of basing trapdoor
+                 functions on trapdoor predicates. In: FOCS, pp. 126–135 (2001)
+[GMW 87]         Goldreich, O., Micali, S., Wigderson, A.: How to play any mental game or a
+                 completeness theorem for protocols with honest majority. In: STOC, pp. 218–229
+                 (1987)
+[H 08]           Haitner, I.: Semi-Honest to Malicious Oblivious Transfer - The Black-Box Way.
+                 In: These proceedings (2008)
+[IKLP 06]        Ishai, Y., Kushilevitz, E., Lindell, Y., Petrank, E.: Black-box constructions for
+                 secure computation. In: STOC, pp. 99–108 (2006)
+[IR 89]          Impagliazzo, R., Rudich, S.: Limits on the provable consequences of one-way
+                 permutations. In: STOC, pp. 44–61 (1989)
+[L 79]           Lamport, L.: Constructing digital signatures from a one-way function. Technical
+                 Report SRI-CSL-98, SRI International Computer Science Laboratory (1979)
+[L 06]           Lindell, Y.: A simpler construction of CCA2-secure public-key encryption under
+                 general assumptions. J. Cryptology 19(3), 359–377 (2006)
+                           Black-Box Construction of a Non-malleable Encryption          441
+
+[LP 07]    Lindell, Y., Pinkas, B.: An efficient protocol for secure two-party computation
+           in the presence of malicious adversaries. In: Naor, M. (ed.) EUROCRYPT 2007.
+           LNCS, vol. 4515, pp. 52–78. Springer, Heidelberg (2007)
+[NY 90]    Naor, M., Yung, M.: Public-key cryptosystems provably secure against chosen
+           ciphertext attacks. In: STOC, pp. 427–437 (1990)
+[PSV 06]   Pass, R., Shelat, A., Vaikuntanathan, V.: Construction of a non-malleable
+           encryption scheme from any semantically secure one. In: Dwork, C. (ed.)
+           CRYPTO 2006. LNCS, vol. 4117, pp. 271–289. Springer, Heidelberg (2006)
+[PW 07]    Peikert, C., Waters, B.: Lossy trapdoor functions and their applications. Cryptol-
+           ogy ePrint Archive, Report 2007/279 (2007), http://eprint.iacr.org/
+[R 90]     Rompel, J.: One-way functions are necessary and sufficient for secure signatures.
+           In: STOC, pp. 387–394 (1990)
+[RS 91]    Rackoff, C., Simon, D.R.: Non-interactive zero-knowledge proof of knowledge
+           and chosen ciphertext attack. In: Feigenbaum, J. (ed.) CRYPTO 1991. LNCS,
+           vol. 576, pp. 433–444. Springer, Heidelberg (1992)
+[RTV 04]   Reingold, O., Trevisan, L., Vadhan, S.: Notions of reducibility between
+           cryptographic primitives. In: TCC, pp. 1–20 (2004)
+[S 99]     Sahai, A.: Non-malleable non-interactive zero knowledge and adaptive chosen-
+           ciphertext security. In: FOCS, pp. 543–553 (1999)
+

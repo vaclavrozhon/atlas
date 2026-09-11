@@ -1,0 +1,2738 @@
+                  Electronic Colloquium on Computational Complexity, Revision 1 of Report No. 82 (2026)
+
+
+
+
+       Pseudorandomness Beating the Hybrid Argument for
+                   Insensitive Algorithms
+
+         Dean Doron*             Dana Moshkovitz†                 Justin Oh‡           David Zuckerman§
+
+
+
+                                                       Abstract
+                                                                                          n
+          The hardness vs. randomness paradigm converts a function f : {0, 1} → {0, 1} that is hard
+                                                                                  d         s′
+      for circuits of size s into a pseudorandom generator (PRG) G : {0, 1} → {0, 1} that fools
+      circuits of size s′ = s′ (s). In the application for derandomization, such as proofs of BPP = P,
+      the overhead of using such a PRG directly depends on two quantities: the runtime of G and its
+      seed length d. Ideally, the runtime of a PRG fooling circuits of size s′ should only be slightly
+      larger than s′ , and d should be log s′ . A central challenge in optimizing these parameters is
+      optimizing the relationship between s and s′ . Ideally, s′ should only be slightly less than s.
+          Impagliazzo and Wigderson [IW97] constructed PRGs where s is a large polynomial in s′
+      and d = c · log s for a large constant c ≥ 8. This gives derandomization with a large polynomial
+      slowdown. Doron, Moshkovitz, Oh and Zuckerman [DMOZ22] constructed near optimal PRGs
+      where s′ = s1−α and d = (1 + α) log s for arbitrarily small α > 0. However, they require
+      that f is hard against nondeterministic randomized circuits rather than deterministic circuits.
+      Subsequent works of Chen, and Tell [CT21, CT24], later joined by Ball [BCT25], provide fast
+      derandomization under various new assumptions. However, no result recovers the nearly
+      optimal PRG of [DMOZ22] under the standard deterministic hardness assumption of [IW97]. In
+      fact, from such an assumption, even constructing a nearly optimal hitting set or pseudoentropy
+      generator against algorithms that err rarely is open. A key bottleneck in obtaining such a result
+      is the use of the hybrid argument, which is known to require a large polynomial loss from s to s′ .
+          We identify a property of randomized algorithms that we call “insensitivity”, which allows
+      us to bypass the hybrid argument. Insensitivity is a simple property we identify that many
+      randomized algorithms satisfy: flipping a uniformly random bit in a randomness string on which
+      the algorithm is correct is likely to yield yet another randomness string on which the algorithm is
+      correct. We construct hitting sets and pseudoentropy generators for insensitive algorithms with
+      better parameters than the hybrid argument can offer. Additionally, we consider a two-sided
+      variant of insensitivity. In this variant, flipping a uniformly random bit in a randomness string
+      for which the algorithm is incorrect either always yields another incorrect string, or yields
+      a correct string with decent probability. For such algorithms we construct hitting sets and
+      pseudoentropy generators with near optimal parameters.
+
+    * Faculty of Computer and Information Science, Ben-Gurion University. deand@bgu.ac.il. Supported in part by the
+
+Israel Science Foundation grant 857/25.
+    †
+      Department of Computer Science, University of Texas at Austin. danama@cs.utexas.edu. Supported in part by NSF
+Grant CCF-1705028 and CCF-2200956.
+    ‡
+      Department of Computer Science, University of Haifa. sung-ho.oh@fulbrightmail.org. Supported in part by a
+Fulbright Postdoctoral Fellowship, ISF grant 1006/23, and by the European Union (ERC, ECCC, 101076663).
+    §
+      Department of Computer Science, University of Texas at Austin. diz@cs.utexas.edu. Supported in part by NSF
+Grant CCF-2312573 and a Simons Investigator Award (#409864).
+
+
+
+
+                                                                                                           ISSN 1433-8092
+Contents
+1   Introduction                                                                                                      1
+    1.1 Pseudorandom Generators and Derandomization . . . . . . . . . . . . . . . . . . . . . . . . .                 1
+    1.2 Fine-Grained Derandomization and Nearly Optimal Pseudorandomness . . . . . . . . . . . .                      2
+    1.3 Insensitivity: A Structure of Randomness in Algorithms . . . . . . . . . . . . . . . . . . . . . .            4
+    1.4 The Hardness Loss and the Hybrid Argument . . . . . . . . . . . . . . . . . . . . . . . . . . .               7
+    1.5 Beating the Hybrid Argument, Weak Unpredictability, and Pseudoentropy . . . . . . . . . . .                   8
+    1.6 Our Distinguisher-to-Predictor Approach . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .           9
+    1.7 Pseudoentropy for Insensitive Algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         10
+    1.8 Prior Work on Unpredictability and Pseudoentropy . . . . . . . . . . . . . . . . . . . . . . . .             11
+
+2 Technical Overview                                                                                                 12
+  2.1 A New Perspective on the Hybrid Argument . . . . . . . . . . . . . . . . . . . . . . . . . . . .               14
+
+3   Preliminaries                                                                                                    17
+    3.1 Circuits and Worst-Case Hardness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         17
+    3.2 Random Variables, Min-Entropy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          18
+    3.3 Unpredictability . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   18
+    3.4 Pseudoentropy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      18
+    3.5 Pseudoentropy Generators and Pseudorandom Generators . . . . . . . . . . . . . . . . . . . .                 19
+
+4   Barriers On Distinguisher to Predictor Transformations                                                           20
+
+5   Pseudoentropy from Weak Unpredictability via a “Truncated” Hybrid Argument                                       21
+
+6   Predictable Distinguishers and Insensitive Distinguishers                                                        22
+    6.1 Warmup: A “Sequential” Predictor . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         23
+    6.2 Using Binary Search . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      26
+
+7 The More General Case: Removing the Inside Sensitivity Condition                                                   30
+  7.1 Fast Mixing of Random Walks Within Small Subsets of the Boolean Hypercube . . . . . . . .                      30
+  7.2 A Predictor Using Random Walks . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .           33
+
+8 Weak Unpredictability from Worst-Case Hardness with Minimal Loss in Hardness                                       35
+  8.1 Worst Case Hardness to Mild Average Case Hardness with Minimal Hardness Loss . . . . .                         36
+  8.2 Mild Average Case Hardness to Unpredictability Using Designs . . . . . . . . . . . . . . . . .                 36
+  8.3 Seed Length Nearly 1 · log m . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       37
+
+9   Hitting Set Generators and Evasive Pseudoentropy Against Insensitive Distinguishers                              39
+    9.1 Hitting Set Generators for (α, β)-insensitive Distinguishers . . . . . . . . . . . . . . . . . . . .         39
+    9.2 Hitting Set Generators for β-insensitive Distinguishers . . . . . . . . . . . . . . . . . . . . . .          40
+    9.3 Evasive Pseudoentropy . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      41
+    9.4 Derandomization of Insensitive Algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          43
+
+10 Derandomizing Scorers                                                                                             45
+   10.1 A Motivating Example for Scorers: Minimum Spanning Tree . . . . . . . . . . . . . . . . . . .                47
+1     Introduction
+1.1    Pseudorandom Generators and Derandomization
+The dominant approach to time-bounded derandomization (i.e. proving BPP = P) is via pseudo-
+random generators (PRGs) based on hardness assumptions. A PRG maps a short random seed Y
+into a large number m of bits that look like the uniform distribution on m bits, Um , to any bounded
+distinguisher:
+
+Definition 1.1 (indistinguishability). We say that X ∼ {0, 1}m is ε-indistinguishable from uniform to a
+class D of distinguishers, if for all D ∈ D,
+
+                                            |E[D(X)] − E[D(Um )]| ≤ ε.
+
+Definition 1.2 (pseudorandom generator). We say that G : {0, 1}d → {0, 1}m is a pseudorandom
+generator (PRG) with error ε > 0 fooling a class D of distinguishers, if G(Ud ) is ε-indistinguishable from
+uniform to D.
+
+     A standard observation is that one can deterministically simulate any randomized algorithm
+A(x, r) on input x that uses m bits of randomness r, by constructing a PRG outputting m bits for
+the class of circuits of size time(A). This is because such an algorithm (for fixed x) is equivalent to a
+circuit on m bits of size time(A).The simulation of A simply evaluates A(x, G(·)) on all 2d seeds of
+G, and takes the majority vote. The runtime of the simulation is then naturally determined by (1)
+the number of seeds 2d ; and (2) the runtime of the PRG, time(G). Specifically, the runtime is roughly
+2d (time(G) + time(A)).1 We say that the overhead of the simulation is the multiplicative slowdown:
+2d (time(G) + time(A))/ time(A). Thus, the overhead is roughly 2d , provided time(G) is comparable
+to time(A). Since m ≤ time(A), it is convenient to assume the worst case, that m = time(A). By the
+probabilistic method, an inefficient PRG for size-m circuits with seed length (1 + α) · log m exists, so
+we can conceivably hope for an efficient PRG with that seed length that runs in time only slightly
+larger than m, such as time(G) = m1+α , for small α. We call a PRG with these two features for
+small constant α nearly-optimal.2
+
+Hardness vs. Randomness. Constructions of pseudorandom generators fooling circuits imply
+circuit lower bounds that are far out of reach of the field’s current knowledge. A central line of
+inquiry in hardness vs. randomness aims to construct PRGs for circuits under hardness assumptions.
+Blum, Micali [BM84] and Yao [Yao82] were the first to prove that hardness implies pseudorandom-
+ness. Specifically, the generators of Blum, Micali, and Yao had large seed d = mδ , implying that
+randomized polynomial time algorithms could be simulated deterministically with sub-exponential
+overhead. Since those generators worked under cryptographic assumptions, they could not obtain
+BPP = P, because it is impossible for cryptographic PRGs to achieve the necessary seed length
+O(log m). Together with the fact that cryptographic assumptions did not seem necessary for deran-
+domization, subsequent works aimed to prove stronger hardness vs. randomness theorems, with
+    1
+      More accurately, the important value is the time it takes to evaluate G on all inputs. This can often be faster than
+2d · time(G). However, in informal discussions, this distinction is not important, and we often use “runtime” to refer to
+both values.
+    2
+      An optimal PRG can have seed length log m + O(1), and we note that historically, the term optimal meant O(log m)
+seed length.
+
+
+                                                            1
+the goal of both decreasing the number of seeds and weakening the assumptions. In landmark
+results, Impagliazzo, Nisan, and Wigderson [NW94, IW97] constructed an appropriate PRG for
+polynomial overhead under the following plausible and necessary assumption.
+
+Standard Assumption ([IW97]). There exists a constant 0 < β < 1 and a function f ∈ DTIME[2O(n) ]
+that is not computable by circuits of size 2βn .
+
+    Indeed, under such an assumption, for any m, they construct a PRG G : {0, 1}d → {0, 1}m
+fooling circuits of size m such that d = C · log m and time(G) = mC for some large constant C. The
+most efficient construction from the standard assumption due to Umans [Uma03], building off of a
+result from Shaltiel and Umans [SU05], gives C ≈ 8. Nearly optimal PRGs, where d = 1.01 · log m
+and time(G) = m1.01 , were out of reach.
+
+1.2     Fine-Grained Derandomization and Nearly Optimal Pseudorandomness
+Doron, Moshkovitz, Oh, and Zuckerman [DMOZ22] remedied this situation by obtaining near
+optimal seed length d = (1 + α) log m for arbitrarily small constant α > 0 and time(G) = m1+α .
+Such a PRG implies near-minimal overhead derandomization of a time-t randomized algorithm
+in time t · max{t, n}1+O(α) , which is (nearly) tight for sub-linear time algorithms, and under the
+non-deterministic strong exponential time hypothesis (NSETH), this overhead is also (nearly) tight
+for the univariate polynomial identity testing problem [Wil16].3
+    Alas, the construction of [DMOZ22] relies on a stronger hardness assumption, postulating the
+existence of a problem in E that requires nondeterministic, randomized circuits of nearly the same
+exponential size. Followup works continued to make a variety of strong hardness assumptions to
+achieve similar derandomization results. Specifically, Chen and Tell [CT21, CT24], and later with
+Ball [BCT25] reintroduce cryptographic assumptions.
+    Ideally, one would only require lower bounds against circuits that do not use nondeterminism,
+and would not make any cryptographic assumptions. In particular, we would like to revisit
+assumptions involving lower bounds against deterministic circuits, such as the standard hardness
+assumption of [IW97]. While the recent works discussed indeed achieve the goal of minimal
+overhead derandomization under plausible assumptions, the standard assumption is historically
+the most plausible and widely accepted. Furthermore, revisiting the question under the standard
+assumption is important for two other reasons:
+
+      • The main technical challenge in improving [IW97], avoiding the hybrid argument, is an ex-
+        tremely well-known bottleneck for many results in pseudorandomness, and has been ob-
+        served by many researchers [BSW03, GSV18, FSUV13, DMOZ22, CT21, BCT25].
+
+      • The construction of [IW97] (and followups such as [STV01, SU05]) has had influential conse-
+        quences beyond derandomization, such as in Trevisan’s construction of seeded randomness
+        extractors [Tre01], extractors for samplable distributions [OS25] and results in Kolmogorov
+        complexity [Hir22], pseudo-deterministic algorithms [CLO+ 23, CHR24] and space-bounded
+        algorithms [PRZ23, LPT24, DPTW25]. An improved construction and analysis from the stan-
+        dard assumption could open the possibility of yet even more exciting consequences in these
+        areas.
+   3
+    Chen and Tell [CT21] give derandomization in time t · n1+α , coinciding with the result of [DMOZ22] for polynomial
+identity testing, and offering a faster derandomization when t ≫ n.
+
+
+                                                          2
+      We consider the following assumptions, also about deterministic circuit lower bounds.
+
+Fine-Grained Assumption. There exists a small constant 0 < α < 1 such that for every n ∈ N, there
+exists a function f ∈ DTIME[2(1+α)n ] that is not computable by circuits of size 2(1−α)n .
+
+Batch Fine-Grained Assumption. There exists a small constant 0 < α < 1 such that for every n ∈ N,
+there exists a function f : {0, 1}n → {0, 1} whose truth table is printable in deterministic time 2(1+α)n and
+f is not computable by circuits of size 2(1−α)n .
+
+    Notice that both the standard assumption and fine-grained assumptions are about deterministic
+circuits. The differences between the fine-grained assumptions and the standard assumption are
+twofold. First, instead of having f computable in time 2O(n) , we assume f is computable in time
+nearly linear in 2n , or even that one can “batch” compute f on all inputs in this time. Second, we
+assume f is hard for circuits of size very close to 2n . The formulation of the (non-batch) fine-grained
+assumption corresponds to the assumption of [DMOZ22] without nondeterminism or randomness.
+Adding the batch assumption allows us to more conveniently construct nearly optimal PRGs after
+we’ve addressed the core difficulty of avoiding the hybrid argument.
+    Despite the recent advances and techniques for constructing pseudorandom generators and
+related objects that suffice for derandomization, such as targeted PRGs [DMOZ22, CT21, CT24,
+BCT25], it seems far from reach to rely solely on the fine-grained assumption to obtain nearly
+optimal constructions. Indeed, previous works crucially rely on the use of stronger assumptions
+to address the difficulty of the hybrid argument. See Shaltiel and Viola [SV22] for a discussion of
+some existing works and why they require stronger assumptions.
+    For many of the same reasons, it even seems far from reach to get nearly optimal hitting set
+generators and pseudoentropy generators for circuits under the fine-grained assumption:
+
+Definition 1.3 (hitting set generator). We say that H : {0, 1}d → {0, 1}m is a hitting set generator
+with error ε > 0 for a class D of distinguishers, if for every D ∈ D with Prr∈{0,1}m [D(r) = 0] ≥ ε, there
+exists y ∈ {0, 1}d such that D(G(y)) = 0.
+
+   Hitting set generators are only guaranteed to intersect dense distinguishers. They suffice for
+derandomization of RP algorithms, and also of BPP algorithms, as was first proved by Andreev,
+Clementi, and Rolim [ACR98] (alternative proofs of the latter fact follow from ideas similar to those
+that place BPP in Σ2 [CH20, Gol22]).
+
+Definition 1.4 (pseudoentropy and pseudoentropy generators). We say that X = X1 , . . . , Xm ∼
+{0, 1}m has pseudoentropy k with error ε for a class D of distinguishers if for every D ∈ D we have that:
+Pr[D(X) = 1] ≤ |{x:D(x)=1}|
+                         2k
+                                + ε.
+    We say G : {0, 1} → {0, 1}m is a pseudoentropy generator with pseudoentropy k and error ε > 0
+                       d
+
+for a class D of distinguishers, if for a uniform Y , G(Y ) has pseudoentropy k with error ε for D.
+
+    While there are several notions of pseudoentropy,4 our notion suffices to derandomize algo-
+rithms that err extremely rarely (namely when the error probability is smaller than 2k−m [DMOZ22]).
+Once again, we say such generators are nearly optimal if, for the class of circuits of size m, they
+have d ≈ (1 + α) · log m and runtime m1+α .
+  4
+      This notion is equivalent to metric pseudoentropy when D is closed under complement [BSW03].
+
+
+
+
+                                                          3
+1.3   Insensitivity: A Structure of Randomness in Algorithms
+We identify interesting properties about the structure of randomness in algorithms, and focus on
+constructing near optimal hitting set and pseudoentropy generators for circuits corresponding to
+such properties. We believe that many randomized algorithms induce some local structure on their
+randomness strings. In particular, a motivating question for us is if a randomness string r is “good,”
+how many neighbors of r are also “good?” A neighbor of a randomness string r ∈ {0, 1}m is a
+string of Hamming distance 1 from r. Alternatively, we consider r as a vector in F2 and denote a
+neighbor as r + ei for the standard basis vector ei and for some i. Formally, we introduce and study
+the notion of insensitive algorithms.
+Definition 1.5 (insensitivity). We say that a circuit D : {0, 1}m → {0, 1} is β-insensitive if for every x
+such that D(x) = 0, it holds that Pri [D(x + ei ) = 1] ≤ β.
+    We say that a randomized algorithm A is β-insensitive if for every input length n and input x ∈ {0, 1}n
+to the algorithm, the circuit Dx = A(x, ·) is β-sensitive. Note that here, Dx (r) = 0, for r ∈ {0, 1}m=m(n) ,
+means that the algorithm is correct.
+    In an insensitive algorithm, nearly all neighbors of a good randomness string are also good,
+since we think of β as small. For the correspondence between algorithms and circuits, think of D
+as a circuit for A that fixes input x and assume without loss of generality that the algorithm errs
+whenever D(x) = 1.
+    In the following theorem and throughout our paper, we use .01 as shorthand for α for arbitrarily
+small α. Therefore, 1.01 means 1 + α, .99 means 1 − α, etc.
+Theorem 1 (pseudorandomness beating the hybrid argument for insensitive algorithms, informal;
+see Corollary 9.4, Corollary 9.8). Assume the batch fine-grained assumption, and let f be the corresponding
+function. Then, for any m, and k ≤ m0.99 , there is an explicit function
+
+                                  Gf : {0, 1}1.01(log m+log k) → {0, 1}m
+
+that is a hitting set generator with error 1 − 2k−m , and a pseudoentropy generator with entropy k and error
+m−0.01 for β-insensitive circuits with circuit size m, whenever β ≤ k −1.01 . Gf is computable in time nearly
+linear in m · k.
+    To the best of our knowledge, no previous construction from a deterministic circuit lower bound
+achieves such a short seed. As we discuss later, prior constructions rely on a hybrid argument,
+which imposes a larger polynomial relationship between the hardness s of f , namely s ≥ m3 .
+Consequently, these constructions require seed length at least 3 · log m [GSV18, SV22], and in
+fact, the constant is significantly larger for other reasons as well. This generator allows us to
+                                                                       0.99
+more efficiently derandomize algorithms that err rarely, on at most 2m      randomness strings (see
+Theorem 9.10). We note that, for algorithms that err rarely, a small modification to the hybrid
+argument yields generators from standard constructions with runtime m · poly(k) (see Section 5 for
+details).
+
+An Insensitive Algorithm. To show that our notion of insensitive algorithm is natural, we give
+an example. In the color coding randomized algorithm [AYZ95], the input is a directed graph
+G = (V, E) and a number ℓ ≥ 1. The goal is to decide whether there is a simple path of length ℓ
+in G. For ℓ = |V | this is the NP-hard Hamiltonian path problem. The randomized algorithm works
+
+                                                     4
+for ℓ ≤ log |V |/ log log |V |. The algorithm colors each vertex v ∈ V with a uniformly random color
+f (v) ∈ {1, . . . , ℓ}. The algorithm then removes all the edges except those edges (u, v) ∈ E where
+f (v) = f (u) + 1. The new graph is a directed acyclic graph, for which it is possible to find the
+longest simple path in linear time using dynamic programming. If there is a path of length at least
+ℓ in G, then a random coloring keeps the path with probability at least ℓ−ℓ . Hence, by repeating the
+coloring algorithm Θ(ℓℓ log(1/δ)) times, a randomized algorithm finds a path of length at least ℓ, if
+one exists, with probability at least 1 − δ.
+    The color coding algorithm is insensitive: colorings that contain length-ℓ paths are likely
+unperturbed by a small random change. That is, for every coloring that keeps a length ℓ path, if we
+change the color of one uniformly random vertex, there is probability 1 − nℓ that the coloring still
+identifies a length ℓ path. In other words, the algorithm is (β = nℓ )-insensitive.
+    As a disclaimer, we use color coding to demonstrate the notion of an insensitive algorithm.
+Recall that pseudoentropy generators that output entropy k ≤ m.99 only derandomize algorithms
+whose error probability is exponentially small in the randomness. Therefore, Theorem 1 doesn’t
+apply to color coding.
+
+Scoring Algorithms. We further introduce a subclass of insensitive algorithms for which we
+can construct near-optimal pseudoentropy generators. We call these algorithms scorers because
+they assign a fine-grained score to each randomness string. A randomness string that scores high
+enough leads to a correct outcome. Scores are unlikely to drop with a random flip. Finally, when a
+randomness string scores low, the score is pretty likely to improve with a random flip. Formally:
+Definition 1.6 (scorer). Let α, β ∈ [0, 1]. We say that randomized algorithm is an (α, β)-scorer, if per
+input x to the algorithm, there is a scoring function ϕx : {0, 1}m → [0, 1], such that the “good” randomness
+strings r ∈ {0, 1}m for the algorithm on input x are those with ϕx (r) ≥ τ for some τ ∈ (0, 1). Moreover,
+ϕx satisfies the following properties:
+   • Efficiency: For every x, on input r ∈ {0, 1}m the score ϕx (r) can be computed by an efficient BPP
+     algorithm.
+
+   • Approximate Monotonicity: For every x, for every randomness r, Pri∼[m] [ϕx (r + ei ) < ϕx (r)] ≤ β.
+
+   • Improvement: For every x, for every randomness r with ϕx (r) < τ , Pri∼[m] [ϕx (r+ei ) > ϕx (r)] ≥ α.
+   Scorers abstract out algorithms like the randomized minimum spanning tree algorithm of
+Karger, Klein, and Tarjan [KKT95]. This famous ZPP algorithm runs in linear time, except with
+exponentially small probability. In Section 10, we demonstrate that this algorithm for minimum
+spanning tree is a scorer (under a slight variant of the definition). Note that approximate mono-
+tonicity implies that the algorithm is insensitive.
+   We can now state our theorem.
+Theorem 2 (nearly optimal pseudorandomness for scorers; informal, see Theorem 10.2). Assume the
+batch fine-grained assumption and let f be the corresponding function. Then, for any m, there is an explicit
+function
+                                     Gf : {0, 1}1.01 log m → {0, 1}m
+such that for (α, β)-scorers with circuit size m, whenever αε − β > m−0.001 we have for all x,
+
+                                         Pr[ϕx (G(Y )) ≤ τ ] ≤ ε.
+
+                                                     5
+Namely, Gf is a hitting set generator and a pseudoentropy generator for D = {r : ϕ(r) > τ }. Moreover, G
+is computable in time m1.01 .
+     In particular, when α ≥ m−0.01 and β ≤ m−0.03 , we can have ε = m−0.01 . Additionally, when α and β
+are constants, ε is a constant.
+
+Two-Sided Variant of Insensitivity. Scorers are a very specific subclass of randomized algorithms.
+In general, decision problems in BPP may not come equipped with a notion of a score for the
+quality of the randomness string that satisfies the above conditions.
+    To generalize to such algorithms, we introduce a two-sided variant of insensitivity, though this
+is not exactly what one might expect from the phrase “two-sided insensitivity.” Our variant of a
+two-sided insensitive algorithm has the additional property that any bad randomness string with
+at least one good neighbor actually has many good neighbors.
+
+Definition 1.7 (two-sided insensitivity). We say that a circuit D : {0, 1}m → {0, 1} is (α, β)-insensitive
+if for every x such that D(x) = 0, it holds that Pri [D(x + ei ) = 1] ≤ β, and for every x such that D(x) = 1,
+either Pri [D(x + ei ) = 0] = 0 or Pri [D(x + ei ) = 0] ≥ α.
+     We say that a randomized algorithm A is (α, β)-insensitive if for every input length n and input
+x ∈ {0, 1}n to the algorithm, the circuit Dx = A(x, ·) is (α, β)-insensitive. Again, we use Dx (r) = 0 for
+correct answers.
+
+   Indeed, both the approximate monotonicity and improvement properties closely resemble the
+two properties of two-sided insensitivity. Given the stronger property of two-sided insensitivity,
+we can achieve nearly optimal pseudorandomness.
+
+Theorem 3 (nearly optimal pseudorandomness for two-sided insensitive algorithms, informal; see
+Corollary 9.2, Corollary 9.6). Assume the batch fine-grained assumption, and let f be the corresponding
+function. Then, for any m, there is an explicit function
+
+                                      Gf : {0, 1}1.01 log m → {0, 1}m
+
+that is a hitting set generator with error 1 − 2k−m and a pseudoentropy generator with entropy k with
+error ε for (α, β)-insensitive circuits with circuit size m, whenever α2 · ε − β log m − 2k−m > m−0.001 . In
+particular:
+
+   • Gf is a hitting set generator with error 1 − m−0.01 , and a pseudoentropy generator with entropy
+     m − O(log m) and error m−0.01 for (α, β)-insensitive distinguishers of circuit size m, when α ≥
+     m−0.01 and β ≤ m−0.02 .
+
+   • For a constant ε, Gf is a hitting set generator with error 1 − ε, and a pseudoentropy generator with
+                                                                             αε
+     entropy m − O(1) and error ε as long as α is any constant, and β ≤ log    m.
+
+    Notice that for two-sided insensitive algorithms, the pseudoentropy is extremely high. When
+we consider constant α and β ≤ 1/ log m, it’s only a constant bits shy from “full entropy.” When
+we think of α ≥ m−0.01 and β ≤ m−0.02 , we are only log m bits shy. This implies we can efficiently
+derandomize algorithms that err with constant probability or probability m−θ (see Theorem 9.10).
+    Finally, note that Theorem 3 beats Theorem 1 in that it gives nearly-optimal seed length, though
+for more restricted algorithms. As we will discuss later in Section 1.7, we identify yet another
+barrier to obtaining the parameters of Theorem 3 for general circuits.
+
+                                                      6
+Our Approach. To achieve our results we provide an approach to the longstanding general
+question of beating the hybrid argument, by connecting it to the longstanding open problem in
+pseudorandomness of weak unpredictability ⇒ pseudoentropy, as discussed by Barak, Shaltiel, and
+Wigderson [BSW03]. In the next sub-sections we first identify the key parameter that the optimality
+of all hardness vs. randomness constructions hinges on: the “hardness loss”. We then discuss the
+inherent significance of the hybrid argument in affecting this parameter. Then, we are finally ready
+to put forth our approach to both beating the hybrid argument and addressing the question of
+weak unpredictability ⇒ pseudoentropy. We identify barriers to this approach and demonstrate
+how structural assumptions on the distinguishers can circumvent the barriers.
+
+1.4   The Hardness Loss and the Hybrid Argument
+Typical hardness vs. randomness results transform a function f : {0, 1}n → {0, 1} that is hard
+for circuits of size s = s(n) < 2n into a PRG Gf : {0, 1}d → {0, 1}m that fools circuits of size
+m = m(n) ≤ s(n). An important consideration when evaluating the quality of the construction
+is the relationship between s and m. We generally refer to the ratio between s and m as the
+hardness loss of the construction. To see why the hardness loss is a central parameter, consider the
+fine-grained assumption, where s = 2(1−α)n . If the construction of G requires s = mC for a large
+constant C, then both the seed length and runtime of the PRG will be suboptimal. This is because
+constructing Gf generally involves computing f on at least one input, which requires time at least
+2n ≥ s = mC , and choosing a random coordinate of (an encoding of) f , requires seed of length at
+least log(2n ) ≥ log s = C · log m. Therefore, if we wish to follow this framework in order to obtain
+nearly optimal constructions, it is important to minimize the exponent C in order to minimize the
+hardness loss. Indeed, at a high level, the question of providing constructions with m as close to s
+as possible is already interesting in its own right: it asks whether one can convert nearly all the
+hardness from f into pseudorandomness.
+
+Unpredictability and the Loss of the Hybrid Argument. So far, we’ve explained why the hard-
+ness loss is a crucial parameter to optimize, but have not yet seen why this parameter is suboptimal
+in previous constructions. This is because all such constructions go through the hybrid argument
+which we explain now. For m bits to be indistinguishable from uniform, it must be that each bit is
+unpredictable given the previous bits, and the prediction errors add up across the m bits.
+
+Definition 1.8 ((standard) unpredictability). We say that a sequence of m random bits X = X1 , . . . , Xm
+is ε-unpredictable for circuits of size s if for every i ∈ [m] and every predicting circuit P : {0, 1}i → {0, 1}
+of size s, it holds that
+                                                                        1
+                                      Pr[P (X1 , . . . , Xi−1 ) = Xi ] ≤ + ε.
+                                      X                                 2
+We say that G : {0, 1}d → {0, 1}m is an ε-unpredictability generator if G(Ud ) is ε-unpredictable.
+
+    Suppose we wish to show that a distribution X = X1 , . . . , Xm on {0, 1}m is ε-indistinguishable
+from uniform for circuits of size m via the hybrid argument. Proceeding with Yao’s next bit
+predictability argument, we must show that for every i ∈ [m], no circuit C : {0, 1}i−1 → {0, 1}
+of size roughly m can predict Xi with probability greater than 12 + m    ε
+                                                                            when fed x1 , . . . , xi−1 ∼
+X1 , . . . , Xi−1 . That is, we must show that X is ε/m unpredictable.
+
+
+
+                                                       7
+   Nearly every pseudorandom generator from the standard assumption indeed constructs an
+(ε/m)-unpredictability generator, and suffers a large hardness loss in the process. In fact, [GSV18]
+showed that the standard unpredictability-generator-based approach to constructing a pseudoran-
+dom generator Gf for size-m circuits from a function f of hardness s inherently requires s ≥ m3 .
+
+1.5   Beating the Hybrid Argument, Weak Unpredictability, and Pseudoentropy
+Suppose we want to construct unpredictability generators with ε = O(1) or even m−θ for a small
+constant θ, rather than ε = O(1/m) as required by the hybrid argument. Then we can already do so
+using existing constructions of ε-unpredictability generators (used in PRG constructions). Moreover,
+such constructions already have minimal hardness loss. That is, given f that is hard for circuits of size
+s, Gf : {0, 1}d → {0, 1}m is unpredictable for circuits of size m ≈ s. In fact, the output distribution
+of these generators even satisfy a stronger definition of symmetric unpredictability, where for every
+index i, Xi is unpredictable even when given all other bits X−i = X1 , . . . , Xi−1 , Xi+1 , Xm :
+Definition 1.9 (symmetric unpredictability). We say that a sequence of m random bits X = X1 , . . . , Xm
+is ε-symmetrically unpredictable for circuits of size s if for every i ∈ [m] and every predicting circuit
+P : {0, 1}n−1 → {0, 1} of size s, it holds that
+                                                             1
+                                      Pr[P (X−i ) = Xi ] ≤     + ε.
+                                       X                     2
+We say that G : {0, 1}d → {0, 1}m is an ε-symmetric unpredictability generator for circuits of size s if
+G(Ud ) is ε-symmetrically unpredictable for circuits of size s.
+    Indeed, by composing two different instantiations of the Nisan-Wigderson generator (applied
+on top of a locally decodable code based construction as in [STV01]) with two different settings of
+parameters, we obtain the following unpredictability generator.
+Lemma 1.10 (informal; see Theorem 8.9). Assume the batch fine-grained assumption. Then, for any small
+constant θ, there is an explicit (ε = m−θ )-symmetric unpredictability generator G : {0, 1}d=(1+θ) log m →
+{0, 1}m for circuits of size m, that is computable in time m1+O(θ) .
+    Notice the unpredictability generator is nearly optimal in the sense that the seed length is
+nearly 1 · log m and the runtime is close to the size of the circuits it is designed against. What
+useful properties could the distribution of such a generator have? Intuitively, we expect that such a
+distribution already has pseudoentropy for circuits of size close to m, and thus directly serves as a
+desired construction of a near-optimal pseudoentropy generator or hitting set generator.
+
+The Problem of Weak Unpredictability to Pseudoentropy. If X is information theoretically ε-
+unpredictable (i.e., where the prediction algorithms is computationally unbounded), even for
+ε ≫ 1/m, one can easily show that the entropy of X is Ω(n) (this is immediate from the chain rule).
+Thus, it is reasonable to expect that in the computational setting, X also has some useful notion of
+pseudoentropy. However, it turns out that this is generally open. In particular, for our purposes
+we formulate a guiding question of whether unpredictability implies pseudoentropy with minimal
+hardness loss:
+Question 1.11. Does a distribution X = X1 , . . . , Xm with ε = Ω(1)-unpredictability for circuits of size
+m imply that X1 , . . . , Xm have pseudoentropy k = Ω(m) against circuits of size ≈ m (say, Ω(m1−o(1) ))?
+
+                                                    8
+    Our main results show that while we do not answer this question exactly, for the families
+of circuits discussed in Section 1.3, we can conclude pseudoentropy with minimal (or better
+than previously known) hardness loss and large k. We provide a new framework for converting
+a distinguisher of size s to a predictor for X of size close to s in this setting. Near optimal
+pseudorandomness constructions for insensitive algorithms with sufficiently small error probability
+then follow.
+
+1.6   Our Distinguisher-to-Predictor Approach
+Informally, for each definition of pseudorandom, hitting set, and pseudoentropy generator, we say
+that a function D distinguishes too well if it violates the desired property. When it is clear from
+context, we may simply say “D is a distinguisher.” Information theoretically, if X = X1 , . . . , Xm
+is far from uniform, then it’s easy to conclude that at least one bit of Xi is predictable from the
+rest. Computationally, if some circuit D distinguishes X from uniform too well, then the hybrid
+argument is the standard tool that converts this distinguisher into an efficient predictor for some
+bit Xi .
+    Now, shifting the spotlight from the uniform distribution, if we instead know that X =
+X1 , . . . , Xm has low entropy (information theoretically), then intuitively we can conclude that
+many bits Xi are predictable. Once again, to translate this to the computational setting, we hope to
+argue that if there is a distinguisher D that works too well (according to our notion of pseudoen-
+tropy), then there are many i-s for which an efficient predictor exists. However, unlike the uniform
+case, where there is a standard way to go from distinguishing to predicting, there is no longer a
+known framework to achieve what we want. We work with the following natural definition, where
+a predictor is a randomized algorithm that is given as input i, X−i , and attempts to predict Xi .
+
+Definition 1.12 ((many-bit) predictor). An ε-predictor for X = X1 , . . . , Xn is a randomized circuit
+P : [m] × {0, 1}m−1 × {0, 1}|R| → {0, 1} that gets as input uniform i, X−i and internal randomness R,
+such that,
+                                                              1
+                                   Pr [P (i, X−i , R) = Xi ] > + ε.
+                                 i,X,R                        2
+We often call ε the advantage of the predictor.
+
+    The key difference from a standard predictor is that i is given as input, and the probability of
+success is also quantified over i. Notice that given an ε-predictor, a simple averaging argument
+shows that there are many i-s that are predictable. Thus constructing such a predictor from a
+distinguisher for pseudoentropy (i.e., a circuit that violates Definition 1.4) demonstrates what
+should be true intuitively. Thus, if many i-s are predictable (≫ 1/m fraction), then there exists a
+fixing to i and R such that Xi is predictable by P with the same probability (over X), contradicting
+Definition 1.9.
+    To understand at a high level how one utilizes a distinguisher to construct a predictor, we
+consider the easier case of proving that X is a hitting set generator. For notational convenience, we
+think of X as a vector in F2 , and X + ei is then X with the i-th bit flipped. We suppose otherwise,
+that for every x ∈ Supp(X), D(x) = 1. The usual intuition is that we can predict coordinate i if
+D(X) and D(X + ei ) differ. Thus, we can predict Xi from X−i by running D twice: once on X−i
+with 0 in the i-th coordinate and also with 1 in the i-th coordinate. Whichever call to D outputs 1
+tells us what bit to output.
+
+
+                                                  9
+    Now suppose also that for every x ∈ Supp(X), for at least ε fraction of i-s, flipping the i-th
+bit of x causes it to leave D: D(x + ei ) = 0. Then in fact, the predictor described above succeeds
+with high probability over i and we are done. As a teaser, while we can’t guarantee such a strong
+property, we will give a randomized procedure that “moves” x to an x′ that has this property.
+
+1.7   Pseudoentropy for Insensitive Algorithms
+The main result of our work is that we can convert a distinguisher to a predictor even with large
+ε ≫ 1/m, when the distinguisher circuit is insensitive. This then provides pseudorandomness
+against insensitive algorithms.
+    Theorem 1 follows from the previously discussed construction of the weak unpredictability
+generator in Lemma 1.10, and a new method of efficiently converting insensitive distinguishers
+into (many-bit) predictors with large success probability.
+
+Theorem 1.13 (insensitive distinguisher to predictor, informal; see Theorem 7.10). For any m and
+k ≤ m0.99 , let D : {0, 1}m → {0, 1} be a (β = k −1.01 )-insensitive circuit of size m. Further suppose that
+|D| = |{x : D(x) = 1}| ≤ 2k . Then, there is a randomized predictor P : [i]×{0, 1}m−1 ×{0, 1}|R| → {0, 1}
+of size ≈ m · k such that for any x ∈ D,
+
+                                                                 1  1
+                                    Pr[P (i, x−i , R) = xi ] ≥     + .
+                                    i,R                          2 16
+
+   This distinguisher to predictor theorem establishes that unpredictability generators are pseu-
+doentropy and hitting set generators, following the intuition presented in Section 1.5.
+
+Remark 1.14. As will be apparent later on, our predictors satisfy a stronger notion of prediction, wherein P
+is allowed to output “I don’t know”. Whenever P does output an answer, which happens with probability
+roughly 1/16, the prediction is almost certainly correct. We do not use this property in our results.
+     Moreover, note that our predictor has an “instance-wise” guarantee, and succeeds with noticeable
+probability regardless of the fixed input x.
+
+    We do not know whether the additional property of insensitivity is necessary for beating the
+hybrid argument. However, we show that using a distinguisher to construct a predictor for a large
+fraction of coordinates i in a “black-box” manner inherently requires a linear loss in hardness.
+
+Theorem 1.15 (barrier for distinguisher to many-bit predictor transformations for large ε, informal;
+see Theorem 4.3). Any (many-bit) predictor obtained in a “black-box” manner from a distinguishing circuit
+D : {0, 1}m → {0, 1} of size m with |D| = |{x : D(x) = 1}| = 2k that succeeds on more than ε-fraction of
+coordinates i, requires size at least εmk.
+
+    This lower bound also applies to the standard distinguisher to predictor transformation obtained
+via hybrid argument, which succeeds for ε = 1/m. In this case the lower bound states that the size
+of the predictor can be m, the same size as the original distinguisher. The standard predictor from
+the hybrid argument indeed matches this. Note however, that in standard constructions, while the
+loss in size from distinguisher to predictor is minimal, the loss in constructing the unpredictability
+generator itself (to error 1/m) is large.
+    For large ε, such as constant (for which unpredictability generators with minimal hardness loss
+exist), the lower bound requires a factor k loss in size. Notice that matching this lower bound still
+
+                                                    10
+beats the hybrid argument, and that Theorem 1 and Theorem 1.13 do so for distinguishers that are
+also insensitive. However, the lower bound suggests that obtaining nearly optimal pseudorandom-
+ness (rather than that only beating the hybrid argument) requires additional structure on D. Our
+stronger notion of “two-sided” insensitivity circumvents this barrier. The result follows from an
+even more efficient distinguisher to predictor transformation, given the extra structure of D.
+
+Theorem 1.16 (two-sided insensitive distinguisher to predictor, informal; see Theorem 6.8). Let
+D : {0, 1}m → {0, 1} be a (α, β)-insensitive circuit of size m with |D| ≤ 2k . Further suppose that
+α−β log m−2k−m > m−0.01 . Then, there is a randomized predictor P : [i]×{0, 1}m−1 ×{0, 1}|R| → {0, 1}
+of size ≈ m · log m such that for any x ∈ D,
+
+                                                             1
+                                Pr[P (i, x−i , R) = xi ] >     + m−0.01 .
+                                i,R                          2
+
+   Finally, we also provide a distinguisher to predictor transformation for the algorithms are
+scorers. This transformation is the simplest and most efficient, give large prediction advantage
+with size linear in m. The treatment of the case of scorers appears in Section 10.
+
+1.8   Prior Work on Unpredictability and Pseudoentropy
+Our work is not the first to pose or study the question of whether unpredictability implies pseu-
+doentropy. However, to the best of our knowledge, it is the first to consider the question for
+deterministic circuits with minimal hardness loss.
+     The most important work to address in this context is a PRG due to Sudan, Trevisan, and
+Vadhan [STV01]. Indeed, this generator is essentially the same unpredictability generator that we
+use. However, they argue that the resulting distribution X is computationally indistinguishable
+from some high entropy source Z. By doing so they once again require the use of the hybrid
+argument: they prove that X and Z are indistinguishable by changing X coordinate by coordinate
+into Z, and bounding the error at each step. This process then incurs a hardness loss: although
+X was unpredictable for circuits of size s, it is only indistinguishable from Z by much smaller
+circuits. In comparison with our approach, they prove a much stronger notion of pseudoentropy,
+and thus must pay a large hardness loss. Interestingly, the approach here circumvents the barrier
+presented by [GSV18], which implies a large polynomial loss in hardness as discussed in Section 1.4.
+However, their technique meets yet another barrier. They require applying Impagliazzo’s Hardcore
+Lemma with error 1/m which also has an inherent large polynomial loss [BHKT24].
+     A result of [BSW03] shows that when X is unpredictable for circuits equipped with oracle gates
+to the polynomial hierarchy, then X has pseudoentropy for the same types of circuits. Interestingly,
+although they do not provide a result for deterministic circuits, their result does have minimal
+hardness loss.
+     The unpredictability to pseudoentropy problem has also been studied in the related but different
+cryptographic setting (see, e.g., [HLR07, SGP15, KPWW16, KPWW16, HMS23]). They typically
+consider a stronger notion where X is indistinguishable from some high entropy distribution for
+all polynomial size distinguishers. Naturally, their transformations also lose polynomial factors in
+the circuit size.
+     We dedicate the next section to a technical overview for proving Theorem 1, and Theorem 3
+and our distinguisher to predictor transformations.
+
+
+                                                  11
+2    Technical Overview
+Our main technical contributions are the efficient distinguisher-to-predictor transformations for
+the one-sided and two-sided insensitive distinguishers of Theorem 1.13 and Theorem 1.16. For
+simplicity, we consider the case of transforming a distinguisher D for a hitting set X into a predictor.
+The analysis for pseudoentropy is nearly identical, with only a small amount of additional work
+necessary. Thus we assume that for every x ∈ Supp(X), we have that x ∈ D (we use this as
+shorthand for D(x) = 1, and say that “x is inside/outside D”). We wish to construct a predictor
+that succeeds with probability 1/2 + ε over i, X, and its own internal randomness R, for ε ≫ 1/m.
+As mentioned earlier, we’ll in fact prove something stronger, that there is a predictor that succeeds
+for large ε given any fixed x ∈ D. Namely, for any x ∈ D, we consider picking a random i,
+removing bit xi , and feeding the predictor x−i . The predictor should succeed for many choices of i
+in computing xi , or in other words, recovering the original string x.
+
+The Basic Idea. A natural way the predictor P can perform such a task is to consider the following
+two strings: x−i with 0 in the i-th coordinate and 1 in the i-th coordinate. Although P does not
+know which one is the original x, it can correctly predict if exactly one of the two strings is in D: by
+assumption, the one in D is the original x (the predictor can output a random guess if there is no
+such discrepancy).
+    For any x ∈ D we say that x is sensitive if at least α-fraction of its neighbors x + ei are outside D.
+Our first observation is that the predictor succeeds with advantage α immediately if every x ∈ D is
+sensitive. We do not expect such a strong property to hold. Our core approach is to argue instead
+that a random walk starting at x on the Boolean hypercube {0, 1}m reaches a sensitive point.
+    To develop intuition for our predictor, consider the case that D is a union of disjoint balls of
+radius r around the points in the range of G, for some small r < m. Our predictor takes two
+coupled random walks, one starting at v = x−i with 0 in the i-th coordinate and w = x−i with 1 in
+the i-th coordinate. This is equivalent to one starting at x and the other starting at x + ei . Let the
+coupled walks be v = v 0 , v 1 , . . . , v t and w = w0 , . . . , wt , where wj = v j + ei . For the first j such that
+there is a discrepancy, D(v j ) ̸= D(wj ), the predictor outputs 0 if D(v j ) = 1 and outputs 1 otherwise.
+This is because we expect the walk starting from x + ei to be further and hence more likely that
+D(x + ei ) = 0.
+    To see why this predictor succeeds with large probability over input i, for the sake of analysis,
+imagine all coupled walks for every i running simultaneously. Specifically, there are m + 1 walks,
+all coupled together: there is the walk starting at x, and the “shifted” walks starting at x + ei for
+every i ∈ [m]. In effect, there is a ball of radius 1 centered at x, and this entire ball moves according
+to a random walk in {0, 1}m . Call this “neighborhood” ball Nx . The core intuition is that when this
+ball is at a step in its walk where the center is in D, and many shifted walks are outside, then there
+are many corresponding choices of i for which the predictor is correct.
+    We first note that the random walk starting at x, the center of Nx , converges to uniform
+in {0, 1}m . Thus, since D is small, the walk starting at x exits D. In particular, at some step, the
+walk starting at x is at distance exactly r from x: this is the step just before exiting. In this case, at
+least m − r points in the ball Nx are outside D, while the center of the ball, which started at x, is
+inside. This means that for at least m − r choices of i, our predictor notices a discrepancy at this
+step and terminates with a correct prediction.
+
+
+
+                                                         12
+Predicting with Two-Sided Insensitivity. The analysis of this predictor when D is (α, β)-two-
+sided insensitive, rather than specifically a union of disjoint balls, is similar. When the center of Nx
+exits, it exits at a sensitive node, by definition. At the step just before it exits, at least α fraction of
+the shifted walks are outside D, and so for the corresponding i-s the predictor is correct.
+    One caveat, however, is that for the other (1 − α) fractions of i-s, the predictor does not see
+a discrepancy at this step, and the center of Nx exits D in the next step. This can be a problem:
+for some choices of i, the predictor may now see a discrepancy, and since now the center of Nx is
+outside of D, it will terminate with an incorrect prediction. However, by insensitivity, this can only
+happen with probability β over i. See Section 6.1 for details.
+    So far, the key feature of the random walk we’ve used is that it exits D with high probability. In
+particular, this is satisfied by the m-step random walk that, at each step j ∈ [m], flips coordinate j
+with probability 1/2. As is, the predictor makes O(m) calls to D, two for each step of the random
+walk, and thus has size roughly m2 . To obtain Theorem 1.16 for two-sided insensitivity, we utilize
+binary search to reduce the number of calls to D from O(m) to O(log m).
+    Our predictor succeeds by finding a step j when the random walk leaves D. Although our
+initial basic idea was to find such a step by examining every step of the walk, we can do so instead
+via a binary search. Since x ∈ D and, with high probability, the end of the walk is outside D, the
+predictor (on input i) can query the midpoint of the walk by computing D(v m/2 ) and D(wm/2 ).
+Recall that the predictor does not know which call is from the walk starting at the original x.
+However, if the calls output the same value, we can shift the window of the binary search: for
+example, if both calls output 1, then we know that j is between m/2 and m. Furthermore, if the
+calls output different values, then it terminates with a prediction. The only caveat to this argument
+is that the algorithm may query several steps for which the center of Nx is outside D. At each such
+step, there is a risk of an incorrect prediction for some i. However, again at each step there are at
+most β fraction of such bad choices i, and by union bound at most β log m fraction of bad choices
+of i overall. Details appear in Section 6.2.
+
+The Geometry of Distingishers, Isoperimetry. We now turn our attention to proving Theo-
+rem 1.13. This entails constructing a predictor when given only one-sided insensitivity. Again, the
+idea is to take a random walk starting at x, and find when it reaches a sensitive point in D. Before,
+any point in D with at least one neighbor outside D was sensitive, and so our algorithm succeeds
+as long as the walk eventually leaves D.
+    A crucial observation is that when a distinguisher is a very small subset of {0, 1}m , as is in our
+case, then a large fraction of points in D are sensitive. This fact is known as isoperimetry or “small
+set expansion”.
+    Now consider a more standard random walk, where instead of considering each j from 1 to m
+in sequence and flipping it with probability 1/2, the j-th step of the walk picks a random coordinate
+of the current string, and flips it with probability 1/2. This is now exactly a lazy random walk
+on the Boolean hypercube starting from x. Ideally, we would hope that such a walk starting at x
+reaches a sensitive node in a small number of steps, since then, our previous intuition allows us to
+argue that many coordinates are predictable. Unfortunately, this is untrue. Consider the following
+example.
+                                    √
+Example 2.1. Let J ⊆ [m], |J| = m. For x, y ∈ {0, 1}m let the set of indices where x and y differ be
+
+
+
+
+                                                    13
+∆(x, y). Let D contain the elements close to X, except those that differ from G(y) on indices in J:
+
+                   D = {z : ∃x ∈ Supp(X), (∆(z, x) ∩ J = ∅) ∧ |∆(z, x)| ≤ 0.1m}.
+
+    In words, D consists of balls of radius 0.1m centered around points in X, but excludes points
+                                                                                    √
+within a ball if they don’t exactly agree with the center point on a fixed subset of m vertices J. We
+                                                                                    √
+expect that a typical random walk starting at X flips a coordinate in J within m ≪ 0.1m steps,
+and thus leaves D and never comes back. In particular, the walk will likely never reach a point of
+distance exactly 0.1m away from x that is also in D, which has 0.9m neighbors outside D.
+    We remedy this situation as follows. First, suppose that the random walk starting at x is not a
+random walk on all of {0, 1}m , but only on the subgraph induced by D. Then by standard mixing
+and expansion properties, this walk hits a sensitive node (which are a large fraction of points in
+D) in O(log |D|) steps. Observe that the predictor can perform such a random walk. At step j,
+whenever both v j ̸∈ D and wj ̸∈ D, the predictor reverts the walk to the previous step. It then
+uses fresh randomness to take another step in {0, 1}m and repeats, accepting the new step iff both
+the new v j , wj ∈ D. As usual, whenever D(v j ) ̸= D(wj ), the predictor terminates with the correct
+prediction. Again, we can bound the number of choices of i for which this predictor can be wrong
+using the insensitivity property. This effectively simulates a random walk in the subgraph induced
+by D. For details, see Section 7.2.
+
+Weak Unpredictability Generators with Minimal Hardness Loss. We have so far established
+our efficient distinguisher to predictor transformations. We conclude by giving a brief overview of
+how to construct weak unpredictability generators with minimal hardness loss. The techniques to
+do so are by now standard, although our specific parameter settings are not usually considered.
+First, we can instantiate the unpredictability generator of [STV01] (by using a locally list decodable
+code with distance 1/2 − ε for ε ∈ [n−.01 , .01]). This incurs minimal hardness loss, but still has seed
+length O(log m). Call this generator G2 : {0, 1}O(log m) → {0, 1}m .
+    In order to obtain (1 + α) · log m seed length, we use a trick from Chen and Tell [CT21]. They
+                                                                                  0.01
+observe that there is a pseudorandom generator G1 : {0, 1}1·log m → {0, 1}m            with a 1 · log m
+bit seed against circuits of size roughly m. Thus, if G2 runs in time nearly linear in m, then
+G2 ◦ G1 : {0, 1}1·log m → {0, 1}m is an unpredictability generator for circuits of size m. Crucially,
+under the batch fine-grained assumption, G2 is indeed computable in time nearly linear in m.
+Details appear in Section 8.
+    We remark that in [CT21], G2 is a linear-time cryptographic PRG from one-way functions. One
+of the conceptual observations of our work is that we can instead take G2 to be any PRG for circuits
+with minimal hardness loss. As several other works have pointed out, these two generators for G2
+“beat the hybrid argument” in two fundamentally different ways. A cryptographic PRG uses the
+assumption of one-way functions, which is strong enough that the losses of the hybrid argument
+are irrelevant. On the other hand, we construct G2 from circuit lower bounds, where losses in the
+hybrid argument matter. The core goal of this work is to tackle this problem head on by suggesting
+new techniques and efficient reductions.
+
+2.1   A New Perspective on the Hybrid Argument
+So far we have outlined how our new distinguisher to predictor transformations work, which
+exploit the properties of insensitivity. We now discuss how our predictors relate to the standard
+
+                                                    14
+predictors obtained via the hybrid argument. We also provide intuition why exploiting such
+structure is necessary in order to achieve predictors with large advantage.
+
+The Hybrid Argument Revisited. We first review the original hybrid argument at a high level,
+with a twist in perspective. Recall that the hybrid argument shows that between every pair of hybrid
+distributions Hi−1 = U1 , . . . , Ui−1 , Xi , . . . , Xm and Hi = U1 , . . . , Ui−1 , Ui , Xi+1 . . . , Xm , there is a
+distinguishing advantage of D, which is the frequency that the former distribution lands in D,
+minus the frequency the latter does so.5 Namely,
+
+           εi = Pr[U1 , . . . , Ui−1 , Xi , . . . , Xm ∈ D] − Pr[U1 , . . . , Ui−1 , Ui , Xi+1 . . . , Xm ∈ D].
+                            P
+The assumption is that i εi ≥ ε and so D distinguishes with advantage ε/m between some pair of
+hybrids for some i. At a very high level, this suggests the following. Suppose that we are given
+a random i and X−i and wish to predict Xi . We can first replace the first i − 1 bits X1 , . . . , Xi−1
+with random bits U1 , . . . , Ui−1 , and call D on this new string with 0 for the i-th position and with 1
+for the i-th position. The distinguishing advantage of D between Hi−1 and Hi suggests that with
+probability ε (over randomness of i, X, and “internal” randomness U1 , . . . , Um ) the string that is
+the original X (in other words, when Ui = Xi rather than Ui = X i ) is inside D and the other string
+is outside D. Thus a correct prediction can be made in such a case.6 This gives a predictor with
+advantage ε/m.
+
+A Barrier To the Hybrid Argument. Unfortunately, such a predictor can’t have large advantage
+≫ 1/m without new ideas. For intuition as to why, we consider the following informative example.
+Suppose that X, the distribution of our unpredictability generator, is supported uniformly on
+poly(m) strings in {0, 1}m . Suppose further that these strings form a code: for any x, x′ ∈ Supp(X),
+the distance between x and x′ is at least, say, m/4. We define a D ⊂ {0, 1}m as follows. Partition
+Supp(X) into m/1000 equal size sets S1 , . . . , Sm/1000 . For each i ∈ [m/1000] we place a ball of
+radius i centered around every point x ∈ Si . Define D to be the union of these balls.
+    We assert that the distinguishing advantage of D between any two hybrids Hi−1 , Hi is at
+most 1000/m. To see this, we first present yet another small yet crucial change in perspective. The
+hybrid distribution U1 , . . . , Ui , Xi+1 , . . . , Xm is equivalent to (X1 ⊕ U1 ), . . . , (Xi ⊕ Ui ), Xi+1 , . . . , Xm .
+In other words, we view the randomness in the i-th hybrid U1 , . . . , Ui as instructions to shift
+X1 , . . . , Xm to another string. Importantly, the instructions are the same regardless of initial value
+of X1 , . . . , Xm .
+    Now first consider 1 ≤ i ≤ m/16. If for such an i, the distinguishing advantage of D was too
+large, there exists a fixing to u1 , . . . , ui−1 ∼ U1 , . . . , Ui−1 such that the advantage is preserved. Let
+∆ ≤ i ≤ m/16 be the number of 1-s in this fixing. This means that with probability at least 1000/m
+over X, adding u1 , . . . , ui−1 to X yields a string still in D, and flipping the i-th bit yields a string
+outside of D. However, this can only happen when X is in partition S∆ and this can only happen
+with probability 1000/m (if ∆ ≤ m/1000) or 0 (if m/1000 < ∆ ≤ m/16).
+    On the other hand, suppose i > m/16. Notice that the total size of D is at most poly(m) ·
+2H(1/1000)m ≤ 20.012m . Thus, the probability that Hi = U1 , . . . , Ui−1 , Xi , . . . , Xm is outside of D is
+   5
+    Historically, the hybrid argument replaces Xi -s with Ui -s starting at the end of the string.
+   6
+    Note that this is not quite the same distinguisher-to-predictor transformation as the standard hybrid argument uses,
+but we phrase it this way to present it closer to our intuition.
+
+
+
+                                                            15
+at least 1 − 2(0.012−1/16)m ≥ 1 − 2−0.05m . Similarly, the probability that Hi+1 is outside D is also at
+least this value. By union bound, with all but exponentially small probability, both hybrids are
+outside D, and so no prediction can be made. In other words, the distinguishing advantage in this
+case is exponentially small.
+
+Remark 2.1. In general, it is unclear whether the standard constructions of unpredictability gen-
+erators Gf : {0, 1}d → {0, 1}m are codes with good distance.7 Nevertheless, the example above
+suggests that we require a fundamentally new idea to obtain large prediction advantage.
+    One may ask whether it is interesting to consider such a distinguisher D that depends so
+heavily on X itself, the output distribution of the PRG. We point out that many previously known
+constructions of PRGs (and unpredictability generators) Gf for circuits from a hard function f are
+“black box”. This means that regardless of the function f and construction Gf , it is still interesting to
+consider arbitrary D-s. Indeed, for any such function, using the fact that it violates the guarantee of
+the PRG (no matter how severely) implies an efficient black-box reduction from D to computing f .
+    Thus, if there are constructions of black-box unpredictability generators that are also codes, the
+above example suggests that fooling such distinguishers requires generating (1/m)-unpredictability,
+even under the stronger notion of symmetric unpredictability, where all coordinates except i are
+given as input. This would then require using inefficient reductions and incur large polynomial
+losses in hardness.
+    We remark that [FSUV13] already provide a proof that the loss in the hybrid argument is
+inherent in black box reductions (see Fact 4.1 there). Our example provides intuition for a barrier to
+the hybrid argument as we interpret it for our purposes.
+
+Circumventing the Barrier. The predictor of Theorem 1.13 obtains a prediction advantage much
+larger than O(1/m) for the example above. The core reason is that it exploits the structure of
+the example as a (1 − 1/1000, 1/1000)-insensitive distinguisher. To compare the predictor to the
+standard predictor from the hybrid argument, there are three key perspective shifts.
+
+   • The purpose of considering hybrid Hj is less about predicting coordinate j itself, but rather
+     moving X to a point of distance (roughly) j away from it. Thus, we can use hybrid Hj to
+     predict any coordinate i, as long as X is moved to a point Hj such that Hj ∈ D and Hj +ei ̸∈ D.
+     This “decouples” the step j of the hybrid argument with the coordinate i we are trying to
+     predict.
+
+   • In the example considered above, if hybrid Hj moves X to a point on the “border” of a ball
+     of radius j (i.e. to a distance exactly j from X), then there are m − j choices of i for which
+     Hj ∈ D and Hj + ei ̸∈ D. In other words, there are many choices of i for which we can
+     correctly predict.
+
+   • Each hybrid Hj may only succeed in reaching a “border” for O(1/m) fraction of starting points
+     X. However, our predictor can call D(Hj ) and D(Hj + ei ) for every j, and output a prediction
+     the first time these calls differ in output. With high probability over the randomness of the
+     hybrids U1 , . . . , Um , such a j exists, since it’s very likely that Hj is outside of D eventually.
+     This predictor succeeds with high probability over its internal randomness for every input
+     X ∈ D.
+   7
+       However, we do know that they satisfy the weaker property that the pairwise distances are large on average.
+
+
+
+                                                           16
+Overall the three perspective shifts above suggest that each hybrid Hj represents the distribution
+at step j obtained by starting from X and performing a very specific type of random walk. In this
+walk, each coordinate j is considered sequentially from 1 to m, and flipped with probability 1/2.
+On input i, our predictor runs the two coupled random walks H0 , . . . , Hm and H0 + ei , . . . , Hm + ei .
+The former starts at X while the latter starts at X + ei , although the algorithm does not know which
+one is which: it only places 0 and 1 in the i-th coordinate. By assumption, the walk starting at X
+is initially in D, and with high probability ends outside of D. Therefore, at some step j it reaches
+a point on the border of D. At this point, at least one neighbor of Hj is outside of D, and so there
+are at least α fraction of choices of i for which the predictor would have terminated with a correct
+prediction at this step.
+
+
+3     Preliminaries
+The density of a set B ⊆ A is µA (B) = |B|   |A| (when A is clear from context, we shall omit it). For
+a set A, by x ∼ A we mean x is drawn uniformly at random from the uniform distribution over
+the elements of A. For a function f : Ω1 → Ω2 , we say f is explicit if there exists a deterministic
+procedure that runs in time poly(log |Ω1 |) and computes f . Finally, for f, g : N → N, we say that
+f (n) = O(g(n))
+         e       if there exists a constant k such that f (n) = O(g(n) logk g(n)). All logarithms are in
+base 2 unless otherwise specified.
+    Unless otherwise specified, all arithmetic on bits is done in F2 . Vectors with entries in F2 are
+generally denoted in bold: c. We denote ei to be the standard basis vector with 1 in the i-th
+coordinate.
+    When capital letters denote numbers (as opposed to random variables or sets), the correspond-
+ing lower case letters generally denote the logarithms of the capital letters. For example, log M = m
+and N = 2n . The only specific exception to this rule is T and t, where T is used to denote the
+maximum number of time steps, and t denotes an arbitrary index t ∈ [T ].
+    For a graph G = (V, E), and subset S ⊂ V define δG (S) = {{u, v} ∈ E : |{u, v} ∩ S| = 1}.
+
+3.1     Circuits and Worst-Case Hardness
+For a circuit C : {0, 1}n → {0, 1}, we often say that x ∈ C if C(x) = 1, and x ̸∈ C otherwise. We
+also use |C| to denote Supp(D) = |{x : x ∈ C}|.
+    The size of a Boolean circuit C is the number of its wires. We note that the size of C is different
+than |C|. We’ll often make the distinction clear by saying either the circuit size or the support size.
+We will extensively use the fact that DTIME(t(n)) ⊆ SIZE(O(t(n) log t(n))), where SIZE(t(n)) is
+the set of languages L ⊆ {0, 1}n for which there exists a circuit family {Cn }n , such that each Cn is
+of size t(n), and for every x ∈ {0, 1}n it holds that x ∈ L if and only if Cn (x) = 1 [PF79].
+Definition 3.1 (worst case hardness against circuits). Let f : {0, 1}n → {0, 1}. We let size(f ) denote
+the size of the smallest circuit that computes f . We say f is hard for circuits of size s if size(f ) > s.
+      We also use the notion of average case hardness:
+Definition 3.2 (average case hardness against circuits). Let f : {0, 1}n → {0, 1}. We say that f is
+δ-average case hard f for circuits of size s if for every circuit C : {0, 1}n → B, it holds that:
+                                       Pr [f (X) = C(X)] ≤ 1 − δ.
+                                     X∼Ud
+
+
+                                                    17
+      We often identify f with its truth table, and thus refer to f : {0, 1}log n → {0, 1} as f ∈ {0, 1}n .
+
+3.2     Random Variables, Min-Entropy
+We let Ur denote the uniform distribution on r bits. The support of a random variable X distributed
+over some domain Ω is the set of x ∈ Ω for which Pr[X = x] ̸= 0, which we denote by Supp(X).
+The min-entropy of a random variable X is defined by
+                                                                        1
+                                     H∞ (X) =         min     log             .
+                                                  x∈Supp(X)         Pr[X = x]
+    A random variable X is an (n, k) source if X is distributed over {0, 1}n and has min-entropy at
+least k. When n is clear from the context we sometimes omit it and simply say that X is a k-source.
+
+3.3     Unpredictability
+This work focuses mostly on the connection between unpredictability and pseudoentropy. We
+begin by recalling the definition of unpredictability:
+Definition 3.3. We say that a sequence of random bits X1 , . . . , Xm is ε-unpredictable against circuits of
+size s if for every i ∈ [n], and for any circuit P : {0, 1}i−1 → {0, 1} of size s, we have:
+                                                                          1
+                                     Pr[P (X1 , . . . , Xi−1 ) = Xi ] ≤     + ε.
+                                                                          2
+      We also will work with a stronger notion of unpredictability, that is, unpredictable in any order:
+Definition 3.4. We say that a sequence of random bits X1 , . . . , Xm is ε-symmetrically unpredictable against
+circuits of size s if for every i ∈ [n], and for any circuit P : {0, 1}m−1 → {0, 1} of size s, we have:
+                                                                                     1
+                            Pr[P (X1 , . . . , Xi−1 , Xi+1 , . . . , Xm ) = Xi ] ≤     + ε.
+                                                                                     2
+   Informally, we often say that a (symmetrically) unpredictable distribution is only “weakly
+unpredictable,” or has “weak unpredictability” if ε ≫ 1/m.
+
+3.4     Pseudoentropy
+Next, we discuss computational notions of min-entropy, or, (min-) pseudoentropy. We start with the
+standard, widely used, notion of pseudoentropy due to Håstad et al. [HILL99].
+Definition 3.5 (HILL pseudoentropy). Let X be a random variable distributed over {0, 1}n , s a positive
+integer, and ε > 0. We say that Hs,ε HILL (X) ≥ k if there exists a random variable Y ∼ {0, 1}n with
+
+H∞ (Y ) ≥ k such that for every circuit D : {0, 1}n → {0, 1} of size s, | E[D(X)] − E[D(Y )]| ≤ ε.
+    A weaker notion, given by Reingold [Rei03] and by Barak, Shaltiel and Wigderson [BSW03]
+allows the random variable having true min-entropy to depend on the distinguisher itself.
+Definition 3.6 (metric pseudoentropy). Let X be a random variable distributed over {0, 1}n , s a positive
+integer, and ε > 0. We say that X has k bits of metric pseudoentropy against a class of circuits D if for
+every circuit D ∈ D where D : {0, 1}n → {0, 1}, there exists Y ∼ {0, 1}n such that H∞ (Y ) ≥ k and
+| E[D(X)] − E[D(Y )]| ≤ ε.
+
+                                                         18
+      We record the following standard fact in pseudorandomness.
+
+Claim 3.7. If X ∼ {0, 1}n is a random variable such that the smooth min-entropy H∞
+                                                                                 ε (X) ≥ k then for
+                    n                           |D|
+every set D ⊆ {0, 1} it holds that Pr[X ∈ D] ≤ 2k + ε.
+
+    Barak et al. also give such a result in the computational world, when we use metric pseudoen-
+tropy. We will utilize this characterization of metric pseudoentropy extensively.
+
+Lemma 3.8 ([BSW03]). Let X be a random variable distributed over {0, 1}n , and ε > 0. Then, for any
+                                              metric (X) ≥ k if and only if for every circuit D ∈ D where
+class of circuits D closed under complement, Hs,ε
+D : {0, 1}n → {0, 1}, it holds that Pr[D(X) = 1] ≤ |D|
+                                                    2k
+                                                       + ε.
+
+    Note that X with this property may not have metric pseudoentropy against classes that are not
+closed under complement. Still, this characterization is interesting even for such classes, and we
+call it evasive pseudoentropy.
+
+Definition 3.9 (evasive pseudoentropy). Let X be a random variable over {0, 1}n , and ε > 0. We say
+that X has ε-evasive pseudoentropy against a class of circuits D if for all D ∈ D, it holds that
+
+                                                        |D|
+                                         Pr[X ∈ D] ≤        +ε
+                                                         2k
+
+3.5     Pseudoentropy Generators and Pseudorandom Generators
+A pseudorandom generator against a class D is a function whose output distribution fools any
+function from D.
+
+Definition 3.10 (PRG). We say that a distribution X ∼ {0, 1}n ε-fools a function D : {0, 1}n → {0, 1}
+if | Pr[D(X) = 1] − Pr[D(Un ) = 1]| ≤ ε. Let D ⊆ {{0, 1}n → {0, 1}} be a class of functions. We say that
+G : {0, 1}d → {0, 1}n ε-fools D, or is an ε-PRG against D, if for every D ∈ D, G(Ud ) ε-fools D. When D
+is the class of functions computable by circuits of size s, we say that G ε-fools circuits of size s.
+
+      We also define hitting set generators.
+
+Definition 3.11 (HSG). Let D ⊆ {0, 1}n → {0, 1} be a class of functions. We say that G : {0, 1}d →
+{0, 1}n is an ε-hitting-set-generator (HSG) against D if for every D ∈ D, such that Pr[Un ∈ D] ≤ ε, there
+exists a y ∈ {0, 1}d such that G(y) ̸∈ D.
+
+   When the output of a generator is not pseudorandom but does have high pseudoentropy, we
+say that the generator is a pseudoentropy generator. Our pseudoentropy generators will output
+random variables having high evasive pseudoentropy.
+
+Definition 3.12 (evasive PEG). We say that G : {0, 1}d → {0, 1}n is a (k, ε) evasive pseudoentropy
+generator (PEG) against a class of circuits D if G(Ud ) has k bits of pseudoentropy against D.
+
+
+
+
+                                                   19
+4    Barriers On Distinguisher to Predictor Transformations
+As mentioned in the introduction, nearly all existing randomized distinguisher to predictor transfor-
+mations use the distinguisher as a black box and don’t depend on the generator. In this section, we
+prove that any such transformation requires a linear number of queries to the predictor. Therefore,
+it is no better than using the hybrid argument and the union bound.
+     Our results hold even for a strong type of distinguisher.
+
+Definition 4.1. The set D ⊆ {0, 1}n is a strong ℓ-distinguisher for G : {0, 1}d → {0, 1}n if range(G) ⊆ D
+and 22d ≤ |D| ≤ 2ℓ .
+    We will consider the following type of black box transformations.
+Definition 4.2. An (ε, ℓ)-black box (bb) predictor on n bits is an oracle circuit P D : [n]×{0, 1}n−1 → {0, 1}
+such that for any function G : {0, 1}d → {0, 1}n , whenever D = DG ⊆ {0, 1}n is a strong ℓ-distinguisher
+for G, we have that P D is an ε-predictor for G.
+    We now show that such black box transformations require many queries. Note that our theorem
+is stronger for using strong distinguishers, as it should be easier to get a predictor from a strong
+distinguisher. The reader might first think of ℓ = 0.9n and ε = 0.01. In particular, the lower bound
+below is Ω(n) for these parameters.
+Theorem 4.3. Any (ε, ℓ)-bb predictor on n bits makes at least Ω(εℓ log((2n)/ℓ)) queries to the distinguisher.
+
+Proof: Fix an (ε, ℓ)-bb predictor P = P D on n bits, as well as a function G : {0, 1}d → Fn2 . For
+v ∈ Fn2 , let Gv (y) = G(y) + v. We construct distinguishers Dv for Gv , probabilistically, with certain
+correlations. We can then exploit that the predictor doesn’t “know” which v was chosen, and hence
+which Dv it queries and which Gv it tries to predict.
+    Let Zv = range(Gv ). For each v ∈ Fn2 , choose a uniformly random R ∈ {0, 1, . . . , r − 1} for r to
+be chosen shortly. We let
+                                       s ∈ Dv iff Rv ≥ ∆(s, Zv ),
+where ∆ denotes Hamming distance. Thus, Pr[s ∈ Dv ] = max(0, 1 − ∆(s, Zv )/r). In particular,
+Zv ⊆ Dv .
+   Moreover, each Dv is small. Specifically, since Dv only contains s with ∆(s, Zv ) ≤ r, we have
+                                    r  
+                                    X   n
+                      |Dv | ≤ |Zv |          ≤ |Zv | · 2H(r/n)n ≤ 2H(r/n)n+d ,
+                                        i
+                                       i=0
+
+where H() is the binary entropy function.
+    We want Dv to be a strong ℓ-distinguisher for Gv , so we need 2H(r/n)n+d ≤ 2ℓ . Since ℓ ≥ 2d,
+this is implied by ℓ ≥ 2H(r/n)n. This equation is satisfied for some r = Θ(ℓ/ log(2n/ℓ)), using that
+H(p) = Θ(p log(1/p)) for p ≤ 1/2. This is our choice of r.
+    Now, crucially, observe that if ∆(v, v ′ ) = 1, then for any s, PrR [Dv (s) ̸= Dv′ (s)] ≤ 1/r. This is
+because |∆(s, Zv ) − ∆(s, Zv′ )| ≤ 1, so there is at most one choice of R for which Dv (s) ̸= Dv′ (s).
+    We now show that if P makes at most q queries, then the advantage ε ≤ q/r, implying q ≥ εr.
+This will complete the proof.
+    Consider the distribution where v ∈ Fn2 and i ∈ [n] are chosen uniformly and independently.
+Further choose Y ∼ {0, 1}d uniformly and independently and set Xv = Gv (Y ). For ease of notation,
+
+                                                     20
+      def
+let X = Xv . Condition on i and v−i . This determines X−i = Gv (Y )−i . The predictor P receives
+(i, X−i ), and seeks to determine Xi . Let v j denote v−i with a j in the i’th location, so v 1 = v 0 + ei .
+The point is that each query answer to Dv0 is the same as for Dv1 , except with probability 1/r over R.
+Thus, the statistical distance of the q query answers for Dv0 and Dv1 is at most q/r. Hence, P returns
+the same answer for these two distinguishers except with probability at most q/r. However, Xv0
+and Xv1 always disagree on the i-th coordinate, by definition. Hence,
+
+                          Pr[P correct for v 0 ] + Pr[P correct for v 1 ] ≤ 1 + q/r.
+
+Thus the advantage ε ≤ q/(2r).
+
+
+5 Pseudoentropy from Weak Unpredictability via a “Truncated” Hybrid
+  Argument
+In this section, we provide a simple argument that shows that a weakly unpredictable distribution
+has some amount of evasive pseudoentropy. The theorem presented here serves as a baseline for
+the parameters one would hope to beat using a new analysis.
+Theorem 5.1 (truncated hybrid argument). For any k ≤ m, suppose that X = X1 , . . . , Xm is ε/k-
+unpredictable for a class of circuits D of size at most s. Let Dk be the set of all D ∈ D of size s − O(1) such
+that |D| < 2k . Then, for any D ∈ Dk , we have that
+
+                                                            |D|
+                                           Pr[X ∈ D] ≤          + ε.
+                                                             2k
+In other words, X has k bits of evasive pseudoentropy for the class of functions in Dk .
+
+Proof: Suppose otherwise that
+                                                   |D|
+                                           Pr[X ∈ D] >  +ε
+                                                    2k
+for some D ∈ Dk . Define the “hybrids” distributions H0 , . . . , Hk , with H0 = X, and
+
+                                      Hi = U1 , . . . , Ui , Xi+1 . . . Xm ,
+
+where the Uj ’s are uniform and independent. Since the first k bits of Hk are uniform, Hk is a
+k-source, so
+                                                   |D|
+                                     Pr[Hk ∈ D] ≤ k ,
+                                                    2
+and therefore
+                                Pr[H0 ∈ D] − Pr[Hk ∈ D] > ε.
+The proof proceeds as usual (see e.g. [Vad12], Proposition 7.16), by concluding that there exists an i
+such that Pr[Hi ∈ D] − Pr[Hi−1 ∈ D] > ε/k, in contradiction.
+
+For concreteness, suppose that k = mθ for some small constant θ. The above theorem then states
+that even ≈ m−θ unpredictability (for length X of length m) yields some form of computational
+entropy. We point out that the standard techniques to construct an ε/k-unpredictable distribution
+for circuits of size s from a worst-case hard function f requires f to be hard for circuits of size
+
+                                                       21
+s · poly(k/ε). Since k ≈ log |D|, this means the size blowup is at least ≥ s · logc |D| for some constant
+c ≥ 2. As a rough sketch of why, consider the construction of [STV01] with unpredictability ε/k.
+One can recall that given a distinguisher D of size s, there is a predictor for some coordinate of
+X of the same size. To compute f , this predictor is called as many times as there are queries in a
+locally decodable code with distance 12 + kε , which is poly(k/ε). In Section 7, we’ll give a predictor
+for which such a size blowup is only be about s · k.
+
+
+6    Predictable Distinguishers and Insensitive Distinguishers
+In this section we will work with the notion of an insensitive distinguisher, which is a subset D of
+{0, 1}n recognizable by a size s′ circuit with some additional properties. We first show that these
+properties enable an efficient prediction algorithm for any x in D (for many i-s) with α-advantage
+(for α ≫ 1/n) that uses roughly log |D| queries. As we will see later, using such a predictor to
+contradict a worst case hard function f in the analysis of an α-unpredictability generator from
+[STV01], results in a circuit of size roughly poly(1/α) · log |D| · s′ that computes f . When both
+poly(1/α) and log |D| are small this algorithm is efficient. One should also note that unlike in
+Section 5, α and log |D| are decoupled. Before, we needed α ≈ 1/ log |D|, and this also incurred a
+blowup of poly(1/α) ≈ poly log |D| rather than log |D|.
+Definition 6.1 (predictable distinguisher). We say that a distinguisher D : {0, 1}n → {0, 1} is α-
+predictable with q queries and runtime s if there exists a randomized predictor P : [i]×{0, 1}n−1 ×{0, 1}ℓ →
+{0, 1}, where we think of {0, 1}ℓ as P ’s random coins, making at most q queries to D, running in time s,
+such that for every x ∈ D,
+                                                                                          1
+                         Pr [P (i, x1 , . . . , xi−1 , xi+1 , . . . , xn , R) = xi ] ≥      + α.
+                         i,R                                                              2
+    We also consider a “two-sided” version of predictability, which further asserts that for every
+x ̸∈ D, the probability of an incorrect prediction is not too large.
+Definition 6.2. We say that a distinguisher D : {0, 1}n → {0, 1} is (α, β)-predictable with q queries and
+runtime s if there exists a randomized predictor P : [i] × {0, 1}n−1 × {0, 1}ℓ → {0, 1}, where we think of
+{0, 1}ℓ as P ’s random coins, making at most q queries to D, running in time s, such that for every x ∈ D,
+                                                                                          1
+                         Pr [P (i, x1 , . . . , xi−1 , xi+1 , . . . , xn , R) = xi ] ≥      + α.
+                         i,R                                                              2
+Furthermore, for every x ̸∈ D,
+                                                                                          1
+                         Pr [P (i, x1 , . . . , xi−1 , xi+1 , . . . , xn , R) ̸= xi ] ≤     + β.
+                         i,R                                                              2
+    To ease into our results, we consider first a strong notion of insensitive distinguisher where we
+insist on “good” neighborhoods for both every x ∈ D and x ̸∈ D.
+Definition 6.3 ((α, β)-insensitive distinguisher). We say that a distinguisher D : {0, 1}n → {0, 1} is
+(α, β)-insensitive if:
+    • (Inside Sensitivity.) For every x ∈ D with ∆D (x) = 1, it holds that Pri∼[n] [D(x + ei ) = 0] ≥ α.
+
+                                                           22
+      • (Outside Insensitivity.) For every x ̸∈ D, it holds that Pri∼[n] [D(x + ei ) = 1] ≤ β.
+
+Definition 6.4. We say that x ∈ D is “on the border of D,” or “just inside D” if there exists an i ∈ [n]
+such that x + ei ̸∈ D. Likewise, we say that x ̸∈ D is “on the border of D,” or “just outside D” if there
+exists an i ∈ [n] such that x + ei ∈ D.
+    Moreover, we say that x ∈ D is “completely inside D” if x is not on the border of D. We say that x ̸∈ D
+is “completely outside D” if x is not on the border of D.
+
+   Equipped with the notation above, we present two predictors that succeed with noticeable
+advantage, given an (α, β)-insensitive distinguisher.
+
+6.1     Warmup: A “Sequential” Predictor
+As a warmup that illustrates our technique, we give an algorithm showing that an insensitive
+distinguisher is predictable with O(log |D|) queries. The first intuition is a small but crucial shift
+in perspective of the hybrid argument: The hybrid Hi = U1 , . . . , Ui , Xi+1 , . . . , Xn is not just X
+with the first i bits replaced with uniform bits. It is X with the first i-bits shifted by uniform bits.
+Thus, we can view the distribution Hi as the distribution of the i-th step of a (very specific type of)
+“random walk” starting at X: one that randomly flips each bit starting from 1 to n.
+
+Theorem 6.5. For any T ∈ [n], any (α, β)-insensitive distinguisher D : {0, 1}n → {0, 1} is ε-predictable
+with O(T ) queries and runtime O(n), where
+
+                                             1
+                                          ε = (α − β) − |D| · 2−T .
+                                             2
+      Before proving the theorem, let us first interpret it. Suppose, for example, that α−β is a constant,
+and T is only Θ(log |D|). Then, we gain a predictor with small constant advantage, that requires
+only O(log |D|) queries to D. Since the prediction advantage is now constant (or at least does not
+depend on log |D|, as it did in Section 5), the reduction from a predictor to a circuit that computes a
+(worst-case) hard function would no longer suffer a blowup that is polynomial in log |D| as before.
+Instead, there is a linear blowup of T = O(log |D|) incurred by using queries to D.
+      To prove the theorem, we consider the algorithm SeqPred, which uses randomness R =
+(b1 , . . . , bT , b), where bi , b ∈ {0, 1}. As discussed before, the idea, similar to the original hybrid
+argument, will be to repeatedly replace xi with the random bits bi starting from the first bit. This is
+(a very specific kind of) “random walk” on the Boolean hypercube we take, starting from x.
+
+
+
+
+                                                       23
+  SeqPred:
+  Input: i ∈ [n], x−i ∈ {0, 1}n−1 , and R = (b1 , . . . , bT , b).
+  Output: A bit that predicts xi from x−i .
+
+     1. Let W00 ∈ Fn2 be x−i with 0 in the i-th coordinate, and likewise let W01 be x−i with 1 in
+        the i-th coordinate.
+
+     2. For each t ∈ [T ], let vt = bt · et .
+
+     3. Let W00 , . . . , WT0 and W01 , . . . , WT1 be such that Wt0 = W00 + v1 + . . . + vt , and likewise
+        Wt1 = W01 + v1 + . . . + vt .
+
+     4. For t = 1, . . . , T ,
+
+          (a) If t = i and bi = 1, let fix = 1, otherwise let fix = 0.
+          (b) If Wt0 ∈ D and Wt1 ∈ D, continue to the next iteration.
+          (c) If Wt0 ∈ D and Wt1 ∈
+                                 / D, then return 0 + fix (mod 2).
+          (d) If Wt1 ∈ D and Wt0 ∈
+                                 / D, then return 1 + fix (mod 2).
+          (e) If Wt0 ∈
+                     / D and Wt1 ∈
+                                 / D, return b.
+
+     5. Return b.
+
+Proof (of Theorem 6.5): We show that SeqPred is the predictor with the claimed parameters. Fix
+                                                                                  ∗
+any x ∈ D and consider random i and R. Let b∗ ∈ {0, 1} be such that x = W0b , and denote, for
+                ∗                                                                                    ∗
+any t, Wt = Wtb , noting that this is the random walk that truly starts at x. Also, let Wt′ = Wt1−b .
+Notice that Wt′ = Wt + ei .
+   Call the randomness R good (for x) if W0 eventually leaves D. That is, R = (b1 , . . . , bT , b) is
+good if Wt ̸∈ D for some t ∈ [T ]. Observe the following:
+
+   • If Wt is completely inside D, then the algorithm does not terminate on iteration t.
+
+   • If Wt is just inside D, then the algorithm may or may not terminate on iteration t, depending
+     on the choice of i. If it does terminate, it must terminate with a correct prediction for xi .
+
+   • Likewise, if Wt is just outside D, then the algorithm may terminate, and if it does, it will
+     terminate with an incorrect prediction for xi .
+
+   • If Wt is completely outside D, then the algorithm terminates with a random guess for xi .
+
+      Fix any good R. Notice that the probability that R is good is at least 1 − |D| · 2−T , since
+(b1 , . . . , bT ) is a T -source. Let ℓ ∈ [T ] be the first time that the walk starting at x reaches the border
+of D, that is, Wℓ is just inside D. We know that such an ℓ exists since the walk Wt eventually leaves
+D. We further observe two things:
+
+   • Assume without loss of generality that W00 = x. If Wt0 = W0 + v1 + · · · + vt is just inside D,
+     then we will observe Wt0 ∈ D. If i is chosen so that Wt1 ̸∈ D, this means that if t < i, the
+     algorithm will correctly return 0. Otherwise, if t ≥ i and bi = 1, the algorithm will correctly
+     return 1 + fix = 0.
+
+
+                                                         24
+   • By the same token, if Wt0 is just outside D, the algorithm will ouput the wrong answer for xi
+     if Wt0 ̸∈ D and Wt1 ∈ D.
+
+     Let G ⊆ [n] be the set of all i-s such that Wℓ′ = Wℓ + ei ̸∈ D. We call G the set of “good” i-s (and
+i is bad if i ̸∈ G). Notice that if SeqPred on x, R, and i ∈ G does not terminate before step ℓ, it will
+terminate on step ℓ, and correctly predict xi . By the “inside sensitivity” property, Pr[i ∈ G] ≥ α.
+
+Claim 6.6. For any i ∈ G, there is no step ℓ′ < ℓ such that
+
+                                                   Wℓ′ ̸∈ D
+
+Furthermore, there is no step ℓ′ < ℓ such that
+
+                                                   Wℓ′ ∈ D
+
+and
+                                                 Wℓ′ + ei ̸∈ D.
+
+Proof: Suppose there is such a step ℓ′ for which Wℓ′ ̸∈ D. This implies that the walk starting at x
+reached the border of D at some point before step ℓ. Since ℓ is assumed to be the first such time,
+this is a contradiction. Similarly, if there is a step ℓ′ when the last case happens, this implies that ℓ′
+is on the border of D, which is again a contradiction.
+
+Therefore, for any i ∈ G, and any R such that Wt leaves D, the algorithm does not terminate before
+step ℓ. Therefore, for such i and R, SeqPred must terminate at step ℓ, and will do so with a correct
+prediction for xi .
+    What we have shown so far, is that if we fix any good R, then for any good i (for R), the
+probability of a correct prediction is 1. Since we wish to take the average over all i-s, and still
+argue that we have some advantage in predicting, we need to ensure that on average over i ̸∈ G,
+the probability of prediction is not too low. For example, we would not want the probability of
+prediction to be 0 for all (1 − α)n of i ̸∈ G, as this would counteract the advantage from good i-s.
+    Let a ∈ [t] be the first time that Wa ̸∈ D. Notice this implies that Wa is just outside D, and a is
+the first such time that the walk is just outside D. Thus, SeqPred could not have terminated with an
+incorrect prediction before step a. Moreover, at step a, two things can occur:
+
+   • SeqPred terminates with an incorrect prediction, if the choice of i causes Wa + ei ∈ D. Call
+     such i very bad.
+
+   • SeqPred terminates with a random guess, if the choice of i causes Wa + ei ̸∈ D as well. Call
+     such i bad.
+
+      The number of choices of very bad i-s is at most βn by the “outside insensitivity” property.
+
+
+
+
+                                                      25
+Overall, for any fixed good R, the probability of a correct prediction is
+
+         Pr [SeqPred(x1 , . . . , xi−1 , xi+1 , . . . , xn , i, R) = xi ]
+          i
+          = Pr [SeqPred(x1 , . . . , xi−1 , xi+1 , . . . , xn , i, R) = xi |i is good] Pr[i is good]
+              i
+         + Pr [SeqPred(x1 , . . . , xi−1 , xi+1 , . . . , xn , i, R) = xi |i is bad] Pr[i is bad]
+              i
+         + Pr [SeqPred(x1 , . . . , xi−1 , xi+1 , . . . , xn , i, R) = xi |i is very bad] Pr[i is very bad]
+              i
+               1
+          ≥ α + (1 − α − β) + 0
+               2
+            1 1
+          = + (α − β).
+            2 2
+
+
+   We can also give a theorem about the two-sided predictability of such distinguishers using
+Theorem 6.5.
+
+Corollary 6.7. For any T ∈ [n], any (α, β)-insensitive distinguisher D : {0, 1}n → {0, 1} is
+                                                                
+                                       1                   −T β
+                                         (α − β) − |D| · 2 ,
+                                       2                       2
+
+predictable with O(T ) queries and runtime O(n).
+
+Proof: Theorem 6.5 already establishes that for any x ∈ D:
+
+                                                                                1 1
+           Pr [SeqPred(i, x1 , . . . , xi−1 , xi+1 , . . . , xn , R) = xi ] ≥    + (α − β) − |D| · 2−T .
+           i,R                                                                  2 2
+
+For any x ̸∈ D, by the outside insensitivity property, there are at most βn choices of i for which
+SeqPred does not terminate with the random guess b. Therefore,
+
+                                                                                      1
+                   Pr [SeqPred(i, x1 , . . . , xi−1 , xi+1 , . . . , xn , R) ̸= xi ] ≤ (1 − β) + β.
+                   i,R                                                                2
+
+
+
+6.2   Using Binary Search
+Note that Theorem 6.5 is nontrivial whenever the number of queries T ≥ log |D|, in which case the
+number of queries to D is O(log |D|). Using a “binary search” modification to the above predictor,
+we can in fact reduce the number of queries to O(log n) ≈ log log |D|.
+    We can summarize what we learned from the analysis of the sequential predictor SeqPred
+as follows. When the predictor reaches a time t for which Wt is just inside D, there is a good
+probability (over choice of i) that it will terminate with a correct prediction. There is a caveat to
+this statement. It requires that once time t is reached, the randomness over i is still uniform (or at
+least has high entropy), in order to use the inside sensitivity property. However, every query made
+before time t could reveal information about i and thus restrict the number of “live” choices for it.
+
+                                                            26
+    A key observation about the sequential analysis is that when Wt is the first point on the border
+of D reached, in every previous time step t′ < t, Wt′ must have been completely inside D. In this
+case, observing that both Wt0′ and Wt1′ are in D provides no information on the choice of i, since
+every i leads to this outcome. Thus when time t is reached, i is still uniform.
+    Overall, we can summarize how the outcome at a given iteration affects the distribution of i:
+
+   • If Wt is completely inside D, there is no effect on the distribution of i.
+
+   • If Wt is completely outside D, there is also no effect on the distribution of i.
+
+   • If Wt is just inside D, then observing that both Wt1 and Wt0 are in D restricts the choices of i
+     to those for which Wt + ei is inside D. This is also true when observing Wt1 and Wt0 differ
+     in membership to D. However, in this case the algorithm terminates, so there are no future
+     iterations for which one needs to be concerned about the possible choices of i.
+
+   • By the same token, if Wt is just outside D, then observing that both Wt1 and Wt0 are outside
+     D restricts the choices of i to those for which Wt + ei is outside D.
+
+   Unfortunately, in the case of binary search, it’s not guaranteed that we observe a time step t for
+which Wt is just inside D, without first observing roughly log n steps for which Wt is just outside D.
+Nevertheless, due to the outside insensitivity property, we can argue that each of the time steps on
+which we observe that Wt is just outside D cannot restrict the choices of i too much. Hence, if the
+algorithm eventually reaches a time when Wt is just inside D, the distribution over i still has high
+entropy, and so there is still a good chance of a correct prediction (using inside sensitivity).
+   We now present the binary search algorithm formally.
+
+
+
+
+                                                 27
+  BinaryPred:
+  Input: i ∈ [n], x−i ∈ {0, 1}n−1 , R = (b1 , . . . , bn , b).
+  Output: A bit predicting xi from x−i .
+
+     1. Let W00 ∈ Fn2 be x−i with 0 in the i-th coordinate, and likewise let W01 be x−i with 1 in
+        the i-th coordinate.
+
+     2. For each t ∈ [n], let vt = bt · et ∈ Fn2 , as in the sequential predictor.
+
+     3. Let W00 , . . . , Wn0 and W01 , . . . , Wn1 be such that Wt0 = W00 + v1 + . . . + vt , and likewise
+        Wt1 = W01 + v1 + . . . + vt .
+
+     4. Set lower = 0 and upper = n.
+
+     5. While upper ≥ lower + 1,
+                     j           k
+         (a) Let m = lower+upper
+                           2      .
+          (b) If m ≥ i, set fix = bi .
+                  0 ∈ D and W1 ∈ D, set lower = m.
+          (c) If Wm          m
+                  0 ∈ D and W1 ∈
+          (d) If Wm          m / D, return 0 + fix (mod 2).
+                  1 ∈ D and W0 ∈
+          (e) If Wm          m / D, return 1 + fix (mod 2).
+                   0 ∈
+           (f) If Wm          1 ∈
+                     / D and Wm / D, set upper = m.
+
+     6. Return b.
+
+    The following theorem establishes the performance of the binary search predictor.
+Theorem 6.8. Any (α, β)-insensitive distinguisher D : {0, 1}n → {0, 1} is ε-predictable with O(log n)
+queries and runtime O(n), where
+                                       α
+                                  ε = − β log n − |D| · 2−n .
+                                        2
+Proof: As before, fix any x ∈ D and let Wt be the walk that started at x, and let Wt′ = Wt + ei .
+Call R good if Wn ̸∈ D and fix any good R.
+Claim 6.9. For any choice of i, the algorithm either terminates with an incorrect prediction (at some iteration
+where Wm is just outside D and the choice of i is appropriate), or eventually reaches an m such that Wm is
+just inside D.
+
+Proof: We can show that at every iteration, Wlower ∈ D and Wupper ∈     / D. This is certainly true at
+the beginning of the algorithm when R is good. The bounds lower and upper are updated whenever
+both Wm 0 and W1 are both inside D or both outside D. In either case, this must mean that W ∈ D
+                  m                                                                            m
+or Wm ̸∈ D appropriately, so the loop invariant holds. Therefore, at every iteration there is always
+a time step lower ≤ t < upper for which Wt is just inside D. If the algorithm never terminates with
+an incorrect prediction (whenever Wm is just outside D), then eventually, when upper = lower + 1,
+Wlower must be just inside D, and thus in the next iteration, Wm is just inside D.
+
+Claim 6.10. There are at least (α − β log n)n choices of i for which the algorithm will output a correct
+prediction.
+
+                                                          28
+Proof: We will inductively build sets B1 , . . . , Bℓ∗ −1 ⊂ [n], each of size ≤ βn, with ℓ∗ ≤ log n, such
+that if i avoids all such sets, then there is an iteration in which Wm is just inside D.
+     Let q1 be the first iteration for which Wm is either just inside D or just outside D. Notice that
+on this iteration, the time step m we query will be the same regardless of the choice of i (for a
+fixed good R). This is because the sequence of queries up to q1 are the same regardless of choice
+of i. If Wm is just inside D, then the number of choices of i that lead to a correct prediction is at
+least αn and we’re done. Otherwise, if Wm is just outside D, there are at most βn choices of i
+for which the algorithm will terminate with an incorrect prediction on this iteration (by outside
+insensitivity). Call this set of choices B1 . Notice also, that for the good choices i ̸∈ B1 , the next time
+step m queried in the next iteration is the same.
+     In general, let 1 ≤ qℓ ≤ log n be the ℓ-th iteration for which Wm is either just inside D or just
+outside D. If Wm is just outside D, let Bℓ be the set of i-s such that Wm + ei ∈ D. Observe that
+as long as i ̸∈ B1 ∪ · · · ∪ Bℓ , the time step m queried in the qℓ -th iteration is the same regardless
+of i. Therefore, until the first iteration qℓ∗ such that Wm is just inside D, for any ℓ < ℓ∗ , as long as
+i ̸∈ B1 ∪ · · · ∪ Bℓ , the next iteration when Wm is just inside or outside D, qℓ+1 , queries the same
+time step regardless of i, and so Bℓ+1 is well defined.
+     Eventually, there is an iteration qℓ∗ in which Wm is just inside D. At this point, there are at least
+(α − β log n)n choices of i for which the algorithm will terminate with a correct prediction.
+
+Call the choices of i in Claim 6.10 good and denote the set of good choices by G. If the algorithm
+does not choose a good i, it is possible that it makes a mistake and outputs an incorrect prediction
+later on. However, by the same reasoning as before, such choices will be few.
+Claim 6.11. There are at most (β log n)n choices of i ̸∈ G for which the algorithm will output an incorrect
+prediction.
+
+Proof: We can continue identifying sets Bℓ as before, going beyond iteration qℓ∗ . To do so we
+assume that, whenever Wm is just inside D, a switch is not found. Continuing this way, the sets
+will be well defined inductively, as seen as before. As long as i avoids all such sets Bℓ , of which
+there are at most log n of, the algorithm will not output an incorrect answer (although it might
+output b as a guess).
+
+Again, call the set of choices of i in Claim 6.11 “very bad”, and those that are not good and not very
+bad, as just bad. Overall, since the algorithm will output a random guess as long as i is just bad,
+the overall prediction advantage over i for a good R is
+
+        Pr [BinaryPred(x1 , . . . , xi−1 , xi+1 , . . . , xn , i, R) = xi ]
+          i
+         = Pr [BinaryPred(x1 , . . . , xi−1 , xi+1 , . . . , xn , i, R) = xi |i is good] Pr[i is good]
+              i
+         + Pr [BinaryPred(x1 , . . . , xi−1 , xi+1 , . . . , xn , i, R) = xi |i is bad] Pr[i is bad]
+              i
+         + Pr [BinaryPred(x1 , . . . , xi−1 , xi+1 , . . . , xn , i, R) = xi |i is very bad] Pr[i is very bad]
+              i
+                        1
+         ≥ α − β log n + (1 − α − 2β log n) + 0
+                        2
+           1 α
+         = + − β log n.
+           2   2
+
+
+
+                                                             29
+    Again, by bounding the probability of an incorrect prediction using outside insensitivity when
+x ̸∈ D, we also get two-sided predictability:
+
+Theorem 6.12. Any (α, β)-insensitive distinguisher D : {0, 1}n → {0, 1} is
+                                                                
+                                 α                     −n β
+                                    − β log n − |D| · 2 , log n
+                                 2                          2
+
+predictable with O(log n) queries and runtime O(n).
+
+Proof: By similar reasoning to Claim 6.11, whenever x ̸∈ D, there can be at most (β log n)n choices
+of i for which the binary search predictor terminates with an incorrect prediction. If i is none of
+such choices, the predictor will guess correctly with probability at least 1/2.
+
+
+7      The More General Case: Removing the Inside Sensitivity Condition
+So far, we’ve considered distinguishers with both the inside sensitivity and outside insensitivity
+property. Next, we’ll show that we can remove the inside sensitivity property by giving a new
+prediction algorithm. The predictor will make roughly log |D| queries.
+
+7.1     Fast Mixing of Random Walks Within Small Subsets of the Boolean Hypercube
+Towards removing the inside sensitivity condition, we first observe that when D is small, a large
+fraction of nodes are “sensitive”, in the sense that a random step from a sensitive node will exit
+D with a decent chance. We will then establish the fact that a walk that stays inside D will mix
+quickly and therefore reach a sensitive node, allowing us to utilize ideas from the previous section.
+    Let Q = Qn denote the hypercube with nodes {0, 1}n . For a set of nodes D ⊆ {0, 1}n , let δ(D)
+denote the number of edges leaving D (i.e., between D and its complement). We will be considering
+different subgraphs of Q, so we sometimes use δG (D) to indicate it’s relative to graph G.
+
+Theorem 7.1 (edge isoperimetry, [Har66]). For any set D ⊆ {0, 1}n of size at most K = 2k , we have
+that δQ (D) ≥ γn|D|, for γ = 1 − nk .
+                                                                0.1
+    On a first reading, the reader should think of K as, say, 2n , in which case γ is very close to 1.
+    We can assume without loss of generality that D is connected within the Boolean hypercube;
+otherwise consider the appropriate connected component. Going forward, we fix some D ⊆ {0, 1}n
+of size K, and let GD be the subgraph of the hypercube that is induced by D. Notice that GD may
+not be regular. Also, since D will be clear from context, we will often simply denote G = GD .
+
+Definition 7.2 (the sets H and S). We let H be the subset of nodes in GD of degree at least (1 − γ/2)n.
+We let S = D \ H, and also denote GH as the subgraph of G induced by H. We often call a node in x ∈ S
+as “sensitive”: flipping a random coordinate of x has at least γ/2 probability of leaving D.
+
+   We will argue that for any sufficiently small D, a random walk on GD starting in H “mixes
+quickly”, by showing the following:
+
+      • In a random walk starting in H, the expected time to hit S is no slower than the expected
+        time to hit S in a related graph G⋆ .
+
+                                                  30
+   • G⋆ is a good spectral expander, and thus the expected hitting time within G⋆ is O(log |G⋆ |) ≈
+     log |D|.
+
+We argue this way because we cannot directly say that GD is a good edge expander. Indeed,
+although we do expect sets within H to expand well, we cannot necessarily say the same about S.
+We start by arguing that sets within H expand well in GD .
+
+Lemma 7.3 (edge expansion of H). Fix D with |D| ≤ K, and let G = GD . For any subset A ⊆ H ⊆ D,
+δG (A) ≥ (γ/2)|A|n.
+
+Proof: Within the entire Boolean hypercube Q, there are |A|n edges touching A. By Theorem 7.1,
+δQ (A) ≥ γn|A|, since |A| ≤ |D|. By the definition of H, at most γ/2|A|n edges from A leave GD .
+
+                              δG (A) ≥ δQ (A) − (γ/2)|A|n ≥ (γ/2)|A|n.
+
+
+
+      We now define G⋆ . Let GExp an n-regular expander on VExp = S ∪ W , where W is a set of
+3|D| new nodes. Concretely, we’ll take GExp to be a 1/4-edge-expander. That is, for every subset
+A ⊆ VExp of density at most 1/2, it holds that δ(A) ≥ n|A|/4. The probabilistic method shows
+that such graphs exist (and also, any 1/2-spectral expander has this property). Note that it also
+means that sets T of size at most 2|D| have at least |T |n/8 edges going from T to T̄ . Indeed, if
+|T | < |VExp |/2 this follows from the definition of an edge expander, and otherwise, we still have
+|T̄ | ≥ |D| (since |V | ≥ 3|D|), and so |D|/4 ≥ |T |/8. Now take G⋆ = (V, E) to be the graph over
+V = D ∪ W consisting of the edges in both G = GD and GExp . Notice that every node in G⋆ has
+degree at most 2n.
+                                             1
+Lemma 7.4. G⋆ has conductance ϕ(G⋆ ) ≥ 64      γ. That is, for any A ⊆ V of size at most |V |/2, we have
+         1
+δG (A) ≥ 64 γ · vol(A), where vol(A) is the sum of the degree of vertices in A.
+  ⋆
+
+
+
+Proof: Let β = γ/2 and let A ⊆ V be any subset of size at most |V |/2 = 2|D|. The idea is to split
+the nodes in A into those in H and those in GExp . Within G⋆ , sets in H expand, and sets in GExp
+expand. Therefore A as a whole should expand, as long as there are not too many edges between
+the nodes of A in H and those in GExp .
+    First, suppose that |A ∩ H| ≥ (1 − β/4)|A|. By Lemma 7.3, there are at least
+                                             
+                                            β          β
+                                     β 1−        n|A| ≥ n|A|
+                                            4          2
+
+edges leaving A ∩ H. We subtract out the number of such edges that lead into A ∩ VExp . These are
+either edges from the expander GExp or edges originally from GD . By construction, no edge from
+GExp can touch H, so it suffices to consider the edges from GD . Since |A ∩ VExp | ≤ β/4|A|, there at
+most (β/4)n|A| such edges touching A. Subtracting this from the number of edges leaving A ∩ H,
+we see that A as a whole must have at least (β/4)n|A| ≥ (γ/8)n|A| edges leaving it.
+    Next, suppose that |A ∩ H| < (1 − β/4)|A|. This implies that |A ∩ VExp | ≥ (β/4)|A|. By the above
+property of GExp , at least (β/32)n|A| edges leave A. This implies the conductance of this set is at
+least γ/64.
+
+
+
+                                                  31
+Cheeger’s inequality readily gives us a bound on the spectral expansion of G⋆ (see, e.g., [Tre13,
+Chapter 3]).
+Corollary 7.5. Let λ2 (G⋆ ) be the second smallest eigenvalue of the normalized Laplacian matrix of G⋆ .8
+Then, λ2 (G⋆ ) ≥ ϕ(G)2 /2 ≥ 2113 γ 2 .
+   Next, we’ll show that S has a noticeable probability under the stationary distribution of G⋆ .
+This will allow us to argue that the expected time to reach S is roughly log |D|.
+Lemma 7.6. Let πG⋆ be the unique stationary distribution of G⋆ (note that such exists, since G⋆ is connected).
+Then, πG⋆ (S) ≥ γ/8.
+
+Proof: We know that, by Theorem 7.1, and an averaging argument, that at least γ/2 fraction of the
+nodes in D must have at least γ/2 fraction of edges leaving D. That is, at least γ/2 fraction of the
+nodes in D are in S. For any node in u in S:
+                                                degG⋆ (u)     n       1
+                                    πG⋆ (u) =             ≥       =      ,
+                                                  2|E|      4n|D|   4|D|
+where we used the fact that the degree of each u ∈ S is at least n since GExp is also over S, and the
+fact that each node in G⋆ has degree at most 2n. Therefore, summing over all u ∈ S, we get that
+πG⋆ (S) ≥ γ/8.
+
+       Finally, we can argue that the expected hitting time to S from a node in H is short.
+Theorem 7.7. Let u be any node in H. After
+                                                            
+                                          log(1/γ)       |D|
+                                     O             · log
+                                             γ3           γ
+steps of a lazy random walk on G starting from u, the probability of not reaching S is at most γ/16.
+
+Proof: The expected time is the same as the expected time for u to reach S in G⋆ . This is because in
+constructing G⋆ , we did not add any edges within H, or between S and H. Since all nodes in VExp
+have degree at least n, and all nodes in H have degree at least n/2 in G⋆ , we have that
+                                                                  1
+                                              min πG⋆ (v) ≥          .
+                                              v∈V               8|D|
+Next, we will use standard mixing result of (lazy) reversible, irreducible, Markov chains (see, e.g.,
+[Spi25, Chapter 10]).
+Lemma 7.8. Let P = 12 (I + Π−1 AG ) be the transition matrix of a lazy random walk over an undirected
+graph G = (V, E) with an adjacency matrix AG and a diagonal degree matrix Π, and let 1 = ω1 ≥ ω2 ≥
+. . . ≥ ω|V | ≥ 0 be the eigenvalues of P . Moreover, let πmin = minv∈V πG (v). Then, for any distribution τ
+over V , and any t ∈ N, τ P t − π ∞ ≤ √π1min · ω2t Consequently, for any ε > 0, and
+
+                                                        log επ|Vmin
+                                                                 |    !
+                                              t=O                         ,
+                                                         log ω12
+
+the total variation distance between τ P t and π is at most ε.
+   8
+    Namely, the second smallest eigenvalue of the PSD matrix I − Π−1/2 AG⋆ Π−1/2 , where AG⋆ is the adjacency matrix
+of G⋆ and Π is its diagonal degree matrix.
+
+
+                                                        32
+    Now, observe that D−1 A is similar to D−1/2 AD−1/2 , so ω2 = 1 − λ2 /2, where λ2 = λ2 (G⋆ ) is
+the second smallest eigenvalue of the normalized Laplacian matrix. Thus, the bound on t above
+becomes                                                                 
+                             1                |D|               1      |D|
+                     t=O        · log                      =O      log       ,
+                            λ2        ε · minv∈V πG⋆ (v)        γ2      ε
+where we used Corollary 7.5. Set ε = γ/16. For some m ∈ N to be chosen soon, let t′ = tm.
+After every t steps, the probability of not landing in S is at most 1 − (πG⋆ (S) − ε) ≤ 1 − γ/16,
+using Lemma 7.6. Thus, after t′ consecutive steps, the probability of not landing in S is at most
+(1 − γ/16)m , which is at most γ/16 for m = O( γ1 ln(1/γ)).
+
+7.2     A Predictor Using Random Walks
+We’re now ready to give a predictor that works even when D is only outside insensitive. We now
+restate the relevant part of Definition 1.5.
+
+Definition 7.9 (β-insensitive distinguisher). We say that a distinguisher D : {0, 1}n → {0, 1} is
+β-insensitive if for every x ̸∈ D, it holds that Pri∼[n] [D(x + ei ) = 1] ≤ β.
+
+      We’ll prove the following theorem.
+
+Theorem 7.10. Let D : {0, 1}n → {0, 1} be a β-insensitive distinguisher with |D| = K = 2k , and let
+γ = 1 − nk , as in Theorem 7.1. Then, D is ε-predictable with O(T ) queries and runtime O(n), where
+T = O(k log(1/γ)/γ 3 ), and
+                                               γ
+                                           ε = − β · T.
+                                               8
+    Note that for the above theorem to be meaningful, the outside insensitivity parameter β needs
+to be small, roughly γ 4 /k, and recall that k = log |D|.
+    The idea behind the predictor is to modify the sequential predictor SeqPred, that does require
+inside sensitivity, in the following two ways:
+
+      • Instead of resampling each coordinate from 1 to n sequentially, at every step we resample a
+        random coordinate in [n]. Every step essentially simulates a step in a (lazy) random walk on
+        the Boolean hypercube.
+
+      • Instead of terminating with a random guess when both Wt0 and Wt1 are outside of D, we
+        continue with the random walk: we go one step back, and use fresh randomness to sample
+        yet another step on the hypercube. This essentially simulates a step in a (lazy) random walk
+        on GD .
+
+      • By setting the number of steps T to be the hitting time of GD according to Theorem 7.7, we
+        get that with high probability over the randomness of the walk, we would have reached a
+        sensitive node in GD : one with many neighbors outside of D. Similar to previous analyses, if
+        x is at such a node, then since i is uniform, it is likely that D(x) = 1 and D(x + ei ) = 0. Thus
+        we can argue that there would have been many choices of i for which the algorithm would
+        have correctly predicted.
+
+
+
+
+                                                    33
+  SeqPredWithRestarts:
+  Input: i ∈ [n], x−i ∈ {0, 1}n−1 ,
+  and R = ((z1 , b1 ), . . . , (zT , bT ), b), where z1 , . . . , zT ∈ [n] and b1 , . . . , bT , b ∈ {0, 1}.
+  Output: A bit predicting xi from x−i .
+
+     1. Let W00 ∈ {0, 1}n be x−i with 0 in the i-th coordinate, and likewise let W01 be x−i with 1
+        in the i-th coordinate.
+
+     2. For each t ∈ [T ], let vt ∈ Fn2 be ezt .
+
+     3. Let fix = 0, b0 = 0. Set T to be as in Theorem 7.7 for failure probability γ/16, so
+        T = O(k log(1/γ)/γ 3 )
+
+     4. For t = 0, . . . , T − 1,
+
+           (a) If zt = i and bt = 1, let fix = 1 + fix (mod 2).
+           (b) If Wt0 ∈ D and Wt1 ∈ D, continue to the next iteration.
+           (c) If Wt0 ∈ D and Wt1 ∈
+                                  / D, then return 0 + fix (mod 2).
+          (d) If Wt1 ∈ D and Wt0 ∈
+                                 / D, then return 1 + fix (mod 2).
+           (e) If Wt0 ∈
+                      / D and Wt1 ∈
+                                  / D, set Wt0 = Wt−1
+                                                  0   and Wt1 = Wt−1
+                                                                 1 .
+
+                    0
+           (f) Set Wt+1 = Wt0 + bt+1 · vt+1 , and Wt+1
+                                                   1   = Wt1 + bt+1 · vt+1 .
+
+     5. Return b.
+
+Proof (of Theorem 7.10): Fix any x ∈ D. We’ll show that SeqPredWithRestarts predicts xi from
+x−i with high probability over i and R. Let Wt∗ (i, R) ∈ {0, 1}n be the location of the walk that
+started at x (rather than x + ei ) at iteration t. (This can be undefined if t is after the algorithm
+terminated, and it can depend on i because of the termination conditions.) Next, define the sequence
+W0 , . . . , WT (which depends only on R) as the path of the walk starting at W0 = x, if the algorithm
+had ignored the termination conditions in Item 4c and Item 4d. That is, regardless of the choice of i,
+                                      (
+                                        Wt−1 (R) + vt if Wt−1 + vt ∈ D,
+                           Wt (R) =
+                                        Wt−1 (R),        otherwise.
+
+One should notice that for any choice of i, R, and any t before the algorithm terminates for this
+choice of i and R, we have Wt (R) = Wt∗ (i, R).
+   Call R good if for some t,
+                                                                        
+                       Wt (R) ∈ S = x′ ∈ D : Pr [D(x′ + ei ) = 0] ≥ γ/2] .
+                                                            i∼[n]
+
+In words, the walk using R eventually reaches S (as in Definition 7.2) in T steps. The probability
+that R does not satisfy this condition is γ/16, by Theorem 7.7.
+   Thus, for any such good R, if t∗ is the first t such that Wt∗ ∈ S, then the algorithm will correctly
+predict as long as the choice of i did not cause the algorithm to terminate before step t. That is,
+Wt∗∗ is not undefined. There are at most βT n such choices of i. This is because whenever Wt is just
+outside D, the outside insensitivity property guarantees that there are at most βn such choices of i.
+
+                                                              34
+    On the other hand, there are at least γn/2 choices of i that cause the algorithm to terminate with
+a correct prediction on step t∗ . Thus, there are at least
+
+                                             α ≥ γ/2 − βT
+
+fraction of “good” i-s (for a particular good R). As before, call i very bad for R if the algorithm
+terminates with an incorrect prediction. And here too, there can only be at most βT n very bad i’s.
+Call i bad otherwise (for such an i, the algorithm terminates with a random bit): we calculate the
+final probability of being correct given a fixed good R as (where we use P as shorthand for our
+predictor SeqPredWithRestarts):
+
+                 Pr[P is correct] = Pr [P is correct|i is good] Pr[i is good]
+                  i                  i
+                                    + Pr [P is correct|i is bad] Pr[i is bad]
+                                         i
+                                    + Pr [P is correct|i is very bad] Pr[i is very bad]
+                                         i
+                                     1
+                                  =α+  (1 − α − β · T ) + 0
+                                     2
+                                   1 γ
+                                  ≥ + − βT.
+                                   2 4
+Since the probability that R is good is at least 1 − γ/16, the final probability of a correct prediction
+over R and i is at least
+                                              1 γ
+                                                + − βT.
+                                              2 8
+
+
+Once again, a basic argument about outside insensitivity extends the result to two-sided predictabil-
+ity.
+Theorem 7.11. Let D : {0, 1}n → {0, 1} be a β-insensitive distinguisher with |D| = K = 2k , and let
+γ = 1 − nk , as in Theorem 7.1. Then, D is
+                                           γ            
+                                              − β · T, β
+                                            8
+predictable with O(T ) queries and runtime O(n), where T = O(k log(1/γ)/γ 3 ).
+
+Proof: Whenever x ̸∈ D, for at least (1 − β)n choices of i, the algorithm repeatedly falls in the
+branch Item 4e, for all T steps of the walk, after which it will output a random guess.
+
+
+8 Weak Unpredictability from Worst-Case Hardness with Minimal Loss
+  in Hardness
+We show how to construct a weakly unpredictable source from standard worst-case hardness assump-
+tions, with minimal loss in the hardness parameter. That is, we show how to transform a function
+with a truth table of length n that is hard against circuits of size s = n1−η into pseudorandom bits
+X1 , . . . , Xm (where m ≈ s) that are (weakly) unpredictable for circuits of size n1−2η . The construc-
+tion uses (by now) standard ingredients and techniques, but we present it here in a self-contained
+manner, since our parameter regime is not commonly considered.
+
+                                                   35
+8.1 Worst Case Hardness to Mild Average Case Hardness with Minimal Hardness Loss
+The first ingredient is converting a worst-case hard function f ∈ {0, 1}n that is hard for circuits of
+size n1−η into a function f¯ ∈ {0, 1}n̄ which is mildly average case hard for circuits of size n1−O(η) .
+This uses a standard result from [STV01].
+
+Theorem 8.1 ([STV01], Theorem 24.). For any n ∈ N and ε > 0, there exists a code C : {0, 1}n →
+{0, 1}n̄=poly(n,1/ε) such that the following holds. Let f ∈ {0, 1}n be the truth table of a function that
+is worst case hard for circuits of size s. Then, f¯ = C(f ) is 12 − ε average case hard for circuits of size
+s′ = (ε/ log n)c · s for some universal constant c.
+
+Remark 8.2. For constant ε > 0, we note that given f ∈ {0, 1}n as a string, it is possible to compute
+any coordinate of the code C(f )i , i ∈ [n̄], in time O(n).
+                                                      e     In fact, evaluating the code on m coordinates
+is possible in time (m + n)   1+o(1) . Indeed, the code in Theorem 8.1 consists of a (t = O(log n))-
+variate Reed-Muller code of degree at most log n in each variable over a field F of size O(log2 n),
+concatenated with a Hadamard code. Thus, evaluating C(f )i requires interpreting f ∈ {0, 1}n as
+(at most n) values in F, interpolating those values into a polynomial, and evaluating the polynomial
+on a given point. This requires time O(n).
+                                         e
+    Finally, computing the Hadamard code simply requires computing an inner product on a
+vector of length O(log log n). In order to compute C(f ) on m coordinates, after interpolating the
+polynomial, one can use batch evaluation techniques to compute the Reed-Muller code on all m
+points in time (m + n)1+o(1) . For more details on interpolation, we refer the reader to the discussion
+in [DMOZ22, Theorem 4.6]. For more details on batch evaluation, we refer the reader to [BGG+ 24].
+Finally, we note that while there are newer constructions of locally list decodable codes (say, the
+recent [DHIP26]), they do not quantitatively improve our results, as crucially, the number of queries
+of such codes is poly(1/ε), (and cannot be smaller than 1/ε2 ).
+
+      We record the following corollary, setting s = n1−η , while aiming for small unpredictability
+n−θ .
+
+Corollary 8.3. For every sufficiently large n ∈ N the following holds. Let η > 0 be a sufficiently
+small constant and θ ≤ η/(2c), where c is from Theorem 8.1. Set ε = n−θ . Then, there exists a code
+C : {0, 1}n → {0, 1}n̄=poly(n,1/ε) such that the following holds.
+    Let f ∈ {0, 1}n be the truth table of a function that is worst case hard for circuits of size s = n1−η . Then,
+f¯ = C(f ) is 12 − ε average case hard for circuits of size s′ = n1−2η . Moreover, given f ∈ {0, 1}n as a string,
+C(f ) can be computed on m = n1−η coordinates in time m1+η .
+
+   The upshot of this corollary is that it allows us to output m bits of “pseudoentropy”, even
+though the “unpredictability” is only ε = n−θ ≫ 1/m, which is too large for the hybrid argument.
+Moreover, because ε = n−θ for a small θ, the hardness loss is very small, namely s/s′ = nη .
+
+8.2     Mild Average Case Hardness to Unpredictability Using Designs
+So far, we have established that the loss from s to s′ can be small for unpredictability ε = n−θ . We
+now use the average case hard function from Corollary 8.3 in the Nisan–Wigderson framework of
+constructing pseudorandom generators [NW94]. First, we use standard results about designs (see,
+e.g., [Vad12, Chapter 7]).
+
+
+                                                       36
+Definition 8.4. A family of sets S1 , . . . , Sm ⊆ [d] is an (ℓ, a)-design if:
+
+      • ∀i, |Si | = ℓ, and,
+
+      • ∀i ̸= j, |Si ∩ Sj | ≤ a.
+
+Theorem 8.5. For any constant γ > 0, and any ℓ, m ∈ N, there exists an (ℓ, a)-design S1 , . . . , Sm ⊆ [d]
+             2
+with d = O( ℓa ) and a = γ log m. Such a design can be constructed deterministically in time m · poly(d).
+
+      We will use the following standard theorem about designs and the NW generator.
+
+Theorem 8.6 ([NW94], see also [Vad12], Theorem 7.24). Let G : {0, 1}d → {0, 1}m be the Nisan-
+Wigderson generator based on a function f : {0, 1}ℓ → {0, 1} and an (ℓ, a)-design. For any ε > 0, if f is
+1/2 − ε average-case hard for circuits of size s, then G is ε-unpredictable for circuits of size s − m · a · 2a .
+
+Theorem 8.7. For a sufficiently small constant η > 0, θ ≤ η/(2c) where c is as in Theorem 8.1, the
+following holds. Suppose that for every n ∈ N, there exists a function f ∈ {0, 1}n that is printable in time
+n1+η and that is worst case hard for circuits of size n1−η . Then, for all sufficiently large m, there exists a
+generator
+                                     G : {0, 1}d=O(log m) → {0, 1}m
+such that G(Y ) = X1 , . . . , Xm is (ε = m−θ )-symmetrically unpredictable for circuits of size s = n1−3η ≥
+m1+η . Moreover, G can be computed in time m1+35η .
+
+Proof: First, we observe that since the definition of designs does not specify an order for the the
+sets Si , the result in Theorem 8.6 actually shows that G is ε-symmetrically unpredictable.
+                                       ′
+    Now, choose n so that m = n1−c η for c′ = 7, and consider the hard function f ∈ {0, 1}n . Let f¯
+be the average case hard function obtained in Corollary 8.3. We know f¯ is of length poly(n) and
+is 12 − ε′ average case hard for circuits of size n1−2η , with ε′ = n−θ . Following Theorem 8.5 and
+                                                                              ′
+Theorem 8.6, using designs with ℓ = log n̄ = c · log n, γ = η, and m = n1−c η , we get
+
+                                        G : {0, 1}d=O(log n) → {0, 1}m
+
+that is ε′ -symmetrically unpredictable for circuits of size
+                          ′                           ′                          ′
+           n1−2η − n1−c η · η(1 − c′ η) log n · 2η(1−c η) log n ≥ n1−2η − n1−(c −3)η ≥ n1−3η ≥ m1+η
+
+for a large enough n, where we took a = γ log m = η(1 − c′ η) log n (see Theorem 8.5). One can
+verify using the fact that n ≥ m that ε′ ≤ m−θ . For the runtime of G, recall that it takes n1+η time to
+print f . Constructing the design takes time O(m),
+                                             e       and finally evaluating f¯ on m points takes time
+                                                          1+η             ′
+m1+η . Overall, the runtime is O(n1+η ) = O(m 1−c′ η ) = O(m1+5c η ).
+
+8.3     Seed Length Nearly 1 · log m
+We now demonstrate how to reduce the seed length in Theorem 8.7 from O(log m) to nearly 1·log m,
+using the composition idea of Chen and Tell [CT21]. To do so, we utilize their setting of parameters
+in the NW generator, stretching 1 · log m bits of seed to mη bits of pseudorandomness.
+
+
+
+                                                           37
+Theorem 8.8 ([CT21], Theorem 4.1). For a sufficiently small constant η > 0, suppose that there exists a
+function f ∈ {0, 1}n printable in time O(n1+η ), that is worst case hard for circuits of size n1−η . Then, there
+exists an n−η -pseudorandom generator
+                                                                                η
+                                         G : {0, 1}(1+O(η)) log n → {0, 1}n
+
+against circuits of size n1−O(η) . Computing the generator can be done in time n1+O(η) .
+
+   We can compose our symmetric unpredictability generator with this generator to get (1 +
+O(η)) log m seed length. (We make no attempt to optimize the constants.)
+
+Theorem 8.9. For sufficiently small constant η > 0, θ ≤ η/(2c) where c is as in Theorem 8.1, the following
+holds. Suppose that for every n ∈ N, there exists a function f ∈ {0, 1}n that is printable in time n1+η and
+that is worst case hard for circuits of size n1−η . Then, for all sufficiently large m, there exists a generator
+
+                                       G : {0, 1}d=(1+O(η)) log m → {0, 1}m
+
+such that G(Y ) = X1 , . . . , Xm is (ε = m−θ )-symmetrically unpredictable for circuits of size s = m1+η .
+Moreover, G can be computed in time m1+O(η) , and its support can be computed in time m2+O(η) .
+
+Proof: Let G2 : {0, 1}d2 =O(log m) → {0, 1}m be the generator given by Theorem 8.7 whose output is
+m−θ                                                     1+η . For a proper choice of n in Theorem 8.8,
+ 2 -symmetrically unpredictable for circuits of size m
+we can get, for some constant c ,′
+
+                                                       ′
+                                  G1 : {0, 1}d1 =(1+c ·η) log m → {0, 1}d2 =ω(log m)
+                                                           ′′
+that is an n−η -PRG against circuits of size m1+c η for c′′ = 40. Note the choice of n should be such
+                     ′′                                            −θ
+that n1−O(η) = m1+c η . Note that this also implies that n−η ≤ m2 .
+    Our generator will be G = G2 ◦ G1 . We show that its output is ε-symmetrically unpredictable.9
+Fix an i ∈ [m], and any predicting circuit P : {0, 1}m−1 → {0, 1} of size m1+η . We know that
+
+                                                                           1 m−θ
+                                   Pr[P (G2 (Ud2 )−i ) = G2 (Ud2 )i ] ≤      +   .
+                                                                           2   2
+
+Consider the circuit C : {0, 1}d2 → {0, 1} that computes G2 (x), and P (G2 (x)−i ), and accepts if only
+if P (G2 (x)−i ) = G2 (x)i . By Theorem 8.7, such a circuit has size O(m  e 1+η + m1+35η ) = o(m1+c′′ η ).
+However, since G1 is an n−η -PRG for circuits of such size, we have that for sufficiently large n (and
+m):
+                                                                           m−θ
+                             |Pr[C(G1 (Ud1 )) = 1] − Pr[C(Ud2 ) = 1]| ≤        .
+                                                                            2
+Therefore,
+                                                                         1
+                           Pr[P (G2 (G1 (Ud1 ))−i ) = G2 (G1 (Ud1 ))i ] ≤ + m−θ .
+                                                                         2
+For runtime, we note that both G1 and G2 will run in time m1+O(η) (including printing the respective
+f -s used in each one). Computing on all seeds therefore takes m2+O(η) time.
+   9
+    We truncate the output of G1 to fit the input length of G2 . The truncated version is still an n−η -PRG for circuits of
+size m1+O(η)
+
+
+                                                            38
+9 Hitting Set Generators and Evasive Pseudoentropy Against Insensi-
+  tive Distinguishers
+In this section, we utilize the constructions of Section 8, together with the prediction algorithms
+in Section 6 and Section 7, to construct efficient hitting set generators and evasive pseudoentropy
+generators. From Theorem 8.9, we can obtain m output bits of symmetric m−θ -unpredictability
+for any small constant θ with minimal loss in hardness when starting from the fine-grained
+assumption (e.g. f ∈ {0, 1}n is hard for circuits of size n1−γ ). We will focus on unpredictable
+distributions obtained in this way. In particular, our efficient hitting generators in this regime
+immediately implies a super-fast derandomization of one-sided error randomized algorithms that
+have insensitive distinguishers.
+
+9.1     Hitting Set Generators for (α, β)-insensitive Distinguishers
+We now utilize Theorem 6.8 to show that an ε-symmetrically unpredictable X suffices as a hitting
+set generator for (α, β)-insensitive distinguishers.
+
+Theorem 9.1 (hitting sets for (α, β)-insensitive distinguishers from unpredictability). For any
+sufficiently small constants η, θ > 0, suppose X = X1 , . . . , Xm is (ε = m−θ )-symmetrically unpredictable
+against circuits of size m1+η .
+    Then, X is a 2k−m -hitting set generator for (α, β)-insensitive distinguishers D : {0, 1}m → {0, 1} of
+size |D| ≤ K for circuits of size m, whenever α2 = β log m − |D|2−m > m−θ . In particular:
+
+      • X is a 2k−m -hitting set generator for (α, β)-insensitive distinguishers D : {0, 1}m → {0, 1} of size
+        |D| ≤ K for circuits of size m, as long as K = 2k ≤ 12 m−θ · 2m , α > 4m−θ and β ≤ m−2θ .
+
+      • For any constant α, X is a 2k−m -hitting set generator for (α, β)-insensitive distinguishers D : {0, 1}m →
+                                                                          α                α   m
+        {0, 1} of size |D| ≤ K for circuits of size m, as long as β ≤ 8 log m , and K ≤ 8 · 2 .
+
+Proof: Suppose towards a contradiction that Supp(X) ⊆ D, for some (α, β)-insensitive distin-
+guisher D of circuit size m. By Theorem 6.8, there is a predictor P that makes O(log m) queries to
+D, and runs in time O(m), that predicts with advantage at least α2 − β log m − |D| · 2−m ≥ m−θ .
+Namely for every x ∈ Supp(X),
+                                                                                          1
+                           Pr[P (i, x1 , . . . , xi−1 , xi+1 , . . . , xn , R) = xi ] >     + m−θ ,
+                           i,R                                                            2
+
+and so certainly,
+                                                                                            1
+                         Pr [P (i, X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , R) = Xi ] >        + m−θ .
+                        X,i,R                                                               2
+
+Thus, there exists a fixing (i⋆ , r) to i and R for which
+                                                                                           1
+                         Pr[P (i⋆ , X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , r) = Xi ] >      + m−θ .
+                         X                                                                 2
+Since |r| = O(m) and |i⋆ | = O(log m), the predictor P (i⋆ , ·, r) can be implemented by a circuit of
+size O(m)
+     e     and thus contradicts the unpredictability of X.
+
+                                                              39
+Combining with the generator in Theorem 8.9, we get the following corollary.
+
+Corollary 9.2. Let η > 0 be a sufficiently small constant, and let θ ≤ η/(2c) for some universal constant c.
+Suppose that for every n ∈ N, there exists a function f ∈ {0, 1}n that is printable in time n1+η and that is
+worst case hard for circuits of size n1−η . Then, for all sufficiently large m ∈ N, there exists a
+
+                                       G : {0, 1}d=(1+O(η)) log m → {0, 1}m
+
+that is a 2k−m -hitting set generator for (α, β)-insensitive distinguishers D : {0, 1}m → {0, 1} of size
+|D| ≤ K for circuits of size m, whenever α2 − β log m − |D|2−m > m−θ . In particular:
+
+      • G is a 2k−m -hitting set generator for (α, β)-insensitive distinguishers D : {0, 1}m → {0, 1} of size
+        |D| ≤ K for circuits of size m, as long as K = 2k ≤ 12 m−θ · 2m , α > 4m−θ and β ≤ m−2θ .
+
+      • For any constant α, G is a 2k−m -hitting set generator for (α, β)-insensitive distinguishers D : {0, 1}m →
+                                                                          α                α   m
+        {0, 1} of size |D| ≤ K for circuits of size m, as long as β ≤ 8 log m , and K ≤ 8 · 2 .
+
+      Moreover, G can be computed in time m1+O(η) , and its support can be computed in time m2+O(η) .
+
+9.2     Hitting Set Generators for β-insensitive Distinguishers
+Next, we use Theorem 7.10 to show that an ε-symmetrically unpredictable X suffices as a hitting
+set generator for β-insensitive distinguishers. In this scenario, we’ll state our results to highlight
+the fact that the size loss is linear in log |D| (in contrast with the standard hybrid argument where
+the size loss is polynomial in log |D|). As Theorem 7.10 requires β < 1/ log |D| in order for the
+                                                                        0.98
+prediction advantage to be meaningful, we require, say, |D| ≤ 2m , so that β ≤ n−0.99 (recall that
+it is impossible to have β < 1/n).
+
+Theorem 9.3 (hitting sets for β-insensitive distinguishers from unpredictability). Suppose X =
+                   1
+X1 , . . . , Xm is 16 -symmetrically unpredictable against circuits of size s = ω(m log m).
+    Then, X is a ε-hitting set generator for β-insensitive distinguishers D : {0, 1}m → {0, 1} of size
+|D| ≤ K = 2k for circuits of size s′ = s/(k log m), where ε = K · 2−m , whenever there exists some constant
+ζ ∈ (0, 1) such that k ≤ m1−ζ and β ≤ k −(1+ζ) .
+
+Proof: Suppose not (for sufficiently large m). Then there is a D of size s′ such that Supp(X) ⊆ D.
+By Theorem 7.10, there is a predictor P (taking random i, X, R as inputs) such that for some
+constant C, we have that D is
+                                        1 − k/m            k       1
+                                                − 2Cβ            ≥
+                                           8          (1 − k/m)4   16
+                        k
+predictable with C (1−k/m)  4 = O(k) queries to D, and runtime O(m). Once again, there exists a
+
+fixing to i and R such that:
+
+                                                                                         1  1
+                          Pr[P (i, X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , R) = Xi ] ≥     + .
+                          X                                                              2 16
+Overall, the size of this circuit is O(m log m + k · s/(k log m)) < s, so this is a contradiction to the
+symmetric unpredictability of X.
+
+                                                           40
+      We can combine the above result with Theorem 8.9 to get the following corollary.
+Corollary 9.4. For any sufficiently small constant η > 0, the following holds. Suppose that for every n ∈ N,
+there exists a function f ∈ {0, 1}n that is printable in time n1+η and that is worst case hard for circuits of
+size n1−η . Then, for all sufficiently large m ∈ N, any constant ζ > 0 and any k ≤ m1−ζ , there exists a
+generator
+                                 G : {0, 1}d=(1+O(η))(log m+log k) → {0, 1}m
+such that G is an ε-hitting set generator for β-insensitive distinguishers of size K = 2k for circuit size m,
+where ε = K · 2−m , whenever β ≤ k −(1+ζ) . Moreover G can be computed in time (mk)1+O(η) on one input
+and (mk)2+O(η) on all inputs.
+
+Proof: We instantiate Theorem 8.9 to get a generator
+                                                               ′            ′
+                                       G : {0, 1}(1+O(η)) log m → {0, 1}m
+
+for m′ = mk log m computable in time m′1+O(η) ≤ (mk)1+O(η) on one input and (mk)2+O(η) on
+all inputs. Truncating such a generator to m bits yields an (1 + O(η))(log m + log k) seed length
+1/16-symmetric unpredictability generator for circuits of size (m′ )1+η (notice also that (m′ )1+η =
+ω(m log m)). To see that truncating does not affect unpredictability, observe that for any of the first
+m coordinates i, it is unpredictable given all m′ − 1 other bits, and is thus also unpredictable with
+the same parameters given only the other m − 1 first bits. Thus, G is a K · 2−m hitting set generator
+for β-insensitive distinguishers by Theorem 9.3.
+
+We point out that the dependence of the seed length of the PRG on k is nearly 1 · log k. On the other
+hand, the standard techniques to obtain a similar result for |D| ≤ K using the truncated hybrid
+argument Section 5, would require roughly 1/k unpredictability, and thus O(log k) seed length.
+
+9.3     Evasive Pseudoentropy
+Next, we’ll restate the theorems using the two-sided predictability results in Theorem 6.12 and
+Theorem 7.11.
+Theorem 9.5 (evasive pseudoentropy for (α, β)-insensitive distinguishers). For any sufficiently small
+constants η, θ > 0, suppose X = X1 , . . . , Xm is (ε = m−2θ )-symmetrically unpredictable against circuits
+of size m1+η .
+     Then, X is a (k, ε′ )-evasive pseudoentropy generator for (α, β)-insensitive distinguishers D : {0, 1}m →
+{0, 1} of size K = 2k with circuit size m, as long as α2 · ε′ − β log m − 2k−m > ε. In particular:
+      • X is a (k, m−θ )-evasive pseudoentropy generator for (α, β)-insensitive distinguishers D : {0, 1}m →
+        {0, 1} of size K = 2k with circuit size m, as long as K ≤ 21 m−θ · 2m , α > 4m−θ and β ≤ m−2θ .
+
+      • For any constant ε′ , X is a (k, ε′ )-evasive pseudoentropy generator for (α, β)-insensitive distinguishers
+                                                                                                              αε′
+        D : {0, 1}m → {0, 1} of size K = 2k with circuit size m, as long as α is any constant, β ≤ 8 log         m,
+                     ′
+        and K ≤ αε8 · 2m .
+
+Proof: Assume otherwise, that there exists an (α, β)-insensitive distinguisher D : {0, 1}m → {0, 1}
+for circuits of size m such that
+                                                    |D|
+                                     Pr[X ∈ D] > k + ε′ .
+                                                     2
+
+                                                         41
+Assume that |D| < 2k (because otherwise we would have    an immediate contradiction). By
+                         α                    −m
+Theorem 6.12, since D is 2 − β log m − |D| · 2 , β log m -two-sided predictable with O(log m)
+queries to D and runtime O(m), we have a predicting algorithm P that runs in time O(m) such
+that:
+
+               Pr [P (i, X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , R) = Xi ]
+              X,i,R
+
+                 = Pr [P (i, X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , R) = Xi |X ∈ D] Pr[X ∈ D]
+                      X,i,R
+
+                   + Pr [P (i, X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , R) = Xi |X ̸∈ D] Pr[X ̸∈ D]
+                      X,i,R
+                                                                                         
+                          1 α                                                   1
+                 ≥ ε′ ·     + − β log m − |D| · 2−m + (1 − ε′ ) ·                 − β log m
+                          2  2                                                  2
+                   1 α
+                 ≥ + · ε′ − β log m − K · 2−m
+                   2     2
+                   1
+                 > + m−2θ .
+                   2
+Thus, by hardwiring R and i, there is a predicting circuit of size O(m)
+                                                                   e    contradicting the symmetric
+unpredictability of X.
+
+Corollary 9.6. Let η > 0 be a sufficiently small constant, and let θ ≤ η/(2c)for some universal constant c.
+Suppose that for every n ∈ N, there exists a function f ∈ {0, 1}n that is printable in time n1+η and that is
+worst case hard for circuits of size n1−η . Then, for all sufficiently large m ∈ N, there exists a
+
+                                     G : {0, 1}d=(1+O(η)) log m → {0, 1}m
+
+that is a (k, ε′ )-evasive pseudoentropy generator for (α, β)-insensitive distinguishers D : {0, 1}m → {0, 1}
+of size K = 2k with circuit size m, as long as α2 · ε′ − β log m − 2k−m > m−2θ . In particular:
+   • G is a (k, m−θ )-evasive pseudoentropy generator for (α, β)-insensitive distinguishers D : {0, 1}m →
+     {0, 1} of size K = 2k with circuit size m, as long as K ≤ 21 m−θ · 2m , α > 4m−θ and β ≤ m−2θ .
+
+   • For any constant ε′ , G is a (k, ε′ )-evasive pseudoentropy generator for (α, β)-insensitive distinguishers
+                                                                                                           αε′
+     D : {0, 1}m → {0, 1} of size K = 2k with circuit size m, as long as α is any constant, β ≤ 8 log         m,
+                  ′
+      and K ≤ αε8 · 2m .
+
+   Moreover, G can be computed in time m1+O(η) , and its support can be computed in time m2+O(η) .
+Theorem 9.7 (evasive pseudoentropy for β-distinguishers from unpredictability). Suppose that
+X = X1 , . . . , Xm is (ε = m−2θ )-symmetrically unpredictable against circuits of size s = ω(m log m),
+where θ ∈ (0, 1) is any constant.
+    Then, X is a (k, m−θ )-evasive pseudoentropy generator for β-insensitive distinguishers D : {0, 1}m →
+{0, 1} of size |D| =√K = 2k for circuits of size s′ = s/(k log m), whenever k ≤ m1−ζ and β ≤ k −(1+ζ) for
+some constant ζ ≤ 1 − 2θ.
+
+Proof: Once again, suppose not, and there is a β-insensitive distinguisher D such that:
+
+                                                               |D|
+                                           Pr[X ∈ D] >             + m−θ .
+                                                                2k
+
+                                                          42
+By Theorem 7.11, and using the same argument as in Theorem 9.5, since D is (α = 1/16, β)-
+predictable with O(k) queries, and runtime O(m). We get for some predictor P of size smaller than
+s,
+
+                Pr [P (i, X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , R) = Xi ]
+              X,i,R
+
+                  = Pr [P (i, X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , R) = Xi |X ∈ D] Pr[X ∈ D]
+                      X,i,R
+
+                   + Pr [P (i, X1 , . . . , Xi−1 , Xi+1 , . . . , Xn , R) = Xi |X ̸∈ D] Pr[X ̸∈ D]
+                     X,i,R
+                                                                
+                     −θ     1                     −θ       1
+                  ≥m ·        + α + (1 − m ) ·                −β
+                            2                              2
+                   1 m−θ               1
+                  ≥ +         − β ≥ + m−2θ .
+                   2     16            2
+                                                                                           2
+The last inequality follows from our constraints. Indeed, β ≤ k −(1+ζ) ≤ m−(1−ζ ) ≤ m−2θ .
+
+Corollary 9.8. There exists a universal constant c > 0 such that for every sufficiently small constant η > 0,
+the following holds. Suppose that for every n ∈ N, there exists a function f ∈ {0, 1}n that is printable in
+time n1+η and that is worst case hard for circuits of size n1−η .   p
+    Then, for all sufficiently large m ∈ N, any constant 0 < ζ ≤ 1 − η/(4c), and any k ≤ m1−ζ and
+β ≤ k −(1+ζ) , there exists a generator
+
+                                  G : {0, 1}d=(1+O(η))(log m+log k) → {0, 1}m
+
+such that G is a (k, m−η/(4c) )-evasive pseudoentropy generator for β-insensitive distinguishers for circuit
+size m. Moreover, G can be computed in time (mk)1+O(η) , and its support can be computed in time
+(mk)2+O(η) .
+
+Proof: We instantiate Theorem 8.9 to get a generator
+                                                                   ′          ′
+                                       G : {0, 1}(1+O(η)) log m → {0, 1}m
+
+for m′ = mk log m. Truncating such a generator to m bits yields an (1 + O(η))(log m + log k)
+seed length (m−η/(2c) )-symmetric unpredictability generator for circuits of size (m′ )1+η (notice
+also that (m′ )1+η = ω(m log m)). Thus, G is a (k, m−η/(4c) ) hitting set generator for β-insensitive
+distinguishers by Theorem 9.7.
+
+Notice that compared to Theorem 9.5, for distinguishers with only outside sensitivity, we only
+achieve pseudoentropy m0.99 rather than nearly m.
+
+9.4   Derandomization of Insensitive Algorithms
+Finally, we can apply our hitting set generators in order to get new derandomization results on
+insensitive algorithms.
+Definition 9.9 (insensitive algorithm). Let A : {0, 1}n × {0, 1}m → {0, 1} be a probabilistic algorithm
+running in time m. We say that A is (α, β)-insensitive with respect to a language L, if for any x, the
+following two properties hold.
+
+                                                           43
+   1. For any r such that A(x, r) ̸= L(x) and there exists and i such that A(x, r + ei ) = L(x), we have:
+
+                                          Pr[A(x, r + ei ) = L(x)] ≥ α
+                                           i
+
+
+   2. For any r such that A(x, r) = L(x), we have:
+
+                                          Pr[A(x, r + ei ) ̸= L(x)] ≤ β
+                                           i
+
+
+We say that A is β insensitive with respect to a language L, if for any x, we only require the second property
+to hold.
+
+Theorem 9.10. There exists a universal constant c > 0 such that for every sufficiently small constant η > 0,
+the following holds. Suppose that for every n ∈ N, there exists a function f ∈ {0, 1}n that is printable in
+time n1+η and that is worst case hard for circuits of size n1−η .
+    Let θ = η/(2c). Let L ⊂ {0, 1}n be a language and let A : {0, 1}n × {0, 1}m → {0, 1} be a probabilistic
+algorithm running in time m.
+
+   1. (Derandomizing (α, β)-insensitive algorithms for BPP with polynomially small error) Suppose A is
+      (α = 4m−θ , β = m−2θ )-insensitive with respect to L, and furthermore, for every x:
+
+                                                                   m−θ
+                                           Pr[A(x, r) ̸= L(x)] ≤       .
+                                            r                       8
+      Then there exists a deterministic algorithm A′ : {0, 1}n → {0, 1} that accepts L and runs in time
+      m2+O(η) .
+
+   2. (Derandomizing (α, β)-insensitive algorithms for BPP with constant error) For any constant α,
+                               α
+      Suppose A is (α, β = 64 log m )-insensitive with respect to L, and furthermore, for every x:
+
+                                                                    α
+                                           Pr[A(x, r) ̸= L(x)] ≤       .
+                                               r                   512
+      Then there exists a deterministic algorithm A′ : {0, 1}n → {0, 1} that accepts L and runs in time
+      m2+O(η) .
+
+   3. (Derandomizing β-insensitive algorithms for RP that err rarely) For some small constant ζ, suppose
+      k ≤ m1−ζ , and A is β = k −(1+ζ) -insensitive with respect to L. Suppose also that if L(x) = 0 then
+      A(x, r) = 0 and if L(x) = 1, then
+
+                                               Pr[A(x, r) = 0] ≤ 2k−m .
+                                                   r
+
+      Then there exists a deterministic algorithm A′ : {0, 1}n → {0, 1} that accepts L and runs in time
+      (mk)2+O(η) .
+
+   4. (Derandomizing    β-insensitive algorithms for BPP that err rarely) For some small constant ζ ≤
+        1 − η/(4c), suppose k ≤ m1−ζ , and A is β = k −(1+ζ) -insensitive with respect to L. Suppose also
+      p
+
+      that for every x:
+                                                               2k−m
+                                         Pr[A(x, r) ̸= L(x)] ≤       .
+                                          r                      4
+
+                                                       44
+       Then there exists a deterministic algorithm A′ : {0, 1}n → {0, 1} that accepts L and runs in time
+       (mk)2+O(η) .10
+
+Proof: For the first result, A′ first computes the generator of Theorem 9.5 on all seeds in time
+m2+O(η) . It then runs A(x, ·) and all m1+O(η) possible outputs of the generator, and takes the
+majority of all calls to A. This overall takes time m2+O(η) + m · m1+O(η) = m2+O(η) .
+   For correctness, fix any x and consider the circuit Ae : {0, 1}m → {0, 1} that implements A(x, ·).
+The circuit has size O(m log m). Without loss of generality, we can assume that A       e outputs 1
+whenever A(x, r) ̸= L(x) (since we can always hardwire a bit and negate if necessary). Since we
+use a pseudoentropy generator (with pseudoentropy k for 2k = 12 m−θ · 2m ), we get that
+
+                                          e ≤ |D| + m−θ = 1 + m−θ < 1 .
+                                Pr[G(y) ∈ A]
+                                               2k         4         2
+Thus the majority of calls to A will be correct. For the second result, we can instead use the fact
+that it’s a pseudoentropy generator with error ε′ = 1/8, and k for 2k = 64 α m
+                                                                            2 to get Pr[G(y) ∈ A] e ≤
+|D|    1     1  1   1
+ 2k
+    + 8 = 4 + 8 < 2.
+    For the last two bullets, similar arguments hold, using Corollary 9.4 and Corollary 9.8 instead.
+
+
+10      Derandomizing Scorers
+In this section, we use the generator of Theorem 8.9 to fool scoring algorithms. We first recall the
+definition of a scorer.
+
+Definition 10.1 (scorer). Let α, β ∈ [0, 1]. We say that a randomized algorithm is an (α, β)-scorer if if for
+each input x. there is a scoring function ϕx : {0, 1}m → [0, 1], such that the “good” randomness strings
+r ∈ {0, 1}m on input x are those with ϕx (r) ≥ τ for some τ ∈ (0, 1). Moreover, ϕx satisfies the following
+properties:
+
+     • Efficiency: For every x, on input r ∈ {0, 1}m the score ϕx (r) can be computed by an efficient BPP
+       algorithm.
+
+     • Approximate Monotonicity: For every x, for every randomness r, Pri∼[m] [ϕx (r + ei ) < ϕx (r)] ≤ β.
+
+     • Improvement: For every x, for every randomness r with ϕx (r) < τ , Pri∼[m] [ϕx (r+ei ) > ϕx (r)] ≥ α.
+
+    The properties of approximate monotonicity and improvement highly resemble the properties
+guaranteed by (α, β)-insensitivity, In fact, since the improvement property holds for every bad
+randomness string, there is already an extremely simple predictor that compares the score of x
+and x + ei and predicts whichever has the higher score. Since the scoring function is efficient, this
+suggests that for many i, there is a discrepancy in score between r and r′ = r + ei which allows for
+easy prediction.
+    Indeed, it follows easily that an (α − β)/3-unpredictability generator is already a hitting set
+generator for such a distinguisher. To see this, suppose that such a generator is not a hitting set
+for the good randomness strings. Then every generator output has score less than τ . Consider the
+  10
+     Notice the constraint on ζ required for the BPP result that requires it to be slightly bounded away from 1 is an
+artifact of our analysis. We generally think of ζ as very small, so that our result yields pseudoentropy m0.99 .
+
+
+                                                         45
+predictor P for coordinate i that given x−i , computes the score on two possible randomness strings:
+one with 0 in the i-th position and one with 1 in the i-th position. The string with the lower score is
+likely x: there are at least αm choices of i for which this is true, and there are at most βm choices
+of i for which the opposite is true. Thus, if P outputs 0 or 1 accordingly, and outputs a random bit
+if the scores are equal, then it predicts correctly with probability 1/2 + (α − β)/2, a contradiction.
+     Extending this idea allows us to construct extremely efficient predictors from such distinguishers
+(linear in the runtime of the scoring algorithm!) and thus nearly optimal pseudorandomness.
+Theorem 10.2. There exists a universal constant c > 0 such that for every sufficiently small constant η > 0,
+the following holds. Suppose that for every n ∈ N, there exists a function f ∈ {0, 1}n that is printable in
+time n1+η and that is worst case hard for circuits of size n1−η .
+    Let θ = η/(2c). Suppose A : {0, 1}n × {0, 1}m → {0, 1} is an (α, β)-scorer with scoring function
+ϕx : {0, 1}m → [0, 1] with threshold τ running in (randomized) time m, such that:
+
+                             Pr[ϕx (r) outputs the correct score] ≥ 1 − m−3θ ,
+
+where the probability is over the internal randomness of ϕx . Then, there exists a generator
+
+                                  G : {0, 1}d=(1+O(η)) log m → {0, 1}m ,
+
+such that for any ε and for every x,
+
+                                Pr[ϕx (G(y)) < τ ] − Pr[ϕx (Um ) < τ ] ≤ ε,
+
+as long as α2 ε − β2 > m−2θ . In particular, when α ≥ m−θ and β ≤ m−3θ we can take ε = m−θ/2 . When
+α, β are constants, ε is a constant.
+
+Proof: Let G be a m−2θ /4-symmetric unpredictability generator for circuits of size m1+η as in
+Theorem 8.9. Fix input x, and suppose that: Pr[ϕx (G(y)) < τ ] − Pr[ϕx (Um ) < τ ] > ε. In particular,
+this means that Pr[ϕx (G(y)) < τ ] > ε. Consider the following predictor P for G on input i, and
+G(Y )−i .
+   1. Let G(y)0−i be G(y)−i with 0 in the i-th coordinate. Let G(y)1−i be G(y)−i with 1 in the i-th
+      coordinate.
+   2. Compute ϕx (G(y)1−i ) and ϕx (G(y)1−i ). Output 1 if ϕx (G(y)0−i ) > ϕx (G(y)1−i ). Output 0 if
+      ϕx (G(y)0−i ) < ϕx (G(y)1−i ). Output a random bit if the values are equal.
+Let D ⊂ {0, 1}m be the set of randomness strings with score less than τ . For any G(y) ∈ D, we
+know there are at least αm choices of i for which the predictor is correct by the improvement
+property. We also know that there are at most βm choices of i for which the predictor is wrong by
+the approximate monotonicity property. Finally, for any G(y) ̸∈ D, there are at most βm choices of
+i for which the predictor is wrong, once again by approximate monotonicity.
+    Thus P is correct (over randomness i, y and internal randomness of ϕ) whenever:
+   • Both calls to ϕ are correct over their own internal randomness (this happens with probability
+     at least 1 − 2m−3θ ), and one of the following holds.
+   • G(y) ∈ D (which happens with probability at least ε), and i is “good,” meaning a correct
+     prediction is definitely made or “neutral,” meaning a random guess is made (overall the
+     probability of correctness over i here is at least α + 12 (1 − α − β));
+
+                                                     46
+   • G(y) ̸∈ D which happens with the remaining probability (at most 1 − ε), in which case the
+     probability of a correct answer is 12 (1 − β).
+
+Overall the probability of a correct prediction is at least:
+                                                              
+                              −3θ           1                1
+                    (1 − 2m ) ε α + (1 − α − β) + (1 − ε) (1 − β)
+                                            2                2
+                                                      
+                                        1 α          β
+                     = (1 − 2m−3θ )       + ·ε−
+                                        2   2        2
+                        1 α          β
+                     = + · ε − − m−3θ − αm−3θ ε + βm−3θ
+                        2     2      2
+                        1 m−2θ
+                     > +           .
+                        2       4
+Thus, we can fix i, and the internal randomness of ϕx to get a predictor of size O(m) with the same
+advantage that contradicts our generator.
+
+10.1   A Motivating Example for Scorers: Minimum Spanning Tree
+We present motivation for our notion of a scorer by considering the expected linear time algorithm
+for minimum spanning tree due to Karger, Klein, and Tarjan [KKT95]. We clarify that there already
+exist deterministic minimum spanning tree algorithms with nearly linear runtime [Cha00, PR02]
+that are thus more efficient than any derandomization we expect from our results. Thus, we discuss
+the algorithm at a high level mainly to motivate our notion of scorers.
+    On input a weighted undirected graph G = (V, E), w : P        E → R, the algorithm’s goal is to find a
+subtree T = (V, ET ) of G with minimum overall weight e∈ET w(e). Without loss of generality
+(thanks to a transformation by Borůvka [Bor26]; see also [KKT95]), the number of edges can be
+made arbitrarily larger than the number of vertices.
+    The algorithm picks a random subgraph G′ = (V, E ′ ) of G, recursively finds a minimum
+spanning tree T ′ in G′ , and uses that tree to find edges in G that it can rule out since they are
+not part of a minimum spanning tree of G. The subgraph is chosen by including each edge in E
+independently with probability p. A common choice of p is 1/2, and so the randomness uses |E|
+uniform bits. The edges it keeps are those in T ′ and edges in E ′′ , defined as edges e ∈ E that are
+better than T ′ in the sense that T ′ is not a minimum spanning tree of T ′ ∪ {e}. Thanks to an existing
+algorithm [Kin95, DRT92] one can find E ′′ in deterministic linear time. The algorithm rules out
+about half of the edges each time, and recursively finds a minimum spanning tree. Overall the
+runtime is linear with high probability.
+    We’ll show that a single call to this algorithm is a scorer, with the caveat that the improvement
+property
+1          only holds   for “nearly balanced” strings, ones for which the fraction of 1-s is in, say
+            1
+                    
+  2 − 0.2,  2 + 0.2  . We note that the analysis of pseudorandomness for scorers above still holds
+(with a little bit extra error probability) even in such a case, because, according to Theorem 10.3
+below, an unpredictability generator outputs nearly balanced strings with high probability.
+    Consider a single call of the algorithm (without recursion), so the randomness comes from
+choosing G′ . Consider the score ϕG,w (G′ ) = |E − E ′′ |/|E|, the fraction of edges that are not better
+than T ′ . For some constant τ ∈ [0, 1], the goal of the call is to rule out at least τ fraction of the edges
+in G. The score can be computed in randomized linear time, by invoking the randomized linear
+
+
+                                                     47
+time minimum spanning tree algorithm on G′ . We can consider this either a ZPP or BPP algorithm,
+depending on whether we allow it to run until completion or impose a fixed time cutoff.
+    To see that the score satisfies approximate monotonicity, observe that a random flip can only
+decrease the score if it takes out one of the tree edges of T ′′ from G′ . This happens with probability
+at most (|V | − 1)/|E|.
+    For the improvement property, consider when ϕG,w (G′ ) < τ , and the randomness string is
+nearly balanced. Then with probability close to 1/2 a random flip causes a random edge e to be
+added to G′ . In this event, as long as e was not already ruled out by G′ (there are at most τ fraction
+ruled out), at least one more edge is ruled out. In particular, e itself was an edge that was not ruled
+out by G′ , but is now included in the MST of the new G′ . This happens with probability at least
+1
+2 − 0.2 − τ .
+    We finally present a proof that unpredictability generators output nearly balanced strings.
+
+Theorem 10.3. Let X = X1 , . . . , Xm be (ε = m−3θ )-symmetrically unpredictable for circuits of size
+m log m and for small constant θ. Let |x| be the number of 1-s in x. Then Pr[|x| ̸∈ [( 12 −δ)m, ( 21 +δ)m] ≤ α,
+for δ = α = m−θ .
+
+Proof: Suppose not. Then either Pr[|x| < ( 12 − δ)m] > α/2, or Pr[|x| > ( 21 + δ)m] > α/2. Without
+loss of generality, assume the latter. For any m/2 ≤ t ≤ ( 12 + δ)m, let the predictor Pt (i, x−i ) output
+1 if |x−i | ≥ t and output a random bit otherwise. There are three cases for such a Pt :
+
+   • If |x| > t, the predictor outputs 1 regardless of i. Thus whenever i is such that xi = 1, the
+     predictor is correct, and whenever xi = 0, the predictor is incorrect. Overall, the probability
+     of being correct is |x|/m.
+
+   • If |x| = t, then if xi = 1, then |x−i | = t − 1 < t, so the predictor guesses randomly. If xi = 0,
+     |x−i | = t so the predictor outputs 1 and is incorrect. Overall, the probability of being correct
+         |x|
+     is 2m   .
+
+   • If x < t, the predictor always guesses randomly. So the probability of being correct is 1/2.
+
+Now consider the predictor P that on input i and X−i , picks a random m/2 ≤ t ≤ ( 12 + δ)m and
+outputs Pt (i, x−i ). Notice this predictor runs in time O(m).
+
+   • Say X is good whenever |X| > ( 12 + δ)m. In this case, regardless of the choice of t, we have
+     |X| > t. By assumption, X is good with probability > α/2 over X, and given such an X, the
+     probability of being correct is > 12 + δ.
+
+   • Say X is tricky when m/2 ≤ |X| ≤ ( 12 + δ)m. Fix any such x. The probability |x| = t is
+       1     1                                                                    1
+     δm+1 ≤ δm . For any other choice of t, the probability of being correct is ≥ 2 .
+
+   • Say X is a wash if |X| < m/2. In this case |X| < t for any choice of t, and so the predictor
+     always outputs a random bit.
+
+
+
+
+                                                      48
+Thus, the probability this predictor is correct (over i, X, t and internal randomness) is:
+
+              Pr[correct | X is good] Pr[X is good]
+            + Pr[correct | X is tricky] Pr[X is tricky]
+            + Pr[correct | X is a wash] Pr[X is a wash]
+                                                 
+                1                        1        1                    1
+            >     + δ Pr[X is good] +       1−        Pr[X is tricky] + Pr[X is a wash]
+                2                        2       δm                    2
+              1 δα        1
+            ≥ +        −
+              2    2     δm
+              1 m−2θ
+            ≥ +          − m−(1−θ)
+              2      2
+              1
+            ≥ + m−3θ .
+              2
+We can fix i and t to preserve this advantage and get a predictor for a specific i, contradicting the
+symmetric unpredictability of X.
+
+
+References
+[ACR98]      A. E. Andreev, A. E.F. Clementi, and J. D. P. Rolim. A new general derandomization
+             method. J. ACM, 45(1):179–213, January 1998.
+
+[AYZ95]      N. Alon, R. Yuster, and U. Zwick. Color-coding. Journal of the ACM, 42(4):844–856, July
+             1995.
+
+[BCT25]      Marshall Ball, Lijie Chen, and Roei Tell. Towards free lunch derandomization from
+             necessary assumptions (and OWFs). In Computational Complexity Conference (CCC),
+             pages 31–1. Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2025.
+
+[BGG+ 24]    Vishwas Bhargava, Sumanta Ghosh, Zeyu Guo, Mrinal Kumar, and Chris Umans. Fast
+             multivariate multipoint evaluation over all finite fields. Journal of the ACM, 71(3):1–32,
+             2024.
+
+[BHKT24]     Guy Blanc, Alexandre Hayderi, Caleb Koch, and Li-Yang Tan. The sample complexity
+             of smooth boosting and the tightness of the hardcore theorem. In Annual Symposium
+             on Foundations of Computer Science FOCS, pages 1431–1450. IEEE, 2024.
+
+[BM84]       M. Blum and S. Micali. How to generate cryptographically strong sequences of
+             pseudorandom bits. SIAM Journal on Computing, 13:850–864, 1984.
+
+[Bor26]      O. Borůvka. O jistém problému minimálnı́m. Práce Moravské přı́rodovědecké společnosti,
+             3:37–58, 1926.
+
+[BSW03]      Boaz Barak, Ronen Shaltiel, and Avi Wigderson. Computational analogues of en-
+             tropy. In Approximation, Randomization, and Combinatorial Optimization – Algorithms and
+             Techniques (RANDOM), pages 200–215. Springer, 2003.
+
+
+
+                                                    49
+[CH20]      Kuan Cheng and William M. Hoza. Hitting sets give two-sided derandomization
+            of small space. In Computational Complexity Conference (CCC), pages 10–1. Schloss
+            Dagstuhl–Leibniz-Zentrum für Informatik, 2020.
+
+[Cha00]     Bernard Chazelle. A minimum spanning tree algorithm with inverse-ackermann type
+            complexity. J. ACM, 47(6):1028–1047, November 2000.
+
+[CHR24]     Lijie Chen, Shuichi Hirahara, and Hanlin Ren. Symmetric exponential time requires
+            near-maximum circuit size. In Annual Symposium on Theory of Computing (STOC), pages
+            1990–1999. ACM, 2024.
+
+[CLO+ 23]   Lijie Chen, Zhenjian Lu, Igor C. Oliveira, Hanlin Ren, and Rahul Santhanam.
+            Polynomial-time pseudodeterministic construction of primes. In Annual Symposium on
+            Foundations of Computer Science (FOCS), pages 1261–1270. IEEE, 2023.
+
+[CT21]      Lijie Chen and Roei Tell. Simple and fast derandomization from very hard functions:
+            eliminating randomness at almost no cost. In Annual Symposium on Theory of Computing
+            (STOC), pages 283–291. ACM, 2021.
+
+[CT24]      Lijie Chen and Roei Tell. Hardness vs. randomness, revised: uniform, non-black-box,
+            and instance-wise. SIAM Journal on Computing, pages FOCS21–323, 2024.
+
+[DHIP26]    Yotam Dikstein, Max Hopkins, Russell Impagliazzo, and Toniann Pitassi. High rate
+            efficient local list decoding from HDX. arXiv preprint arXiv:2601.22535, 2026.
+
+[DMOZ22] Dean Doron, Dana Moshkovitz, Justin Oh, and David Zuckerman. Nearly optimal
+         pseudorandomness from hardness. Journal of the ACM, 69(6):1–55, 2022.
+
+[DPTW25] Dean Doron, Edward Pyne, Roei Tell, and R. Ryan Williams. When connectivity is
+         hard, random walks are easy with non-determinism. In Annual Symposium on Theory of
+         Computing (STOC), pages 1108–1117. ACM, 2025.
+
+[DRT92]     D. Dixon, M. Rauch, and R. E. Tarjan. Verification and sensitivity analysis of minimum
+            spanning trees in linear time. SIAM Journal on Computing, 21(6):1184–1192, 1992.
+
+[FSUV13]    Bill Fefferman, Ronen Shaltiel, Christopher Umans, and Emanuele Viola. On beating
+            the hybrid argument. Theory of Computing, 9(26):809–843, 2013.
+
+[Gol22]     O. Goldreich. Oded’s choice number 324. https://www.wisdom.weizmann.ac.il/
+            ˜oded/MC/324.pdf, 2022.
+[GSV18]     Aryeh Grinberg, Ronen Shaltiel, and Emanuele Viola. Indistinguishability by adaptive
+            procedures with advice, and lower bounds on hardness amplification proofs. In Annual
+            Symposium on Foundations of Computer Science (FOCS), pages 956–966. IEEE, 2018.
+
+[Har66]     L.H. Harper. Optimal numberings and isoperimetric problems on graphs. Journal of
+            Combinatorial Theory, 1(3):385–393, 1966.
+
+[HILL99]    Johan Håstad, Russell Impagliazzo, Leonid A. Levin, and Michael Luby. A pseudoran-
+            dom generator from any one-way function. SIAM Journal on Computing, 28(4):1364–
+            1396, 1999.
+
+                                               50
+[Hir22]     Shuichi Hirahara. NP-hardness of learning programs and partial MCSP. In Annual
+            Symposium on Foundations of Computer Science (FOCS), pages 968–979. IEEE, 2022.
+
+[HLR07]     Chun-Yuan Hsiao, Chi-Jen Lu, and Leonid Reyzin. Conditional computational entropy,
+            or toward separating pseudoentropy from compressibility. In Annual International
+            Conference on the Theory and Applications of Cryptographic Techniques (EUROCRYPT),
+            pages 169–186. Springer, 2007.
+
+[HMS23]     Iftach Haitner, Noam Mazor, and Jad Silbak. Incompressiblity and next-block pseu-
+            doentropy. In Innovations in Theoretical Computer Science Conference (ITCS), pages 66–1.
+            Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2023.
+
+[IW97]      Russell Impagliazzo and Avi Wigderson. P = BPP if E requires exponential circuits:
+            Derandomizing the XOR lemma. In Annual Symposium on Theory of Computing (STOC),
+            pages 220–229. ACM, 1997.
+
+[Kin95]     V. King. A simpler minimum spanning tree verification algorithm. In International
+            Workshop on Algorithms and Data Structures (WADS), page 440–448. Springer, 1995.
+
+[KKT95]     D. R. Karger, P. N. Klein, and R. E. Tarjan. A randomized linear-time algorithm to find
+            minimum spanning trees. Journal of the ACM, 42(2):321–328, March 1995.
+
+[KPWW16] Stephan Krenn, Krzysztof Pietrzak, Akshay Wadia, and Daniel Wichs. A counterexam-
+         ple to the chain rule for conditional HILL entropy. computational complexity, 25(3):567–
+         605, 2016.
+
+[LPT24]     Jiatu Li, Edward Pyne, and Roei Tell. Distinguishing, predicting, and certifying: On
+            the long reach of partial notions of pseudorandomness. In Annual Symposium on
+            Foundations of Computer Science (FOCS), pages 1–13. IEEE, 2024.
+
+[NW94]      Noam Nisan and Avi Wigderson. Hardness vs randomness. Journal of Computer and
+            System Sciences, 49(2):149–167, 1994.
+
+[OS25]      Justin Oh and Ronen Shaltiel. Extractors for samplable distributions from the two-
+            source extractor recipe. ECCC, TR25-107, 2025.
+
+[PF79]      Nicholas Pippenger and Michael J. Fischer. Relations among complexity measures.
+            Journal of the ACM, 26(2):361–381, 1979.
+
+[PR02]      Seth Pettie and Vijaya Ramachandran. An optimal minimum spanning tree algorithm.
+            J. ACM, 49(1):16–34, January 2002.
+
+[PRZ23]     Edward Pyne, Ran Raz, and Wei Zhan. Certified hardness vs. randomness for log-
+            space. In Annual Symposium on Foundations of Computer Science (FOCS), pages 989–1007.
+            IEEE, 2023.
+
+[Rei03]     Omer Reingold. Personal Communication, 2003.
+
+[SGP15]     Maciej Skorski, Alexander Golovnev, and Krzysztof Pietrzak. Condensed unpre-
+            dictability. In International Colloquium on Automata, Languages, and Programming (ICALP),
+            pages 1046–1057. Springer, 2015.
+
+                                                51
+[Spi25]   Daniel A. Spielman. Spectral and algebraic graph theory. http://cs-www.cs.yale.
+          edu/homes/spielman/sagt/sagt.pdf, 2025. Lecture notes.
+
+[STV01]   Madhu Sudan, Luca Trevisan, and Salil Vadhan. Pseudorandom generators without
+          the XOR lemma. Journal of Computer and System Sciences, 62(2):236–266, 2001.
+
+[SU05]    Ronen Shaltiel and Christopher Umans. Simple extractors for all min-entropies and a
+          new pseudorandom generator. Journal of the ACM, 52(2):172–216, 2005.
+
+[SV22]    Ronen Shaltiel and Emanuele Viola. On hardness assumptions needed for “extreme
+          high-end” PRGs and fast derandomization. In Innovations in Theoretical Computer
+          Science Conference (ITCS). Schloss Dagstuhl-Leibniz-Zentrum für Informatik, 2022.
+
+[Tre01]   Luca Trevisan. Extractors and pseudorandom generators. Journal of the ACM, 48(4):860–
+          879, 2001.
+
+[Tre13]   Luca Trevisan. Expansion, sparsest cut, and spectral graph theory.                      https://
+          lucatrevisan.github.io/books/expanders.pdf, 2013. Lecture notes.
+
+[Uma03]   Christopher Umans. Pseudo-random generators for all hardnesses. Journal of Computer
+          and System Sciences, 67(2):419–440, 2003.
+
+[Vad12]   Salil Vadhan. Pseudorandomness. Foundations and Trends® in Theoretical Computer
+          Science, 7(1–3):1–336, 2012.
+
+[Wil16]   Ryan Williams. Strong ETH breaks with Merlin and Arthur: Short non-interactive
+          proofs of batch evaluation. In Conference on Computational Complexity (CCC), pages
+          2:1–2:17. Schloss Dagstuhl–Leibniz-Zentrum für Informatik, 2016.
+
+[Yao82]   A. C. Yao. Theory of cryptographic protocols and pseudo-random generators. Annual
+          Symposium on Foundations of Computer Science (FOCS), pages 100–109, 1982.
+
+
+
+
+                                            52
+                                                                    ECCC                          ISSN 1433-8092
+
+                                                                    https://eccc.weizmann.ac.il
+

@@ -1,0 +1,1392 @@
+                                        Improved Capacity Upper Bounds for the Deletion Channel using
+                                                   a Parallelized Blahut-Arimoto Algorithm
+                                                                         Martim Pinto∗               João Ribeiro†
+
+
+
+                                                                                          Abstract
+arXiv:2604.05867v1 [cs.IT] 7 Apr 2026
+
+
+
+
+                                                   We present an optimized implementation of the Blahut-Arimoto algorithm via GPU paral-
+                                              lelization, which we use to obtain improved upper bounds on the capacity of the binary deletion
+                                              channel. In particular, our results imply that the capacity of the binary deletion channel with
+                                              deletion probability d is at most 0.3578(1 − d) for all d ≥ 0.64.
+
+
+
+
+                                          ∗
+                                             Departamento      de    Matemática,     Instituto  Superior   Técnico,     Universidade     de     Lisboa.
+                                        martim.velasco.santos.pinto@tecnico.ulisboa.pt
+                                           †
+                                             Instituto de Telecomunicações and Departamento de Matemática, Instituto Superior Técnico, Universidade de
+                                        Lisboa. jribeiro@tecnico.ulisboa.pt
+
+
+                                                                                              1
+Contents
+1 Introduction                                                                                          3
+  1.1 State-of-the-art capacity upper bounds for the BDC and the underlying barriers . . .              3
+  1.2 Our contributions . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     4
+  1.3 Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        5
+
+2 Preliminaries                                                                                         5
+  2.1 Notation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    5
+  2.2 Exact finite-length deletion channels . . . . . . . . . . . . . . . . . . . . . . . . . . .       5
+  2.3 The Blahut-Arimoto algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          6
+       2.3.1 The optimizations of Rubinstein and Con . . . . . . . . . . . . . . . . . . . .            7
+
+3 An overview of our optimizations                                                                     8
+
+4 Enumerating subsequences of a given length                                                      10
+  4.1 Pre-computed tables . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+  4.2 The enumeration algorithm . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 12
+  4.3 Computational complexity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
+
+5 Enumerating supersequences of a given length                                                   15
+  5.1 Enumerating subsets of unmatched bits . . . . . . . . . . . . . . . . . . . . . . . . . 16
+  5.2 From subsets to supersequences . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+  5.3 Computational complexity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 19
+
+6 Results                                                                                              19
+
+A Computing channel output probabilities using subsequences                                            24
+
+
+
+
+                                                   2
+1     Introduction
+Synchronization errors, such as deletions and insertions, are a common occurrence in communication
+and data storage systems, most notably in emerging DNA-based data-storage technologies [YGM17,
+OAC+ 18, HMG19, WGGH23]. This motivates the study of channels with synchronization errors,
+also called synchronization channels. One of the simplest synchronization channels is the binary
+deletion channel (BDC), which on input a bitstring x ∈ {0, 1}n independently deletes each bit of
+x with some fixed deletion probability d. The corresponding output of this channel would then be
+the subsequence of x consisting of its “undeleted” bits.
+    The BDC is closely related to the binary erasure channel (BEC), the only difference being that we
+do not replace the deleted bits by a “?”. However, despite this similarity, our state of knowledge about
+these two channels is wildly different. We have known the capacity of the BEC since Shannon’s early
+seminal work [Sha48] and the study of efficient coding for this channel has led to a rich mathematical
+theory. On the other hand, we still only know relatively loose bounds on the capacity of the BDC
+(let alone insights on its other properties), despite an extensive research effort on deriving both
+capacity lower bounds [Gal61, VD68, Zig69, DG06, MD06, DM07, DK07, Mit08, KD10, MTL12,
+RA13, VTR13, CK15, ISW16, RC23] and capacity upper bounds [DMP07, Mit08, FD10, Dal11,
+MTL12, RD15, Che19, CR19, RC23] for the BDC and related synchronization channels. The main
+reason behind this is that, although the behavior of the BDC is memoryless like the BEC, it causes a
+loss of synchronization between sender and receiver: when the receiver looks at the i-th output bit,
+they are not sure to which input bit it corresponds. For a more detailed discussion of the challenges
+imposed by this loss of synchronization, see the surveys [Mit09, MBT10, CR21, HS21].
+
+1.1   State-of-the-art capacity upper bounds for the BDC and the underlying
+      barriers
+From here onward we denote the BDC with deletion probability d by BDCd , and its capacity by C(d).
+The best known upper bounds on C(d) are obtained by numerically approximating the capacity of
+a “finite-length” version of the BDCd , an approach first studied by Fertonani and Duman [FD10].
+More precisely, for any given integer n ≥ 1 we may consider the
+                                                             S discrete memoryless channel (DMC)
+with input alphabet {0, 1}n and output alphabet {0, 1}≤n = ni=0 {0, 1}i which on input x ∈ {0, 1}n
+behaves exactly like the BDCd on input x. By the noisy channel coding theorem, the capacity of
+this channel, which we denote by Cn (d), is given by
+
+                                        Cn (d) = sup I(X n ; Y ),
+                                                    Xn
+
+where the supremum is over all random variables X n supported on {0, 1}n , Y is the corresponding
+output distribution of the BDCd on input X n , and I(·; ·) denotes mutual information. A sim-
+ple argument     (found, for example, in [FD10, Dal11]) combining the subadditivity of the sequence
+ 1
+               , Fekete’s lemma, and the fact, established by Dobrushin [Dob67], that
+         
+   C
+ n n  (d)  n≥1
+
+                                               1
+                                         lim       Cn (d) = C(d),
+                                        n→∞ n
+
+implies that
+                                               1
+                                           C(d) ≤Cn (d)                                     (1)
+                                               n
+for all n ≥ 1. Therefore, we can upper bound C(d) by upper bounding Cn (d) for any n ≥ 1. For
+example, by taking n = 1 we recover the easy upper bound C(d) ≤ 1 − d, valid for all d ∈ [0, 1],
+and we can obtain better upper bounds by considering larger n.
+
+                                                      3
+    A key observation is that Cn (d) is the capacity of a DMC with finite input alphabet (of size 2n )
+and finite output alphabet (of size 2n+1 − 1). The well-known Blahut-Arimoto algorithm [Ari72,
+Bla72] can, in principle, numerically approximate the capacity of any DMC with finite input and
+output alphabets to any desired accuracy. By the connection above, arbitrarily good numerical
+approximations of Cn (d) would lead to arbitrarily good approximations of C(d), for any deletion
+probability d.1
+    The main issue with the approach in the previous paragraph is that the time and space com-
+plexity of the Blahut-Arimoto scales badly with the size of the input and output alphabets of the
+DMC under analysis. Therefore, a naive implementation of the Blahut-Arimoto algorithm will only
+produce results in a reasonable timeframe for small values of the input length n. For example,
+Fertonani and Duman [FD10] were able to run the BAA only up to n = 17. This motivates the
+following challenge:
+
+      Can we optimize the implementation of the Blahut-Arimoto with the deletion channel in
+      mind so that we can obtain good bounds on Cn (d) for significantly larger n?
+
+Recently, Rubinstein and Con [RC23] took on this challenge and presented an implementation of
+the Blahut-Arimoto algorithm with lower space complexity for this problem. They were able to
+apply this algorithm to input lengths up to n = 28, obtaining the current state-of-the-art upper
+bounds on C(d).
+
+1.2    Our contributions
+We present an optimized implementation of the Blahut-Arimoto algorithm using GPU paralleliza-
+tion, and use it to obtain improved upper bounds on the capacity of the BDC for the entire range
+of the deletion probability d.
+    More precisely, we use our optimized implementation of the Blahut-Arimoto algorithm to com-
+pute upper bounds on Cn (d) for input lengths up to n = 31.2 The resulting improved bounds on
+C(d) are reported in Table 3 for several values of d. Here, we expand on their consequences in
+the asymptotic high-noise setting where d → 1, also studied in prior works [MD06, DMP07, FD10,
+Dal11, RD15, RC23]. Combining our improved bound for d = 0.64 with a result of Rahmati and
+Duman [RD15], we conclude that
+                                       C(d) ≤ 0.3578(1 − d)
+for all d ≥ 0.64. This improves on the previous best bound in the high-noise regime due to Rubinstein
+and Con [RC23], which was C(d) ≤ 0.3745(1 − d) for all d ≥ 0.68.
+    The implementation used to obtain the upper bounds is publicly available in a GitHub reposi-
+tory [Pin26].
+   1
+     Fertonani and Duman [FD10] and later works, including ours, actually numerically approximate the capacity of
+the related exact deletion channels parameterized by n ≥ 1 and 0 ≤ k ≤ n which receive an n-bit string x and delete
+a uniformly random subset of n − k bits of x, and then use these values to upper bound C(d). This discussion applies
+equally well to those channels. For the sake of simplicity, we focus on a direct analysis of Cn (d) here and leave a
+discussion of these proxy channels to Section 2.2.
+   2
+     To be more precise, we computed good approximations of the exact deletion channel capacities Cn,k (see Sec-
+tion 2.2) for all k ≤ n ≤ 29, and for n = 31 and all k ≤ 18. In contrast, Rubinstein and Con [RC23] were able to
+compute good approximations of the Cn,k values for all n ≤ 28 and all k satisfying k + n ≤ 39. They were not able
+to approximate Cn,k for some values of k when 22 ≤ n ≤ 28, due to the high space and time complexity of their
+implementation.
+
+
+
+
+                                                         4
+1.3    Acknowledgements
+We thank Roni Con for several insightful discussions that improved this paper.
+   This work was funded by the European Union (LESYNCH, 101218842). Views and opinions
+expressed are however those of the authors only and do not necessarily reflect those of the European
+Union or the European Research Council Executive Agency. Neither the European Union nor the
+granting authority can be held responsible for them.
+
+
+2     Preliminaries
+2.1    Notation
+We denote random variables and sets by uppercase Roman letters such as X, Y , and Z. Sets
+are sometimes also denoted     Sn by uppercase       calligraphic letters such as S and T . For an integer n,
+we define {0, 1}   ≤n      = i=0 {0, 1} . We index strings starting at 0, and for y ∈ {0, 1}n we define
+                                          i
+
+y[a:b] = (ya , ya+1 , . . . , yb ). We write log for the base-2 logarithm.
+
+2.2    Exact finite-length deletion channels
+As already discussed in Section 1, our starting point is a finite-length version of the BDCd . More
+precisely, given an integer n ≥ 1 this is the DMC that accepts inputs from {0, 1}n and, given
+x ∈ {0, 1}n , sends x through the BDCd and returns its output y ∈ {0, 1}≤n . We denote the
+capacity of this DMC by Cn (d). As mentioned before, the following inequality holds.
+
+Lemma 1 ([FD10, Dal11]). For every d ∈ [0, 1] and integer n ≥ 1 we have
+                                                        1
+                                             C(d) ≤       Cn (d).
+                                                        n
+    Since this finite-length channel is a DMC, its capacity Cn (d) can be numerically approximated
+in principle using the Blahut-Arimoto algorithm, provided sufficient computational resources. A
+disadvantage of this approach is that we would need, at least at first sight, to restart the computation
+from scratch if we change the deletion probability d. With this in mind, it is also useful to consider
+another family of finite-length versions of the BDC, called exact deletion channels.
+    An exact deletion channel is parameterized by an input length n ≥ 1 and another integer
+0 ≤ k ≤ n. We denote this channel by BDCn,k . On input x ∈ {0, 1}n , BDCn,k outputs a length-k
+subsequence y of x uniformly at random over all such nk subsequences. In other words, BDCn,k
+chooses a uniformly random subset of n − k coordinates of x and deletes those bits. This channel
+is a DMC with input alphabet X = {0, 1}n , output alphabet Y = {0, 1}k , and channel rule Pn,k
+satisfying
+                                      #times y appears as a subsequence of x
+                         Pn,k (y|x) =                   n
+                                                                                .
+                                                             k
+Its capacity, denoted Cn,k , is thus given by
+
+                                          Cn,k = sup I(X n ; Y ),
+                                                   Xn
+
+where the supremum is over all distributions X n supported on {0, 1}n and Y is the corresponding
+channel output on input X n . The values of Cn,k for 1 ≤ k ≤ n can be used to bound Cn (d) by
+taking an appropriate convex combination.
+
+
+                                                      5
+Lemma 2 ([FD10]). For every d ∈ [0, 1] and all integers n ≥ 1 and 1 ≤ k ≤ n we have
+                                           n  
+                                           X  n
+                                Cn (d) ≤             dn−k (1 − d)k Cn,k .
+                                                 k
+                                           k=1
+
+    An advantage of this approach is that once we upper bound Cn,k for all 1 ≤ k ≤ n, we can then
+easily get upper bounds on Cn (d) for any value of d. We will follow this approach in this work.
+    Rubinstein and Con [RC23] used their optimized implementation of the Blahut-Arimoto algo-
+rithm to approximate Cn,k for k + n ≤ 39 with n ≤ 28. However, they were not able to compute
+Cn,k for some values of k when 22 ≤ n ≤ 28, due to the high space and time complexity. In the fol-
+lowing sections, we will see how to further decrease the time and space complexity of the algorithm
+specifically for deletion channels.
+
+2.3   The Blahut-Arimoto algorithm
+The Blahut-Arimoto algorithm (BAA) is a well-known tool for numerically approximating the ca-
+pacity of finite-input/finite-output DMCs [Ari72, Bla72]. We present the standard formulation of
+the BAA here, and later show how it can be optimized for the BDC.
+    A finite-input/finite-output DMC is characterized by a finite input alphabet X , a finite output
+alphabet Y, and the channel law P . For each x ∈ X and y ∈ Y the probability that the channel
+outputs y on input x is denoted by P (y|x). The BAA is an iterative procedure for approximating the
+capacity of any such DMC. After a prescribed number of iterations, it returns an input distribution
+X. The corresponding achievable rate I(X; Y ) (here Y is the channel output distribution given input
+X) of the input distribution X returned by the BAA is guaranteed to converge to the capacity of
+the channel as the number of iterations increases. In fact, we have more precise knowledge about
+the rate of convergence, as stated in the following result.
+
+Theorem 1 ([Ari72]). Fix an finite-input/finite-output DMC, and let C be its capacity. For any
+threshold a > 0, the BAA with O(1/a) iterations returns an input distribution X whose information
+rate I(X; Y ) satisfies
+                                     C − a ≤ I(X; Y ) ≤ C.
+Here, the O(·) notation hides a multiplicative constant that depends only on the choice of the DMC.
+Furthermore, the convergence to C is monotonic.
+
+    We now describe the BAA with a conservative stopping criterion. For a more detailed discussion,
+see [Yeu08, Chapter 9]. The starting point for the BAA is an initial input distribution X (0) . This
+distribution may be chosen arbitrarily subject to having full support over X . A common choice is
+to take X (0) to be the uniform distribution on X . Then, for t ≥ 0, the algorithm proceeds as follows
+on the t-th iteration given X (t) :
+
+  1. Compute channel output distribution of X (t) : This is the distribution Y (t) satisfying
+                                           X
+                               Y (t) (y) =   X (t) (x)P (y|x)
+                                                     x∈X
+
+      for all y ∈ Y.
+
+  2. Compute refined input distribution: This is divided into two steps.
+
+
+
+
+                                                     6
+         (a) We compute the “unnormalized distribution” W (t) given by
+                                                                                 !P (y|x)
+                                          (t)
+                                                        Y     X (t) (x)P (y|x)
+                                      W         (x) =
+                                                        y∈Y
+                                                                  Y (t) (y)
+
+             for all x ∈ X .
+        (b) We normalize W (t) to get the new input distribution X (t+1) . That is, we compute
+
+                                                                    W (t) (x)
+                                                X (t+1) (x) = P            (t) ′
+                                                                  x′ ∈X W (x )
+
+             for all x ∈ X .
+
+  3. Stopping criterion: Suppose that we wish to output an input distribution X such that its
+     information rate I(X; Y ) satisfies I(X; Y ) ≥ C − a, with C the capacity of the DMC and
+     a > 0 some approximation threshold. Then (e.g., see [Ari72, Equation (32)]), it suffices to
+     check whether                                           !
+                                                 X (t+1) (x)
+                                       max log                 < a.
+                                        x∈X       X (t) (x)
+
+        If this condition is satisfied, we stop and return X = X (t+1) . Otherwise, we move to the next
+        iteration of the BAA.
+
+2.3.1     The optimizations of Rubinstein and Con
+A naive implementation of the BAA requires (i) storing the whole |X | × |Y| channel transition
+matrix (that for each x ∈ X and y ∈ Y stores P (y|x)), and (ii) storing all the values W (t) (x) for
+x ∈ X in Item 2 of the BAA. We wish to apply the BAA to numerically approximate the capacities
+Cn,k , corresponding to a DMC with input alphabet size |X | = 2n and output alphabet size |Y| = 2k .
+Therefore, the memory costs of a naive implementation of the BAA quickly become prohibitive as
+the input length n increases.
+    Rubinstein and Con [RC23] developed a more efficient implementation of the BAA for computing
+the Cn,k values through time-memory tradeoffs and by leveraging sparsity of the relevant matrices
+when k is close to n. Since their methods are also relevant to our optimized implementation of the
+BAA, we describe them in more detail. To handle the transition matrix P , there are two extremes
+we can consider:
+
+   • Pre-compute and store the whole transition matrix (requiring time and space Ω(2n+k )). The
+     advantage of this method is that, once this is done, we can retrieve the P (y|x) values in time
+     O(1);
+
+   • Every time we require P (y|x), compute it from scratch. Each such computation can be done
+     in time Θ(nk) through dynamic programming.
+
+Both extremes (high storage/low retrieval costs vs. low storage/high retrieval costs) turn out to
+be too costly even for small values of n, due to memory or time constraints. Rubinstein and Con
+adopted an approach between the two extremes. They devise a “loop-nest” optimized implementa-
+tion of the BAA, consisting in cleverly changing the order of operations in the BAA, and combine it
+with the pre-computation of a smaller table (cache) that can then be used to compute the transition
+
+
+                                                         7
+probabilities P (y|x) much faster than the baseline Θ(nk) time procedure. To further speed up the
+application of the BAA, they leverage sparsity when k is close to n.
+     For completeness, Algorithm 1 describes the loop-nest optimized implementation of the BAA
+from [RC23] verbatim with adapted notation. The method used in [RC23] to balance storage and
+time requirements for computing the transition probabilities is described verbatim in Algorithm 2.
+We give a more detailed description of how this approach works. In order to compute the transition
+probabilities Pn,k (y|x) for the BDCn,k , the algorithm leverages only pre-computed tables containing
+the transition probabilities for the “smaller” exact deletion channels BDCn′ ,k′ with n′ ≈ n/2 and
+k ′ ≤ k. Then, to compute Pn,k (y|x) for some input string x ∈ {0, 1}n and output string y ∈ {0, 1}k ,
+the algorithm partitions x into two halves, x1 and x2 , of lengths n1 = ⌊n/2⌋ and n2 = ⌈n/2⌉,
+respectively. Then, it computes Pn,k (y|x) based on the pre-computed table by decomposing it as
+
+                                      k
+                                      X
+                       Pn,k (y|x) =           Pn1 ,k′ (y[0:k′ −1] |x1 ) · Pn2 ,k−k′ (y[k′ :k−1] |x2 ),
+                                      k′ =0
+
+where y[a:b] = (ya , ya+1 , . . . , yb ) and we recall that in this work we index strings starting at 0, and
+so write y = (y0 , y1 , . . . , yk−1 ).
+   This recursive formulation reduces the per-query time complexity to O(k), compared with the
+                                                         n
+naive O(nk) computation, while requiring O(2 2 +k ) space to store the pre-computed tables. In
+practice, this trade-off provides a favorable balance between time and space.
+
+
+3       An overview of our optimizations
+We provide an optimized implementation of the BAA by leveraging the observation that various
+steps in an iteration of the BAA lend themselves easily to parallelization. For example, consider the
+task of computing the auxiliary function W (t) (x) for all x ∈ X in the BAA applied to the BDCn,k ,
+which we may write equivalently as
+                                                                               !
+                               (t)
+                                       X                   X (t) (x)Pn,k (y|x)
+                          log W (x) =      Pn,k (y|x) log
+                                       y∈Y
+                                                                  Y (t) (y)
+
+for increased numerical stability. First, note that we can compute the values of log W (t) (x) for
+distinct x’s in parallel. Second, for each x ∈ X we can further parallelize the computation by
+computing each term in the sum over y ∈ Y in parallel. Of course, in practice we only have access
+to a limited number of parallel threads, but it is not hard to arrange the computations to fit this,
+for example by assigning to each thread more than one y in the sum.
+    Motivated by this, we set up parallelized versions of these steps that fit nicely into CUDA
+kernels.3 A CUDA kernel is divided into a grid of blocks, with each block executing the same
+function in parallel. Within each block, up to 1024 threads execute concurrently, but this number
+can also be any smaller power of 2. We now discuss a way of parallelizing this computation using
+CUDA kernels:
+
+    1. Assign a distinct input x ∈ X to each block in the kernel;
+    3
+    For an introduction to CUDA, see the CUDA C++ programming guide at https://docs.nvidia.com/cuda/cuda-
+c-programming-guide/.
+
+
+
+
+                                                             8
+ Algorithm 1: Loop nest optimized BAA [RC23, Algorithm 4 with adapted notation]
+   Input: Input/output alphabets X , Y; channel law P ; convergence threshold a > 0
+   Output: Input distribution X with I(X; Y ) = R
+ 1 t ← 0;
+ 2 Choose X (0) to be the uniform distribution on X ;
+ 3 repeat
+      // Compute output distribution
+ 4    foreach y ∈ YX  do
+           (t)
+ 5        Y (y) ←       X (t) (x)P (y|x);
+                     x∈X
+      // Compute auxiliary function
+ 6    foreach x ∈ X do
+                                      !P (y|x)
+                   Y X (t) (x)P (y|x)
+ 7
+           (t)
+         W (x) ←            (t) (y)
+                                               ;
+                   y∈Y
+                          Y
+      // Update input distribution
+ 8    foreach x ∈ X do
+                          W (t) (x)
+ 9       X (t+1) (x) ← P         (t) ′
+                                       ;
+                        x′ ∈X W (x )
+10    t ← t + 1;
+                                !
+                      X (t) (x)
+11 until max log                  < a;
+         x∈X        X (t−1) (x)
+   // Compute information rate
+           (t)  (t)
+12 R ← I(X ; Y      );
+            (t)
+13 return X , R;
+
+
+
+
+ Algorithm 2: Cache-based computation of transition probabilities [RC23, Algorithm 3
+ with adapted notation]
+   Input: Input string x ∈ X = {0, 1}n ; output string y ∈ Y = {0, 1}k ; cache table of
+            transition probabilities Pn′ ,k′ (y ′ |x′ ) for all n′ ≤ ⌈n/2⌉ and k ′ ≤ k
+   Output: Transition probability Pn,k (y|x)
+           n
+ 1 n1 ← ⌈ 2 ⌉;
+           n
+ 2 n2 ← ⌊ 2 ⌋;
+ 3 x1 ← x[0:n1 −1] x2 ← x[n1 :n−1] ;
+                 Xk
+ 4 Pn,k (y|x) ←      Pn1 ,k′ (y[0:k′ −1] |x1 ) · Pn2 ,k−k′ (y[k′ :k−1] |x2 );
+                k′ =0
+ 5 return Pn,k (y|x);
+
+
+
+
+                                                9
+    2. Let Sx,k denote the set of all length-k subsequences of x. We partition Sx,k into up to 1024
+       disjoint subsets Ti for i ∈ {1, . . . , 1024}. Then, the i-th thread of the block corresponding to
+       x computes the partial sum
+                                                                                   !
+                                         X                     X (t) (x)Pn,k (y|x)
+                                  Ai =          Pn,k (y|x) log          (t) (y)
+                                                                                    ,
+                                         y∈T
+                                                                      Y
+                                          i
+
+
+       where X (t) (x) and Y (t) (y) are already known for all x ∈ X and y ∈ Y. Concretely, if
+       yi denotes the i-th length-k subsequence of x in some pre-specified ordering, then we take
+       Ti = {i, i + 1024, i + 2 · 1024, . . . }.
+
+    3. Compute log W (t) (x) = 1024 i=1 Ai .
+                                  P
+
+     Note that our description of our parallelization of the computation of W (t) (x) above is not
+complete. We still need to describe how we compute Si and the relevant transition probabilities
+Pn,k (y|x) in Item 2. In other words, we must be able to efficiently enumerate the subsequences of
+x in Si (to carry out the partial sum), and, for each y ∈ Si , compute the transition probabilities
+Pn,k (y|x).
+     For computing the transition probabilities Pn,k (y|x) we rely on the approach of Rubinstein and
+Con [RC23] discussed in Section 2.3.1 (in particular, see Algorithm 2). Namely, we pre-compute the
+full table of transition probabilities for input lengths n′ ≈ n/2. Then, each thread in our parallel
+computation accesses this table to compute Pn,k (y|x) for the subsequences y it enumerates over. 
+     For enumerating over the required subsequences, a naive approach would be to iterate over all nk
+subsets of coordinates of x. However, given the typical memory constraints of GPUs, particularly
+limited RAM, coupled with the concurrent execution of multiple blocks, it is infeasible to maintain
+large per-block lookup tables to track which subsequences have already been generated. Instead,
+we rely on dynamic programming-based techniques that only require a look-up table of size O(nk)
+that can also be constructed in time O(nk). Denote by Nx,k the number of length-k subsequences
+of x. Each thread in the block of the CUDA kernel assigned to input x needs to enumerate over
+       Nx,k
+N ≈ 1024    length-k subsequences of x. Using our dynamic programming-based method, this can
+be done in time O(N k), with small hidden constants. Since k ≪ 1024, this yields a significant
+efficiency improvement over having a single thread enumerate all Nx,k subsequences of x in time
+Θ(Nx,k ), and so we improve significantly over previous implementations of the BAA.
+     Other computations in an iteration of the BAA, such as the computation of Y (t) (y) for all y ∈ Y,
+can be similarly parallelized. In this case, we assign each y ∈ Y to a different block, and partition the
+length-n supersequences x of y into up to 1024 disjoint subsets. Since the implementation of these
+ideas is similar to the above, we avoid discussing them further to avoid cluttering the exposition.
+     We discuss the methods we use to enumerate subsequences and supersequences in more detail
+in Sections 4 and 5, respectively. In Section A we discuss an alternative method for computing the
+channel output probabilities Y (t) (y) via subsequence enumeration, leveraging some simple symme-
+tries of BDCn,k , that is faster for certain values of k.
+
+
+4     Enumerating subsequences of a given length
+In this section, we discuss the method we use to enumerate subsequences. More precisely, our goal
+is to, given a string x ∈ {0, 1}n , a subsequence length k, and an integer j, return the j-th length-k
+subsequence of x in some arbitrary but pre-specified order. As discussed in Section 3, our aim is
+an enumeration algorithm that is well-suited for execution on GPUs, which have limited memory
+
+                                                   10
+constraints. We consider a dynamic programming-based approach that uses a small look-up table.
+For completeness, we describe the algorithm and prove its correctness.
+    Before providing a technical description of the procedure we present the intuition behind it. The
+enumeration, or unranking, procedure constructs the subsequence y bit-by-bit from left to right. At
+each step, we find the earliest possible next occurrence of 0 and 1 in x after the last coordinate
+of x we included in the subsequence. All length-rem completions of y whose next symbol is 0 are
+ordered before those whose next symbol is 1. We keep track of how many completions lie in each of
+these two sets, which we call the 0-set and the 1-set. We then compare the current rank j with the
+size of the 0-set. If j is at most the size of the 0-set we append 0 to y; otherwise, we subtract the
+size of the 0-set from j and append a 1 to y. Then, we move on to the next bit of the subsequence.
+Repeating this procedure k times constructs the j-th length-k subsequence in lexicographic order.
+
+4.1   Pre-computed tables
+The enumeration is based on two precomputed tables, described below. In our CUDA implementa-
+tion of the BAA, each block of the CUDA kernel constructs separate tables (because each block is
+assigned to a different x). In each block only one thread pre-computes the tables and stores them
+in dedicated memory.
+
+   • NextPos: for 0 ≤ i ≤ n and b ∈ {0, 1}, NextPos[i][b] stores the smallest index p ≥ i with
+     xp = b, or n if no such index exists.
+      The NextPos table is standard and computed in linear time by scanning from right to left.
+      Algorithm 3 describes the procedure we use to construct the NextPos table.
+
+   • Count: for 0 ≤ i ≤ n, 0 ≤ t ≤ k, Count[i][t] satisfies
+
+                       Count[i][t] = {s ∈ {0, 1}t : s is a subsequence of x[i:n−1] } .
+
+      We use the boundary conditions Count[i][0] = 1 for all i (the empty subsequence) and
+      Count[n][t] = 0 for all t > 0.
+      The Count table is computed recursively using the next-occurrence indices
+
+                              j0 = NextPos[i][0],        j1 = NextPos[i][1],
+
+      where we recall that NextPos[i][b] = n indicates that the symbol b does not appear in x[i:n−1] .
+      For t > 0, we have
+                         
+                         
+                         
+                          0,                                             if j0 = n and j1 = n,
+                                                                          if j0 < n and j1 = n,
+                         
+                         Count[j + 1][t − 1],
+                                  0
+          Count[i][t] =
+                         
+                         
+                          Count[j1 + 1][t − 1],                          if j1 < n and j0 = n,
+                         Count[j + 1][t − 1] + Count[j + 1][t − 1], if j < n and j < n.
+                         
+                                  0                        1                  0          1
+
+
+
+
+Computational complexity. Computing the NextPos and Count tables requires time and
+space O(nk).
+
+
+
+
+                                                  11
+ Algorithm 3: BuildNextPos(x)
+   Input: Binary string x[0:n−1]
+   Output: NextPos[0 . . . n][0 . . . 1]
+ 1 Initialize NextPos[i][b] ← n for all i, b;
+ 2 for i ← n − 1 downto 0 do
+ 3     NextPos[i][0] ← NextPos[i + 1][0];
+ 4     NextPos[i][1] ← NextPos[i + 1][1];
+ 5     NextPos[i][x[i]] ← i;
+ 6 return NextPos
+
+
+
+
+4.2     The enumeration algorithm
+We are now in place to describe our unranking algorithm in detail. The algorithm is described in
+Algorithm 4. We prove its correctness in this section.
+   Let Nx,k denote the number of length-k subsequences of a string x. The next lemma states, in
+particular, that the unranking algorithm always returns a length-k subsequence of x when 0 ≤ j <
+Nx,k .
+
+Lemma 3. If 0 ≤ j < Nx,k , then stringUnrank(x, k, j) returns a length-k subsequence of x. More
+precisely, at the start of iteration t (i.e., after t bits have been appended), the invariant
+
+                             0 ≤ j < Count[i][rem],        where rem = k − t
+
+holds, and subseq is a subsequence of x[0:i−1] .
+
+Proof. We prove this statement by induction.
+
+Initialization. At the start of the execution of the algorithm we have t = 0, rem = k, i = 0,
+and the precondition requires 0 ≤ j < Nx,k = Count[0][k]. The empty string subseq is trivially a
+subsequence of the empty prefix.
+
+Inductive step. Assume the invariant holds at the t-th iteration, i.e.,
+
+                   0 ≤ j < Count[i][rem],       subseq ⊆ x[0:i−1] ,   rem = k − t > 0.
+
+Let
+                       j0 = NextPos[i][0],         c0 = Count[j0 + 1][rem − 1],
+with c0 = 0 if j0 = n. Similarly, let
+
+                       j1 = NextPos[i][1],         c1 = Count[j1 + 1][rem − 1],
+
+with c1 = 0 if j1 = n. By the recurrence relation for Count we have
+
+                                        Count[i][rem] = c0 + c1 .
+
+      We proceed by cases.
+
+
+
+
+                                                    12
+Algorithm 4: stringUnrank(x, k, j)
+  Input: Binary string x of length n; NextPos table; Count table; target length k; rank j
+          with 0 ≤ j < Count[0][k]
+  Output: The j-th lexicographically smallest distinct subsequence of length k
+1 i ← 0;
+2 rem ← k;
+3 subseq ← empty list;
+4 while rem > 0 do
+5    j0 ← NextPos[i][0];
+     // Find the index of the first 0 at or after position i
+6    if j0 < n then
+7        c0 ← Count[j0 + 1][rem − 1];
+         // Number of subsequences of x of length rem − 1 starting after j0
+ 8    else
+ 9       c0 ← 0
+10    if j < c0 then
+11        append 0 to subseq;
+12        i ← j0 + 1;
+          // Increment index to the position after the chosen 0
+13        rem ← rem − 1;
+14        continue;
+15    j ← j − c0 ;
+16    j1 ← NextPos[i][1];
+      // Find the index of the first 1 at or after position i
+17    if j1 < n then
+18        c1 ← Count[j1 + 1][rem − 1];
+          // Number of subsequences of x of length rem − 1 starting after j1
+19    else
+20       c1 ← 0
+21    if j < c1 then
+22        append 1 to subseq;
+23        i ← j1 + 1;
+          // Increment index to the position after the chosen 1
+24        rem ← rem − 1;
+25        continue;
+
+26 return subseq;
+
+
+
+
+                                            13
+     1. (j < c0 ) In this case the algorithm appends 0 at position j0 , sets i ← j0 + 1, rem ← rem − 1,
+        and leaves j unchanged. Since j < c0 = Count[j0 + 1][rem − 1], we obtain
+
+                                               0 ≤ j < Count[i][rem],
+
+       with the updated i, rem. The new subsequence is valid because it extends by a 0 occurring at
+       j0 .
+
+     2. (j ≥ c0 ) In this case we update j ← j − c0 . From the recurrence
+
+                                              Count[i][rem] = c0 + c1 ,
+
+       the condition j < Count[i][rem] implies j − c0 < c1 . The algorithm appends 1 at position j1 ,
+       sets i ← j1 + 1, rem ← rem − 1. Thus the invariant becomes
+
+                                               0 ≤ j < Count[i][rem],
+
+       with the new i, rem, and the subsequence remains valid.
+
+     In both cases the invariant is preserved.
+Termination. Each loop decreases rem by one. After k iterations we have rem = 0 and exactly
+k bits appended. By the invariant, subseq is a subsequence of x of length k. Thus the algorithm
+always returns a valid subsequence of length k.
+
+    Lemma 3 shows that the unranking algorithm in Algorithm 4 always returns a length-k subse-
+quence of x. Therefore, we are done if we prove that running the unranking algorithm with j ̸= j ′
+yields distinct subsequences. To prove this we analyze how the state of the algorithm evolves from
+one iteration to the next. More precisely, for fixed i and r > 0 define the “transition map”
+
+              fi,r : {0, . . . , Count[i][r] − 1} −→ {0, 1} × {0, . . . , n} × {0, . . . , r − 1} × N
+
+by                               (
+                                  (0, NextPos[i][0] + 1, r − 1, j),       j < c0 ,
+                      fi,r (j) =
+                                  (1, NextPos[i][1] + 1, r − 1, j − c0 ), otherwise,
+where c0 = Count[NextPos[i][0] + 1][r − 1] (with c0 = 0 if NextPos[i][0] = n).
+
+Lemma 4. For fixed i and r > 0 the map fi,r is injective.
+
+Proof. Fix any j ̸= j ′ . If fi,r (j) = fi,r (j ′ ) then, by the last coordinate of the output and the fact
+that j ̸= j ′ , we may assume without loss of generality that j ′ = j + c0 . But this implies that j ′ ≥ c0 ,
+and so fi,r (j) and fi,r (j ′ ) differ in the first coordinate.
+
+Lemma 5. Fix x ∈ {0, 1}n and k ∈ {1, . . . , n}. Then, the map j 7→ stringUnrank(x, k, j) for
+j ∈ {0, . . . , Count[0][k] − 1} is injective.
+
+Proof. Suppose that stringUnrank(x, k, j) = stringUnrank(x, k, j ′ ) with 0 ≤ j < j ′ < Count[0][k].
+Let (it , remt , jt ) and (i′t , rem′t , jt′ ) denote the states at the start of the t-th iteration when running
+the algorithm with j and j ′ , respectively.
+    Since stringUnrank(x, k, j) = stringUnrank(x, k, j ′ ), the chosen bits, i.e., the bit we add to
+subseq at each iteration of the algorithm, are equal. This means that it = i′t and remt = rem′t for
+all t (the next search index depends only on the previous it and the chosen bit).
+
+                                                        14
+    We now argue by induction on t that jt ̸= jt′ for all t. For the base case t = 0, note that
+j0 = j < j0′ = j ′ by assumption. For the induction step, we assume that jt ̸= jt′ and show that
+          ′ . Because the chosen bit at iteration t is the same in both stringUnrank(x, k, j) and
+jt+1 ̸= jt+1
+stringUnrank(x, k, j ′ ), and the local transition fit ,remt is injective by Lemma 4, the next values satisfy
+         ′ . By induction, we conclude that j ̸= j ′ . However, when the algorithm terminates we
+jt+1 ̸= jt+1                                       k       k
+have remk = 0 and Count[ik ][0] = 1, so jk = jk′ = 0, a contradiction.
+    Combining Lemmas 3 and 5 immediately yields the following theorem.
+Theorem 2. For any fixed x ∈ {0, 1}n and k ∈ {1, . . . , n}, the map
+                                        j 7→ stringUnrank(x, k, j)
+for 0 ≤ j < Count[0][k] is a bijection between {0, . . . , Nx,k − 1} and the set of length-k subsequences
+of x.
+
+4.3    Computational complexity
+We now discuss the complexity of the subsequence enumeration procedure described in Algorithm 4.
+As mentioned above, pre-computing the NextPos and Count tables only needs to be done once,
+and requires time O(nk). Afterwards, each execution of the stringUnrank algorithm takes time
+O(k), for any rank j. To see this, note that each iteration of the while cycle in Algorithm 4 takes
+time O(1) and decreases rem by at least 1. Since rem is initially set to k, the claim follows.
+    To see the advantage of combining this method with our parallelization of a BAA iteration,
+recall from Section 3 that each thread in the block of the CUDA kernel associated with input x
+                       Nx,k
+enumerates over N ≈ 1024    length-k subsequences of x. By the previous paragraph, the worst-case
+running time of a thread is O(nk) + O(N k), with mild hidden constants. In particular, since we
+only consider k ≪ 1024, this worst-case running time improves significantly over a single thread
+enumerating over Nx,k subsequences in time O(nk + Nx,k ).
+
+
+5     Enumerating supersequences of a given length
+As discussed in Section 3, we also parallelize the computation of the channel output probabilities
+Y (t) (y) for every output y ∈ {0, 1}k . As a sub-routine of this computation, every thread in the
+block associated to output y in the parallel implementation must enumerate over a certain subset
+of length-n supersequences of y, ordered in some pre-specified way. We discuss the methods we
+use to enumerate these supersequences. As in Section 4, our methods are tailored to our parallel
+architecture.
+     Before we begin, we note that the number of length-n supersequences of y only depends on the
+length of y. More precisely, the following holds.
+Lemma 6 ([CS75], for binary strings). For any y ∈ {0, 1}k , the number of length-n supersequences
+of y is
+                                      n       n−k
+                                                X n
+                                     X    n
+                                             =           .
+                                          i           i
+                                           i=k            i=0
+    We divide our enumeration into two parts. In the first part we enumerate subsets of {1, . . . , n}
+of a given size 0 ≤ w ≤ n − k. Intuitively, these subsets represent the coordinates of bits in the
+supersequence that are not matched to occurrences of y as a subsequence. In the second part, we
+show how to map each such subset to a distinct supersequence of y. By Lemma 6 we cover all
+supersequences of y.
+
+                                                     15
+5.1        Enumerating subsets of unmatched bits
+We begin by analyzing our procedure for enumerating size-w subsets of n{1, . . . , n}. Recallothat
+  n         Pt
+              j=0 j . We use the convention that ≤−1 = 0. For each i ∈ 0, . . . , ≤n−k − 1 , let
+                   n                                     n                                  n
+                                                                                            
+ ≤t =
+w ∈ {0, 1, . . . , n − k} be the unique integer such that
+                                                                   
+                                               n                 n
+                                                       ≤i<              .
+                                           ≤w−1                 ≤w
+We then define j = i − ≤w−1    n
+                                    , which satisfies 0 ≤ j < w n
+                                                                    .
+                                                                 
+
+    Algorithm 5 describes the procedure that, given n, w, and j, returns the j-th size-w subset of
+{1, . . . , n} according to a pre-specified order. Intuitively, this procedure constructs the subset by
+scanning the ground set {1, . . . , n} from left to right and deciding, at each position t, whether t
+is included in the subset. Conceptually, all size-w subsets are partitioned into two classes: those
+whose smallest remaining element is t, and those whose smallest element is larger than t. The
+quantity n−t−1 w−1     counts how many subsets fall into the first block (i.e., those that include t). We
+compare the rank j with this number: if j falls within this block, we include t in the subset and
+continue recursively with the remaining w − 1 elements chosen from {t + 1, . . . , n}; otherwise, we
+skip t, subtract this block size from j, and continue searching among subsets that only use larger
+elements. Repeating this process reconstructs the j-th size-w subset in lexicographic order of (João:
+confirm) the characteristic vectors.4
+
+  Algorithm 5: subsetUnrank(n, w, j)
+         Input: Integers n, w, and j, where 0 ≤ j < wn
+                                                       
+
+         Output: List subset containing the j-th size-w subset of {1, . . . , n}
+ 1 Initialize empty list subset ← [ ];
+   // Recall that indices start at 0
+ 2 for t ← 0 to n − 1 do
+ 3    if w = 0 then
+ 4        break;
+      c ← n−t−1
+             w−1 ;
+                 
+ 5
+      // Number of size-w subsets whose smallest element is t
+ 6    if j < c then
+ 7        Append t to subset;
+ 8        w ← w − 1;
+ 9          else
+10             j ← j − c;
+
+11 return subset;
+
+
+    It is clear that Algorithm 5 returns a size-w subset of {1, . . . , n}. It remains to prove that for
+fixed n and w different j’s yield different subsets.
+Lemma 7. Fix a sequence y of length k. For any integers n, w with 0 ≤ w ≤ n − k and any
+             n
+0 ≤ j < j′ < w we have
+                               subsetUnrank(n, w, j) ̸= subsetUnrank(n, w, j ′ ).
+     4
+    The characteristic vector of a set S ⊆ {1, 2, . . . , n} is the length-n binary vector vS such that (vS )i = 1 if and
+only if i ∈ S.
+
+
+                                                           16
+Proof. We prove this result by induction on the pair (w, n) under the lexicographic order.
+
+Base case. If w = 0 then      n
+                                      = 1, so there is no pair j < j ′ .
+                                  
+                              0
+
+
+Inductive step. Fix (w, n) with 1 ≤ w < n − k. Assume      the lemma holds for all pairs (w , n )
+                                                                                            ′ ′
+          ′  ′                                        ′ n
+with (w , n ) < (w, n). Fix also integers 0 ≤ j < j < w . The subsetUnrank(n, w, j) procedure
+first finds the smallest t ∈ {1, . . . , n} such that
+                               t−1                     t       
+                               X    n−i−1                X   n−i−1
+                                                     ≤j<           .
+                                          w−1                 w−1
+                               i=0                           i=0
+
+Likewise, subsetUnrank(n, w, j ′ ) finds t′ . We consider two cases:
+
+   • If t ̸= t′ , then the subsets returned by subsetUnrank(n, w, j) and subsetUnrank(n, w, j ′ ) differ
+     in their smallest element.
+
+   • If t = t′ , then both subsetUnrank(n, w, j) and subsetUnrank(n, w, j ′ ) add t to their sub-
+     sets. Then, they generate a size-(w − 1) subset of {t + 1, . . . , n}, exactly like a call to
+     subsetUnrank(n − (t − 1), w − 1, jrem ) and subsetUnrank(n − (t − 1), w − 1, jrem′ ), respec-
+
+     tively, where
+                                  t−1                      t−1             
+                                  X    n−i−1        ′      ′
+                                                             X      n−i−1
+                       jrem = j −               , jrem = j −                    .
+                                        w−1                            w−1
+                                        i=0                                i=0
+
+      Note that (w−1, n−t−1) < (w, n) in lexicographic order. Hence, by the induction hypothesis,
+      the two calls produce two distinct (w − 1)-size subsets of {t + 1, . . . , n}. Prepending the same
+      element t to each yields two distinct w-size subsets of {1, . . . , n}.
+
+5.2   From subsets to supersequences
+We now analyze a procedure that constructs a length-n supersequence of a length-k string y based on
+the subset output by subsetUnrank. The procedure is described in detail Algorithm 6. Intuitively,
+this procedure constructs a length-n supersequence x of y by first deciding whose coordinates of
+x match the symbols of y, and then filling the remaining positions so that they do not interfere
+with this matching. First, we use the procedure from Section 5.1 to construct a subset S collecting
+all coordinates of x that are not used to match y. In particular, this means that we must place
+the bits of y in the coordinates dictated by the complement S. We then scan x from left to right:
+whenever the current position is not in S, we copy the next symbol of y; otherwise, we assign the
+opposite bit so that this position cannot be used to match y. In this way, each choice of subset S
+yields a unique supersequence, and the enumeration of subsets directly induces an enumeration of
+all supersequences.
+    We begin by proving that RecSuperSeq always outputs a length-n supersequence of y.
+                                          n
+                                             
+Lemma 8. For every i with 0 ≤ i < ≤n−k         , the output x = RecSuperSeq(i, n, k, y) is a superse-
+quence of y.
+
+Proof. Let w and M be the integer and subset computed in a call to RecSuperSeq(i, n, k, y). By
+construction, M has size w ≤ n − k. In the for loop we increment r only when p ̸∈ M and r < k,
+in which case we match the next bit of y to the next bit of x. Since the complement of M has size
+n − w ≥ k, when we exit the for loop we have r = k, and so we match all bits of y to bits of x.
+
+
+                                                        17
+ Algorithm 6: RecSuperSeq(i, n, k, y)
+   Input: Index i with 0 ≤ i < P (n − k); integers n ≥ k; string y ∈ {0, 1}k .
+   Output: The i-th length-n supersequence x of y according to some pre-specified order.
+ 1 Find unique w ∈ {0, . . . , n − k} such that ≤w−1 ≤ i < ≤w ;
+                                                 n           n
+
+   // Determine the number of positions not used to match symbols of y
+ 2 Set j ← i − ≤w−1 ;
+                    n
+                             n
+                               
+   // Index among the w          choices of unused positions
+ 3 S ← subsetUnrank(n, w, j);
+   // Compute the j-th size-w subset of {0, . . . , n − 1}
+ 4 Initialize x as an n-bit vector; set r ← 0;
+   // r indexes the next symbol of y to be matched
+ 5 for p = 0 to n − 1 do
+ 6     if p ∈ S then
+ 7         if r < k then
+ 8             set xp ← 1 − yr
+ 9         else
+10             set xp ← 1 − yk−1
+         // Choose a value that does not match the next symbol of y
+11    if r < k then
+12        set xp ← yr ;
+13        r ← r + 1;
+          // Match the next symbol of y
+14    else
+15       set xp arbitrarily (e.g., 0);
+
+16 return x;
+
+
+
+
+                                               18
+    Now we prove that calling RecSuperSeq on distinct i’s yields distinct supersequences of y.
+
+Lemma 9. If i ̸= i′ , then RecSuperSeq(i, n, k, y) ̸= RecSuperSeq(i′ , n, k, y).
+
+Proof. Let (w, S, j) be the integers and subset first computed by RecSuperSeq(i, n, k, y), and (w′ , S ′ , j ′ )
+the integer and subset first computed by RecSuperSeq(i′ , n, k, y). Denote the supersequences by
+these calls by x and x′ , respectively.
+    There are two cases to consider. If w ̸= w′ then |S| = w ̸= w′ = |S ′ |, and so S ̸= S ′ in
+particular. If w = w′ then j ̸= j ′ , and so S = subsetUnrank(n, w, j) ̸= subsetUnrank(n, w, j ′ ) = S ′
+by Lemma 7. Therefore, it is always the case that S ̸= S ′ .
+    Let ℓ be the smallest index at which S and S ′ differ. By construction, this means that S ∩
+{0, . . . , ℓ − 1} = S ′ ∩ {0, . . . , ℓ − 1}. Therefore, the construction of the supersequences x and x′ up
+to position ℓ − 1 is identical. In particular, both have consumed the same number c of symbols from
+y by position ℓ, where
+                                                c = |{u < j : u ̸∈ S}|.
+At index ℓ the two calls behave differently. Without loss of generality, assume that ℓ ∈ S and ℓ ̸∈ S ′ .
+Then,
+                                        xℓ = 1 − yc , x′ℓ = yc ,
+and so xℓ ̸= x′ℓ .
+
+    Combining Lemmas 6, 8 and 9 immediately yields the following result.
+
+Theorem 3. For any y ∈ {0, 1}k and n ≥ k the map
+
+                                       i 7→ RecSuperSeq(i, n, k, y)
+
+is a bijection between {0, . . . , Sk,n − 1} and the set of length-n supersequences of y.
+
+5.3    Computational complexity
+We now discuss the complexity of the supersequence enumeration procedure described in Algo-
+rithm 6. Each call to subsetUnrank takes O(n) time. The remainder of Algorithm 6 also runs in
+O(n) time, and so, overall, this algorithm runs in O(n) time.
+    As in Section 4, we gain an advantage by combining this method with our parallelization of a
+                                                                                                 Sk,n
+BAA iteration. Each thread in a block associated with output y ∈ {0, 1}k enumerates over N ≈ 1024
+length-n supersequences of x. By the previous paragraph, the running time of a thread is O(N · n),
+with a mild hidden constant. Since n ≪ 1024 in our setting, this improves significantly over a single
+thread enumerating over Sk,n supersequences.
+
+
+6     Results
+Using our optimized parallelized implementation of the BAA, we managed to compute good upper
+bounds on Cn,k for all pairs (n, k) with k ≤ n ≤ 29. Going even further, we also managed to compute
+good upper bounds on C31,k for all k ≤ 18. For most of the upper bound computations a tolerance
+of a = 0.005 was enforced, ensuring that the true value of Cn,k exceeds the information rate returned
+by the BAA by at most 0.005 (see Theorem 1 and the surrounding discussion in Section 2.3). The
+only exceptions are in the approximation of C31,k for 14 ≤ k ≤ 18, where we enforced a tolerance
+of a = 0.05 due to the rapid increase in time per iteration, reaching 2500 seconds per iteration for
+
+
+                                                     19
+k = 18. Reported capacity upper bounds are obtained by adding the respective tolerance value to
+the rate output by the BAA.
+    All computations were done with an RTX 5070 Ti GPU. For n = 29, the computations took
+at most 1100 iterations to complete, and for k ≈ n2 each iteration took approximately 400 seconds,
+taking 5 days to complete. For n = 31, the computations for k ≤ 13 took less then 500 seconds to
+complete, taking up to one week to complete, especially for k = 13. For 14 ≤ k ≤ 18, each iteration
+took more than 800 seconds to complete, hence the need for a higher tolerance.
+    The upper bounds on C29,k for all k ∈ {1, . . . , 28} are reported in Table 1. The upper bounds we
+obtained on C31,k are reported in Table 2. To upper bound the C31,k values for k > 18 we combine
+our upper bounds on Cn,k for n ≤ 29 and the following known lemma that upper bounds Cn,k based
+on Cn′ ,k′ for n′ < n.
+
+Lemma 10 ([RC23]). For every s ∈ {1, . . . , n} we have that
+                                   s     s n−s
+                                                
+                                  X       i k−i
+                          Cn,k ≤              n
+                                                (Cs,i + Cn−s,k−i ).
+                                       i=0       k
+
+    More precisely, we set s = 2 and combine our upper bounds on C29,i reported in Table 1 with
+the easy-to-compute values C2,1 = 1 and C2,2 = 2 for all relevant i and j.
+    We use our upper bounds on the C29,k and C31,k values to obtain upper bounds on the capacity
+C(d) of the binary deletion channel with deletion probability d via Lemma 2. These bounds are
+reported in Table 3, where they are also compared to the previous best known upper bounds [RC23].
+Note that since our upper bounds on C31,k are loose for k > 18, the upper bounds on C(d) obtained
+by plugging our upper bounds on C29,k into Lemma 2 are better than those obtained via our upper
+bounds on C31,k when d is not large.
+
+Capacity upper bounds in the high-noise regime. Our improved upper bounds on C(d) also
+lead to an improved upper bound on C(d) in the asymptotic regime d → 1. This is obtained via
+the following result due to Rahmati and Duman [RD15].
+
+Lemma 11 ([RD15]). Let λ, d′ ∈ [0, 1] and define d = λd′ + 1 − λ. Then,
+
+                                             C(d)   C(d′ )
+                                                  ≤        .
+                                             1−d    1 − d′
+   When d′ = 0.64, our new upper bound yields
+
+                                             C(d′ )
+                                                    ≤ 0.3578.
+                                             1 − d′
+Therefore, instantiating Lemma 11 with this upper bound yields
+
+                                       C(d) ≤ 0.3578(1 − d)
+
+for all d ≥ 0.64.
+
+
+Acknowledgments
+We thank Roni Con for insightful discussions and detailed feedback on earlier versions of this work.
+
+
+
+                                                     20
+References
+[Ari72]   Suguru Arimoto. An algorithm for computing the capacity of arbitrary discrete mem-
+          oryless channels. IEEE Transactions on Information Theory, 18(1):14–20, 1972.
+
+[Bla72]   Richard E. Blahut. Computation of channel capacity and rate-distortion functions.
+          IEEE Transactions on Information Theory, 18(4):460–473, 1972.
+
+[Che19]   Mahdi Cheraghchi. Capacity upper bounds for deletion-type channels.         J. ACM,
+          66(2):9:1–9:79, March 2019.
+
+[CK15]    Jason Castiglione and Aleksandar Kavčić. Trellis based lower bounds on capacities of
+          channels with synchronization errors. In 2015 IEEE Information Theory Workshop -
+          Fall (ITW), pages 24–28, Oct 2015.
+
+[CR19]    Mahdi Cheraghchi and João Ribeiro. Sharp analytical capacity upper bounds for sticky
+          and related channels. IEEE Transactions on Information Theory, 65(11):6950–6974,
+          Nov 2019.
+
+[CR21]    Mahdi Cheraghchi and João Ribeiro. An overview of capacity results for synchronization
+          channels. IEEE Transactions on Information Theory, 67(6):3207–3232, 2021.
+
+[CS75]    V. Chvátal and D. Sankoff. Longest common subsequence of two random sequences.
+          Journal of Applied Probability, (12):306–315, 1975.
+
+[Dal11]   Marco Dalai. A new bound on the capacity of the binary deletion channel with high
+          deletion probabilities. In 2011 IEEE International Symposium on Information Theory
+          (ISIT), pages 499–502. IEEE, 2011.
+
+[DG06]    Suhas Diggavi and Matthias Grossglauser. On information transmission over a finite
+          buffer channel. IEEE Transactions on Information Theory, 52(3):1226–1237, March
+          2006.
+
+[DK07]    Eleni Drinea and Adam Kirsch. Directly lower bounding the information capacity for
+          channels with i.i.d. deletions and duplications. In 2007 IEEE International Symposium
+          on Information Theory (ISIT), pages 1731–1735, 2007.
+
+[DM07]    Eleni Drinea and Michael Mitzenmacher. Improved lower bounds for the capacity
+          of iid deletion and duplication channels. IEEE Transactions on Information Theory,
+          53(8):2693–2714, 2007.
+
+[DMP07]   Suhas Diggavi, Michael Mitzenmacher, and Henry D. Pfister. Capacity upper bounds
+          for the deletion channel. In 2007 IEEE International Symposium on Information Theory
+          (ISIT), pages 1716–1720, 2007.
+
+[Dob67]   Roland L. Dobrushin. Shannon’s theorems for channels with synchronization errors.
+          Problemy Peredachi Informatsii, 3(4):18–36, 1967.
+
+[FD10]    Dario Fertonani and Tolga M. Duman. Novel bounds on the capacity of the binary
+          deletion channel. IEEE Transactions on Information Theory, 56(6):2753–2765, 2010.
+
+[Gal61]   Robert G. Gallager. Sequential decoding for binary channels with noise and synchro-
+          nization errors. Technical report, MIT Lexington Lincoln Laboratory, 1961.
+
+                                             21
+[HMG19]    Reinhard Heckel, Gediminas Mikutis, and Robert N. Grass. A characterization of the
+           dna data storage channel. Scientific reports, 9(1):9663, 2019.
+
+[HS21]     Bernhard Haeupler and Amirbehshad Shahrasbi. Synchronization strings and codes
+           for insertions and deletions—a survey. IEEE Transactions on Information Theory,
+           67(6):3190–3206, 2021.
+
+[ISW16]    Aravind R. Iyengar, Paul H. Siegel, and Jack Keil Wolf. On the capacity of channels with
+           timing synchronization errors. IEEE Transactions on Information Theory, 62(2):793–
+           810, 2016.
+
+[KD10]     Adam Kirsch and Eleni Drinea. Directly lower bounding the information capacity
+           for channels with i.i.d. deletions and duplications. IEEE Transactions on Information
+           Theory, 56(1):86–102, Jan 2010.
+
+[MBT10]    Hugues Mercier, Vijay K. Bhargava, and Vahid Tarokh. A survey of error-correcting
+           codes for channels with symbol synchronization errors. IEEE Communications Surveys
+           Tutorials, 12(1):87–96, First Quarter 2010.
+
+[MD06]     Michael Mitzenmacher and Eleni Drinea. A simple lower bound for the capacity of the
+           deletion channel. IEEE Transactions on Information Theory, 52(10):4657–4660, 2006.
+
+[Mit08]    Michael Mitzenmacher. Capacity bounds for sticky channels. IEEE Transactions on
+           Information Theory, 54(1):72–77, 2008.
+
+[Mit09]    Michael Mitzenmacher. A survey of results for deletion channels and related synchro-
+           nization channels. Probability Surveys, 6:1–33, 2009.
+
+[MTL12]    Hugues Mercier, Vahid Tarokh, and Fabrice Labeau. Bounds on the capacity of dis-
+           crete memoryless channels corrupted by synchronization and substitution errors. IEEE
+           Transactions on Information Theory, 58(7):4306–4330, 2012.
+
+[OAC+ 18] Lee Organick, Siena Dumas Ang, Yuan-Jyue Chen, Randolph Lopez, Sergey Yekhanin,
+          Konstantin Makarychev, Miklos Z Racz, Govinda Kamath, Parikshit Gopalan, Bichlien
+          Nguyen, et al. Random access in large-scale DNA data storage. Nature Biotechnology,
+          36(3):242, 2018.
+
+[Pin26]    Martim Pinto. GPU code for computing capacity upper bounds for the binary deletion
+           channel. https://doi.org/10.5281/zenodo.19453272, 2026.
+
+[RA13]     Mahdi Ramezani and Masoud Ardakani. On the capacity of duplication channels. IEEE
+           Transactions on Communications, 61(3):1020–1027, 2013.
+
+[RC23]     Ittai Rubinstein and Roni Con. Improved upper and lower bounds on the capacity of
+           the binary deletion channel. In 2023 IEEE International Symposium on Information
+           Theory (ISIT), pages 927–932, 2023.
+
+[RD15]     Mojtaba Rahmati and Tolga M. Duman. Upper bounds on the capacity of deletion
+           channels using channel fragmentation. IEEE Transactions on Information Theory,
+           61(1):146–156, 2015.
+
+[Sha48]    Claude E. Shannon. A mathematical theory of communication. The Bell System Tech-
+           nical Journal, 27(3):379–423, 1948.
+
+                                               22
+[VD68]     Nikita D. Vvedenskaya and Roland L. Dobrushin. The computation on a computer of
+           the channel capacity of a line with symbol drop-out. Problemy Peredachi Informatsii,
+           4(3):92–95, 1968.
+
+[VTR13]    Ramji Venkataramanan, Sekhar Tatikonda, and Kannan Ramchandran. Achievable
+           rates for channels with deletions and insertions. IEEE Transactions on Information
+           Theory, 59(11):6990–7013, 2013.
+
+[WGGH23] Franziska Weindel, Andreas L. Gimpel, Robert N. Grass, and Reinhard Heckel. Em-
+         bracing errors is more effective than avoiding them through constrained coding for DNA
+         data storage. In 2023 59th Annual Allerton Conference on Communication, Control,
+         and Computing (Allerton), pages 1–8, 2023.
+
+[Yeu08]    Raymond W. Yeung. Information Theory and Network Coding. Springer Science &
+           Business Media, 2008.
+
+[YGM17]    S. M. Hossein Tabatabaei Yazdi, Ryan Gabrys, and Olgica Milenkovic. Portable and
+           error-free DNA-based data storage. Scientific reports, 7(1):5011, 2017.
+
+[Zig69]    Kamil Sh. Zigangirov. Sequential decoding for a binary channel with drop-outs and
+           insertions. Problemy Peredachi Informatsii, 5(2):23–30, 1969.
+
+
+
+
+                                              23
+        Table 1: Upper bounds on C29,k .                      Table 2: Upper bounds on C31,k .
+
+              k    Upper bound on C29,k                             k    Upper bound on C31,k
+              1           1.0000                                     1          1.0000
+              2           1.1898                                     2          1.1888
+              3           1.5165                                     3          1.5136
+              4           1.8137                                     4          1.8086
+              5           2.0916                                     5          2.0831
+              6           2.3761                                     6          2.3632
+              7           2.6647                                     7          2.6458
+              8           2.9598                                     8          2.9332
+              9           3.2663                                     9          3.2298
+              10          3.5867                                    10          3.5384
+              11          3.9247                                    11          3.8605
+              12          4.2841                                    12          4.2005
+              13          4.6727                                    13          4.5623
+              14          5.0930                                    14          4.9511
+              15          5.5573                                    15          5.3895
+              16          6.0713                                    16          5.8826
+              17          6.6464                                    17          6.3947
+              18          7.2964                                    18          6.9592
+              19          8.0364                                    19          8.3882
+              20          8.8850                                    20          9.1247
+              21          9.8659                                    21          9.9515
+              22         11.0096                                    22         10.8865
+              23         12.3545                                    23         11.9522
+              24         13.9487                                    24         13.1766
+              25         15.8526                                    25         14.5945
+              26         18.1454                                    26         16.2486
+              27         20.9387                                    27         18.1927
+              28         24.4132                                    28         20.4969
+              29         29.0000                                    29         23.2603
+                                                                    30         30.0000
+                                                                    31         31.0000
+
+
+A     Computing channel output probabilities using subsequences
+In this section we present an alternative method to compute the channel output probabilities Y (t) (y)
+of the BDCn,k in an iteration of the BAA using subsequence enumeration and exploiting symmetries
+of the BDCn,k and the input distributions obtained through the BAA. We found this method to be
+faster in practice than the method discussed in Section 5 for approximating Cn,k using the BAA
+when k is close to n/2. We note that the idea of using channel symmetries to speed up computations
+is not new: it was used before in the optimized implementation of the BAA in [RC23], although it
+was not analyzed in the paper itself. We exploit these symmetries in a somewhat different way, and
+we provide an analysis for completeness.
+     We begin by providing some intuition behind the method. Recall that in Section 3 we computed
+Y (y) for all y ∈ {0, 1}k in parallel by assigning each block in the CUDA kernel to a different
+  (t)
+
+output y ∈ {0, 1}k , and then having threads within that block enumerate over appropriate subsets
+of length-n supersequences of y using the method from Section 5. Alternatively, we can also compute
+Y (t) (y) for all y ∈ {0, 1}k by maintaining an array (with all entries initialized to 0) storing Y (t) (y)
+for all y. Then, instead we assign each block in the CUDA kernel to a different input x ∈ {0, 1}n ,
+and have threads within that block enumerate over appropriate subsets of length-k subsequences of
+x using the method from Section 5, updating the array storing Y (t) as they go along.
+     This approach can be sped up by taking into account some simple symmetries of the BDCn,k . In
+
+                                                    24
+Table 3: Upper bounds on C(d) obtained by combining Lemma 2 with the upper bounds on C29,k
+from Table 1 or the upper bounds on C31,k from Table 2, and taking the minimum between these
+two. For each value of d, we list which n (29 or 31) gave the best upper bound. We also list the
+previous best known upper bounds [RC23] for comparison.
+
+                     d     New upper bound    Previous upper bound [RC23]
+                    0.01    0.9557 (n = 29)              0.9583
+                    0.02    0.9141 (n = 29)              0.9189
+                    0.03    0.8751 (n = 29)              0.8817
+                    0.04    0.8385 (n = 29)              0.8467
+                    0.05    0.8039 (n = 29)              0.8139
+                    0.10    0.6577 (n = 29)              0.6762
+                    0.15    0.5454 (n = 29)              0.5660
+                    0.20    0.4574 (n = 29)              0.4786
+                    0.25    0.3876 (n = 29)              0.4083
+                    0.30    0.3314 (n = 29)              0.3513
+                    0.35    0.2857 (n = 29)              0.3045
+                    0.40    0.2480 (n = 29)              0.2648
+                    0.45    0.2164 (n = 29)              0.2309
+                    0.50    0.1896 (n = 29)              0.2015
+                    0.55    0.1652 (n = 31)              0.1755
+                    0.60    0.1438 (n = 31)              0.1524
+                    0.64    0.1288 (n = 31)                 –
+                    0.65    0.1253 (n = 31)              0.1313
+                    0.68    0.1151 (n = 31)              0.1199
+
+
+
+
+                                              25
+more detail, for an arbitrary integer n ≥ 1 and a string x ∈ {0, 1}n let cpl(x) denote its coordinate-
+wise complement (so that cpl(x)i = 1−xi ) and rev(x) denote its reversal (so that rev(x)i = xn−1−i ),
+where we write x = (x0 , . . . , xn−1 ). Note that these functions are their own inverses. Then, for
+g = cpl or g = rev and any x ∈ {0, 1}n and y ∈ {0, 1}k , we have
+
+                                        Pn,k (g(y)|g(x)) = Pn,k (y|x).                                (2)
+
+The same extends directly to the composition cpl ◦ rev. Using Equation (2), we can derive analogous
+symmetries of the input and output distributions produced by the various iterations of the BAA.
+
+Theorem 4. Suppose the BAA applied to the BDCn,k is initialized with a uniform input distribution
+X (0) . Then, for every t ≥ 1, x ∈ {0, 1}n , y ∈ {0, 1}k , and g = cpl or g = rev we have
+
+                                               X (t) (g(x)) = X (t) (x)
+
+and
+                                               Y (t) (g(y)) = Y (t) (y).
+
+Proof. We established the desired statement by induction in t. For brevity, we write P = Pn,k .
+    The base case t = 0 is clear since X (0) is uniform over {0, 1}n . Now fix t ≥ 1 and suppose that
+X (g(x)) = X (t) (x) for all x ∈ {0, 1}n . We show that the same thing holds for X (t+1) . First, note
+  (t)
+
+that
+                                               X
+                              Y (t) (g(y)) =         X (t) (x)P (g(y)|x)
+                                                    x∈{0,1}n
+                                                       X
+                                                =              X (t) (g(x))P (y|g(x))
+                                                    x∈{0,1}n
+                                                       X
+                                                =                X (t) (x′ )P (y|x′ )
+                                                    x′ ∈{0,1}n
+
+                                                = Y (t) (y)                                           (3)
+
+for all y ∈ {0, 1}k . The second equality uses the induction hypothesis. The third equality uses the
+fact that g is a bijection. Then,
+                                                                                        !P (y|g(x))
+                           (t)
+                                               Y          X (t) (g(x))P (y|g(x))
+                       W         (g(x)) =
+                                                                  Y (t) (y)
+                                            y∈{0,1}k
+                                                                                  !P (g(y)|x)
+                                               Y          X (t) (x)P (g(y)|x)
+                                       =
+                                                              Y (t) (g(y))
+                                            y∈{0,1}k
+                                                                                !P (y′ |x)
+                                               Y          X (t) (x)P (y ′ |x)
+                                       =
+                                                              Y (t) (y ′ )
+                                            y ′ ∈{0,1}k
+
+                                       = W (t) (x).
+
+The second equality uses the induction hypothesis and Equation (3). Since X (t+1) is obtained by
+normalizing W (t) the desired result follows.
+
+
+
+                                                            26
+    We can use Theorem 4 to slightly simplify the computation of (Y (t) (y))y∈{0,1}k . Given a string
+y ∈ {0, 1}k , we define its orbit Oy = {y, cpl(y), rev(y), rev ◦ cpl(y)}. To each orbit Oy we associate
+as its representative the smallest string y ′ ∈ Oy with respect to the lexicographic order, and denote
+it by rep(y). We denote the set of all representatives in {0, 1}k by Rk .
+    By Theorem 4, it suffices to compute Y (t) (r) for all representatives r ∈ Rk . Furthermore, we
+have
+                                          X
+                              Y (t) (r) =        X (t) (x)Pn,k (r|x)
+                                           x∈{0,1}n
+                                           X                    X
+                                       =          X (t) (x)            Pn,k (r|x′ )
+                                           x∈Rn               x′ ∈Ox
+                                           X                    |Ox | X
+                                       =          X (t) (x) ·           Pn,k (y|x).
+                                                                |Or |
+                                           x∈Rn                         y∈Or
+
+The second equality uses Theorem 4. To prove the last equality, we can, for example, use a group-
+theoretic argument. Let G be the group generated by cpl and rev via composition of functions. For
+a binary string z, define the stabilizer Stabz = {g ∈ G : g(z) = z}. Note that g −1 = g for every
+g ∈ G, and that Oz is the orbit of z under the action of G. Then,
+                              X                            1     X
+                                      Pn,k (r|x′ ) =               Pn,k (r|g(x))
+                                                        |Stabx |
+                             x′ ∈Ox                               g∈G
+                                                         1     X
+                                                    =            Pn,k (g(r)|x)
+                                                      |Stabx |
+                                                                  g∈G
+                                                        |Stabr | X
+                                                    =              Pn,k (y|x)
+                                                        |Stabx |
+                                                                  y∈Or
+                                                        |Ox | X
+                                                    =                  Pn,k (y|x).
+                                                        |Or |
+                                                                y∈Or
+
+The second equality uses the fact that Pn,k (r|g(x)) = Pn,k (g −1 (r)|x) = Pn,k (g(r)|x) for any r and
+x, and the last equality uses the fact that |Stabz | = |G|/|Oz | for any z.
+    The discussion above motivates the procedure described in Algorithm 7.
+
+ Algorithm 7: Computing Y (t) (y) for all y ∈ {0, 1}k
+   Input : Input size n, output size k, input distribution X (t)
+   Output: Array Y (t) indexed by orbit representatives of outputs
+ 1 Initialize Y (t) (r) ← 0 for all orbit representatives r ∈ Rk
+ 2 foreach x ∈ Rn do
+ 3     ox ← |Ox |
+ 4     foreach subsequence y of x do
+ 5         oy ← |Oy |
+ 6         r ← rep(y)
+                                   ox
+ 7         Y (t) (r) ← Y (t) (r) +    · X (t) (x) · Pn,k (y|x)
+                                   oy
+ 8 return Y (t)
+
+
+
+
+                                                         27
+

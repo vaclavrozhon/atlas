@@ -1,0 +1,1524 @@
+                                                           Undirected Multicast Network Coding Gaps
+                                                                  via Locally Decodable Codes
+
+                                                                         Mark Braverman∗                 Zhongtian He†
+arXiv:2510.18737v1 [cs.CC] 21 Oct 2025
+
+
+
+
+                                                                                            Abstract
+
+                                                   The network coding problem asks whether data throughput in a network can be increased
+                                               using coding (compared to treating bits as commodities in a flow). While it is well-known that a
+                                               network coding advantage exists in directed graphs, the situation in undirected graphs is much
+                                               less understood – in particular, despite significant effort, it is not even known whether network
+                                               coding is helpful at all for unicast sessions.
+                                                   In this paper we study the multi-source multicast network coding problem in undirected
+                                               graphs. There are k sources broadcasting each to a subset of nodes in a graph of size n. The
+                                               corresponding combinatorial problem is a version of the Steiner tree packing problem, and the
+                                               network coding question asks whether the multicast coding rate exceeds the tree-packing rate.
+                                                   We give the first super-constant bound to this problem, demonstrating an example     √
+                                                                                                                                           with a
+                                                                                                                                     Ω̃( log log n)
+                                               coding advantage of Ω(log k). In terms of graph size, we obtain a lower bound of 2                   .
+                                               We also obtain an upper bound of O(log n) on the gap.
+                                                   Our main technical contribution is a new reduction that converts locally-decodable codes in
+                                               the low-error regime into multicast coding instances. This gives rise to a new family of explicitly
+                                               constructed graphs, which may have other applications.
+
+
+
+
+                                         ∗
+                                             Princeton University, Research supported in part by the NSF Alan T. Waterman Award, Grant No. 1933331.
+                                         †
+                                             Princeton University
+Contents
+1 Introduction                                                                                           1
+  1.1 Related Works . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        3
+  1.2 Preliminaries . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      4
+  1.3 Technique Overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .         5
+
+2 Gap Instances via Locally Decodable Codes                                                              7
+   2.1   Sampling Construction via LDCs . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        8
+   2.2   Boosting the Distance via a Binary Tree Gadget       . . . . . . . . . . . . . . . . . . . .   11
+
+3 Upper Bound Network Coding Gap                                                                        15
+
+4 Locally Decodable Codes in Network Coding                                                             17
+   4.1   Limitations of Existing LDC Constructions . . . . . . . . . . . . . . . . . . . . . . .        17
+   4.2   Robust Distance LDC . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      18
+
+A Definition of Network Coding via Time-Expanded Graph                                                  23
+
+B Linear Programs for Multi Steiner Tree Packing                                                        24
+
+C Missing Proofs of Section 4.2                                                                         25
+   C.1 Proof of Proposition 4.3 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     25
+   C.2 Proof of Proposition 4.4 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     25
+
+D Re-Analysis of Matching Vector Codes                                                                  26
+1       Introduction
+
+    Optimizing network throughput is a key problem in both combinatorial optimization and coding
+theory. Relevant objectives include maximizing unicast and broadcast throughput, improving error
+resilience, enhancing security, etc. Traditional routing treats data packets as physical commodities,
+giving rise to combinatorial problems such as max-flow and multi-commodity-flow. Network coding
+extends the routing model by allowing data to be encoded and combined at intermediate nodes,
+potentially offering significant advantages in various settings. While the benefits of network coding
+in directed graphs are well understood (e.g., [ACLY00, LYC03, HMK+ 06, YLCZ06, FS+ 07, HL08]),
+key questions in the undirected setting remain open despite much effort.
+    In fact, a well-known conjecture1 states that network coding offers no advantage in throughput
+for multi-source unicast in undirected graphs [LL04a, HKL04], meaning that the best achievable
+throughput can be obtained solely through multi-commodity flow routing. Not only the problem is
+interesting on its own, but it also has strong implications in complexity theory, where the positive
+resolution of the conjecture would imply lower bounds in external memory algorithm complexity
+[FHLS19], in cell-probe model [AHJ+ 06], and even super-linear circuit lower bounds for very natural
+mathematical problems such as integer multiplication [AFKL19]. Given these connections, it is
+not surprising that despite numerous attempts [LL04b, HKL06, KS06, LM09, XLWH14, BGS17,
+YLLW17, HWZ20] and resolutions on special classes of instances [OS81, AHJ+ 06, JVY06, KS06],
+the conjecture remains open. In contrast, the advantage is known to be Ω(n) for multi-source
+unicast in directed graphs of size n [LL04b, HKL06].
+    Another relevant setting is single-source multicast, where one source transmits information to
+multiple-destinations. In undirected graphs, the known network coding advantage, also called the
+coding gap, lies between 8/7 [AC04] and 2 [LL04a]. The coding gap is defined as the ratio of the
+network coding throughput to the Steiner tree packing number, where the latter serves as the non-
+coding multicast benchmark. We emphasize that a Steiner tree packing combinatorially implies
+a valid network coding solution: given such a packing, one can transmit information along the
+Steiner trees, since once a vertex receives some information, it is allowed to forward it to multiple
+successors. In directed graphs, the single-source multicast problem is studied in the seminal work on
+network coding [ACLY00], which shows that an exact optimal network coding solution can always
+be achieved. Moreover, the coding gap can be as large as Ω(log n) [AC04, JSC+ 05], matching the
+integrality gap of linear programming relaxation for the directed Steiner tree problem.
+    Thereby a natural problem multi-source multicast generalizing both settings above arises. In this
+setting, we have multiple source nodes, each communicating its information to a set of destination
+nodes. The combinatorial non-coding throughput of this problem is multi Steiner tree packing num-
+ber. We study the ratio of multi-source multicast network coding throughput to the corresponding
+multi Steiner tree packing number in undirected graphs:
+   “How large the advantage can network coding obtain for multi-source multicast
+throughput?”
+    Even though the multi-source multicast problem is well-studied, no general asymptotic bounds
+for the network coding gap in undirected graphs were previously known. In a seminal work, Ahlswede
+    1
+    The conjecture is known by several names, including the Network Coding Conjecture, Li and Li’s Conjecture,
+and the Multiple Unicast Conjecture.
+
+
+                                                      1
+et al. [ACLY00] study the multi-source multicast problem in directed graphs, establishing an optimal
+network throughput for a special case where all sources share the same set of sinks, while leaving the
+general case as an open problem. Since then, the multi-source multicast problem has been studied
+extensively from both theoretical and empirical perspectives. To name a few, this includes an exact
+algebraic formulation of feasibility [KM03], cut-set outer bounds (e.g., [Cov99, HKL06, TGC16]),
+extensions to noisy channels [LKEGC11], and settings with security guarantees [CCMG18]. Notably,
+Langberg and Médard [LM09] show that, for uniform demands, the multi-source unicast non-coding
+throughput is at least one-third of the multi-source multicast coding throughput. In this context,
+the multicast problem is defined by modifying each source’s sink set to include all sinks from the
+unicast problem. This connection positions the multi-source multicast problem in undirected graphs
+as a partial step toward either proving or disproving the network coding conjecture.
+    In this work, we prove asymptotic lower and upper bounds for the multi-source multicast problem
+in undirected graphs. Let n denote the graph size and k the number of sources. We show the
+existence of network coding instances with a coding gap of Ω(log k) for k-source multicast sessions,
+which is the first super-constant bound to this problem. To achieve these coding gaps, we develop
+novel connections between network coding and locally decodable codes (LDCs), which constitutes
+the main technical contribution of this work.
+                                                                                   √
+    In terms of graph size n, this coding gap translates into 2Ω̃( log log n) 2 , utilizing a particular family
+of LDCs known as matching vector codes [Efr09, DGY11, Yek12, BDL13, DH13], which excel in
+low-query regimes. Since our reduction is black-box, any improvement in LDC constructions would
+directly lead to stronger lower bounds on the network coding gap. We elaborate on this connection
+in the technique overview section.
+Theorem 1.1. There exists a family of network coding instances for k multicast sessions in undi-
+rected
+   √
+       graphs, that have
+                      
+                         coding gaps at least Ω(log k). In term of graph size n, the gap is at least
+    Ω         log log n/ log log log n
+2                                        .
+
+    For the upper bound, we show that the coding gap for multi-source multicast sessions is at
+most O(log n). Our approach relates the network coding gap to the LP integrality gap for the
+dual of the multi Steiner packing problem. This integrality gap can, in turn, be bounded using an
+O(log n)-approximate cut-tree packing [Räc08], a technique that has also been used in the context
+of oblivious routing.
+Theorem 1.2. The multi-source multicast coding gap in undirected graphs is at most O(log n).
+
+    This matches the best known upper bound for the coding gap of multi-source unicast in the undi-
+rected graph. It is worth noting that, any improvement of the upper bound to o(log n) even in the
+multi-source unicast setting would yield a super-linear circuit lower bound for integer multiplication
+[AFKL19].
+    Unlike graph size n, in terms of the number of sources k, the best known upper bound remains
+the trivial O(k). Closing this exponential gap is an intriguing open problem. In contrast, for multi-
+source unicast, an upper bound of O(log k) on the network coding gap is known, as a consequence
+of the approximate max-flow min-cut theorem (also known as the multicommodity flow-cut gap)
+[AR98, LLR95].
+        2
+            We use the notation Ω̃(f (n)) to denote Ω (f (n)/poly log f (n)), i.e., hiding poly log f (n) factors.
+
+
+                                                                     2
+    The observations and results of this work raise several compelling open problems, as the multi-
+source multicast setting admits a variety of approaches from both coding theory and graph theory.
+In particular, improving the lower bound in terms of the graph size n may be possible through
+the construction of more efficient locally decodable codes (LDCs)—especially via a novel variant
+we introduce, called robust distance LDC codes, discussed in Section 4.2. Closing the exponential
+gap in terms of the number of sources k likely requires new combinatorial insights in graph theory.
+Beyond being interesting on their own, progress on these questions may also serve as intermediate
+steps toward resolving the network coding conjecture.
+
+
+1.1      Related Works
+
+Completion Time While it remains unknown whether network coding provides an advantage for
+the throughput of the multi-source unicast problem in undirected graphs, coding gaps do arise when
+considering completion time, also known as makespan, instead of throughput. The makespan prob-
+lem is a generalization of throughput, as the maximum throughput can be defined as supr→∞ r/C(r),
+where C(w) is the makespan for the instance after increasing all demands by a factor of r. For the
+makespan of multi-source unicast in undirected graphs, Haeupler et al. [HWZ20] establish a poly-
+logarithmic coding gap in terms of the number of sources k. Additionally, they prove an upper
+bound that is polylogarithmic in k and the ratio of the summation to the smallest demand for
+k-source unicast instances. It is an interesting open problem to bound the makespan coding gap for
+multi-source multicast sessions. The completion time of more general distributed computing tasks
+with security guarantees can also be improved using network coding [HPY22, Par23].
+
+
+Graph Product Previous lower bounds on the network coding gap in undirected graphs are
+primarily obtained via the graph product technique—a powerful method that amplifies a constant
+gap into an asymptotically large one. This approach was used by Braverman et al. [BGS17] to
+establish a dichotomy in multi-source unicast throughput [BGS17]: the network coding gap for
+multi-source unicast thoughput is either exactly 1 or at least Ω((log n)c ) for some constant c > 0.
+Haeupler et al. [HWZ20] later generalized this framework to show a polylogarithmic coding gap for
+completion time. While the graph product technique is very useful for establishing lower bounds for
+undirected multi-source unicast, its applicability to the undirected multicast setting remains unclear.
+In directed graphs, graph product has been applied to prove polynomial separations between linear
+and non-linear codes in network coding [BKL11, Lov14].
+
+
+Locally Recoverable Codes and Fountain Codes Our use of LDCs to improve network coding
+throughput naturally connects to the broader landscape of fault-tolerant data access in distributed
+systems. In particular, locally recoverable codes (LRCs)3 have been extensively studied for their
+role in reducing repair costs in distributed storage settings (e.g., [HSX+ 12, TB14, PD14, CM15,
+BTV17, GXY19, MPK19, Mic19, CMST21, KSCM23]). LRCs aim to minimize the number of
+nodes accessed during data recovery—an idea closely related to our goal of minimizing the number
+of queries in LDC-based constructions. Similar motivations underlie work on fountain codes which
+addressed efficient data dissemination under erasure [BLMR98, Lub02, Sho06].
+  3
+      Also known as locally reconstructible or locally repairable codes.
+
+
+
+                                                            3
+1.2   Preliminaries
+
+Network Coding A multi-source multicast instance M = (G, S) is defined over a communication
+network represented by an undirected graph G = (V, E), with edge capacities given by a function
+c : E → R+ . The instance consists of k sessions, denoted by S = {(si , Ri , di )}ki=1 , where each
+session is specified by a source vertex si ∈ V , a set of sink vertices Ri ⊆ V , and a communication
+demand Qdk i ∈ R+ . Let Mi denote the set of all messages that source si wishes to send, and define
+M := i=1 Mi as the set of all message combinations across sessions. Each message mi ∈ Mi is
+sampled independently from distribution Di to produce a distribution D of M ’s.
+    The formal definition of a network coding solution is deferred to Section A. Here, we provide
+a simplified version that, while restricting the full expressive power of network coding, is sufficient
+for deriving our lower bounds. Given an undirected graph G, the solution specifies a direction for
+each edge e to form a directed graph Ĝ, an associated alphabet Γ(e), and an encoding function
+fe : M → Γ(e) that determines the symbol transmitted along edge e. These functions must satisfy
+the following conditions:
+
+   • Correctness: Each sink must be able to recover the message from its corresponding source.
+
+   • Causality: The symbol transmitted on each edge e must be computable from the symbols
+     received at its tail vertex.
+
+    We assume that Ĝ is a directed acyclic graph (DAG). Although the general case may involve
+cycles, the full definition—based on time-expanded graphs—is presented in Section A. That gen-
+eral framework is only required when we analyze upper bounds on network coding throughput in
+Section 3. The throughput of a network coding solution is defined as the largest value r for which
+there exists a scale c∗ ≥ 0 (i.e., allowing block length, time, or packet size expansion) such that the
+following conditions hold:
+
+   • For each source si , the entropy of its message satisfies H(mi ) ≥ r · di · c∗ .
+
+   • For each edge e ∈ E, the entropy of the information transmitted along e is at most ce · c∗ .
+
+    The throughput of a multi-source multicast instance is the throughput of the network coding so-
+lution maximized over all possible distributions D. Note that the common scale c∗ in the throughput
+definition is important: in the network coding literature, throughput characterizes the asymptotic
+feasibility of the solution.
+
+
+Multi Steiner Tree Packing The non-coding throughput of a multi-source multicast problem
+is captured by the multi-Steiner packing number. It is defined as the largest value τ such that,
+for each source si , there exists a Steiner tree packing with terminal set Si := Ri ∪ {si } and total
+weight τ · di , subject to the constraint that the combined packing across all sources respects the
+edge capacities. This quantity characterizes the maximum achievable throughput in the absence
+of network coding—that is, when information can be duplicated but not encoded. A formal LP
+formulation is given in Section B.
+
+
+                                                    4
+Locally Decodable Codes Denote by ∆(x, y) the Hamming distance between vectors x and
+y. Denote by Ay an algorithm that accesses the vector y through coordinate queries. Let F be a
+finite field. A code C : Fk → FN is said to be (q, δ, ϵ)-locally decodable if there exists a randomized
+decoding algorithm A such that:
+
+  1. For all x ∈ Fk , i ∈ [k] and all y ∈ FN satisfying ∆(C(x), y) ≤ δ, we have
+
+                                          Pr[Ay (i) = xi ] ≥ 1 − ϵ,
+
+      where the probability is over the internal randomness of A.
+
+  2. The algorithm A makes at most q queries to y.
+
+     The rate of a code is defined as the ratio of the message length to the codeword length, i.e.,
+k/N . The parameter q, known as the query complexity, denotes the number of codeword symbols
+accessed during decoding. The parameter δ is referred to as the decoding radius—the maximum
+fraction of errors the decoder can tolerate while still recovering individual message symbols with
+high probability. We say a code satisfies the linearity of decoding property (or simply that the code
+is linear ) if the decoder A always outputs a linear combination of the queried codeword symbols.
+
+Definition 1.3 (Perfect Smoothness). A code satisfies the perfect smoothness if, for any x ∈ Fk
+and any i ∈ [k], each query made by A(i) is uniformly distributed over the coordinate set [N ],
+and the decoder always returns the correct message xi when given an uncorrupted codeword, i.e.
+AC(x) (i) = xi .
+
+   The following fact will be useful in the construction of matching vector codes.
+
+Fact 1.4 ([Tre04]). Any code that satisfies perfect smoothness and makes q queries is also (q, δ, qδ)-
+locally decodable for all δ < 1q .
+
+
+1.3   Technique Overview
+
+Lower Bound. The core technical contribution is a reduction from the network coding gap to
+locally decodable codes.
+
+Lemma 1.5 (Main Lemma). Suppose there exists a linear (q, δ, qδ)-locally decodable code C : Fk →
+FN satisfies perfect smoothness. Then, the undirected network coding gap for multi-source multicast
+is at least Ω((δ log k)/q), with the graph size in the gap instance given by n = Θ(N k).
+
+    This lemma allows us to establish network coding gaps using basic LDCs. For instance, the
+Hadamard code is a linear (2, 41 , 21 )-locally decodable code with perfect smoothness, which immedi-
+ately implies network coding gaps of Ω(log k) and Ω(log log n). To achieve a stronger lower bound
+in terms of n, an LDC with a better rate is required.
+    In the sub-logarithmic query regime, the best rate is achieved by matching vector (MV) codes
+[Efr09], formally stated in Lemma 1.6, with the proof deferred to Section D. Notably, Lemma 1.6
+differs from previous results in several ways. First, the MV codes in [Efr09] were analyzed in the
+
+                                                  5
+constant query regime using Grolmusz’s set systems, which become suboptimal for a larger number
+of queries. Additionally, the MV codes in [DGY11, Yek12] require both the distance δ and error ϵ
+to be constant, which slightly increases the query complexity to tO(t) . Here, we provide a version
+optimized for our setting.
+
+Lemma 1.6 (Matching Vector Codes – optimized for network coding gap constructions). For
+t, k ≥ 2, there exists a linear q-query locally decodable code over F = GF (2b ) with q = 2t , b = Õ(t)
+that encodes message of length k to codeword of length
+                                                                         
+                             exp exp O (log k)1/t (log log k)1−1/t · t ln t .
+
+Moreover, the code is (q, δ, qδ)-locally decodable for any δ < 1/q, and satisfies perfect smoothness.
+
+Proof of Theorem 1.1. By applying Lemma 1.5 and the Hadamard code, which is a (2, 41 , 12 )-locally
+decodable code, we immediately obtain the lower bound Ω(log k).
+    To derive lower bounds in terms of n, we set t = 41 log log k and δ = 4q  1
+                                                                                in Lemma 1.6, yielding a
+        1              1
+                             
+ (log k) 4 , 4 (log k) 4 , 4 -locally decodable code. This encodes a message of length k into codewords
+             1        −    1
+
+of length
+                                  N = exp exp(O((log log k)2 log log log k)).
+Rearranging terms, we obtain
+                                              √                          
+                                             Ω   log log N/ log log log N
+                                    log k = 2                                 .
+
+                                                                                  √
+   Using
+      √
+           this LDC and Lemma    
+                                         1.5, we derive a network coding gap of Ω( log k), which translates
+     Ω   log log n/ log log log n
+to 2                               in terms of n, since n is polynomially related to N , and the relation
+between N and k follows from our previous derivation.
+
+    In Section 4.2, we propose a relaxed variant of LDCs tailored for applications in network coding
+gaps, as our approach does not require their full error-correcting capabilities. We believe this variant
+will be useful in closing the gap between the lower bound in Theorem 1.1 and the O(log n) upper
+bound.
+
+
+Upper Bound. We introduce a generalized notion of the sparsest cut in the multi-Steiner setting,
+defined as the objective of the integral solution to the dual LP of the multi-Steiner packing problem
+(see Section B). This quantity also serves as an upper bound on the network coding throughput,
+which we formally prove under the information-theoretic definition of network coding. This connec-
+tion reduces the problem of bounding the network coding throughput to analyzing the LP integrality
+gap of the multi-Steiner packing problem. Leveraging the O(log n)-approximate cut-tree packing
+developed for oblivious routing [Räc08], we obtain an O(log n) upper bound on the network coding
+gap. This result can thus be interpreted more strongly: the gap between network coding throughput
+and oblivious Steiner packing is at most O(log n).
+
+
+
+
+                                                     6
+Presentation Overview In Section 2, we demonstrate how to construct coding gap instances
+using LDCs. This section is divided into two parts: in Section 2.1, we present a simple sampling-
+based construction to illustrate how LDCs can be applied to network coding; and in Section 2.2,
+we prove the main lemma by amplifying the coding gap using random binary trees. Although the
+sampling construction in Section 2.1 is suboptimal, it has the merits of simplicity and motivates a
+new formulation of LDCs, which we introduce in Section 4.2. We briefly discuss the limitation of
+existing LDCs to network coding in Section 4.1. In Section 3, we establish an upper bound on the
+network coding gap.
+
+
+2     Gap Instances via Locally Decodable Codes
+
+    A network coding gap instance I = (G, S, F ) is a multi-source multicast instance M = (G, S)
+defined over a connected graph G, along with a designated set of cut edges F ⊆ E(G). We restrict
+our attention to instances where all edge capacities and demands are unit-valued, i.e., ce = 1 for all
+e ∈ E(G) and di = 1 for all i ∈ [k]. Let distG (u, v) denote the shortest-path distance between nodes
+u and v in G. We say that a gap instance has parameters (a, b, f, m, r) if the following conditions
+hold:
+
+    1. The k-source multicast instance M admits a network coding solution achieving throughput
+       a.
+
+    2. Removing the edges in F disconnects si from Ri for every i ∈ [k].
+
+    3. Let distG\F (U ) := minu,v∈U distG\F (u, v). Then for all i ∈ [k], it holds that distG\F (Ri ) ≥ b.
+                                u̸=v
+
+    4. The number of cut edges is f = |F |.
+
+    5. The total number of sinks is r = i∈[k] |Ri |.
+                                       P
+
+    6. The graph G contains at most m edges, i.e., |E(G)| ≤ m.
+
+Lemma 2.1. Let I be a gap instance with parameters (a, b, f, m, r). Then the network coding gap
+is at least f +2m/b
+               a·r
+                    .
+
+Proof. Let τ denote the non-coding throughput, characterized by the multi-Steiner packing number.
+By the LP duality in Section B, the dual objective is an upper bound on τ . Now we shall assign dual
+variables: let zi = |Ri | + 1 for every demand i; ye = 1 for every edge e ∈ F and ye = 2/b otherwise.
+We show that the dual constraints are satisfied. Clearly, all the variables are non-negative. Recall
+that we define P Si := Ri ∪ {si }. For any i and tree T such that Si ⊆ V (T ), we need to show that
+the constraint e∈T ye ≥ zi is satisfied. Let rT := |Ri | be the number of sinks spanned by T , and
+let xT denote the number of cut edges F used by T .
+    By the definition of a gap instance, in G \ F , any two sinks in Ri are at distance at least b. We
+say a sink t ∈ Ri is close to a cut edge e = (u, v) ∈ T ∩ F if, in G \ F , the vertex u is connected
+to si , v is not, and distG\F (t, v) < b/2. By the distance condition of the gap instance, at most one
+
+
+
+                                                     7
+sink in Ri can be close to any such cut edge. Therefore, the number of close sinks in T is at most
+xT .
+    For each one of the remaining sinks s, let N (s, b/2) be the edges in (b/2)-neighborhood of s in
+T \ F . Since s is remote, we have |N (s, b/2)| ≥ b/2. In addition, for each two distinct s1 ̸= s2 we
+have distT \F (s1 , s2 ) ≥ distG\F (s1 , s2 ) ≥ b, and thus N (s1 , b/2) ∩ N (s2 , b/2) = ∅. Therefore, the
+total number of non-cut edges in T is at least (rT − xT ) · 2b . Thereby the dual constraint is satisfied,
+                              X            2             b
+                                    ye ≥     · (rT − xT ) + 1 · xT = rT = zi .
+                                           b             2
+                              e∈T
+
+
+   With this assignment, the dual objective is,
+                                    P
+                                      e∈E ce ye   f + 2m/b
+                                      P         ≤
+                                         d z
+                                        i i i         r
+
+which upper bounds the packing number τ . Given that the coding throughput is a, the network
+coding gap is at least
+                                     a       a·r
+                                        ≥           .
+                                     τ    f + 2m/b
+
+
+
+2.1    Sampling Construction via LDCs
+
+    Fix a perfectly smooth (q, δ, qδ) code C : FK → FN , we will show that the following graph
+construction is a (a, b, f, m, r) gap instance for a = 1, b = log k/ log log k, f = N, m = Θ(rq), and
+r = Θ((δN log k)/q). We only consider gap instances where all sources are co-located at the same
+vertex S. Our construction is based on a tripartite graph G = (A, B, C, E), structured as follows:
+
+   • The first part A contains only the common source vertex S, i.e. si = S for all i ∈ [k]. In a
+     network coding solution, the message of si is represented as xi ∈ F. Thereby, vertex S knows
+     the entire message vector x ∈ Fk .
+
+   • The second part B = {wj }N j=1 consists of N vertices and each is connected to S by an edge.
+     In the network coding solution, each vertex wj ∈ B will receive from S one coordinate of the
+     codeword C(x)j .
+
+   • The third part C is the disjoint union of sink sets: C = ki=1 Ri , where Ri ∩ Rj = ∅ for all
+                                                               F
+     i ̸= j. Each sink in Ri connects to q vertices in B that enable decoding of the message xi ,
+     using the local decodability of the code. In the remainder of this subsection, we describe in
+     detail how to construct the third part.
+
+    We begin by identifying the property that the third part should satisfy. To apply Lemma 2.1,
+we set the cut edges F to be all edges adjacent to S, and aim to ensure that the pairwise distances
+between sinks in each Ri are not too small in G \ F . This is achieved by first generating a near-
+linear number of candidate sinks for each i, then retaining only a (log k)/k fraction via sampling.
+
+                                                       8
+A pruning subroutine is applied to eliminate sinks that are too close to others associated with the
+same source. Both subroutines are formalized below. The pseudocode is shown in Algorithm 1.
+
+
+Sampling Subroutine For q-query LDCs, each vertex in Ri must have q neighbors in the second
+layer B that can successfully decode the message xi . The code’s decoding radius is used to generate
+many disjoint q-queries of near-linear size. Specifically, we maintain a set of used indices U ⊆ [N ].
+As long as |U | ≤ δN , there exists a set D ⊆ [N ]\U of size q such that xi can be decoded by querying
+C(x) at coordinates in D (see Fact 2.2 and line 8 in Algorithm 1). Denote by Decode(i, U ) the
+oracle that returns the corresponding set D. All indices in D are added to U .
+   With probability log k/k, we add a vertex v to the sinks Ri and add edges from v to the vertices
+in B indexed by D. Note that D is added to U regardless of whether v is sampled. The process
+terminates when |U | > δN . The sampling subroutine runs from line 5 to line 14 in Algorithm 1.
+Fact 2.2. Let C : Fk → FN be a (q, δ, qδ)-locally decodable code with perfect smoothness. Then for
+any index i ∈ [k] and any subset U ⊆ [N ] with |U | ≤ δN , there exists a set D ⊆ [N ] \ U of size at
+most q such that the message symbol xi can be successfully decoded by querying the codeword C(x)
+at positions in D.
+
+Proof. By the perfect smoothness property, each of the q queries made by the decoder is uniformly
+distributed over [N ], so the probability that any single query falls in the corrupted set U is at most
+|U |
+ N ≤ δ. By the union bound, the probability that any of the q queries falls in U is at most qδ.
+Therefore, with probability at least 1 − qδ, all q queries lie entirely within the uncorrupted set U .
+    By the probabilistic method, this implies the existence of a fixed set D ⊆ U of size q such that the
+decoder queries exactly the positions in D with some fixed randomness. Since all queried positions
+are uncorrupted and the decoder behaves correctly on valid codewords by the perfect smoothness
+assumption, xi can be deterministically decoded from the values of C(x) at positions in D.
+
+
+Pruning Subroutine We prune the set of sinks C to ensure that, within each Ri , the sinks are
+sufficiently far apart in the graph G \ F . Specifically, for each i ∈ [k] and each sink u ∈ Ri , if
+there exists another sink v ∈ Ri such that the distance between u and v in G \ F is less than
+log k/ log log k, we remove u from Ri .
+   The pruning threshold is chosen to ensure that only a small number of sinks are removed from
+C, as formally shown in Lemma 2.3. After pruning, we apply Lemma 2.1 to establish a lower bound
+on the coding gap.
+Lemma 2.3. Assume that q = o(log k). Then, in the pruning subroutine of Algorithm 1, an ok (1)4
+fraction of the sinks in C is removed with high probability.
+
+Proof. We analyze the pruning process in the graph G \ F . Fix any i ∈ [k] and any sink u ∈ Ri .
+Let Pj be the number of vertices in B within distance 2j + 1 from u. Initially, P0 = q. For j > 0,
+we have the recurrence
+                                    E[Pj ] ≤ q log k · E[Pj−1 ],
+  4
+      That is, a quantity tending to 0 as k → ∞.
+
+
+                                                   9
+Algorithm 1 Generating Gap Instance via LDCs
+ 1: Set A ← {S} and si ← S for all i ∈ [k].
+ 2: Set B ← {wi }N  i=1 .
+ 3: Set F ← {(S, wi ) | i ∈ [N ]} and initialize E ← F .
+ 4: Initialize Ri ← ∅ for all i ∈ [k].
+ 5: for each i = 1 to k do                                                     ▷ Sampling Subroutine.
+ 6:     Initialize U ← ∅.
+ 7:     while |U | ≤ δN do
+ 8:         Let D ← Decode(i, U ).                    ▷ Select q coordinates in [N ] \ U for decoding.
+ 9:         with probability (log k)/k:
+10:             Add a new vertex v to Ri .
+11:             Add edges (wj , v) to E for each j ∈ D.
+12:         Update U ← U ∪ D.
+13:     end while
+14: end for
+15: for each i ∈ [k] and each u ∈ Ri do                                         ▷ Pruning Subroutine.
+16:     if there exists v ∈ Ri \ {u} such that distG\F (u, v) ≤ log k/ log log k then
+17:         Remove v from Ri .
+18:     end if
+19: end for
+               Sk
+20: Set C ← i=1 Ri .
+
+
+
+since each vertex in C has q neighbors in B, and each vertex in B has at most k potential neighbors
+in C, with each edge sampled independently with probability log k/k.
+    Now let Qj be the number of vertices in Ri \ {u} within distance 2j from u. Clearly, Q0 = 0.
+For j > 0, the expectation E[Qj ] equals E[Qj−1 ] plus the expected number of vertices in Ri \ {u}
+that are at distance exactly 2j from u. The latter quantity can be upper bounded by the expected
+number of vertices in B at distance 2j − 1 from u, multiplied by the probability that a vertex in B
+is connected to a vertex in Ri . This probability is at most logk k as the sampling procedure, implying
+
+                                               log k              (q log k)j+1
+                         E[Qj ] ≤ E[Qj−1 ] +         · E[Pj−1 ] ≤              .
+                                                 k                      k
+
+   Let d∗ = 12 · logloglogk k . The algorithm prunes u if there exists another sink in Ri within distance
+2d∗ in G \ F . Using the bound above, we get
+                                                          ∗
+                                               (q log k)d
+                                     E[Qd∗ ] ≤            = o(1),
+                                                    k
+and therefore
+                                    Pr[Qd∗ ≥ 1] ≤ E[Qd∗ ] = o(1),
+which gives an upper bound on the probability that u is pruned.
+  Since this holds for every u ∈ Ri and all i ∈ [k], the expected fraction of sinks pruned is o(1).
+Applying Markov’s inequality concludes the proof.
+
+                                                   10
+    We name this instance IS = (G, S, F ). Applying Lemma 2.1 to our gap instance IS , we obtain
+the following lemma.
+Lemma 2.4. Suppose C : Fk → FN is a (q, δ, qδ)-locally decodable code with perfect smoothness, as
+used in Algorithm 1. Then the network coding gap for the resulting instance IS is at least
+                                                             
+                                                1         log k
+                                Ω min δ,                ·         .
+                                            log log k       q
+
+Proof. For the network coding throughput, we consider each source message to be uniformly dis-
+tributed over F. Each edge in the network carries a symbol in F, and each sink decodes its target
+symbol using q symbols from the second layer. Each vertex in B receives one coordinate of the
+locally decodable codeword, and each vertex in the third layer accesses q such coordinates.
+    Each source has entropy log s, where s = |F|. Since all demands are unit-valued, we scale the
+capacities by c∗ = log s, as in the definition of network coding solution. Consequently, the effective
+capacity of each edge is 1 · c∗ = log s, since all edge capacities are unit-valued. Under this scaling,
+the network supports a coding solution that delivers the full message to each sink, and therefore
+the coding throughput of IS is at least a = 1.
+    We now analyze the remaining parameters
+                                                 required
+                                                           by Lemma 2.1 for IS . By the sampling
+subroutine, the number of sinks r = Θ δN   q  log k   , which dominates the total number of vertices
+n. The total number of edges is m = Θ(rq). The pruning subroutine ensures that the minimum
+pairwise distance among sinks in each Ri is at least b ≥ log k/ log log k, and the number of cut edges
+is f = N .
+   Applying Lemma 2.1, the coding gap is at least
+                                                         
+                               a·r                  r   r
+                                       = Ω min        ,       .
+                             f + 2m/b               f 2m/b
+
+Substituting the estimates for r, m, and b gives:
+                                                                
+                                            δ log k      log k
+                                  Ω min             ,                ,
+                                               q      q log log k
+
+as claimed.
+
+
+2.2   Boosting the Distance via a Binary Tree Gadget
+
+    In this section, we introduce a binary tree gadget to eliminate the low-order term in the lower
+bound on the coding gap. In the previous construction, the distance between sinks in each Ri was
+ensured through a sampling-based approach, which introduced an extra log log k factor. Here, we
+replace high-degree vertices with structured binary trees to achieve the better distance guarantees
+without relying on sampling. The pseudocode is provided in Algorithm 2.
+
+
+Binary Tree Gadget This construction can be viewed as a modification of the previous bipartite
+structure. Denote by G[B, C] the bipartite graph induced by the vertex set B ∪ C. For each edge
+
+                                                   11
+(u, v) in G[B, C], we first introduce a new intermediate vertex t and replace the edge with two edges
+(u, t) and (v, t).
+   Next, for each vertex u ∈ B ∪ C with degree d in the graph, we remove all edges incident to u
+and replace them with a complete binary tree rooted at u with d leaves. The original neighbors of
+u are then assigned to the leaves via a uniformly random permutation—each leaf is connected to a
+unique neighbor of u according to this random ordering.
+   After this transformation, every intermediate vertex t (originally inserted to split edges) has
+degree exactly 2, so we remove t and directly connect its two neighbors with an edge. Although the
+construction in Algorithm 2 presents this process in a more direct manner, it is equivalent to the
+description above.
+    Notably, the sampling subroutine from the previous section is no longer required in this con-
+struction.
+
+Algorithm 2 Generating Gap Instance via LDCs and Binary Tree Gadget
+ 1: Set A ← {S} and si ← S for all i ∈ [k].
+ 2: Set B ← {wi }N  i=1 .
+ 3: Set F ← {(S, wi )}N   i=1 and initialize E ← F .
+ 4: Initialize Ri ← ∅ for all i ∈ [k].
+ 5: for each vertex u ∈ B do                                    ▷ Insert binary tree for each B-vertex
+ 6:     Insert a complete binary tree Tu with k leaves and root at vertex u.
+ 7:     Label the leaves of Tu with a random permutation of {1, 2, . . . , k}.
+ 8: end for
+ 9: for each i = 1 to k do                                              ▷ Add sinks via LDC decoding
+10:     Initialize U ← ∅.
+11:     while |U | ≤ δN do
+12:         Let D ← Decode(i, U ).
+13:         Add a new vertex v to Ri .
+14:         Insert a complete binary tree Tv with q leaves and root at vertex v.
+15:         Let p : D → [q] be an arbitrary bijection (permutation of D).
+16:         for each j ∈ D do
+17:             Add an edge from the leaf of Twj labeled i to the p(j)-th leaf of Tv .
+18:         end for
+19:         Update U ← U ∪ D.
+20:     end while
+21: end for
+22: for each i ∈ [k] and each u ∈ Ri do                                            ▷ Prune close sinks
+23:     if there exists v ∈ Ri \ {u} such that distG\F (u, v) ≤ 4 log k then
+                                                                1
+
+24:         Remove v from Ri .
+25:     end if
+26: end for
+
+
+
+
+Pruning Subroutine Similar to the previous section, the pruning threshold is chosen to ensure
+that only a small fraction of sinks are removed. The key advantage of the current construction is
+
+
+                                                 12
+that the minimum required distance between sinks can now be set to a logarithmic function of k.
+     Intuitively, the analysis relies on the structure of the binary tree gadget. Starting from any vertex
+in a tree and growing a ball of increasing radius, the next labeled vertex encountered is essentially
+random due to the uniform permutation of labels. Thus, to encounter a vertex with the same label
+(i.e., corresponding to the same message index i), the ball must typically grow to logarithmic radius.
+This ensures that sinks associated with the same message are, with high probability, far apart in
+G \ F.
+Lemma 2.5. In the pruning subroutine of Algorithm 2, at most an O(k −1/2 ) fraction of the sinks
+are removed with high probability.
+
+   The correctness of Lemma 2.5 follows from the claim below.
+Claim 2.6. Before the pruning subroutine, for each i ∈ [k] and each u ∈ Ri , with probability at
+least 1 − k −3/4 ,
+                                                       1
+                                 min distG\F (u, v) ≥ log k.
+                               v∈Ri \{u}               4
+
+Proof. The only randomness in the algorithm arises from labeling the leaves of each binary tree
+using independent random permutations. For the sake of analysis, we may equivalently assume
+that all sinks are added first, and then the leaf labels of every binary tree are assigned uniformly at
+random.
+    Let D be the indices we used to create sink u. Consider a path from u to some v ∈ Ri \ {u}. The
+path should cross some binary tree Twj for some j ̸∈ D. This motivates us to define the following
+set
+               P = { v ∈ G \ S : distG\F (u, v) < 41 log k } \ ∪j∈D V (Twj ) ∪ V (Tu ) .
+                                                                                      
+
+                                                                                                         1
+Since the degree of each vertex is at most 3 in G \ F and the degree of u is 2, we have s := |P | < k 4 .
+    Let C = i∈[k] Ri . Let B ′ = w∈B V (Tw ) and C ′ = w∈C V (Tw ). For each vertex v ∈ P , we
+              S                      S                         S
+
+say that v is bad if either v ∈ B ′ is labeled by i, or v ∈ C ′ lies in Tw for some w ∈ Ri . If there is no
+bad vertex in P , by the definition of P and the discussion above, the inequality in the claim holds.
+    For the vertices in P , we order them by their distance to the vertex u in G \ F , i.e. P =
+{v1 , v2 , . . . , vs } such that distG\F (u, vℓ ) ≤ distG\F (u, vℓ+1 ), then we shall prove that
+
+                                                                      1
+                               Pr vℓ is bad | vj is good ∀j < ℓ ≤                                      (1)
+                                                              
+                                                                     k−ℓ
+which will imply that,
+                            s                                     s
+                          Y                                    Y  k−ℓ−1          3
+     Pr ∀v ∈ P, v is good ≥   Pr vℓ is good | vj is good ∀j < ℓ ≥         ≥ 1 − k− 4 .
+                               
+                                                                     k−ℓ
+                               ℓ=1                                        ℓ=1
+
+This will conclude the claim as we discussed in the beginning. The rest is proving Equation (1).
+Let d = distG\F (u, vℓ ). There are two cases.
+
+   1. There exists a vertex v ∗ ∈ C ′ adjacent to vℓ , and distG\F (v ∗ , u) < d. Let w be the sink vertex
+
+                                                    13
+     such that v ∗ ∈ Tw . By assumption, w ̸∈ Ri as v ∗ is good, thereby vℓ is not labeled by i, nor
+     in another binary tree Tw′ , which means vℓ is good.
+
+  2. Otherwise, there exists a vertex v ∗ ∈ B ′ adjacent to vℓ , and distG\F (v ∗ , u) < d. We only need
+     to consider the case when vℓ is a leaf of the binary tree, in which vℓ has a label. Let Twj be
+     the tree contains v ∗ . If j ∈ D then the label of v ∗ must be different from i, since otherwise vℓ
+     should be in Tu which contradicts the definition of P . Now j ∈   / D. Among the first ℓ vertices
+     in P , there are at least k − ℓ unseen labels, including i. Since the label of vℓ is assigned
+     uniformly among these remaining labels as in a random permutation, the probability that vℓ
+     receives label i is at most k−ℓ1
+                                      .
+
+                                         3
+Proof of Lemma 2.5. By Claim 2.6, k − 4 is an upper bound of the probability that each sink u be
+                                                                  3
+pruned. Therefore, the expected fraction of the set pruned is k − 4 . Then we conclude with Markov’s
+inequality.
+
+   We name this instance I ∗ = (G, S, F ). Applying Lemma 2.1 to our gap instance I ∗ , we prove
+our main lemma.
+
+Lemma 2.7 (Restatement of Lemma 1.5). Suppose there exists a linear (q, δ, qδ)-locally decodable
+code C :Fk →FN with perfect smoothness. Then the network coding gap for the instance I ∗ is at
+least Ω δ log
+           q
+              k
+                , where the graph has size n = Θ(N k).
+
+Proof. The proof follows the same outline as that of Lemma 2.4. For the network coding throughput,
+we assume each source message is uniformly distributed over F. Each edge in the network carries
+a symbol from F, and each sink recovers its target symbol using q symbols from the second layer.
+Specifically, each vertex in B receives one coordinate of the codeword generated by the locally
+decodable code, and each sink in the third layer wants to query q such coordinates.
+    The binary tree Tv rooted at each v ∈ B propagates the value of the corresponding codeword
+coordinate toward its leaves. For each sink r, the binary tree Tr aggregates the q codeword symbols
+received from the second layer and computes the linear decoding function as the data flows upward
+toward the root. In this way, the network performs the entire decoding process within its structure.
+   The scale defined in the network coding solution is set by c∗ = log s, which is the same as
+in Lemma 2.4. Under this scaling, the network supports a coding solution that delivers the full
+message to each sink, and therefore the coding throughput of IS is at least a = 1.
+   We now estimate the parameters in Lemma 2.1. For each i ∈ [N ], the algorithm constructs a
+binary tree of size Θ(k) rooted at ci ∈ B, contributing Θ(N k) vertices. Additionally, each sink is
+augmented with a binary tree of size Θ(q). The total number of sinks is Θ(δN k/q), so the overall
+graph size is n = Θ(N k) and the number of edges is m = Θ(n), as all vertices have constant degree
+except for the source S.
+   The number of sinks that remain after pruning is r = Θ(δN k/q) by Lemma 2.5. The distance
+parameter is b > 41 log k, as ensured by the pruning subroutine, and the number of cut edges is
+f = N.
+
+
+
+
+                                                  14
+    Applying Lemma 2.1, the coding gap is at least:
+                                                                        
+               r                 r rb                 δk δ log k         δ log k
+                    = Ω min       ,        = Ω min       ,          =Ω             .
+           f + 2m/b             f 2m                   q    q               q
+
+
+
+
+3     Upper Bound Network Coding Gap
+
+    Given a graph G = (V, E) with capacities ce for each edge e ∈ E. It will be convenient to define
+cuv = ce for all edge e = (u, v) ∈PE and cuv = 0 otherwise. For any set of vertex U ⊆ V , we
+define the cut capacity C(U, U ) = u∈U,v∈U cuv . Recall that Si = Ri ∪ {si } is the set of terminals
+including source and all sinks for demand i. Then, for any set of vertex U , we define the demand
+crossing U to be                                     X
+                                     D(U, Ū ) :=           di
+                                                          1≤j≤k
+                                                       0<|Sj ∩U |<|Sj |
+
+
+                      C(U,U )
+    Define Ψ = minU D(U,U   )
+                              which generalizes the definition of the sparsest cut. It is straightforward
+to verify that the value of the integral solution to the dual LP in Section B is at most Ψ, since
+the dual objective achieves Ψ under the assignment ye = zi = 1 for all edges e and demands i
+crossing U , and ye = zi = 0 otherwise. Furthermore, we show that Ψ is an upper bound on the
+network coding throughput.
+
+Lemma 3.1. The multi-source multicast network coding throughput is at most Ψ.
+
+                                                  C(U,U )
+Proof. Let U be the vertex set such that Ψ = minU D(U,U )
+                                                          . Suppose there are ℓ edges crossing
+U and U , denoted by e1 , . . . , eℓ . Recall the definition in Section A, each edge is splitted into two
+directed edge and Γ(⃗e) represent the alphabet on edge ⃗e. Let X⃗e ∈ Γ(⃗e) be the symbol transmitted
+on edge ⃗e. Let
+                                          Xl = (X−→e1 , X−
+                                                         e2 , . . . , X−
+                                                         →             eℓ )
+                                                                       →
+
+be all the symbols transmitted on the edges from U to U , and
+
+                                        Xr = (X←
+                                               e−
+                                                1
+                                                  , X←
+                                                     e−
+                                                      2
+                                                        , . . . , X←
+                                                                   e−
+                                                                    ℓ
+                                                                      )
+
+Suppose there are p terminal sets Sj1 , . . . , Sjp that cross U with source node in U , i.e. sji ∈ U and
+Rji ∩ U ̸= ∅, and q terminal sets Sj1′ , . . . , Sjq′ that cross U with source node in U , i.e. sji′ ∈ U and
+Rji′ ∩ U ̸= ∅. Let mj ∈ Mj be the message of the j-th source. Let
+
+                                        Yl = (mj1 , mj2 , . . . , mjp )
+
+and
+                                        Yr = (mj1′ , mj2′ , . . . , mjq′ )
+
+such that Yl and Yr together contains all the messages relevant to this cut (U, U ), and we define Z
+
+
+                                                       15
+to be all the other messages. We want to show that
+
+                              H(Xl ) ≥ H(Yl ) and H(Xr ) ≥ H(Yr ),
+
+then the lemma follows by definition of network coding throughput. To see this, suppose by con-
+tradiction that the throughput exceeds Ψ: there exists scale constant c∗ such that H(Yl ∪ Yr ) >
+D(U, U ) · Ψ · c∗ , we have H(Xl ∪ Xr ) > D(U, U ) · Ψ · c∗ = C(U, U ) · c∗ , which implies that there
+exists an edge e such that H(e) > ce · c∗ , contradicts to the capacity constraint.
+    We claim that the conditional entropy H(Yl | Xl , Yr , Z) = 0 and H(Yr | Xr , Yl , Z) = 0. Without
+loss of generality we prove the first one, we need to show that each message mji is determined
+by Xl , Yr and Z, this is indeed as in the time-expanded graph which is acyclic, the output can
+be computed once the input is fixed, and once we truncate all the vertices and edges in U which
+are prior to Xl , every symbol on all the edges could still be computed given Xl , Yr and Z. By
+assumption, there exists r ∈ Rji such that r ∈ U , hence mji can be computed for all i, which
+implies our claim.
+   Furthermore, Yl , Yr and Z are mutually independent. Therefore by the claim we derived and
+applying chain rule, I(Yl ; Xl | Yr , Z) = H(Yl | Yr , Z) − H(Yl | Xl , Yr , Z) = H(Yl ) − 0 = H(Yl ).
+On the other hand, I(Yl ; Xl | Yr , Z) ≤ H(Xl | Yr , Z) ≤ H(Xl ). Combining together, we have
+H(Xl ) ≥ H(Yl ), and same holds for H(Xr ) ≥ H(Yr ).
+
+   Therefore, the proof of Theorem 1.2 is complete once we have the following lemma, which gives
+an upper bound on the LP integrality gap. The rest of this section is to prove Lemma 3.2.
+Lemma 3.2. The ratio of the generalized sparsity Ψ over the multi Steiner tree number is at most
+O(log n).
+
+   The proof builds upon the results from oblivious routing [Räc08] using the tree-based flow-
+sparsifiers. We first introduce the preliminaries. Then we use the tree-based flow-sparsifiers to
+lower bound the Steiner tree packing number by a O(log n)-factor of relaxation of the generalized
+sparsity Ψ.
+    The generalized    tree packing of a graph G consists of a collection of trees Ti and distribution
+λi (i.e.                such that each tree spans the vertex set V but not necessarily a subgraph
+         P
+             λ
+            i i  =  1)
+of G, along with an embedding of the tree Ti in the graph, i.e. a mapping Pi that maps each
+edge (x, y) ∈ Ti to a path in G, which denoted by Pi (x, y). For each (x, y) ∈ Ti , removing (x, y)
+separates Ti into two parts (U, V \ U ). We define Ci (x, y) := C(U, U ) as the size of the cut, and
+define Di (x, y) := D(U, U ) which captures the weighted demand that crosses the edge (x, y). Now
+we are ready to define the proposition that is required for the tree packing.
+Definition 3.3 (Cut-Tree Packing). It is called an α-approximate cut-tree packing, if a collection
+of trees Ti with a distribution λi satisfies the following inequality for every edge (u, v) ∈ E,
+
+                                     1X               X
+                             cuv ≥      λi                              Ci (x, y) .
+                                     α
+                                       i     (x,y)∈Ti :(u,v)∈Pi (x,y)
+
+i.e. the capacity of (u, v) is at least 1/α fraction of the sum of weighted cuts associated with the
+paths using (u, v).
+
+                                                    16
+    Given the terminal set Sj := {sj } ∪ Rj , we want to define a multi Steiner tree packing solution
+based on each tree Ti we constructed for the cut-tree packing. For each tree Ti , there exists a
+minimal subtree of Ti that connects Sj . The embedding Pi of this subtree corresponds to a graph
+Gij which is a subgraph of G. After eliminating isolated vertices, Gij is a connected subgraph of G.
+Let Tij be an arbitrary spanning tree of Gij . We know that Tij spans Sj . We add Tij to the multi
+Steiner tree packing with weight λi .
+    This gives a multi Steiner tree packing solution that serves one unit demand, as the summation
+of λi equals one. Denote by conguv ∈ R≥0 the congestion of edge (u, v), which is the total amount of
+capacity of edge (u, v) used by the packing solution over the capacity of edge (u, v). The congestion
+ϕ of the packing solution is the maximum congestion over all edges. The multi Steiner tree number
+is then τ = ϕ1 as it is the maximum fraction demand that could be satisfied while preserving the
+capacity constraint. For our multi Steiner tree packing solution, the congestion on edge u, v is
+                                           P         P
+                                              i λi    (x,y)∈Ti :(u,v)∈Pi (x,y) Di (x, y)
+                          conguv ≤                                                         .
+                                                                cuv
+
+    Suppose we use α-approximate cut-tree packing for the solution, we can upper bound the con-
+gestion,
+                         P          P
+                            i λi    (x,y)∈Ti :(u,v)∈Pi (x,y) Di (x, y)                Di (x, y)
+            conguv ≤ α · P          P                                        ≤ α max            ≤ α/Ψ .
+                             i λi       (x,y)∈Ti :(u,v)∈Pi (x,y) Ci (x, y)      i,x,y Ci (x, y)
+
+
+    Therefore, the multi Steiner tree number τ = ϕ1 ≥ α1 · Ψ. Lemma 3.2 is thereby a consequence
+of the following lemma.
+
+Lemma 3.4 ([Räc08, WS11]). There exists an O(log n)-approximate cut-tree packing.
+
+    As discussed earlier, combining Lemma 3.1 and Lemma 3.2 yields Theorem 1.2.
+
+
+4     Locally Decodable Codes in Network Coding
+
+   In this section, we briefly discuss the limitations encountered when applying existing LDCs to
+network coding. We then introduce a novel variant of LDCs with a relaxed fault-tolerence property,
+specifically tailored to construct network coding gaps, so that we believe this variant is easier to
+construct than standard LDCs while still applicable to network coding.
+
+
+4.1   Limitations of Existing LDC Constructions
+
+    LDCs serve as the primary technical tool in this work and have been extensively studied for
+decades. Despite significant research, the fundamental trade-off between rate and query complexity
+remains a major open problem. For constant     query complexity q ≥ 3, the best known lower bound
+on the codeword length is Ω k 1+2/(q−2) [BHKL24]. In contrast, known upper bounds do not even
+                                         
+
+reach the quasi-polynomial regime when q = O((log k)c ) for constant c < 1. Establishing an upper
+
+
+                                                           17
+bound in this regime would directly imply network coding gaps of (log n)Ω(1) via our main lemma,
+highlighting the particular interest of the logarithmic-query regime.
+    The best known constructions of LDCs in the polylogarithmic-query regime are Matching Vector
+(MV) codes and Reed–Muller (RM) codes; their parameters are summarized in Table 1, based
+on [Yek12]. These codes satisfy perfect smoothness and tolerate a constant fraction of errors;
+that is, both δ and ϵ are constants. From the table, the rate of Reed–Muller (RM) codes lies in
+the quasipolynomial regime; however, this is achieved only when the query complexity is super-
+logarithmic, which is not the desired query regime. Both MV and RM codes have been studied for
+decades and improving them in either rate or query regime could be very challenging.
+
+      Code Type                q                                             N
+                                                             
+                                                                 log log q
+                                                                                                            
+                                                              O log q                    1−Ω log log q
+       MV code             O(log k)            exp exp (log k)               (log log k)       log q
+                                                                                                         log q
+
+ RM or MV codes        O(log k log log k)                                k O(log log k)
+                                                                               1
+       RM code          (log k)t , t > 1                                 k 1+ t−1 +o(1)
+
+                 Table 1: Comparison of parameters for known LDC constructions.
+
+
+4.2    Robust Distance LDC
+
+    In this section, we propose a novel variant of LDCs that is tailored for applications in network
+coding gaps. Recall from Section 2.1 that the algorithm samples each sink with probability (log k)/k,
+and consequently discards it with high probability. As a result, the full fault tolerance offered by
+traditional LDCs is not fully leveraged. This observation motivates us to define a new variant with
+relaxed fault tolerance requirements, which we believe is easier to construct than standard LDCs.
+    We begin with some preliminaries. A q-uniform hypergraph G = (V, E) is a hypergraph in which
+every edge e ∈ E has rank |e| = q. A hypergraph matching in G is a subset of edges H ′ ⊆ E such
+that no two edges overlap; that is, for all e, e′ ∈ H ′ with e ̸= e′ , we have e ∩ e′ = ∅. We introduce
+the notion of matching decodability, a relaxation of local decodability.
+Definition 4.1. A code C : Fk → FN is called (q, δ)-matching decodable if there exist q-uniform hy-
+pergraph matchings H1 , . . . , Hk on vertices indexed by [N ], each containing at least δN hyperedges,
+such that for every D ∈ Hi , there exists a decoding function fi,D : Fq → F satisfying
+
+                                   ∀x ∈ Fk ,     xi = fi,D (C(x)v | v ∈ D).
+
+i.e., the i-th bit of the message can be decoded using the codewords whose indices lie in D.
+
+    This is a variant of the notion known as normally decodable, which has been used in proving
+LDC lower bounds [Yek12].
+    Let H = ki=1 Hi . For any two hyperedges e, e′ ∈ H, define the distance distH (e, e′ ) as the length
+             S
+of the shortest path e = e1 , e2 , . . . , eℓ = e′ in H connecting e to e′ , where consecutive hyperedges in
+
+                                                        18
+the path must intersect (i.e., ∀ 1 ≤ i < ℓ, ei ∩ ei+1 ̸= ∅).
+Definition 4.2 (Robust Distance LDC). A (q, δ)-matching decodable code is said to be (q, δ, d)-
+robust distance locally decodable if for each i, |Hi | ≥ δN , and the following distance condition
+holds:
+                         ∀ 1 ≤ i ≤ k, ∀ e, e′ ∈ Hi , e ̸= e′ , distH (e, e′ ) ≥ d.
+
+    The advantage of this relaxed variant is highlighted by Proposition 4.3: the required matching
+size δN can be significantly smaller—specifically, δ = Ω((log k)/k) suffices for our purposes, com-
+pared to the stricter requirement δ = ω(1/ log k) for traditional LDCs to be useful for our network
+coding instances. On the other hand, we require the distance d to be at least Ω((log k)ϵ ) for some
+constant ϵ > 0, to achieve a polylogarithmic coding gap. It is worth noting that, due to purely
+combinatorial limitations, d can be at most O(log k/ log(δk)). Thus, the code has to be sparse to
+obtain a large distance d. In particular, we show in Proposition 4.4 that standard LDCs can be
+transformed into robust distance LDCs using the same sampling technique introduced earlier. This
+demonstrates that robust distance LDCs are a relaxation of standard LDCs.
+Proposition 4.3. If a (q, δ, d)-robust distance locally decodable code C : Fk → FN exists, then the
+multi-source multicast network coding gap is at least Ω(min{δk, d/q}) for a graph of size O(δN k).
+
+   The proofs for both propositions are deferred to Section C, as it closely follows the argument in
+Section 2.1.
+Proposition
+              4.4. Suppose there
+                               exists (q, δ, qδ)-locally decodable code with perfect smoothness, then
+       δ log k      log k
+a q, Θ qk , 2(log q+log log k) -robust distance locally decodable code also exists.
+
+
+References
+     [AC04] Amit Agarwal and Moses Charikar. On the advantage of network coding for improving
+            network throughput. In Information Theory Workshop, pages 247–249. IEEE, 2004. 1
+  [ACLY00] Rudolf Ahlswede, Ning Cai, S-YR Li, and Raymond W Yeung. Network information
+           flow. IEEE Transactions on information theory, 46(4):1204–1216, 2000. 1, 2, 23
+ [AFKL19] Peyman Afshani, Casper Benjamin Freksen, Lior Kamma, and Kasper Green Larsen.
+          Lower bounds for multiplication via network coding. arXiv preprint arXiv:1902.10935,
+          2019. 1, 2
+  [AHJ+ 06] Micah Adler, Nicholas JA Harvey, Kamal Jain, Robert D Kleinberg, and April Rasala
+            Lehman. On the capacity of information networks. In Soda, volume 6, pages 241–250,
+            2006. 1
+     [AR98] Yonatan Aumann and Yuval Rabani. An o(log k) approximate min-cut max-flow
+            theorem and approximation algorithm. SIAM Journal on Computing, 27(1):291–301,
+            1998. 2
+   [BDL13] Abhishek Bhowmick, Zeev Dvir, and Shachar Lovett. New bounds for matching vec-
+           tor families. In Proceedings of the forty-fifth annual ACM symposium on Theory of
+           computing, pages 823–832, 2013. 2
+
+                                                   19
+  [BGS17] Mark Braverman, Sumegha Garg, and Ariel Schvartzman. Coding in undirected graphs
+          is either very helpful or not helpful at all. In 8th Innovations in Theoretical Computer
+          Science Conference (ITCS 2017), 2017. 1, 3
+
+[BHKL24] Arpon Basu, Jun-Ting Hsieh, Pravesh K Kothari, and Andrew D Lin. Improved lower
+         bounds for all odd-query locally decodable codes. arXiv preprint arXiv:2411.14361,
+         2024. 17
+
+  [BKL11] Anna Blasiak, Robert Kleinberg, and Eyal Lubetzky. Lexicographic products and
+          the power of non-linear network coding. In 2011 IEEE 52nd Annual Symposium on
+          Foundations of Computer Science, pages 609–618. IEEE, 2011. 3
+
+[BLMR98] John W Byers, Michael Luby, Michael Mitzenmacher, and Ashutosh Rege. A digital
+         fountain approach to reliable distribution of bulk data. In Proceedings of the ACM
+         SIGCOMM, pages 56–67, 1998. 3
+
+ [BTV17] Alexander Barg, Itzhak Tamo, and Serge Vlăduţ. Locally recoverable codes on algebraic
+         curves. IEEE Transactions on Information Theory, 63(8):4928–4939, 2017. 3
+
+[CCMG18] Alejandro Cohen, Asaf Cohen, Muriel Medard, and Omer Gurewitz. Secure multi-
+         source multicast. IEEE Transactions on Communications, 67(1):708–723, 2018. 2
+
+   [CM15] Viveck R Cadambe and Arya Mazumdar. Bounds on the size of locally recoverable
+          codes. IEEE transactions on information theory, 61(11):5787–5794, 2015. 3
+
+[CMST21] Han Cai, Ying Miao, Moshe Schwartz, and Xiaohu Tang. A construction of maximally
+         recoverable codes with order-optimal field size. IEEE Transactions on Information
+         Theory, 68(1):204–212, 2021. 3
+
+  [Cov99] Thomas M Cover. Elements of information theory. John Wiley & Sons, 1999. 2
+
+ [DGY11] Zeev Dvir, Parikshit Gopalan, and Sergey Yekhanin. Matching vector codes. SIAM
+         Journal on Computing, 40(4):1154–1178, 2011. 2, 6, 27
+
+   [DH13] Zeev Dvir and Guangda Hu. Matching-vector families and ldcs over large modulo. In
+          International Workshop on Approximation Algorithms for Combinatorial Optimization,
+          pages 513–526. Springer, 2013. 2
+
+   [Efr09] Klim Efremenko. 3-query locally decodable codes of subexponential length. In Proceed-
+           ings of the forty-first annual ACM symposium on Theory of computing, pages 39–44,
+           2009. 2, 5, 26
+
+ [FHLS19] Alireza Farhadi, MohammadTaghi Hajiaghayi, Kasper Green Larsen, and Elaine Shi.
+          Lower bounds for external memory integer sorting via network coding. In Proceedings of
+          the 51st Annual ACM SIGACT Symposium on Theory of Computing, pages 997–1008,
+          2019. 1
+
+  [FS+ 07] Christina Fragouli, Emina Soljanin, et al. Network coding fundamentals. Foundations
+           and Trends® in Networking, 2(1):1–133, 2007. 1
+
+
+
+                                               20
+  [GXY19] Venkatesan Guruswami, Chaoping Xing, and Chen Yuan. How long can optimal locally
+          repairable codes be? IEEE Transactions on Information Theory, 65(6):3662–3670,
+          2019. 3
+   [HKL04] Nicholas J Harvey, Robert D Kleinberg, and April Rasala Lehman. Comparing network
+           coding with multicommodity flow for the k-pairs communication problem. 2004. 1
+   [HKL06] Nicholas JA Harvey, Robert Kleinberg, and April Rasala Lehman. On the capacity
+           of information networks. IEEE Transactions on Information Theory, 52(6):2345–2364,
+           2006. 1, 2, 23
+    [HL08] Tracey Ho and Desmond Lun. Network Coding: An Introduction. Cambridge University
+           Press, Cambridge, UK, 2008. 1
+ [HMK+ 06] Tracey Ho, Muriel Médard, Ralf Koetter, David R Karger, Michelle Effros, Jun Shi, and
+           Ben Leong. A random linear network coding approach to multicast. IEEE Transactions
+           on information theory, 52(10):4413–4430, 2006. 1
+   [HPY22] Yael Hitron, Merav Parter, and Eylon Yogev. Broadcast congest algorithms against
+           eavesdroppers. In 36th International Symposium on Distributed Computing, DISC
+           2022, page 27. Schloss Dagstuhl-Leibniz-Zentrum fur Informatik GmbH, Dagstuhl Pub-
+           lishing, 2022. 3
+ [HSX+ 12] Cheng Huang, Huseyin Simitci, Yikang Xu, Aaron Ogus, Brad Calder, Parikshit
+           Gopalan, Jin Li, and Sergey Yekhanin. Erasure coding in windows azure storage. In
+           2012 USENIX Annual Technical Conference (USENIX ATC 12), pages 15–26, 2012. 3
+  [HWZ20] Bernhard Haeupler, David Wajc, and Goran Zuzic. Network coding gaps for completion
+          times of multiple unicasts. In 2020 IEEE 61st Annual Symposium on Foundations of
+          Computer Science (FOCS), pages 494–505. IEEE, 2020. 1, 3
+  [JSC+ 05] Sidharth Jaggi, Peter Sanders, Philip A Chou, Michelle Effros, Sebastian Egner, Kamal
+            Jain, and Ludo MGM Tolhuizen. Polynomial time algorithms for multicast network
+            code construction. IEEE transactions on information theory, 51(6):1973–1982, 2005. 1
+   [JVY06] Kamal Jain, Vijay V Vazirani, and Gideon Yuval. On the capacity of multiple unicast
+           sessions in undirected graphs. IEEE Transactions on Information Theory, 52(6):2805–
+           2809, 2006. 1
+    [KM03] Ralf Koetter and Muriel Médard. An algebraic approach to network coding.
+           IEEE/ACM transactions on networking, 11(5):782–795, 2003. 2
+    [KS06] Gerhard Kramer and Serap A Savari. Edge-cut bounds on network coding rates. Jour-
+           nal of Network and Systems Management, 14:49–67, 2006. 1
+ [KSCM23] Saurabh Kadekodi, Shashwat Silas, David Clausen, and Arif Merchant. Practical design
+          considerations for wide locally recoverable codes (lrcs). ACM Transactions on Storage,
+          19(4):1–26, 2023. 3
+[LKEGC11] Sung Hoon Lim, Young-Han Kim, Abbas El Gamal, and Sae-Young Chung. Noisy
+          network coding. IEEE Transactions on Information Theory, 57(5):3132–3152, 2011. 2
+
+                                               21
+ [LL04a] Zongpeng Li and Baochun Li. Network coding in undirected networks. CISS, 2004. 1
+
+ [LL04b] Zongpeng Li and Baochun Li. Network coding: The case of multiple unicast sessions.
+         In Allerton Conference on Communications, volume 16. Citeseer, 2004. 1
+
+[LLR95] Nathan Linial, Eran London, and Yuri Rabinovich. The geometry of graphs and some
+        of its algorithmic applications. Combinatorica, 15:215–245, 1995. 2
+
+ [LM09] Michael Langberg and Muriel Médard. On the multiple unicast network coding, con-
+        jecture. In 2009 47th Annual Allerton Conference on Communication, Control, and
+        Computing (Allerton), pages 222–227. IEEE, 2009. 1, 2
+
+ [Lov14] Shachar Lovett. Linear codes cannot approximate the network capacity within any
+         constant factor. In Electronic Colloquium on Computational Complexity (ECCC), vol-
+         ume 21, page 141, 2014. 3
+
+ [Lub02] Michael Luby. Lt codes. Proceedings of the 43rd Annual IEEE Symposium on Foun-
+         dations of Computer Science, pages 271–280, 2002. 3
+
+[LYC03] S-YR Li, Raymond W Yeung, and Ning Cai. Linear network coding. IEEE transactions
+        on information theory, 49(2):371–381, 2003. 1
+
+ [Mic19] Giacomo Micheli. Constructions of locally recoverable codes which are optimal. IEEE
+         transactions on information theory, 66(1):167–175, 2019. 3
+
+[MPK19] Umberto Martínez-Peñas and Frank R Kschischang. Universal and dynamic locally
+        repairable codes with maximal recoverability via sum-rank codes. IEEE Transactions
+        on Information Theory, 65(12):7790–7805, 2019. 3
+
+  [OS81] Haruko Okamura and Paul D Seymour. Multicommodity flows in planar graphs. Jour-
+         nal of Combinatorial Theory, Series B, 31(1):75–81, 1981. 1
+
+ [Par23] Merav Parter. Secure computation meets distributed universal optimality. In 2023
+         IEEE 64th Annual Symposium on Foundations of Computer Science (FOCS), pages
+         2336–2368. IEEE, 2023. 3
+
+ [PD14] Dimitris S Papailiopoulos and Alexandros G Dimakis. Locally repairable codes. IEEE
+        Transactions on Information Theory, 60(10):5843–5855, 2014. 3
+
+ [Räc08] Harald Räcke. Optimal hierarchical decompositions for congestion minimization in net-
+         works. In Proceedings of the fortieth annual ACM symposium on Theory of computing,
+         pages 255–264, 2008. 2, 6, 16, 17
+
+ [Sho06] Amin Shokrollahi. Raptor codes.         IEEE Transactions on Information Theory,
+         52(6):2551–2567, 2006. 3
+
+ [Sho09] Victor Shoup. A computational introduction to number theory and algebra. Cambridge
+         university press, 2009. 28
+
+  [TB14] Itzhak Tamo and Alexander Barg. A family of optimal locally recoverable codes. IEEE
+         Transactions on Information Theory, 60(8):4661–4676, 2014. 3
+
+                                            22
+    [TGC16] Satyajit Thakor, Alex Grant, and Terence Chan. Cut-set bounds on network informa-
+            tion flow. IEEE Transactions on Information Theory, 62(4):1850–1865, 2016. 2
+
+     [Tre04] Luca Trevisan. Some applications of coding theory in computational complexity. arXiv
+             preprint cs/0409044, 2004. 5
+
+     [WS11] David P Williamson and David B Shmoys. The design of approximation algorithms.
+            Cambridge university press, 2011. 17
+
+ [XLWH14] Tang Xiahou, Zongpeng Li, Chuan Wu, and Jiaqing Huang. A geometric perspec-
+          tive to multiple-unicast network coding. IEEE Transactions on Information Theory,
+          60(5):2884–2895, 2014. 1
+
+     [Yek12] Sergey Yekhanin. Locally decodable codes. Foundations and Trends® in Theoretical
+             Computer Science, 6(3):139–255, 2012. 2, 6, 18
+
+  [YLCZ06] R. W. Yeung, S.-Y. Li, N. Cai, and Z. Zhang. Network Coding Theory. Foundations
+           and Trends® in Communications and Information Theory (Now Publishers). Now
+           Publishers, Boston, MA, USA, 2006. Monograph. 1
+
+ [YLLW17] Xunrui Yin, Zongpeng Li, Yaduo Liu, and Xin Wang. A reduction approach to the
+          multiple-unicast conjecture in network coding. IEEE Transactions on Information
+          Theory, 64(6):4530–4539, 2017. 1
+
+
+
+A     Definition of Network Coding via Time-Expanded Graph
+
+    In this section, we define the general network coding solution via the time-expanded graph
+construction, following prior work [ACLY00, HKL06]. For each undirected edge e ∈ E, we treat
+it as a pair of directed edges, ⃗e and e⃗ (i.e., one in each direction). We will define their respective
+capacities shortly, ensuring that their sum equals the original capacity of e. From this point forward,
+we treat all edges as directed.
+
+Definition A.1 (Time-Expanded Graph G∗ ). Given a directed graph G = (V, E), the time-
+expanded graph G∗ = (V ∗ , E ∗ ) is a directed acyclic graph constructed as follows:
+
+    • The vertex set is V ∗ = V × Z.
+
+    • For each edge e = (u, v) ∈ E and each time step t ∈ Z, add a directed edge et = (u(t−1) , v (t) )
+      to E ∗ .
+
+    • For each vertex v ∈ V and each t ∈ Z, add a memory edge (v (t−1) , v (t) ) to E ∗ .
+
+    We also model sources and sinks as special edges. For each source si , we introduce two auxiliary
+                                                            (t)
+vertices σi and σi′ , and add edges (σi , σi′ ) and (σi′ , si ) for all t ∈ Z, each with infinite capacity.
+Similarly, for each sink r ∈ Ri , we add two auxiliary vertices γr,i and γr,i  ′ , and edges (γ , γ ′ ) and
+                                                                                               r,i r,i
+(r(t) , γr,i ) for all t ∈ Z, also with infinite capacity.
+
+
+                                                    23
+    The alphabet on the edges (σi , σi′ ) and (γr,i , γr,i
+                                                       ′ ) is M . We say that the network coding solution
+                                                               i
+satisfies correctness if, for each sink r ∈ Ri , the symbol transmitted on (γr,i , γr,i
+                                                                                    ′ ), denoted X          ′ ),
+                                                                                                    (γr,i ,γr,i
+is equal to the message mi sent by the corresponding source, i.e., X(γr,i ,γr,i ′ ) = X(σ ,σ ′ ) = mi .
+                                                                                           i i
+
+    We now define the capacity constraints in the time-expanded graph. All memory         edges have
+infinite capacity. For each directed edge ⃗e, let the overall alphabet be Γ(⃗e) = t∈Z Γ(⃗e(t) ), and
+                                                                                   Q
+let X⃗e ∈ Γ(⃗e) denote the collection of symbols transmitted along all time steps of ⃗e. The network
+                                                               ⃗ ≤ ce , where by H(⃗e) we denote the
+coding solution respects the capacity constraint if: H(⃗e) + H(e)
+entropy of the symbol X⃗e sended along ⃗e.
+
+
+B     Linear Programs for Multi Steiner Tree Packing
+
+   The primal LP is as follows. Recall that for each demand i, the terminal set is Si = {si } ∪ Ri .
+Each tree T in the Steiner tree packing for the i-th demand must span all nodes in Si . The combined
+packing across all demands must respect the edge capacity constraints.
+
+
+
+                    maximize τ
+                                      X
+                    subject to                    xi,T ≥ τ · di                ∀1 ≤ i ≤ k
+                                  T :Si ⊆V (T )
+                                  X
+                                         xi,T ≤ ce                             ∀e ∈ E
+                                   i,T
+                                  e∈T
+                                  xi,T ≥ 0                                     ∀ i, T
+
+    The dual of this linear program is as follows:
+
+                                  P
+                                   e∈E ce ye
+                     minimize      P
+                                     di zi
+                                  Xi
+                    subject to      ye ≥ zi                        ∀ i, T, s.t. Si ⊆ V (T )
+                                   e∈T
+                                  zi ≥ 0                           ∀1 ≤ i ≤ k
+                                  ye ≥ 0                           ∀e ∈ E
+
+   In Section 3, we mentioned that the generalized sparsity Ψ defined there serves as an upper
+bound on the integer program of the dual under the integral constraints zi , ye ∈ {0, 1} for all i ∈ [k]
+and e ∈ E. In fact, one can verify that these two quantities differ by at most a constant factor of
+two, although this observation is not used in our proof.
+
+
+
+
+                                                           24
+C     Missing Proofs of Section 4.2
+
+C.1    Proof of Proposition 4.3
+
+    The gap instance (G, S, F ) is generated via the Algorithm 3, where G = (A, B, C, E) is a
+tripartite graph. All demands and edge capacities are units.
+
+Algorithm 3 Gap Instance via Robust Distance LDCs
+ 1: Set A ← {S} and si ← S for all i ∈ [k].
+ 2: Set B ← {wi }N i=1 .
+ 3: Set F ← {(S, wi ) | i ∈ [N ]} and initialize E ← F .
+ 4: Initialize Ri ← ∅ for all i ∈ [k].
+ 5: for each i = 1, 2, . . . , k do
+ 6:     for each D ∈ Hi do
+ 7:         Add new vertex v to Ri .
+ 8:         Add edges (wj , v) to E for each j ∈ D.
+ 9:     end for
+10: end for
+               Sk
+11: Set C ← i=1 Ri .
+
+
+
+    The proof of network coding throughput is at least a = 1 is the same as Lemma 2.4.
+    For the other parameters in Lemma 2.1 for the gap instance, the size of the third layer dominates
+the number of vertices, and hence n = Θ(δN k) by the robust distance LDC, as we assume δ =
+Ω(1/k). The number of edges m = Θ(nq), and the number of sinks r = Θ(n). The distance b is at
+least Ω(d), as for any i ∈ [k] and any pair of decoding hyperedges in Hi , their distance is at least d
+by Definition 4.2, and any path from a vertex u ∈ Ri to another v ∈ Ri in G \ F in the gap instance
+maps to a path in the hypergraph Hi , such that the consecutive hyperedges in the path intersect.
+Therefore, the distance parameter is guaranteed by the robust distance LDC. The number of cut
+edges is f = N . Upon Lemma 2.1, the coding gap is at least
+                                                    
+                          a·r                 r    r
+                                  = Ω min       ,         = Ω (min {δk, d/q}) .
+                      f + 2m/b                f 2m/b
+
+
+
+
+C.2    Proof of Proposition 4.4
+
+    The proof closely follows the argument in Section 2.1, which we now reinterpret its implication
+in the language of coding theory. We first construct the tripartite graph as in Algorithm 1, with the
+only modification lying in the pruning subroutine: as we no longer assume q = o(log k), we modify
+the pruning condition for a sink vertex at line 16 in Algorithm 1 to
+                                                           log k
+                                  distG\F (u, v) ≤                     .
+                                                     log q + log log k
+
+
+                                                     25
+With this new condition, the arguments in Lemma 2.3 continue to hold under the updated param-
+eters.
+    For each sink v ∈ Ri , let D denote the coordinates of the codeword corresponding to the
+neighbors of v in the second layer B. We add a hyperedge containing the coordinates in D to the
+hypergraph matching Hi . We now show the third parameter of the robust distance LDC holds. The
+distance between any two hyperedges in H is at least half the distance between the corresponding
+sinks u and v in the tripartite graph G \ F . Therefore, for any i ∈ [k] and e, e′ ∈ Hi , the distance
+                                                log k
+of them in H is then lower bounded by 12 · log q+log  log k .
+    The remaining is to lower bound the size of each matching Hi . At sampling subroutine, in total
+at least δN/q hyperedges are generated and each is sampled to keep with probability (log k)/k.
+The pruning subroutine then delete subconstant fraction of the matching. Therefore, the size
+|Hi | = Ω( qδN  log k
+             log log k ), implies the second parameter of the robust distance LDC code.
+
+
+
+D      Re-Analysis of Matching Vector Codes
+
+    The main purpose of this section is to prove Lemma 1.6.
+
+Definition D.1 (Matching Vector Family). Let S ⊆ Zm \ {0}. The families of vertors U = {ui }ni=1
+and V = {vi }ni=1 of vectors in Zhm is said to be S-matching family if the following conditions hold:
+
+    1. ⟨ui , vi ⟩ = 0 for every i ∈ [n].
+
+    2. ⟨ui , vj ⟩ ∈ S for every i ̸= j.
+
+    We will show how to use matching vector families to construct LDCs. We start with some
+preliminaries.
+
+Fact D.2 ([Efr09]). For every odd m there exists t ≤ m such that m | 2t − 1. For the finite field
+F2t = GF (2t ), there exists g ∈ F2t that generates a subgroup of size m, i.e. g m = 1 and g i ̸= 1 for
+1 ≤ i < m.
+
+Definition D.3. Let g be the generator of F. A polynomial P ∈ F[x] is called an S-decoding
+polynomial if the following conditions hold:
+
+    • ∀i ∈ S, P (g i ) = 0,
+
+    • P (g 0 ) = P (1) = 1.
+
+Fact D.4 ([Efr09]). For any S such that 0 ̸∈ S there exists an S-decoding polynomial P of degree
+|S|.
+
+Lemma D.5 ([Efr09]). Let U, V be a family of S-matching vectors in Zhm , |U| = |V| = k, |S| = s.
+                                                                            h
+For 1 ≤ t < m such that m | 2t −1, there exists a linear code C : Fk2t → Fm
+                                                                          2t that is (s+1, δ, (s+1)δ)-
+locally decodable for all δ, and is correct on uncorrupted codewords.
+
+Proof. We specify the encoding and decoding procedures. We simply denote the field F2t as F.
+
+                                                  26
+                                                                                                                            h
+   • Encoding: Let ei ∈ Fk be the i-th P unit vector.
+                                                 P We shall define C(ei ) : F → F
+                                                                               k    m for all i,
+
+     and take the encoding function C( xi ei ) := xi C(ei ) where the addition and multiplication
+     are coordinate-wise. The encoding of ei is defined by a complete evaluation of a function
+     fi : (Zm )h → F, which is defined as
+
+                                    fi (z) = g ⟨ui ,z⟩ , and Ci (ei ) = (fi (z))z∈(Zm )h .
+
+   • Decoding: The input to the decoder is a (corrupted) codeword y and an index i. Write the
+     S-decoding polynomial in Fact D.4 as P (z) = a0 + a1 z + a2 z 2 + . . . + as z s . The decoder
+     performs the following:
+
+        1. Pick w ∈ Zhm uniformly at random.
+        2. Query the codeword at y(w), y(w + vi ), y(w + 2vi ), . . . , y(w + s · vi ).
+        3. Output g −⟨ui ,w⟩ (a0 y(w) + a1 y(w + vi ) + a2 y(w + 2vi ) + . . . + as y(w + s · vi )).
+
+We show that the code is correct on uncorrupted codewords and smoothness, implying the lemma
+by Fact 1.4. The smoothness is due to the uniform random of the point w.
+   To show correctness on uncorrupted codewords, for any i and w,
+                                                                                             s
+                                                                                             X          k
+                                                                                                        X
+      a0 y(w) + a1 y(w + vi ) + a2 y(w + 2vi ) + . . . + as y(w + s · vi ) =                       aℓ         xj g ⟨uj ,w+ℓ·vi ⟩ .
+                                                                                             ℓ=0        j=1
+
+Rearranging terms, we have
+                          s X
+                          X k                              k
+                                                           X                    s
+                                                                                X                   ℓ
+                                    xj g ⟨uj ,w+ℓ·vi ⟩ =         g ⟨uj ,w⟩ xj         aℓ g ⟨uj ,vi ⟩
+                          ℓ=0 j=1                          j=1                  ℓ=0
+                                                           k
+                                                           X                               
+                                                     =           g ⟨uj ,w⟩ xj P g ⟨uj ,vi ⟩
+                                                           j=1
+
+                                                     = g ⟨ui ,w⟩ xi .
+
+Definition D.6. Let m = ti=1 pi be a product of distinct primes. The canonical set in Zm is the
+                             Q
+set of all non-zero s such that for every i ∈ [t], s ∈ {0, 1} mod pi .
+                                          t
+Lemma D.7 ([DGY11]). Let m =                    pi be a product of distinct primes. Let w be a positive integer.
+                                          Y
+
+                                          i=1
+Let {ei }, i ∈ [t] be integers such that for all i, we have pei i > w1/t . Let d = max pei i and h ≥ w be
+                                                                                                              i
+                                                                                 h
+                                                                                  
+arbitrary. Let S be the canonical set; then there exists an                      w -sized family of S-matching vectors
+                      h
+                          
+in Znm , where n = ≤d .
+
+Proof of Lemma 1.6. The proof follows by setting appropriate parameters in Lemma D.7 and ap-
+plying Lemma D.5.
+
+
+
+                                                            27
+  1. By a strengthened version of Bertrand’s postulate (Theorem 5.8 in [Sho09]), there exists a
+     constant c such that the interval [(c/2)t ln t, ct ln t] contains at least t distinct odd primes
+     p1 , . . . , pt .
+
+  2. Let m = i∈[t] pi . This implies m = tΘ(t) .
+                     Q
+
+  3. The size of canonical set is s = |S| = 2t − 1.
+
+  4. Define b as the smallest positive integer such that m | 2b − 1. Then b ≤ m − 1.
+                                                                                          
+                                                                                   t log k
+  5. Assume w is a multiple of t, and set k = ww/t . Then it follows that w = Θ log   log k .
+
+  6. Let d = maxi pei i = O(w1/t · t ln t).
+
+  7. Set h = c′ · w1+1/t , where c′ is a sufficiently large constant to ensure h ≥ d.
+
+  8. Observe that                                w
+                                               h   h
+                                                 ≥     ≥ k.
+                                               w   w
+
+  9. Also, note that
+                                                         d
+                                                  h        eh
+                                                      ≤d·      .
+                                                  ≤d        d
+
+ 10. Then the total code length is
+               h                                                                         
+      N = m(≤d) ≤ exp exp t ln t · w1/t ln w ≤ exp exp O (log k)1/t (log log k)1−1/t · t ln t .
+
+
+    Finally, the assumption in (5) k = ww/t can be made without loss of generality. If k does not
+exactly have this form, we can pad the message with zeros to obtain a message of length k ′ that
+satisfies this structure. This padding incurs at most a quadratic blowup, which does not affect the
+asymptotic bounds.
+
+
+
+
+                                                     28
+

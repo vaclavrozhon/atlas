@@ -1,0 +1,1976 @@
+                                                           Santa Claus meets Makespan and Matroids:
+                                                                  Algorithms and Reductions∗
+                                              Étienne Bamas†           Alexander Lindermayr‡             Nicole Megow‡          Lars Rohwedder§
+                                                                                         Jens Schlöter‡
+arXiv:2307.08453v1 [cs.DS] 17 Jul 2023
+
+
+
+
+                                                                                            Abstract
+                                                   In this paper we study the relation of two fundamental problems in scheduling and fair allo-
+                                               cation: makespan minimization on unrelated parallel machines and max-min fair allocation, also
+                                               known as the Santa Claus problem. For both of these problems the best approximation factor
+                                               is a notorious open question; more precisely, whether there is a better-than-2 approximation for
+                                               the former problem and whether there is a constant approximation for the latter.
+                                                   While the two problems are intuitively related and history has shown that techniques can
+                                               often be transferred between them, no formal reductions are known. We first show that an
+                                               affirmative answer to the open question for makespan minimization implies the same for the
+                                               Santa Claus problem by reducing the latter problem to the former. We also prove that for
+                                               problem instances with only two input values both questions are equivalent.
+                                                   We then move to a special case called “restricted assignment”, which is well studied in both
+                                               problems. Although our reductions do not maintain the characteristics of this special case, we
+                                               give a reduction in a slight generalization, where the jobs or resources are assigned to multiple
+                                               machines or players subject to a matroid constraint and in addition we have only two values.
+                                               Since for the Santa Claus problem with matroids the two value case is up to constants equivalent
+                                               to the general case, this draws a similar picture as before: equivalence for two values and the
+                                               general case of Santa Claus can only be easier than makespan minimization. To complete the
+                                               picture, we give an algorithm for our new matroid variant of the Santa Claus problem using a
+                                               non-trivial extension of the local search method from restricted assignment. Thereby we unify,
+                                               generalize, and improve several previous results. We believe that this matroid generalization
+                                               may be of independent interest and provide several sample applications.
+                                                   As corollaries, we obtain a polynomial-time (2−1/nǫ)-approximation for two-value makespan
+                                               minimization for every ǫ > 0, improving on the previous (2 − 1/m)-approximation, and a
+                                               polynomial-time (1.75 + ǫ)-approximation for makespan minimization√in the restricted assign-
+                                               ment case with two values, improving the previous best rate of 1 + 2/ 5 + ǫ ≈ 1.8945.
+
+
+
+
+                                            ∗
+                                              We thank Schloss Dagstuhl for hosting the Seminar 23061 on Scheduling in February 2023 where we had fruitful
+                                         discussions on this topic.
+                                            †
+                                              Post-Doctoral Fellow, ETH AI Center, Switzerland. etienne.bamas@inf.ethz.ch. This work was partially sup-
+                                         ported by the Swiss National Science Foundation project entitled “Randomness in Problem Instances and Randomized
+                                         Algorithms” [project number 200021–184656/1].
+                                            ‡
+                                              Faculty of Mathematics and Computer Science, University of Bremen, Germany. {linderal,nmegow,jschloet}@uni-
+                                         bremen.de.
+                                            §
+                                              Maastricht University, Netherlands. l.rohwedder@maastrichtuniversity.nl. Supported by Dutch Research Council
+                                         (NWO) project “The Twilight Zone of Efficiency: Optimality of Quasi-Polynomial Time Algorithms” [grant number
+                                         OCEN.W.21.268].
+1    Introduction
+In this paper we study two prominent topics from scheduling theory: the SantaClaus problem and
+unrelated-machine Makespan minimization; in particular, two notoriously diﬃcult questions about
+polynomial-time approximations that are considered major open problems in the ﬁeld [5, 27, 31, 32].
+     In the SantaClaus problem (also known as max-min fair allocation), we are given a set of m
+players P and a set of n indivisible resources R. Each resource j ∈ R has unrelated values vij ≥ 0
+for each player i ∈ P . The task is to ﬁnd an assignment of resources to players with the objective to
+maximize the minimum total value assigned to any player. This objective is arguably the best from
+the perspective of fairness for each individual player. The name “Santa Claus” is due to Bansal and
+Sviridenko [6] who stated this problem as Santa’s task to distribute gifts to children in a way that
+makes the least happy child maximally happy. From the perspective of approximation algorithms,
+it is entirely plausible that there exists a polynomial-time constant approximation for the problem,
+with the best lower bound assuming P6=NP being only 2 [7]. On the other hand, the state-of-the-
+art is “only” a polynomial-time nǫ -approximation for any constant ǫ > 0, a remarkable result by
+Chrakabarty, Chuzhoy, and Khanna [8], who also give a polylogarithmic approximation in quasi-
+polynomial time using the same approach. Positive evidence towards a constant approximation
+comes from an intensively studied special case, called restricted assignment. Here, the values satisfy
+vij ∈ {0, vj }, or equivalently each resource has one ﬁxed value, but can only be assigned to a
+speciﬁc subset of players. The inapproximability from the general case still holds for restricted
+SantaClaus, even for instances with only two non-zero values, introduced formally later. The
+ﬁrst constant approximations have been achieved ﬁrst by randomized rounding of the so-called
+conﬁguration LP combined with Lovász Local Lemma (LLL) [6, 15] and later using a sophisticated
+local search technique analyzed against the conﬁguration LP [2,3,11,12,14,18,25]. The local search
+method originates from work on hypergraph matchings by Haxell [19].
+     The “dual” problem with a min-max objective is the equally fundamental and prominent problem
+of scheduling jobs on unrelated parallel machines so as to minimize the maximum completion time,
+that is, the makespan. For brevity we refer to this as the Makespan problem. Formally, we are given
+a set of m machines M and a set of n jobs J. Every job j ∈ J has size (processing time) pij ≥ 0
+on machine i ∈ M . The task is to ﬁnd an assignment of jobs to machines that minimizes the
+maximum load over all machines. Here, the load of a machine is the total size of jobs assigned to
+that machine. Lenstra, Shmoys and Tardos [24] gave a beautiful 2-approximation algorithm based
+on rounding a sparse vertex solution of the so-called assignment LP (a simpler relaxation than the
+conﬁguration LP). The rounding has been slightly improved to the factor 2 − 1/m [28], but despite
+substantial research eﬀorts, this upper bound remains undefeated. The best lower bound on the
+approximability assuming P6=NP is 3/2 [24]. Similar to the SantaClaus problem, the restricted
+assignment case with pij ∈ {pj , ∞} has also been studied extensively here. However, the barrier
+of 2 has been overcome only partially: with non-constructive integrality gap bounds [30] and better-
+than-2 approximations in quasi-polynomial time [21] and for the special case of two sizes [1, 9].
+     Intuitively, the two problems are related and in the community the belief has been mentioned
+that SantaClaus admits a constant approximation if (and only if) Makespan admits a better-
+than-2 approximation; see e.g., [4,5]. Indeed, techniques for one problem often seem to apply to the
+other one, but no formal reductions are known. We give some examples for such parallels:
+   (i) The conﬁguration LP, see [6], is the basis of all mentioned results for the restricted assignment
+       variant of both problems.
+  (ii) The local search technique by Haxell [19] for hypergraph matching has been adopted and shown
+       to be very powerful for both problems. First, it has been picked up for restricted SantaClaus
+       [2, 3, 14, 25] and later it has been further developed for restricted Makespan [1, 21, 30].
+
+
+                                                   1
+(iii) Chakrabarty, Khanna and Li [9] transferred the technique of rounding the conﬁguration LP
+      via LLL used for restricted SantaClaus [15, 17] to restricted Makespan with two job sizes
+      and thereby provided the ﬁrst slightly-better-than-two approximation in polynomial time.
+ (iv) The reduction for establishing hardness of approximation less than 2 for SantaClaus [7] is es-
+      sentially the same as the earlier construction for the 3/2-inapproximability for Makespan [24].
+  (v) The LP rounding by Lenstra et al. [24] achieves an additive approximation within the maxi-
+      mum (ﬁnite) processing time pmax , i.e., the makespan is at most OPT + pmax , which can be
+      translated into a multiplicative 2-approximation. Bezakova and Dani [7] show the same addi-
+      tive approximation for SantaClaus: each player is guaranteed a value at least OPT − vmax .
+      Note that for the max-min objective this does not translate into a multiplicative guarantee.
+    In this paper, we conﬁrm (part of) the conjectured relation between the Makespan and the
+SantaClaus problem with respect to their approximability. As our ﬁrst main result we prove that
+a better-than-2 approximation for Makespan implies an O(1)-approximation for SantaClaus.
+Theorem 1. For any α ≥ 2, if there exists a polynomial-time (2−1/α)-approximation for Makespan,
+then there exists a polynomial-time (α + ǫ)-approximation for SantaClaus for any ǫ > 0.
+    For values of α < 2, a (2 − 1/α)-approximation for the Makespan problem is NP-complete and
+the implication would still hold, even though clearly uninteresting. Similarly to this, we will restrict
+our attention in later theorems to non-trivial values of α.
+    We prove also the reverse direction for the two-value case, in which all resource values are
+vij ∈ {0, u, w}, for some u, w ≥ 0, and all processing times are pij ∈ {u, w, ∞}, for some u, w ≥ 0,
+respectively. This implies the equivalence of Makespan and SantaClaus in that case.
+Theorem 2. For any α ≥ 2, there exists an α-approximation algorithm for two-value SantaClaus
+if and only if there exists a (2 − 1/α)-approximation algorithm for two-value Makespan.
+    We then move to the restricted assignment case, where one might hope to unify previous results
+and possibly infer new results by showing a similar relationship. Using our techniques, however,
+this seems unclear, since the aforementioned reductions do not maintain the characteristics of the
+restricted assignment case. However, it turns out to be useful to consider a matroid generalization
+of our problems. Towards this, we brieﬂy introduce the notion of a matroid. A matroid is a non-
+empty, downward-closed set system (E, I) with ground set E and a family of subsets I ⊆ 2E , which
+satisﬁes the augmentation property:
+
+                    if I, J ∈ I and |I| < |J|, then I + j ∈ I for some j ∈ J \ I.                   (1)
+
+Given a matroid M = (E, I), a set I ⊆ E is called independent if I ∈ I, and dependent otherwise.
+An inclusion-wise maximal independent subset is called basis of M, and we denote the set of bases
+by B(M). With a matroid M, we associate a rank function r : 2E → Z≥0 , where r(X) describes the
+maximal cardinality of an independent subset of X. Typical examples of matroids include: linearly
+independent subsets of some given vectors, acyclic edge sets of a given undirected graph, and subsets
+of cardinality bounded by some given value. A polymatroid is the multiset analogue of a matroid.
+We refer to Section 1.3 for further deﬁnitions and to [26] for a general introduction to matroids.
+    Moving back to our two problems, we ﬁrst introduce the restricted resource-matroid Santa-
+Claus problem, where we consider again an input of resources and players and each resource j has
+a value vj for each player i as in the restricted assignment case. In the matroid variant, however,
+each resource can potentially be assigned to multiple players, subject to a (poly-)matroid constraint;
+more precisely, we require the set of players, which we assign the resource to, to be a basis of a
+given resource-speciﬁc (poly-)matroid, and the resource contributes to the total value of each of
+
+                                                   2
+these players. As one may also consider a more general variant with unrelated values vij we use the
+phrase restricted to emphasize our model. Similarly, we deﬁne a restricted job-matroid Makespan
+problem by replacing the max-min with a min-max objective and asking for an assignment of each
+job to a set of machines which forms a basis in the job’s matroid.
+    Davies, Rothvoss and Zhang [14] recently introduced a closely related matroid variant of re-
+stricted SantaClaus. Their variant, however, is signiﬁcantly more restrictive and can be sum-
+marized as follows: they allow a single inﬁnite value matroid-resource and a set of “small value”
+traditional resources (without the matroid generalization). For this variant they give a (4 + ǫ)-
+approximation algorithm.
+    First, we show that in our general variant an analogous relation to Theorem 2 holds.
+
+Theorem 3. For any α ≥ 2, there exists a polynomial-time α-approximation algorithm for the
+restricted two-value resource-matroid SantaClaus problem if and only if there exists a polynomial-
+time (2−1/α)-approximation algorithm for the restricted two-value job-matroid Makespan problem.
+
+    Since the matroid version is a new problem, we cannot directly infer any approximation results
+for it. Hence, we develop a polynomial-time approximation algorithm for the restricted resource-
+matroid SantaClaus problem.
+
+Theorem 4. For any ǫ > 0, there exists a polynomial-time (8 + ǫ)-approximation algorithm for the
+restricted resource-matroid SantaClaus problem and a (4+ǫ)-approximation in the two-value case.
+
+    This is achieved via a non-trivial generalization of the commonly used local search technique for
+restricted assignment, see Section 1.2 for a technical overview. We prove the variant for two values
+and then give a reduction from the general case, see Lemma 22. Apart from the curiosity-driven
+motivation for a matroid generalization of the classical scheduling problems and the usage through
+our reductions, we present in Section 1.1 sample applications where such a variant arises. Next, we
+state two immediate implications of our results to the state-of-the-art of the Makespan problem.
+
+Corollary 5. For every ǫ > 0, there exists a polynomial-time (1.75 + ǫ)-approximation algorithm
+for the restricted two-value job-matroid Makespan problem.
+
+     For completeness, we also provide a 2-approximation of the restricted job-matroid Makespan
+problem (with any number of values) that follows from standard techniques, see Theorem 23. Corol-
+lary 5 holds in particular true for the restricted Makespan √   problem, thus improving upon the
+previously best polynomial-time approximation rate of 1 + 2/ 5 + ǫ ≈ 1.8945 [1]. The corollary
+follows from combining Theorems 3 and 4. In their work on restricted SantaClaus, Davies et
+al. [14] managed to reduce the technical complexity of previous works, which handled complicated
+path decompositions explicitly, using a cleaner matroid abstraction. Our algorithm shows that such
+a simpliﬁcation is also possible for restricted two-value Makespan, which was not clear before.
+
+Corollary 6. For every ǫ > 0, there exists a polynomial-time (2 − 1/nǫ )-approximation algorithm
+and a quasi-polynomial-time (2 − 1/polylog(n))-approximation algorithm for two-value Makespan.
+
+   This result follows from the algorithm of Chakrabarty et al. [8] and Theorem 2, and improves
+upon the best-known polynomial-time approximation factor of 2 − 1/m for m machines [28].
+
+
+
+
+                                                 3
+1.1    Applications
+Next, we lay out three sample applications of our matroid generalization.
+    First, consider service centers that oﬀer various types of services to clients. The speciﬁc service
+that such a center oﬀers has some value associated with it and it can only be provided to a lim-
+ited number of clients, a typical constraint appearing for example in capacitated facility location
+problems. Furthermore, a service center can serve only clients that are located in the same region
+and a client can only receive a speciﬁc type of service once, i.e., by a single center, since receiving
+the same service twice yields no additional value. The services should be assigned to the clients
+in such a way that all clients are treated “fairly” with respect to their total value for the services.
+That is, we want to maximize the total value for the least happy client. This can be modeled as
+a resource-matroid SantaClaus problem with clients being players and services (one per service
+type) being resources. The set of clients that can receive a particular type of service can be modeled
+as a transversal matroid1 . In the classical (restricted) SantaClaus problem, one cannot express
+the constraint that a client can receive each type of service only once.
+    As a second example, consider a program committee (PC) for a scientiﬁc conference. We would
+like to assign papers to PC members such that the workload is balanced in the sense that we
+minimize the maximum workload over all PC members. We will view this as a Makespan problem
+with PC members being machines and submissions being jobs. PC members have declared which
+submissions they would agree to assess. Submissions may be of diﬀerent types such as “short papers”
+or “regular paper” with varying workloads. In a typical conference, each submission needs to be
+assessed three times and obviously it is important that this is done by diﬀerent PC members; hence,
+we cannot simply model this as a traditional restricted assignment problem where we duplicate a
+job three times. However, it is easy to model this using matroids by having one basis for each triple
+of PC members that agree to assess this submission, i.e., we have a job-matroid Makespan problem
+with a uniform matroid2 of rank 3.
+    Our third illustration is a job-matroid Makespan problem, in which a graphic matroid3 allows
+us to model connectivity requirements. In cloud computing and data centers, a number of servers is
+available to execute multiple applications at the same time. Each application is executed on a subset
+of servers and these servers must be connected to allow for communication. We assume that these
+connections are direct in the sense that an application may not use additional servers as Steiner
+nodes. We need to reserve a certain bandwidth for each application’s communication, which depends
+on characteristics of the application itself. The task is to select carefully on which links to reserve the
+bandwidth for each individual application such that load on these links is balanced, more precisely,
+we want to select links to minimize the maximum total bandwidth requirement imposed on any link.
+This can be modelled as job-matroid Makespan problem with jobs being applications, machines
+being the edges (links) in a graph formed by the allocated servers, and the load (processing time)
+being the requested bandwidth of the application. The task is to choose for each job a spanning
+tree, that is, a basis in the job-dependent graphic matroid such that the maximum total bandwidth
+on any edge is minimized. This cannot be modeled as classical Makespan or restricted assignment
+problem, since it cannot capture the structure of a graphic matroid.
+   1
+     Given a bipartite graph G = (J ∪ S, E), a set S ′ ⊆ S is independent in the transversal matroid M = (S, I) if
+there is a matching in G which covers S ′ .
+   2
+     A uniform matroid M = (X, I) of rank r has as independent sets all subsets of X of cardinality at most r.
+   3
+     Given an undirected graph G = (V, E), the graphic matroid M = (E, I) has as independent sets the cycle-free
+edge sets (forests), i.e., I = {F ⊆ E : F is acyclic in G}.
+
+
+
+
+                                                        4
+1.2   Algorithmic techniques
+Our main algorithmic contribution lies in a local search algorithm for the new variant restricted
+resource-matroid SantaClaus, see Theorem 4. We give an overview of the method here, its main
+technical merits, and how it relates to previous works. The speciﬁc local search method that we
+refer to originates in an algorithmic proof for a hypergraph matching theorem by Haxell [19]. The
+theorem is a generalization of Hall’s theorem for bipartite graphs to hypergraphs and Haxell’s proof
+can be thought of as a very non-trivial extension of the augmenting path method in bipartite
+graphs. Asadpour et al. [3] made the connection to restricted SantaClaus. In addition to a
+black-box reduction to the speciﬁc hypergraph matching problem, they also reinterpreted Haxell’s
+method as a sophisticated algorithm for restricted SantaClaus.
+    Although not explicitly mentioned in earlier works, this new algorithm can be thought of as a
+generalization of the typical augmentation algorithm for matroid partition: the core of the problem
+lies in the case where we have two values for the resources, more precisely, either the value of a
+resource is inﬁnitely large or it is a unit value 1. This case is up to constants equivalent to the
+general problem, see e.g., [6]. Observe now the following structure: we need to select a subset IM
+of players such that there exists a left-perfect matching of IM to the inﬁnite-value resources and
+such that there exists a b-matching of all players in P \ IM to the small resources (each player is
+matched to b resources, each resource to at most one player), where b has to be maximized. The
+sets IM that fulﬁll the condition above form a transversal matroid, but unfortunately the sets of
+players for which there is a b-matching does not (for a ﬁxed b > 1). If they would actually form a
+matroid, then the problem could easily be solved by matroid partition, where given two matroids
+M1 = (E, I1 ), M2 = (E, I2 ) over the same ground set, we want to ﬁnd two independent sets
+                                                          ˙ 2 = E (here we focus on the variant with
+I1 ∈ I1 , I2 ∈ I2 that partition the ground set, i.e., I1 ∪I
+two matroids, although also more than two matroids may be allowed). Matroid partition–and the
+equivalent problem of matroid intersection–can be solved in polynomial time by an augmenting path
+algorithm that repeatedly increases the union of I1 and I2 by ﬁrst swapping elements between these
+two sets. Although, as mentioned above, the b-matching does not have a matroid structure, the
+algorithmic paradigm of swapping elements between matching and b-matching in order to increase
+their union still works once we allow approximation of b.
+    The constraint on set IM forms a transversal matroid (implied by the inﬁnite-value resources) and
+Davies et al. [14] then showed that the algorithmic idea generalizes to arbitrary matroid structures.
+In their problem, however, the b-matching remains the same without further abstraction, whereas
+in our further generalization, we embrace the polymatroid structure of the b-matching. We now
+require instead of a b-matching that the multiset b · (P \ IM ) (having b copies for each element in
+P \ IM ) is in some given polymatroid. We believe that this abstraction is the logical conclusion for
+this line of research.
+    Although a seemingly natural extension, it is highly non-trivial to generalize the existing algo-
+rithm to our setting. Firstly, there are conceptional issues that come from the fact that previous
+methods revolve around reassigning resources or jobs and those do not exist explicitly in our poly-
+matroid. Secondly, a serious technical problem comes from the lack of a certiﬁcate of infeasibility.
+The design of the algorithm is closely connected to a certiﬁcate of infeasibility, which is provided (for
+analysis’ sake) in case the algorithm fails. For example, in matroid partition when the augmenting
+path algorithm fails, one can derive a set X such that r1 (X) + r2 (X) < |X|, where r1 and r2 are the
+rank functions of the matroids [23]. This clearly proves infeasibility. In applications of the method
+to restricted SantaClaus or Makespan, the role of the certiﬁcate of infeasibility was taken by the
+conﬁguration LP. It is unclear how one would generalize the conﬁguration LP beyond the partial
+matroid generalization of Davies et al. [14], since it heavily relies on the matching structure of small
+
+
+                                                   5
+resources. But even worse, we show that already in a special case for which the conﬁguration LP is
+still meaningful, its integrality gap is large; hence it is not helpful. Consider the following instance
+(which appeared already in [6]). We have a ﬁrst set E of m players, and a set S of m − 1 resources.
+For each player i ∈ E, there is an additional set Ei of m players and an additional set Si of m + 1
+resources. Each player i ∈ E has valuation m for all the resources in S, valuation 1 for all the
+resources in Ei , and valuation 0 for the remaining resources. For any i ∈ E, each player in Ei has
+valuation m for the resources in Si , and valuation 0 for other resources. It was showed in [6] that in
+this example the conﬁguration LP will give of m to this instance, while it is clear that the integral
+optimum is at most 1. Indeed, there are only m − 1 resources in S, hence at least one player i from
+E will need to take resources from Si . But Si contains only m + 1 resources while m players in Ei
+need to take one resource each from the corresponding set Si . Interestingly, this example can be
+captured by our polymatroid variant. We have universe E and the uniform matroid of rank |E| − 1
+(i.e. r(X) = |X| for any X 6= E, and r(E) = |E| − 1), and f (X) = |X|, which      S models that a set of
+|X| players in E1 can beSassigned a maximum of |X| resources from the set i∈E Si . In the matroid
+problem, the players in i∈E Ei only appear       S implicitly. One may also derive f by deﬁning a natu-
+ral  polymatroid   that assigns  the items   in   i∈E Si and from which we then contract the players of
+         . As  stated above,  the  conﬁguration    LP does not give us a good lower bound (or certiﬁcate
+S
+       E
+   i∈E i
+of infeasibility) in this case. Another way to ﬁnd a certiﬁcate would be, in the spirit of matroid
+partition, to try to ﬁnd a set X, for which r(X) + f (X)/b < |X|, where r is the rank function
+of the matroid and f the submodular function corresponding to the polymatroid. Although this
+would prove infeasibility of a solution of value b, it is not suﬃcient as seen in the example above.
+As previously detailed, it is clear that no solution of value more than 1 exists. On the other hand,
+r(X) + f (E)/|E| ≥ r(X) = |X| for all X 6= E and r(E) + f (E)/|E| = |E| − 1 + 1 ≥ |E|. Hence,
+the certiﬁcate above is also not suﬃcient to rule out a solution of value |E| = m.
+     To overcome this issue, we develop the following certiﬁcate of infeasibility. Let X ⊆ E with
+f (X) ≤ b · |X|, in the example above we can take X = ∅. Further, let Y ⊇ X have a not too large
+rank of r(Y ) < |Y | − |X|/2 and small marginal values for each element, that is, f (i | X) < b for
+all i ∈ Y \ X. In the example above, take Y = E. We claim that this constitutes a proof that no
+solution of value 3b exists. Suppose that for IP ⊆ Y we have that 3b · IP is in the polymatroid.
+Then                                               X
+                        2b · |IP | ≤ 3b · |IP | −       f (i | X) ≤ f (X) ≤ b · |X| ,
+                                             i∈IP \X
+
+where we use that 3b · |IP | ≤ f (IP ) ≤ f (X) + i∈IP \X f (i | X). It follows that |IP | ≤ |X|/2, but
+                                                  P
+because of its rank the matroid cannot cover all remaining elements. Our algorithm is carefully
+designed to either output a solution of value b or to prove, using the idea above, that no solution
+exists for (4 + ǫ)b. Note that we use a slightly higher constant compared to the miniature above and
+we also require a more complicated variant of the certiﬁcate. This is mainly for eﬃciency reasons:
+in order to achieve polynomial running time we need to work with weaker conditions.
+
+1.3   Definitions and notation
+We write Oǫ (·) as the standard O-notation, where we suppress any factors that are functions in
+only ǫ. For a set X and an element i we write X + i := X ∪ {i}. Similarly, X − i := X \ {i}.
+    Let E be a universe.  For a vector x ∈ RE , we write x(e) for the entry of x corresponding to
+e ∈ E, and x(S) = e∈S x(e). For some X ⊆ E, we write b · X as the vector y ∈ ZE with y(e) = b
+                   P
+for e ∈ X and y(e) = 0 for e ∈ / X. A set function f : 2E → R is submodular if for all subsets
+A, B ⊆ E holds f (A) + f (B) ≥ f (A ∪ B) + f (A ∩ B), and monotone if for all A ⊆ B ⊆ E holds
+
+
+                                                   6
+f (A) ≤ f (B). Let f : 2E → Z≥0 be a monotone submodular integer function with f (∅) = 0. An
+integer polymatroid over E associated with f is deﬁned as
+
+                               P = {x ∈ ZE
+                                         ≥0 : x(S) ≤ f (S) ∀S ⊆ E}.
+
+In the following we always refer to integer polymatroids when talking about polymatroids. A
+polymatroid can be interpreted as the multiset generalization of a matroid and most concepts
+of matroids translate easily to polymatroids. Every element x ∈ P can be seen as an independent
+multiset in which an element e ∈ E appears with multiplicity x(e). A polymatroid is also downward-
+closed, that is, x ∈ P implies y ∈ P for any 0 ≤ y ≤ x, and satisﬁes the augmentation property, that
+is, if x, y ∈ P with x(E) < y(E), then there is some e ∈ E such that x′ ∈ P with x′ (e) = x(e) + 1
+and x′ (e′ ) = x(e′ ) for all e′ ∈ E − e. In particular, any matroid is a polymatroid.
+     A basis of a polymatroid P is an element x ∈ P which satisﬁes f (E) = x(E), meaning that all
+bases have the same cardinality (in terms of multisets). We denote the set of bases of P by B(P).
+For a given polymatroid P and a constant k ∈ Z≥0 , the set {x ∈ P : x(e) ≤ k ∀e ∈ E} is again a
+polymatroid.
+     For a given polymatroid P of the submodular function f , and some vector z ∈ ZE   ≥0 with x ≤ z
+for all x ∈ P, we deﬁne the dual polymatroid P of P with respect to z via the set function g with
+
+                                   g(S) = z(S) + f (E \ S) − f (E)
+
+for every S ⊆ E. This function is submodular, monotone and satisﬁes g(∅) = 0, hence this deﬁnition
+is well-deﬁned. Note that if x ∈ B(P) it follows g(E) = z(E) + f (∅) − f (E) = z(E) − x(E), and
+therefore z − x ∈ B(P).
+    If a polymatroid P associated with a function f is given as an input for a problem, we assume
+that it is represented in form of a value oracle for f . We can test whether some vector x is in P by
+checking whether the minimum of the submodular function f (S) − x(S) is non-negative, which can
+be done with a polynomial number of value queries to f .
+    We refer for an extensive overview over polymatroids to Schrijver [26, chapters 44 - 49]. We now
+give precise deﬁnitions of the matroid problems we consider.
+
+Definition 7 (Resource-matroid SantaClaus). In the restricted resource-matroid SantaClaus
+problem, there are sets of m players P and n resources R with values vj for all j ∈ R. Further, for
+every resource j ∈ R there is an integer polymatroid Pj over P . The task is to allocate each resource
+j ∈ R to a basis xj ∈ B(Pj ) and let each player i profit from the resource j withP   value vj · xj (i).
+The goal is to maximize the minimum total value any player receives, i.e., mini∈P j∈R vj · xj (i) .
+
+Definition 8 (Job-matroid Makespan). In the restricted job-matroid Makespan problem, there
+are sets of m machines M and n jobs J with sizes pj for all j ∈ J. Further, for every job j ∈ J there
+is an integer polymatroid Pj over M . The task is to allocate each job j ∈ J to a basis xj ∈ B(Pj )
+which means that j contributes load pj · xj (i) to the total load
+                                                             P of machine i. The goal is to minimize
+the maximum total load over all machines, i.e., maxi∈M j∈J pj · xj (i) .
+
+    These new matroid allocation problems generalize the restricted assignment variants of Santa-
+Claus and Makespan, respectively. In fact, the matroid variant with a uniform matroid of rank 1
+corresponds to the respective traditional problem.
+    Note that in restricted resource-matroid SantaClaus it is equivalent to require that xj ∈ Pj
+for each resource j instead of xj ∈ B(Pj ), since we can always increase xj to reach a basis without
+making the solution worse. In restricted job-matroid Makespan this is not the case.
+
+
+                                                   7
+    Both matroid problems can be reduced to instances where the number of polymatroids is equal
+to the number of distinct job sizes (resource values). This is because we can sum polymatroids
+associated with jobs (resources) of equal size (value) to a single one, and then decompose a basis for
+such a merged polymatroid into bases for the original polymatroids via polymatroid intersection.
+Formally, we get the following proposition. For a more detailed explanation, see Appendix A.
+
+Proposition 9. For any α ≥ 1, if there exists a polynomial-time α-approximation algorithm for re-
+stricted job-matroid Makespan (resource-matroid SantaClaus) with h jobs (resources), then there
+exists a polynomial-time α-approximation algorithm for restricted job-matroid Makespan (resource-
+matroid SantaClaus) with pj resp. vj ∈ {w1 , . . . , wh } and w1 , . . . , wh ≥ 0.
+
+
+2     Santa Claus and makespan reductions
+In this section we present our ﬁrst two reductions and prove Theorem 1 and Theorem 2. The
+precise statements given in the following subsections imply these results. They are formulated as
+subroutines for a standard guessing framework (see e.g. [20]), which we brieﬂy explain here. Consider
+a SantaClaus instance I for which we want to compute an α-approximate solution. We ﬁrst guess
+OPT(I) with some variable T using binary search as follows. For some guess T , we scale down all
+values of I by factor T and obtain I ′ . Then, we prove that if OPT(I) ≥ T (and OPT(I ′ ) ≥ 1),
+our subroutine ﬁnds a solution for I ′ with an objective value of at least 1/α. If we do not obtain
+such a solution, we can conclude OPT(I) < T and safely repeat with a smaller guess. Otherwise,
+we repeat with a larger guess. After establishing T = OPT(I), the subroutine gives us a solution
+with an objective value of at least T /α. For Makespan one can design an analogous procedure.
+
+2.1     From Santa Claus to makespan minimization
+In this section, we present an approximation preserving reduction (up to a factor of 1 + ǫ) from
+SantaClaus to Makespan. More precisely, we show the following result.
+
+Lemma 10. For any α ≥ 2 and ǫ > 0, given an instance I of SantaClaus with OPT(I) ≥ 1,
+we can construct in polynomial time an instance I ′ of Makespan such that, given a (2 − 1/α)-
+approximate solution for I ′ , we can compute in polynomial time a solution for I with an objective
+value of at least 1/(α + ǫ).
+
+    This lemma then implies Theorem 1 via the guessing framework. We split the proof of Lemma 10
+into two parts (cf. Lemmas 11 and 12). First, we show that we can deﬁne a polynomial number
+of configurations for each player, which represent diﬀerent options this player has. We show that
+there is a nearly optimal solution, up to a factor of 1 + ǫ, that only uses these conﬁgurations.
+    Second, we reduce this problem to Makespan without losing additional constants. That is,
+we present a reduction proving that a (2 − 1/α)-approximation for Makespan implies an α-
+approximation for SantaClaus restricted to polynomially many conﬁgurations. Intuitively, the
+fact that we can enumerate the list of possible optimal conﬁgurations per player enables us to cre-
+ate gadgets for every conﬁguration in the constructed Makespan instance which we exploit when
+reducing solutions.
+
+2.1.1    Santa Claus with polynomially many configurations
+Consider a SantaClaus instance with players P and n resources R. We deﬁne the set of value
+types as T = {vij : i ∈ P, j ∈ R}, which contains all distinct resource values that occur in the
+
+
+                                                  8
+instance.
+       P We call a function c : T → {0, 1, . . . , n} a configuration, and deﬁne the total value of c as
+|c| = v∈T c(v) · v. One can also see a conﬁguration as a multiset of value types.
+     Given a conﬁguration ci for a player i of a SantaClaus instance I, we say that a resource as-
+signment A = {Ai }i∈P for I that assigns the set of resources Ai to player i matches the conﬁguration
+ci if |{j ∈ Ai : vij = v}| = ci (v) for every value type v ∈ T .
+     We use Ci to refer to a set of conﬁgurations for a player i ∈ P and call C = {Ci }i∈P a collection of
+configurations. A resource assignment A matches a collection of conﬁgurations C if, for each player
+i, there exists a conﬁguration c ∈ Ci such that Ai matches c. Given a SantaClaus instance I and
+a collection of conﬁgurations C = {Ci }i∈P , we use OPTC (I) to refer to the optimal objective value
+for instance I among those solutions that match C.
+     The main result of this section is the following lemma.
+Lemma 11. For every ǫ > 0 and a given instance I of SantaClaus with OPT(I) ≥ 1, we
+can construct a rounded instance I ′ with a collection of configurations C such that the number of
+configurations for each player is polynomial in the input size of I and OPTC (I ′ ) ≥ 1/(1 + ǫ).
+   Further, every solution for I ′ of objective value T is a solution for I with objective value at least
+T.
+    The lemma essentially allows us to consider only solutions that partially match the constructed
+collection of conﬁgurations C. If we ﬁnd such a solution that α-approximates OPTC (I ′ ), we imme-
+diately get a (α + ǫ)-approximation for OPT(I).
+    To prove the lemma, we employ several rounding techniques and enforce a certain monotonicity
+condition on the conﬁgurations. This allows us to reduce the number of conﬁgurations per player to
+a polynomial while still guaranteeing OPTC (I ′ ) ≥ 1/(1+ǫ). For a full proof, we refer to Appendix B.
+
+2.1.2   Reduction to makespan minimization
+We prove the following lemma which, together with Lemma 11, implies Lemma 10.
+Lemma 12. Let I be an instance of SantaClaus and let C be a collection of configurations with
+OPTC (I) ≥ 1. For any α ≥ 1, we can construct in polynomial time an instance I ′ of Makespan
+such that, given a (2 − 1/α)-approximate solution for I ′ , we can compute in polynomial time a
+solution for I with value at least 1/α. The running times are polynomial in the size of (I, C).
+    We ﬁrst give some intuition for the reduction of the lemma. Assume for simplicity that ev-
+ery conﬁguration in C has value 1. We want to construct a Makespan instance with an op-
+timal makespan equal to 1. Exploiting the polynomial number of conﬁgurations, we introduce
+configuration-machines for every player and every conﬁguration of that player. By using a gadget
+structure, we ensure that every solution for the Makespan instance “selects” one conﬁguration-
+machine for each player, which we call the player-machine. This is done by forcing an extra
+(selection-)load of 1 on exactly one conﬁguration-machine for that player. The other conﬁguration-
+machines will just be able to absorb all other jobs that can be placed on the machine, so we assume
+that they do so and ignore them. Intuitively, the player-machine determines the conﬁguration which
+we (partially) use for the player when transferring a solution back to the SantaClaus instance.
+To this end, we encode the corresponding conﬁguration c of the player-machine by introducing for
+every v ∈ T a total of c(v) configuration-jobs with size v on that machine. For every resource
+we also introduce a resource-machine, on which only conﬁguration-jobs of the same value type as
+the corresponding resource can be placed, with size 1. In an optimal solution of makespan 1, no
+conﬁguration-job can be placed on a player-machine due to the selection-load. This means that
+all these jobs have to be placed on the resource-machines instead. Since each resource-machine
+
+                                                    9
+                                                                                                ji
+                                                                                                  1
+
+                                                                                                              mic
+                                                                                                         v
+                                                                                                        |c|
+                                                                                                                 i
+                                                                                                                Jc,v
+
+
+                                                                                                 1
+                                                                                               mj
+
+
+(a) SantaClaus instance I. Players are vi-    (b) Makespan instance I ′ . Machines are visualized by squares with a
+sualized by smileys and resources by gifts.   gear and jobs by cycles.
+
+Figure 1: The construction used in Lemma 12. In both pictures an edge indicates that an item has a
+non-trivial value for an entity.
+
+
+can absorb at most one job, we can interpret the placement of the conﬁguration jobs as resource
+assignment for the SantaClaus instance that matches the conﬁguration of the player-machines.
+This, however, only works for optimal solutions.
+    To better understand the connection between approximate solutions, imagine an initial state
+where all conﬁguration-jobs are placed on their player-machines in the Makespan instance, and all
+resources are unassigned in the SantaClaus instance. This means that all player-machines have a
+total load of 1+|c| = 2 (observe that |c| = 1 is caused by the conﬁguration-jobs) and all players have
+a total value of 0. Now, a player can gain a resource by moving a suitable conﬁguration-job away
+from her player-machine to a resource-machine. Since, even in a better-than-2 approximation for the
+Makespan instance, a resource-machine can absorb at most one job, we can again interpret this as
+the players competing for the resources via moving jobs away from their player-machines to resource-
+machines. Therefore, in a (2 − 1/α)-approximation for the Makespan instance, a player must be
+able to move jobs away from her player-machine of total size at least 1/α. But this means in our
+interpretation that she receives resources of total value at least 1/α in the SantaClaus instance.
+    In the following, we formalize these ideas and prove Lemma 12. Fix an instance I of the
+SantaClaus problem and a collection of conﬁgurations C for I with OPTC (I) ≥ 1. We proceed by
+describing the reduction and proving two auxiliary lemmas that imply Lemma 12.
+
+Preprocessing We ﬁrst remove all conﬁgurations from C of value strictly less than 1. Since we
+assumed that OPTC (I) ≥ 1, this does not aﬀect OPTC (I).
+
+Construction We construct a Makespan instance I ′ as follows. For every player i in instance I,
+we introduce a player-job ji and for every conﬁguration c ∈ Ci a conﬁguration-machine mic , where the
+size of ji is equal to 1 on every conﬁguration-machine mic and ∞ on all other machines. For every con-
+ﬁguration c ∈ Ci and for every value type v ∈ T we introduce a set Jc,v i of c(v) many conﬁguration-
+
+jobs. For every resource j we introduce a resource-machine mj . Finally, every conﬁguration-job in
+  i has size 1 on every resource-machine m if resource j has value type v for player i (i.e., v = v),
+Jc,v                                           j                                               ij
+size v/|c| on the conﬁguration-machine mic , and ∞ on all other machines. See Figure 1.
+
+
+                                                        10
+Lemma 13. The optimal objective value of I ′ is at most 1.
+
+Proof. Fix a solution of I that is optimal among the solutions that match C. Consider a player i of
+instance I and let c ∈ Ci be the selected conﬁguration for player i in the given solution. Let Ai be
+the set of resources assigned to player i. In the solution for I ′ , we assign job ji to machine mic , giving
+it a load of 1. Further, we assign the conﬁguration-jobs Jc,v i of conﬁguration c to resource-machines
+
+{mj : j ∈ Ai } such that every resource-machine receives at most one job. Such an assignment must
+exist by the fact that conﬁguration c is matched by the ﬁxed solution for I. For every conﬁguration
+c′ ∈ Ci \P{c} we assign for all v ∈ T every conﬁguration-job in Jci′ ,v to machine mic′ , giving those a
+load of v∈T c′ (v) |cv′ | = 1. Since, in the given solution, every resource j is assigned to at most one
+player i, and since we have assigned at most one conﬁguration-job to machine mj , every resource-
+machine also has a load of at most 1. Hence, the makespan of the constructed solution for I ′ is at
+most 1.
+
+Lemma 14. For any α ≥ 1, given a solution for I ′ with a makespan of at most 2 − 1/α, we can
+construct in polynomial time a solution for I where every player receives a total value of at least 1/α.
+
+Proof. Given a solution for I ′ where every machine has a load of at most 2 − 1/α, we construct a
+solution for I as follows. Fix a player i and assume that ji is assigned to machine mic .
+    Let Ji be the set of conﬁguration-jobs of conﬁguration c of player i which are not assigned to
+  i
+mc . Thus, every job in Ji is assigned to a resource-machine. Note that every resource-machine has
+at most one assigned job, because every job has size of at least 1 on these machines. Let Ri be the
+set of resources for which the corresponding resource-machines receive a job of Ji . We assign the
+resources Ri to player i in the solution for I. The load contributed by conﬁguration-jobs to machine
+mic is at most 1 − 1/α, because job ji is also assigned to mic and has size 1. This implies that the
+total size of jobs in Ji for machine mic is at least
+                                                  !                       
+                      X        v     X         v           1               1     1
+                                  ≥      c(v)      − 1−        =1− 1−          = .
+                              |c|             |c|          α               α     α
+                           i
+                   j∈Ji :j∈Jc,v           v∈T
+
+
+Since |c| ≥ 1 by our preprocessing, we conclude that player i receives a total value of at least
+                                  X                 X                   X            v   1
+                                         vij =                  v≥                      ≥ .
+                                                                                    |c|  α
+                                  j∈Ri                    i
+                                                 j∈Ji :j∈Jc,v                 i
+                                                                     j∈Ji :j∈Jc,v
+
+A visualization of this argument is given in Figure 2.
+
+
+
+2.2    Equivalence in the unrelated 2-value case
+In this section, we consider the two-value case of SantaClaus and Makespan and prove that
+there exists an approximation preserving equivalence between these two problems. We give a full
+proof in Appendix C. Here, we brieﬂy restate the main theorem and highlight the technical ideas.
+
+Theorem 2. For any α ≥ 2, there exists an α-approximation algorithm for two-value SantaClaus
+if and only if there exists a (2 − 1/α)-approximation algorithm for two-value Makespan.
+
+
+
+
+                                                                11
+                                                         1
+
+
+
+                                       ≤ 1 − α1              ≥ α1
+
+
+
+
+    ≥ α1
+
+
+
+
+(a) α-approximation in instance I.                (b) (2 − 1/α)-approximation in instance I ′ .
+
+      Figure 2: Visualization of the argument for translating approximate solutions used in Lemma 14.
+
+
+    For the direction from two-value SantaClaus to two-value Makespan, we show that we can
+apply a similar reduction as in Lemma 10. We do so by reducing the given SantaClaus instance
+to an instance where the reduction does not introduce a third value. Further, we observe that, in
+the two-value case, we only have a polynomial number of relevant conﬁgurations, so we do not have
+to reduce this number and, thus, do not lose the additional factor of 1 + ǫ.
+    For the other direction, we prove that similar ideas as in the reduction of Lemma 10 also work
+in the direction from Makespan to SantaClaus if we only have to job sizes. This requires some
+additional ideas to ensure that we do not need to introduce further resource values.
+
+
+3     Reductions for matroid allocation problems
+We move to the restricted assignment setting and consider the matroid generalizations of Santa-
+Claus and Makespan. The main result here is Theorem 3, which we restate here for convenience.
+
+Theorem 3. For any α ≥ 2, there exists a polynomial-time α-approximation algorithm for the
+restricted two-value resource-matroid SantaClaus problem if and only if there exists a polynomial-
+time (2−1/α)-approximation algorithm for the restricted two-value job-matroid Makespan problem.
+
+    We prove the theorem using the following two lemmas, one for each direction, and the same stan-
+dard binary search framework as in the Section 2. The key ideas for constructing instances and for
+transforming solutions in these reductions rely on polymatroid duality. Note that, by Proposition 9,
+we can w.l.o.g. assume that the number of resources and jobs, respectively, is exactly two.
+
+Lemma 15. Let α ≥ 2 and I be an instance of the restricted job-matroid Makespan problem with
+two jobs and OPT(I) ≤ 1. Then we can compute an instance I ′ of the restricted resource-matroid
+SantaClaus problem with two resources, such that, given an α-approximate solution for I ′ , we can
+compute a solution for I with an objective value of at most 2 − 1/α.
+
+Proof. Given an instance I with OPT(I) ≤ 1 of the restricted job-matroid Makespan problem with
+machines E and two jobs with sizes p1 , p2 ≥ 0 and polymatroids P1 , P2 , we construct an instance I ′
+of the restricted resource-matroid SantaClaus problem as follows.
+
+
+                                                    12
+    Let k1 = ⌊1/p1 ⌋ and let k2 = ⌊1/p2 ⌋. We ﬁrst consider the polymatroids P1′ = {x ∈ P1 : x(e) ≤
+k1 ∀e ∈ E} and P2′ = {x ∈ P2 : x(e) ≤ k2 ∀e ∈ E}. Let f1′ and f2′ be the associated submodular
+functions of these polymatroids. Since OPT(I) ≤ 1, any optimal solution xj ∈ B(Pj ) satisﬁes
+xj (e) ≤ kj for all e ∈ E, and therefore, xj ∈ B(Pj′ ), for j ∈ {1, 2}. Thus, fj (E) = xj (E) = fj′ (E).
+Let P j be the dual polymatroid of Pj′ with respect to the vector kj · E (the vector of ZE where all
+entries are equal to kj ), for j ∈ {1, 2}. We compose instance I ′ using players E and two resources
+with polymatroids P 1 , P 2 and resource values p1 , p2 .
+    Let t = k1 · p1 + k2 · p2 − 1. We show that OPT(I ′ ) ≥ t. Fix an optimal solution for I which
+selects bases x1 ∈ B(P1 ) and x2 ∈ B(P2 ). We deﬁne vectors xj (e) = kj − xj (e) for all e ∈ E, and
+conclude that xj ∈ B(P j ), because xj ∈ B(Pj′ ). This means that x1 and x2 are a feasible solution
+for I ′ . Using OPT(I) ≤ 1, for every player e ∈ E holds
+
+           p1 · x1 (e) + p2 · x2 (e) = (1 + t) − (p1 · x1 (e) + p2 · x2 (e)) = (1 + t) − OPT(I) ≥ t,
+
+showing that OPT(I ′ ) ≥ t.
+    We ﬁnally prove the stated bound on the objective value of an approximate solution. Fix an α-
+approximate solution for I ′ which selects bases y 1 ∈ P 1 and y 2 ∈ P 2 . We construct an approximate
+solution yj ∈ B(Pj ) for instance I by setting yj (e) = kj − yj (e) for every e ∈ E and j ∈ {1, 2}.
+The construction of the dual polymatroid P j implies yj ∈ B(Pj′ ) for j ∈ {1, 2}. We further have
+yj ∈ B(Pj ), because Pj′ ⊆ Pj and yj (E) = fj′ (E) = fj (E). Moreover, for every machine e ∈ E holds
+
+                                                                                      1                      t
+    p1 · y1 (e) + p2 · y2 (e) = (1 + t) − (p1 · y 1 (e) + p2 · y 2 (e)) ≤ (1 + t) −     · OPT(I ′ ) ≤ 1 + t − .
+                                                                                      α                      α
+   Since by construction t ≤ 1, we have t − t/α ≤ 1 − 1/α, which implies that the makespan of the
+constructed solution (y1 , y2 ) is at most 2 − 1/α.
+
+    The second direction can be shown with the same proof idea and some additional tweaks speciﬁc
+to the direction. We give the full proof for the following lemma in Appendix D
+
+Lemma 16. Let α ≥ 2 and I an instance of the restricted resource-matroid SantaClaus problem
+with two resources and OPT(I) ≥ 1. Then we can compute an instance I ′ of the restricted job-
+matroid Makespan problem with two jobs, such that, given a (2 − 1/α)-approximate solution for I ′ ,
+we can compute a solution for I with an objective value of at least 1/α.
+
+
+4     Local search algorithm
+In this section we present our algorithm for Theorem 4 that ﬁnds an (8 + ǫ)-approximation for the
+restricted resource-matroid SantaClaus problem and a (4 + ǫ)-approximation in the case of two
+values. The analysis is moved to Appendix F
+    We will show in Lemma 22 that it suﬃces to solve the following problem with α = 4 + ǫ. Given
+a matroid M = (E, I) and a polymatroid P over the same set of elements as well as some b ∈ N,
+ﬁnd some IM ∈ I and y ∈ P such that for every i ∈ E we have i ∈ IM or y(i) ≥ b, or determine
+that no solution exists for αb. Before we move to the algorithm, we deﬁne some speciﬁc notation
+used throughout the section.
+
+Notation. Recall that for some X ⊆ E, we write b · X as the vector y ∈ ZE with y(i) = b
+for i ∈ X and y(i) = 0 for i ∈
+                             / X. Contracting a set X ⊆ E of a matroid M deﬁnes a new
+matroid M/X obtained from restricting the elements to E \ X and deﬁning the rank function as
+
+                                                         13
+r(Y | X) = r(Y ∪ X) − r(X). Naturally, the independent sets of the contracted matroid form
+all the sets that together with any independent set in S are independent in the original matroid.
+We use contraction primarily to ﬁx some elements in the matroid. We need a similar notion for
+the polymatroid P deﬁned by the submodular function f . However, while a single element i ∈ E
+has rank function r(i) ≤ 1 in a matroid, the value f (i) could be arbitrarily large. In particular,
+contracting a set using f (Y | X) we may reserve more resources for X than intuitively necessary
+(recall we only need to cover elements with the polymatroid b times). Hence, we need to use a more
+sophisticated approach here. First, consider the polymatroid P ′ = {y ∈ P : y(i) ≤ b ∀i ∈ X},
+i.e., a restriction on the multiplicity of each element in X within the polymatroid. Let, f ′ be the
+submodular function deﬁning P ′ . After this transformation we can use f ′ (Y | X) without the
+aforementioned issues. We introduce the short notation
+
+                                    f (Y | b · X) = f ′ (Y | X) .
+
+Note that f (Y | b · X) behaves as one would expect in the sense of decreasing marginal returns, see
+Lemma 24. We will deﬁne both r(Y | X) and f (Y | b · X) on all X ⊆ E instead of only Y ⊆ E \ X.
+More precisely, r(Y | X) = r(Y ∪ X) − r(X) = r((Y \ X) ∪ X) − r(X) = r(Y \ X | X) gives a
+natural extension although clearly the elements in X behave trivially. Similar to this, we extend
+f (Y | b · X) to Y ∩ X 6= ∅ by deﬁning f (Y | b · X) = f (Y \ X | b · X).
+
+Framework. We move to a further variation of the problem, which resembles an augmentation
+framework similar to matroid partition problems, where we are given a partial solution that we then
+extend. The algorithm itself is deﬁned using recursion with the following interface.
+
+ Input. Matroid M = (E, I) with rank function r, polymatroid P ⊆ ZE with function f , both over
+     the same elements, and a number b ∈ N.
+     Further, disjoint sets IM ∈ I, b · IP ∈ P, B0 ⊆ E. Finally, a partial order ≺ on B0 .
+
+ Output. Either an augmented solution IM                                    ˙ P′ ⊇ IM ∪ IP and
+                                        ′ ∈ I and b · I ′ ∈ P such that I ′ ∪I
+                                                       P                 M
+       ′           2
+     |IM ∩ B0 | ≥ ǫ |B0 | or “failure”.
+                                                                               ∗ , I ∗ can exist with
+     In case failure is returned, we provide a certiﬁcate that proves that no IM    P
+       ∗    ∗                ∗                                         ∗
+     IM ∪ IP ⊇ IM ∪ IP , IM ∈ I and the stronger conditions αb · IP ∈ P for α = 4 + O(ǫ) and
+     |IM∗ ∩ B | ≥ 3ǫ|B |. Details on the certiﬁcate follow in the analysis.
+              0         0
+
+     The partial order ≺ aﬀects which elements of B0 the algorithm tries ﬁrst to add to IM . The
+     precise guarantees on the output are subtle, but important inside the recursion, see proof of
+     Lemma 28.
+
+We can apply this variant to solve our previous polymatroid problem as follows: we initialize IP
+as the set of all elements i ∈ E that have r(i) = 0. If b · IP ∈/ P it is clear that the optimum is
+smaller than b. Assuming b · IP ∈ P we set I = ∅ and now extend IM ∪ IP one element at a time
+by calling the procedure above with B0 = {i} for some element i ∈ / IM ∪ IP . Each time IM and IP
+will be changed, but end up covering an additional element. Repeating this at most |E| times we
+either have a solution that covers all elements or some element i cannot be added, which certiﬁes
+that no solution exists with i covered by the matroid. In this case we alter the rank function to
+r(X) ← r(X − i), setting in particular r(i) ← 0. We then restart the whole procedure.
+    We will now describe how to solve this variant of the problem. First, we assume without loss of
+generality that IM ∪ IP ∪ B0 = E by simply dropping irrelevant elements from the input. As stated
+above, we want to add many elements of B0 to IM . In the trivial case that r(B0 | IM ) ≥ ǫ2 |B0 |,
+
+
+                                                 14
+we add greedily as many elements of B0 as possible to IM (while maintaining IM ∈ I), which will
+result in |IM ∩ B0 | ≥ ǫ2 |B0 |, and we terminate successfully. Otherwise, we will have to remove
+elements from IM before we can add suﬃciently many elements of B0 to IM . To this end, we will
+carefully construct a set of addable elements A ⊆ IM , where the notion has historical reasons and
+comes from the idea that we want to “add” A to IP . The procedure for creating A is deferred to
+later and here we summarize only its important properties. The existence of A will be guaranteed
+by the algorithm. Along with A we also create the set C with A ⊆ C ⊆ IM , which contains more
+elements of IM that are relevant for adding B0 to IM (but not all of them could be added to A).
+The relevant properties of A and C are as follows.
+  1. It holds that 2b · A ∈ P, which means that in principle A could be added to IP (and removed
+     from IM ). Note that this does not take into account potential conﬂicts with other elements
+     currently in IP . Also remark that we are intentionally overprovisioning here, by using 2b
+     instead of b.
+
+  2. Set A is maximal within C regarding the previous property. More speciﬁcally, f (i | 2b·A) < 2b
+     for all i ∈ C \ A.
+
+  3. If we remove many elements of A from IM , we are able to add many elements of B0 to IM .
+     Speciﬁcally, we require that for every R ⊆ A with |R| ≥ ǫ|A| we have
+
+                                          r(B0 | IM \ R) ≥ ǫ2 |B0 | .
+
+      We note that while this property initially holds, only a weaker version is maintained as the
+      algorithm progresses. For more details see Lemma 28.
+
+  4. Set C should contain almost all elements that block elements of B0 from being added to IM .
+     Formally, r(B0 | C) ≤ 2ǫ|B0 |. In particular, a solution that covers many elements of B0 with
+     the matroid needs to cover a substantial amount of elements in C with the polymatroid.
+Our new goal is to move many elements of A to IP , which may not be possible immediately because
+of conﬂicting elements currently in IP . We ﬁrst characterize these elements: Deﬁne the blocking
+elements B as the set of all i ∈ IP such that f (i | b · (IP ∪ A − i)) < b. It is intuitively clear that
+elements not in B are not relevant to adding A: assume we remove some elements of IP and add
+some elements of A to it. Then afterwards all elements not in B can easily be added back to IP (if
+they were removed), since each of their marginal values will still be at least b.
+    When an element in A can be added to IP , we will not add it right away. Instead we will only
+place it in a set of immediately addable elements AI . Only when we have enough of these elements to
+successfully terminate, we will add them to IP . This is mainly for simplicity, i.e., to keep structures
+as static as possible during execution. We now repeatedly perform the ﬁrst possible operation from
+the following:
+  1. If f (i | b · (IP ∪ AI )) ≥ b (equivalently, b · (IP ∪ AI + i) ∈ P) for some i ∈ A \ AI , add i to AI .
+
+  2. If |AI | ≥ ǫ|A|, add AI to IP , remove it from IM , and greedily add as many elements of B0 as
+     possible to IM , in the order given by ≺. We can then terminate successfully (Lemma 28).
+
+  3. If |B| < ǫ|B0 |, return “failure”.
+
+  4. If none of the above applies, we will recurse on B, which means that we try to move many
+     elements of B to IM so that they can be removed from IP , hopefully allowing us to move
+     elements of A to AI . The details of the recursion follow towards the end of the section.
+
+                                                    15
+Construction of addable elements. We construct a series of disjoint sets A1 , A2 , . . . as follows:
+assume that A1 , A2 , . . . , Aℓ−1 have already been created. We initialize Aℓ = ∅. Then repeat the
+following until exhaustion: if there exists an i ∈ IM \(A1 ∪A2 ∪· · ·∪Aℓ ) with r(i | B0 ∪IM \Aℓ −i) = 0
+and
+                                   f (i | 2b · (A1 ∪ A2 ∪ · · · ∪ Aℓ )) ≥ 2b ,
+then we add i to Aℓ . If |Aℓ | < ǫ|B0 | we terminate with A = A1 ∪ A2 ∪ · · · ∪ Aℓ−1 . Otherwise, we
+continue with the next set. When the construction of A is ﬁnalized, we deﬁne
+
+                           C = B0 ∪ A ∪ {i ∈ IM \ A : f (i | 2b · A) < 2b} .
+
+Recursion. We will denote the input of the recursion using prime next to the symbol, e.g. E ′ ,
+B0′ , etc. The goal of the recursion is to move many elements of B to IM . On the other hand,
+we want to keep our structures within B0 , A, and C largely intact. To this end, we ﬁrst contract
+C from the matroid, which means that the recursion cannot remove elements of C from IM . It
+may not be intuitively clear why this would be bad for us, but removing many elements of C does
+not necessarily allows us to add many elements of B0 (comparable to Property 3 of the set A) for
+arbitrary elements of C. In any case, we want to avoid the complications related to such changes
+in C. Hence, we set
+
+                                        E′ = E \ C ,
+                                        ′
+                                       IM = IM \ C , and
+                                    r ′ (X) = r(X | C) ∀X ⊆ E ′
+
+which deﬁnes a new matroid M′ = (E ′ , I ′ ). Regarding the polymatroid, we remove B from IP so
+as to produce an input where sets B0′ , IM
+                                         ′ , and I ′ are disjoint. However, by contracting b · B from
+                                                  P
+the polymatroid we make sure that we can add it back to the modiﬁed solution after the recursion
+has returned (at least for those elements that were not moved into IM ). Furthermore, we want to
+avoid that the recursion moves elements to IP that hinder A from being added to the polymatroid.
+Hence, we contract b · A as well. This is achieved by setting
+
+                                  IP′ = IP \ B and
+                               f ′ (X) = f (X | b · (A ∪ B)) ∀X ⊆ E ′ .
+
+From f ′ we obtain the new polymatroid P ′ . Finally, we deﬁne
+
+                                             B0′ = B0 ∪ B
+
+and extend ≺ by giving all elements of B lower priority than B0 . Intuitively, it does not hurt us to
+include B0 in B0′ . If the recursion manages to move elements to B0 , this is only good for us. We
+prove in Lemma 30 that this indeed forms a valid input of the problem. If the recursive call returns
+                                                                          ′′ and I ′′ be the output of
+failure, we return failure as well. Otherwise, we update as follows. Let IM       P
+the recursion. First, we add back the previously removed C:
+                                                     ′′
+                                           IM ← C ∪ IM  .
+
+As for IP , we want to add back B except for those elements that were covered with the matroid in
+the recursive call. Thus,
+                                                  ′′
+                                      IP ← (B \ IM   ) ∪ IP′′ .
+
+
+                                                  16
+In Lemma 29 we show that the new IM , IP constitute again a feasible solution. If the returned set IM   ′′
+               ′′ | ≥ ǫ2 |B | we terminate successfully. Otherwise, it must hold that |B ∩I ′′ | ≥ ǫ2 |B|,
+satisﬁes |B0 ∩IM           0                                                                M
+which intuitively means we made big progress in freeing B and is used in the running time analysis.
+Since IP has changed, B may no longer correspond to its initial deﬁnition. Hence, we update B to
+again reﬂect the set of all i ∈ IP with f (i | b · (IP ∪ A − i)) < b according to the new set IP .
+
+
+5    Final remarks
+For the two notorious open problems in scheduling theory, we prove Makespan to be at least as diﬃ-
+cult as SantaClaus; more precisely, a better-than-2 approximation for Makespan would imply an
+O(1)-approximation for SantaClaus. In the two-value case both problems appear equivalent w.r.t.
+approximability. The obvious open question is whether there is also a Makespan-to-SantaClaus
+reduction (for restricted assignment or the general case). Here we note that for restricted assignment
+Makespan, all eﬀorts to reﬁne the local search method in order to give a better-than-2 approxi-
+mation have failed so far. Also with our new reduction techniques it seems that it would require
+additional ideas to handle this problem. By the reductions, our local search method generalizes all
+previously known polynomial-time local search results for the two problems (up to constants) and
+yields the ﬁrst approximation algorithm for a new matroid SantaClaus variant, where items are
+allocated to the basis of a (poly-)matroid. We hope that this makes it clearer where the power and
+limitations of the method are.
+    Finally, we comment on an alternative matroid scheduling variant with matroid constraints on
+the items allocated to a speciﬁc machine/player. In the machine-matroid Makespan problem,
+each machine would be given a matroid on the jobs. All jobs must be assigned such that each
+machine receives an independent set of its matroid. The player-matroid SantaClaus can be
+deﬁned similarly.
+    Kawase et al. [22] consider such matroid partition problems for various objective functions show-
+ing complexity results. Further, two special-matroid examples for Makespan have been studied,
+namely, bag-constrained scheduling [13, 16] (single partition matroid) and scheduling with capacity
+constraints [10] (uniform matroids). The approximability lower bound Ω((log n)1/4 ) by [13] holds
+for the restricted assignment setting and even translates to an inapproximability bound for machine-
+matroid Makespan for identical machines with machine-dependent matroids. We are not aware of
+any similarly strong lower bounds for the SantaClaus variant.
+
+
+References
+ [1] Chidambaram Annamalai. Lazy local search meets machine scheduling. SIAM Journal on
+     Computing, 48(5):1503–1543, 2019.
+ [2] Chidambaram Annamalai, Christos Kalaitzis, and Ola Svensson. Combinatorial algorithm for
+     restricted max-min fair allocation. ACM Transactions on Algorithms, 13(3):1–28, 2017.
+ [3] Arash Asadpour, Uriel Feige, and Amin Saberi. Santa claus meets hypergraph matchings.
+     ACM Transactions on Algorithms, 8(3):24:1–24:9, 2012.
+ [4] Etienne Bamas and Lars Rohwedder. Better trees for santa claus. In Proceedings of STOC,
+     2023.
+ [5] Nikhil Bansal. Scheduling: Open problems old and new, 2017. Invited Presentation at MAPSP
+     2017, Kloster Seeon, Germany.
+
+                                                   17
+ [6] Nikhil Bansal and Maxim Sviridenko. The santa claus problem. In Proceedings of STOC, pages
+     31–40, 2006.
+
+ [7] Ivona Bezáková and Varsha Dani. Allocating indivisible goods. ACM SIGecom Exchanges,
+     5(3):11–18, 2005.
+
+ [8] Deeparnab Chakrabarty, Julia Chuzhoy, and Sanjeev Khanna. On allocating goods to maximize
+     fairness. In Proceedings of FOCS, pages 107–116, 2009.
+
+ [9] Deeparnab Chakrabarty, Sanjeev Khanna, and Shi Li. On (1,ǫ)-restricted assignment makespan
+     minimization. In Proceedings of SODA, pages 1087–1101, 2014.
+
+[10] Lin Chen, Klaus Jansen, Wenchang Luo, and Guochuan Zhang. An eﬃcient PTAS for paral-
+     lel machine scheduling with capacity constraints. In Proceedings of COCOA, pages 608–623.
+     Springer, 2016.
+
+[11] Siu-Wing Cheng and Yuchen Mao. Restricted max-min fair allocation. In Proceedings of
+     ICALP, volume 107, pages 37:1–37:13, 2018.
+
+[12] Siu-Wing Cheng and Yuchen Mao. Restricted max-min allocation: Approximation and inte-
+     grality gap. In Proceedings of ICALP, pages 38:1–38:13, 2019.
+
+[13] Syamantak Das and Andreas Wiese. On minimizing the makespan when some jobs cannot be
+     assigned on the same machine. In Proceedings of ESA, pages 31:1–31:14, 2017.
+
+[14] Sami Davies, Thomas Rothvoss, and Yihao Zhang. A tale of santa claus, hypergraphs and
+     matroids. In Proceedings of SODA, pages 2748–2757, 2020.
+
+[15] Uriel Feige. On allocations that maximize fairness. In Proceedings of SODA, pages 287–293,
+     2008.
+
+[16] Kilian Grage, Klaus Jansen, and Kim-Manuel Klein. An EPTAS for machine scheduling with
+     bag-constraints. In Proceedings of SPAA, pages 135–144, 2019.
+
+[17] Bernhard Haeupler, Barna Saha, and Aravind Srinivasan. New constructive aspects of the
+     lovász local lemma. Journal of the ACM, 58(6):28:1–28:28, 2011.
+
+[18] Penny Haxell and Tibor Szabó. Improved integrality gap in max-min allocation: or topology
+     at the north pole. In Proceedings of SODA, pages 2875–2897, 2023.
+
+[19] Penny E Haxell. A condition for matchability in hypergraphs. Graphs and Combinatorics,
+     11(3):245–248, 1995.
+
+[20] Dorit S. Hochbaum and David B. Shmoys. Using dual approximation algorithms for scheduling
+     problems theoretical and practical results. J. ACM, 34(1):144–162, 1987.
+
+[21] Klaus Jansen and Lars Rohwedder. A quasi-polynomial approximation for the restricted as-
+     signment problem. SIAM Journal on Computing, 49(6):1083–1108, 2020.
+
+[22] Yasushi Kawase, Kei Kimura, Kazuhisa Makino, and Hanna Sumita. Optimal matroid parti-
+     tioning problems. Algorithmica, 83(6):1653–1676, 2021.
+
+[23] Donald Ervin Knuth. Matroid partitioning. Computer Science Department, Stanford University,
+     1973.
+
+                                              18
+[24] Jan Karel Lenstra, David B Shmoys, and Éva Tardos. Approximation algorithms for scheduling
+     unrelated parallel machines. Mathematical programming, 46(1):259–271, 1990.
+
+[25] Lukáš Poláček and Ola Svensson. Quasi-polynomial local search for restricted max-min fair
+     allocation. ACM Transactions on Algorithms, 12(2):1–13, 2015.
+
+[26] Alexander Schrijver. Combinatorial Optimization − Polyhedra and Efficiency. Springer, 2003.
+
+[27] Petra Schuurman and Gerhard J. Woeginger. Polynomial time approximation algorithms for
+     machine scheduling: Ten open problems. Journal of Scheduling, 2(5):203–213, 1999.
+
+[28] Evgeny V. Shchepin and Nodari Vakhania. An optimal rounding gives a better approximation
+     for scheduling unrelated machines. Oper. Res. Lett., 33(2):127–133, 2005.
+
+[29] David B. Shmoys and Éva Tardos. An approximation algorithm for the generalized assignment
+     problem. Math. Program., 62:461–474, 1993.
+
+[30] Ola Svensson. Santa claus schedules jobs on unrelated machines. SIAM Journal on Computing,
+     41(5):1318, 2012.
+
+[31] David P. Williamson and David B. Shmoys. The Design of Approximation Algorithms. Cam-
+     bridge University Press, 2011.
+
+[32] Gerhard J. Woeginger. Open problems in the theory of scheduling. Bull. EATCS, 76:67–83,
+     2002.
+
+
+A     Definitions and notation
+Proposition 9. For any α ≥ 1, if there exists a polynomial-time α-approximation algorithm for re-
+stricted job-matroid Makespan (resource-matroid SantaClaus) with h jobs (resources), then there
+exists a polynomial-time α-approximation algorithm for restricted job-matroid Makespan (resource-
+matroid SantaClaus) with pj resp. vj ∈ {w1 , . . . , wh } and w1 , . . . , wh ≥ 0.
+
+Proof. In the following, we use the notation [h] := {1, . . . , h}. Let I be an instance of the restricted
+job-matroid Makespan problem with machines E and h distinct processing times p1 , . . . , ph . Let
+Jℓ , ℓ ∈ [h], denote the set of jobs with processing times pℓ . Further, let Pjℓ with ℓ ∈ [h] and j ∈ Jℓ
+denote the corresponding polymatroids over E and let fjℓ be the associated submodular function.
+     We construct an instance I ′ of the restricted job-matroid Makespan problem with h jobs by
+using the same set of machines      PE andℓ creating the polymatroids Pℓ for ℓ ∈ [h] withPthe montone
+submodular function fℓ (S) = j∈Jℓ fj (S) for every subset S ⊆ E. Note that Pℓ =P j∈Jℓ Pjℓ [26].
+For ℓ ∈ [h], the goal in instance I ′ is to ﬁnd vectors xℓ ∈ B(Pℓ ) such that maxe∈E ℓ∈[h] pℓ · xℓ (e)
+is minimized. We prove that this reduction preserves the approximation factor.
+     Consider a solution of instance I that selects the bases xℓj for job j ∈ Jℓ with ℓ ∈ [h] and consider
+the vectors x′ℓ with x′ℓ (e) = j∈Jℓ xℓj (e) for all e ∈ E. Using again the fact that Pℓ = j∈Jℓ Pjℓ we
+                               P                                                                     P
+
+have x′ℓ ∈ Pℓ for all ℓ ∈ [h]. In particular, x′ℓ (E) = e∈E j∈Jℓ xℓj (e) = j∈Jℓ fjℓ (E) = fℓ (E), so
+                                                                  P     P                  P
+x′ℓ is a basis of Pℓ . Thus, (x′1 , . . . , x′h ) is a feasible solution for instance I ′ . Furthermore,
+                                    X                            XX
+                 OPT(I ′ ) ≤ max            x′ℓ (e) · pℓ = max                xℓj (e) · pℓ = OPT(I).
+                              e∈E                        e∈E
+                                    ℓ∈[h]                        ℓ∈[h] j∈Jℓ
+
+
+
+
+                                                        19
+    Consider some solution (y1′ , . . . , yh′ ) to instance I ′ , i.e., yℓ′ ∈ B(Pℓ ) and fℓ (E) = yℓ′ (E) for all
+ℓ ∈ [h]. We construct a solution to I by decomposing each yℓ′ , ℓ ∈ [h], into bases yjℓ ∈ B(Pjℓ ) such
+that yℓ′ (e) = j∈Jℓ yjℓ (e) holds for all e ∈ E. As OPT(I ′ ) ≤ OPT(I), this implies that the reduction
+              P
+preserves the approximation factor. If such decomposition would not exist for some ℓ ∈ [h], then, by
+construction of the submodular function fℓ , we would arrive at a contradiction to fℓ (E) = yℓ′ (E).
+    To ﬁnd the decomposition for an ℓ ∈ [h] in polynomial time, consider the polymatroids P̂jℓ
+which are just copies of the original polymatroids Pjℓ on pairwise disjoint copies Êj of the ground
+set E. For each ℓ ∈ [h], we decompose the solution yℓ′ of instance I ′ into bases of the copy
+polymatroids, which then implies a decomposition into bases of the original polymatroids. For
+each e ∈ E, let Ce denote the set of copies P         of e introduced by the ground set copies. We want
+to ﬁnd a basis ŷjℓ for every j ∈ Jℓ such that ê∈Ce ŷjℓ (ê) = yℓ′ (e) holds for all e ∈ E and ℓ ∈ [h].
+For an element e ∈ E and ℓ ∈ [h], consider the polymatroid Xeℓ on the ground set Ce implied
+by bases B(Xeℓ ) = {x ∈ ZC                       ′                 ℓ
+                             ≥0 : x(Ce ) = yℓ (e)} and let X denote the union of these polymatroids.
+                              e
+
+
+Furthermore, let P̂ ℓ denote the union of the polymatroids P̂jℓ . The largest element in the intersection
+of X ℓ and P̂ ℓ gives us the decomposition. We can compute the largest element in the intersection
+in polynomial time using algorithms for polymatroid intersection (cf. e.g. [26, Chapter 41]).
+    The statement for resource-matroid SantaClaus can be shown with the same reduction and
+proof; only the inequality OPT(I ′ ) ≤ OPT(I) trivially changes to OPT(I ′ ) ≥ OPT(I).
+
+
+B      Santa Claus with polynomially many configurations
+Lemma 11. For every ǫ > 0 and a given instance I of SantaClaus with OPT(I) ≥ 1, we
+can construct a rounded instance I ′ with a collection of configurations C such that the number of
+configurations for each player is polynomial in the input size of I and OPTC (I ′ ) ≥ 1/(1 + ǫ).
+   Further, every solution for I ′ of objective value T is a solution for I with objective value at least
+T.
+
+Proof. Let ǫ > 0 be a suﬃciently small constant and κ = ⌈1/ǫ3 ⌉. Given a SantaClaus instance I
+with the set P of m players, the set R of n resources and OPT(I) ≥ 1, we construct the SantaClaus
+instance I ′ by executing the following steps.
+
+    1. Use the same set of players and resources as in I.
+
+    2. Round all resource values vij down to the closest power of 1/(1 + ǫ). That is, we round
+       1/(1 + ǫ)ℓ−1 ≥ vij ≥ 1/(1 + ǫ)ℓ to v̄ij = 1/(1 + ǫ)ℓ . If vij ≥ 1, then we set v̄ij = 1.
+       Furthermore, we round all vij with vij < 1/((1 + ǫ)n) to zero. In summary, each v̄ ∈ T is
+       either a power of 1/(1 + ǫ) of value at least 1/((1 + ǫ)n) or 0.
+
+    Next, we construct the conﬁgurations for the rounded instance I ′ by executing the following
+steps. Since these steps will reduce the number of possible conﬁgurations per player to a polynomial,
+an algorithm creating the conﬁgurations can just compute them via enumeration.
+
+    3. For each player i ∈ P , we create the set Ci of conﬁgurations and restrict the set to con-
+       ﬁgurations c such that, for every value type v̄ ∈ T , either c(v̄) = 0, c(v̄) = ⌈(1 + ǫ)ℓ ⌉ or
+       c(v̄) = ⌊(1 + ǫ)ℓ ⌋ for some ℓ ∈ N0 with (1 + ǫ)ℓ ≤ n.
+
+    4. Let v̄1 ≥ . . . ≥ v̄τ be the rounded value types in T . We partition T into κ value classes
+       T1 , . . . , Tκ where Tℓ = {v̄ℓ+s·κ : s = 0, 1, . . .}. We further restrict the set of conﬁgurations Ci
+
+
+                                                       20
+      for a player i ∈ P to conﬁgurations c which satisfy for every 1 ≤ ℓ ≤ κ and for every v̄, v̄ ′ ∈ Tℓ
+      with v̄ > v̄ ′ that either c(v̄) < c(v̄ ′ ) or c(v̄) = 0 or c(v̄ ′ ) = 0. That is, the function values of
+      value types v̄ ∈ Tℓ of one value class that actually occur in a conﬁguration (i.e., have c(v̄) > 0)
+      increase with decreasing value v̄ ∈ Tℓ .
+
+    We ﬁrst argue that, for each player i, the number of conﬁgurations in Ci is polynomial in the
+input size. Because of the second step, the number of value types in I ′ is in Oǫ (log n). By the third
+step, the number of distinct function values c(v̄) over all conﬁgurations c ∈ Ci and all value types
+v̄ ∈ T is in Oǫ (log n) as well.
+    By step 4, we can represent the entries of c ∈ Ci which correspond to the same value class Tℓ in
+terms of a vector with Oǫ (log n) entries such that all non-zero entries strictly increase in value (each
+entry of the vector corresponds to a value type v̄ ∈ Tℓ , in decreasing order, and the entry values
+represent the corresponding function values c(v̄)). We can represent such a vector by the set of
+entries that have a non-zero value and by the set of non-zero values that occur in the vector. Since
+there are at most 2Oǫ (log n) diﬀerent sets of non-zero values that can occur in the vector and at most
+2Oǫ (log n) diﬀerent sets of non-zero entries, the number of such vectors is 2Oǫ (log n) ·2Oǫ (log n) ⊆ nOǫ (1) .
+Since the total number of value classes is constant, and there is a simple rule to compose the vectors
+of every class to a vector for all value types T , the total number of vectors which represent every
+valid conﬁguration is polynomial in the size of I.
+    Next, we prove the approximation factor. Let I ′ denote the rounded instance constructed by the
+ﬁrst two steps. Furthermore, let C ′ denote the collection of conﬁgurations that is created by only
+executing the third step of the construction and let C denote the ﬁnal collection of conﬁgurations.
+We separately prove OPTC ′ (I ′ ) ≥ 1/(1 + ǫ)3 and OPTC (I ′ ) ≥ OPTC ′ (I ′ )/(1 + ǫ). Together, these
+inequalities imply OPTC (I ′ ) ≥ 1/(1 + ǫ)4 . Then, for any suﬃciently small ǫ′ > 0, we can choose
+ǫ = ǫ′ /5 and conclude OPTC (I ′ ) ≥ 1/(1 + ǫ′ ).
+    We ﬁrst show OPTC ′ (I ′ ) ≥ 1/(1 + ǫ)3 . Consider some optimal solution for I. For a player i, let
+Ai denote the resources that are assigned to i in the optimal solution. Clearly v(Ai ) ≥ 1. Discarding
+all resources in Ai with value smaller than 1/((1 + ǫ)n) reduces the value of Ai by a factor of at
+most 1 + ǫ. Rounding the remaining resource values down to powers of 1 + ǫ reduces the value by
+another factor of 1 + ǫ. To make sure that the remaining resources in Ai with their rounded values
+match a conﬁguration in Ci′ , we might have to remove a 1 + ǫ fraction of the resources for each value
+type from Ai . This reduces the value of Ai by another factor of 1 + ǫ. The remaining value is at
+least 1/(1 + ǫ)3 . By doing this for every player i, we obtain a solution to I ′ that matches C ′ with
+an objective value of at least 1/(1 + ǫ)3 , which implies OPTC ′ (I ′ ) ≥ 1/(1 + ǫ)3 .
+    Finally, we prove OPTC (I ′ ) ≥ OPTC ′ (I ′ )/(1 + ǫ). To that end, ﬁx an optimal solution for I ′
+among those solutions that match C ′ . Consider some player i and let c′i denote the conﬁguration
+that is selected for player i in the optimal solution for I ′ . We argue that we can ﬁnd a conﬁguration
+ci ∈ Ci that
+
+  (i) has a total value that is at least a 1/(1 + ǫ) fraction of the value of c′i and
+
+ (ii) satisﬁes ci (v̄) ≤ c′i (v̄) for all v̄ ∈ T .
+
+This gives us a feasible solution for I ′ that matches C and has an objective value of at least
+OPTC ′ (I ′ )/(1 + ǫ) and, thus, proves the statement.
+   We start by building a conﬁguration ci independently for every value class Tℓ .
+   First, we iteratively construct a subset Sℓ ⊆ Tℓ of value types as follows.
+   Start with the largest v̄ ∈ Tℓ such that c′i (v̄) > 0 and add v̄ to Sℓ . Then, ﬁnd the largest v̄ ′ ∈ Tℓ
+with v̄ > v̄ ′ and c′i (v̄) < c′i (v̄ ′ ). Add v̄ ′ to Sℓ and repeat from v̄ ′ until we do not ﬁnd another value
+
+                                                       21
+type to add. Based on Sℓ , deﬁne conﬁguration ci as ci (v̄) = c′i (v̄) if v̄ ∈ Sℓ and ci (v̄) = 0 otherwise.
+By choice of the sets Sℓ , the conﬁguration ci is contained in Ci and satisﬁes (ii).
+    It remains to prove that ci also satisﬁes (i). Fix an arbitrary value type v̄j ∈ Sℓ and let v̄j ′ denote
+the next smaller value type in Sℓ . Recall that the rounded value types are indexed in decreasing
+order and let s be the integer such that j ′ = j + κ · (s + 1). If v̄j is already the smallest value type
+in Sℓ , we set s to the largest integer such that ℓ + κ · s ≤ τ .
+    We show
+                                                       s
+                                                  1   X
+                               ci (v̄j ) · v̄j ≥    ·    c′i (v̄j+s′ ·κ ) · v̄j+s′ ·κ .                  (2)
+                                                 1+ǫ ′
+                                                                       s =0
+If this inequality holds for all v̄j ∈ Sℓ , and for all 1 ≤ ℓ ≤ τ , then (ii) follows.
+      To prove the inequality, observe that, by choice of set Sℓ , all integers 0 ≤ s′ ≤ s satisfy
+                                                                      ′
+ci (v̄j+s′ ·κ ) ≤ c′i (v̄j ). Furthermore, v̄j+s′ ·κ = v̄j /(1 + ǫ)κ·s by the rounding of the value types.
+ ′
+
+This gives us
+               s                                                     s                                       s
+               X                                                     X                                       X           1
+                       c′i (v̄j+s′ ·κ ) · v̄j+s′ ·κ ≤ c′i (v̄j ) ·           v̄j+s′ ·κ = ci (v̄j ) · v̄j ·
+                                                                                                                     (1 + ǫ)κ·s
+                                                                                                                                ′
+               s′ =0                                                 s′ =0                                   s′ =0
+                                                                                                                     1
+                                                                                       ≤ ci (v̄j ) · v̄j ·         1                (3)
+                                                                                                             1 − (1+ǫ)κ
+
+
+    By further using
+                                               ln(1 + 1ǫ )
+                                                                                                                    
+                             1+ǫ 1     1                                                                     1+ǫ
+                           κ≥ 2 ≥ ·          ≥             = log1+ǫ                                                      ,
+                              ǫ  ǫ ln(1 + ǫ)   ln(1 + ǫ)                                                      ǫ
+it is not hard to see that (3) is at most ci (v̄j ) · v̄j · (1 + ǫ), and thus, implies (2). This concludes the
+proof of OPTC (I ′ ) ≥ OPTC ′ (I ′ )/(1 + ǫ).
+
+
+C     Approximation equivalence for the unrelated two-value case
+We consider the two-value SantaClaus and Makespan variants, where all resource values and
+job sizes are in {u, w, 0} and {u, w, ∞}, respectively, with u, w ≥ 0. Assume w.l.o.g. that u ≤ w.
+We prove the following theorem.
+Theorem 2. For any α ≥ 2, there exists an α-approximation algorithm for two-value SantaClaus
+if and only if there exists a (2 − 1/α)-approximation algorithm for two-value Makespan.
+    To prove this theorem we prove two lemmas (Lemma 17 and Lemma 20) in the following sub-
+sections, one for each direction. Then, a standard binary search argument completes the proof.
+
+C.1    Makespan to Santa Claus
+Lemma 17. Let I be an instance of the two-value Makespan problem with OPT(I) ≤ 1. For any
+α ≥ 2, we can construct in polynomial time an instance I ′ of two-value SantaClaus such that,
+given an α-approximate solution for I ′ , we can compute in polynomial time a solution for I with an
+objective value of at most 2 − 1/α.
+    Fix an instance I of the two-value Makespan problem with OPT(I) ≤ 1. First, we observe that
+we can w.l.o.g. assume that w > OPT(I)/2. Otherwise, the algorithm by [24] gives us a solution of
+objective value at most OPT(I) + w ≤ 3/2 · OPT(I). Since α ≥ 2, this solution satisﬁes the lemma
+for every possible α. Thus, in the following we assume w > OPT(I)/2.
+
+                                                                       22
+                                                                                                qi
+
+                                                        w          u                w                 u
+                                                 ri′                                                            riℓ
+                                   i
+                     b
+              u               u                                                                           w
+        b
+                    w    u
+                                       j                                                                  q̂j
+
+
+    (a) Two-value Makespan instance I.                      (b) Two-value SantaClaus instance I ′ .
+
+                              Figure 3: The construction used in Lemma 17.
+
+
+Construction. We construct an instance I ′ of the two-value SantaClaus problem. Let k =
+min{⌊1/u⌋, n}, where n is the number of jobs in I. That is, k denotes the maximal number of small
+jobs that can be assigned to a single machine in an optimal solution with OPT(I) ≤ 1. By our
+assumption on the size w, we have that at most one big job can be placed on a single machine.
+     For every machine i we introduce a machine-player qi , one (large) resource ri , and k (small)
+resources ri1 , . . . , rik . The value of the large resource ri for player qi is equal to w, the value of a
+small resource riℓ for player qi is equal to u.
+     For every job j, we introduce a job-player q̂j . Furthermore, for every machine i, we set the value
+of resource ri for q̂j to w if pij = w and to 0 otherwise. For a small resource riℓ we set the value for
+q̂j to w if pij = u and to 0 otherwise.
+     Note that in I ′ , every machine-player qi has only values in {0, u, w}, and every job-player q̂j has
+only values in {0, w}. Thus, I ′ is a two-value SantaClaus instance. Further, for every machine
+the number of introduced resources is at most the total number of jobs in I, asserting that I ′ is of
+polynomial size. An illustration of this construction is depicted in Figure 3.
+     Let t = w + k · u − 1 and note that t ≤ 1 holds by construction. Also, observe that
+
+                                  t = w + k · u − 1 ≤ w + k · u − k · u = w,
+
+which implies w ≥ t. We ﬁrst prove the following lemma.
+Lemma 18. OPT(I ′ ) ≥ t.
+Proof. Fix an optimal solution of I and recall that we assume OPT(I) ≤ 1. In the following we
+construct a solution for I ′ .
+    Fix a machine i of instance I. If the given solution assigns a job j of size w to i, we assign
+resource ri to job-player q̂j . If the given solution assigns a job j of size u to machine i, we assign an
+arbitrary unassigned small resource riℓ to job-player q̂j . All yet unassigned resources are assigned
+to their corresponding machine-players.
+    We continue by separately proving that each player in instance I ′ receives a value of at least t,
+which implies the lemma.
+    First, consider the job-players. Since every job j is assigned to exactly one machine in I, the
+job-player q̂j receives exactly one resource in the constructed solution for I ′ . These resources have
+value w for those players, giving them a suﬃciently large value of w ≥ t.
+    Next, we consider the machine-players. Fix a machine i. By our assumption that OPT(I) ≤ 1,
+every machine i receives jobs of total size at most 1 in the solution for instance I. For our constructed
+
+                                                       23
+                                                                  ≤ (1 + t) − αt − w
+                                                                                                       ≥ αt
+
+             w
+                          ≤ (1 + t) − αt − w                                           w
+
+
+
+
+  (a) (2 − 1/α)-approximation in instance I.                  (b) α-approximation in instance I ′ .
+
+     Figure 4: Visualization of the argument for translating approximate solutions used in Lemma 19.
+
+
+solution to instance I ′ , this means that the                             1            k
+                                            P subset Ni of resources ri , ri , . . . , ri that are not assigned
+to machine-player qi satisﬁes vi (Ni ) = r∈Ni vr,qi ≤ 1. This implies that the value assigned to
+machine-player i is a least
+
+                                  w + k · u − vi (Ni ) ≥ w + k · u − 1 = t,
+
+which implies OPT(I ′ ) ≥ t.
+
+Lemma 19. For any α ≥ 2, given an α-approximate solution for I ′ , we can construct in polynomial
+time a solution for I where every machine has a makespan of at most 2 − 1/α.
+
+Proof. Consider an α-approximate solution for instance I ′ . Such a solution must assign resources
+of value at least OPT(I ′ )/α to each player. By the previous lemma, OPT(I ′ )/α ≥ t/α.
+    Clearly, in the given solution for I ′ every job-player q̂j receives at least one resource, as otherwise
+the objective value would be zero. We modify the given solution in a way such that each job-player
+receives exactly one resource. If a job-player receives more than one resource, we select an arbitrary
+resource and reassign all other resources to their corresponding machine-players. Now, we can
+construct a solution for I ′ as follows. If a resource belonging to machine i has been assigned to a
+job-player q̂j , we assign job j to machine i. By the above assumption this assignment is well-deﬁned.
+    It remains to argue about the load of every machine in I. Thus, ﬁx a machine i. In the solution
+to instance I ′ , the corresponding machine-player receives resources of value at least t/α. This means
+that the subset Ni of resources ri , ri1 , . . . , rik that are not assigned to machine-player qi satisﬁes
+                                                            t      t
+                                   vi (Ni ) ≤ w + k · u −     =1+t− .
+                                                            α      α
+Since by construction t ≤ 1, we have t − t/α ≤ 1 − 1/α, which implies vi (Ni ) ≤ 2 − 1/α. We
+conclude the proof by observing that, by construction, the makespan of machine i is exactly equal
+to vi (Ni ) ≤ 2 − 1/α.
+
+
+    A visualization of the argument used in Lemma 19 is given in Figure 4.
+
+
+
+
+                                                      24
+C.2    Santa Claus to makespan
+Lemma 20. Let I be an instance of the two-value SantaClaus problem with OPT(I) ≥ 1. For
+any α ≥ 2, we can construct in polynomial time an instance I ′ of two-value Makespan such that,
+given an (2 − 1/α)-approximate solution for I ′ , we can compute in polynomial time a solution for I
+with an objective value of at least 1/α.
+Proof. Let I be an instance of the two-value SantaClaus problem with OPT(I) ≥ 1 and vij ∈
+{0, u, w}. We assume w.l.o.g. that u ≤ w. We consider three exhaustive cases.
+    In the ﬁrst case we assume that w < OPT(I)/α. Then, we can use the algorithm of Bezakova
+and Dani [7] to compute in polynomial time a solution in which every player receives a total value
+of at least OPT(I) − vmax = OPT(I) − w > (1 − 1/α)OPT(I) ≥ OPT(I)/α, using α ≥ 2.
+    In the second case we assume that w ≥ OPT(I)/α and that there is an optimal solution for I
+in which every player i receives a resource j of value vij = w. Then, we can essentially set u to
+0 and compute a solution where every player receives a resource of value w by solving a bipartite
+matching problem. Since every player receives a value of at least w ≥ OPT(I)/α ≥ 1/α, we are
+done.
+    In the last case we assume that w ≥ OPT(I)/α and that in every optimal solution for I there
+is some player i which does not receive a resource j of value vij = w. We can conclude that such
+a player must receive at least b = ⌈1/u⌉ many resources j ′ for which she has a value of vij ′ = u,
+because OPT(I) ≥ 1. Then, we construct a new instance I ′ by copying I and adjusting the resource
+values to w′ = 1 and u′ = 1/b. Observe that OPT(I ′ ) ≥ 1 and that any solution for I ′ in which a
+player either receives a resource of value 1 or b resources of value 1/b gives an objective value of at
+least 1. We can therefore deﬁne a collection of conﬁgurations C in which every player has these two
+conﬁgurations. Then, we can use Lemma 12 (by noting that in the constructed Makespan instance
+every job has either size 1 or 1/b) to compute a solution for I ′ in which every player receives a total
+value of at least 1/α. Since u ≥ u′ and w ≥ OPT(I)/α, this means that we can use the same
+solution for instance I and guarantee that every player receives a total value of at least 1/α.
+
+
+D     Reductions for matroid allocation problems
+Lemma 16. Let α ≥ 2 and I an instance of the restricted resource-matroid SantaClaus problem
+with two resources and OPT(I) ≥ 1. Then we can compute an instance I ′ of the restricted job-
+matroid Makespan problem with two jobs, such that, given a (2 − 1/α)-approximate solution for I ′ ,
+we can compute a solution for I with an objective value of at least 1/α.
+Proof. Let I be an instance of the restricted resource-matroid SantaClaus problem with two re-
+sources with associated polymatroids P1 , P2 and values v1 , v2 ≥ 0 such that OPT(I) ≥ 1. By
+Lemma 22 we can assume that we are given a simpliﬁed case. For convenience, we slightly refor-
+mulate it as follows: given v1 = 1 (instead of ∞), v2 = 1/b ≤ v1 (instead of 1) for b ∈ N, and
+OPT(I) ≥ 1, ﬁnd a solution of value at least 1/α.
+   Consider the polymatroids P1′ = {x ∈ P1 : x(e) ≤ 1 ∀e ∈ E} and P2′ = {x ∈ P2 : x(e) ≤ b ∀e ∈
+E}. Let P 1 be the dual polymatroid of P1′ with respect to the vector 1 · E, and let P 2 be the
+dual polymatroid of P2′ with respect to the vector b · E. We compose an instance I ′ of job-matroid
+Makespan using machines E, one job of size p1 = 1 with polymatroid P 1 and one job of size
+p2 = 1/b with polymatroid P 2 .
+   We now show that OPT(I ′ ) ≤ 1. Fix an optimal solution for I which selects bases x1 ∈ B(P1 )
+and x2 ∈ B(P2 ). Since OPT(I) ≥ 1, we have v1 · x1 (e) + v2 · x2 (e) ≥ 1 for every e ∈ E. Further
+observe that our choice of b implies x1 (e) + (1/b) · x2 (e) ≥ 1. Our goal is to dualize bases of P1′
+
+                                                  25
+and P2′ to obtain bases of P 1 and P 2 , which are feasible for I ′ . To this end, we ﬁrst construct
+vectors x′1 ∈ P1′ and x′2 ∈ P2′ such that x′1 (e) + (1/b) · x′2 (e) ≥ 1 for all e ∈ E. This can be done
+by restricting x1 to values of at most 1 and x2 to values of at most b, and then selecting any bases
+which dominate these intermediate vectors. Now, we deﬁne x1 (e) = 1 − x′1 (e) and x2 (e) = b − x′2 (e)
+for all e ∈ E. By the construction of P 1 and P 2 , this solution is feasible for I ′ , i.e., xj ∈ B(P j ) for
+j ∈ {1, 2}. We further have for every machine e ∈ E
+                                                                        
+                                   1                   ′         1 ′
+                          x1 (e) + · x2 (e) = 2 − x1 (e) + · x2 (e) ≤ 1,
+                                   b                             b
+
+showing that OPT(I ′ ) ≤ 1.
+    We ﬁnally prove the stated bound on the objective value of an approximate solution. Fix a
+(2 − 1/α)-approximate solution for I ′ which selects bases y 1 ∈ B(P 1 ) and y 2 ∈ B(P 2 ). We construct
+an approximate solution for I by deﬁning y1′ (e) = 1 − y 1 (e) and y2′ (e) = b − y 2 (e) for every e ∈ E,
+meaning that yj′ ∈ B(Pj′ ), and then choose an arbitrary basis yj ∈ B(Pj ) which dominates yj′ , for
+j ∈ {1, 2}. We have for every player e ∈ E
+                                                                                 
+           1            ′      1 ′                      1                         1                  1
+   y1 (e) + · y2 (e) ≥ y1 (e) + · y2 (e) = 2 − y 1 (e) + · y2 (e) ≥ 2 − 2 −            · OPT(I ′ ) ≥ .
+           b                   b                        b                         α                  α
+
+   Since v2 = 1/b and v1 = 1, we conclude v1 · y1 (e) + v2 · y2 (e) ≥ 1/α for every e ∈ E, which
+implies that the value of the constructed solution y1 and y2 is at least 1/α.
+
+
+E     Reduction from restricted matroid Santa Claus to two-value case
+Before proving the main result in this section, we start this section with a rounding theorem which
+can be obtained by a variant of standard arguments in the scheduling literature (see [29]). In this
+section, we will often refer to a standard relaxation of the problem, called the assignment LP. In this
+LP, we have one variable xj (i) for each pair job/resource j and player/machine i. In the restricted
+job-matroid Makespan problem, the relaxation can be written as follows.
+                                       X
+                                          xj (i) · pj ≤ T ∀i ∈ M
+                                       j∈J
+
+                                              xj ∈ B(Pj )     ∀j ∈ J
+                                                  x≥0,
+
+where T ≥ 0 is some given makespan bound. Similarly in the restricted resource-matroid Santa-
+Claus problem, the assignment LP becomes the following.
+                                 X
+                                    xj (i) · vj ≥ T ∀i ∈ P
+                                       j∈R
+
+                                              xj ∈ B(Pj )     ∀j ∈ R
+                                                   x≥0.
+
+Theorem 21. Given a fractional assignment x of resources to players which is feasible for the
+assignment LP (with parameter T ) of some an instance I of the restricted resource-matroid San-
+taClaus problem, we can obtain, in polynomial time, a feasible integral assignment of resources to
+players of value at least T − maxj∈R vj .
+
+
+                                                     26
+Proof. We assume w.l.o.g. that v1 ≥ v2 ≥ · · · ≥ vn and that vn = 0. We denote the polyma-
+troids associated to the resources as P1 , P2 , . . . , Pn , corresponding to the submodular functions
+f1 , f2 , . . . , fn . Given the fractional assignment x, we will create a feasible fractional solution x′ to a
+certain polymatroid intersection problem. We deﬁne the two polymatroids using a bipartite graph
+as follows. On the left-hand side, we have a set of vertices W with one vertex wj for each resource
+j, and on the right-hand side we have a set of vertices U with one vertex uij for each player i and
+resource j. The edge set will be denoted by E, and both polymatroids will have E as a ground set.
+We set E = {(wj , uij )}i∈P,j∈R ∪ {(wj , ui(j+1) )}i∈P,j∈R\{n} . For some edge e ∈ E, we denote by ew
+the resource corresponding to its left-hand side vertex, and by eu the player corresponding to its
+right-hand side endpoint. The ﬁrst polymatroid P1′ will be associated with the submodular function
+                                                                      
+                                                    n
+                                                    X         [
+                                          f1 (S) :=    fj          eu  .
+                                                j=1         e∈S:ew =j
+
+
+The second polymatroid P2′ will be deﬁned using the right-hand side vertices in our graph. Each
+vertex u ∈ U will have some degree constraint d(u) and the submodular function f2 is simply deﬁned
+as                                               X
+                                     f2 (S) :=          d(u) .
+                                                      e=(w,u)∈S
+
+We deﬁne the degree constraints using the following process for each player i in instance I. Let us
+ﬁx one player i. We start with
+                                       d(ui1 ) = ⌊x1 (i)⌋ ,
+and we deﬁne the remainder R1 := x1 (i) − d(ui1 ) (for ease of notation we deﬁne R0 = 0). Then we
+deﬁne recursively the degree constraint d(uij ) and remainders as follows.
+
+d(uij ) := ⌊Rj−1 + xj (i)⌋ , and
+    Rj := {Rj−1 + xj (i)} = Rj−1 + xj (i) − ⌊Rj−1 + xj (i)⌋ = Rj−1 + {xj (i)} − ⌊Rj−1 + {xj (i)}⌋ .
+
+By construction, it is clear that the fractional assignment x in instance I can be transformed into
+a feasible fractional solution to our polymatroid intersection problem. To see this, ﬁx a player i.
+Then the ﬁrst resource j = 1 can be assigned to vertex ui1 up to an extent of ⌊x1 (i)⌋, which is
+represented in our graph as taking ⌊x1 (i)⌋ copies of the edge (w1 , ui1 ). The remaining fraction of
+x1 (i) can be assigned to player i by taking the edge (w1 , ui2 ) fractionally by some amount {x1 (i)}.
+Then we move on to job j = 2, and we take the edge (w2 , ui2 ) by the maximal amount possible
+until the degree constraint on vertex ui2 becomes tight. By construction, we see that there might
+be some leftover of the value x2 (i) which is precisely equal to the number R2 in our construction.
+We continue this assignment until the last job j = n. Note that our deﬁnition of remainder Rs
+is precisely this small leftover of xj (i) that carries over to the edge going to vertex ui(j+1) (note
+that this remainder is always less than 1). There is one slight caveat at the end is that some small
+amount of the fractional assignment xn (i) might be thrown away, but as we will see, this does not
+hurt our purpose because we assume that vn = 0.
+    Note that this fractional solution to our polymatroid intersection problem makes all the degree
+constraints on the right-hand side tight. By integrality of the polymatroid intersection polytope (see
+Chapters 46-47 in [26]) there exists an integral solution which also makes all the degree constraints on
+the right-hand side tight (and we can ﬁnd it in polynomial time by ﬁnding the maximum cardinality
+multiset of edges which belongs to the polymatroids intersection).
+
+
+                                                       27
+    It is easy to see that this integral solution corresponds to an integral assignment of resources to
+players in the instance I, in which each player i receives a value of at least
+                                        n
+                                        X
+                                               ⌊Rj−1 + xj (i)⌋ vj .
+                                         j=1
+
+Let us compute the diﬀerence in objective ∆i with the fractional solution. We have that
+                 n
+                 X                                     n
+                                                       X
+          ∆i ≤     (xj (i) − ⌊Rj−1 + xj (i)⌋)vj + vn =   ({xj (i)} − ⌊Rj−1 + {xj (i)}⌋)vj .
+                 j=1                                         j=1
+
+Looking at each term individually, we notice that either ⌊Rj−1 + {xj (i)}⌋ = 0, or that ⌊Rj−1 + {xj (i)}⌋ =
+1. In the ﬁrst case the next remainder Rj is equal to Rj−1 + {xj (i)} < 1. In the second case, we
+have that
+                  Rj = Rj−1 + {xj (i)} − ⌊Rj−1 + {xj (i)}⌋ = Rj−1 + {xj (i)} − 1 .
+Let us denote by R′ the set of all indices where the second case happens. Then we can write
+                                           n
+                                           X              X
+                                      ∆i ≤   {xj (i)}vj −   vj .
+                                           j=1                 j∈R′
+
+   Now note that if j ∈  / R′ , then {xj (i)} = Rj − Rj−1 , and that if j ∈ R′ then {xj (i)} =
+1 + Rj − Rj−1 . Using this observation, we obtain
+
+         n
+         X                  X      X      n
+                                          X                  n−1
+                                                             X
+  ∆i ≤     (Rj − Rj−1 )vj +   vj −   vj ≤   (Rj − Rj−1 )vj =    (vj − vj+1 )Rj ≤ v1 ,
+         j=1                   j∈R′      j∈R′          j=1                j=1
+
+where we use the fact that R0 = vn = 0, and Rj ≤ 1 for all j.
+
+Lemma 22. For any α ≥ 2, if there is a polynomial-time algorithm that, given an instance of
+restricted two-value resource-matroid SantaClaus problem with one matroid of value v1 = ∞ and
+one polymatroid of value v2 = 1 and a number b ∈ N, finds a solution of value at least b or determines
+that there is no solution of value αb, then there is also:
+
+  1. a polynomial-time α-approximation algorithm for (any instance of ) the restricted two-value
+     resource-matroid SantaClaus problem and
+
+  2. a polynomial-time 2α-approximation algorithm for the restricted resource-matroid Santa-
+     Claus problem.
+
+Proof. We start by proving the ﬁrst result of the lemma. Let u, w (with w ≥ u) be the two sizes of
+the instance I, and let fu , fw be the associated submodular functions.
+    Now, we have three possible cases. If OPT(I)/α ≤ u, then it suﬃces to give at least one resource
+to any player to obtain an α-approximate solution. This can be checked in polynomial time (see
+Chapter 42 in [26]). If u < OPT(I)/α ≤ w, then, in an α-approximate solution, it suﬃces to give
+to each player either one resource of value w or OPT(I)/(αu) resources of value u. We deﬁne a
+new instance I2 with one matroid of value v1 = ∞ and one polymatroid of value v2 = 1. The
+independent sets of the matroid are the sets of players which can be covered by at least one resource
+of value w each in the original instance. The polymatroid is deﬁned by the submodular function
+f2 (S) := fu (S). Clearly, in this case, we have that OPT(I1 ) ≥ OPT(I)/u, and a solution of value
+
+                                                     28
+t in instance I1 can immediately be translated into a solution of value min{OPT(I)/α, tu} in the
+original instance. So an α-approximation on instance I1 gives us an α-approximation on the original
+instance. In the last case where OPT(I)/α > w, we ﬁrst assume without loss of generality that
+u, w are integers (by appropriate scaling). Then we deﬁne a polymatroid P3 with the submodular
+function f3 (S) := u · fu (S) + w · fw (S); this should be thought of splitting the resources of value w
+(respectively u) into w (respectively u) individual resources of value 1 each. The biggest b such that
+b·E ∈ P3 (where E is the set of all players and b·E is the |E| dimensional vector with all entries equal
+to b) can be found in polynomial time, since we simply need to minimize a submodular function
+(see Chapter 45 in [26]). This gives us a fractional solution to the original instance of objective
+value OPT(I). Using Theorem 21, we can round (in polynomial time) this fractional solution into
+an integral solution of objective value OPT(I) − max{u, w} ≥ OPT(I) · (1 − 1/α) ≥ OPT(I)/α
+(using α ≥ 2), which concludes the proof of the ﬁrst point of the lemma.
+     For the second point, by a standard guessing strategy (as explained in the beginning of Section
+2), we can assume that we know the optimum value OPT(I). We call a resource j heavy if vj ≥
+OPT(I)/(2α), and light otherwise (let H and L be the set of heavy and light resources respectively).
+We then deﬁne an instance I ′ with one matroid of value ∞, whose independent sets are the sets of
+players which can be covered by at least one heavy resource each (this is a matroid by the matroid
+union theorem see Chapter 42 in [26]). Again, assuming that all values vj are     P integers, we deﬁne
+one polymatroid of value 1 associated to the submodular function f ′ (S) := j∈L vj fj (S). In this
+new instance, it is clear that OPT(I ′ ) ≥ OPT(I). Hence an α-approximate solution to instance
+I ′ can be transformed into an α-approximate solution to instance I, in which the heavy resources
+are assigned integrally, and the light resources fractionally. Using Theorem 21, we can round
+this fractional assignment into and integral assignment of value at least OPT(I)/α − maxj∈L vj ≥
+OPT(I)/α − OPT(I)/(2α) = OPT(I)/(2α).
+
+Theorem 23. Given a fractional assignment x of jobs to machines which is feasible for the as-
+signment LP (with parameter T ) of some an instance I of the restricted Makespan problem, we
+can obtain, in polynomial time, a feasible integral assignment of jobs to machines of makespan at
+most T + maxj∈J pj . This implies that we can find in polynomial time a feasible integral solution of
+makespan at most OPT(I) + maxj∈J pj ≤ 2OPT(I).
+Proof. The proof here is very similar to the proof of Theorem 21. We repeat it here for completeness.
+    We assume w.l.o.g. that p1 ≥ p2 ≥ · · · ≥ pn and that pn = 0. We denote the polymatroids
+associated to the jobs as P1 , P2 , . . . , Pn , corresponding to the submodular functions f1 , f2 , . . . , fn .
+Given the fractional assignment x, we will create a feasible fractional solution x′ to a certain poly-
+matroid intersection problem. We deﬁne the two polymatroids using a bipartite graph as follows.
+On the left-hand side, we have a set of vertices W with one vertex wj for each job j, and on
+the right-hand side we have a set of vertices U with one vertex uij for each machine i and job
+j. The edge set will be denoted by E, and both polymatroids will have E as a ground set. We
+set E = {(wj , uij )}i∈M,j∈J ∪ {(wj , ui(j−1) )}i∈M,j∈J\{1} (note the slight change here compared to
+Theorem 21). For some edge e ∈ E, we denote by ew the job corresponding to its left-hand side
+vertex, and by eu the machine corresponding to its right-hand side endpoint. The ﬁrst polymatroid
+P1′ will be associated with the submodular function
+                                                                    
+                                                  X n        [
+                                     f1 (S) :=        fj         eu  .
+                                                j=1         e∈S:ew =j
+
+The second polymatroid P2′ will be deﬁned using the right-hand side vertices in our graph. Each
+vertex u ∈ U will have some degree constraint d(u) and the submodular function f2 is simply deﬁned
+
+                                                       29
+as                                                                        X
+                                                        f2 (S) :=                  d(u) .
+                                                                       e=(w,u)∈S
+
+We deﬁne the degree constraints using the following process for each machine i in instance I. We
+start with
+                                       d(ui1 ) = ⌈x1 (i)⌉ ,
+and we deﬁne the remainder R1 := d(ui1 ) − x1 (i). Then we deﬁne recursively the degree constraint
+d(uij ) (j ≥ 2) and remainders as follows.
+            d(uij ) := ⌈xj (i) − Rj−1 ⌉ , and
+                  Rj := ⌈xj (i) − Rj−1 ⌉ − (xj (i) − Rj−1 ) = ⌈{xj (i)} − Rj−1 ⌉ − ({xj (i)} − Rj−1 ) .
+It is easy to see that the solution x to the assignment LP can be transformed into a feasible fractional
+solution to our polymatroid intersection problem. Similar to the proof of Theorem 21, the remainder
+Rj is deﬁned to be exactly the quantity by which we can select the edge (wj , ui(j−1) ) in our fractional
+solution to the polymatroid intersection problem.
+     Note that this fractional solution to our polymatroid intersection problem is such that we have
+a basis of the polymatroid P1′ (the left-hand side polymatroid). By integrality of the polymatroid
+intersection polytope (see Chapters 46-47 in [26]) there exists an integral solution which is also a
+basis in P1′ (and we can ﬁnd it in polynomial time by ﬁnding the maximum cardinality multiset of
+edges which belongs to the polymatroids intersection).
+     It is easy to see that this integral solution corresponds to an integral assignment of jobs to
+machines in the instance I, in which each machine i receives a load of at most
+                                                         n
+                                                         X
+                                                               ⌈xj (i) − Rj−1 ⌉ pj .
+                                                         j=1
+
+Let us compute the diﬀerence in objective ∆i with the fractional solution. We have that
+            n
+            X                                 n−1
+                                              X
+     ∆i ≤     (⌈xj (i) − Rj−1 ⌉ − xj (i))pj =    (⌈xj (i) − Rj−1 ⌉ − xj (i))pj
+            j=1                                            j=1
+                                                                                          n−1
+                                                                                          X
+                                                                                      =         (⌈{xj (i)} − Rj−1 ⌉ − {xj (i)})pj ,
+                                                                                          j=1
+
+using pn = 0. Looking at each term individually, we notice that either ⌈{xj (i)} − Rj−1 ⌉ = 0, or
+that ⌈{xj (i)} − Rj−1 ⌉ = 1. In the ﬁrst case the next remainder Rj is equal to Rj−1 − {xj (i)}. In
+the second case, we have that
+                                 Rj = 1 + Rj−1 − {xj (i)} ⇐⇒ {xj (i)} = 1 + Rj−1 − Rj .
+Let us denote by J ′ the set of all indices where the second case happens. Then we can write
+            X              n
+                           X                    X              X            n
+                                                                            X                  n
+                                                                                               X
+     ∆i ≤           pj −         {xj (i)}pj =           pj −           pj −   (Rj−1 − Rj )pj =   (Rj − Rj−1 )pj
+            j∈J ′          j=1                  j∈J ′          j∈J ′       j=1                         j=1
+                                                                                                          n−1
+                                                                                                          X
+                                                                                                      =         (pj − pj+1 )Rj ≤ p1 ,
+                                                                                                          j=1
+
+where we use the fact that R0 = pn = 0, and Rj ≤ 1 for all j.
+
+                                                                         30
+F       Analysis of local search algorithm
+F.1      General properties of matroids and submodular functions
+Lemma 24. Let g : E → Z≥0 be monotone submodular with g(∅) = 0, X ′ ⊆ X ⊆ E, and h′ < h.
+Then
+
+                               g(Y | h · X ′ ) ≥ g(Y | h · X) for all Y ⊆ E \ X and
+                               g(Y | h′ · X) ≥ g(Y | h · X) for all Y ⊆ E \ X .
+
+
+Proof. Recall that g(Y | h · X) is derived by ﬁrst constructing a new monotone submodular function
+g′ corresponding to the polymatroid deﬁned by g but with entries of X bounded by h. For the ﬁrst
+inequality, let g ′′ be the corresponding function with X ′ instead of X. Then
+
+    g(Y | h · X ′ ) = g′′ (Y | X ′ ) = g′′ (Y ∪ X ′ ) − g′′ (X ′ )
+                                          ≥ g ′ (Y ∪ X ′ ) − g ′ (X ′ ) = g′ (Y | X ′ ) ≥ g ′ (Y | X) = g(Y | h · X) .
+
+Here we use that g′′ (X ′ ) = g ′ (X ′ ). For the second inequality, let g′′′ be the submodular function for
+h′ instead of h. Let Q be the polymatroid corresponding to g. Then there exists some y ′′′ ∈ Q with
+supp(y ′′′ ) ⊆ X, y ′′′ (i) ≤ h′ for all i ∈ E, and y ′′′ (X) = g′′′ (X). We deﬁne y ′ accordingly, except
+for g′ instead of g′′′ . Here we may assume, by augmentation property of the polymatroid that
+y ′ (i) ≥ y ′′′ (i) for all i ∈ E. The value g(Y | h′ · X) = g′′′ (Y | X) is simply the largest element (by
+sum) in the polymatroid deﬁned by restricting Q to E \ X and replacing the submodular function
+by g′′′ (Y ′ ) = g(Y ′ ∪ X) − yi′′′ (X). It is clear that this is at least as big as g(Y | h · X) = g ′ (Y | X),
+since the corresponding polymatroid here has a submodular function g′ (Y ′ ) = g(Y ′ ∪ X) − yi′ (X)
+that is smaller or equal to g ′′′ everywhere.
+
+Lemma 25. Let g : E → Z≥0 be monotone submodular with g(∅) = 0 and X ⊆ E. Define
+Y = {i ∈ X : g(i | h · (X − i)) < h}. Then for every i ∈ X we have g(i | h · (Y − i)) < h if and only
+if i ∈ Y .
+
+Proof. For any i ∈ X with g(i | h · (Y − i)) < h we have g(i | h · (X − i)) < h by Lemma 24. This
+proves one direction. For the other direction, let i ∈ X with g(i | h · (Y − i)) ≥ h. Further, let
+Q be the polymatroid corresponding to g and let y ∈ Q with supp(y) ⊆ Y − i and y(j) ≤ h for
+all j ∈ E. Further, choose y such that y(Y − i) is maximized. Since g(i | h · (Y − i)) ≥ h, we
+can extend y to y ′ which is equal for all j 6= i and has y ′ (i) = h. Now for any i′ ∈ X \ Y , since
+g(i′ | h · Y ) ≥ g(i′ | h · (X − i′ )) ≥ h we can repeat the same trick and increase the value of y ′ (i′ )
+to h as well. It is easy to see that this can be continued to obtain y ′′ ∈ Q with y ′′ (j) = h for all
+j ∈ X \ (Y − i) and y ′′ (j) = y(j) for all j ∈ Y − i.
+    It is clear that y ′′ when restricted to X − i maximizes y ′′ (X − i) over all elements of Q with
+support X − i and upper bound h: It maximizes the sum already on Y − i and all other components
+are obviously the largest possible. Together with the fact that y ′′ with y ′′ (i) = h is in Q, this implies
+that g(i | h · (X − i)) ≥ h.
+
+Lemma 26. Let g : E → Z≥0 be monotone submodular with g(∅) = 0 and X ′ ⊆ X ⊆ E. Further,
+let g(i | h · (X − i)) < h for all i ∈ X ′ . Then g(X ′ ) ≤ h|X| and strict inequality holds whenever
+X ′ 6= ∅.
+
+
+
+                                                             31
+Proof. We use an induction over |X ′ |. For X ′ = ∅ the claim obviously holds. Now consider X ′ 6= ∅
+and let i ∈ X ′ . There must be some Y ⊆ X with i ∈ Y such that g(Y ) < h|Y |: assume otherwise
+and let Q be the polymatroid corresponding to g. Let z ∈ Q with z(j) ≤ h for all j ∈ E and
+z(i) = 0, maximizing z(E). It can easily be checked that z ′ with z ′ (j) = z(j) for j 6= i and z ′ (i) = h
+is also in Q. This however implies that g(i | h · (X − i)) ≥ h.
+     Having established that g(Y ) < h|Y | for some Y ∋ i, we use the induction hypothesis on X \ Y ,
+X \ Y and g′ (Y ′ ) := g(Y ′ | Y ). It follows that g(X ′ \ Y | Y ) ≤ h|X \ Y | and therefore
+   ′
+
+
+                       g(X ′ ) ≤ g(Y ) + g(X ′ \ Y | Y ) < h|Y | + h|X \ Y | = h|X| .
+
+F.2    Basic properties and invariants of the data structures
+Note that after A, C, B, and AI are initially created, we never change A, C, IM ∩ C or IP ∩ C. The
+only dynamic sets are B, AI , IM \ C, and IP \ C. Hence, for properties that rely solely on the ﬁxed
+elements, it suﬃces to verify them at the time they were created. Furthermore, the only place that
+makes potentially dangerous changes to B, IM \ C, and IP \ C is the recursion. In the remainder,
+“at all times” means that a property should hold between any two of the four main operations that
+are performed repeatedly.
+    We will now verify the properties of the set of addable elements. Notice that Properties (1)
+and (2), that is, 2b · A ∈ P and f (i | 2b · A) < 2b for all i ∈ C \ A, hold trivially by construction.
+
+Lemma 27. For the set of addable elements A and set C we have that r(B0 | C) ≤ 2ǫ|B0 |.
+
+Proof. Let A1 , A2 , . . . , Aℓ be the sets created by the procedure. Consider the time that C is created.
+Here, it holds that r(B0 | IM ) < ǫ2 |B0 | ≤ ǫ|B0 |. Now assume towards contradiction that r(B0 |
+C) > 2ǫ|B0 |. Thus, we can ﬁnd some X ⊆ B0 with |X| = r(B0 | C) and C ∪ X ∈ I. After ﬁnalizing
+A, for all i ∈ IM \ (C ∪ Aℓ ) we have r(i | B0 ∪ IM \ Aℓ − i) = 1. Thus, X ∪ IM \ Aℓ ∈ I, which can
+be seen by adding to C ∪ X the elements from IM \ (Aℓ ∪ C) one at a time (each having marginal
+value 1). Applying the matroid augmentation property on IM , we can ﬁnd a set Y ⊆ B0 such that
+Y ∪ IM ∈ I and
+                              |Y | = |X ∪ IM \ Aℓ | − |IM | ≥ |X| − |Aℓ | > ǫ|B0 | ,
+a contradiction.
+
+Lemma 28. For the set of addable elements A and set C we have that r(B0 | IM \ R) ≥ ǫ2 |B0 | −
+|B0 ∩ IM | for every R ⊆ A with |R| ≥ ǫ|A|.
+
+Proof. We will ﬁrst prove the statement for the time when A was created, but then we need to
+show that it also holds later. Let A1 , A2 , . . . , Aℓ be the sets created by the procedure and recall
+that A = A1 ∪ · · · ∪ Aℓ−1 and Aj ≥ ǫB0 for all j < ℓ. Thus, there must be some Aj , j < ℓ, with
+|R ∩ Aj | ≥ ǫ|Aj | ≥ ǫ2 |B0 |. For IM at the time of construction it holds that
+
+                   r(B0 ∪ IM \ (R ∩ Aj )) ≥ r(B0 ∪ IM \ Aj ) = r(B0 ∪ IM ) ≥ |IM | .
+
+This is because Aj is constructed greedily from elements that do not decrease the rank. Hence,
+
+  r(B0 | IM \ R) ≥ r(B0 | IM \ (R ∩ Aj ))
+                   = r(B0 ∪ IM \ (R ∩ Aj )) − r(IM \ (R ∩ Aj )) ≥ |IM | − |IM | + |R ∩ Aj | ≥ ǫ2 |B0 | .
+
+We will now study the eﬀects of IM changing throughout the algorithm. Essentially, when an
+element of B0 is added to IM then r(B0 | IM \ R) may decrease by 1, otherwise it does not change.
+
+                                                    32
+Note that we can view the changes made by the algorithm (or its recursive calls) to IM as a sequence
+of single insertions or deletions. More precisely, there exists a sequence of sets Let I1 , I2 , . . . , Ik ∈ I,
+where Ik is the current state of IM that we want to analyze, I1 is the initial state, and Ih+1 is
+derived from Ih either by deletion or addition of a single element. Further, whenever Ih+1 = Ih + i
+for some i ∈/ Ih , then we know that Ih + j ∈  / I for all j ∈
+                                                             / Ih with j ≺ i. Finally, once an element of
+B0 is added to some Ih , it remains in IM , i.e., it is also in Ih+1 , . . . , Ik . All of these properties are
+observations that follow easily from the deﬁnition of the algorithm.
+    Let 1 ≤ h < k, R ⊆ C ⊆ Ih , S ⊆ E \ Ih such that |R| ≥ |S| and Ih \ R ∪ S ∈ I. Assume
+further that Ih + s ∈ / I for all s ∈ S. Then Ih+1 \ R ∪ S ∈ I as well: if Ih+1 is derived by deletion
+of an element, this follows immediately. Now assume that Ih+1 = Ih + i. Since Ih + i ∈ I and
+Ih \ R ∪ S ∈ I, by matroid augmentation property there exists some j ∈ (Ih + i) \ (Ih \ R ∪ S) = R + i
+with Ih \ R ∪ S + j ∈ I. If j = i we are done, otherwise we get a contradiction: suppose that
+Ih \ (R − j) ∪ S ∈ I. Then we can apply the matroid augmentation property to Ih to ﬁnd some
+s ∈ S with Ih + s ∈ I.
+    Now consider a subsequence Ih , Ih+1 , . . . , Ig where no element of B0 is added. Then if Ih \R∪S ∈
+I it follows that Ig \ R ∪ S ∈ I. Notice that as we have shown earlier, for every R ⊆ A ⊆ C with
+|R| ≥ ǫ|A| there exists some S1 ⊆ B0 such that |S1 | ≥ ǫ2 |B0 | and I1 \ R ∪ S1 ∈ I. Let Ih be the ﬁrst
+time that an element of B0 is inserted into IM . Then by previous arguments Ih−1 \R∪S1 ∈ I. Since
+Ih extends Ih−1 by only one element, by matroid augmentation property Ih \ R ∪ S2 ∈ I for some
+S2 ⊆ S1 with |S2 | = |S1 | − 1. We can repeat this argument and since only |Ik ∩ B0 | many times an
+element from B0 is added, we will ﬁnally obtain a set Sk with |Sk | = |S1 |−|B0 ∩Ik | ≥ ǫ2 |B0 |−|B0 ∩Ik |
+and Ik \ R ∪ Sk ∈ I; thus proving the lemma.
+
+
+Lemma 29. At all times, IM and IP are disjoint, IM ∈ I, and b · IP ∈ P.
+Proof. The only modiﬁcations to IM are IM ← C ∪ IM             ′′ through recursion, where I ′′ is independent
+                                                                                            M
+in the contracted matroid M/C and greedy additions of elements before terminating. Both of these
+operations clearly maintain IM ∈ I.
+     For IP , we will argue the stronger statement that at all times b · (IP ∪ AI ) ∈ P, which also
+implies that the operation of adding elements from AI to IP will maintain IP ∈ P. The property
+that b · (IP ∪ AI ) ∈ P is by deﬁnition of the algorithm maintained when adding elements to AI .
+Consider now the operation IP ← (B \ IM        ′′ ) ∪ I ′′ performed by the recursion, where each element
+                                                        P
+       ′′                         ′′
+i ∈ IP satisﬁes f (i | b · (IP ∪ A ∪ B − i)) ≥ b. We assume that before the recursive call we
+have b · (IP ∪ AI ) ∈ P and, in particular, b · (B ∪ AI ) ∈ P. Thus, because of the marginal
+values of all elements in IP′′ , it follows immediately that b · (AI ∪ B ∪ IP′′ ) ∈ P and, in particular,
+                ′′ ) ∪ I ′′ ) ∈ P. Note that (B \ I ′′ ) ∪ I ′′ is equal to I after the recursion. Since these
+b · (AI ∪ (B \ IM       P                           M       P                P
+are the only places where IP is changed, this completes the proof.
+                                 ′ , I ′ , M′ , P ′ created for the recursion is feasible. More concretely,
+Lemma 30. The input E ′ , B0′ , IM    P
+
+   1. B0′ , IM
+             ′ , I ′ ⊆ E ′ are disjoint,
+                  P
+       ′ ∈ I ′ , and
+   2. IM
+   3. b · IP′ ∈ P ′ .
+Proof. The only non-obvious statement is b · IP′ ∈ P ′ . Here, notice that f ′ (X) = f (X | b · (A ∪ B))
+and for each i ∈ IP′ we have f (i | b · (A ∪ IP − i) ≥ b, since i ∈
+                                                                  / B. Starting with X = ∅ and adding
+each element of IP′ one at a time, it is easy to see that the marginal values f ′ (i | b · X) are always
+least b.
+
+                                                      33
+Lemma 31. For all i ∈ A ∪ B \ AI we have f (i | b · (A ∪ B − i)) < b.
+
+Proof. Consider the time B was last updated. By deﬁnition we have f (i | b · (A ∪ IP − i)) < b if and
+only if i ∈ B for all i ∈ IP . Further, for every i ∈ A\AI we have f (i | b·(A∪IP −i)) ≤ f (i | b·IP ) < b.
+    Let X = {i ∈ A ∪ IP : f (i | b · (A ∪ IP − i) < b}. Then by the previous observations,
+A ∪ B \ AI ⊆ X ⊆ A ∪ B. By Lemma 25 it follows that f (i | b · (A ∪ B − i)) ≤ f (i | b · (X − i)) < b
+for all i ∈ A ∪ B \ AI .
+
+   We will now prove that a recursion signiﬁcantly decreases the number of blocking elements.
+
+Lemma 32. Let B ′ be the set of blocking elements after a recursion has returned and assume that the
+algorithm did not immediately terminate. Denote by B the blocking elements before the recursion.
+Then B ′ ⊆ B. Moreover, |B ′ | ≤ (1 − ǫ2 )|B|.
+
+Proof. Let i ∈ IP′ \ B, where again the prime denotes the state after the recursion. Then f (i |
+b · (A ∪ IP′ − i)) ≥ b (using the deﬁnition of the submodular function f ′ of the recursion). Therefore,
+i∈ / B ′ . Since |IM
+                   ′ ∩ B| ≥ ǫ2 |B| and such elements will not appear in I ′ it follows immediately that
+                                                                          P
+    ′           2
+|B | ≤ (1 − ǫ )|B|.
+
+Lemma 33. At all times we have |B| > (1 − 2ǫ)|A|
+
+Proof. Recall that for all i ∈ A ∪ B we have f (i | b · (A ∪ B − i)) < b unless i ∈ AI , see Lemma 31.
+Thus, from Lemma 26 it follows that f ((A \ AI ) ∪ B) < b|A ∪ B|. Furthermore, 2b · A ∈ P and
+|AI | < ǫ|A|, which implies that f ((A \ AI ) ∪ B) ≥ f (A \ AI ) ≥ 2b|A \ AI | ≥ (2 − 2ǫ)b|A|. Putting
+both inequalities together, we get |A ∪ B| > (2 − 2ǫ)|A|, which simpliﬁes to |B| > (1 − 2ǫ)|A|.
+
+F.3    Termination with failure
+In the case that our algorithm returns failure, we need to prove that there does not exist a (slightly
+stronger) solution. This proof comes in the form of a certiﬁcate that we will deﬁne here.
+
+Definition 34. A certificate of infeasibility consists of two (possibly empty) sets Z2 ⊆ Z1 ⊆ E \ B0
+with
+
+   1. r(B0 | Z1 ) < 2ǫ|B0 |,
+
+   2. r(Z1 ) ≤ |Z1 | − (0.5 − 2ǫ)|Z2 | + ǫ|B0 |,
+
+   3. f (i | b · (Z2 − i)) < b for at least a (1 − ǫ) fraction of elements in Z2 ,
+
+   4. f (i | 2b · Z2 ) < 2b for all i ∈ Z1 \ Z2
+
+   The intuition for the certiﬁcate is that the ﬁrst property states that a signiﬁcant amount of Z1
+cannot be covered by the polymatroid if we want to cover many elements of B0 . However, the other
+properties imply that this is not possible.
+                                                                                        ∗ ∪I ∗ ⊇ E \B
+Lemma 35. If there exists a certificate of infeasibility then there cannot be two sets IM   P         0
+      ∗            ∗                   ∗
+with IM ∈ I, αb · IP ∈ P, and |B0 ∩ IM | ≥ 3ǫ|B0 |, where α = 4 + O(ǫ).
+
+
+
+
+                                                     34
+Proof. Let IM  ∗ ∪ I ∗ ⊇ E \ B with I ∗ ∈ I, αb · I ∗ ∈ P. Let Z ′ ⊆ Z be the elements with
+                      P            0     M            P                2    2
+f (i | b · (Z2 − i)) ≥ b. Then by (3) we have |Z2′ | ≤ ǫ · |Z2 | and from Lemma 26 it follows that
+f (Z2 \ Z2′ ) ≤ b · |Z2 |. We ﬁrst bound
+
+                  αb|IP∗ ∩ (Z1 \ Z2′ )| ≤ f (IP∗ ∩ (Z1 \ Z2′ ))
+                                           ≤ f (Z2 \ Z2′ ) + f (IP∗ ∩ (Z1 \ Z2 ) | Z2 \ Z2′ )
+                                           ≤ f (Z2 \ Z2′ ) + f (IP∗ ∩ (Z1 \ Z2 ) | 2b · (Z2 \ Z2′ ))
+                                           ≤ f (Z2 \ Z2′ ) + 2b|Z2′ | + f (IP∗ ∩ (Z1 \ Z2 ) | 2b · Z2 )
+                                                                              X
+                                           ≤ f (Z2 \ Z2′ ) + 2b|Z2′ | +               f (i | 2b · Z2 )
+                                                                             ∗ ∩(Z \Z )
+                                                                          i∈IP    1  2
+                                                                               X
+                                           ≤ f (Z2 \ Z2′ ) + 2b|Z2′ | +                     f (i | 2b · Z2 ) .
+                                                                             ∗ ∩(Z \Z ′ )
+                                                                          i∈IP    1  2
+
+
+From this it follows that
+                                      X
+b(α − 2)|(Z1 \ Z2′ ) ∩ IP∗ | ≤                 (αb − f (i | 2b · (Z2 − i))) ≤ 2ǫb|Z2 | + f (Z2 \ Z2′ ) ≤ (1 + 2ǫ)b|Z2 | .
+                                    ∗ ∩(Z \Z ′ )
+                                 i∈IP    1  2
+
+
+Consequently, |(Z1 \ Z2′ ) ∩ IP∗ | ≤ (1 + 2ǫ)/(α − 2) · |Z2 |. Thus,
+
+            ∗                                                        1 + 2ǫ + (α − 2)ǫ
+     |Z1 ∩ IM | ≥ |Z1 | − |(Z1 \ Z2′ ) ∩ IP∗ | − |Z2′ | ≥ |Z1 | −                      |Z2 | ≥ r(Z1 ) − ǫ|B0 | ,
+                                                                           α−2
+where the last inequality holds because of Property (2) for α = 4 + O(ǫ) and ǫ suﬃciently small.
+We conclude
+
+         ∗             ∗                   ∗              ∗
+  |B0 ∩ IM | ≤ r(B0 | IM ∩ Z1 ) = r(B0 ∪ (IM ∩ Z1 )) − r(IM ∩ Z1 )
+                                         ≤ r(B0 ∪ Z1 ) − r(Z1 ) + ǫ|B0 | = r(B0 | Z1 ) + ǫ|B0 | < 3ǫ|B0 | .
+
+    Next we will prove that whenever the algorithm returns failure, there exists such a certiﬁcate.
+
+Lemma 36. If |B| < ǫ|B0 | then there exists a certificate that proves infeasibility.
+
+Proof. We set Z2 = A ∪ B and Z1 = C ∪ B. Then by Lemma 27 we have
+
+                                          r(B0 | Z1 ) ≤ r(B0 | C) < 2ǫ|B0 | .
+
+Further,
+
+  r(Z1 ) ≤ r(C) + r(B) = |C| + ǫ|B0 | ≤ |Z1 | + ǫ|B0 | − 0.5|B| − 0.5|B|
+                                 ≤ |Z1 | + ǫ|B0 | − 0.5|B| − (0.5 − ǫ)|A| ≤ |C1 | − (0.5 − 2ǫ)|Z2 | + 2ǫ|B0 | .
+
+Here we use that |B| ≥ (1 − 2ǫ)|A|, see Lemma 33. It follows from Lemma 26 and Lemma 24 that
+f (i | b · (Z2 − i)) ≤ f (i | b · (A ∪ B − i)) < 2b for each i ∈ C2 \ AI and |AI | ≤ ǫ|A| ≤ ǫ|Z2 | since
+otherwise we would have terminated successfully.
+     Finally, f (i | 2b · C2 ) ≤ f (i | 2b · A) < 2b for all i ∈ C \ A follows immediately from the deﬁnition
+of C.
+
+Lemma 37. When a recursive call returns failure, then there exists a certificate that proves infea-
+sibility.
+
+                                                            35
+Proof. Assume that a recursive call has failed. Let Z1′ , Z2′ be the certiﬁcate returned by it. We set
+Z1 = Z1′ ∪ C ∪ B and Z2 = Z2′ ∪ A ∪ B. Then by Lemma 27,
+
+                                     r(B0 | Z1 ) ≤ r(B0 | C) < 2ǫ|B0 | .
+
+Further,
+
+                    r(Z1 ) = r(Z1′ ∪ C ∪ B)
+                           = r(Z1′ | C) + r(C) + r(B | Z1′ ∪ C)
+                           ≤ r ′ (Z1′ ) + |C| + r ′ (B | Z1′ )
+                           ≤ |Z1′ | − (0.5 − 2ǫ)|Z2′ | + 2ǫ|B| + |C| + ǫ|B0 |
+                           = |Z1 | − (0.5 − 2ǫ)|B| − 0.5|B| − (0.5 − 2ǫ)|Z2′ | + ǫ|B0 |
+                           ≤ |Z1 | − (0.5 − 2ǫ)|Z2 | + ǫ|B0 | .
+
+Moreover, for all i ∈ C2 \ AI it holds that f (i | b · (Z2 − i)) ≤ f (i | b · (A ∪ B − i)) < 2b
+Similarly, for a 1 − ǫ fraction of Z2′ it holds that f (i | b · (Z2 − i)) ≤ f (i | b · (Z2′ − i)) < b. Since
+|AI | < ǫ|A| ≤ ǫ|A ∪ B| Property (3) is satisﬁed. Likewise f (i | 2b · Z2 ) ≤ f (i | 2b · Z2′ ) < 2b for
+all i ∈ Z1′ \ Z2 and f (i | 2b · Z2 ) ≤ f (i | A) < 2b for all i ∈ C \ Z2 . Thus, also the last property
+holds.
+
+F.4    Running time
+We are going to bound only the number of nodes in the recursion tree. It is clear that the overhead
+of operations outside the recursive call is polynomially bounded. To this end, we focus on the sets
+B0 and B. Initially, the set B created in the algorithm will have size at most n. Then with every
+recursive call it decreases by a factor of (1 − ǫ2 ), see Lemma 32, but never below ǫ|B0 | (else, the
+algorithm terminates immediately).
+     For a ﬁxed instance, let T (k) be the maximum number of nodes in the recursion tree of the
+algorithm over all inputs B0 , X, Y where |B0 | ≥ 1/(1 − ǫ2 )k . Then T (k) is monotone decreasing,
+i.e., T (k′ ) ≤ T (k) for k′ ≥ k, simply because the set over which the maximum is taken is smaller.
+Let ℓ = ⌈log1/(1−ǫ2 )k (n)⌉. Then,
+
+                                                 ℓ
+                                                 X
+                                T (k) ≤ 1 +            T (i) and T (ℓ) = 1 .
+                                               i=k+1
+
+Here, the sum starts at k+1, since the smallest size of B0′ of the recursion satisﬁes |B0′ | ≥ (1+ǫ)|B0 | ≥
+|B0 |/(1 − ǫ2 ). The numbers T (ℓ), T (ℓ − 1), T (ℓ − 2), . . . , T (1) are similar to the Fibonacci series
+(except for the addition of 1 for the current node) and it can easily be shown by induction that
+T (k) ≤ 2ℓ−k ≤ 2ℓ ≤ nOǫ (1) for all k.
+
+
+
+
+                                                         36
+

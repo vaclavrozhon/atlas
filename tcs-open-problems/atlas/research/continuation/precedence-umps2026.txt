@@ -1,0 +1,1173 @@
+                                          Inapproximability of Unique-Machine Precedence Scheduling for
+                                                                Unit-Length Jobs
+                                                         Venkatesan Guruswami ∗                 Xuandi Ren†            Shaoxuan Tang‡
+
+
+
+                                                                                             Abstract
+                                                   The Unique-Machine Precedence Scheduling (UMPS) problem, introduced by (Davies, Kulka-
+                                               rni, Rothvoss, Sandeep, Tarnawski, and Zhang, 2022), seeks a makespan-minimizing schedule
+                                               of precedence-constrained jobs when each job has a unique eligible machine. On the one hand,
+                                               UMPS generalizes job shop scheduling by allowing the precedence graph to be an arbitrary
+                                               DAG rather than a disjoint union of chains. On the other hand, UMPS admits approximation-
+arXiv:2607.26590v1 [cs.DS] 29 Jul 2026
+
+
+
+
+                                               preserving reductions to scheduling problems with communication delays, including the job-job
+                                               delay model (DKRSTZ, 2022) and the job-machine delay model (Rajaraman, Stalfa, and Yang,
+                                               2023). Despite its central role, the approximability of UMPS has remained poorly understood:
+                                               even for unit-length jobs, known scheduling techniques do not seem to yield a non-trivial ap-
+                                               proximation, and the existence of a polylogarithmic approximation was left open by (DKRSTZ,
+                                               2022). On the hardness side, the previous best lower bound for unit-length jobs was only the
+                                               5/4 inherited from job shop scheduling (Williamson, Hall, Hoogeveen, Hurkens, Lenstra, Sev-
+                                               ast’janov, and Shmoys, 1997).
+                                                   We prove that unit-length UMPS is NP-hard to approximate within any constant factor. We
+                                               further show that, assuming NP is not in quasi-polynomial time, unit-length UMPS admits no
+                                               polynomial-time (logn)γ -approximation for some constant γ > 0. Via the known reductions from
+                                               UMPS, these lower bounds also transfer to the corresponding unit-length communication-delay
+                                               scheduling models.
+                                                   Our proof proceeds via a reduction from a hypergraph coloring promise problem. In the yes
+                                               case, the input h-uniform hypergraph admits a k-coloring in which no color appears more than a
+                                               times in any hyperedge; in the no case, the hypergraph has no large independent set. We convert
+                                               such a promise into a UMPS gap of order h/a. Instantiating this framework with a balanced
+                                               hypergraph coloring hardness of (Guruswami and Lee, 2018) gives arbitrary constant-factor
+                                               inapproximability, while combining the 4-colorable 4-uniform hypergraph coloring hardness of
+                                               (Guruswami, Harsha, Håstad, Srinivasan, and Varma, 2017) with a certain composition opera-
+                                               tion for hypergraphs yields the polylogarithmic factor inapproximability.
+
+
+
+
+                                            ∗
+                                              Simons Institute for the Theory of Computing, and Departments of EECS & Mathematics, UC Berkeley. Email:
+                                         venkatg@berkeley.edu. Research supported in part by NSF grant CCF-2211972 and a Simons Investigator award.
+                                            †
+                                              Department of EECS, UC Berkeley. Email: xuandi_ren@berkeley.edu. Supported in part by NSF grant CCF-
+                                         2228287, a DARPA grant under Contract No. HR0011262E031, and V.G’s Simons Investigator award.
+                                            ‡
+                                              Institute for Interdisciplinary Information Sciences, Tsinghua University. This work was done when visiting UC
+                                         Berkeley. Email: tsx23@mails.tsinghua.edu.cn.
+Contents
+1 Introduction                                                                                         1
+  1.1 Proof overview . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     2
+
+2 Preliminaries                                                                                        4
+
+3 A Reduction from Hypergraph Coloring to Unit-Length UMPS                                             4
+  3.1 Construction . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     5
+  3.2 Completeness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     6
+  3.3 Soundness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    7
+  3.4 Unit-Length UMPS Hardness . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .          9
+
+4 Balanced Coloring Amplification                                                                  11
+  4.1 Hypergraph Composition . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 11
+  4.2 Proof of Theorem 3.7 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+
+A A PCP-free 4/3-Inapproximability                                                                    16
+1    Introduction
+Precedence constraints are a classic source of computational difficulty in scheduling problems [LRK78,
+GLLRK79]. Jobs form a directed acyclic graph: a job can start only after all its predecessors
+have completed, and the makespan objective asks to complete the whole DAG as quickly as pos-
+sible. This basic model has two intertwined sources of difficulty: the partial order among jobs
+and the constraints governing machine use. Several classical variants enrich the latter: machine-
+eligibility constraints restrict each job to a prescribed subset of machines [LL08, LLP11]; unrelated-
+machine models let the processing time pij depend on both the job and the machine [LST90]; and
+communication-delay models impose extra separation when dependent jobs are executed on different
+machines [PY90].
+    Unique-Machine Precedence Scheduling (UMPS) takes a complementary minimalist view of the
+job-machine interaction: every job is assigned to a specific machine in advance, so the scheduler
+can only choose the order of the jobs on each machine, subject to arbitrary precedence constraints
+between jobs on possibly different machines. Thus UMPS asks whether precedence scheduling is
+already hard before one uses assignment choices, machine-dependent processing times, or commu-
+nication delays.
+    UMPS lies between several better-known scheduling problems. On the upstream side, job shop
+scheduling is a special case of UMPS, in which the precedence graph is a disjoint union of chains.
+Therefore, UMPS inherits the hardness for job shop: quasi-polynomial-time logarithmic inapprox-
+imability with arbitrary job lengths [MS11], and 5/4 NP-hardness when jobs have unit lengths
+[WHH+ 97]. On the downstream side, in their paper introducing UMPS, Davies, Kulkarni, Rothvoss,
+Sandeep, Tarnawski, and Zhang [DKR+ 22] reduce it to the non-uniform job-job communication-
+delay problem, where jobs are assigned to identical machines, and each precedence edge j ≺ k has
+a delay cj,k that must elapse between the completion of j and the start of k if the two jobs are
+scheduled on different machines. The resulting instance has only unit-length jobs if UMPS is of
+unit-length. Rajaraman, Stalfa, and Yang [RSY23] later considered a job-machine delay model, in
+which the cross-machine delay is a function ρk,i of the successor job k and the machine i: if k starts
+on machine i, then every predecessor j ≺ k scheduled on a different machine must complete at least
+ρk,i time before k starts. They gave an approximation-preserving reduction from UMPS to this
+job-machine delay model.
+    The algorithmic picture of UMPS remains poorly understood. When the fixed-machine restric-
+tion is absent, there are various approximation algorithms for scheduling with precedence, e.g.,
+Graham’s list-scheduling 2-approximation on identical machines [Gra66], and O(log m/ log log m)
+approximations for related machines [CS99, CB01, Li17]. For precedence scheduling with commu-
+nication delays, positive results are known mainly under strong structural restrictions: uniform
+delays admit polylogarithmic approximations via Sherali–Adams clustering and duplication-based
+rounding [DKR+ 20, MRS+ 20], while certain additive non-uniform delay models admit polyloga-
+rithmic guarantees [RSY23]. These algorithms, however, rely on the flexibility of assigning jobs to
+suitable machines, which UMPS does not offer. Therefore, they do not yield comparable guarantees
+for UMPS itself. Indeed, the work introducing UMPS explicitly points out that classical job-shop
+algorithms and recent LP-hierarchy methods fail to provide non-trivial approximation guarantees
+for UMPS [DKR+ 22]. This led them to formulate the following strong hardness conjecture, even
+for the unit-length case:
+Conjecture 1.1 ([DKR+ 22], Conjecture 2). There exists an absolute constant ε > 0 such that it
+is NP-hard to approximate UMPS with n jobs within a factor of nε , even when all jobs have unit
+length.
+
+                                                 1
+    In this work, we prove that unit-length UMPS is NP-hard to approximate within any con-
+stant factor. Moreover, assuming NP ⊈ DTIME(npolylog(n) ), it does not admit a polynomial-time
+(log N )γ -approximation for some constant γ > 0, where N denotes the instance size. These results
+substantially strengthen the previous 5/4 inapproximability for UMPS inherited from job shop
+scheduling, and mark a step toward proving Conjecture 1.1.
+
+Theorem 1.2. For any constant γ > 1, γ-approximating unit-length UMPS is NP-hard.
+
+Theorem 1.3. Assume NP ⊈ DTIME(npolylog(n) ). For some constant γ > 0, unit-length UMPS
+has no polynomial-time (log N )γ -approximation, where N is the instance size.
+
+    Our proof proceeds via reduction from a hard form of hypergraph coloring. Given an h-uniform
+hypergraph G, we rely on the following hardness promise: in the yes case, G admits a k-coloring in
+which no color appears more than a < h times in any hyperedge; in the no case, no independent
+set contains more than an ε < 1/k 2 fraction of vertices. By carefully designing vertex and hyper-
+edge machine gadgets to encode the coloring, we show that any hardness of this form yields an
+inapproximability factor of O(h/a) for unit-length UMPS. We then instantiate our reduction with
+the hardness result in [GL18], where h/a can be made an arbitrarily large constant, thereby prov-
+ing Theorem 1.2. We also analyze how the hypergraph composition method in [EL75] affects the
+parameters relevant to our reduction, and thus amplify the gap to (log N )Ω(1) , proving Theorem 1.3.
+    As corollaries, the reductions in [DKR+ 22] and [RSY23] transfer our lower bounds to two non-
+uniform communication-delay scheduling problems on identical machines with unit-length jobs: the
+job-job delay model, where a precedence edge j ≺ k has a delay cj,k incurred when j, k run on
+different machines, and the job-machine delay model, where if job k is scheduled on machine i,
+every predecessor of k scheduled on different machines must finish at least ρk,i time before k starts.
+For each of these two problems, there is no polynomial-time constant-factor approximation unless
+P = NP; and under NP ⊈ DTIME(npolylog(n) ), there is no polynomial-time (log N )γ approximation
+for some constant γ > 0, where N is the instance size.
+    Alongside our main construction, we give a simple PCP-free reduction showing that unit-length
+UMPS is NP-hard to approximate within a factor of 4/3. This already improves the previous
+5/4 inapproximability inherited from unit-length job shop scheduling, and may be of independent
+interest. We include it in Section A. We also found a simple and clean reduction from (2 + ε)-SAT
+[AGH17] that gives factor 4/3 NP-hardness of unit-length UMPS, albeit it is not PCP-free. We
+omit the details of this reduction.
+
+1.1   Proof overview
+We first explain the reduction in a minimal setting where all parameters are concrete: yes instances
+have a schedule of makespan 12, whereas no instances have makespan at least 13. This is not yet a
+large approximation gap, but it contains the main ideas of the full construction in Section 3.
+    We use the following hypergraph coloring hardness as the starting point: for every fixed ε > 0,
+it is NP-hard to distinguish a 2-colorable 4-uniform hypergraph H = (V, E) from one in which
+every independent set has size less than ε|V |. Here we take ε < 1/2, and the parameters are
+k = 2, h = 4, a = 3, since no hyperedge is monochromatic means each color appears on at most 3
+vertices of every hyperedge. This hardness follows from the verifier of Guruswami–Håstad–Sudan,
+together with the independent-set strengthening of Holmerin; see [GHS02, Hol02]. In this subsection,
+we call the two colors 0 and 1, and index the time starting at 0.
+
+
+                                                  2
+     We make two virtual copies H 0 and H 1 of the hypergraph H. Suppose in the yes case there is
+a proper coloring χ : V → {0, 1}. We color H 0 by χ and H 1 by the complementary coloring 1 − χ.
+Thus the two copies of the same vertex receive different colors, while each copy of the hypergraph is
+still properly colored. For every vertex v, we create two vertex machines Mv,L and Mv,R . On each
+machine, we put two length-3 chains, one for each virtual copy i ∈ {0, 1}:
+                               i,1    i,2    i,3           i,1    i,2    i,3
+                              Jv,L ≺ Jv,L ≺ Jv,L ,        Jv,R ≺ Jv,R ≺ Jv,R .
+
+We write Sv,i,L , Tv,i,L and Sv,i,R , Tv,i,R for the heads and tails of these chains. Think of each vertex
+machine as having two consecutive length-3 color slots. Placing the chain for virtual copy i in slot
+b ∈ {0, 1} means that the copy v (i) is assigned color b. Since the two virtual copies of a vertex have
+opposite colors in the yes case, the two chains of v occupy the two slots without conflict.
+    The edge machines check this coloring one hyperedge copy at a time. For every hyperedge e ∈ E
+and virtual copy i ∈ {0, 1}, create one edge machine Me,i . For each vertex v ∈ e, put a unit job Ye,i   v
+
+on Me,i and impose the bridge precedence constraints
+                                                      v
+                                           Tv,i,L ≺ Ye,i ≺ Sv,i,R .
+
+Thus the edge job for v must run after the left copy of the corresponding vertex chain has finished
+and before the right copy of the same chain begins.
+                                                                                         i,∗
+   Now consider the yes case. If virtual copy i gives v color b, we schedule the chain Jv,L  in the
+                                               i,∗
+slot [3b, 3(b + 1)), and schedule the chain Jv,R   in the slot shifted two slots to the right, namely
+[3(b + 2), 3(b + 3)). The bridge constraints leave the middle window
+
+                                            [3(b + 1), 3(b + 2))
+
+for edge jobs of color b. On the edge machine Me,i , schedule all jobs Ye,i  v with copy-i color b in this
+
+window. Because the copy-i coloring is proper, a 4-edge has at most three vertices of color b, so
+those unit jobs fit in the length-3 window. This gives a feasible schedule of makespan 12.
+     For soundness, we prove the makespan is at least 13. Suppose toward contradiction that there is
+a schedule of makespan less than 13. For each vertex v, choose the virtual copy i(v) ∈ {0, 1} whose
+left tail Tv,i,L completes later. The left machine Mv,L contains six unit jobs, so the chosen left tail
+completes at or after time 6. On the other hand, the right chain for the same virtual copy has length
+3 and finishes before time 13, so its head Sv,i(v),R starts before time 10. Therefore every bridge job
+  v
+Ye,i(v) with e ∋ v must start in the interval [6, 9): it cannot start before Tv,i(v),L completes, and it
+must finish before Sv,i(v),R starts.
+     By pigeonholing, some virtual copy i ∈ {0, 1} is selected by at least |V |/2 > ε|V | vertices. In the
+no case this selected set is not independent, so it contains a hyperedge e. For every v ∈ e, the job
+  v lies on the same edge machine M , and all four of these unit jobs must start in [6, 9). However,
+Ye,i                                     e,i
+four unit jobs cannot be scheduled non-overlapping in this length-3 window. This contradiction
+shows that every no-case schedule has makespan at least 13.
+     The full proof in Section 3 uses the same mechanism with larger parameters. Instead of two
+colors and two virtual copies, it uses k colors and k virtual copies; a balanced coloring is cyclically
+shifted across the virtual copies so that the chains of each vertex fill all k color slots. Instead of a
+single left-to-right bridge, it uses c consecutive bridges. In the no case, the proof still only selects, for
+each vertex, one virtual copy and one bridge where the corresponding chain is forced across a narrow
+time window. Pigeonholing over the kc choices gives a large selected vertex set, the independent-set
+promise supplies a hyperedge inside it, and the edge-machine jobs for that hyperedge are squeezed
+
+                                                      3
+into too little time. We refer the readers to Figure 1, Figure 2 and Figure 3 for illustrations of the
+vertex machine, the completeness case, and the soundness case, respectively. Although drawn for
+the full construction, they might be also helpful to understand the toy case in this section.
+    We introduce the problems and the notation in Section 2, present our main reduction from
+hypergraph coloring to unit-length UMPS in Section 3, and analyze the hypergraph composition in
+Section 4.
+
+
+2     Preliminaries
+Definition 2.1 (The Unique-Machine Precedence Scheduling (UMPS) Problem). An instance of
+the unique-machine precedence scheduling problem consists of a set of machines M, a set of jobs
+J , a precedence relation ≺ forming a directed acyclic graph, a map σ : J → M assigning every job
+to its unique eligible machine, and a function ℓ : J → R+ specifying the processing time of each
+job. A feasible schedule assigns each job j a starting time s(j) such that
+
+    1. s(j) ≥ 0,
+
+    2. jobs assigned to the same machine do not overlap, and
+
+    3. j ≺ j ′ implies s(j) + ℓ(j) ≤ s(j ′ ).
+
+    The objective is to minimize the makespan
+
+                                          Cmax = max{s(j) + ℓ(j)}.
+                                                 j∈J
+
+Definition 2.2 (a-Bounded k-Coloring of Hypergraphs). An a-bounded k-coloring, abbreviated as
+an (a, k)-coloring, of a hypergraph G = (V, E) is a mapping χ : V → [k], such that for every e ∈ E
+and r ∈ [k],
+                                         |e ∩ χ−1 (r)| ≤ a.
+
+   This notion is also called an a-proper k-coloring in [BM25]. For an h-uniform hypergraph, the
+canonical notion of k-coloring is equivalent to the (h − 1)-bounded k-coloring defined here.
+
+Definition 2.3 (The (h, a, k, ε)-Balanced Coloring Problem). Fix integers h, k ≥ 2, 1 ≤ a < h, and
+real 0 < ε ≤ 1/k. (h, a, k, ε)-Balanced Coloring asks to distinguish between the following two cases
+for an h-uniform hypergraph H = (V, E):
+
+    • (Yes) H is (a, k)-colorable.
+
+    • (No) Any independent set in H is of size < ε · |V |.
+
+
+3     A Reduction from Hypergraph Coloring to Unit-Length UMPS
+Theorem 3.1. Fix integers h, k ≥ 2, 1 ≤ a < h, and real 0 < ε ≤ 1/k. There is a polynomial-time
+reduction from an (h, a, k, ε)-Balanced Coloring instance H to a unit-length UMPS instance Γ, such
+that
+
+    • In the Yes case, OPT(Γ) ≤ (k + 2c)a.
+
+                                                       4
+   • In the No case, OPT(Γ) ≥ ka + c(a + h).
+
+    It is useful to think of having k virtual copies H (1) , . . . , H (k) of the input hypergraph H = (V, E).
+In the yes case, there is a balanced coloring of H, and thus we can make a cyclic shift on the coloring
+of H (1) , . . . , H (k) , such that the k copies of each vertex are assigned k different colors. In the no
+case, even if we only consider a partial coloring, where for each vertex, one of its k copies is assigned
+a fixed color (say color k) while the others are left uncolored, in some hypergraph copy the set of
+colored vertices is too large to stay independent, yielding a monochromatic hyperedge.
+    The physical machines are indexed by a layer t ∈ {0, . . . , c}.
+
+3.1     Construction
+Vertex Machines. For every vertex v ∈ V and every layer t ∈ {0, . . . , c}, create one machine
+Mv,t . For every virtual copy i ∈ [k], put on Mv,t a chain of a unit jobs
+                                               i,1    i,2            i,a
+                                              Jv,t ≺ Jv,t ≺ . . . ≺ Jv,t .
+
+   We write
+                                                i,1                     i,a
+                                     Sv,i,t := Jv,t      and Tv,i,t := Jv,t
+for the head and tail of this chain. Thus each vertex machine contains exactly k chains of length a.
+
+           (a) Schematic of a vertex machine: four slots and four virtual-copy chains
+                                                  1                  2                 3             4
+                        Mv,t
+
+                                one length-a slot
+                                       1,∗                   2,∗               3,∗           4,∗
+               chains of jobs         Jv,t                  Jv,t              Jv,t          Jv,t
+
+          virtual copies of v         v (1)                 v (2)             v (3)         v (4)
+
+
+           (b) One ordering of the job chains on the same vertex machine Mv,t
+
+                                       2,∗        1          3,∗     2         4,∗     3     1,∗     4
+                        Mv,t          Jv,t                  Jv,t              Jv,t          Jv,t
+
+
+               encoded colors
+      (copies in index order)         v (1)                 v (2)             v (3)         v (4)
+                                     color 4               color 1           color 2       color 3
+
+Figure 1: The vertex-machine gadget for k = 4. The four length-a slots represent colors 1, 2, 3, 4
+(red, blue, green, and yellow). A chain has no intrinsic color; its position on Mv,t determines the
+                                                                    2,∗    3,∗    4,∗    1,∗
+color of the corresponding virtual copy. In panel (b), the order Jv,t   , Jv,t , Jv,t , Jv,t encodes colors
+4, 1, 2, 3 for v , v , v , v , respectively.
+                (1) (2) (3) (4)
+
+
+
+   The intended encoding is as follows:
+
+       If chain i occupies the r-th length-a slot on Mv,t , then the virtual copy v (i) is interpreted
+       as having color r at layer t.
+
+                                                           5
+Hyperedge Machines. For every hyperedge e ∈ E and every i ∈ [k], t ∈ [c], create one machine
+Me,i,t , which encodes the balancing constraint of the virtual copy e(i) . For every v ∈ e, we put one
+unit job Ye,i,t
+            v   on this machine, and add precedence constraints
+                                                         v
+                                            Tv,i,t−1 ≺ Ye,i,t ≺ Sv,i,t .
+
+Since |e| = h, each machine Me,i,t contains exactly h jobs.
+   It’s easy to see the whole reduction runs in polynomial time.
+
+3.2    Completeness
+Assume the Yes case and let χ : V → [k] be a balanced coloring. For each virtual copy i ∈ [k], we
+define the cyclic shift
+                                 χi (v) := (χ(v) + i) mod k + 1.
+For each fixed v ∈ V , the values χ1 (v), . . . , χk (v) form a permutation of [k]. For each i ∈ [k], the
+coloring χi is a relabeling of χ, so we still have
+
+                                                |e ∩ χ−1
+                                                      i (r)| ≤ a
+
+for every e ∈ E and r ∈ [k].
+
+Lemma 3.2 (Completeness). In the Yes case, the constructed UMPS instance has a feasible schedule
+of makespan at most
+                                      CY = (k + 2c)a.
+                                                                                                 i,1            i,a
+Proof. Fix v ∈ V , a layer t ∈ {0, . . . , c}, and a virtual copy i ∈ [k]. Put the entire chain Jv,t , . . . , Jv,t
+in the interval
+                                    [(χi (v) − 1 + 2t)a, (χi (v) + 2t)a).
+Since the k values χ1 (v), . . . , χk (v) form a permutation, the k chains exactly fill [2ta, (k + 2t)a) on
+Mv,t . Furthermore, for every vertex, each of the c + 1 layers uses the same permutation of chains.
+   Fix t ∈ {1, . . . , c} and r ∈ [k], define the window
+
+                                    Wt,r = [(r + 2t − 2)a, (r + 2t − 1)a).
+
+The windows Wt,1 , . . . , Wt,k are consecutive and disjoint on each edge machine.
+    Fix Me,i,t . Schedule all jobs Ye,i,t
+                                      v   with χi (v) = r in window Wt,r . There are at most a of them,
+so they fit. For any v ∈ e with χi (v) = r, the tail Tv,i,t−1 completes exactly at the left endpoint of
+Wt,r , while the head Sv,i,t starts exactly at its right endpoint. Therefore, all precedence constraints
+are satisfied. The last vertex job finishes at (k + 2c)a and every edge job finishes earlier.
+
+
+
+
+                                                         6
+                         Completeness schedule around one hyperedge machine
+                                                                                                      time
+                          color 1     color 2       color 3          color 4
+
+                                      i,∗
+            Mv1 ,t−1                 Jv ,t−1
+                                       1
+
+
+                          i,∗
+            Mv2 ,t−1     Jv ,t−1
+                           2
+
+
+                          i,∗
+            Mv3 ,t−1     Jv ,t−1
+                           3
+
+
+                                                    i,∗
+            Mv4 ,t−1                               Jv ,t−1
+                                                     4
+
+
+                                                                     i,∗
+            Mv5 ,t−1                                                Jv ,t−1
+                                                                      5
+
+
+
+
+              Me,i,t                Y v2 Y v3     Y v1             Y v4        Y v5
+
+                                      Wt,1          Wt,2             Wt,3        Wt,4
+                                     length a       color 1          color 2     color 3    color 4
+
+                                                                      i,∗
+              Mv1 ,t                                                 Jv ,t
+                                                                       1
+
+
+                                                         i,∗
+              Mv2 ,t                                Jv ,t
+                                                          2
+
+
+                                                         i,∗
+              Mv3 ,t                                Jv ,t
+                                                          3
+
+
+                                                                                      i,∗
+              Mv4 ,t                                                             Jv ,t
+                                                                                       4
+
+
+                                                                                              i,∗
+              Mv5 ,t                                                                        Jv ,t
+                                                                                               5
+
+
+
+
+Figure 2: An illustrative completeness schedule for one hyperedge machine, with k = 4, e =
+{v1 , . . . , v5 }, and a ≥ 2. Here χi (v2 ) = χi (v3 ) = 1, χi (v1 ) = 2, χi (v4 ) = 3, and χi (v5 ) = 4. The
+                                             vj
+edge jobs are grouped by color: each Ye,i,t     is placed in Wt,χi (vj ) . The upper and lower copies of Jvi,∗
+                                                                                                            j ,·
+occupy the same color slot on the two adjacent vertex layers. Each colored path depicts the two
+                                          vj
+precedence constraints Tvj ,i,t−1 ≺ Ye,i,t    ≺ Svj ,i,t .
+
+Remark 3.3. The chain-slot interpretation is only used to construct the schedule in the Yes case.
+In the No case we do not assume that the schedule keeps each chain contiguous, nor do we try to
+decode a complete k-coloring from its chain order.
+
+3.3    Soundness
+Assume the No case. Recall that we have ε ≤ kc
+                                            1
+                                               . For t ∈ {1, . . . , c + 1}, let
+
+                                            Bt = ka + (t − 1)(a + h),
+
+and for t ∈ {1, . . . , c}, define the canonical interval at stage t to be
+
+                                                It = [Bt , Bt + h).
+
+It can be viewed as the no-case analogue of the Wt,k in the yes case. The difference here is that we
+assume each window is of length h, where in the yes case we only need length a. The proof idea is
+
+                                                               7
+that, even though the vertex chains may not follow the way we schedule them in the yes case, and
+their jobs may be delayed or interleaved arbitrarily; any delay will only squeeze the room for later
+layers, implying that for some t ∈ {1, . . . , c} the actual usable window for Me,i,t is contained in the
+canonical window It .
+
+                                             Soundness Illustration
+                             Example t(v) = 2; write Sr := Sv,i(v),r and Tr := Tv,i(v),r
+
+                                   B1                             B2                            B3
+                                                                                                                         time
+
+                                                                             h             a
+
+
+    Mv,0                                        T0
+
+
+              at least ka = B1                                          s(T1 ) + 1 ≥ B2
+
+    Mv,1                                                           T1
+
+                                                             I2                                       actual usable
+Me,i(v),2                                                                  Yv
+                                                                                                      interval for Y v
+
+    Mv,2                                                                             S2        T2
+
+                                                                   s(S2 ) < B2 + h                  s(T2 ) + 1 < B3
+
+                                                                                   span at least a
+
+Figure 3: Soundness argument for one vertex, illustrated when t(v) = 2. The selected tails satisfy
+s(T1 ) + 1 ≥ B2 and s(T2 ) + 1 < B3 , while the length-a selected chain forces s(S2 ) < B2 + h. The
+two precedence constraints therefore squeeze Ye,i(v),2
+                                                v      into the highlighted stage-2 window.
+
+Lemma 3.4 (Soundness). In the No case, any feasible schedule has makespan at least
+                                              CN = ka + c(a + h).
+
+Proof. Consider an arbitrary feasible schedule and Cmax denote its makespan. Suppose for contra-
+diction that Cmax < ka + c(a + h). For each vertex v, choose i(v) ∈ [k] maximizing the completion
+time of Tv,i,0 , the tail of the i-th length-a chain:
+                                        i(v) := arg max{s(Tv,i,0 ) + 1}.
+                                                     i∈[k]
+
+The ka unit jobs on Mv,0 all finish by the last chain tail, so
+                                          s(Tv,i(v),0 ) + 1 ≥ ka = B1 .
+Now let t(v) be the first stage that this specific chain tail ends before Bt+1 :
+                                 t(v) := min{t ∈ [c] : s(Tv,i(v),t ) + 1 < Bt+1 }.
+This stage exists because all jobs are completed by Cmax < Bc+1 . By the minimality of t(v), together
+with the layer-0 inequality above when t(v) = 1, we know the completion time of the chain tail in
+the previous layer is at least Bt(v) :
+                                          s(Tv,i(v),t(v)−1 ) + 1 ≥ Bt(v) .
+
+                                                         8
+The starting time of the head of this chain is at most
+
+                   s(Sv,i(v),t(v) ) ≤ s(Tv,i(v),t(v) ) − (a − 1) < Bt(v)+1 − a = Bt(v) + h.
+
+For every hyperedge e ∋ v, the precedence constraints
+                                                      v
+                                   Tv,i(v),t(v)−1 ≺ Ye,i(v),t(v) ≺ Sv,i(v),t(v)
+
+therefore imply s(Ye,i(v),t(v)
+                    v          ) ∈ [Bt(v) , Bt(v) + h − 1).
+    Now, each vertex has selected one of the kc pairs (i(v), t(v)). By the pigeonhole principle, some
+pair (i, t) is selected by at least
+                                             |V |
+                                                  ≥ ε|V |
+                                              kc
+vertices. This set is not independent in the No case, so it contains a hyperedge e ∈ E. However,
+this means h = |e| jobs are assigned in the interval [Bt , Bt + h − 1) on the same machine Me,i,t , a
+contradiction.
+
+3.4    Unit-Length UMPS Hardness
+For fixed h, a, k, the gap in Theorem 3.1 satisfies
+                                                       
+                                          ka + c(a + h)     a+h
+                                    lim                   =     .
+                                   c→∞      (k + 2c)a        2a
+
+   We now prove our main theorems (Theorem 1.2 and Theorem 1.3) by plugging suitable hyper-
+graph coloring hardness into Theorem 3.1.
+   In [GL18], the authors proved that in the yes case in any hyperedge, any color appears at least
+Q − 1 times. Since the hypergraph is Qk-uniform, this implies the most frequent color appears at
+most
+                                Qk − (k − 1)(Q − 1) = Q + k − 1
+times in every hyperedge.
+
+Lemma 3.5 (Adapted from [GL18, Theorem 1.1]). Assume P ̸= NP. For any constants ε > 0 and
+Q, k ≥ 2, no algorithm can solve (Qk, Q + k − 1, k, ε)-Balanced Coloring in polynomial time.
+
+Theorem 1.2. For any constant γ > 1, γ-approximating unit-length UMPS is NP-hard.
+
+Proof of Theorem 1.2. Choose k such that (k + 1)/2 > γ. Since for a = Q + k − 1 and h = Qk,
+
+                                             ka + c(a + h)   k+1
+                                      lim lim              =     ,
+                                     Q→∞ c→∞   (k + 2c)a      2
+
+we can choose Q, c large enough so that the ratio is larger than γ. Setting ε = kc
+                                                                                1
+                                                                                   and plugging the
+parameters into Lemma 3.5 and Theorem 3.1 finish the proof.
+
+    For our polylogarithmic inapproximability, we start with the following result of Guruswami,
+Harsha, Håstad, Srinivasan, and Varma [GHH+ 17, Theorem 1.2], and use Theorem 3.7 to amplify
+the parameters of our interest.
+
+
+
+                                                        9
+Lemma 3.6 (Hardness of coloring a 4-colorable 4-uniform hypergraph [GHH+ 17]). There is a quasi-
+polynomial time reduction from a 3SAT instance Γ of size n to a 4-uniform hypergraph G = (V, E)
+with n′ vertices, where n ≤ n′ ≤ npolylog(n) , such that:
+
+   • (Yes) If Γ is satisfiable, then G is 4-colorable.
+   • (No) If Γ is unsatisfiable, then every independent set in G has size less than
+                                                                     n′
+                                                                Ω(
+                                                                   √
+                                                                       log log n′ )
+                                                                                      .
+                                                           22
+
+Theorem 3.7 (Balanced Coloring Amplification). Let G = (V, E) be an h-uniform hypergraph with
+n = |V | vertices and m = |E| hyperedges. For every integer t ≥ 1 and every real 0 < ε < 1/t,
+there is a deterministic polynomial-time reduction that constructs an ht -uniform hypergraph G(t) =
+(V (t) , E (t) ) such that
+                                             t−1
+   • |V (t) | = nt and |E (t) | = m1+h+···+h       ;
+   • if G is (a, k)-colorable, then G(t) is (at , k t )-colorable;
+   • if every independent set in G has size less than ε|V |, then every independent set in G(t) has
+     size less than tε|V (t) |.
+
+   The proof of Theorem 3.7 is deferred to Section 4. Now we prove Theorem 1.3 by instantiating
+Theorem 3.7 with Lemma 3.6.
+Theorem 1.3. Assume NP ⊈ DTIME(npolylog(n) ). For some constant γ > 0, unit-length UMPS
+has no polynomial-time (log N )γ -approximation, where N is the instance size.
+
+Proof of Theorem 1.3. Let Γ be a 3SAT instance of size n. By Lemma 3.6, we obtain a 4-uniform
+hypergraph G = (V, E) with n′ = |V | vertices, where n ≤ n′ ≤ npolylog(n) . There is a constant β > 0
+such that, in the No case, every independent set in G has size less than αn′ , where
+                                                                     √
+                                                            −2β          log log n′
+                                             α := 2                                   .
+
+   Fix a sufficiently small constant η > 0 and set
+
+                                         t = η log log n′ ,
+                                                        
+
+For sufficiently large n′ , α < 1/t, so we may apply Theorem 3.7 to G with soundness parameter α.
+Denote the amplified hypergraph by G(t) = (V (t) , E (t) ). In the Yes case, G(t) is (3t , 4t )-colorable.
+In the No case, every independent set in G(t) has size less than
+
+                                                           tα|V (t) |.
+
+   Setting c = 4t , for sufficiently large n′ , we have
+                                                            √
+                                                −2β             log log n′                    1
+                                  ε := tα = t2                                ≤ 16−t =           ,
+                                                                                              kc
+                                        √              ′
+where the inequality follows from 2β log log n / log log n′ → ∞. This is as required by Theorem 3.1.
+The amplified hypergraph has size at most
+                                                   t                                      ′
+                                         (n′ )O(4 ) = (n′ )polylog(n ) ,
+
+                                                                10
+and therefore the whole reduction runs in time npolylog(n) . Let N denote the size of the resulting
+UMPS instance. The gap produced by Theorem 3.1 is
+                                          ka + c(a + h)   2 + (4/3)t
+                                                        =            .
+                                            (k + 2c)a         3
+                         t
+Moreover, N ≤ (n′ )O(4 ) , thus
+
+                                 log N ≤ O(4t log n′ ) = (log n′ )1+η log 4+o(1)
+
+while
+                                         (4/3)t = (log n′ )η log(4/3)+o(1) .
+Hence, for some constant γ > 0, the above gap is at least (log N )γ for sufficiently large n′ .
+    A polynomial-time (log N )γ -approximation for unit-length UMPS would therefore solve 3SAT
+in npolylog(n) time, contradicting NP ⊈ DTIME(npolylog(n) ).
+
+
+4     Balanced Coloring Amplification
+In this section, we prove Theorem 3.7, restated below.
+Theorem 3.7 (Balanced Coloring Amplification). Let G = (V, E) be an h-uniform hypergraph with
+n = |V | vertices and m = |E| hyperedges. For every integer t ≥ 1 and every real 0 < ε < 1/t,
+there is a deterministic polynomial-time reduction that constructs an ht -uniform hypergraph G(t) =
+(V (t) , E (t) ) such that
+                                                  t−1
+    • |V (t) | = nt and |E (t) | = m1+h+···+h           ;
+
+    • if G is (a, k)-colorable, then G(t) is (at , k t )-colorable;
+
+    • if every independent set in G has size less than ε|V |, then every independent set in G(t) has
+      size less than tε|V (t) |.
+
+4.1     Hypergraph Composition
+We use the following composition of hypergraphs, which dates back to [EL75, Construction (d)].
+Definition 4.1 (Composition of Hypergraphs [EL75]). The composition of an h1 -uniform hyper-
+graph G1 = (V1 , E1 ) and an h2 -uniform hypergraph G2 = (V2 , E2 ), denoted as G1 × G2 , is the
+hypergraph H = (VH , EH ) defined by
+                                         VH = V1 × V2
+and                          (                                                           )
+                                 [
+                                     {u} × fu : e ∈ E1 and fu ∈ E2 for every u ∈ e .
+                                              
+                    EH =
+                              u∈e
+
+Lemma 4.2. Let G1 = (V1 , E1 ) be an h1 -uniform hypergraph and G2 = (V2 , E2 ) be an h2 -uniform
+hypergraph. Their composition H = (VH , EH ) satisfies
+
+                                 |VH | = |V1 | · |V2 |,      |EH | = |E1 | · |E2 |h1 ,
+
+and H is h1 h2 -uniform.
+
+                                                            11
+Proof. |VH | follows immediately from the definition. |EH | = |E1 |·|E2 |h1 because every hyperedge in
+H is specified by a hyperedge e ∈ E1 and h1 many hyperedges in E2 . Furthermore, each hyperedge
+in H is a disjoint union of h1 parts, each consisting of h2 pairs, and thus has size h1 h2 .
+
+   We next prove the completeness and soundness properties of the above composition in Lemma 4.3
+and Lemma 4.4, respectively.
+Lemma 4.3. Suppose G1 = (V1 , E1 ) is an (a1 , k1 )-colorable hypergraph and G2 = (V2 , E2 ) is an
+(a2 , k2 )-colorable hypergraph. Then their composition H = (VH , EH ) is an (a1 a2 , k1 k2 )-colorable
+hypergraph.
+
+Proof. Let χ1 be an (a1 , k1 )-coloring of G1 and χ2 be an (a2 , k2 )-coloring of G2 . For a vertex
+v = (v1 , v2 ) ∈ VH , define
+                                      χ(v) = ϕ(χ1 (v1 ), χ2 (v2 )),
+where ϕ is an arbitrary bijection between [k1 ] × [k2 ] and [k1 k2 ].
+   Fix a hyperedge                       [               
+                                     e=        {u} × fu ∈ EH ,
+                                            u∈e1
+
+where e1 ∈ E1 and fu ∈ E2 for every u ∈ e1 . Fix a color r ∈ [k1 k2 ] and let (r1 , r2 ) = ϕ−1 (r). Then
+                                               X
+                            |e ∩ χ−1 (r)| =            |fu ∩ χ−1
+                                                               2 (r2 )|
+                                               u∈e1 ∩χ−1
+                                                      1 (r1 )
+
+                                             ≤ a2 |e1 ∩ χ−1
+                                                         1 (r1 )|
+                                             ≤ a1 a2 .
+Lemma 4.4. Let G1 = (V1 , E1 ) and G2 = (V2 , E2 ) be two hypergraphs, and let 0 < ε1 , ε2 < 1.
+Suppose every independent set in Gi has size less than εi |Vi | for i ∈ {1, 2}. Then every independent
+set in their composition H = (VH , EH ) has size less than
+                                            (ε1 + ε2 )|V1 ||V2 |.
+
+Proof. Let I ⊆ VH be an independent set. For every u ∈ V1 , define the fiber
+                                       Iu = {v ∈ V2 : (u, v) ∈ I},
+and let
+                          S = {u ∈ V1 : Iu is not an independent set in G2 }.
+We claim that S is an independent set in G1 . Suppose otherwise that there is some e ∈ E1 with
+e ⊆ S. For every u ∈ e, the set Iu is not independent in G2 , so we can choose a hyperedge fu ∈ E2
+with fu ⊆ Iu . By Definition 4.1,           [           
+                                               {u} × fu
+                                              u∈e
+is a hyperedge of H contained in I, a contradiction. Therefore, |S| < ε1 |V1 |.
+    For every u ∈
+                / S, the fiber Iu is independent in G2 , and hence |Iu | < ε2 |V2 |. Thus,
+                                             X
+                                       |I| =    |Iu |
+                                              u∈V1
+                                           < |S||V2 | + |V1 |ε2 |V2 |
+                                           < (ε1 + ε2 )|V1 ||V2 | .
+
+                                                     12
+4.2      Proof of Theorem 3.7
+Proof of Theorem 3.7. Construct G(t) as the t-th composition power of G, namely G(1) = G and
+G(s) = G × G(s−1) for 2 ≤ s ≤ t. Iterating Lemma 4.2 gives
+                                                                           t−1
+                            |V (G(t) )| = nt ,   |E(G(t) )| = m1+h+···+h         ,
+
+and G(t) is ht -uniform. The construction runs deterministically in time polynomial in the graph
+size.
+    For completeness, suppose G is (a, k)-colorable. We prove by induction on s that G(s) is (as , k s )-
+colorable. The case s = 1 is the assumption. If s > 1, then G is (a, k)-colorable and, by induction,
+G(s−1) is (as−1 , k s−1 )-colorable. Applying Lemma 4.3 to G × G(s−1) shows that G(s) is (as , k s )-
+colorable.
+    For soundness, suppose every independent set in G has size less than ε|V |. We prove by induction
+on s that every independent set in G(s) has size less than sε|V (G(s) )|. The case s = 1 is the
+assumption. For s > 1, apply Lemma 4.4 with G1 = G, G2 = G(s−1) , ε1 = ε, and ε2 = (s − 1)ε.
+This gives the threshold sε, completing the proof.
+
+
+Acknowledgements
+The authors used ChatGPT 5.5 Pro to assist in making the figures in this paper.
+
+
+References
+[AGH17]      Per Austrin, Venkatesan Guruswami, and Johan Håstad. (2 + ϵ)-Sat is NP-hard. SIAM
+             Journal on Computing, 46(5):1554–1573, 2017.
+
+[BM25]       Lies Beers and Raffaella Mulas. Coloring outside the lines: Spectral bounds for gener-
+             alized hypergraph colorings, 2025.
+
+[BS74]       Claude Berge and Miklós Simonovits. The coloring numbers of the direct product of
+             two hypergraphs. In Claude Berge and Dijen K. Ray-Chaudhuri, editors, Hypergraph
+             Seminar, volume 411 of Lecture Notes in Mathematics, pages 21–33. Springer, 1974.
+
+[BS90]       Peter Brucker and Rolf Schlie. Job-shop scheduling with multi-purpose machines.
+             Computing, 45(4):369–375, 1990.
+
+[CB01]       Chandra Chekuri and Michael A. Bender. An efficient approximation algorithm for
+             minimizing makespan on uniformly related machines. Journal of Algorithms, 41(2):212–
+             224, 2001.
+
+[CS99]       Fabián A. Chudak and David B. Shmoys. Approximation algorithms for precedence-
+             constrained scheduling problems on parallel machines that run at different speeds.
+             Journal of Algorithms, 30(2):323–343, 1999.
+
+[DKR+ 20]    Sami Davies, Janardhan Kulkarni, Thomas Rothvoss, Jakub Tarnawski, and Yihao
+             Zhang. Scheduling with communication delays via LP hierarchies and clustering. In
+             61st Annual IEEE Symposium on Foundations of Computer Science (FOCS 2020),
+             pages 822–833, 2020.
+
+                                                   13
+[DKR+ 22]   Sami Davies, Janardhan Kulkarni, Thomas Rothvoss, Sai Sandeep, Jakub Tarnawski,
+            and Yihao Zhang. On the hardness of scheduling with non-uniform communication
+            delays. In Proceedings of the 2022 Annual ACM-SIAM Symposium on Discrete Algo-
+            rithms (SODA), pages 316–328, 2022.
+
+[EL75]      Paul Erdős and László Lovász. Problems and results on 3-chromatic hypergraphs and
+            some related questions. In András Hajnal, Richard Rado, and Vera T. Sós, editors,
+            Infinite and Finite Sets, Vol. II, volume 10 of Colloquia Mathematica Societatis János
+            Bolyai, pages 609–627. North-Holland, Amsterdam, 1975.
+
+[GHH+ 17]   Venkatesan Guruswami, Prahladh Harsha, Johan Håstad, Srikanth Srinivasan, and
+            Girish Varma. Super-polylogarithmic hypergraph coloring hardness via low-degree
+            long codes. SIAM Journal on Computing, 46(1):132–159, 2017.
+
+[GHS02]     Venkatesan Guruswami, Johan Håstad, and Madhu Sudan. Hardness of approximate
+            hypergraph coloring. SIAM Journal on Computing, 31(6):1663–1686, 2002.
+
+[GL18]      Venkatesan Guruswami and Euiwoong Lee. Strong inapproximability results on bal-
+            anced rainbow-colorable hypergraphs. Combinatorica, 38(3):547–599, 2018.
+
+[GLLRK79] Ronald L. Graham, Eugene L. Lawler, Jan Karel Lenstra, and Alexander H. G. Rin-
+          nooy Kan. Optimization and approximation in deterministic sequencing and schedul-
+          ing: A survey. Annals of Discrete Mathematics, 5:287–326, 1979.
+
+[Gra66]     Ronald L. Graham. Bounds for certain multiprocessing anomalies. Bell System Tech-
+            nical Journal, 45(9):1563–1581, 1966.
+
+[HCH04]     Hark-Chin Hwang, Soo Y. Chang, and Yushin Hong. A posterior competitiveness for
+            list scheduling algorithm on machines with eligibility constraints. Asia-Pacific Journal
+            of Operational Research, 21(1):117–125, 2004.
+
+[Hol02]     Jonas Holmerin. Vertex cover on 4-regular hyper-graphs is hard to approximate within
+            2 − ε. In Proceedings of the Thirty-Fourth Annual ACM Symposium on Theory of
+            Computing (STOC 2002), pages 544–552, 2002.
+
+[Jaf80]     Jeffrey M. Jaffe. Bounds on the scheduling of typed task systems. SIAM Journal on
+            Computing, 9(3):541–551, 1980.
+
+[KS14]      Subhash Khot and Rishi Saket. Hardness of coloring 2-colorable 12-uniform hyper-
+                                Ω(1)
+            graphs with 2(log n)     colors. In 55th Annual IEEE Symposium on Foundations of
+            Computer Science (FOCS 2014), pages 206–215, 2014.
+
+[Li06]      Chung-Lun Li. Scheduling unit-length jobs with machine eligibility restrictions. Euro-
+            pean Journal of Operational Research, 174(2):1325–1328, 2006.
+
+[Li17]      Shi Li. Scheduling to minimize total weighted completion time via time-indexed lin-
+            ear programming relaxations. In 58th Annual IEEE Symposium on Foundations of
+            Computer Science (FOCS 2017), pages 283–294, 2017.
+
+[LL08]      Joseph Y.-T. Leung and Chung-Lun Li. Scheduling with processing set restrictions: A
+            survey. International Journal of Production Economics, 116(2):251–262, 2008.
+
+
+
+                                                14
+[LLP11]     Kangbok Lee, Joseph Y.-T. Leung, and Michael L. Pinedo. Scheduling jobs with
+            equal processing times subject to machine eligibility constraints. Journal of Scheduling,
+            14(1):27–38, 2011.
+
+[LRK78]     Jan Karel Lenstra and Alexander H. G. Rinnooy Kan. Complexity of scheduling under
+            precedence constraints. Operations Research, 26(1):22–35, 1978.
+
+[LST90]     Jan Karel Lenstra, David B. Shmoys, and Éva Tardos. Approximation algorithms for
+            scheduling unrelated parallel machines. Mathematical Programming, 46(1–3):259–271,
+            1990.
+
+[MR07]      Dhruv Mubayi and Vojtěch Rödl. On the chromatic number and independence number
+            of hypergraph products. Journal of Combinatorial Theory, Series B, 97(1):151–155,
+            2007.
+
+[MRS+ 20]   Biswaroop Maiti, Rajmohan Rajaraman, David Stalfa, Zoya Svitkina, and Aravin-
+            dan Vijayaraghavan. Scheduling precedence-constrained jobs on related machines with
+            communication delay. In 61st Annual IEEE Symposium on Foundations of Computer
+            Science (FOCS 2020), pages 834–845, 2020.
+
+[MS11]      Monaldo Mastrolilli and Ola Svensson. Hardness of approximating flow and job shop
+            scheduling problems. Journal of the ACM, 58(5), 2011.
+
+[PY90]      Christos H. Papadimitriou and Mihalis Yannakakis.        Towards an architecture-
+            independent analysis of parallel algorithms. SIAM Journal on Computing, 19(2):322–
+            328, 1990.
+
+[RSY23]     Rajmohan Rajaraman, David Stalfa, and Sheng Yang. Scheduling under non-uniform
+            job and machine delays. In 50th International Colloquium on Automata, Languages,
+            and Programming (ICALP 2023), volume 261 of Leibniz International Proceedings in
+            Informatics (LIPIcs), pages 98:1–98:20. Schloss Dagstuhl – Leibniz-Zentrum fuer In-
+            formatik, 2023.
+
+[Var15]     Girish Varma. Reducing uniformity in khot-saket hypergraph coloring hardness reduc-
+            tions. Chicago Journal OF Theoretical Computer Science, 3:1–8, 2015.
+
+[WHH+ 97] David P. Williamson, Leslie A. Hall, J. A. Hoogeveen, Cor A. J. Hurkens, Jan Karel
+          Lenstra, Sergey Vasil’evich Sevast’janov, and David B. Shmoys. Short shop schedules.
+          Oper. Res., 45(2):288–294, 1997.
+
+
+
+
+                                                15
+A     A PCP-free 4/3-Inapproximability
+In this appendix, we give a direct reduction that yields the NP-inapproximability of unit-length
+UMPS. For every fixed integer k ≥ 1, we obtain a gap
+
+                                   Ak := 3k + 1 vs. Bk := 4k + 1,
+
+and therefore rule out any approximation factor less than 4/3 in polynomial time. The proof is
+self-contained and does not involve the PCP theorem.
+
+Theorem A.1. For every fixed k ≥ 1, there is a polynomial-time reduction from a 3SAT instance
+Φ to a unit-length UMPS instance Ik (Φ), such that
+
+    • (Yes) If Φ is satisfiable, then OPT(Ik (Φ)) ≤ Ak .
+
+    • (No) If Φ is not satisfiable, then OPT(Ik (Φ)) ≥ Bk .
+
+    Before proceeding to the construction, we first define some notations used in this section. For
+a Boolean value b ∈ {T, F}, let b̄ denote the other value. For a literal ℓ over variable xi , define its
+satisfying value by                            (
+                                                 T, ℓ = xi ,
+                                      sat(ℓ) =
+                                                 F, ℓ = ¬xi .
+If I is a UMPS instance and z is a job, then I ≺ z means that every job in I precedes z, and z ≺ I
+is defined analogously.
+    We define the instances by induction. Let I0 be the one-job instance, which has optimum
+1 = A0 = B0 . The 4 vs 5 instance I1 (Φ) is defined below. For every k ≥ 2, the instance Ik (Φ) is
+constructed recursively using I0 (Φ), . . . , Ik−1 (Φ), and will be specified later.
+
+The 4-vs-5 Construction I1 (Φ). Let Φ be a 3SAT instance with variables x1 , . . . , xn and clauses
+C1 , . . . , Cm . For each variable xi , create one machine Mi . Put on this machine two value jobs
+
+                                                    JiT ,        JiF .
+
+For each clause
+                                          Cj = (ℓj,1 ∨ ℓj,2 ∨ ℓj,3 ),
+create one machine Mj with three jobs Pj,1 , Pj,2 , Pj,3 . If u(j, t) is the variable index of ℓj,t , add
+                                        sat(ℓ   )
+                                      Ju(j,t)j,t ≺ Pj,t           (t = 1, 2, 3).
+
+This defines I1 (Φ). See Figure 4 for an illustration.
+
+
+
+
+                                                            16
+                                                                                                       time
+                        σ(x1 ) = T          J1T            J1F
+
+
+                        σ(x2 ) = T          J2T            J2F
+
+
+                        σ(x3 ) = F          J3F            J3T
+
+
+                a satisfied clause
+                                                           P2              P1        P3
+                 (¬x1 ∨ x2 ∨ x3 )
+
+           an unsatisfied clause
+                                                                           P1        P2       P3
+              (¬x1 ∨ ¬x2 ∨ x3 )
+
+                                       0              1             2            3        4        5
+
+Figure 4: The 4 vs. 5 construction, shown under the assignment σ(x1 ) = T, σ(x2 ) = T, and
+σ(x3 ) = F. The upper clause (¬x1 ∨ x2 ∨ x3 ) is satisfied, while the lower clause (¬x1 ∨ ¬x2 ∨ x3 ) is
+unsatisfied.
+
+   Fix an assignment σ : {x1 , . . . , xn } → {T, F} that satisfies Φ. For every variable xi , schedule
+ σ(xi )                σ(x )
+Ji      at time 0 and Ji i at time 1. In every clause, at least one literal is true. That corresponding
+clause job is released at time 1, while the other two clause jobs are released no later than time 2.
+Hence the three clause jobs fit on Mj in the slots [1, 2], [2, 3], and [3, 4]. Thus OPT(I1 (Φ)) ≤ A1 = 4.
+    Conversely, suppose that Φ is unsatisfiable and that there is a schedule of I1 (Φ) with makespan
+strictly less than 5. On each variable machine Mi , the two unit value jobs cannot both start before
+time 1; therefore at least one of JiT and JiF starts at time at least 1. Call its value bi , and set
+σ(xi ) := b̄i . Since σ does not satisfy Φ, some clause Cj is false under σ. For every t ∈ {1, 2, 3}, the
+satisfying value of ℓj,t is exactly bu(j,t) , so all three jobs Pj,1 , Pj,2 , Pj,3 are released at time at least 2.
+They would have to fit on one machine inside [2, Cmax ), whose length is strictly less than 3, which
+is impossible. Therefore OPT(I1 (Φ)) ≥ B1 = 5.
+
+Recursive Construction for k ≥ 2. Fix k ≥ 2 and assume Ii (Φ) has been defined for all
+0 ≤ i < k. In our construction of Ik (Φ), we will recursively use instances Ii (Φ), 0 ≤ i < k, to anchor
+some dummy jobs in specific time slots.
+     Let Φ be a 3SAT instance with variables x1 , . . . , xn and clauses C1 , . . . , Cm . For each variable
+xi , create one variable machine Mi . This machine has k − 1 left layers and one terminal right layer.
+For each left layer r ∈ [k − 1], put on Mi the three jobs
+                                                   T        D            F
+                                                  Ji,r ,   Ji,r ,       Ji,r .
+
+Also put on Mi the three right-layer jobs
+                                               T            D            F
+                                              Ji,R ,       Ji,R ,       Ji,R ,
+
+
+                                                            17
+where T, D, F represent True/Dummy/False, respectively. Thus, there are 3(k − 1) + 3 = 3k jobs in
+total on each variable machine.
+     In the following, we add auxiliary jobs of kinds H, Q, S, U, V . Each job in each of those categories
+is fresh, and must be scheduled on its own fresh machine. These jobs enforce consistency between
+layers and anchor the dummy jobs. For each 1 ≤ r < k − 1, add two length-3 chains
+                                                T      1        2        T
+                                               Ji,r ≺ Hi,r,T ≺ Hi,r,T ≺ Ji,r+1 ,
+                                                F      1        2        F
+                                               Ji,r ≺ Hi,r,F ≺ Hi,r,F ≺ Ji,r+1 .
+At the last layer, add two length-4 cross chains
+                                           T
+                                          Ji,k−1 ≺ Q1i,T ≺ Q2i,T ≺ Q3i,T ≺ Ji,R
+                                                                            F
+                                                                                ,
+                                           F
+                                          Ji,k−1 ≺ Q1i,F ≺ Q2i,F ≺ Q3i,F ≺ Ji,R
+                                                                            T
+                                                                                .
+   We next anchor the dummy jobs. For each left layer r ∈ [k − 1], add
+                                                          D
+                                              Ir−1 (Φ) ≺ Ji,r ≺ Si,r ≺ Ik−r (Φ).
+
+For the right dummy job, add
+                                                                   D
+                                                  Ik−1 (Φ) ≺ Ui ≺ Ji,R ≺ Vi .
+Finally, for each clause Cj , create a machine Mj containing three jobs Pj,1 , Pj,2 , Pj,3 . Let u(j, t)
+be the variable index of literal ℓj,t , and use cyclic notation u(j, 4) = u(j, 1), ℓj,4 = ℓj,1 . For each
+t ∈ {1, 2, 3}, add
+                                        sat(ℓj,t )           sat(ℓj,t+1 )
+                                     Ju(j,t),k−1   ≺ Pj,t ≺ Ju(j,t+1),R   .
+This completes the construction of Ik (Φ). For every 0 ≤ i < k, the instance Ii (Φ) used to anchor the
+dummy jobs can be shared, so we only need one instance per starting time. Therefore, the reduction
+runs in time polynomial in k. See Figure 5 for an illustration of the construction for k = 3.
+
+                           +3                                              +4
+                                                         +3                                     +4
+
+                 T          D           F          T           D          F                   F           D          T
+      Mi        Ji,1       Ji,1        Ji,1       Ji,2        Ji,2       Ji,2                Ji,R        Ji,R       Ji,R
+
+
+
+                I0                     Si,1                                         I2
+
+                                  I1                                     Si,2                       I1
+
+                                                  I2                                         Ui                     Vi
+
+                                                                                                                                time
+            0          1          2           3          4           5          6        7          8           9          10
+
+Figure 5: Illustration of the construction for k = 3. The top row shows the single variable machine
+Mi with σ(xi ) = T in the completeness schedule, and the arrows labeled +3 and +4 abbreviate the
+auxiliary chains. The lower rows show instances with lengths A0 = 1, A1 = 4, and A2 = 7 to anchor
+the dummy jobs.
+
+
+                                                                     18
+Completeness. Assume that Φ is satisfiable, and fix a satisfying assignment σ : {x1 , . . . , xn } →
+{T, F}. By the induction hypothesis, every recursive copy Ii (Φ) with 0 ≤ i < k has a schedule of
+length Ai = 3i + 1.
+    For each variable xi , and each left layer r ∈ [k − 1], schedule on Mi
+
+           σ(x )                                                      σ(x )
+         Ji,r i at time 3(r − 1),      D
+                                      Ji,r at time 3(r − 1) + 1,     Ji,r i at time 3(r − 1) + 2.
+
+On the same machine, schedule the right-layer jobs as
+
+                    σ(x )                                               σ(x )
+                   Ji,R i at time 3k − 2,    D
+                                            Ji,R at time 3k − 1,      Ji,R i at time 3k.
+
+These slots are disjoint; the only idle slot on Mi is [3k − 3, 3k − 2). The H- and Q-chains fit exactly
+between their endpoints. The left anchors fit because
+
+                                 Ar−1 + 1 + 1 + Ak−r = 3k + 1 = Ak ,
+
+and the right anchors fit because
+
+                                    Ak−1 + 1 + 1 + 1 = 3k + 1 = Ak .
+
+    It remains to schedule the clause machines. For a clause Cj , let τt ∈ {0, 1} indicate whether
+literal ℓj,t is true under σ, and recall that τ4 = τ1 . Put L := 3k − 5. Based on our construction, the
+unit interval for Pj,t can be placed inside the following time window, according to the pair (τt , τt+1 ):
+
+                                (τt , τt+1 ) time window containing Pj,t
+                                  (1, 1)             [L, L + 5),
+                                  (1, 0)             [L, L + 3),
+                                  (0, 1)           [L + 2, L + 5),
+                                  (0, 0)           [L + 2, L + 3).
+
+Since the clause is satisfied, its cyclic truth pattern is not 000. If it is 111, all three jobs can
+be placed consecutively starting at time L. If it has exactly two true literals, schedule the job
+with (τt , τt+1 ) = (1, 0) at time L, the job with (τt , τt+1 ) = (1, 1) at time L + 1, and the job
+with (τt , τt+1 ) = (0, 1) at time L + 2. If it has exactly one true literal, schedule the job with
+(τt , τt+1 ) = (1, 0) at time L, the job with (τt , τt+1 ) = (0, 0) at time L + 2, and the job with
+(τt , τt+1 ) = (0, 1) at time L + 3. Thus every clause machine is schedulable within the makespan Ak .
+
+Soundness. Now assume that Φ is unsatisfiable, and suppose for contradiction that Ik (Φ) has a
+schedule of makespan Cmax < Bk = 4k + 1. By the induction hypothesis, every recursive copy Ii (Φ)
+with 0 ≤ i < k has makespan at least Bi = 4i + 1.
+   Let s(z) denote the start time of a job z. Consider a left dummy job Ji,r
+                                                                         D . Since it is preceded
+
+by a copy of Ir−1 (Φ), we have
+                                         D
+                                     s(Ji,r ) ≥ Br−1 = 4r − 3.
+Since it is followed by one extra job and then a copy of Ik−r (Φ), we also have
+                                           D
+                                        s(Ji,r ) + 2 + Bk−r < Bk ,
+
+and therefore s(Ji,r
+                 D ) < 4r − 2. Thus J D occupies a unit interval contained in [4r − 3, 4r − 1).
+                                     i,r
+
+
+
+                                                   19
+    For r = 1, one of Ji,1
+                       T and J F must start at or after time 2 on M : since J D starts in [1, 2), at
+                               i,1                                  i         i,1
+most one of these two unit jobs can start before time 2 without overlapping it or the other value
+job. Denote such a value by bi ∈ {T, F}. We claim that for every r ∈ [k − 1],
+                                                bi
+                                             s(Ji,r ) ≥ 4r − 2.                                         (1)
+
+This is true for r = 1 by definition of bi . If it holds for some r < k − 1, then the length-3 chain
+       bi     bi
+from Ji,r to Ji,r+1 gives
+                                     bi             bi
+                                  s(Ji,r+1 ) ≥ s(Ji,r  ) + 3 ≥ 4r + 1.
+The dummy job Ji,r+1
+                  D    starts in [4r + 1, 4r + 2), so a unit job on Mi starting at or after 4r + 1 cannot
+                             bi
+be placed before it. Hence Ji,r+1  must start after Ji,r+1
+                                                        D    completes, and therefore
+
+                                      bi
+                                   s(Ji,r+1 ) ≥ 4r + 2 = 4(r + 1) − 2,
+
+proving (1).
+   Next consider the right dummy job. Because of the anchor
+                                                        D
+                                       Ik−1 (Φ) ≺ Ui ≺ Ji,R ≺ Vi ,
+
+we have
+                                         D
+                                      s(Ji,R ) ≥ Bk−1 + 1 = 4k − 2.
+Also, since Vi must be scheduled after Ji,R
+                                         D and C
+                                                  max < 4k + 1, we have s(Ji,R ) < 4k − 1.
+                                                                             D
+
+   Applying (1) at the last left layer and then using the length-4 cross chain, we have
+                                       b̄i
+                                    s(Ji,R ) ≥ (4k − 6) + 4 = 4k − 2.
+
+We now claim that
+                                               bi
+                                            s(Ji,R ) < 4k − 2.                                          (2)
+              bi                                     bi    b̄i
+Indeed, if s(Ji,R ) ≥ 4k − 2, then the three jobs Ji,R  , Ji,R , and Ji,R
+                                                                      D would all have to be processed
+
+on Mi during the interval [4k − 2, Cmax ). This interval has length strictly less than 3, so it cannot
+contain three unit-length jobs.
+   Define an assignment σ by σ(xi ) := b̄i for each variable xi . Since Φ is unsatisfiable, some clause
+Cj is false under σ. For each literal ℓj,t in that clause, the satisfying value of ℓj,t is exactly bu(j,t) .
+Hence, by (1), the predecessor of Pj,t on the last left layer finishes no earlier than 4k − 5. By (2), its
+successor on the right starts before 4k − 2. Thus the three jobs Pj,1 , Pj,2 , Pj,3 must all be scheduled
+on one machine inside an interval of length strictly less than 3, which is impossible. Therefore
+OPT(Ik (Φ)) ≥ Bk .
+
+Corollary A.2. For every constant ε > 0, unit-length UMPS is NP-hard to approximate within a
+factor 4/3 − ε.
+
+Proof. Let ρ < 4/3 be fixed, and choose k such that ρ < (4k + 1)/(3k + 1). By Theorem A.1, it is
+NP-hard to distinguish OPT ≤ 3k + 1 from OPT ≥ 4k + 1. A ρ-approximation would distinguish
+the two cases because ρ(3k + 1) < 4k + 1.
+
+
+
+
+                                                    20
+

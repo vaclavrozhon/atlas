@@ -1,0 +1,2645 @@
+                                         Gabow’s Cardinality Matching Algorithm in General Graphs
+                                                     Implementation and Experiments∗
+                                                        Matin Ansaripour†and Alireza Danaei‡and Kurt Mehlhorn§
+arXiv:2409.14849v1 [cs.DS] 23 Sep 2024
+
+
+
+
+                                                                                   September 24, 2024
+
+                                                                                       Abstract
+                                                  It is known since 1975 ([HK73]) that maximum cardinality matchings in bipartite graphs
+                                                                                                      √
+                                              with n nodes and m edges can be computed in time O( nm). Asymptotically faster algo-
+                                              rithms were found in the last decade and maximum cardinality bipartite matchings can now
+                                              be computed in near-linear time [vdBLN+ 20, CKL+ 22, vdBCK+ 23]. For general graphs, the
+                                                                                                      √
+                                              problem seems harder. Algorithms with running time O( nm) were given in [MV80, Vaz94,
+                                              Vaz12, Vaz20, Vaz, GK04, GT91, Gab17]. Mattingly and Ritchey [MR91] and Huang and
+                                              Stein [HS17] discuss implementations of the Micali-Vazirani Algorithm. We describe an im-
+                                              plementation of Gabow’s algorithm [Gab17] in C++ based on LEDA [LED, MN99] and report
+                                              on running time experiments. On worst-case graphs, the asymptotic improvement pays off
+                                              dramatically. On random graphs, there is no improvement with respect to algorithms that
+                                              have a worst-case running time of O(nm). The performance seems to be near-linear. The
+                                              implementation is available open-source.
+
+                                         Keywords:       General Matching, Graph Algorithm, Gabow’s Algorithm, LEDA.
+
+
+                                         Contents
+                                         1 Introduction                                                                                            2
+
+                                         2 Gabow’s Matching Algorithm                                                                               3
+                                           2.1 The Overall Structure of the Program . . . . . . . . . . . . . . . . . . . . . . . . .               4
+                                           2.2 Computation of the Matching and the Odd-Set-Cover . . . . . . . . . . . . . . . .                    7
+                                           2.3 Phase One: The Search for a sap and the Construction of the Auxiliary Graph H .                      8
+                                               2.3.1 Determining a sap . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .              9
+                                               2.3.2 From One to All saps . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .              13
+                                               2.3.3 Details of the While-Loop in phase 1 . . . . . . . . . . . . . . . . . . . . . .              14
+                                               2.3.4 Construction of H . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .             18
+                                           2.4 Using LEDA’s Matching Algorithm to Finish Off . . . . . . . . . . . . . . . . . . .                 20
+                                           2.5 Phase Two: Construction and Augmentation of a Maximal Set of Saps . . . . . . .                     22
+                                           2.6 Further Optimizations . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .           26
+
+                                         3 Experiments and Evaluation                                                                              27
+                                           3.1 A Worst Case Family of Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . .             28
+                                               3.1.1 A Worst-Case Representation . . . . . . . . . . . . . . . . . . . . . . . . . .               28
+                                               3.1.2 A Robust Worst-Case Graph . . . . . . . . . . . . . . . . . . . . . . . . . .                 29
+                                           3.2 Random Graphs . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .             31
+                                           3.3 Breakdown of Running Times . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .              32
+                                           ∗ Part of the work was done as an internship project of the first two authors at MPI for Informatics.
+                                           † Department of Computer Science, EPFL, Lausanne, Switzerland
+                                           ‡ Department of Computer Enginering, Sharif University, Tehran, Iran
+                                           § MPI for Informatics, Saarbrücken, Germany
+
+
+
+
+                                                                                                1
+    3.4   Running Times, Instruction Counts, and Memory Hierarchy . . . . . . . . . . . . .          32
+    3.5   An Unfair Comparison . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   33
+    3.6   Suggestions for Further Experiments . . . . . . . . . . . . . . . . . . . . . . . . . .    34
+
+4 Conclusions                                                                                        34
+
+A LEDA’s Matching Algorithm                                                                          36
+
+B LEDA’s Matching Algorithm plus the Kececioglu-Pecqueur Heuristics                                  40
+
+C The Program for the Running Time Experiments                                                       43
+
+
+1     Introduction
+The maximum matching problem is one of the basic problems in graph theory and graph algo-
+rithms. Given an undirected graph, the goal is to find a matching, i.e., a set of edges no two of
+which share an endpoint, of maximum cardinality. Edmonds gave a polynomial time algorithm as
+early as 1965 [Edm65]. The running time of the algorithm was improved over time, culminating
+in the O(nmα(n)) algorithm of Gabow [Gab76] and the O(nm) algorithm of Gabow and Tar-
+jan [GT85]. An implementation of the former algorithm is available in LEDA [LED, MN99]. Ke-
+cecioglu and Pecqueur [KP98] give heuristic improvements
+                                                  √          that often lead to considerably smaller
+running times. Algorithms with running time O( nm) were given in [MV80, Vaz94, Vaz12, Vaz20,
+Vaz, GK04, GT91, Gab17]. Mattingly and Ritchey [MR91] and Huang and Stein [HS17] discuss
+implementations of the Micali-Vazirani Algorithm. We describe an implementation of Gabow’s
+algorithm [Gab17] in C++ based on LEDA [LED, MN99] and report on running time experi-
+ments. On worst-case graphs, the asymptotic improvement pays off dramatically. On random
+graphs, there is no improvement with respect to algorithms that have a worst-case running time
+of O(nm). The performance seems to be near-linear.
+    In Section 2 we describe our implementation of Gabow’s algorithm. We follow his description
+closely [Gab17].
+    in Section 3 we define a worst-case family of sparse graphs and report on various experiments.
+                                                                  3
+On the family, Gabow’s new algorithm has a running time Θ(n /2 ) and Gabow’s older algorithm
+has a running time of Θ(n2 ). We also give a family, where the respective running times are O(n)
+         3
+and Ω(n /2 ), respectively. We make sure that these running times do not only hold for a particular
+representation of the graph, i.e., a particular numbering of the vertices and edges, but for most
+representations.
+    In the appendices we include listing of LEDA’s matching algorithm, of LEDA’s matching
+algorithm with the Kececioglu-Pecqueur Heuristics, and of our program for the running time
+experiments.
+    We present the program as a literate programming document [KL93] using the adaption of the
+Ramsey’s noweb-system developed for LEDA [MN99]. In particular, the program is defined as a
+sequence of chunks.
+
+⟨chunk ⟩≡
+   some \CC text that may contain ⟨subchuncks⟩
+
+
+In our case, the top-level chunck is Gabow.h. The corresponding file is obtained in a process
+similar to macro-expansion. Subchunks are replaced by their definitions until all subchuncks are
+expanded.
+
+
+
+
+                                                   2
+2      Gabow’s Matching Algorithm
+We define a C++ class G card matching that realizes
+                                                  √ Gabow’s algorithm [Gab17] for maximum
+matchings in general graphs. It runs in time O( nm) and generalizes the Hopcroft and Karp
+algorithm from bipartite to general graphs.1 It follows the same principle. It works in iterations
+and in each iteration augments a maximal number of edge-disjoint shortest augmenting paths
+(saps) to the current matching. Each iteration works √ in linear time (in our implementation in
+time O(mα(n))) and the number of iterations is O( n). Each iteration consists of two phases.
+Let M be the current matching and let G be the input graph.
+
+First Phase: In the first phase, the length of the saps is determined and, if an augmenting
+path exists, an auxiliary graph H is constructed. The graph H has the (amazing) property that
+augmenting paths in H are in one-to-one correspondence to saps in G. The first phase is an
+adaption of Edmonds’ weighted matching algorithm; this algorithm constructs a maximum weight
+matching by iteratively constructing maximum weight matchings of cardinalities 0, 1, 2, . . . . Each
+matching is obtained from the previous one by augmenting a maximum weight augmenting path,
+where the weight of a path P is defined as
+
+                                       w(P ) = w(P \ M ) − w(P ∩ M ),                             (1)
+
+i.e., the increase in weight obtained by augmenting P to M . We want P to be a sap and therefore
+define w(e) = 2 for e ∈ M and w(e) = 0 for e ̸∈ M . Then a maximum weight augmenting path is
+a sap; notice that the weight of an augmenting path is the negative of 2 times the number of edges
+contained in the current matching. In principle, any positive weight could be used for the edges
+in M . The choice of two guarantees that the algorithm has to deal with integers only. Edmonds’
+algorithm is based on the linear programming formulation of maximum weighted matching and
+makes extensive use of the dual linear program. The dual linear program has a variable for each
+vertex of G and for each set of vertices of odd cardinality three or more. The latter are non-
+negative, the former are unconstrained. The reduced weight ŵ(e) of an edge e = xy is defined
+as                                                   X
+                               ŵ(e) = d(x) + d(y) +     z(B) − w(e),                          (2)
+                                                            x,y∈B
+
+where d denotes dual values of vertices and z denotes dual values of odd sets (of cardinality three or
+more). The sum is over all odd sets containing x and y. Reduced weights are always non-negative
+and an edge is called tight if its reduced weight is zero. When the search for an augmenting path
+starts, d(v) = 1 for all v and z(B) = 0 for all odd sets B. Then matching edges are tight and
+non-matching edges are non-tight. The search for an augmenting path grows search structures
+(usually called trees) rooted at free nodes. The trees are grown concurrently and the endpoints of
+a matching edge either both belong to a tree or none belongs to a tree. The trees are initialized
+with the free nodes. A tree node is EVEN if there is an even length path in the search structure
+connecting it to its root and ODD otherwise. The incoming tree-edges of even nodes are matching
+edges and are non-matching for odd nodes. Trees are grown by the addition of tight edges incident
+to even nodes. So assume that x is an even node and let xy be a tight edge incident to x. If y
+does not belong to any search structure yet (then y is matched), we add y and its mate to the
+tree containing x. y becomes odd and mate[y] becomes even. When y already belongs to a search
+structure and is ODD, we do nothing as we have simply discovered another odd length path to
+y. If y is EVEN and belongs to a different tree, we have discovered an augmenting path. If y is
+EVEN and belongs to the same tree, we have discovered a so-called blossom. Let b be the lowest
+common ancestor of x and y. Then all odd nodes on the paths from b to x and y become even.
+For example, an odd node z between b and y can now be reached by going from the root to x
+(even length), then to y (one step) and then from y towards z (odd length). The edge xy is called
+the bridge of the blossom and the blossom consists of all nodes on the paths from b to x and y,
+    1 As customary, we use n and m for the number of vertices and edges, respectively.
+
+
+
+
+                                                        3
+respectively. A blossom contains an odd number of nodes. We contract all nodes of the blossom
+into a single node. In this way, the search structures stay trees. Note that blossoms can be nested.
+    In what order do we add edges to the search structures? We maintain the invariant that all
+edges in the search structures are tight and that all roots have the same dual value. We grow
+the trees by adding non-matching tight edges, i.e., edges xy with ŵ(e) = 0. Then necessarily,
+d(x) + d(y) = 0 as w(e) = 0. In particular, if y does not belong to a search structure yet,
+d(x) = −1 and d(y) = +1. Suppose now that we cannot further grow trees, i.e., ŵ(e) > 0 for
+any edge xy with at least one even endpoint. Then we perform a dual update. We decrease d(v)
+by one for every even vertex, increase d(v) by one for every odd vertex and increase z(B) by two
+for every maximal blossom, i.e., any blossom not contained in any other blossom. Then z-values
+are always even, and the d-values of all vertices in the search structures have the same parity.
+Also, all edges in the search structures stay tight: if one endpoint is even and one is odd, this is
+obvious, if both endpoints are even, the endpoints are contained in the same maximal blossom,
+and again the claim is obvious. Consider now an edge xy not belonging to any search structure.
+If no endpoint belongs to the search structures, d(x) = d(y) = 1 and the reduced weight does not
+change. If at least one endpoint is odd, the reduced weight does not decrease. If one endpoint is
+even, and the other endpoint does not belong to a search structure, the reduced weight decreases
+by one and hence stays non-negative. If both endpoints are even and do not belong to the same
+blossom, the reduced weight decreases by two and hence stays non-negative since the d-values of
+the endpoints have the same parity. We have now shown that reduced weights stay non-negative,
+that edges in the search structure are tight, and that all roots have the same dual value. After ∆
+dual updates, we have d(f ) = 1 − ∆ for any free node f .
+    The auxiliary graph H is a contraction of G. All maximal positive blossoms are contracted and
+the tight edges between them are kept. In this way, the augmenting paths in H correspond to saps
+in G. Since a sap must use the matching edge incident to the base of a maximal blossom (except
+if the base is free)2 , a sap contracts to an augmenting path in H. Conversely, an augmenting path
+in H is easily lifted to a augmenting path in G by filling in the parts inside the contracted nodes.
+
+Phase Two: We give only a very rough sketch of the second phase at this point and give more
+details in Section 2.5. In the second phase a maximal number of disjoint augmenting paths in H is
+constructed. The second phase uses depth-first search for growing the search structures. Consider
+the growth of a tree rooted at a free node f and assume first that our graph is bipartite. Then
+there are two important facts about DFS. When we add an edge xy where x is even and y is free,
+the tree path to x together with the edge xy forms an augmenting path. When we return from a
+recursive call for node x without having found an augmenting path, there is none passing through
+x. In general graphs, we also have blossoms. Since, we are performing DFS on an undirected
+graph, blossoms are discovered when we explore a forward or backward edge. We have the choice
+and delay the formation of the blossom to the exploration of the forward edge. Consider a forward
+edge xy and let b be the lowest common ancestor3 of x and y. Then x belongs to the blossom with
+base b and the blossom step makes the odd nodes between y and b even. In order to maintain the
+crucial properties of DFS, it suffices to make the recursive calls in a particular order. We start
+with the odd node closest to b and then work our way up to y.
+
+2.1     The Overall Structure of the Program
+We define all the variables used in the program and introduce the two program chunks init and
+solve. The space requirement of the program is enormous. In particular, it uses more than 20
+arrays indexed by nodes (in addition to the ones visible as node arrays, there are two hidden in
+the node partitions base and dbase and one hidden in the auxiliary graph H). We give more
+  2 See Lemma 4.
+   3 If xy is a forward edge, shouldn’t x be the lowest common ancestor of x and y? How can the lowest common
+
+ancestor be different from x? Recall that we are working on a graph in which some blossoms are already be
+shrunken. In particular, x may be part of a blossom with base b. Then b is the common ancestor of x and y in the
+original graph.
+
+
+
+                                                       4
+information about the space usage in Section 3.4. It would be interesting to reduce the space
+requirement. There is no need to read all the declarations in detail.
+    The chunk init contains the functions for greedy initialization and for initialization with a
+known matching. The chunck solve is the workhorse of the program.
+
+⟨Gabow.h⟩≡
+   ⟨priority queue.h⟩
+   enum LABEL {EVEN, ODD, UNLABELED};     // also declared in   _mc_matching.cpp
+   class G_card_matching{
+   private:
+   const graph& G;
+   list<edge> M; // matching in G
+   node_array<node> mate; // mates in M
+   node_partition base;   // dbase and base are almost the same
+   node_partition dbase; // the maximal positive blossoms in G
+   node_array<node> rep; // rep[v] is the base of the maximal positive blossom containing v
+   node_array<node> parent; // parent[v] is the parent of v in the alternating tree
+   node_array<node> source_bridge; // bridges close blossoms; a blossom consists of two paths
+   node_array<node> target_bridge; // x--z and y--z plus the edge xy; z is the base of the blossom.
+   // the nodes on the path from x to z store x as source_bridge and y as target_bridge.
+   node_array<double> path1;
+   node_array<double> path2;
+   edge_array<int> w; // w[e] = 2 for e in M and w[e] = 0 otherwise
+   node_array<LABEL> label;
+   simple_queue PQ;
+   list<node> P;
+   list<node> T;
+   node_array<int> bd;    // initialized to 1
+   node_array<int> bDelta; // correct value for free nodes
+   graph H;   // H is obtained from G by contracting the maximal positive blossoms
+   node_array<node> mateHG;
+   edge_array<bool> is_edge_of_H;
+   node_array<list<node> > contracted_into;
+   // node_partition baseHG;
+   node_array<LABEL> labelHG;
+   node_array<edge> parentHG;     // only odd nodes use it.
+   node_array<int> even_timeHG;    // timestep at which a node of H became even;
+   node_array<edge> bridgeHG;
+   node_array<int> dirHG;
+   int size_of_M;
+   int tG;
+   int Delta;
+   double strue;
+   node_array<int> num;
+   node_array<int> even_time;
+   int even_count;
+   ⟨helper functions⟩
+   public:
+   G_card_matching(const graph& g): G(g), mate(node_array<node>(G,nil)),
+   base(node_partition(G)), dbase(node_partition(G)),
+   // no need to initialize rep, parent, source_bridge, target_bridgt, parentHG, bridgeHG, dirHG, mateHG
+   rep(node_array<node>(G)), parent(node_array<node>(G)),
+   source_bridge(node_array<node>(G)), target_bridge(node_array<node>(G)),
+   path1(node_array<double>(G)), path2(node_array<double>(G)),
+   w(edge_array<int>(G,0)), label(node_array<LABEL>(G,UNLABELED)),
+   PQ(simple_queue(G)), P(list<node>()), T(list<node>()), bd(node_array<int>(G)), bDelta(node_array<int>(G)),
+   mateHG(node_array<node>(G)),
+
+
+                                               5
+   is_edge_of_H(edge_array<bool>(G,false)), contracted_into(node_array<list<node> >(G)),
+   labelHG(node_array<LABEL>(G,UNLABELED)),
+   parentHG(node_array<edge>(G)), even_timeHG(node_array<int>(G,0)),
+   bridgeHG(node_array<edge>(G)), dirHG(node_array<int>(G)), size_of_M(0), tG(0), strue(0),
+   num(node_array<int>(G)), even_time(node_array<int>(G)), even_count(0)
+   {
+   }
+   ⟨init: initializes with a greedy matching or a given matching⟩
+   ⟨solve: computes matching and odd set cover ⟩
+   };
+
+
+
+Initialization: Initialization with a greedy matching is trivial. We iterate over all edges and add
+an edge to the matching if both endpoints are still free. We are careful and skip over self-loops.
+Alternatively, we can initialize with a matching M0 .
+
+⟨init: initializes with a greedy matching or a given matching⟩≡
+    int init(){
+    edge e;
+    forall_edges(e,G){
+    node u = G.source(e); node v = G.target(e);
+    if (u != v && mate[u] == nil && mate[v] == nil) {
+    mate[u] = v;
+    mate[v] = u;
+    size_of_M++;
+    }
+    }
+    return size_of_M;
+    };
+   int init(const list<edge>& M0){
+   edge e;
+   forall(e,M0){
+   node u = G.source(e); node v = G.target(e);
+   if (u != v && mate[u] == nil && mate[v] == nil) {
+   mate[u] = v;
+   mate[v] = u;
+   size_of_M++;
+   }
+   }
+   return G.number_of_nodes();   // there is no guarantee on the size of |M0|
+   };
+
+
+
+The Computation of a Maximum Matching: Function solve: We come to the work-horse,
+the function solve. As already stated, it works in iterations. Each iteration consists of two phases.
+In the first phase, the length of a sap and an auxiliary graph H containing all saps is determined.
+If the auxiliary graph is empty, a maximum matching has been found, we construct an odd-set
+cover as a witness of optimality and return. If the auxiliary graph is non-empty, we start the
+second phase, determine a maximal set of edge-disjoint saps, lift them to G, and augment the
+current matching. Then the next iteration begins.
+    The size of a maximum matching is at most twice the size of a greedy matching and never more
+than n/2. The number of iterations till completion is at most the difference between the size of
+the maximum matching and the size of the current matching. This is true even if future iterations
+find only a single augmenting path each. Since finding a single augmenting path is simpler and
+we have already implemented an efficient search for a single augmenting path in LEDA’s general
+
+
+                                                    6
+matching algorithm, we switch to this algorithm once the distance to the maximum matching is
+about the number of already executed iterations.
+
+⟨solve: computes matching and odd set cover ⟩≡
+   list<edge> solve(node_array<int>& OSC, int& number_of_iterations,
+   double heur_factor = 1, bool heur = true){
+   int max_size_of_M = min(G.number_of_nodes()/2, 2*init());
+   // the size of a greedy matching is at least half of the maximum matching.
+   number_of_iterations = 0;
+   node v; edge e;
+   int count = 1; T = G.all_nodes();
+   forall_nodes(v,G) num[v] = count++;
+   while ( true ){
+   ⟨setting up w ⟩
+   number_of_iterations++;
+   if( heur && (number_of_iterations > 0.5 * heur_factor * (max_size_of_M - size_of_M)) ){
+   ⟨finish the computation by means of LEDA’s matching algorithm⟩
+   break;
+   }
+   else{
+   if( phase_1() ) // returns true if there is an augmenting path
+   phase_2();
+   else break;
+   }
+   }
+   ⟨compute matching and odd-set-cover ⟩
+   return M;
+   };
+
+
+
+2.2    Computation of the Matching and the Odd-Set-Cover
+When no augmenting path exists, the matching is maximum. The matching is encoded in mate.
+We iterate over all edges of G and whenever the endpoints are mated, we add the edge to the
+output M . Since only one edge in a bundle of parallel edges should go into M , we unmate the
+endpoints.
+   Once the maximum matching is determined, we also compute an odd-set-cover to witness its
+optimality. Recall that an odd-set-cover is a labeling of the nodes with non-negative integers such
+that
+
+   • the equality |M | = n1 + i≥2 ⌊ni /2⌋ holds, where for i ≥ 0, ni is the number of nodes
+                                P
+     labeled i, and
+   • for every edge of G either at least one endpoint is labeled one or both endpoints are labeled
+     i for some i ≥ 2.
+
+It is easy to see that |M | is at most the sum on the right-hand side for any matching M . Let M1
+be the edges in M that are incident to a node labeled one S and, for i ≥ 2, let Mi be the edges in
+M that have both endpoints labeled i. Then M = M1 ∪ i≥2 Mi by the third property, |M1 | ≤ n1
+by the second property, and |Mi | ≤ ⌊ni /2⌋ by the definition of Mi for i ≥ 2 and the fact that |Mi |
+is an integer.
+    The odd-set-cover is readily computed. All nodes in a non-trivial blossom receive the same
+number and nodes in trivial blossoms receive the number zero if even and the number one if odd.
+Unlabeled nodes are matched and come in pairs. If there is no unlabeled node, we are done. If
+there are exactly two unlabeled nodes, we label one of them one and the other one zero. If there
+
+
+
+
+                                                 7
+are more than two unlabeled nodes, we label one of the then one, and all others with two. We
+then start labeling the blossoms at three.
+
+⟨compute matching and odd-set-cover ⟩≡
+   M.clear(); // make empty list
+   forall_edges(e,G){
+   node u = G.source(e); node v = G.target(e);
+   if (mate[u] == v){
+   M.append(e);
+   mate[u] = mate[v] = nil; // only one edge from a bundle of parallel edges
+   }
+   }
+   OSC.init(G,-1);
+   int number_of_unlabeled = 0;
+   node arb_u_node = nil;
+   forall_nodes(v,G)
+   if ( label[v] == UNLABELED ){
+   number_of_unlabeled++;
+   arb_u_node = v;
+   }
+   int L = 0;
+   if ( number_of_unlabeled > 0 ){
+   OSC[arb_u_node] = 1;
+   if (number_of_unlabeled > 2) L = 2;
+   forall_nodes(v,G)
+   if ( label[v] == UNLABELED && v != arb_u_node ) OSC[v] = L;
+   }
+   int K = ( L == 0? 2 : 3);
+   forall_nodes(v,G)
+   if ( dbase(v) != v && OSC[dbase(v)] == -1 ) OSC[dbase(v)] = K++;
+   forall_nodes(v,G)
+   { if ( dbase(v) == v && OSC[v] == -1 )
+   { if ( label[v] == EVEN ) OSC[v] = 0;
+   if ( label[v] == ODD ) OSC[v] = 1;
+   }
+   if ( dbase(v) != v ) OSC[v] = OSC[dbase(v)];
+   }
+
+
+
+2.3    Phase One: The Search for a sap and the Construction of the Aux-
+       iliary Graph H
+We assume that the reader is familiar with the standard general matching algorithm as, for ex-
+ample, described in Section 7.7 of [MN99]. We give a brief review. The algorithm searches for an
+augmenting path by growing alternating trees rooted at free vertices. Vertices are either unlabeled,
+even, or odd. A vertex is unlabeled if it does not belong to any tree, even if there is an even length
+alternating tree path ending in it (there may also be an odd length alternating path ending in
+it), and odd if all alternating tree paths ending in it have odd length. For any node one of the
+alternating paths ending in it is designated the canonical path of the vertex. Roots are even and
+free and, at the beginning, all matched vertices are unlabeled. The canonical path of a root is
+the trivial path consisting only of the root. In each step of the search a non-matching non-trivial4
+edge incident to an even vertex is explored, say xy with x even. We follow [Gab17] and use xy
+  4 Self-loops are not explored.
+
+
+
+
+                                                  8
+for the edge to be explored; in [MN99] we use vw. If there is a matching edge incident to x, it
+connects x with its parent.
+    If y is unlabeled, we add y and its mate to the search structure; y becomes odd and its mate
+becomes even. The canonical paths are the canonical path of x extended by y and extended by y
+and the mate of y, respectively.
+    If y is odd, we do nothing, as we have simply discovered another odd length path to y. The
+canonical path of y is already defined.
+    If y is even and in a different tree, we have found an augmenting path. The path consists of
+the edge xy plus the canonical paths from x and y to their respective roots.
+    If y is even and in the same tree, we have discovered new even length alternating paths. Let z
+be the lowest common ancestor of x and y. z is an even vertex. All odd vertices on the paths from
+x and y to z become even. For example, consider a odd vertex on the path from y to z. The even
+length path to it consists of the even length path ending in x followed by the edge xy, followed
+by the odd length path from y to the vertex (equivalently, the suffix of the canonical path of y
+starting in the vertex). This path is also the canonical path of the vertex. The edge xy is added
+to the search structure and all nodes on the paths from x and y to z are contracted into z; one
+says that these nodes form a blossom with z as its base. Contraction of blossoms ensures that the
+search structure stays a forest. Also, all unexplored edges connecting two vertices of the blossom
+become self-loops and will not be explored in the future. These edges do not become part of the
+search structure.
+    We use Bx to denote the maximal blossom containing x. For uniformity of notation, a vertex
+is also considered a blossom. So, if x was never part of a shrinking process, Bx = {x}.
+    In the implementation, we use label [x] ∈ {EVEN , ODD, UNLABELED } for the vertex label.
+We use LEDA’s node partition class node partition to keep track of blossoms. A node parti-
+tion keeps track of a partition of the vertices of a graph into disjoint blocks. Each block has
+a representative; in our case, the base of the blossom will be the representative of the block.
+node partition(G) base creates a node-partition base for G and makes each vertex a block of its
+own; the vertex is also the representative of the block. int base.same block (v, w) returns a non-
+zero integer if v and w belong to the same block and 0 otherwise, base.union blocks(v, w) unites
+the blocks containing v and w (the canonical representative of the new block is the canonical
+representative of one of the blocks), node base.find (v) or even simpler node base(v) return the
+canonical representative node of the block containing v, base.make rep(v) makes v the canonical
+representative of the block containing v, and base.split(G.all nodes( )) restores the initial state.
+    When a blossom is formed, we use union operations (either between each vertex of the blossom
+and the base of the blossom or between the endpoints of each edge forming the blossom). We do
+not change the label of the odd nodes in the blossom to even, we change the label only implicitly
+by always asking for the label of the base of a vertex instead of the label of the vertex itself, i.e,
+we write label [base(v)] instead of label [v]. For vertices in trivial blossoms, both calls give the same
+result, and for vertices in non-trivial blossoms, the former call returns EVEN . In this way, we
+save some updates and, more importantly, we still have the original label of each node. We will
+need the original label, when we construct augmenting paths in phase 2 .
+
+2.3.1   Determining a sap
+The algorithm as outlined above finds some augmenting path if there is one. We need to find a
+shortest augmenting path, a sap, and therefore need to explore edges in a judicious order. To this
+end, we organize the exploration of edges into ∆-phases, where ∆ = 0, 1, 2, . . .. In a ∆-phase, a
+non-matching edge xy incident to an even node x is explored where either (see Lemma 3)
+   • y is unlabeled, and the canonical path of x has length ∆ − 2 (the canonical path to the mate
+     of y will then have length ∆) or
+
+   • y is even, and the sum of the lengths of the canonical paths to x and y is 2∆ − 2 (together
+     with the edge xy, the length is 2∆ − 1).
+
+
+
+                                                   9
+In the former case, the search structure is grown by two edges, and in the latter case, the search
+structure is extended by one edge and either a blossom or an augmenting path has been found.
+We say that the edge e = xy is explored at level ∆. In the program, we refer to e as a tight
+edge. This concept is defined below. An augmenting path contains at most n − 1 edges. Thus
+2∆ − 1 ≤ n − 1 when an augmenting path is found. Thus we have 2∆ ≤ n as the condition of the
+while-loop. The function returns true if an augmenting path exists, and false otherwise.
+
+⟨helper functions⟩≡
+    bool phase_1(){
+    node v; edge e; // the generic vertex and edge
+    Delta = 0; int n = G.number_of_nodes();
+    bool found_sap = false;
+    ⟨local declarations in phase 1 ⟩
+    while (2 * Delta <= n){
+    while (⟨there is a tight unexplored edge e at level Delta incident to an even node⟩){
+    node x = G.source(e), y = G.target(e); // one of the endpoints must be even, none odd
+    if ( label[base(x)] != EVEN) swap(x,y);
+    if (y == mate[x] || base(x) == base(y) || label[base(y)] == ODD) continue;
+    // only non-matching and non-self-loops and y not odd
+    if ( label[base(y)] == UNLABELED ){
+    ⟨grow step⟩
+    }
+    else
+    if ( label[base(y)] == EVEN ){// chunk sets found_sap if an augmenting path is found
+    ⟨blossom step or augmentation⟩
+    }
+    } // there is no further tight edge and no augmenting path at level Delta
+    if (found_sap){
+    ⟨augmentation: construction of H ⟩
+    return true;
+    }
+    ⟨commit to unions⟩      // see section 3.4 Construction of H
+    Delta++;
+    } // end Delta-Loop
+    return false; // no augmenting path found
+    };
+
+
+The remainder of the section expands on the introduction; there will be some repetition. Exploring
+edges in a carefully chosen order is at the core of Edmonds’ weighted matching algorithm [Edm65].
+Since we have only edge weights zero and two, the full generality of Edmonds’ algorithm is not
+needed. It uses augmenting paths of maximum weight, where the weight w(P ) of an alternating
+path is defined as the total weight of the edges in P \ M minus the total weight of the edges in
+P ∩ M,
+                                  w(P ) = w(P \ M ) − w(P ∩ M ),                               (3)
+i.e., the increase in weight of M obtained by augmenting P . The weighted matching algorithm
+iteratively constructs maximum weight matchings of increasing cardinality. We define
+                                             (
+                                               2 if e ∈ M
+                                     w(e) =
+                                               0 if e ̸∈ M .
+
+Then a maximum weight augmenting path is an augmenting path with a minimum number of
+matching edges, i.e., a sap. Note that the weight of an augmenting path is the negative of twice
+the number of matching edges contained in it.
+   The weighted matching algorithm originates from the formulation of the matching problem as
+
+
+
+                                               10
+a linear program. The variables of the dual play a crucial role. We have a dual value5 d(v) for each
+vertex v and a non-negative dual value z(B) for each non-trivial blossom. The duals dominate an
+edge e = uv if                                    X
+                          ŵ(e) = d(u) + d(v) +        z(B) − w(e) ≥ 0.                          (4)
+                                                     u,v∈B
+
+We call ŵ(e) the reduced weight of e. An edge e is tight if ŵ(e) = 0. We initialize d(v) to one for
+all v. Then matching edges are tight and non-matching edges are non-tight.
+    The search maintains the invariant that all edges are dominated and that all edges in the search
+structure and in M are tight. It grows the trees by exploring a tight non-matching edge incident
+to an even vertex. We will show in Lemma 2 that the dual values of nodes reflect the length of
+canonical paths: If v is a node in a tree with root f , then, for an even node, d(v) − d(f ) is the
+length of the canonical path to v, and, for an odd node, −d(v) − d(f ) + 1 is the length of the
+canonical path to v.
+    The trees are grown until either an augmenting path is found or there are no further tight non-
+matching edges incident to an even vertex. In the latter case, a dual update might make further
+edges tight. It could also be that the matching is maximum. We come back to this alternative
+below. We change the duals as follows:
+                            (
+                              d(v) − 1 if v is even
+                     d(v) =
+                              d(v) + 1 if v is odd.
+                      z(B) = z(B) + 2      for every maximal non-trivial blossom.
+
+The effect of the update on the reduced weight ŵ(e) of an edge e = uv is as follows:
+   1. Both endpoints already belong to the search structure: If both endpoints are odd, the reduced
+      weight increases, if one endpoint is even and one endpoint is odd and hence the edge is not
+      contained in a blossom (recall that all nodes contained in a non-trivial blossom are even),
+      the reduced weight does not change, if both endpoints are even and contained in the same
+      maximal blossom, the reduced weight does not change, and if both endpoints are even and
+      contained in different maximal blossoms, the reduced weight decreases by two. Lemma 1
+      shows that reduced weights stay non-negative. Also, tight edges in the search structure stay
+      tight, because such edges either connect an even and an odd node or two even nodes in the
+      same maximal blossom.
+   2. No endpoint already belongs to the search structure: The reduced weight does not change.
+   3. Exactly one endpoint belongs to the search structure: If this endpoint is odd, the reduced
+      weight goes up. If this endpoint is even, the reduced weight decreases by one.
+    Figure 1 illustrates the tree growing process and the dual updates. Next, we state basic
+properties of dual values and then give some more intuition about the dual values.
+Lemma 1 z-values are always even and the d-values of all vertices in the search structure have
+the same parity. When a tight edge xy is explored from x, we have d(y) = −d(x). In a grow step,
+we have d(x) = −1. All free vertices have the same dual value 1 − ∆. The reduced weight of an
+edge having both endpoints in the search structure is even.
+Proof: The first claim is obvious as z-values are always increased by two. The second claim
+is true initially as all d-values are initialized to one. When d-values are changed, the d-values of
+even vertices are incremented and the d-values of odd nodes are decremented and the claim stays
+true. When a tight edge e = xy is explored, x and y do not belong to the same blossom and e is
+unmatched. Thus d(x) + d(y) = 0. In a grow step, d(y) = 1 and hence d(x) = −1. The d-value of
+the mate of y is also one.
+  5 Gabow uses y for the vertex duals and somehow manages to never write y(y) for the dual value of vertex y.
+
+We prefer to use d for the duals of vertices.
+
+
+
+                                                     11
+    The initial dual value of a free vertex in +1 and free vertices are even. Every dual update
+decrements the value.
+    If an edge has both endpoints in the search structures, the parity of the dual values of the
+endpoints is the same. Thus the reduced weight is even.
+Lemma 2 Let v be any vertex in the search structure and let f be the root of the tree containing v.
+If v is even, d(v) − d(f ) is the length of the canonical path from f to v, if v is odd, −d(v) − d(f ) + 1
+is the length of the canonical path from f to v.
+Proof: Note first, that dual updates do not change the values of d(v)−d(f ) and −d(v)−d(f )−1.
+So, we only have to prove the claim for the point in time, when v got is current label. If v is the
+root of a search structure, v is even, d(v) − d(f ) = 0, and the length of the path is zero.
+    If v is odd, then v was added in a grow step, say from node x. We have d(v) + d(x) = 0, the
+length of the path to x is d(x) − d(f ), and the length of the path to v is one more. Thus the length
+is d(x) − d(f ) + 1 = −d(v) − d(f ) + 1. If v is even and was added in a grow step, its mate m is
+odd and added in the same grow step, and d(v) = d(m) = 1. The path to v is one longer than the
+path to m. Thus the length of the path is 1 − d(m) − d(f ) + 1 = d(v) − d(f ).
+    Finally, if v became even after the addition of the bridge xy, d(x) + d(y) = 0, and the length
+of the path is the length of the path from f to x plus 1 plus the length of the path from y to v.
+Thus the length is (d(x) − d(f )) + 1 + (d(y) − d(f )) − (−d(v) − d(f ) + 1) = d(v) − d(f ).
+Lemma 3 Let x be an even node and xy a tight edge incident to x in a ∆-phase. If y is unlabeled,
+the canonical path to x has length ∆ − 2, if y is even, the sum of the length of the canonical paths
+to x and y is 2∆ − 2.
+Proof: The initial d-value of a free node is 1. The value is decreased by one in each dual update.
+Thus d(f ) = 1 − ∆ in a ∆-phase.
+    In a grow step x along edge xy, we have d(y) = 1, d(x) + d(y) = 0 and the path to x has length
+d(x) − d(f ) = −1 − 1 + ∆ = ∆ − 2.
+    In a blossom step or augmentation via the edge xy, we have d(x) + d(y) = 0, the paths to x
+and y have length d(x) − d(f ) and d(y) − d(f ′ ) respectively (here f = f ′ in a blossom step and
+f ̸= f ′ in a augmentation), and d(f ) = d(f ′ ) = 1 − ∆. Thus the sum of the length of the canonical
+paths of x and y are d(x) − d(f ) + d(y) − d(f ′ ) = 2∆ − 2.
+    Call a blossom positive if it contained (not necessarily proper) in a blossom with positive z-
+value. A blossom is positive iff it was formed before the last dual adjustment. For a blossom B
+and an path P , γ(B, P ) is the part of P using edges of B.
+Lemma 4 (Lemma 3.1 and Corollary 3.2 in [Gab17])
+   • At all times during the execution of the while-loop in phase 1 : w(P ) ≤ 2d(f ) for any aug-
+     menting path P and any free node f .
+   • An augmenting path has maximum weight iff all its edges are tight and for every blossom
+     B, γ(B, P ) is an even-length alternating path (and hence passes through the base of the
+     blossom).
+Proof: Substituting (2) into (1) for all edges of the path yields
+                  X                       X              X                    X
+      , 2w(P ) ≤        (d(u) + d(v) +        z(B)) −          (d(u) + d(v) +   z(B))                     (5)
+                    uv∈P \M                   u,v∈B           uv∈P ∩M                   u,v∈B
+
+Now observe that the d-values of all internal vertices of P cancel and that the contribution of a
+blossom B is zero if P uses an even number of edges of the blossom and is negative if it uses an
+odd number of edges of the blossom.
+   For the second item, observe that the path determined by the first phase satisfies (5) with
+equality as all edges of the path are tight.6 Hence any other sap must also satisfy it with equality.
+
+  6 An alternative argument uses Lemma 3. Let L be the length of the augmenting path P found by the algorithm.
+
+Then 1 − w(P ) = L = 1 + 2∆ − 2 = 1 − 2d(f ).
+
+
+                                                      12
+                                                                  −1                        −1                         −3                              −3
+
+
+                                                         1                              1   1             3                               3            3
+
+
+                                                         1                              1   1             −1                          −1               −1
+
+
+                                                                                                 1                     1    1                      1   1
+
+
+                                                                                                                            1                      1   1
+
+
+
+
+                                    (a)                                           (b)                                               (c)
+
+
+                −4                        −4                 −5                             −5                         −6       f                           −6
+
+                                                                                                                                     4v
+       4                       4          4          5                        5              5                 4                                            6
+                                                                                                                            2
+
+       −2                      −2         −2        −3                        −3            −3                −4                          −4                −4
+
+            2                                            4                                                         4
+   0            0    2               2    2    −1                        2              1    3       −2                              2             0        4
+                                                             −1   1                                                    −2       0
+
+                     0               0    0                       −1                    −1 −1                               −2                 −2           −2
+
+                                                                                                                                                        2
+                                                                                        1        1                                             0                 0
+                         (d)                                            (e)                                                         (f)
+
+
+  Figure 3: (a) Example graph for finding an sap. Unmatched edges weigh 0, matched edges weigh
+  2. (b)–(f) Search of Edmonds’ algorithm. (b)–(e) show S, with inner vertices drawn hollow, and
+  the y and z dual variables. (f) shows the augmenting path as dashed edges.
+
+Figure 1: Reprinted from [Gab17]. Note that between (b) and (c), there are two updates of the
+  below) contracted. S is a forest. Its roots are the free vertices and contracted sets that each
+vertex duals. The z-values of blossoms are shown inside the blossom. The augmenting path has
+  contain a free vertex. S is an “alternating forest” [2]: Any path from a node to the root of its
+length 13. It consists of 7 non-matching edges and 6 matching edges. The total weight of the
+  tree is alternating. A node of S is inner (respectively outer) if its path starts with an unmatched
+matching edges in the path is 12.
+  (matched) edge. An inner node is always a vertex of G. An outer node can be a contracted set.
+  Any vertex of V in such a set is also called outer.
+Lemma The 5algorithm     adds newisvertices
+              If the matching                   and edgesthe
+                                        not maximum,            S in a growterminates
+                                                            to while-loop     step, whichwith
+                                                                                           addsa an
+                                                                                                 sapedge
+                                                                                                      in afrom  an
+                                                                                                            ∆-phase
+  outer  vertex
+where 2∆ ≤ n.    to  a new   inner   vertex  y. It also adds the  matched   edge from y  to its mate, a new  outer
+  vertex. (Fig.3(b) shows the result of three grow steps.)
+Proof: Let P be a sap. Then |P | is 1 plus twice the number of matching edges in P or 1 − w(P ).
+      Suppose the algorithm discovers an edge e joining two outer vertices. If e joins two distinct
+So the dual values of free vertices cannot go below −w(P )/2 and hence the growth of the search
+  trees of S it completes an augmenting path. An augment step enlarges the matching. (Fig.3(f)
+structure must come to a halt. If the matching is not maximum, an augmenting path exists. Hence
+  shows the algorithm’s augmenting path as dashed edges.)
+the search   stops having found an sap.
+      If e joins nodes in the same tree of S a blossom step is done: e is added to S, and the fundamental
+  cycle C of e inofforest
+    The   length       a sapS isis at most n −The
+                                    contracted.    1. When    a of
+                                                       vertices sapV isbelonging
+                                                                        found intoa contracted
+                                                                                     ∆-phase, the   saponhas
+                                                                                                 nodes        length
+                                                                                                           C form
+2∆a −  1.  Thus  2∆    ≤  n.
+    blossom. (A blossom step is executed in each of Fig.3(c), (d), and (e).)
+      To describe the last step, recall that the algorithm is based on Edmonds’ formulation of weighted
+2.3.2
+  matchingFromas aOne
+                    lineartoprogram
+                              All saps  [2]. Each vertex v ∈ V has a dual value y(v). Each blossom B ⊆ V
+At this point, we have determined one sap but our goal is to construct a graph H containing all
+saps. The growth of the search structure is non-deterministic in the sense that the choice of which
+tight edge to explore is arbitrary. However, the4state just after the last dual update is unique7 .
+We therefore (implicitly) revert to this state and form H from G by contracting every maximal
+   7 The maximal positive blossoms are precisely the non-trivial biconnected components of the tight edges with at
+
+least one endpoint even.
+
+
+
+
+                                                                       13
+                                                                      0                    1
+
+
+
+
+                            0                     11                                       2
+
+                  1                 5             12
+
+
+                                                                                           3
+                  2                 6             13
+
+
+             3          4       7       10        14
+
+                                                                                           4
+
+                                8       9         15
+
+
+                                             16        17
+                                                                                           5
+
+
+
+
+Figure 2: The original and the contracted graph for the graph in Figure 1. The original graph is
+shown on the left with matching edges in red. The contracted graph is shown on the right. Nodes
+0 to 10 of G are contracted into node 0 of H and nodes 15, 16, and 17 are contracted into node 5.
+The edges (5, 12) and (5, 15) are not tight and hence are not added to H.
+
+
+positive blossom8 and keeping only the tight edges that join distinct non-odd vertices.
+Lemma 6 [Corollary 3.3 in [Gab17]] A set of edges P forms an augmenting path in H iff it is
+the image of a sap Q in G.
+Proof: (Sketch) Consider any sap Q in G and any maximal positive blossom B with γ(P, B) ̸= ∅.
+By Lemma 4, γ(P, B) is an even-length alternating path connecting the base of B to some vertex
+of B. So contraction of all such γ(P, .) yields an augmenting path in H. Note that no edge of Q
+can have both endpoints odd.
+    Conversely, consider an augmenting path P in H and any vertex of H on P . If it represents
+a trivial blossom, the incident edges in H correspond to edges in G. If it represents a maximal
+positive blossom B, one of the incident edge in H is non-matching and the other (if it exists) is
+matching. Let v be the endpoint in B of the preimage of the non-matching edge. Then there is a
+unique even-length alternating path connecting v to the base of B. The base of B is free in G if
+no matching edge is incident to the contraction of B in G. If there is a matching edge incident to
+the contraction of B in P , its preimage must be the matching edge incident to the base of B in
+G. Thus we can lift P to a path Q in G. The path is a sap by Lemma 4.
+    Note that the second part of the proof of Lemma 6 shows how to lift augmenting paths from
+H to G.
+
+2.3.3    Details of the While-Loop in phase 1
+Dual Values and Tight Edges: The dual values of vertices are maintained implicitly9 . We
+have a counter ∆ (Delta in the program) that counts the number of dual adjustments. For each
+vertex v, we keep two values bd [v] (base dual ) and bDelta[v] (base Delta) in which we store the
+values of d[v] and ∆ at the moment of time, when v received its current label; bd [v] is one for
+  8 In other words, the vertices of H are the maximal positive and the trivial blossoms.
+   9 Note a dual update might change many dual values and that there might be Ω(n) dual updates in phase one.
+
+So maintaining dual values explicitly would result in running time Ω(n2 ) for phase 1 .
+
+
+
+                                                            14
+unlabeled vertices. Then
+                              
+                              bd [v] − (∆ − bDelta[v]) if v is even
+                              
+                        d[v] = bd [v] + (∆ − bDelta[v]) if v is odd
+                              
+                                1                       if v is unlabeled.
+                              
+
+When v becomes labeled for the first time, we set bd [v] to one and bDelta[v] to the current value
+of ∆, and when v changes its label from odd to even, we set bd [v] to 1 + (∆ − bDelta[v]) and
+bDelta[v] to the current value of ∆. In order to determine whether a node is even or odd, we ask
+whether its base is even or odd. Note that an odd node is its own base, bases are even always,
+and a node is even iff is base is even.
+
+⟨helper functions⟩+≡
+    int d(const node& v)
+    {
+    if (label[base(v)] == UNLABELED) return 1;
+    if (label[base(v)] == EVEN)      return bd[v] - (Delta - bDelta[v]);
+    return bd[v] + (Delta - bDelta[v]);
+    }
+
+
+There is no need to store the dual values of blossoms. Note that in the algorithm (not in the
+proof!), we are only interested in the reduced weight of edges running between distinct maximal
+blossoms. For them the contribution of the blossom duals to the reduced weight is zero.
+   So consider a non-matching edge e = xy with even endpoint x, and x and y in distinct maximal
+blossoms. A dual update decreases ŵ(e) by one if y is unlabeled, leaves ŵ(e) unchanged if y is odd,
+and decreases ŵ(e) by two if y is even. So, if we (re)compute the reduced weight of e whenever the
+label of one of its endpoints changes, we know how many further dual updates are needed until
+the edge becomes tight. Namely d(x) + d(y) if y is unlabeled and (d(x) + d(y))/2 if y is even. Note
+that in the latter case, d(x) and d(y) have the same parity and hence d(x) + d(y) is even.
+
+The Priority Queue: So a simple priority queue suffices: For each integer k, we maintain the
+set of edges that will become tight when ∆ reaches k in a linear list, and we store the lists in an
+array. What size of array is needed? A free vertex f is even from the beginning of phase 1 and
+hence d(f ) = 1 − ∆. Assume an augmenting P exists. It can contain at most n − 1 edges and
+hence
+                            n − 1 ≥ |P | = −w(P ) + 1 ≥ −2d(f ) + 1.
+Thus d(f ) ≥ −(n − 2)/2 = −n/2 + 1 and hence ∆ ≤ n/2. So an array with entries 0 to ⌊n/2⌋
+suffices. When ∆ exceeds n/2, there is no augmenting path. We are now ready for the definition
+of the priority queue.
+
+⟨priority queue.h⟩≡
+   class simple_queue{
+   private:
+   int D = 0;;   // Q[0] to Q[D-1] are already empty
+   int max; // maximum value + 1
+   array<list<edge> > Q;
+   public:
+   simple_queue(const graph& G) :
+   max(G.number_of_nodes()/2 + 1), Q(array<list<edge> >(max)) {
+   };
+   void init(){
+   for (int i = 0; i < max; i++)
+   Q[i].clear();
+   D = 0;
+
+
+                                                 15
+   }
+   void insert(edge e, int d){// insert e into queue Q[d]
+   if (d >= max) return;
+   Q[d].append(e);
+   };
+   edge delete_at_Delta(const int& Delta){
+   if (Delta > D) D = Delta;
+   if (Delta >= max || Q[Delta].empty()) return nil;
+   return Q[Delta].pop();
+   };
+   };
+
+The selection of a tight unexplored edge e incident to an even node is simple. We ask the priority
+queue to give us one.
+
+⟨there is a tight unexplored edge e at level Delta incident to an even node⟩≡
+    (e = PQ.delete_at_Delta(Delta)) != nil
+
+
+
+Reinitialization: At the beginning of phase 1 , we reinitialize ∆, the priority queue PQ, the
+node partitions base and dbase, and the node labels label . It suffices to reinitialize the labels and
+the node partitions for the nodes that were added to the search structure in the previous iteration.
+We collected these nodes in the node list T . The free nodes for the next iteration are the nodes
+in T that are not matched. For them we put the incident edges into the priority queue. Matched
+nodes can be deleted from T . There is no need to reinitialize bd , bDelta, parent, source bridge,
+and target bridge.
+
+⟨local declarations in phase 1 ⟩≡
+   PQ.init();
+   // reinitialize the part of the node-partitions used in the previous iteration.
+   base.split(T);
+   dbase.split(T);
+   forall(v,T) label[v] = ((mate[v] == nil)? EVEN : UNLABELED);
+   list_item it;
+   forall_items(it,T)
+   if ( mate[T[it]] == nil )
+   forall_inout_edges(e,T[it]) scan_edge(e,T[it]);
+   else
+   T.del_item(it);
+
+
+
+Grow Step: The edge e = xy goes from the even vertex x to the unlabeled vertex y. We add
+y and its mate, call it z, to the search structure; y becomes odd and z becomes even. We iterate
+over all non-matching edges incident to z and insert the ones going to an unlabeled or an even
+node into the priority queue. We also add the nodes to T .
+
+⟨grow step⟩≡
+    node z = mate[y];
+    bd[y] = bd[z] = 1;
+    bDelta[y] = bDelta[z] = Delta;
+    parent[z] = y; parent[y] = x;
+    label[y] = ODD; label[z] = EVEN;
+    T.push(y); T.push(z);
+    forall_inout_edges(e,z)
+    scan_edge(e,z);
+
+
+                                                   16
+where scan edge is defined in the following chunk. Note that p or p/2 further dual updates are
+needed until e becomes tight depending on whether u is unlabeled or even.
+
+⟨helper functions⟩+≡
+    void scan_edge(const edge& e, const node& z){
+    node u = G.opposite(e,z);
+    if (mate[u] == z || label[base(u)] == ODD) return;
+    int p = d(z) + d(u);
+    if (label[u] == UNLABELED)
+    PQ.insert(e,Delta + p);
+    else
+    PQ.insert(e,Delta + p/2);
+    return;
+    }
+
+
+
+Blossom Step or Augmentation: The edge e = xy connects two even nodes that are not
+contained in the same blossom. If they belong to the same tree, we have discovered a new blossom,
+if they belong to distinct trees, we have found an augmenting path. In order to decide whether x
+and y belong to the same tree or not, we walk down the paths from x and y in lock-step fashion
+until we find a node z lying on both paths or we reach two roots.
+    In the former case, z be the lowest common ancestor of x and y. We contract all nodes on the
+paths from x and y back to z into a blossom with base z. All odd nodes on both paths become
+even and their incident edges will be checked for addition to the priority queue.
+    There is nothing new here and our presentation follows the LEDA-book [MN99, page 407]. We
+use a counter strue. We increment it and then label all nodes on the paths from x and y towards
+the root with strue. We walk the path in lock-step fashion and stop once we encounter a node
+that is already labeled strue.
+
+⟨blossom step or augmentation⟩≡
+    strue++;
+    node hx = base(x), hy = base(y);
+    path1[hx] = path2[hy] = strue;
+   while( (path1[hy] != strue && path2[hx] != strue) && (mate[hx] != nil || mate[hy] != nil)){
+   // hy does not lie on the first path, hx does not lie on the second, and one is not free
+   if (mate[hx] != nil){
+   hx = base(parent[mate[hx]]);
+   path1[hx] = strue;
+   }
+   if (mate[hy] != nil){
+   hy = base(parent[mate[hy]]);
+   path2[hy] = strue;
+   }
+   }
+   if (path1[hy] == strue || path2[hx] == strue){
+   ⟨shrink blossom⟩
+   }
+   else{
+   found_sap = true;
+   }
+
+
+We rephrase [MN99, page 407]. Let us see how we shrink a blossom. The base b of the blossom
+is either hx or hy, depending on which of the two nodes also lies on the other path. We call
+shrink path(b, x, y,...) to shrink the path from x to b. The call also has the other end of the edge
+
+
+
+                                                17
+that closes the blossom as an argument.
+
+⟨shrink blossom⟩≡
+   node b = (path1[hy] == strue) ? hy : hx; // base
+   shrink_path(b,x,y,dunions);
+   shrink_path(b,y,x,dunions);
+
+
+Again, we rephrase [MN99, page 407]. When an edge xy closes a blossom, all odd nodes in the
+blossom also get an even length path to the root of their alternating tree. This path goes through
+the edge that closes the blossom. We call this edge the bridge of the blossom. The odd nodes on
+the tree path from x to b, use the bridge in the direction from x to y and the . . . . We use the node
+arrays source bridge and target bridge to record the source and the target of the bridge for each
+odd node shrunken into the new blossom. The details of collapsing the tree path from x to b into
+b are now simple. For each node of the path v on the path, we perform union blocks(v, b) to union
+the blocks containing v and b, for each odd node, we set source bridge to x and target bridge to y.
+After a union-operation the representative of the newly formed block is undefined. We want it to
+be b and therefore call make rep(b).
+    Some additional steps are required. The previously odd nodes reset their bd and bDelta values.
+We also scan their incident edges for addition to the priority queue. We do not change the label
+of the odd nodes that become even. Recall that we make this change only implicitly by always
+asking for the label of the base of a node.
+
+⟨helper functions⟩+≡
+   void shrink_path(node b, node x, node y, list<node>& dunions){
+   node v = base(x);
+   while (v != b){
+   base.union_blocks(v,b); dunions.append(v); dunions.append(b);
+   v = mate[v];
+   base.union_blocks(v,b); dunions.append(v); dunions.append(b);
+   base.make_rep(b);
+   source_bridge[v] = x; target_bridge[v] = y;
+   // label[v] = EVEN; we don’t have to do this because we always ask for the label of the base of v.
+   bd[v] = bd[v] + (Delta - bDelta[v]); bDelta[v] = Delta;
+   edge e;
+   forall_inout_edges(e,v)
+   scan_edge(e,v);
+   v = base(parent[v]);
+   }
+   dunions.append(b); dunions.append(b); // signal to dbase that this round of unions is over.
+   }
+
+
+
+2.3.4   Construction of H
+The vertices of H are the trivial blossoms and the contractions of the maximal positive blossoms
+of G and the edges of H correspond to the tight edges of G connecting distinct vertices of H
+(Section 3.3 in [Gab17]). The blocks of base are not the vertices of H as we may have performed
+further unions in the ∆-phase in which we found the sap.
+    We therefore keep a second node-partition dbase (= delayed base) and build in each iteration
+a list dunions of the union-operations performed. When an iteration ends with a dual update, we
+perform these unions on dbase and empty dunions. In this way, the blocks of dbase are the trivial
+and the maximal positive blossoms and it is a simple matter to construct H.
+
+⟨local declarations in phase 1 ⟩+≡
+    list<node> dunions;
+
+
+                                                 18
+⟨commit to unions⟩≡
+   while (!dunions.empty()){
+   node u = dunions.pop(); node v = dunions.pop();
+   if (u == v) dbase.make_rep(u);
+   else dbase.union_blocks(u,v);
+   }
+
+    The edges of H are given by the edges of G that run between blocks of dbase and are tight.
+For each edge of H, we remember its preimage in G in the edge-map edge in G.
+    There is a small lacuna in Gabow’s paper in the construction of H in Section 5, where he writes:
+Then scan every edge e ∈ E and add e to E(H) if it is tight and joins distinct V (H) vertices, at
+least one being outer. We first implemented this and it does not seem to work. Consider a graph
+G consisting of two paths of length three; in both paths, the middle edge belongs to the current
+matching and the two endpoints are free. We start by making the four free nodes even. The edges
+incident to the four endpoints are added to Q[2]. After two dual changes, the free nodes have dual
+values −1 and the edges incident to the free nodes are tight. The matching edges are also tight.
+We explore one of the edges incident to a free node and add its other endpoint and its mate to
+the search structure. Suppose that we scan the edge incident to the other endpoint of the path
+next. Then we have found an augmenting path. Now consider the other path of length three.
+Its endpoints are even and the other nodes of the path are unlabeled. So the matching edge is
+not added to H according to the second description. This is incorrect as we will miss the second
+augmenting path of length three. Even worse, there are now mistakenly two augmenting paths of
+length one in H.
+    The correct definition of H is as given in the first paragraph of this section. We contract
+the maximal positive blossoms and keep all tight edges connecting distinct nodes. Actually we
+never construct H explicitly. Rather we re-use the base-nodes of blossoms as the nodes of H. We
+write vh and uh for nodes of G when we refer to them as nodes of H. For a node vh, the list
+contracted into[vh] contains all nodes of G contracted into vh. An matching edge (u, v) induces
+the matching edge (dbase(u), dbase(v)) in H. We use mateHG for mates in H.
+
+⟨augmentation: construction of H ⟩≡
+   node vh; node v; node u; edge e;
+   int number_of_nodes_of_H = 0;
+   forall(v,T){
+   contracted_into[dbase(v)].append(v);
+   mateHG[v] = nil;
+   }
+   forall(u,T)
+   forall_inout_edges(e,u) is_edge_of_H[e] = false;
+   forall(u,T){
+   node uh = dbase(u);
+   forall_out_edges(e,u){
+   is_edge_of_H[e] = false;
+   node v = G.target(e); node vh = dbase(v);
+   if( uh != vh && d(u) + d(v) == w[e] ){
+   is_edge_of_H[e] = true; //assert( in_T[u] == in_T[v] && ((in_T[u] && in_T[v]) || mate[u] == v));
+   if(w[e] == 2){       // e is a matching edge
+   mateHG[uh] = vh; mateHG[vh] = uh;
+   }
+   }
+   }
+   }
+
+
+
+
+                                                19
+2.4    Using LEDA’s Matching Algorithm to Finish Off
+This section is brief as the second phase uses a similar strategy for finding augmenting path. We
+refer the reader to Section 2.5 for a more detailed treatment.
+    When there are only a few augmentations left, Gabow’s algorithm is overkill and we switch to
+LEDA’s matching algorithm. It is based on [GT91]. We refer to the LEDA book for an explanation
+of the program. We use the two most effective heuristic improvements suggested by Kececioglu
+and Pecqueur [KP98]. The first improvement is the use of depth-first search. Then bridges are
+either backward- or forward edges. For a bridge e = (v, w) either base(v) or base(w) is the base
+of the newly formed blossom, whoever is the ancestor of the other. We use DFS-numbers to
+distinguish the two possibilities and shrink blossoms only on forward-edges. The node with the
+smaller DFS-number is the base of the newly formed blossom.
+    Initially, all nodes are UNLABELED. We iterate over all nodes and grow a search structure
+at every free node v0 . The call find aug path(v0 , v0 ) uses DFS for finding an augmenting path
+starting at the second argument v0 . The first argument is the current node of the DFS. Nodes
+are numbered by the time at which they become even. The call returns the other end of the
+augmenting path, return nil if the search is unsuccessful. If the call is successful, all non-matching
+edges are pushed onto a list P as pairs of nodes; the procedure find path(pw , v0 ) traces the even
+length path from pw to v0 . We mate the pairs in P . We have also collected all nodes of the search
+structure in T . In an augmenting path is found, T is dismantled and all nodes in T are returned
+to the pool of unlabeled nodes.
+
+⟨finish the computation by means of LEDA’s matching algorithm⟩≡
+   dbase.split(G.all_nodes());
+   node v0, v, w;
+   forall_nodes(v0,G) label[v0] = UNLABELED;
+   forall_nodes(v0,G){
+   if ( mate[v0] != nil ) continue;
+   label[v0] = EVEN; T.clear(); T.append(v0); even_time[v0] = even_count++;
+   if( (w = find_aug_path(v0,v0)) != nil ){
+   node pw = parent[w];
+   P.push(w); P.push(pw);
+   find_path(pw,v0);
+   while(! P.empty()){
+   node a = P.pop();
+   node b = P.pop();
+   mate[a] = b;
+   mate[b] = a;
+   }
+   forall(v,T) label[v] = UNLABELED;
+   dbase.split(T);
+   size_of_M++;
+   }
+   }
+
+
+find aug path(v, v0 ) first scans all edges incident to v to find out whether one of them has a free
+endpoint; this is the second heuristic improvement suggested by Kececioglu and Pecqueur. If
+so, the free endpoint is returned and no recursive calls are made. Otherwise, either the search
+structure is grown or an blossom is shrunk on an forward edge. On a backward-edge we do nothing.
+
+⟨helper functions⟩+≡
+   node find_aug_path(node v, node v0){ // we are growing a tree with root v0
+   edge e; node w;
+   forall_inout_edges(e,v){
+
+
+                                                 20
+w = G.opposite(e,v);
+if( v == w ) continue;
+if( mate[w] == nil && label[w] == UNLABELED ){
+parent[w] = v;
+T.append(w);
+label[w] = ODD;
+return w;
+}
+}
+// no immediate break-through
+forall_inout_edges(e,v){
+w = G.opposite(e,v); node bw = dbase(w);
+if (label[bw] == ODD || w == v) continue;
+if (label[bw] == UNLABELED){
+label[w] = ODD; parent[w] = v; T.append(w);
+node mw = mate[w];
+label[mw] = EVEN; T.append(mw); even_time[mw] = even_count++;
+node s = find_aug_path(mw,v0);
+if(s != nil)
+return s;
+}
+else{
+node bv = dbase(v);
+node bw = dbase(w);
+list<node> tmp;
+if (even_time[bv] < even_time[bw]){ //blossom_step along forward edge
+// walk down from bw to bv and perform unions
+while(bw != bv){// doing the unions carefully, so that only one make_rep is needed
+node mate_bw = mate[bw];
+dbase.union_blocks(bw,mate_bw);
+bw = dbase(parent[mate_bw]);
+dbase.union_blocks(mate_bw,bw);
+tmp.push_front(mate_bw);
+source_bridge[mate_bw] = w;
+target_bridge[mate_bw] = v;
+}
+dbase.make_rep(bv);
+forall(w,tmp){
+node s = find_aug_path(w,v0);
+if(s != nil)
+return s;
+}
+}
+}
+}
+return nil;
+}
+void find_path(node x, node y){
+/* traces the even length alternating path from x to y; if non-trivial it starts with
+the matching edge incident to x; collects the non-matching edges on this
+path as pairs of nodes */
+if ( x == y ) return;
+if( label[x] == EVEN ){
+node mate_x = mate[x], par_mate_x = parent[mate_x];
+P.append(mate_x); P.append(par_mate_x);
+find_path(par_mate_x,y);
+return;
+}
+
+
+                                        21
+   else{ // x is ODD
+   find_path(source_bridge[x],mate[x]);
+   P.append(source_bridge[x]); P.append(target_bridge[x]);
+   find_path(target_bridge[x],y);
+   return;
+   }
+   }
+
+
+
+2.5    Phase Two: Construction and Augmentation of a Maximal Set of
+       Saps
+Recall the strategy for bipartite graphs. We first construct a layered network. Layer i contains all
+nodes that can be reached from a free node by an alternating path of length i; layer zero consists
+of the free nodes. We stop the construction once we reach a layer containing again a free node.
+The layered network can be constructed using breadth-first search.
+    Then we construct a maximal set of edge-disjoint augmenting paths. We explore the layered
+network from a free node using depth-first search. When we reach a free node and hence have
+found an augmenting path, the path corresponds to the recursion stack and hence is readily found.
+We delete the path and all its incident edges from the graph simply by tracing back the recursion
+and declaring all nodes on the path finished. Also, when we retreat from a node, we delete the
+node from further consideration as we can be sure that no free node can be reached through the
+node.
+    How can we adapt this strategy to general graphs? We again explore depth-first. For a warm-
+up, assume that we have a single bridge xy with y being a descendant of x. Both nodes are even.
+Consider the call for x and let e be the first edge on the tree path from x to y. We have already
+explored some other subtrees rooted at x. If one of them results in a breakthrough, we delete the
+augmenting path from the graph and no call along e is ever made. If none of them results in a
+breakthrough, we make the call along the edge e. When we return to x from this call, we have
+not found an augmenting path using edge e. Note that all the odd nodes on the path from x to y
+have degree two in the search structure at this point and none of the even nodes can reach a free
+node. The odd nodes might be able to reach free nodes. We now explore some more edges out
+of x. If one of them results in a breakthrough, we delete the augmenting path and all nodes on
+it. This also deletes the edge xy and hence none of the odd nodes on the path from x to y will
+ever become even. If none of these other edges out of x results in a breakthrough, we explore the
+edge xy and close a blossom. All odd nodes on the path from x to y become even and we make
+recursive calls for them. We start with the odd node closest to x and then work our way back to
+y. Note that this is what we could have done, had we explored xy before e. It is important that
+we continue exploring depth-first; hence the node closest to x is explored first.
+    For the description above, it is important that xy is explored as a forward edge, i.e., from x to
+y. To this end, we record for each node the time when it becomes even, i.e., we maintain a counter
+t, which we increment whenever a node becomes even and which we use to define even time[v] for
+even vertices v. Actually, we need even-times only for nodes that are added as even nodes to the
+search structure as only such nodes can become base of a blossom. Consider the exploration of
+an edge vu with v and u even. The edge represents the edge (dbase(v), dbase(u)). It is a forward
+edge iff even time[dbase(v)] < even time[dbase(u)].
+    In phase two, we first make all nodes unlabeled and store with each node its current base in
+rep. Then rep[v] is the node of H into which v is contracted. We then construct a maximal set of
+augmenting paths in H and collect them in PG. At the end of the phase, we augment all paths
+in PG.
+
+
+
+
+                                                 22
+⟨helper functions⟩+≡
+    void phase_2(){
+    node v;
+    labelHG.init(G,UNLABELED);
+    forall(v,T) rep[v] = dbase(v);
+    list<list<edge> > PG;
+   ⟨find a maximal set of augmenting paths in HG and collect them in PG⟩
+   list<edge> aphG;
+   forall(aphG,PG) augmentG(aphG);       // augment all paths found
+   forall(v,T) contracted_into[v].clear();        // clear H
+   }
+
+
+The search for a maximal set of augmenting paths iterates over all nodes of H and starts a
+search at every unvisited free node. A node is unvisited if its label is UNLABELED. The call
+find apHG(vh,...) searches for an augmenting path from vh. The details of this procedure are
+discussed below. An unsuccessful search returns nil , a successful search returns the last node free
+of the augmenting path. In the case of a successful search, we construct the augmenting path as
+a list<edge> aghP of the non-matching edges of the path. We start with the parent-edge of the
+free node and then call find path in HG(apG, zh, vh) to trace the augmenting path back to vh, the
+node where we started the search for an augmenting path; here zh is the other endpoint of the
+parent-edge e of free, i.e., rep[G.target(e)] if free is equal to rep[G.source(e)] and rep[G.source(e)]
+otherwise. All augmenting paths are collected in PG, a list of list of edges.
+
+⟨find a maximal set of augmenting paths in HG and collect them in PG⟩≡
+    node vh;
+    forall(vh,T){
+    if (vh != rep[vh] ) continue; // vh does not represent a node of H
+    if(labelHG[vh] == UNLABELED && mateHG[vh] == nil){
+    labelHG[vh] = EVEN;
+    even_timeHG[vh] = tG++;
+    node free = find_apHG(vh);
+    if(free != nil){
+    list<edge> apG;
+    edge e = parentHG[free];
+    apG.append(e);
+    find_path_in_HG(apG, rep[rep[G.source(e)] == free ? G.target(e) : G.source(e)], vh);
+    PG.append(apG);
+    }
+    }
+    }
+
+The search for an augmenting path is essentially as described at the beginning of this section with
+some minor differences. It is realized by the recursive procedure find apHG(vh); vh is the current
+node. It is a node of G representing a node of H, i.e., vh = rep[vh]. Iterating over all edges
+incident to vh means to iterate over all edges eh incident to nodes v of G contracted into vh. If eh
+does not represent an edge of H, we skip over it. Otherwise, we either perform a grow step or do
+nothing or shrink a blossom. Grow steps distinguish between the exploration of a non-matching
+edge ending in a free vertex or ending in a matching edge. In the former case, we return the free
+vertex, in the latter case, we grow the tree by two nodes and call find apHG recursively.
+    Consider next a blossom step triggered by an edge (vh,uh). Since blossom steps are to be
+performed on forward edges, we proceed only if even time[baseH (vh)] < even time[baseH (uh)].
+We trace back the path from baseH (uh) to baseH (vh), perform the appropriate union-operations,
+and collect the odd nodes of the path in tmp. The edge eh becomes the bridge for all nodes in
+tmp; the direction is from uh to vh. We finally make recursive calls for the nodes on these path,
+making sure that we start with the node closest to bh.
+
+
+                                                  23
+⟨helper functions⟩+≡
+   node find_apHG(node vh){
+   edge eh; node v;
+   forall(v,contracted_into[vh]){ // v is a node of G, vh = rep[vh] is a node of G representing a node of
+   H
+   forall_inout_edges(eh,v){
+   if (!is_edge_of_H[eh]) continue;
+   node uh = rep[G.opposite(v,eh)];
+   if(mateHG[vh] == uh) continue;
+   if(labelHG[uh] == UNLABELED){ // grow step
+   node mateHG_uh = mateHG[uh];
+   if(mateHG_uh == nil){ // uh is free and we found an augmenting path
+   labelHG[uh] = ODD;
+   parentHG[uh] = eh;
+   return uh;
+   }
+   else { // extend the path by two edges
+   labelHG[uh] = ODD; labelHG[mateHG_uh] = EVEN;
+   parentHG[uh] = eh;
+   even_timeHG[mateHG_uh] = tG++;
+   node s = find_apHG(mateHG_uh);
+   if (s != nil)
+   return s;
+   }
+   }
+   else{
+   node bh = dbase(vh);
+   node zh = dbase(uh);
+   if(even_timeHG[bh] < even_timeHG[zh]){ // blossom step along forward edge
+   list<node> tmp;
+   list<node> endpoints_of_M;
+   while (zh != bh){
+   endpoints_of_M.append(zh);
+   zh = mateHG[zh];
+   endpoints_of_M.append(zh);
+   tmp.push_front(zh); // zh is odd and we add it to the front of tmp
+   zh = dbase(rep[rep[G.source(parentHG[zh])] == zh ?
+   G.target(parentHG[zh]) : G.source(parentHG[zh])]);
+   }
+   forall(zh,endpoints_of_M) dbase.union_blocks(zh,bh);
+   dbase.make_rep(bh);
+   forall(zh,tmp){
+   //even_timeHG[zh] = tG++; // not needed
+   bridgeHG[zh] = eh;   // assert(eh != nil);
+   dirHG[zh] = (G.target(eh) == v ? 1 : -1); // dirHG = 1 iff eh = (_,v)
+   }
+   forall(zh,tmp){ //the new even node closest to bh comes first
+   node s = find_apHG(zh);
+   if(s != nil)
+   return s;
+   }
+   }
+   }
+   }
+   }
+   return nil;
+   }
+
+
+
+                                           24
+We come to the actual construction of augmenting paths. find path in H (p, vh, uh) constructs for
+two vertices vh and uh of H, where vh is a descendant of uh, the even length alternating path
+connecting them. The non-matching edges of the path are returned in p as a list of edges. The
+strategy is simple. If vh = uh, there is nothing to do. If labelH [vh] is EVEN , we add the parent-
+edge of the mate of v to the output and then walk from the other end of the parent edge to uh.
+If the label is ODD, i.e, vh became even in a blossom step, the path goes through the bridge of
+vh. Let b = bridgeH [vh]. The vh-side of the bridge is the source of b if dirH [vh] = 1 and is the
+target of b otherwise. So we walk from the vh-side of the bridge to the mate of vh (recall that we
+construct an even length path), from the other side of the bridge to uh, and we add the bridge to
+the path. Note that we are only interested in the path as a set of edges and not as a sequence of
+edges. Hence there is no need to reverse the first subpath.
+
+⟨helper functions⟩+≡
+   void find_path_in_HG(list<edge>& p, node vh, node uh){
+   if(vh == uh) return;
+   if(labelHG[vh] == EVEN){
+   node mvh = mateHG[vh];
+   edge e = parentHG[mvh];
+   p.append(e);
+   find_path_in_HG(p, rep[rep[G.source(e)] == mvh ? G.target(e) : G.source(e)], uh);
+   return;
+   }
+   else{
+   edge bridgeHG_vh = bridgeHG[vh];
+   find_path_in_HG(p, rep[dirHG[vh] == 1 ?
+   G.source(bridgeHG_vh) : G.target(bridgeHG_vh)], rep[mateHG[vh]]);
+   p.append(bridgeHG[vh]);
+   find_path_in_HG(p, rep[dirHG[vh] == 1 ?
+   G.target(bridgeHG_vh) : G.source(bridgeHG_vh)], uh);
+   return;
+   }
+   };
+
+
+     The function augment receives an augmenting path in H as a list of its non-matching edges.
+It first fills in the parts inside the dbase-blossoms and then augments the path.
+     Let apH be an augmenting path in H. We construct the induced augmenting path ap in
+G as a list of pairs of nodes, one for each non-matching edge of the path. Let e = (u, v) be
+an edge of apH . We add the pair (u, v) to ap and then call find path in G(ap, u, rep[u]) and
+find path in G(ap, v, rep[v] to fill in the parts inside the dbase-blossoms. Once we have constructed
+ap, we augment it by simply mating each pair of nodes in ap.
+     find path in G does the obvious.
+
+⟨helper functions⟩+≡
+   void augmentG(const list<edge>& aph){
+   list<node> ap; // augmenting path in G as a list of nodes, two nodes for each non-matching edge
+   edge e;
+   forall(e,aph){
+   node u = G.source(e); node v = G.target(e);
+   ap.append(u); ap.append(v);
+   find_path_in_G(ap, u, rep[u]);
+   find_path_in_G(ap, v, rep[v]);
+   }
+   while(!ap.empty()){
+   node u = ap.pop(); node v = ap.pop();
+   mate[u] = v; mate[v] = u;
+   }
+
+
+                                                 25
+   size_of_M++;
+   }
+   void find_path_in_G(list<node>& p, node v, node u){
+   /* finding the even path from v to u in the original graph using blossom bridges;
+   only returns the non-matching edges, for each edge the two endpoints */
+   if(v == u) return;
+   if(label[v] == EVEN){
+   p.append(mate[v]); p.append(parent[mate[v]]);
+   find_path_in_G(p, parent[mate[v]], u);
+   return;
+   }
+   else{
+   find_path_in_G(p, source_bridge[v], mate[v]);
+   p.append(source_bridge[v]); p.append(target_bridge[v]);
+   find_path_in_G(p, target_bridge[v], u);
+   return;
+   }
+   }
+
+    Finally, we have to explain how we define the weight function. The current matching is encoded
+in mate. We iterate over all edges and set the weight of an edge to 2 if its endpoints are mates. We
+also unmate the endpoints so that only one edge in each bundle of parallel edges is given weight
+2. Once we have assigned weights to all the edges, we again mate the endpoints of edges of weight
+2.
+
+⟨setting up w ⟩≡
+   node z;
+   forall(z,T)
+   forall_out_edges(e,z){
+   node u = G.source(e); node v = G.target(e);
+   w[e] = 0;
+   if (v == mate[u]){
+   w[e] = 2;
+   mate[u] = mate[v] = nil;   // parallel edges; only one of them is in the matching.
+   }
+   }
+   forall(z,T)
+   forall_out_edges(e,z){
+   node u = G.source(e); node v = G.target(e);
+   if (w[e] == 2){
+   mate[u] = v;
+   mate[v] = u;
+   }
+   }
+
+
+
+2.6    Further Optimizations
+The LEDA implementation of [GT91] uses two powerful optimizations. Whenever, it grows a tree
+rooted as some free node, all nodes of the tree are collected in a set T . If the tree growing process
+finds an augmenting path, only the collected nodes are reinitialized for the next iteration. In this
+way, one pays only for what was touched in the tree growing process. If the tree growing process
+does not find an augmenting path, the nodes in the tree are not reinitialized, but keep their labels.
+Only T is set to the empty set. In this way, the nodes in T will never be added to a future tree
+as all unexplored edges are incident to odd nodes and odd nodes are not added to trees. We use
+this optimization also in the current program.
+
+
+                                                 26
+    We come to the second optimization. Suppose only odd nodes of a tree have unexplored incident
+edges. Then this tree will not grow further and we may delete it from further consideration. How
+can we determine that we explored all incident edges of all even nodes of a tree? We could let all
+even nodes point to their root and keep with the root a counter of the number of even nodes in
+the tree that still have unexplored incident edges. When we make a node even, we increase the
+counter, when we have explored all edges incident to an even node, we decrease the counter. If a
+counter reaches zero, the tree is stable and can be ignored in the future.
+    Alternatively. Consider the priority queue at the end of the first phase. It contains a number
+of edges. Let e = xy be any edge in the priority queue. Then all nodes on the canonical paths of
+x and y can still be on an augmenting path. Also all unlabeled nodes can still be on augmenting
+paths. So we retire all nodes that are labeled and do not lie on one of these paths.
+    We have a set R of remaining nodes. We tentatively declare all nodes in R inactive. For every
+edge xy in the priority queue we trace back the canonical paths and declare their nodes active. Of
+course, we stop tracing once we encounter a node already declared active. We scan over all nodes
+in R and delete all inactive nodes. We have not implemented the second optimization.
+
+
+3    Experiments and Evaluation
+We compare three different implementations of matching algorithms, the LEDA-program based
+on the algorithm of Gabow and Tarjan /[Gab76, Tar83, MN99], the LEDA-program with the
+heuristic improvements suggested by Kececioglu/Pecqueur [KP98], and our implementation of
+Gabow’s general matching algorithm. The worst-case running time of the first two programs is
+O(nmα(n)) and the worst-case running of the latter program is O(n1/2 mα(n)). We performed
+three kinds of experiments and suggest some further experiments.
+Running Times: We timed the implementation and two versions of LEDA’s general matching
+    algorithm (without and with the optimization suggested by Kececioglu and Pecqueur [KP98])
+    on various classes of sparse graphs with m = O(n) edges: Graphs that force the algorithms
+    into their worst case (O(n3/2 ) for Gabow’s algorithm and O(n2 ) for the other algorithms),
+    graphs that can be handled in linear time by Gabow’s algorithms and require time O(n3/2 )
+    for the other algorithms, and random graphs that are handled in linear time by all algorithms.
+    We also investigated the effect of switching to LEDA’s matching algorithm once the distance
+    to the maximum matching is about the number of iterations already performed.
+Instruction Counts: The measured running times do not conform with the theoretical asymp-
+     totics, but are strongly influenced by the cost of memory accesses. For an algorithm with
+     asymptotic running time T (n) = O(n3/2 ), the ratio T (n)/T (n/2) could be approximately
+     23/2 ≈ 2.83. However, due to the memory hierarchy, we see the factor 2.83 only for very
+     large n ≈ 105 . For smaller n, we see considerably larger factors. However, for instruction
+     counts determined with the profiler gprof , we measure the right asymptotics.
+Breakdowns of Running Times: Where does the implementation of Gabow’s algorithm spend
+    its time?
+An Unfair Comparison: We compare the running times of our implementation of Gabow’s al-
+    gorithm and the implementation of the Micali-Vazirani algorithm by Huang and Stein [HS17]
+    on random graphs. The latter implementation is in Python and requires 15 to 20 times more
+    time. This factor cannot be taken as a sign of superiority of either algorithm.
+
+    In Section 3.1, we define a worst case family of graphs. The running time of a graph algorithm
+may depend on the presentation of the graph, i.e., the numbering of the nodes and the ordering
+of the adjacency list. We first define a worst case representation and then a worst case graph
+for which most representations are worst-case. We then report on running time experiments that
+differentiate between the different programs. In Section 3.2, we report our experiments on random
+graphs. The remaining section deal only with our implementation of Gabow’s algorithm. We break
+
+
+                                               27
+down the running time over the various components of the program in Section 3.3 and report on
+instruction counts and memory usage and explain the difference between measured asymptotics
+and theoretical asymptotics in Section 3.4. In Section 3.5, we time our program against the
+Python implementation of the Micali-Vazirani algorithm by Huang and Stein [HS17]. Finally, in
+Section 3.6, we suggest further experiments.
+
+3.1     A Worst Case Family of Graphs
+We design a class of graphs that force our programs into their worst case behavior. More precisely,
+we will define for each n and m a graph Wn,m with O(n)      √ nodes and O(m) edges such that the
+running time of our programs on Wn,m is Θ(nm) and Θ( nm), respectively. The graph consists
+of a complete graph and a set of chains emanating from the complete graph and therefore we will
+first study the behavior of our programs on complete graphs and chains. The claim about the
+running time on Wn,m will then follow easily.
+    The running time of graph and network algorithms depends on the representation of the input
+graph; reordering adjacency lists and renumbering nodes may have a dramatic effect on the running
+time. We therefore have to be a bit more
+                                       √ precise about what we mean by the running time of our
+programs on Wn,m is Θ(nm) and Θ( nm), respectively. Two interpretations are possible: For
+every n and m
+                                                                                     √
+    • there is a representation of Wn,m , on which our programs run for Θ(nm) and Θ( nm) steps,
+       respectively, or
+                                                                                     √
+    • averaged over all representation of Wn,m , our algorithms run for Θ(nm) and Θ( nm) steps,
+       respectively.
+We call a family of instances a robust worst-case example if the second interpretation applies. We
+will first construct a non-robust worst-case example and then make it robust.
+
+3.1.1   A Worst-Case Representation
+                                                                 √
+We begin our study with the complete graph GC on about m nodes; we assume that the number
+of nodes is even. We observe first that it is trivial to find a perfect matching. The greedy heuristic
+suffices. It seems that we are not really heading towards a worst-case example, but wait. Assume
+that we have determined a perfect matching in GC . An important observation about GC is that
+every edge is contained in a short alternating path. More precisely, let z be an arbitrary node of
+GC . Then every edge is contained in an alternating path of length at most four starting with the
+matching edge incident to z. This is easy to see. We may assume that the nodes are numbered
+such that node z = 0 and nodes 2i and 2i + 1 are matched for i = 0, 1, . . .. The edge (0, 1) is an
+alternating path by itself, the matching edge (2i, 2i + 1) with i ≥ 1 lies on the paths 0, 1, 2i, 2i + 1
+and 0, 1, 2i + 1, 2i. These paths also cover all the edges incident to 1. Finally, the non-matching
+edge (i, j) with i > 1 lies on one of the paths 0, 1, i + 1, i, j or 0, 1, i − 1, i, j depending on whether
+i is even or odd. For j = 0, these path are non-simple, but this is of no importance.
+    We come to Wn,m . It consists of a set of chains of even length and a complete graph GC .
+One end of each chain, say x, is connected to z. Assume now that the greedy matching leaves the
+endpoints of each chain exposed, we start the search from x with the edge connecting it to z, and
+the chain has length at least 8. Then a DFS starting at x will explore all of GC before it starts
+traversing the path. A breadth-first strategy will also explore all of GC .
+    Let us first add Θ(n) chains of length 8 to Wn,m and assume that each chain is explored as
+described in the previous paragraph. Then for both versions of the LEDA-implementation each
+augmentation has cost Θ(m) and the running time will be Θ(nm). Gabow’s algorithm only needs
+O(1) iterations and hence the running time will be O(m).                                   √
+    Let us next add, in addition, one chain√ each of length 2k, where 5 ≤ k ≤ n. Both LEDA
+algorithms will perform an additional O( n) augmentations           √ with no effect on the asymptotic
+running time. However,
+                 √         Gabow’s  algorithm  will now   need   Θ(   n) iterations and the running time
+will become Θ( nm).
+
+
+                                                    28
+     The following program realizes these ideas. The construction of the complete graph and the
+final assembly of the complete graph and the chains is straight-forward. The construction of the
+chains requires some care. Let k be an integer. We have nodes 0 to 2k − 1. We first add the edge
+(0, z). This will make sure that the search starting at 0 explores GC . Then we add the edges
+(i, i + 1) for 1 ≤ i ≤ 2k − 2 and finally the edge (0, 1). This ordering of the edges ensures that
+the greedy matching will leave the nodes 0 and 2k − 1 exposed. We also add edges (i, z) for all
+i ≥ 1. This is not necessary in this section, but will be important in Section 3. Tables 2 and 1
+show running times on the two kind of instances.
+     I want two kind of tables: Wn,n for increasing n and Wn,m for fixed n and increasing m.
+
+⟨mc generator.cpp⟩≡
+   node complete_g(graph& G, int m) // sqrt(2m) nodes and about m edges
+   { int n = 2* (int) sqrt(m/2.0);
+   array<node> a(n); int i, j;
+   for (i = 0; i < n; i++)
+   a[i] = G.new_node();
+   for (i = 0; i < n; i++)
+   for (j = i+1; j < n; j++) G.new_edge(a[i],a[j]);
+   return a[0];
+   }
+   void chain(graph& G, int k, node z){ // k new nodes and 2k - 1 edges
+   array<node> a(k); int i;
+   for (i = 0; i < k; i++) a[i] = G.new_node();
+   G.new_edge(a[0],z);
+   for (i = 1; i < k-1; i++)
+   { G.new_edge(a[i],a[i+1]);
+   G.new_edge(a[i],z);
+   }
+   G.new_edge(a[0],a[1]);
+   }
+   void mc_worst_case_gen(graph& G, int n, int m, int mode = 1)
+   // sqrt(2m) + n + (mode == 1) n nodes and m + 2n + (mode == 1) 2n edges.
+   { node z = complete_g(G,m);
+   int k = 4;
+   for (int j = 0; j < n/8; j++) chain(G,2*k,z);
+   if (mode == 1) {
+   for (k = 5; k < sqrt(n); k++)
+   chain(G,2*k,z);
+   }
+   }
+
+
+
+3.1.2   A Robust Worst-Case Graph
+The results of the preceding section crucially relied on the fact that we fed our algorithms a
+carefully constructed representation of Wn,m . It guarantees that the greedy matching constructs
+a perfect matching of the complete graphs and leaves the endpoints of all chains unmatched, and
+that each search for an augmenting path explores the entire complete graph. What changes when
+we run our algorithms on a random representation of Wn,m , i.e., we use
+
+   mc worst case gen(G,n,m);
+   permute(G);
+to generate G. Here permute(G) is a function that randomly permutes the representation of G,
+i.e., the list of nodes, the list of edges, and all adjacency lists. The adjacency lists are, however,
+
+
+                                                 29
+      n     LEDA      T (n)/T (n/2)    LEDA-KP     T (n)/T (n/2)    Gabow    T (n)/T (n/2)    # iterations
+  10000       0.65              –           1.85             –        0.39             –                33
+  20000       2.92           4.49           8.23          4.44        1.39          3.56                47
+  40000      19.62           6.71          64.43          7.82        5.35          3.84                66
+  80000     126.37           6.52         380.22          5.90       19.82          3.70                94
+ 160000     588.78           4.65        1787.64          4.70       66.33          3.34               133
+ 320000    2486.23           4.22        7644.66          4.27      202.98          3.06               188
+ 640000          –              –              –             –      607.62          2.99               266
+
+Table 1: Worst Case Representation: The running times of matching algorithms on graphs
+generated by mc worst case gen(n,
+                              √    4n, 1), i.e., we have Θ(n) short chains and, in addition, one long
+chain of length 2k for k ∈ [5, n]. The running time of the LEDA algorithms on these instances is
+O(n2 ) and the running time of Gabow’s algorithm is O(n3/2 ). The first column shows n and the
+next columns show the running time of the LEDA algorithm (Gabow/Tarjan) without and with the
+KP-heuristics, and of our implementation of Gabow’s algorithm. For each of the three algorithms,
+we also show T (n)/T (n/2). For√ Gabow’s algorithm, we also show the number of iterations. The
+number of iterations grows as n. Quadrupling n doubles the number of iterations.
+The factor T (n)/T (n/2) should be 4 for be for the first two algorithms and approximately 2.82
+for Gabow’s algorithm. We attempt an explanation in Section 3.4, why we see larger factors.
+
+
+
+
+       n     LEDA      T (n)/T (n/2)   LEDA-KP      T (n)/T (n/2)   Gabow     T (n)/T (n/2)    # iterations
+   10000       0.59               –         1.77               –      0.01               –                2
+   20000       2.72            4.61         7.77            4,38      0.03            3.00                2
+   40000      17.63            6.48        57,86            7.44      0.07            2.33                2
+   80000     116.66            6.61       392.75            6.78      0.15            2.14                2
+  160000     582.33            4.99      1790,87            4.56      0.33            2.20                2
+  320000    2485.37            4.26      7523.94            4.20      0.66            2.00                2
+  640000          –               –            –               –      1.31            1.98                2
+ 1280000                                                              2.60            1.98                2
+ 2560000                                                              5.39            2,07                2
+
+Table 2: Short Chains Only: The running times of matching algorithms on graphs generated by
+mc worst case gen(n, 4n, 0), i.e., we have Θ(n) short chains and no long chains. The running time
+of the LEDA algorithms on these instances is O(n2 ) and the running time of Gabow’s algorithm
+is O(n). The first column shows n and the next columns show the running time of the LEDA
+algorithm without and with the KP-heuristics, and of our implementation of Gabow’s algorithm.
+For each of the three algorithms, we also show T (n)/T (n/2). For Gabow’s algorithm, we also
+show the number of iterations. The number of iterations is constant, as short augmenting paths
+suffice.
+We were surprised by the fact the added heuristics in LEDA-KP increase running times by about
+a factor of three. We have no explanation for this effect. The factor T (n)/T (n/2) should be 4 for
+the first two algorithms and approximately 2.82 for Gabow’s algorithm. We explain in Section 3.4,
+why we see larger factors.
+
+
+
+
+                                                   30
+      n    LEDA     T (n)/T (n/2)   LEDA-KP     T (n)/T (n/2)   Gabow    T (n)/T (n/2)   # iterations
+  10000      0.29             –          0.48             –       0.28             –             20.4
+  20000      1.05          3.62          5.45         11.35       1.06          3.78             28.7
+  40000     11.43         10.88         18.83          3.45       4.56          4.30             40.0
+  80000     94.43          8.25        260.54         13.83      15.76          3.45             56.4
+ 160000    380.11          4.05       1103.28          4.23      52.42          3.32             81.5
+
+Table 3: Worst Case Graph: The running times in seconds of matching algorithms on a random
+representation of the graphs generated by mc worst case gen(n, 4n, 1). All times are the averages
+of ten runs. The first column shows n. The next columns show the running times of the LEDA
+algorithm without and with the KP-heuristics and of our implementation of Gabow’s algorithm.
+The ratio T (n)/T (n/2) is also shown. For Gabow’s algorithm we also show the number of itera-
+tions.
+The running times of the LEDA algorithm vary widely. For example, for n = 80000, the best
+time is 18.31 and the worst time is 160.68. For LEDA-KC, the best time is 58.55 and the worst is
+445.73, and for Gabow, the best time is 12.83 and the worst is 18.52.
+
+
+not permuted independently but all in the same way.
+
+⟨random representation.cpp⟩+≡
+   void permute(graph& G)
+   {
+   list<edge> E = G.all_edges();
+   E.permute();
+   G.sort_edges(E);
+   list<node> V = G.all_nodes();
+   V.permute();
+   G.sort_nodes(V);
+   }
+
+
+Table 3 shows the running times of our matching algorithms on random representations of our
+worst case graphs Wn,m .
+    We attempt an explanation for the family Wn.n . For this graph class, about half of the edges
+are in the complete graph and most of the nodes are contained in chains. The greedy matching
+will either construct a perfect matching on Gc or an almost perfect matching with one free vertex.
+The latter happens if it matches z with a vertex on one of the chains. The greedy matching will
+also choose some chain edges and in this way break the chains into smaller chains separated by
+free vertices as shown in Figure 3.
+    We come to the augmentations. Each augmentation is of one of two kinds: It either involves
+the edge (x, z) and then turns the near perfect matching on GC into a perfect matching, or it will
+merge (in generally three) subchains into one, see Figure 3. Once the first kind of augmentation
+has happened and once augmenting paths have length more than five, we will still have the effect
+that all of GC will be explored in the search. Here we use the fact that we connected all chain
+nodes to the special node z of GC . We therefore expect the same asymptotics as for the worst-case
+representation, although with a smaller constant.
+
+3.2    Random Graphs
+We tested the programs on random graphs with various edge densities. It is well known that sparse
+graphs with about 3n to 4n edges are hardest for matching algorithms and this is confirmed by our
+experiments. We therefore only report the running times for random graphs with 4n edges. For
+other small edge densities the running times are similar and for larger edge densities the running
+times are much smaller.
+
+
+                                                31
+               u                          v                w                           x
+
+
+
+
+Figure 3: In the top chain there are three augmenting paths, namely with endpoints u and v, v
+and w, and w and x, respectively. Using the path from v to w for augmentation, merges the three
+paths into one. If one endpoint of the augmenting path used is an endpoint of the containing
+chain, only two paths are merged.
+
+
+    Table 4 shows the running times. The running time of the LEDA program grows quadratically.
+As the graphs have a complete or almost almost complete matching the program performs a linear
+number of iterations. Each iteration seems to explore a large fraction of the graph. The heuristics
+by Kececioglu and Pecqueur [KP98] reduce the running times dramatically. In particular, the test
+whether the tip of the current alternating path has a direct connection to a free node reduces
+the length of augmenting paths dramatically. Gabow’s algorithm seems to require a logarithmic
+number of iterations. Note that doubling n seems to increase the number of iterations by one. It
+is known that for sufficiently dense random graphs with m ≥ 40n, non-maximum matching always
+have an augmenting path of logarithmic length [BMSH05].
+
+        n    LEDA     T (n)/T (n/2)   LEDA-KP      T (n)/T (n/2)   Gabow    T (n)/T (n/2)   # iterations
+    80000      0.74             –          0.14              –       0.39             –              8.1
+   160000      2.80          3.78          0.42           3.00       1.31          3.35              9.2
+   320000     11.41          4.07          2.05           4.88       2.75          2.10              9.9
+   640000     44.52          3.90          4.45           2.17       5.28          1.92             10.6
+  1280000    326.03          7.32         12.34           2.77      14.30          2.70             11.3
+ 10240000         –             –        221.66          19.96     233.67         16.34             13.4
+
+Table 4: Random Graphs: The running time on random graphs with n nodes and 4n edges.
+All times are the average of 10 runs and the same seed for the random generator was used for all
+three algorithms. The running time of the LEDA program grows quadratically. The other two
+programs fair much better and LEDA-KP outperforms Gabow’s algorithm for graphs with up to
+1.28 · 106 nodes. For 10.24 · 106 nodes, Gabow wins. The number of iterations seems to grow
+logarithmically for Gabow’s algorithm. See the text for further explanations.
+
+
+3.3    Breakdown of Running Times
+We give the breakdown of the running time for solving the hard instance with n = 2 · 105 and
+m = 4n. Almost half of time is spent in phase 1 , less than 10% is spent in phase 2 , and about
+30% of the time is spent in finishing off the computation by finding single augmenting paths.
+In phase 1 , the most time consuming functions are scan edge (23%), shrink path (12%), and the
+various priority queue operations (10%).
+
+3.4    Running Times, Instruction Counts, and Memory Hierarchy
+The measured running times grow faster than the theoretical running times. This is readily
+explained. The analysis counts the number of executed instructions. In particular, all memory
+accesses take the same time, but real computers have a memory hierarchy consisting of several
+levels of cache and main memory.
+    The instruction counts can be determined with the help of a debugger. We used gprof to
+determine the number of accesses to edge records in our implementation of Gabow’s algorithm on
+
+
+                                                  32
+                      n           long chains                      short chains
+                                 I(n) I(n)/I(n/2)                 I(n) I(n)/I(n/2)
+                 10000       93570584            –             2873994             –
+                 20000      268663789         2.87             5762337          2.01
+                 40000      752844009         2.80            11471631          1.99
+                 80000     2152713427         2.85            23014737          2.01
+
+Table 5: Instruction Counts: The number of accesses to edge records in our implementation of
+Gabow’s algorithm on graphs with long chains and only short chains. In the first case, the counts
+grow as n3/2 , and in the second case, the counts grow linearly. Note that 23/2 ≈ 2.82.
+
+                         n     T (n)      T (n)/T (n/2)    Gabow TG (n)   T (n)/TG (n)
+
+                     80000      8.71                              0.39         22.33
+                    160000     21.42             2.45             1.31         16.35
+                    320000     52.79             2.46             2.75         19.19
+                    640000     94.11             1.78             5.28         17.82
+
+Table 6: Huang-Stein Python Implementation of Micali-Vazirani: The running times on
+random graphs with n nodes and 4n edges. All times are the average of 10 runs. The running
+times for Gabow’s algorithm are as in Table 4
+
+
+the graphs with long and short chains, see Table 5. For long chains, the running time grows as
+n3/2 , for short chains, the running time grows as n. In both cases, the instruction counts show
+the same growth rate. Note that gprof samples the instructions only every 1/200 sec and so the
+counts are only approximate.
+    We conducted our experiments on an INTEL x86 64 processor with three levels of cache. The
+L1 cache has size 192 kB, L2 cache has size 5 MB, L3 cache has size 12 MB, and main memory
+has size 32 GB.
+    On a graph with n nodes and 4n edges the LEDA and the LEDA-KP program use about 600n
+Bytes of memory and the Gabow program needs about 1200n Bytes of memory. For n = 104 ,
+this amounts to 6 MB and 12 MB, respectively. The ratio r of access times between L3 and L2 is
+about 10 and between main memory and L3 it is about 2.
+    Let us restrict attention to adjacent layers of memory, say L3 and main memory, and let us
+consider a program with linear space requirement. Let us also assume that a fraction p of the
+memory accesses are to the faster memory. If we double input size only a fraction p/2 will be to
+the faster memory and hence memory access will slow down by a factor
+                   p/2 · 1 + (1 − p/2)r       1 p + (2 − p)r  1           r
+                                          =                  = (1 +              ).
+                    p · 1 + (1 − p) · r       2 p + (1 − p)r  2     p + (1 − p)r
+
+For example, for r = 2, the factor grows from 1 to 3/2 for p growing from zero to one, and for
+r = 10, the factor grows from 1 to 11/2 for p growing from zero to one. We see this factor in
+addition to the theoretical growth of the running time due to larger input size. Since r is larger
+for the the L2/L3 boundary than for the L3/Main-Memory boundary, the additional factor is
+larger for small n.
+
+3.5    An Unfair Comparison
+We also timed the Python-implementation of the Micali-Vazirani algorithm by Huang-Stein [HS17]
+on random graphs with m = 4n edges, see Table 6. The C++ implementation of Gabow’s algorithm
+is about 15 to 20 times faster on the same task. This is well in line with the reported speed
+differences of Python and C++ and does not hint to a superiority of one algorithm over the other.
+
+
+
+
+                                                      33
+3.6    Suggestions for Further Experiments
+Vertical versus Horizontal Memory Allocation: Our implementation uses a large num-
+ber of node- and edge-arrays. They are allocated consecutively in memory. As a consequence,
+when accessing several arrays relating to a particular node or edge, different areas of memory are
+accessed. A case in point is the function scan edge.
+
+    void scan edge(const edge& e, const node& z){
+      node u = G.opposite(e,z);
+      if (mate[u] == z || label[base(u)] == ODD) return;
+      int p = d(z) + d(u);
+      if (label[u] == UNLABELED)
+        PQ.insert(e,Delta + p);
+      else
+        PQ.insert(e,Delta + p/2);
+      return;
+      }
+It accesses mate[u], bd [u], bdelta[u] (both is d(u)), and some more information related to u in
+base(u). It might be more efficient to associate a record with u that contains all array-values
+related to u. We have not implemented this approach.
+
+Static Graphs: LEDA offers several implementations of graphs, in particular fully dynamic
+graphs that support node and vertex additions and deletions, and static graphs that cannot be
+changed. Static graphs have a much smaller memory footprint than dynamic graphs and are
+sufficient for Gabow’s algorithm. We have used dynamic graphs for lack of knowledge. A change
+to static graphs would reduce running times.
+
+
+4     Conclusions
+We have given an C++ implementation of Gabow’s general matching algorithm and reported on
+running time experiments. For worst-case graphs, the improvement in running time is dramatic.
+A comparison with a C++ implementation of the Micali-Vazirani algorithm would be highly inter-
+esting. We hope that somebody picks up our suggestions for further experiments.
+
+Acknowledgment:       We want to thank Stefan Näher for help with LEDA and Hal Gabow for
+useful comments.
+
+
+References
+[BMSH05]     H. Bast, K. Mehlhorn, G. Schäfer, and H.Tamaki. Matching Algorithms are Fast in
+             Sparse Random Graphs Theory of Computing Systems, 31(1):3–14, 2005. prelimi-
+             nary version in STACS 2004, LNCS 2996, 81 – 92.
+[CKL+ 22]    Li Chen, Rasmus Kyng, Yang P. Liu, Richard Peng, Maximilian Probst Gutenberg,
+             and Sushant Sachdeva. Maximum flow and minimum-cost flow in almost-linear time.
+             In 63rd IEEE Annual Symposium on Foundations of Computer Science, FOCS 2022,
+             Denver, CO, USA, October 31 - November 3, 2022, pages 612–623. IEEE, 2022.
+[Edm65]      J. Edmonds. Maximum matching and a polyhedron with 0,1 - vertices. Journal of
+             Research of the National Bureau of Standards, 69B:125–130, 1965.
+
+[Gab76]      H. N. Gabow. An efficient implementation of Edmonds’ algorithm for maximum
+             matching on graphs. Journal of the ACM, 23:221–234, 1976.
+
+
+
+                                               34
+[Gab17]   Harald Gabow. The weighted matching approach to maximum cardinality matching.
+          Fundamenta Informaticae, 154:109–130, 2017.
+[GK04]    A.V. Goldberg and A.V. Karzanov. Maximum skew-symmetric flows and matchings.
+          Math. Programming, Series A, 100:537 – 568, 2004.
+[GT85]    H. N. Gabow and R. E. Tarjan. A linear-time algorithm for a special case of disjoint
+          set union. Journal of Computer and System Sciences, 30(2):209–221, 1985.
+
+[GT91]    H. N. Gabow and R. E. Tarjan. Faster scaling algorithms for general graph-matching
+          problems. J. ACM, 38(4):815–853, 1991.
+[HK73]    J. E. Hopcroft and R. M. Karp. An n5/2 algorithm for maximum matchings in
+          bipartite graphs. SIAM Journal of Computing, 2(4):225–231, 1973.
+
+[HS17]    Michael Huang and Clifford Stein. Extending search phases in the micali-vazirani
+          algorithm. In 16th Symposium on Experimental Algorithmics (SEA), LIPIcs, pages
+          10:1–10:19, 2017.
+[KL93]    D. Knuth and S. Levy. The CWEB System of Structured Documentation, Version
+          3.0. Addison-Wesley, 1993.
+
+[KP98]    J.D. Kececioglu and J. Pecqueur. Computing maximum-cardinality matchings in
+          sparse general graphs. In Proceedings of the 2nd Workshop on Algorithm Engineering
+          (WAE’98), pages 121–132. Max-Planck-Institut für Informatik, 1998.
+[LED]     LEDA (Library of Efficient Data Types and Algorithms). www.algorithmic-solutions.
+          com.
+
+[MN99]    K. Mehlhorn and S. Näher. The LEDA Platform for Combinatorial and Geometric
+          Computing. Cambridge University Press, 1999.
+                                                                           √
+[MR91]    R. Bruce Mattingly and Nathan P. Ritchey. Implementing on O N M ) cardinality
+          matching algorithm. In David S. Johnson and Catherine C. McGeoch, editors, Net-
+          work Flows And Matching, Proceedings of a DIMACS Workshop, New Brunswick,
+          New Jersey, USA, October 14-16, 1991, volume 12 of DIMACS Series in Discrete
+          Mathematics and Theoretical Computer Science, pages 539–556. DIMACS/AMS,
+          1991.
+                                          p
+[MV80]    S. Micali and V. Vazirani. An O( |V |·|E|) algorithm for finding maximum matching
+          in general graphs. In Proc. 21st IEEE Symposium on Foundations of Computer
+          Science (FOCS), pages 17–27, 1980.
+[Tar83]   R. E. Tarjan. Data Structures and Network Algorithms. SIAM, 1983.
+[Vaz]     Vijay V. Vazirani. A theory of alternating paths and blossoms, from the perspective
+          of minimum length. available at https://www.ics.uci.edu/~vazirani/Matching_
+          paper.pdf.
+[Vaz94]   V. V. Vazirani.
+                √         A theory of alternating paths and blossoms for proving correctness of
+          the O( V E) general graph maximum matching algorithm. Combinatorica, 14(1):71–
+          109, 1994.
+[Vaz12]   Vijay V. Vazirani. An improved definition of blossoms and a simpler proof of the
+          MV matching algorithm. CoRR, abs/1210.4594, 2012.
+[Vaz20]   Vijay V. Vazirani. A proof of the MV matching algorithm. CoRR, abs/2012.03582,
+          2020.
+
+
+
+                                            35
+[vdBCK+ 23] Jan van den Brand, Li Chen, Rasmus Kyng, Yang P. Liu, Richard Peng, Maxi-
+            milian Probst Gutenberg, Sushant Sachdeva, and Aaron Sidford. A deterministic
+            almost-linear time algorithm for minimum-cost flow. CoRR, abs/2309.16629, 2023.
+[vdBLN+ 20] Jan van den Brand, Yin Tat Lee, Danupon Nanongkai, Richard Peng, Thatchaphol
+            Saranurak, Aaron Sidford, Zhao Song, and Di Wang. Bipartite matching in nearly-
+            linear time on moderately dense graphs. In Sandy Irani, editor, 61st IEEE Annual
+            Symposium on Foundations of Computer Science, FOCS 2020, Durham, NC, USA,
+            November 16-19, 2020, pages 919–930. IEEE, 2020.
+
+
+A     LEDA’s Matching Algorithm
+The implementation is discussed in detail in [MN99, Section 7.7].
+
+⟨LEDA⟩≡
+    /*******************************************************************************
+    +
+    + LEDA 7.0
+    +
+    +
+    + _mc_matching.c
+    +
+    +
+    + Copyright (c) 1995-2023
+    + by Algorithmic Solutions Software GmbH
+    + All rights reserved.
+    +
+    *******************************************************************************/
+
+    #include <LEDA/graph/graph_alg.h>
+    #include <LEDA/graph/node_partition.h>
+    #include <LEDA/graph/node_slist.h>
+    #include <LEDA/system/assert.h>
+    #include <LEDA/graph/mc_matching.h>
+    #include <LEDA/core/array.h>
+    #include <LEDA/core/string.h>
+    LEDA_BEGIN_NAMESPACE
+    static bool return_false(string s)
+    { cerr << "CHECK_MAX_CARD_MATCHING: " << s << "\n"; return false; }
+    bool CHECK_MAX_CARD_MATCHING(const graph& G, const list<edge>& M,
+    const node_array<int>& OSC)
+    { int n = leda_max(2,G.number_of_nodes());
+    int K = 1;
+    array<int> count(n);
+    int i;
+    for (i = 0; i < n; i++) count[i] = 0;
+    node v; edge e;
+    forall_nodes(v,G)
+    { if ( OSC[v] < 0 || OSC[v] >= n )
+    return return_false("negative label or label larger than n - 1");
+    count[OSC[v]]++;
+    if (OSC[v] > K) K = OSC[v];
+    }
+    int S = count[1];
+    for (i = 2; i <= K; i++) S += count[i]/2;
+
+
+
+                                               36
+if ( S != M.length() )
+return_false("OSC does not prove optimality");
+forall_edges(e,G)
+{ node v = G.source(e); node w = G.target(e);
+if ( v == w || OSC[v] == 1 || OSC[w] == 1 ||
+( OSC[v] == OSC[w] && OSC[v] >= 2) ) continue;
+return return_false("OSC is not a cover");
+}
+return true;
+}
+enum LABEL {ODD, EVEN, UNLABELED};
+static void shrink_path(node b, node v, node w,
+node_partition& base, node_array<node>& mate,
+node_array<node>& pred, node_array<node>& source_bridge,
+node_array<node>& target_bridge, node_slist& Q)
+{ node x = base(v);
+while (x != b)
+{ base.union_blocks(x,b);
+x = mate[x];
+base.union_blocks(x,b);
+base.make_rep(b);
+Q.append(x);
+source_bridge[x] = v;
+target_bridge[x] = w;
+x = base(pred[x]);
+}
+}
+static void find_path(list<node>& P, node x, node y,
+node_array<int>& label, node_array<node>& pred,
+node_array<node>& mate,
+node_array<node>& source_bridge,
+node_array<node>& target_bridge)
+{ if ( x == y )
+{
+P.append(x);
+return;
+}
+if ( label[x] == EVEN )
+{
+P.append(x);
+P.append(mate[x]);
+find_path(P,pred[mate[x]],y,label,pred,mate,
+source_bridge,target_bridge);
+return;
+}
+else // x is ODD
+{
+P.append(x);
+list<node> P2;
+find_path(P2,source_bridge[x],mate[x],label,pred,mate,
+source_bridge,target_bridge);
+P2.reverse_items();
+P.conc(P2);
+find_path(P,target_bridge[x],y,label,pred,mate,
+source_bridge,target_bridge);
+return;
+
+
+                                        37
+}
+}
+list<edge> MAX_CARD_MATCHING(const graph& G, node_array<int>& OSC, int heur)
+{
+node_array<node> mate(G,nil);
+node_partition base(G);    // now base(v) = v for all nodes v
+{ node v;
+forall_nodes(v,G) assert(base(v) == v);
+}
+node_array<int> label(G,EVEN);
+node_array<node> pred(G,nil);
+double strue = 0;
+node_array<double>   path1(G,0);
+node_array<double>   path2(G,0);
+node_array<node> source_bridge(G,nil);
+node_array<node> target_bridge(G,nil);
+switch (heur) {
+case 0: break;
+case 1: { edge e;
+forall_edges(e,G)
+{ node v = G.source(e); node w = G.target(e);
+if ( v != w && mate[v] == nil && mate[w] == nil)
+{ mate[v] = w; label[v] = UNLABELED;
+mate[w] = v; label[w] = UNLABELED;
+}
+}
+break;
+}
+}
+node v; edge e;
+forall_nodes(v,G)
+{ if ( mate[v] != nil ) continue;
+node_slist Q(G); Q.append(v);
+list<node> T; T.append(v);
+bool breakthrough = false;
+while (!breakthrough && !Q.empty()) // grow tree rooted at v
+{
+node v = Q.pop();
+forall_inout_edges(e,v)
+{ node w = G.opposite(v,e);
+if ( base(v) == base(w) || label[base(w)] == ODD )
+continue;   // do nothing
+if ( label[w] == UNLABELED )
+{
+label[w] = ODD;            T.append(w);
+pred[w] = v;
+label[mate[w]] = EVEN;     T.append(mate[w]);
+Q.append(mate[w]);
+}
+else // base(w) is EVEN
+{
+node hv = base(v);
+node hw = base(w);
+
+
+                                          38
+strue++;
+path1[hv] = path2[hw] = strue;
+while ((path1[hw] != strue && path2[hv] != strue) &&
+(mate[hv] != nil || mate[hw] != nil) )
+{
+if (mate[hv] != nil)
+{ hv = base(pred[mate[hv]]);
+path1[hv] = strue;
+}
+if (mate[hw] != nil)
+{ hw = base(pred[mate[hw]]);
+path2[hw] = strue;
+}
+}
+if (path1[hw] == strue || path2[hv] == strue)
+{
+node b = (path1[hw] == strue) ? hw : hv;    // Base
+shrink_path(b,v,w,base,mate,pred,source_bridge,target_bridge,Q);
+shrink_path(b,w,v,base,mate,pred,source_bridge,target_bridge,Q);
+}
+else
+{
+list<node> P;
+find_path(P,v,hv,label,pred,mate,source_bridge,target_bridge);
+P.push(w);
+while(! P.empty())
+{ node a = P.pop();
+node b = P.pop();
+mate[a] = b;
+mate[b] = a;
+}
+T.append(w);
+forall(v,T) label[v] = UNLABELED;
+base.split(T);
+breakthrough = true;
+break;
+}
+}
+}
+}
+}
+list<edge> M;
+forall_edges(e,G)
+{ node v = source(e);
+node w = target(e);
+if ( v != w && mate[v] == w )
+{ M.append(e);
+mate[v] = v;
+mate[w] = w;
+}
+}
+forall_nodes(v,G) OSC[v] = -1;
+int number_of_unlabeled = 0;
+node arb_u_node = 0;
+forall_nodes(v,G)
+
+
+                                        39
+    if ( label[v] == UNLABELED )
+    { number_of_unlabeled++;
+    arb_u_node = v;
+    }
+    int L = 0;
+    if ( number_of_unlabeled > 0 )
+    { OSC[arb_u_node] = 1;
+    if (number_of_unlabeled > 2) L = 2;
+    forall_nodes(v,G)
+    if ( label[v] == UNLABELED && v != arb_u_node ) OSC[v] = L;
+    }
+    int K = ( L == 0? 2 : 3);
+    forall_nodes(v,G)
+    if ( base(v) != v && OSC[base(v)] == -1 ) OSC[base(v)] = K++;
+    forall_nodes(v,G)
+    { if ( base(v) == v && OSC[v] == -1 )
+    { if ( label[v] == EVEN ) OSC[v] = 0;
+    if ( label[v] == ODD ) OSC[v] = 1;
+    }
+    if ( base(v) != v ) OSC[v] = OSC[base(v)];
+    }
+    return M;
+    }
+    LEDA_END_NAMESPACE
+
+
+
+
+B     LEDA’s Matching Algorithm plus the Kececioglu-Pecqueur
+      Heuristics
+And now with the heuristics suggested by Kececioglu and Pecqueur [KP98].
+
+⟨LEDA-KP ⟩≡
+    class G_card_matching_KP{
+    private:
+    const graph& G;
+    list<edge> M; // matching in G
+    node_array<node> mate; // mates in M
+    node_partition base; // blossoms in G
+    node_array<node> parent; // parent[v] is the parent of v in the alternating tree
+    node_array<node> source_bridge; // bridges close blossoms; a blossom consists of two paths
+    node_array<node> target_bridge; // x--z and y--z plus the edge xy; z is the base of the blossom.
+    // the nodes on the path from x to z store x as source_bridge and y as target_bridge.
+    node_array<LABEL> label;
+    node_array<int> even_time;
+    int even_count;
+    int size_of_M;
+    node_array<int> num;
+    list<node> T;
+    list<node> P;    // initialized as empty list by default constructor
+    node find_aug_path(node v, node v0){ // we are growing a tree with root v0
+    edge e; node w;
+    forall_inout_edges(e,v){
+    w = G.opposite(e,v);
+    if( v == w ) continue;
+
+
+                                            40
+if( mate[w] == nil && label[w] == UNLABELED ){
+parent[w] = v;
+T.append(w);
+label[w] = ODD;
+return w;
+}
+}
+// no immediate break-through
+forall_inout_edges(e,v){
+w = G.opposite(e,v);
+if (label[base(w)] == ODD || w == v) continue;
+if (label[base(w)] == UNLABELED){
+label[w] = ODD; parent[w] = v; T.append(w);
+node mw = mate[w];
+label[mw] = EVEN; T.append(mw); even_time[mw] = even_count++;
+node s = find_aug_path(mw,v0);
+if(s != nil)
+return s;
+}
+else{
+node bv = base(v);
+node bw = base(w);
+list<node> tmp;
+if (even_time[bv] < even_time[bw]){ //blossom_step along forward edge
+// walk down from bw to bv and perform unions
+while(bw != bv){// doing the unions carefully, so that only one make_rep is needed
+node mate_bw = mate[bw];
+base.union_blocks(bw,mate_bw);
+bw = base(parent[mate_bw]);
+base.union_blocks(mate_bw,bw);
+tmp.push_front(mate_bw);
+source_bridge[mate_bw] = w;
+target_bridge[mate_bw] = v;
+}
+base.make_rep(bv);
+forall(w,tmp){
+node s = find_aug_path(w,v0);
+if(s != nil)
+return s;
+}
+}
+}
+}
+return nil;
+}
+
+void find_path(node x, node y){
+/* traces the even length alternating path from x to y; if non-trivial it starts with
+the matching edge incident to x; collects the non-matching edges on this
+path as pairs of nodes */
+if ( x == y ) return;
+if ( label[x] == EVEN ){
+P.append(mate[x]); P.append(parent[mate[x]]);
+find_path(parent[mate[x]],y);
+return;
+}
+else{ // x is ODD
+find_path(source_bridge[x],mate[x]);
+
+
+
+                                        41
+P.append(source_bridge[x]); P.append(target_bridge[x]);
+find_path(target_bridge[x],y);
+return;
+}
+}
+
+public:
+G_card_matching_KP(const graph& g): G(g), mate(node_array<node>(G,nil)), base(node_partition(G)),
+parent(node_array<node>(G)),
+source_bridge(node_array<node>(G)), target_bridge(node_array<node>(G)),
+label(node_array<LABEL>(G,UNLABELED)),even_time(node_array<int>(G,0)),
+even_count(0), size_of_M(0), num(node_array<int>(G)){
+// most arrays do not need initialization
+}
+int init(){
+edge e;
+forall_edges(e,G){
+node u = G.source(e); node v = G.target(e);
+if (u != v && mate[u] == nil && mate[v] == nil) {
+mate[u] = v;
+mate[v] = u;
+size_of_M++;
+}
+}
+return size_of_M;
+};
+list<edge> solve(node_array<int>& OSC,int heur = 1){
+node v, v0, w; edge e;
+int count = 1;
+forall_nodes(v,G) num[v] = count++;
+if (heur == 1) init();
+forall_nodes(v0,G){
+if ( mate[v0] != nil ) continue;
+label[v0] = EVEN; T.clear(); T.append(v0); even_time[v0] = even_count++;
+if( (w = find_aug_path(v0,v0)) != nil ){
+node pw = parent[w];
+P.push(w); P.push(pw);
+find_path(pw,v0);
+while(! P.empty()){
+node a = P.pop();
+node b = P.pop();
+mate[a] = b;
+mate[b] = a;
+}
+forall(v,T) label[v] = UNLABELED;
+base.split(T);
+size_of_M++;
+}
+}
+list<edge> M;
+forall_edges(e,G) {
+node v = source(e);
+node w = target(e);
+if ( v != w && mate[v] == w ) {
+M.append(e);
+mate[v] = v;
+
+
+                                           42
+    mate[w] = w;
+    }
+    }
+    forall_nodes(v,G) OSC[v] = -1;
+    int number_of_unlabeled = 0;
+    node arb_u_node = 0;
+    forall_nodes(v,G)
+    if ( label[v] == UNLABELED ) {
+    number_of_unlabeled++;
+    arb_u_node = v;
+    }
+    int L = 0;
+    if ( number_of_unlabeled > 0 ){
+    OSC[arb_u_node] = 1;
+    if (number_of_unlabeled > 2) L = 2;
+    forall_nodes(v,G)
+    if ( label[v] == UNLABELED && v != arb_u_node ) OSC[v] = L;
+    }
+    int K = ( L == 0? 2 : 3);
+    forall_nodes(v,G)
+    if ( base(v) != v && OSC[base(v)] == -1 ) OSC[base(v)] = K++;
+    forall_nodes(v,G){
+    if ( base(v) == v && OSC[v] == -1 ){
+    if ( label[v] == EVEN ) OSC[v] = 0;
+    if ( label[v] == ODD ) OSC[v] = 1;
+    }
+    if ( base(v) != v ) OSC[v] = OSC[base(v)];
+    }
+    return M;
+    }
+    };
+
+
+
+
+C        The Program for the Running Time Experiments
+⟨RunningTimes⟩≡
+    #line 271 "Experiments.lw"
+    #include <LEDA/graph/graph.h>
+    #include <LEDA/graph/node_partition.h>
+    #include <LEDA/graph/node_slist.h>
+    #include <LEDA/graph/mc_matching.h>
+    #include <LEDA/system/assert.h>
+    #include <LEDA/core/random.h>
+    #include <LEDA/core/array.h>
+    #include <LEDA/core/string.h>
+    #include <LEDA/core/list.h>
+    #include <LEDA/core/stack.h>
+    #include <LEDA/graph/graph_gen.h>
+    #include <LEDA/core/misc.h>
+    #include <LEDA/graph/mcb_matching.h>
+    #include <LEDA/core/array.h>
+    #include <LEDA/graph/graph.h>
+    #include <assert.h>
+    #include <math.h>
+
+
+                                             43
+#define BOOK
+#include <LEDA/core/IO_interface.h>
+using namespace leda;
+//enum LABEL {ODD, EVEN, UNLABELED};
+#include "Gabow.h"
+// #include "new_mc_matching.cpp"
+node complete_g(graph& G, int m) // sqrt(2m) nodes and about m edges
+{ int n = 2* (int) sqrt(m/2.0);
+array<node> a(n); int i, j;
+for (i = 0; i < n; i++)
+a[i] = G.new_node();
+for (i = 0; i < n; i++)
+for (j = i+1; j < n; j++) G.new_edge(a[i],a[j]);
+return a[0];
+}
+void chain(graph& G, int k, node z){ // k new nodes and 2k - 1 edges
+array<node> a(k); int i;
+for (i = 0; i < k; i++) a[i] = G.new_node();
+G.new_edge(a[0],z);
+for (i = 1; i < k-1; i++)
+{ G.new_edge(a[i],a[i+1]);
+G.new_edge(a[i],z);
+}
+G.new_edge(a[0],a[1]);
+}
+#define LONG // LONG // SHORT
+#define RANDOM
+#define KP
+#define PERMUTE
+
+#ifdef LONG
+int mode = 1;
+#endif
+#ifdef SHORT
+int mode = 0;
+#endif
+void mc_worst_case_gen(graph& G, int n, int m, int mode)
+// sqrt(2m) + n + (mode == 1) n nodes and m + 2n + (mode == 1) 2n edges.
+{ node z = complete_g(G,m);
+int k = 4;
+for (int j = 0; j < n/8; j++) chain(G,2*k,z);
+if (mode == 1) {
+for (k = 5; k < sqrt(n); k++)
+chain(G,2*k,z);
+}
+}
+void permute(graph& G)
+{
+list<edge> E = G.all_edges();
+E.permute();
+G.sort_edges(E);
+list<node> V = G.all_nodes();
+V.permute();
+G.sort_nodes(V);
+
+
+
+                                        44
+}
+#include "class_new_mc_matching.cpp"
+float matching_test(int n, int m, int seed = 290849)
+{ graph G;
+rand_int.set_seed(seed);
+#ifdef RANDOM
+random_graph(G,n,m);
+#else
+mc_worst_case_gen(G,n,m,mode);
+#ifdef PERMUTE
+permute(G);
+#endif
+#endif
+int number_of_iterations;
+list<edge> M;
+node_array<int> OSC(G);
+float T = used_time(); float UT;
+#ifdef LEDA
+M = MAX_CARD_MATCHING(G,OSC,1);
+#endif
+#ifdef KP
+G_card_matching_KP P(G);
+M = P.solve(OSC);
+#endif
+#ifdef GABOW
+G_card_matching P(G);
+M = P.solve(OSC,number_of_iterations);
+#endif
+UT = used_time(T); std::cout << "\ntime =     " << UT;
+CHECK_MAX_CARD_MATCHING(G,M,OSC);
+return UT;
+}
+
+int main(int argc, char** argv)
+{
+if (argc < 2) {
+cerr << "usage: " << argv[0] << argv[1] << " n " << endl;
+return 1;
+}
+int n = atoi(argv[1]);
+int seed = atoi(argv[2]);
+float UT = matching_test(n,4*n,seed);
+//print_statistics();
+return 0;
+}
+
+
+
+
+                                         45
+

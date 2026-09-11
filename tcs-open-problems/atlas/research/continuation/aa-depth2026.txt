@@ -1,0 +1,3010 @@
+                                                    Quantum Speedups Require Structure or Depth
+
+                                               Guy Blanc            Jordan Docter            Carmen Strassle            Li-Yang Tan
+                                                 Stanford              Stanford                   Stanford                Stanford
+arXiv:2608.19158v1 [quant-ph] 19 Aug 2026
+
+
+
+
+                                                                                   August 20, 2026
+
+
+
+                                                                                      Abstract
+                                               One of the most basic conjectures in quantum complexity theory states that every t-query
+                                            quantum algorithm can be simulated on most inputs by a poly(t)-query classical algorithm. If
+                                            true, this would provide broad justification for the need for structure in quantum speedups.
+                                               We settle this conjecture for parallel quantum algorithms, showing that every t-query d-round
+                                                                                                            2
+                                            quantum algorithm can be simulated on most inputs with tO(d ) classical queries. This suggests
+                                            that for unstructured problems, superpolynomial speedups would require quantum circuits of
+                                            superconstant depth, and exponential speedups would further require polynomial depth. In
+                                            contrast, most known speedups for structured problems are achieved by highly parallel, low-depth
+                                            algorithms.
+                                               Our techniques also carry new implications for the status of BPP vs. BQP relative to a
+                                            random oracle, a similarly longstanding problem.
+Contents
+1 Introduction                                                                                         1
+
+2 This work                                                                                            2
+  2.1 A new conjecture . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     2
+  2.2 Parallel quantum algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      4
+  2.3 Implications for random-oracle separations . . . . . . . . . . . . . . . . . . . . . . . .       5
+
+3 Independent work                                                                                     6
+
+4 Technical overview                                                                           6
+  4.1 Nonadaptive algorithms: The case of d = 1 . . . . . . . . . . . . . . . . . . . . . . . 7
+  4.2 Warm-up for d ≥ 2: A doubly exponential bound . . . . . . . . . . . . . . . . . . . . 8
+  4.3 An improved bound for d ≥ 2 via higher-order statistics . . . . . . . . . . . . . . . . 10
+  4.4 Implications for random-oracle separations: Proofs of Theorems 2 and 3 . . . . . . . 12
+
+5 Preliminaries                                                                                       13
+  5.1 Quantum query algorithms . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        15
+  5.2 Query weights . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   16
+  5.3 Implications of the hybrid method . . . . . . . . . . . . . . . . . . . . . . . . . . . .       17
+
+6 Warm-up: Proof of Lemma 4.3                                                                         19
+  6.1 Proof overview for Lemma 6.1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      19
+  6.2 Good inputs are biased: Proof of Lemma 6.2 . . . . . . . . . . . . . . . . . . . . . .          20
+  6.3 Regularity implies few bad inputs: Proof of Lemma 6.3 . . . . . . . . . . . . . . . .           21
+
+7 An improved bound: Proof of Theorem 4                                                               23
+  7.1 Large distance implies hitting: Proof of Lemma 7.2 . . . . . . . . . . . . . . . . . . .        25
+  7.2 Regularity implies few bad inputs: Proof of Lemma 7.3 . . . . . . . . . . . . . . . .           26
+  7.3 Good inputs are biased: Proof of Lemma 7.4 . . . . . . . . . . . . . . . . . . . . . .          29
+  7.4 Putting things together: Proof of Theorem 7 . . . . . . . . . . . . . . . . . . . . . .         30
+
+8 Incorporating ε-dependence and removing N -dependence                                          31
+  8.1 Incorporating ε-dependence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 31
+  8.2 Removing N -dependence . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 33
+
+9 A regularity lemma and its implications                                                         34
+  9.1 Proof of Lemma 4.7 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 35
+  9.2 Implications of Lemma 4.7 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 37
+
+10 Implications for random-oracle separations                                                      37
+   10.1 Our algorithmic regularity lemma . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 38
+   10.2 Putting things together: Proofs of Theorems 2, 3 and 11 . . . . . . . . . . . . . . . . 42
+
+11 Final comments                                                                                     43
+
+12 AI disclosure                                                                                      43
+13 Acknowledgments                         43
+
+A Aaronson–Ambainis implies Conjecture 1   48
+
+B Hybrid method                            49
+
+C Proof of Corollary 5.6                   50
+
+D Proof of Proposition 10.6                51
+1       Introduction
+A major goal of quantum computing research is to understand the nature of problems that ad-
+mit superpolynomial speedups over classical computation. Prototypical examples of problems
+admitting such dramatic quantum advantage—Simon’s problem [Sim97], Period-Finding [Sho97],
+Forrelation [Aar10, AA18], among others—are all highly structured. In Simon’s problem and
+Period-Finding, structure comes in the form of a hidden subgroup; in Forrelation, structure
+comes in the form of a promise that one function is correlated with the Fourier transform of another.
+    As Aaronson writes in [Aar22], three decades of quantum algorithms research suggest a “law of
+conservation of weirdness”: Superpolynomial quantum speedups appear limited to settings where
+quantum algorithms can exploit some form of global structure to concentrate amplitudes on the
+correct answers. Understanding the extent to which such a law holds is central to understanding
+the power and limitations of quantum computing. For example, it would further explain why
+superpolynomial speedups have been prevalent in number-theoretic cryptography but not for
+NP-complete problems.
+    A particularly elegant formalization of such a law, in the query model where most quantum
+algorithms operate, is given by the following conjecture:
+
+Conjecture (The simulation conjecture). Let A be a t-query quantum algorithm. For every ε, δ > 0,
+there is a classical algorithm that makes poly(t, 1/ε, 1/δ) queries and approximates A’s acceptance
+probabilities to within an additive ε on 1 − δ fraction of inputs.
+
+     This conjecture first appeared in [Aar05, Aar08, AA14] and has been attributed to folklore
+dating back to 1999. To see how it relates to the “need for structure”, note that it implies
+that F : {0, 1}N → {0, 1, ∗} can admit a superpolynomial quantum-classical query separation
+only if F −1 ({0, 1}) is a very small set, corresponding to a highly specific promise on F ’s inputs.1
+Relatedly, this conjecture, if true, would rule out the standard query-complexity approach to proving
+BPP = ̸ BQP relative to a random oracle—a similarly longstanding open problem [FR99]. Both
+the simulation conjecture and the status of BPP vs. BQP relative to a random oracle appear in
+Aaronson’s list of “Ten semi-grand challenges for quantum computing theory” [Aar05] and Fortnow’s
+list of “Open oracle questions for the 21st century” [For21].
+
+The Aaronson–Ambainis Conjecture. In [Aar08, AA14], Aaronson and Ambainis reduced
+the simulation conjecture to a basic question about low-degree polynomials:
+
+Conjecture (Bounded low-degree polynomials have influential variables). Let p : {0, 1}N → [0, 1]
+be a bounded degree-t polynomial. There is a variable i ∈ [N ] such that
+                                                            
+                                                      Var(p)
+                                   Inf i (p) ≥ poly            .
+                                                        t
+
+    This Aaronson–Ambainis conjecture has since become the predominant approach to tackling
+the simulation conjecture. It is appealing because it is a natural, “quantum-free” statement about
+polynomials, making it possible for the powerful toolkit of discrete Fourier analysis to be brought to
+    In more detail, if |S| ≥ δ2N where S := F −1 ({0, 1}), the simulation conjecture implies the existence of a classical
+    1
+
+algorithm that makes poly(t, 1/δ, 1/α) queries and computes F on 1−α fraction of S. For total functions (S = {0, 1}N ),
+it has long been known that their quantum and classical query complexities are polynomially related [BBC+ 01].
+bear on the simulation conjecture. Indeed, [AA14] noted that a weaker lower bound with exp(t)
+in place of poly(t) already follows from a Fourier-analytic result of Dinur, Friedgut, Kindler, and
+O’Donnell [DFKO07], and this in turn implies a weaker version of the simulation conjecture with
+an exp(t) dependence.
+    Despite almost two decades of effort, this remains the best bound for the Aaronson–Ambainis
+conjecture—and the simulation conjecture. The same bound has been rederived a couple of
+times [OZ16, DMP19], but all known proofs hit a technical barrier at exp(t). (Briefly, this is because
+they all rely crucially on the hypercontractive inequality [Bon70], a useful technique for analyzing
+low-degree polynomials, but one for which an exponential dependence on degree is inherent [O’D14].)
+Other works on the conjecture include [Mon12, BB14, FHKL16, BSdW22, LZ23, Gut24, Bha25].
+
+
+2     This work
+While the Aaronson–Ambainis conjecture has established itself as a problem of independent interest
+and import in discrete Fourier analysis [O’D12, FHH+ 14], it is natural to ask if we have made the
+simulation conjecture substantially more difficult by viewing quantum algorithms abstractly as
+polynomials. Indeed, Aaronson and Ambainis themselves concluded their paper with the suggestion
+that one could conceivably resolve the simulation conjecture without going through their conjecture,
+by reasoning directly about quantum algorithms.
+
+Query weights. In this work we propose and explore one such approach, based on one of the
+earliest lower bound techniques in quantum computing. Introduced in the seminal work of Bennett,
+Bernstein, Brassard, and Vazirani [BBBV97], the query weights of a t-query quantum algorithm
+A are a way of tracking how it allocates its query budget among the N variables. For each input
+                                                              ′
+x ∈ {0, 1}N , query t′ ∈ [t], and variable i ∈ [N ], let |ψ (t ) (x)⟩ denote the state immediately before
+the t′ -th query and Πi denote the projector onto the subspace where the query register equals i. We
+define the quantities:
+                                                                        t
+                      (t′ )         ′            ′                               (t′ )
+                                                                        X
+                    wi (x) := ψ (t ) (x) Πi ψ (t ) (x) ,    Wi (x) :=           wi (x),
+                                                                        t′ =1
+
+                       (t′ )                                                    (t′ )
+and note that N
+               P                           PN
+                 i=1 wi (x) = 1 whereas     i=1 Wi (x) = t. Roughly speaking, wi (x) is the quantum
+analogue of the probability that A’s t′ -th query is to the i-th coordinate, and (W1 (x), . . . , WN (x))
+is a summary of how A allocates its t queries among the N coordinates. While these quantities are
+                                                                                                  (t′ )
+defined for a specific input x, we will be mostly concerned with the aggregate quantities E[wi (x)]
+and E[Wi (x)] for a uniform random x ∼ {0, 1}N .
+
+2.1   A new conjecture
+Now suppose A is an algorithm for a function F : {0, 1}N → {0, 1, ∗}. We can assume that neither
+Pr[F (x) = 1] nor Pr[F (x) = 0] is too small, since otherwise F is well-approximated by a constant
+function. We conjecture that there must then be a “heavy variable”, one for which A allocates a lot
+of its query weight:
+
+
+
+
+                                                     2
+   Conjecture 1 (Query-efficient quantum algorithms have heavy variables). Let A be a t-query
+   quantum algorithm and f : {0, 1}N → [0, 1] denote its acceptance probability. There is a
+   variable i ∈ [N ] such that
+                                 
+                                 δ
+                                        where δ := min Pr[f (x) ≥ 23 ], Pr[f (x) ≤ 31 ] .
+                                                       
+              E [Wi (x)] ≥ poly
+          x∼{0,1}N               t
+
+
+    For simplicity, suppose δ = 0.1 and so the conjectured lower bound is E[Wi (x)] ≥ poly(1/t). Since
+the average coordinate has weight t/N , this i-th coordinate can be seen to receive a disproportionately
+large amount of weight. Conjecture 1 therefore formalizes a sense in which query-efficient quantum
+algorithms for balanced problems cannot “evenly distribute their query budget” among all N
+coordinates.
+    We show that the Aaronson–Ambainis conjecture implies Conjecture 1 (Claim A.1). This follows
+from the fact that query weights upper bound influences after suitable normalization. On the other
+hand, we will also show that Conjecture 1 is already sufficient to yield the simulation conjecture
+(Claim 9.3).
+
+Remark 2.1 (Strong versions of Conjecture 1 and the simulation conjecture). We will also consider
+a strong version of Conjecture 1 where the poly(δ) dependence is replaced with a 1/ polylog(1/δ)
+dependence (see Conjecture 2). This version implies a strong version of the simulation conjecture
+with a polylog(1/δ) dependence. As we discuss in Section 2.3, these strong versions carry added
+implications for random-oracle separations.
+
+2.1.1   Comparison with the Aaronson–Ambainis conjecture
+ Query weights vs. influences. Related to the fact that Conjecture 1 is specific to quantum
+ algorithms is that it concerns query weights rather than influences. Both are measures of a variable’s
+“importance”. However, query weights are a property of a quantum algorithm A, whereas influences
+ are a property of its acceptance probability f : {0, 1}N → [0, 1]. Two algorithms with different query
+weights can share the same acceptance probability and the same influences. Through Conjecture 1,
+we are therefore proposing a “syntactic”/“whitebox” approach to the simulation conjecture, which
+ contrasts with Aaronson and Ambainis’s “semantic”/“blackbox” approach.
+     While both types of approaches have their advantages, our work highlights two advantages of
+ query weights. The first, as already mentioned, is that Conjecture 1 can only be easier to prove
+ than the Aaronson–Ambainis conjecture. As we will soon discuss in Section 2.2, this enables us to
+ make progress on the simulation conjecture. The second is that query weights are, in a formal sense,
+ algorithmically much easier to estimate than influences. As we will discuss in Section 2.3, we use
+ this to derive new implications for the status of BPP vs. BQP relative to a random oracle.
+
+The hybrid method vs. the polynomial method. As a related distinction, Aaronson and
+Ambainis’s approach to the simulation conjecture is based on the polynomial method for quantum
+query lower bounds [BBC+ 01]. Ours, as we detail in Section 4, is instead based on the hybrid
+method [BBBV97], which uses query weights to quantify the progress a quantum algorithm is able
+to make towards distinguishing nearby inputs. In their paper, [BBBV97] used this method to lower
+bound the query complexity of unstructured search (and notably, established the optimality of
+
+
+                                                   3
+Grover’s algorithm even before its discovery). The hybrid method can be viewed as a precursor
+to the adversary method [Amb02], which has in turn grown in sophistication and power over
+the years, culminating in proofs that the general adversary bound characterizes quantum query
+complexity [HLŠ07, Rei09, LMR+ 11]. Our work shows that the basic hybrid method is already
+useful for the simulation conjecture. An avenue for future work is to see if more can be gained by
+combining our techniques with the full generality of the adversary method.
+
+2.2    Parallel quantum algorithms
+As evidence of the viability of our approach, we make progress on Conjecture 1, and hence the
+simulation conjecture, by taking the parallelism of quantum algorithms into account. While a
+sequential query algorithm makes a single query after another, a parallel algorithm is able to make
+multiple queries at once:
+
+
+         Query register: |0⟩             Ox⊗t1            ...           Ox⊗td         Output
+                                U1                   U2           Ud
+        Ancilla register: |0⟩                             ...
+
+      Figure 1: A t-query d-round quantum algorithm. Each round r ∈ [d] consists of a unitary
+      operator PUr followed by tr parallel queries. The total number of queries across all rounds
+      satisfies   tr = t.
+
+    Round complexity is the query model’s abstraction of circuit depth, while the number of
+parallel queries per round is analogous to circuit width. Round complexity is also synonymous with
+adaptivity, with 1-round algorithms being most commonly called nonadaptive.
+    In quantum computing, as in classical computing, parallelism is a standard way to trade
+hardware for time. Small-depth quantum circuits are especially desirable because they also reduce
+exposure to decoherence, making them valuable on NISQ devices where full error correction is
+not yet available [Pre18]. Their importance persists even in the fault-tolerant setting, since error
+correction and fault-tolerant implementations incur substantial overheads in practice [Got10, Aar22].
+For these reasons, parallel quantum algorithms have received significant attention in the query
+model [vD98, Zal99, GR04, NY04, Mon10, MJM15, KLPY10, JMdW17, Bur19, GSTW24, CGV25].
+    We defer the statement of our result regarding Conjecture 1 to the body of the paper and state
+only its implication for the simulation conjecture:
+
+
+   Theorem 1. Let A be a t-query d-round quantum algorithm. For every ε, δ > 0, there is a
+   classical algorithm that makes
+                                                 2
+                                     T := 2O(d ) · (t log(1/δ)/ε)O(d)
+
+   queries and approximates A’s acceptance probabilities to within an additive ε on 1 − δ fraction
+   of inputs.
+
+
+   Theorem 1 confirms (the strong version of) the simulation conjecture for constant-round quantum
+
+
+                                                     4
+query algorithms, showing that such algorithms cannot achieve a superpolynomial separation for
+unstructured problems.
+    Our result continues to carry consequences in the regime of superconstant rounds. Note that
+d ≤ t always, and our
+                    √ parameters improve upon the T ≤ exp(t) bound implied by [DFKO07]
+as long as d ≤ O( t). In particular, Theorem 1 also shows that an exponential separation
+(T ≥ exp tΩ(1) ) for unstructured problems can only be achieved by quantum algorithms with
+polynomially many rounds (d ≥ tΩ(1) ). This poses a dilemma for practical quantum advantage
+on unstructured problems. Exponential separations are the most likely to survive the real-world
+overheads of quantum error correction and fault tolerance, but these same overheads make physical
+implementations of polynomial-depth quantum circuits infeasible for the foreseeable future.
+
+Nonadaptive algorithms. Previously, the simulation conjecture was open even for 1-round
+algorithms. In fact, prior works point to such algorithms being surprisingly powerful in the context
+of quantum-classical query separations. Simon’s problem, Period-Finding, and Forrelation
+are all solved by nonadaptive quantum query algorithms. Similarly, Yamakawa and Zhandry’s
+recent exponential separation for an unstructured search problem is also achieved by a nonadaptive
+quantum query algorithm [YZ24].
+    In light of Theorem 1, any counterexample to the simulation conjecture must instead be based
+on quantum query algorithms that are highly adaptive.
+
+2.3   Implications for random-oracle separations
+Bernstein and Vazirani [BV97], in their paper that defined BQP, exhibited an oracle relative to
+which BPP ≠ BQP. Shortly after, Fortnow and Rogers [FR99] asked if the same is true relative to a
+random oracle, a problem that remains open today. The simulation conjecture, if true, would rule
+out the standard approach of obtaining such a separation via query complexity.
+   We show that Conjecture 1, if true, would represent an even more significant “technique-
+independent” barrier. Under its strong version, we get:
+
+
+   Theorem 2. Assuming the strong version of Conjecture 1, PromiseBPPO ̸= PromiseBQPO
+   for a random oracle O if and only if PromiseBPP ̸= PromiseBQP.
+
+
+    In words, the status of PromiseBPP vs. PromiseBQP is equivalent in the random oracle and
+unrelativized worlds. We prove the forward implication; the reverse implication is standard and holds
+unconditionally [BG81, FR99]. Under the standard version of Conjecture 1, we still get a barrier
+but lose the equivalence: If PromiseBQPO ̸⊆ PromiseHeurBPPO then PromiseBPP =          ̸ PromiseBQP
+(see Theorem 11).
+
+Unconditional equivalences. By our proof of Theorem 1, we further obtain unconditional
+versions of Theorem 2 for parallel quantum circuits. For example, for the class of polylogarithmic-
+depth circuits (QNC), we get:
+
+
+
+
+                                                  5
+    Theorem 3. PromiseQNCO ̸⊆ PromiseQuasiBPPO for a random oracle O if and only if
+    PromiseQNC ̸⊆ PromiseQuasiBPP.
+
+    Here QuasiBPP refers to randomized quasipolynomial time.
+    QNC, in addition to its practical relevance, has been shown to be a rather powerful subclass
+of BQP. Notably, Cleve and Watrous [CW00] constructed QNC circuits for the quantum Fourier
+transform, thereby showing that Shor’s factoring algorithm can be implemented using such circuits
+with polynomial-time classical pre- and post-processing. Results like this suggest that QNC already
+captures certain important aspects of quantum advantage. Alas, Theorem 3 shows that providing
+evidence of such advantage in the form of a random-oracle separation is no easier than simply
+proving an unrelativized separation.
+    To our knowledge, Theorems 2 and 3 give the first natural examples of unresolved complexity-
+theoretic statements that can be shown to be equivalent in the random-oracle and unrelativized
+worlds. While the sweeping Random Oracle Hypothesis [BG81] was quickly shown to be false [Kur82,
+Har85, CCG+ 94], it remains of interest to understand the extent to which the random-oracle world
+reflects the unrelativized world. Indeed, [CCG+ 94] concluded by asking: “It would be very interesting
+to know if there are identifiable problem classes for which the random oracle results do point in the
+right direction.” Our results represent progress towards such an understanding.
+Remark 2.2 (Promise problems). Our proofs of these equivalences require the generality of promise
+problems. In particular, we rely on the existence of a PromiseBQP-complete problem, whereas BQP
+has no known complete problems.
+
+
+3    Independent work
+Independently and concurrently, Liu and Mutreja [LM26] gave a poly(t)-query classical simulation
+of nonadaptive t-query quantum algorithms on most inputs. Their proof extends to handle quantum
+algorithms that make O(log t/ log log t) adaptive singleton queries before one parallel batch of t
+queries. They obtained these results by proving a “dense indistinguishability conjecture” for such
+algorithms, and showing that this conjecture implies the simulation conjecture.
+    Also independently and concurrently, Escudero Gutiérrez, Palazuelos, and Saucedo [EPS26]
+gave a O(tr2 )-query classical simulation of nonadaptive t-query rank-r quantum algorithms on most
+inputs. Rank-r algorithms measure on all qubits and accept on at most r of the measurement
+outcomes.
+    After the submission of our manuscript and exchange of theorem statements, Liu and Mutreja [LM26]
+                d
+obtained a tO(4 ) -query classical simulation of t-parallel d-round quantum algorithms on most inputs.
+
+
+4    Technical overview
+Regularity. Quantum algorithms with low query weights will be at the heart of our analysis, and
+so it will be convenient for us to have the following terminology:
+Definition 4.1 (η-regularity). A quantum algorithm is η-regular if its query weights W1 (x), . . . , WN (x)
+satisfy
+                                 E[Wi (x)] ≤ η    for all i ∈ [N ].
+                                   x
+
+
+                                                    6
+    We will prove a “regularity lemma” for this notion of regularity (Lemma 4.7). We show that for
+any t-query quantum algorithm A, there is a classical decision tree T of depth poly(t, 1/η, log(1/δ))
+such that Aπ is η-regular for all but a δ fraction of its root-to-leaf paths π. This lemma is why the
+simulation conjecture follows from Conjecture 1: The latter, stated in the contrapositive, says that
+sufficiently regular quantum algorithms are well-approximated by constant functions, so T itself
+serves as a good classical approximation of A.
+
+{t-query d-round} ⊆ {t-parallel d-round}. Instead of t-query d-round algorithms, all our
+results will hold for t-parallel d-round algorithms. These algorithms can make t parallel queries in
+each round for d rounds rather than t queries in total (see Definition 5.3). Since our results concern
+the classical simulation of such algorithms, the same results also apply to t-query ones with the
+same parameters.
+
+4.1   Nonadaptive algorithms: The case of d = 1
+To demonstrate the power of reasoning through query weights, we begin by showing that Conjecture 1,
+and therefore the simulation conjecture, has a one-page proof in the case of nonadaptive quantum
+query algorithms.
+    Here and throughout the paper, for a function f : {0, 1}N → [0, 1] we will be interested in the
+sets:
+                    Accf := {x : f (x) ≥ 2/3} and Rejf := {x : f (x) ≤ 1/3}.
+When f is clear from context, we simply write Acc and Rej. The query weights Wi (x) of nonadaptive
+algorithms do not depend on the input x, so we will just write Wi .
+Lemma 4.2 (Conjecture 1 is true for nonadaptive algorithms). Let A be a nonadaptive t-query
+quantum algorithm with query weights W1 , . . . , WN and f : {0, 1}N → [0, 1] denote its acceptance
+probability. There is some i ∈ [N ] for which
+                                      
+                                  1                        
+                   Wi ≥ Ω                    where δ := min Pr[Accf ], Pr[Rejf ] .
+                             t ln(1/δ)
+    Our proof proceeds by contrapositive: We show that if ∥W ∥∞ is sufficiently small (i.e. if A is
+sufficiently regular), then one of Acc or Rej must be tiny. The only information about the function
+f our proof uses is a rather simple consequence of [BBBV97]’s hybrid method. For any two inputs
+x, y ∈ {0, 1}N , define the distance between them as,
+                                  X
+                 distW (x, y) :=        Wi     where ∆(x, y) := {i ∈ [N ] : xi ̸= yi }.
+                               i∈∆(x,y)
+
+The hybrid method shows that distW (x, y) ≥ Ω(1) for any x ∈ Acc and y ∈ Rej. By the triangle
+inequality, this means every input x ∈ {0, 1}N is far from at least one of these sets:
+
+         distW (x, Acc) + distW (x, Rej) ≥ Ω(1)       where   distW (x, A) := min distW (x, y).
+                                                                              y∈A
+
+Consequently, the average input is far from one of these two sets:
+                                                          
+                  max E[distW (x, Acc)], E[distW (x, Rej)] ≥ 12 · Ω(1) = Ω(1).
+                          x                 x
+
+
+                                                  7
+At this point, we apply McDiarmid’s bounded differences inequality [McD89, DP09]: For any set A ⊆
+{0, 1}N and inputs x, x⊕i that differ in only the ith coordinate we have |distW (x, A) − distW (x⊕i , A)| ≤
+Wi . Therefore,
+
+                                                               2ε2                    2ε2
+                                                                                           
+                                                
+        Pr distW (x, A) ≤ E[distW (x, A)] − ε ≤ exp −                  ≤ exp −                  ,
+         x                                                    ∥W ∥22             ∥W ∥1 ∥W ∥∞
+
+where the first inequality is by McDiarmid’s and the second is Hölder’s. A t-query quantum
+algorithm has total query weight ∥W ∥1 ≤ t, and so we get that:
+                                       n                                              o
+           min{Pr[Acc], Pr[Rej]} = min Pr[distW (x, Acc) = 0], Pr[distW (x, Rej) = 0]
+                                         x                      x
+                                                      
+                                                   1
+                                 ≤ exp −Ω                  .
+                                              t · ∥W ∥∞
+
+Rearranging completes the proof of Lemma 4.2.
+
+4.2   Warm-up for d ≥ 2: A doubly exponential bound
+Extending these ideas to adaptive algorithms (i.e. d ≥ 2) requires overcoming a few challenges. We
+will first illustrate these ideas with a simpler proof that achieves quantitatively weaker parameters.
+This warm-up suffices to prove Conjecture 1, and therefore the simulation conjecture, when d = O(1).
+However, its performance degrades quickly. For example, when d = polylog(t), an important case
+corresponding to QNC, it gives a bound that is exponential in t.
+
+Lemma 4.3 (Parallel quantum algorithms have heavy variables; warm-up). Let A be a t-parallel
+d-round quantum algorithm with query weights W1 (x), . . . , WN (x) and f : {0, 1}N → [0, 1] denote
+its acceptance probability. There is some i ∈ [N ] for which
+                                                    d
+                      [Wi (x)] ≥ (dt ln(1/δ))−Ω(2 )
+                                                                           
+              E                                              where δ := min Pr[Accf ], Pr[Rejf ] .
+           x∼{0,1}N
+
+   We give a full proof of Lemma 4.3 in Section 6 and describe the main ideas here. We once again
+apply the hybrid method, but now need to be more careful. The obvious but key distinction is that
+when d ≥ 2, the queries may depend on the input. In this setting, the hybrid method gives
+
+                        distW (x) (x, y) ≥ Ω(1/d)           for all x ∈ Acc and y ∈ Rej,
+
+where crucially, the distance measure now depends on x. This introduces two difficulties. The first is
+that our prior approach based on McDiarmid’s inequality assumes a fixed vector W satisfying that
+distW (x, A) − distW (x⊕i , A) ≤ Wi for all inputs x. With this new input-dependent distance measure,
+we would instead want to bound distW (x) (x, A) − distW (x⊕i ) (x⊕i , A). The mismatch between the
+two distance measures makes this quantity more difficult to analyze.
+
+Talagrand’s convex-distance inequality. To get around this first difficulty, we use a remarkable
+result due to Talagrand [Tal96]. The standard statement of this inequality is given in Theorem 5;
+we use a straightforward corollary:
+
+
+
+                                                        8
+Corollary 4.4 (Easy consequence of Talagrand’s convex-distance inequality; see Corollary 6.4). For
+any set A ⊆ {0, 1}N , vectors {W (x)}x∈{0,1}N all satisfying ∥W (x)∥1 ≤ t, and thresholds ε, γ ≥ 0,
+               n                              o       2 
+            min Pr[A], Pr distW (x) (x, A) ≥ ε ≤ exp −Ω εtγ
+                         
+                                                              + Pr[∥W (x)∥∞ ≥ γ].
+                         x                                                      x
+
+    In words, Corollary 4.4 says that if A is a large set and most W (x)’s have small ∥ · ∥∞ , then
+most x’s are close to A, even if distance is measured in an x-specific manner according to W (x).
+Note that the d = 1 case is an immediate consequence of Corollary 4.4: In this case there is a
+single W with ∥W ∥∞ ≤ η and ∥W ∥1 ≤ t, where for every x ∈ Acc, we have distW (x, Rej) ≥ Ω(1).
+Applying Corollary 4.4 with A = Rej shows that either Acc or Rej must be tiny. The real power
+of Corollary 4.4 comes in the setting of d ≥ 2 where W may now depend on x.
+    However, in order to apply Corollary 4.4 we have to then overcome a second difficulty, that of
+bounding Pr[∥W (x)∥∞ ≥ γ] given only the assumption that every individual coordinate of W (x) is
+small in expectation (i.e. the assumption of η-regularity). One could, of course, apply Markov’s
+inequality on each individual coordinate Wi (x). After a union bound over the N coordinates, this
+gives                                                   
+                                     Pr ∥W (x)∥∞ ≫ N η ≪ 1.
+                                       x
+
+Unfortunately, this is too lossy of an approach as it requires η ≪ 1/N . The depth of the classical
+decision tree from our regularity lemma scales with 1/η, and so this would result in a trivial bound.
+
+Exponential tail bounds for query weights, proved inductively round-by-round. Instead,
+we will show that Wi (x) for any fixed i ∈ [N ] satisfies an exponential tail bound, which translates into
+only a logarithmic dependence on N when we take a union bound. Such a logarithmic dependence
+can then be removed using standard techniques [DFKO07]. To obtain such a bound, we first break
+down the query weights into their individual round contributions,
+                                           (1)       (2)            (d)
+                               Wi (x) = wi       + wi (x) + · · · + wi (x).
+                                             (r)                          (1)
+We will bound Wi (x) by bounding each wi (x). The first term wi does not depend on the input
+                                                                                               (r)
+x and is easy to handle. The key observation is that for any r ≥ 2 and i ∈ [N ], the quantity wi (x)
+is itself the acceptance probability of an (r − 1)-round algorithm. We can therefore use Talagrand’s
+inequality to not only analyze the acceptance probabilities of quantum algorithms as sketched above,
+but also to analyze their query weights inductively:
+
+Lemma 4.5 (Inductive step). Consider any t-parallel d-round quantum algorithm. Fix i ∈ [N ] and
+                       (r)
+r ≥ 2 and suppose Ex [wi (x)] ≤ γr . Then for any γr−1 , we have:
+
+                                                                            γr2
+                                       n           o                            
+                                           (r′ )
+            (r)           
+         Pr wi (x) ≥ 4γr ≤ Pr max        ∥w (x)∥∞ ≥ γr−1 + exp −Ω                     .
+         x                    x r′ ≤r−1                                   γr−1 r4 t
+
+    In words, Lemma 4.5 reduces the task of controlling the round-r query weights (LHS of above)
+to that of controlling the round-r′ query weights for r′ ≤ r − 1 (RHS of above). Importantly, it
+translates an exponential tail bound on round-r′ weights into an exponential tail bound for round-r
+weights, assuming only a bound on the expectation of round-r weights.
+
+
+
+                                                      9
+   To utilize Lemma 4.5, we choose thresholds γ1 ≤ · · · ≤ γd and define, for each round r:
+                                                                                 [
+      Bad(r) := {x ∈ {0, 1}N : ∥w(r) (x)∥∞ > γr }   and       Good := {0, 1}N \      Bad(r) .
+                                                                                      r∈[d]
+
+Lemma 4.5 allows us to conclude that Bad(r) is small provided that:
+   1. The choice of thresholds satisfies γr−1 ≪ γr2 , chosen so that the second term on the RHS
+      of Lemma 4.5 is sufficiently small.
+   2. The prior sets Bad(1) , . . . , Bad(r−1) are all sufficiently small.
+   3. The query weights are sufficiently small in expectation, which is implied by our regularity as-
+      sumption. (As in the nonadaptive case, our proof of Lemma 4.3 proceeds via the contrapositive,
+      showing that sufficiently regular algorithms must be biased.)
+We set the parameters in such a way that all these conditions   are satisfied
+                                                                            for all rounds r, meaning
+that most x′ s are in Good. This yields a bound on Pr ∥W (x)∥∞ ≥ γ , which allows us to apply
+                                                        
+
+Talagrand’s inequality yet again to prove Lemma 4.3.
+   The requirement that γr−1 ≪ γr2 is why Lemma 4.3 has a doubly exponential dependence on d:
+                                                               d
+Chaining this inequality for all r ∈ [d] gives that γ1 ≪ (γd )2 . We then have to set the regularity
+parameter η to be correspondingly small for the base case of our inductive proof to go through.
+
+4.3    An improved bound for d ≥ 2 via higher-order statistics
+Using a few additional ideas and a much more careful analysis we are able to prove the following.
+Theorem 4 (Parallel quantum algorithms have heavy variables; improved bound). Let A be a
+t-parallel d-round quantum algorithm with query weights W1 (x), . . . , WN (x) and f : {0, 1}N → [0, 1]
+denote its acceptance probability. There is some i ∈ [N ] for which
+                                2
+           E [Wi (x)] ≥ 2−Ω(d ) · (t log(1/δ))−Ω(d)
+                                                                          
+                                                         where δ := min Pr[Accf ], Pr[Rejf ] .
+       x∼{0,1}N
+
+    Our proof of Theorem 4 will be based on more fine-grained information about the quantum
+algorithm than in Lemma 4.3. Rather than just analyzing the query weights of individual coordinates,
+we will analyze the query weights of sets. On an input x ∈ {0, 1}N , each round r ∈ [d] of a t-parallel
+                                     (r)
+algorithm induces a distribution Dx over subsets of [N ] of size at most t. These distributions
+encode more information than the query weights of coordinates, as the latter can be easily recovered
+using the simple equality,
+                                         (r)
+                                       wi (x) = Pr [i ∈ S].
+                                                           (r)
+                                                     S∼Dx
+We can now describe the main differences between the proofs of Theorem 4 and Lemma 4.3.
+
+Good vs Bad. The proof of Lemma 4.3 is based on a partition of inputs into Bad(r) and Good(r) :=
+{0, 1}N \ Bad(r) , where the definitions of these sets are chosen to facilitate applications of Talagrand’s
+inequality to the inputs in Good(r) . Specifically, we consider an input x good if ∥w(r) (x)∥∞ ≤ γr .
+                                             (r)
+This can be interpreted as saying that Dx is “well-spread” in the sense that
+                                      Pr [i ∈ S] ≤ γr      for all i ∈ [N ].
+                                        (r)
+                                    S∼Dx
+
+
+                                                      10
+                                                                                                                   (r)
+This notion of goodness is therefore based on “singleton statistics” (i.e. “1-wise statistics”) of Dx .
+    Goodness in the proof of Theorem 4 will instead be based on a broader set of m-wise statistics
+    (r)                                                        (r)
+of Dx where m ≥ 1. We now consider an input x good if Dx is well-spread in the sense that
+
+                                Pr [S ∩ T ̸= ∅] ≤ γr for all subsets T ⊆ [N ] of size mr .                          (1)
+                                     (r)
+                            S∼Dx
+
+                          (r)
+    We say that Dx is (mr , γr )-spread if it satisfies the above, and (mr , γr )-hit otherwise.
+    Recall that the bottleneck in our proof of Lemma 4.3 was the recurrence relationship γr−1 ≪ γr2 ,
+which resulted in γ1 being doubly exponential in d. With this new dual-parameter notion of
+spreadness, with an appropriately large choice of mr our recurrence relationship becomes γr−1 ≤ cγr
+for some absolute constant c, which results in γ1 only being singly exponentially in d.
+
+Stronger distance guarantees via a more careful hybrid method. Note, however, that
+(mr , γr )-spreadness becomes a stricter guarantee the larger mr is. Since the size of Good(r) shrinks
+as mr becomes large, it is more challenging to bound the size of Bad(r) when we work with this new
+notion.
+    We overcome this in two ways. We first show that the hybrid method actually gives a stronger
+guarantee than what we used in the proof of Lemma 4.3. Our proof of Lemma 4.3 uses the fact that
+if x ∈ Acc and y ∈ Rej, then
+                                                                                   (r)
+               X                                                             X
+                   distw(r) (x) (x, y) ≥ Ω(1/d) where distw(r) (x) (x, y) :=     wi (x).
+              r∈[d]                                                                    i∈∆(x,y)
+
+                                                        (r)
+Working directly with the distributions Dx , the hybrid method gives the stronger bound:
+              X
+                  distD(r) (x, y) ≥ Ω(1/d) where distD(r) (x, y) := Pr [xS ̸= yS ].                                 (2)
+                                 x                                       x              (r)
+                  r∈[d]                                                              S∼Dx
+
+
+This bound is indeed stronger since
+
+         Pr [xS ̸= yS ] =                  Pr [S ∩ ∆(x, y) ̸= ∅]
+            (r)                              (r)
+       S∼Dx                            S∼Dx
+                                                                                                          (r)
+                                                                     X                          X
+                                 ≤         E [|S ∩ ∆(x, y)|] =               Pr [i ∈ S] =                wi (x).
+                                          (r)                                  (r)
+                                       S∼Dx                        i∈∆(x,y) S∼Dx              i∈∆(x,y)
+
+
+Our main concentration inequality. Next, we prove a generalization of Corollary 4.4, the
+reformulation of Talagrand’s inequality that we used repeatedly in the proof of Lemma 4.3. This
+version incorporates our new notions of well-spreadness (1) and distance (2):
+
+Lemma 4.6 (Well-spread distributions cannot separate large sets; see Lemma 7.2). For any set
+A ⊆ {0, 1}N , distributions {Dx }x∈{0,1}N supported on subsets of [N ] of size at most t, and thresholds
+ε, γ ≥ 0,
+
+                                                        (ε − γ)2 m
+          n                                                      
+                                       o                                                     
+      min Pr[A], Pr distDx (x, A) ≥ ε ≤ exp −Ω                          + Pr Dx is (m, γ)-hit .
+                    x                                       γt              x
+
+
+
+
+                                                              11
+    Lemma 4.6 recovers Corollary 4.4 when m = 1. We note the tension between the two terms on
+the RHS: As m grows, the first becomes smaller whereas the second becomes larger.
+    With Lemma 4.6 in hand, our proof of Theorem 4 shares the same overall structure as that
+of Lemma 4.3. For each round r ∈ [d], we consider a set of bad inputs Bad(r) ⊆ {0, 1}N , now defined
+                                   (r)
+as those whose distributions Dx are (mr , γr )-hit. We argue inductively, using Lemma 4.6, that if
+Bad(1) , . . . , Bad(r−1)
+                       S are small then Bad(r) is small as well. Having shown that most inputs fall in
+                   N         (r)
+Good := {0, 1} \ r Bad , we then apply Lemma 4.6 once more to conclude that Pr[Acc] · Pr[Rej ∩
+Good] is small.
+
+4.4   Implications for random-oracle separations: Proofs of Theorems 2 and 3
+Separations in the query model yield relativized separations, but the converse does not necessarily
+hold: simulations in the query model do not necessarily yield relativized simulations. In particular,
+the simulation conjecture alone does not imply that BPPO = BQPO for a random oracle O. While
+it guarantees that every quantum Turing machine making poly(n) queries to an oracle has an
+approximator that only makes poly(n) classical queries, it does not guarantee that this approximator
+can be implemented using only poly(n) classical time steps.
+    To prove Theorem 2, we show that the specific approximators that we construct via Conjecture 1
+do admit time-efficient implementations assuming PromiseBPP = PromiseBQP. To sketch why, first
+recall that Conjecture 1 implies the simulation conjecture via a regularity lemma, which we now
+state formally:
+
+Lemma 4.7 (Regularity lemma). Let A be a t-query quantum algorithm. There is a classical
+decision tree T of depth poly(t, 1/η, log(1/δ)) such that the restricted algorithm Aπ is η-regular with
+probability at least 1 − δ with respect to a random root-to-leaf path π ∼ T induced by a uniform
+random input x ∼ {0, 1}N .
+
+   This tree T is constructed using a simple greedy algorithm: If A is already η-regular, we are
+done. Otherwise, there must be at least one variable i ∈ [N ] with query weight larger than η. We
+query any such variable at the root of our decision tree and recurse on Axi =0 and Axi =1 . We use a
+martingale argument to show that a random path through this tree will w.h.p. terminate after not
+too many steps, and Lemma 4.7 follows.
+   For our proof of Theorem 2, we further need an algorithmic version of this regularity lemma:
+
+Lemma 4.8 (Algorithmic regularity lemma, see Lemma 10.1 for the formal version). If PromiseBPP =
+PromiseBQP, there is an efficient randomized algorithm that takes as input a representation of A as
+a quantum oracle circuit and on any input O ∈ {0, 1}N computes that path π in T that O follows.
+
+    A natural attempt at proving Lemma 4.8 would be to estimate the query weight of each variable
+i ∈ [N ], in search of one with weight at least η. This would be the root node in the path π, and we
+can then recurse. However, such a search is too time consuming: A BQP oracle algorithm makes
+at most poly(n) = polylog(N ) queries to O ∈ {0, 1}N , and so our classical simulation has to take
+at most polylog(N ) classical
+                          P time steps. We instead give a PromiseBQP algorithm for estimating
+sums of query weights, i∈S Ex [Wi (x)] for any subset S ⊆ [N ]. With this subroutine in hand, a
+standard branch-and-prune algorithm (á la [GL89, KM93]) allows us to identify a variable of high
+query weight with only a logarithmic dependence on N .
+    Theorem 2 then follows easily, and the proof of Theorem 3 is completely analogous.
+
+
+                                                  12
+Complexity of finding high query weight vs. high influence variables. [AA14]’s reduction
+of the simulation conjecture to their conjecture is also based on a regularity lemma, where their
+notion of a regular quantum algorithm is one whose influences, rather than query weights, are
+all low. They also showed that their regularity lemma can be made algorithmic, but under the
+much stronger assumption that P = P#P rather than PromiseBPP = PromiseBQP. The crux of this
+difference lies in the fact that our subroutine for finding a variable of high query weight, as discussed
+above, is in PromiseBQP, whereas [AA14]’s subroutine for finding one of high influence is in NP#P .
+    This highlights a dual advantage of query weights over influences. On one hand, since query
+weights upper bound influences (after suitable normalization, see Proposition A.2), any regularity
+lemma for low query weights also serves as one for low influences. And yet, somewhat paradoxically,
+our regularity lemma for query weights admits a much more efficient algorithmic implementation
+than [AA14]’s one for influences.
+
+
+5    Preliminaries
+Notation and naming conventions. We write [N ] to denote the set {1, 2, . . . , N }. We use
+boldface letters, e.g. x, y, to denote random variables. Unless otherwise stated, all probabilities are
+w.r.t. uniform random x ∼ {0, 1}N . For a set A ⊆ {0, 1}N , we write Pr[A] to denote Prx [x ∈ A].
+For an event E, we use 1[E] for the {0, 1}-valued indicator of whether E occurs. For x, y ∈ {0, 1}N
+we denote the symmetric difference of x, y as
+
+                                      ∆(x, y) = {i ∈ [N ] : xi ̸= yi }.
+
+We use calligraphic font for several objects: oracles (O), distributions (D), and algorithms (A). We
+use ∥U ∥ for the operator norm of a matrix U , and ∥|ψ⟩∥1 , ∥|ψ⟩∥2 , ∥|ψ⟩∥∞ for the standard p-norms.
+    Here and throughout the paper, for a function f : {0, 1}N → [0, 1] (which we reserve to denote
+acceptance probabilities of a quantum algorithm) we define the sets:
+
+                     Accf := {x : f (x) ≥ 2/3}      and        Rejf := {x : f (x) ≤ 1/3}.
+
+When f is clear from context, we simply write Acc and Rej.
+
+Distances. For any x, y ∈ {0, 1}N and w ∈ RN
+                                           ≥0 , we define
+                                               X               X
+                           distw (x, y) :=              wi =            wi · 1[xi ̸= yi ].
+                                             i∈∆(x,y)          i∈[N ]
+
+Similarly, for distribution D over subsets of [N ],
+
+                                 distD (x, y) := Pr [S ∩ ∆(x, y) ̸= ∅].
+                                                   S∼D
+
+Both of these measures extend in the natural way to a set A ⊆ {0, 1}N ,
+
+                distw (x, A) := min distw (x, y)    and distD (x, A) := min distD (x, y).
+                                y∈A                                                 y∈A
+
+
+
+Concentration inequalities. We will use the following concentration inequality due to Talagrand.
+
+                                                        13
+Theorem 5 (Talagrand’s convex-distance inequality, [Tal96, Thm. 6.1 and Eq. (6.5)]). For any set
+A ⊆ {0, 1}n and t ≥ 0
+                                                             2
+                            Pr[A] · Pr dTal (x, A) ≥ t ≤ e−t /4 ,
+                                                     
+
+where dTal (·, ·) is Talagrand’s convex distance:
+
+                                   dTal (x, A) :=    sup distW (x, A).
+                                                    W ∈Rn
+                                                        ≥0
+                                                    ∥W ∥2 ≤1
+
+   We will also use the standard Azuma–Hoeffding bound (see e.g. the textbook [MU17]).
+
+Theorem 6 (Azuma–Hoeffding inequality). Let Z0 , . . . , ZD be a martingale satisfying |Zi − Zi−1 | ≤
+t almost surely for all i ∈ [D]. Then,
+
+                                                             ε2
+                                                                
+                                 Pr[ZD − Z0 ≥ ε] ≤ exp −           .
+                                                            2Dt2
+
+
+Restrictions. A restriction of {0, 1}N is denoted π ∈ {0, 1, ⋆}N . Its size, denoted |π| is the number
+of i ∈ [N ] for which πi ̸= ⋆. For an input x ∈ {0, 1}N we use xπ to denote the restricted input,
+                                                 (
+                                                  πi if πi ̸= ⋆
+                                        (xπ )i =
+                                                  xi otherwise.
+
+We say x is consistent with π (or vice versa) if xπ = x. These restrictions can be appended to using
+the notation, for any i ∈ [N ], b ∈ {0, 1}
+                                                    (
+                                                     b    if j = i
+                                  (π ∪ {xi = b})j =
+                                                     πj otherwise.
+
+For a function f : {0, 1}N → [0, 1] or algorithm A : {0, 1}N → {0, 1} we use fπ and Aπ to denote
+the function x 7→ f (xπ ) and algorithm x 7→ A(xπ ) respectively.
+
+Complexity classes. We will define many complexity classes of promise problems.
+
+Definition 5.1 (Promise problems). A promise problem L := (LYES , LNO ) is specified by two
+subsets LYES , LNO ⊆ {0, 1}⋆ satisfying LYES ∩ LNO = ∅.
+
+Definition 5.2 (Complexity classes). Let L := (LYES , LNO ). Then,
+
+   1. PromiseBPP contains L iff there is a randomized polynomial time Turing machine A satisfying,
+      for all inputs x,
+
+                                   x ∈ LYES =⇒ PrA [A(x) = 1] ≥ 2/3,
+                                    x ∈ LNO =⇒ PrA [A(x) = 1] ≤ 1/3.
+
+   2. PromiseBQP is identical to PromiseBPP except A is allowed to be a quantum Turing machine.
+
+
+                                                      14
+   3. PromiseBPTIME(npolylog(n) ) is identical to PromiseBPP except A is allowed to run in time
+      npolylog(n) .
+   4. PromiseQNC contains L iff there is an efficient classical Turing machine A that on input
+      length n writes down a polynomial-size polylogarithmic-depth quantum circuit Cn such that,
+      for all n and inputs x of length n,
+                                     x ∈ LYES =⇒ Pr[Cn (x) = 1] ≥ 2/3,
+                                       x ∈ LNO =⇒ Pr[Cn (x) = 1] ≤ 1/3.
+
+   5. PromiseHeurBPP contains L iff for every constant c, there is a randomized polynomial time
+      Turing machine A satisfying, for all n ∈ N,
+                                                                       1
+                                     Pr        [A is incorrect on x] ≤ c .
+                                x∼Unif({0,1}n )                       n
+      where A is incorrect on x if x ∈ LYES and PrA [A(x) = 1] < 2/3 or x ∈ LNO and PrA [A(x) =
+      1] > 1/3.
+
+5.1   Quantum query algorithms
+Let x ∈ {0, 1}N be an N -bit string x1 . . . xN . In the following, we consider the standard phase
+oracle model,
+                      Ox : |i⟩ |b⟩ 7→ (−1)xi b |i⟩ |b⟩        for     i ∈ [N ], b ∈ {0, 1}
+which in general may act on superpositions.
+    For a quantum query algorithm we refer to both Ox and x ∈ {0, 1}N as the oracle and sometimes
+the algorithm’s input. We say that a quantum algorithm makes a query to x or Ox whenever it
+applies Ox . We will also say that a quantum algorithm makes a t-parallel query to x or Ox whenever
+it applies Ox⊗t .
+
+                                       |ψ1 ⟩             |ψ2 (x)⟩        |ψd (x)⟩ |Ψ(x)⟩
+
+         Query register: |0⟩                   Ox⊗t             ...             Ox⊗t         Output
+                                  U1                  U2                Ud
+        Ancilla register: |0⟩                                   ...
+
+
+                     Figure 2: A t-parallel d-round quantum query algorithm.
+
+Definition 5.3 (d-round t-parallel quantum query algorithm (Figure 2)). For any quantum oracle
+Ox acting on a Hilbert space H, a t-parallel d-round quantum query algorithm is given by a sequence
+of unitaries U1 , . . . , Ud , and a measurement operator M0 acting on the tensor Hilbert space H⊗t
+and possibly ancillas. For each r ∈ [d], the intermediate state of the algorithm before the rth query
+is given by
+                                             E
+                                    ψ (r) (x) := Ur (Ox⊗t ) · · · U2 (Ox⊗t )U1 |0⟩ .
+
+The final state of the algorithm is |Ψ(x)⟩ := (Ox⊗t ) ψ (d) (x) and its acceptance probability is given
+by ∥M0 |Ψ(x)⟩∥2 for a measurement operator M0 .
+
+                                                         15
+5.2   Query weights
+We use the hybrid method pioneered by [BBBV97]. Roughly speaking, that method shows that if
+there are inputs x, y for which the acceptance probability of x is much more than y, then x and y
+must differ on indices with high “query weight.” In the case of sequential algorithms (i.e. t = 1) in
+which the method has typically been applied, the query weight of index i by a state |ψ⟩ is defined
+as wi = ⟨ψ| |i⟩⟨i| ⊗ 1 |ψ⟩ where |i⟩⟨i| ⊗ 1 is the projector onto the i-th query index.
+    We will use two natural generalizations of query weights for t-parallel algorithms. In the first, we
+                                                                            (t)                     (j,t)
+allocate weight to an index i if it was one of the t indices queried. Let Πi := 1 − tj=1 (1 − Ei )
+                                                                                     N
+                                                                                                          (j,t)
+be the projector onto the subspace where at least one of the t queries is i, and where Ei                         is the
+projector onto index i in the j-th register.
+
+Definition 5.4 ((Index) query weight). The query weight of an index i ∈ [N ] in round r ∈ [d] on
+oracle input x is defined as
+                                        D                    E
+                               (r,t)              (t)
+                             wi (x) := ψ (r) (x) Πi ψ (r) (x) .
+
+The total (index) query weights over d rounds is,
+                                       (t)
+                                                 X (r,t)
+                                     Wi (x) :=    wi (x).
+                                                          r∈[d]
+
+   Note that the sum of the t-parallel query weights is bounded by t, since
+                                            t X                                    t
+                                 (t)                            (j,t)
+                     X                      X                                      X
+                             ⟨Ψ| Πi |Ψ⟩ ≤                ⟨Ψ| Ei          |Ψ⟩ =           ⟨Ψ| 1 |Ψ⟩ = t.              (3)
+                    i∈[N ]                  j=1 i∈[N ]                             j=1
+
+                                                                                                          (t)
+In the second generalization, we look at the query weight of an entire set S ⊆ [N ]. Let ΠS be the
+orthogonal projector onto the subspace where the set of distinct indices queried across all t registers
+is exactly S, that is
+                                                                  t
+                                        (t)
+                                                     X            O
+                                       ΠS =                              |ij ⟩ ⟨ij | .
+                                               (i1 ,...,it )∈[N ]t j=1
+                                                {i1 ,...,it }=S
+
+Definition 5.5 ((Set) query weight). The query weight of a set S ⊆ [N ] in round r ∈ [d] on oracle
+input x is defined as                    D                     E
+                                (r,t)               (t)
+                              wS (x) := ψ (r) (x) ΠS ψ (r) (x) .
+
+The total (set) query weight over all d rounds is,
+                                         (t)
+                                                  X (r,t)
+                                      WS (x) :=    wS (x).
+                                                          r∈[d]
+
+                                                                             (r)                  (r)
+    In the following, we drop the superscript t and write wi (x), Wi (x), wS (x) and WS (x) when
+clear from context.
+
+
+                                                          16
+                             P {ΠS }S⊆[N ] are mutually orthogonal and cover the entire Hilbert
+   Since the subset projectors
+space of the query registers, S⊆[N ] ΠS = 1. Consequently, for any query state |Ψ⟩, the sum of the
+exact subset query weights wS over all possible subsets S is exactly 1. Additionally, since there are
+at most t distinct indices that can be queried at once, ΠS = 0 whenever |S| > t, and thus,
+             X           X           X                     X
+                  wS =        wS =       ⟨Ψ| ΠS |Ψ⟩ = ⟨Ψ|       ΠS |Ψ⟩ = ⟨Ψ| 1 |Ψ⟩ = 1.
+            S⊆[N ]       S⊆[N ]        S⊆[N ]                       S⊆[N ]
+                         |S|≤t         |S|≤t                        |S|≤t
+
+It is thus natural to view wS as a distribution over sets S ⊆ [N ] of size |S| ≤ t. Throughout this
+paper we denote this distribution by D such that
+                                                                 (r)
+                                            Pr [S = S] = wS (x).
+                                              (r)
+                                           S∼Dx
+
+
+5.3   Implications of the hybrid method
+We next turn to several corollaries of the hybrid method (Proposition B.1) that we use directly in
+the following sections.
+    First, we note that the query weights give rise to a natural notion of distance between quantum
+states which we will see bounds the progress of each query in the hybrid argument. For x, y ∈ {0, 1}N ,
+the distance between x and y weighted by index query weights {wi }i∈[N ] is
+                                                               X
+                                           distw (x, y) :=              wi
+                                                             i∈∆(x,y)
+
+
+For x, y ∈ {0, 1}N , the distance between x and y given by distributions D induced by subset query
+weights {wS }S⊆[N ] is,
+
+                                   distD (x, y) := Pr [S ∩ ∆(x, y) ̸= ∅]                                  (4)
+                                                    S∼D
+
+   The relationship between weighted distance by subset query weights and that of index query
+weights is that distD(r) (x, y) is a tighter measure of progress than distw(r) (x) (x, y) at each round
+                     x
+r ∈ [d]:
+
+            distw(r) (x) (x, y) ≥ distD(r) (x, y)    and         distw(r) (y) (x, y) ≥ distD(r) (x, y).   (5)
+                                       x                                                     y
+
+
+This is due to the fact that any subset S satisfying S ∩∆(x, y) ̸= ∅ must contain some i ∈ ∆(x, y), and
+thus subset projectors (Definition 5.5) are majorized by the t-parallel index projectors (Definition 5.4),
+                                       X                X
+                                             Πi ⪰                ΠS .
+                                       i∈∆(x,y)       S : S∩∆(x,y)̸=∅
+
+    The hybrid method naturally imposes distinguishability constraints on both the final and
+intermediate quantum states of the algorithm. The hybrid method uses query weights as a tool
+for bounding these states. However, since the query weights are themselves derived from the
+intermediate states, we may equally regard them as representations of those states—and as such,
+they must obey the same progress constraints. Concretely, for a binary test ϕ : {S}S⊆[N ] → {0, 1},
+
+                                                       17
+                                                       P            (r)
+the sum of subset query weights indicated by the test, S∈supp(ϕ) wS (x) = ES∼D(r) [ϕ(S)] can be
+                                                                                 xP
+viewed as the output of an r −1-round quantum algorithm whose final measurement is S∈supp(ϕ) ΠS
+and acceptance probability for each x ∈ {0, 1}N given by,
+                                                      2
+                                                  E
+                                                                              (r)
+                           X                                      X
+                                      ΠS ψ (r) (x)        =               wS (x) =                   E [ϕ(S)].
+                                                                                                       (r)
+                         S∈supp(ϕ)                            S∈supp(ϕ)                         S∼Dx
+                                                      2
+
+                                                                                    (r)               (r)
+    With this perspective, we ask whether the distributions Dx and Dy can be distinguished by a
+                                                                 (r)     (r)
+binary test ϕ : {S}S⊆[N ] → {0, 1}. We say that ϕ distinguishes Dx from Dy with threshold γ if
+
+                  (r)                                                                          (r)
+        X                                                                     X
+                 wS (x) =       E [ϕ(S)] ≥ γ              and                             wS (y) =              E [ϕ(S)] ≤ γ/2.   (6)
+                                (r)                                                                               (r)
+     S∈supp(ϕ)               S∼Dx                                       S∈supp(ϕ)                              S∼Dy
+
+
+In this language, we have the following corollary of the hybrid method (Proposition B.1).
+
+Corollary 5.6. Consider a d-round t-parallel query algorithm with intermediate pre-query states
+ψ (r) (x) for each r ∈ [d] and final state |Ψ(x)⟩. We use the notation from above to denote query
+          (r)                           (r)                                                          (r)
+weights wi (x), distributions Dx induced by subset query weights wS (x).
+
+  (i) Initial condition.
+                             (1)              (1)
+                           wi (x) = wi (y)                                    ∀i ∈ [N ], x, y ∈ {0, 1}N ,
+                             (1)              (1)
+                           wS (x) = wS (y)                                    ∀S ⊆ [N ], x, y ∈ {0, 1}N
+
+ (ii) Progress evolution. For any x =  ̸ y ∈ {0, 1}N , round r ∈ [d], and threshold γ, if there is some
+      test ϕ : {S}S⊆[N ] → {0, 1} for which ES∼D(r) [ϕ(S)] ≥ γ and ES∼D(r) [ϕ(S)] ≤ γ/2 then
+                                                              x                                            y
+
+                            X q                                     X q                      √
+                               distw(r′ ) (x) (x, y) ≥                 dist (r′ ) (x, y) ≥ Ω( γ).                                 (7)
+                                                                                          Dx
+                          r′ ∈[r−1]                               r′ ∈[r−1]
+
+                                                                                    (r)                           (r)
+     In particular, applying this with ϕ(S) := 1[i ∈ S], if wi (x) ≥ γ and wi (y) ≤ γ/2 then the
+     same constraint holds.
+
+(iii) Distinguishability constraint. For any x ̸= y ∈ {0, 1}N , if a measurement M0 distinguishes
+      the final states such that f (x) = ∥M0 |Ψ(x)⟩∥22 and f (y) = ∥M0 |Ψ(y)⟩∥22 , then
+                                   2                     2
+               Xq                          Xq                   p       p     2
+            2   distw(r) (x) (x, y) ≥ 2   distD(r) (x, y) ≥   f (x) − f (y) .                                                 (8)
+                                                                              x
+                 r∈[d]                                    r∈[d]
+
+
+   We give the proof in the appendix (Section C).
+
+
+
+
+                                                              18
+6     Warm-up: Proof of Lemma 4.3
+In this section we prove the following:
+Lemma 6.1 (Lemma 4.3 with a dependence on N ). Let A be a t-parallel d-round quantum algorithm
+and f : {0, 1}N → [0, 1] denote its acceptance probabilities. If A is η-regular where
+                                                             d
+                                       η ≤ (dt ln(N/δ))−Ω(2 ) ,
+
+then min{Pr[Accf ], Pr[Rejf ]} ≤ δ.
+   We will show in Section 8.2 how the dependence on N in the regularity parameter of Lemma 6.1
+can be generically removed by setting N = poly(2td , 1/δ), thereby yielding Lemma 4.3.
+
+6.1   Proof overview for Lemma 6.1
+Let W1 (x), . . . , WN (x) be A’s query weights, which we break down into their individual round
+                            (1)            (d)
+contributions Wi (x) = wi (x) + · · · + wi (x). Define
+                                                            
+                                         ∗            1
+                                        γ := O 4               .
+                                                 d t ln(1/δ)
+
+and partition {0, 1}N into Good ⊔ Bad where
+                                                                           (r)
+                  Bad := {x ∈ {0, 1}N : ∃ r ∈ [d], ∃ i ∈ [N ] such that wi (x) ≥ γ ∗ }
+                 Good := {0, 1}N \ Bad.
+
+    We will prove the following lemmas:
+Lemma 6.2 (Good inputs are biased). Pr[Acc] · Pr[Rej ∩ Good] ≤ δ.
+Lemma 6.3 (Regularity ⇒ Few bad inputs). Pr[Bad] ≤ δ.
+    Lemma 6.1 follows as an immediate consequence since
+
+                Pr[Acc] · Pr[Rej] = Pr[Acc] · Pr[Rej ∩ Good] + Pr[Acc] · Pr[Rej ∩ Bad].
+                                    |          {z          } |            {z         }
+                                          ≤ δ by Lemma 6.2       ≤ Pr[Bad] ≤ δ by Lemma 6.3
+
+    We prove Lemma 6.2 in Section 6.2 and then Lemma 6.3 in Section 6.3.
+
+Corollary of Talagrand’s convex-distance inequality. The proofs of both lemmas rely on
+a simple corollary of Talagrand’s inequality (Theorem 5). This corollary allows us to bound the
+probability that a random x ∼ {0, 1}N is far from any large set A ⊆ {0, 1}N , even if we measure
+distance using an x-specific distance metric dW (x) . We are allowed to do so as long as this distance
+measure doesn’t put too much weight on any one coordinate (i.e. ∥W (x)∥∞ ≤ γ).
+Corollary 6.4. Let A ⊆ {0, 1}N be any set, and for each x ∈ {0, 1}N let W (x) ∈ RN
+                                                                                 ≥0 satisfy
+∥W (x)∥1 ≤ t. Then for every γ, ε > 0,
+                                                                       2 
+                                                                      ε
+             Pr[A] · Pr ∥W (x)∥∞ ≤ γ and distW (x) (x, A) ≥ ε ≤ exp −Ω        .
+                                                                        γt
+
+                                                    19
+Proof. Let
+                   E := x ∈ {0, 1}N : ∥W (x)∥∞ ≤ γ and distW (x) (x, A) ≥ ε .
+                       
+
+For any x ∈ E, we consider its normalized weight vector
+
+                                                       W (x)
+                                             W̃ (x) := √
+                                                         γt
+
+and note that since ∥W (x)∥1 ≤ t and ∥W (x)∥∞ ≤ γ, we have
+
+                                         ∥W (x)∥22   ∥W (x)∥∞ ∥W (x)∥1
+                       ∥W̃ (x)∥22 =                ≤                   ≤ 1.
+                                           γt               γt
+
+Therefore W̃ (x) is included in the supremum in the definition of Talagrand’s convex distance
+dTal (x, A), and hence
+                            X                   1      X          distW (x) (x, A)    ε
+      dTal (x, A) ≥ min              W̃i (x) = √ min     Wi (x) =      √           ≥ √ .
+                    y∈A                         γt y∈A                    γt          γt
+                          i∈∆(x,y)                          i∈∆(x,y)
+
+Since every x ∈ E satisfies
+                                                           ε
+                                            dTal (x, A) ≥ √ ,
+                                                           γt
+                                   √
+we can apply Theorem 5 with t = ε/ γt to get that
+                                             2
+                                                           ε2
+                                                             
+                                               t
+                         Pr[A] · Pr[E] ≤ exp −    = exp −       .
+                                               4          4γt
+
+This completes the proof.
+
+6.2   Good inputs are biased: Proof of Lemma 6.2
+The proof of Lemma 6.2 is a simple application of Corollary 6.4. Item (iii) of Corollary 5.6 tells
+us that every x ∈ Rej is far from Acc with distance measured according to W (x), and every
+x ∈ Good, by definition, has bounded ∥W (x)∥∞ . Corollary 6.4 thus translates into a bound on
+Pr[Acc] · Pr[Rej ∩ Good].
+   In more detail, for each x ∈ {0, 1}N we define its round-averaged query weight vector W (x) ∈ RN
+                                                                                                  ≥0
+where:
+                                          (r)  Wi (x)
+                         W i (x) := E wi (x) =                for each i ∈ [N ]
+                                   r∼[d]                d
+and note that                                                                     
+                                distW (x) (x, y) = E            distw(r) (x) (x, y) .
+                                                  r∼[d]
+
+   Since t-parallel query weights sum to at most t (Equation (3)),
+                                               " N          #
+                                                 X (r)
+                               ∥W (x)∥1 = E          wi (x) ≤ t.                                 (9)
+                                               r∼[d]
+                                                        i=1
+
+
+
+
+                                                       20
+                     (r)
+If x ∈ Good, then wi (x) ≤ γ ∗ for every r ∈ [d] and i ∈ [N ] and so
+
+                                                ∥W (x)∥∞ ≤ γ ∗ .                                               (10)
+
+Furthermore, for any x ∈ Rej and y ∈ Acc, Item (iii) of Corollary 5.6 tells us that
+                      Xq
+                            distw(r) (x) (x, y) ≥ Ω(1)
+                           r∈[d]
+               sX                            sX
+                          distw(r) (x) (x, y)   1 ≥ Ω(1)                                           (Cauchy-Schwarz)
+                  r∈[d]                      r∈[d]
+                                                                 
+                           1 X                               1
+                               distw(r) (x) (x, y) ≥ Ω
+                           d                                 d2
+                             r∈[d]
+
+                                                                  1
+                                                                     
+Hence, distW (x) (x, y) = Er∼[d] distw(r) (x) (x, y) ≥ Ω          d2
+                                                                           . Equivalently, for any x ∈ Rej,
+                                                                                
+                                                                            1
+                                          distW (x) (x, Acc) ≥ Ω                     .                         (11)
+                                                                            d2
+
+   With Equations (9) to (11) in hand, we can now apply Corollary 6.4 with A = Acc, γ = γ ∗ , and
+      1
+        
+ε = Ω d2 to conclude that:
+                                                                       
+                                                                   1
+                            Pr[Acc] · Pr[Good ∩ Rej] ≤ exp −Ω               ≤ δ,
+                                                                γ ∗ d4 t
+
+where the final inequality holds by our choice of γ ∗ .
+
+6.3    Regularity implies few bad inputs: Proof of Lemma 6.3
+The next claim converts the expectation bound on query weights implied by the assumption of
+regularity into a high-probability bound. We do so inductively, in a round-by-round fashion.
+Lemma 6.3 then follows easily via a union bound.
+   For r ∈ [d] and γ > 0, we define the sets
+                                              (r′ )
+               Good(≤r) (γ) := x ∈ {0, 1}N : wi (x) ≤ γ for all r′ ∈ [r] and i ∈ [N ] ,
+                              
+
+
+and Bad(≤r) (γ) := {0, 1}N \ Good(≤r) (γ).
+
+Claim 6.5 (Inductive step: goodness is preserved w.h.p). Fix r ∈ {2, . . . , d} and i ∈ [N ]. Suppose
+     (r)
+Ex [wi (x)] ≤ γr and define
+                                                   γr2
+                                                         
+                                  γr−1 := O 4               .
+                                              r t ln(N/δ)
+Then
+
+                                   Pr Bad(≤r) (4γr ) ∩ Good(≤r−1) (γr−1 ) ≤ δ.
+                                                                        
+
+
+
+
+                                                       21
+Proof. For each x ∈ {0, 1}N and r ∈ {2, . . . , d}, we define its round-averaged weight vector
+  (≤r−1)
+W        (x) where:
+                        (≤r−1)               (r′ ) 
+                     Wi        (x) := E       wi (x) for each i ∈ [N ]
+                                                               r ′ ∼[r−1]
+
+and note that                                                                                                
+                                       dist       (≤r−1)         (x, y) =          E         dist (r′ ) (x, y) .
+                                              W            (x)                 r ′ ∼[r−1]        wx
+
+   Since t-parallel query weights sum to t (Equation (3)),
+                                                   " N         #
+                              (≤r−1)                 X (r′ )
+                           ∥W        (x)∥1 = E           wi (x) ≤ t.                                                                          (12)
+                                                                        r ′ ∼[r−1]
+                                                                                       i=1
+
+                                                                     (r′ )
+Since x ∈ Good(≤r−1) (γr−1 ), we have that wi                                (x) ≤ γr−1 for every r′ ∈ [r − 1] and i ∈ [N ], and so
+                                                                 (≤r−1)
+                                                       ∥W                    (x)∥∞ ≤ γr−1 .                                                   (13)
+                                                                           (r)
+    Fix r and i to those in the statement of the claim. Define A := {y : wi (y) < 2γr }. Since we
+                        (r)
+are assuming that Ey [wi (y)] ≤ γr , it follows from Markov’s inequality that Pr[A] ≥ 12 .
+                                                                               (r)
+   Furthermore, for any y ∈ A and x such that wi (x) ≥ 4γr , Item (ii) of Corollary 5.6 tells us that
+                       X q                              √
+                              distw(r′ ) (x) (x, y) ≥ Ω( γr )
+                                 r′ ∈[r−1]
+                                                            √
+              s X                                 s X
+                             distw(r′ ) (x) (x, y)    1 ≥ Ω( γr )                                                               (Cauchy-Schwarz)
+                 r′ ∈[r−1]                                  r′ ∈[r−1]
+                                 1 X                          γ 
+                                                                 r
+                                     distw(r′ ) (x) (x, y) ≥ Ω 2
+                                 r ′                           r
+                                    r ∈[r−1]
+                                                                                                    γr 
+Hence, dist      (≤r−1)         (x, y) = Er′ ∼[r−1] distw(r′ ) (x) (x, y) ≥ Ω                         r2
+                                                                                                           . Equivalently, for any x such
+            W             (x)
+      (r)
+that wi (x) ≥ 4γr ,                                                                           γ 
+                                                                                                  r
+                                                   dist        .
+                                                               (≤r−1)         (x, A) ≥ Ω   (14)
+                                                           r2
+                                                           W            (x)
+
+   With Equations (12) to (14) in hand, we can now   apply Corollary 6.4 with A = A, γ = γr−1 ,
+               2                                   1
+and ε = Ω γr /r , along with the fact that Pr[A] ≥ 2 , to conclude:
+
+                                                                                                                     γr2
+                                                                                                                             
+                      (r)                                                                                                               δ
+                     wi (x) ≥ 4γr and x ∈ Good(≤r−1) (γr−1 ) ≤ exp
+                                                           
+            Pr                                                                                            −Ω                        ≤     ,
+                                                                                                                   γr−1 r4 t            N
+
+where the final inequality holds by our choice of γr−1 . Finally, union bounding over all i ∈ [N ], we
+obtain
+                                                   (r)
+  Pr Bad(≤r) (4γr ) ∩ Good(≤r−1) (γr−1 ) ≤ N · Pr wi (x) ≥ 4γr and x ∈ Good(≤r−1) (γr−1 ) ≤ δ,
+                                                                                           
+
+
+which completes the proof.
+
+
+                                                                              22
+6.3.1   Proof of Lemma 6.3 given Claim 6.5
+Define thresholds
+
+                              γd := γ ∗
+                                                γr2
+                                                      
+                            γr−1 := O                         for r ∈ {2, . . . , d}
+                                         r4 t ln(dN/δ)
+
+Note Good = Good(≤d) (γd ). Note also that γ1 ≤ · · · ≤ γd where
+                                                                  d
+                                          γ1 ≥ (dt ln(N/δ))−O(2 ) ,
+
+and this quantity on the RHS matches the regularity assumption of Lemma 6.1. By choosing
+constants appropriately, we can therefore ensure that η ≤ γ1 ≤ · · · ≤ γd , which in turn ensures that
+the assumption of Claim 6.5 is satisfied for all r ∈ {2, . . . , d}.
+   Since first-round weights are independent of x (Item (i)), the expectation bound implied by
+regularity trivially translates into a worst-case bound:
+              (1)                                                         (1)
+          E[wi (x)] ≤ η for all i ∈ [N ] ⇒ For all x, we have wi (x) ≤ η for all i ∈ [N ],
+          x
+
+and so Pr[Good(1) (γ1 )] = 1. Consequently, if x ∈ Bad = Bad(≤d) (γd ), it must “go from Good to Bad
+at some point”, and so
+                          d
+                          X                                                      δ
+                                Pr Bad(≤r) (γr ) ∩ Good(≤r−1) (γr−1 ) ≤
+                                                                    
+              Pr[Bad] ≤                                                             · (d − 1) = δ,
+                                                                                d−1
+                          r=2
+
+                                                                    δ
+where the final inequality is an application of Claim 6.5 with δ = d−1 .
+
+
+7    An improved bound: Proof of Theorem 4
+In this section we prove:
+Theorem 7 (Theorem 4 with a dependence on N ). Let A be a t-parallel d-round quantum algorithm
+and f : {0, 1}N → [0, 1] denote its acceptance probabilities. If A is η-regular where
+                                            2
+                                  η ≤ 2−Ω(d ) · (t log N )−Ω(d) · log(1/δ)−1 ,
+
+then min{Pr[Accf ], Pr[Rejf ]} ≤ δ.
+    Again, the statement of Theorem 7 does not quite match that of Theorem 4 due to the dependence
+on N , but as mentioned, in Section 8.2 we will show that this dependence can be generically removed
+by setting N = poly(2td , 1/δ). In the setting of Theorem 7 this amounts to replacing log N with
+log(1/δ), which then yields Theorem 4.
+
+Proof overview. As discussed in Section 4.3, this proof will rely on the following notion of distance:
+For any distribution D and x, y, we denote,
+
+                                        distD (x, y) := Pr [xS ̸= yS ],
+                                                       S∼D
+
+
+                                                      23
+and similarly, for set A,
+                                       distD (x, A) := min distD (x, y).
+                                                          y∈A
+
+    This definition aligns with Equations (7) and (8): For any x ∈ Acc, there is some round r ∈ [d]
+for which
+                                    distD(r) (x, Rej) ≥ poly(1/r).
+                                             x
+                                              (r)            (r)
+Similarly, Equation (7) means that if Dx and Dy are “far” (i.e. distinguishable by some test),
+then there must be some r′ ≤ r for which dist (r′ ) (x, y) is large.
+                                                     Dx
+                                                                                  (r)
+   For the warm-up (Lemma 4.3), we formalized the notion of Dx as being “concentrated” by
+having a single coordinate i ∈ [N ] that commonly appears in S ∼ D(r) . Our proof of Theorem 7
+requires a more general definition:
+Definition 7.1 ((m, γ)-hit and spread). For m ∈ [N ] and γ ∈ [0, 1], we say that a distribution D
+over subsets of [N ] is (m, γ)-hit if
+                            Pr [S ∩ T ̸= ∅] ≥ γ       for some T ⊆ [N ] of size m.
+                            S∼D
+
+We will also say a distribution is (m, γ)-spread if it is not (m, γ)-hit, meaning there is no T of size
+m for which the above inequality holds.
+   The most technical portion of this proof connects these notions of distance and concentration,
+showing that for a distribution to separate large sets, it must be concentrated.
+Lemma 7.2 (Large distance implies hitting). Let A ⊆ {0, 1}N be any set, and for each x ∈ {0, 1}N
+let Dx be a distribution over subsets of [N ] of size at most t. For any m ∈ [N ] and 0 < γ < τ ,
+                                                                              (τ − γ)2 m
+                                                                                       
+                                                               
+         Pr[A] · Pr distDx (x, A) ≥ τ and Dx is (m, γ)-spread ≤ exp −Ω                      .
+                                                                                  γt
+   Using this, we will prove the two main lemmas, the analogues of Lemmas 6.2 and 6.3 in our
+warm-up. First, we will define parameters,
+                                  m1 ≥ · · · ≥ md       and           γ1 ≤ · · · ≤ γd
+and for each round r ∈ [d], the sets
+                                                                                                           ′
+                                                                                            [
+           Bad(r) := {x : Dx(r) is (mr , γr )-hit}     and         Good(≤r) := {0, 1}N \             Bad(r ) .   (15)
+                                                                                           r′ ∈[r]
+
+Note the direction of monotonicity: At lower layers, we have larger values for m and smaller values
+of γ. Both of these correspond to a more stringent constraint in order to be in Good. Our first
+bound uses this monotonicity to bound the number of bad inputs:
+Lemma 7.3 (Regularity ⇒ Few bad inputs). For any r ∈ {2, . . . , d}, if the regularity parameter η
+satisfies η ≤ γr /(4mr ) where                             !
+                                      X
+                               γr ≥ Ω      γr′ · (r − r′ )2 ,
+                                                 r′ ∈[r−1]
+
+then                    h                 i N          γ m    
+                            (r)    (≤r−1)                   r r−1
+                      Pr Bad ∩ Good        ≤     · exp −Ω
+                                             mr              tr3
+
+                                                        24
+   With Lemma 7.3 in hand, a bound on Pr[Bad(≤d) ] follows easily via a union bound. The second
+lemma then says that if this probability is small, the function must be biased:
+Lemma 7.4 (Good inputs are biased). There is an absolute constant c such that if
+                                 X
+                                    (d − r + 1)2 · γr ≤ c,                                         (16)
+                                       r∈[d]
+
+then                                                         m 
+                                                                 d
+                         Pr Acc · Pr Rej ∩ Good(≤d) ≤ exp −Ω
+                                                
+                                                                    .
+                                                               td3
+
+Structure of this section. We prove Lemma 7.2 in Section 7.1, Lemma 7.3 in Section 7.2,
+and Lemma 7.4 in Section 7.3. In Section 7.4 we put everything together to prove Theorem 7.
+
+7.1     Large distance implies hitting: Proof of Lemma 7.2
+To prove Lemma 7.2, we analyze the natural greedy algorithm that builds a size-m set T that γ-hits
+Dx , under the assumption that distDx (x, A) ≥ τ . At each step, this greedy algorithm picks the
+variable that overlaps with the largest fraction of S ∼ Dx . The following helps quantify the progress
+we make at each step:
+Claim 7.5. Let D be a distribution supported on subsets of [N ] of size at most t. For any input
+x ∈ {0, 1}N and set A ⊆ {0, 1}N , there exists an i ∈ [N ] such that
+                                                           distD (x, A)2
+                                      Pr [i ∈ S] ≥                         .
+                                     S∼D                  t · dTal (x, A)2
+   The proof of Claim 7.5 is analogous to that of Corollary 6.4. We give it in Section 7.1.2. For
+now, we show how to use it to prove Lemma 7.2.
+
+7.1.1    Proof of Lemma 7.2 assuming Claim 7.5
+We begin by initializing T (0) = ∅. At each step j = 1, 2, . . ., we set
+                                              h                          i
+                          ij := arg max Pr i ∈ S and S ∩ T (j−1) = ∅ ,
+                                  i∈[N ]   S∼Dx
+
+                                                                                          ⋆
+and let T (j) := T (j−1) ∪ {ij }. We stop at the first time step m⋆ at which T (m ) γ-hits Dx . We also
+define D(j) to be the distribution over subsets S ′ formed by first drawing S ∼ Dx and setting
+                                              (
+                                               S if S ∩ T (j) = ∅
+                                       S ′ :=
+                                               ∅ otherwise.
+Given this notation, we can write
+                      h        ⋆
+                                    i  X                        h                          i
+                  Pr S ∩ T (m ) ̸= ∅ =                    Pr     ij ∈ S and S ∩ T (j−1) = ∅
+                  S∼Dx                                   S∼Dx
+                                               j∈[m⋆ ]
+                                                X
+                                           =                  Pr    [ij ∈ S]
+                                                         S∼D(j−1)
+                                               j∈[m⋆ ]
+                                                X
+                                           =             arg max       Pr      [i ∈ S].            (17)
+                                                          i∈[N ]    S∼D(j−1)
+                                               j∈[m⋆ ]
+
+
+
+                                                         25
+We wish to apply Claim 7.5 to conclude that each term in the above sum must be large. To do so,
+we observe that
+                         distD(j) (x, A) ≥ distDx (x, A) − dTV (Dx , D(j) )
+                                                                                    ⋆
+Furthermore, we have defined m⋆ to be the first time step for which T (m ) γ-hits Dx . This means
+that dTV (Dx , D(j) ) ≤ γ for every j < m⋆ . We can therefore apply Claim 7.5 to Equation (17) to get:
+                           h        ⋆
+                                           i       max{0, distDx (x, A) − γ}2
+                       Pr   S ∩ T (m ) ̸= ∅ ≥ m⋆ ·                               .
+                      S∼Dx                               t · dTal (x, A)2
+                                                                   q       2m
+Finally, we observe that if distDx (x, A) ≥ τ and dTal (x, A) ≤ (τ −γ)  γt    , then for m⋆ = m, the
+above will be at least γ, which means that Dx is (m, γ)-hit. Therefore,
+                                                                               q            
+                                                                                   (τ −γ)2 m
+           Pr[distDx (x, A) ≥ τ and Dx is (m, γ)-spread] ≤ Pr dTal (x, A) >            γt     ,
+
+and Talagrand’s convex-distance inequality (Theorem 5) gives the desired result.
+
+7.1.2    Proof of Claim 7.5
+Let w ∈ RN
+         ≥0 be the vector wi := PrS∼D [i ∈ S]. Since D is supported on subsets of size at most t,
+we have ∥w∥1 ≤ t. Our goal is to lower bound ∥w∥∞ . We first apply Hölder’s inequality
+
+                                                  ∥w∥22   ∥w∥22
+                                        ∥w∥∞ ≥          ≥       ,                                 (18)
+                                                  ∥w∥1      t
+which reduces our task to that of lower bounding ∥w∥2 . To do so, we first show that distw (x, A) ≥
+distD (x, A). It suffices to show the inequality for every y ∈ A,
+                                              X                   X
+            distD (x, y) = Pr [xS ̸= yS ] ≤          Pr [i ∈ S] =     wi = distw (x, y).
+                            S∼D                         S∼D
+                                             i∈∆(x,y)                    i∈∆(x,y)
+
+                   w
+Finally, let w̃ = ∥w∥2
+                       , and so
+                                                        distD (x, A)
+                                        dw̃ (x, A) ≥                 .
+                                                           ∥w∥2
+This normalization ensures w̃ is included in the supremum in the definition of dTal (recall Theorem 5),
+and so dw̃ (x, A) ≤ dTal (x, A). Combining these, we get:
+                                  distD (x, A)
+                                               ≤ dw̃ (x, A) ≤ dTal (x, A),
+                                     ∥w∥2
+This along with Equation (18) completes the proof.
+
+7.2     Regularity implies few bad inputs: Proof of Lemma 7.3
+                                                               (1)         (r)
+Our proof will use the following method of combining Dx , . . . , Dx into a single distribution. This
+choice is made because the series ri 1/i2 converges for any choice of r and also no individual term
+                                  P
+is smaller than 1/poly(r). The convergence ensures that Claim 7.6 holds, whereas the fact that no
+term is too small ensures the r3 term in Lemma 7.3 is mild.
+
+                                                    26
+                                                               (quad,r)
+Claim 7.6. For any x ∈ {0, 1}N and r ∈ [d] we define Dx                   to be the product distribution
+                                   r 2       (r−1)2                  22      1 2
+                Dx(quad,r) := Dx(1)     × Dx(2)         × · · · × Dx(r−1)    × Dx(r) .                     (19)
+
+Then for y ∈ {0, 1}N ,
+                                                                                   !2 
+                                                           q                          
+                          [xS ̸= yS ] ≥ 13 · min 1,
+                                                    P
+                 Pr                                   ′      Pr   (r ′ ) [xS ̸= yS ]    .                  (20)
+                 (quad,r)
+                                                     r ∈[r]    S∼Dx
+              S∼Dx                                                                    
+
+   Note that the right-hand side of Equation (20) is the quantity we can bound using Equations (7)
+and (8). We will also need a simple proposition:
+Proposition 7.7. Let γ = r′ ∈[r] γr′ · (r − r′ + 1)2 . For all x ∈ {0, 1}N ,
+                           P
+
+
+                           x ∈ Good(≤r) =⇒ Dx(quad,r) is (mr , γ)-spread.
+
+    We prove Claim 7.6 in Section 7.2.2 and Proposition 7.7 in Section 7.2.3. For now, we use them
+to prove Lemma 7.3.
+
+7.2.1   Proof of Lemma 7.3 assuming Claim 7.6 and Proposition 7.7
+In order for x to be in Bad(r) , there must exist some |T | = mr for which PrS∼D(r) [S ∩ T =
+                                                                                           ̸ ∅] ≥ γr .
+                                                                                x
+                                        N
+                                          
+Our proof will union bound over all mr choices of T .
+    For any fixed T , define
+           n                          γr o                   n                            o
+    AT := y : PrS∼D(r) S ∩ T ̸= ∅ ≤             and BadT := x : PrS∼D(r) S ∩ T ̸= ∅ ≥ γr .
+                       y                  2                               x
+
+
+Our goal will be to show that each BadT is small enough that we can afford a union bound over all
+choices of T . We begin by showing that AT is large. Using the η ≤ γr /(4mr ) regularity assumption,
+                        "                #             "            #
+                                            X                                      γr
+                  E         E [|S ∩ T | ] =      E        Pr [i ∈ S] ≤ η · |T | ≤ .
+               y∼{0,1}N      (r)
+                          S∼Dy                y∼{0,1}N      (r)
+                                                         S∼Dy                       4
+                                                i∈T
+
+Therefore, by Markov’s inequality, Pr[AT ] ≥ 21 .
+   Next, we can apply Equation (7) with the test S 7→ 1[S ∩ T = ̸ ∅]. This gives, for all x ∈ BadT
+and y ∈ AT ,
+                                                          2
+                                X r
+                                          Pr ′ [xS ̸= yS ] ≥ Ω(γr ).
+                                                   (r )
+                                r′ ∈[r−1]   S∼Dx
+
+By Claim 7.6, we have that
+                                     distD(quad,r−1) (x, AT ) ≥ cγr ,
+                                            x
+
+for some absolute constant c > 0. Using an appropriately large choice of constant in our assumption
+that                                                             !
+                                            X
+                                                             ′ 2
+                                  γr ≥ Ω         γr′ · (r − r ) ,
+                                                r′ ∈[r−1]
+
+
+                                                          27
+   we can apply Proposition 7.7 to get that
+                             x ∈ Good(≤r−1) =⇒ Dx(quad,r−1) is (mr−1 , 2c γr )-spread.
+                                                                                                                                  (quad,r−1)
+We now apply Lemma 7.2 with τ = cγr and γ = 2c γr , along with the fact that Dx                                                                is
+supported on sets of size O(tr3 ):
+                                 h                 i         γ m       
+                                                                 r r−1
+                     Pr[AT ] · Pr BadT ∩ Good(≤r−1) ≤ exp −Ω                .
+                                                                  tr3
+Finally, we observe that
+                                                [
+                         Bad(r) ∩ Good(≤r−1) =       BadT ∩ Good(≤r−1) .
+                                                             |T |=mr
+
+The desired result follows from our earlier bound of Pr[AT ] ≥ 12 for all choices of T and a union
+bound over the mNr choices of T .
+                   
+
+
+7.2.2      Proof of Claim 7.6
+Claim 7.6 will follow straightforwardly from the following two propositions.
+Proposition 7.8. For any distributions D(1) , . . . , D(r) , and x, y ∈ {0, 1}N ,
+                                                                                                                             !2
+                   X                                        6                   X r
+                         (r − r′ + 1)2 · Pr ′ [xS ̸= yS ] ≥ 2 ·                                Pr ′ [xS ̸= yS ]
+                                           (r )
+                                        S∼Dx               π                                S∼Dx
+                                                                                                       (r )
+                  r′ ∈[r]                                                       r′ ∈[r]
+
+Proof. This is a straightforward application of Cauchy-Schwarz and convergence of ∞         2    2
+                                                                                  P
+                                                                                     i=1 1/i = π /6.
+                               2                                                            !2
+      X r                              Xp                    r
+               Pr ′ [xS ̸= yS ] =          (r − r′ + 1)−2 · (r − r′ + 1)2 · Pr ′ [xS ̸= yS ]
+                      (r )                                                                                            (r )
+        r′ ∈[r]   S∼Dx                         r′                                                             S∼Dx
+                                                                       !                                                                !
+                                              X                                  X
+                                                         ′        −2                               ′          2
+                                         ≤          (r − r + 1)            ·              (r − r + 1) ·               Pr ′ [xS ̸= yS ]
+                                                                                                                         (r )
+                                               r′                                  r′                             S∼Dx
+
+                                             π2 X
+                                         ≤     ·   (r − r′ + 1)2 · Pr ′ [xS ̸= yS ].
+                                             6   ′
+                                                                     (r )
+                                                                  S∼Dx
+                                                    r
+
+Proposition 7.9. For any independent events E1 , . . . , Em ,
+                                                             (                                                    )
+                                                                                           X
+                                                                  −1
+                             Pr[E1 or · · · or Em ] ≥ (1 − e           ) · min 1,                  Pr[Ei ] .
+                                                                                           i∈[m]
+
+Proof. Let pi = Pr[Ei ]. Then,
+                                                                               Y
+                                     Pr[E1 or · · · or Em ] = 1 −                    (1 − pi )
+                                                                               i∈[m]
+                                                                                  P
+                                                                                − i∈[m] pi
+                                                                  ≥1−e                         .
+                                                −P ≥ (1 − e−1 ) · min{1, P } applied with P =
+P desired result follows by the inequality 1 − e
+The
+  i∈[m] pi .
+
+
+                                                             28
+   We now combine these propositions.
+
+Proof of Claim 7.6. First, we apply Proposition 7.9 which gives
+                                                                                       
+                                                     X                                 
+             Pr       [xS ̸= yS ] ≥ (1 − e−1 ) · min 1, (r − r′ + 1)2 · Pr ′ [xS ̸= yS ] .
+             (quad,r)                                                     (r )
+          S∼Dx                                       ′                S∼Dx
+                                                                     r ∈[r]
+                                                                                        
+
+The desired result then follows from Proposition 7.8 and the inequality (1 − e−1 ) · π62 ≥ 13 .
+
+7.2.3      Proof of Proposition 7.7
+Proof. Let x ∈ Good(≤r) . We will show that
+
+                                                Pr         [S ∩ T ̸= ∅] < γ
+                                                (quad,r)
+                                          S∼Dx
+
+
+for any set T of size mr . Fix such a T . Since x ∈ Good(≤r) , it is not in Bad(1) , . . . , Bad(r) . Since
+mr′ ≥ mr for all r′ ∈ [r], this means that
+
+                                   Pr ′ [S ∩ T ̸= ∅] < γr′                    for all r′ ∈ [r].
+                                  (r )
+                               S∼Dx
+
+                                                                (quad,r)
+Then, by a union bound and the definition of Dx        in Equation (19),
+                                          X
+                     Pr   [S ∩ T ̸= ∅] ≤      (r − r′ + 1)2 · Pr ′ [S ∩ T ̸= ∅]
+                        (quad,r)                                                         (r )
+                    S∼Dx                              r′ ∈[r]                       S∼Dx
+                                                        X
+                                                <           (r − r′ + 1)2 · γr′ = γ.
+                                                      r′ ∈[r]
+
+
+7.3     Good inputs are biased: Proof of Lemma 7.4
+We can reuse many of the tools used in the proof of Lemma 7.3. For every x ∈ Rej and y ∈ Acc, a
+combination of Equation (8) and Claim 7.6 gives
+
+                                           Pr         [xS ̸= yS ] ≥ v = Ω(1).
+                                           (quad,d)
+                                      S∼Dx
+
+That is,
+                                           distD(quad,d) (x, Acc) ≥ v.
+                                                    x
+
+                                         (quad,d)
+By Lemma 7.2 and the fact that Dx    is supported on sets of size O(td3 ),
+                      h                                         i       m 
+                                  (quad,d)                                   d
+                                           is (md , 12 v)-spread ≤ exp −Ω
+               
+         Pr Acc · Pr x ∈ Rej and Dx                                            .
+                   x                                                       td3
+                                                                                                  (quad,d)
+Finally Proposition 7.7 and Equation (16) together give that if x ∈ Good(≤d) then Dx                         is
+(md , v/2)-spread, giving the desired inequality.
+
+
+
+                                                                29
+7.4   Putting things together: Proof of Theorem 7
+Setting parameters. First we set the parameters γ1 , . . . , γd and m1 , . . . , md . For some absolute
+constant c, we set
+                                                                                       d
+                                                                                       Y         1
+              γr = c−(d−r)           and     mr := log(1/δ) · (ctd3 log N )d−r+1 ·                   .
+                                                                                                γr ′
+                                                                                      r′ =r+1
+
+Using these parameters, we set
+
+                 γ1
+                                                       d −1
+           η :=            −d
+                    ≥ 4 · c · log(1/δ) · (ctd log N ) · γ11
+                      1                      3       d
+                4m1
+                                 2
+                       ≥ 2−O(d ) · (t log N )−d · log(1/δ)−1 .
+                                                                                                                 2
+                                                                          (Absorbing (cd3 )−d into 2−O(d ) )
+
+
+Bounding the size of the Bad sets. We claim that
+                                h                   i   δ
+                              Pr Bad(r) ∩ Good(≤r−1) ≤            for each r ∈ [d],                            (21)
+                                                       2d
+
+where we take the convention that Good(≤0) = {0, 1}N and otherwise follow the definitions in
+                                              (1)
+Equation (15). For r = 1, the distribution Dx does not depend on x (Item (i) of Corollary 5.6).
+Therefore, the assumption of η-regularity gives, for all T and x,
+
+                                            Pr [S ∩ T ̸= ∅] ≤ η · |T |.
+                                              (1)
+                                           S∼Dx
+
+                                                                                                 (1)
+For our choice of η, we therefore have that there is no T of size m1 that γ1 -hits Dx , and so Bad(1)
+is empty.
+    For any r ∈ {2, . . . , d}, we will apply Lemma 7.3. To do so, we need to verify that
+                                                                    !
+                                                X
+                                                                ′ 2
+                                       γr ≥ Ω       γr′ · (r − r ) ,
+                                                    r′ ∈[r−1]
+
+                                                                                                         P∞    2 k
+which does indeed hold for a large enough choice of c due to the convergence of the series                k=1 k /c .
+Therefore,
+                        h                     i N             γ m       
+                             (r)       (≤r−1)                         r r−1
+                     Pr Bad ∩ Good             ≤         · exp −Ω               .
+                                                    mr                 tr3
+                                        δ
+For the RHS of the above to be at most 2d it suffices to ensure
+                                             γ m         δ
+                                                r r−1
+                                       exp −Ω            ≤      .
+                                                 tr 3
+                                                           d mN       r
+
+                   N
+                           ≤ N m and solving for mr−1 , it in turn suffices to ensure
+                       
+Using the bound    m
+
+                                                  tr3
+                                                                            
+                                 mr−1 ≥ Ω             · (mr log N + log(d/δ)) ,
+                                                  γr
+
+                                                           30
+which does indeed hold for our choice of parameters. Having shown Equation (21), a union bound
+over all r ∈ [d] gives that             h        i
+                                     Pr Good(≤d) ≥ 1 − 2δ .
+
+
+Good inputs are biased. This step is a direct application of Lemma 7.4. First, we verify that, for
+our choice
+      P of 2parameters,   Equation (16) holds. This is once again true due to convergence of the
+series ∞k=1 k /ck . Therefore, Lemma 7.4 gives
+
+                                                                m 
+                                                                    d
+                        Pr Acc · Pr Rej ∩ Good(≤d) ≤ exp −Ω
+                                                 
+                                                                       ,
+                                                                  td3
+which is at most δ/2 by our choice of md .
+   We have shown that
+
+          Pr Acc · Pr Rej ≤ Pr Acc · Pr Rej ∩ Good(≤d) + Pr Bad(≤d) ≤ 2δ + 2δ = δ,
+                                                          
+
+
+and this completes the proof of Theorem 7.
+
+
+8     Incorporating ε-dependence and removing N -dependence
+In this section we show how statements such as Lemma 6.1 and Theorem 7 can be generically
+improved in two ways:
+
+    1. We show how they imply a version that bounds ε-sized deviations rather than the constant-
+       sized ones. That is, we get a version where δ := Pr[|f (x) − E[f (x)]| ≥ ε] at the cost of a
+       poly(1/ε)-overhead in the regularity parameter. (Note that if min{Pr[Accf ], Pr[Rejf ]} ≥ δ
+       then either Accf or Rejf witnesses the fact Pr |f (x) − E[f (x)]| ≥ 61 ≥ δ.)
+                                                                            
+
+    2. We then show how any dependence on N in the regularity parameter can be removed by
+       setting N = poly(2td , 1/ε, 1/δ). This essentially follows from the result of [DFKO07] discussed
+       in the introduction, though we cannot quite apply it as a blackbox in our setting.
+
+8.1    Incorporating ε-dependence
+Claim 8.1 (Bounding small deviations). Suppose that, for some function η(d, t, δ), every t-parallel
+d-round quantum algorithm with acceptance probability f : {0, 1}N → [0, 1] has a coordinate i ∈ [N ]
+for which                                                  
+                 E[Wi (x)] ≥ η(d, t, δ)  where δ := min Pr[Accf ], Pr[Rejf ] .
+                    x
+
+Then, for every ε > 0, every such algorithm also has a coordinate i ∈ [N ] for which
+
+                   E[Wi (x)] ≥ η(d, t, δ, ε)    where δ := Pr[|f (x) − E[f (x)]| > ε],
+                   x                                          x
+
+and we define
+                          η(d, t, δ, ε) := Ω(ε2 ) · η(d, O(t/ε2 ), min{δ/2, ε/2}).
+
+    Claim 8.1 follows from standard success amplification. The following inequality will be useful.
+
+
+                                                    31
+Proposition 8.2. Let p be a random variable supported on [0, 1] and ε, δ satisfy
+
+                               δ = Pr[|p − µ| ≥ ε]         where µ := E[p].
+
+Then, there are thresholds b − a = ε/2 for which
+
+                             min{Pr[p ≤ a], Pr[p ≥ b]} ≥ min{ε/2, δ/2}.
+
+Proof. Either Pr[p ≤ µ − ε] ≥ δ/2 or Pr[p ≥ µ + ε] ≥ δ/2. Without loss of generality, we assume
+it is the former. Given that, we set a = µ − ε and b = µ − ε/2 which have the desired difference.
+Then, defining δlarge := Pr[p ≥ b], we can upper bound the mean as
+
+                      µ ≤ (1 − δlarge ) · (µ − ε/2) + δlarge · 1 ≤ µ − ε/2 + δlarge ,
+
+which requires δlarge ≥ ε/2. These thresholds therefore satisfy the desired inequality
+
+Proof of Claim 8.1. Let f : {0, 1}N → [0, 1] be the acceptance probability of a d-round t-parallel
+quantum algorithm satisfying
+                                  δ := Pr[|f (x) − E[f (x)]| > ε].
+                                           x
+
+Then, by Proposition 8.2, there are thresholds b − a = ε/2 for which
+
+                         min(Pr[f (x) ≤ a], Pr[f (x) ≥ b]) ≥ min{ε/2, δ/2}.
+
+We will now construct an amplified version of the original quantum query algorithm and apply the
+hypothesis of Claim 8.1 to this amplified variant. For k = O(1/ε2 ) the amplified algorithm runs k
+copies of the original algorithm in parallel, and for ℓ := ⌊k(a + b)/2⌋, outputs whether at least ℓ of
+those copies would output 1. This is a kt-parallel d-round quantum query algorithm since its final
+state can be computed as
+
+                     |Ψ(x)⟩⊗k := (Ox⊗t )⊗k Ud⊗k (Ox⊗t )⊗k · · · U2⊗k (Ox⊗t )⊗k U1⊗k |1⟩ .
+
+   The resulting algorithm has acceptance probability
+
+                                      F (x) :=        Pr      [z ≥ ℓ].
+                                                 z∼Bin(k,f (x))
+
+Chebyshev’s inequality gives that if f (x) ≥ b then F (x) ≥ 2/3 and if f (x) ≤ a then F (x) ≤ 1/3.
+Therefore,                     
+                           min Pr[AccF ], Pr[RejF ] ≥ min{ε/2, δ/2},
+which, by the hypothesis, implies that this amplified algorithm has a coordinate with expected query
+weight at least η(d, kt, min{ε/2, δ/2}). The desired result follows from the observation that each
+expected query weight of the amplified algorithm is at most a factor of k larger than the expected
+query weights in the original algorithm.
+
+
+
+
+                                                     32
+Applying Claim 8.1.           We can straightforwardly apply Claim 8.1 to both our conjecture and The-
+orem 7.
+
+Claim 8.3 (Small deviation version of our conjecture). If Conjecture 1 is true, for any ε > 0, any
+t-query quantum algorithm with acceptance probability f : {0, 1}N → [0, 1] has a variable i ∈ [N ]
+with query weight at least
+                                  
+                                  εδ
+                E[Wi (x)] ≥ poly            where δ := Pr[|f (x) − E[f (x)]| ≥ ε].
+                 x                 t
+
+   We state the corollary of Theorem 7 in the contrapositive so we can more easily apply it to
+prove the special case of the simulation conjecture, Theorem 1.
+
+Corollary 8.4 (Consequence of Theorem 7 and Claim 8.1). Let A be a t-parallel d-round quantum
+algorithm and f : {0, 1}N → [0, 1] denote its acceptance probability. If A is η-regular where
+                                          2
+                                η ≤ 2−Ω(d ) · ((t log N )/ε)−Ω(d) · log(1/δ)−1 ,
+
+then Pr[|f (x) − E[f (x)]| ≥ ε] ≤ δ.
+
+8.2    Removing N -dependence
+We will need the following result of [DFKO07]:
+
+Theorem 8 ([DFKO07]). Let f : {0, 1}N → [0, 1] be a degree-D polynomial. For every ε > 0 there
+is a set J ⊆ [N ] of size 2O(D) /ε2 such that the function f⊆J : {0, 1}N → [0, 1],
+                                                                      
+                                  f⊆J (x) :=    E      f (r) | rJ = xJ
+                                                 r∼{0,1}N
+
+
+satisfies ∥f − f⊆J ∥22 ≤ ε.
+
+Claim 8.5 (Removing dependence on N ). Suppose every t-parallel d-round quantum algorithm with
+acceptance probability f : {0, 1}N → [0, 1] that is η-regular for some function η(t, d, ε, δ, N ) satisfies
+Pr[|f − E[f ]| ≥ ε] ≤ δ. Then every such algorithm that is η-regular where
+
+                                         η ≤ η(t, d, ε, δ, 2O(td) /ε4 δ 2 )
+
+satisfies Pr[|f − E[f ]| ≥ 2ε] ≤ 2δ.
+
+Proof. Let A be a t-parallel d-round quantum algorithm that is η-regular where
+
+                                         η ≤ η(t, d, ε, δ, 2O(td) /ε4 δ 2 ),                          (22)
+
+Since A makes at most td queries in total, its acceptance probability f : {0, 1}N → [0, 1] has degree
+at most 2td [BBC+ 01]. Applying Theorem 8 with f = f , D = 2td, and ε = ε2 δ, we get the existence
+of a set J ⊆ [N ],
+                                2O(td)
+                          |J| ≤ 4 2 such that ∥f − f⊆J ∥22 ≤ ε2 δ.                               (23)
+                                 ε δ
+    Now consider the quantum query algorithm B defined as follows: On input x ∈ {0, 1}N ,
+
+                                                         33
+    1. Sample r ∼ {0, 1}N uniformly at random.
+
+    2. Replace any queries to xi where i ∈
+                                         / J with a query to ri .
+
+Note that B remains a t-parallel d-round algorithm (it is a mixture of restrictions of A), and it
+is designed so that its acceptance probability g : {0, 1}N → [0, 1] is given exactly by f⊆J . Note
+also that g depends only on the coordinates in J: there is a function g ′ : {0, 1}J → [0, 1] such that
+g(x) = g ′ (xJ ) for all x ∈ {0, 1}N .
+    Furthermore, if W1 (x), . . . , WN (x) are the query weights of A, the query weights W̃1 (x), . . . , W̃N (x)
+of B are given by:
+                                         (                    
+                                           E Wi (r) | rJ = xJ      i∈J
+                               W̃i (x) =    r
+                                           0                       otherwise.
+
+Consequently E[W̃i (x)] = E[Wi (x)] if i ∈ J and E[W̃i (x)] = 0 otherwise, and so B inherits A’s
+regularity (Equation (22)). By our bound on the size of J (Equation (23)), we further get that it is
+η-regular where
+                                       η ≤ η(t, d, ε, δ, |J|).
+Since g depends only on the variables in J, we can apply the assumption of our claim to B and g
+with N = |J| to get that Pr[|g − E[g]| ≥ ε] ≤ δ.
+   Finally, let h = f − g. By the triangle inequality and a union bound,
+                                                                    
+            Pr |f − E[f ]| ≥ 2ε ≤ Pr |g − E[g]| ≥ ε + Pr |h − E[h]| ≥ ε
+                                        ∥f − g∥22
+                                    ≤δ+                                                          (Chebyshev)
+                                           ε2
+                                        ∥f − f⊆J ∥22
+                                    =δ+              ≤ 2δ.                     (g ≡ f⊆J and Equation (23))
+                                            ε2
+This completes the proof.
+
+Applying Claim 8.5. We can now combine Claim 8.5 and Corollary 8.4 to finally prove Theorem 4,
+and indeed, even the more general version with a dependence on ε:
+
+Theorem 9 (Theorem 4 with ε-dependence). Let A be a t-parallel d-round quantum algorithm and
+f : {0, 1}N → [0, 1] denote its acceptance probability. If A is η-regular where
+                                                2
+                                     η ≤ 2−Ω(d ) · (t log(1/δ)/ε)−Ω(d) ,
+
+then Pr[|f (x) − E[f (x)]| ≥ ε] ≤ δ.
+
+    For the same reason, combining Claim 8.5 and Lemma 6.1 yields Lemma 4.3.
+
+
+9     A regularity lemma and its implications
+In this section we prove our regularity lemma, repeated here for convenience:
+
+
+
+                                                      34
+Lemma 4.7 (Regularity lemma). Let A be a t-query quantum algorithm. There is a classical
+decision tree T of depth poly(t, 1/η, log(1/δ)) such that the restricted algorithm Aπ is η-regular with
+probability at least 1 − δ with respect to a random root-to-leaf path π ∼ T induced by a uniform
+random input x ∼ {0, 1}N .
+
+    In Section 9.2 we then use it to show Conjecture 1 implies the simulation conjecture, and
+likewise the strong version of Conjecture 1 implies the strong version of the simulation conjecture.
+Similarly, Theorem 1 follows by combining Theorem 9 with Lemma 4.7.
+
+9.1    Proof of Lemma 4.7
+For a quantum query algorithm A and a restriction π, we write Wi (π) to denote the expected query
+weight that Aπ places on variable i ∈ [N ], where the expectation is over all x’s that are consistent
+with π (i.e. all inputs to Aπ ). Consider the classical query algorithm Simulate described in Figure 3.
+It is a simple greedy algorithm that queries a variable of query weight larger than η (if one exists),
+restricts A accordingly, and recurses.
+
+
+   Simulate(A, η, δ, x):
+   Input: A t-query quantum algorithm A with acceptance probability f : {0, 1}N → [0, 1] and
+   query weights W1 (x), . . . , WN (x). Parameters η, δ, and an input x ∈ {0, 1}N .
+   Output: An approximation of f (x).
+      Initialize: π0 = ∅ and D = poly(t, 1/η, log(1/δ)).
+      for j = 1, . . . , D do
+         if there exists an ij ∈ [N ] such that Wij (πj−1 ) > η then
+             Query xij and let bj be the answer.
+             Let πj = πj−1 ∪ {xij = bj } be the extension of πj−1
+         else
+             Set πj = πj−1 and break.
+      return E[f (x) | x is consistent with πj ]
+              x
+
+
+
+       Figure 3: A classical query algorithm for approximating a quantum query algorithm.
+
+   We claim that Simulate’s decision tree representation T satisfies the conditions of Lemma 4.7.
+Note that if we ever reach the “Break” condition in Figure 3, then Wi (π) ≤ η for all i ∈ [N ], and
+so Aπ is η-regular whenever |π| < D. It therefore suffices to show that Prx [|π| ≥ D] ≤ δ, where
+π ∼ T is the random path in T induced by a uniform random x ∼ {0, 1}N .
+   To do so, let πj denote the truncation of a path π to the first j queries and consider the progress
+measure
+                                                N
+                                                X
+                                         Pj :=     Wi (πj ).
+                                                   i=1
+
+Note that Pj is bounded between [0, t] since A and its restrictions are t-query algorithms (Equa-
+tion (3)). To analyze how it evolves as j increases (i.e. as the path grows down T ), note that we
+
+
+                                                    35
+can express Wi (π) as
+                                  (
+                                   0                                                               if i ∈ π
+                        Wi (π) :=
+                                   E[Wi (x) | x is consistent with π]                              otherwise
+                                        x
+
+(see the proof of Claim 8.5), and so
+                                                                          (
+                                                                         0      if i = j
+                                E       Wi (π ∪ {xj = b}) =                                                                        (24)
+                             b∼{0,1}                                       Wi (π) otherwise.
+
+In words, when xj is queried, its query weight in both subfunctions drops to 0, whereas for all other
+            ̸ j, their query weights in the two subfunctions average to their original query weight.
+variables i =
+Consequently, with each query, our progress measure drops in expectation by exactly the weight of
+the queried variable:
+                                                                                     P
+Proposition 9.1 (Simulate makes progress in expectation at each step). Let Pj := i Wi (πj ) and
+let ηj := Wij (πj−1 ) be the query weight of the jth index queried. If we do not query an index, we
+say that ηj = 0. Then,                               
+                                  E Pj | πj−1 = πj−1 = Pj−1 − ηj .
+    Since Pj is bounded and drops in expectation as j increases, this would suggest that π is unlikely
+to be too long. This motivates us in defining the following martingale:
+                                                                      j
+                                                                      X
+                                                Zj = Pj +                      ηj ′ .
+                                                                      j ′ =1
+
+Note that if |π| ≥ D, then ZD = PD + D
+                                       P
+                                          j=1 ηj ≥ Dη since Simulate only queries a variable if its
+query weight ηj is greater than η. Therefore, ZD − Z0 ≥ Dη − P0 ≥ Dη − t, and so:
+
+                                    Pr[|π| ≥ D] ≤ Pr[ZD − Z0 ≥ Dη − t].
+
+The remainder of the proof will therefore focus on bounding the probability that the difference
+ZD − Z0 is large. We do so by showing that {Zj } is a martingale with respect to the random
+variables {πj }. First note that Zj is indeed a function of π0 , . . . , πj since Pj and ηj ′ are functions
+of these variables for all j ′ ∈ [j]. Also, Zj has finite expected value since Pj and ηj ′ are bounded.
+Furthermore,
+                                                                                 j
+                                                                                X                                   
+          E[Zj | π0 , . . . , πj−1 ] = E[Pj | π0 , . . . , πj−1 ] + E                       ηj ′ π0 , . . . , πj−1
+                                                                                   j ′ =1
+                                                      j
+                                                      X
+                                    = Pj−1 − ηj +              ηj ′                                              (by Proposition 9.1)
+                                                      j ′ =1
+
+                                    = Zj−1 .                                                                             (by definition)
+
+Thus, {Zj } is indeed a martingale with respect to {πj } as desired. Finally, note that
+
+                                       |Zj − Zj−1 | = |Pj − Pj−1 + ηj | ≤ 2t
+
+
+                                                               36
+since each term is in [0, t], and so we can apply Azuma–Hoeffding’s (Theorem 6) to conclude
+
+                                                           (Dη − t)2
+                                                                    
+                         Pr[ZD − Z0 ≥ Dη − t] ≤ exp −Ω                   .
+                                                               Dt2
+
+For an appropriate choice of D = poly(t, 1/η, log(1/δ)), we achieve the desired bound of Pr[ZD −Z0 ≥
+Dη − t] ≤ δ.
+
+Remark 9.2 (This proof robustifies). The proof of Lemma 4.7 assumes that we pick a coordinate
+with query weight > η at each step. For its algorithmic version (Section 10.1), we will need the
+fact that the proof of Lemma 4.7 goes through essentially unmodified under the following weaker
+guarantee: Whenever a coordinate with query weight > η exists, we pick one with query weight
+> η/2.
+
+9.2    Implications of Lemma 4.7
+Claim 9.3 (Conjecture 1 ⇒ Simulation conjecture). If Conjecture 1 holds then the simulation
+conjecture holds.
+
+Proof. Assume Conjecture 1 and let η ∗ = poly(εδ/t) be the lower bound on query weights given
+by Claim 8.3. Let A be a t-query quantum algorithm and consider running the algorithm Simulate
+in Figure 3 on A, η ∗ , and δ. It represents a classical decision tree T of depth poly(t, 1/η ∗ , log(1/δ)) =
+poly(t, 1/ε, 1/δ) such that Aπ is η ∗ -regular for ≥ 1 − δ fraction of root-to-leaf paths π in T . For
+these π’s, Claim 8.3 tells us that Pr[|fπ (x) − E[fπ ]| ≥ ε] ≤ δ and T ’s leaf value is E[fπ ]. We can
+therefore conclude that Pr[|T (x) − f (x)| ≥ ε] ≤ 2δ.
+
+   As mentioned in the introduction, one can also consider a strong version of Conjecture 1 with a
+polylog(1/δ) dependence, which we now state formally:
+
+Conjecture 2 (Strong version of Conjecture 1). Let A be a t-query quantum algorithm and
+f : {0, 1}N → [0, 1] denote its acceptance probability. There is a variable i ∈ [N ] such that
+                                           !
+                                     1
+                                                where δ := min Pr[f (x) ≥ 23 ], Pr[f (x) ≤ 13 ] .
+                                                                
+          E [Wi (x)] ≥ poly            1
+                                         
+       x∼{0,1}N                  t log δ
+
+    By Lemma 4.7, this strong version implies a strong version of the simulation conjecture where the
+classical query complexity has a polylog(1/δ) dependence rather than poly(1/δ). The proof of this
+implication is essentially identical to that of Claim 9.3. The only difference is that under Conjecture 2,
+the lower bound of Claim 8.3 improves from poly(εδ/t) to poly(ε/(t log(1/δ))), and so the depth of
+the decision tree that Simulate represents improves from poly(t, 1/ε, 1/δ) to poly(t, 1/ε, log(1/δ)).
+    For the same reasons, Theorem 1 follows straightforwardly from Theorem 9 via Lemma 4.7.
+
+
+10     Implications for random-oracle separations
+In this section, we show that if PromiseBPP = PromiseBQP and our conjecture holds, then there
+is an efficient classical oracle algorithm that simulates any BQP oracle circuit on a random oracle.
+We also show that if PromiseQNC = PromiseBPTIME(npolylog(n) ), then there is an efficient classical
+oracle algorithm that simulates any QNC oracle circuit on a random oracle. These proofs require
+
+                                                     37
+our algorithmic regularity lemma (Lemma 4.8) that we prove in Section 10.1. We then give the
+implications of that regularity lemma in Section 10.2.
+
+Notation of this section. Note that in previous sections, we used x synonymously with O. That
+is not the case in this section. In this section, we consider quantum algorithms which on input
+x ∈ {0, 1}n , are allowed to query an oracle O ∈ {0, 1}N where N is exponentially larger than n. We
+will write C O (x) to denote the output of a quantum oracle circuit C on input |x⟩ and oracle O.
+     Most of our focus will be on the performance of C as a function of the oracle O, and we define
+suitable notation. For a restriction π, we use Cπ to denote the oracle circuit such that (Cπ )O = C Oπ .
+This oracle circuit can be constructed in time poly(|C|, |π|) and behaves as follows: Whenever C
+makes a query to its oracle, Cπ first checks if that query is restricted by π. If so, it uses π for the
+response. Otherwise, it queries the oracle.
+     We will frequently reason about the query weights of an oracle circuit and so define notation to
+do so. In this section we work in the fully adaptive model, where t is the number of adaptive queries
+                                                       (k)
+made by C. For any i ∈ [N ] and k ∈ [t] we use wi (C O ) to denote the query weight of C to the
+                                                             (k)
+ith index of O in its k th query and Wi (C O ) = k∈[t] wi (C O ) to refer to the corresponding total
+                                                    P
+query weight (recall Definition 5.4 applied to 1-parallel queries). As in Definition 4.1 C is η-regular
+if, for all i ∈ [N ] its total query weights satisfy EO [Wi (C O )] ≤ η.
+
+10.1    Our algorithmic regularity lemma
+In this section, we prove the following.
+
+Lemma 10.1 (Algorithmic regularity lemma, formal version of Lemma 4.8). If PromiseBPP =
+PromiseBQP, there is a classical randomized algorithm that takes as input a quantum oracle circuit C
+and access to an oracle O ∈ {0, 1}N , runs in time poly(|C|, 1/η, log(1/δ)), and outputs a restriction
+π consistent with O, satisfying, with probability at least 1 − δ over a uniform O and the randomness
+of the algorithm, that Cπ is η-regular.
+
+    To prove Lemma 10.1, we give an efficient way of executing Simulate from Figure 3 provided
+PromiseBPP = PromiseBQP. The key step is to design an algorithm for finding indices with high
+query weight (Corollary 10.7). Using a standard branch-and-prune approach (Proposition 10.6), it
+                 Pan algorithm to estimate sums of query weights; i.e. for any S ⊆ [N ], an algorithm
+suffices to design
+that estimates i∈S EO [Wi (C O )] (Claim 10.5). To do so, we begin by designing an algorithm for
+estimating the average acceptance probability of C O over a random oracle O (see Claim 10.4) and
+then show it can be instantiated to estimate sums of query weights.
+    We begin with the following folklore consequence of PromiseBPP = PromiseBQP.
+
+Claim 10.2 (Classical estimation of quantum acceptance probabilities). If PromiseBPP = PromiseBQP,
+then there is a classical randomized algorithm that, given a description of a quantum circuit C (with
+no oracle access), an accuracy parameter ε > 0, and a confidence parameter δ > 0, outputs an
+estimate p̂ satisfying
+                                   Pr[ | p̂ − Pr[C accepts] | ≥ ε] ≤ δ,
+in time poly(|C|, 1/ε, log(1/δ)).
+
+Proof. The canonical PromiseBQP-complete problem is: Given a quantum circuit C, accept if its
+acceptance probability is at least 2/3 and reject if it is less than 1/3. Therefore, if PromiseBPP =
+
+                                                  38
+PromiseBQP, this task can be done by a randomized polytime algorithm with failure probability
+≤ δ in time polynomial in the input circuit size and log(1/δ). By standard amplification techniques,
+these thresholds of 2/3 and 1/3 can be replaced with τ + ε and τ at the cost of a poly(1/ε) overhead.
+The desired result then follows by binary search.
+
+   In order to estimate the acceptance probability of a quantum oracle circuit, we need an efficient
+way of choosing a random oracle. For this, we use a standard construction of t-wise independent
+hash families.
+
+Fact 10.3 (t-wise independent hash families [Jof74], Corollary 3.34 of [Vad12]). For every m, t ∈ N,
+there is a family of t-wise independent functions H = {h : {0, 1}m → {0, 1}} such that choosing a
+random function from H takes O(tm) random bits, and evaluating a function from H takes poly(t, m)
+time.
+
+    For a quantum query circuit C, let µ denote the average acceptance probability of C over the
+uniform distribution of oracles,
+                                    µ(C) := Pr[C O accepts].
+                                                  O
+
+We may approximate µ by making use of the above strongly explicit t-wise independent functions.
+
+Claim 10.4 (PromiseBPP = PromiseBQP implies efficient approximation of acceptance probabilities).
+If PromiseBPP = PromiseBQP, there exists a classical algorithm ApproxExpectation which estimates
+the acceptance probability µ := PrO [C O accepts] of any quantum query circuit C, to tolerance τ and
+failure probability δ,
+                           Pr [|ApproxExpectation(C, τ, δ) − µ(C)| ≥ τ ] ≤ δ,
+and runs in time poly(|C|, τ1 , log 1δ ).
+                                      
+
+Proof. Suppose the circuit C makes t queries to O. Since the acceptance probability of a t-query
+quantum circuit is a multilinear polynomial of degree at most 2t in the bits of O, it is identical under
+any 2t-wise independent distribution. Thus, for any distribution U2t that is 2t-wise independent,
+
+                                 Pr[C O accepts] = Pr [C V accepts].
+                                 O                    V∼U2t
+
+We may equate V ∼ U2t with a 2t-wise independent hash H2t family over boolean functions
+h : {0, 1}n → {0, 1} on n = log N bits. Note that by Fact 10.3, sampling h ∼ H2t takes O(t · log N )
+random bits, and evaluating a function from H takes poly(t, log N ) time. Let Bq be the quantum
+algorithm which takes as input a seed s of size O(t log N ), samples hs ∼ H2t with the seed,
+and simulates C O by replacing each query to O with a call to hs . Bq is a quantum algorithm
+(without queries) that runs in time poly(|C|, t2 , log N ). For any fixed seed s, the circuit Bq (s) is
+a quantum circuit (without queries) of size poly(|C|, log N ). By Claim 10.2, there is a classical
+algorithm Bc which, given a seed s, accuracy ε, and failure probability δ ′ , outputs an estimate
+of Pr[Bq (s) accepts] to within ±ε with probability ≥ 1 − δ ′ , in time poly(|C|, 1/ε, log(1/δ ′ )). The
+algorithm ApproxExpectation proceeds as follows:
+                l        m
+  (i) Set m = 2 ln(4/δ)
+                    τ2
+                           and δ ′ = δ/(2m).
+
+ (ii) For j ∈ [m]: sample hj ∼ H2t and run Bc (hj , τ /2, δ ′ ) to obtain an estimate zj of Pr[Bq (hj ) accepts].
+
+
+                                                      39
+                   1        Pm
+ (iii) Output µ̂ = m           j=1 zj .
+
+    By a union bound, all estimates satisfy |zj − Pr[Bq (hj ) accepts]| ≤ τ /2 simultaneously with
+probability ≥ 1 − δ/2. Condition on this event. The values pj := Pr[Bq (hj ) accepts] ∈ [0, 1] are i.i.d.
+(over seed choice) with expectation µ. By Hoeffding’s inequality,
+                                    h P
+                                     1            τ
+                                                    i
+                                                                  2
+                                                                       δ
+                                  Pr m j pj − µ ≥ 2   ≤ 2 exp −mτ   /2 ≤ .
+                                                                        2
+            1 P
+Since |µ̂ − m  j pj | ≤ τ /2 on our conditioned event, the triangle inequality gives Pr[|µ̂ − µ| ≥ τ ] ≤ δ. 
+   The total runtime is m invocations of Bc on circuits of size poly(|C|, log N ), giving poly(|C|, τ1 , log 1δ ).
+
+
+       We next show how to estimate sums of query weights.
+
+Claim 10.5 (Estimating sums of query weights). If PromiseBPP = PromiseBQP, there exists a
+classical algorithm ApproxQueryWeights which takes as input an oracle circuit C and an efficiently
+representable subset of indices2 S ⊆ [N ] and parameters ε, δ, and satisfies
+                                                                                X
+                                                                                   E[Wi (C O )]
+                                                   
+   Pr |ApproxQueryWeights(C, S, ε, δ) − W S (C)| ≥ ε ≤ δ        where W S (C) =
+                                                                                               O
+                                                                                         i∈S
+
+and runs in time poly(|C|, 1ε , log 1δ ).
+                                      
+
+Proof. Let t denote the query complexity of the circuit C, which is upper bounded by |C|. For
+any round k ∈ [t] and set S, we design a quantum oracle circuit C̃ (k,S) so that on oracle O, the
+                                                                   (k)
+acceptance probability of (C̃ (k,S) )O is exactly equal to i∈S wi (C O ). This is simple to construct
+                                                           P
+
+given C and an efficient representation of S: C̃ (k,S) is the oracle circuit with final state given by the
+k th pre-query state, and measurement operator given by the projector onto the set S. Then, we
+observe that                                "               #
+                                      X       X (k)              X
+                                                         O
+                          W S (C) =        E      wi (C ) =          µ(C̃ (k,S) ),
+                                                     O
+                                             k∈[t]       i∈S         k∈[t]
+
+which suffices since the right-hand side of the above can be estimated using t invocations of
+Claim 10.4.
+
+   We will apply the following algorithm for finding heavy hitters given access to an estimation
+oracle, which is a standard technique in learning theory and property testing:
+
+Proposition 10.6 (Heavy hitters P via binary search [GL89]; see also [KM93, O’D14]). Let weights
+Wj ∈ [0, 1] for j ∈ [N ] satisfy j∈[N ] Wj ≤ M . Suppose we have access to an estimation oracle
+Est such that for any interval subset S = [a, b] ⊆ [NP
+                                                     ], precision ε > 0, and failure probability γ > 0,
+Est(S, ε, γ) returns an estimate Ŵ (S) of W (S) := j∈S Wj satisfying
+                                                                   
+                                             Pr |Ŵ (S) − W (S)| ≥ ε ≤ γ.
+
+in time T (ε, γ). Then, for any threshold τ > 0 and failure probability δ > 0, there exists an algorithm
+running in time poly(M, log N, T (τ /4, Ω((δτ )/(M log N )))) and satisfies:
+   2
+       Our proof will always take S to be an interval [a, b].
+
+
+                                                                40
+  (i) If there exists i⋆ ∈ [N ] with Wi⋆ ≥ τ , then the algorithm returns some i with Wi ≥ τ2 with
+      probability at least 1 − δ.
+
+ (ii) If no i⋆ ∈ [N ] satisfies Wi⋆ ≥ τ2 , then the algorithm returns ⊥ with probability at least 1 − δ.
+
+    For completeness, we give the proof in the appendix (Section D). We P   apply it to the vector
+W i (C) = EO [Wi (C O )] using Claim 10.5 as the estimation procedure. Since i∈[N ] W i (C) is upper
+bounded by |C|, we immediately obtain the following.
+
+Corollary 10.7 (Finding a heavy query weight). If PromiseBPP = PromiseBQP, there exists a
+classical (randomized) algorithm FindHeavy which takes as input a quantum query circuit C, a
+tolerance τ , and failure probability δ, and satisfies
+
+  (i) If there is an i⋆ with W i⋆ (C) ≥ τ , then FindHeavy(C, τ, δ) returns some i satisfying W i (C) ≥
+      τ /2 with probability at least 1 − δ.
+
+ (ii) If there is no i⋆ with W i⋆ (C) ≥ τ /2, then FindHeavy(C, τ, δ) returns ⊥ with probability at least
+      1 − δ,
+
+and runs in time poly(|C|, τ1 , log 1δ ).
+                                      
+
+   Using Corollary 10.7 we prove the main result of this subsection.
+
+Proof of Lemma 10.1. We run the algorithm Simulate (Figure 3), replacing the statement of the
+existence of a coordinate of high query weight (∃ Wi (πj−1 ) > η) with a call to FindHeavy(Cπj−1 , η, δ ′ )
+from Corollary 10.7, where δ ′ = 2D δ
+                                      and D = poly(t, η1 , log 1δ ) is the depth bound from Lemma 4.7.
+                                                                 
+
+Note that this requires constructing the circuit Cπj−1 which can be done in time poly(|C|, |πj−1 |).
+    If FindHeavy returns ⊥, the algorithm terminates; otherwise, it queries the returned index and
+continues.
+    By a union bound over all D steps, all calls to FindHeavy succeed simultaneously with probability
+at least 1 − D · δ ′ ≥ 1 − 2δ .
+    It remains to show that the algorithm terminates within D steps with high probability. By
+Remark 9.2, the proof of Lemma 4.7 extends to the setting where, at each step, we select a coordinate
+with expected query weight ≥ η2 rather than > η.
+    Combining both failure events, Cπ is η-regular with probability at least 1 − δ. Since       |πj | < D
+for each j < D, each of the D iterations calls FindHeavy in time poly(|C|, D, η1 , log 1δ ), so the total
+                                                                                         
+
+runtime is poly(|C|, η1 , log 1δ ).
+                                
+
+   The exact same proof as that of Lemma 10.1 gives the following.
+
+Claim 10.8. If PromiseQNC ⊆ PromiseBPTIME(npolylog(n) ), there is a classical randomized algo-
+rithm that takes as input a quantum oracle circuit C and access to an oracle O ∈ {0, 1}N , runs in
+time poly(npolylog(n) , 1/η, log(1/δ)), and outputs a restriction π consistent with O, satisfying, with
+probability at least 1 − δ over a uniform O and the randomness of the algorithm, that Cπ is η-regular.
+
+
+
+
+                                                    41
+10.2    Putting things together: Proofs of Theorems 2, 3 and 11
+We first show that if Conjecture 2 (the strong version of Conjecture 1 where the dependence on δ is
+only logarithmic) holds, then PromiseBPP = PromiseBQP iff they are equal relative to a random
+oracle.
+
+Theorem 10 (Theorem 2 restated). Assuming Conjecture 2, PromiseBPPO ̸= PromiseBQPO for a
+random oracle O with probability 1 if and only if PromiseBPP ̸= PromiseBQP.
+
+Proof. The easy direction is essentially the same argument as in [FR99] which showed that if
+BPP = ̸ BQP then they are also unequal relative to a random oracle with probability 1. We use the
+promise version of this statement. Briefly, if PromiseBPP ̸= PromiseBQP, there is some promise
+problem L ∈ PromiseBQP but not PromiseBPP. This problem is clearly in PromiseBQPO for any
+oracle O. Furthermore, an argument of [BG81] (originally for languages but easily extending
+to promise problems) shows that if L ∈   / PromiseBPP, then it is also not in PromiseBPPO with
+probability 1 over the randomness of O.
+     The harder direction is to show that if PromiseBPP = PromiseBQP then PromiseBPPO =
+PromiseBQPO with probability one over a random oracle O. We use Lemma 10.1 and Conjecture 2
+to show this holds. Let Q be any efficient quantum oracle Turing machine. We will construct an
+efficient classical oracle Turing machine A such that, with probability strictly greater than 0 over
+O, AO solves any promise problem that QO solves, meaning for all inputs x,
+
+                        PrQ [QO (x) = 1] ≥ 2/3 =⇒ PrA [AO (x) = 1] ≥ 2/3,
+                                                                                                   (25)
+                        PrQ [QO (x) = 1] ≤ 1/3 =⇒ PrA [AO (x) = 1] ≤ 1/3.
+
+ Kolmogorov’s zero–one law then implies PromiseBPPO = PromiseBQPO with probability 1 over the
+ randomness of O.
+     It suffices to show that, for any fixed x, the probability that Equation (25) holds is at least
+1P− 5−n . Then, a union bound over all possible strings x gives a failure probability of at most
+          n   −n ≤ 2/3 which is strictly less than 1.
+    n∈N 2 · 5
+     For any x, there is an efficient classical algorithm that constructs a poly(n)-sized oracle circuit
+ C such that the acceptance probability of C O is within a constant (1/100 will suffice) of QO (x) for
+ all oracles O [Yao93, MW19]. Then, we use Lemma 10.1 to efficiently find some restriction π such
+ that, with probability at least 1 − 1/3 · 5−n over a random oracle O, the circuit Cπ is η = 1/poly(n)
+ regular. By Conjecture 2 and Claim 8.1 this suffices to ensure that, for f (O) = Pr[C O accepts],
+                                                                              −n
+                      Pr[|f (O) − µ(Cπ )| ≥ 0.01 | O consistent with π] ≤ 5 3
+                       O
+
+Finally, we use Claim 10.4 with accuracy 0.01 and failure probability at most 1/3 · 5−n to estimate
+µ(Cπ ) and have the classical algorithm output 1[µ(Cπ ) ≥ 1/2]. A union bound over the three failure
+probabilities gives that Equation (25) holds with probability at least 1 − 5−n over a random oracle
+O, as desired.
+
+   The weaker form of our conjecture has a similar, but slightly weaker implication.
+
+Theorem 11. Assuming Conjecture 1, if PromiseBPP = PromiseBQP then PromiseBQPO ⊆
+PromiseHeurBPPO with probability 1 over a random oracle O.
+
+
+                                                  42
+    Note that if PromiseBQPO ⊆ PromiseHeurBPPO then BQPO ⊆ HeurBPPO . The proof of Theo-
+rem 11 is identical to that of Theorem 2 except we will only aim for a failure probability of n−c
+rather than 5−n and can therefore use Conjecture 1 in place of Conjecture 2.
+    Likewise, the proof of Theorem 3 is again identical to that of Theorem 2 except we use Claim 10.8
+in place of Lemma 10.1 and Theorem 9 in place of Conjecture 2.
+
+
+11     Final comments
+After the submission of this manuscript, the authors obtained a few straightforward improvements
+of Theorem 1. First, the simulation can be made round preserving, where the classical algorithm is
+itself also a d-round parallel algorithm. Second, a tighter analysis results in an improved classical
+query complexity of tO(d) . These proofs will appear in an accompanying note [BDST26].
+
+
+12     AI disclosure
+ChatGPT 5.4 was used for literature search, conversions of handwritten notes into electronic ones,
+proof checking, and copyediting.
+
+
+13     Acknowledgments
+We thank the FOCS reviewers for helpful feedback and suggestions.
+    Guy, Carmen, and Li-Yang are supported by NSF awards 1942123, 2211237, 2224246, a Sloan
+Research Fellowship, and a Google Research Scholar Award. Guy is also supported by a Jane
+Street Graduate Research Fellowship and Omer Reingold’s Simons Foundation investigators award.
+Carmen is also supported by a Stanford Computer Science Distinguished Fellowship, an NSF GRFP,
+Omer Reingold’s Simons Foundation investigators award, and a Jump Trading PhD Fellowship.
+This material is based upon work partially supported by the National Science Foundation under
+award No. 2016245 and 2440805 and by the Air Force Office of Scientific Research under grant
+agreement FA9550-21-1-0392. Jordan Docter is also supported in part by the Shoucheng Zhang
+Graduate Fellowship. Any opinions, findings, and conclusions or recommendations expressed in this
+material are those of the authors and do not reflect the views of Jump Trading.
+
+
+References
+[AA14]     Scott Aaronson and Andris Ambainis. The need for structure in quantum speedups.
+           Theory of Computing, 10(6):133–166, 2014. 1, 1, 1, 4.4
+
+[AA18]      Scott Aaronson and Andris Ambainis. Forrelation: A problem that optimally separates
+            quantum from classical computing. SIAM Journal on Computing, 47(3):982–1038, 2018.
+            1
+
+[Aar05]     Scott Aaronson. Ten semi-grand challenges for quantum copmuting theory. https:
+            //www.scottaaronson.com/writings/qchallenge.html, 2005. 1
+
+
+
+
+                                                 43
+[Aar08]    Scott Aaronson. How to solve longstanding open problems in quantum computing
+           using only Fourier Analysis. Invited lecture at Banff International Research Station.
+           http://www.scottaaronson.com/talks/openqc.ppt, 2008. 1, 1
+
+[Aar10]    Scott Aaronson. BQP and the polynomial hierarchy. In Proceedings of the 42nd ACM
+           Symposium on Theory of Computing (STOC), pages 141–150, 2010. 1
+
+[Aar22]    Scott Aaronson. How much structure is needed for huge quantum speedups? arXiv
+           preprint arXiv:2209.06930, 2022. Edited transcript of a rapporteur talk delivered at the
+           28th Solvay Physics Conference in Brussels. 1, 2.2
+
+[Amb02]    Andris Ambainis. Quantum lower bounds by quantum arguments. Journal of Computer
+           and System Sciences, 64(4):750–767, 2002. 2.1.1
+
+[BB14]     Arturs Backurs and Mohammad Bavarian. On the sum of L1 influences. In Proceedings
+           of the IEEE 29th Conference on Computational Complexity (CCC), pages 132–143, 2014.
+           1
+
+[BBBV97] Charles H. Bennett, Ethan Bernstein, Gilles Brassard, and Umesh Vazirani. Strengths
+         and weaknesses of quantum computing. SIAM Journal on Computing, 26(5):1510–1523,
+         October 1997. 2, 2.1.1, 4.1, 5.2, B.1, B
+
+[BBC+ 01] Robert Beals, Harry Buhrman, Richard Cleve, Michele Mosca, and Ronald de Wolf.
+          Quantum lower bounds by polynomials. Journal of the ACM, 48(4):778–797, 2001. 1,
+          2.1.1, 8.2, A
+
+[BDST26] Guy Blanc, Jordan Docter, Carmen Strassle, and Li-Yang Tan. A note on limitations of
+         parallel quantum speedups. Manuscript, 2026. 11
+
+[BG81]     Charles Bennett and John Gill. Relative to a Random Oracle A, PA ̸= NPA ̸= coNPA
+           with Probability 1. SIAM Journal on Computing, 10(1):96–113, 1981. 2.3, 2.3, 10.2
+
+[Bha25]    Sreejata Kishor Bhattacharya. Random restrictions of bounded low degree polynomials
+           are juntas. In Proceedings of the 16th Innovations in Theoretical Computer Science
+           Conference (ITCS), volume 325, pages 17:1–17:21, 2025. 1
+
+[Bon70]    Aline Bonami. Étude des coefficients de Fourier des fonctions de Lp (G). Annales de
+           l’Institut Fourier, 20(2):335–402, 1970. 1
+
+[BSdW22] Nikhil Bansal, Makrand Sinha, and Ronald de Wolf. Influence in completely bounded
+         block-multilinear forms and classical simulation of quantum algorithms. In Proceedings
+         of the 37th Computational Complexity Conference (CCC), volume 234, pages 28:1–28:21,
+         2022. 1
+
+[Bur19]    Paul Burchard. Lower bounds for parallel quantum counting.              arXiv preprint
+           arXiv:1910.04555, 2019. 2.2
+
+[BV97]     Ethan Bernstein and Umesh Vazirani. Quantum complexity theory. SIAM Journal on
+           Computing, 26(5):1411–1473, 1997. 2.3
+
+
+
+                                               44
+[CCG+ 94] Richard Chang, Benny Chor, Oded Goldreich, Juris Hartmanis, Johan Håstad, Desh
+          Ranjan, and Pankaj Rohatgi. The random oracle hypothesis is false. Journal of Computer
+          and System Sciences, 49(1):24–39, 1994. 2.3
+
+[CGV25]    Joseph Carolan, Amin Shiraz Gilani, and Mahathi Vempati. Quantum advantage and
+           lower bounds in parallel query complexity. In Proceedings of the 16th Innovations in
+           Theoretical Computer Science Conference (ITCS), volume 325, pages 31:1–31:14, 2025.
+           2.2
+
+[CW00]     Richard Cleve and John Watrous. Fast parallel circuits for the quantum Fourier
+           transform. In Proceedings of the 41st Annual Symposium on Foundations of Computer
+           Science (FOCS), pages 526–536, 2000. 2.3
+
+[DFKO07] Irit Dinur, Ehud Friedgut, Guy Kindler, and Ryan O’Donnell. On the Fourier tails of
+         bounded functions over the discrete cube. Israel Journal of Mathematics, 160(1):389–412,
+         2007. 1, 2.2, 4.2, 2, 8.2, 8
+
+[DMP19]    Andreas Defant, Mieczyslaw Mastylo, and Antonio Pérez. On the Fourier spectrum of
+           functions on boolean cubes. Mathematische Annalen, 374(1):653–680, 2019. 1
+
+[DP09]     Devdatt Dubhashi and Alessandro Panconesi. Concentration of measure for the analysis
+           of randomized algorithms. Cambridge University Press, 2009. 4.1
+
+[EPS26]    Francisco Escudero Gutiérrez, Carlos Palazuelos, and Miquel Saucedo. Optimal in-
+           equalities for completely bounded polynomials and the limitations of quantum query
+           algorithms. Manuscript, 2026. 3
+
+[FHH+ 14] Yuval Filmus, Hamed Hatami, Steven Heilman, Elchanan Mossel, Ryan O’Donnell,
+          Sushant Sachdeva, Andrew Wan, and Karl Wimmer. Real Analysis in Computer Sci-
+          ence: A collection of open problems. https://simons.berkeley.edu/sites/default/
+          files/openprobsmerged.pdf, 2014. 2
+
+[FHKL16] Yuval Filmus, Hamed Hatami, Nathan Keller, and Noam Lifshitz. On the sum of L1
+         influences of bounded functions. Israel Journal of Mathematics, 214(1):167–192, 2016. 1
+
+[For21]    Lance Fortnow. Worlds to die harder for: Open oracle questions for the 21st century.
+           ACM SIGACT News, 52(3):26–36, 2021. 1
+
+[FR99]     Lance Fortnow and John Rogers. Complexity limitations on quantum computation.
+           Journal of Computer and System Sciences, 59(2):240–252, 1999. 1, 2.3, 2.3, 10.2
+
+[GL89]     Oded Goldreich and Leonid Levin. A hard-core predicate for all one-way functions. In
+           Proceedings of the 21st Annual ACM Symposium on Theory of Computing (STOC),
+           pages 25–32, 1989. 4.4, 10.6, D
+
+[Got10]    Daniel Gottesman. An introduction to quantum error correction and fault-tolerant
+           quantum computation. In Quantum information science and its contributions to mathe-
+           matics, Proceedings of Symposia in Applied Mathematics, volume 68, pages 13–58, 2010.
+           2.2
+
+
+                                               45
+[GR04]     Lov Grover and Jaikumar Radhakrishnan. Quantum search for multiple items using
+           parallel queries. arXiv preprint, quant-ph/0407217, 2004. 2.2
+
+[GSTW24] Uma Girish, Makrand Sinha, Avishay Tal, and Kewen Wu. The power of adaptivity
+         in quantum query algorithms. In Proceedings of the 56th Annual ACM Symposium on
+         Theory of Computing (STOC), pages 1488–1499, 2024. 2.2
+
+[Gut24]    Francisco Escudero Gutiérrez. Influences of Fourier completely bounded polynomials and
+           classical simulation of quantum algorithms. Chicago Journal of Theoretical Computer
+           Science, 2024. 1
+
+[Har85]    Juris Hartmanis. Solvable problems with conflicting relativizations. Bull. EATCS,
+           27:40–48, 1985. 2.3
+
+[HLŠ07]   Peter Høyer, Troy Lee, and Robert Špalek. Negative weights make adversaries stronger.
+           In Proceedings of the 39th Annual ACM Symposium on Theory of Computing (STOC),
+           pages 526–535, 2007. 2.1.1
+
+[JMdW17] Stacey Jeffery, Frédéric Magniez, and Ronald de Wolf. Optimal parallel quantum query
+         algorithms. Algorithmica, 79(2):509–529, 2017. 2.2
+
+[Jof74]    Anatole Joffe. On a Set of Almost Deterministic k-Independent Random Variables. The
+           Annals of Probability, 2(1):161 – 162, 1974. 10.3
+
+[KLPY10] Pascal Koiran, Jürgen Landes, Natacha Portier, and Penghui Yao. Adversary lower
+         bounds for nonadaptive quantum algorithms. Journal of Computer and System Sciences,
+         76(5):347–355, 2010. 2.2
+
+[KM93]     Eyal Kushilevitz and Yishay Mansour. Learning decision trees using the Fourier spectrum.
+           SIAM Journal on Computing, 22(6):1331–1348, December 1993. 4.4, 10.6, D
+
+[Kur82]    Stuart Kurtz. On the random oracle hypothesis. In Proceedings of the 14th Annual
+           ACM Symposium on Theory of Computing (STOC), pages 224–230, 1982. 2.3
+
+[LM26]     Qipeng Liu and Saachi Mutreja, 2026. Personal communication. 3
+
+[LMR+ 11] Troy Lee, Rajat Mittal, Ben W Reichardt, Robert Špalek, and Mario Szegedy. Quantum
+          query complexity of state conversion. In Proceedings of the 52nd Annual Symposium on
+          Foundations of Computer Science (FOCS), pages 344–353, 2011. 2.1.1
+
+[LZ23]     Shachar Lovett and Jiapeng Zhang. Fractional certificates for bounded functions. In
+           Proceedings of the 14th Innovations in Theoretical Computer Science Conference (ITCS),
+           pages 84:1–84:13, 2023. 1
+
+[McD89]    Colin McDiarmid. On the method of bounded differences. Surveys in combinatorics,
+           141(1):148–188, 1989. 4.1
+
+[MJM15]    Ashley Montanaro, Richard Jozsa, and Graeme Mitchison. On exact quantum query
+           complexity. Algorithmica, 71(4):775–796, 2015. 2.2
+
+
+
+                                               46
+[Mon10]   Ashley Montanaro. Nonadaptive quantum query complexity. Information Processing
+          Letters, 110(24):1110–1113, 2010. 2.2
+
+[Mon12]   Ashley Montanaro. Some applications of hypercontractive inequalities in quantum
+          information theory. Journal of Mathematical Physics, 53(12), 2012. 1
+
+[MU17]    Michael Mitzenmacher and Eli Upfal. Probability and computing: Randomization and
+          probabilistic techniques in algorithms and data analysis. Cambridge University Press,
+          2017. 5
+
+[MW19]    Abel Molina and John Watrous. Revisiting the simulation of quantum Turing machines
+          by quantum circuits. Proceedings of the Royal Society A, 475(2226):20180767, 2019. 10.2
+
+[NY04]    Harumichi Nishimura and Tomoyuki Yamakami. An algorithmic argument for nonadap-
+          tive query complexity lower bounds on advised quantum computation. In Proceedings
+          of the 29th International Symposium on Mathematical Foundations of Computer Science
+          (MFCS), volume 3153, pages 827–838, 2004. 2.2
+
+[O’D12]   Ryan O’Donnell. Open problems in analysis of boolean functions. CoRR, abs/1204.6447,
+          2012. 2
+
+[O’D14]   Ryan O’Donnell. Analysis of Boolean Functions. Cambridge University Press, 2014. 1,
+          10.6, D
+
+[OZ16]    Ryan O’Donnell and Yu Zhao. Polynomial bounds for decoupling, with applications. In
+          Proceedings of the 31st Conference on Computational Complexity (CCC), pages 1–18,
+          2016. 1
+
+[Pre18]   John Preskill. Quantum computing in the NISQ era and beyond. Quantum, 2:79, 2018.
+          2.2
+
+[Rei09]   Ben Reichardt. Span programs and quantum query complexity: The general adversary
+          bound is nearly tight for every boolean function. In Proceedings of the 50th Annual
+          IEEE Symposium on Foundations of Computer Science (FOCS), pages 544–551, 2009.
+          2.1.1
+
+[Sho97]   Peter Shor. Polynomial-time algorithms for prime factorization and discrete logarithms
+          on a quantum computer. SIAM Journal on Computing, 26(5):1484–1509, 1997. 1
+
+[Sim97]   Daniel Simon. On the power of quantum computation. SIAM Journal on Computing,
+          26(5):1474–1483, 1997. 1
+
+[Tal96]   Michel Talagrand. A new look at independence. The Annals of Probability, pages 1–34,
+          1996. 4.2, 5
+
+[Vad12]   Salil P Vadhan. Pseudorandomness. Foundations and Trends in Theoretical Computer
+          Science, 7(1-3):1–336, 2012. 10.3
+
+[vD98]    Wim van Dam. Quantum oracle interrogation: Getting all information for almost half
+          the price. In Proceedings of the 39th Annual Symposium on Foundations of Computer
+          Science (FOCS), pages 362–367, 1998. 2.2
+
+                                              47
+[Yao93]     Andrew Chi-Chih Yao. Quantum circuit complexity. In Proceedings of 34th Annual
+            Symposium on Foundations of Computer Science (FOCS), pages 352–361, 1993. 10.2
+
+[YZ24]      Takashi Yamakawa and Mark Zhandry. Verifiable quantum advantage without structure.
+            Journal of the ACM, 2024. 2.2
+
+[Zal99]     Christof Zalka. Grover’s quantum searching algorithm is optimal. Physical Review A,
+            60(4):2746–2751, 1999. 2.2
+
+
+A     Aaronson–Ambainis implies Conjecture 1
+Claim A.1. If the Aaronson–Ambainis conjecture is true, then Conjecture 1 is also true.
+    We will use the following simple relation between query weights and influences.
+Proposition A.2. Let A be a d-round quantum query algorithm with query weights W1 (x), . . . , WN (x)
+and let f : {0, 1}N → [0, 1] denote its acceptance probabilities. Then for each i ∈ [N ],
+                                                                    
+                                                          Inf i (f )
+                                        E [Wi (x)] ≥ Ω
+                                    x∼{0,1}N                  d
+
+where Inf i (f ) := Ex∼{0,1}N (f (x) − f (x⊕i ))2 and x⊕i denotes x with its i-th bit flipped.
+                                                
+
+Proof. For any x ∈ {0, 1}N , Equation (8) gives that
+                    p         q              X q (r)
+                                    ⊕i
+                       f (x) − f (x ) ≤ 2          wi (x)
+                                             r∈[d]
+                                           √ s X (r)
+                                         ≤2 d   wi (x)                            (Cauchy-Schwarz)
+                                                     r∈[d]
+                                            √ p
+                                         = 2 d Wi (x).
+
+Next, observe that for any p, q ∈ [0, 1],
+                                     √    √   √   √        √   √
+                        (p − q)2 = ( p + q)2 ( p − q)2 ≤ 4( p − q)2 .
+
+Combining this with the prior equation completes the proof:
+                                   "         q        2 #
+                                      p                                    
+                   Inf i (f ) ≤ 4 E    f (x) − f (x⊕i )     ≤ 16d · E Wi (x) .
+
+Proof of Claim A.1. Let A be a t-query quantum algorithm with acceptance probabilities f :
+{0, 1}N → [0, 1] and define
+
+                            δ := min Pr[f (x) ≥ 23 ], Pr[f (x) ≤ 13 ] .
+                                    
+
+Since f has degree at most 2t [BBC+ 01], the Aaronson–Ambainis conjecture gives an i ∈ [N ] for
+which                                                        
+                                                      Var(f )
+                                  Inf i (f ) ≥ poly             .
+                                                        t
+
+                                                 48
+Next we relate Var(f ) to δ. Writing Var(f ) = E[(f (x) − µ)2 ] where µ := E[f ], we see that if µ ≤ 1/2
+then Var(f ) ≥ Pr[f (x) ≥ 2/3] · (1/6)2 , and if µ ≥ 1/2 then Var(f ) ≥ Pr[f (x) ≤ 1/3] · (1/6)2 . In
+either case, Var(f ) ≥ Ω(δ). Since every t-query algorithm is trivially also a t-round algorithm:
+                                                      
+                                            Inf i (f )
+                        E [Wi (x)] ≥ Ω                                    (Proposition A.2 with d = t)
+                     x∼{0,1}N                   t
+                                                        
+                                               Var(f )
+                                     ≥ poly                                       (Aaronson–Ambainis)
+                                                    t
+                                              
+                                               δ
+                                     ≥ poly          .                                 (Var(f ) ≥ Ω(δ))
+                                               t
+
+This completes the proof.
+
+
+B     Hybrid method
+With respect to the t-parallel index and set query weights, a modified hybrid method bounds the
+distance of the final states of a quantum algorithm on differing oracle inputs. For a set B ⊆ [N ] we
+                                                                                 (t)
+define Π∩B as the projector given by the sum of the orthogonal projectors ΠS for any S ⊆ [N ]
+which have nonempty intersection with B, such that
+                                        (t)                   (t)
+                                                    X
+                                      Π∩∆(x,y) :=           ΠS .
+                                                                     S∩∆(x,y)̸=∅
+
+We write Π∩∆(x,y) without the superscript t when it is clear from context.
+
+Proposition B.1 (Hybrid Method (parallel query variation) [BBBV97]). Consider a t-parallel
+d-round query algorithm with intermediate pre-query states ψ (r) (x) for each r ∈ [d] and final state
+|Ψ(x)⟩. For any two oracle inputs x, y ∈ {0, 1}N , the following properties hold:
+
+  (i) Initial condition:        ψ (1) (x) − ψ (1) (y)            2
+                                                                     = 0.
+
+ (ii) Progress evolution, for any r ∈ {2, . . . , d}:
+                     E           E                    E        E                                                     E
+            ψ (r) (x) − ψ (r) (y)   ≤ ψ (r−1) (x) − ψ (r−1) (y)                           + 2 Π∩∆(x,y) ψ (r−1) (x)           ,
+                                             2                                        2                                  2
+
+                        E                E                          E and         E                               E
+                (r)             (r)                      (r−1)
+            ψ         (x) − ψ         (y)        ≤   ψ           (x) − ψ (r−1) (y)        + 2 Π∩∆(x,y) ψ (r−1) (y)  .
+                                             2                                        2                                  2
+
+
+(iii) Distinguishability constraint: If a measurement M0 distinguishes the final states such that
+      f (x) = ∥M0 |Ψ(x)⟩∥22 and f (y) = ∥M0 |Ψ(y)⟩∥22 , then
+
+                 ∥|Ψ(x)⟩ − |Ψ(y)⟩∥22 ≥ ( f (x) − f (y))2 + ( 1 − f (x) − 1 − f (y))2 .
+                                        p        p           p           p
+
+
+   The argument follows the standard hybrid method closely [BBBV97], but we give it here for
+completeness.
+
+
+
+                                                                     49
+Proof. The initial condition follows by definition, as the starting state is independent of the oracle
+input. The proof of progress evolution follows from the triangle inequality and unitary invariance of
+the ℓ2 -norm:
+            E           E                                   E                    E             E
+   ψ (r) (x) − ψ (r) (y)    = Ur (Ox⊗t − Oy⊗t ) ψ (r−1) (x) + Ur Oy⊗t ψ (r−1) (x) − ψ (r−1) (y)
+                          2                                                                         2
+                                                          E                E               E
+                                  ⊗t    ⊗t     (r−1)              (r−1)          (r−1)
+                            ≤ (Ox − Oy ) ψ            (x)     + ψ       (x) − ψ         (y)
+                                                            2                                 2
+                                                      E                 E              E
+                                            (r−1)              (r−1)          (r−1)
+                            ≤ 2 Π∩∆(x,y) ψ        (x)      + ψ       (x) − ψ        (y)     .
+                                                                2                         2
+
+For the distinguishability constraint, we relate the Euclidean distance to the quantum fidelity, and
+subsequently to the classical Hellinger distance. By the monotonicity of fidelity under completely
+positive trace-preserving maps (such as the measurement M0 ), we have:
+                                        p             p
+                       |⟨Ψ(y)|Ψ(x)⟩| ≤ f (x)f (y) + (1 − f (x))(1 − f (y)).
+
+Thus, the squared Euclidean distance is bounded by:
+
+            ∥|Ψ(x)⟩ − |Ψ(y)⟩∥22 = 2 − 2 Re ⟨Ψ(y)|Ψ(x)⟩
+                                  ≥ 2 − 2|⟨Ψ(y)|Ψ(x)⟩|
+                                          p             p                      
+                                  ≥2−2       f (x)f (y) + (1 − f (x))(1 − f (y))
+                                    p         p       2  p            p        2
+                                  =    f (x) − f (y) +       1 − f (x) − 1 − f (y) .
+
+
+C     Proof of Corollary 5.6
+Proof. Note that the weighted distance measures have a physical interpretation with respect to
+pre-query states at each round r ∈ [d],
+                                                                                  E 2
+                                                        (r)      (t)
+                                            X
+                    distD(r) (x, y) =                  wS (x) = Π∩∆(x,y) ψ (r) (x)    ,           (26)
+                          x                                                          2
+                                         S∩∆(x,y)̸=∅
+                                                        and
+                                                                                  E 2
+                                                        (r)      (t)
+                                            X
+                     distD(r) (x, y) =                 wS (y) = Π∩∆(x,y) ψ (r) (y)    ,           (27)
+                           y                                                         2
+                                         S∩∆(x,y)̸=∅
+
+Item (i) follows directly from the initial condition of Proposition B.1. We address Item (iii) first.
+Applying the distinguishability constraint of Proposition B.1,
+                         p             2 p                       2 p              2
+ ∥|Ψ(x)⟩ − |Ψ(y)⟩∥22 ≥
+                                  p                      p                       p
+                           f (x) − f (y) +    1 − f (x) − 1 − f (y) ≥     f (x) − f (y) .
+
+By the initial condition and progress measure of Proposition B.1,
+                                                X                      E
+                         ∥|Ψ(x)⟩ − |Ψ(y)⟩∥2 ≤ 2     Π∩∆(x,y) ψ (r) (x)   .
+                                                                                 2
+                                                        r∈[d]
+
+
+
+
+                                                        50
+Combining these two inequalities and with Equations (26) and (27), we obtain
+                                                 2
+                                                E     p               2
+                               (t)
+                       X                                         p
+                   2        Π∩∆(x,y) ψ (r) (x)    ≥     f (x) − f (y) .                              (28)
+                                                               2
+                             r∈[d]
+
+The last inequality of Item (iii) follows from Equation (4) and the first follows from Equation (5).
+                                                  − 1-round quantum algorithm given by the first r
+Item (ii) follows by applying Item (iii) to the r P
+intermediate states whose final measurement is S∈supp(ϕ) ΠS and acceptance probability for each
+x ∈ {0, 1}N given by,
+                                                     2
+                                                 E
+                                                                          (r)
+                           X                                   X
+                                     ΠS ψ (r) (x)        =               wS (x) =    E [ϕ(S)].
+                                                                                       (r)
+                        S∈supp(ϕ)                            S∈supp(ϕ)              S∼Dx
+                                                     2
+
+
+
+
+D      Proof of Proposition 10.6
+The proof is a straightforward application of the branch-and-prune technique for finding heavy
+hitters [GL89, KM93, O’D14], which we include for completeness.
+Proof. Set L = ⌈log N ⌉, ε = τ4 , and γ = O( MδτL ). The algorithm proceeds as follows.
+    1. Set the active list L0 = {[N ]}.
+    2. For each level ℓ = 0, 1, . . . , L − 1:
+        (a) For each S ∈ Lℓ , partition S into two halves S1 , S2 of size ⌊ |S|       |S|
+                                                                             2 ⌋ and ⌈ 2 ⌉.
+        (b) For each half Sb , b ∈ {1, 2}, compute Ŵ (Sb ) ← Est(Sb , ε, γ).
+        (c) Set Lℓ+1 = {Sb : Ŵ (Sb ) > τ2 }.
+    3. In the last layer, only singletons will remain. For each such singleton {i} ∈ LL , compute
+       Ŵ ({i}) ← Est({i}, τ4 , γ). If Ŵ ({i}) ≥ 3τ
+                                                   4 , return i.
+
+    4. If no singleton has high enough weight, return ⊥.
+    Correctness. We condition on the event E that all calls to Est return estimates within their
+prescribed precision. We first bound the branching. Any set S that enters Lℓ+1 satisfies Ŵ (S) > τ2,
+so W (S) > τ2 −ε > 0. At each level, the active sets are disjoint subsets of [N ], so |Lℓ | ≤ τM        M
+                                                                                                 −ε = O τ .
+                                                                                               2
+Over L levels, the total number of calls to Est with parameters ε = τ4 , and γ = 2M     δτ         M
+                                                                                                           
+                                                                                           L is O τ log N ,
+giving the run time.
+    Item (i): suppose Wi⋆ ≥ τ for some i⋆ ∈ [N ]. At each level, the half containing i⋆ has true
+weight ≥ Wi⋆ ≥ τ , so its estimate is ≥ τ − ε > τ2 . Thus i⋆ is tracked to a leaf. At verification,
+Ŵ ({i⋆ }) ≥ Wi⋆ − τ4 ≥ 3τ       ⋆
+                         4 , so i (or some other heavy index reached first) is returned.
+    Item (ii): if no index has Wi ≥ τ2 , then at any leaf {i}, Ŵ ({i}) ≤ Wi + τ4 < 3τ 4 , so no leaf passes
+verification and the algorithm returns ⊥.
+    Failure probability. The total number of calls to Est is at most O M
+                                                                                    
+                                                                               τ  L . By a union bound,
+Pr[E] ≤ O M
+                 
+             τ L · γ = δ, as required.
+
+
+
+                                                             51
+

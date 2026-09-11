@@ -1,0 +1,2282 @@
+                                                       Streaming Algorithms for Monotonicity Testing
+
+                                         Amir Azarmehr∗           Soheil Behnezhad∗          Lily Chung†         Alma Ghafari∗         Jane Lange†
+                                                                                     Ronitt Rubinfeld†
+arXiv:2608.07073v2 [cs.DS] 9 Sep 2026
+
+
+
+
+                                                                                          Abstract
+
+                                                   Consider a poset—or equivalently an n-vertex DAG G = (V, E)—and ⃗         a boolean function
+                                                                                                                                       ⃗ While
+                                              f : V → {0, 1} on its vertex set. We say f is monotone if f (u) ≤ f (v) for all (u, v) ∈ E.
+                                              there is extensive literature on the query complexity of testing monotonicity, we focus instead
+                                              on the space complexity and initiate the study of this problem in the streaming setting. Namely,
+                                              the edges of G arrive in an arbitrary order, and the goal is to estimate distance to monotonicity
+                                              of a given function f using O(n)
+                                                                           e     space. Note that while this space allows receiving and storing
+                                              f , it is much smaller than the input graph G which could have up to Ω(n2 ) edges.
+                                                  Our main result is an algorithm that (1 + ε)-approximates distance to monotonicity in
+                                              √ 1+o(1)
+                                                n       passes. We also prove that this is the best pass-complexity one can hope for, for
+                                              any O(1)-approximation, short of improving the state-of-the-art streaming algorithm for st-
+                                              reachability, which is a very well-studied problem.
+                                                  On the technical side, our algorithm approximates the size of maximum matching in (a
+                                              subgraph of) the transitive closure of G. While the maximum matching problem has received
+                                              significant attention in the streaming setting, the fact that we are computing it in the transitive
+                                              closure requires very different ideas. In fact, a main contribution of our work is to connect
+                                              sublinear time algorithms for estimating the maximum matching size to the streaming setting for
+                                                                                                                                        √ 1+o(1)
+                                              the first time. While existing off-the-shelf sublinear time algorithms only result in an n n
+                                              pass algorithm in our setting, we show how to significantly improve upon them by allowing
+                                              stronger queries (such as vertex and subset queries) that can be implemented just as efficiently
+                                              as more standard adjacency matrix and list queries for our problem.
+
+
+
+
+                                            ∗
+                                              Northeastern University, {azarmehr.a, s.behnezhad, ghafari.m}@northeastern.edu. A.A., S.B., and A.G. were
+                                        supported in part by NSF CAREER Award CCF-2442812, a Sloan Fellowship, and a Google Research Award.
+                                            †
+                                              MIT CSAIL, {lkdc, jlange}@mit.edu, ronitt@csail.mit.edu. L.C. and J.L. were supported by the Big George
+                                        fellowship. L.C., J.L., and R.R. were supported by NSF TRIPODS Award DMS-2022448 and NSF Award CCF-
+                                        2310818.
+Contents
+
+1 Introduction                                                                                            1
+  1.1   Main Technique: Query Complexity of Maximum Matching Size . . . . . . . . . . . .                 1
+  1.2   Future Directions and Open Problems . . . . . . . . . . . . . . . . . . . . . . . . . .           5
+  1.3   Further Related Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        5
+
+2 Preliminaries                                                                                           6
+  2.1   Definitions and Notation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      6
+  2.2   Standard Facts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      6
+
+3 Global Matching Estimation                                                                              6
+  3.1   Validity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    8
+  3.2   Approximation Ratio . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      11
+
+4 Implementation With Subset Queries                                                                     12
+  4.1   Degree Estimation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      12
+        4.1.1   Degree Estimation Through Geometric Sampling . . . . . . . . . . . . . . . .             13
+        4.1.2   Proof of Lemma 4.1 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       14
+  4.2   Low-Degree Phase Implementation . . . . . . . . . . . . . . . . . . . . . . . . . . . .          14
+  4.3   Proof of Theorem 4 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     19
+
+5 Streaming Distance-to-Monotonicity Estimation                                                          21
+
+6 Implementation With Vertex Queries                                                                     23
+  6.1   Correctness and Approximation Ratio of the Modified Global Algorithm . . . . . . .               24
+  6.2   Implementing the Modified Algorithm Using Vertex Queries . . . . . . . . . . . . . .             25
+  6.3   Proof of Theorem 2 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     26
+
+7 Better Approximation Ratios with Subset Queries                                                        27
+
+8 The Lower Bound                                                                                        31
+1        Introduction
+
+Consider a poset—or equivalently an n-vertex directed acyclic graph (DAG) G = (V, E).    ⃗ Suppose
+we are also given a boolean function f : V → {0, 1} defined on the vertex set of this graph. Function
+f is said to be monotone if f (u) ≤ f (v) for all (u, v) ∈ E.
+                                                           ⃗ We study algorithms that efficiently
+determine the distance to monotonicity of f , denoted dmon (f ), which is defined as the minimum
+number of entries of f that have to change in order to make f monotone.
+    Monotonicity testing has been studied extensively in the literature (see Section 1.3). However,
+nearly all these works study the query complexity of this problem. That is, they assume that the
+graph G is entirely known in advance and can be accessed for free, and study how many queries
+to f are needed in order to estimate its distance to monotonicity. Our focus instead is on massive
+inputs, where the graph G cannot be stored and randomly accessed by the algorithm.
+   More specifically, we study streaming algorithms for approximating distance to monotonicity:
+The edges of G arrive one by one in a stream, and the algorithm has space much smaller than this
+input. As standard in the literature of streaming graph algorithms, we allow O(n)
+                                                                             e    space1 , which is
+enough to receive and store the function f entirely, but is much smaller than the graph G which
+could include Ω(n2 ) edges.
+        Our main result in this paper is the following algorithm:
+
+                                                                                      √ 1+o(1)
+ Theorem 1. For any ε > 0, there is a randomized streaming algorithm that takes n                 ·
+ poly(1/ε) passes over the stream, uses O(n/ε2 ) space, and w.h.p. (1 + ε)-approximates d     (f ).
+                                                                                          mon
+                                        e
+
+                        √ 1+o(1)
+    At first glance, the n        pass-complexity might appear prohibitive. However, we prove that
+this is the best bound one can hope for short of a breakthrough in streaming algorithms. Specifically,
+we show in Theorem 9 that any p-pass O(1)-approximation of dmon (f ) also solves st-reachability in
+                                                                                           √ 1+o(1)
+p passes and O(n)
+               e    space. Since the fastest known streaming st-reachability algorithm uses n
+passes [JLS19, AJJ+ 22], this shows that any faster algorithm for approximately determining the
+distance to monotonicity would also improve the pass-complexity of streaming st-reachability.
+    In fact, our algorithm uses the streaming version of [JLS19] directly to compute a shortcut
+set, a set of edges which can be added to the graph to reduce its diameter without changing the
+reachability relation on vertices. Our algorithm’s pass complexity is (ignoring poly(log n) factors)
+equivalent to the diameter of this shortcut set. Therefore, as long as the fastest known streaming
+st-reachability algorithms continue to work by computing a shortcut set, the pass-complexity of
+Theorem 1 will match those algorithms.
+
+
+1.1        Main Technique: Query Complexity of Maximum Matching Size
+
+The key contribution of our work is to tie the streaming complexity of monotonicity testing to
+sublinear time algorithms for estimating the size of maximum matching. The latter problem has
+been studied extensively on its own over the last two decades, and has a rich literature with numerous
+applications (see Section 1.3). However, to our knowledge this is the first application of this problem
+in the streaming setting. Additionally, as we soon discuss, our work motivates the study of the query
+complexity of the maximum matching problem in alternative models, where the queries differ from
+    1
+        Here and throughout the paper we use O(f
+                                             e ) to suppress poly(log n) factors.
+
+
+
+                                                           1
+the standard adjacency-list or adjacency-matrix queries.
+
+Background: Monotonicity and matchings. The connection between the maximum matching
+problem and monotonicity of boolean functions dates back to the early monotonicity testing work
+of [DGL+ 99]. Let Gf be the violation graph defined on the same vertex set V , which has an edge
+{u, v} whenever u can reach v but f (u) > f (v). Denoting the size of a maximum matching of Gf
+by µ(Gf ), it is well-known that
+                                        dmon (f ) = µ(Gf ).
+Therefore, all we need to do is to estimate the size of maximum matching in Gf . While the maximum
+matching problem is extremely well-studied in the streaming setting, the main difference here is that
+we only receive the graph G and function f in the stream which define Gf implicitly. Indeed, even
+for checking the existence of a single edge (u, v) in Gf one needs to solve the st-reachability problem
+                         √ 1+o(1)
+in G, which itself takes n          passes.
+
+Query complexity of maximum matching size. Since direct access to the graph Gf is expen-
+sive in our setting, we would like to estimate its maximum matching size without querying too many
+edges of Gf . Luckily, this is also a very well-studied problem. For example, an algorithm of [Beh21]
+obtains a (2, εn)-approximation of the maximum matching size by making O(n)    e    adjacency-matrix
+queries to the graph. That is, each such query specifies two vertices and the response is whether
+they are adjacent. Each such query to Gf can easily be answered in our setting by two calls to an
+st-reachability algorithm of [JLS19], hence the final algorithm will take
+                                √ 1+o(1)
+                                   n         ·       O(n)
+                                                      e         = n3/2+o(1)
+                                | {z }               | {z }
+                              cost of a pair query number of pair queries
+                                                                      √ 1+o(1)
+passes in total. Unfortunately, this significantly exceeds our desired n       pass-complexity. But
+it is known (see [Beh21, PR07]) that Ω(n) adjacency-matrix queries are indeed needed to obtain
+any constant approximation of maximum matching size, so this black-box reduction cannot possibly
+result in our desired bound.2
+                                                  √
+     Our general idea for breaking through the n n barrier discussed above is to allow the matching
+size estimator to make stronger queries to the graph that can be implemented just as efficiently as
+adjacency-matrix queries in our model.
+
+The vertex-query model. Our first observation is that the algorithm of [JLS19] is actually not
+specific to st-reachability, but rather solves the more general single source reachability problem in
+√ 1+o(1)
+  n        passes. For us, this implies that for a vertex v, we can gather the entire neighbor set
+                     √ 1+o(1)
+NGf (v) of v in just n         passes. This motivates the study of the query complexity of maximum
+matching in the vertex query model:
+                               3
+
+Definition 1.1 (Vertex queries). In the vertex-query access model, the algorithm queries a vertex
+v ∈ V , and receives its neighborhood N (v).
+
+   Indeed, we show that this stronger query access model allows us to break the Ω(n) query lower
+bound for estimating the maximum matching size in the more standard query models. Namely, we
+prove that:
+   2
+      This lower bound holds even in the more powerful access model where adjacency-matrix, adjacency-list index
+(i-th neighbor of v), and degree queries can be mixed adaptively.
+    3
+      Some works in the literature of sublinear time algorithm also refer to such queries as all-neighbor queries.
+
+
+                                                          2
+ Theorem 2. Given an n-vertex graph G, there is a randomized algorithm that (3, εn)-
+                                                                   √
+ approximates the size of maximum matching of G for any ε > 0 using n · poly(log n, 1/ε)
+ vertex queries to G w.h.p.
+
+    Plugging Theorem 2 in the final algorithm instead of the pair query algorithm of [Beh21] improves
+the number of passes to
+                              √ 1+o(1)                   √
+                               n                 ·     O(
+                                                       e n)                = n1+o(1) ,
+                              | {z }                   | {z }
+                         cost of a vertex query number of vertex queries
+
+                                                                              √ 1+o(1)
+which is much fewer than n3/2+o(1) but still far from our desired              n       bound.
+
+The subset-query model. Our final observation is that the algorithm of [JLS19] can in fact be
+                                     √ 1+o(1)
+used to solve a subset query in just n        passes. Such queries are more powerful than vertex
+queries, and are defined as follows:
+
+Definition 1.2 (Subset Queries). In the subset-query access model, the algorithm queries a subset
+S ⊆ V , and receives its neighborhood N (S) = {u ∈ V : ∃v ∈ S such that {u, v} ∈ E}.
+
+   For us, it is crucial that each such query only returns the set N (S) and not which vertices of S
+each vertex in N (S) is adjacent to, as otherwise the algorithm of [JLS19] would not be applicable.
+    We show that subset queries allow for a more dramatic improvement in the query-complexity:
+only polylogarithmically many subset queries are required to estimate the matching size. The
+following theorem is our main technical contribution in this work:
+
+ Theorem 3. Given an n-vertex graph G, for any ε > 0, there is a randomized algorithm that
+ (1.5 + ε)-approximates the size of maximum matching in G using poly(log n, 1/ε) subset queries
+ to G w.h.p. If the graph is bipartite, then the approximation ratio improves to 1 + ε.
+
+   Now when we plug Theorem 3 in the final algorithm, the number of passes will be
+                             √ 1+o(1)                                         √ 1+o(1)
+                              n              ·       poly(log n)          =    n       ,
+                             | {z }                  | {z }
+                        cost of a subset query number of subset queries
+
+which immediately implies Theorem 1. We note that we apply Theorem 3 in a white-box manner
+in our final algorithm for Theorem 1.
+   We also give a self contained proof for (2 + ε)-approximation of maximum matching.
+
+Theorem 4. Given an n-vertex graph G, for any ε > 0, there is a randomized algorithm that (2+ε)-
+approximates the size of maximum matching in G using poly(log n) · (1/ε)O(1/ε) subset queries to G
+w.h.p.
+
+Approximating maximum matching size using vertex queries. We describe the high-level
+approach to proving Theorem 4, which shows how to approximate the size of the maximum matching
+in G using subset queries.
+   Our starting point is a “peeling”-type algorithm [PR07, OR10, KKS14, CLM+ 20, KMNFT20]
+which iteratively matches and removes highest degree vertices. While we can’t implement this
+
+                                                      3
+algorithm in our setting, it is useful to first describe it and discuss what goes wrong in implementing
+it. In an idealized peeling algorithm, we divide the vertices into two halves randomly. Then
+each vertex from the first half “proposes” to a single neighbor chosen uniformly at random and
+independently. Then every vertex in the second half that receives at least one proposal “accepts”
+one of those arbitrarily and the two vertices get matched together. Now fix a vertex v and suppose
+that deg(v) ≥ ∆/2 where ∆ is the current maximum degree of the graph. Under the event that v
+is in the second half, it receives a proposal with probability at least 1 − (1 − 1/2∆)∆/2 ≥ 0.1. This
+means that after this process, a constant fraction of vertices of degree at least ∆/2 get removed
+from the graph. We can therefore afford to remove all vertices of degree at least ∆/2 from the graph
+regardless of whether they are matched, since a constant fraction of them have been matched in
+expectation. This reduces the maximum degree from ∆ down to ∆/2, so O(log ∆) iterations of this
+process results in a constant approximate maximum matching in expectation.
+    As discussed, we cannot actually carry out this process in our setting. The main reason is that
+each vertex needs to propose to a randomly selected neighbor. Implementing this step requires Θ(n)
+neighbor queries, and subset queries are not helpful in reducing the query complexity to poly log(n).
+To get around this problem, we implement a different variant of the peeling algorithm that does
+not explicitly build a matching, but only provides an estimate of the matching size.
+    Our first ingredient is a degree estimation procedure in the subset query model, which we call
+a subset degree estimator. The subset degree estimator has the following functionality: Given a
+set of active vertices U ⊆ V , for every vertex v ∈ V the procedure
+                                                             2  returns a (1 + ε)-multiplicative
+approximation to dv := |N (v) ∩ U |. The procedure uses O logε3 n subset queries and succeeds with
+probability 1 − 1/ poly(n). Its underlying technique is a sampling argument that uses geometrically
+decreasing sampling probabilities.
+    To see how the estimator works, fix a vertex v and let dv = |N (v) ∩ U |, noting that the value of d
+is unknown to the algorithm. For a sampling probability p, include every vertex of U independently
+with probability p to set S and query N (S) using a subset query. The event that v ∈   / N (S) happens
+when none of the d neighbors of v is sampled, which happens with probability (1 − p)dv . When
+p ≈ 1/2dv , this probability is bounded away from 0 and 1 by a constant, hence by enough repetitions
+and a Chernoff bound, one could estimate the value of (1 − p)dv , and thus dv , multiplicatively. By
+trying out different values of p between 1/ poly(n) and 1 geometrically, we ensure that for each
+vertex v, one of these trials achieves p ≈ 1/2dv . The advantage of this approach is that a single set
+of subset queries suffices to estimate |N (v) ∩ U | for all vertices v simultaneously.
+    We next modify the standard peeling algorithm so that it constructs an implicit fractional
+matching rather than an integral matching. Suppose the current degree threshold is ∆max , and let
+U be the set of vertices that have not yet been removed. Let H ⊆ U contain the vertices whose
+degree in the induced graph of U is approximately ∆max . For every u ∈ H, we add a small amount
+of fractional weight, on the order of ε/∆max , to each edge from u to another vertex in U . Therefore,
+the total weight of a vertex (that is the sum of weights on its edges) u ∈ H increases proportionally
+to its degree in G[U ], whereas the total weight of a vertex v ∈ U \ H increases proportionally to
+the number of its neighbors in H. Vertices are removed from U once their saturation becomes close
+to 1. Since every vertex in H has degree comparable to ∆max , its total weight increases by Ω(ε)
+in every iteration, and hence all vertices in H are removed after O(1/ε) iterations. We can then
+decrease ∆max and repeat the process on the remaining set U .
+    The subset degree estimator allows us to implement this fractional peeling process without
+storing all the edges of the graph. At the beginning of an iteration, we estimate dU (v) = |N (v) ∩ U |
+
+
+                                                   4
+for all vertices to identify the high degree set H. We then run the estimator again with H as the
+input, obtaining estimates of dH (v) = |N (v) ∩ H| for all vertices. The estimates dU (v) and dH (v)
+determine the increase in each vertex saturation, so the algorithm only needs to maintain the active
+set and one saturation value per vertex.
+    Running this fractional process until every vertex is removed would naturally approximate the
+maximum fractional matching value. Using only the general 3/2 integrality gap bound for frac-
+tional matchings gives a (3 + ε)-approximation to the maximum matching. To obtain a (2 + ε)-
+approximation, we use a separate low degree phase. The low degree phase entails additional tech-
+nicality that is described in Section 4.2.
+    Finally, using our subset degree estimator within the MWU framework of [Liu24], we obtain a
+(1 + ε)-approximation to the minimum fractional vertex cover using poly(log n, 1/ε) subset queries.
+This gives a (1.5 + ε)-approximation to maximum matching in general graphs, and a (1 + ε)-
+approximation for bipartite graphs. This is proved in Section 7.
+
+
+1.2   Future Directions and Open Problems
+
+Although adjacency-matrix and adjacency-list queries are the standard models in the literature on
+sublinear-time and query algorithms, our work highlights the importance of studying two stronger
+models: vertex queries and subset queries. For maximum matching, we establish strong separations
+between these models and the traditional query models, for which Ω(n) queries are necessary. An
+interesting open question is whether similar separations arise for other natural problems.
+
+
+1.3   Further Related Work
+
+Monotonicity testing. The query complexity of testing whether a function is monotone, namely
+distinguishing monotone functions from those that are ε-far from monotone (in the Hamming dis-
+tance), is one of the earliest property testing problems to be considered [EKK+ 00, GGL+ 00]. The
+tolerant version of the problem, distinguishing functions that are ε-close to monotone, from those
+that are ε′ -far from monotone is considered in the work that introduces tolerant testing [PRR06]
+(see also [ACCL07]), where it was demonstrated that tolerant testing and the estimating the dis-
+tance to having the property are essentially equivalent tasks. Since then, a large body of work has
+considered algorithms and lower bounds for testing and tolerant testing of monotonicity over vari-
+ous domains and distance measures (examples include [DGL+ 99, FLN+ 02, Fis04, ACCL08, SS10,
+BGJ+ 10, BCGM12, BRY14, CS13, CS14, CST14, CDST15, CS16, CWX17, KMS18, BCS18, CS19,
+BB15, BB21, LRV22, BCS20, PRW22, BCS23, BKKM23, Jr.23, Jr.24, CDL+ 24, BKR24, CS25,
+CDH+ 25, FJ25, Yos26]).
+
+Property testing vs. streaming algorithms. A connection between property testing and
+streaming has been explored in [MMPS17, PS18, CFPS20] where it is shown how to transform
+constant query property testers to the random-order single-pass streaming model with constant
+space. Note that the aforementioned lower bounds demonstrate that in most settings that have
+been considered, monotonicity testing requires nonconstant dependence on the domain size of the
+function.
+
+Sublinear time algorithms for maximum matching. Sublinear-time matching algorithms
+have been a central topic of study and have enjoyed sustained interest in the past few decades
+
+
+                                                 5
+[PR07, NO08, YYI09, ORRR12, LRY17, KMNT20, Beh21, BRRS23, BRR23b, BKS23b, BRR23a,
+BRR24, ABRR25, MRT25]. Beyond addressing a fundamental problem in graph theory, they are
+deeply connected to many other settings and problems, including spanning trees, Steiner trees, and
+the traveling salesman problem [CKK20, CKT23b, CKT23a, BRRS24, MRTV25, MRTV26]. In
+addition, they have served as a key tool in dynamic algorithms for estimating the maximum matching
+size [Beh23, BKS23a, BKSW24, ABR24], and more recently in [BG24, AKK25] for maintaining an
+approximate maximum matching in dynamic graphs, with an update time tied to the density of
+Ruzsa-Szemerédi graphs. This work serves as yet another important implication of such algorithms.
+
+
+2     Preliminaries
+
+2.1   Definitions and Notation
+
+For a graph G = (V, E), n will refer to |V |, and we will denote by µ(G) the size of a maximum
+matching in G. We say that an algorithm succeeds with high probability if for any constant c > 0,
+the algorithm can be made to succeed with probability at least 1 − n−c . We call an estimate x̂ of a
+value x an α-approximation if it satisfies
+
+                                              x/α ≤ x̂ ≤ x,
+
+and an (α, β)-approximation if it satisfies
+
+                                          x/α − β ≤ x̂ ≤ x.
+
+
+
+Definition 2.1 (Edge and label stream). Let G = (V, E) be a directed acyclic graph and f : V →
+{0, 1} be a boolean function. In an edge and label stream of G and f , edges of G and example-label
+pairs (v, f (v)) are revealed in an arbitrary order.
+Definition 2.2 (Violation graph). For a DAG G = (V, E) and a boolean function f : V → {0, 1},
+the violation graph Gf is the undirected graph which has an edge {u, v} if u can reach v but f (u) >
+f (v) (or v can reach u but f (v) > f (u)).
+
+
+2.2   Standard Facts
+
+Fact 2.3 (Distance to monotonicity and matching in Gf ). For a DAG G = (V, E) and a boolean
+function f : V → {0, 1}, we have dmon (f ) = µ(Gf ).
+Fact 2.4 (Integrality gap bound for fractional matchings). For every graph G, νf (G) ≤ 23 µ(G),
+where νf (G) denotes the maximum size of a fractional matching in G.
+
+
+3     Global Matching Estimation
+
+In this section, we prove validity and approximation ratio of the matching value computed by a
+“global” algorithm, EstimateMatchingSize (Algorithm 1). This algorithm accesses the graph G
+via black-box oracles ComputeDegrees and MaximalMatching which provide the following
+functionality:
+
+                                                   6
+Assumption 3.1 (ComputeDegrees). There is a function ComputeDegrees(G, U, ε) that
+takes an arbitrary graph G = (V, E), subset U ⊆ V , and approximation parameter ε > 0, and
+returns a vector d⃗ such that dv = (1 ± ε)|N (v) ∩ U | for all v ∈ V .
+
+Assumption 3.2 (MaximalMatching). There is a function MaximalMatching(G, U ) that
+takes an arbitrary graph G = (V, E) and subset U ⊆ V , and returns a maximal matching in G[U ].
+
+    Only these functions interact with the edges of G (and thus require an access model to be
+implemented); the rest of the algorithm only maintains information about the active set U and the
+saturation vector ⃗x. In Section 4, we will implement these oracles in the subset-query model, and
+in Section 6 we will discuss how to adapt these ideas to the vertex-query model.
+
+ Algorithm 1: EstimateMatchingSize(G, ε)
+  Input: Graph G = (V, E), approximation parameter ε > 0
+  Output: Constant-factor estimate of the maximum matching size in G
+ 1 U ←V                               // Set of active vertices; i.e.    those that haven’t been deleted
+ 2 ∆max ← n                                                                         // degree threshold
+ 3 η ← 2/ε2                                                 // Transition threshold to low-degree phase
+   x := (xv )v∈V ← ⃗0
+ 4 ⃗                                       // vector of fractional matching weights assigned to vertices
+        y := (ye )e∈E ← ⃗0; this is a fractional matching we track in the comments to help with the
+     /* ⃗
+        analysis, but it is never explicitly maintained by the algorithm                              */
+ 5 while ∆max ≥ η do
+ 6      U, ⃗x ← PeelHighDegree(G, U, ⃗x, ∆max , ε)
+ 7      ∆max ← (1 − ε)∆max
+   x ← MatchLowDegree(G,
+ 8 ⃗                        U, ⃗x, ε)
+                1−ε 1 P
+ 9 return µ̂ := 1+ε · 2  x
+                        v v
+
+
+
+
+ Algorithm 2: PeelHighDegree(G, U, ⃗x, ∆max , ε)
+   Input: Graph G = (V, E), active set U , saturation values ⃗x, degree threshold ∆max ,
+          approximation parameter ε > 0
+   Output: Updated active set and saturation values
+ 1 d⃗U ← ComputeDegrees(G, U, ε)                     // counts neighbors in U , see Assumption 3.1
+ 2 H ← {v ∈ U : (dU )v ≥ (1 − ε)∆max }
+ 3 while H ̸= ∅ do
+ 4      d⃗H ← ComputeDegrees(G, H, ε)
+ 5      xv ← xv + 2ε · (d U )v
+                       ∆max for all v ∈ U
+ 6      xv ← xv + 2ε · (d H )v
+                        ∆max for all v ∈ U \ H
+        /* yuv ← yuv + 2∆εmax for each ordered pair (u, v) ∈ E(G[U ]) with u ∈ H                      */
+ 7      H ← H \ {v ∈ H : xv ≥ 1 − 2ε}
+ 8      U ← U \ {v ∈ U : xv ≥ 1 − 2ε}
+ 9 return U, ⃗
+             x
+
+
+
+
+                                                     7
+ Algorithm 3: MatchLowDegree(G, U, ⃗x, ε)
+  Input: Graph G = (V, E), active set U , saturation vector ⃗x, approximation parameter ε > 0
+  Output: Updated saturation vector
+ 1 for 1/ε − 1 iterations do
+ 2       M ← MaximalMatching(G, U )                                                // see Assumption 3.2
+ 3       xv ← xv + ε for all v ∈ M
+         /* yuv ← yuv + ε for each {u, v} ∈ M                                                         */
+ 4       U ← U \ {v ∈ U : xv ≥ 1 − 2ε}
+ 5 return ⃗
+          x
+
+
+3.1     Validity
+
+Here we will show that the value returned by EstimateMatchingSize is at most µ(G). To do
+this, we will first show that the vertex weights ⃗x correspond to an implicit fractional matching ⃗y
+that is always valid. Then, we will show that this fractional matching has an integrality gap of at
+most 1/(1 − ε), which we account for by scaling down all the xv values by 1 − ε at the end of the
+algorithm.
+Lemma 3.3 (Invariants of PeelHighDegree). Suppose PeelHighDegree (Algorithm 2) is
+called with parameters satisfying
+
+                           ε ≤ 13       and      ∆max ≥ (1 − ε) max |N (v) ∩ U |
+                                                                 v∈G
+
+and such that the following conditions are satisfied:
+                                    P                            P
+     1. For every v ∈ V , (1 − ε)   u∈N (v) yuv ≤ xv ≤ (1 + ε)    u∈N (v) yuv .
+
+     2. For every v ∈ V , xv ≤ 1 − ε.
+
+     3. For every v ∈ U , xv ≤ 1 − 2ε.
+
+Then these three conditions are maintained by PeelHighDegree.
+     Furthermore, when PeelHighDegree returns, all vertices in U have degree at most ∆max .
+
+Proof. First, we observe that all vertices of degree at least ∆max are in H; this is because Assump-
+tion 3.1 ensures that all such vertices have dU (v) ≥ (1 − ε)∆max and are thus placed in H. Since
+all vertices in H are removed from U during the execution of PeelHighDegree, this ensures that
+all vertices remaining in U afterwards have degree at most ∆max .
+    Now we show the invariants. Assume the invariants hold at the beginning of the t-th execution
+of the loop body. For v ∈ V \ U , xv and all yuv incident to v are unchanged, so we will analyze
+only vertices that are in U at the start of the t-th execution. To show the first invariant, consider
+the following cases.
+
+     1. v ∈ H: We increase xv by 2ε · (d U )v
+                                      ∆max and yuv by 2∆max for all u ∈ N (v) ∩ U . By Assumption 3.1,
+                                                          ε
+
+        we have (dU )v = (1 ± ε)|N (v) ∩ U |. Thus, after the update to xv , we have
+                                               ε (dU )v
+                         (xv )t+1 = (xv )t +    ·
+                                               2 ∆max
+
+                                                      8
+                                                                  
+                                                   X                       ε (1 − ε)|N (v) ∩ U |
+                                 ≥ (1 − ε)                  (yuv )t  +     ·
+                                                                           2       ∆max
+                                              u∈N (v)∩U
+                                                 X       h                     i
+                                 = (1 − ε)                   (yuv )t + 2∆εmax
+                                             u∈N (v)∩U
+                                                 X
+                                 = (1 − ε)               (yuv )t+1 .
+                                             u∈N (v)∩U
+
+     A similar argument shows the upper bound of (1 + ε)                    u∈N (v) yuv .
+                                                                        P
+
+
+  2. v ∈ U \ H: We increase xv by 2ε · (dH )v
+                                        ∆max and yuv by 2 · ∆max for all u ∈ N (v) ∩ H. We have:
+                                                        ε    1
+
+
+                                  ε (dH )v
+               (xv )t+1 = (xv )t + ·
+                                  2 ∆max
+                                                    
+                                     X                   ε (1 − ε)|N (v) ∩ H|
+                        ≥ (1 − ε)           (yuv )t  + ·
+                                                         2        ∆max
+                                   u∈N (v)∩U
+                                                                                            
+                                        X                              X
+                        = (1 − ε)               (yuv )t  + (1 − ε)         (yuv )t + 2∆εmax 
+                                     u∈N (v)∩(U \H)                             u∈N (v)∩H
+                                       X
+                       = (1 − ε) ·               (yuv )t+1 .
+                                     u∈N (v)∩U
+
+     A similar argument shows the upper bound of (1 + ε)                    u∈N (v) yuv .
+                                                                        P
+
+
+    To show the other invariants, first observe that the third invariant follows from the fact that
+the vertices not satisfying xv ≤ 1 − 2ε are removed from U at the end of the loop body. For the
+second, observe that xv for v ∈ U increases by 2ε · (d U )v ε (dH )v
+                                                    ∆max or 2 · ∆max in each iteration of the loop. By
+Assumption 3.1 and the assumption that ∆max ≥ (1 − ε) maxv∈G |N (v) ∩ U |, we have
+                                              (dU )v 1+ε
+                                              ∆max ≤ 1−ε ≤ 2,
+
+
+and similarly for (d H )v
+                    ∆max . Thus the value of xv increases by at most ε in each iteration. Since
+(xv )t ≤ 1 − 2ε at the start of the iteration, (xv )t+1 ≤ 1 − ε.
+
+   We now state and prove a similar statement for MatchLowDegree.
+
+Lemma 3.4 (Invariants of MatchLowDegree). Suppose MatchLowDegree (Algorithm 3) is
+called under the conditions:
+                                 P                                     P
+  1. For every v ∈ V , (1 − ε)     u∈N (v) yuv ≤ xv ≤ (1 + ε)              u∈N (v) yuv .
+
+  2. For every v ∈ V , xv ≤ 1 − ε.
+
+  3. For every v ∈ U , xv ≤ 1 − 2ε.
+
+Then these three conditions are maintained by MatchLowDegree.
+
+
+
+                                                         9
+Proof. Assume the invariants hold at the start of iteration t. As before, the third invariant follows
+from the fact that vertices not satisfying xv ≤ 1 − 2ε are removed from U at the end of the iteration,
+and the second invariant follows from the third invariant and the fact that xv increases by at most
+ε in each iteration.
+    To show the first invariant, consider a vertex v that is matched in M during the t-th iteration,
+since otherwise xv and any yuv incident to v would be unchanged. Let w be v’s matching partner
+and note that all yuv for u ̸= w are also unchanged. We have then:
+                                                            
+                                                X
+              (xv )t+1 = (xv )t + ε ≥ (1 − ε)       (yuv )t  + ε
+                                                 u∈N (v)
+                                                                      
+                                                       X
+                                   ≥ (1 − ε)                   (yuv )t  + (1 − ε) [(ywv )t + ε]
+                                                 u∈N (v),u̸=w
+                                                X
+                                   = (1 − ε)             (yuv )t+1 .
+                                               u∈N (v)
+
+A similar argument shows the upper bound of (1 + ε)              u∈N (v) yuv .
+                                                              P
+
+
+    Now we move on to bound the integrality gap of the fractional matching ⃗y . We will use the
+following well-known fact, which gives a sufficient condition for a fractional matching to be close to
+an integral matching:
+
+Fact 3.5 (Small-set blossom inequalities). Suppose y : E → [0, 1] is a fractional matching such that
+for every odd-size set S ⊂ V with |S| < β1 , the blossom inequality
+
+                                            X                |S| − 1
+                                                      ye ≤
+                                                                2
+                                          e∈E(G[S])
+                                                                                    P
+holds. Then there exists an integral matching M such that |M | ≥ (1 − β)                e∈E ye .
+
+
+    This is because the fractional matching (1 − β)y satisfies the blossom inequalities for all odd-size
+sets, which implies it is a convex combination of integral matchings [Edm65]. We will show that
+our fractional matching satisfies this condition with β = ε:
+
+Lemma 3.6. Assume ε ≤ 31 , and let ⃗x be the vector computed by EstimateMatchingSize (Al-
+                                                                                        1
+gorithm 1). Then there exists a fractional matching in G with vertex saturation vector 1+ε ⃗x that
+satisfies the blossom inequalities for all odd sets S of size at most 1/ε.
+
+Proof. It follows from Lemmas 3.3 and 3.4 that the invariants on ⃗x and ⃗y are preserved throughout
+the execution of EstimateMatchingSize. Therefore the final values of ⃗x and ⃗y satisfy 1+ε    1
+                                                                                                 xv ≤
+                  for every    thus   is a fractional matching with vertex saturations at least  1
+                                                                                                    x.
+P
+         y
+  u∈N (v) uv  ≤ 1           v;      ⃗
+                                    y                                                           1+ε ⃗
+   Now we claim the ⃗y values satisfy the small-set blossom inequalities.
+     Let L denote the set of vertices in U when MatchLowDegree is called. First we will bound
+the weight on edges with an endpoint outside of L. Observe that in PeelHighDegree, since
+(dU )v
+ ∆max ≥ 1 − ε ≥ 1/2, the value of xv for v ∈ H increases by at least ε/4 each iteration; thus the
+number of iterations is at most 4/ε. Each edge incident to H gains weight 2∆εmax in each iteration,
+
+
+                                                      10
+so after 4/ε iterations, each edge will have gained weight at most 2/∆max ≤ 2/η = ε2 . Only edges
+incident to H gain weight, and each vertex appears in H at most once; thus, all edges with an
+endpoint outside of L satisfy yuv ≤ ε2 .
+    Consider a set S ⊆ V of odd size k ∈ [3, 1/ε], with ℓ vertices in L and k − ℓ vertices outside of L.
+We will bound the matching weight in G[S]. The contribution from edges with an endpoint outside
+of L is at most ε2 · k(k − ℓ) ≤ ε(k − ℓ) by the above argument. For the edges between members of
+L, all their weight comes from MatchLowDegree. Since there are 1/ε − 1 iterations and            each
+contributes ε weight to an integral matching, the contribution from L is at most (1 − ε) 2ℓ ; thus
+the inequality is immediately satisfied if ℓ = k.
+   If ℓ ≤ k − 1, then the total weight is at most
+                                     ℓ                     k−1
+                              (1 − ε) + ε(k − ℓ) ≤ (1 − ε)     +ε·1
+                                     2                      2
+                                                   k−1
+                                                 ≤       ,
+                                                     2
+
+                                             2 ≥ ε, and the second is because k ≥ 3.
+where the first inequality is valid because 1−ε
+
+Corollary 3.7 (Validity of matching). Let ⃗x be the saturation vector returned by AlgorithmP 1 with
+                                                                                     1−ε 1
+ε ≤ 1/3 and η ≥ 2/ε2 . Then there exists an integral matching in G of value at least 1+ε · 2 xv .
+
+Proof. By Lemma 3.6, there is a fractional matching satisying the small-set blossom      inequalities
+with vertex saturations at least 1+ε
+                                  1
+                                     ⃗x. This matching has value at least 1+ε
+                                                                           1
+                                                                              · 12 xv . By Fact 3.5,
+                                                                                  P
+
+there is thus an integral matching in G of value at least 1+ε · 2 xv .
+                                                          1−ε 1 P
+
+
+
+3.2   Approximation Ratio
+
+We have shown that the value returned by Algorithm 1 is at most µ(G); i.e. it does not overestimate
+the matching size. In this subsection, we will show that EstimateMatchingSize achieves an
+approximation ratio of 2 + O(ε).
+
+Lemma 3.8. The fractional matching value µ̂ returned by Algorithm 1 satisfies
+
+                                                     µ(G)
+                                            µ̂ ≥            .
+                                                   2 + O(ε)
+
+   To prove this, we will make use of the following duality relationship between vertex covers and
+matchings:
+
+Fact 3.9. Let xvPbe a real vector over the vertices of a graph G. If xu + xv ≥ c for every edge
+{u, v} ∈ E, then v∈V xv ≥ cµ(G).
+
+Proof. Consider a maximum integral matching M ⋆ in G and let V (M ⋆ ) denote the set of its end-
+points. Then
+                             X          X
+                                xv ≥         xu + xv ≥ cµ(G).
+                                 v∈V       {u,v}∈M ⋆
+
+
+   Using this we can proceed with the bound on the approximation ratio of our algorithm.
+
+                                                    11
+Proof of Lemma 3.8. We will prove that every edge (u, v) ∈ G satisfies xu + xv ≥ 1 − 2ε. Let L be
+the set of vertices in U when MatchLowDegree is called. Consider the following 2 cases:
+
+    1. u ∈ V \L or v ∈ V \L: In this case, one of u or v is removed by the subroutine PeelHighDegree
+       (Algorithm 2). Since vertices are only removed under the condition xv ≥ 1 − 2ε, we have
+       xu + xv ≥ 1 − 2ε.
+
+    2. u, v ∈ L: Either u or v is removed due to its value exceeding 1 − 2ε, or the edge (u, v) persists
+       through the entirety of MatchLowDegree. In the latter case, since every matching M is
+       maximal, either u or v must be matched in M . Thus in each iteration, ε is added to the value
+       of xu or xv . Since there are 1/ε − 1 iterations, we have xu + xv ≥ 1 − ε.
+
+We have shown that in both cases, xu + xv ≥ 1 − 2ε; thus Fact 3.9 shows that
+                                                                                           P
+                                                                                              x∈V xv   ≥
+(1 − 2ε)µ(G), which concludes the proof.
+
+
+4     Implementation With Subset Queries
+
+We have given an algorithm that estimates matching size, given an oracle that provides degree
+estimates and an oracle that provides maximal (integral) matchings. In this section, we will modify
+this algorithm to work with subset-query access to the graph (Definition 1.2). In Section 4.1 will
+straightforwardly implement the ComputeDegrees oracle with subset queries.
+    Then, in Section 4.2, we will present a query-efficient alternative to Algorithm 3: instead of
+computing global matchings, we give a local computation algorithm (LCA) that computes the output
+value xv at a single vertex v by exploring (in expectation) ∆O(1/ε) vertices near v. The algorithm
+works by recursively running the LCA for randomized greedy maximal matching, with each level of
+recursion representing an iteration of Algorithm 3. This allows us to determine how many times v
+is matched and thus how much to increase xv . We use this to sample from the output vector ⃗x in
+order to estimate the final matching value.
+
+
+4.1    Degree Estimation
+
+In this section, we will implement the functionality of ComputeDegrees as specified in Assump-
+tion 3.1, in the subset-query model. The goal is to prove the following:
+
+   2 4.1 (Estimating degrees with subset queries). There is an algorithm that uses
+Lemma
+O logε3 n subset queries and O(n log(n/ε)) space, implements the functionality of Assumption 3.1
+when it succeeds, and succeeds with high probability.
+
+    To simplify the proof, we abstract away the details concerning the graph as follows. The goal
+is to estimate a hidden value d representing the (induced) degree of a vertex; i.e. the number of
+neighbors it has in somensubset. We areoallowed to learn about d by sampling independently from
+the distribution family Bernoulli(1−p)d        . This is equivalent to sampling every vertex with
+                                            p∈[0,1]
+a probability p, and checking if v is a neighbor of any of them, which happens with probability
+                                                                          (r)
+1 − (1 − p)d . We prove that such Bernoulli samples, represented by Yi in Algorithm 4, can be
+used to estimate the value of d up to a multiplicative factor of (1 + ε).
+
+
+                                                      12
+4.1.1   Degree Estimation Through Geometric Sampling
+
+
+ Algorithm 4: Degree Estimation Through Geometric Sampling
+   Input: Domain size n, accuracy parameters ε and δ, access to independent samples from
+            distributions Dp := Bernoulli((1 − p)d ) for p ∈ [0, 1], where d ≤ n is the hidden value
+   Output: An estimate for d
+                                  log L+log(1/δ)
+ 1 Let L ← log1+ε 4n , R ← 500                   , and pi ← (1 + ε)−i
+                       
+                                        ε2
+ 2 for i ∈ [L] and r ∈ [R] do
+                (r)
+ 3    Draw Yi ∼ Dpi independently
+                  R
+              1 X (r)
+ 4    Zi ←          Yi
+             R
+              r=1
+    ∗
+ 5 i ← min{i | Zi ≥ 1/2}
+                    ln Zi∗
+ 6 return d
+          b :=
+                 ln(1 − pi∗ )
+
+Lemma 4.2. The output of Algorithm 4 satisfies db = (1 ± ε)d, with probability 1 − δ.
+                                                              (r)
+    To provide some intuition, we note that since each Yi is a Bernoulli random variable with
+mean qi := (1 − pi )d , Zi provides an estimate of qi . Furthermore, for any i ∈ [L], it holds that
+  ln qi
+ln(1−pi ) = d. The choice of i is such that qi = Θ(1) and equivalently pi = Θ( d ). As a result,
+                              ∗               ∗                            ∗
+                                                                                  1
+
+  ln Zi∗
+ln(1−pi∗ ) provides an accurate estimate of d.   We formalize the proof below. The analysis uses an
+additional parameter, λ = ε/20.
+Claim 4.3. It holds that |Zi − qi | ≤ λ for all i, with probability 1 − δ.
+
+Proof. This follows from a direct application of Hoeffding’s inequality. Zi is the average of R
+independent 0-1 variables, with an expected value of qi . Therefore, for each i it holds:
+                                                           δ  2
+                                  Pr(|Zi − qi | > λ) ≤ 2e−2Rλ ≤
+                                                             .
+                                                           L
+Hence, taking the union bound over i ∈ [L] implies that with probability 1 − δ, it holds that
+|Zi − qi | ≤ λ for all i.
+Claim 4.4. Assuming the event in Claim 4.3 holds, we have that qi∗ ∈ [1/4, 3/4].
+
+Proof. First, note that qi∗ ≥ 14 holds, since
+                                                        1    1
+                                     qi∗ ≥ Zi∗ − λ ≥      −λ≥ .
+                                                        2    4
+To upper-bound qi∗ , let j = min{j | pj ≤ 3d
+                                           1
+                                             }. That is, 3(1+ε)
+                                                            1
+                                                                ≤ d · pj ≤ 13 . As a result, we have
+                                                                 2
+                                   qj = (1 − pj )d ≥ 1 − d · pj ≥ .
+                                                                 3
+Additionally, we have that Zj ≥ 32 − λ ≥ 21 , and hence i∗ ≤ j. Therefore, it holds
+                                                                      3
+                         qi∗ ≤ qj = (1 − pj )d ≤ e−d·pj ≤ e−1/3(1+ε) ≤ ,
+                                                                      4
+which concludes the proof.
+
+                                                   13
+                               ln Zi∗
+Claim 4.5. It holds that     ln(1−pi∗ ) − d   ≤ εd, with probability 1 − δ.
+
+                      ln qi∗
+Proof. Recall that ln(1−p        = d, and with probability 1 − δ, we have |Zi∗ − qi∗ | ≤ λ and qi∗ ∈
+                            i∗ )
+[1/4, 3/4]. Together, these imply
+
+                                       ln Zi∗          ln Zi∗ − ln qi∗
+                                                 −d =
+                                    ln(1 − pi∗ )         ln(1 − pi∗ )
+                                                            4λ
+                                                    ≤                                                    (1)
+                                                      |ln(1 − pi∗ )|
+                                                        4λd
+                                                    =
+                                                      |ln(qi )|
+                                                    ≤ 16λd                                               (2)
+                                                       ≤ εd.
+                                        ln qi∗
+Here, the two equalities follow from ln(1−p        = d, (1) follows from Zi∗ , qi∗ ≥ 14 and |Zi∗ − qi∗ | ≤ λ,
+                                              i∗ )
+and (2) follows from qi∗ ≤ 43 . This concludes the proof of the claim and Lemma 4.2.
+
+
+4.1.2    Proof of Lemma 4.1
+
+We now implement geometric sampling with subset queries, with the degree vector as the hidden
+values, and we bound the query and space complexity.
+
+Proof of Lemma 4.1. First we will bound the space requirements of Algorithm 4, which we will call
+with δ := n−(c+1) for some constant c. The counters i, r, and Zi can all be stored in O(log log(n/δ)+
+log(1/ε)) space, while dˆ itself can require up to log((1 + ε)n) = O(log n) space. Thus we can bound
+the space by O(log(n/ε)).
+    Observe that if Algorithm 4 is run for each vertex v with hidden value |N (v) ∩ U | and failure
+probability δ := n−(c+1) , then it implements the behavior specified in Assumption 3.1 with probabil-
+ity ≥ 1 − n−c by a union bound over vertices. We will implement the sampling of Bernoulli((1 − p)d )
+in parallel for all vertices by sampling each member of U independently with probability p. Let S
+be the set of sampled vertices and let T be the set returned by the subset query. We have for each
+v:                                                  Y
+                                      Pr[v ̸∈ T ] =        u ̸∈ S;
+                                                      u∈N (v)∩U
+
+thus the vector (1[v ̸∈ T ])v∈V has marginal distributions Bernoulli((1 − p)|N (v)∩U | ).
+   We run Algorithm 4 in parallel for all vertices, so the space
+                                                               requirement
+                                                                           becomes
+                                                                              2 O(n log(n/ε)).
+                                                                 log2 n
+The number of samples required for each vertex is LR = O ε2 log(1+ε) = O logε3 n , so this is the
+number of subset queries required.
+
+
+4.2     Low-Degree Phase Implementation
+
+This section is devoted to the implementation of the low-degree integral matching phase (Algo-
+rithm 3). Our implementation of this phase happens to use only vertex queries (which are a special
+case of subset queries), but we do not make use of this fact. We prove the following lemma.
+
+
+                                                      14
+ Lemma 4.6. Given a graph G with maximum degree ∆, active set U ⊆ V (G), saturation vector
+⃗x, and an approximation parameter ε > 0, let v be a vertex chosen uniformly at random. There is
+ an algorithm that computes the update saturation value of v as in Algorithm 3 using ∆O(1/ε) vertex
+ queries in expectation, where the expectation is over the randomness of the algorithm and the choice
+ of v.
+
+    To implement the low-degree phase, we employ the scheme of [YYI09]. Before describing the
+implementation, we review the definition of randomized greedy maximal matching (RGMM), which
+is used as a subroutine. Given a graph G, a maximal matching can be computed by iterating the
+edges in a random order π, and adding edges to the matching greedily (i.e., any iterated edge that
+has no adjacent edge in the matching is added to the matching). We refer to this matching as
+the greedy maximal matching corresponding to order π, GMM(G, π), and the output of the entire
+process as the randomized greedy maximal matching.
+    [YYI09] analyze a recursive implementation of this algorithm that, given a specific edge e and
+an ordering π, determines whether e appears in GMM(G, π). To do so, the algorithm recursively
+checks whether any adjacent edge e′ that appears earlier in the order is in GMM(G, π). If so, then
+e does not. Otherwise, e must be added to the maximal matching. The algorithm is formalized
+below (Algorithm 5) where, instead of a permutation, π is a mapping from the edges to [0, 1]. The
+key idea is that the neighboring edges can be checked in order of π, and as soon as any of them is
+added to the maximal matching, the rest need not be checked. Using this improvement, they show
+that the following holds.
+
+Lemma 4.7 (follows from [YYI09, Lemma 2.3]). Let Q(G, π, e), the number of in-queries of e, be
+defined as the number of (recursive) calls made to GMM(G, π, e) as a result of calling GMM(G, π, e′ )
+once for every edge e′ . Then, for any edge e, it holds that
+
+                                      E[Q(G, π, e)] ≤ 1 + 2∆,
+                                      π
+
+where ∆ is the maximum degree of the graph, and the expectation is over the ordering π.
+
+
+ Algorithm 5: GMM(G, π, e) [YYI09]
+  Input: Graph G = (V, E), edge ranks π : E → [0, 1], and an edge e
+  Output: A boolean denoting whether e appears in the greedy maximal matching
+          corresponding to π
+ 1 for e′ adjacent to e, with πe′ < πe , in increasing order of πe′ do
+ 2    if GMM(G, π, e′ ) then
+ 3        return False
+
+ 4 return True
+
+
+
+    With the RGMM subroutine at hand, we move on to the implementation of Algorithm 3,
+outlined as Algorithms 6 and 7. For the maximal matching, in each of the 1/ε iterations, we use
+an RGMM on the active vertices. We implement this by adding another layer of recursion to
+Algorithm 5, on the iteration number. More accurately, the algorithm consists of two recursive
+functions EdgeValue(e, t) and VertexValue(v, t) which compute the updated saturation values
+after t iterations, for an edge e or a vertex v, respectively. To compute the value of a vertex v
+after t iterations, we simply compute the value of the edges adjacent to it and add them to the
+
+                                                 15
+initial saturation value xv . To compute the value of an edge after t iterations, we need to determine
+two things: (1) its value after t − 1 iterations, and (2) whether it appears in the t-th maximal
+matching (if it does, the value shall increase by ε). To assert whether an edge appears in the t-th
+maximal matching, we use the recursive algorithm for RGMM on the active vertices. Here, the
+active neighbors of a vertex are determined on the fly by recursively computing the vertex values
+after t − 1 iterations, and checking if they are at most 1 − 2ε.
+
+ Algorithm 6: VertexValue(G, U, ⃗x, v, t)
+  Input: Graph G = V (V, E), active set U , saturation vector ⃗x, vertex v, and the number of
+         iterations t
+  Output: The updated saturation value of v, after t iterations of MatchLowDegree(G, U, ⃗x)
+           (i.e., Algorithm 3)
+ 1 x′v ← xv
+ 2 for u ∈ N (v) ∩ U do
+ 3    x′v ← x′v + EdgeValue(G, U, ⃗x, (u, v), t)
+ 4 return x′v
+
+
+
+    The proof of correctness is straightforward. For the query complexity, note that the guarantee
+of Lemma 4.7 bounds the number of in-queries for any edge e by O(∆), in expectation, when we call
+GMM(e′ ) for a uniformly random edge e′ . While this bounds the number of (out-)queries required
+for computing GMM(e′ ) for an average edge e′ , certain edges might have a much larger expected
+number of out-queries. Here, the number of out-queries of e′ refers to the total number of recursive
+calls made as a result of invoking GMM(e′ ). The main challenge is that with the added recursion on
+the iteration t, a uniform query to the t-th level might result in non-uniform queries to the (t − 1)-th
+level. That is, as a result of querying EdgeValue(e, t) for a uniformly random e, the queries to
+EdgeValue(·, t − 1) may be concentrated on an edge e′ for which the number of expected number
+of out-queries is significantly larger than ∆. As a result, Lemma 4.7 does not yield a trivial ∆O(1/ε)
+bound for the query complexity of EdgeValue. The key intuition here is that while the queries
+made to the lower levels may be non-uniform, they are not far from uniform. Loosely speaking, the
+distribution is distorted by a factor of poly(∆) with each level of recursion, which leads to a ∆O(1/ε)
+query complexity. The proofs are formalized below.
+
+Proof of Lemma 4.6. For the sake of brevity, we elide the inputs G, U , and ⃗x of VertexValue
+and EdgeValue. We also note that EdgeValue is always called on edges that are initially active,
+i.e., they are in G[U ]. As such, we only consider those edges in the analysis below.
+
+Correctness. First, we prove correctness of these routines, i.e., that VertexValue(v, t) always
+correctly computes the updated saturation value, and EdgeValue(e, t) always correctly computes
+the updated value and whether e appears in the t-th selected maximal matching (here, correct-
+ness is defined with respect to sequentially selecting t RGMMs in the active graph, as in Algo-
+rithm 3). This is established by induction on t. For the base case t = 0, the claim holds trivially,
+as EdgeValue(e, 0) returns (0, False), and VertexValue(v, 0) returns the initial value xv .
+    For t > 0, note that the correctness of VertexValue(v, t) is implied by the correctness
+of EdgeValue(e, t), since VertexValue simply computes the updated values of the neighbor-
+ing edges and adds them to the initial saturation xv . Thus, it suffices to prove the correctness
+of EdgeValue(e, t). By the induction hypothesis, the recursive calls of EdgeValue(e, t) to
+
+                                                   16
+ Algorithm 7: EdgeValue(G, U, ⃗x, e, t)
+  Input: Graph G = V (V, E), active set U , saturation vector ⃗x, edge e ∈ G[U ], and the number
+         of iterations t
+  Output: The fractional value of e, after t iterations of MatchLowDegree(G, U, ⃗x) (i.e.,
+           Algorithm 3), and a boolean denoting whether e appears in the t-th maximal
+           matching
+1 if t = 0 then                                                                            // base case
+ 2    return 0, False
+3 else
+      /* Recursively recover the state of e after t − 1 iterations, and implement RGMM if the
+           endpoints of e have not been saturated                                                    */
+ 4    u, v ← endpoints of e
+         (t−1)
+ 5    xe         ← EdgeValue(G, U, ⃗x, e, t − 1)
+        (t−1)
+ 6    xu      ← VertexValue(G, U, ⃗x, u, t − 1)
+        (t−1)
+ 7    xv      ← VertexValue(G, U, ⃗x, v, t − 1)
+           (t−1)                 (t−1)
+ 8    if xu      ≥ 1 − 2ε and xv       ≥ 1 − 2ε then // e was deactivated in the previous iterations
+                     (t−1)
+ 9         return xe       , False
+
+10    N (e) ← {e′ ∈ G[U ] | e′ shares an endpoint with e}                 // query adjacency lists
+11         ′
+      for e ∈ N (e) do                                    // assign ranks to the neighboring edges
+12       if e′ has not already been assigned a rank then
+                     (t)
+13           Draw πe′ uniformly from [0, 1]
+
+                                      (t)    (t)                       (t)
+14    for e′ ∈ N (e), such that πe′ < πe , in increasing order of πe′ do
+           (t)
+15       xe′ , b ← EdgeValue(G, U, ⃗x, e′ , t)
+16       if b = True then                                // e′ appears in the GMM, hence e does not
+                       (t−1)
+17             return xe     , False
+                   (t−1)
+18    return xe            + ε, True // no lower-rank neighboring edges appear in the GMM, hence e does
+
+
+
+
+                                                     17
+EdgeValue(·, t−1) and VertexValue(·, t−1) yield the correct output. As a result, EdgeValue(v, t)
+can correctly determine the active subgraph after t − 1 iterations, and compute the RGMM corre-
+sponding π (t) . This concludes the proof of correctness.
+
+Query Complexity. Moving on to the query complexity, we introduce some notation. Let π (<t)
+denote ranks used for computing the first t − 1 RGMMs. For the sake of analysis, we can assume
+that all the ranks are drawn for the entire graph at the start of the algorithm. Consider the process
+of drawing all the ranks and invoking VertexValue(v, 1/ε−1) once for each vertex v. Let Q(e′ , t),
+the in-degree of an edge e′ at level t, be a random variable denoting the number of recursive calls
+made to EdgeValue(e′ , t) as the result of the aforementioned process.
+    We claim that it suffices to prove E[Q(e, 0)] = ∆O(1/ε) for all e. To see this, first note that the
+adjacency lists are accessed at most twice in each call to EdgeValue (once for each endpoint, to
+obtain all the neighboring edges), and once in each call to VertexValue (to obtain the adjacent
+edges). Therefore, it suffices to bound the total number of (recursive) calls to VertexValue
+and EdgeValue by n∆O(1/ε) . Furthermore, except the initial calls to VertexValue(v, 1/ε − 1),
+every call to VertexValue(·, t) is triggered by a call to EdgeValue(·, t + 1), and each call to
+EdgeValue(·, t + 1) is responsible for at most two of the calls to VertexValue(·, t). Therefore,
+it suffices to bound the total number of calls just to EdgeValue by n∆O(1/ε) . Additionally, for
+t > 0, each call to EdgeValue(e, t) makes a call to EdgeValue(e, t − 1). Hence, since there are
+1/ε levels, it suffices to bound the total number of calls made to EdgeValue(·, 0) by n∆O(1/ε) .
+Finally, note that there are at most m ≤ n∆ edges. As a result, it suffices to bound the number of
+calls to EdgeValue(e, 0) by ∆O(1/ε) for each edge e.
+    To prove E[Q(e, 0)] = ∆O(1/ε) , we use a downward induction on t = 1/ε − i, and show
+
+                                       E[Q(e, 1/ε − i)] ≤ (4∆)2i .
+
+In fact, we prove a stronger claim that this holds even when we condition on an arbitrary set
+of ranks π (<t) (i.e., no matter what the graph is after the first t − 1 iterations). The base case,
+t = 1/ε − 1, follows directly from Lemma 4.7. Conditioning on an arbitrary set of ranks π (<t) , yields
+a set of active vertices Ut at the beginning of the t-th iteration. We are drawing a random rank
+π (t) for the t-th level, and invoking VertexValue(v, t) once for each v. These result in direct calls
+to EdgeValue(e, t) twice for each edge e. Then, EdgeValue(e, t) essentially simulate RGMM
+(Algorithm 5) on G[Ut ]. Therefore, by Lemma 4.7, we can conclude:
+
+                                E[Q(e, t) | π (<t) ] ≤ 2(1 + 2∆) ≤ (4∆)2 ,
+
+for all e.
+   For the induction step, take t = 1/ε − i for i > 1, fix a set of ranks π (<t) , and assume that the
+hypothesis holds for t + 1, i.e. for any π (<t+1) , we have
+
+                                 E[Q(e, t + 1) | π (<t+1) ] ≤ (4∆)2(i−1) ,
+
+for all e, where we are specifically interested in π (<t+1) that extend π (<t) by adding one level π (t) .
+Lifting the condition on π (t) , the above implies:
+
+                                  E[Q(e, t + 1) | π (<t) ] ≤ (4∆)2(i−1) .
+
+We consider the calls initially made to level t as a result of the calls to level t + 1. Each call to
+EdgeValue(e, t+1) makes a call to EdgeValue(e, t) and two calls to VertexValue(·, t), one for
+
+                                                    18
+each endpoint. The calls to VertexValue(·, t), in turn, make a call to EdgeValue(e′ , t) for each
+adjacent edge e′ . We refer to these as the initial calls to level EdgeValue(·, t). Combining with
+the induction hypothesis, the number of initial calls made to EdgeValue(e, t) can be bounded by
+(1 + 2∆)(4∆)2(i−1) ≤ (4∆)2i−1 in expectation for any e.
+   The key step here is to artificially increase the expected number of calls to level t to reach
+(4∆)2i−1 .4 That is, if the expectation is lower for any edge e, we add extra queries to EdgeValue(e, t).
+With each EdgeValue(e, t) called exactly (4∆)2i−1 times in expectation, we can invoke Lemma 4.7
+again to obtain:
+                            E[Q(e, t) | π (<t) ] ≤ (4∆)2i−1 · (1 + 2∆) ≤ (4∆)2i .
+This concludes the proof of the induction and the claim.
+
+
+4.3      Proof of Theorem 4
+
+We will now combine the bounds of Lemma 4.1 and Lemma 4.6 to give a bound on the number of
+subset queries required to implement EstimateMatchingSize in its entirety. From this, we will
+conclude Theorem 4.
+    First—primarily because the streaming algorithms will use a different approach for the low-
+degree phase—we will just bound the number of subset queries made during the high-degree phase
+of the algorithm, i.e. before MatchLowDegree is called.
+
+Claim 4.8. EstimateMatchingSize, outside of MatchLowDegree, makes poly(log n, 1/ε)
+subset queries.
+
+Proof. Subset queries outside of MatchLowDegree are only made within ComputeDegrees,
+so we will bound the number of calls to ComputeDegrees. Each call to PeelHighDegree
+makes O(1/ε) calls to ComputeDegrees (see proof of Lemma 3.6 for this argument), and there
+           log n
+are ≤ log((1−ε)  −1 ) calls to PeelHighDegree.       Thus we can bound the total number of calls
+to ComputeDegrees by O((log n)/ε). By Lemma 4.1, each call to ComputeDegrees makes
+O((log(n/δ) log n)/ε3 ) subset queries, where δ is the failure probability of ComputeDegrees. For
+our algorithm to have a global failure probability of 1/n, we will let δ := c · ε/n log n, where c is
+determined by the hidden constant in the O((log n)/ε) bound on the number of calls to Comput-
+eDegrees.
+      This gives a final subset-query complexity of
+                                                      
+                                  log n log(n/ε) log n
+                              O         ·                = poly(log n, 1/ε).
+                                    ε         ε3
+
+    Now we will combine this with the bounds on the complexity of MatchLowDegree to conclude
+Theorem 4. In fact we will show a slight relaxation of the theorem with additive-multiplicative
+approximation and expected query complexity; standard arguments show that the stronger version
+follows from that.
+
+Theorem 5 (Relaxation of Theorem 4). Given an n-vertex graph G, for any ε > 0, there is a
+randomized algorithm that (2, εn)-approximates the size of maximum matching in G w.h.p. The
+expected subset-query complexity is poly(log n) · (1/ε)O(1/ε) .
+  4
+      This is parallel to Lemmas 3.4 - 3.6 of [YYI09] for controlling the distortion in the uniform distribution.
+
+
+
+                                                           19
+Proof. We will call EstimateMatchingSize(G, ε, η = 2/ε2 ) using the subset-query implementa-
+tions of ComputeDegrees and MatchLowDegree, where instead of returning the exact value
+                                                 1−ε 1 X
+                                         µ̂ :=      ·    xv ,
+                                                 1+ε 2
+                                                         v∈V
+
+
+we will sample a random set S of O( log
+                                      ε2
+                                         n
+                                           ) indices and compute
+
+                                                 1−ε    n X
+                                       µ̂S :=         ·     xv ,
+                                                 1 + ε 2|S|
+                                                           v∈S
+
+then return µ̂′S := µ̂S − εn. First we observe that we can choose the constant such that
+
+                                       Pr[|µ̂ − µ̂S | > εn] ≤ n−c .
+
+This follows from the fact that xv ∈ [0, 1] for all v and a Hoeffding bound. Combined with the
+validity and approximation guarantees of Corollary 3.7 and Lemma 3.8, this yields an estimate µ̂′S
+such that
+                                   µ(G)
+                                             − 2εn ≤ µ̂′S ≤ µ(G).
+                                 2 + O(εn)
+Since µ(G) < n, we conclude the multiplicative-additive approximation guarantee:
+
+                                    µ(G)/2 − O(εn) ≤ µ̂′S ≤ µ(G),
+
+where the O(εn) can be reduced to εn by scaling ε by the appropriate constant.
+    Now we bound the query complexity. For v ∈ S such that v is removed from U during a call to
+PeelHighDegree, xv can just be retrieved from the vector ⃗x without making a call to the local
+implementation of MatchLowDegree. For v that remains in U after all calls to PeelHighDe-
+gree, MatchLowDegree is called on a graph of degree at most η = O(1/ε2 ), so by Lemma 4.6,
+xv takes (1/ε)O(1/ε) subset queries to compute, in expectation over a random vertex.
+   Thus, combined with Claim 4.8, the expected total number of subset queries is bounded by
+
+                                       poly(log n) · (1/ε)O(1/ε) ,
+
+which concludes the proof.
+
+Remark 4.9. To conclude the stronger version of the theorem, we restart the algorithm if it has not
+returned within twice its expected running time, and make at most O(log n) attempts. This gives an
+algorithm that still succeeds w.h.p. and always has poly(log n) · (1/ε)O(1/ε) query complexity.
+    To go from a multiplicative-additive to a multiplicative approximation, we first get rid of singleton
+vertices in the low-degree case. After that, the maximum matching of the remaining vertices will
+be of size at least Ω(k/∆) where ∆ = O(1/ε2 ) is the maximum degree in the low-degree case and
+k is the number of non-singletons. Sampling log n · (ε/∆)−2 vertices instead of log n/ε2 gives a
+multiplicative approximation. This technique is standard (see [Beh21]).
+
+
+
+
+                                                    20
+5       Streaming Distance-to-Monotonicity Estimation
+                                                             √ 1+o(1)
+In this section we prove Theorem 1, giving a Õ(n)-space, n           -pass streaming algorithm for
+distance-to-monotonicity estimation. We do this by giving a streaming implementation of a subset
+query in the violation graph Gf , which will allow us to use the subset-query algorithm to estimate
+the size of the maximum matching in the violation graph. From Fact 2.3, it will follow that this
+gives an estimator for distance to monotonicity.
+
+Lemma 5.1 (Streaming implementation of subset query). A subset query in the conflict graph Gf
+                       √ 1+o(1)
+can be implemented in n          passes over the edge and label stream of G, f and Õ(n) space. The
+query succeeds with high probability.
+
+    We cite the following result, originally presented by [JLS19] as a PRAM algorithm. See Propo-
+sition 4 of [AJJ+ 22] and the discussion beneath it for an explanation of how it is implemented in
+the streaming model.
+                                                                                     √ 1+o(1)
+Proposition 5.2 (Streaming shortcut set computation [JLS19, AJJ+ 22]). There is a n           -pass,
+Õ(n)-space algorithm that given directed G = (V, E), with high probability computes a shortcut set5
+H ⊂ V × V of Õ(n) additional edges such that
+                        √ 1+o(1)
+    1. diam(G ∪ H) ≤     n       , and
+
+    2. For all (u, v) ∈ V × V , v is reachable from u in G ∪ H iff v is reachable from u in G.
+
+Proof of Lemma 5.1. Let S be the queried subset. We will first use one pass and O(n) space to store
+                                                                                                √ 1+o(1)
+all the labels of f . Partition S into S0 := S ∩f −1 (0) and S1 := S ∩f −1 (1). We will then use n
+                                     √ 1+o(1)
+passes and Õ(n) space to build a n           -diameter shortcut set as specified in Proposition 5.2. We
+will run a (directed) parallel BFS in G ∪ H from S1 as follows:
+
+    1. For one pass, whenever a (directed) edge (u, v) appears in the stream where u ∈ S1 , place a
+       mark on v.
+
+    2. For diam(G ∪ H) passes, whenever a (directed) edge (u, v) appears in the stream where u is
+       marked, mark v.
+
+    3. Let T1 be the set of marked vertices labeled 0.
+
+We will then run the analogous BFS from S0 :
+
+    1. For one pass, whenever a (directed) edge (u, v) appears in the stream where v ∈ S0 , place a
+       mark on u.
+
+    2. For diam(G ∪ H) passes, whenever an edge (u, v) appears in the stream where v is marked,
+       mark u.
+
+    3. Let T0 be the set of marked vertices labeled 1.
+    5
+    Some authors make a distinction between a shortcut set and a hopset, where the latter consists of additional
+weighted edges which approximately preserve shortest paths. For clarity, we use the term “shortcut set” for the
+unweighted concept instead of “hopset” as in [JLS19, AJJ+ 22].
+
+
+                                                      21
+First, observe that the BFS marks exactly the set of descendants of S1 and ancestors of S0 in G ∪ H.
+By the fact that H preserves the reachability relation in G, these are also exactly the descendants
+and ancestors in G. A vertex u violates monotonicity with v ∈ S0 iff f (u) = 1 and u is an ancestor
+of v, so u violates monotonicity with some v ∈ S0 iff u ∈ T0 . Similarly, u violates monotonicity
+with v ∈ S1 iff f (u) = 0 and u is a descendant of v, so u violates monotonicity with some v ∈ S0 iff
+u ∈ T0 .
+    Thus, T0 ∪ T1 is the correct answer to the subset query S = S0 ∪ S1 ; i.e. it contains exactly the
+set of vertices adjacent to S in the conflict graph.
+                            √ 1+o(1)
+    Since diam(G ∪ H) ≤ n             and we only need to store the marks, the number of passes
+                           √ 1+o(1)                                               √ 1+o(1)
+required for the BFS is ≤ n          and the space is O(n). This gives a total of n         passes and
+Õ(n) space for the entire subset query.
+
+   We will now complete the proof of Theorem 1 by combining the pass complexity of this subset
+query implementation with the bound on the subset-query complexity. Rather than using the
+subset-query implementation exactly as presented in Section 4, we simplify the low-degree stage and
+improve the ε dependence by taking advantage of the fact that once the degree falls low enough,
+we can build an explicit representation of Gf in one pass. So instead of using the local algorithm
+which makes (1/ε)O(1/ε) subset queries, we will build Gf and use the global algorithm Algorithm 3
+as written.
+
+Proof of Theorem 1. We will run EstimateMatchingSize in the violation graph Gf using the
+subset-query implementation of ComputeDegrees, and a single-pass global implementation of
+MatchLowDegree. Since only these functions require access to the edges of Gf , no passes are
+made outside of them.
+   We will first bound the space requirements of EstimateMatchingSize and PeelHighDegree
+outside of the calls to ComputeDegrees and MatchLowDegree. We maintain ∆max , which
+requires O(log n) space, the set of active vertices U , which requires O(n) space, and the saturation
+vector ⃗x, which requires O(n log(1/ε)) space to store weights of granularity O(ε).
+    We will now bound the space complexity of MatchLowDegree. We will build the entire
+conflict graph Gf [U ] in one pass by storing all the edges and adding an edge between every reachable
+pair that violates monotonicity. Then we will run the rest of the subroutine on the stored graph,
+making no more passes. The graph at this point has degree at most O(1/ε2 ); thus the space
+complexity of the graph is O(n log n/ε2 ). Each matching takes O(n log n) space, but the matchings
+are not stored between iterations — only U and ⃗x persist, which take O(n log(1/ε)) space. This
+subroutine then takes O(n log n/ε2 ) space in total.
+  Now we will analyze the space and pass complexity of ComputeDegrees. By Lemma 5.1,
+ComputeDegrees takes O(n log(n/ε)) space, so the total space complexity is still Õ(n/ε2 )).
+    By Claim 4.8, the number of subset queries is bounded by poly(log n, 1/ε). Combined with
+                                                  √ 1+o(1)
+Lemma 5.1, this gives a total pass complexity of n           · poly(1/ε). By Lemmas 3.6 and 3.8, the
+output is a (2 + O(ε))-approximation to the maximum matching size in Gf ; the standard technique
+of rescaling ε by the appropriate constant reduces this to a (2 + ε)-approximation. By Fact 2.3, it is
+thus a (2 + ε)-approximation to the distance to monotonicity, from which the theorem follows.
+
+
+
+
+                                                 22
+6     Implementation With Vertex Queries
+
+In this section we show how to adapt the ideas of Sections 3 and 4 to the vertex-query model. The
+main difficulty in this model, compared to the subset-query model, is that accurate multiplicative
+degree estimates are not possible for low-degree vertices: for instance, identifying the set of degree-
+zero vertices in a graph would require Θ(n) vertex queries. This rules out directly implementing
+Assumption 3.1. Instead, we use the following alternate assumption:
+
+Assumption 6.1 (ComputeDegreesθ ). There is a function ComputeDegreesθ (G, U, ε) that
+takes an arbitrary graph G = (V, E), subset U ⊆ V , and approximation parameter ε > 0, and
+returns a vector d⃗ such that:
+
+    • dv is nonzero for all v ∈ V with |N (v) ∩ U | ≥ θ, and zero for all v ∈ V with |N (v) ∩ U | ≤
+      (1 − ε)θ.
+
+    • If dv is nonzero, then dv = (1 ± ε)|N (v) ∩ U |.
+                                                                                                    √
+    We will show in Lemma 6.5 that it is possible to implement ComputeDegreesθ for θ ≈ n
+              √
+using about n vertex queries. This will allow us to run PeelHighDegree with degree thresholds
+        √
+above n; however it will not allow us to drop the degree all the way to 2/ε2 as we do in the subset
+                                                                                                 √
+query implementation. Since we must transition to the low-degree phase at a threshold η ≈ n, it
+will also no longer be feasible to use the result of Lemma 4.6, as each xv would take η O(1/ε) = nO(1/ε)
+queries to compute.
+    To eliminate the O(1/ε) in the exponent, we switch from computing an adaptive sequence of 1/ε
+maximal integral matchings to computing a single maximal fractional matching, which increases the
+integrality gap from 1/(1 − ε) to 3/2. Thus, at the end of the algorithm, we will scale the estimate
+by 2/3 instead of 1 − ε, achieving an approximation ratio of 3.
+    In summary, the modified global algorithm EstimateMatchingSizeVQ differs from Algo-
+rithm 1 in four ways:
+                                                                   √
+    1. The transition from high to low degrees is defined as η =       n instead of 2/ε2 .
+                                                                                                 2
+    2. The PeelHighDegree subroutine uses ComputeDegreeθ with parameter θ = 2εlnηn in
+       place of ComputeDegree.
+
+    3. The MatchLowDegree subroutine is replaced with MatchLowDegreeVQ defined in
+       Algorithm 8
+
+    4. The final estimate returned by the algorithm is µ̂ = 1+3ε
+                                                             1
+                                                                 · 13 v xv instead of 1−ε   1P
+                                                                                              v xv .
+                                                                     P
+                                                                                      1+ε · 2
+
+
+
+
+                                                  23
+ Algorithm 8: MatchLowDegreeVQ(G, U, ⃗x, ε)
+  Input: Graph G = (V, E), active set U , saturation vector ⃗x, approximation parameter ε > 0
+  Output: Updated saturation vector
+ 1 V ′ ← V × [1/ε]
+ 2 E ′ ← {{(v1 , i1 ), (v2 , i2 )} : {v1 , v2 } ∈ G}
+ 3 G′ ← (V ′ , E ′ )
+ 4 U ′ ← {(v, i) ∈ V ′ × {0, . . . , 1/ε} : v ∈ U ∧ εi ≤ xv }
+ 5 M ← MaximalMatching(G′ , U ′ )
+ 6 for {(u, i1 ), (v, i2 )} ∈ M do
+ 7     xu ← xu + ε
+ 8     xv ← xv + ε
+       /* yuv ← yuv + ε                                                                             */
+ 9 return ⃗
+          x
+
+
+6.1   Correctness and Approximation Ratio of the Modified Global Algorithm
+
+Now we argue that the correctness conditions of Section 3 apply to the modified algorithm, with
+slight changes.
+
+ Lemma 6.2. After the last call to PeelHighDegree in EstimateMatchingSizeVQ, the vectors
+⃗x, ⃗yh satisfy the ithree conditions of Lemma 3.3, except that the first condition is replaced by (1 −
+       P                                  P
+ ε)      u∈N (v) yuv − ε ≤ xv ≤ (1 + ε)    u∈N (v) yuv .
+
+
+Proof. The behavior of PeelHighDegree is almost the same under Assumption 6.1 instead of
+Assumption 3.1. The identity of vertices in H is unchanged, as is the approximation guarantee on
+(dU )v for v ∈ H. The only difference is that (dH )v may be 0 for vertices v ∈ U \ H with fewer than
+θ neighbors in U . For those vertices, the value of xv may be too small, as compared to the original
+PeelHighDegree. It immediately follows that conditions 2 and 3 as well as the upper bound of
+condition 1 are satisfied.
+    Now we bound the amount of error in xv . The size of the error accumulates by at most 2ε · ∆max
+                                                                                                 θ
+                                                                                                    ≤
+2η in each of at most 4/ε iterations of PeelHighDegree, and thus the cumulative error across at
+εθ
+
+most lnεn calls to PeelHighDegree is bounded by 2θεη   ln n
+                                                            , which is at most ε by choice of θ.
+
+Lemma 6.3 (VQ analogue of Corollary 3.7 (validity)). Assume ε ≤ 13 , and let ⃗x be the vector
+computed by EstimateMatchingSizeVQ (Algorithm 1). Then there exists a matching in G of
+value
+                                       1      1X
+                                µ̂ =        ·       xv .
+                                     1 + 3ε 3 v
+
+Proof. First we will show that there exists a fractional matching in G with vertex saturation vector
+  1
+     x. It follows from Lemma 6.2 and the behavior of Algorithm 8 that the final values ⃗x and ⃗y
+1+3ε ⃗
+satisfy 1+ε
+         1
+            xv ≤ u∈N (v) yuv ≤ 1 + ε for every v; thus (1+ε)
+                                                           1
+                                                              ⃗y is a fractional matching with vertex
+                 P
+
+saturations at least (1+ε)2 ⃗x ≥ 1+3ε ⃗x.
+                       1          1
+
+
+
+
+                                                      24
+   This fractional matching has value at least 1+3ε
+                                                1
+                                                    · 21 v xv . By Fact 2.4, there is then an integral
+                                                        P
+matching of value at least
+                             2     1     1X             1      1X
+                               ·       ·       xv =         ·       xv .
+                             3 1 + 3ε 2 v             1 + 3ε 3 v
+
+
+Lemma 6.4 (VQ analogue of Lemma 3.8 (approximation ratio)). The fractional matching value µ̂
+returned by EstimateMatchingSizeVQ satisfies
+                                                     µ(G)
+                                            µ̂ ≥            .
+                                                   3 + O(ε)
+
+Proof. We observe that every edge (u, v) ∈ G satisfies xu + xv ≥ 1 − O(ε). Let L be the set of
+vertices in U when MatchLowDegreeVQ is called; the case where u or v is in V \ L is identical
+to the analogous case in the proof of Lemma 3.8. When u and v are both in L, this condition
+follows from the maximality of M in MatchLowDegreeVQ. The lemma statement then follows
+from Fact 3.9.
+
+
+6.2   Implementing the Modified Algorithm Using Vertex Queries
+
+We start by showing that Assumption 6.1 can be implemented in the vertex query model.
+ Algorithm 9: Implementing ComputeDegreesθ via vertex queries
+  Input: Graph G = (V, E) with |V | = n, subset U ⊆ V , threshold θ > 0, approximation
+         parameter ε > 0, failure probability δ > 0
+  Output: Degree estimates d⃗
+           |U |
+ 1 r ← Cε−2 θ log(nδ −1 ) for a sufficiently large constant C
+   ⃗ ←0
+ 2 X
+ 3 repeat r times
+ 4     Choose u ∈ U uniformly at random
+ 5     for v ∈ N (u) do
+ 6        Xv ← Xv + 1
+
+ 7 for v ∈ V   do
+ 8     dv ← |Ur | Xv
+ 9     if dv ≤ (1 − ε/2)θ then
+10         dv ← 0
+          ⃗
+11 return d
+
+
+Lemma 6.5 (Degreeestimation via vertex
+                                       queries). The functionality of Assumption 6.1 can be
+                     −2 |U |   −1
+implemented using O ε θ log(nδ ) vertex queries, with a failure probability of δ.
+
+Proof. Refer to Algorithm 9. Fix a vertex v ∈ V and consider Xv , the number of times v appears
+as a neighbor of one of the queried vertices. Then EXv = |Ur | · |N (v) ∩ U |. If |N (v) ∩ U | ≥ θ/4 then
+by a Chernoff bound,
+                                                                   (ε/3)2
+                                                                               
+                      Pr[|Xv − EXv | ≥ (ε/3)|EXv |] ≤ 2 exp −             EXv
+                                                                     3
+
+                                                    25
+                                                         ≤ n−1 δ,
+provided C is sufficiently large. On the other hand, if |N (v) ∩ U | ≤ θ/4 then
+                                                                    
+                                        3 r                     r
+                               Pr Xv ≥ ·        · θ ≤ exp −         θ/4
+                                        4 |U |                 |U |
+                                                        ≤ n−1 δ,
+again provided C is sufficiently large. (This uses the fact that the one-sided Chernoff upper bound
+holds with EXv replaced by the upper bound |Ur | θ/4, which follows from a coupling argument.) Thus
+by taking a union bound over all v ∈ V , with probability at least 1 − δ the returned d⃗ correctly
+distinguishes vertices with at least θ neighbors in U from those with at most (1 − ε)θ, and correctly
+estimates degrees whenever it returns a nonzero value.
+
+  Now we use the following result of [Beh21] to implement query access to the output of Maxi-
+malMatching.
+                                                                                ¯ Let Π be the
+Theorem 6 ([Beh21, Theorem 3.5]). Let G = (V, E) be a graph with average degree d.
+set of all permutations over E. For a permutation π ∈ Π. For a vertex v ∈ V , there is a randomized
+oracle VO(v, π) that determines whether v is matched in GMM(G, π, e) (Algorithm 5) and, if so,
+identifies the matching edge. Let T (v, π) denote the total number of recursive calls to the edge oracle
+generated during the execution of VO(v, π). Then for a vertex v chosen uniformly at random from
+V and a permutation π chosen uniformly at random from Π, independently from v,
+                                  Ev∼V, π∼Π [T (v, π)] = O(d¯ · log n).
+Lemma 6.6. There exists a randomized vertex-query algorithm that computes εn ± v x′v , where
+                                                                                         P
+x′v is the output of MatchLowDegreeVQ (Algorithm 8) on inputs G, U, ⃗x, ε, using vertex queries
+to G. The algorithm uses O(dU · ε−3 (log n)(log δ −1 )) vertex queries in expectation and succeeds with
+probability 1 − δ, where dU is the average degree in G[U ].
+
+Proof. Let G′ = (V ′ , E ′ ) and U ′ ⊂ V ′ be as in MatchLowDegreeVQ.
+    It suffices to estimate to within an additive error of ε the proportion p of vertices in V ′ which
+are matched     by a maximal
+                           P matching    of G′ [U ′ ], since given such an estimate p̂ we can output
+p̂n + v∈V xv = εn ± v∈V xv . We can accomplish this by sampling Θ(ε−2 log δ −1 ) random
+                                  ′
+       P
+vertices and determining if they are matched.
+   Draw a permutation π uniformly at random over E(G′ [U ′ ]) and let M be the the matching
+computed by the algorithm of Theorem 6 on input G′ [U ′ ].
+    Pick a vertex v ∈ V ′ uniformly at random. If V ′ ∈   / U ′ then it is not matched, so assume it
+is in U . We run the oracle VO(v, π) on G [U ], implementing the oracle’s adjacency-list access to
+          ′                                     ′   ′
+
+G′ [U ′ ] using vertex queries to G. The expected total number of vertex queries is then O(dG′ [U ′ ] ·
+ε−2 (log n)(log δ −1 )) = O(dU · ε−3 (log n)(log δ −1 )).
+
+
+6.3   Proof of Theorem 2
+
+Finally, we will combine the results of the previous subsections and bound the total number of
+vertex queries, obtaining Theorem 2. As before, we will bound the expected number of queries; the
+same repetition technique discussed in Remark 4.9 applies. (The multiplicative error technique does
+not apply due to the fact that we cannot efficiently detect singleton vertices using vertex queries.)
+
+                                                   26
+Proof of Theorem 2. From Lemma 6.6 we obtain an estimate x̂ = εn ±               v∈S xv , from which we
+                                                                              P
+compute and return
+                                          1    1
+                                 µ̂S :=       · x̂ − εn.
+                                        1 + 3ε 3
+Then this is a (3, εn)-approximation according to Lemmas 6.3 and 6.4.
+    Now we bound the number of vertex queries in the high-degree phase. Vertex queries in
+this phase are only made during calls to ComputeDegrees. By the argument in the proof of
+Claim 4.8, ComputeDegrees is called O((log n)/ε) times. By Lemma 6.5, the query complexity
+of ComputeDegreesθ with failure probability n−c is
+                                                    
+                                             n log n
+                                         O             .
+                                               ε2 θ
+
+We are calling it with                                √
+                                                   ε2 n
+                                             θ=           ,
+                                                   2 ln n
+therefore the total query complexity of all calls to ComputeDegrees is
+                                             √
+                       n log2 n log n             n log3 n     √
+                                                          
+                   O      4
+                            √ ·         =O            5
+                                                              = n · poly(log n, ε−1 ).
+                        ε n       ε                 ε
+
+   Finally, the number of vertex queries in the low-degree phase is bounded by dL ·poly(log n, ε−1 ) ≤
+√
+  n · poly(log n, ε−1 ) according to Lemma 6.6, so this is the query complexity for the algorithm as
+a whole.
+
+
+7    Better Approximation Ratios with Subset Queries
+
+In this section, we show that if we restrict our attention to subset queries, then we can outperform
+Algorithm 1 in terms of approximation ratio. We remark that Algorithm 1 applies under weaker
+guarantees, namely those of the ComputeDegreesθ subroutine in Section 6, and can therefore be
+implemented efficiently using either subset or vertex queries. This flexibility comes at the cost of a
+larger approximation ratio. In contrast, the algorithm in this section requires stronger guarantees
+(as in Assumption 3.1) that are achievable only through subset queries.
+    We prove
+
+Theorem 7. Given an n-vertex graph G, for any ε > 0, there is a randomized algorithm that
+(1.5 + ε)-approximates the size of maximum matching in G using poly(log n, 1/ε) subset queries to
+G w.h.p. If the graph is bipartite, then the approximation ratio improves to 1 + ε.
+
+    This is achieved through a (1 + ε)-approximation of the minimum fractional vertex cover, whose
+value is equal to the maximum fractional matching. In turn, this yields a (1.5 + ε)-approximation
+for general (i.e., possibly non-bipartite) graphs, due to the 1.5 integrality gap, and a (1 + ε)-
+approximation for bipartite graphs.
+    Recall that, for a Boolean function f on a DAG G, the conflict graph Gf satisfies dmon (f ) =
+µ(Gf ) (fact 2.3). Therefore, since Gf is bipartite, and a subset query to Gf can be implemented in
+√ 1+o(1)
+  n      (Lemma 5.1) passes and space O(n/ε
+                                          e     2 ), we have:
+
+
+
+                                                   27
+                                                                              √ 1+o(1)
+Theorem 8. For any ε > 0, there is a randomized streaming algorithm that takes n       ·poly(1/ε)
+                                  2
+passes over the stream, uses O(n/ε ) space, and w.h.p. (1 + ε)-approximates dmon (f ).
+                             e
+
+    The algorithm relies on the ComputeDegrees subroutine, as defined       in     Assumption
+                                                                                               3.1,
+                                                                             log2 n
+which produces a (1 + ε)-approximation of all the vertex degrees using O       ε3
+                                                                                      subset queries
+(Lemma 4.1). We adapt Lemma 3.5 of Liu [Liu24], which implements a multiplicative-weight-update
+(MWU) oracle using O(ε−2 log n) calls to ComputeDegrees. Then, the value of the minimum
+fractional vertex cover can be (1+ε)-approximated using T = O(ε−2 log n) calls to the MWU oracle.
+
+
+Definitions
+
+We begin with some definitions. Given a graph G = (V, E) a fractional vertex cover is a set of
+values y ∈ RV≥0 , such that
+                             yu + y v ≥ 1   for every (u, v) ∈ E.
+We use τf (G) to denote the value of the minimum fractional vertex cover, which is the minimum
+possible value of ∥y∥1 among all fractional vertex covers y.
+    For the MWU framework, we consider parameters c, λ, ε > 0, and define a potential function
+Φ : RV≥0 → R,
+                                      X
+                            Φ(y) =         exp(−λ(yu + yv )).
+                                          (u,v)∈E
+
+For a fixed y, we similarly define sv to be the sum of the terms in the potential corresponding to
+edges incident to v:                      X
+                                   sv =        exp(−λ(yu + yv )).
+                                         u∈N (v)
+
+Definition 7.1 (MWU oracle). Given a graph G = (V, E), y ∈ RV≥0 , and c, λ, ε > 0, an MWU
+oracle either fails or outputs an update vector ∆ ∈ RV≥0 such that:
+       P
+  1.    v ∆v = 1,
+       P
+  2.    v ∆v sv ≥ (1 − ε)c · Φ(y), and
+           ε
+  3. ∆v ≤ 2λ for all v ∈ V .
+
+                      1
+When 2τf1(G) ≤ c ≤ τf (G) , the oracle is guaranteed to succeed.
+
+
+The MWU Framework
+
+First, we give an overview of how an MWU oracle can be used to obtain a (1 + ε)-approximation of
+the minimum fractional vertex cover. The reader may refer to [Liu24, Section 3] for a full proof. We
+remark that their proof is stated for µ(G), the size of the maximum matching, in bipartite graphs.
+The only modification in our setting appear is in Claim 7.3, where we show how the MWU oracle
+is obtained from ComputeDegrees.
+
+Claim 7.2 (See [Liu24, Section 3]). Given a graph G, for λ = ε/10c, a (1+ε)-approximate minimum
+fractional vertex cover can be computed using poly(log n, 1/ε) calls to the MWU oracle.
+
+
+                                                    28
+Proof sketch. First, observe that the approximation problem can be reduced to a decision problem
+as follows: For O( logε n ) choices of c = (1 + ε)−i , we test whether there exists a y ∈ RV≥0 such that
+                            X
+                                  yv = 1          and      yu + yv ≥ c, ∀(u, v) ∈ E.                      (3)
+                             v
+
+This is feasible if and only if c ≤ 1/τf (G). Therefore, the largest feasible guess yields a (1 + ε)-
+approximation of τf (G).
+    On a high level, the decision problem is solved as follows. Let λ = ε/10c and T = 20ε−2 log n.
+Starting with y (0) = 0, for t = 0, 1, . . . , T − 1, let y (t+1) = y (t) + ∆(t) , where ∆(t) is the output of
+the MWU oracle for y (t) . It can be shown that when the oracle succeeds in every step, y = y (T ) /T
+satisfies (3) up to a 1 + O(ε) factor. Hence, rescaling y gives a fractional vertex cover of size
+(1 + O(ε)) 1c . As a result, considering the largest c for which the oracle succeeds in every step,
+yields the (1 + O(ε))-approximation. We remark that the oracle may behave arbitrarily when
+c < 2τf1(G) .
+
+   Therefore, it suffices to show that an MWU oracle can be obtained using ComputeDegrees.
+We make the necessary adaptations for general graphs and τf (v).
+
+Claim 7.3 (Analogous to [Liu24, Lemma 3.5]). The MWU oracle, as defined in Definition 7.1, can
+be implemented using O(ε−2 log n) calls to ComputeDegrees.
+
+Proof. First, we obtain estimates s̃v for sv for all vertices v:
+
+                                              (1 − ε/2)sv ≤ s̃v ≤ sv ,                                    (4)
+
+where recall that                        X                                 X
+                                 sv =             e−λ(yu +yv ) = e−λyv             e−λyu .
+                                        u∈N (v)                          u∈N (v)
+
+To do so, we partition the vertices V into sets V0 , . . . , V5T where
+
+                                 Vi = {v ∈ V | iε/10 ≤ λyv < (i + 1)ε/10}.
+
+Note that 5T suffices as the maximum index, since by the construction of y, we have yv ≤ T · 2λ    ε
+
+(due to Item 3 of Definition 7.1). Then, we estimate u∈N (v)∩Vi e u by |N (v) ∩ Vi |e
+                                                                      −λy              −iε/10 , where
+                                                          P
+|N (v)∩Vi | can be estimated simultaneously for all v, up to a (1+ε) factor using ComputeDegrees.
+Formally, letting d˜v,i be the (1 + ε)-approximation for |N (v) ∩ Vi |, we have:
+                            X                             X
+                               d˜v,i e−iε/10 = (1 ± O(ε))   |N (v) ∩ Vi |e−iε/10
+                             i                                    i
+                                                                 X         X
+                                                  = (1 ± O(ε))                       e−λyu
+                                                                  i   u∈N (v)∩Vi
+                                                                  X
+                                                  = (1 ± O(ε))             e−λyu .
+                                                                 u∈N (v)
+
+                                 −λyv
+Multiplying this value by 1+O(ε)
+                           e
+                                 and rescaling ε appropriately, yields the desired estimate s̃v .
+
+
+
+
+                                                           29
+   Next, we use these estimates s̃v to construct ∆. Sort the vertices v1 , v2 , . . . , vn in decreasing
+order of s̃v . Let U be the largest prefix that satisfies:
+                                          1 X
+                                              s̃v ≥ (1 − ε)cΦ(y).                                       (5)
+                                         |U |
+                                               v∈U
+
+Then, let                                    (
+                                              1/|U |, if v ∈ U, and
+                                        ∆v =
+                                              0,      otherwise.
+
+   Observe that Item 1 of Definition 7.1 is satisfied trivially by the choice of ∆, andh Item 2 is satisfied
+                                                                                                       i
+due to (4) and (5). When |U | < 2λ ε , the  algorithm   declares  failure. When   c ∈    2τf (G) τf (G) , we
+                                                                                            1
+                                                                                                ,   1
+
+show that |U | ≥ 2λ
+                  ε and hence Item 3 holds.
+   We show that |U | ≥ ⌊τf (G)⌋. In turn, it follows that
+
+                                                   τf (G)   1    2λ
+                                          |U | ≥          ≥    ≥    .
+                                                      2     4c    ε
+We argue that the prefix of size kP= ⌊τf (G)⌋ satisfies (5). Let x ∈ RV≥0 be an optimal fractional
+minimum vertex cover. Consider v xv s̃v as a weighted sum of {s̃v }v . Since xv ≤ 1 for all v, the
+sum can only grow, by concentrating the weight on the k vertices with the largest s̃v . That is,
+                   τ (G)
+giving a weight of f k to the first k vertices:
+
+                                                                   k
+                                          X             τf (G) X
+                                               xv s̃v ≤          s̃vi .                                 (6)
+                                           v
+                                                           k
+                                                                 i=1
+
+On the other hand, using the fact that x is a vertex cover, we get:
+                         X                     X
+                            xv s̃v ≥ (1 − ε/2)     xv sv
+                             v                         v
+                                                       X
+                                        = (1 − ε/2)             e−λ(yu +yv ) (xu + xv )
+                                                      (u,v)∈E
+
+                                        ≥ (1 − ε/2)Φ(y).                                                (7)
+
+   Putting (6) and (7) together, we get:
+                                   k
+                                 1X        1 − ε/2
+                                    s̃vi ≥         Φ(y) ≥ (1 − ε/2)cΦ(y).
+                                 k          τf (G)
+                                  i=1
+
+Therefore, U ≥ ⌊τf (G)⌋, which concludes the proof of Item 3. We finally remark that, since there
+are 5T = O(ε−2 log n) vertex sets, the oracle requires as many calls to ComputeDegrees for one
+guess c.
+
+    To conclude, we remark that Claims 7.2 and 7.3 together imply that a (1 + ε)-approximation of
+the minimum fractional vertex cover can be computed using poly(log n, 1/ε) subset queries. Hence,
+Theorem 7 follows which, in turn, implies Theorem 8.
+
+
+
+                                                       30
+8    The Lower Bound
+
+In this section, we establish a lower bound on the pass complexity of approximating the distance to
+monotonicity in the streaming model, which is stated in the following theorem.
+Theorem 9. For any fixed c ≥ 1 there is ε > 0 such that a (c, εn)-approximation of dmon (f ) with
+O(n)
+e     space requires Ω(st-reachn ) passes, where st-reachn denotes the pass-complexity of the best O(n)
+                                                                                                   e
+space streaming algorithm for the st-reachability problem.
+
+    Despite extensive studies, all we know about st-reachn is that
+                                         [CKP+ 21]            [JLS19]
+                                log n
+                        Ω                     ≤      st-reach n    ≤ n1/2+o(1) .
+                            (log log n)2
+Note that Theorem 9 can also be seen as a conditional lower bound. It implies that Theorem 1 has
+optimal pass-complexity modulo improving the state-of-the-art st-reachability algorithm of [JLS19].
+
+
+                   A                                      G                                  B
+              a1                                                                                 b1
+                                                               ···
+                           s                                                             t
+              a2                                                                                 b2
+
+                   .                                                                         .
+                   .                                                                         .
+                   .                                                                         .
+              aℓ                                                                                 bℓ
+
+
+
+                   1                                                                         0
+
+
+                Figure 1: If t is reachable from s the instance is far from monotone.
+
+    Let G = (V, E) be a directed graph with |V | = n, |E| = m, and vertices s, t ∈ V be an instance of
+st-reachability. We construct a directed graph G′ = (V ′ , E ′ ) and a boolean function f : V ′ → {0, 1}
+as follows. Let l = 2cn, for a fixed constant c. Introduce two fresh batches of vertices
+
+                                A = {a1 , . . . , al },        B = {b1 , . . . , bl },
+
+disjoint from V and from each other, and set V ′ = A ∪ V ∪ B with |V ′ | = 2l + n. The edge set
+E ′ consists of (a, s) for every a ∈ A, (u, v) for every (u, v) ∈ E and, (t, b) for every b ∈ B. Finally,
+define f : V ′ → {0, 1} by                         
+                                                   1 v ∈ A,
+                                                   
+                                                   
+                                            f (v) =    0 v ∈ B,
+                                                      
+                                                      
+                                                      0 v ∈ V.
+
+     First, we investigate the distance to monotonicity in the following two cases. The first case is
+when t is reachable from s, we call this the yes case, represented in Figure 1. The no case is when
+t is not reachable from s.
+Lemma 8.1. If s can reach t in G, then dmon (f ) ≥ 2cn.
+
+                                                          31
+Proof. Fix a directed path s to t in G. For every (a, b) ∈ A × B, there is a directed path a to b in
+G′ via the path from s to t, so a can reach b while f (a) = 1 > 0 = f (b). All l2 pairs in A × B are
+violations.
+    Any monotone function g must fix at least one endpoint per violation. Since these violations form
+the complete bipartite graph, any vertex cover has size at least l , so in G′ dmon (f ) ≥ l = 2cn.
+
+Lemma 8.2. If s cannot reach t in G, then dmon (f ) ≤ n.
+
+Proof. Let g be a monotone function that agrees with f on all but at most n vertices. Let Rs ⊆ V
+be the set of vertices reachable from s in G (including s itself). Define g as follows:
+                                             (
+                                               1 v ∈ A ∪ Rs ,
+                                      g(v) =
+                                               0 otherwise.
+
+We verify that g is monotone on G′ , i.e., for every edge (x, y) ∈ E ′ we have g(x) ≤ g(y). For
+edges (a, s) where a ∈ A we have g(a) = 1 and g(s) = 1 since s ∈ Rs . For edges (u, v) ∈ E where
+u ∈ Rs , we have v ∈ Rs as well, so g(u) = g(v) = 1. For edges (u, v) ∈ E where u ∈      / Rs we
+have g(u) = 0 ≤ g(v). For edges (t, b) where b ∈ B, since s cannot reach t, we have t ∈  / Rs , so
+g(t) = 0 = g(b).
+    Therefore, the function g differs from f only on Rs ⊆ V where f = 0 but g = 1, so dmon (f ) ≤
+|Rs | ≤ n.
+
+Proof of Theorem 9. Set ε = 2(4c+1)
+                               c
+                                    , which satisfies ε > 0 for any fixed c ≥ 1. Suppose A is a
+streaming algorithm that computes a (c, εN )-approximation of dmon (f ) on posets of size N in p
+passes using space O(N
+                    e ). The edges in G arrive in the same sequence as the stream for the s-t
+reachability problem. Assume f arrives in the beginning of the sream.
+   Let x be the value returned by running A on the stream for G′ . If t is reachable from s,
+by Lemma 8.1, dmon (f ) ≥ 2cn. Since A is a (c, εN )-approximation, its output must satisfy x ≥
+dmon (f ) ≥ 2cn.
+    If t is not reachable from s, by Lemma 8.2, dmon (f ) ≤ n. The algorithm A must output a value
+x ≤ c · dmon (f ) + εN . Since N = (4c + 1)n, given our choice of ε we have εN = 2(4c+1)
+                                                                                    c
+                                                                                         (4c + 1)n =
+0.5cn. Thus, x ≤ cn + 0.5cn = 1.5cn.
+   Because 1.5cn < 2cn, the output of A allows us to perfectly distinguish whether s can reach t
+in G. Since N = Θ(n) and |E ′ | = m + 2l = m + Θ(n), generating the stream for G′ requires only
+O(n)
+ e    space. Therefore, A effectively solves st-reachability in p passes and O(n)
+                                                                             e    space, implying
+that p = Ω(st-reachn ).
+
+
+Acknowledgments
+
+We thank an anonymous reviewer for pointing out the alternative approach detailed in Section 7.
+
+
+References
+   [ABR24] Amir Azarmehr,
+                    √     Soheil Behnezhad, and Mohammad Roghani. Fully dynamic match-
+           ing: (2 − 2)-approximation in polylog update time. In David P. Woodruff, editor,
+
+                                                 32
+           Proceedings of the 2024 ACM-SIAM Symposium on Discrete Algorithms, SODA 2024,
+           Alexandria, VA, USA, January 7-10, 2024, pages 3040–3061. SIAM, 2024.
+
+[ABRR25] Amir Azarmehr, Soheil Behnezhad, Mohammad Roghani, and Aviad Rubinstein. Tight
+         pair query lower bounds for matching and earth mover’s distance. In 66th IEEE An-
+         nual Symposium on Foundations of Computer Science, FOCS 2025, Sydney, Australia,
+         December 14-17, 2025, pages 2666–2693. IEEE, 2025.
+
+[ACCL07] Nir Ailon, Bernard Chazelle, Seshadhri Comandur, and Ding Liu. Estimating the
+         distance to a monotone function. Random Struct. Algorithms, 31(3):371–383, 2007.
+
+[ACCL08] Nir Ailon, Bernard Chazelle, Seshadhri Comandur, and Ding Liu. Property-preserving
+         data reconstruction. Algorithmica, 51(2):160–182, 2008.
+
+ [AJJ+ 22] Sepehr Assadi, Arun Jambulapati, Yujia Jin, Aaron Sidford, and Kevin Tian. Semi-
+           streaming bipartite matching in fewer passes and optimal space. In Proceedings of the
+           2022 Annual ACM-SIAM Symposium on Discrete Algorithms (SODA), pages 627–669.
+           SIAM, 2022.
+
+ [AKK25] Sepehr Assadi, Sanjeev Khanna, and Peter Kiss. Improved bounds for fully dynamic
+         matching via ordered Ruzsa-Szemerédi graphs. In Yossi Azar and Debmalya Pani-
+         grahi, editors, Proceedings of the 2025 Annual ACM-SIAM Symposium on Discrete
+         Algorithms, SODA 2025, New Orleans, LA, USA, January 12-15, 2025, pages 2971–
+         2990. SIAM, 2025.
+
+   [BB15] Aleksandrs Belovs and Eric Blais. Quantum algorithm for monotonicity testing on the
+          hypercube. Theory Comput., 11:403–412, 2015.
+
+   [BB21] Aleksandrs Belovs and Eric Blais. A polynomial lower bound for testing monotonicity.
+          SIAM J. Comput., 50(3), 2021.
+
+[BCGM12] Jop Briët, Sourav Chakraborty, David García-Soriano, and Arie Matsliah. Monotonic-
+         ity testing and shortest-path routing on the cube. Comb., 32(1):35–53, 2012.
+
+  [BCS18] Hadley Black, Deeparnab Chakrabarty, and C. Seshadhri. A o(d ) · polylog n mono-
+          tonicity tester for boolean functions over the hypergrid [n]d . In Artur Czumaj, editor,
+          Proceedings of the Twenty-Ninth Annual ACM-SIAM Symposium on Discrete Algo-
+          rithms, SODA 2018, New Orleans, LA, USA, January 7-10, 2018, pages 2133–2151.
+          SIAM, 2018.
+
+  [BCS20] Hadley Black, Deeparnab Chakrabarty, and C. Seshadhri. Domain reduction for mono-
+          tonicity testing: A o(d ) tester for boolean functions in d -dimensions. In Shuchi
+          Chawla, editor, Proceedings of the 2020 ACM-SIAM Symposium on Discrete Algo-
+          rithms, SODA 2020, Salt Lake City, UT, USA, January 5-8, 2020, pages 1975–1994.
+          SIAM, 2020.
+
+  [BCS23] Hadley Black, Deeparnab Chakrabarty, and C. Seshadhri. A d1/2+o(1) monotonic-
+          ity tester for boolean functions on d-dimensional hypergrids. In 64th IEEE Annual
+          Symposium on Foundations of Computer Science, FOCS 2023, Santa Cruz, CA, USA,
+          November 6-9, 2023, pages 1796–1821. IEEE, 2023.
+
+
+
+                                              33
+   [Beh21] Soheil Behnezhad. Time-optimal sublinear algorithms for matching and vertex cover.
+           In 62nd IEEE Annual Symposium on Foundations of Computer Science, FOCS 2021,
+           Denver, CO, USA, February 7-10, 2022, pages 873–884. IEEE, 2021.
+
+   [Beh23] Soheil Behnezhad. Dynamic algorithms for maximum matching size. In Nikhil Bansal
+           and Viswanath Nagarajan, editors, Proceedings of the 2023 ACM-SIAM Symposium
+           on Discrete Algorithms, SODA 2023, Florence, Italy, January 22-25, 2023, pages 129–
+           162. SIAM, 2023.
+
+   [BG24] Soheil Behnezhad and Alma Ghafari. Fully dynamic matching and ordered Ruzsa-
+          Szemerédi graphs. In 65th IEEE Annual Symposium on Foundations of Computer
+          Science, FOCS 2024, Chicago, IL, USA, October 27-30, 2024, pages 314–327. IEEE,
+          2024.
+
+ [BGJ+ 10] Arnab Bhattacharyya, Elena Grigorescu, Madhav Jha, Kyomin Jung, Sofya Raskhod-
+           nikova, and David P. Woodruff. Lower bounds for local monotonicity reconstruction
+           from transitive-closure spanners. In Maria J. Serna, Ronen Shaltiel, Klaus Jansen, and
+           José D. P. Rolim, editors, Approximation, Randomization, and Combinatorial Opti-
+           mization. Algorithms and Techniques, 13th International Workshop, APPROX 2010,
+           and 14th International Workshop, RANDOM 2010, Barcelona, Spain, September 1-3,
+           2010. Proceedings, Lecture Notes in Computer Science, pages 448–461. Springer, 2010.
+
+[BKKM23] Mark Braverman, Subhash Khot, Guy Kindler, and Dor Minzer. Improved mono-
+         tonicity testers via hypercube embeddings. In Yael Tauman Kalai, editor, 14th Inno-
+         vations in Theoretical Computer Science Conference, ITCS 2023, MIT, Cambridge,
+         Massachusetts, USA, January 10-13, 2023, LIPIcs, pages 25:1–25:24. Schloss Dagstuhl
+         - Leibniz-Zentrum für Informatik, 2023.
+
+  [BKR24] Hadley Black, Iden Kalemaj, and Sofya Raskhodnikova. Isoperimetric inequalities
+          for real-valued functions with applications to monotonicity testing. Random Struct.
+          Algorithms, 65(1):191–219, 2024.
+
+ [BKS23a] Sayan Bhattacharya, Peter Kiss, and Thatchaphol Saranurak. Dynamic (1 + ε)-
+          approximate matching size in truly sublinear update time. In 64th IEEE Annual
+          Symposium on Foundations of Computer Science, FOCS 2023, Santa Cruz, CA, USA,
+          November 6-9, 2023, pages 1563–1588. IEEE, 2023.
+
+ [BKS23b] Sayan Bhattacharya, Peter Kiss, and Thatchaphol Saranurak. Sublinear algorithms
+          for (1.5+ε)-approximate matching. In Barna Saha and Rocco A. Servedio, editors,
+          Proceedings of the 55th Annual ACM Symposium on Theory of Computing, STOC
+          2023, Orlando, FL, USA, June 20-23, 2023, pages 254–266. ACM, 2023.
+
+[BKSW24] Sayan Bhattacharya, Peter Kiss, Thatchaphol Saranurak, and David Wajc. Dynamic
+         matching with better-than-2 approximation in polylogarithmic update time. J. ACM,
+         71(5):33:1–33:32, 2024.
+
+ [BRR23a] Soheil Behnezhad, Mohammad Roghani, and Aviad Rubinstein. Local computation
+          algorithms for maximum matching: New lower bounds. In 64th IEEE Annual Sym-
+          posium on Foundations of Computer Science, FOCS 2023, Santa Cruz, CA, USA,
+          November 6-9, 2023, pages 2322–2335. IEEE, 2023.
+
+
+
+                                              34
+[BRR23b] Soheil Behnezhad, Mohammad Roghani, and Aviad Rubinstein. Sublinear time al-
+         gorithms and complexity of approximate maximum matching. In Barna Saha and
+         Rocco A. Servedio, editors, Proceedings of the 55th Annual ACM Symposium on The-
+         ory of Computing, STOC 2023, Orlando, FL, USA, June 20-23, 2023, pages 267–280.
+         ACM, 2023.
+ [BRR24] Soheil Behnezhad, Mohammad Roghani, and Aviad Rubinstein. Approximating max-
+         imum matching requires almost quadratic time. In Bojan Mohar, Igor Shinkar, and
+         Ryan O’Donnell, editors, Proceedings of the 56th Annual ACM Symposium on The-
+         ory of Computing, STOC 2024, Vancouver, BC, Canada, June 24-28, 2024, pages
+         444–454. ACM, 2024.
+[BRRS23] Soheil Behnezhad, Mohammad Roghani, Aviad Rubinstein, and Amin Saberi. Beating
+         greedy matching in sublinear time. In Nikhil Bansal and Viswanath Nagarajan, editors,
+         Proceedings of the 2023 ACM-SIAM Symposium on Discrete Algorithms, SODA 2023,
+         Florence, Italy, January 22-25, 2023, pages 3900–3945. SIAM, 2023.
+[BRRS24] Soheil Behnezhad, Mohammad Roghani, Aviad Rubinstein, and Amin Saberi. Sublin-
+         ear algorithms for TSP via path covers. In Karl Bringmann, Martin Grohe, Gabriele
+         Puppis, and Ola Svensson, editors, 51st International Colloquium on Automata, Lan-
+         guages, and Programming, ICALP 2024, Tallinn, Estonia, July 8-12, 2024, LIPIcs,
+         pages 19:1–19:16. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2024.
+ [BRY14] Piotr Berman, Sofya Raskhodnikova, and Grigory Yaroslavtsev. Lp -testing. In
+         David B. Shmoys, editor, Symposium on Theory of Computing, STOC 2014, New
+         York, NY, USA, May 31 - June 03, 2014, pages 164–173. ACM, 2014.
+[CDH+ 25] Xi Chen, Anindya De, Yizhi Huang, Yuhao Li, Shivam Nadimpalli, Rocco A. Servedio,
+          and Tianqi Yang. Relative-error monotonicity testing. In Yossi Azar and Debmalya
+          Panigrahi, editors, Proceedings of the 2025 Annual ACM-SIAM Symposium on Dis-
+          crete Algorithms, SODA 2025, New Orleans, LA, USA, January 12-15, 2025, pages
+          373–402. SIAM, 2025.
+[CDL+ 24] Xi Chen, Anindya De, Yuhao Li, Shivam Nadimpalli, and Rocco A. Servedio. Mildly
+          exponential lower bounds on tolerant testers for monotonicity, unateness, and juntas.
+          In David P. Woodruff, editor, Proceedings of the 2024 ACM-SIAM Symposium on
+          Discrete Algorithms, SODA 2024, Alexandria, VA, USA, January 7-10, 2024, pages
+          4321–4337. SIAM, 2024.
+[CDST15] Xi Chen, Anindya De, Rocco A. Servedio, and Li-Yang Tan. Boolean function mono-
+         tonicity testing requires (almost) n1/2 non-adaptive queries. In Rocco A. Servedio and
+         Ronitt Rubinfeld, editors, Proceedings of the Forty-Seventh Annual ACM on Sympo-
+         sium on Theory of Computing, STOC 2015, Portland, OR, USA, June 14-17, 2015,
+         pages 519–528. ACM, 2015.
+[CFPS20] Artur Czumaj, Hendrik Fichtenberger, Pan Peng, and Christian Sohler. Testable prop-
+         erties in general graphs and random order streaming. In Jaroslaw Byrka and Raghu
+         Meka, editors, Approximation, Randomization, and Combinatorial Optimization. Algo-
+         rithms and Techniques, APPROX/RANDOM 2020, Virtual Conference, August 17-19,
+         2020, LIPIcs, pages 16:1–16:20. Schloss Dagstuhl - Leibniz-Zentrum für Informatik,
+         2020.
+
+                                             35
+ [CKK20] Yu Chen, Sampath Kannan, and Sanjeev Khanna. Sublinear algorithms and lower
+         bounds for metric TSP cost estimation. In Artur Czumaj, Anuj Dawar, and Emanuela
+         Merelli, editors, 47th International Colloquium on Automata, Languages, and Pro-
+         gramming, ICALP 2020, Saarbrücken, Germany (Virtual Conference), July 8-11,
+         2020, LIPIcs, pages 30:1–30:19. Schloss Dagstuhl - Leibniz-Zentrum für Informatik,
+         2020.
+[CKP+ 21] Lijie Chen, Gillat Kol, Dmitry Paramonov, Raghuvansh Saxena, Zhao Song, and
+          Huacheng Yu. Almost optimal super-constant-pass streaming lower bounds for reach-
+          ability. Electron. Colloquium Comput. Complex., TR21, 2021.
+[CKT23a] Yu Chen, Sanjeev Khanna, and Zihan Tan. Query complexity of the metric steiner
+         tree problem. In Nikhil Bansal and Viswanath Nagarajan, editors, Proceedings of the
+         2023 ACM-SIAM Symposium on Discrete Algorithms, SODA 2023, Florence, Italy,
+         January 22-25, 2023, pages 4893–4935. SIAM, 2023.
+[CKT23b] Yu Chen, Sanjeev Khanna, and Zihan Tan. Sublinear algorithms and lower bounds for
+         estimating MST and TSP cost in general metrics. In Kousha Etessami, Uriel Feige, and
+         Gabriele Puppis, editors, 50th International Colloquium on Automata, Languages, and
+         Programming, ICALP 2023, Paderborn, Germany, July 10-14, 2023, LIPIcs, pages
+         37:1–37:16. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2023.
+[CLM+ 20] Artur Czumaj, Jakub Łącki, Aleksander Mądry, Slobodan Mitrović, Krzysztof Onak,
+          and Piotr Sankowski. Round compression for parallel matching algorithms. SIAM
+          Journal on Computing, 49(5):STOC18–1–STOC18–44, 2020.
+   [CS13] Deeparnab Chakrabarty and C. Seshadhri. Optimal bounds for monotonicity and lip-
+          schitz testing over hypercubes and hypergrids. In Dan Boneh, Tim Roughgarden, and
+          Joan Feigenbaum, editors, Symposium on Theory of Computing Conference, STOC’13,
+          Palo Alto, CA, USA, June 1-4, 2013, pages 419–428. ACM, 2013.
+   [CS14] Deeparnab Chakrabarty and C. Seshadhri. An optimal lower bound for monotonicity
+          testing over hypergrids. Theory Comput., 10:453–464, 2014.
+   [CS16] Deeparnab Chakrabarty and C. Seshadhri. An o(n) monotonicity tester for boolean
+          functions over the hypercube. SIAM J. Comput., 45(2):461–472, 2016.
+   [CS19] Deeparnab Chakrabarty and C. Seshadhri. Adaptive boolean monotonicity testing in
+          total influence time. In Avrim Blum, editor, 10th Innovations in Theoretical Computer
+          Science Conference, ITCS 2019, San Diego, California, USA, January 10-12, 2019,
+          LIPIcs, pages 20:1–20:7. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2019.
+   [CS25] Deeparnab Chakrabarty and C. Seshadhri. Directed hypercube routing, a generalized
+          lehman-ron theorem, and monotonicity testing. In Raghu Meka, editor, 16th Innova-
+          tions in Theoretical Computer Science Conference, ITCS 2025, Columbia University,
+          New York, NY, USA, January 7-10, 2025, LIPIcs, pages 34:1–34:15. Schloss Dagstuhl
+          - Leibniz-Zentrum für Informatik, 2025.
+ [CST14] Xi Chen, Rocco A. Servedio, and Li-Yang Tan. New algorithms and lower bounds for
+         monotonicity testing. In 55th IEEE Annual Symposium on Foundations of Computer
+         Science, FOCS 2014, Philadelphia, PA, USA, October 18-21, 2014, pages 286–295.
+         IEEE Computer Society, 2014.
+
+                                            36
+[CWX17] Xi Chen, Erik Waingarten, and Jinyu Xie. Beyond talagrand functions: new lower
+        bounds for testing monotonicity and unateness. In Hamed Hatami, Pierre McKenzie,
+        and Valerie King, editors, Proceedings of the 49th Annual ACM SIGACT Symposium
+        on Theory of Computing, STOC 2017, Montreal, QC, Canada, June 19-23, 2017,
+        pages 523–536. ACM, 2017.
+
+[DGL+ 99] Yevgeniy Dodis, Oded Goldreich, Eric Lehman, Sofya Raskhodnikova, Dana Ron,
+          and Alex Samorodnitsky. Improved testing algorithms for monotonicity. In Dorit S.
+          Hochbaum, Klaus Jansen, José D. P. Rolim, and Alistair Sinclair, editors, Random-
+          ization, Approximation, and Combinatorial Algorithms and Techniques, Third Inter-
+          national Workshop on Randomization and Approximation Techniques in Computer
+          Science, and Second International Workshop on Approximation Algorithms for Combi-
+          natorial Optimization Problems RANDOM-APPROX’99, Berkeley, CA, USA, August
+          8-11, 1999, Proceedings, Lecture Notes in Computer Science, pages 97–108. Springer,
+          1999.
+
+ [Edm65] Jack Edmonds. Maximum matching and a polyhedron with 0, 1-vertices. Journal of
+         Research of the National Bureau of Standards B, 69:125–130, 1965.
+
+[EKK+ 00] Funda Ergün, Sampath Kannan, Ravi Kumar, Ronitt Rubinfeld, and Mahesh
+          Viswanathan. Spot-checkers. J. Comput. Syst. Sci., 60(3):717–751, 2000.
+
+   [Fis04] Eldar Fischer. On the strength of comparisons in property testing. Inf. Comput.,
+           189(1):107–116, 2004.
+
+   [FJ25] Yumou Fei and Renato Ferreira Pinto Jr. On the spectral expansion of monotone
+          subsets of the hypercube. In Alina Ene and Eshan Chattopadhyay, editors, Approxi-
+          mation, Randomization, and Combinatorial Optimization. Algorithms and Techniques,
+          APPROX/RANDOM 2025, Berkeley, CA, USA, August 11-13, 2025, LIPIcs, pages
+          42:1–42:24. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2025.
+
+[FLN+ 02] Eldar Fischer, Eric Lehman, Ilan Newman, Sofya Raskhodnikova, Ronitt Rubinfeld,
+          and Alex Samorodnitsky. Monotonicity testing over general poset domains. In John H.
+          Reif, editor, Proceedings on 34th Annual ACM Symposium on Theory of Computing,
+          May 19-21, 2002, Montréal, Québec, Canada, pages 474–483. ACM, 2002.
+
+[GGL+ 00] Oded Goldreich, Shafi Goldwasser, Eric Lehman, Dana Ron, and Alex Samorodnitsky.
+          Testing monotonicity. Comb., 20(3):301–337, 2000.
+
+  [JLS19] Arun Jambulapati, Yang P. Liu, and Aaron Sidford. Parallel reachability in almost
+          linear work and square root depth. In David Zuckerman, editor, 60th IEEE Annual
+          Symposium on Foundations of Computer Science, FOCS 2019, Baltimore, Maryland,
+          USA, November 9-12, 2019, pages 1664–1686. IEEE Computer Society, 2019.
+
+   [Jr.23] Renato Ferreira Pinto Jr. Directed Poincaré inequalities and L1 monotonicity testing
+           of Lipschitz functions. In Nicole Megow and Adam D. Smith, editors, Approxima-
+           tion, Randomization, and Combinatorial Optimization. Algorithms and Techniques,
+           APPROX/RANDOM 2023, Atlanta, Georgia, USA, September 11-13, 2023, LIPIcs,
+           pages 61:1–61:18. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2023.
+
+
+
+
+                                            37
+     [Jr.24] Renato Ferreira Pinto Jr. Directed isoperimetry and monotonicity testing: A dynami-
+             cal approach. In 65th IEEE Annual Symposium on Foundations of Computer Science,
+             FOCS 2024, Chicago, IL, USA, October 27-30, 2024, pages 2295–2305. IEEE, 2024.
+
+   [KKS14] Michael Kapralov, Sanjeev Khanna, and Madhu Sudan. Approximating matching
+           size from random streams. In Chandra Chekuri, editor, Proceedings of the Twenty-
+           Fifth Annual ACM-SIAM Symposium on Discrete Algorithms, SODA 2014, Portland,
+           Oregon, USA, January 5-7, 2014, pages 734–751. SIAM, 2014.
+
+[KMNFT20] Michael Kapralov, Slobodan Mitrović, Ashkan Norouzi-Fard, and Jakab Tardos. Space
+          efficient approximation to maximum matching size from uniform edge samples. In Pro-
+          ceedings of the Thirty-First Annual ACM-SIAM Symposium on Discrete Algorithms,
+          SODA ’20, page 1753–1772, USA, 2020. Society for Industrial and Applied Mathemat-
+          ics.
+
+ [KMNT20] Michael Kapralov, Slobodan Mitrovic, Ashkan Norouzi-Fard, and Jakab Tardos. Space
+          efficient approximation to maximum matching size from uniform edge samples. In
+          Shuchi Chawla, editor, Proceedings of the 2020 ACM-SIAM Symposium on Discrete
+          Algorithms, SODA 2020, Salt Lake City, UT, USA, January 5-8, 2020, pages 1753–
+          1772. SIAM, 2020.
+
+   [KMS18] Subhash Khot, Dor Minzer, and Muli Safra. On monotonicity testing and boolean
+           isoperimetric-type theorems. SIAM J. Comput., 47(6):2238–2276, 2018.
+
+     [Liu24] Yang P. Liu. On approximate fully-dynamic matching and online matrix-vector mul-
+             tiplication. In 65th IEEE Annual Symposium on Foundations of Computer Science,
+             FOCS 2024, Chicago, IL, USA, October 27-30, 2024, pages 228–243. IEEE, 2024.
+
+   [LRV22] Jane Lange, Ronitt Rubinfeld, and Arsen Vasilyan. Properly learning monotone func-
+           tions via local correction. In 63rd IEEE Annual Symposium on Foundations of Com-
+           puter Science, FOCS 2022, Denver, CO, USA, October 31 - November 3, 2022, pages
+           75–86. IEEE, 2022.
+
+   [LRY17] Reut Levi, Ronitt Rubinfeld, and Anak Yodpinyanee. Local computation algorithms
+           for graphs of non-constant degrees. Algorithmica, 77(4):971–994, 2017.
+
+ [MMPS17] Morteza Monemizadeh, S. Muthukrishnan, Pan Peng, and Christian Sohler. Testable
+          bounded degree graph properties are random order streamable. In Ioannis Chatzigian-
+          nakis, Piotr Indyk, Fabian Kuhn, and Anca Muscholl, editors, 44th International Col-
+          loquium on Automata, Languages, and Programming, ICALP 2017, Warsaw, Poland,
+          July 10-14, 2017, LIPIcs, pages 131:1–131:14. Schloss Dagstuhl - Leibniz-Zentrum für
+          Informatik, 2017.
+
+   [MRT25] Sepideh Mahabadi, Mohammad Roghani, and Jakub Tarnawski. A 0.51-approximation
+           of maximum matching in sublinear n1.5 time. In Keren Censor-Hillel, Fabrizio
+           Grandoni, Joël Ouaknine, and Gabriele Puppis, editors, 52nd International Collo-
+           quium on Automata, Languages, and Programming (ICALP 2025), volume 334 of Leib-
+           niz International Proceedings in Informatics (LIPIcs), pages 116:1–116:17, Dagstuhl,
+           Germany, 2025. Schloss Dagstuhl – Leibniz-Zentrum für Informatik.
+
+
+
+
+                                              38
+[MRTV25] Sepideh Mahabadi, Mohammad Roghani, Jakub Tarnawski, and Ali Vakilian. Sublin-
+         ear metric steiner tree via improved bounds for set cover. In Raghu Meka, editor, 16th
+         Innovations in Theoretical Computer Science Conference, ITCS 2025, Columbia Uni-
+         versity, New York, NY, USA, January 7-10, 2025, LIPIcs, pages 74:1–74:24. Schloss
+         Dagstuhl - Leibniz-Zentrum für Informatik, 2025.
+
+[MRTV26] Sepideh Mahabadi, Mohammad Roghani, Jakub Tarnawski, and Ali Vakilian. Sublin-
+         ear metric steiner forest via maximal independent set. In Kasper Green Larsen and
+         Barna Saha, editors, Proceedings of the 2026 Annual ACM-SIAM Symposium on Dis-
+         crete Algorithms, SODA 2026, Vancouver, BC, Canada, January 11-14, 2026, pages
+         5941–5959. SIAM, 2026.
+
+   [NO08] Huy N. Nguyen and Krzysztof Onak. Constant-time approximation algorithms via
+          local improvements. In 49th Annual IEEE Symposium on Foundations of Computer
+          Science, FOCS 2008, Philadelphia, PA, USA, October 25-28, 2008, pages 327–336.
+          IEEE Computer Society, 2008.
+
+   [OR10] Krzysztof Onak and Ronitt Rubinfeld. Maintaining a large matching and a small vertex
+          cover. In Leonard J. Schulman, editor, Proceedings of the 42nd ACM Symposium on
+          Theory of Computing, STOC 2010, Cambridge, Massachusetts, USA, 5-8 June 2010,
+          pages 457–464. ACM, 2010.
+
+[ORRR12] Krzysztof Onak, Dana Ron, Michal Rosen, and Ronitt Rubinfeld. A near-optimal
+         sublinear-time algorithm for approximating the minimum vertex cover size. In Yuval
+         Rabani, editor, Proceedings of the Twenty-Third Annual ACM-SIAM Symposium on
+         Discrete Algorithms, SODA 2012, Kyoto, Japan, January 17-19, 2012, pages 1123–
+         1131. SIAM, 2012.
+
+   [PR07] Michal Parnas and Dana Ron. Approximating the minimum vertex cover in sublinear
+          time and a connection to distributed algorithms. Theor. Comput. Sci., 381(1-3):183–
+          196, 2007.
+
+ [PRR06] Michal Parnas, Dana Ron, and Ronitt Rubinfeld. Tolerant property testing and dis-
+         tance approximation. J. Comput. Syst. Sci., 72(6):1012–1042, 2006.
+
+ [PRW22] Ramesh Krishnan S. Pallavoor, Sofya Raskhodnikova, and Erik Waingarten. Approxi-
+         mating the distance to monotonicity of boolean functions. Random Struct. Algorithms,
+         60(2):233–260, 2022.
+
+    [PS18] Pan Peng and Christian Sohler. Estimating graph parameters from random order
+           streams. In Artur Czumaj, editor, Proceedings of the Twenty-Ninth Annual ACM-
+           SIAM Symposium on Discrete Algorithms, SODA 2018, New Orleans, LA, USA, Jan-
+           uary 7-10, 2018, pages 2449–2466. SIAM, 2018.
+
+    [SS10] Michael E. Saks and C. Seshadhri. Local monotonicity reconstruction. SIAM J.
+           Comput., 39(7):2897–2926, 2010.
+
+   [Yos26] Yuichi Yoshida. Testing monotonicity of real-valued functions on dags.       CoRR,
+           abs/2602.15341, 2026.
+
+  [YYI09] Yuichi Yoshida, Masaki Yamamoto, and Hiro Ito. An improved constant-time ap-
+          proximation algorithm for maximum matchings. In Michael Mitzenmacher, editor,
+
+                                             39
+Proceedings of the 41st Annual ACM Symposium on Theory of Computing, STOC
+2009, Bethesda, MD, USA, May 31 - June 2, 2009, pages 225–234. ACM, 2009.
+
+
+
+
+                             40
+

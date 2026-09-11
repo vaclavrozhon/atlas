@@ -1,0 +1,2184 @@
+                                                              Efficiency of Self-Adjusting Heaps
+                                                                Corwin Sinnamon∗                  Robert E. Tarjan∗
+
+
+                                                                                        Abstract
+                                                     Since the invention of the pairing heap by Fredman, Sedgewick, Sleator, and
+arXiv:2307.02772v2 [cs.DS] 12 Feb 2025
+
+
+
+
+                                                 Tarjan [8], it has been an open question whether this or any other simple “self-
+                                                 adjusting” heap supports decrease-key operations in O(log log n) time, where n is
+                                                 the number of heap items. Using powerful new techniques, we answer this question
+                                                 in the affirmative. We prove that both slim and smooth heaps, recently introduced
+                                                 self-adjusting heaps, support heap operations in the following amortized time bounds:
+                                                 O(log n) for delete-min and delete, O(log log n) for decrease-key, and O(1) for all other
+                                                 heap operations, including insert and meld, where n is the number of heap items that
+                                                 are eventually deleted: Items inserted but never deleted do not count in the bounds.
+                                                 We also analyze the multipass pairing heap, a variant of pairing heaps. For this heap
+                                                 implementation, we obtain the same bounds except for decrease-key, for which our
+                                                 bound is O(log log n · log log log n), where again items that are never deleted do not
+                                                 count in n. Our bounds significantly improve the best previously known bounds for
+                                                 all three data structures. For slim and smooth heaps our bounds are tight, since they
+                                                 match lower bounds of Iacono and Özkan [13].
+
+
+                                         1       Introduction
+                                         A heap (or priority queue) is a data structure that stores a set of items, each with a key
+                                         selected from a totally ordered key space. Heaps support the following operations:
+
+                                                 make-heap(): Create and return a new, empty heap.
+
+                                                 find-min(H): Return an item of smallest key in heap H, or null if H is empty.
+
+                                                 insert(H, e): Insert item e with predefined key into heap H. Item e must not be in
+                                                 any other heap.
+
+                                                 delete-min(H): Delete find-min(H) from H. Heap H must be nonempty before the
+                                                 delete-min.
+                                            Department of Computer Science, Princeton University. Research partially supported by a gift from
+                                             ∗
+
+                                         Microsoft.
+
+
+
+
+                                                                                            1
+      meld(H1 , H2 ): Return a heap containing all items in item-disjoint heaps H1 and H2 ,
+      destroying H1 and H2 in the process.
+
+      decrease-key(H, e, k): Given a pointer to item e in heap H, and given that the key of
+      e is at least k, change the key of e to k.
+
+      delete(H, e): Given a pointer to item e in heap H, delete e from H.
+
+     One can implement delete(H, e) as decrease-key(H, e, −∞) followed by delete-min(H),
+where −∞ denotes a dummy key smaller than all those in the key space. We shall assume
+this implementation and not further mention delete: In all the data structures we consider
+the time bound of delete is the same as that of delete-min to within a constant factor.
+     In discussing efficiency bounds for heap operations, we shall denote by n the number of
+items in the heap or heaps involved in the operation. To simplify certain bounds we shall
+assume that n ≥ 8. We denote log2 max{n, 1} by lg n.
+     There is a vast literature on heap implementations. See [1] for a survey. If the only
+operations on keys are comparisons, a sequence of n inserts followed by n delete-mins will
+sort n numbers. Thus either insert or delete-min must take Ω(lg n) amortized time. Most
+of the comparison-based heap implementations in the literature support all heap operations
+in O(lg n) time per operation, possibly amortized.
+     For certain applications, notably Dijkstra’s shortest path algorithm, this bound may
+not be good enough. On an n-vertex, m-arc graph, Dijkstra’s algorithm does at most n
+inserts and at most n delete-mins, but the number of decrease-key operations can be as
+many as m − n + 1. Making decrease-key operations faster can thus speed up Dijkstra’s
+algorithm for certain graph densities.
+     The Fibonacci heap [9] was designed to be optimal for such an application. In a Fi-
+bonacci heap, each delete-min takes O(lg n) amortized time, but every other operation,
+including decrease-key, takes O(1) amortized time. Hence Dijkstra’s algorithm runs in
+O(m + n lg n) time if implemented using a Fibonacci heap. In fact, the Fibonacci heap sets
+the theoretical standard: its amortized bounds are best possible for any comparison-based
+heap. In practice, Fibonacci heaps are not especially efficient, however. Their theoretical
+efficiency comes from maintaining a certain kind of balance. The time and extra space
+needed to maintain balance makes them slower in practice than simpler implementations.
+     A natural question, then, is whether there is a heap implementation that has the same
+(optimal) amortized bounds as Fibonacci heaps and is simpler as well as faster in prac-
+tice. The pairing heap [8] was devised as an answer to this question. The inventors of
+this data structure proved that pairing heaps take O(1) time per make-heap and find-min
+(both amortized and worst-case) and take O(lg n) amortized time for each other operation.
+Iacono [12] later reduced the bound for insert and meld to O(1), a result Sinnamon and Tar-
+jan [22] recently
+                √
+                   simplified. Pettie [20], in work predating Iacono’s, obtained an amortized
+bound of O(4 lg lg N ) for insert, meld, and decrease-key, where N is the maximum number
+of items ever in a heap, while preserving the O(lg n) bound for delete-min. Sinnamon [21]
+simplified and slightly improved√ Pettie’s √
+                                               result, reducing the amortized bound for insert,
+                                             2 lg lg N
+meld, and decrease-key to O( lg lg N2                  ).
+
+
+                                              2
+    The known bounds for decrease-key may be far from tight: The inventors of pairing
+heaps conjectured that they have the same amortized efficiency as Fibonacci heaps, which
+if true would make decrease-key an O(1)-time operation. But Fredman [7] disproved this
+conjecture by showing that pairing heaps and similar data structures need Ω(lg lg n) amor-
+tized time per decrease-key if insert and delete-min take O(lg n) amortized time. Whether
+the efficiency of pairing heaps matches Fredman’s lower bound remains an open question.
+    Nevertheless, the pairing heap is simple, robust, and efficient in practice. It is self-
+adjusting: It does not explicitly maintain a “balanced” state, ready to serve any incoming
+request quickly at all times, but rather reorganizes itself in a simple, uniform way that
+guarantees efficiency in an amortized sense, i.e., over a long sequence of operations. In
+general a self-adjusting data structure stores little or no auxiliary information about its
+state – it does not need to, since it does not enforce any specific structure. Besides saving
+space, self-adjusting heaps are often efficient in practice and easy to implement, as compared
+to “balanced” heaps such as Fibonacci heaps [16].
+    The question remains: Is there any self-adjusting heap that is both practical and the-
+oretically competitive with Fibonacci heaps? Any heap that satisfies the conditions of
+Fredman’s lower bounds cannot match the efficiency of Fibonacci heaps on decrease-key
+operations. Moreover, an Ω(lg lg n) amortized lower bound for decrease-key was proved by
+Iacono and Özkan [13] for the pure heap model, which captures another large class of self-
+adjusting heaps. The self-adjusting heap models of Fredman and of Iacono and Özkan do
+not cover all the possibilities. In particular, they assume that the decrease-key operation is
+done by cutting a node and its subtree from the existing tree, as we describe in Section 2,
+but there are other possibilities, such as removing the item from its node and putting it in
+a new node, as in hollow heaps [10]. Indeed, the term “self-adjusting heap” does not have
+a precise technical definition. Nevertheless, these lower bounds do provide some evidence
+that no heap that is intuitively self-adjusting and natural can support decrease-key in O(1)
+time.
+    Elmasry [4, 5] presented a modification of pairing heaps that does support decrease-
+key in O(lg lg n) amortized time. It keeps any items that have undergone a decrease-key
+in a buffer, and periodically groups and sorts the buffer items by key to decide how to
+restructure the heap. Elmasry’s bound for inserts is O(1); his bound for melds is O(lg lg n).
+Elmasry’s heap is not subject to either of the lower bounds, however, and sorting buffer
+groups is arguably not “self-adjusting”.
+    We ask instead whether there is a self-adjusting heap subject to either Fredman’s or
+Iacono and Özkan’s lower bounds that matches these bounds, i.e., that takes O(lg n) time
+per delete-min, O(lg lg n) time per decrease-key, and O(1) time for each other heap oper-
+ation. Although many heap implementations have been invented and analyzed since the
+invention of pairing heaps, no work until ours has answered this question.
+    We analyze three self-adjusting heaps: multipass pairing heaps, slim heaps, and smooth
+heaps.
+    Multipass pairing heaps are a variant of pairing heaps proposed and analyzed in the
+original pairing heaps paper [8]. The amortized bounds obtained there are O(1) for make-
+heap and find-min, O(lg n · lg lg n/ lg lg lg n) for delete-min, and O(lg n/ lg lg lg n) for insert,
+
+
+
+                                                 3
+meld, and decrease-key.1 These bounds are not tight: 32 years later, Dorfman, Kaplan,
+Kozma, Pettie, and Zwick [3] proved that delete-min takes O(lg n · log∗ n · 2log N ) amortized
+                                                                                  ∗
+
+
+time, where N is the maximum number of items ever in a heap, and log∗ is the iterated
+log function. They did not explicitly address the other heap operations, since delete-min
+                                                                                         ∗
+was their focus, but their potential function yields bounds of O(lg n/(lg lg n)2 · 2log N ) for
+insert, meld, and decrease-key, and O(1) for find-min and make-heap.
+    We obtain the following amortized time bounds for operations on multipass pairing
+heaps: O(lg n) for delete-min, O(lg lg n · lg lg lg n) for decrease-key, and O(1) for the other
+heap operations. This result almost answers our question: only the bound for decrease-key
+differs from the lower bounds, by a factor of lg lg lg n. Whether this factor is inherent or
+can be eliminated by a better analysis we leave as an open problem.
+    To completely answer our question, we analyze two more-recently invented self-adjusting
+heaps, smooth heaps and slim heaps. Smooth heaps were invented by Kozma and Sara-
+nurak [15] as one result of their study of a duality between heaps and binary search trees
+(BST’s), in which they showed that an execution of a sequence of operations on a binary
+search tree corresponds to a dual execution of a related sequence of heap operations, with
+the two sequences taking the same time to within a constant factor. This duality maps the
+greedy BST algorithm to the smooth heap. The greedy BST algorithm has many if not all
+of the properties of the splay algorithm [2, 6, 17, 18, 19], but unlike splay it is not practical
+to implement. On the other hand, smooth heaps are simple, as we shall see. Some results
+about the greedy BST algorithm transfer to smooth heaps through the duality, but the
+correspondence is limited to the sorting mode, in which the heap operations are a sequence
+of insertions followed by a sequence of delete-mins.
+    The slim heap, a close variant of the smooth heap, was introduced by Hartmann, Kozma,
+Sinnamon, and Tarjan [11]. They extended smooth heaps and slim heaps to support the
+entire repertoire of heap operations, and they did a direct analysis of both data structures,
+obtaining amortized bounds of O(lg n) for delete-min and decrease-key and O(1) for the
+other heap operations. They also showed that Elmasry’s mechanism can be used in both
+data structures to reduce the amortized time for decrease-key to O(lg lg n). Like pairing
+heaps, the implementations that use Elmasry’s idea are not subject to Iacono and Özkan’s
+lower bound.
+    We show that both slim heaps and smooth heaps without the Elmasry mechanism
+answer our question in the affirmative: Both take O(lg n) time per delete-min, O(lg lg n)
+time per decrease-key, and O(1) time for each other heap operation. These data structures
+are subject to Iacono and Özkan’s lower bound, and are the first data structures in their
+model to match their lower bounds for all operations.
+    Our analytical tools are interesting in their own right. We adapt and extend an idea of
+Iacono [12] that allows us to reduce the amortized time per insert and meld to O(1). More
+significantly, we use a potential function based on one used in Pettie’s analysis of pairing
+heaps [20], but modified to grow much more slowly. The use of this potential function in a
+novel analysis allows us to significantly reduce the amortized time bound for decrease-key.
+    Table 1 contains a summary of known bounds for pairing heaps, multipass pairing heaps,
+   1
+    The paper [8] only claims O(lg n lg lg n/ lg lg lg n) for each operation, but the potential function used
+there yields the better bounds we have stated.
+
+
+
+                                                     4
+slim heaps, and smooth heaps, including our new results.
+    An additional benefit of our analysis is that in our bounds we can take n to be the
+number of items in the heap or heaps that are eventually deleted. That is, items inserted
+but never deleted do not count, except for a cost of O(1) per insertion of such an item.
+    Our paper is a combination and significant revision of two conference papers [23, 24].
+In addition to this introduction, our paper contains ten sections. Section 2 presents a
+framework for heap implementations that encompasses all the data structures we consider,
+and many others. Section 3 presents pairing heaps, multipass pairing heaps, slim heaps,
+and smooth heaps as instances of the canonical framework. Section 4 summarizes the
+terminology and definitions used in our analysis. Section 5 outlines the proof structure
+we use in the analysis of each of the heaps. Section 6 contains a few central lemmas that
+apply to all three heaps. Sections 7, 8, and 9 analyze multipass pairing, slim, and smooth
+heaps, respectively. Section 10 extends our results to lazy (forest) versions of the three
+data structures. Section 11 contains some concluding remarks and open problems.
+
+
+2    A Canonical Heap Framework
+All the heap implementations we study, and many others, are instances of a canonical heap
+framework. This framework represents a heap by a rooted tree whose nodes are the heap
+items. That is, the data structure is endogenous [25]. We denote by v.key the key of heap
+node v. The tree is heap-ordered by key: If v is the parent of w, v.key ≤ w.key. Thus the
+root of the tree is a node of minimum key. Access to the tree is via the root, so a find-min
+takes O(1) time.
+    Heap-ordered trees are modified by links and cuts. A link of the roots of two node-
+disjoint trees combines the two trees into one by making the root of smaller key the parent
+of the root of larger key, breaking a tie arbitrarily. The new parent is the winner of the
+link; the new child is the loser of the link. We denote by vw a link of two roots v and w
+won by v and lost by w. We use the term “link” to denote the new parent-child pair vw
+as well as the operation of making w a child of v.
+    A cut of a child w breaks the link between w and its parent, say v. This breaks the tree
+containing v and w into two trees, one containing w and all its descendants in the original
+tree, the other containing all nodes in the original tree that are not descendants of w.
+    Given an appropriate tree representation [8], a link or cut takes O(1) time.
+    The canonical framework implements the heap operations as follows:
+
+     make-heap(): Create and return a new, empty tree.
+
+     find-min(H): If H is nonempty, return its root; otherwise, return null.
+
+     insert(H, e): If H is nonempty, link e with the root of H; if H is empty, make e the
+     root of H.
+
+     meld(H1 , H2 ): If H1 or H2 is empty, return the other; if both are nonempty, link their
+     roots and return the resulting tree.
+
+                                             5
+          Heap               delete-min/delete          decrease-key            insert/meld
+
+      Fibonacci [9]               O(lg n)                    O(1)                   O(1)
+
+       Pairing [8]                O(lg n)                   O(lg n)                O(lg n)
+
+       Pairing [12]               O(lg n)                   O(lg n)                 O(1)
+      Pairing [4, 5]                                                               
+                                  O(lg n)                 O(lg lg n)           O(1) O(lg lg n)
+ (variant decrease-key)
+                                                               √                     √
+       Pairing [20]               O(lg n)                O(22 lg lg N )         O(22 lg lg N )
+                                                     √           √           √            √
+       Pairing [21]               O(lg n)          O( lg lg N2 2 lg lg N ) O( lg lg N2 2 lg lg N )
+                                                                                        
+                                  lg n·lg lg n              lg n                      lg n
+  Multipass pairing [8]      O lg lg lg n              O lg lg lg n            O lg lg lg n
+                                                                 ∗                      ∗  
+                                                           n·2log N              lg n·2log N
+  Multipass pairing [3] O(lg n · log∗ n · 2log N )
+                                               ∗
+                                                     O lg lg 2
+                                                               lg n
+                                                                             O      lg2 lg n
+
+    Multipass pairing
+                                  O(lg n)            O(lg lg n · lg lg lg n)        O(1)
+      [this work]
+
+  Slim & Smooth [11]              O(lg n)                   O(lg n)                 O(1)
+  Slim & Smooth [11]
+                                  O(lg n)                 O(lg lg n)                O(1)
+ (variant decrease-key)
+    Slim & Smooth
+                                  O(lg n)                 O(lg lg n)                O(1)
+       [this work]
+
+Table 1: New and previous bounds for self-adjusting heaps. The bounds for Fibonacci and pairing
+heaps are included for comparison. All bounds are amortized. Here n denotes the number of items
+in the heap at the time of the operation and N denotes the maximum number of items ever in
+a heap. For the bounds in this work, n may be decreased to the number of items in the heap
+that will eventually be deleted. The find-min and make-heap operations take constant time in
+all cases. The heaps labeled “variant decrease-key” use Elmasry’s buffered sorting method for
+decrease-key [4, 5]. Excluding these heaps and Fibonacci heaps, if insert and delete-min take
+O(lg n) amortized time in a self-adjusting heap, then decrease-key must take Ω(lg lg n) amortized
+time [7, 13].
+
+
+
+
+                                                 6
+      decrease-key(H, e, k): Change the key of e to k. If e is not the root of H, cut e from
+      its parent and link e with the root of H.
+
+      delete-min(H): Delete find-min(H) from H. This makes each child of the deleted
+      root into a new root. Repeatedly link two of these new roots until only one remains.
+    The only flexibility in the canonical framework is in the algorithm for linking roots in
+delete-mins. The self-adjusting heaps we study determine which links to do by maintaining
+each set of children as an ordered list. When discussing such a list, we shall use left and
+right to mean “toward the front of the list” and “toward the back of the list,” respectively.
+With the exception of certain links done during delete-min operations in smooth heaps (as
+we discuss in the next section), each link makes the loser the new leftmost child of the
+winner. We call such a link a one-sided link. If all links are one-sided, the children of a
+node are in decreasing order by link time, the leftmost child being the latest.
+    In a delete-min, deletion of the root makes its list of children into a list of roots. The
+heaps we study link only adjacent roots on this list, removing the loser and leaving the
+winner in its current position on the list. We call a link vw done during a delete-min a
+left or right link, respectively, if the loser w is left or right of the winner v on the root list
+before the link. Links done during insertions, melds, and decrease-keys are neither left nor
+right.
+    The canonical framework as we have presented it is the eager or tree framework. An
+alternative is the lazy or forest framework, used for example in the original version of
+Fibonacci heaps. In this framework, a heap is not a single tree but a set of trees, with
+the roots stored in a circular list accessed via a root of minimum key, the min-root. An
+insertion into a nonempty heap does not do a link but makes the new node into a one-node
+tree and adds it to the root list. A meld of two nonempty trees catenates their root lists. A
+decrease-key of a child w cuts w from its parent and adds w to the list of roots. In each case
+the operation also updates the min-root. A delete-min deletes the min-root, catenates its
+list of children with the root list remaining after deletion of the min-root, and repeatedly
+links pairs of roots on the root list until only one remains.
+    The versions of slim and smooth heaps analyzed in [11] use the lazy framework, but
+we shall study the eager versions, since their implementation and analysis are simpler.
+Our bounds for multipass pairing, slim, and smooth heaps also hold for the lazy versions,
+as we discuss in Section 10. In general one can modify a heap implementation in the
+lazy framework to produce one in the eager framework and vice-versa, although this may
+require redefining how linking is done in a delete-min, and it affects the efficiency of the
+heap operations. For example, there is an eager implementation of Fibonacci heaps [14],
+but it requires doing “unbalanced” links as well as balanced ones. The lower bound models
+of Fredman [7] and Iacono and Özkan [13] encompass both the eager and the lazy framework
+but place constraints on the links that are allowed in delete-min operations.
+
+
+3     Self-Adjusting Heaps
+The heaps we study are all instances of the canonical framework, differing only in the
+algorithm by which they do links during a delete-min, and in how the link operation is
+
+                                                7
+                  (a) Pairing Heap                                                                 (b) Multipass Pairing Heap
+                   6       3       7           1               4           5           2            6   3       7       1           4       5           2
+
+                  pairing pass                                                                     pairing pass
+                           3                           1                   4           2                    3               1               4           2
+                           6               7                   5                                        6           7               5
+
+                  assembly pass                                                                    pairing pass
+                                                                                                                                1                   2
+                          3     1                                              2
+                                                                                                                3       7                   4
+                           6               7                       4
+                                                                                                            6                       5
+                                                       5
+                                                                                           1
+                                                       3                                           pairing pass
+                                                                       2           7                                                            1
+                                               6               4                                                        2       3       7
+                                                           5
+                                                                                           1                    4       6
+                                                       3               2           7                        5
+                                               6               4
+                                                           5
+
+
+
+
+                  (c) Slim Heap                                                                    (d) Smooth Heap
+                   6           3   7               1           4           5           2            6   3       7       1           4           5       2
+
+
+                               3                                                                        3
+                                   7               1           4           5           2                        7       1           4           5       2
+                   6                                                                                6
+
+                                               1                                                                        1
+                                                                               4       2                                                    4       2
+                                   3                                                                        3
+                                                                       5                                                            5
+                       7       6                                                                   6                7
+
+                                                                           1                                            1
+                                           2                                                                                                        2
+                                   4                           3                                            3                               4
+                               5       7       6                                                   6                7               5
+
+
+Figure 1: Linking during delete-min, after the original root is deleted, for the pairing heap (a),
+multipass pairing heap (b), slim heap (c), and smooth heap (d). The circles represent nodes and
+the numbers indicate their keys. In (c) and (d), the state of the heap is shown after every two or
+three links. Smooth heaps do stable links (explained in this section), so the losers of links in (d)
+are positioned on the left or the right of the winner, according to their relative order before the
+link.
+
+
+implemented. We specify this algorithm for each heap implementation. We include pairing
+heaps for reference.
+    The pairing heap links roots during a delete-min in two passes. The first pass, pairing,
+links the roots on the root list in adjacent pairs, the first with the second, the third with
+the fourth, and so on. If there is an odd number of roots, the rightmost root is not linked
+during the pairing pass. The second pass, assembly, repeatedly links the rightmost root
+with its left neighbor until only one root remains. See Figure 1(a).
+
+                                                                                               8
+    The multipass pairing heap links roots during a delete-min by doing repeated pairing
+passes until only one root is left. See Figure 1(b).
+    Slim and smooth heaps both link roots during a delete-min by doing leftmost locally
+maximum linking: Find the leftmost three consecutive roots u, v, w on the root list such
+that v.key ≥ max{u.key, w.key}, and link v with whichever of u and w has larger key.
+Repeat until there is only one root. If u and w have the same key, break the tie by
+linking v with u. As special cases, if v is the leftmost root, w is its right neighbor, and
+v.key ≥ w.key, link v and w; if all the roots are in strictly increasing order by key, link the
+rightmost two roots. The two special cases are equivalent to adding leftmost and rightmost
+dummy roots, each with key −∞, and doing leftmost locally maximum linking until one
+non-dummy root remains. See Figure 1(c) and (d).
+    It is straightforward to do leftmost locally maximum linking in O(1) time and at most
+two comparisons per link [15]: After deleting the original root, initialize the current root to
+be the leftmost root on the root list. If the current root is not a local maximum, replace the
+current root by its right neighbor; if it is, link it to its neighbor of larger key and replace
+the current root by the winner of the link. Repeat until only one root remains.
+
+Remark 3.1. One can generalize leftmost locally maximum linking to allow arbitrary lo-
+cally maximum links: Given a root whose key is larger than those of its neighbors, link
+it with whichever neighbor has larger key. This works as long as ties in keys are broken
+consistently. See [11].
+
+     The only difference between slim and smooth heaps is in how they maintain the order
+of children when doing links during delete-min operations. Slim heaps do one-sided links,
+defined in the previous section: The loser of a link during a delete-min becomes the new
+leftmost child of the winner. Smooth heaps do stable links: The loser of a link during a
+delete-min becomes the new leftmost or rightmost child of the winner if the loser was left
+or right of the winner on the root list, respectively. See Figure 2. Pairing heaps, multipass
+pairing heaps, Fibonacci heaps, and many other heap implementations do one-sided links
+(although in Fibonacci heaps and similar “balanced” heap implementations, links are not
+determined by order on the root list but by balance information, so the order of children
+is irrelevant). In both slim and smooth heaps, each link done during an insertion, meld, or
+decrease-key is one-sided.
+                             Slim Heaps                                               Smooth Heaps
+
+
+               more recent                                          more recent                           more recent
+                                                                                         less recent
+                                                  less recent
+
+
+
+
+                intermixed left and right links                          left links                    right links
+
+
+Figure 2: Linking in slim and smooth heaps. In a slim heap, the loser of a link becomes the
+leftmost child of the winner. In a smooth heap, the loser becomes the leftmost or rightmost child
+of the winner, depending on whether the link is left or right.
+
+
+
+
+                                                                9
+4    Terminology
+Our presentation of the analysis of these data structures uses quite a bit of terminology,
+much of which we introduce here. The following definitions apply to all the heaps we study,
+except as noted. We shall repeat these definitions as we use them.
+
+     A node is temporary if it is eventually deleted, permanent otherwise.
+
+     A link is an insertion link if it is done during an insertion or meld, a decrease-key link
+     if it is done during a decrease-key, a deletion link if it is done during a delete-min.
+
+     A deletion link vw is a left link if w precedes v on the root list before the link, a right
+     link otherwise. Insertion and decrease-key links are neither left nor right.
+
+     A link is a d-link if it is cut by a delete-min, a k-link if it is cut by a decrease-key, an
+     f-link if it is never cut. (The f stands for “final”.)
+
+     A link is real if its winner and loser are both temporary and it is a d-link, phantom
+     otherwise.
+
+     A child node is a real child if it is connected to its parent by a real link, a phantom child
+     otherwise. Every permanent child node is a phantom child. Each time a temporary
+     node loses a link, it becomes a real or phantom child, depending on whether the link
+     it lost is a d-link or a k-link: A temporary node cannot lose an f-link.
+
+     A link done during pairing pass i of a delete-min in a multipass pairing heap is a
+     pass-i link.
+
+     A child node in a smooth heap is a left child if the link it lost to its parent is an
+     insertion, decrease-key, or left link, a right child if the link it lost to its parent is a
+     right link.
+
+     If w is a temporary node, its real subtree is the partial subtree induced by the set of
+     descendants of w (including w) that are connected to w by a path of real links.
+
+     If w is a temporary node, its size w.s is the number of nodes in its real subtree.
+     Permanent nodes have no size. The size of a temporary node changes only when it
+     wins a real link.
+
+     If w is a temporary node, it has a mass w.m. For multipass pairing heaps and slim
+     heaps, we define w.m as follows: If w is a phantom child or a root not in the middle
+     of a delete-min, w.m = w.s. If w is a real child of a temporary node v in a multipass
+     pairing heap or a slim heap, w.m is the size of v just after link vw was done. If w
+     is a root in the middle of a delete-min in a multipass pairing heap or a slim heap,
+
+                                               10
+       w.m is w.s plus the sum of the sizes of all the temporary roots to its right on the
+       root list, with certain exceptions depending on the type of heap. We specify these
+       exceptions in Sections 7 and 8. We define the mass of temporary nodes in a smooth
+       heap in Section 9. Permanent nodes have no mass. The mass of a temporary node
+       can change, but in a multipass pairing heap or a slim heap the mass of a node changes
+       only when the node wins or loses a real link, or its parent is deleted by a delete-min.
+       In smooth heaps, masses can change for other reasons, as we discuss in Section 9.
+
+       If w is a temporary node, the rank w.r of w is lg lg(w.m/w.s).
+
+       For multipass pairing heaps, if w is a temporary node and b a nonnegative integer,
+       the b-reduced rank w.r(b) of w is max{w, r − b, 0} = lg(lg(w.m/w.s)/2b).
+
+       If vw is a real link, then v.rw and v.rw′ and w.rv and w.rv′ are the rank of v before
+       and after the link, and the rank of w before and after the link, respectively. This
+       notation does not distinguish between the winner and the loser of the link, but the
+       context will provide the distinction.
+
+       Let vw be a real deletion link. The winner link of vw is the last link lost by v before
+       it wins vw. This is the (unique) link uv cut by the delete-min that does vw. Since u
+       and v are both temporary and uv is cut by a delete-min, uv is real.
+
+       Let vw be a real deletion link with winner link uv. The link rank of vw is v.ru − u.rv′ ,
+       the rank of v just before uv is done (which happened sometime before the deletion of
+       u) minus the rank of u just after uv is done.2
+
+       Let vw be a real deletion link with winner link uv. The w-shift of vw is v.rw′ − u.rw′ ,
+       the change in the rank of the parent of w resulting from cutting uw and doing vw.
+
+       Let vw be a real deletion link with winner link uv. The v-shift of vw is v.ru − v.rw′ ,
+       the net decrease in the rank of v from just before link uv was done until just after
+       vw was done.
+
+       Let vw be a real deletion link with winner link uv. The u-shift of vw is u.rw′ − u.rv′ ,
+       the rank of u just after uw was done minus the rank of u just after uv was done.
+
+    Let vw be a real deletion link with winner link uv. The following equality, which we
+call the link-rank equality, relates the link rank, the w-shift, the v-shift, and the u-shift of
+vw:
+
+                  v.ru − u.rv′ = (v.rw′ − u.rw′ ) + (v.ru − v.rw′ ) + (u.rw′ − u.rv′ )
+   2
+    This definition of link rank differs from the one in our conference papers [23, 24], as does the next
+definition, of w-shift. The new definitions allow us to simplify the analysis a bit.
+
+
+                                                   11
+    That is, the rank of vw equals its w-shift plus its v-shift plus its u-shift. The equality
+follows by canceling equal terms on the right-hand side.
+    If f is a function of n, we use the terminology “f (n) per delete-min” to mean the sum
+of f (ni ) over the delete-min operations, where ni the number of temporary nodes in the
+heap just before the i-th delete-min. Similarly, “f (n) per decrease-key” is the sum of f (ni )
+over all the decrease-key operations, where ni is the number of temporary nodes in the
+heap during the i-th decrease-key, and “f (n) per k-link” is the sum of f (ni ) over all the
+k-links, where ni is the number of temporary nodes in the heap at the time the i-th k-link
+was done.
+
+
+5    Overview of the Analysis
+To bound the total time of a sequence of heap operations, it is enough to count the number
+of links they do, since each link takes O(1) time, and the time spent per operation is O(1)
+plus at most a constant times the number of links it does. The number of melds that
+do a link is at most the number of insertions that do not do a link, since each link done
+by a meld reduces the number of non-empty heaps by one, and the only way to create a
+non-empty heap is to do an insertion that does not do a link. It follows that the number
+of insertion links is at most the number of insertions. Thus the total number of links is at
+most one per insertion plus one per decrease-key plus the total number of deletion links.
+Hence it suffices to count the total number of deletion links. We denote this number by d.
+    In stating bounds we denote by n the number of temporary nodes in the heap or heaps
+undergoing an operation. A benefit of our analysis is that our bounds depend only on n,
+not on the total number of nodes. That is, nodes that are inserted but never deleted do
+not count in the bounds. To simplify the statement of certain bounds we assume n ≥ 8:
+Any operation on a heap or heaps with fewer than 8 nodes takes O(1) time, and all sizes,
+masses, and ranks in such a heap or heaps are bounded by a constant.
+    In the rest of this section we outline the ideas in our analysis. The details differ for
+each type of heap, but the high-level approach is the same. Our overview is necessarily
+inaccurate, since each type of heap requires adaptations in the general approach.
+    There are two parts. The first, simpler part is to show that it suffices to count real
+deletion links, or in the case of multipass pairing heaps just a subset of these links. The
+second, much more complicated part is to bound the number of such links. For this we use
+node and link ranks. Ultimately we charge each real deletion link to some heap operation
+or to some change or changes in the sum of node ranks. For this to work we need to bound
+the sum of the magnitudes (absolute values) of the changes in node ranks. Obtaining this
+bound is complicated. We shall state the bound when we need it but postpone its proof to
+the end of the analysis.
+    Central to our analysis are link ranks. We shall prove that every link rank is non-
+negative and that the sum of all link ranks is at most our desired bound on real deletion
+links. We do the latter indirectly, by bounding the sums of the w-shifts, v-shifts, and u-
+shifts of the real deletion links and applying the link-rank equality. The bound on the sum
+of link ranks implies that the number of real deletion links with large rank (at least 1) is
+within our desired bound.
+
+
+                                              12
+   We shall also prove that each link of small rank corresponds either to a node of small
+rank existing at a certain time, a number we can bound, or to a decrease of at least 1 in
+a node rank. The number of such decreases is within our desired bound, by our bound on
+the sum of the magnitudes of node-rank changes.
+   We do these steps in the following order:
+
+Step 1: We bound the sum of the w-shifts. This step does not depend on the type of heap.
+
+Step 2: We show that it suffices to count real deletion links, or in the case of multipass
+     pairing heaps to count a subset of these.
+
+Step 3: We show that all link ranks are non-negative.
+
+Step 4: We bound the number of real deletion links of small rank.
+
+Step 5: We bound the sum of link ranks, by separately bounding the sum of the v-shifts
+     and the sum of the u-shifts. This step uses our bound on the sum of the magnitudes
+     of node-rank changes, or in the case of multipass pairing heaps a more general bound.
+
+Step 6: We prove our bound on the sum of the magnitudes of node-rank changes, or in the
+     case of multipass pairing heaps a more general bound.
+
+    To do Step 6, we observe that node ranks, like link ranks, are always non-negative, and
+the sum of node ranks is initially zero, since initially there are no nodes. It follows that
+the sum of the node-rank increases is always at least as large as the sum of the node-rank
+decreases, and hence that the sum of the magnitudes of the node-rank changes is at most
+twice the sum of the node-rank increases. We bound the sum of these increases.
+    We proceed with the details. We begin with two results having to do with time-shifting,
+whose proofs do not depend on the type of heap. The rest of our analysis depends on the
+type of heap. We analyze multipass pairing heaps, slim heaps, and smooth heaps in turn, in
+Sections 7, 8, and 9 respectively. In our analysis of multipass pairing heaps, we generalize
+the notion of node rank. This allows us to reduce the effect of the changes in node ranks
+caused by pass-i links as i increases. In our analysis of slim heaps, we extend a different
+notion, that of size. This allows us to bound the effect of phantom links. To analyze smooth
+heaps, we split the treap formed during a delete-min into three parts: a left side, a right
+side, and a central path. We apply the analysis of slim heaps separately to the left side
+and to the right side, and we apply a new analysis to the central path.
+
+
+6    Time-Shifting Lemmas
+Our first time-shifting lemma allows us to shift the cost of each k-link from the time the
+k-link is done to the later time when it is cut by a decrease-key:
+Lemma 6.1. In any sequence of heap operations starting with no heaps, the quantity lg lg n
+per k-link is at most lg lg n per decrease-key plus 3 per delete-min.
+
+                                            13
+Proof. We use a credit argument. We allocate lg lg n credits to each decrease-key and 3 to
+each delete-min and show that the total number of credits is at least lg lg n per k-link.
+    Let vw be a k-link. Let n′ and n be the number of nodes in the heap containing w just
+after vw is done and when vw is cut, respectively. We use the lg lg n credits allocated to
+the decrease-key that cuts vw to partially or fully cover the lg lg n′ credits needed by link
+vw. This suffices unless n′ > n, in which case we need an additional lg lg n′ − lg lg n credits.
+These we obtain from the credits allocated to the delete-min operations.
+    A delete-min on a heap of size n′′ distributes its three credits equally among the nodes
+in the heap after the delete-min, 3/(n′′ − 1) to each. From the time vw is done until the
+                                      Pn′ −1
+time vw is cut, w receives at least 3 i=n     1/i ≥ 2(lg n′ − lg n) ≥ lg lg n′ − lg lg n credits,
+where the last inequality holds because the derivative of 2 lg x is at least that of lg lg x for
+x ≥ 0. These credits cover the remainder of the credits needed by link vw.
+    Our second time-shifting lemma bounds the sum of the w-shifts of the real deletion
+links. Its proof uses the time-shifting idea in the proof of Lemma 6.1, an idea that we shall
+also use later. Recall from Section 4 that if vw is a real deletion link with winner link uv,
+its w-shift is v.rw′ − u.rw′ , the change in the rank of the parent of w resulting from cutting
+uw and doing vw.
+
+Lemma 6.2. In any sequence of operations on multipass pairing heaps, slim heaps, or
+smooth heaps starting with no heaps, the sum of the w-shifts of all real deletion links is at
+most lg lg n per decrease-key plus lg lg n + 3 per delete-min.
+
+Proof. Let w be a temporary node. Consider an interval I from the time w is a root not in
+the middle of a delete-min until it next becomes a root not in the middle of a delete-min.
+We sum the w-shifts of the real deletion links lost by w during I, and then sum over all w,
+I pairs.
+     The first link vw lost by w during I is an insertion or k-link, which makes the rank of v
+zero, since just after the link the size and mass of v are equal. During the rest of interval I,
+node w can change parent, but only during a delete-min in which it loses a link. It remains
+a real child, except temporarily in the middle of a delete-min, until it is the last remaining
+root in a delete-min, ending I, or it loses a phantom deletion link. Once w loses a phantom
+link vw, it does not change parent until vw is cut by a decrease-key. This ends I, since it
+makes w a root not in the middle of a delete-min. Let uw, vw, and xw be three consecutive
+links lost by w, with vw and xw real deletion links. Then uw is real and is the winner link
+of vw and vw is the winner link of xw. The w-shifts of vw and xw are v.rw′ − u.rw′ and
+x.rw′ − v.rw′ , respectively. Their sum telescopes to x.rw′ − u.rw′ . More generally, the sum of
+the w-shifts of the real deletion links lost by w during I telescopes to a difference of two
+node ranks, whose value is at most lg lg n′ , where n′ is the size of the heap containing w
+when w loses its last real link during I.
+     To finish the proof of the lemma we use the time-shifting idea in the proof of Lemma 6.1.
+We allocate lg lg n credits to each decrease-key and lg lg n + 3 to each delete-min, and show
+that the total number of credits is at least lg lg n′ per triple w, I, n′ , where n′ is the size of
+the heap containing w when w loses its last real link during I.
+     Given a triple w, I, n′ , let n be the size of the heap containing w when I ends. We use
+lg lg n of the credits allocated to the heap operation that ends I to partially or fully cover
+
+                                                14
+the lg lg n′ credits needed by the triple. This suffices unless n′ > n, in which case we need
+an additional lg lg n′ − lg lg n credits. These we obtain from the extra 3 credits allocated
+to each delete-min operation.
+     A delete-min on a heap of size n′′ distributes its extra three credits equally among the
+nodes in the heap after the delete-min, 3/(n′′ − 1) to each. From the time w loses its last
+                                                                P ′ −1
+real link during I until the end of I, w receives at least 3 ni=n      1/i ≥ 2(lg n′ − lg n) ≥
+lg lg n′ − lg lg n credits, which cover the remainder of the credits needed by the triple.
+
+
+7     Analysis of Multipass Pairing Heaps
+7.1    Basic results
+Now we turn to the analysis of multipass pairing heaps. Recall that they do repeated pairing
+passes to link the roots in a delete-min. We begin with three simple results. First, during
+a delete-min, the number of links remaining to be done after pairing pass i is exponentially
+small in i.
+
+Lemma 7.1. Suppose a delete-min in a multipass pairing heap does a total of k links. Then
+the number of links remaining to be done after the first i passes is at most k/2i .
+
+Proof. Suppose there are j +1 roots at the beginning of pairing pass i. Then the delete-min
+does a total of j more links. Pass i does ⌈j/2⌉ of these links, leaving ⌊j/2⌋ still to be done.
+The lemma follows by induction on i.
+    Second, it is enough to bound a subset of the real deletion links. We call a deletion
+link primary if it is a real pass-2 link whose winner link is a pass-1, pass-2, or pass-3 link.
+Let p be the number of primary links. Recall from Section 5 that we denote by d the total
+number of deletion links.
+
+Lemma 7.2. In any sequence of multipass pairing heap operations starting with no heaps,
+d is at most 8p plus 20 per insertion plus 16 per decrease-key.
+
+Proof. Consider a delete-min that deletes root u. Removal of u makes its list of children
+into a list of new roots, which are then linked in pairing passes. Group these new roots into
+sets of four consecutive nodes, leaving at most three roots ungrouped. The first pairing
+pass does two links of pairs of nodes within the group. The second pairing pass links the
+winners of these two pass-1 links. Let vw and xy be the two pass-1 links (won by v and x,
+respectively), and let vx be the pass-2 link (won by v). We associate these three links with
+the group. If v is not the one root that remains at the end of the delete-min, it also loses
+a link in a later pairing pass. We associate this link with the group also.
+    We charge these three or four links to a particular event, as follows. Recall from Section 4
+that link vx is real if v and x are both temporary (eventually deleted) and vx is a d-link
+(cut by a delete-min); otherwise vx is phantom. Suppose vx is phantom. If v and x are
+temporary, vx must be a k-link (cut by a decrease-key). In this case we charge the three
+or four links to the decrease-key that cuts vx. The total charge incurred in this way is at
+most four per decrease-key that cuts a link between two temporary nodes. Suppose v is
+
+                                              15
+permanent: The argument is symmetric if x is permanent. The link vw must be a k-link
+or an f-link (never cut), since a permanent node cannot win a d-link. If vw is a k-link, we
+charge the three or four links to the decrease-key that cuts it. The total charge incurred
+is at most four per decrease-key that cuts a link won by a permanent node. If vw is an
+f-link, then w must be permanent, and we charge the three or four links to the insertion of
+w. The total charge incurred is at most four per insertion of a permanent node.
+     The remaining possibility is that vx is real. Let uv be the winner link of vx. If uv is a
+pass-1, pass-2, or pass-3 deletion link, then vx is primary and we charge the three or four
+links to vx. The total charge incurred is at most 4 per primary link. Otherwise, we charge
+the three or four links to uv, which is either an insertion link, a decrease-key link, or a
+deletion link that occurs after pass 3 of a delete-min. Since v only wins one pass-2 link
+(namely vx), uv is charged only once in this way. The total charge is at most 4 per insertion
+of a temporary node plus 4 per decrease-key plus 4d/8, since the number of deletion links
+occurring after pass 3 of a delete-min is at most d/8 by Lemma 7.1.
+     In each delete-min, there are at most two links that are not associated with a group.
+We charge such non-associated links to the insertion of the node deleted by the delete-min,
+which is temporary. The total charge incurred in this way is at most two per insertion of
+a temporary node.
+     Adding our bounds on charges, we find that the total charge, which equals d, is at
+most 10 per insertion plus 8 per decrease-key plus 4 per primary link plus d/2. The lemma
+follows.
+    Our bounds on primary links will include small additive terms in d, the total number
+of deletion links. To handle such terms, we restate Lemma 7.2 as follows:
+Corollary 7.3. In any sequence of multipass pairing heap operations starting with no heaps,
+d is at most (64/3) max{0, p − 3d/64} plus 80 per insertion plus 64 per decrease-key.
+Proof. We consider two cases. If p < 3d/32, then by Lemma 7.2 d is at most 3d/4 plus 20
+per insertion plus 16 per decrease-key, which implies that d is at most 80 per insertion plus
+64 per decrease-key. If on the other hand p ≥ 3d/32, then (64/3)p ≥ 2d, which implies
+d ≤ (64/3)(p − 3d/64). Adding the bounds for the two cases gives the corollary.
+Remark 7.4. This proof and subsequent ones do not minimize the constant factors, they
+only establish that appropriate constant factors exist.
+    Our third and final result of this section is that link ranks are non-negative. Let us
+recall the definitions from Section 4 that are relevant to this result, and in the process
+provide the complete definition of masses in a multipass pairing heap.
+    Let w be a temporary node. The real subtree of w is the partial subtree induced by the
+set of descendants of w (including w) that are connected to w by a path of real links. The
+size w.s of w is the number of nodes in its real subtree.
+    The mass w.m of w depends on whether w is a child or a root, and if a root whether it
+is a root in the middle of a deletion. If w is a phantom child or a root not in the middle of
+a deletion, its mass is its size. If w is a real child of a node v, its mass is the size of v just
+after link vw was done. This is the sum of the sizes of v and w just before the link was
+done. If w is a root in the middle of a delete-min, its mass is the sum of its size and those
+
+                                               16
+of all the temporary roots to its right on the root list, with the following exception: Just
+before a root w loses a real right link to the root v to its left on the root list, the mass of
+w steps up to the mass of v (which is the same before and after the link).
+    Finally, the rank w.r of w is lg lg(w.m/w.s).
+    Let vw be a real deletion link done during the delete-min that deletes root u. This
+delete-min cuts the winner link uv of vw. The link rank of vw is v.ru − u.rv′ , the rank of v
+just before uv is done minus the rank of u just after uv is done. If uv is a right link, v.ru
+is the rank of v after the step-up in the mass of v that occurs just before the link.
+    Step-ups guarantee that link ranks are non-negative:
+Lemma 7.5. In a multipass pairing heap, every link rank is non-negative.
+Proof. Let vw be a real pairing link with winner link uv. The link rank of vw is v.ru − u.rv′ .
+If uv is an insertion or decrease-key link, u has rank 0 after the link, so v.ru − u.rv′ ≥ 0.
+Suppose uv is a deletion link. Let unprimed and primed sizes and masses denote values just
+before and just after the link, respectively. If uv is a left link, v.m = u.m′ and v.s ≤ u.s′ ,
+so v.ru − u.rv′ = lg lg(v.m/v.s) − lg lg(u.m′ /u.s′) ≥ 0. If uv is a right link, u.m = u.m′ and
+u.s′ = u.s + v.s. The step-up just before the link makes the mass of v equal to u.m′ , so
+v.ru − u.rv′ = lg lg(u.m′ /v.s) − lg lg(u.m′ /(u.s + v.s)) ≥ 0.
+
+7.2    Small-rank links
+The next step in our analysis is to bound the number of primary links of small rank. We
+begin by deriving a bound on the number of roots of small rank at certain times.
+Lemma 7.6. At the beginning of any pairing pass in a delete-min in a multipass pairing
+heap, the number of roots with rank at most 1 is at most (5/2) lg n + 1.
+Proof. Consider the beginning of some pairing pass, and let v and w be temporary roots
+with w the next temporary root right of v. Then v.m − v.s = w.m. If v.r ≤ 1, v.m/v.s ≤ 4,
+so v.s ≥ v.m/4, which implies v.m ≥ (4/3)w.m. It follows that if there are i roots on the
+root list with rank at most 1, (4/3)i−1 ≤ n. Hence i ≤ (lg n)/ lg(4/3)+1 ≤ (5/2) lg n+1.
+Corollary 7.7. In any sequence of multipass pairing heap operations starting with no heaps,
+for any fixed i the number of real pass-i links in which the winner or loser has rank at most
+1 just before the link is at most (5/2) lg n + 1 per delete-min.
+Proof. During a pairing pass, the rank of a node does not decrease until it participates in
+a pairing link. Hence a node with rank at most one just before it wins or loses a pairing
+link had rank at most one at the beginning of the pairing pass. The corollary is immediate
+from Lemma 7.6.
+   Next we give a condition that allows us to charge certain real deletion links of rank less
+than 1 to decreases in node ranks.
+Lemma 7.8. In a multipass pairing heap, let vw be a real deletion link with winner link
+uv. Suppose the link rank of vw is less than 1. If both u and v have positive rank just after
+uv is done, then v.r ′ ≤ v.r − 1, where unprimed and primed variables take their values just
+before uv is done (after the step-up if there is one) and just after uv is done, respectively.
+
+                                              17
+Proof. Since u and v have positive ranks just after they are linked, uv is a deletion link.
+Furthermore, since link uv (after the step-up in the mass of v if there is one) does not
+increase the rank of v, we can replace lg by log2 in the formulas for u.r ′ , v.r, and v.r ′. Since
+                     ′
+v.r − u.r ′ < 1, 2u.r > 2v.r−1 = 2v.r /2. Suppose uv is a left link. Then
+   ′                                                                                    ′
+2v.r = log2 ((u.s + v.s)/v.s) = log2 (v.m/v.s) − log2 ((v.m/(u.s + v.s)) = 2v.r − 2u.r ≤ 2v.r /2
+
+Hence v.r ′ ≤ v.r − 1. Suppose uv is a right link. Then
+   ′                                                                                    ′
+2v.r = log2 ((u.s + v.s)/v.s) = log2 (u.m′ /v.s) − log2 (u.m′ /(u.s + v.s)) = 2v.r − 2u.r ≤ 2v.r /2
+
+Hence v.r ′ ≤ v.r − 1 in this case also.
+   Corollary 7.7 and Lemma 7.8 combine to relate the number of primary links of rank less
+than 1 to the sum of the magnitudes of all node rank decreases that occur during pairing
+passes 1 through 3 of some delete-min.
+
+Lemma 7.9. In any sequence of multipass pairing heap operations starting with no heaps,
+the number of primary links of rank less than 1 is at most the sum of the magnitudes of all
+node-rank decreases plus (15/2) lg n + 3 per delete-min.
+
+Proof. Let vw with winner link uv be a primary link with link rank less than 1. Since
+v wins only one pass-2 pairing link during the deletion of u, namely vw, vw is uniquely
+determined by uv. Since vw is primary, uv is a pass-1, pass-2, or pass-3 link. If either u or
+v has rank less than 1 just before uv is done, we charge vw to uv. By Corollary 7.7, the
+total of such charges is at most (5/2) lg n + 1 per delete-min for each of pairing passes 1
+through 3, for a total of (15/2) lg n + 3 per delete-min.
+   The remaining possibility is that both u and v have rank at least 1 just before uv is
+done. In this case doing uv reduces the rank of v by at least 1, by Lemma 7.8. We charge
+vw to this node rank decrease.
+   Adding these bounds gives the lemma.
+   To obtain an absolute bound on the number of primary links of rank less than 1, we
+need a bound on the sum of the node-rank decreases. We state a bound on the sum of the
+magnitudes of the node-rank changes. We shall give a more general bound in Section 7.3
+and prove it in Section 7.4.
+
+Theorem 7.10. In any sequence of multipass pairing heap operations starting with no
+heaps, the sum of the magnitudes of all node-rank changes is O(lg lg n) per decrease-key
+plus O(lg n) per delete-min plus at most d/64.
+
+    Lemma 7.9 and Theorem 7.10 combine to give us a bound on the number of primary
+links with rank less than 1:
+
+Theorem 7.11. In any sequence of multipass pairing heap operations starting with no
+heaps, the total number of primary links with rank less than 1 is O(1) per insertion plus
+O(lg lg n) per decrease-key plus O(lg n) per delete-min plus at most d/64.
+
+
+                                                18
+7.3    Large-rank links
+Now we turn to the task of bounding the number of primary links of large rank. To do
+this we bound the sum of link ranks. We bound this sum indirectly, by using the link-rank
+equality, which states that if vw is a real deletion link with winner link uv, then
+                 v.ru − u.rv′ = (v.rw′ − u.rw′ ) + (v.ru − v.rw′ ) + (u.rw′ − u.rv′ )
+    That is, the rank of vw equals the sum of its w-shift, its v-shift, and its u-shift. Summing
+this equality over all real deletion links vw, we find that the sum of the link ranks equals
+the sum of their w-shifts plus their v-shifts plus their u shifts. We already have a bound
+on the sum of the w-shifts, Lemma 6.2. The proof of Lemma 6.2 relies on cancellation in
+telescoping sums, and the proof fails if we only sum over the primary links, which are the
+ones we need to count. Thus we are forced to estimate the sum of the v-shifts and the
+u-shifts of all the real deletion links, not just those of the primary links.
+    To bound the sum of these shifts, we observe that a given vertex v can win or lose at
+most one pass-i link during a single delete-min. This allows us to bound the sum of shifts
+over all real pass-i links separately for each i. Then we sum over i. To make the overall
+bound small, we estimate the sum differently for each i. We use the fact that the number of
+pass-i links is exponentially small in i (Lemma 7.1). To exploit this fact, we generalize the
+definition of ranks. If w is a temporary node and b is a non-negative integer, the b-reduced
+rank w.r(b) of w is max{w.r − b, 0} = lg(lg(w.m/w.s)/2b). In particular, the 0-reduced
+rank of w is just its rank.
+    The following lemma gives a simple inequality that allows us to relate differences in
+node ranks to the corresponding differences in b-reduced node ranks:
+Lemma 7.12. If x > y ≥ 0 and b ≥ 0, then x − y ≤ max{x − b, 0} − max{y − b, 0} + b.
+Proof. If y ≥ b, the inequality becomes x − y ≤ x − y + b, which is true since b ≥ 0. If
+x ≤ b, the inequality becomes x − y ≤ b, which is true since x ≤ b and y ≥ 0. Finally, if
+y < b < x, the inequality becomes x − y ≤ x, which is true since y ≥ 0.
+    To bound the sums of the v-shifts and the u-shifts, we need a generalization of Theo-
+rem 7.10 that bounds the sum of the magnitudes of the changes in b-reduced ranks. We
+state and use this theorem here and prove it in the next section.
+Theorem 7.13. Let b and c be non-negative integers. In any sequence of multipass pairing
+heap operations starting with no heaps, the sum of the magnitudes of the changes in b-
+reduced node ranks is at most 4 lg((lg n)/2b ) per decrease-key plus (4(b + c + 2)/2b) lg n +
+2 lg((lg n)/2b ) + 6/2b per delete-min plus 8d/2b+c .
+   Choosing b = 0 and c = 9 in Theorem 7.13 gives Theorem 7.10, which was stated and
+used in the previous section.
+   Now we have the tools we need to bound the sums of v-shifts and u-shifts. We start
+with the v-shifts.
+Lemma 7.14. In any sequence of multipass pairing heap operations starting with no heaps,
+the sum of the v-shifts of the real deletion links is O(lg lg n · lg lg lg n) per decrease-key plus
+O(lg n) per delete-min plus at most d/64.
+
+                                                 19
+Proof. Let vw be a real pairing link with winner link uv. The v-shift of vw is v.ru − v.rw′ ,
+the net decrease in the rank of v from the time t1 just before link uv is done (after the
+step-up in the mass of v if it is a right link) until the time t2 just after vw is done. We call
+[t1 , t2 ] the v-shift time interval of vw. If vw is a pass-i link, v cannot win another pass-i
+link until after losing a link. It follows that for a given v and i, the v-shift time intervals of
+the pass-i links vw won by v are disjoint. We can thus apply Theorem 7.13 to bound the
+sum of the v-shifts of the pass-i links vw for any given i. Summing the resulting bounds
+over all i gives us a bound on the sum of all v-shifts.
+      In the sum of v shifts, we ignore all the non-positive terms. If vw is an pass-i link with
+positive v-shift, its v shift v.ru − v.rw′ is at most v.ru (b) − v.rw′ (b) + b for any integer b ≥ 0
+by Lemma 7.12, where v.ru (b) the b-reduced rank of v just before uv is done (after the
+step-up in the mass of v if it is a right link), and v.rw′ (b) is the b-reduced rank of vw just
+after vw is done. The number of pass-i links is at most 2d/2i by Lemma 7.1. Thus, for
+any integers i and b, the sum of v-shifts over all real pass-i links is at most the bound of
+Theorem 7.13 plus b · (2d/2i ). This bound depends on a non-negative integer parameter c,
+whose value we choose at the end of this proof.
+      For i = 1, . . . , c, this bound with b = 0 implies that the sum of the v-shifts over all real
+deletion links done in the first c pairing passes is at most 4c lg lg n per decrease-key plus
+4c(c + 2) lg n + 2c lg lg n + 6c per delete-min plus 8cd/2c .
+      For i ≥ 1, we apply the same bound to the pass-(i + c) links, but with b a function of i,
+specifically b = bi = 2⌈i/2⌉ . By this bound, the sum of the v-terms of the real pass-(i + c)
+links is at most
+
+                4 lg((lg n)/2bi ) per decrease-key
+              +4((bi + c + 2)/2bi ) lg n + 2 lg((lg n)/2bi ) + 6/2bi per delete-min
+              +8d/2bi +c + 2bi d/2i+c
+
+We need to sum this bound from i = 1 to ∞. The sum of bi /2bi is a constant, as are the
+sums of 1/2bi and bi /2i . Finally, if i > 2 lg lg lg n, the lg((lg n)/2bi ) terms are 0. It follows
+that if we choose c to be a sufficiently large constant, the sum of the v-shifts of real deletion
+links is within the bound of the lemma.
+    The argument for the v-shifts applies to the u-shifts as well, but we must consider both
+increases and decreases of node ranks over the u-shift time intervals.
+Lemma 7.15. In any sequence of multipass pairing heap operations starting with no heaps,
+the sum of the u-shifts of the real deletion links is O(lg lg n · lg lg lg n) per decrease-key plus
+O(lg n) per delete-min plus at most d/64.
+Proof. Let vw be a real pairing link with winner link uv. The u-shift of vw is u.rw′ − u.rv′ .
+If vw is a right link, this is the decrease in the rank of u from the time t1 just after it wins
+uw until the time t2 just after it wins uv. If vw is a left link, its u-shift is the increase
+in the rank of u from the time t1 just after it wins uv until the time t2 just after it wins
+uw. We call [t1 , t2 ] the u-shift time interval of vw. To cover both the left links and the
+right links, we bound the sum of the magnitudes of the u-shifts. Since each pass-i link is
+between adjacent roots on the root list, the u-shift time intervals of two pass-i links during
+
+                                                20
+the deletion of u are disjoint. These are the only u-shifts of pass-i links. Hence we can
+apply the same analysis as in the proof of Lemma 7.14.
+   Summing the link-rank equality over the real deletion links and adding the bounds in
+Lemma 6.2, Lemma 7.14, and Lemma 7.15 gives us a bound of the sum of link ranks:
+
+Theorem 7.16. In any sequence of multipass pairing heap operations starting with no
+heaps, the sum of the link ranks of the real deletion links is O(lg lg n · lg lg lg n) per decrease-
+key plus O(lg n) per delete-min plus at most d/32.
+
+    Since all link ranks are non-negative by Lemma 7.5, the bound in Theorem 7.16 is
+also a bound on the number of primary links with rank at least 1. Adding this bound to
+the bound in Theorem 7.11 on the number of such links that have rank less than 1 and
+combining the resulting bound with the bound in Corollary 7.3 gives us our desired bound
+on the total number of deletion links:
+
+Theorem 7.17. In any sequence of multipass pairing heap operations starting with no
+heaps, the total number of deletion links is O(1) per insertion plus O(lg lg n · lg lg lg n) per
+decrease-key plus O(lg n) per delete-min.
+
+   Theorem 7.17 yields our bound on the efficiency of multipass pairing heaps:
+
+Theorem 7.18. Any sequence of multipass pairing heap operations starting with no heaps
+takes O(lg lg n · lg lg lg n) amortized time per decrease-key, O(lg n) amortized time per dele-
+tion, and O(1) amortized (and worst-case) time for each other heap operation.
+
+7.4    Node-rank changes
+Our analysis of multipass pairing heaps relies on the validity of Theorem 7.13, which bounds
+the sum of the magnitudes of changes in b-reduced node ranks. Proving this theorem is the
+final step in our analysis and is the topic of this section.
+    Our calculations require the inequality stated in the following lemma:
+
+Lemma 7.19. If x > y > 0, a ≥ 0, and b ≥ 0, lg(x/2b ) − lg(y/2b) ≤ (2/2a+b )(x − y) + a.
+
+Proof. Define f (t) = lg(t/2b ). Observe that f ′ (t) = 0 for t < 2b and f ′ (t) = lg(e)/t ≤ 2/t
+for t > 2b . In particular, if t > 2a+b then f ′ (t) ≤ lg(e)/2a+b ≤ 2/2a+b .
+    If x ≥ y ≥ 2a+b , then
+                                             Z x                2 
+                             b           b
+                                                   f ′ (t) dt ≤ a+b
+                                                                             
+                      lg(x/2 ) − lg(y/2 ) =                           x−y
+                                               y                2
+
+since f ′ is at most 2/2a+b on (2a+b , ∞).
+    If 2a+b ≥ x ≥ y, then
+
+                           lg(x/2b ) − lg(y/2b) ≤ lg(2a+b /2b ) − 0 = a
+
+
+
+
+                                                21
+   Finally, if x ≥ 2a+b ≥ y, then
+
+           lg(x/2b ) ≤ lg(x/2b ) − lg(2a+b /2b ) + lg(2a+b /2b )
+                       Z x            
+                                ′
+                     =         f (t) dt + a                                 (since lg(2a+b /2b ) = a)
+                          2a+b
+                        2 
+                                  x − 2a+b + a               (since f ′ (t) ≤ 2/2a+b on (2a+b , ∞))
+                                          
+                     ≤ a+b
+                        2
+                        2            
+                     ≤ a+b        x−y +a
+                        2
+    As observed in Section 5, the sum of the magnitudes of node-rank changes is at most
+twice the sum of node-rank increases, since node ranks are always non-negative and their
+sum is initially zero since initially there are no nodes. This is also true of b-reduced ranks.
+Hence to bound the sum of the magnitudes of b-reduced rank changes it suffices to bound
+the sum of b-reduced rank increases. This we proceed to do.
+    Newly inserted temporary nodes and nodes deleted by delete-mins have b-reduced rank
+zero, so their insertion or deletion changes no b-reduced rank. A cut of a phantom link,
+which happens only during a decrease-key, changes no size or mass and hence changes no
+b-reduced rank. Cuts of real links happen only during delete-mins. Deletion of the root
+in a delete-min decreases by one the size of each child of the deleted root, which does not
+increase its b-reduced rank, and makes the b-reduced rank of the deleted root equal to zero,
+which does not increase it. A phantom insertion or decrease-key link changes no size or
+mass and hence changes no b-reduced rank. A phantom deletion link changes no size and
+increases no mass, so it increases no b-reduced rank. It remains to study the effect of real
+links.
+
+Lemma 7.20. In a multipass pairing heap, a real decrease-key link vw increases the b-
+reduced rank only of w, by at most lg((lg n)/2b ).
+
+Proof. The link changes the size only of v and changes the mass only of v and w. Before
+and after the link, the mass of v equals its size, so the link leaves the b-reduced rank of v
+unchanged at zero. The link increases the mass of w to at most n. The lemma follows.
+
+Lemma 7.21. In any sequence of multipass pairing heap operations starting with no heaps,
+the sum of increases in b-reduced ranks caused by real insertion links is at most lg((lg n)/2b )
+per decrease-key plus lg((lg n)/2b ) + 3/2b per delete-min.
+
+Proof. The proof uses the idea in the proofs of the lemmas in Section 6. We allocate
+lg((lg n)/2b ) credits to each decrease-key and lg((lg n)/2b ) + 3/2b credits to each delete-
+min, and show that the sum of increases in b-reduced ranks caused by real insertion links
+is at most the sum of the allocated credits.
+    A real insertion link vw increases the b-reduced rank only of w, by at most lg((lg n)/2b ).
+Since w is temporary, it eventually becomes the only root in its heap, which must happen
+before w can be deleted. Let n′ be the number of temporary nodes in the heap containing
+w the first time after link vw that w becomes the only root in its heap. The operation that
+causes w to become the only root in its heap is either a decrease-key or a delete-min.
+
+
+                                                22
+    We assign lg((lg n′ )/2b ) of the credits allocated to this decrease-key or delete-min to
+partially cover the increase in the b-reduced rank of w caused by link vw. The credits
+allocated to a decrease-key or delete-min are assigned to at most one such increase, since w
+is the only root in the heap after the decrease-key or delete-min, and vw is the most recent
+previous real insertion link lost by w.
+    If n′ ≥ n, the assigned credits fully cover the increase in the b-rank of w. If not,
+we need an additional lg((lg n)/2b ) − lg((lg n′ )/2b ) ≤ (2/2b )(lg n − lg n′ ) credits to fully
+cover the increase. For these we use the additional 3/2b credits allocated to each delete-
+min. Each delete-min distributes its extra credits equally among the n′′ − 1 temporary
+nodes in the heap just after the deletion, (3/2b )/(n′′ − 1) to each. Between the time
+v and P w are linked and w next becomes the only root in its heap, w receives at least
+     b    n−1            b             ′
+(3/2 ) i=n   ′ 1/i ≥ (2/2 )(lg n − lg n ) credits, which cover the remainder of the increase in
+
+the b-rank of w.
+
+Lemma 7.22. In a multipass pairing heap, a real deletion link vw increases a b-reduced
+rank only if it is a right link. If it is a right link, it increases only the rank of w, and only
+during the step-up in the mass of w. For any a ≥ 0, the amount of the increase is at most
+(2/2a+b )(lg(v.m) − lg(w.m)) + a, where variables take their values just before the step-up.
+
+Proof. The link changes the size, mass, and rank only of v and w. If the link is a left link,
+it decreases w.m and does not change w.s, so the b-reduced rank of w does not increase.
+The link increases v.s and v.m by w.s, so the b-reduced rank of v does not increase.
+    Suppose the link is a right link. The link increases v.s but does not change v.m, so the
+b-reduced rank of v does not increase. The step-up in the mass of w just before the link
+increases w.r by
+
+  lg(lg(v.m/w.s)/2b) − lg(lg(w.m/w.s)/2b) ≤ (2/2a+b )(lg(v.m/w.s) − lg(w.m/w.s)) + a
+                                               = (2/2a+b )(lg(v.m) − lg(w.m)) + a
+
+by Lemma 7.19 and v.m > w.m ≥ w.s. After the link, the rank of w is lg lg((v.s +
+w.s)/w.s) ≤ lg lg(v.m/w.s), so the link itself does not increase the rank of w.
+
+Lemma 7.23. In a multipass pairing heap, for any a ≥ 0, the sum of the b-reduced rank
+increases caused by a pairing pass that does k real right links is at most (2/2a+b ) lg n + ak.
+
+Proof. We sum the upper bound (2/2a+b )(lg(v.m) − lg(w.m)) + a on the increase in b-
+reduced ranks given by Lemma 7.22 over the k real right links vw done during the pairing
+pass. If vw and v ′ w ′ are two such links, with v ′ right of v on the root list, w.m > v ′ .m,
+where masses are evaluated just before any of the links. Thus the sum of lg(v.m) − lg(w.m)
+telescopes to at most lg n, giving the lemma.
+
+Lemma 7.24. In a multipass pairing heap, for any c ≥ 0, the sum of the b-rank increases
+caused by a delete-min that does k links is at most (2(b + c + 2)/2b ) lg n + 4k/2b+c .
+
+Proof. We sum the upper bound in Lemma 7.23 over all pairing passes of the delete-min,
+but we choose a as a function of the pairing pass. By Lemma 7.1, at most 2k/2i links are
+done in pairing pass i.
+
+                                               23
+   Setting ai = max{i−⌈b+c⌉, 0} for pairing pass i and summing the bound in Lemma 7.23
+over all pairing passes in the delete-min, we find that the sum of the b-rank increases is at
+most
+                                        ∞
+                                        X
+                (2⌈b + c⌉/2b ) lg n +         (2/2b )(1/2i ) lg n + (2k/2⌈b+c⌉ )(i/2i )
+                                                                                          
+                                        i=1
+
+                 = (2(⌈b + c⌉ + 1)/2 ) lg n + 4k/2⌈b+c⌉
+                                        b
+
+                 ≤ (2(b + c + 2)/2b ) lg n + 4k/2b+c
+
+    Combining Lemmas 7.20, 7.21, and 7.24 and using the fact that twice the sum of the
+increases in b-reduced node ranks is an upper bound on the sum of the magnitudes of the
+change is b-reduced node ranks gives us Theorem 7.13:
+    For any non-negative integers b and c, in any sequence of multipass pairing heap oper-
+ations starting with no heaps, the sum of the magnitudes of the changes in b-reduced node
+ranks is at most 4 lg((lg n)/2b ) per decrease-key plus (4(b + c + 2)/2b ) lg n + 2 lg((lg n)/2b ) +
+6/2b per delete-min plus 8d/2b+c.
+
+
+8     Analysis of slim heaps
+8.1    Basic properties of slim and smooth heaps
+Now we turn to the analysis of slim and smooth heaps. We start with slim heaps, and then
+adapt the analysis to smooth heaps. We begin by giving two basic properties of both slim
+and smooth heaps. The first is that during a delete-min each node wins at most one left
+link and one right link [11, 15]. For completeness we include a proof of this result.
+
+Lemma 8.1. [11, 15] During a delete-min in a slim or smooth heap, each node wins at
+most one left link and at most one right link.
+
+Proof. Suppose a node v wins a right link with a node w. After the link, either v is
+rightmost on the root list or its right neighbor has equal or smaller key. In the latter case,
+during the rest of the delete-min the right neighbor of v can change, but the key of its right
+neighbor cannot increase. Hence v can only lose, not win, a link with its right neighbor
+during the rest of the delete-min. The argument for left links is symmetric, with minor
+changes to account for the tie-breaking rule in leftmost locally maximum linking.
+    By Lemma 8.1, the set of links done during a delete-min in a slim or smooth heap forms
+a binary tree that is heap-ordered by key and symmetrically ordered by position on the
+root list just after the original root is deleted. We call this tree the treap formed by the
+delete-min. See Figure 3.
+    Our second result bounds the number of deletion links d in terms of the number of real
+deletion links. This is the first step in bounding the number of deletion links.
+
+Lemma 8.2. In any sequence of operations on slim or smooth heaps starting with no heaps,
+d is at most three per real deletion link plus three per insertion plus three per decrease-key.
+
+
+                                                   24
+Proof. Consider a delete-min that does k deletion links and in which j of the k + 1 new
+roots are temporary. We consider two cases. If j < k/3, at least k −2j ≥ k/3 of the deletion
+links must be won by a permanent node, since by Lemma 8.1 each of the j temporary roots
+wins at most two of the k links. Each link won by a permanent node is either an f-link
+(never cut) or a k-link (cut by a decrease-key). If it is an f-link, we charge 3 to the loser of
+the link, which is a permanent node. If it is a k-link, we charge 3 to the decrease-key that
+cuts the link. The total charge is at least k, the number of deletion links.
+    If j ≥ k/3, at least j − 1 ≥ k/3 − 1 deletion links must be lost by temporary nodes.
+Each such link is either a real deletion link or a k-link. In the former case we charge 3 to
+the link; in the latter we charge 3 to the decrease-key that cuts the link. We also charge
+1 to the insertion of the node deleted by the delete-min, which is a temporary node. The
+total charge is at least k.
+    Combining the cases gives the lemma.
+
+8.2    The treap and its boundaries
+In slim and smooth heaps, the links done during a delete-min do not occur in separate
+passes, so the concept of b-reduced ranks is not helpful. Instead of partitioning the links
+done during a delete-min into passes, we partition them in a way that depends on the treap
+T whose edges are the links done during the delete-min. In this section we study some
+properties of this treap and introduce some relevant terminology.
+    We define a boundary of T to be a partition of the set of nodes in T into two nonempty
+sides, such that every node on one side is smaller in symmetric order (with respect to T )
+than every node on the other side. The former is the left side of the boundary; the latter
+is the right side. Each node x in T except the largest in symmetric order defines a unique
+boundary whose left side contains x and all smaller nodes in symmetric order and whose
+right side contains all nodes larger than x in symmetric order. We call this the boundary
+of x. A link vw done during the delete-min crosses a boundary if exactly one of v and w
+is on each side of the boundary. See Figure 4.
+
+                  12    6     9    5   11 14           2   13 16     8   19   7
+
+                                                       2
+                                   5                                          7
+                        6              11                            8
+                  12          9              14            13            19
+                                                                16
+Figure 3: An example of a treap formed by leftmost locally maximum linking. Original subtrees
+of the roots linked are not shown. Symmetric order in the treap is left-to-right order on the root
+list before any linking.
+
+
+                                                  25
+                                   y   v    w   x
+
+
+
+
+                                                x
+                                   y
+                                        v
+                                            w
+
+
+
+
+Figure 4: Links crossing a boundary after a delete-min. The dashed links cross the dashed grey
+boundary and alternate between left and right links. The boundary pictured is the boundary of
+v.
+
+
+Lemma 8.3. Let T be the treap formed by a delete-min in a slim or smooth heap. Given
+the boundary of a node x in T , all the links in T that cross the boundary are on a single
+path in T from the root of T down to either x, if x does not win a crossing link, or down
+to the smallest node greater than x in symmetric order if x does win a crossing link. Along
+this path, the links crossing the boundary alternate between left and right. If x wins a right
+link in T , this link is the lowest link to cross the boundary.
+
+Proof. Start at the root of T and follow the path P defined as follows: Let v be the current
+node on the path, initially the root. If v is larger in symmetric order than x, replace v by
+its left child in T ; otherwise, replace v by its right child in T . Repeat until v = x. If x
+has a right child, replace v by its right child, and then repeatedly replace v by its left child
+until v has no left child.
+    If v is replaced by its right child, the link to its left child, as well as every link in the
+left subtree of v, does not cross the boundary; if v is replaced by its left child, the link to
+its right child, as well as every link in the right subtree of v, does not cross the boundary.
+If v = x, the link to its left child, and all links in the subtree of this child, do not cross the
+boundary; the link to the right child of v, if it exists, crosses the boundary, but no links in
+the subtree of this right child cross the boundary. It follows by induction on the length of
+P that every link crossing the boundary is on P . If vw is a link on P that does not cross
+the boundary, both v and w are on the same side of the boundary. It follows by induction
+on the length of P that if uw and yz are successive links on P that cross the boundary,
+both w and y are on the same side of the boundary, which means that exactly one of uw
+and yz is a left link. That is, the links crossing the boundary alternate between left and
+right. If x has no right child, x is the bottom node on P . If x has a right child, say y, the
+bottom node on P is the smallest node in symmetric order that is a descendant of y, which
+is the node in T after x in symmetric order.
+
+                                                26
+                               ∗
+
+
+                                                                       ∗
+                                                             ∗
+
+
+
+Figure 5: An example of the treap formed by a delete-min. Squares denote heavy nodes, circles
+light nodes. Asterisks indicate anomalous links. Solid links are real, dashed links phantom. Each
+maximal path of real right links is circled.
+
+
+8.3    Link order
+In our analysis of slim heaps, we shall make the simplifying assumption that if a temporary
+root u wins both a left link uv and a right link uw during a delete-min, u wins the right link
+first. Suppose that in fact u wins the left link first. After both links, w is the left neighbor
+of v on the list of children of u, but if u wins the right link first, the order is reversed: w
+is the right neighbor of v. In this case we restore the correct order when u is deleted, by
+swapping the order of v and w on the root list before any links are done. This guarantees
+that the set of links done in the actual algorithm is the same as the set of links we analyze.
+In our analysis we shall need to account for the effect of such swaps.
+
+8.4    Ranks in slim heaps
+In slim heaps, the definitions of mass and rank depend on the future behavior of the
+algorithm, not just on its present and past behavior. Specifically, masses and ranks during
+a delete-min depend on the treap T formed by the delete-min, which is not completely
+determined until the last link of the delete-min. We partition T into maximal paths of real
+right links. Each node in T is on exactly one such path. Given such a path, if its top node
+(the one nearest the root of T ) is the root itself or is the loser of a phantom link in T , we
+define all nodes on the path to be heavy; otherwise all nodes on the path are light. Each
+node of T retains its state (light or heavy) throughout the delete-min. Each permanent
+node of T forms a one-node path and is heavy, since any link it wins or loses is a phantom
+link. Each real right link is between a pair of heavy nodes or a pair of light nodes. Each
+loser of a real left link is light. We define a real left link vw to be anomalous if v is heavy
+and the subtree of T rooted at w contains at least one k-link. See Figure 5.
+    We define sizes in a slim heap as in a multipass pairing heap: The size v.s of a temporary
+
+                                               27
+node v is the number of temporary nodes that are descendants of v and connected to v by
+a path of real links. During a delete-min, each root v, temporary or permanent, also has
+an extended size v.s̄. We define extended sizes operationally. Just after the original root is
+deleted in a delete-min, each temporary root has extended size equal to its size, and each
+permanent root has extended size 0. A link vw increases the extended size of v by that of
+w, whether the link is real or phantom. (If the link is real, it also increases the size of v by
+that of w.) Equivalently, the extended size of a root v during a delete-min is the number of
+temporary nodes that are descendants of v and connected to it by a path of real links and
+links done during the current delete-min (before the present moment). That is, phantom
+links done before the current delete-min are excluded.
+    We define the mass v.m of a temporary node v as follows: If v is a real child, its mass is
+one plus its size plus the sizes of its siblings to its right on its list of siblings. Equivalently,
+its mass is the size of its parent u just after v lost the link uv. If v is a phantom child or a
+root not on the root list in the middle of a deletion, its mass is its size. In these cases the
+definition of mass is the same as in multipass pairing heaps.
+    If v is a temporary root on the root list in the middle of a deletion, its mass depends
+on whether it is light or heavy. If v is heavy, its mass is its extended size plus the sum of
+the extended sizes of the roots to its right on the root list. If v is light, its mass is its size
+plus the sum of the extended sizes of the roots to its right on the root list. There are two
+exceptions to this definition of mass:
+  (i) Just before a temporary node w loses a real right link vw, its mass becomes v.m′ , the
+      mass of v just after the link. After the link, the mass of w becomes v.s′ , the size of
+      v just after the link.
+
+ (ii) Just after a temporary node v wins an anomalous link, its mass temporarily decreases
+      to its size, then increases to its extended size plus the extended sizes of the nodes to
+      its right on the root list.
+    We call the increase in the mass of w from w.m to v.m′ in exception (i) and of that of
+v from v.s′ to v.m′ in exception (ii) a step-up in the mass of w or v, respectively. We call
+the decrease in the mass of v in exception (ii) a step-down. We extend the terms “step-up”
+and “step-down” to the changes in rank resulting from the changes in mass. Exception (i)
+is the same exception we used in the analysis of multipass pairing heaps. The exceptions
+guarantee that all link ranks are non-negative.
+    A permanent node has no size, extended size, or mass, unless it is a root in the middle
+of a delete-min, when it has an extended size. The extended size of a permanent node v is
+zero at the beginning of a delete-min. It becomes non-zero if (and only if) it has at least
+one descendant in T that is a temporary node: If so, it will win a link during the delete-min
+that makes its extended size positive.
+    The definitions of node ranks, link ranks, w-shifts, v-shifts, and u-shifts are the same
+for slim heaps as for multipass pairing heaps. They are also stated in Section 4. In these
+definitions, if vw is a real right link, w.rv is the rank of w after its step-up just before the
+link, and if vw is an anomalous link, v.rw′ is the rank of v after its step-down just after the
+link, but before its step-up.
+    Now that we have the appropriate definitions, we can prove Lemma 7.5 for slim heaps.
+
+                                                28
+Lemma 8.4. In a slim heap, every link rank is non-negative.
+
+Proof. Let vw be a real deletion link with winner link uv. The link rank of vw is v.ru −u.rv′ .
+If uv is an insertion, decrease-key, or anomalous link, the mass of u just after link uv is
+done is the size of u. Thus u.rv′ = 0, so v.ru − u.rv′ ≥ 0.
+     Suppose uv is a right link or a non-anomalous left link. Let unprimed and primed sizes
+and masses denote values just before and just after uv is done, respectively.
+     If uv is a right link, v.ru = lg lg(u.m′ /v.s′ ) due to the step-up in the mass of v just
+before the link. Also, u.rv′ = lg lg(u.m′ /u.s′ ). Since v.s′ = v.s and u.s′ = u.s + v.s,
+u.m′ /v.s′ ≥ u.m′ /u.s′ , giving v.ru − u.rv′ ≥ 0.
+     If uv is a left link, then v is light. Let M be the sum of the extended sizes of all roots
+right of u on the root list just before uv is done. If u is light, then v.m = v.s + u.s̄ + M ≥
+v.s + u.s + M = u.m′ . Since v.s ≤ u.s′ , u.m′ /u.s′ ≤ v.m/v.s, giving v.ru − u.rv′ ≥ 0.
+     If u is heavy, v.s̄ = v.s, since uv is not anomalous. This implies v.m = v.s + u.s̄ + M =
+v.s̄ + u.s̄ + M = u.m′ , so in this case also u.m′ /u.s′ ≤ v.m/v.s, giving v.ru − u.rv′ ≥ 0.
+   We proceed as in the analysis of multipass pairing heaps.
+
+8.5    Small-rank links in slim heaps
+Our next step is to bound the number of real deletion links of small rank. First we prove
+an analogue for slim heaps of Lemma 7.6 for multipass pairing heaps.
+
+Lemma 8.5. In a slim heap just after the root swaps in a delete-min (if any), the number
+of temporary roots on the root list with rank at most 1 is at most 2.5 lg n + 1.
+
+Proof. Just after the swaps, there have been no links, so the size of each temporary root
+equals its extended size, and the extended size of each permanent root is zero. The lemma
+follows by the proof of Lemma 7.6.
+   Second we observe that Lemma 7.8 holds for slim heaps:
+
+Lemma 8.6. Let vw be a real deletion link with winner link uv. Suppose vw has link rank
+less than 1. If both u and v have positive rank just after uv is done, then v.r ′ ≤ v.r − 1,
+where unprimed and primed variables take their values just before uv is done (after the
+step-up in the mass of v if there is one) and just after uv is done, respectively.
+
+Proof. Since u and v have positive rank just after uv is done, uv is not an anomalous link.
+This makes the proof of Lemma 7.8 valid for slim heaps.
+    Third we use Lemma 8.5 and Lemma 8.6 to obtain a bound on the number of real
+deletion links of rank less than 1 in terms of the sum of the magnitudes of all node-rank
+decreases.
+
+Lemma 8.7. In any sequence of slim heap operations starting with no heaps, the number
+of real deletion links of rank less than 1 is at most six times the sum of the magnitudes of
+all node-rank decreases plus two per insertion plus two per decrease-key plus 15 lg n + 6 per
+delete-min.
+
+                                              29
+Proof. Let vw with winner link uv be a real deletion link with link rank less than 1. Since
+v wins at most two links during a deletion, a given link uv is the winner link of at most
+two such links vw. We shall charge vw to some event related to uv, doubling our estimate
+to account for the possibility that uv is the winner link of two different links.
+    If uv is an insertion or decrease-key link, we charge vw to uv. After doubling, the total
+of such charges is at most two per insertion and two per decrease-key. If uv is a deletion
+link and u or v has rank less than 1 just after the root swaps in the delete-min that does
+uv, we charge vw to one of u and v that has rank less than 1 just after the swaps, choosing
+either if both have rank less than 1. Since a given node can win at most two links and lose
+at most one link during a delete-min, the total charge per node for the winner links done
+during a given delete-min is at most six, including the doubling. By Lemma 8.5, the total
+of such charges is at most 15 lg n + 6 per delete-min.
+    The remaining possibility is that uv is a deletion link and both u and v have rank at
+least 1 just after the swaps in the delete-min that does uv. We claim that in this case the
+sum of the magnitudes of the rank decreases of at least one of u or v from just after the
+root swaps in the delete-min that does uv until just after uv is done must be at least 1. If
+this is not already true just before uv is done, then both u and v have positive rank just
+before uv is done, but then by Lemma 8.6 doing uv decreases the rank of v by at least 1,
+making it true. We charge vw to the sum of the magnitudes of the node-rank decreases of
+one of u and v whose sum of node-rank decreases during the delete-min that does uv is at
+least 1. The total of such charges is at most six per unit of node-rank decrease.
+    Adding these bounds gives the lemma.
+   To finish the task of bounding the number of real deletion links of small rank, we use
+an analogue for slim heaps of Theorem 7.10. The bound for slim heaps is simpler in that
+there is no additive term in d, the total number of deletion links. We state the bound here
+and prove it in Section 8.7.
+
+Theorem 8.8. In any sequence of slim heap operations starting with no heaps, the sum
+of the magnitudes of all node-rank changes is O(lg lg n) per decrease-key plus O(lg n) per
+delete-min.
+
+   Since any link is the winner link of at most two real deletion links, Lemma 8.7 and
+Theorem 8.8 combine to give us our desired bound on the number of real deletion links of
+small rank:
+
+Theorem 8.9. In any sequence of slim heap operations starting with no heaps, the total
+number of real deletion links with rank less than 1 is O(1) per insertion plus O(lg lg n) per
+decrease-key plus O(lg n) per delete-min.
+
+8.6    Large-rank links in slim heaps
+Having bounded the number of real deletion links of small rank, we now bound the number
+of such links of large rank. As in the case of multipass pairing heaps, we do this by bounding
+the sum of link ranks using the link-rank equality, which states that if vw is a real deletion
+
+
+
+                                             30
+link with winner link uv, then
+
+                 v.ru − u.rv′ = (v.rw′ − u.rw′ ) + (v.ru − v.rw′ ) + (u.rw′ − u.rv′ )
+
+    That is, the rank of vw is the sum of its w-shift, its v-shift, and its u-shift. Summing
+over all real deletion links, the sum of the ranks of the real deletion links equals the sum of
+their w-shifts, v-shifts, and u-shifts. Lemma 6.2 is a bound on the sum of the w shifts. It
+remains to bound the sum of the v-shifts and the sum of the u-shifts. Bounding the sum
+of the v-shifts is easy, because during a single delete-min a node can win only two links.
+Bounding the sum of the u-shifts uses the treap structure of the links done by a delete-min.
+We rely on Theorem 8.8, which we stated in the previous section and will prove in the next
+one.
+
+Lemma 8.10. In any sequence of slim heap operations starting with no heaps, the sum of
+the v-shifts of the real deletion links is O(lg lg n) per decrease-key plus O(lg n) per delete-
+min.
+
+Proof. Let vw be a real deletion link with winner link uv. The v-shift of vw is v.ru − v.rw′ ,
+the net decrease in the rank of v from the time t1 just before link uv is done (after the
+step-up in the mass of v if it is a right link) until the time t2 just after vw is done. We
+call [t1 , t2 ] the v-shift time interval of vw. At most two links are won by v during a single
+delete-min. If v wins two such links, arbitrarily label them 1 and 2. For different real
+deletion links vw with the same label won by v, the corresponding v-shift time intervals
+are disjoint. It follows that for a given v the sum of the v-shifts of all real deletion links vw
+labeled 1 is at most the sum of the decreases in v.r over the sequence of heap operations,
+as is the sum of the v-shifts of all real deletion links vw labeled 2. Summing over all v and
+applying Theorem 8.8 gives the lemma.
+    The u-shifts are far more challenging to bound, because an unbounded number of the
+real links done when node u is deleted can have overlapping u-shift time intervals. For a
+given u, we bound the sum of the u-shifts using the cancellation among these shifts that
+occurs because of the treap structure of the links during the deletion of u.
+
+Lemma 8.11. In any sequence of slim heap operations starting with no heaps, the sum of
+the u-shifts of the real deletion links is O(lg lg n) per decrease-key plus O(lg n) per delete-
+min.
+
+Proof. Consider a delete-min that deletes u. Let T be the treap formed by the links done
+during the delete-min. Let v1 , v2 , . . . , vk be the temporary nodes in T , in symmetric order
+in T . This is their order on the root list just after the swaps done to correct for the linking
+order: See Section 8.3. For 1 ≤ i ≤ k, let u.ri′ be the value of u.r just after u won the link
+uvi cut by the delete-min. For 1 ≤ i < k, let ∆i = u.ri′ − u.ri+1  ′
+                                                                     , and let Ii be the interval
+of time between just after uvi+1 is done and just after uvi is done. The value of |∆i | is the
+magnitude of the change in u.r from the beginning of Ii to the end of Ii , and is at most
+the sum of the magnitudes of the changes in u.r during Ii .
+    Before the swaps, the vi are in order on the root list by the time they were linked to u,
+latest to earliest from left to right. This is not true after the swaps, but the swaps do not
+
+                                                 31
+change the order too much, as we now show. Any swaps are of node-disjoint pairs of adjacent
+nodes on the root list. A swap that involves a permanent root has no effect on the order of
+the temporary nodes, so we can ignore all such swaps. Consider vi and vi+1 . At most two
+temporary nodes, vi−1 and vi+2 , are in between vi and vi+1 before the swaps. If both vi−1 and
+vi+2 are in between vi and vi+1 , then |∆i | ≤ |u.ri′ −u.ri−1   ′         ′
+                                                                    |+|u.ri−1       ′
+                                                                              −u.ri+2        ′
+                                                                                      |+|u.ri+2      ′
+                                                                                                 −u.ri+1 |.
+                                                             ′        ′         ′        ′
+If vi−1 but not vi+2 is in between, then |∆i | ≤ |u.ri − u.ri−1 | + |u.ri−1 − u.ri+1 |. Similarly,
+if vi+2 but not vi−1 is in between, then |∆i | ≤ |u.ri′ − u.ri+2        ′         ′
+                                                                          | + |u.ri+2      ′
+                                                                                      − u.ri+1 |. Finally,
+if neither is in between, |∆i | ≤ |u.ri′ − u.ri+1 ′
+                                                      |. In each case |∆i | is at most the sum of at
+most three terms, each of which is the change or the negative of the change in u.r from
+the time u won a link with one of vi−1 , vi , P     vi+1 , or vi+2 until it won its next link with one
+                                                      k−1
+of vi−1 , vi , vi+1 , or vi+2 . This implies that i=1      |∆i | is at most three times the sum of the
+magnitudes of all the changes in u.r from the time u was inserted until it was deleted.
+    Let vs vt be a real link donePs−1during the delete-min that deletes u. If t < s, the link is a
+left link, and its u-shift is i=t ∆i . For P    t ≤ i < s, we call ∆i the i-term of vs vt . If t > s,
+the link is a right link, and its u-shift is t−1    i=s −∆i . For s ≤ i < t, we call −∆i the i-term
+of vs vt . We represent each u-shift as the sum of its i-terms and add them up. We add these
+terms in groups, to maximize the cancellation of the plus and minus terms.
+    Recall from Section 8.2 that a boundary of T is a partition of the nodes of T into two
+nonempty parts, with all nodes in the left part less in symmetric order than all nodes in the
+right part. The boundary of vi is the boundary whose largest left-part node in symmetric
+order is vi . Consider a real link in T between vs and vt with s < t. This link crosses the
+boundary of vi if and only if s ≤ i < t. If it does cross this boundary, its i-term contributes
+∆i or −∆i to the sum of the u-shifts if it is a left or right link, respectively.
+    By Lemma 8.3, all the links crossing the boundary of vi are on a single path in T from
+the root to vi , or to its right child if it has a right child, and the links on this path that cross
+the boundary alternate between left and right links. Given a real link vs vt that crosses the
+boundary of vi , we charge the i-term of vs vt to vi if the path from vs to vi in T contains
+only real links; if not, we charge the i-term of vs vt to the topmost (closest to vs ) temporary
+node that loses a phantom link on the path from vs to vi in T . We call the i-terms charged
+in the first way type-1 charges and those charged in the second way type-2 charges.
+    Consider the type-1 charges to a node vi . Each is of a link on a path of real links
+in T whose bottommost node is vi or its right child. Along this path, links crossing the
+boundary of vi alternate left and right by Lemma 8.3. The number of crossing left links
+is thus within one of the number of crossing right links. This implies that the sum of the
+type-1 charges
+           Pk−1 to vi is −∆i , 0, or ∆i . Summing over all vi , the sum of the type-1 charges is
+at most i=1       |∆i |, which is at most three times the sum of the magnitudes of the changes
+in u.r by the argument bounding the effect of the root swaps. Summing over all u, the sum
+is within the bound of the lemma by Theorem 8.8(iii).
+    It remains to bound the type-2 charges. Each of these is to a temporary node vj that
+lost a k-link in T . We shall charge this k-link for all the type-2 charges to vj .
+    Let va and vb be the descendants of vj in T with a smallest and b largest. If vs vt is a link
+with an i-term that is a type-2 charge to vj , vt is a proper ancestor of vj in T . Furthermore
+the i-terms of vs vt charged to vj , all of type 2, are exactly those such that a ≤ i < b.
+Finally, all such i-terms count positively if the link is a left link or negatively if the link is
+a right link. Thus the sum of these charges for vs vt is u.ra′ − u.rb′ , 0, or u.rb′ − u.ra′ . The
+
+                                                    32
+set of links with an i-term that is a type-2 charge to vj are on a single path of real links
+in T , along which the links crossing the boundary of vj alternate left and right. Hence the
+number of such links that are left is within one of the number that are right, and the sum
+of the type-2 charges to vj is u.ra′ − u.rb′ , 0, or u.rb′ − u.ra′ . The magnitude of this sum is
+at most max{u.ra′ , u.rb′ }. We charge this amount to the k-link lost by vj in the delete-min
+that deletes u. By the argument in the proof of Lemma 6.1, the sum of the type-2 charges
+over all delete-mins is O(lg lg n) per decrease-key plus 3 per delete-min. Multiplying by a
+factor of three to account for the effect of root swaps, the sum is within the bound of the
+lemma.
+   Now we can prove the analogue of Theorem 7.16 for slim heaps:
+Theorem 8.12. In any sequence of multipass pairing heap operations starting with no
+heaps, the sum of the link ranks of the real deletion links is O(lg lg n) per decrease-key plus
+O(lg n) per delete-min.
+Proof. We sum the link-rank equality over all real deletion links and apply Lemmas 6.2, 8.10,
+and 8.11.
+   Since all link ranks are non-negative by Lemma 8.4, the bound in Theorem 8.12 is also
+a bound on the number of real deletion links with rank at least 1. Adding this bound to the
+bound in Theorem 8.9 on the number of such links that have rank less than 1 and applying
+Lemma 8.2 gives us our desired bound on the total number of deletion links:
+Theorem 8.13. In any sequence of slim heap operations starting with no heaps, the total
+number of deletion links is O(1) per insertion plus O(lg lg n) per decrease-key plus O(lg n)
+per delete-min.
+   Theorem 8.13 gives our bound on the efficiency of slim heaps:
+Theorem 8.14. Any sequence of slim heap operations starting with no heaps takes O(lg lg n)
+amortized time per decrease-key, O(lg n) amortized time per deletion, and O(1) amortized
+(and worst-case) time for each other heap operation.
+
+8.7    Node-rank changes in slim heaps
+Our remaining task is to prove Theorem 8.8. We proceed as in the proof of Theorem 7.10,
+with the addition of a lemma that bounds the effect of root swaps at the beginning of a
+delete-min.
+    The sum of node ranks is initially 0. We need to bound increases in this sum. Creation
+of a node does not increase the sum of node ranks, nor does a cut, nor does deletion of
+the root at the beginning of a delete-min. The next lemma bounds the increase caused
+by swapping node-disjoint pairs of adjacent roots on the root list during a delete-min, to
+correct for changes in linking order as discussed in Section 8.3.
+Lemma 8.15. In a slim heap, swapping node-disjoint pairs of adjacent roots on the root
+list just after deleting the original root in a delete-min increases the sum of node ranks by
+at most 2 lg n.
+
+                                               33
+Proof. Let variables take their values before any swaps. Let v and w be two adjacent roots
+to be swapped, with v left of w. Since no links have been done, the extended size of each
+temporary root is its size, and the extended size of each permanent root is 0. Hence if either
+v or w is permanent, the swap has no effect on ranks. If v and w are both temporary, the
+swap of v and w increases the mass of w to that of v and decreases the mass of v. We
+ignore the decrease, which does not increase the rank of v. The increase in the rank of w
+caused by the swap is lg lg(v.m/w.s) − lg lg(w.m/w.s) ≤ 2 lg(v.m/w.s) − 2 lg(w.m/w.s) =
+2 lg v.m − 2 lg w.m. If v ′ , w ′ is another pair of temporary nodes to be swapped that are
+right of pair v and w, then lg w.m > lg v ′ .m. If follows that the sum of the increases in
+ranks caused by all the swaps is bounded above by a telescoping sum whose total is at most
+2 lg n.
+   Phantom decrease-key links and phantom insertion links change no node ranks. The
+next two lemmas are the analogues for slim heaps of Lemma 7.20 and Lemma 7.21.
+Lemma 8.16. In a slim heap, a real decrease-key link vw increases the node rank only of
+w, by at most lg lg n.
+Proof. The proof of Lemma 7.20 with b = 0 is valid for slim heaps as well.
+Lemma 8.17. In any sequence of slim heap operations starting with empty heaps, the sum
+of node rank increases caused by real insertion links is at most lg lg n per decrease-key plus
+at most lg lg n + 3 per delete-min.
+Proof. The proof of Lemma 7.21 with b = 0 is valid for slim heaps as well.
+    Now we come to the biggest challenge, bounding the increase in node ranks caused by
+deletion links and the associated step-ups. Because of the introduction of extended sizes,
+phantom links as well as real links can cause such increases.
+Lemma 8.18. In any sequence of slim heap operations starting with empty heaps, the sum
+of increases in node ranks caused by phantom deletion links is at most lg lg n per decrease-
+key plus at most 3 per delete-min.
+Proof. Let vw be a phantom deletion link. The link increases the extended size of v by
+that of w, which leaves the masses of all roots other than v and w unchanged, and leaves
+their ranks unchanged as well. If w is temporary, it has rank 0 after the link, so the link
+does not increase the rank of w. Suppose v is temporary. The link does not change the
+size of v. If vw is a right link, it does not increase the mass of v, so it does not increase
+the rank of v.
+    If vw is a left link, it can increase the mass of v only if v is heavy, and then only if w has
+positive extended size just before the link. For w to have positive extended size, it must
+have a temporary descendant in the treap T formed by the delete-min that does vw. Let
+y be the nearest temporary descendant of w in T . The link xy in T lost by y is a k-link:
+If y = w, xy = vw is a k-link because it is phantom and both v and w are temporary; if
+y 6= w, xy is a k-link because x is permanent and y is temporary. The increase in the rank
+of v caused by vw is at most lg lg n, where n is the size of the heap containing v and w
+when vw is done. Link vw is uniquely determined by xy, since w is the nearest temporary
+ancestor of y in T . We charge the increase in the rank of v to xy and apply Lemma 6.1.
+
+                                               34
+Lemma 8.19. In a slim heap, a real deletion link vw increases no node rank (although its
+associated step-up might).
+
+Proof. Let vw be a real deletion link. The link increases the extended size of v by that
+of w, which leaves the masses of all roots other than v and w unchanged, and leaves their
+ranks unchanged as well.
+     If vw is a real right link, v and w are both heavy or both light. In either case the link
+increases the size of v but not its mass, which cannot increase its rank. The step-up just
+before the link can increase the mass and hence the rank of w, but we consider step-ups
+separately. The link itself does not increase the rank of w, since the mass of w after the
+link is at most the mass of v after the link, and the link does not change the size of w.
+     Suppose vw is a real left link. Then w is light. Whether vw is anomalous or not, the
+link does not change the size of w, and it decreases the mass of w to the size of v, resulting
+in no increase in the rank of w. Let variables take their values just before the link. If v
+is light, the link increases both the size and mass of v by w.s. This does not increase the
+rank of v. If v is heavy but vw is not anomalous, w.s = w.s̄, so again the link increases
+the size and mass of v by w.s, resulting in no increase in the rank of v. Finally, if vw is
+anomalous, the rank of v just after the link is 0 by exception (ii).
+   It remains to bound the effect of step-ups.
+
+Lemma 8.20. In any sequence of slim heap operations starting with empty heaps, the sum
+of increases in node ranks caused by step-ups during anomalous links is at most lg lg n per
+decrease-key plus at most 3 per delete-min.
+
+Proof. The proof is just like the proof of Lemma 8.18. Let vw be an anomalous link. We
+charge the step-up in the rank of v to a k-link done during the delete-min that does vw.
+Let T be the treap formed by this delete-min. Since vw is anomalous, there is a k-link in
+the subtree of T rooted at w. Choose such a link xy such that there is no other such link
+on the path in T from x to w. The path in T from x to w cannot contain an anomalous
+link, since the winner of such a link would be on a path of real right links of heavy nodes
+whose top node lost a k-link, which would also be on the path, contradicting the choice of
+xy. It follows that vw is the anomalous link nearest x on the path in T from x to the root.
+Hence vw is uniquely determined by xy. We charge the step-up in the rank of v to xy and
+apply Lemma 6.1.
+
+Lemma 8.21. During a single delete-min in a slim heap, the sum of increases in node
+ranks caused by step-ups before real right links lost by heavy nodes is at most 2 lg n.
+
+Proof. Let vw be a real right link between heavy nodes during a delete-min. By the
+assumption on linking order (Section 8.3), v has not won or lost a link since it became a
+root at the beginning of the delete-min, so its mass and size are unchanged since the root
+swaps at the beginning of the delete-min (if any). Let u be the nearest temporary root right
+of v just after the swaps. Node u is w or left of w just after the swaps. Node w is heavy, so
+its mass just before the link vw is the mass of u just after the swaps, since all temporary
+nodes between u and w became descendants of w before link vw. The step-up in the
+mass of w thus increases its mass from u.m to v.m, where these variables take their values
+
+                                             35
+just after the swaps. This increases the rank of w by lg lg(v.m/w.s) − lg lg(u.m/w.s) ≤
+2 lg(v.m) − 2 lg(u.m), where w.s is the size of w just before the link. Summing this bound
+over all real right links between heavy nodes done during the delete-min, the sum is bounded
+above by a telescoping sum that totals at most 2 lg n.
+    We shall obtain the same bound as in Lemma 8.21 for increases in node ranks caused by
+step-ups before right links between light nodes, but we need a more complicated argument.
+Let P be a maximal path of real right links of light nodes in T . Let v be the topmost
+node on this path. Since v is light, it is a real child in T . Let uv be its link to its parent.
+This link is a left link, since otherwise P would not be maximal. We shall charge the rank
+increases of the nodes on P to the future delete-min that deletes u.
+Lemma 8.22. Let P be a maximal path of real right links of light nodes in the treap T
+formed by some delete-min in a slim heap. Let v be the top node on P , and let uv be the
+real left link lost by v during the delete-min. Then the sum of the increases in node ranks
+caused by step-ups before links on P is at most 2 lg u.s′ − 2 lg u.s, where u.s and u.s′ are
+the sizes of u just before and just after uv, respectively.
+Proof. Let xy be a link on P . Just before the link, u is the next root right of y on the
+root list. Let x.s and y.s be the sizes of x and y just before the link, respectively, and
+let M = y.m − y.s. That is, M is the sum of the extended sizes of u and all the roots
+to its right just before the link. The step-up before the link increases the rank of y by
+lg lg((x.s + y.s + M)/y.s) − lg lg((y.s + M)/y.s) ≤ 2 lg((x.s + y.s + M)/(y.s + M)). Since
+u.s ≤ M, the step-up in the rank of y increases it by at most 2 lg((x.s + y.s + u.s)/(y.s +
+u.s)) = 2 lg(x.s + y.s + u.s) − 2 lg(y.s + u.s). This bound telescopes when summed over
+the links on P . Let w be the bottom node on P . Node sizes do not decrease. It follows
+that the sum of the bounds on the increases in node ranks over all links on P is at most
+2 lg(v.s′ + u.s) − 2 lg(w.s + u.s) = 2 lg u.s′ − 2 lg(w.s + u.s) ≤ 2 lg u.s′ − 2 lg u.s , where v.s′
+is the size of v just after link uv.
+Lemma 8.23. In slim heaps, the sum of node rank increases caused by real right links of
+light nodes is at most 2 lg n per delete-min.
+Proof. We sum the bound in Lemma 8.22 over all real left links cut by a single delete-min.
+Consider a delete-min that deletes node u. Let v0 , v1 , . . . , vk be the children of u in left-to-
+right order whose real left links uvi are cut by the deletion of u. The sum of the bound
+in Lemma 8.22 over the links uvi is the sum of 2 lg u.s′i − 2 lg u.si , where u.si and u.s′i are
+the sizes of u just before and just after uvi , respectively. Since u.si ≥ u.s′i+1 , the sum is
+bounded above by a telescoping sum that sums to at most 2 lg n.
+   The results of this section combine to prove Theorem 8.8: In any sequence of slim heap
+operations starting with no heaps, the sum of the magnitudes of all node-rank changes is
+O(lg lg n) per decrease-key plus O(lg n) per delete-min.
+
+
+9     Analysis of smooth heaps
+In this section we adapt the analysis of Section 8 to smooth heaps. The results of Sec-
+tions 8.1 and 8.2 hold for both slim heaps and smooth heaps. Recall that the only difference
+
+                                                36
+between slim and smooth heaps is the position of the loser of a link on the list of children
+of a winner: In a slim heap, the loser becomes the new leftmost child of the winner, but in
+a smooth heap the winner of a deletion link becomes the new leftmost or rightmost child
+of the winner if the link is a left or a right link, respectively. In both slim and smooth
+heaps the winner of an insertion or decrease-key link becomes the new leftmost child of the
+winner. We call a child a left or right child if when it is linked to its parent it becomes
+the new leftmost or rightmost child of its parent, respectively. The left children of a node
+are in decreasing order (latest to earliest) by link time, left to right on their list of siblings.
+The right children are in increasing order by link time. We say a left (right, respectively)
+child is interior to all its leftward (rightward) siblings.
+     When a root is deleted in a delete-min, its list of children becomes a list of roots. We
+call such a root a left or right root if it was a left or right child of its parent, respectively. A
+left (right, respectively) root is interior to all roots to its left (right) in the list of roots. In
+the treap T formed by a delete-min, the central boundary is the boundary whose left side
+contains the left roots and whose right side contains the right roots. The links crossing the
+central boundary are exactly those between a left root and a right root. We call these links
+crossing links. We call a link between two left-side or two right-side roots a left-side or
+right-side link, respectively. Let x be the largest left-side root in symmetric order in T and
+let y be the smallest right-side root in symmetric order in T . By Lemma 8.3, the crossing
+links are on a single path in the treap from the root to x, if x does not win a crossing link
+in T , or to y, if x does win a crossing link in T . We call this path the central path. If there
+are no crossing links at all, the central path contains only the root of T . In this case either
+all the links in T are left-side links, or they are all right-side links. We call a link central
+if it is on the central path, non-central otherwise. Each central link won by a left root is a
+right link; each central link won by a right root is a left link.
+     In our analysis, we shall assume in a delete-min that all the non-central links are done
+before all the central links, and that every left (right, respectively) root that wins two
+non-central links wins the right (left) link first. These assumptions are without loss of
+generality, since in a smooth heap any bottom-up linking order during a delete-min that
+produces the same treap produces the same order of children of each node. (This is not
+true in a slim heap, since if a node wins both a left and a right link the order of the losers
+on the list of children of the winner depends on which link occurs first.)
+     We break the time during which links are done in a delete-min into two phases: the non-
+central phase, during which the non-central links are done, and the central phase, during
+which the central links are done. We define the masses of roots differently during the two
+phases.
+     The links done during the non-central phase build all of the treap except the central
+path. The part of the treap built during this phase consists of one subtree rooted at each
+vertex on the central path. The nodes in such a subtree are either all left roots or all right
+roots. If the root of a subtree is a left root, the subtree consists either of just this root or
+of a left link won by this root, plus the subtree of the treap rooted at the loser of this left
+link. The situation is symmetric for subtrees rooted at right roots.
+     During the non-central phase, we partition the subtrees of left (right, respectively) roots
+built by this phase into maximal paths of real right (left) links. Each node on such a path
+is heavy if its top node is a phantom child or is on the central path, light otherwise. A real
+
+                                                 37
+                                    left roots right roots
+
+
+                                   ∗
+                                                             ∗
+                     ∗
+                                   ∗                                             ∗
+
+
+                                       ∗                                         ∗
+
+
+
+
+Figure 6: An example of the treap formed by a delete-min in a smooth heap. Squares denote
+heavy nodes, circles light nodes. Asterisks indicate anomalous links. Solid links are real, dashed
+links phantom. Crossing links are gray, left-side and right-side links black. Each maximal path
+of real right left-side links or real left right-side links is circled. During the non-central phase, all
+nodes on the central path are heavy.
+
+
+left left-side (right right-side, respectively) link is anomalous if its winner is heavy and the
+subtree of the treap rooted at its loser contains a k-link. (Such links are non-central.) See
+Figure 6.
+    We apply the methods and results of Section 8 separately to non-central left-side links
+and to non-central right-side links. We define sizes and extended sizes exactly as for slim
+heaps: See Section 8.4. We define masses of left children with respect to left children only,
+those of left roots with respect to left roots only, and symmetrically for right children and
+right roots. Specifically, the mass of a temporary child is one plus the sum of the sizes of
+it and its interior siblings.
+    We define masses of roots similarly. The mass of a temporary root not in the middle of
+a delete-min is its size. During the non-central linking phase of a delete-min, the mass of
+a light temporary root is its size plus the sum of the extended sizes of the roots interior to
+it on the root list. The mass of a heavy temporary root is its extended size plus the sum
+of the extended sizes of the roots interior to it on the root list. There are two exceptions
+to this definition of root mass, which are the same as in slim heaps.
+
+  (i) Just before a temporary node w loses a real right (left, respectively) link vw to a left
+      (right) root v, its mass becomes v.m′ , the mass of v just after the link. After the link,
+      the mass of w becomes the value defined above for a real child.
+
+
+                                                   38
+ (ii) Just after a temporary node v wins an anomalous link, its mass temporarily decreases
+      to its size, then increases to the value defined above for a heavy root.
+
+     As in slim heaps, we call the increases in mass and rank in exceptions (i) and (ii)
+step-ups, and the decreases in mass and rank in exception (ii) step-downs.
+     Our main challenge in the analysis of smooth heaps is to bound the changes in node
+ranks caused by central links. The problem is that a crossing link in effect moves the size
+of the loser from one side of the central boundary to the other, and we need to bound
+the effect of such back-and-forth movements. This requires some care, and some careful
+definitions.
+     At the beginning of the central linking phase, the only roots remaining are those on the
+central path. During this phase, we define the masses of roots based on the real subpaths
+of the central path. These are the maximal subpaths of the central path formed by the real
+central links. Every permanent node on the central path constitutes its own real subpath,
+since it does not win or lose a real link. Given a real subpath P with bottommost node
+v, let ML (MR , respectively) be the sum of the sizes of all left (right) roots on the central
+path that are proper descendants in T of v, where the sizes are evaluated at the start of
+the central linking phase. We say P is left-light if ML ≤ MR , otherwise it is right-light.
+Let M = min{ML , MR } and M = max{ML , MR }. Let P be a left-light path, and let v be
+the topmost left node on P , if any. We call v and each node below v on P inner. We call
+each node above v on P outer. Each outer node on a left-light path is a right root. The
+symmetric definitions apply to right-light paths.
+     A path P may or may not contain some outer nodes. If it does, these nodes are all at
+the top of the path. If P is left-light, its outer nodes form a subpath of right links of right
+roots, and symmetrically if P is right-light. We define masses slightly differently for inner
+and outer nodes.
+     At the start of the central linking phase, we redefine the masses of the nodes on the
+central path, which are the remaining roots. Let v be a node on a maximal real subpath P
+of the central path. Let M and M be as defined above. If v is inner (outer, respectively),
+its mass becomes M (M ) plus its size plus the sum of the sizes of all roots on P that are
+interior to v. When v wins a link during the central linking phase, its mass becomes M
+(M ) plus its new size. (Just after v wins such a link, no remaining root is interior to it.)
+     Exception (i) applies to all real central links: Just before losing a real central link vw,
+the mass of w steps up to v.m′ , the mass of the winner after the link. No central link is
+anomalous, so exception (ii) does not apply.
+     We define node ranks and link ranks for real deletion links exactly as in slim heaps. In
+particular, if vw is a real right left-side link, a real left right-side link, or a central link,
+w.rv is the rank of w after its step-up just before the link, and if vw is an anomalous link,
+v.rw′ is the rank of v after its step-down just after the link, but before its step-up.
+     Now we check the various results for slim heaps to determine how they apply to smooth
+heaps. We begin by verifying that link ranks are non-negative.
+     The proof of Lemma 8.4 holds for each real deletion link vw whose winner link uv is
+won by a left root u. This includes the case in which uv is a central link, since exception
+(i) still applies. The symmetric argument holds for each real deletion link whose winner
+link is won by a right root. We conclude that Lemma 8.4 holds for smooth heaps: All link
+
+                                               39
+ranks are non-negative.
+
+9.1     Small-rank links in smooth heaps
+Next, we verify that the analysis for links of small rank in slim heaps applies to smooth
+heaps. Indeed it does, if we adjust some constant factors and account for central links.
+    The proof of Lemma 8.5 applies separately to the left roots and to the right roots just
+after the deletion of the original root in a delete-min. Thus the number of roots of rank
+at most 1 is at most twice the bound in Lemma 8.5, specifically at most 5 lg n + 2. The
+proof of Lemma 7.8 holds with one small change3 for each real deletion link in a smooth
+heap whose winner link is a left-side non-central link, and holds symmetrically for each
+real deletion link whose winner link is a right-side non-central link. An inspection of the
+proof shows that it also holds for each real deletion link whose winner link is a central link,
+even with the redefinition of mass at the beginning of the central linking phase. It follows
+that Lemma 8.6 holds for smooth heaps. The proof of Lemma 8.7 holds for slim heaps
+using twice the bound in Lemma 8.5, giving us a bound of at most six times the sum of
+the magnitudes of all node-rank decreases plus two per insertion plus two per decrease-key
+plus 30 lg n + 12 per delete-min on the number of real deletion links of rank less than 1 in
+any sequence of slim heap operations starting with no heaps.
+    Suppose Theorem 8.8 holds for smooth heaps; that is, in any sequence of smooth heap
+operations starting with no heaps, the sum of the magnitudes of all node-rank changes
+is O(lg lg n) per decrease-key plus O(lg n) per delete-min. Then we can conclude that
+Theorem 8.9 holds for smooth heaps: In any sequence of slim heap operations starting
+with no heaps, the total number of real deletion links with rank less than 1 is O(1) per
+insertion plus O(lg lg n) per decrease-key plus O(lg n) per delete-min.
+
+9.2     Large-rank links in smooth heaps
+Continuing, we verify that the analysis for links of large rank in slim heaps applies to
+smooth heaps, assuming that Theorem 8.8 holds for smooth heaps.
+    The proof of Lemma 8.10, the v-shift bound for slim heaps, holds without change for
+smooth heaps. Thus the sum of the v-shifts of all real deletion links is O(lg lg n) per
+decrease-key plus O(lg n) per delete-min.
+    The u-shift bound for slim heaps in Lemma 8.11 also holds for smooth heaps, but the
+proof requires some changes. There are no root swaps after deletion of the original root, so
+the part of the proof concerning such swaps can be omitted. On the other hand, the roots
+on the root list after deletion of the original root u at the beginning of a delete-min are
+not in order by link time: The left roots are in decreasing order by link time and the right
+roots are in increasing order by link time.
+    Let v1 , v2 , . . . , vk be the temporary nodes in T , in symmetric order in T , and let vj be
+the child that u acquired earliest. Root vj is either the rightmost left root or the leftmost
+right root among the vi . For 1 ≤ i ≤ k let u.ri′ be the value of u.r just after u lost the link
+                                     ′
+   3
+    The required change is that 2v.r is at most log2 ((u.s + v.s)/v.s), but not necessarily equal to it. This
+does not affect the validity of the proof.
+
+
+
+                                                     40
+uvi cut by the delete-min. We redefine ∆i to flip the sign of ∆i for i ≥ j. Specifically, for
+1 ≤ i < j, ∆i = u.ri′ − u.ri+1
+                             ′                               ′
+                                ; for j ≤ i < k, let ∆i = u.ri+1 − u.ri′ . For 1 ≤ i < k, let Ii
+be the interval of time between just after uvi is done and just after uvi+1 is done. A given
+instant of time is in at most one Ii for i < j and one Ii for i ≥ j. It follows that the sum
+of |∆i | for 1 ≤ i < k is at most twice the sum of the changes in u.r over all such changes.
+The rest of the proof remains the same, except that the multiplying factor for intervals
+overlapping is two rather than three. We conclude that the sum of the u-shifts of all real
+deletion links is O(lg lg n) per decrease-key plus O(lg n) per delete-min.
+    The proofs of Theorem 8.12, 8.13, and 8.14 hold without change for smooth heaps if
+we replace each slim heap result with the corresponding result for smooth heaps. That
+is, any sequence of smooth heap operations starting with no heaps takes takes O(lg lg n)
+amortized time per decrease-key, O(lg n) amortized time per deletion, and O(1) amortized
+(and worst-case) time for each other heap operation.
+
+9.3    Node-rank changes in smooth heaps
+The last step is to prove Theorem 8.8 for smooth heaps. The proofs of Lemmas 8.16
+and 8.17 hold without change for smooth heaps. Thus the sum of node rank increases
+caused by insertion and decrease-key links is at most 2 lg lg n per decrease-key plus at most
+lg lg n + 3 per delete-min.
+     The proof of Lemma 8.18 holds for non-central phantom left-side links. The symmetric
+argument applies to non-central phantom right-side links. We conclude that the sum of
+node rank increases caused by such links is at most 2 lg lg n per decrease-key plus at most
+6 per delete-min.
+     The proof of Lemma 8.19 holds for real non-central left-side links, with one change:
+Such a link vw decreases the mass of w to at most the size of v. This does not affect the
+validity of the proof. The symmetric argument applies to real non-central right-side links.
+We conclude that real non-central left-side and right-side links do not increase any node
+rank, although the associated step-ups might.
+     The proof of Lemma 8.20 holds for anomalous left-side links, and the symmetric ar-
+gument applies to anomalous right-side links. All anomalous links are non-central. We
+conclude that the sum of the increases in node ranks caused by step-ups during anomalous
+links is at most 2 lg lg n per decrease-key plus at most 6 per delete-min.
+     The proof of Lemma 8.21 holds for real right non-central links between heavy left roots
+with trivial changes: There are no node swaps at the start of the delete-min, and the sum
+performed is just over the relevant left-side links. The symmetric argument applies to real
+left non-central links between heavy right roots. We conclude that the sum of the increases
+in node ranks caused by step-ups before real non-central links between heavy roots is at
+most 4 lg n.
+     The proofs of Lemmas 8.22 and 8.23 hold for real right links of light left roots, since the
+link uv in the statement of Lemma 8.22 is lost by a light node and hence cannot be a central
+link. The symmetric argument applies to real left links of light right roots. We conclude
+that the sum of rank increases caused by real non-central links between light nodes is at
+most 4 lg n per delete-min.
+     It remains to bound the sum of increases in node ranks caused by central links.
+
+                                              41
+Lemma 9.1. In any sequence of slim heap operations starting with no heaps, the sum of
+the increases in node ranks caused by central links is at most lg lg n per decrease-key plus
+10 lg n + lg lg n + 3 per delete-min.
+
+Proof. For a root v on the central path, let unprimed variables v.r, v.m, v.s take their
+values at the start of the central linking phase, and let primed variables v.r ′ , v.m′ , v.s′ take
+their values just after v wins its central link. If v is the bottommost node on the central
+path, it does not win a central link and the primed and unprimed variables are equal.
+    At the start of the central linking phase, the mass of a root (but not is size) can change,
+but any such change is a decrease. Hence such changes can only decrease root ranks. A
+phantom central link does not change the rank of the winner and the loser’s rank becomes
+zero. Hence only real central links can cause rank increases.
+    The winner of a real central link increases in mass, but its size increases by the same
+amount, so its rank does not increase. The loser’s rank can increase due to the step-up.
+Nothing else causes rank increases during the central linking phase. It remains to bound
+the rank increases due to step-ups.
+    Let vw be a real central link. Let M and M be with respect to the real subpath
+containing v and w.
+    If v and w are outer, then the mass of w steps up from w.m′ to v.m′ = w.m′ + v.s. The
+corresponding rank increase is at most 2 lg v.m′ − 2 lg w.m′ . Observe that v.m′ − w.m′ =
+v.m − w.m = v.s, and that v.m′ ≥ v.m and w.m′ ≥ w.m. Hence 2 lg v.m′ − 2 lg w.m′ ≤
+2 lg v.m − 2 lg w.m. Since w is next to v and interior to it at the start of the central linking
+phase, the sum of 2 lg v.m − 2 lg w.m over all central left-side links between outer roots is
+at most 2 lg n. The same applies to the central right-side links between outer roots. Thus
+the sum of rank increases due to central links between outer roots is at most 4 lg n.
+    If v and w are inner, the mass of w steps up from w.m′ to v.m′ = w.m′ + v.s, yielding a
+rank increase of at most 2 lg v.m′ − 2 lg w.m′ . Summing this bound over all links between
+inner roots within a single real subpath, the sum of rank increases is at most 2 lg x.m′ −
+2 lg M, where x is the highest inner root on the real subpath. We rewrite this quantity as
+(2 lg x.m′ − 2 lg x.m) + (2 lg x.m − 2 lg M), and bound the two terms separately.
+    We charge the first term, 2 lg x.m′ − 2 lg x.m, to the future deletion of x. Since x.m′ =
+M + x.s′ and x.m ≥ M + x.s, 2 lg x.m′ − 2 lg x.m ≤ 2 lg(M + x.s′ ) − 2 lg(M + x.s) ≤
+2 lg x.s′ − 2 lg x.s. The sum of 2 lg x.s′ − 2 lg x.s over all changes in the size of x is at most
+2 lg n. The total charge is 2 lg n per delete-min.
+    We charge the second term, 2 lg x.m − 2 lg M, to the current delete-min. Suppose the
+real subpath containing x, say P , is left-light. If there is another left-light real subpath
+P ′ above P on the central path, then x.m ≤ M ′ where M ′ is defined with respect to P ′ .
+This inequality also holds for the topmost left-light real subpath if we set M ′ = n. Then
+2 lg x.m − 2 lg M ≤ 2 lg M ′ − 2 lg M. The sum of this bound over all left-light real subpaths
+P is at most 2 lg n. The symmetric argument yields the same bound for the right-light real
+subpaths, giving a total bound of 4 lg n. Hence the sum of rank increases due to central
+links between inner nodes is at most 6 lg n per delete-min.
+    Finally, on each real subpath there is at most one link between an outer root and
+an inner root. The step-up increases the rank of the inner root by at most lg lg n. We
+charge this increase to the phantom k-link lost by the top node on the real subpath, or
+
+                                                42
+to the current delete-min if the top node is the root of T . The total cost is lg lg n per
+decrease-key plus lg lg n + 3 per delete-min, by Lemma 6.1. This proves the lemma.
+    Combining our bounds, we obtain Theorem 8.8 for smooth heaps, with somewhat larger
+constants. That is, in any sequence of smooth heap operations starting with no heaps, the
+sum of the magnitudes of node-rank changes is O(lg lg n) per decrease-key plus O(lg n) per
+delete-min.
+
+
+10      Lazy self-adjusting heaps
+We have analyzed the eager (tree) versions of multipass pairing heaps, slim heaps, and
+smooth heaps. The same bounds hold for the lazy (forest) versions of these data structures.
+As described at the end of Section 2, these versions maintain a heap as a set of trees rather
+than just a single tree, represented by a circular list of roots and accessed by a root of
+minimum key, the min-root. Insertions, melds, and decrease-keys do not do links; instead,
+an insert makes the new node into a one-node tree and adds it to the root list, a meld
+catenates the root lists of the two heaps, and a decrease-key of a child node w cuts w from
+its parent and adds w to the root list. In each case, the operation updates the min-root.
+A delete-min deletes the min-root and catenates the list of its children with the root list,
+making its children into new roots. The other roots, which were already roots before the
+min-root was deleted, are old roots. It then proceeds to link the roots using the appropriate
+linking method until one root remains.
+     In discussing the lazy versions, we shall assume that the list of old roots in a delete-min
+is added to the front of the list of new roots, so that all the old roots precede all the new
+roots before any links occur. Equivalently, we maintain the min-root as the rightmost root
+on the root list, and when a delete-min occurs the list of new roots replaces the deleted
+min-root. In a smooth heap, we define each old root to be a left root.
+     The only change we need to make in any of the analyses is to account for increases in
+node ranks of the old roots after deletion of the min-root. Before the min-root is deleted,
+each old root has rank 0. Deletion of the min-root causes the mass of each old temporary
+root v to increase from its size to the sum of its size and those of all temporary roots to
+its right on the root list. This increases its mass by at most lg lg n. Root v became an old
+root by being inserted or by being cut from its parent in a decrease-key. We charge the
+increase in the rank of v to the next operation that makes v a root not in the middle of a
+delete-min. This operation is either a decrease-key or a delete-min. An adaptation of the
+proof of Lemma 7.21 shows that the sum of the increases of the ranks of old roots at the
+beginning of delete-mins is O(lg n) per delete-min plus O(lg lg n) per delete-min. It follows
+that the bounds for the eager heap implementations hold for the lazy implementations as
+well.
+     Our bounds also hold if delete-min catenates the list of new roots to the front of the
+list of old roots rather than to the back but (except for smooth heaps) the analysis is much
+less straightforward. For smooth heaps, we merely define old roots to be right roots instead
+of left roots. For multipass pairing heaps and slim heaps, we define new roots to be left
+roots and old roots to be right roots, and analyze links between left and right roots in a
+way similar to what we did in the analysis of smooth heaps.
+
+                                              43
+11     Remarks
+Using powerful new techniques, we have significantly improved the amortized time bounds
+for multipass pairing heaps, slim heaps, and smooth heaps. Slim and smooth heaps are
+subject to the lower bounds of Iacono and Özkan, and our upper bounds match their
+lower bounds. They are not subject to Fredman’s lower bounds, but they do match them.
+Multipass pairing heaps are subject to both sets of lower bounds. Our bounds match them
+except for that of decrease-key, which differs from the lower bound by a factor of lg lg lg n.
+Our bounds hold for both the eager and the lazy versions of the data structures.
+    By showing that slim and smooth heaps match the lower bounds of Fredman and of
+Iacono and Özkan and are subject to Iacono and Özkan’s bounds (though not Fredman’s),
+we have closed a chapter in the design and analysis of self-adjusting heaps. But this is
+far from resolving all interesting questions. In particular, for decrease-key operations in
+multipass pairing heaps there is still a Θ(lg lg lg n) gap between the upper and lower time
+bounds. The known time-bound gap for decrease-key operations in classical pairing heaps
+is significantly larger, as we discussed in the introduction. Whether our methods, or any
+others, will suffice to close these gaps is a subject for future study. In particular, we are
+optimistic that our methods can be extended to give a much tighter bound for decrease-key
+in classical pairing heaps.
+    What is it that makes a self-adjusting heap efficient? Our results suggest two require-
+ments: The links in delete-min operations should respect link-time order, and each root
+should win at most a constant number of links in each delete-min. We do not know whether
+these conditions are necessary: pairing heaps and their variants satisfy the first but not
+the second. On the other hand, the assembly pass in pairing heaps (see [22, 21]), during
+which a root can win an arbitrary number of links, seems benign to us. We think classical
+pairing heaps have the same amortized bounds as slim and smooth heaps, but we have no
+proof yet.
+    Another possible research direction is to apply our methods to splay trees or similar
+binary search trees. A previous paper on multipass pairing heaps [3] connected their anal-
+ysis to that of a variant of splay trees called path-balanced binary search trees. Perhaps our
+techniques could improve the analysis of this data structure as well.
+
+
+References
+ [1] Gerth Stølting Brodal. A survey on priority queues. In Andrej Brodnik, Alejan-
+     dro López-Ortiz, Venkatesh Raman, and Alfredo Viola, editors, Space-Efficient Data
+     Structures, Streams, and Algorithms - Papers in Honor of J. Ian Munro on the Occa-
+     sion of His 66th Birthday, volume 8066 of Lecture Notes in Computer Science, pages
+     150–163. Springer, 2013.
+
+ [2] Erik D. Demaine, Dion Harmon, John Iacono, Daniel M. Kane, and Mihai Pǎtraşcu.
+     The geometry of binary search trees. In SODA 2009, pages 496–505, 2009.
+
+ [3] Dani Dorfman, Haim Kaplan, László Kozma, Seth Pettie, and Uri Zwick. Improved
+     bounds for multipass pairing heaps and path-balanced binary search trees. In Yossi
+
+                                             44
+    Azar, Hannah Bast, and Grzegorz Herman, editors, 26th Annual European Sympo-
+    sium on Algorithms, ESA 2018, August 20-22, 2018, Helsinki, Finland, volume 112 of
+    LIPIcs, pages 24:1–24:13. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2018.
+
+ [4] Amr Elmasry. Pairing heaps with O(log log n) decrease cost. In Proceedings of the twen-
+     tieth Annual ACM-SIAM Symposium on Discrete Algorithms, pages 471–476. SIAM,
+     2009.
+
+ [5] Amr Elmasry. Toward optimal self-adjusting heaps.           ACM Trans. Algorithms,
+     13(4):55:1–55:14, 2017.
+
+ [6] Kyle Fox. Upper bounds for maximally greedy binary search trees. In Workshop on
+     Algorithms and Data Structures, pages 411–422. Springer, 2011.
+
+ [7] Michael L. Fredman. On the efficiency of pairing heaps and related data structures.
+     J. ACM, 46(4):473–501, 1999.
+
+ [8] Michael L. Fredman, Robert Sedgewick, Daniel Dominic Sleator, and Robert Endre
+     Tarjan. The pairing heap: A new form of self-adjusting heap. Algorithmica, 1(1):111–
+     129, 1986.
+
+ [9] Michael L. Fredman and Robert Endre Tarjan. Fibonacci heaps and their uses in
+     improved network optimization algorithms. J. ACM, 34(3):596–615, 1987.
+
+[10] Thomas Dueholm Hansen, Haim Kaplan, Robert E. Tarjan, and Uri Zwick. Hollow
+     heaps. ACM Trans. Algorithms, 13(3):42:1–42:27, 2017.
+
+[11] Maria Hartmann, László Kozma, Corwin Sinnamon, and Robert E. Tarjan. Anal-
+     ysis of Smooth Heaps and Slim Heaps. In Nikhil Bansal, Emanuela Merelli, and
+     James Worrell, editors, 48th International Colloquium on Automata, Languages, and
+     Programming (ICALP 2021), volume 198 of Leibniz International Proceedings in In-
+     formatics (LIPIcs), pages 79:1–79:20, Dagstuhl, Germany, 2021. Schloss Dagstuhl –
+     Leibniz-Zentrum für Informatik.
+
+[12] John Iacono. Improved upper bounds for pairing heaps. In Magnús M. Halldórsson,
+     editor, Algorithm Theory - SWAT 2000, 7th Scandinavian Workshop on Algorithm
+     Theory, Bergen, Norway, July 5-7, 2000, Proceedings, volume 1851 of Lecture Notes
+     in Computer Science, pages 32–45. Springer, 2000.
+
+[13] John Iacono and Özgür Özkan. A tight lower bound for decrease-key in the pure heap
+     model. arXiv preprint arXiv:1407.6665, 2014.
+
+[14] Haim Kaplan, Robert Endre Tarjan, and Uri Zwick. Fibonacci heaps revisited. CoRR,
+     abs/1407.5750, 2014.
+
+[15] László Kozma and Thatchaphol Saranurak. Smooth heaps and a dual view of self-
+     adjusting data structures. SIAM Journal on Computing, 49(5):STOC18–45–STOC18–
+     93, 2020.
+
+
+                                            45
+[16] Daniel H. Larkin, Siddhartha Sen, and Robert Endre Tarjan. A back-to-basics empiri-
+     cal study of priority queues. In Catherine C. McGeoch and Ulrich Meyer, editors, 2014
+     Proceedings of the Sixteenth Workshop on Algorithm Engineering and Experiments,
+     ALENEX 2014, Portland, Oregon, USA, January 5, 2014, pages 61–72. SIAM, 2014.
+
+[17] Joan M. Lucas. Canonical forms for competitive binary search tree algorithms. Tech.
+     Rep. DCS-TR-250, Rutgers University, 1988.
+
+[18] Kurt Mehlhorn and Thatchaphol Saranurak. Greedy is an almost optimal deque. In
+     Algorithms and Data Structures: 14th International Symposium, WADS 2015, Vic-
+     toria, BC, Canada, August 5-7, 2015. Proceedings, volume 9214, page 152. Springer,
+     2015.
+
+[19] J.Ian Munro. On the competitiveness of linear search. In Mike S. Paterson, editor,
+     Algorithms - ESA 2000, volume 1879 of Lecture Notes in Computer Science, pages
+     338–345. Springer Berlin Heidelberg, 2000.
+
+[20] Seth Pettie. Towards a final analysis of pairing heaps. In 46th Annual IEEE Symposium
+     on Foundations of Computer Science (FOCS 2005), 23-25 October 2005, Pittsburgh,
+     PA, USA, Proceedings, pages 174–183. IEEE Computer Society, 2005.
+
+[21] Corwin Sinnamon. Analysis of self-adjusting heaps. PhD thesis, Princeton University,
+     2022.
+
+[22] Corwin Sinnamon and Robert Tarjan. A simpler proof that pairing heaps take O(1)
+     amortized time per insertion, 2022.
+
+[23] Corwin Sinnamon and Robert E Tarjan. A nearly-tight analysis of multipass pair-
+     ing heaps. In Proceedings of the 2023 Annual ACM-SIAM Symposium on Discrete
+     Algorithms (SODA), pages 535–548. SIAM, 2023.
+
+[24] Corwin Sinnamon and Robert E Tarjan. A tight analysis of slim heaps and smooth
+     heaps. In Proceedings of the 2023 Annual ACM-SIAM Symposium on Discrete Algo-
+     rithms (SODA), pages 549–567. SIAM, 2023.
+
+[25] Robert Endre Tarjan. Data structures and network algorithms. SIAM, 1983.
+
+
+
+
+                                           46
+

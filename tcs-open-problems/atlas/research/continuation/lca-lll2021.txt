@@ -1,0 +1,1190 @@
+                                                     The Randomized Local Computation Complexity
+                                                              of the Lovász Local Lemma
+                                                      Sebastian Brandt            Christoph Grunau             Václav Rozhoň
+                                                        ETH Zurich                  ETH Zurich                  ETH Zurich
+
+                                                                                 December 6, 2021
+arXiv:2103.16251v2 [cs.DS] 3 Dec 2021
+
+
+
+
+                                                                                       Abstract
+                                                 The Local Computation Algorithm (LCA) model is a popular model in the field of sublinear-
+                                             time algorithms that measures the complexity of an algorithm by the number of probes the
+                                             algorithm makes in the neighborhood of one node to determine that node’s output.
+                                                 In this paper we show that the randomized LCA complexity of the Lovász Local Lemma
+                                             (LLL) on constant degree graphs is Θ(log n). The lower bound follows by proving an Ω(log n)
+                                             lower bound for the Sinkless Orientation problem introduced in [Brandt et al. STOC 2016]. This
+                                             answers a question of [Rosenbaum, Suomela PODC 2020].
+                                                 Additionally, we show that √every randomized LCA algorithm for a locally checkable problem
+                                             with a probe complexity of o( log n) can be turned into a deterministic LCA algorithm with
+                                             a probe complexity of O(log∗ n). This improves exponentially upon the currently best known
+                                             speed-up result from o(log log n) to O(log∗ n) implied by the result of [Chang, Pettie FOCS
+                                             2017] in the LOCAL model.
+                                                 Finally, we show that for every fixed constant c ≥ 2, the deterministic VOLUME complexity
+                                             of c-coloring a bounded degree tree is Θ(n), where the VOLUME model is a close relative of the
+                                             LCA model that was recently introduced by [Rosenbaum, Suomela PODC 2020].
+
+
+                                        1    Introduction
+                                        For many problems in the area of big data processing it is on one hand prohibitively expensive
+                                        to read the whole input, while on the other hand one is only interested in a small portion of the
+                                        output at a time. One such problem comes up in the context of social networks. Many social
+                                        networks suggest users different users they might want to follow or be friends with. To make such
+                                        a recommendation, it is computationally too expensive to process the complete social network.
+                                        Instead, it is much more efficient to look at a small local neighborhood around a user, i.e., the
+                                        friends of her friends or the followers of her followers.
+                                        Motivated by problems where one is only interested in small parts of the output at once, Rubinfeld
+                                        et al. [RTVX11] and Alon et al. [ARVX12] introduced the Local Computation Model (LCA). An
+                                        LCA algorithm provides query access to a fixed solution for a computational problem. That is,
+                                        instead of outputting the entire solution at once, a user can ask the algorithm about specific bits
+                                        of the output. To answer these queries, the LCA algorithm has probe access to the input and the
+                                        main complexity measure of an LCA algorithm is the number of input probes the algorithm needs
+                                        to perform to answer a given query. The specific output queries a user can ask and the specific
+                                        input probes the LCA algorithm can use to learn about the input depend on the specific scenario.
+                                        In the context of graph problems, the output query usually asks about the output of a given node
+                                        or edge and the LCA algorithm can usually perform probes to the input of the form “What is the
+
+                                                                                           1
+j-th neighbor of the i-th node?”, where each node has a unique ID from the set [n]. The answer
+to such a probe is the ID of the specific node together with additional local information associated
+with that node such as for example its degree. The most well-studied type of LCA algorithms are
+so-called stateless LCA algorithms. The only shared state between different queries of stateless LCA
+algorithms is a seed of random bits. In particular, this implies that the output of an LCA algorithm
+is independent of the order of the queries asked by the user. In this paper, by an LCA algorithm
+we always mean a stateless LCA algorithm.
+Connections to the LOCAL model: The LCA model is closely related to the LOCAL model.
+In particular, Parnas and Ron observed that an O(T (n))-round LOCAL algorithm implies an LCA
+algorithm with a probe complexity of ∆O(T (n)) where ∆ denotes the maximum degree of the input
+graph. The reason is that one can first learn the O(T (n))-hop neighborhood around a node with
+∆O(T (n)) many probes and then simulate the LOCAL algorithm around that node to determine
+its output. Motivated by this connection, a recurrent theme in the study of LCA algorithms is
+the question in which cases it is possible to go below this straightforward simulation result. A
+sample of such results include a deterministic (∆ + 1)-coloring LCA algorithm on constant degree
+graphs with a probe complexity of O(log∗ n) [EMR14], a randomized LCA algorithm for Maximal
+Independent Set with a probe complexity of ∆O(log log ∆) log n [Gha19] and computing an expected
+O(log s)-approximation for Set Cover with a probe complexity of (st)O(log s log log t) where s denotes
+the maximum set size and t denotes the maximum number of sets a given element can be contained
+in [GMRV20].
+Locally Checkable Labelings: A very fruitful research direction was and is up to this date the
+study of the LOCAL complexity landscape of so-called locally checkable labeling problems (LCLs)
+on constant degree graphs. Informally speaking, an LCL problem requires each vertex/edge to
+output one of constantly many symbols such that the output of all nodes in the local neighborhood
+around each node satisfies some constraints imposed by the LCL.
+    While the LOCAL complexity landscape for LCLs on constant degree graphs is not completely
+characterized up to this date, a lot of progress has already been made. In particular, each LCL
+problem belongs to one of the following four classes. Fig. 1 is a graphical illustration of these four
+classes.
+  A Problems with a complexity of O(1).
+
+   B Basic symmetry-breaking tasks such as (∆+1)-coloring with a complexity between Ω(log log∗ n)
+     and O(log∗ n).
+
+   C Shattering problems such as ∆-coloring with a randomized complexity of poly(log log n) and
+     a deterministic complexity of poly(log n).
+
+  D Global problems with a complexity of Ω(log n).
+   Furthermore, it is known that the complexity regimes corresponding to B and D are in some
+sense dense and that the multiplicative gap between the randomized and deterministic LOCAL
+complexity of any LCL problem is at most polylogarithmic in n.
+Lovász Local Lemma: Arguably, one of the most useful tools in distributed computing is the
+distributed Lovász Local Lemma (LLL).
+    The LLL states that a collection of bad events can simultaneously be avoided given that each bad
+event only happens with a small probability and each bad event only depends on a small number
+of other bad events. The Distributed LLL asks an algorithm to find a point in the underlying
+probability space in a distributed manner that avoids all the bad events. Formally, each bad event
+
+                                                  2
+corresponds to a vertex in the input graph and depends on some independent random variables.
+Two nodes are connected by an edge if the two corresponding bad events depend on a common
+random variable. The output of each node is a value for each random variable the corresponding
+bad event depends on such that none of the bad events occurs.
+    It was proven by Chang and Pettie [CP17] that any randomized LOCAL algorithm with a
+complexity of o(log n) can be sped up to run in time TLLL (n) which denotes the randomized LOCAL
+complexity of the distributed LLL under any polynomial criterion (Definition 2.7) on constant
+degree graphs. Currently, the best upper bound to solve the distributed LLL under any polynomial
+criterion on constant degree graphs is poly log log n randomized and poly log n deterministic [MT10,
+FG17, RG20, GGR21]. This is polynomially larger than the currently best known lower bound of
+Ω(log log n) for randomized and Ω(log n) for deterministic algorithms [BFH+ 16, Mar13, CKP16]. It
+is a major open problem in the area of LOCAL algorithms to close this gap. Finally, the works
+of [FG17, CKP16, CP17] show that any o(log log n) round randomized algorithm or o(log n) round
+deterministic algorithm can be solved deterministically in O(log∗ n) rounds. The above works and
+results are part of the project of classification of LCLs in the LOCAL model, and they imply that
+the class (C) of problems contains exactly those that do not belong to the classes (A) and (B) and
+can be solved by transforming the problem instance into an LLL instance with polynomial (but
+not exponential) criterion and then solving the LLL instance. The precise transformation is given
+by [CP17, Theorem 4] and it is straightforward to check that it ensures that also in the LCA model
+the complexity of any problem in class (C) is asymptotically at most the complexity of the LLL
+under any polynomial criterion.1
+Our Work in LCA: Our work contributes to the understanding of the fundamental problem of
+characterizing LCLs in the LCA model.
+    While the classes (A) and (B) of LCL problems coincide for the LOCAL and LCA model by
+[PR07, EMR14, CKP16], and for the class (D) of global problems we have some preliminary results
+by [RS20], it seems that essentially nothing is known for the class (C) of shattering problems.
+    As our main contribution we show that the randomized LCA complexity of the distributed LLL
+is Θ(log n). Before our work, only the trivial lower bound of Ω(log log n) coming from the LOCAL
+model [BFH+ 16] and only the trivial upper bound 2poly log log n that follows from the Parnas-Ron
+reduction and the LOCAL algorithm of Fischer and Ghaffari [FG17] were known. Independently of
+our work, Dorobisz and Kozik [DK21] achieved a polylogarithmic query complexity for the problem
+of hypergraph coloring. This is similar to our work as their problem can be formulated as an
+instance of LLL (with a less restrictive LLL criterion).
+
+Theorem 1.1. The randomized LCA complexity of the distributed LLL on constant degree graphs
+is Θ(log n). The upper bound holds for the polynomial criterion p ≤ (e∆)−c for some c = O(1),
+while the lower bound holds even for the exponential criterion p ≤ 2−∆ .
+
+   In fact, for the minimally more restrictive criterion p < 2−∆ , the distributed LLL can already
+be solved in O(log∗ n) rounds in the LOCAL model [BMU19, BGR20], which implies also a probe
+complexity of O(log∗ n) in the LCA model [EMR14].
+   Second, we show the following general speedup theorem.
+
+   1
+     By construction, the nodes of the created LLL instance are constant-radius neighborhoods of the nodes of the
+original input instance, and essentially there is an edge between two neighborhoods if they intersect. Hence, an LCA
+algorithm solving the LLL instance can be simulated on the original instance by probing, for each probe in the LLL
+instance, also its entire neighborhood up to some constant distance, which incurs only a constant-factor overhead.
+Note that we use here that the input instances have constant degree. Also note that all of this holds also in the
+VOLUME model.
+
+
+                                                         3
+                 LOCAL, general graphs                                    VOLUME, general graphs
+                                                    n                                                             n
+                                                                                                            1/k
+                                                                                                        n
+                                        log n                                                     log n
+                                                                              log n/ log log n
+                 randomized                                                                √
+                                                                     randomized               log n
+                                                ?
+                            log log n                                                   log log n                         this work
+
+
+                   log∗ n                                                      log∗ n
+
+
+    log log∗ n                                                  log log∗ n
+
+
+1                                                           1
+                   ∗         ∗
+     1     log log n log n log log n        log n       n        1        log log∗ n log∗ n log log n   log n         n
+                       deterministic                                             deterministic
+Figure 1: On the left we see the landscape of LCLs in the LOCAL model that consists of four types of
+problems. Note that we are especially interested in class (C) of problems that can be solved by reducing
+them to the distributed LLL. Their LOCAL complexity is conjectured to be Θ(log log n) randomized and
+Θ(log n) deterministic, but the currently known best upper bounds are only poly log log n randomized and
+poly log n deterministic.
+On the right we see the landscape of LCLs in the VOLUME model. Our new Theorem 1.2 implies that
+there are no LCLs in the bright red area. The randomized complexity of LLL in LCA is moreover settled to
+Θ(log n).
+
+
+Theorem 1.2. For any  √ LCL Π, if there is a randomized LCA algorithm that solves Π and has a
+probe complexity of o( log n), then there is also a deterministic LCA algorithm for Π with a probe
+complexity of O(log∗ n).
+
+    Putting the two theorems
+                     √       together, we get that the randomized LCA complexity of all problems
+in class (C) is in Ω( log n) and O(log n). This almost settles the randomized complexity of all
+problems in class (C). We conjecture that the square root is not tight and the following is, in fact,
+the case.
+
+Conjecture 1.3. Any randomized LCA algorithm that solves an LCL Π with probe complexity
+o(log n) can be turned into a deterministic LCA algorithm that solves Π and has a probe complexity
+of O(log∗ n).
+
+VOLUME model: Motivated by the success story of studying the LOCAL complexity landscape
+of LCLs on bounded degree graphs, Rosenbaum and Suomela [RS20] initiated the study of the
+complexity landscape of LCLs on constant degree graphs in the so-called VOLUME model. The
+VOLUME model is a close relative of the LCA model. The main difference between the two models
+is that the VOLUME model does not allow so-called far probes, that is, a VOLUME model algorithm
+can only probe a connected region around the queried vertex. Also, each node has a unique identifier
+in the range {1, 2, . . . , poly(n)} instead of [n] and the nodes only have access to private randomness
+instead of shared randomness. The VOLUME model is a bit cleaner to work with than the LCA
+
+                                                                      4
+model. Nevertheless, there are generic simulation results that often allow to transfer upper and
+lower bounds between the LCA and the VOLUME model. Mainly by transferring known results and
+techniques from the LOCAL model to the VOLUME model, Rosenbaum and Suomela obtained the
+result illustrated in Fig. 1—the first rough outline of the complexity landscape of LCLs on constant
+degree graphs in the VOLUME model.
+Our Work in the VOLUME model:
+  We show the following theorem about coloring bounded degree trees in the VOLUME model.
+
+Theorem 1.4. Let c ≥ 2 be arbitrary. Then, the deterministic VOLUME complexity of c-coloring
+bounded degree trees with maximum degree poly(c) is Θ(n).
+
+     We note that the deterministic and randomized LOCAL complexity for the same problem is
+Θ(log n) assuming c ≥ 3. It would be very interesting to extend the result to the LCA model. The
+main reason we did not manage to extend it to the LCA model are far probes. These are especially
+difficult to handle if we want the identifiers from [n]. If we do not allow the LCA algorithm to
+perform far probes, but we want identifiers from [n] instead of poly(n), then an approach similar to
+ours gives an Ω(n1−o(1) ) lower bound. Our argument also breaks down for randomized algorithms.
+Hence, it is an interesting problem to prove any randomized polynomial lower bound or to come
+up with an efficient randomized algorithm.
+Further Related Work: Connection of LCA to Parallel Algorithms: As the only shared
+state between queries of LCA algorithms is the random seed, after distributing the random seed to
+all processors, the processors can answer queries independent of each other and therefore in parallel.
+Moreover, many randomized LCA algorithms also work with k-wise independent random bits for
+k = O(poly(log n)) and hence standard techniques often allow for random seeds of polylogarithmic
+length [ARVX12].
+There also exists a close connection between the Massively Parallel Computation (MPC) model
+[KSV10]—a theoretical model to study map-reduce type algorithms—and the LCA model. In the
+MPC model, the input of a computational problem is distributed across multiple machines. The
+computation proceeds in synchronous round. At the beginning of each round, each machine can
+perform some local computation. Afterwards, each machine can send and receive messages to other
+machines with the restriction that each machine can send and receive at most as many bits as the
+size of its local memory. The most stringent regime in the MPC model is the sublinear memory
+regime where each machine has a local memory of O(nα ) bits for some α ∈ (0, 1). In this regime,
+a machine cannot get a global view of the graph. Hence, most known algorithms gather the local
+neighborhood around each node followed by executing a local algorithm on the neighborhood to
+deduce the output of a node. However, the local neighborhood around a node often contains too
+many vertices to fit into a single machine. In such a scenario, it is important that we can compute
+the output of a node by only considering a minuscule fraction of its local neighborhood. This is
+exactly what LCA algorithms try to accomplish. In particular, Ghaffari and Uitto [Gha19] devised
+a sparsification technique that resulted in state-of-the-art algorithms for Maximal Independent Set
+both in the LCA model and the MPC model. Moreover, [RS20] stated a generic result that directly
+allows to transfer results from the LCA model to the MPC model.
+
+
+2    Our Method in a Nutshell
+In this section we informally present the high-level ideas of our proofs.
+The Gap Result of Theorem 1.2:
+
+
+                                                  5
+    We start to describe the high-level idea of the proof that there is √no LCL with a random-
+ized/deterministic LCA/VOLUME complexity between ω(log∗ n) and o( log n). This is the con-
+ceptually simplest result and it works by directly adapting ideas known from the LOCAL model.
+The main trick is to consider the deterministic VOLUME model where the identifiers can come
+from an exponential instead of a polynomial range (cf. Section 7.1 in [RS20]). The result then
+follows from two observations. First, a variant of the Chang-Pettie speedup [CP17] shows that any
+VOLUME algorithm with a probe complexity of o(n) that works with exponential IDs can be sped
+up to have a probe complexity of Θ(log∗ n). Second, a variant of the Chang-Kopelowitz-Pettie
+                                                                                          √
+derandomization [CKP16] shows that any randomized algorithm with probe complexity o( log n)
+can be derandomized to give a deterministic o(n)-probe algorithm that works with exponential IDs.
+The root comes from the exponential IDs: during the argument we apply a union bound over all
+bounded degree n-node graphs equipped with unique IDs from an exponential range.
+The LLL Complexity of Theorem 1.1:
+    The upper bound can directly be proven by adapting the LLL algorithm of [FG17] for the
+LOCAL model to the VOLUME model. To prove an Ω(log n) lower bound, we prove a corresponding
+lower bound of Ω(log n) for the Sinkless Orientation Problem, which can be seen as an instance
+of the distributed LLL (Definition 2.5). To prove this lower bound, we use the same high-level
+proof idea as described in the previous paragraph. However,
+                                                          √      to get a tight Ω(log n) lower bound
+we need additional ideas. More concretely, the number log n is an artifact of a union bound over
+     2
+2O(n ) many non-isomorphic ID-labeled graphs. As we show the Sinkless Orientation lower bound
+on bounded-degree trees, it is actually sufficient to union bound over all non-isomorphic ID-labeled
+bounded-degree trees. As the number of non-isomorphic unlabeled trees is 2O(n) , we already made
+progress. However, this itself is still not enough as we need identifiers from an exponential range to
+                                                          2
+speed the algorithm up to Θ(log∗ n) and there are 2O(n ) many ways to assign unique exponential
+IDs. Note that even if we would assign IDs from a polynomial range, there still would be 2O(n log n)
+ways to do it, which would only allow to hope for an Ω(log n/ log log n) bound.
+    To circumvent this issue we borrow an idea from a parallel paper [BCG+ 21] where the technique
+of ID graphs is developed to overcome a different issue. The idea is as follows: we will work in the
+deterministic model with exponential IDs. However, we promise that the ID assignment satisfies
+certain additional properties. More concretely, we construct a so-called ID graph (which is not to
+be confused with the actual input graph). Each node in the ID graph corresponds to one of the
+exponentially many IDs. Moreover, the maximum degree of the ID graph is constant and two nodes
+in the input graph that are neighbors can only be assigned IDs that are neighbors in the ID graph.
+Having restricted the ID assignment in this way, it turns out that we only need to union bound over
+2O(n) different ID-labeled trees. Hence, a o(log n) randomized VOLUME algorithm would imply a
+o(n) deterministic VOLUME algorithm that works on graphs with exponential IDs that satisfy the
+constraints imposed by the ID graph. Unfortunately, due to this additional restriction, we cannot
+simply speed-up the algorithm to the Θ(log∗ n) complexity. However, it turns out that the famous
+round elimination lower bound for Sinkless Orientation from [BFH+ 16] works even relative to an
+ID graph (the formal proof is in fact simpler as one does not pass through a randomized model).
+This finishes the lower bound proof for the VOLUME model. This directly leads to the same lower
+bound for the LCA model by a result of [GHL+ 16].
+The Deterministic VOLUME Complexity of Coloring Bounded Degree Trees with Con-
+stantly Many Colors is Θ(n) (Theorem 1.4):
+   We first sketch a well-known proof of the Ω(log n) LOCAL lower bound for the same problem.
+We then show how to adapt this proof to the VOLUME model. To prove a LOCAL lower bound
+of Ω(log n), one fools the algorithm by running it on a graph having a girth of Ω(log n) and a
+
+
+                                                  6
+large constant chromatic number instead of a tree. Due to the high girth, the graph looks in
+the o(log n)-hop neighborhood around each node like a tree. Hence, any LOCAL algorithm with
+a round complexity of o(log n) cannot detect that it is not run on a valid input. Moreover, as
+the chromatic number of this high-girth graph is strictly larger than the constantly many colors
+available to the algorithm, there need to exist two neighboring nodes that get assigned the same
+color by the LOCAL algorithm. To arrive at a contradiction, one can now construct a tree that
+contains these two neighboring nodes and moreover the LOCAL algorithm will again assign these
+two neighboring nodes the same color. The main difficulty in transferring this proof to the VOLUME
+model is that o(n) probes might suffice to find a cycle in the high-girth graph. Hence, the VOLUME
+algorithm might detect that the input is not a tree. To make it harder for the VOLUME algorithm
+to find a cycle, we add additional vertices and edges to this high-girth graph without introducing
+any new cycles. In fact, the resulting graph will have infinitely many vertices (though one could
+restrict oneself to work with a finite graph). As we still want to give the deterministic algorithm
+with a probe complexity of o(n) the illusion that the graph only contains n many vertices, we
+assign each node in the graph an identifier from [n10 ]. This identifier can of course not be unique.
+In order to prevent the VOLUME algorithm from detecting duplicate identifiers, we assign each
+node an identifier uniformly and independently at random. Assigning identifiers in that way, it is
+unlikely for the algorithm to find a duplicate ID. Moreover, the random identifiers do not provide
+any information about the topology of the graph and thus one can show that it is unlikely that
+the algorithm finds a cycle. By a probabilistic method argument, this allows us to arrive at a
+contradiction in a similar manner as in the LOCAL model lower bound.
+
+2.1   Definitions
+
+Notation:
+    We use the classical graph-theoretical notation, e.g., we write G = (V, E) for an unoriented
+graph. A half-edge is a pair h = (v, e), where v ∈ V , and e ∈ E is an edge incident to v. Often we
+assume that G additionally carries a labeling of vertices or half-edges. We use BG (u, r) to denote
+the ball of radius r around a node u in G. When talking about half-edges in BG (u, r), we talk
+about all half-edges (v, e) such that v ∈ BG (u, r). For example, BG (u, 0) contains all half-edges
+incident to u.
+
+Definition 2.1 (LCLs). An LCL problem (or simply LCL) Π for a constant degree graph is a
+quadruple (Σin , Σout , r, P) where Σin and Σout are finite sets, r is a positive integer, and P is a
+finite collection of Σin -Σout -labeled graphs. A correct solution for an LCL problem Π on a Σin -
+labeled graph (G, fin ) is given by a half-edge labeling fout : H(G) → Σout such that, for every node
+v ∈ V (G), the triple (BG (v, r), fin0 , f 0 ) is isomorphic to a member of P, where f 0 and f 0
+                                          out                                          in      out are
+the restriction of fin and fout , respectively, to BG (v, r).
+
+    Intuitively, the collection P provides the constraints of the problem by specifying how a correct
+output looks locally, depending on the respective local input. From the definition of a correct
+solution for an LCL problem it follows that members of P that have radius > r can be ignored.
+
+Definition 2.2 (LCA model [RTVX11] [ARVX12]). In the LCA model, each node is assigned a
+unique ID from the set [n]. Moreover, each node is equipped with a port numbering of its edges and
+each node might have an additional input labeling. The LCA algorithm needs to answer queries.
+That is, given a vertex/edge, it needs to output the local solution of the vertex/edge in such a
+way that combining the answers of all vertices/edges constitutes a valid solution. To answer a
+query, the algorithm can probe the input graph. A probe consists of an integer i ∈ [n] and a port
+
+                                                  7
+number and the answer to the probe is the local information associated with the other endpoint of
+the edge corresponding to the specific port number of the vertex with ID i. The answer to a query
+is only allowed to depend on the input graph itself and possibly a shared random bit string in case
+of randomized LCA algorithms. The complexity of an LCA algorithm is defined as the maximum
+number of probes the algorithm needs to perform to answer a given query, where the maximum is
+taken over all input graphs and all query vertices/edges. A randomized LCA algorithm needs to
+produce a valid complete output (obtained by answering the query for each vertex) with probability
+1 − 1/nc for any desirably large constant c.
+Definition 2.3 (VOLUME model [RS20]). The VOLUME model is very similar to the LCA model
+and hence we only discuss the differences. The IDs in the VOLUME model are from the set
+{1, 2, . . . , poly(n)}, as in the LOCAL model, instead of [n]. Moreover, a VOLUME model algo-
+rithm is confined to probe a connected region. In the case of randomized VOLUME algorithms, each
+node has a private source of random bits which is considered as part of the local information and is
+therefore returned together with the ID of a given vertex. We note that the shared randomness of
+the LCA model is strictly stronger than the private randomness of the VOLUME model and therefore
+the LCA model is strictly more powerful than the VOLUME model.
+Definition 2.4 (LOCAL model [Lin92], [Pel00]). In the LOCAL model of distributed computing,
+the goal is to compute a graph problem in a network. Each node in the network corresponds to a
+computational entity and is equipped with a unique identifier in {1, 2, . . . , poly(n)}. In the beginning,
+each node in the network only knows its ID, some global parameters like n and the maximum degree
+∆ of the network, and perhaps some local input. Computation proceeds in synchronous rounds.
+That is, in each round, each processor can first perform unbounded local computation and then send
+each of its neighbors a message of unbounded length. Each node has to decide at some point that
+it terminates and then it must output its local part of the global solution to the given problem. The
+round complexity of a distributed algorithm is the number of rounds until the last round terminates.
+Definition 2.5 (Sinkless Orientation). The Sinkless Orientation problem asks to orient each edge
+of a given input graph in such a way that each vertex of sufficiently high constant degree is incident
+to at least one outgoing edge.
+Lemma 2.6 (Lovász Local Lemma (LLL), [EL74]). We denote with {X1 , X2 . . . , Xm } a set of mu-
+tually independent random variables and with E1 , . . . , En probabilistic events. Each Ei is a function
+of some subset of the random variables X1 , X2 , . . . , Xm and this subset is denoted by vbl(Ei ). We
+say that Ei and Ej depend on a common random variable if vbl(Ei ) ∩ vbl(Ej ) 6= ∅. Assume that there
+is some p < 1 such that for each 1 ≤ i ≤ n, we have P (Ei ) ≤ p, and let d be a positive integer such
+that each Ei shares a random variable with at most d other Ej , j 6= i. If 4pd ≤ 1, then there exists
+an assignment of values to the random variables such that none of the events Ei occurs.
+Definition 2.7 (Distributed Lovász Local Lemma). The constructive LLL asks to find a concrete
+assignment of the random variables X1 , X2 , . . . , Xm such that none of the bad events E1 , E2 , . . . , Em
+occurs. In the Distributed LLL, the set of nodes of the input graph is simply the set of bad events
+{E1 , E2 , . . . , Em }. Moreover, Ei and Ej are connected by an edge iff vbl(Ei )∩vbl(Ej ) 6= ∅ and i 6= j. In
+the end, each node Ei needs to know the assignment of values to all the random variables in vbl(Ei ).
+These assignments need to be consistent and they need to simultaneously avoid all the bad events.
+Often, one considers variants of the LLL that further restrict the space of allowed input instances
+by replacing the criterion 4pd ≤ 1 with a more restrictive inequality. A polynomial criterion is one
+of the form pf (d) ≤ 1, where f (d) is some polynomial in d. An exponential criterion is one of the
+form pf (d) ≤ 1, where f (d) is exponential in d.
+
+                                                      8
+   By directing each edge independently with probability 1/2 in each direction, one can view
+Sinkless Orientation as an instance of the Distributed LLL that satisfies the exponential criterion
+p2d ≤ 1. In particular, this implies that the Ω(log n) Sinkless Orientation lower bound directly
+implies an Ω(log n) lower bound for the LLL under the exponential criterion p2d ≤ 1.
+
+
+3    Preliminaries
+The following is a well-known fact that follows from a straightforward simulation idea.
+Lemma 3.1 (Parnas-Ron reduction, [PR07]). Any LOCAL algorithm with a round complexity of
+t(n) can be converted into an LCA/VOLUME algorithm with a probe complexity of ∆O(t(n)) , where
+∆ denotes the maximum degree of the input graph.
+    The following lemma is a restatement of Theorem 3 in [GHL+ 16].
+Lemma 3.2. Suppose that there is a randomized LCA algorithm with probe complexity t(n) that
+solves an LCL Π. Then there is a randomized LCA algorithm with probe complexity t0 (n) =
+t(poly(n)) that solves Π, does not perform any far probes, and works even if the unique identi-
+fiers come from a polynomial range (instead of from [n]). This also holds if we restrict ourselves to
+trees.
+    We use this lemma to extend a lower bound that we prove for the VOLUME model to LCA
+algorithms (that are allowed to perform far probes).
+    We also need to use the following lemma which informally states that far probes are of no use
+for deterministic LCA algorithms with a small probe complexity.
+Theorem 3.3 (Theorem 1 in [GHL+ 16]). Any LCL problem that can be solved in the LCA model
+deterministically with probe complexity t(n) can be solved
+                                                         √ with a deterministic round complexity of
+t0 (n) = t(nlog n ) in the LOCAL model provided t(n) = o( log n).
+   For our purposes, we actually need a slightly stronger version of Theorem 3.3 which is, in fact,
+what the proof of Theorem 3.3 in [GHL+ 16] gives.
+Theorem 3.4. Any LCL problem that can be solved in the LCA model deterministically with probe
+complexity t(n) can be solved deterministically
+                                  √             with a probe complexity of t0 (n) = t(nlog n ) in the
+VOLUME model provided t(n) = o( log n).
+
+
+4    Warm-up: Speedup of Randomized Algorithms in LCA
+In this section we prove Theorem 1.2 that we restate here for convenience.
+Theorem 1.2. For any  √ LCL Π, if there is a randomized LCA algorithm that solves Π and has a
+probe complexity of o( log n), then there is also a deterministic LCA algorithm for Π with a probe
+complexity of O(log∗ n).
+    In fact, we show that the resulting deterministic LCA algorithm with a probe complexity of
+O(log∗ n) can also be turned into a VOLUME algorithm with the same probe complexity. The
+following lemma is proven with a similar argument as Theorem 3 in [CKP16].
+Lemma 4.1 (Derandomization
+                       √        in LCA). If there exists a randomized LCA algorithm A with a probe
+complexity of t(n) = o( log n) for a given LCL Π, then there also exists a deterministic VOLUME
+algorithm A0 for Π with a probe complexity of o(n) and where the identifiers are from [2O(n) ].
+
+                                                 9
+Proof. Let r be the local checkability radius of Π. First, we apply Lemma 3.2 to convert the
+algorithm A into one having the same asymptotic complexity but which does not use any far
+probes and assumes only identifiers from a polynomial range. Without loss of generality, we can
+assume that A works in a setting where, instead of being assigned an identifier, each node has
+access to a private random bit string (in other words, A works in the VOLUME model with the
+addition of shared randomness). This is justified as, with access to private randomness in each
+node, the algorithm can generate unique identifiers with probability 1 − 1/ poly(n), as the first
+O(log n) random bits of each node are unique with probability 1 − 1/ poly(n).
+    Next, let Gn denote the set of all n-node graphs (up to isomorphism) of maximum degree ∆
+with each vertex labeled with a unique identifier from [2O(n) ] and where each vertex has an input
+label from the finite set of input labels from the given LCL. The number of unlabeled graphs of
+maximum degree at most ∆ is 2O(n log n) as it can be described by O(n·∆·log n) bits of information.
+Next, for a fixed n-node graph, the number of its labelings with identifiers from [2O(n) ] is upper
+                               2
+bounded by (2O(n) )n = 2O(n ) and the number of distinct input label assignments is upper bounded
+by 2O(n) . Hence, the number of (labeled) graphs in Gn is strictly smaller than some suitably chosen
+                        2              2
+N = 2O(n log n) · 2O(n ) · 2O(n) = 2O(n ) .
+    Now, let ρ : [2O(n) ] → {0, 1}N be a function that maps each ID to a stream of bits, chosen
+uniformly at random from the space of all such functions. Similarly, let ρ∗ be a bit string chosen
+uniformly at random from {0, 1}N . Consider the algorithm Aρ,ρ∗ solving Π on all graphs G ∈ Gn
+that is defined as follows. First, Aρ,ρ∗ (internally) maps each identifier Iv it sees (at some node
+v) in G to a bit string by applying the function ρ, and then it simulates algorithm A, where the
+private random bit string that A has access to in each node v is given by ρ(Iv ), the shared random
+bit string is given by ρ∗ , and the input parameter given to A describing the number of nodes is
+set to N . Equivalently, this can be seen as running A (with randomness provided by ρ and ρ∗ ) on
+the graph H obtained from G by adding N − n isolated nodes (where we are only interested in the
+output of A on the nodes of H that correspond to nodes in G).
+    Since, on N -node graphs, A provides a correct output with probability at least 1 − 1/N , and ρ
+and ρ∗ are chosen uniformly at random, we see that, for every G ∈ Gn , the probability that Aρ,ρ∗
+fails on G is at most 1/N . Since the number of graphs in Gn is strictly smaller than N , it follows
+that there are a function ρdet : [2O(n) ] → {0, 1}N and a bit string ρ∗det ∈ {0, 1}N such that Aρdet ,ρ∗det
+does not fail on any graph in Gn .
+    As the runtime of Aρdet ,ρ∗det is equal to the runtime of A on N -node graphs, we can conlude
+                                                                                             √
+that Aρdet ,ρ∗det is a deterministic VOLUME algorithm with probe complexity t(N ) = o( log N ) =
+  p
+o( log 2O(n2 ) ) = o(n), as desired.
+
+    Similarly, the next lemma is a variant of Theorem 6 in [CKP16] and the discussion in Section
+7.1 in [RS20].
+
+Lemma 4.2 (Speedup in VOLUME with exponential identifiers). If there exists a deterministic
+VOLUME algorithm A for an LCL Π = (Σin , Σout , r, P) with a probe complexity of o(n) that works
+with unique identifiers from [2O(n) ], then there also is a deterministic VOLUME algorithm A0 for Π
+with a probe complexity of O(log∗ n).
+
+Proof. Let n0 be a big enough constant. The algorithm A0 does the following on a given input graph
+G with maximum degree ∆: first, it uses the algorithm of Even et al. [EMR14] to construct a coloring
+of the power graph Gn0 +r —the graph with the vertex set of G and where two nodes are connected
+by an edge iff they have a distance of at most n0 + t in the graph G—with ∆n0 +r + 1 = 2O(n0 )
+colors with a probe complexity of O(log∗ n). Then we interpret those colors as identifiers and run
+
+
+                                                    10
+the algorithm A on G but we tell the algorithm that the input graph has n0 nodes instead of n.
+The query complexity of A0 is O(log∗ n · o(n0 )) = O(log∗ n).
+    To see that A0 produces a valid output, note that if A0 fails at a node u, we may consider all
+the nodes that were needed for the simulation of A in the r-hop neighborhood of u together with
+their neighbors—the number of such nodes is bounded by ∆ · ∆r · o(n0 ) < n0 , by choosing n0 large
+enough. But as all those nodes are labeled by unique identifiers from [2O(n0 ) ], we can get a graph
+of size n0 on which the original algorithm A fails, a contradiction.
+
+    Theorem 1.2 now follows from Lemmas 4.1 and 4.2.
+    We remark that by using polynomial instead of exponential identifiers in Lemma 4.1, we
+would get that a randomized LCA/VOLUME algorithm of complexity t(n) = o(log n/ log log n)
+can be derandomized to a deterministic algorithm with complexity t(2O(n log n) ) = o(n). The term
+2O(n log n) comes from a union bound over all n-node graphs of maximum degree ∆ labeled with
+polynomial-sized unique identifiers. This is the reason for the segment between the complexity
+pairs [log n, log log n] and [n, log n/ log log n] in Fig. 1 (cf. Section 1.2 and Figure 2 in [RS20] that
+does not differentiate between Θ(log n) and Θ(log n/ log log n)).
+
+
+5     The Ω(log n) VOLUME Lower Bound for Sinkless Orientation
+In this section, we prove the lower bound of Theorem 1.1. We prove it by providing the respective
+lower bound for the Sinkless Orientation problem (Definition 2.5) on trees.
+Theorem 5.1. There is no randomized LCA algorithm with probe complexity o(log n) for the
+problem of Sinkless Orientation or ∆-coloring, even if the input graph is a tree with a precomputed
+∆-edge coloring. In particular, the LCA complexity of LLL is Ω(log n), even in the regime p ≤ 2−∆ .
+    The general idea of the proof is the same as in Section 4: we want to derandomize the as-
+sumed o(log n)-probe randomized algorithm for Sinkless Orientation to a deterministic o(n)-probe
+VOLUME algorithm, this time restricting what constitutes a valid ID assignment. We then reduce
+the problem of showing that such a VOLUME algorithm does not exist to the problem of showing
+that there does not exist a nontrivial deterministic LOCAL algorithm for Sinkless Orientation. We
+will explain later in more detail what we mean by nontrivial. Finally, we conclude the proof by
+showing that such a LOCAL algorithm does not exist.
+    As we saw in Section 4, a direct application
+                                      √          of the derandomization by Chang-Kopelowitz-Pettie
+allows us only to argue that an o( log n)-probe algorithm leads to an o(n)-probe deterministic
+algorithm, so we need to do better. There are two obstacles to obtaining a union bound over 2O(n)
+graphs in Lemma 4.1:
+    1. the number of n-node graphs of maximum degree ∆ is bounded only by 2O(n log n) ,
+                                                                                   2
+    2. the number of ways of labeling n objects with labels from [2O(n) ] is 2O(n ) .
+   To get an Ω(log n) lower bound, both terms need to be improved to 2O(n) .
+   This is easy with the first term – in fact, the whole lower bound works even if we restrict
+ourselves to trees. The number of trees with maximum degree ∆ can easily be upper bounded by
+∆O(n) and an even stronger upper bound of 2.96n is known.
+   The issue is with the second bullet point—the number of labelings of n objects with labels from
+                                                  2
+range 2O(n) clearly cannot be improved from 2O(n ) .
+   To decrease the number of possibilities, we need to restrict our space of labelings of a tree with
+unique identifiers in such a way that the number of possibilities drops to 2O(n) , yet this restriction
+
+                                                   11
+should not make it easier to solve Sinkless Orientation in the VOLUME model. This is done by the
+ID graph technique developed in a parallel paper [BCG+ 21] for a different purpose. An ID graph
+H is a graph that states which pairs of identifiers are allowed for a pair of neighboring nodes of
+the input tree. In our case, one should think about it as a high-girth high chromatic number graph
+on 2O(n) nodes with each node representing an identifier. The girth of the graphs is at least Θ(n)
+and its chromatic number at least ∆ (i.e., the maximum degree of the input graph). Our definition
+is a little subtler due to the fact that we work on edge-colored trees where arguments are usually
+easier.
+ID graph: We now define the ID graph, prove that the number of labelings of n-node trees
+consistent with it is bounded by 2O(n) in Lemma 5.7, and then prove Lemma 5.8. Each vertex
+of the ID graph can be considered as an identifier that will later be used to provide IDs to the
+considered input graph.
+
+Definition 5.2 (ID graph). Let R and ∆ be positive integers. An ID graph H = H(R, ∆) is a
+collection of graphs H1 , H2 , . . . , H∆ such that the following hold:
+
+  1. For all i, j satisfying 1 ≤ i, j ≤ ∆ : V (Hi ) = V (Hj ); we use V (H) to denote the set of vertices
+     in H, that is, V (H) = V (H1 ),
+
+  2. |V (H)| = ∆10R ,
+
+  3. ∀v ∈ V (H), ∀1 ≤ i ≤ ∆ : 1 ≤ degHi (v) ≤ ∆10 ,
+
+  4. girth(H) ≥ 10R,
+
+  5. Any independent set of Hi has less than |V (H)|/∆ vertices.
+
+Lemma 5.3 (ID graph existence). There exists an ID graph H = H(R, ∆) for all sufficiently large
+R, ∆ > 0.
+
+   This lemma is proved in a parallel paper [BCG+ 21] developing the technique for a different
+purpose. For completeness we also leave a proof to Appendix A.
+   As there are possibly many ID graphs that satisfy the given conditions, from now on, whenever
+we write H(R, ∆), we mean the lexicographically smallest ID graph H(R, ∆).
+
+Definition 5.4 (Proper H-labeling of a ∆-edge-colored tree). Let T be a tree having a maximum
+degree of at most ∆ and whose edges are properly colored with colors from [∆]. A proper H-labeling
+of T with an ID graph H is a labeling h : V (T ) → V (H) of each vertex u ∈ V (T ) with a vertex
+h(u) ∈ V (H) such that whenever u, v ∈ V (T ) are incident to a common edge colored with color
+c ∈ [∆], then h(u) and h(v) are neighboring in Hc .
+
+Definition 5.5 (Solving an LCL relative to H). When we say that a deterministic VOLUME or
+LOCAL algorithm for an LCL Π works relative to an ID graph H, we mean that the algorithm
+works if the unique node identifiers are replaced by a proper H(n, ∆)-labeling for instances of size
+n and with maximum degree at most ∆.
+   We also say that an algorithm works relative to ID graphs {Hn }n∈N if it works for every n-node
+input graph that is H-labeled by Hn .
+
+Observation 5.6. If a deterministic local algorithm A solves a problem Π of checkability radius
+t in r rounds (in case of the LOCAL model) or with r probes (in case of the volume model) with
+∆O(r) -sized identifiers, then it also solves Π relative to H(t + r, ∆).
+
+
+                                                  12
+Proof. The validity of A depends on all possible ways of labeling an (r + t)-hop neighborhood of a
+vertex u with identifiers, as the correctness of the output at u depends only on the outputs given by
+A at each vertex v in u’s t-hop neighborhood (by the definition of an LCL problem), and each such
+output depends only on the r-hop neighborhood of the respective node v. But the set of allowed
+labelings relative to H(t + r, ∆) is a subset of all labelings with unique identifiers.
+
+Lemma 5.7. The number of non-isomorphic n-node trees with maximum degree ∆ = O(1) that
+are labeled with a proper ∆-edge coloring and an H-labeling for H = H(n, ∆), is 2O(n) .
+
+Proof. There are O(2.96n ) non-isomorphic unrooted trees on n vertices [oei]. Additionally, there
+are at most ∆n−1 ways of assigning edge colors from the set [∆] once the tree is fixed. Hence, there
+are 2O(n) non-isomorphic trees labeled with edge colors.
+    For any such tree T , pick an arbitrary vertex u in it. There are |V (H)| = ∆O(n) ways of labeling
+u with a label from H (Property 2 in Definition 5.2). Once u is labeled with a label h(u) ∈ V (H),
+we can construct the labeling of the whole tree T by gradually labeling it, vertex by vertex, always
+labeling a node whose neighbor was labeled already. Every time we label a new node v with the
+label h(v) ∈ V (H) such that v is adjacent to an already labeled node w via an edge of color c, we
+have poly(∆) possible choices for the label of v, since this is the degree of h(w) in Hc (Property 3
+in Definition 5.2). Hence, the total number of H-labelings of T is 2O(n) .
+    Putting everything together, the number of non-isomorphic trees labeled by edge colors from
+[∆] and IDs from H is 2O(n) .
+
+    The following lemma is analogous to Lemma 4.1, i.e., the derandomization from [CKP16], but
+working relative to the ID graph and only on the set of trees allows us to derandomize a randomized
+VOLUME algorithm with probe complexity t(n) to obtain a deterministic VOLUME algorithm with
+probe complexity t(2O(n) ), while the original construction only obtains a deterministic VOLUME
+                                        2
+algorithm with probe complexity t(2O(n ) ).
+
+Lemma 5.8 (From randomized LCA to deterministic VOLUME relative to an ID graph). If there
+exists a randomized LCA algorithm with probe complexity t(n) = o(log n) for Sinkless Orientation
+on trees with maximum degree ∆ = O(1) that are properly ∆-edge colored, then there also exists a
+deterministic VOLUME algorithm for Sinkless Orientation on trees with maximum degree ∆ = O(1)
+that are properly ∆-edge colored with probe complexity o(n) relative to ID graphs {H(n, ∆)}n≥n0
+where n0 is a large enough constant.
+
+Proof. We omit the proof as it can be proven in the exact same way as Lemma 4.1, except that
+                                                                                                2
+now we tell the randomized algorithm that the number of nodes is N = 2O(n) instead of N = 2O(n )
+as we need to union bound over a smaller number of labeled graphs. One also needs to make use
+of the fact that all the IDs in an n-node H(n, ∆)-labeled graph are unique, which follows from the
+fact that the girth of H(n, ∆) is strictly larger than n.
+
+Hardness of Deterministic Sinkless Orientation relative to an ID graph: We now prove
+that there cannot be a deterministic local algorithm with volume complexity o(n) that works with
+exponential IDs, even when those IDs satisfy constraints defined by an ID graph H(n, ∆).
+    To do so, we first show that an o(n)-probe VOLUME algorithm implies that there exists some
+constant n∗ ∈ N and a deterministic LOCAL algorithm that solves Sinkless Orientation on an
+(infinite) properly H(n∗ , ∆)-labeled tree in strictly less than n∗ rounds. This is an analogue of
+Lemma 4.2.
+
+
+
+                                                 13
+Lemma 5.9. If there exists a deterministic VOLUME algorithm A that solves Sinkless Orientation
+on n-node trees with maximum degree ∆ = O(1) that are properly ∆-edge colored relative to H(n, ∆)
+and with a probe complexity of f (n) ≤ n/(3∆) for all large enough n, then there exists a constant n∗
+and a deterministic LOCAL algorithm A0 that solves Sinkless Orientation on all (possibly infinite)
+trees with maximum degree ∆ that are properly ∆-edge colored and H(n∗ , ∆)-labeled in fewer than
+n∗ rounds.
+
+Proof. Consider running the algorithm A for fixed n∗ and ∆ such that f (n∗ ) ≤ n∗ /(3∆) on any
+tree T having a maximum degree of ∆ that is properly ∆-edge colored and H(n∗ , ∆)-labeled. We
+now prove that A solves the Sinkless Orientation problem on T . If not, then there exists a node u
+such that either all the edges are oriented towards u or u has a neighbor v such that the outputs
+of u and v are inconsistent. Consider now the set S consisting of the at most 2 · (n∗ /3∆) vertices
+that A probes in order to compute the answer for both u and v. The set S ∪ N (S) has at most
+∆ · |S| < n∗ vertices. If we run A on G[S ∪ N (S)], it will fail, too, since the two runs of A on T
+and T [S ∪ N (S)] are identical. Appending a non-zero number of vertices to the vertices from N (S)
+and labeling them so that the final labeling is still a H(n∗ , ∆)-labeling gives a graph T 0 on exactly
+n∗ nodes that is properly H(n∗ , ∆)-labeled such that A fails on T 0 . This is a contradiction with
+the correctness of A on n∗ -node trees.
+    Hence, we get a deterministic VOLUME algorithm for Sinkless Orientation that performs at
+most n∗ /(3∆) probes and that works for any H(n∗ , ∆)-labeled tree T . This directly implies that
+there exists a LOCAL algorithm with a round complexity of at most n∗ /(3∆) that solves Sinkless
+Orientation on any H(n∗ , ∆)-labeled tree T , as needed.
+
+    Finally, the following theorem is a simple adaptation of the lower bound for Sinkless Orientation
+in the LOCAL model via round elimination in [BFH+ 16]).
+
+Theorem 5.10. The deterministic complexity of Sinkless Orientation in the LOCAL model relative
+to H(k, ∆) is at least k.
+
+   This theorem is proved in a parallel paper [BCG+ 21] developing the technique for a different
+purpose. For completeness we also leave a proof to Appendix A. Finally, we can put all the pieces
+together to prove Theorem 5.1.
+
+Proof of Theorem 5.1. We first apply the derandomization of Lemma 5.8 to deduce the existence
+of a deterministic algorithm with o(n) probes, relative to {H(n, ∆)}n∈N . Afterwards, we use
+Lemma 5.9 to conclude that there is an r > 0 and a deterministic local algorithm that solves
+sinkless orientation in less than r rounds relative to an ID graph H(r, ∆), which is finally shown to
+be impossible by Theorem 5.10.
+
+Remark 5.11. One can check that we actually prove the existence of some ε = ε(∆) > 0 such that
+any randomized LCA algorithm for sinkless orientation needs at least ε log n probes for all n ≥ n0 .
+
+
+6    Upper Bound for LLL on Constant Degree Graphs
+In this section, we complement the lower bound by proving the following matching upper bound
+result.
+
+Theorem 6.1. There exists a fixed constant c such that the randomized LCA/VOLUME complexity
+of the LLL on constant degree graphs under the polynomial criterion p(e∆)c ≤ 1 is O(log n).
+
+
+
+                                                  14
+Proof. The result follows by a slight adaptation of the LOCAL algorithm of [FG17] to the VOLUME
+model. In particular, Fischer and Ghaffari show how to shatter a constant-degree graph in O(log∗ n)
+rounds of the LOCAL model. By shattering, we mean that their algorithm fixes the values for a
+subset of the random variables such that the following two properties are satisfied.
+
+  1. The probability of each bad event conditioned on the previously fixed random variables is
+     upper bounded by ∆−Ω(c) .
+
+  2. Consider the graph induced by all the nodes whose corresponding bad event has a non-zero
+     probability of occurring. The connected components in this graph all have a size of O(log n)
+     with probability 1 − 1/ poly(n).
+
+Note that the shattering procedure – denoted as the pre-shattering phase – directly implies a
+                                                                          ∗
+randomized VOLUME algorithm with probe complexity O(log n · ∆O(log n ). To see why, note that
+we can determine the state of all random variables after the pre-shattering phase that a given bad
+                                                      ∗
+event depends on with a probe complexity of ∆O(log n) by applying the Parnas-Ron reduction to
+the O(log∗ n) round LOCAL algorithm. This in turn allows us to find the connected component of
+                                     ∗
+a given node with O(log n · ∆O(log n) ) probes, as long as the connected component has a size of
+O(log n), which happens with probability 1−1/ poly(n). Afterwards, one can find a valid assignment
+of all the random variables in the connected component in a brute-force centralized manner. Note
+that the standard LLL criterion ep(∆ + 1) ≤ 1 guarantees the existence of such an assignment.
+     To improve the probe complexity to O(log n), we show how to adapt the pre-shattering phase
+such that it runs in O(1) LOCAL rounds while still retaining the two properties stated above.
+Once we have shown this, the aforementioned VOLUME simulation directly proves Theorem 6.1.
+The pre-shattering phase of [FG17] works by first computing a 2-hop-coloring with ∆2 + 1 colors,
+where a 2-hop coloring is a coloring that assigns any two nodes having a distance of at most 2
+a different color. Once this coloring is computed, the algorithm iterates through the constantly
+many color classes and fixes in each iteration a subset of the random variables. Each random
+variable will be set with probability 1 − ∆−Ω(c) , even when fixing the randomness outside the
+c1 -hop neighborhood for some fixed constant c1 ≥ 2 not depending on c adversarially. The only
+step that takes more than constant time is the computation of the coloring. Instead of computing
+                                                                            0
+the coloring deterministically, we instead assign each node one out of ∆c colors for some fixed
+positive constant c0  1, independently and uniformly at random. We say that a node fails if its
+chosen color is not unique in its 2-hop neighborhood. Note that a given node fails with probability
+                 0
+at most 1/∆Ω(c ) . We then postpone the assignment of each random variable that affects any
+of the failed nodes. For all the other random variables, we run the same process as described
+in [FG17] by iterating through the poly(∆) = O(1) color classes in O(1) rounds of the LOCAL
+model. The pre-shattering phase of [FG17] still deterministically guarantees that each bad event
+occurs with probability 1 − ∆−Ω(c) conditioned on the random variables set in the pre-shattering
+phase. Moreover, each bad event that does not correspond to a failed node occurs with probability
+0 after the pre-shattering partial assignment with probability at least 1−∆−Ω(c) , independent of the
+randomness outside the c1 -hop neighborhood. An application of Lemma 6.2 therefore guarantees
+that by choosing c and c0 large enough, each connected component after the pre-shattering phase
+has a size of O(log n) with high probability in n, thus concluding the proof of Theorem 6.1.
+Lemma 6.2 (The Shattering Lemma, cf. with Lemma 2.3 of [FG17]). Let G = (V, E) be a graph
+with maximum degree ∆ = O(1). Consider a process which generates a random subset B ⊆ V where
+P r[v ∈ B] ≤ ∆−c1 , for some constant c1 ≥ 1, independent on the randomness of nodes outside the
+c2 -hop neighborhood of v, for all v ∈ V , for some constant c2 ≥ 1. Then, with probability at least
+
+
+                                                 15
+1 − n−c3 , for any constant c3 < c1 − 4c2 − 2, we have that each connected component of G[B] has
+size O(log n).
+
+
+
+7    Lower Bound for Constant Coloring
+Theorem 1.4. Let c ≥ 2 be arbitrary. Then, the deterministic VOLUME complexity of c-coloring
+bounded degree trees with maximum degree poly(c) is Θ(n).
+
+Proof. The upper bound of O(n) follows trivially from the fact that every tree is bipartite. To prove
+the lower bound, assume for the sake of contradiction that there exists a deterministic VOLUME
+algorithm A that c-colors a bounded degree tree with o(n) probes. By a result from Bollobás [Bol78],
+there exists a (connected) graph G on n nodes with chromatic number strictly greater than c that has
+a constant maximum degree ∆G (with the constant only depending on c) and girth g = Ω(logc n).
+Now, we consider the unique infinite ∆H -regular graph H (up to isomorphism) that contains G as
+an induced subgraph and G and H have the same set of cycles. We choose ∆H as small as possible
+such that (∆H − 1)g/4 ≥ n10 . Note that ∆H = poly(∆G ) and therefore H has constant maximum
+degree. Now, we assign each node in H an identifier uniformly and independently at random from
+the set {1, 2, . . . , n10 }. Note that these identifiers are not unique. Moreover, we also randomize
+the port assignment in H such that each node chooses its port assignment independently and each
+permutation has the same probability to be chosen. Now, for every query corresponding to a node
+in G, we run algorithm A on H to provide an answer to the query. Even though H has an infinite
+number of vertices and contains cycles, we tell A that it is a tree with exactly n vertices. Note that
+the range of identifiers supports that illusion, though the algorithm might encounter two nodes
+with the same ID or detect a cycle. We now need the following claim.
+Claim. With strictly positive probability over the randomness of the ID-and port assignment, all
+nodes probed by A while answering the n different queries got assigned pair-wise distinct IDs.
+Moreover, while answering the query for some node v, A does not probe a node u corresponding to
+a node in G such that the distance between u and v is at least g/4.
+    Before we prove this claim (in Lemma 7.1), we show how it implies Theorem 1.4. According to
+the probabilistic method, there exists a fixed assignment of identifiers and ports such that when we
+run the process described above with this fixed assignment, there do not exist two distinct nodes
+that got assigned the same ID such that A probed these two nodes at some point in the process
+of answering the n different queries, and for each node v that A is queried on, A does not probe
+a node u corresponding to a node in G during answering the query for v such that the distance
+between u and v is strictly greater than g/4. Now, let v and w be two arbitrary neighboring nodes
+in the graph G. Consider the graph induced by all the nodes that A has probed in the graph H
+when answering the query for v and w. Note that this induced graph does not contain any cycle, as
+otherwise when queried on v or w, algorithm A would have seen a node in G with a distance strictly
+greater than g/4. Hence, the induced graph is a bounded-degree forest with o(n) vertices and all
+the vertices have a unique identifier. Hence, for n large enough, we can add additional vertices and
+edges to make it a bounded-degree tree Tv,w on n vertices such that Tv,w would be a valid input
+to the algorithm and when queried on Tv,w , the colors that A outputs at v and w would still be
+the same as when queried on H. Note that here we make use of the fact that A is deterministic,
+as otherwise we would not have the guarantee that A would probe the exact same vertices in the
+exact same order. Now, as we assumed that G has a chromatic number strictly greater than c,
+
+
+                                                 16
+there are two neighboring nodes v, w in G that get assigned the same color by A. As these two
+nodes are also neighboring in Tv,w , A outputs the same color for two neighboring nodes in Tv,w .
+This is however a contradiction as Tv,w is a valid input for A and we assumed that A is a correct
+deterministic algorithm.
+
+   It remains to prove the claim in the proof of Theorem 1.4, which we restate as Lemma 7.1.
+
+Lemma 7.1. With strictly positive probability over the randomness of the ID-and port assignment,
+there do not exist two distinct nodes that got assigned the same ID such that A probed these two
+nodes at some point in the process of answering the n different queries. Moreover, while answering
+the query for some node v, A does not probe a node u corresponding to a node in G such that the
+distance between u and v is at least g/4.
+
+Proof. First, note that A performs at most n2 probes to answer the n queries and therefore sees at
+most n2 different nodes. For i 6= j ∈ [n2 ], let Aij be the event that the i-th and the j-th vertex that
+A probes are distinct vertices and have the same ID. We have P r[Aij ] = 1/n10 and thus a union
+bound over the n4 pairs implies that the first part of the lemma holds with probability 1 − 1/n6 .
+    Before showing that the second part of the lemma holds with probability at least 1/2, we first
+give some intuition why it holds. Let v be a node in H corresponding to a node in G. As the girth
+of H is g and H is ∆H -regular, the g/4-hop neighborhood around v is a tree with each node having
+a degree of ∆H except the leaf vertices. Note that the total number of leaf vertices is at least n10 ,
+but at most n of them correspond to nodes in G. Hence, it is intuitively hard for A to probe any
+of the leaf vertices corresponding to nodes in G. However, it needs to probe such a vertex in order
+to find a node in G having a distance strictly greater than g/4. Though the intuition is simple, one
+needs to carefully argue that this intuition is correct. To do so, we perform a series of reductions.
+For the sake of contradiction, assume that A finds with probability at least 1/n2 a vertex in G that
+has a distance of g/4 to a given queried vertex that corresponds to a node in G.
+Reduction 1: Omitting the Identifiers: First, we argue that A does not really need the random
+identifiers. To do so, consider a VOLUME model variant in which the algorithm itself assigns IDs
+to vertices. That is, each time the algorithm probes a vertex it has not encountered before it can
+assign this vertex a new ID. Now, consider the following randomized algorithm A0 that works in this
+new setting by assigning each newly encountered vertex an identifier uniformly and independently
+at random from the set {1, 2, . . . , n10 } and then simulating algorithm A with these self-assigned
+IDs. Then, both A and A0 have exactly the same probability of finding a vertex that corresponds
+to a vertex in G and that has a distance of at least g/4 to the queried vertex v.
+Reduction 2: No Probes Outside the g/4-hop neighborhood: For the next reduction, we
+consider the setting with self-assigned identifiers as above and add the following modification. Once
+an algorithm encounters some vertex with a distance of exactly g/4 to the originally queried vertex
+v, we tell the algorithm whether this vertex corresponds to a vertex in G or not. Furthermore, we
+do not allow any probes outside the g/4-hop neighborhood around v. Thus, the algorithm only gets
+to know vertices inside the g/4-hop neighborhood of v. Now, we explain how to turn a randomized
+algorithm that works in the setting with the self-assigned IDs into an algorithm that has the exact
+same probability of finding a far-away vertex that corresponds to a vertex in G in this new setting
+described above. We again simulate the randomized algorithm. If the algorithm encounters a
+vertex that corresponds to a vertex in G with a distance of g/4 to v, then the algorithm simply
+stops the execution as the algorithm has achieved its goal. Otherwise, if the algorithm would like
+to make a probe outside the g/4-hop neighborhood, then the algorithm virtually simulates these
+probes. The structure of the graph outside the g/4-hop neighborhood (not counting the vertices
+
+
+                                                  17
+that correspond to nodes in G) is completely known to the algorithm without making any probes.
+The only unknown are the port assignments. However, the algorithm can make up a random port
+assignment in its mind (with exactly the same distribution as the port assignment would have in
+the real graph) and then answer the probes accordingly. It is easy to see that this new algorithm
+succeeds with the same probability as the previous algorithm.
+Reduction 3: Guessing Game: For a given port assignment of H, we define an order on all
+the nodes of distance precisely g/4 from v in the following way: We associate with each such node
+the sequence of ports one needs to take to get from v to the respective vertex. Then, we order
+the vertices according to the lexicographical order of their associated sequences. Let Ng/4 ≥ n10
+be the number of nodes with a distance of g/4 to v. With each port assignment p of the g/4-hop
+neighborhood around v, we identify a tuple tupp ∈ {0, 1}Ng/4 . We set (tupp )i = 1 if the i-th vertex
+with respect to the order defined corresponds to a vertex in G and 0 otherwise. Thus, tupp contains
+at most n non-zero entries.
+     Consider the distribution over {0, 1}Ng/4 that we get by choosing the port assignment at random
+as described in the beginning. Now, we define the following game: A port assignment p is chosen
+uniformly at random. This port assignment is generally unknown to the algorithm. The only
+information the algorithm obtains about the port assignment is, for each vertex, the port number
+corresponding to the edge leading to the parent of the vertex. By parent, we mean the parent with
+respect to the tree rooted at v induced by the g/4-hop neighborhood of v. Now, the task of the
+(randomized) algorithm is to output an index set I ⊂ [Ng/4 ] with |I| ≤ n. The algorithm is said to
+win the game if there exists an index ind ∈ I such that (tupp )ind = 1.
+     We show that we can construct a (randomized) algorithm that wins the game with a probability
+of at least 1/n2 when given the algorithm from the previous setting (which finds a vertex that
+corresponds to a node in G and that has a distance of g/4 to v with probability of at least 1/n2 )
+as a subroutine. To do this, we simulate the algorithm from the previous subsection. Then, we
+take I as the index set corresponding to all the vertices of distance g/4 to v that the algorithm
+“finds” during the execution. Note that in order to determine the corresponding index set, we need
+to know the position of any examined vertex in the lexicographical order. However, this can be
+done as it is sufficient to know the port assignments of all the parents. To be able to simulate the
+algorithm from the previous section we need to provide the neighborhood oracle corresponding to
+the chosen port assignment p. Although p is not completely known, this can actually be done as
+it is sufficient to just know the port number corresponding to the parent. Furthermore, we need
+to answer whether a vertex of distance g/4 that the algorithm probes corresponds to a vertex in
+G or not. This is actually not possible. However, it is sufficient to always tell the algorithm that
+the vertex does not correspond to a node in G. Now, we show that we win the guessing game
+with probability at least 1/n2 . This can be seen as follows: Let p be the selected port assignment
+function and r the random bits that the simulated algorithm uses. Assume that the algorithm loses
+the game. Now, consider the simulated algorithm is run in the previous setting with the same port
+assignment function and the same random bits. Then, the algorithm would not have found a vertex
+of distance g/4 to v that corresponds to a node in G. This follows as the execution is identical in
+both cases as the oracle calls and the answers to whether a vertex of distance g/4 to v corresponds
+to a node in G is answered in the same way in both cases.
+Guessing Game is Impossible: Next, we show that the game that we have defined above
+cannot be won with a probability of at least 1/n2 . To that end, consider some fixed index set I =
+{ind1 , ..., indk } with k ≤ n. For i ∈ [k], we define Ai as the event that the sequence seq ∈ {0, 1}Ng/4
+chosen in the game satisfies seqindi = 1. Also note that Ai is independent from the information
+given to the algorithm, i.e., the collection of port numbers corresponding, for each vertex, to the
+
+
+                                                   18
+edge leading to its parent. By symmetry, we have
+                                                       n     1
+                                         P r[Ai ] ≤        ≤ 9.
+                                                      Ng/4  n
+                                S
+   Furthermore, we define A = i∈I Ai . A corresponds exactly to the event that one wins the
+game if one had chosen the index set I. Thus, we can use a union bound to get:
+                                         [            X                     1     1
+                         P r[A] = P r[       Ai ] ≤        P r[Ai ] ≤ k ·     9
+                                                                                ≤ 8.
+                                                                            n    n
+                                         i            i
+
+   Hence, we arrived at a contradiction, which proves Lemma 7.1 (and therefore Theorem 1.4).
+
+
+Acknowledgements
+We thank Mohsen Ghaffari, Jan Grebı́k, and Jukka Suomela for useful discussions. This project has
+received funding from the European Research Council (ERC) under the European Unions Horizon
+2020 research and innovation programme (grant agreement No. 853109).
+
+
+References
+[ARVX12] Noga Alon, Ronitt Rubinfeld, Shai Vardi, and Ning Xie. Space-efficient local computa-
+         tion algorithms. In Proceedings of the Twenty-Third Annual ACM-SIAM Symposium
+         on Discrete Algorithms (SODA), pages 1132–1139. SIAM, 2012.
+
+[BCG+ 21] Sebastian Brandt, Yi-Jun Chang, Jan Grebı́k, Christoph Grunau, Václav Rozhoň, and
+          Zoltán Vidnyánszky. Local problems on trees from the perspectives of distributed
+          algorithms, finitary factors, and descriptive combinatorics, 2021.
+
+[BFH+ 16] Sebastian Brandt, Orr Fischer, Juho Hirvonen, Barbara Keller, Tuomo Lempiäinen,
+          Joel Rybicki, Jukka Suomela, and Jara Uitto. A lower bound for the distributed Lovász
+          local lemma. In Proc. 48th ACM Symp. on Theory of Computing (STOC), pages 479–
+          488, 2016.
+
+[BGR20]    Sebastian Brandt, Christoph Grunau, and Václav Rozhoň. Generalizing the sharp
+           threshold phenomenon for the distributed complexity of the Lovász local lemma. In
+           Proceedings of the 39th Symposium on Principles of Distributed Computing (PODC),
+           pages 329–338, 2020.
+
+[BMU19]    Sebastian Brandt, Yannic Maus, and Jara Uitto. A sharp threshold phenomenon for
+           the distributed complexity of the Lovász local lemma. In Proceedings of the 2019 ACM
+           Symposium on Principles of Distributed Computing (PODC), pages 389–398, 2019.
+
+[Bol78]    Béla Bollobás. Chromatic number, girth and maximal degree. Discrete Mathematics,
+           24(3):311–314, 1978.
+
+[CKP16]    Yi-Jun Chang, Tsvi Kopelowitz, and Seth Pettie. An exponential separation between
+           randomized and deterministic complexity in the LOCAL model. In Proc. 57th IEEE
+           Symp. on Foundations of Computer Science (FOCS), 2016.
+
+
+
+
+                                                      19
+[CP17]     Yi-Jun Chang and Seth Pettie. A time hierarchy theorem for the LOCAL model. In
+           Proc. 58th IEEE Symp. on Foundations of Computer Science (FOCS), pages 156–167,
+           2017.
+
+[DK21]     Andrzej Dorobisz and Jakub Kozik. Local computation algorithms for coloring of uni-
+           form hypergraphs. arXiv preprint arXiv:2103.10990, 2021.
+
+[EL74]     Paul Erdős and Lovász László. Problems and results on 3-chromatic hypergraphs and
+           some related questions. Coll Math Soc J Bolyai, 10, 01 1974.
+
+[EMR14]    Guy Even, Moti Medina, and Dana Ron. Deterministic stateless centralized local al-
+           gorithms for bounded degree graphs. In European Symposium on Algorithms (ESA),
+           pages 394–405. Springer, 2014.
+
+[FG17]     Manuela Fischer and Mohsen Ghaffari. Sublogarithmic distributed algorithms for
+           Lovász local lemma, and the complexity hierarchy. In Proc. 31st Symp. on Distributed
+           Computing (DISC), pages 18:1–18:16, 2017.
+
+[GGR21]    Mohsen Ghaffari, Christoph Grunau, and Václav Rozhoň. Improved deterministic net-
+           work decomposition. In Proceedings of the 2021 ACM-SIAM Symposium on Discrete
+           Algorithms (SODA), pages 2904–2923. SIAM, 2021.
+
+[Gha19]    Mohsen Ghaffari. Distributed maximal independent set using small messages. In Proc.
+           ACM-SIAM Symp. on Discrete Algorithms (SODA), pages 805–820, 2019.
+
+[GHL+ 16] Mika Göös, Juho Hirvonen, Reut Levi, Moti Medina, and Jukka Suomela. Non-local
+          probes do not help with many graph problems. In Cyril Gavoille and David Ilcinkas, ed-
+          itors, Distributed Computing, pages 201–214, Berlin, Heidelberg, 2016. Springer Berlin
+          Heidelberg.
+
+[GMRV20] Christoph Grunau, Slobodan Mitrović, Ronitt Rubinfeld, and Ali Vakilian. Improved
+         local computation algorithm for set cover via sparsification. In Proceedings of the Four-
+         teenth Annual ACM-SIAM Symposium on Discrete Algorithms (SODA), pages 2993–
+         3011. SIAM, 2020.
+
+[KSV10]    Howard Karloff, Siddharth Suri, and Sergei Vassilvitskii. A model of computation for
+           mapreduce. In Proceedings of the Twenty-First Annual ACM-SIAM Symposium on
+           Discrete Algorithms (SODA), pages 938–948. SIAM, 2010.
+
+[Lin92]    Nati Linial. Locality in distributed graph algorithms. SIAM Journal on Computing,
+           21(1):193–201, 1992.
+
+[Mar13]    A. Marks. A determinacy approach to Borel combinatorics. Journal of the American
+           Mathematical Society, 29:579–600, 2013.
+
+[MT10]     Robin A. Moser and Gábor Tardos. A constructive proof of the general Lovász local
+           lemma. Journal of the ACM (JACM), 57(2):1–15, 2010.
+
+[oei]      Oeis foundation inc. (2019), the on-line encyclopedia of integer sequences. http://
+           oeis.org/A000081.
+
+[Pel00]    David Peleg. Distributed Computing: A Locality-Sensitive Approach. SIAM, 2000.
+
+
+                                               20
+[PR07]      Michal Parnas and Dana Ron. Approximating the minimum vertex cover in sublin-
+            ear time and a connection to distributed algorithms. Theoretical Computer Science,
+            381(1):183–196, 2007.
+
+[RG20]      Václav Rozhoň and Mohsen Ghaffari. Polylogarithmic-time deterministic network de-
+            composition and distributed derandomization. In Proc. Symposium on Theory of Com-
+            putation (STOC), 2020.
+
+[RS20]      Will Rosenbaum and Jukka Suomela. Seeing far vs. seeing wide: Volume complexity
+            of local graph problems. In Proceedings of the 39th Symposium on Principles of Dis-
+            tributed Computing (PODC), page 89–98, New York, NY, USA, 2020. Association for
+            Computing Machinery.
+
+[RTVX11] Ronitt Rubinfeld, Gil Tamir, Shai Vardi, and Ning Xie. Fast local computation algo-
+         rithms. In Innovations in Computer Science - ICS 2011, Tsinghua University, Beijing,
+         China, January 7-9, 2011. Proceedings, pages 223–238, 2011.
+
+
+A     Missing proofs from Section 5
+Here we prove Lemma 5.3.
+
+Proof. In the following, we assume that both ∆ and R are sufficiently large. Furthermore, we define
+n := ∆1000R . We let each Hi be equal to an Erdős-Rényi graph with n vertices and where each
+edge is included with probability p = ∆2 /n.
+   The expected number of cycles of length less than 10R in H is upper bounded by
+                           10R−1               10R−1
+                            X
+                                    j    j
+                                                X              j
+                                   n (∆p) =               ∆3        ≤ ∆10R ≤ n1/100 .
+                            j=2                    j=2
+
+    Let Vcycle denote the set of all vertices that are contained in a cycle of length less than R in H.
+It holds that |Vcycle | ≤ n1/2 with probability at least 99/100. Next, we denote with Vdeg the set of
+all vertices whose degree in some Hi is 0 or the degree is at least ∆10 in H. As the expected degree
+of each node in Hi is at least 0.5∆2 and the expected degree of each node in H is at most ∆3 , a
+Chernoff Bound followed by a union bound implies that a given vertex v ∈ V (H) is contained in
+                                          2                                                          2
+Vdeg with probability at most ∆ · e−Θ(∆ ) . Hence, the expected size of Vdeg is at most n · ∆ · e−Θ(∆ ) .
+                                   99
+Thus, with probability at least 100   it holds that |Vdeg | ≤ ∆n10 .
+Next, we bound the probability that there exists a subset S consisting of d ∆2n10 e many vertices such
+that
+                                             X                      n
+                                                   degH (v) ≥          .
+                                                                    ∆2
+                                             v∈S
+                                                   P
+    For a fixed set S, the expected value of         v∈S degH (v) is at most
+
+                                             ∆3 |S|
+                                                
+                                                       n
+                                                    ≤     .
+                                             n   2    2∆2
+    Hence, by a Chernoff Bound followed by a union bound, the probability that we have such a
+set S is at most
+
+
+
+                                                         21
+                                    
+                               n                2                10          2     1
+                                       · e−Θ(n/∆ ) ≤ (e∆10 )d2n/∆ e · e−Θ(n/∆ ) ≤     .
+                            d2n/∆10 e                                             100
+   Next, we bound the probability that the size of the largest independent set in Hi is at least
+dn/∆3/2 e for some i ∈ [∆]. We can upper bound the probability by
+
+
+                                             (dn/∆3/2 e)              dn/∆3/2 e
+                             
+                       n                                      
+                 ∆·             · 1 − ∆ 2
+                                          /n      2
+                                                          ≤ ∆   e∆ 3/2
+                                                                                  e−Θ(n/∆)
+                    dn/∆3/2 e
+                                                                               3/2 )
+                                                              ≤ eΘ(log(∆)n/∆           e−Θ(n/∆)
+                                                              = e−Θ(n/∆)
+                                                                 1
+                                                              ≤     .
+                                                                100
+    Now, let Vrem := Vdeg ∪ Vcycle and denote with Vf ix the set of all vertices that have at least one
+neighbor in Vrem . We can assume the following.
+    • |Vrem | ≤ ∆2n10
+    • |Vf ix | ≤ ∆n2
+    • For each i ∈ [∆], the size of the largest independent set in Hi is at most ∆n3/2 .
+    Now, let H 0 , H10 , . . . , H∆0 denote the graphs obtained from H, H , . . . , H by removing all the
+                                                                                    1        ∆
+vertices in Vrem . The girth of H 0 is at least R, the maximum degree of H 0 is at most ∆10 − 1 and
+H 0 has at least n/2 vertices. Now, let V0 denote the set of vertices that have a degree of 0 in one of
+the Hi0 ’s. As V0 ⊆ Vf ix , we can deduce that |V0 | ≤ |Vf ix |. Next, we iteratively do the following: as
+long as there exists some vertex v ∈ V (H 0 ) and some i ∈ [∆] such that degHi0 (v) = 0, we add one
+edge incident to v to Hi0 (and therefore H 0 ) such that the girth of H 0 is still at least 10R and the
+maximum degree of H 0 is at most ∆10 . Note that we add at most |V0 |∆ ≤ ∆                     n
+                                                                                                 edges in total. To
+                                                                                            10 10R+1    √
+show that we can always add such an edge, note that there are at most (∆ )                            ≤ n vertices
+                                                                                   √      n
+with a distance less than R to v. Hence, there are at least n/2 − n − ∆                      vertices with a degree
+               10                0
+of at most ∆ − 1 in H and a distance of at least 10R to v. Hence, we can add such an edge to
+Hi0 (and therefore H 0 ) such that H 0 still has a maximum degree of at most ∆10 and a girth of at
+least 10R. Now, let H 00 , H100 , . . . , H∆
+                                           00 denote the graphs obtained after we have added all the edges.
+
+The resulting graph H has at least n/2 vertices and the girth of H 00 is at least 10R. Moreover,
+                              00
+
+the degree of each vertex in Hi00 is at least 1 and the size of the largest independent set in Hi00 is at
+                    00 )|
+most ∆n3/2 < |V (H∆       . Hence, H100 , H200 , . . . , H∆
+                                                          00 satisfy our desired properties.
+
+
+
+
+   Next, we prove Theorem 5.10. The proof follows along the lines of [BFH+ 16]. It is in fact
+simpler as one does not need to keep track of probabilities.
+
+Proof. Assume that there is a t-round LOCAL algorithm A with t ≤ k that solves Sinkless Orien-
+tation on an infinite ∆-regular tree that is properly ∆-edge colored and H(k, ∆)-labeled. We show
+that then there is also a (t−1/2)-round LOCAL algorithm A0 for the same problem, that is, an algo-
+rithm where the decision of each edge e = (u, v) depends on B(e, t − 1) := B(u, t − 1) ∪ B(v, t − 1).
+The algorithm A0 considers all possible ways how B(u, t) \ B(e, t − 1) can be extended with an
+H(k, ∆)-labeling and if there is one such extension such that A orients the half-edge (u, e) out,
+then A0 orients e in the direction from u to v. The same holds for v and if neither case oc-
+curs, e is oriented arbitrarily. Observe that it cannot happen that both B(u, t) \ B(e, t − 1) and
+
+                                                        22
+B(v, t) \ B(e, t − 1) can be extended with an H(k, ∆)-labeling such that A orients both (u, e) out
+and (v, e) out as this would mean that A is not correct. Here we importantly use the fact that a
+valid H-extension for B(u, t) \ B(e, t − 1) and a valid H-extension for B(v, t) \ B(e, t − 1) can be
+naturally “glued” together so as to yield one valid H-extension. An analogous reasoning allows us
+to transform A0 into a (t − 1)-round algorithm A00 .
+    Repeating the above reasoning we conclude that a 0-round algorithm A∗ exists. Such an al-
+gorithm decides for each vertex the orientation of its half-edges only based on its H(k, ∆)-label.
+As for each vertex A∗ needs to orient at least one of its half-edges in the outward direction, we
+can color each vertex of H(k, ∆) with a color from [∆] such that A∗ orients the edge with the
+respective color outwards. By the pigeonhole principle, there exists a color c ∈ [∆] such that at
+least a (1/∆)-fraction of vertices of H is colored with c. However, Definition 5.2 implies that the
+set of vertices colored by c in H(k, ∆) is not independent in Hc . Hence, we get an example of a
+two-node configuration where A∗ fails, a contradiction.
+
+
+
+
+                                                23
+

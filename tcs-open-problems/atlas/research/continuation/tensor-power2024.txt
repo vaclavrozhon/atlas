@@ -1,0 +1,2770 @@
+Journal of Machine Learning Research 25 (2024) 1-42             Submitted 1/24; Revised 5/24; Published 6/24
+
+
+
+
+         Sharp Analysis of Power Iteration for Tensor PCA
+
+Yuchen Wu                                                               wuyc14@wharton.upenn.edu
+Department of Statistics and Data Science
+University of Pennsylvania
+Philadelphia, PA 19104-6303, USA
+Kangjie Zhou                                                                   kangjie@stanford.edu
+Department of Statistics
+Stanford University
+Stanford, CA 94305-2004, USA
+
+
+Editor: Daniel Hsu
+
+
+                                                Abstract
+     We investigate the power iteration algorithm for the tensor PCA model introduced in
+     Richard and Montanari (2014). Previous work studying the properties of tensor power
+     iteration is either limited to a constant number of iterations, or requires a non-trivial data-
+     independent initialization. In this paper, we move beyond these limitations and analyze the
+     dynamics of randomly initialized tensor power iteration up to polynomially many steps. Our
+     contributions are threefold: First, we establish sharp bounds on the number of iterations
+     required for power method to converge to the planted signal, for a broad range of the signal-
+     to-noise ratios. Second, our analysis reveals that the actual algorithmic threshold for power
+     iteration is smaller than the one conjectured in the literature by a polylog(n) factor, where
+     n is the ambient dimension. Finally, we propose a simple and effective stopping criterion
+     for power iteration, which provably outputs a solution that is highly correlated with the
+     true signal. Extensive numerical experiments verify our theoretical results.
+     Keywords: Spiked model, tensor PCA, power iteration, approximate message passing,
+     non-convex optimization
+
+
+1. Introduction
+Tensors are multi-dimensional arrays that have found wide applications across various do-
+mains, including neuroscience (Wozniak et al., 2007; Zhou et al., 2013), recommendation
+systems (Rendle and Schmidt-Thieme, 2010; Shah and Yu, 2019), image processing (Liu
+et al., 2012; Sidiropoulos et al., 2017), community detection (Nickel et al., 2011; Jing et al.,
+2021), and genomics (Hore et al., 2016; Wang et al., 2019). In these applications, oftentimes
+the tensor exhibits a low-rank structure, meaning that the data admits the form of a low-
+dimensional signal corrupted by random noise. Efficient recovery of this intrinsic low-rank
+signal not only facilitates various important machine learning tasks, e.g., clustering (Zhou
+et al., 2019; Luo and Zhang, 2022; Zhou and Chen, 2023), but also spurs the development
+of important methodologies in the field of scientific computing (Khoromskij and Schwab,
+2011; Grasedyck et al., 2013).
+    In this paper, we study the problem of recovering a low-rank tensor from noisy observa-
+tions of its entries. Such a problem is also known as Tensor Principal Component Analysis
+
+c 2024 Yuchen Wu and Kangjie Zhou.
+License: CC-BY 4.0, see https://creativecommons.org/licenses/by/4.0/. Attribution requirements are provided
+at http://jmlr.org/papers/v25/24-0006.html.
+                                          Wu and Zhou
+
+
+
+
+(Tensor PCA) in the literature. To set the stage, we consider the single-spike model pro-
+posed by Richard and Montanari (Richard and Montanari, 2014). Under this model, we
+observe a k-th order rank-one tensor corrupted by random noise:
+                                         T = λn v ⊗k + W .                                          (1)
+Here, λn > 0 is the signal-to-noise ratio that depends on the ambient dimension n, v ∈ Sn−1
+is a planted signal that lies on the n-dimensional unit sphere, and W ∈ (Rn )⊗k stands for
+the random noise that has i.i.d. standard Gaussian entries and is independent of the signal.
+We denote by k ∈ N+ the order of the tensor. The special case k = 2 has been well studied
+by statisticians, where model (1) reduces to the spiked Wigner model (Johnstone, 2001).
+In particular, detection and estimation problems under the spiked matrix model have been
+extensively investigated under various contexts (Johnstone, 2001; Baik et al., 2005; Benaych-
+Georges and Nadakuditi, 2012; Lelarge and Miolane, 2019; Montanari and Wu, 2022), and
+numerous computationally efficient algorithms have been proposed to recover the signal
+(Journée et al., 2010; Ma, 2013; Deshpande et al., 2016; Montanari and Venkataramanan,
+2021). The main focus of the present paper will be tensors of order k ≥ 3.
+    Comparing to its matrix counterpart, tensor problems with order k ≥ 3 are, in many
+scenarios, much more challenging. For instance, the spectral decomposition of a matrix or
+matrix PCA can be performed efficiently using polynomial-time algorithms, while tensor
+decomposition and tensor PCA are known to be NP-hard (Hillar and Lim, 2013). Despite
+the NP-hardness of tensor PCA, researchers have designed scalable algorithms that are
+capable of recovering the planted signal, if one additionally assumes that the data are ran-
+dom and follow natural distributional assumptions. This random data perspective not only
+simplifies analysis in many scenarios, but also offers valuable insights on the computational
+complexity and estimation accuracy of the proposed methodologies from an average-case
+point of view. Exemplary algorithms that come with average-case theoretical guarantees
+include iterative algorithms (Ma, 2013; Anandkumar et al., 2017a; Zhang and Xia, 2018;
+Arous et al., 2020; Han et al., 2022; Huang et al., 2022), sum-of-squares (SOS) algorithms
+(Hopkins et al., 2015, 2016; Potechin and Steurer, 2017; Kim et al., 2017), and spectral
+algorithms (Montanari and Sun, 2018; Xia and Yuan, 2019; Cai et al., 2019).
+    Another striking feature of the tensor PCA model (1) is that it exhibits the so-called
+computational-to-statistical gap, meaning that there exists regime of signal-to-noise ratios
+within which it is information theoretically possible to recover the planted signal, while
+no polynomial-time algorithms are known (Berthet and Rigollet, 2013; Arous et al., 2019;
+Gamarnik, 2021; Dudeja and Hsu, 2021). A sequence of works have established that the
+                                                                    √
+information-theoretic threshold of tensor PCA (1) is of order Θ( n) (Richard and Monta-
+nari, 2014; Lesieur et al., 2017; Chen, 2019). On the other hand, the algorithmic threshold—
+the minimal signal-to-noise ratio above which recovery is efficiently achievable—is conjec-
+tured to be Θ(nk/4 ) (Richard and Montanari, 2014).1 This critical threshold, in fact, has
+been achieved by various algorithms which originate from different ideas (Hopkins et al.,
+2015; Anandkumar et al., 2017a; Biroli et al., 2020).
+    In spite of the strong theoretical guarantees achieved by strategically crafted algorithms,
+in practice, it is often preferable to resort to simple iterative algorithms. Among them,
+1. Under the scaling of Richard and Montanari (2014), these two thresholds are Θ(1) (constant order) and
+   Θ(n(k−2)/4 ), respectively.
+
+
+                                                  2
+                   Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+tensor power iteration has been extensively applied to solving a large number of tensor
+problems, e.g., tensor decomposition and tensor PCA (Kolda and Mayo, 2011; Richard
+and Montanari, 2014; Wang and Anandkumar, 2016; Anandkumar et al., 2017b; Huang
+et al., 2022; Wu and Zhou, 2023). For tensor PCA, doing power iteration is equivalent
+to running projected gradient ascent on a non-convex polynomial objective function with
+infinite step size. Towards understanding the dynamics of this algorithm, in Richard and
+Montanari (2014) the authors proved that tensor power iteration with random initialization
+converges rapidly to the true signal provided that λn & nk/2 . They also employed a heuristic
+argument to suggest that the necessary and sufficient condition for convergence is actually
+λn & n(k−1)/2 .2 Later, a more refined analysis was carried out by Huang et al. (2022). The
+authors showed that tensor power iteration with a constant number of iterates succeeds
+when λn & n(k−1)/2+ε , and fails when λn . n(k−1)/2−ε for an arbitrarily small positive
+constant ε, thus partially confirming the n(k−1)/2 threshold conjectured by Richard and
+Montanari (2014). However, their analysis is restricted to a fixed number of power iterates,
+and therefore fails to capture the dynamics of tensor power iteration when the number of
+iterations grows with the input dimension. Further, they did not characterize the asymptotic
+behavior of tensor power iteration when λn  n(k−1)/2 . Therefore, a complete picture is
+still lacking. As a side note, past works have also considered tensor power iteration with a
+warm start depending on some extra side information (Richard and Montanari, 2014; Huang
+et al., 2022). However, how to obtain such initialization in practice remains elusive. In this
+paper, we will only consider tensor power iteration with random initialization independent
+of the data.
+
+1.1 Our contribution
+This paper is devoted to establishing a more comprehensive picture of tensor power iteration
+starting from a random initialization. Our contributions are summarized below.
+Algorithmic threshold. First, we give a partial answer to the open problem in Richard
+and Montanari (2014). To be concrete, our results imply that tensor power iteration with a
+random initialization provably converges to the planted signal in polynomially many steps,
+requiring only λn & n(k−1)/2 (log n)−C for some positive constant C that depends only on
+k. Recall that the conjectured threshold in Richard and Montanari (2014) is Θ(n(k−1)/2 ),
+our conclusion actually shows that the true phase transition for power iteration occurs at
+a slightly lower signal-to-noise ratio than the one conjectured in Richard and Montanari
+(2014). In order to establish such a result, we introduce the concept of alignment to measure
+the correlation between the iterates obtained from power iteration and the planted signal,
+and show that the evolution of this alignment can be well approximated by a low-dimensional
+polynomial recurrence process. We then conduct a precise analysis on the dynamics of this
+process to establish the convergence of power iteration for tensor PCA.
+Number of iterations required for convergence. Second, we present a sharp char-
+acterization of the number of iterations required for convergence, for λn ranging from 
+n(k−1)/2 to  n(k−1)/2 . To be precise, when γn := n−(k−1)/2 λn ∈ [c, no(1) ] for c > 0 an arbi-
+trary constant that does not depend on n, we show that (1+on (1)) logk−1 (logk−1 n/ logk−1 γn )
+
+2. Again, under their scaling, these two conditions should be λn & n(k−1)/2 and λn & n(k−2)/2 , respectively.
+
+
+                                                     3
+                                       Wu and Zhou
+
+
+
+
+iterations are both necessary and sufficient for convergence to occur. In a different weak
+signal regime where (log n)−(k−2)/2  γn  1, we establish upper and lower bounds on
+the number of iterations that are of the same order of magnitude on a logarithmic scale
+(see Theorem 2.1 for a formal statement). Our analysis is similar to that of Huang et al.
+(2022). However, the technical treatment in Huang et al. (2022) is only able to analyze
+the dynamics of tensor power iteration up to a constant number of steps, which is not suf-
+ficient if the initialization is random. To overcome this difficulty, in this work we develop
+a novel Gaussian conditioning lemma (Lemma 3.1), which allows us to accurately analyze
+the dynamics of tensor power iteration up to polynomially many steps. To the best of our
+knowledge, this is the first result that studies the dynamics of tensor power iteration beyond
+a constant number of iterations under the setting of model (1).
+
+
+Stopping criterion. We also propose a stopping criterion that allows us to decide when
+to terminate the iteration in practice. Our proposal is simple, effective, and comes with
+rigorous theoretical guarantee. To summarize, the proposed stopping criterion finds an
+iterate that with high probability correlates well with the hidden spike. Besides, if we
+implement the proposed stopping rule, then the actual number of power iteration we im-
+plement matches well with the upper and lower bounds we have established, emphasizing
+both accuracy and efficiency of our proposal.
+
+
+Gaussian conditioning beyond constant steps. The tool that we employ to establish
+the above results is based on the Gaussian conditioning technique, which has been widely
+applied to analyze the Approximate Message Passing (AMP) algorithm (Bayati and Mon-
+tanari, 2011) as well as many other iterative algorithms. Prior art along this line of research
+mostly studies only a constant number of iterations. Encouragingly, recent years have wit-
+nessed significant progress towards generalizing such Gaussian conditioning type analysis to
+accommodate settings that allow the number of iterations to grow simultaneously with the
+input dimension (Rush and Venkataramanan, 2018; Li and Wei, 2022; Li et al., 2023; Wu
+and Zhou, 2023). Our work contributes to this active field of research by establishing the
+first result of this kind under the tensor PCA model (1). From a technical perspective, we
+believe our results not only push forward the development of AMP theory, but also enrich
+the toolbox to analyze general iterative algorithms.
+
+
+Future directions. One interesting future direction is to generalize our convergence anal-
+ysis to sub-Gaussian tensors, which requires developing non-asymptotic AMP-type analysis
+for sub-Gaussian random ensembles beyond a constant number of iterations, and is highly
+non-trivial. Progress in this direction is made only recently by Jones and Pesenti (2024),
+and their main results are based on some complicated combinatorial arguments.
+    Another fascinating future direction would be to extend our main results to the multi-
+rank case, namely, the observed tensor T is a rank-r tensor perturbed by random Gaussian
+noise for some r > 1. Under this setting, we believe that the same Gaussian conditioning
+technique can be employed to analyze the (properly defined) alignment between the power
+iterates and the planted rank-r signal, and we leave that for future work.
+
+                                              4
+                 Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+1.2 Organization
+The rest of this paper is organized as follows. Section 2 formulates the framework and gives
+our main result. We present the proof of the main theorem in Section 3, while deferring
+the proofs of several auxiliary lemmas to appendices. In Section 4 we report numerical
+experiments that support our theorems.
+
+1.3 Notation
+Throughout the proof, with a slight abuse of notation, we use letters c, C to represent
+various constants (which can only depend on the tensor order k), whose values might not
+necessarily be the same in each occurrence. For a matrix S ∈ Rd×m , we denote by ΠS ∈ Rd×d
+the projection matrix onto the column space of S, and let Π⊥     S := I d − ΠS . For n ∈ N+ , we
+define [n] = {1, 2, · · · , n}. For two sequences of positive numbers {an }n∈N+ and {bn }n∈N+ ,
+we say an & bn if there exists a positive constant c, such that an ≥ c bn , we say an = on (bn )
+if an /bn → 0 as n → ∞, and we say an  bn if an /bn → ∞ as n → ∞.
+
+2. Main results
+We summarize in this section our main results. We first give a formal definition of tensor
+power iteration from a random initialization. Then, we present our main theorem in which
+we determine the regime of convergence and characterize the number of iterations required.
+We also give a stopping criterion that determines when to terminate the power iteration.
+
+2.1 Tensor power iteration
+We denote by v 0 = ṽ 0 ∼ Unif(Sn−1 ) the random initialization that is independent of T.
+Tensor power iteration initialized at v 0 is defined recursively as follows:
+                   v t+1 = T[(ṽ t )⊗(k−1) ] = λn hv, ṽ t ik−1 v + W [(ṽ t )⊗(k−1) ],
+                               v t+1                                                          (2)
+                   ṽ t+1 =             ,
+                              kv t+1 k2
+where W [(ṽ t )⊗(k−1) ] is an n-dimensional vector whose i-th entry is hW , ei ⊗ (ṽ t )⊗(k−1) i.
+Here, ei is an n-dimensional vector that has the i-th entry being one and all the rest being
+zero.
+    As a side remark, iteration (2) can be regarded as projected gradient ascent with infinite
+step size for the following constrained optimization problem:
+                          maximize hT, σ ⊗k i,          subject to σ ∈ Sn−1 .
+
+2.2 Convergence analysis
+Next, we study the number of iterations required for algorithm (2) to converge. To this
+end, we first define the convergence criterion. For any fixed positive constant δ, let
+                          Tδconv := min t ∈ N+ : |hṽ t , vi| ≥ 1 − δ .
+                                       
+                                                                                       (3)
+Our main result provides upper and lower bounds on Tδconv , in a signal-to-noise ratio regime
+when we simultaneously have γn  (log n)−(k−2)/2 and γn = no(1) .
+
+                                                    5
+                                        Wu and Zhou
+
+
+
+
+Theorem 2.1 Recall that γn = n−(k−1)/2 λn . Assume γn  (log n)−(k−2)/2 and γn = no(1) .
+Then for any fixed δ, η > 0, with probability 1 − on (1) we have
+                 (                2/(k−2) !                                       )
+                          1 −  η  C k                                  log k−1 n
+   Tδconv ≥ max exp                             , (1 − η) logk−1                      ,
+                             2    γn                             max{logk−1 γn , 1}
+                          2/(k−2) !                                                   (4)
+                  1 +  η     1                                 log k−1  n
+   Tδconv ≤ exp                         + (1 + η) logk−1                       ,
+                     2      γn                             max{logk−1 γn , 1}
+
+where Ck = (k − 2)k−2 /(k − 1)k−1 .
+Remark 2.1 When γn & 1, Theorem 2.1 implies that
+                                          Tδconv            P
+                                           log     n
+                                                            → 1,                            (5)
+                                 logk−1 max{logk−1 γn ,1}
+                                                k−1
+
+which gives a sharp characeterization of the number of steps required for convergence. On
+the other hand, as γn drops below the constant level, Tδconv grows drastically, but is still
+polynomial in n provided that γn  (log n)−(k−2)/2 . In addition, based on the upper and
+lower bounds presented in the theorem, we conjecture that the time complexity of tensor
+power iteration is super-polynomial when γn  (log n)−(k−2)/2 . However, due to the use of
+the Gaussian conditioning scheme (Lemma 3.1), our current approach can only accurately
+analyze the dynamics of tensor power iteration up to polynomially many steps. Therefore,
+justifying this conjecture would require the development of new theoretical tools, which we
+leave for future work. Further, our Theorem 2.1 assumes γn = no(1) , since Huang et al.
+(2022) already proved that a constant number of power iterations is sufficient to recover the
+true signal when γn & nc , for any constant c > 0 that does not depend on n.
+   We present the proof of Theorem 2.1 in Section 3, with proofs of auxiliary lemmas and
+propositions deferred to the appendices.
+
+2.3 Stopping criterion
+Theorem 2.1 gives lower and upper bounds on the number of iterations required for con-
+vergence. However, the theorem falls short of providing practical guidance regarding when
+should we terminate the power iteration, as we do not assume we know any prior information
+about the signal-to-noise ratio λn , or equivalently γn .
+    To tackle this issue, we propose in this section a simple while effective stopping criterion
+that with high probability finds an iterate that aligns well with the hidden spike. In addition,
+we give upper and lower bounds on the actual number of power iterations we implement if
+we follow the proposed stopping criterion, which matches that introduced in Theorem 2.1.
+    To give a high level description, we propose to terminate the algorithm if we find any
+two consecutive iterates being moderately correlated with each other. To be precise, we
+define
+                          Tstop := inf t ∈ N+ : hṽ t−2 , ṽ t−3 i ≥ 1/2 .
+                                      
+                                                                                             (6)
+
+We shall output ṽ Tstop as an estimate of v. We give theoretical guarantee for our approach
+in the theorem below, which will be proved in Appendix F.
+
+                                               6
+                  Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+Theorem 2.2 We assume the conditions of Theorem 2.1. Then, for any positive constant
+δ, with probability 1 − on (1) we have |hṽ Tstop , vi| ≥ 1 − δ. In addition, with high probability
+we still get the upper and lower bounds as indicated in Eq. (4) if we replace Tδconv with Tstop .
+
+3. Proof of Theorem 2.1
+We present in this section the proof of Theorem 2.1. The idea is to track the alignment
+between the iterates obtained from tensor power iteration and the planted signal. Equipped
+with the Gaussian conditioning technique, we are able to control the difference between this
+alignment and a scalar polynomial recurrence process that we define below, and prove that
+they are with high probability close to each other. This allows us to simplify our analysis
+by resorting to a reduction, and the remaining convergence analysis is conducted directly
+on this polynomial recurrence process.
+
+3.1 Reduction to the polynomial recurrence process
+In this section we define the alignment with the true signal and show that it can be captured
+by a polynomial recurrence process.
+    For t ∈ N+ , we define
+                                                         √                k−1
+                         αt := λn hv, ṽ t−1 ik−1 = γn       nhv, ṽ t−1 i     .
+
+The magnitude of αt measures the level of alignment between the obtained iterates and
+the hidden spike. We also define α0 = 0 for convenience. In the first iteration, the ini-
+tial alignment is of the same order as γn , since by taking a random initialization roughly
+speaking we have |hv, ṽ 0 i|  n−1/2 . Throughout the paper, αt will be the key quantity that
+characterizes the evolution of iteration (2).
+    As we have mentioned, the main goal of this section is to establish that {αt }t∈N+ can
+be closely tracked by a one-dimensional discrete Markov process {Xt }t∈N , given by the
+following recurrence equation:
+
+                       X0 = 0,     and Xt+1 = γn (Xt + Zt )k−1 for t ≥ 0,                      (7)
+
+where {Zt }t∈N+ is a sequence of i.i.d. standard Gaussian random variables. To this end, we
+first develop the recurrence equation for the alignment sequence {αt }t∈N+ . Our derivation
+is based on the Gaussian conditioning technique, which has been widely applied to study
+the AMP algorithm (Bayati and Montanari, 2011).
+
+Decomposing tensor power iterates
+Next, we give a useful decomposition of the tensor power iterates. By definition of tensor
+power iteration, we have
+                                                       h              i
+                         v t+1 = λn hv, ṽ t ik−1 v + W (ṽ t )⊗(k−1)
+                                                 h          i
+                               = αt+1 v + W (ṽ t )⊗(k−1) ,
+
+where we recall that αt+1 = λn hv, ṽ t ik−1 .
+
+                                                 7
+                                                          Wu and Zhou
+
+
+
+
+    Before proceeding, we shall first introduce several concepts that are useful for our anal-
+ysis. For t ∈ N, we let V t ∈ Rn×(t+1) be a matrix whose i-th column is v i−1 . Based on the
+column space of V t , we can decompose the vector v t as v t = v t⊥ + v tk , where v t⊥ := Π⊥      V t−1 v
+                                                                                                           t
+
+and v tk := ΠV t−1 v t . Analogously, we set ṽ t⊥ = v t⊥ /kv t k2 and ṽ tk = v tk /kv t k2 as their nor-
+malized versions. When the original vector is an all-zero one, we simply set its normalized
+version to be itself.
+    We immediately see that the vectors {ṽ i⊥ /kṽ i⊥ k2 : 0 ≤ i ≤ t} form an orthonormal basis
+of the linear space spanned by {ṽ i : 0 ≤ i ≤ t}. As a consequence, ṽ t admits the following
+decomposition:
+                                           t
+                                          X   hṽ t , ṽ i⊥ i     ṽ i⊥
+                                   ṽ t =            i
+                                                              ·     i
+                                                                           .
+                                          i=0
+                                               kṽ   ⊥ k  2     kṽ ⊥  k 2
+
+For (i1 , · · · , ik−1 ) ∈ {0, 1, · · · , t}k−1 , we define
+                                            k−1       i
+                      (t)
+                                            Y     hṽ ⊥j , ṽ t i
+                    βi1 ,i2 ,··· ,ik−1 :=                 i
+                                                                    ∈ R,
+                                            j=1    kṽ ⊥j k2
+                                            k−1                h                                i
+                                                      i                                    ik−1
+                                            Y
+                    wi1 ,i2 ,··· ,ik−1 :=         kṽ ⊥j k−1
+                                                          2  W  ṽ i1
+                                                                   ⊥  ⊗ ṽ i2
+                                                                           ⊥  ⊗ · · · ⊗ ṽ ⊥      ∈ Rn .
+                                            j=1
+
+As will become clear soon, with probability 1 over the randomness of the data generation
+process, it holds that kṽ t⊥ k2 6= 0 for all t = O(n1/(2k−2) ). Therefore, wi1 ,i2 ,··· ,ik−1 and
+ (t)
+βi1 ,i2 ,··· ,ik−1 are almost surely well-defined. With these definitions, we see that v t+1 can be
+decomposed as the sum of the following terms:
+                                    h               i
+            v t+1 = αt+1 v + W (ṽ t )⊗(k−1)
+                                                    (t)
+                                        X
+                   = αt+1 v +                      βi1 ,i2 ,··· ,ik−1 wi1 ,i2 ,··· ,ik−1
+                              (i1 ,··· ,ik−1 )∈H t                                                                   (8)
+                                                                                            q
+                                                        (t)
+                                         X
+                   = αt+1 v +                        βi1 ,i2 ,··· ,ik−1 wi1 ,i2 ,··· ,ik−1 + 1 − kṽ tk k2k−2
+                                                                                                         2    gt+1 ,
+                               (i1 ,··· ,ik−1 )∈H t−1
+
+where H t = {0, 1, · · · , t}k−1 , and
+                            1                         X                (t)
+               gt+1 = q                                               βi1 ,i2 ,··· ,ik−1 wi1 ,i2 ,··· ,ik−1 .       (9)
+                               t 2k−2
+                       1 − kṽ k k2   (i1 ,i2 ,··· ,ik−1 )∈H t \H t−1
+
+Here, we make the convention that H −1 = ∅. In what follows, we will characterize the
+joint distribution of the vectors wi1 ,i2 ,··· ,ik−1 for all (i1 , i2 , · · · , ik−1 ) ∈ H t via a Gaussian
+conditioning lemma, and derive the relationship between αt+1 and αt .
+
+The Gaussian conditioning lemma
+As an important ingredient of our conditioning analysis, we introduce the sigma-algebra Ft ,
+which roughly speaking, is generated by the vectors associated with the first t iterations.
+To be precise, we define
+     Ft := σ wi1 ,i2 ,··· ,ik−1 : (i1 , i2 , · · · , ik−1 ) ∈ H t−1 ∪ g, v 0 , v 1 , · · · , v t , v .
+                                                                                                  
+                                                                                                       (10)
+
+                                                                      8
+                       Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+Notice that Ft ⊆ Ft+1 . With these notations, we state our Gaussian conditioning lemma
+as follows.
+Lemma 3.1 For all t < n and all (i1 , i2 , · · · , ik−1 ) ∈ H t \H t−1 , it holds that wi1 ,i2 ,··· ,ik−1 ⊥
+                                               i.i.d.
+Ft . Furthermore, wi1 ,i2 ,··· ,ik−1 ∼ N(0, I n ).
+The proof of Lemma 3.1 is deferred to Appendix B. With the aid of this lemma, we know
+that gt+1 is independent of the wi1 ,i2 ,··· ,ik−1 ’s for (i1 , · · · , ik−1 ) ∈ H t−1 . Further, since
+                                             2                                                     2
+                              (t)                                                   (t)
+               X                                                    X
+                            βi1 ,i2 ,··· ,ik−1 = 1 −                               βi1 ,i2 ,··· ,ik−1    (11)
+       (i1 ,i2 ,··· ,ik−1 )∈H t \H t−1                                     (i1 ,i2 ,··· ,ik−1 )∈H t−1
+                                                                           k−1 t−1         i
+                                                                           YX          hṽ ⊥j , ṽ t i2
+                                                                  =1 −                         i
+                                                                                                               (12)
+                                                                           j=1 ij =0   kṽ ⊥j k22
+                                                                             t−1
+                                                                                                  !k−1
+                                                                             X   hṽ i⊥ , ṽ t i2
+                                                                  =1 −                                         (13)
+                                                                             i=0
+                                                                                   kṽ i⊥ k22
+                                                                  = 1 − kṽ tk k2k−2
+                                                                                2    ,                         (14)
+it follows that gt+1 ∼ N(0, I n ).
+
+Recurrence equation for the alignment
+With the aid of Lemma 3.1 and decomposition (8), we are ready to establish the recurrence
+equation for the alignment. For notational convenience, we let
+                                              (t)
+                                   X
+                      ht+1 :=                βi1 ,i2 ,··· ,ik−1 wi1 ,i2 ,··· ,ik−1 ,
+                                              (i1 ,··· ,ik−1 )∈H t−1
+
+where we make the convention that h0 = 0. It then follows that
+                                          q
+                  v t+1 = αt+1 v + ht+1 + 1 − kṽ tk k2k−2
+                                                      2    gt+1 ,
+                                                 q
+             =⇒ hv t+1 , vi = αt+1 + hht+1 , vi + 1 − kṽ tk k2k−2
+                                                              2    hgt+1 , vi,
+
+which further implies
+                                                             √         k−1
+                           t+1          k−1                       n
+        αt+2 = λn hṽ            , vi         = γn ·                           · hv t+1 , vik−1
+                                                            kv t+1 k2
+                             √          k−1                                                        k−1
+                                  n                                    q
+                = γn                                αt+1 + hht+1 , vi + 1 − kṽ tk k2k−2
+                                                                                    2    · hgt+1 , vi      .
+                           kv t+1 k2
+Decrementing the index by one, we get the following recurrence equation for the sequence
+{αt }t∈N :
+                      √ k−1                                                   k−1
+                          n                        q
+                                                            t−1 2k−2
+           αt+1 = γn             α t + hh t , vi +  1 − kṽ k  k2    · hg t , vi      . (15)
+                      kv t k2
+The remaining parts of this section will be devoted to the analysis of {αt }t∈N based on the
+above equation.
+
+                                                                       9
+                                        Wu and Zhou
+
+
+
+
+Controlling the error terms
+We then show that the recurrence equation (15) can be viewed as a perturbed version of
+the polynomial process (7) with small errors. We start with defining some key quantities
+in Eq. (15):
+                     √ k−1
+                         n                                q
+              ζt :=              , bt := hh t , vi, ct :=  1 − kṽ t−1
+                                                                   k k2
+                                                                       2k−2
+                                                                            .      (16)
+                     kv t k2
+
+In the above display, we make the convention that ṽ −1
+                                                      k = 0. At initialization, since ζ0 = 1,
+b0 = 0, and c0 = 1, we know that the first iteration of Eq. (15) is equivalent to
+
+                     α1 = γn ζ0 (α0 + b0 + c0 Z0 )k−1 = γn (α0 + Z0 )k−1 ,
+
+where Z0 = hg0 , vi ∼ N(0, 1) is by Lemma 3.1 (recall that g0 is defined in Eq. (9)). Similarly,
+by the law of large numbers, we know that ζ1 = 1+on,P (1), b1 = on,P (1) and c1 = 1+on,P (1),
+hence the next iteration has the following approximation:
+
+                     α2 = γn ζ1 (α1 + b1 + c1 Z1 )k−1 ≈ γn (α1 + Z1 )k−1 ,
+
+where Z1 = hg1 , vi ∼ N(0, 1) is independent of α1 . Indeed, we will show that the above
+approximation is valid up to polynomially many steps along the power iteration path until
+the alignment αt reaches a certain threshold. To be precise, we establish the following
+lemma:
+Lemma 3.2 For any fixed ε ∈ (1/4, 1/2), define the stopping time
+
+                                Tε := min {t ∈ N+ : |αt | ≥ nε } .                            (17)
+
+Then, there exists an absolute constant C > 0, such that with probability no less than
+           √
+1 − exp(−C n), the following happens: For all t < min(Tε , n1/2(k−1) ),
+
+   ζt ∈ [1 − n−1/6 , 1 + n−1/6 ], |bt | ≤ Cn1/4+(k−1)(ε−1/2) , |ct − 1| ≤ Cn2(k−1)(ε−1/2) .   (18)
+
+We defer the proof of Lemma 3.2 to Appendix C. As a direct corollary of Lemma 3.2, we
+immediately obtain the following proposition:
+Proposition 3.1 Under the same setting as in Lemma 3.2, and let ε = εk = (6k −
+11)/12(k − 1), which satisfies εk ∈ (1/4, 1/2) for all k ≥ 3. Then, we have
+
+                           αt+1 = γn ζt (αt + bt + ct Zt )k−1 , α0 = 0.                       (19)
+
+where Zt ∼ N(0, 1) is independent of (ζt , αt , bt , ct ). Further, with probability at least 1 −
+       √
+exp(−C n), the following happens: For all t < min(Tε , n1/2(k−1) ),
+
+               ζt ∈ [1 − n−1/6 , 1 + n−1/6 ], |bt | ≤ Cn−1/6 , |ct − 1| ≤ Cn−5/6 .            (20)
+
+The above proposition establishes that up to min(Tε , n1/2(k−1) ) steps, the iteration of the
+alignment is closely tracked by that of the one-dimensional stochastic process defined in
+Eq. (7). In what follows, we show that the convergence of power iteration for tensor PCA
+can be precisely characterized by the stopping time Tε . Before proceeding, we establish
+high probability upper and lower bounds on Tε , detailed by the following lemma.
+
+                                                10
+                 Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+Lemma 3.3 Under the assumptions of Theorem 2.1, and let ε = εk = (6k − 11)/12(k − 1)
+as in the statement of Proposition 3.1. Then, for any sufficiently large n ∈ N and any
+η ∈ (0, 1), with probability 1 − on (1) one has
+                 (                           !                                      )
+                         1 − η Ck 2/(k−2)
+                                
+                                                                     logk−1 n
+     Tε ≥ max exp                               , (1 − η) logk−1                      , (21)
+                            2    γn                              max{logk−1 γn , 1}
+                                      !
+                  1 + η 1 2/(k−2)
+                         
+                                                               logk−1 n
+     Tε ≤ exp                            + (1 + η) logk−1                     ,         (22)
+                    2      γn                              max{logk−1 γn , 1}
+
+where Ck = (k − 2)k−2 /(k − 1)k−1 .
+
+The proof of Lemma 3.3 is based on Proposition 3.1. For the compactness of presentation,
+we delay the proof of Lemma 3.3 to Appendix D.
+
+3.2 Convergence of tensor power iteration
+Recall that Tδconv is defined in Eq. (3) and Tε is defined in Eq. (17). For fixed positive
+constants δ and ε ∈ (1/4, 1/2), we see that for n large enough we have Tδconv ≥ Tε . In this
+section, we also show that with high probability Tδconv ≤ Tε + 1. Putting together these
+results, we conclude that if we can establish bounds on Tε , then this automatically gives
+bounds on Tδconv as well.
+    Now let t = Tε . Naively we have t − 1 < Tε and |αt | ≥ nε . According to the power
+iteration equation, we obtain that
+                                             q
+                            v t = αt v + ht + 1 − kṽ t−1
+                                                      k k2
+                                                          2k−2
+                                                               gt .
+
+Invoking Lemma 3.3, we see that for a large enough n, with probability 1 − on (1) it holds
+that Tε ≤ n1/2(k−1) . In this case we have t − 1 < min(Tε , n1/2(k−1) ). Re-examining the proof
+of concentration of ct in the proof of Lemma 3.2, we find that (note ε > 1/4)
+                                                                           √
+              P kṽ t−1
+                     k  k 2 ≤ Cn  ε−1/2
+                                          ≥ 1 − exp(−Cn2ε ) ≥ 1 − exp(−C n),               (23)
+
+where C is a positive constant, and consequently
+                                            √
+                                  kht k2 ≤ 2 n · kṽ t−1
+                                                     k k2
+                                                         k−1
+                                                             ≤ Cn1/12
+
+if we choose ε = εk = (6k − 11)/12(k − 1) as per Proposition 3.1. Note that
+                                                q
+                        v t 2 = αt v + ht + 1 − kṽ t−1 k k2
+                                                            2k−2
+                                                                 gt
+                                                                     2
+                                                   1/12             √
+                              ≤ |αt | + kgt k2 + Cn     ≤ |αt | + C n
+                                    √
+with probability at least 1 − exp(−C n). Therefore,
+
+                                 |hv t , vi|   |αt + bt + ct Zt |   |αt | − |bt | − |ct Zt |
+                |hṽ t , vi| =         t
+                                             =         t
+                                                                  ≥                √         .   (24)
+                                   kv k2            kv k2               |αt | + C n
+
+                                                       11
+                                        Wu and Zhou
+
+
+
+
+Again according to the proof of Lemma 3.2 and the choice of ε in Proposition 3.1, we know
+                                                                                  √
+that |bt | ≤ Cn−1/6 and |ct | ≤ 1 + Cn−5/6 with probability at least 1 − exp(C n). Further
+since Zt ∼ N(0, 1), it finally follows that with high probability |hṽ t , vi| ≥ Cnε−1/2 , which
+leads to                                √           k−1
+                           |αt+1 | = γn nhv, ṽ t i     > Cn1/2+1/24                        (25)
+for sufficiently large n, provided that γn  (log n)−(k−2)/2 . Consider the next iteration:
+                                                 q
+                          v t+1
+                                = αt+1 v + ht+1 + 1 − kṽ tk k22k−2 gt+1 .
+
+Using standard concentration arguments, we know that
+                        q
+                 ht+1 + 1 − kṽ tk k22k−2 gt+1 ≤ Cn1/2 ≤ Cn−1/24 |αt+1 |
+                                                    2
+
+with probability at least 1 − exp(−Cn), which immediately implies that
+                                  |hṽ t+1 , vi| ≥ 1 − Cn−1/24 .                    (26)
+                                                                       √
+Therefore, Tδconv ≤ t + 1 = Tε + 1 with probability at least 1 − exp(−C n). We summarize
+the main result of this section in the following lemma:
+Lemma 3.4 Assume γn  (log n)−(k−2)/2 and γn = no(1) . Then, with probability at least
+          √
+1 − exp(−C n), we have
+                          |hṽ Tε +1 , vi| ≥ 1 − Cn−1/24 .                        (27)
+Namely, tensor power iteration converges in one step after αt reaches the level nε .
+Combining the conclusions of Lemma 3.3 and Lemma 3.4 completes the proof of Theo-
+rem 2.1.
+
+4. Numerical experiments
+We present in this section simulations that support our theories. For the simplicity of pre-
+sentation, in the main text we only present experiments for several representative settings.
+We refer interested readers to Appendix G for simulation outcomes under more settings.
+
+4.1 Comparing alignment and the polynomial recurrence process
+As demonstrated in Section 3, a key ingredient of our proof is to connect the tensor align-
+ments {αt }t≥0 with the polynomial recurrence process {Xt }t≥0 defined in Eq. (7). Theo-
+retical result that suggests their closeness has already been established in Proposition 3.1.
+We complement to this result in this section by providing empirical evidence.
+    To set the stage, we choose n = 200, k = 3, λn = n(k−1)/2 , and generate the tensor
+data according to Eq. (1). We then run tensor power iteration with random initialization
+and compare the marginal distributions of αt and Xt , for all t ∈ {1, 2, 3, 4}. We repeat
+this procedure 1000 times independently, and collect the realized values of αt to form the
+corresponding empirical distributions. We also simulate the polynomial recurrence process
+{Xt }t≥0 and obtain 1000 independent samples. We display the simulation outcomes in Fig-
+ure 1, which suggests that the marginal distributions already match well with a moderately
+large n.
+
+                                               12
+                       Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+        500                                     α1             500                                                       α2
+                                                X1                                                                       X2
+        400                                                    400
+
+
+        300                                                    300
+Count
+
+
+
+
+                                                       Count
+        200                                                    200
+
+
+        100                                                    100
+
+
+          0                                                      0
+              0   2      4            6    8     10                  0        4         8           12         16         20
+                              Value                                                         Value
+
+
+                                                α3                                                                       α4
+        400                                     X3             400                                                       X4
+
+        300                                                    300
+Count
+
+
+
+
+                                                       Count
+
+
+        200                                                    200
+
+
+        100                                                    100
+
+
+          0                                                      0
+              0   10     20           30   40    50                  0   10       20   30    40      50   60        70    80
+                              Value                                                         Value
+
+
+Figure 1: Comparison of the marginal distributions between αt and Xt , for t ∈ {1, 2, 3, 4}.
+          Here, we set n = 200, k = 3, λn = n(k−1)/2 , and run tensor power iteration
+          from random initialization on independent datasets for 1000 times. Note that
+          in this figure, the histograms for αt and Xt overlap a lot with each other (their
+          overlapping regions are indicated by the third color), meaning that the marginal
+          distributions of αt and Xt are indeed very close.
+
+
+
+
+4.2 Evolution of correlation
+
+
+Theorem 2.1 implies that as long as λn & 1, tensor power iteration with random initialization
+will converge to the planted spike within O(log log n) iterations. In this experiment, we
+provide numerical evidence that supports this claim. Throughout the experiment, we set
+λn = n(k−1)/2 . In Figure 2, we plot the evolution of correlation |hṽ t , vi| as a function of
+the number of iterations t. From the figure, we see that the correlation rapidly increases
+from 0 to 1 as t increases. Furthermore, the number of iterations required for convergence
+is nearly independent of the input dimension, suggesting the correctness of our claim.
+
+                                                      13
+                                                                                         Wu and Zhou
+
+
+
+
+1.0
+          n = 100, k = 3            n = 200, k = 3                                 n = 500, k = 3               n = 1000, k = 3               n = 100, k = 4            n = 200, k = 4
+
+
+0.5
+
+
+
+
+0.0
+      0         5          10   0           5                             10   0         5           10   0            5           10    0          5          10   0         5          10
+
+
+
+
+Figure 2: Evolution of correlation |hṽ t , vi| as a function of the number of iterations t. Here,
+          the x axis represents the number of iterations ranging from 0 to 10, and the y
+          axis gives the level of correlation. We repeat the experiment independently for
+          1000 times for every combination of (n, k), and compute the average correlation.
+
+
+
+4.3 Convergence probability
+Next, we investigate the probability of tensor power iteration with a random initialization
+converging to the planted spike. For this part we let λn = n(k−1)/2 , k = 3, and use different
+values of n. For each tensor realization, we run tensor power iteration from a random
+initialization for a sufficiently large number of iterations and check the convergence. For
+each n ∈ {25, 50, 100, 200, 400, 800}, we repeat this procedure independently for 1000 times
+and compute the empirical convergence probability. Here, we say an iterate ṽ t converges
+to the true spike if and only if |hṽ t , vi| > 0.99. We plot such empirical probabilities in
+Figure 3. Inspecting the figure, we see that the γ-threshold above which power iteration
+with a random start achieves near probability one convergence decreases and approaches 0
+as n → ∞, once again suggesting the correctness of our main theorem.
+
+
+
+                                                                   1.0
+                                         Convergence probability
+
+
+
+
+                                                                   0.8
+
+
+                                                                   0.6
+
+
+                                                                   0.4                                                            n = 25
+                                                                                                                                  n = 50
+                                                                                                                                  n = 100
+                                                                   0.2                                                            n = 200
+                                                                                                                                  n = 400
+                                                                   0.0                                                            n = 800
+                                                                         0.0       0.4         0.8            1.2          1.6          2.0
+                                                                                                     γn
+
+Figure 3: Probability of tensor power iteration with random initialization converging to
+          the hidden spike. The x axis stands for γn and the y axis gives the empirical
+          convergence probability averaged over 1000 independent experiments.
+
+
+
+
+                                                                                                     14
+                                    Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+4.4 Stopping rule
+
+Finally, we evaluate the performance of the stopping rule proposed in Section 2.3. In this
+experiment, we fix λn = n(k−1)/2 and consider different combinations of (n, k). For each
+configuration, we independently generate five tensors following model (1), and implement
+tensor power iteration from a random initialization. We then compute the correlation
+between the true spike and the iterates measured by |hṽ t , vi|, and plot the evolution of this
+correlation over the first 100 iterations. We also calculate Tstop using Eq. (6). We present
+the simulation results in Figure 4. From the figure, we see that the proposed stopping rule
+effectively terminates the algorithm at an early stage while simultaneously maintains high
+estimation accuracy.
+
+
+                     1.0
+                                      n = 50, k = 3                   n = 100, k = 3                   n = 200, k = 3
+                     1.0
+
+                     0.8
+
+                     0.6
+                     0.8
+                     0.4
+
+                     0.2
+                     0.6
+       Correlation
+
+
+
+
+                     0.0
+
+                                      n = 50, k = 4                   n = 100, k = 4                   n = 200, k = 4
+                     1.0
+                     0.4
+                     0.8
+
+                     0.6
+                     0.2
+                     0.4
+
+                     0.2
+
+                     0.0
+                     0.0
+                           0.0100          101 0.2    102   100 0.4          101       0.6 102   100    0.8 101         101.0
+                                                                                                                          2
+
+                                                                            log t
+
+
+Figure 4: Illustration of the effectiveness of the stopping rule. The x axis here is the log-
+          arithmic of the number of iterations, and the y axis shows the correlation. We
+          independently repeat the experiment 5 times for each setting, and record the cor-
+          relation along the power iteration trajectory. Here, Tstop is computed using the
+          power iteration iterates and is marked with a circle in the figure.
+
+
+
+In Appendix G.2, we alter the value of the stopping threshold (which is 1/2 in the current
+experiment) and still observe good performance, suggesting the proposed stopping rule is
+not sensitive to the choice of the stopping threshold.
+
+
+Acknowledgments
+
+                                                                       15
+                                    Wu and Zhou
+
+
+
+
+The authors would like to thank Tselil Schramm for suggesting this topic, as well as for
+many helpful conversations. The authors also thank Jiaoyang Huang for an insightful
+discussion. K.Z. was supported by the NSF through award DMS-2031883 and the Simons
+Foundation through Award 814639 for the Collaboration on the Theoretical Foundations of
+Deep Learning and by the NSF grant CCF-2006489.
+
+
+
+
+                                          16
+                Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+References
+Animashree Anandkumar, Yuan Deng, Rong Ge, and Hossein Mobahi. Homotopy analysis
+ for tensor pca. In Conference on Learning Theory, pages 79–104. PMLR, 2017a.
+Animashree Anandkumar, Rong Ge, Majid Janzamin, et al. Analyzing tensor power method
+ dynamics in overcomplete regime. Journal of Machine Learning Research, 18(22):1–40,
+ 2017b.
+Gerard Ben Arous, Song Mei, Andrea Montanari, and Mihai Nica. The landscape of the
+ spiked tensor model. Communications on Pure and Applied Mathematics, 72(11):2282–
+ 2330, 2019.
+Gerard Ben Arous, Reza Gheissari, and Aukosh Jagannath. Algorithmic thresholds for
+ tensor pca. The Annals of Probability, 48(4):2052–2087, 2020.
+Jinho Baik, Gérard Ben Arous, and Sandrine Péché. Phase transition of the largest eigen-
+  value for nonnull complex sample covariance matrices. The Annals of Probability, 33(5):
+  1643 – 1697, 2005.
+Mohsen Bayati and Andrea Montanari. The dynamics of message passing on dense graphs,
+ with applications to compressed sensing. IEEE Transactions on Information Theory, 57
+ (2):764–785, 2011.
+Florent Benaych-Georges and Raj Rao Nadakuditi. The singular values and vectors of
+  low rank perturbations of large rectangular random matrices. Journal of Multivariate
+  Analysis, 111:120–135, 2012.
+Quentin Berthet and Philippe Rigollet. Optimal detection of sparse principal components
+ in high dimension. The Annals of Statistics, 41(4):1780–1815, 2013.
+Giulio Biroli, Chiara Cammarota, and Federico Ricci-Tersenghi. How to iron out rough
+  landscapes and get optimal performances: averaged gradient descent and its application
+  to tensor pca. Journal of Physics A: Mathematical and Theoretical, 53(17):174003, 2020.
+Changxiao Cai, Gen Li, H Vincent Poor, and Yuxin Chen. Nonconvex low-rank tensor
+ completion from noisy data. Advances in neural information processing systems, 32,
+ 2019.
+Wei-Kuo Chen. Phase transition in the spiked random tensor with rademacher prior. The
+ Annals of Statistics, 47(5):2734–2756, 2019.
+Yash Deshpande, Andrea Montanari, et al. Sparse pca via covariance thresholding. Journal
+  of Machine Learning Research, 17(141):1–41, 2016.
+Rishabh Dudeja and Daniel Hsu. Statistical query lower bounds for tensor pca. The Journal
+  of Machine Learning Research, 22(1):3729–3779, 2021.
+David Gamarnik. The overlap gap property: A topological barrier to optimizing over ran-
+  dom structures. Proceedings of the National Academy of Sciences, 118(41):e2108492118,
+  2021.
+
+                                            17
+                                     Wu and Zhou
+
+
+
+
+Lars Grasedyck, Daniel Kressner, and Christine Tobler. A literature survey of low-rank
+  tensor approximation techniques. GAMM-Mitteilungen, 36(1):53–78, 2013.
+
+Rungang Han, Rebecca Willett, and Anru R Zhang. An optimal statistical and computa-
+ tional framework for generalized tensor estimation. The Annals of Statistics, 50(1):1–29,
+ 2022.
+
+Christopher J Hillar and Lek-Heng Lim. Most tensor problems are np-hard. Journal of the
+ ACM (JACM), 60(6):1–39, 2013.
+
+Samuel B Hopkins, Jonathan Shi, and David Steurer. Tensor principal component analysis
+  via sum-of-square proofs. In Conference on Learning Theory, pages 956–1006. PMLR,
+  2015.
+
+Samuel B Hopkins, Tselil Schramm, Jonathan Shi, and David Steurer. Fast spectral algo-
+  rithms from sum-of-squares proofs: tensor decomposition and planted sparse vectors. In
+  Proceedings of the forty-eighth annual ACM symposium on Theory of Computing, pages
+  178–191, 2016.
+
+Victoria Hore, Ana Vinuela, Alfonso Buil, Julian Knight, Mark I McCarthy, Kerrin Small,
+  and Jonathan Marchini. Tensor decomposition for multiple-tissue gene expression exper-
+  iments. Nature genetics, 48(9):1094–1100, 2016.
+
+Jiaoyang Huang, Daniel Z Huang, Qing Yang, and Guang Cheng. Power iteration for tensor
+  pca. Journal of Machine Learning Research, 23(128):1–47, 2022.
+
+Bing-Yi Jing, Ting Li, Zhongyuan Lyu, and Dong Xia. Community detection on mixture
+  multilayer networks via regularized tensor decomposition. The Annals of Statistics, 49
+  (6):3181–3205, 2021.
+
+Iain M Johnstone. On the distribution of the largest eigenvalue in principal components
+  analysis. The Annals of statistics, 29(2):295–327, 2001.
+
+Chris Jones and Lucas Pesenti. Diagram analysis of iterative algorithms. arXiv preprint
+ arXiv:2404.07881, 2024.
+
+Michel Journée, Yurii Nesterov, Peter Richtárik, and Rodolphe Sepulchre. Generalized
+ power method for sparse principal component analysis. Journal of Machine Learning
+ Research, 11(2), 2010.
+
+Boris N Khoromskij and Christoph Schwab. Tensor-structured galerkin approximation of
+  parametric and stochastic elliptic pdes. SIAM journal on scientific computing, 33(1):
+  364–385, 2011.
+
+Chiheon Kim, Afonso S Bandeira, and Michel X Goemans. Community detection in hyper-
+ graphs, spiked tensor models, and sum-of-squares. In 2017 International Conference on
+ Sampling Theory and Applications (SampTA), pages 124–128. IEEE, 2017.
+
+Tamara G Kolda and Jackson R Mayo. Shifted power method for computing tensor eigen-
+  pairs. SIAM Journal on Matrix Analysis and Applications, 32(4):1095–1124, 2011.
+
+                                           18
+                Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+Marc Lelarge and Léo Miolane. Fundamental limits of symmetric low-rank matrix estima-
+ tion. Probability Theory and Related Fields, 173:859–929, 2019.
+
+Thibault Lesieur, Léo Miolane, Marc Lelarge, Florent Krzakala, and Lenka Zdeborová.
+ Statistical and computational phase transitions in spiked tensor estimation. In 2017
+ IEEE International Symposium on Information Theory (ISIT), pages 511–515. IEEE,
+ 2017.
+
+Gen Li and Yuting Wei. A non-asymptotic framework for approximate message passing in
+ spiked models. arXiv preprint arXiv:2208.03313, 2022.
+
+Gen Li, Wei Fan, and Yuting Wei. Approximate message passing from random initialization
+ with applications to Z2 synchronization. arXiv preprint arXiv:2302.03682, 2023.
+
+Ji Liu, Przemyslaw Musialski, Peter Wonka, and Jieping Ye. Tensor completion for esti-
+   mating missing values in visual data. IEEE transactions on pattern analysis and machine
+   intelligence, 35(1):208–220, 2012.
+
+Yuetian Luo and Anru R Zhang. Tensor clustering with planted structures: Statistical
+  optimality and computational limits. The Annals of Statistics, 50(1):584–613, 2022.
+
+Zongming Ma. Sparse principal component analysis and iterative thresholding. Annals of
+  Statistics, 41(296):772–801, 2013.
+
+Andrea Montanari and Nike Sun. Spectral algorithms for tensor completion. Communica-
+ tions on Pure and Applied Mathematics, 71(11):2381–2425, 2018.
+
+Andrea Montanari and Ramji Venkataramanan. Estimation of low-rank matrices via ap-
+ proximate message passing. The Annals of Statistics, 49(1), 2021.
+
+Andrea Montanari and Yuchen Wu. Fundamental limits of low-rank matrix estimation with
+ diverging aspect ratios. arXiv preprint arXiv:2211.00488, 2022.
+
+Maximilian Nickel, Volker Tresp, Hans-Peter Kriegel, et al. A three-way model for collective
+ learning on multi-relational data. In Icml, volume 11, pages 3104482–3104584, 2011.
+
+Aaron Potechin and David Steurer. Exact tensor completion with sum-of-squares. In
+ Conference on Learning Theory, pages 1619–1673. PMLR, 2017.
+
+Steffen Rendle and Lars Schmidt-Thieme. Pairwise interaction tensor factorization for per-
+  sonalized tag recommendation. In Proceedings of the third ACM international conference
+  on Web search and data mining, pages 81–90, 2010.
+
+Emile Richard and Andrea Montanari. A statistical model for tensor pca. Advances in
+ neural information processing systems, 27, 2014.
+
+Cynthia Rush and Ramji Venkataramanan. Finite sample analysis of approximate message
+  passing algorithms. IEEE Transactions on Information Theory, 64(11):7264–7286, 2018.
+
+                                            19
+                                      Wu and Zhou
+
+
+
+
+Devavrat Shah and Christina Lee Yu. Iterative collaborative filtering for sparse noisy tensor
+  estimation. In 2019 IEEE International Symposium on Information Theory (ISIT), pages
+  41–45. IEEE, 2019.
+
+Nicholas D Sidiropoulos, Lieven De Lathauwer, Xiao Fu, Kejun Huang, Evangelos E Pa-
+  palexakis, and Christos Faloutsos. Tensor decomposition for signal processing and ma-
+  chine learning. IEEE Transactions on signal processing, 65(13):3551–3582, 2017.
+
+Miaoyan Wang, Jonathan Fischer, and Yun S Song. Three-way clustering of multi-tissue
+ multi-individual gene expression data using semi-nonnegative tensor decomposition. The
+ annals of applied statistics, 13(2):1103, 2019.
+
+Yining Wang and Anima Anandkumar. Online and differentially-private tensor decompo-
+  sition. Advances in Neural Information Processing Systems, 29, 2016.
+
+Jeffrey R Wozniak, Linda Krach, Erin Ward, Bryon A Mueller, Ryan Muetzel, Sarah Sch-
+  noebelen, Andrew Kiragu, and Kelvin O Lim. Neurocognitive and neuroimaging corre-
+  lates of pediatric traumatic brain injury: a diffusion tensor imaging (dti) study. Archives
+  of Clinical Neuropsychology, 22(5):555–568, 2007.
+
+Yuchen Wu and Kangjie Zhou. Lower bounds for the convergence of tensor power iteration
+  on random overcomplete models. In The Thirty Sixth Annual Conference on Learning
+  Theory, pages 3783–3820. PMLR, 2023.
+
+Dong Xia and Ming Yuan. On polynomial time methods for exact low-rank tensor comple-
+ tion. Foundations of Computational Mathematics, 19(6):1265–1313, 2019.
+
+Anru Zhang and Dong Xia. Tensor svd: Statistical and computational limits. IEEE Trans-
+ actions on Information Theory, 64(11):7311–7338, 2018.
+
+Hua Zhou, Lexin Li, and Hongtu Zhu. Tensor regression with applications in neuroimaging
+ data analysis. Journal of the American Statistical Association, 108(502):540–552, 2013.
+
+Pan Zhou, Canyi Lu, Jiashi Feng, Zhouchen Lin, and Shuicheng Yan. Tensor low-rank
+  representation for data recovery and clustering. IEEE transactions on pattern analysis
+  and machine intelligence, 43(5):1718–1732, 2019.
+
+Yuchen Zhou and Yuxin Chen.           Heteroskedastic tensor clustering.     arXiv preprint
+  arXiv:2311.02306, 2023.
+
+
+
+
+                                             20
+                 Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+Appendix A. Technical lemmas
+Lemma A.1 (Tails of the normal distribution) Let g ∼ N(0, 1). Then for all t > 0,
+we have
+                      
+                 1   1     1    2               1   1      2
+                   − 3 · √ e−t /2 ≤ P (g ≥ t) ≤ · √ e−t /2 .
+                 t   t     2π                   t    2π
+
+Lemma A.2 (Bernstein’s inequality) Let X1 , · · · , XN be independent, mean zero, sub-
+exponential random variables. Then, for every t ≥ 0, we have
+                N
+                         !         "                                       !#
+               X                                     t2            t
+           P      Xi ≥ t ≤ 2 exp −c min PN                  ,                 .
+                                                          2
+                                                 i=1 kXi kΨ
+                                                              maxi kXi kΨ1
+                i=1                                                                   1
+
+
+                i.i.d.                                       √
+Lemma A.3 Let xi ∼ N(0, I n ) for i = 1, · · · , m, where m < n. Then, we have
+                         m
+                                                      !
+                        X               √           √
+             P     sup        αi xi − n ≥ ε n ≤ exp(−Cε2 n).
+                       α∈Sm−1           i=1             2
+
+for some absolute constant C > 0.
+
+Proof We use a covering argument. For α, β ∈ Sm−1 with kα − βk2 ≤ ε, we have
+                      m                       m
+                      X                       X                                     √
+                            αi xi       −           βi xi       ≤ kXkop kα − βk2 ≤ C nε
+                      i=1           2         i=1           2
+
+with probability at least 1 − exp(−Cn),   where X is the matrix whose i-th column is xi .
+                                                                                      √
+For any fixed α ∈ Sm−1 , we have m
+                                  P
+                                     i=1 i xi ∼ N(0, I n ). Therefore, for any t ∈ (0, n), we
+                                        α
+have
+                             m
+                                                  !            2
+                            X             √                       t
+                       P        αi xi − n ≥ t ≤ 2 exp −               ,
+                                                                  8
+                                    i=1             2
+where the last inequality follows from concentration of sub-exponential random variables.
+Now, let Nεm be an ε-net of Sm−1 , we thus obtain that
+                                m
+                                                          !
+                               X            √         √
+                  P    sup         αi xi − n ≥ 2C nε
+                        α∈Sm−1          i=1             2
+                                                            m
+                                                                                                !
+                                                            X                    √        √
+                ≤ exp(−Cn) + P                    sup                αi xi   −       n ≥ C nε
+                                                  α∈Nεm     i=1    2
+                                                  m
+                                                                  C 2 nε2
+                                                                        
+                                              C
+                ≤ exp(−Cn) +                            × 2 exp −           ≤ exp(−Cε2 n).
+                                              ε                      8
+
+Replacing ε by Cε completes the proof.
+
+
+
+                                                                21
+                                                      Wu and Zhou
+
+
+
+
+Appendix B. Proof of Lemma 3.1
+Recall that Ft is defined in Eq. (10). We first show that
+                                                                                                
+                   Ft = σ         wi1 ,i2 ,··· ,ik−1 : (i1 , i2 , · · · , ik−1 ) ∈ H t−1 ∪ {g, v} ,
+
+which is equivalent to proving that v 0 , v 1 , · · · , v t are measurable with respect to the σ-
+algebra on the right hand side of the above equation. Since v 0 = g/ kgk2 , we know that v 0
+is measurable. Using decomposition (8) with t = 0, we know that v 1 is measurable as well.
+Repeating this argument yields that v 2 , · · · , v t are all measurable. This proves our claim.
+    Next, we are in position to prove the lemma. To avoid heavy notation, we denote
+                                                k−1
+                                                Y          i     −1    
+                                                                                            i
+                                                                                                
+                             ui1 ,··· ,ik−1 =            ṽ ⊥j        · ṽ i⊥1 ⊗ · · · ⊗ ṽ ⊥k−1 .
+                                                                 2
+                                                j=1
+
+
+We further define for (i1 , · · · , ik−1 ) ∈ Nk−1 and W ∈ (Rn )⊗k the rank-one tensor:
+                                                                   
+                              P(i1 ,··· ,ik−1 ) W = W ui1 ,··· ,ik−1 ⊗ ui1 ,··· ,ik−1 .                        (28)
+
+Straightforward calculation reveals that for (i1 , · · · , ik−1 ), (j1 , · · · , jk−1 ) ∈ Nk−1 ,
+                                                                                          
+                 P(j1 ,··· ,jk−1 ) P(i1 ,··· ,ik−1 ) W = P(i1 ,··· ,ik−1 ) W uj1 ,··· ,jk−1 ⊗ uj1 ,··· ,jk−1
+                                                                        
+             = ui1 ,··· ,ik−1 , uj1 ,··· ,jk−1 · W ui1 ,··· ,ik−1 ⊗ uj1 ,··· ,jk−1
+             (i)                                            
+             = δi1 j1 · · · δik−1 jk−1 · W ui1 ,··· ,ik−1 ⊗ uj1 ,··· ,jk−1
+             = δi1 j1 · · · δik−1 jk−1 · P(i1 ,··· ,ik−1 ) W ,
+
+where (i) follows from the fact that the ui1 ,··· ,ik−1 ’s are mutually orthogonal, and δ represents
+the Kronecker delta: δij = 1{i = j}. Moreover, for any subset S ⊂ Nk−1 , define
+                                      X
+                   PS W =                            P(i1 ,··· ,ik−1 ) W ,    P⊥
+                                                                               S W = W − PS W .                (29)
+                                (i1 ,··· ,ik−1 )∈S
+
+
+One can prove using the previous calculation that for S, T ⊂ Nk−1 ,
+
+                                             PS PT = PT PS = PS∩T .                                            (30)
+
+We will show that for all t ∈ N,
+
+                                          W = PH t−1 W + P⊥
+                                                          H t−1 W̃ t ,                                         (31)
+
+             d
+where W̃ t = W and is independent of Ft . We prove Eq. (31) by induction. For t = 0, it is
+obvious that we can simply choose W̃ 0 = W , since W is independent of F0 = σ({g, v}).
+Now assume (31) holds for t = s, namely we have
+
+                                                                                d
+                       W = PH s−1 W + P⊥
+                                       H s−1 W̃ s ,                       W̃ s = W , W̃ s ⊥ Fs .               (32)
+
+                                                                 22
+                   Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+Then, for t = s + 1, let us define
+
+                                    W̃ s+1 = P⊥                 0
+                                              H s W̃ s + PH s W s ,                                    (33)
+              d
+where W 0s = W and is independent of everything else. We show that W̃ s+1 defined as
+above satisfies our requirement. To this end, first note that since H s−1 ⊂ H s ,
+
+                        P⊥        ⊥               ⊥    ⊥             ⊥
+                         H s W = PH s PH s−1 W + PH s PH s−1 W̃ s = PH s W̃ s ,
+
+                    P⊥             ⊥    ⊥           ⊥          0    ⊥
+                     H s W̃ s+1 = PH s PH s W̃ s + PH s PH s W s = PH s W̃ s ,
+
+which further implies that P⊥        ⊥
+                            H s W = PH s W̃ s+1 . Hence, we deduce that
+
+                         W = PH s W + P⊥                 ⊥
+                                       H s W = PH s W + PH s W̃ s+1 ,                                  (34)
+                                                                                 d
+i.e., Eq. (31) holds for t = s + 1. Next, it suffices to show that W̃ s+1 = W and that W̃ s+1
+is independent of Fs+1 . Recall that we already proved
+                                                                                      
+                 Fs+1 = σ wi1 ,i2 ,··· ,ik−1 : (i1 , i2 , · · · , ik−1 ) ∈ H s ∪ {g, v} . (35)
+
+According to Eq. (32) and direct calculation, we know that for (i1 , · · · , ik−1 ) ∈ H s \H s−1 ,
+                                                                         
+                     wi1 ,··· ,ik−1 = W ui1 ,··· ,ik−1 = W̃ s ui1 ,··· ,ik−1 ,
+
+and that ui1 ,··· ,ik−1 ∈ Fs . Therefore,
+                                 n                                             o
+           Fs+1 = σ Fs ∪ σ W̃ s ui1 ,··· ,ik−1 : (i1 , · · · , ik−1 ) ∈ H s \H s−1 .                   (36)
+
+Next we compute the conditional distribution of P⊥        H s W̃ s given Fs+1 , which     is equivalent
+                       ⊥
+                                                                                                 
+to the law of PH s W̃ s conditioning on Fs and the random variables W̃ s ui1 ,··· ,ik−1 for
+(i1 , · · · , ik−1 ) ∈ H s \H s−1 . Here, we can view the (k − 1)-tensors ui1 ,··· ,ik−1 as fixed since
+they are measurable with respect to Fs . By definition, these ui1 ,··· ,ik−1 ’s are mutually
+                                                                                                   d
+orthogonal and belong to H s , and we know from induction hypothesis that W̃ s |Fs = W .
+Applying Lemma 4.1 in Huang et al. (2022) yields that the conditional distribution of
+                                         00          00
+P⊥                                 ⊥
+  H s W̃ s is equal to the law of PH s W s , where W s is an independent copy of W̃ s which is
+further independent of Fs+1 . As a consequence, it follows that
+                                        d                                d
+                          W̃ s+1 |Fs+1 = P⊥     00         0
+                                          H s W s + PH s W s |Fs+1 = W ,
+
+             d
+i.e., W̃ s+1 = W is independent of Fs+1 . This completes the induction. Now, using Eq. (31),
+we know that for (i1 , · · · , ik−1 ) ∈ H t \H t−1 , wi1 ,··· ,ik−1 = W̃ t [ui1 ,··· ,ik−1 ], where W̃ t ⊥
+Ft , {ui1 ,··· ,ik−1 } is an orthonormal set that is measurable with respect to Ft . It then
+                                            i.i.d.
+follows immediately that wi1 ,··· ,ik−1 ∼ N(0, I n ) are independent of Ft for (i1 , · · · , ik−1 ) ∈
+H t \H t−1 . This completes the proof of Lemma 3.1.
+
+Appendix C. Proof of Lemma 3.2
+The entire argument is divided into three parts:
+
+                                                     23
+                                                    Wu and Zhou
+
+
+
+
+Concentration of ζt . To this end, we need to estimate v t 2 . From Eq. (8), we know
+that
+                                            (t−1)
+                                  X
+                v t = αt v +               βi1 ,i2 ,··· ,ik−1 wi1 ,i2 ,··· ,ik−1 . (37)
+                                           (i1 ,··· ,ik−1 )∈H t−1
+
+                     i.i.d.                        P           (t−1)              2
+Since wi1 ,i2 ,··· ,ik−1 ∼ N(0, I n ), and
+                                      (i1 ,··· ,ik−1 )∈H t−1 (βi1 ,i2 ,··· ,ik−1 ) = 1, we deduce from
+Lemma A.3 that with probability at least 1 − exp(−Cη 2 n), for all t < n1/2(k−1) ,
+
+                   √                      X                  (t−1)                                              √
+            (1 − η) n ≤                                    βi1 ,i2 ,··· ,ik−1 wi1 ,i2 ,··· ,ik−1       ≤ (1 + η) n,   (38)
+                                  (i1 ,··· ,ik−1 )∈H t−1                                           2
+
+where η > 0 is a small constant. Further, as long as t < Tε , by definition we have
+
+                                                 kαt vk2 = |αt | < nε ,
+
+which leads to
+                  √           √                        √                 √
+          (1 − 2η) n ≤ (1 − η) n − nε ≤ v t 2 ≤ (1 + η) n + nε ≤ (1 + 2η) n.                                          (39)
+
+To summarize, we conclude that with probability at least 1 − exp(−Cη 2 n), the following
+happens:
+                                                              √          √
+            For all t < min(Tε , n1/2(k−1) ), v t 2 ∈ [(1 − η) n, (1 + η) n].       (40)
+                   √
+Recall that ζt = ( n/ v t 2 )k−1 , the above bound also implies that ζt ∈ [1 − 2(k − 1)η, 1 +
+2(k − 1)η] for sufficiently small η > 0. In fact, from the proof of Lemma A.3 we know that
+η can be chosen as n−1/6 /2(k − 1), so that
+                                                                    
+                  −1/6        −1/6                         1/2(k−1)
+   P ζt ∈ [1 − n       ,1 + n      ] for all t < min(Tε , n         ) ≥ 1 − exp(−Cn2/3 ). (41)
+
+Concentration of ct . To show that ct is close to 1 with high probability, we need to
+control kṽ kt−1 k2 . By definition, we have
+
+                                                  v t−1
+                                                    k        1                       v t−1
+                                                                                       k
+                                         t−1            2
+                                      ṽ k     =    t−1
+                                                          ≤                           √ 2
+                                             2   kv k2      1−η                          n
+
+for all t < min(Tε , n1/2(k−1) ) + 1 with probability at least 1 − exp(−Cη 2 n). It then suffices
+to establish an upper bound for v tk with t < min(Tε , n1/2(k−1) ). Note that
+                                                   2
+                                                       q                        
+                  v tk = ΠV t−1 v t = ΠV t−1 αt v + ht + 1 − kṽ t−1
+                                                                  k   k 2k−2
+                                                                        2    g t
+                                                    q
+                       = αt · ΠV t−1 v + ΠV t−1 ht + 1 − kṽ t−1
+                                                             k k2
+                                                                 2k−2
+                                                                       · ΠV t−1 gt ,
+
+which further implies that
+                                                           q
+                      v tk        ≤ αt + kht k2 +           1 − kṽ t−1
+                                                                    k k2
+                                                                        2k−2
+                                                                             · kΠV t−1 gt k2 .                        (42)
+                              2
+
+
+                                                                24
+                    Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+By definition of ht , we know that ht can be written as
+                                                                   (t−1)k−1
+                                                                      X
+                                      ht = kṽ t−1
+                                               k k2
+                                                   k−1
+                                                       ·                      βj wj ,
+                                                                      j=1
+
+        P(t−1)k−1
+where     j=1       βj2 = 1 and wj ∼i.i.d. N(0, I n ). Applying again Lemma A.3, it follows that
+                                    √
+                          kht k2 ≤ 2 n · kṽ t−1
+                                             k k2
+                                                 k−1
+                                                     for all t < n1/2(k−1)                        (43)
+with probability at least 1 − exp(−Cn). Further, since gt is independent of V t−1 , we have
+kΠV t−1 gt k22 ∼ χ2 (t). As a consequence,
+                                                          
+                P kΠV t−1 gt k2 ≤ Cnε for all t < n1/2(k−1) ≥ 1 − exp −Cn2ε .
+                                                                           
+                                                                                       (44)
+
+To summarize, with probability 1 − exp(−Cn2ε ), the following estimate holds for all t <
+min(Tε , n1/2(k−1) ):
+                                            q
+                      v k ≤ αt + kht k2 + 1 − kṽ t−1
+                        t
+                                                      k k2
+                                                            2k−2
+                                                                 · kΠV t−1 gt k2
+                          2
+                                    √                         q
+                            ≤ nε + 2 n · kṽ t−1
+                                             k k2
+                                                 k−1
+                                                      + Cnε 1 − kṽ t−1k k2
+                                                                            2k−2
+                                     √                 
+                            ≤ C nε + n · kṽ t−1
+                                               k  k k−1
+                                                    2     ,
+
+which further implies that
+                                                                           
+                                                                        k−1
+                                                                    t−1
+                                    ṽ tk           ≤C n ε−1/2
+                                                               + ṽ k         .
+                                                2                               2
+
+
+At initialization, we have ṽ 0k                = 0. We will use induction to show that ṽ tk   ≤ (C +
+                                            2                                     2
+1)nε−1/2 as long as the above inequality holds. Assume this is true for t − 1, then we have
+                                                                         
+                          ṽ tk     ≤ C nε−1/2 + (C + 1)k−1 n(k−1)(ε−1/2)
+                                  2
+                                                                           
+                                    ≤ nε−1/2 C + C(C + 1)k−1 n(k−2)(ε−1/2)
+                                   ≤ (C + 1)nε−1/2
+
+for sufficiently large n. We thus conclude that
+                                                                 
+     P |ct − 1| ≤ Cn2(k−1)(ε−1/2) for all t < min(Tε , n1/2(k−1) ) ≥ 1 − exp(−Cn2ε ).             (45)
+
+Concentration of bt .      Recall the definition of bt :
+                                                  (t−1)
+                                      X
+                bt = hht , vi =                  βi1 ,i2 ,··· ,ik−1 · wi1 ,i2 ,··· ,ik−1 , v
+                                       (i1 ,··· ,ik−1 )∈H t−2
+                                                           (t−1)k−1
+                                                             X
+                                   = kṽ kt−1 kk−1
+                                               2   ·                  βj hwj , vi,
+                                                             j=1
+
+
+
+                                                             25
+                                                  Wu and Zhou
+
+
+
+
+where we have
+                                    (t−1)k−1
+                                                                  i.i.d.
+                                      X
+                                               βj2 = 1, and wj ∼ N(0, I n ).                                 (46)
+                                      j=1
+
+It then follows that
+                                                     (t−1)k−1
+                                                       X
+          |bt | ≤ kṽ kt−1 kk−1
+                            2   ·        sup                    βj hwj , vi ≤ kṽ t−1
+                                                                                  k k2
+                                                                                      k−1
+                                                                                          · kW vk2 .
+                                            k−1 −1
+                                    β∈S(t−1)           j=1
+
+                       k−1
+Since W v ∈ R(t−1)      has i.i.d. standard normal entries, we know that kW vk2 ≤ Cn1/4
+                                              √
+with probability no less than 1 − exp(−C n). Therefore,
+                                                                          √
+           P |bt | ≤ Cn1/4 kṽ kt−1 k2k−1 for all t < n1/2(k−1) ≥ 1 − exp(−C n).   (47)
+
+Using the upper bound on kṽ kt−1 k2 we obtained in the previous paragraph, it follows that
+
+                             |bt | ≤ Cn1/4 kṽ t−1
+                                               k k2
+                                                   k−1
+                                                       ≤ Cn1/4+(k−1)(ε−1/2)                                  (48)
+                                                                     √
+for all t < min(Tε , n1/2(k−1) ) with probability at least 1 − exp(−C n) − exp(−Cn2ε ) ≥
+            √
+1 − exp(−C n). This proves the concentration bound on bt .
+
+Appendix D. Proof of Lemma 3.3
+Note that Proposition 3.1 implies that the following event occurs with probability at least
+           √
+1 − exp(−C n):
+     n                                                                                                o
+E = ζt ∈ [1 − n−1/6 , 1 + n−1/6 ], |bt | ≤ Cn−1/6 , |ct − 1| ≤ Cn−5/6 for all t < min(Tε , n1/2(k−1) ) .
+                                                                                                             (49)
+To facilitate our analysis, we define an auxiliary stochastic process {ᾱt }t∈N as follows:
+  1. {ᾱt } and {αt } have the same initialization, i.e., ᾱ0 = α0 = 0.
+  2. For all t ∈ N, we have ᾱt+1 = γn ζ̄t (ᾱt + b̄t + c̄t Zt )k−1 , where (ζ̄t , b̄t , c̄t ) = (ζt , bt , ct ) if
+     t < min(Tε , n1/2(k−1) ), and (1, 0, 1) otherwise.
+By definition, we know that αt = ᾱt for all t ∈ {0, 1, · · · , min(Tε , n1/2(k−1) )}. Further,
+setting δ = (C + 1)n−1/6 , Proposition 3.1 then implies that
+                             
+                        max ζ̄t − 1 , b̄t , |c̄t − 1| ≤ δ, ∀t ∈ N.                         (50)
+
+Below we will establish lower and upper bounds on the first hitting time of {ᾱt }t∈N to
+certain level sets, which is defined as follows:
+
+                                       T̄ε = min {t ∈ N+ : |ᾱt | ≥ nε } .                                   (51)
+
+Then, we will show that T̄ε = Tε with high probability, and consequently obtain the same
+lower and upper bounds on Tε . To begin with, we state a helper lemma that is useful for
+establishing upper and lower bounds on T̄ε :
+
+                                                         26
+                   Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+Lemma D.1 Let δ := (C + 1)n−1/6 . Fix ∆ ∈ [δ, 1]. Define the deterministic sequences
+{bt,∆ }t≥0 and {bt,∆ }t≥0 recursively as follows:
+
+                                                                                k−1
+                                b0,∆ ≥ 0,      bt+1,∆ = γn (1 + ∆)k · bt,∆ ,                                          (52)
+                                b0,∆ ≥ 0,      bt+1,∆ = γn (1 − ∆)        k
+                                                                              · bk−1
+                                                                                 t,∆ .                                (53)
+
+Then, we have
+                                                ((k−1)t −1)/(k−2)
+                                                                      (k−1)t
+                                   
+                             bt,∆ = γn (1 + ∆)k                    · b0,∆ ,
+                                                ((k−1)t −1)/(k−2)                                                    (54)
+                                                                      (k−1)t
+                                   
+                             bt,∆ = γn (1 − ∆)k                    · b0,∆ .
+
+Furthermore, for any t ∈ N,
+                                                          
+                 P |ᾱt+s | ≤ bs,∆ , ∀s ∈ N |ᾱt | ≤ b0,∆
+                                                           ∞               
+                             ∆bs,∆ − δ                      X       ∆bs,∆ − δ                                         (55)
+               ≥ P |Zs | ≤              , ∀s ∈ N ≥ 1 − 2        Φ −             ,
+                               1+δ                                   1+δ
+                                                            s=0
+                                                          
+                 P |ᾱt+s | ≥ bs,∆ , ∀s ∈ N |ᾱt | ≥ b0,∆
+                                                             ∞
+                             ∆bs,∆ − δ                              ∆bs,∆ − δ
+                                                                           
+                                                            X                                                         (56)
+               ≥ P |Zs | ≤              , ∀s ∈ N ≥ 1 − 2        Φ −             .
+                               1+δ                                   1+δ
+                                                                     s=0
+
+We prove Lemma D.1 in Appendix E.1.
+
+D.1 Lower bound on T̄ε
+We start with two useful propositions, whose proofs are deferred to Appendices E.2 and
+E.3, respectively.
+
+Proposition D.1 Let Ck = (k − 2)k−2 /(k − 1)k−1 and δ = (C + 1)n−1/6 . Define
+                                         1/(k−2)                                                   1/(k−2)
+                    1            Ck                                        1                 Ck                       δ
+M (k, γn , δ) :=                                     , N (k, γn , δ) :=                                          −       .
+                   k−2       γn (1 + δ)                                   1+δ            γn (1 + δ)                  1+δ
+                                                                                                                      (57)
+Then, for any T ∈ N, with probability at least 1 − 2T Φ(−N (k, γn , δ)), we have
+
+                                           max |ᾱt | ≤ M (k, γn , δ).                                                (58)
+                                           0≤t≤T
+
+
+Proposition D.2 Assume γn = no(1) and γn  (log n)−(k−2)/2 . Let ε = εk = (6k −
+                                                                           log     n
+11)/12(k − 1). Then, for any fixed η ∈ (0, 1), and tn = b(1 − η) logk−1 max{logk−1 γn ,1} c, we
+                                                                                k−1
+have
+                                              nε
+                                                
+                            P max |ᾱt | ≤         ≥ 1 − n−C ,                             (59)
+                                0≤t≤tn         2
+where C > 0 is an absolute constant.
+
+                                                         27
+                                           Wu and Zhou
+
+
+
+
+   With the aid of Proposition D.1 and Proposition D.2, we prove the follwing lower bound
+on T̄ε : For any fixed η ∈ (0, 1) and large enough n, with probability at least 1 − n−C we
+have
+                (                           !                                     )
+                         1 − η Ck 2/(k−2)
+                                
+                                                                   logk−1 n
+      T̄ε ≥ max exp                           , (1 − η) logk−1                      .  (60)
+                           2     γn                            max{logk−1 γn , 1}
+
+To show Eq. (60), note that by definition of T̄ε and Proposition D.2, it immediately follows
+that                                                       
+                                               logk−1 n
+                 P T̄ε ≥ (1 − η) logk−1                        ≥ 1 − n−C .
+                                         max{logk−1 γn , 1}
+It then suffices to consider the case (log n)−(k−2)/2  γn  1, otherwise the lower bound
+on the right hand side of Eq. (60) is just (1 − η) logk−1 (logk−1 n/ max{logk−1 γn , 1}) for a
+large enough n. Recall that M (k, γn , δ) and N (k, γn , δ) are defined in Proposition D.1. For
+a large enough n, we have
+                          1/(k−2)                                       1/(k−2)
+                      1    Ck               ε                       1      Ck
+    M (k, γn , δ) ≤                     n , N (k, γn , δ) ≥                            1,
+                    k − 2 γn                                     1 + 10δ γn
+and                                                                            
+                                                 2T             1             2
+             1 − 2T Φ (−N (k, γn , δ)) ≥ 1 −               exp − N (k, γn , δ) .
+                                             N (k, γn , δ)      2
+As a consequence, as long as T ≤ exp(N (k, γn , δ)2 /2), with high probability we have
+
+                                max |ᾱt | ≤ M (k, γn , δ)  nε ,
+                                0≤t≤T
+
+which further implies that
+                                              2/(k−2) !                         2/(k−2) !
+                             1            Ck                        1−η       Ck
+           T̄ε ≥ exp                                        ≥ exp                               ,
+                        2(1 + 10δ)2       γn                         2        γn
+
+since δ → 0 as n → ∞. This completes the proof of the lower bound given in Eq. (60).
+
+D.2 Upper bound on T̄ε
+Next, we establish an upper bound for T̄ε . Our proof consists of two steps. First, we show
+that in a moderately many steps, the alignment ᾱt will reach a sufficiently large magnitude.
+Then, we use Lemma D.1 to prove that, after reaching this magnitude, it takes at most
+(1 + η) logk−1 (logk−1 n/ max{logk−1 γn , 1}) steps for |ᾱt | to reach nε , where η ∈ (0, 1) is
+an arbitrarily small fixed positive constant. To get started, we establish the following
+proposition, the proof of which can be found in Appendix E.4.
+
+Proposition D.3 For any m > 0 and T ∈ N, we have
+                                                                           1/(k−1) !!
+                                                                     m
+          P max |ᾱt | ≥ m ≥ 1 − exp −T Φ −                                                 ,
+                0≤t≤T                                           γn (1 − δ)k
+
+where we recall that δ = (C + 1)n−1/6 .
+
+                                                    28
+                      Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+For ∆ ∈ (δ, 1) and L > 0, we define
+                                               (                   1/(k−2)     )
+                                                       1+∆
+                           m(∆, L) := max                                      ,L ,                  (61)
+                                                    γn (1 − ∆)k
+
+we know that (using ∆ ≥ δ)
+                                                                                            !1/(k−1) 
+                                      (1 + ∆)1/(k−1) 1/(k−2)
+                    1/(k−1)                         !
+                                                                           L(1 + ∆)1/(k−1)
+  
+       m(∆, L)                                                                                        
+                               ≤ max                          ,                                           .
+      γn (1 − δ)k                       γn (1 − ∆)k                           γn (1 − ∆)k           
+
+Define Ak,∆ := (1 + ∆)1/(k−1) /(1 − ∆)k and Bk,∆ := (1 + ∆)/(1 − ∆)k . Invoking Proposition
+D.3 and taking m = m(∆, L), we know that with probability at least
+           (                                !!                                    !!)
+                               Ak,∆ 1/(k−2)                        Ak,∆ L 1/(k−1)
+                                                                       
+  1 − max exp −T Φ −                            , exp −T Φ −                           ,
+                                γn                                   γn
+
+there exists t ≤ T satisfying
+                                                        (          1/(k−2)    )
+                                                             Bk,∆
+                               |ᾱt | ≥ m(∆, L) = max                          ,L .
+                                                              γn
+
+In what follows, we will show that for a sufficiently large L, starting from such ᾱt , it takes
+                          log    n
+at most (1+η) logk−1 max{logk−1 γn ,1} steps for ᾱt reach order nε . Such a result is established
+                              k−1
+as Proposition D.4 below. We delay the proof of this proposition to Appendix E.5.
+
+Proposition D.4 Assume γn = no(1) and γn  (log n)−(k−2)/2 . Let ε = εk = (6k −
+                                                                          log     n
+11)/12(k − 1). Then, for any fixed η ∈ (0, ∞) and tn = b(1 + η) logk−1 max{logk−1 γn ,1} c, for
+                                                                               k−1
+L, n sufficiently large we have
+                                                              ∆2 m(∆, L)2
+                                                                          
+                             ε
+                                              
+              P |ᾱt+tn | ≥ n |ᾱt | ≥ m(∆, L) ≥ 1 − C exp −                  ,           (62)
+                                                                    8
+where C is an absolute constant.
+
+   Putting together Proposition D.3 and Proposition D.4, we obtain the following theorem:
+
+Lemma D.2 (Upper bound on T̄ε ) Assume γn = no(1) , γn  (log n)−(k−2)/2 , and ε =
+εk = (6k − 11)/12(k − 1). For any fixed η > 0 and sufficiently large n ∈ N, with probability
+1 − on (1) we have
+                                         !
+                      1 + η 1 2/(k−2)
+                             
+                                                                  logk−1 n
+            T̄ε ≤ exp                      + (1 + η) logk−1                     .      (63)
+                        2     γn                             max{logk−1 γn , 1}
+
+Proof [Proof of Lemma D.2] Let L = Ln be such that L → ∞ as n → ∞ (specific choice
+of L will be discussed later). Then, from the discussion following Proposition D.3, we know
+that as long as
+                (                            !                                !)
+                        1 + η Ak,∆ 2/(k−2)             1 + η Ak,∆ L 2/(k−1)
+                                                                   
+     T  max exp                               , exp                              ,     (64)
+                          2      γn                       2      γn
+
+                                                     29
+                                                Wu and Zhou
+
+
+
+
+then with high probability there exists t ≤ T satisfying
+                                              (                )
+                                                 Bk,∆ 1/(k−2)
+                                                       
+                     |ᾱt | ≥ m(∆, L) = max                   ,L .
+                                                   γn
+
+Applying Proposition D.4 yields that
+
+                                                                      logk−1 n
+                  |ᾱt+tn | ≥ nε ,       tn = b(1 + η) logk−1                        c.             (65)
+                                                                  max{logk−1 γn , 1}
+
+The above calculation implies that
+
+                                                                 logk−1 n
+                         T̄ε ≤ T + (1 + η) logk−1                               .                   (66)
+                                                             max{logk−1 γn , 1}
+
+Next we discuss the choice of L, which will eventually lead to an upper bound on T . Let L
+be the solution to the equation below
+                             !                               ! 
+      1 + η Ak,∆ L 2/(k−1)             1 + η Ak,∆ 2/(k−2)
+                                                                                        1−η
+                                                                             logk−1 n
+exp                            = exp                           + logk−1                          ,
+        2       γn                       2      γn                       max{logk−1 γn , 1}
+
+then one can show that L → ∞ as n → ∞. In fact, the above equation implies
+                    (                                                         (k−1)/2 )
+                                                                log k−1 n
+    L ≥ Ck,∆,η · max γn−1/(k−2) , γn · (1 − η) · log logk−1
+                                                            max{logk−1 γn , 1}
+                                                        1/2
+                                          logk−1 n
+      ≥ Ck,∆,η · (1 − η) · log logk−1                         → ∞,
+                                      max{logk−1 γn , 1}
+
+where Ck,∆,η is a constant only depending on k, ∆, η. Under this choice of L, setting
+                                               2/(k−2) !
+                          1 + 2η         Ak,∆                                 logk−1 n
+             T = exp                                         + η logk−1                             (67)
+                             2            γn                              max{logk−1 γn , 1}
+
+verifies Eq. (64). We finally deduce that
+                                         2/(k−2) !
+                     1 + 2η       Ak,∆                                           logk−1 n
+         T̄ε ≤ exp                                     + (1 + 2η) logk−1                        .   (68)
+                        2          γn                                        max{logk−1 γn , 1}
+
+Since η and ∆ can be arbitrarily small, the above upper bound is equivalent to
+                                         !
+                     1 + η 1 2/(k−2)
+                             
+                                                                 logk−1 n
+           T̄ε ≤ exp                        + (1 + η) logk−1                    .                   (69)
+                       2      γn                             max{logk−1 γn , 1}
+
+This concludes the proof.
+
+
+
+                                                      30
+                   Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+D.3 Proof of the lemma
+Finally, we put together results in the previous two sections and prove Lemma 3.3. Denote
+the lower and upper bounds in the statement of the theorem as Lε and Uε , respectively.
+Then we know that Lε ≤ T̄ε ≤ Uε ≤ n1/2(k−1) with high probability. Note that P(En ) → 1
+as n → ∞, where
+                 n                                                              o
+           En := αt = ᾱt for all t < min(Tε , n1/2(k−1) ) + 1 and Lε ≤ T̄ε ≤ Uε .   (70)
+
+We will show that Tε = T̄ε on En . Assume this is not true, then there are two possibilities:
+
+ (a) Tε < T̄ε . Since T̄ε ≤ n1/2(k−1) , we know that ᾱt = αt for all t ≤ Tε , which further
+     implies that |ᾱTε | ≥ nε . As a consequence, Tε ≥ T̄ε , a contradiction.
+
+ (b) Tε > T̄ε . In this case, we know that ᾱt = αt for all t < min(T̄ε + 1, n1/2(k−1) ) = T̄ε + 1.
+     Therefore, |αT̄ε | ≥ nε , and we know that Tε ≤ T̄ε , a contradiction.
+
+We thus conclude that Tε = T̄ε on En . Hence, with high probability Lε ≤ Tε ≤ Uε as well.
+This completes the proof of Lemma 3.3.
+
+Appendix E. Proofs of auxiliary lemmas in Appendix D
+E.1 Proof of Lemma D.1
+We first prove Eq. (54). Note that for any sequence {bt }t≥0 satisfying bt+1 = qbtk−1 for some
+q ∈ R, one has
+                                                           k−1
+                              q 1/(k−2) bt+1 = q 1/(k−2) bt      ,
+
+thus leading to
+                                           (k−1)t
+                                                                               (k−1)t
+                                                                  t
+               q 1/(k−2) bt = q 1/(k−2) b0         =⇒ bt = q ((k−1) −1)/(k−2) b0      .
+
+Specializing the above equation to (b0 , q) = (b̄0,∆ , γn (1+∆)k ) and (b0 , q) = (b0,∆ , γn (1−∆)k )
+proves Eq. (54).
+   Next, we prove Eq. (55). The proof of Eq. (56) follows similarly and we omit it for
+the sake of simplicity. Without loss of generality we may assume t = 0. The proof applies
+without change to positive t. To prove Eq. (55), it suffices to prove the following claim:
+
+                                           ∆bs,∆ − δ
+            |ᾱ0 | ≤ b0,∆ , and |Zs | ≤              , ∀s ∈ N =⇒ |ᾱs | ≤ bs,∆ , ∀s ∈ N.        (71)
+                                            1+δ
+We establish the above relationship via induction. For s = 0, it holds trivially. Now assume
+|ᾱs | ≤ bs,∆ , then we know that
+                                                  k−1
+         |ᾱs+1 | = γn ζ̄s · ᾱs + b̄s + c̄s Zs≤ γn (1 + δ) · (|ᾱs | + δ + (1 + δ)|Zs |)k−1
+                                              k−1                      k−1
+                  ≤ γn (1 + ∆) · bs,∆ + ∆bs,∆      = γn (1 + ∆)k · bs,∆ = bs+1,∆ .
+
+
+                                                        31
+                                             Wu and Zhou
+
+
+
+
+This completes the induction. As a consequence, we obtain that
+
+                                                         
+                P |ᾱt+s | ≤ bs,∆ , ∀s ∈ N |ᾱt | ≤ b0,∆
+                                               Y   ∞                     
+                            ∆bs,∆ − δ                             ∆bs,∆ − δ
+              ≥ P |Zs | ≤              , ∀s ∈ N =       P |Zs | ≤
+                              1+δ                                  1+δ
+                                                    s=0
+                 ∞                                     ∞               
+                Y                  ∆bs,∆ − δ               X      ∆bs,∆ − δ
+              =       1 − 2Φ −                    ≥1−2       Φ −              ,
+                                     1+δ                            1+δ
+                 s=0                                                s=0
+
+                                                        Q∞                        P
+where the last line follows from the inequality             s=0 (1 − xs ) ≥ 1 −       xs for xs ∈ [0, 1]. This
+completes the proof of the lemma.
+
+E.2 Proof of Proposition D.1
+
+Note that by definition of {ᾱt }t≥0 , we have
+
+
+                         |ᾱt+1 | ≤ γn (1 + δ) (|ᾱt | + δ + (1 + δ) |Zt |)k−1 .
+
+
+Recall that Ck = (k − 2)k−2 /(k − 1)k−1 , we next show that as long as
+
+                                              1/(k−2)
+                        1             Ck                         δ
+               |Zt | ≤                                      −       for all 0 ≤ t ≤ T − 1,
+                       1+δ        γn (1 + δ)                    1+δ
+
+then we also have
+
+                                                      1/(k−2)
+                                 1            Ck
+                       |ᾱt | ≤                                    for all 0 ≤ t ≤ T.
+                                k−2       γn (1 + δ)
+
+To this end, we use induction. For t = 0, we already have α0 = 0, so the above inequality
+holds automatically. Assume that it is true for all t ≤ T − 1, then one has
+
+
+                 |ᾱt+1 | ≤ γn (1 + δ) (|ᾱt | + δ + (1 + δ) |Zt |)k−1
+                                                              1/(k−2) !k−1
+                                                        Ck
+                          ≤ γn (1 + δ) |ᾱt | +
+                                                    γn (1 + δ)
+                                                                        (k−1)/(k−2)
+                                           (k − 1)k−1
+                                                           
+                                                                 Ck
+                          ≤ γn (1 + δ) ×                ×
+                                           (k − 2)k−1        γn (1 + δ)
+                                                 1/(k−2)
+                              1          Ck
+                          =                                = M (k, γn , δ).
+                            k − 2 γn (1 + δ)
+
+
+                                                       32
+                  Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+This completes the induction. As a consequence, we deduce that
+                                    1/(k−2)                    !
+                      1       Ck
+         P |ᾱt | ≤                           for all 0 ≤ t ≤ T
+                    k − 2 γn (1 + δ)
+                                    1/(k−2)                                !
+                      1       Ck                  δ
+       ≥ P |Zt | ≤                            −        for all 0 ≤ t ≤ T − 1
+                    1 + δ γn (1 + δ)            1+δ
+                                             1/(k−2) !!T
+                        δ     1         Ck
+       = 1 − 2Φ            −
+                     1 + δ 1 + δ γn (1 + δ)
+                                             1/(k−2) !
+                       δ      1        Ck
+       ≥ 1 − 2T Φ         −                              = 1 − 2T Φ (−N (k, γn , δ)) .
+                    1 + δ 1 + δ γn (1 + δ)
+
+This completes the proof.
+
+E.3 Proof of Proposition D.2
+Take ∆ = 1. Consider the sequence {bt,∆ }t≥0 defined via b0,∆ = Mk,n = logk−1 n > 0, and
+                                                                 k−1
+                                         bt+1,∆ = γn 2k · bt,∆ .
+
+Then, according to Lemma D.1 we know that
+                                            ((k−1)t −1)/(k−2)
+                                                                  (k−1)t
+                                     
+                               bt,∆ = 2k γn                    · Mk,n ,                                             (72)
+
+and that
+                                                                                               ∞                 
+                         (i)                                                                 X         bt,∆ − δ
+P |ᾱt | ≤ bt,∆ , ∀t ∈ N = P |ᾱt | ≤ bt,∆ , ∀t ∈ N          |ᾱ0 | ≤ Mk,n ≥ 1 − 2                   Φ −            ,
+                                                                                                          1+δ
+                                                                                               t=0
+
+where (i) is because ᾱ0 = 0. Since γn  (log n)−(k−2)/2 , we then see that Mk,n 
+      −1/(k−2)
+max{γn         , 1}, hence for large enough n:
+
+                                    bt,∆ − δ   bt,∆
+                                             ≥      for all t ≥ 0.
+                                     1+δ        2
+Therefore, for sufficiently large n it holds that
+      ∞                               ∞                            ∞                           
+      X         bt,∆ − δ                X       bt,∆                   X
+                                                                                  k−1  k−2
+                                                                                           t
+1−2         Φ −                ≥1 − 2       Φ −             ≥ 1−2            Φ − 2 γn Mk,n    · Mk,n
+                 1+δ                             2
+      t=0                               t=0                            t=0
+                                         ∞
+                                                                                           !
+                                         X             2
+                                                      Mk,n                          2t
+                                                                     k−1       k−2
+                               ≥1 − C         exp −          · 2           γn Mk,n
+                                                        2
+                                        t=0
+                                        ∞
+                                                                       !                                    !
+                                        X                     2
+                                                      (t + 1)Mk,n                                     2
+                                                                                                     Mk,n
+                               ≥1 − C         exp −                         ≥ 1 − C exp −                       ,
+                                                             2                                        2
+                                        t=0
+
+
+                                                   33
+                                              Wu and Zhou
+
+
+
+
+where C is a positive numerical constant. Furthermore, we have
+                                                         !
+                                                       2
+                                                    Mk,n
+                  Mk,n = logk−1 n =⇒ 1 − C exp −           ≥ 1 − n−C .
+                                                      2
+
+It then follows that for large enough n, with probability at least 1 − n−C ,
+                                                                                (k−1)t
+           max |ᾱt | ≤ max bt,∆ ≤ max                   max(2k γn , 1) · Mk,n
+          0≤t≤tn             0≤t≤tn         0≤t≤tn
+                                                                                                        1−η
+                                     (k−1)tn                                         logk−1 n
+                                                                                     max{logk−1 γn ,1}
+        ≤ max(2k γn , 1) · Mk,n        ≤ max(2k γn , 1) · Mk,n
+                                   1−η                                  !
+                      logk−1 n                                         
+        = exp                           · log Mk,n + log max(2k γn , 1)
+                 max{logk−1 γn , 1}
+                                                               (i)       nε
+        ≤ exp C0 (log n)1−η/2 + (log n)1−η (log (max{γn , 1}))η    = no(1) ≤
+                                                                             2
+
+for sufficiently large n, where (i) is due to our assumption: γn = no(1) . In the above display,
+C0 is another positive numerical constant. This completes the proof of the proposition.
+
+E.4 Proof of Proposition D.3
+Note that for any 0 ≤ t ≤ T − 1, Zt is independent of ᾱt + b̄t . Therefore, for any x ≥ 0,
+with probability Φ(−x), we have |Zt | ≥ x and sign(Zt ) = sign(ᾱt + b̄t ). When this event
+occurs, we have
+
+                  ᾱt + b̄t + c̄t Zt ≥ c̄t |Zt | ≥ (1 − δ)x =⇒ |ᾱt+1 | ≥ γn (1 − δ)k xk−1 .
+
+Define Et := {|Zt | < x or sign(Zt ) 6= sign(ᾱt + b̄t )}, then P(Et ) = P Et | ∩t−1
+                                                                                                                
+                                                                                 s=0 Es                             =
+                                                 T −1     c
+1 − Φ(−x) for all 0 ≤ t ≤ T − 1. Note that on (∩t=0 Et ) , we have
+
+                                       max |ᾱt | ≥ γn (1 − δ)k xk−1 .                                          (73)
+                                      0≤t≤T
+
+Since {ᾱt }t≥0 is a Markov chain, we obtain that
+
+                                                         −1
+                                                            TY
+                            −1                  −1
+                      P (∩Tt=0 Et )c = 1 − P ∩Tt=0              P Et | ∩t−1
+                                                                               
+                                                   Et = 1 −             s=0 Es
+                                                                      t=0
+                                                              T
+                                      = 1 − (1 − Φ(−x)) ≥ 1 − exp(−T Φ(−x)).
+
+Now, choosing x = (m/γn (1 − δ)k )1/(k−1) , it follows that
+                                                                                  1/(k−1) !!
+                                                                          m
+              P       max |ᾱt | ≥ m ≥ 1 − exp −T Φ −                                                .          (74)
+                    0≤t≤T                                            γn (1 − δ)k
+
+This completes the proof.
+
+                                                         34
+                   Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+E.5 Proof of Proposition D.4
+Consider the sequence {bt,∆ }t≥0 defined as per Eq. (53) with b0,∆ = m(∆, L). Applying
+Lemma D.1 to {ᾱt } and {bt,∆ } yields
+
+                                           ((k−1)t −1)/(k−2)                  t
+                                        k
+                     bt,∆ = γn (1 − ∆)                           · m(∆, L)(k−1) ,         (75)
+
+
+and consequently,
+
+                                                                     
+                          P |ᾱt+tn | ≥ btn ,∆    |ᾱt | ≥ m(∆, L)
+                                                                            
+                        ≥ P |ᾱt+s | ≥ bs,∆ , ∀s ∈ N |ᾱt | ≥ m(∆, L)
+                                ∞
+                                           ∆bs,∆ − δ
+                                X                   
+                        ≥1 − 2       Φ −               .                                  (76)
+                                              1+δ
+                                s=0
+
+
+Note that by definition γn (1 − ∆)k m(∆, L)k−2 ≥ 1 + ∆. Also note that
+
+                            −1/(k−2)                                    (k−1)t
+          bt,∆ = γn (1 − ∆)k          · m(∆, L) · γn1/(k−2) (1 − ∆)k/(k−2)         ,
+
+
+hence {bt,∆ }t≥0 is an increasing sequence, lower bounded by m(∆, L). P   Therefore, for suffi-
+ciently large n the last line in Eq. (76) if further no smaller than 1 − 2 ∞
+                                                                           s=0 Φ(−∆bs,∆ /2),
+which by Eq. (75) is equal to
+
+
+         ∞                         ((k−1)s −1)/(k−2)                   
+         X         ∆             k                               (k−1)s
+      1−2     Φ −     γn (1 − ∆)                       · m(∆, L)
+                   2
+          s=0
+           ∞                                     ((k−1)s −1)/(k−2)           
+          X        ∆             k           k−2
+  =1 − 2      Φ −     γn (1 − ∆) m(∆, L)                             · m(∆, L)
+                   2
+          s=0
+  (i)      ∞                                               (ii)        ∞                    
+          X        ∆         ((k−1)s −1)/(k−2)
+                                                                        X        ∆       s
+  ≥1−2        Φ − (1 + ∆)                       · m(∆, L) ≥ 1 − 2           Φ − (1 + ∆) m(∆, L)
+                   2                                                             2
+          s=0                                                           s=0
+            ∞                                                ∞
+                     ∆2
+(iii)
+                                                                                          
+           X
+                                 2s           2
+                                                            X            1 + 2s∆ 2         2
+ ≥ 1−C         exp − (1 + ∆) m(∆, L) ≥ 1 − C                    exp −            ∆ m(∆, L)
+                     8                                                      8
+           s=0                                              s=0
+         C exp(−∆2 m(∆, L)2 /8)                        ∆2 m(∆, L)2
+                                                                      
+  =1 −                              ≥ 1 − C exp −                        ,
+        1 − exp(−∆3 m(∆, L)2 /4)                              8
+
+where (i) follows from our choice of m(∆, L): γn (1 − ∆)k m(∆, L)k−2 ≥ 1 + ∆, (ii) is due to
+the inequality (k − 1)s ≥ 1 + (k − 2)s, and (iii) follows from the well-known fact regarding
+Gaussian tail bound: Φ(−x) ≤ C exp(−x2 /2) for x ≤ 0, where C > 0 is a numerical
+constant.
+
+                                                  35
+                                              Wu and Zhou
+
+
+
+
+    It then suffices to show that btn ,∆ ≥ nε . By direct calculation, we obtain that for a
+sufficiently large L and n, it holds that
+                                      ((k−1)tn −1)/(k−2)                      tn
+                                   k
+            btn ,∆ = γn (1 − ∆)                   · m(∆, L)(k−1)
+                                           ((k−1)tn −1)/(k−2)
+                   ≥ γn (1 − ∆)k m(∆, L)k−2
+                                                           tn −1
+                  ≥ (γn (1 − ∆)k m(∆, L)k−2 )(k−1)
+                                                           (1+η/2) logk−1 (logk−1 n/ max{logk−1 γn ,1})
+                  ≥ (γn (1 − ∆)k m(∆, L)k−2 )(k−1)
+                                                                                     (1+η/2)
+                  ≥ (γn (1 − ∆)k m(∆, L)k−2 )(logk−1 n/ max{logk−1 γn ,1})                     .          (77)
+
+By definition of m(∆, L), we see that γn (1 − ∆)k m(∆, L)k−2 ≥ C∆,k,L max{γn , e}, where
+C∆,k,L > 1 is a constant that depends only on (∆, k, L) (this is true if we choose L large
+enough). For simplicity, define ω = max{γn , e}. To show that the last line of Eq. (77) is no
+smaller than nε , it suffices to prove the following:
+
+                           logk−1 n 1+η/2
+                                  
+                                            · logk−1 (C∆,k,L ω) ≥ ε logk−1 n
+                          logk−1 ω
+                                  η/2                                   1+η/2
+                   ⇐⇒ logk−1 n         · logk−1 (C∆,k,L ω) ≥ ε logk−1 ω         .
+
+This is true for large enough n since ω  n and C∆,k,L > 1. The proof is complete.
+
+Appendix F. Proof of Theorem 2.2
+In this section, we follow the definitions and notations introduced in the proof of Theo-
+rem 2.1. Recall from Eq. (17) that Tε = min{t ∈ N+ : |αt | ≥ nε }, where
+                                                              √                 k−1
+                           αt = λn hv, ṽ t−1 ik−1 = γn            nhv, ṽ t−1 i     .
+
+Part I: before Tε
+We first prove that with probability 1 − on (1),
+
+                                            kṽ t − ṽ t−1 k2 < 1/2
+
+simultaneously for all t ∈ {1, 2, · · · , Tε − 1}. Invoking Lemma 3.3, we see that for ε =
+(6k − 11)/12(k − 1), with probability 1 − on (1) we have Tε + 10 < n1/10(k−1) . Recall that
+              d     d
+wi1 ,i2 ,··· ,ik−1 = gt = N(0, I n ). Employing standard Gaussian concentration inequalities, we
+see that with probability at least 1 − on (1), it holds that
+                              p                     √                               √
+        wi1 ,i2 ,··· ,ik−1 2 ≤ n log n,      gt 2 − n ≤ log n,       gt − gt+1 2 ≥ n        (78)
+
+for all t ∈ {0, 1, · · · , dn1/10(k−1) e} and (i1 , · · · , ik−1 ) ∈ H t . In addition, Lemma 3.2 implies
+that with probability 1 − on (1) we have
+                               q
+                                  1 − kṽ kt−1 k2k−2
+                                                2    − 1 = |ct − 1| ≤ Cn−5/6
+
+
+                                                      36
+                         Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+for an absolute constant C > 0 and all t ∈ {0, 1, · · · , Tε − 1}. Observe that for t ∈
+{1, · · · , dn1/10(k−1) e},
+             X                                            X
+                        |βi1 ,i2 ,··· ,ik−1 |2 + c2t = 1,     |βi1 ,i2 ,··· ,ik−1 |2 + c2t−1 = 1,
+     (i1 ,··· ,ik−1 )∈H t−2                                   (i1 ,··· ,ik−1 )∈H t−3
+
+hence using Cauchy-Schwartz inequality we get
+     X                                                                    X
+              |βi1 ,i2 ,··· ,ik−1 | ≤ Cn−5/12+1/20 ,                                      |βi1 ,i2 ,··· ,ik−1 | ≤ Cn−5/12+1/20 .
+(i1 ,··· ,ik−1 )∈H t−2                                           (i1 ,··· ,ik−1 )∈H t−3
+                                                                                                                      (79)
+Plugging these bounds into Eq. (8) and applying the triangle inequality, we see that with
+probability 1 − on (1)
+   kv t k2 ≤ n1/2 + log n + n(6k−11)/12(k−1) + Cn−11/30 n log n + Cn−5/6 · (n1/2 + log n),
+                                                       p
+
+   kv t k2 ≥ n1/2 − log n − n(6k−11)/12(k−1) − Cn−11/30 n log n − Cn−5/6 · (n1/2 + log n).
+                                                       p
+
+for all t ∈ {0, 1, · · · , Tε −1}. From the above upper bound, we see that with high probability
+
+                                       kv t k2 − n1/2 ≤ 2n(6k−11)/12(k−1)
+
+for all t ∈ {0, 1, · · · , Tε − 1}.
+    We can also employ Eq. (78) and Eq. (79) to lower bound kv t − v t−1 k2 . Invoking the
+triangle inequality, we get:
+     v t − v t−1 2
+≥ kgt − gt−1 k2 − |αt | − |αt−1 | − |1 − ct | · kgt k2 − |1 − ct−1 | · kgt−1 k2 −
+        X                                                          X
+                  |βi1 ,i2 ,··· ,ik−1 | · kwi1 ,i2 ,··· ,ik−1 k2 −         |βi1 ,i2 ,··· ,ik−1 | · kwi1 ,i2 ,··· ,ik−1 k2 .
+   (i1 ,··· ,ik−1 )∈H t−2                                        (i1 ,··· ,ik−1 )∈H t−3
+
+By definition of Tε we have max{|αt |, |αt−1 |} ≤ nε = n(6k−11)/12(k−1) . By Lemma 3.2 we
+have max{|ct − 1|, |ct−1 − 1|} ≤ Cn−5/6 . Putting together the above equations, we get
+            v t − v t−1 2
+                                                                                      
+                                                          −5/6
+                                                                             + log n − Cn−11/30
+                                   (6k−11)/12(k−1)                     1/2
+                                                                                                         p
+       ≥ kgt − gt−1 k2 − 2n                          − Cn        · n                                      n log n
+       ≥ n1/2 − 3n(6k−11)/12(k−1) ,
+which holds with high probability for all t ∈ {0, 1, · · · , Tε − 1} for a sufficiently large n. We
+can then use this to give a high-probability lower bound for kṽ t − ṽ t−1 k2 . Leveraging the
+triangle inequality, we obtain that for a large enough n, with probability 1 − on (1)
+                                vt      v t−1
+       ṽ t − ṽ t−1 2 =              −
+                               kv t k2 kv t−1 k2     2
+                              vt  v t−1               1      1               1     1
+                            ≥ √ − √             −     t
+                                                          − √ · kv t k2 −   t−1
+                                                                                − √ · kv t−1 k2
+                               n     n      2       kv k2     n           kv k2     n
+                            ≥ 1 − 20n−5/12(k−1)
+
+
+                                                         37
+                                                      Wu and Zhou
+
+
+
+
+for all t ∈ {0, 1, · · · , Tε −1}. Therefore, with probability 1−on (1) we have kṽ t −ṽ t−1 k2 < 1/2
+for all t ∈ {1, 2, · · · , Tε − 1}. This completes the proof for Part I. The takeaway message is
+that with high probability Tstop ≥ Tε + 1.
+
+Part II: after Tε
+In the second part of the proof, we show with high probability |hṽ Tε +1 , ṽ Tε +2 i| ≥ 1/2, hence
+Tstop ≤ Tε + 4.
+    We first prove with probability 1−on (1) we have |hv, ṽ Tε +i i| ≥ 1−δ for all i ∈ {1, 2, 3, 4}.
+According to Eq. (26), we see that with probability 1 − on (1) we have |hṽ Tε +1 , vi| ≥ 1 −
+Cn−1/24 . This already proves the desired result for i = 1.
+    Once again we apply standard Gaussian concentration inequalities, and obtain that with
+probability 1 − on (1)
+                               hwi1 ,i2 ,··· ,ik−1 , vi ≤ log n,              |hgt , vi| ≤ log n                                 (80)
+
+for all t ∈ {0, 1, · · · , dn1/10(k−1) e} and (i1 , · · · , ik−1 ) ∈ H t .
+    Applying Eq. (78) and the triangle inequality to Eq. (8), we get
+                                                     (T +1)
+                                       X
+     kv Tε +2 k2 ≥ |αTε +2 | −                  |βi1 ,iε2 ,··· ,ik−1 | · kwi1 ,i2 ,··· ,ik−1 k2 − cTε +2 kgTε +2 k2
+                                    (i1 ,··· ,ik−1 )∈H Tε
+
+                  ≥ λn (1 − Cn−1/24 )k−1 − n1/10 ·
+                                                                  p
+                                                                   n log n,
+                                                                                        Tε +1 k−1
+where to get the second lower bound we use
+                        T  +2             1/10
+                                                √ the equality |αTε +2 | = λn · |hv, ṽ      i |.
+Similarly, we obtain kv  ε    k2 ≤ λn + n      · n log n. Therefore,
+                            |hv Tε +2 , vi|
+       |hṽ Tε +2 , vi| =
+                              kv Tε +2 k2
+             1                                X               (T +1)
+     =                 · αTε +2 +                           βi1 ,iε2 ,··· ,ik−1 hwi1 ,i2 ,··· ,ik−1 , vi + cTε +2 hgTε +2 , vi
+         kv Tε +2 k2
+                                    (i1 ,··· ,ik−1 )∈H Tε
+                       1        
+                                             −1/24 k−1     1/10
+                                                                      
+     ≥               √        ·   λ n (1 − Cn     )    − n      log n   ≥ 1 − on (1)
+         λn + n1/10 · n log n
+with probability 1 − on (1). Following the same route, we are able to conclude that with high
+probability |hṽ Tε +3 , vi| = 1 − on (1) and |hṽ Tε +3 , vi| = 1 − on (1). As a direct consequence,
+we see that with high probability mini∈{1,2,3,4} |hṽ Tε +i , vi| ≥ 1 − δ.
+   Finally, we show |hṽ Tε +1 , ṽ Tε +2 i| > 1/2. Let s = sign(hv, ṽ Tε +1 i), then
+    |hṽ Tε +1 , ṽ Tε +2 i| = |hṽ Tε +1 , ṽ Tε +2 − svi + shv, ṽ Tε +1 i| ≥ |hv, ṽ Tε +1 i| − kṽ Tε +2 − svk2 .
+                                                                                                                   (81)
+With high probability
+                   kṽ Tε +2 − svk22 = 2 − 2shv, ṽ Tε +2 i = 2 − 2|hv, ṽ Tε +2 i| = on (1).
+Plugging the above upper bound into Eq. (81), we get
+                                            |hṽ Tε +1 , ṽ Tε +2 i| ≥ 1 − on (1),
+
+
+                                                                 38
+                                          Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+which further implies that with probability 1 − on (1) the inner product |hṽ Tε +1 , ṽ Tε +2 i| is
+larger than 1/2. Hence, Tstop ≤ Tε +4. Recall that we have proved mini∈{1,2,3,4} |hṽ Tε +i , vi| ≥
+1 − δ with high probability, which further implies that with high probability |hv, ṽ Tstop i| ≥
+1 − δ. The proof is complete.
+
+Appendix G. Additional experiments
+G.1 Comparing alignment and the polynomial recurrence process
+We collect in this section additional experiments for Section 4.1. The basic setup is the same
+as that presented in the main text. Throughout the experiment, we fix λn = n(k−1)/2 , and
+use different combinations of (n, k). As before, we compare the marginal distributions of
+{αt }t≥0 and {Xt }t≥0 by comparing the histograms of their empirical marginal distributions,
+generated from 1000 independent experiments. Observing the simulation outcomes, we see
+that they all match well.
+
+Setting I: n = 100, k = 3
+Simulation results are plotted as Figure 5.
+
+                                                         500
+        500                                α1                                                                       α2              500                                   α3                                                            α4
+                                           X1                                                                       X2                                                    X3            400                                             X4
+        400                                              400
+                                                                                                                                    400
+
+                                                                                                                                                                                        300
+        300                                              300                                                                        300
+Count
+
+
+
+
+                                                 Count
+
+
+
+
+                                                                                                                            Count
+
+
+
+
+                                                                                                                                                                                Count
+                                                                                                                                                                                        200
+        200                                              200                                                                        200
+
+
+        100                                              100                                                                        100                                                 100
+
+
+          0                                                0                                                                          0                                                   0
+              0   2   4           6   8     10                 0.0   2.5   5.0   7.5    10.0   12.5   15.0   17.5   20.0                  0   10   20           30   40    50                 0   10   20   30    40     50   60   70    80
+                          Value                                                        Value                                                            Value                                                    Value
+
+
+
+
+Figure 5: Comparison of the marginal distributions between αt and Xt , for t ∈ {1, 2, 3, 4}
+          from left to right. Here, we set n = 100, k = 3, λn = n(k−1)/2 , and run ten-
+          sor power iteration from random initialization on independent datasets for 1000
+          times.
+
+
+
+Setting II: n = 500, k = 3
+Simulation results are plotted as Figure 6.
+
+Setting III: n = 1000, k = 3
+Simulation results are plotted as Figure 7.
+
+Setting IV: n = 100, k = 4
+Simulation results are plotted as Figure 8.
+
+Setting IV: n = 200, k = 4
+Simulation results are plotted as Figure 9.
+
+
+                                                                                                                           39
+                                                                                                      Wu and Zhou
+
+
+
+
+        500
+                                          α1            500                                                        α2              500
+                                                                                                                                                                         α3                                                            α4
+                                          X1                                                                       X2                                                    X3            400                                             X4
+        400                                             400                                                                        400
+                                                                                                                                                                                       300
+                                                        300
+Count
+
+
+
+
+                                                Count
+
+
+
+
+                                                                                                                           Count
+
+
+
+
+                                                                                                                                                                               Count
+        300                                                                                                                        300
+
+                                                                                                                                                                                       200
+        200                                             200                                                                        200
+
+
+                                                        100                                                                                                                            100
+        100                                                                                                                        100
+
+
+          0                                               0                                                                          0                                                   0
+              0   2   4           6   8    10                 0.0   2.5   5.0   7.5    10.0   12.5   15.0   17.5   20.0                  0   10   20           30   40    50                 0   10   20   30    40     50   60   70    80
+                          Value                                                       Value                                                            Value                                                    Value
+
+
+
+
+Figure 6: Comparison of the marginal distributions between αt and Xt , for t ∈ {1, 2, 3, 4}
+          from left to right. Here, we set n = 500, k = 3, λn = n(k−1)/2 , and run ten-
+          sor power iteration from random initialization on independent datasets for 1000
+          times.
+
+
+        500                               α1            500                                                        α2              500
+                                                                                                                                                                         α3                                                            α4
+                                          X1                                                                       X2                                                    X3            400                                             X4
+        400                                             400                                                                        400
+                                                                                                                                                                                       300
+        300                                             300
+Count
+
+
+
+
+                                                Count
+
+
+
+
+                                                                                                                           Count
+
+
+
+
+                                                                                                                                                                               Count
+                                                                                                                                   300
+
+                                                                                                                                                                                       200
+        200                                             200                                                                        200
+
+
+        100                                             100                                                                        100                                                 100
+
+
+          0                                               0                                                                          0                                                   0
+              0   2   4           6   8    10                 0.0   2.5   5.0   7.5    10.0   12.5   15.0   17.5   20.0                  0   10   20           30   40    50                 0   10   20   30    40     50   60   70    80
+                          Value                                                       Value                                                            Value                                                    Value
+
+
+
+
+Figure 7: Comparison of the marginal distributions between αt and Xt , for t ∈ {1, 2, 3, 4}
+          from left to right. Here, we set n = 1000, k = 3, λn = n(k−1)/2 , and run
+          tensor power iteration from random initialization on independent datasets for
+          1000 times.
+
+
+G.2 Experiments with different stopping thresholds
+In this section, we adjust the stopping threshold value, and test the proposed stopping
+criterion under these values. To be specific, we consider here thresholds 0.3 and 0.7, and
+conduct the corresponding experiments. Counterparts of Figure 4 are presented as Figures
+10 and 11. These figures suggest that the effectiveness of the stopping rule is not sensitive
+to the choice of the stopping threshold.
+
+
+
+
+                                                                                                                          40
+                                          Sharp Analysis of Power Iteration for Tensor PCA
+
+
+
+
+        300                                              250
+                                           α1                                                                       α2                                                    α3            160
+                                                                                                                                                                                                                                        α4
+        250                                X1                                                                       X2              200                                   X3                                                            X4
+                                                         200                                                                                                                            140
+
+        200                                                                                                                                                                             120
+                                                                                                                                    150
+                                                         150                                                                                                                            100
+Count
+
+
+
+
+                                                 Count
+
+
+
+
+                                                                                                                            Count
+
+
+
+
+                                                                                                                                                                                Count
+        150
+                                                                                                                                    100                                                  80
+                                                         100
+        100                                                                                                                                                                              60
+
+                                                                                                                                     50                                                  40
+                                                          50
+         50
+                                                                                                                                                                                         20
+
+          0                                                0                                                                          0                                                   0
+              0   2   4           6   8     10                 0.0   2.5   5.0   7.5    10.0   12.5   15.0   17.5   20.0                  0   10   20           30   40    50                 0   10   20   30    40     50   60   70    80
+                          Value                                                        Value                                                            Value                                                    Value
+
+
+
+
+Figure 8: Comparison of the marginal distributions between αt and Xt , for t ∈ {1, 2, 3, 4}
+          from left to right. Here, we set n = 100, k = 4, λn = n(k−1)/2 , and run ten-
+          sor power iteration from random initialization on independent datasets for 1000
+          times.
+
+
+
+
+        300
+                                                         250
+                                           α1                                                                       α2                                                    α3            175                                             α4
+        250                                X1                                                                       X2              200                                   X3                                                            X4
+                                                         200                                                                                                                            150
+
+        200                                                                                                                                                                             125
+                                                                                                                                    150
+                                                         150
+Count
+
+
+
+
+                                                 Count
+
+
+
+
+                                                                                                                            Count
+
+
+
+
+                                                                                                                                                                                Count
+
+
+
+
+        150                                                                                                                                                                             100
+
+                                                         100                                                                        100                                                  75
+        100
+                                                                                                                                                                                         50
+                                                          50                                                                         50
+         50
+                                                                                                                                                                                         25
+
+          0                                                0                                                                          0                                                   0
+              0   2   4           6   8     10                 0.0   2.5   5.0   7.5    10.0   12.5   15.0   17.5   20.0                  0   10   20           30   40    50                 0   10   20   30    40     50   60   70    80
+                          Value                                                        Value                                                            Value                                                    Value
+
+
+
+
+Figure 9: Comparison of the marginal distributions between αt and Xt , for t ∈ {1, 2, 3, 4}
+          from left to right. Here, we set n = 200, k = 4, λn = n(k−1)/2 , and run ten-
+          sor power iteration from random initialization on independent datasets for 1000
+          times.
+
+
+
+
+                                                                                                                           41
+                                                          Wu and Zhou
+
+
+
+
+                     1.0
+                                    n = 50, k = 3                   n = 100, k = 3                   n = 200, k = 3
+                     1.0
+
+                     0.8
+
+                     0.6
+                     0.8
+                     0.4
+
+                     0.2
+                     0.6
+       Correlation
+
+
+
+                     0.0
+
+                                    n = 50, k = 4                   n = 100, k = 4                   n = 200, k = 4
+                     1.0
+                     0.4
+                     0.8
+
+                     0.6
+                     0.2
+                     0.4
+
+                     0.2
+
+                     0.0
+                     0.0
+                           0.0100        101 0.2    102   100 0.4          101       0.6 102   100    0.8 101         101.0
+                                                                                                                        2
+
+                                                                          log t
+
+
+Figure 10: Illustration of the effectiveness of the stopping rule with stopping threshold 0.3.
+
+
+
+                     1.0
+                                    n = 50, k = 3                   n = 100, k = 3                   n = 200, k = 3
+                     1.0
+
+                     0.8
+
+                     0.6
+                     0.8
+                     0.4
+
+                     0.2
+                     0.6
+       Correlation
+
+
+
+
+                     0.0
+
+                                    n = 50, k = 4                   n = 100, k = 4                   n = 200, k = 4
+                     1.0
+                     0.4
+                     0.8
+
+                     0.6
+                     0.2
+                     0.4
+
+                     0.2
+
+                     0.0
+                     0.0
+                           0.0100        101 0.2    102   100 0.4          101       0.6 102   100    0.8 101         101.0
+                                                                                                                        2
+
+                                                                          log t
+
+
+Figure 11: Illustration of the effectiveness of the stopping rule with stopping threshold 0.7.
+
+
+
+                                                                     42
+

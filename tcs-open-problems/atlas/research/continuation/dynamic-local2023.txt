@@ -1,0 +1,2106 @@
+                                         Locality in online, dynamic, sequential, and
+                                         distributed graph algorithms
+
+                                         Amirreza Akbari · amirreza.akbari@aalto.fi · Aalto University
+                                         Navid Eslami · navid.eslami@aalto.fi · Aalto University
+                                         Henrik Lievonen · henrik.lievonen@aalto.fi · Aalto University
+                                         Darya Melnyk · darya.melnyk@aalto.fi · Aalto University
+arXiv:2109.06593v4 [cs.DS] 12 Nov 2022
+
+
+
+
+                                         Joona Särkijärvi · joona.sarkijarvi@aalto.fi · Aalto University
+                                         Jukka Suomela · jukka.suomela@aalto.fi · Aalto University
+
+
+
+                                         Abstract. In this work, we give a unifying view of locality in four settings: distributed algorithms,
+                                         sequential greedy algorithms, dynamic algorithms, and online algorithms.
+                                             We introduce a new model of computing, called the online-LOCAL model: the adversary reveals
+                                         the nodes of the input graph one by one, in the same way as in classical online algorithms, but
+                                         for each new node we get to see its radius-T neighborhood before choosing the output. Instead of
+                                         looking ahead in time, we have the power of looking around in space.
+                                             We compare the online-LOCAL model with three other models: the LOCAL model of distributed
+                                         computing, where each node produces its output based on its radius-T neighborhood, its sequential
+                                         counterpart SLOCAL, and the dynamic-LOCAL model, where changes in the dynamic input graph
+                                         only influence the radius-T neighborhood of the point of change.
+                                             The SLOCAL and dynamic-LOCAL models are sandwiched between the LOCAL and online-
+                                         LOCAL models, with LOCAL being the weakest and online-LOCAL the strongest model. In
+                                         general, all four models are distinct, but we study in particular locally checkable labeling problems
+                                         (LCLs), which is a family of graph problems extensively studied in the context of distributed graph
+                                         algorithms.
+                                             We prove that for LCL problems in paths, cycles, and rooted trees, all four models are roughly
+                                         equivalent: the locality of any LCL problem falls in the same broad class—O(log∗ n), Θ(log n), or
+                                         nΘ(1) —in all four models. In particular, this result enables one to generalize prior lower-bound results
+                                         from the LOCAL model to all four models, and it also allows one to simulate e.g. dynamic-LOCAL
+                                         algorithms efficiently in the LOCAL model.
+                                             We also show that this equivalence does not hold in two-dimensional grids or general bipartite
+                                         graphs. We provide an online-LOCAL algorithm with locality O(log n) for the 3-coloring problem
+                                         in bipartite graphs—this is a problem with locality Ω(n1/2 ) in the LOCAL model and Ω(n1/10 ) in
+                                         the SLOCAL model.
+                                                SLOCAL
+                                                distributed,
+                              (
+                                                 sequential                  (
+
+         LOCAL                                                                         online-
+        distributed,                                                                   LOCAL
+                                                               *
+          parallel                                                                    centralized
+                                                *
+                          (                                                      (
+                                                                                         (
+
+
+                                  dynamic-                     dynamic-              online graph
+                                  LOCAL±             (
+                                                               LOCAL                  algorithms
+                                  centralized                  centralized            centralized
+
+                                   Figure 1: The landscape of models.
+
+
+1     Introduction
+In online graph algorithms, the adversary reveals the graph one node at a time, and the algorithm
+has to respond by labeling the node based on what it has seen so far. For example, in online graph
+coloring, we need to pick a color for the node that was revealed, in such a way that the end result is
+a proper coloring of the graph.
+    Usually, when the adversary reveals a node v, the algorithm gets to see only the edges incident
+to of v. In this work, we consider a more general setting: the algorithm gets to see the radius-T
+neighborhood of v, i.e., it can look around further in the input graph. For T = 0, this model
+corresponds to the typical online model. For T = n, on the other hand, it is clear that any graph
+problem (in connected graphs) is solvable in this setting. The key question is what value of T is
+sufficient for a given graph problem. Put otherwise, what is the locality of a given online problem?
+    It turns out that this question is very closely connected to questions studied in the context
+of distributed graph algorithms, and we can identify problem classes in which the online setting
+coincides with the distributed setting. However, we will also see surprising differences: the prime
+example will be the problem of 3-coloring bipartite graphs, which is a fundamentally global problem
+in the distributed setting, while we show that we can do much better in the online setting.
+
+1.1   Contribution 1: landscape of models
+In Section 2, we define the new model of online algorithms with lookaround, which we call online-
+LOCAL, and we also recall the definitions of three models familiar from the fields of distributed
+and dynamic graph algorithms:
+
+    • The LOCAL model [39, 46]: the nodes are processed simultaneously in parallel; each node
+      looks at its radius-T neighborhood and picks its own output.
+
+    • The SLOCAL model [27]: the nodes are processed sequentially in an adversarial order; each
+      node in its turn looks at its radius-T neighborhood and picks its own output (note that
+      here the output of a node may depend on the outputs of other nodes that were previously
+      processed).
+
+
+
+                                                      1
+                                         LOCAL               SLOCAL         dynamic-        online-
+                                                                            LOCAL           LOCAL
+   LCLs in paths and cycles              O(log∗ n)       ⇔   O(1)       ⇔   O(1)       ⇔    O(1)
+                                         Θ(n)            ⇔   Θ(n)       ⇔   Θ(n)       ⇔    Θ(n)
+   LCLs in rooted regular trees          O(log∗ n)       ⇔   O(1)       ⇔   O(1)       ⇔    O(1)
+                                         Θ(log n)        ⇔   Θ(log n)   ⇔   Θ(log n)   ⇔    Θ(log n)
+                                         nΘ(1)           ⇔   nΘ(1)      ⇔   nΘ(1)      ⇔    nΘ(1)
+
+Table 1: In all four models, LCL problems have got the same locality classes in paths, cycles, and rooted
+trees. Here nΘ(1) refers to locality Θ(nα ) for some constant α > 0. See Section 5 for more details.
+
+
+   • The dynamic-LOCAL model: the adversary constructs the graph by adding nodes and edges
+     one by one; after each modification, the algorithm can only update the solution within the
+     radius-T neighborhood of the point of change. While this is not one of the standard models,
+     there is a number of papers [3, 10, 12, 23, 30, 36, 45] that implicitly make use of this model.
+     We will also occasionally consider the dynamic-LOCAL± model, in which we can have both
+     additions and deletions.
+In Section 3, we show that we can sandwich SLOCAL and both versions of dynamic-LOCAL between
+LOCAL and online-LOCAL, as shown in Figure 1. In particular, this implies that if we can prove
+that LOCAL and online-LOCAL are equally expressive for some family of graph problems, we
+immediately get the same result also for SLOCAL and dynamic-LOCAL. This is indeed what we
+will achieve in our next contribution.
+
+1.2   Contribution 2: collapse for LCLs in rooted regular trees
+A lot of focus in the study of distributed graph algorithms and the LOCAL model has been on
+understanding locally checkable labeling problems (in brief, LCLs) [4–6, 8, 15, 17, 18, 20, 44]. These
+are problems where feasible solutions are defined with local constraints—a solution is feasible if it
+looks good in all constant-radius neighborhoods (see Definition 5.1). Coloring graphs of maximum
+degree ∆ with k colors (for some constants of ∆ and k) is an example of an LCL problem.
+     In Section 5, we study LCL problems in paths, cycles, and rooted regular trees, and we show that
+all four models are approximately equally strong in these settings:
+                    LOCAL ≈ SLOCAL ≈ dynamic-LOCAL ≈ online-LOCAL .                                    (1)
+For example, we show that if the locality of an LCL problem in rooted trees is nΘ(1) in the LOCAL
+model, it is also nΘ(1) in the dynamic-LOCAL, SLOCAL, and online-LOCAL models. Refer to
+Table 1 for the full classification.
+    By previous work, we know that LCL complexities in paths, cycles, and rooted regular trees are
+decidable in the LOCAL model [4, 8, 20]. Our equivalence result allows us to extend this decidability
+to the SLOCAL, dynamic-LOCAL, and online-LOCAL models. For example, there is an algorithm
+that gets as input the description of an LCL problem in rooted trees and produces as output in
+which of the classes of Table 1 it is, for any of the four models.
+
+1.3   Contribution 3: 3-coloring bipartite graphs in online-LOCAL
+Given the equivalence results for LCLs in paths, cycles, and rooted regular trees, it would be
+tempting to conjecture that the models are approximately equal for LCLs in any graph class. In
+
+                                                     2
+                        colors   competitive     LOCAL         SLOCAL        online-      references
+                                 ratio                                       LOCAL
+      Rooted trees      2        1               Θ(n)          Θ(n)          Θ(n)         trivial
+      and paths         3        1.5             Θ(log∗ n)     O(1)          O(1)         [21, 39]
+                        4        2               Θ(log∗ n)     O(1)          O(1)         [21, 39]
+                        ...
+      Grids             2        1               Θ(n1/2 )      Θ(n1/2 )      Θ(n1/2 )     trivial
+                        3        1.5             Θ(n1/2 )      Ω(n1/10 )     O(log n)     Section 4, [15]
+                        4        2               Θ(log∗ n)     O(1)          O(1)         [15]
+                        5        2.5             Θ(log∗ n)     O(1)          0            [15]
+                        ...
+
+Table 2: The locality of the vertex coloring problem in distributed vs.√online√settings, for two graph families:
+rooted trees and paths (with n nodes) and 2-dimensional grids (with n × n nodes). See Sections 4 and 5
+and Appendix C for more details.
+
+
+Section 4, we show that this is not the case: we provide an exponential separation between the
+SLOCAL and online-LOCAL models for the problem of 3-coloring bipartite graphs. By prior work
+it is known that in the LOCAL model, the locality of 3-coloring is Ω(n1/2 ) in two-dimensional grids
+[15], which are a special case of bipartite graphs; using this result we can derive a lower bound of
+Ω(n1/10 ) also for the SLOCAL model (see Appendix C). In Section 4, we prove the following:
+
+Theorem 1.1. There is an online-LOCAL algorithm that finds a 3-coloring in bipartite graphs with
+locality O(log n).
+
+    That is, in bipartite graphs, there is an LCL problem that requires locality nΩ(1) in the LOCAL
+and SLOCAL models and is solvable with locality O(log n) in the online-LOCAL model.
+    The algorithm that we will present for coloring bipartite graph is also interesting from the
+perspective of competitive analysis of online algorithms. With locality O(log n), the online-LOCAL
+algorithm can compute a 3-coloring. Since bipartite graphs are 2-colorable, this gives us a 1.5-
+competitive online-LOCAL algorithm. On the other hand, it has been shown that any online
+algorithm for coloring bipartite graphs is at least Ω(log n)-competitive [11], with a matching
+algorithm presented in [40]. This result shows how much the competitive ratio of an algorithm can
+be improved by increasing the view of each node.
+
+1.4     Contribution 4: locality of online coloring
+As a corollary of our work, together with results on distributed graph coloring from prior work
+[15, 21, 39], we have now a near-complete understanding of the locality of graph coloring in paths,
+cycles, rooted trees, and grids in both distributed and online settings. Table 2 summarizes our key
+results. For the proofs of the localities in the online-LOCAL model, see Sections 4 and 5.
+
+1.5     Motivation
+Before we discuss the key technical ideas, we will briefly explain the practical motivation for the
+study of online-LOCAL and dynamic-LOCAL models. As a running example, consider the challenge
+of providing public services (e.g. local schools) in a rapidly growing city. The future is unknown,
+depending on future political decisions, yet the residents will need services every day.
+
+                                                       3
+    The offline solution would result in a city-wide redesign of e.g. the entire school network every
+time the city plan is revised; this is not only costly but also disruptive. On the other hand, a strict
+online solution without any consideration of the future would commit to a solution that is far from
+optimal. The models that we study in this work capture the essence of two natural strategies for
+coping with such a situation:
+
+   • Redesign the public service network only in the local neighborhoods in which there are new
+     developments. This corresponds to the dynamic-LOCAL model, and the locality parameter T
+     captures cost the redesign cost and the disruption it causes.
+
+   • Wait until new developments in a neighborhood are completed before providing permanent
+     public services in the area. This corresponds to the online-LOCAL model, and locality T
+     captures the inconvenience of the residents (e.g., distance to the nearest school).
+
+These two models make it possible to formally explore trade-offs between the quality of the solution
+in the long term vs. the inconvenience of those living close to the areas where the city is changing.
+In these kinds of scenarios the key challenge is not related to the computational cost of finding an
+optimal solution (which is traditionally considered in the context of dynamic graph algorithms) but
+to the quality of the solution (which is typically the focus in online algorithms). The key constraint is
+not the availability of information on the current state of the world (which is traditionally considered
+in distributed graph algorithms), but the cost of changing the solution.
+
+1.6   Techniques and key ideas
+For the equivalence (1) in paths and cycles (Section 5.1), we first make use of pumping-style
+arguments that were introduced by Chang and Pettie [18] in the context of distributed algorithms.
+We show that such ideas can be used to also analyze locality in the context of online algorithms: we
+start by showing that we can “speed up” (or “further localize”) online-LOCAL algorithms with a
+sublinear locality to online-LOCAL algorithms with a constant locality in paths and cycles. Then,
+once we have reached constant locality in the online-LOCAL model, we show how to turn it into a
+LOCAL-model algorithm with locality O(log∗ n). In this part, the key insight is that we cannot
+directly simulate online-LOCAL in LOCAL. Instead, we can use an online-LOCAL algorithm with
+a constant locality to find a canonical labeling for each possible input-labeled fragment, and use
+this information to design a LOCAL-model algorithm. The main trick is that we first present only
+disconnected path fragments to an online-LOCAL algorithm, and force it to commit to some output
+labeling in each fragment without knowing how the fragments are connected to each other.
+    In the case of rooted regular trees (Section 5.2), we face the same fundamental challenge: we
+cannot directly simulate black-box online-LOCAL algorithms in the LOCAL model. Instead, we will
+need to look at the combinatorial properties of a given LCL problem Π. We proceed in two steps:
+(1) Assume that the locality of Π is nΘ(1) in the LOCAL model; we need to show that the locality is
+nΘ(1) also in the online-LOCAL model. Using the result of [8], high LOCAL-model locality implies
+that the structure of Π has to have certain “inflexibilities”, and we use this property to present a
+strategy that the adversary can use to force any online-LOCAL algorithm with locality no(1) to fail.
+(2) Assume that we have an online-LOCAL algorithm A for Π with locality o(log n); we need to
+show that the locality is O(log∗ n) in the LOCAL model. Here we design a family of inputs and a
+strategy of the adversary that forces algorithm A to construct a “certificate” (in the sense of [8])
+that shows that Π is efficiently solvable in the LOCAL model.
+    For 3-coloring bipartite graphs in online-LOCAL (Section 4), we make use of the following ideas.
+We maintain a collection of graph fragments such that each of the fragments has got a boundary
+
+
+                                                   4
+that is properly 2-colored. Each such fragment has got one of two possible parities (let us call them
+here “odd” and “even”) with respect to the underlying bipartition. We do not know the global
+parity of a given graph fragment until we have seen almost the entire graph. Nevertheless, it is
+possible to merge two fragments and maintain the invariant: if two fragments A and B have parities
+that are not compatible with each other, we can surround either A or B with a barrier that uses
+the third color, and thus change parities. Now we can merge A and B into one fragment that has
+got a properly 2-colored boundary. The key observation here is that we can make a choice between
+surrounding A vs. B, and if we always pick the one with the smallest number of nested barriers, we
+will never need to use more than a logarithmic number of nested barriers. It turns out that this
+is enough to ensure that seeing up to distance O(log n) suffices to color any node chosen by the
+adversary.
+
+1.7    Open questions
+Our work gives rise to a number of open questions. First, we can take a more fine-grained view of
+the results in Tables 1 and 2:
+    1. Is there any problem in rooted trees with locality Θ(nα ) in the online-LOCAL model and
+       locality Θ(nβ ) in the LOCAL model, for some α < β?
+
+    2. Is it possible to find a 3-coloring in 2-dimensional graphs in the dynamic-LOCAL model with
+       locality O(log n)?
+
+    3. Is it possible to find a 3-coloring in bipartite graphs in the online-LOCAL model with locality
+       o(log n)?
+Perhaps even more interesting is what happens if we consider unrooted trees instead of rooted trees.
+In unrooted trees we can separate randomized and deterministic versions of the LOCAL model [19],
+and SLOCAL is strong enough to derandomize randomized LOCAL-model algorithms [28]; hence
+the key question is:
+    4. Does randomized-LOCAL ≈ SLOCAL ≈ dynamic-LOCAL ≈ online-LOCAL hold for LCL
+       problems in unrooted trees?
+Finally, our work shows a trade-off between the competitive ratio and the locality of coloring: With
+locality O(log n), one can achieve O(1)-coloring of a bipartite graph, and to achieve locality 0, one
+needs to use Ω(log n) colors. This raises the following question:
+    5. What tradeoffs exist between the locality and number of colors needed to color a (bipartite)
+       graph in the online-LOCAL model?
+
+
+2     Definitions and related work
+Throughout this work, graphs are simple, undirected, and finite, unless otherwise stated. We write
+G = (V, E) for a graph G with the set of nodes V and the set of edges E, and we use n to denote
+the number of nodes in the graph. For a node v and a natural number T , we will use B(v, T ) to
+denote the set of all nodes in the radius-T neighborhood of node v. For a set of nodes U , we write
+G[U ] for the subgraph of G induced by U . By radius-T neighborhood of v we refer to the induced
+subgraph G[B(v, T )], together with possible input and output labelings.
+    We will use the following notation for graph problems. We write G for the family of graphs, Σ
+for the set of input labels, and Γ for the set of output labels. For a graph G = (V, E), we write
+
+                                                  5
+I : V → Σ for the input labeling and L : V → Γ for the output labeling. We consider here node
+labelings, but edge labelings can be defined in an analogous manner. A graph problem Π associates
+with each possible input (G, I) a set of feasible solutions L; this assignment must be invariant under
+graph isomorphism.
+
+Locality. In what follows, we will define five models of computing: LOCAL, SLOCAL, two versions
+of dynamic-LOCAL, and online-LOCAL. In all of these models, an algorithm is characterized by a
+locality T (a.k.a. locality radius, local horizon, time complexity, or round complexity, depending on
+the context). In general, T can be a function of n. We will assume that the algorithm knows the
+value of n.
+    In each of these models M, we say that algorithm A solves problem Π if for each possible input
+(G, I) and for each possible adversarial choice, the labeling L produced by A is a feasible solution.
+We say that problem Π has locality T in model M if T is the pointwise smallest function such that
+there exists an M-model algorithm A that solves Π with locality at most T .
+
+LOCAL model. In the LOCAL model of distributed computing [39, 46], the adversary labels
+the nodes with unique identifiers from {1, 2, . . . , poly(n)}. In a LOCAL model algorithm, each node
+in parallel chooses its local output based on its radius-T neighborhood (the output may depend on
+the graph structure, input labels, and the unique identifiers).
+    Naor and Stockmeyer [44] initiated the study of the locality of LCL problems (see Definition 5.1)
+in the LOCAL model. Today, LCL problems are well classified with respect to their locality for the
+special cases of paths [4, 6, 15, 20, 44], grids [15], directed and undirected trees [5, 6, 8, 17, 18] as
+well as general graphs [15, 44], with only a few unknown gaps [8].
+
+SLOCAL model. In the SLOCAL model [27], we have got adversarial unique identifiers similar
+to the LOCAL model, but the nodes are processed sequentially with respect to an adversarial input
+sequence σ = v1 , v2 , v3 , . . . , vn . Each node v is equipped with an unbounded local memory; initially,
+all local memories are empty. When a node v is processed, it can query the local memories of the
+nodes in its radius-T neighborhood, and based on this information, it has to decide what is its own
+final output and what to store in its own local memory.
+     The SLOCAL model has been used as a tool to e.g. better understand the role of randomness in
+the LOCAL model [27, 28]. It is also well-known that SLOCAL is strictly stronger than LOCAL.
+For example, it is trivial to find a maximal independent set greedily in the SLOCAL model, while
+this is a nontrivial problem in the general case in the LOCAL model [7, 38]. There are many LCL
+problems with LOCAL-locality Θ(log∗ n) [21, 39], and all of them have SLOCAL-locality O(1).
+There are also LCL problems (e.g. the so-called sinkless orientation problem), where the locality in
+the (deterministic) LOCAL model is Θ(log n), while the locality in the (deterministic) SLOCAL
+model is Θ(log log n) [19, 28].
+
+Dynamic-LOCAL model. To our knowledge, there is no standard definition or name for what
+we call dynamic-LOCAL here; however, the idea has appeared implicitly in a wide range of work.
+For example, many efficient dynamic algorithms for graph problems such as vertex or edge coloring,
+maximal independent set, and maximal matching also satisfy the property that the solution is only
+modified in the (immediate) local neighborhood of a point of change [3, 10, 12, 23, 30, 36, 45], and
+hence all of them fall in the class dynamic-LOCAL.
+    We use the following definition for dynamic-LOCAL: Computation starts with an empty graph
+G0 . In step i, the adversary constructs a supergraph Gi of Gi−1 such that Gi and Gi−1 differ in only
+
+
+                                                    6
+one edge or one node; let Ci denote the set of nodes v in Gi with Gi [B(v, T )] 6= Gi−1 [B(v, T )], i.e.,
+nodes that are within distance at most T from the point of change. In each step, the algorithm has
+to produce a feasible labeling Li for problem Π in graph Gi , and the labeling can only be modified
+in the local neighborhood of a point of change, i.e., Li (v) = Li−1 (v) for all v ∈
+                                                                                  / Ci .
+    Note that we defined the dynamic-LOCAL model for the incremental case, where nodes and
+edges are only added. If we do not require that Gi is a supergraph of Gi−1 , we arrive at what we
+call the dynamic-LOCAL± model with both additions and deletions.
+
+Online graph algorithms. In online graph algorithms, nodes are processed sequentially with
+respect to an adversarial input sequence σ = v1 , v2 , . . . , vn . Let σi = v1 , v2 , . . . , vi denote the first
+i nodes of the sequence, and let Gi = G[{v1 , v2 , . . . , vi }] be the subgraph induced by these nodes.
+When the adversary presents a node vi , the algorithm has to label vi based on σi and Gi .
+    Online algorithms on graphs have been studied for many problems such as matching [37] and
+independent set [32], but closest to our work is the extensive literature on online graph coloring
+[1, 11, 31, 33, 35, 40, 50]. There is also prior work that has considered various ways to strengthen
+the notion of online algorithms; the performance of online algorithms can be improved by letting the
+algorithm know the input graph [22, 34], by giving it an advice string [13, 16, 24] with knowledge
+about the request sequence, or allowing the algorithm to delay decisions [25]. The online-LOCAL
+model can be interpreted as online graph algorithms with spatial advice, and it can also be interpreted
+as a model where the online algorithm can delay its decision for node v until it has seen the whole
+neighborhood around v (this interpretation is equivalent to the definition we give next).
+
+Online-LOCAL model. We define the online-LOCAL model as follows. The nodes are processed
+sequentially with respect to an adversarial input sequence
+                                                        S σ = v1 , v2 , .. . , vn . Let σi = v1 , v2 , . . . , vi
+denote the first i nodes of the sequence, and let Gi = G ij=1 B(vj , T ) be the subgraph induced by
+the radius-T neighborhoods of these nodes. When the adversary presents a node vi , the algorithm
+has to label vi based on σi and Gi .
+    Observe that any online graph algorithm is an online-LOCAL algorithm with locality 0. Further
+note that in the online-LOCAL model, unique identifiers would not give any additional information.
+This is because the nodes can always be numbered with respect to the point in time when the
+algorithm first sees the them in some Gi .
+    Yet another way to interpret the online-LOCAL model is that it is an extension of the SLOCAL
+model, where the algorithm is equipped with unbounded global memory where it can store arbitrary
+information on what has been revealed so far. When they introduced the SLOCAL model, Ghaffari,
+Kuhn, and Maus [27] mentioned the possibility of such an extension but pointed out that it would
+make the model “too powerful”, as just one bit of global memory would already make it possible
+to solve e.g. leader election (and this observation already shows that the online-LOCAL model
+is indeed strictly stronger than the SLOCAL model). In our work we will see that even though
+online-LOCAL can trivially solve e.g. leader election thanks to the global memory, it is not that
+easy to exploit this extra power in the context of LCL problems. Indeed, online-LOCAL turns out
+to be as weak as SLOCAL when we look at LCL problems in paths, cycles, and rooted trees.
+
+Local computation algorithms. We do not discuss local computation algorithms (LCAs) [2,
+26, 41, 42, 48, 48] in this work in more detail, but we briefly point out a direct connection between
+the online-LOCAL model and LCAs. It is known that for a broad family of graph problems (that
+includes LCLs), we can w.l.o.g. assume that whenever the adversary queries a node v, the LCA will
+make probes to learn a connected subgraph around node v [29]. For such problems, an online-LOCAL
+
+
+                                                        7
+algorithm with locality T is at least as strong as an LCA that makes T probes per query: an LCA
+can learn some subgraph of the radius-T neighborhood of v and, depending on the size of the state
+space, remember some part of that, while in the online-LOCAL model we can learn the entire
+radius-T neighborhood of v and remember all of that. We will leave a more detailed exploration of
+the distinction between distance (how far to see) and volume (how much to see), in the spirit of e.g.
+[43, 47], for future work.
+
+
+3    Landscape of models
+As an introduction to the models, we will first check that all relations in Figure 1 indeed hold. In
+each case, we are interested in asymptotic equivalence: for example, when we claim that A ( B, the
+interpretation is that locality T in model A implies locality O(T ) in model B, but the converse is not
+true. Note that the relation between the online-LOCAL problems and the online graph algorithms
+has already been discussed in Sections 1 and 2.
+
+Inclusions.    Let us first argue that the subset relations in Figure 1 hold. These cases are trivial:
+
+    • Any LOCAL algorithm can be simulated in the SLOCAL model, and any SLOCAL algorithm
+      can be simulated in the online-LOCAL model (this is easiest to see if one interprets online-
+      LOCAL as an extension of SLOCAL with the global memory).
+
+    • Any dynamic-LOCAL± algorithm can be directly used in the dynamic-LOCAL model (an
+      algorithm that supports both additions and deletions can handle additions).
+
+These are a bit more interesting cases:
+
+    • To simulate a LOCAL algorithm A in the dynamic-LOCAL± model, we can simply recompute
+      the entire output with A after each change. If the locality of A is T , then the output of A
+      only changes within distance T from a point of change.
+
+    • To simulate a dynamic-LOCAL algorithm A in the online-LOCAL model, we proceed as
+      follows. When the adversary reveals a node v, we feed v along with the new nodes in its
+      radius-O(T ) neighborhood to A edge by edge. Now there will not be any further changes
+      within distance T from v, and hence A will not change the label L(v) of v any more. Hence
+      the online-LOCAL algorithm can also label v with L(v).
+
+Separations. To prove the separations of Figure 1, we make use of the classic distributed graph
+problem of 3-coloring paths, as well as the following problems that are constructed to highlight the
+differences between the models:
+
+    • Weak reconstruction: in each connected component C there has to be at least one node v such
+      that its label L(v) is an encoding of a graph isomorphic to C.
+
+    • Cycle detection: for each cycle at least one node of the cycle has to correctly report that it is
+      part of a cycle (more precisely, each node that outputs ‘yes’ has to be part of at least one
+      cycle, and for each cycle there has to be at least one node that outputs ‘yes’).
+
+    • Component-wise leader election: in each connected component exactly one node has to be
+      marked as the leader.
+
+
+
+                                                   8
+      Problem                             LOCAL           SLOCAL    dynamic-     dynamic-    online-
+                                                                    LOCAL±       LOCAL       LOCAL
+      3-coloring paths                    Ω(log∗ n)       O(1)      O(1)         O(1)        O(1)
+      weak reconstruction                 Ω(n)            Ω(n)      O(1)         O(1)        O(1)
+      cycle detection                     Ω(n)            Ω(n)      Ω(n)         O(1)        O(1)
+      component-wise leader election      Ω(n)            Ω(n)      Ω(n)         Ω(n)        O(1)
+      nested orientation                  ω(1)            O(1)      ω(1)         ω(1)        O(1)
+
+    Table 3: Problems that we use to separate the models, and the bounds that we show for their locality.
+
+
+     • Nested orientation: find an acyclic orientation of the edges and label each node recursively
+       with its own identifier, the identifiers of its neighbors, and the labels of its in-neighbors (see
+       Definition B.1 for the precise definition).
+
+We can prove the bounds shown in Table 3 for the locality of these problems in the five models; see
+Appendices A and B for the details. Now each separation in Figure 1 follows from one of the rows
+of Table 3.
+
+
+4      3-coloring bipartite graphs in the online-LOCAL model
+We will next present our Contribution 3: we design an algorithm for 3-coloring bipartite graphs
+in the online-LOCAL model. This section will also serve as an introduction into the algorithmic
+techniques that work in this model. Equipped with this understanding, we will then in Section 5
+start to develop more technical tools that we will need for our Contribution 2.
+    The 3-coloring algorithm shows the advantage of allowing online algorithms to look around:
+while the best online coloring algorithm on bipartite graphs is Θ(log n)-competitive, our algorithm
+in the online-LOCAL model achieves a competitive ratio of 1.5. Moreover, this algorithm provides
+an exponential separation between the SLOCAL and online-LOCAL models for a natural LCL
+problem.
+    Note that an optimal solution would be to color a bipartite graph with 2 colors. In all models
+that we consider here, we know it is not possible to solve 2-coloring with locality o(n), the worst
+case being a path with n nodes. We will show that allowing an online-LOCAL algorithm to use
+only one extra color makes it possible to find a valid coloring with locality O(log n):
+
+Theorem 1.1. There is an online-LOCAL algorithm that finds a 3-coloring in bipartite graphs with
+locality O(log n).
+
+    In Section 4.1, we will introduce the 3-coloring algorithm, and we will use the special case of
+grids in order to visualize it. Later, in Section 4.3, we will discuss the implications of our algorithm
+for coloring grids.
+
+4.1     Algorithm for 3-coloring bipartite graphs
+Algorithm overview. The high-level idea of our online-LOCAL algorithm is to color the presented
+nodes of the graph with 2 colors until we see two areas where the 2-colorings are not compatible.
+In essence, when the adversary presents a node far from any other node we have seen, we blindly
+start constructing a 2-coloring. When the adversary presents nodes in the neighborhood of already
+colored nodes, we simply expand the 2-colored “blob”. We keep expanding such properly 2-colored
+
+                                                      9
+blobs until, eventually, two blobs with incompatible 2-colorings meet (i.e., blobs that have different
+parities). Then, we will use the third color in order to create a barrier around one of the blobs,
+effectively flipping its parity. Our algorithm thereby makes use of the knowledge of previously
+queried neighborhoods that is given to us by the online-LOCAL model: the algorithm is committing
+to colors for nodes in the revealed subgraphs before they are queried.
+
+Algorithm in detail. At the beginning, no nodes are revealed to the algorithm, and we therefore
+say that all nodes are unseen. We will refer to connected components of the subgraph Gi of G as
+groups. With each of these groups, we associate a border count, which is a natural number that is
+initially 0. We will use colors 0 and 1 for the 2-coloring, reserving color 2 as the barrier color. Each
+time the adversary points at a node vi , we get to see the radius-T neighborhood B(vi , T ) of this
+node. Now consider different types of nodes in B(vi , T + 1). There are three different cases that we
+need to address (we will visualize them in Figures 2 to 4 using grids as an example):
+
+   1. All nodes in B(vi , T + 1) are unseen. In this case, the nodes in B(vi , T ) form a new connected
+      component, i.e. a new group. This group has a border count of 0. We will color vi with 0,
+      thus fixing the parity for this group (see Figure 2).
+
+   2. We have already seen some nodes in B(vi , T + 1), but all of them belong to the same group. In
+      this case, we have been shown an area next to an existing group. If vi was already committed
+      to a color, we will use that color. Otherwise, we will color vi according to the 2-coloring of the
+      group. All nodes in B(vi , T ) are now considered to be in this group (see Figure 3).
+
+   3. There are nodes in B(vi , T + 1) that belong to different groups. In this case, we will have
+      to join groups. Here, we will only define the join of two groups A and B; if there are more
+      groups, this join can be applied iteratively.
+      If A and B have different parities (i.e., the 2-colorings at their boundaries are not compatible),
+      we will take the group with the smaller border count and use a layer of nodes of color 2 to
+      create a barrier that changes its parity, and then we increase its border count; see Algorithm 1
+      for the details. Then, we will join the groups, that are now compatible, and set the border
+      count of the newly created group to the maximum of the border counts of A and B.
+      By merging all groups in the local neighborhood of vi , we eventually end up in a situation
+      where vi only sees nodes in a single group, and we are in a scenario similar to case 2 above:
+      nodes in the local neighborhood of vi also join the newly created group, and if vi has not
+      already committed to a color, we will color it according to the 2-coloring of this group (see
+      Figure 4).
+
+
+4.2   Algorithm analysis
+In order to show correctness of the presented algorithm, we will first prove that this process creates
+a valid 3-coloring provided that all our commitments remain within the visible area, that is, inside
+subgraph Gi . Next, we will show that by choosing T (n) = O(log n), all our commitments will indeed
+remain inside the visible area. Together, these parts prove Theorem 1.1.
+
+Validity of the 3-coloring. We will first prove that our algorithm will always continue a valid
+3-coloring, as long as we do not have to make commitments to unseen nodes. We will consider all
+three cases of the algorithm individually.
+
+
+                                                  10
+                           x                                               x
+
+
+
+
+Figure 2: 3-coloring algorithm, case 1/3. The adversary presents node x. Here node x is in the middle of an
+unseen region (shaded). It will create a new group (white) and we will fix the color of node x arbitrarily.
+
+
+
+
+                                   y                                             y
+                  A
+
+Figure 3: 3-coloring algorithm, case 2/3. The adversary presents node y. Some nodes in the local neighborhood
+of y are already part of a group (white), and hence y joins this group. We will fix the color of node y so that
+it is consistent with the coloring of the group.
+
+
+
+
+                               B
+                                       z                                             z
+
+
+                       C
+Figure 4: 3-coloring algorithm, case 3/3. The adversary presents node z. Some nodes in the local neighborhood
+of z belong to two different groups, B and C. Hence we merge the groups. As they had incompatible parities,
+we add a new border around one of the groups, in this case C, as both groups had the same number of
+borders around them and we can choose arbitrarily. Nodes in the local neighborhood of z join the group, and
+z is colored in a way compatible with the coloring of the newly created group.
+
+
+
+                                                      11
+ Algorithm 1: join groups(A, B)
+   Input: Groups A, B
+   Output: Group X
+ 1 if A and B have different parities then
+ 2     Let S be the group with the smaller border count. If they are equal, S = A;
+ 3     For all nodes of color 0 in S, commit all uncolored neighbors to color 1;
+ 4     For all nodes of color 1 in S, commit all uncolored neighbors to color 2;
+ 5     For all nodes of color 2 in S, commit all uncolored neighbors to color 0;
+ 6     Increase border count of S by 1.
+ 7 end
+ 8 Set all nodes in groups A, B to be in group X;
+ 9 Set the border count for X to be the maximum of border counts for A, B and S;
+10 return X
+
+
+
+  1. All nodes in B(vi , T + 1) are unseen. In this case, we will color vi with 0. As all neighboring
+     nodes were unseen, they have not committed to any color, and thus this case will cause no
+     errors.
+  2. We have already seen some nodes in B(vi , T + 1), but all of them belong to the same group. In
+     this case, we would either use the committed color or the parity of the group. As previously
+     committed colors do not cause errors, and the group has consistent parity, this case cannot
+     cause any errors.
+  3. There are nodes in B(vi , T + 1) that belong to different groups. In this case, we want to join
+     groups without breaking the coloring. If the two groups had the same parity, clearly, no errors
+     can be caused by continuing the 2-coloring. The interesting case is when the two groups had
+     different parities. Then, we need to show that the new commitments made by Algorithm 1 do
+     not create any errors.
+     Let S be the group with the smaller border count. By examining Algorithm 1, we can see
+     that all colored nodes that have uncolored neighbors are either of color 0 or color 1: only in
+     line 4, nodes can be colored with color 2, and all of those nodes’ neighbors are then colored in
+     line 5. Thus, in order for an error to occur, there either needs to be two nodes of colors 0
+     and 1 that have uncolored neighbors and different parities in S, or the algorithm commits
+     to a color of a node that it has not yet seen. This could cause an error, as two groups could
+     commit a single node to two different colors.
+     As for the first case, we assume that all nodes in S that have uncolored neighbors also have
+     consistent parity. This trivially holds for a group that has border count 0, as all colored nodes
+     in it have the same parity. From the assumption, it follows that all nodes colored with 1
+     in line 3 have the same parity, so they cannot create an error. After this, all colored nodes
+     with uncolored neighbors in the group have the same parity, and are colored with 1. Thus all
+     nodes colored with 2 in line 4 also have the same parity, as do the nodes colored with 0 in
+     line 5. As these are the only lines where nodes are colored, this procedure cannot create any
+     errors. It also ensures that, after the procedure, the only colored nodes in the group that have
+     uncolored neighbors are the nodes colored in line 5, which have the same parity. Therefore,
+     our assumption holds for all groups. Those nodes also have a parity different from the nodes
+     in S that had uncolored neighbors before this procedure, so in essence, we have flipped the
+     parity of group S to match the parity of the other group.
+
+                                                 12
+      As for the second case, this can be avoided by choosing a large enough T , so that all
+      commitments remain within the visible area of Gi . Next, we will discuss how to choose such
+      a T.
+
+Locality of the 3-coloring algorithm. In this part, we need to prove that by choosing locality
+T (n) = 3dlog2 ne = O(log n), no nodes outside the visible area of Gi need to be committed.
+    We first make the observation that a group with border count b contains at least 2b nodes; this
+is a simple induction:
+
+   b = 0: A newly created group contains at least 1 node.
+
+   b > 0: Consider the cases in which Algorithm 1 returns a group X with border count b. One
+          possibility is that A or B already had border count b, and hence by assumption it already
+          contained at least 2b nodes. The only other possibility is that both A and B had border
+          count exactly b − 1, they had different parities, one of the border counts was increased,
+          and hence X has now got a border count of b. But, in this case, both A and B contained
+          at least 2b−1 nodes each.
+
+Hence the border count is bounded by b ≤ log2 n in a graph with n nodes.
+    We will next consider the maximum distance between a node that the adversary has pointed at
+and a node with a committed color. Note that the only place where the algorithm commits a color
+to a node that the adversary has not revealed yet is when building a border around a group. There
+are three steps (lines 3 to 5) where the algorithm commits to the color of a neighbor of a committed
+node, and thus effectively extends the distance by at most one in each step. Therefore, if the border
+count is b, we will in the worst case commit the colors within distance 3b from a node that was
+selected by the adversary.
+    As we have b ≤ log2 n, a locality of 3dlog2 ne ≥ 3b suffices to ensure that all of our commitments
+are safely within the visible region. This concludes the proof of Theorem 1.1.
+
+4.3   Locality of vertex coloring in grids
+In this section, we give an overview of the locality of coloring in the LOCAL, SLOCAL and online-
+LOCAL models in two-dimensional grid graphs with n = a × b nodes. A two-dimensional grid G is
+the Cartesian product of a path with a nodes and a path with b nodes.
+
+2-coloring in grids is non-local. A grid graph can be colored with 2 colors, but 2-coloring is
+an inherently global problem; in all models that we consider here we know that it is impossible to
+solve this problem with locality o(n). To see this, observe that we can have a grid with dimensions
+n × 1, that is, a path. For a path, it is easy to verify that by coloring just one node, we define
+the colors of all other nodes along the path. Therefore, 2-coloring a path and consequently a grid
+requires locality Ω(n).
+
+5-coloring in grids is trivially local. Looking at the other extreme, 5-coloring is trivial, as
+one can construct such a coloring greedily (note that in a grid all nodes have degree at most 4
+and can therefore always choose a “free” color). The locality of 5-coloring is therefore 0 in the
+online-LOCAL, 1 in the SLOCAL, and O(log∗ n) in the LOCAL model.
+
+
+
+
+                                                 13
+4-coloring in grids is also local. It turns out that 4-coloring is also doable with locality
+O(log∗ n) in the LOCAL model [9, 15]. These algorithms can be translated into a constant-locality
+algorithm in online-LOCAL and SLOCAL models.
+    This problem is also a good illustration of the power of the online-LOCAL model. A small
+constant locality is sufficient for online-LOCAL to solve a natural graph problem, while the problem
+is not solvable in the usual online graph algorithms setting.
+
+3-coloring separates the models. So far, we have covered coloring with 2 colors and coloring
+with at least 4 colors, and in each of these cases we have gotten approximately the same locality
+in the online-LOCAL and LOCAL models. However, 3-coloring turns out to be a much more
+interesting problem.
+                                                                      √   √                      √
+    By prior work [15], it is known that the locality of 3-coloring in n × n grids is at least Ω( n)
+in the LOCAL model. The aforementioned paper considered the case of toroidal grid graphs, but the
+same argument can be applied for non-toroidal grids (in essence, if you could color locally anywhere
+in the middle of a non-toroidal grid, you could also apply the same algorithm to color a toroidal
+grid). We can easily extend this result to show a polynomial lower bound for 3-coloring grids in the
+SLOCAL model:
+
+Theorem 4.1. There is no SLOCAL algorithm that finds a 3-coloring in 2-dimensional grids with
+locality o(n1/10 ).
+
+    To prove the result, we show that we can simulate SLOCAL algorithms sufficiently efficiently
+in the LOCAL model. We use the standard technique of first precomputing a distance-o(n1/10 )
+coloring, and then using the colors as a schedule for applying the SLOCAL algorithm. Such a
+                                                                                     √
+simulation can be done efficiently and would lead to a LOCAL algorithm running in o( n) time,
+which is a contradiction. In Appendix C, we present a full proof of the lower bound.
+    As grids are bipartite graphs, Theorem 1.1 gives the following corollary:
+
+Corollary 4.2. There is an online-LOCAL algorithm that finds a 3-coloring in 2-dimensional grids
+with locality O(log n).
+
+In other words, the problem of 3-coloring in grids already gives an exponential separation between
+the SLOCAL and online-LOCAL models. We have summarized the known locality bounds in
+Table 2.
+
+
+5    LCL problems in paths, cycles, rooted regular trees
+We just showed that the online-LOCAL model is much more powerful than LOCAL and SLOCAL
+for an LCL on bipartite graphs and grids. In this section, we will discuss what happens when we
+restrict our attention to LCL problems in paths, cycles, and trees. We will start by defining LCL
+problems more formally.
+    We say that Π is a locally verifiable problem with verification radius r if the following holds:
+there is a collection of labeled local neighborhoods T such that L is a feasible solution for input
+(G, I) if and only if for all nodes v, the radius-r neighborhood of v in (G, I, L) is in T . Informally, a
+solution is feasible if it looks good in all radius-r neighborhoods.
+
+Definition 5.1 (Locally checkable labeling [44]). A locally verifiable problem Π is a locally checkable
+labeling (LCL) problem if the set of the input labels Σ is finite, the set of the output labels Γ is
+finite, and there is a natural number ∆ such that maximum degree of any graph G ∈ G is at most ∆.
+
+
+                                                   14
+Note that in LCL problems, T is also finite since there are only finitely many possible non-isomorphic
+labeled local neighborhoods.
+    It turns out that in the case of paths, cycles, and rooted regular trees, the LOCAL, SLOCAL,
+dynamic-LOCAL, and online-LOCAL models are all approximately equally expressive for LCL
+problems. In particular, all classification and decidability results related to LCLs in paths, cycles,
+and rooted regular trees in the LOCAL model [4, 8, 20] directly apply also in the online-LOCAL
+model and both versions of the dynamic-LOCAL model.
+    We are first going to show that the LOCAL and online-LOCAL models are equivalent in the
+case of paths and cycles, even when the LCL problems can have inputs. We will then prove that
+the models are equivalent also in the more general case of rooted regular trees, but in this case we
+do not consider the possibility of having input labels.
+    Formally, we will prove the following theorem for cycles and paths:
+
+Theorem 5.2. Let Π be an LCL problem in paths or cycles (possibly with inputs). If the locality of
+Π is T in the online-LOCAL model, then its locality is O(T + log∗ n) in the LOCAL model.
+
+   For the case of rooted trees, we will prove the following two theorems:
+
+Theorem 5.3. Let Π be an LCL problem in rooted regular trees (without inputs). Problem Π has
+locality nΩ(1) in the LOCAL model if and only if it has locality nΩ(1) in the online-LOCAL model.
+
+Theorem 5.4. Let Π be an LCL problem in rooted regular trees (without inputs). Problem Π has
+locality Ω(log n) in the LOCAL model if and only if it has locality Ω(log n) in the online-LOCAL
+model.
+
+    These two theorems show that all LCL problems in rooted regular trees belong to one of the
+known complexity classes O(log∗ n), Θ(log n) and nΩ(1) in all of the models we study. In what
+follows, we will introduce the high-level ideas of the proofs of these theorems. For full proofs, we
+refer the reader to Appendices D and E.
+
+5.1   Cycles and paths
+We will prove Theorem 5.2 by first showing that any LCL problem in cycles and paths has either
+locality O(1) or Ω(n) in the online-LOCAL model. Next, we will show that if a problem is solvable
+with locality O(1) in the online-LOCAL model, then it is also solvable in locality O(log∗ n) in the
+LOCAL model. These steps are described by the following two lemmas:
+
+Lemma 5.5. Let Π be an LCL problem in paths or cycles (possibly with inputs), and let A be
+an online-LOCAL algorithm solving Π with locality o(n). Then, there exists an online-LOCAL
+algorithm A0 solving Π with locality O(1).
+
+    The high-level idea of the proof of Lemma 5.5 is to construct a large virtual graph P 0 such that
+when the original algorithm runs on the virtual graph P 0 , the labeling produced by the algorithm
+is locally compatible with the labeling in the original graph P . We ensure this by applying a
+pumping-lemma-style argument on the LCL problem. The proof uses similar ideas as the ones
+presented by Chang and Pettie [18].
+
+Lemma 5.6. Let Π be an LCL problem in paths or cycles (possibly with inputs), and let A be an
+online-LOCAL algorithm solving Π with locality O(1). Then, there exists a LOCAL algorithm A0
+solving Π with locality O(log∗ n).
+
+
+
+                                                 15
+    The high-level idea of the proof of Lemma 5.6 is to use the constant locality online-LOCAL
+algorithm to construct a canonical output labeling for each possible neighborhood of input labels.
+The fast LOCAL algorithm can then use these canonical labelings in disjoint neighborhoods of the
+real graph, and the construction of the canonical labelings ensures that the labeling also extends to
+the path segments between these neighborhoods.
+    The full proofs of these lemmas can be found in Appendix D. In order to prove Theorem 5.2, it
+is sufficient to combine these lemmas with the fact that the possible localities on paths and cycles
+in the LOCAL model are O(1), Θ(log∗ n) and Θ(n).
+
+5.2   Rooted regular trees
+We prove the equivalence of the LOCAL and the online-LOCAL models in two parts. We start
+out with Theorem 5.3 and show that if an LCL problem requires locality nΩ(1) in the LOCAL
+model, then for every locality-no(1) online-LOCAL algorithm we can construct an input instance
+which the algorithm must fail to solve. To prove Theorem 5.4, we show that a locality-o(log n)
+online-LOCAL algorithm for solving an LCL problem implies that there exists a locality-O(log∗ n)
+LOCAL algorithm for solving that same problem. In the following, we will outline the proofs of
+both theorems, the full proofs can be found in Appendix E. Before considering the full proof, we
+advise the reader to look at the example in Appendix E.2, where we show that the 2.5-coloring
+                            √
+problem requires locality Ω( n) in the online-LOCAL model.
+
+Proof outline of Theorem 5.3. Our proof is based on the fact that any LCL problem requiring
+locality nΩ(1) in the LOCAL model has a specific structure. In particular, the problem can be
+decomposed into a sequence of path-inflexible labels and the corresponding sequence of more and
+more restricted problems [8]. Informally, a label is path-inflexible if two nodes having that label
+can exist only at specific distances apart from each other. For example, when 2-coloring a graph,
+two nodes having label 1 can exist only at even distances from each other. The problems in the
+path-inflexible decomposition are formed by removing the path-inflexible labels from the previous
+problem in the sequence until an empty problem is reached.
+    This decomposition of the problem into restricted problems with path-inflexible labels allows us
+to construct an input graph for any locality-no(1) online-LOCAL algorithm. In particular, we force
+the algorithm to commit labels in disjoint fragments of the graph. Any label that the algorithm
+uses must be a path-inflexible label in some problem of the sequence of restricted problems. By
+combining two fragments containing labels that are path-inflexible in the same problem, we can
+ensure that the algorithm cannot solve that problem in the resulting graph. Hence the algorithm
+must use a label from a problem earlier in the sequence. At some point, the algorithm must use
+labels that are path-inflexible in the original problem. At that point, we can combine two fragments
+having path-inflexible labels in the original problem in such a way that no valid labeling for the
+original problem exists, and hence the algorithm must fail to solve the problem on the resulting
+graph.
+
+Proof outline of Theorem 5.4. Here, we show that a locality-o(log n) online-LOCAL algorithm
+solving an LCL problem implies that there exists a certificate for O(log∗ n) solvability for that
+problem. It is known that the existence of such a certificate for a problem implies that there exists
+a locality-O(log∗ n) LOCAL algorithm for solving the problem [8].
+    Informally, the certificate for O(log∗ n) solvability for LCL problem Π with label set Γ and arity
+δ consists of a subset ΓT = {γ1 , . . . , γt } of labels Γ, and two sequences of correctly labeled complete
+δ-ary trees T 1 and T 2 . The leaves of each tree in the sequence T 1 (resp. T 2 ) are labeled in the
+
+
+
+                                                    16
+same way using only labels from set ΓT . For every label of set ΓT , there exists a tree in both of the
+sequences having a root labeled with that label.
+    We can use the online-LOCAL algorithm to construct such a certificate. We do this by
+constructing exponentially many deep complete δ-ary trees and using the algorithm to label nodes
+in the middle of those trees. We then glue these trees together in various ways. When the trees are
+glued together, we use the online-LOCAL algorithm to label the rest of the nodes to form one tree
+of the sequence. We repeat this procedure until all trees of both sequences have been constructed.
+
+
+Acknowledgments
+We would like to thank Alkida Balliu, Sameep Dahal, Chetan Gupta, Fabian Kuhn, Dennis Olivetti,
+Jan Studený, and Jara Uitto for useful discussions. We would also like to thank the anonymous
+reviewers for the very helpful feedback they have provided for previous versions of this work. This
+work was supported in part by the Academy of Finland, Grant 333837.
+
+
+References
+ [1] Susanne Albers and Sebastian Schraink. Tight bounds for online coloring of basic graph classes.
+     Algorithmica, 83(1):337–360, 2021. doi:10.1007/s00453-020-00759-7.
+
+ [2] Noga Alon, Ronitt Rubinfeld, Shai Vardi, and Ning Xie. Space-efficient local computation
+     algorithms. In Proc. 23rd Annual ACM-SIAM Symposium on Discrete Algorithms (SODA
+     2012), pages 1132–1139. SIAM, 2012. doi:10.1137/1.9781611973099.89.
+
+ [3] Sepehr Assadi, Krzysztof Onak, Baruch Schieber, and Shay Solomon. Fully dynamic maximal
+     independent set with sublinear update time. In Proc. 50th Annual ACM SIGACT Symposium
+     on Theory of Computing (STOC 2018), page 815–826, 2018. doi:10.1145/3188745.3188922.
+
+ [4] Alkida Balliu, Sebastian Brandt, Yi-Jun Chang, Dennis Olivetti, Mikaël Rabie, and Jukka
+     Suomela. The distributed complexity of locally checkable problems on paths is decidable. In
+     Proc. 38th ACM Symposium on Principles of Distributed Computing (PODC 2019), pages
+     262–271. ACM Press, 2019. doi:10.1145/3293611.3331606.
+
+ [5] Alkida Balliu, Juho Hirvonen, Dennis Olivetti, and Jukka Suomela. Hardness of min-
+     imal symmetry breaking in distributed computing. In Proc. 38th ACM Symposium on
+     Principles of Distributed Computing (PODC 2019), pages 369–378. ACM Press, 2019.
+     doi:10.1145/3293611.3331605.
+
+ [6] Alkida Balliu, Sebastian Brandt, Yuval Efron, Juho Hirvonen, Yannic Maus, Dennis Olivetti,
+     and Jukka Suomela. Classification of distributed binary labeling problems. In Proc. 34th
+     International Symposium on Distributed Computing (DISC 2020), pages 17:1–17:17. Schloss
+     Dagstuhl–Leibniz-Zentrum für Informatik, 2020. doi:10.4230/LIPIcs.DISC.2020.17.
+
+ [7] Alkida Balliu, Sebastian Brandt, Juho Hirvonen, Dennis Olivetti, Mikaël Rabie, and Jukka
+     Suomela. Lower bounds for maximal matchings and maximal independent sets. Journal of the
+     ACM, 68(5), 2021. doi:10.1145/3461458.
+
+ [8] Alkida Balliu, Sebastian Brandt, Dennis Olivetti, Jan Studený, Jukka Suomela, and Aleksandr
+     Tereshchenko. Locally checkable problems in rooted trees. In Proc. 40th ACM Symposium
+
+
+                                                  17
+    on Principles of Distributed Computing (PODC 2021), pages 263–272. ACM Press, 2021.
+    doi:10.1145/3465084.3467934.
+
+ [9] Alkida Balliu, Juho Hirvonen, Darya Melnyk, Dennis Olivetti, Joel Rybicki, and Jukka
+     Suomela. Local mending. In Proc. 29th International Colloquium on Structural Information
+     and Communication Complexity (SIROCCO 2022). Springer, 2022.
+
+[10] Leonid Barenboim and Tzalik Maimon. Fully dynamic graph algorithms inspired by distributed
+     computing: Deterministic maximal matching and edge coloring in sublinear update-time. ACM
+     Journal of Experimental Algorithmics, 24, 2019.
+
+[11] Dwight R. Bean. Effective coloration. The Journal of Symbolic Logic, 41(2):469–480, 1976.
+     doi:10.2307/2272247.
+
+[12] Sayan Bhattacharya, Deeparnab Chakrabarty, Monika Henzinger, and Danupon Nanongkai.
+     Dynamic algorithms for graph coloring. In Proc. 29th Annual ACM-SIAM Symposium on
+     Discrete Algorithms (SODA 2018), pages 1–20. SIAM, 2018. doi:10.1137/1.9781611975031.1.
+
+[13] Maria Paola Bianchi, Hans-Joachim Böckenhauer, Juraj Hromkovič, and Lucia Keller. Online
+     coloring of bipartite graphs with and without advice. In Computing and Combinatorics, pages
+     519–530, 2012. doi:10.1007/978-3-642-32241-9 44.
+
+[14] Béla Bollobás. Extremal graph theory, chapter 3. Courier Corporation, 2004.
+
+[15] Sebastian Brandt, Juho Hirvonen, Janne H. Korhonen, Tuomo Lempiäinen, Patric R. J.
+     Östergård, Christopher Purcell, Joel Rybicki, Jukka Suomela, and Przemyslaw Uznański. LCL
+     problems on grids. In Proc. 36th ACM Symposium on Principles of Distributed Computing
+     (PODC 2017), pages 101–110. ACM Press, 2017. doi:10.1145/3087801.3087833.
+
+[16] Elisabet Burjons, Juraj Hromkovič, Xavier Muñoz, and Walter Unger. Online graph coloring
+     with advice and randomized adversary. In Proc. 42nd International Conference on Current
+     Trends in Theory and Practice of Computer Science (SOFSEM 2016), pages 229–240. Springer,
+     2016. doi:10.1007/978-3-662-49192-8 19.
+
+[17] Yi-Jun Chang. The complexity landscape of distributed locally checkable problems on trees. In
+     Proc. 34th International Symposium on Distributed Computing (DISC 2020). Schloss Dagstuhl-
+     Leibniz-Zentrum für Informatik, 2020. doi:10.4230/LIPIcs.DISC.2020.18.
+
+[18] Yi-Jun Chang and Seth Pettie. A Time Hierarchy Theorem for the LOCAL Model. SIAM
+     Journal on Computing, 48(1):33–69, 2019. doi:10.1137/17M1157957.
+
+[19] Yi-Jun Chang, Tsvi Kopelowitz, and Seth Pettie. An Exponential Separation between Ran-
+     domized and Deterministic Complexity in the LOCAL Model. In Proc. 57th IEEE Sym-
+     posium on Foundations of Computer Science (FOCS 2016), pages 615–624. IEEE, 2016.
+     doi:10.1109/FOCS.2016.72.
+
+[20] Yi-Jun Chang, Jan Studený, and Jukka Suomela. Distributed graph problems through an
+     automata-theoretic lens. In Proc. 28th International Colloquium on Structural Information and
+     Communication Complexity (SIROCCO 2021), pages 31–49. Springer, 2021. doi:10.1007/978-3-
+     030-79527-6 3.
+
+[21] Richard Cole and Uzi Vishkin. Deterministic coin tossing with applications to optimal parallel
+     list ranking. Information and Control, 70(1):32–53, 1986. doi:10.1016/S0019-9958(86)80023-7.
+
+                                                18
+[22] Stefan Dobrev, Rastislav Královič, and Richard Královič. Independent set with advice: The
+     impact of graph knowledge. In Proc. 10th Workshop on Approximation and Online Algorithms
+     (WAOA 2012). Springer, 2013. doi:10.1007/978-3-642-38016-7 2.
+
+[23] Yuhao Du and Hengjie Zhang. Improved algorithms for fully dynamic maximal independent
+     set, 2018.
+
+[24] Yuval Emek, Pierre Fraigniaud, Amos Korman, and Adi Rosén. Online computation with
+     advice. In Proc. 36th edition of the International Colloquium on Automata, Languages and
+     Programming (ICALP 2009), pages 427–438. Springer, 2009. doi:10.1007/978-3-642-02927-1 36.
+
+[25] Yuval Emek, Shay Kutten, and Roger Wattenhofer. Online matching: Haste makes waste! In
+     Proc. 48th Annual ACM Symposium on Theory of Computing (STOC 2016), pages 333–344,
+     2016. doi:10.1145/2897518.2897557.
+
+[26] Guy Even, Moti Medina, and Dana Ron. Deterministic stateless centralized local algorithms
+     for bounded degree graphs. In Proc. 22nd European Symposium on Algorithms (ESA 2014),
+     pages 394–405. Springer, 2014. doi:10.1007/978-3-662-44777-2 33.
+
+[27] Mohsen Ghaffari, Fabian Kuhn, and Yannic Maus. On the complexity of local distributed
+     graph problems. In Proc. 49th Annual ACM SIGACT Symposium on Theory of Computing
+     (STOC 2017), pages 784–797. ACM Press, 2017. doi:10.1145/3055399.3055471.
+
+[28] Mohsen Ghaffari, David G. Harris, and Fabian Kuhn. On derandomizing local distributed
+     algorithms. In Proc. 59th IEEE Annual Symposium on Foundations of Computer Science
+     (FOCS 2018), pages 662–673. IEEE, 2018. doi:10.1109/FOCS.2018.00069.
+
+[29] Mika Göös, Juho Hirvonen, Reut Levi, Moti Medina, and Jukka Suomela. Non-local probes do
+     not help with many graph problems. In Proc. 30th International Symposium on Distributed
+     Computing (DISC 2016). Springer, 2016. doi:10.1007/978-3-662-53426-7 15.
+
+[30] Manoj Gupta and Shahbaz Khan. Simple dynamic algorithms for maximal independent set
+     and other problems, 2018.
+
+[31] András Gyárfás and Jenő Lehel. On-line and first fit colorings of graphs. Journal of Graph
+     Theory, 12(2):217–227, 1988. doi:h10.1002/jgt.3190120212.
+
+[32] Magnús M. Halldórsson, Kazuo Iwama, Shuichi Miyazaki, and Shiro Taketomi. Online in-
+     dependent sets. Theoretical Computer Science, 289(2):953—-962, 2002. doi:10.1016/S0304-
+     3975(01)00411-X.
+
+[33] Magnús M. Halldórsson. Parallel and on-line graph coloring. Journal of Algorithms, 23(2):
+     265–280, 1997. doi:10.1006/jagm.1996.0836.
+
+[34] Magnús M. Halldórsson. Online coloring known graphs. Electronic Journal of Combinatorics,
+     7, 2000. doi:10.37236/1485.
+
+[35] Magnús M. Halldórsson and Mario Szegedy. Lower bounds for on-line graph coloring. Theoretical
+     Computer Science, 130(1):163–174, 1994. doi:10.1016/0304-3975(94)90157-0.
+
+[36] Zoran Ivković and Errol L. Lloyd. Fully dynamic maintenance of vertex cover. In Proc.
+     19th International Workshop on Graph-Theoretic Concepts in Computer Science (WG 1993).
+     Springer, 1994.
+
+                                                19
+[37] Richard M. Karp, Umesh V. Vazirani, and Vijay V. Vazirani. An optimal algorithm for on-line
+     bipartite matching. In Proc. 22nd Annual ACM Symposium on Theory of Computing (STOC
+     1990), pages 352–358, 1990. doi:10.1145/100216.100262.
+
+[38] Fabian Kuhn, Thomas Moscibroda, and Roger Wattenhofer. Local computation: Lower and
+     upper bounds. Journal of the ACM, 63(2):1–44, 2016. doi:10.1145/2742012.
+
+[39] Nathan Linial. Locality in distributed graph algorithms. SIAM Journal on Computing, 21(1):
+     193–201, 1992. doi:10.1137/0221015.
+
+[40] László Lovász, Michael Saks, and W.T. Trotter. An on-line graph coloring algorithm with
+     sublinear performance ratio. Discrete Mathematics, 75(1):319–325, 1989. doi:10.1016/0012-
+     365X(89)90096-4.
+
+[41] Yishay Mansour and Shai Vardi. A local computation approximation scheme to maximum match-
+     ing. In Proc. 16th International Workshop on Approximation Algorithms for Combinatorial
+     Optimization Problems (APPROX 2013) and 17th International Workshop on Randomization
+     and Computation (RANDOM 2013), pages 260–273. Springer, 2013. doi:10.1007/978-3-642-
+     40328-6 19.
+
+[42] Yishay Mansour, Aviad Rubinstein, Shai Vardi, and Ning Xie. Converting online algorithms to
+     local computation algorithms. In Proc. 39th International Colloquium on Automata, Languages
+     and Programming (ICALP 2012), pages 653–664. Springer, 2012. doi:10.1007/978-3-642-31594-
+     7 55.
+
+[43] Darya Melnyk, Jukka Suomela, and Neven Villani. Mending partial solutions with few changes.
+     In Proc. 25th International Conference on Principles of Distributed Systems (OPODIS 2022),
+     Leibniz International Proceedings in Informatics (LIPIcs). Schloss Dagstuhl–Leibniz-Zentrum
+     für Informatik, 2022.
+
+[44] Moni Naor and Larry Stockmeyer. What can be computed locally?            SIAM Journal on
+     Computing, 24(6):1259–1277, 1995. doi:10.1137/S0097539793254571.
+
+[45] Ofer Neiman and Shay Solomon. Simple deterministic algorithms for fully dynamic maximal
+     matching. ACM Transactions on Algorithms, 12(1), 2015. doi:10.1145/2700206.
+
+[46] David Peleg.     Distributed Computing:    A Locality-Sensitive Approach.      SIAM, 2000.
+     doi:10.1137/1.9780898719772.
+
+[47] Will Rosenbaum and Jukka Suomela. Seeing far vs. seeing wide: volume complexity of local
+     graph problems. In Proc. 39th ACM Symposium on Principles of Distributed Computing
+     (PODC 2020), pages 89–98. ACM Press, 2020. doi:10.1145/3382734.3405721.
+
+[48] Ronitt Rubinfeld, Gil Tamir, Shai Vardi, and Ning Xie. Fast local computation algorithms. In
+     Proc. 2nd Symposium on Innovations in Computer Science (ICS 2011), pages 223–238, 2011.
+
+[49] Jeffrey Shallit. The Frobenius problem and its generalizations. In Proc. 12th International
+     Conference on Developments in Language Theory (DLT 2008), pages 72–83. Springer, 2008.
+     doi:10.1007/978-3-540-85780-8 5.
+
+[50] Sundar Vishwanathan. Randomized online graph coloring. Journal of Algorithms, 13(4):
+     657–669, 1992. doi:10.1016/0196-6774(92)90061-G.
+
+
+                                               20
+A     Simple separations
+We show the upper and lower bounds for the first four rows of Table 3 here; the final row is left for
+Appendix B.
+
+3-coloring paths. This problem is easy to solve greedily in SLOCAL and maintain greedily in
+dynamic-LOCAL± with locality O(1). However, the locality of this problem in the LOCAL model
+is known to be Ω(log∗ n) [39].
+
+Weak reconstruction. Recall that in this problem at least one node has to correctly output the
+structure of its own connected component.
+    In the dynamic-LOCAL± model we can solve it with locality O(1): after each change, let the
+nodes located next to the point of change report the current structure of their own connected
+components.
+    In the SLOCAL model this cannot be solved with locality o(n). To see this, assume that an
+o(n)-locality SLOCAL algorithm A exists, and fix a sufficiently large n. Let S = {S1 , S2 , . . . , Sk } be
+a family of non-isomorphic graphs with n/6 nodes each; we assume that in each graph Si there is a
+unique root node that we can distinguish (e.g., the only node with degree 2). We can choose k  n.
+
+                                                            …
+
+
+                                       S1     S2     S3     …   Sk
+
+Now for each 1 ≤ i < j ≤ k let Gi,j be a graph that consists of Si and Sj such that their root nodes
+are connected with a path P of length 2n/3. We split P in three parts: head (n/6 nodes closest to
+Si ), tail (n/6 nodes closest to Sj ), and middle (the remaining n/3 nodes far from Si and Sj ).
+
+
+                       G 1,3:
+
+                                S1    head         middle        tail   S3
+
+Now we consider what happens when we present the middle part to A first, then the head and Si ,
+and finally the tail and Sj . Each node v outputs some label L(v); if A works correctly, one of the
+labels encodes a graph isomorphic to Gi,j . Let M be the set of labels produced by the middle part,
+let Hi be the set of labels produced by the nodes in the head and Si , and let Tj be the set of labels
+produced by the nodes in the tail and Sj . The key observation is that set M is independent of i
+and j, set Hi only depends on i, and set Tj only depends on j. This is because A produces the
+same output if we present the middle part first, then the tail and Sj , and only after that the head
+and Si . Furthermore,
+                   S we knowS    that |M | ≤ n/3, |Hi | ≤ n/3, and |Tj | ≤ n/3.
+    Let X = M ∪ i Hi ∪ j Tj be the union of all labels that A may produce in the graph family
+Gi,j for the processing order described above. We have |X| ≤ (1 + k + k) · n/3  k 2 . As there are k 2
+nonisomorphic graphs Gi,j , there has to exist a pair (i, j) such that no label in X is an encoding of
+Gi,j . Hence if we apply A to Gi,j with the above processing order, none of the nodes will correctly
+output the structure of Gi,j .
+
+
+
+
+                                                    21
+Cycle detection. Recall that in this problem for each cycle at least one node of the cycle has to
+correctly report that it is part of a cycle.
+     In the dynamic-LOCAL we can solve it with constant locality: the first node that encounters a
+closed cycle reports it.
+     In the dynamic-LOCAL± model the problem cannot be solved with locality o(n). To see this,
+first construct a long cycle; at least one node v will report that it is part of a cycle. Then break the
+cycle by deleting an edge that is far from v; node v cannot respond to this change, and will hence
+still incorrectly report that it is part of a cycle.
+     In the SLOCAL model the problem cannot be solved with locality o(n), either. To see this,
+first consider a long cycle C, and split the cycle in four parts of the same length: C1 , C2 , C3 , C4
+(numbered in the positive direction along the cycle). Consider the following two processing orders:
+(i) C1 , C3 , C2 , C4 and (ii) C1 , C3 , C4 , C2 . Note that both orders will result in exactly the same output.
+Furthermore, at least one node has to report that it is part of a cycle. Thus we can always find a
+processing order in which a node in one of the first three parts reports that it is part of a cycle. But
+then we can leave out an edge in the fourth part to derive a contradiction (the algorithm claims
+that there is a cycle while we have a path).
+
+Component-wise leader election. Recall that in this problem in each connected component
+exactly one node has to be marked as the leader.
+    In the online-LOCAL model we can solve this problem with constant locality: the algorithm can
+see the last node of a connected component and assign this node to be a leader.
+    In the dynamic-LOCAL model this problem cannot be solved with locality o(n): start with two
+components with large diameters, both of which have leaders, and then connect the components
+with an edge that is far from the leaders. At least one of the leaders would need to be removed, but
+both of them are far from the point of change.
+    In the SLOCAL model this problem cannot be solved with locality o(n), either. To see this,
+consider two long paths, P and Q. Split P in three parts of the same length: P1 , P2 , P3 (numbered
+in this order along the path). Consider these two processing orders: (i) P2 , P1 , P3 and (ii) P2 , P3 , P1 .
+Note that both orders will result in exactly the same output. Furthermore, exactly one node has to
+be elected as the leader. Hence in one of these processing orders, the algorithm will commit to a
+leader that is located within the first two parts, before seeing the final part. Similarly in Q we can
+find a processing order in which the algorithm commits to a leader early. Therefore we can add an
+edge between P and Q in parts that the algorithm has not seen yet. We have a contradiction: the
+algorithm marked are at least two nodes as leaders in one component.
+
+
+B     Nested orientation
+In this section, we show that the dynamic-LOCAL model cannot simulate the SLOCAL model. We
+do this by defining nested orientation and showing that finding it is trivial in the SLOCAL model
+with constant locality, but impossible in the dynamic-LOCAL model with constant locality.
+    We start by defining the nested orientation:
+
+Definition B.1 (Nested orientation). Let G = (V, E) be a simple undirected graph, and let
+f : V → {1, 2, . . . , poly(|V |)} be a mapping of the nodes to unique identifiers. A nested orientation
+(O, h) of G consists of an acyclic orientation O of the edges E and a nesting h of nodes V . For a
+node v ∈ V , we set h(v) = (f (v), F (v), H(v)), where f (v) is the unique identifier of v,
+                                                
+                                         F (v) = f (u) : {v, u} ∈ E
+
+                                                      22
+is the set of unique identifiers of all neighbors of v, and
+                                               
+                                       H(v) = h(u) : (u, v) ∈ O
+is the set of outputs of all in-neighbors of v according to orientation O.
+    Note that a nested orientation exists for any graph G, and the orientation can be trivially found
+in the SLOCAL model with locality T = 1: When a node v is processed, it is sufficient to orient all
+undirected adjacent edges away from v, and to inspect the identifiers and outputs of all neighbors
+of v to compute F (v) and H(v), respectively.
+    We start by proving that the length of the nestings of a constant-locality dynamic-LOCAL
+algorithm is bounded. More formally, we prove the following lemma:
+Lemma B.2. Let A be a dynamic-LOCAL algorithm that finds a nested orientation with constant
+locality T , and let G be a graph with a girth of at least 2T + 2. Let O be the orientation produced by
+A when run on graph G. Then orientation O does not induce a directed walk of length T + 1 in G.
+Proof. Assume for contradiction that orientation O induces a walk P = v1 v2 . . . vT +1 vT +2 of length
+T + 1 in graph G. In particular, this implies that the nesting h(vT +2 ) is dependent on the output
+of v1 .
+    We can modify the graph G by introducing a new node x and connecting it to v1 by an edge. We
+then show this change to algorithm A. This means that the algorithm needs to change the output
+of node v1 to include the identifier of its new neighbor. This implies that also the output of vT +2
+needs to be changed as it is dependent on the output of v1 . Since the girth of G is at least 2T + 2
+(path P is the shortest path between v1 and vT +2 ), node vT +2 does not belong to the radius-T
+neighborhood of the change. This is a contradiction.
+    We are now ready to show that finding a nested orientation is not possible with constant
+locality in the dynamic-LOCAL model, and therefore it separates the SLOCAL model from the
+dynamic-LOCAL model:
+Theorem B.3. Finding a nested orientation in the dynamic-LOCAL model requires locality ω(1).
+Proof. Assume for contradiction that there exists a dynamic-LOCAL algorithm A that finds a
+nested orientation with locality T = O(1). Let G = (V, E) be a graph with chromatic number and
+girth of at least 2T ; such graphs are know to exist [14]. We will show that running algorithm A on
+G produces a coloring with much fewer colors than 2T , which would contradict our assumption.
+    We start by executing algorithm A on graph G in an arbitrary order to produce an orientation O
+and a nesting h. Let D be the directed graph counterpart of G where all edges have been oriented
+according to O; by definition of O, graph D is acyclic. This implies that some nodes of D are sinks
+with only incoming edges. We will use these sinks to recursively partition the nodes of D, and
+therefore also G, into L independent sets C1 , C2 , . . . , CL as follows:
+                        D1 = D,
+                        Ci = sink nodes of Di                        ∀i ≥ [1, L],
+                      Di+1 = Di [VDi \ Ci ]                          ∀i ≥ [1, L],
+where DL+1 is the empty graph. See Figure 5 for an illustration of this process. Note that each set
+Ci is indeed an independent set of nodes. This is because two adjacent nodes cannot simultaneously
+be sinks since the edge between them is oriented towards one of the nodes. Note also that the
+longest walk in Di+1 is one edge shorter than in Di . This, together with Lemma B.2, implies that
+L ≤ T . This is however a contradiction as the independent sets C1 , C2 , . . . , CL induce a coloring
+with L ≤ T colors for G, but the chromatic number of G is at least 2T by assumption.
+
+
+                                                  23
+                                                                        C1
+
+
+                                                                        C2
+
+
+                                                                        C3
+
+
+
+
+                                                   .....
+                                                                       CL-1
+
+
+                                                                       CL
+
+
+Figure 5: Visualization of partitioning the nodes of D into L independent sets in the proof of Theorem B.3.
+The arrows represent orientation O of nodes. Note that after we remove nodes of set C1 , that is the sinks in
+the original directed graph D, then the nodes in set C2 become sinks, and so on, until CL contains all the
+rest of the nodes.
+
+
+C     Hardness of 3-coloring in SLOCAL
+In this section, we prove the following theorem:
+Theorem 4.1. There is no SLOCAL algorithm that finds a 3-coloring in 2-dimensional grids with
+locality o(n1/10 ).
+Proof. Suppose there is an SLOCAL algorithm A with locality T (n) = o(n1/10 ). We design a
+LOCAL algorithm A0 that uses A to solve the same problem with locality T 0 (n) = o(n1/2 ), which is
+known to be impossible [15].
+    Algorithm A0 proceeds as follows. Let k > 2T (n) + 1. Let G0 be the kth power of the input
+graph G, i.e., nodes within distance k in the input graph are neighbors in G0 . Now the maximum
+degree of G0 is d = O(k 2 ). Let c = d2 . We then use the graph coloring algorithm by Linial [39] to
+find a proper c-coloring of G0 ; this results in a distance-k coloring of G. Then we simply proceed by
+color classes: we first apply A in parallel to all nodes of color 1, then to all nodes of color 2, etc. As
+nodes in one color class are sufficiently far from each other, from the perspective of the output of A
+it does not matter in which order we process these nodes.
+    This way A0 has simulated A. The locality that we need for the coloring phase is O(d log∗ n) =
+o(n1/2 ), and the locality of the final phase is O(dc) = o(n1/2 ).
+
+Corollary C.1. There is no SLOCAL algorithm that finds a 3-coloring in bipartite graphs with
+locality o(n1/10 ).
+
+
+D     LCL problems in paths and cycles
+In this section, we prove the following theorem:
+
+                                                     24
+Theorem 5.2. Let Π be an LCL problem in paths or cycles (possibly with inputs). If the locality of
+Π is T in the online-LOCAL model, then its locality is O(T + log∗ n) in the LOCAL model.
+
+    We will prove this theorem by first showing that any LCL problem in cycles and paths has either
+locality O(1) or Ω(n) in the online-LOCAL model. Next, we will show that problems that require
+locality Ω(n) in the online-LOCAL model are exactly the same problems that require locality Ω(n)
+in the LOCAL model. In particular, we will be proving the following two lemmas:
+
+Lemma 5.5. Let Π be an LCL problem in paths or cycles (possibly with inputs), and let A be
+an online-LOCAL algorithm solving Π with locality o(n). Then, there exists an online-LOCAL
+algorithm A0 solving Π with locality O(1).
+
+Lemma 5.6. Let Π be an LCL problem in paths or cycles (possibly with inputs), and let A be an
+online-LOCAL algorithm solving Π with locality O(1). Then, there exists a LOCAL algorithm A0
+solving Π with locality O(log∗ n).
+
+   In order to prove Theorem 5.2, it is sufficient to combine these lemmas with the fact that the
+possible localities on paths and cycles in the LOCAL model are O(1), Θ(log∗ n) and Θ(n).
+
+D.1     From sublinear-locality to constant-locality in online-LOCAL
+The high-level idea of the proof of Lemma 5.5 is to construct a large virtual graph P 0 such that
+when the original algorithm runs on the virtual graph P 0 , the labeling produced by the algorithm
+is locally compatible with the labeling in the original graph P . We ensure this by applying a
+pumping-lemma-style argument on the LCL problem. The proof uses similar ideas as the ones
+presented by Chang and Pettie [18].
+    We will start by defining a tripartition of vertices of a path, and use it to define an equivalence
+relation for path segments. Recall that we use r to denote the verification radius of the LCL
+problem Π.
+
+Definition D.1 (tripartition [18]). Let S be a path segment, and let s and t be the endpoints of S.
+A tripartition of vertices ξ(S, {s, t}) = (D1 , D2 , D3 ) is defined as
+                                                     [
+       D1 = B(s, r − 1) ∪ B(t, r − 1), D2 =              B(v, r) \ D1 , D3 = V (S) \ (D1 ∪ D2 ).
+                                                      v∈D1
+
+Definition D.2 (equivalence). Let S and S 0 be path segments, and let s, t, s0 and t0 be the endpoints
+of the segments, respectively. Let ξ(S, {s, t}) = (D1 , D2 , D3 ) and ξ(S 0 , {s0 , t0 }) = (D10 , D20 , D30 ). We
+define that S and S 0 are equivalent, denoted by S ∼ ?
+                                                        S 0 , if the following two statements hold:
+
+   1. The graphs induced by D1 ∪ D2 and D10 ∪ D20 are isomorphic, including the input. Moreover,
+      the isomorphism maps s and t in S to s0 and t0 in S 0 , respectively.
+
+   2. Let L be an output labeling on the graph induced by D1 ∪ D2 , and let L0 be the corresponding
+      output labeling on the graph induced by D10 ∪ D20 . Then L is extendable to a valid labeling
+      for the whole segment S exactly when L0 is extendable to a valid labeling for the whole
+      segment S 0 .
+
+We write Class(S) for the equivalence class containing all path segments S 0 such that S 0 ∼
+                                                                                           ?
+                                                                                             S.
+
+
+
+
+                                                       25
+    Observe that the equivalence class of a path segment S depends only on the input labeling in the
+radius-(2r − 1) neighborhood of its endpoints, and on the set of possible output label combinations
+in the same regions. As there are only finitely many different input and output labelings for the
+radius-(2r − 1) neighborhood, there are only finitely many different classes of path segments. In
+particular, there are only finitely many classes which contain only finitely many elements. Hence
+there exists a natural number α such that for every path segment S with |S| ≥ α, the class Class(S)
+is infinite. This implies that for every sufficiently long path segment S, there exists another longer
+path segment S 0 that is equivalent to S with respect to the relation ∼.?
+
+
+    One important property of the class of a path segment is that we can replace any path segment
+with another segment from the same class of path segments without affecting the labeling of the
+rest of the path. The following lemma formalizes this idea:
+
+Lemma D.3. Let P be a path, possibly with inputs, let S be a path segment of P , and let L be a valid
+output labeling of P . Let S 0 be another path segment such that Class(S) = Class(S 0 ), i.e. S ∼      ?
+                                                                                                         S0,
+and let P 0 be a copy of P , where segment S is replaced with the segment S 0 . Then, there exists a
+valid labeling L0 of P 0 such that L(v) = L0 (v 0 ) for each pair of corresponding nodes v ∈ V (P ) \ V (S),
+v 0 ∈ V (P 0 ) \ V (S 0 ).
+
+Proof. Let s and t be the endpoints of S, and let s0 and t0 be the endpoints of S 0 . Let ξ(S, {s, t}) =
+(D1 , D2 , D3 ) and ξ(S 0 , {s0 , t0 }) = (D10 , D20 , D30 ) be tripartitions of S and S 0 , respectively. We can
+now construct L0 as follows: For each v ∈ V (P ) \ D3 and the corresponding v 0 ∈ V (P 0 ) \ D30 , set
+L0 (v 0 ) = L(v). Since S ∼  ?
+                                S 0 , there must exist a valid labeling for the nodes in D30 since L is valid
+for V (S) ⊇ D3 .
+    The labeling L0 must be locally valid for every v 0 ∈ V (P 0 )\(D20 ∪D30 ) as B(v 0 , r) ⊆ V (P 0 )∪D10 ∪D20 ,
+and therefore the neighborhood looks identical to that of the corresponding node in P . By definition
+of S ∼   ?
+           S 0 and the fact that L is valid for the whole path segment S, the labeling L0 must also be
+valid for every v 0 ∈ D20 ∪ D30 .
+
+    To simplify the description of the algorithm, we make use of the following observation:
+
+Observation D.4 (composition). Online-LOCAL algorithms A and B with localities T1 and T2
+can be composed into an online-LOCAL algorithm B ◦ A with locality T1 + T2 .
+
+    We will also make use of the ruling sets:
+
+Definition D.5 (ruling sets). An (α, β)-ruling set R of a graph G is a subset of V (G) such that
+for every vi , vj ∈ R, vi 6= vj it holds that dist(vi , vj ) ≥ α, and for every v ∈ V (G) \ R there exists at
+least one node u ∈ R such that dist(v, u) ≤ β.
+
+    We are now ready to prove Lemma 5.5:
+
+Proof of Lemma 5.5. Let Π be an LCL problem in paths or cycles with checking-radius r, let P be
+a path or a cycle with n nodes, and let A be an online-LOCAL algorithm solving Π with locality
+T (n) = o(n). Let α be a natural number larger than the length of the longest path belonging to a
+finite class. We can now construct A0 solving Π with locality 6α.
+    Algorithm A0 proceeds in three phases (which we can compose using Observation D.4):
+
+   1. In the first phase, the algorithm constructs a (α, α)-ruling set R of path P . This can be done
+      with locality α using the following simple algorithm: Whenever the adversary points at a node
+      v, check whether any node in B(v, α) already belongs to R. If not, append v to R. Otherwise,
+      v is already ruled by another node of R.
+
+                                                       26
+                                ,                                          ,
+                               S1                                         S2
+
+
+
+
+                                         T(N)
+
+                                                                                       ,
+                                                                                      P
+                     u1                         v     u                          u2
+                                                             2r                       P
+                                    S1                               S2
+
+Figure 6: Visualization of step 2 in the proof of Lemma 5.5. The adversary has pointed at node v, which is
+in the radius-2r neighborhood of a node u in the ruling set R. Algorithm A0 finds the neighboring nodes u1
+and u2 in R, and the corresponding path segments S1 and S2 . The algorithm then replaces the segments
+with longer segments S10 and S20 from the same class of segments to construct a larger graph P 0 . Finally,
+algorithm A0 runs the original algorithm A on the extended path P 0 to get the label for node v. Note that
+by the construction of P 0 , algorithm A does not see further than half of S10 and S20 .
+
+
+   2. In the second phase, the algorithm constructs a larger virtual path P 0 with N nodes and
+      simulates algorithm A on P 0 in specific neighborhoods. Let N be such that
+                                                    2n
+                                                       T (N )  N.
+                                                    α
+      Such an N always exists as T (N ) = o(N ). The construction of P 0 ensures that the labeling
+      produced on the specific neighborhoods of P 0 are also valid in the corresponding neighborhoods
+      of P in such a way that the labeling is extendable for the whole path P . Moreover, the
+      construction ensures that the simulation can be done with constant locality.
+      Virtual path P 0 can be constructed with the help of the (α, α)-ruling set R with locality 3α as
+      follows: Whenever the adversary points at a node v, check whether it belongs to the radius-2r
+      neighborhood of a node u in R. If this is the case, find at most two other nodes u1 and u2
+      belonging to R in the radius-2α neighborhood of u. The only case where there can be less
+      than two nodes in this neighborhood is when the neighborhood contains an endpoint of path
+      P . In that case, let the corresponding node ui be the endpoint. Let S1 be the path segment
+      between u and u1 , and let S2 be the path segment between u and u2 .
+      By the construction of R, the lengths of S1 and S2 are in the range [α, 2α], unless an endpoint
+      is reached. For each Si , such that |Si | ≥ α, we know that Class(Si ) is infinite. Hence there
+      exists some Si0 of length at least N/α that satisfies Class(Si ) = Class(Si0 ). Otherwise we set
+      Si0 = Si . We construct P 0 by adding node u and the connections between u and S10 and S20
+      if such connections exist. Let v 0 be the node corresponding to node v in P 0 . Algorithm A0
+      uses A to find the label for v 0 on P 0 and then uses the same label for v. By the construction
+      of P 0 , algorithm A never sees further than segments S10 and S20 . Since the labeling is locally
+      consistent on P 0 , the produced labeling is also locally consistent on P . Figure 6 visualizes this
+      construction.
+
+
+                                                      27
+   3. With the labels around the nodes of R fixed, algorithm A0 needs to fix the labeling for the
+      rest of the nodes of P . By the assumption that A solves the LCL problem Π, the partial
+      labeling in the radius-(2r − 1) neighborhoods of the endpoints of Si0 in the previous step is
+      extendable to the whole path segment Si0 . Lemma D.3 implies that the same labeling near
+      endpoints is also extendable for the whole path segment Si . For each node v that is not inside
+      the radius-2r neighborhood of a node in R, algorithm A0 finds the corresponding path segment
+      Si with locality 2α and finds a valid label by brute force.
+
+D.2     From constant-locality in online-LOCAL to log-star-locality in LOCAL
+Now that we have shown that sublinear-locality online-LOCAL algorithms can be sped up to
+constant-locality algorithms, it remains to prove that constant locality online-LOCAL algorithms
+can be used to construct efficient LOCAL algorithms. The high-level idea of the proof of Lemma 5.6
+is to use the constant locality online-LOCAL algorithm to construct a canonical output labeling for
+each possible neighborhood of input labels. The fast LOCAL algorithm can then use these canonical
+labelings in disjoint neighborhoods of the real graph, and the construction of the canonical labelings
+ensures that the labeling extends also to the path segments between these neighborhoods.
+
+Proof of Lemma 5.6. Let Π be an LCL problem with constant checking-radius r, and let A be an
+online-LOCAL algorithm solving Π with constant locality T . Let β = T + r + 1.
+     We first construct an input-labeled path P that, informally, consists of a sufficiently many copies
+of all possible input neighborhoods. At this point, P is merely a collection of disjoint path fragments;
+we will only later decide how the fragments are connected to each other to form a complete path.
+     To construct P , we first fix a sufficiently large set of center nodes ν = {v1 , v2 , . . . , vk }. Each
+center node is in the middle of its own path fragment of length 2β + 1. Hence when we finally put
+the path fragments together, we will satisfy B(vi , β) ∩ B(vj , β) = ∅ for each i 6= j.
+     We choose the input labels of P such that for every possible radius-β neighborhood of inputs ι,
+there exists some subset of center nodes M ⊆ ν for which the following holds: |M | = |Γ|2r+1 + 1
+and I(B(v, β)) = ι for each v ∈ M . As there are only finitely many distinct input neighborhoods ι,
+the size of P can be bounded by a constant.
+     We will next execute A on every node in the radius-r neighborhood of the center nodes ν in
+some arbitrary order and then stop. Note that at this point P is under-specified, but nevertheless,
+the execution of A at the center nodes is well-defined, as we have already fixed the structure of P
+in the local neighborhoods of the center nodes. The key idea is that we force A to commit early to
+some outputs around the center nodes, and if A indeed works correctly for any path, then these
+outputs must be compatible with any concrete realization of P , no matter how we connect the
+center nodes to each other. In particular, A must be able to fill the gaps between the center nodes.
+     We define function f : Σ2β+1
+                               Π    → Γ2r+1
+                                        Π     to be a mapping from radius-β neighborhoods of input
+labels to radius-r neighborhoods of output labels such that there are at least two center nodes vi
+and vj in P with f (B(vi , β)) = f (B(vj , β)). Such nodes exist for every neighborhood of inputs
+by the pigeon hole principle as there are only |ΓΠ |2r+1 possible output neighborhoods but there
+are |ΓΠ |2r+1 + 1 copies of each input neighborhood by construction. The intuition here is that
+f (ι) is the canonical way to label neighborhood ι, and we can extract such a canonical labeling by
+simulating A.
+     Using the function f , we can now construct a locality-O(log∗ n) LOCAL algorithm A0 for solving
+Π as follows:
+
+   1. Algorithm A0 constructs a distance-2β coloring of the path or cycle; this can be done with
+      locality O(log∗ n) [21]. The algorithm then uses this coloring to construct a (2β, 2β)-ruling
+
+                                                     28
+      set R0 of the input graph by using the above-constructed coloring as a schedule for the simple
+      greedy algorithm; this can be done with constant locality. The algorithm then prunes the
+      nodes that are at distance less than β from the endpoint of the path from set R0 to get a set
+      R. Note that after the pruning, set R is still a (2β, 5β)-ruling set of the input path or cycle.
+
+    2. Algorithm A0 uses f to label the radius-r neighborhood of each node v ∈ R by f (B(v, β));
+       this can be done with locality β + r. Note that by the construction of R, each pair of nodes in
+       R is at least at a distance of 2β from each other. Thus, the radius-β neighborhoods of the
+       nodes are disjoint.
+
+    3. The unlabeled nodes now reside in disjoint segments of length at most 5β, sandwiched between
+       radius-r neighborhoods of nodes of R (or the endpoints of the path). Algorithm A0 can then
+       use A to construct a locally valid output labeling for each disjoint segment in parallel as
+       follows:
+      Let ui and uj be nodes of R marking the endpoints of the segment. Run A on the virtual path
+      P like in the construction of function f . Identify node ui (resp. uj ) with a node vi ∈ V (P )
+      (resp. vj ∈ V (P )) such that the radius-β neighborhoods of inputs are the same. Connect the
+      neighborhoods of vi and vj with new nodes on P such that the path ui        uj is isomorphic to
+      the path vi    vj . Algorithm A0 can now resume the execution of A, and present the unlabeled
+      nodes of path vi      vj to A in some order to see how A would construct a valid labeling for
+      this segment of the path. Since the labeling is locally valid on vi vj in path P , it must also
+      be locally valid on ui     uj in the original graph.
+      We emphasize that the experiment of modifying P and resuming the execution of A there is
+      fully localized; all nodes along the path can do a similar thought experiment independently of
+      each other.
+
+Composing all of the phases, we see that the locality of the LOCAL algorithm A0 is O(log∗ n).
+
+
+E     LCL problems in rooted trees
+In this section, we prove the following theorems:
+
+Theorem 5.3. Let Π be an LCL problem in rooted regular trees (without inputs). Problem Π has
+locality nΩ(1) in the LOCAL model if and only if it has locality nΩ(1) in the online-LOCAL model.
+
+Theorem 5.4. Let Π be an LCL problem in rooted regular trees (without inputs). Problem Π has
+locality Ω(log n) in the LOCAL model if and only if it has locality Ω(log n) in the online-LOCAL
+model.
+
+   We restrict our attention to LCL problems in rooted trees without inputs. We also restrict the
+family of graphs to be regular rooted trees. If the trees were not regular, the degrees of nodes could
+be used to encode input labels. More formally, we use the following definition for LCL problems in
+rooted trees:
+
+Definition E.1 (LCL problem in rooted trees [8]). An LCL problem Π is a triple (δ, Γ, C) where:
+
+    • δ is the number of allowed children,
+    • Γ is a finite set of (output) labels,
+    • C is a set of tuples of size δ + 1 from Γδ+1 called allowed configurations.
+
+
+                                                  29
+Each allowed configuration (a : b1 b2 . . . bδ ) ∈ C states that a node with label a is allowed to have
+children with labels b1 , b2 , . . . bδ in some order.
+    In Appendix E.1, we define path-flexibility for labels of LCL problems that we need for proving
+nΩ(1) lower bounds. We then introduce the 2.5-coloring problem in Appendix E.2 as an example of
+                                    √
+an LCL problem requiring locality Ω( n) in the LOCAL model, and show that it does so also in the
+online-LOCAL model. In Appendix E.3, we generalize this technique for all LCL problems requiring
+locality nΩ(1) in the LOCAL model. In Appendix E.4, we prove Theorem 5.4 by showing how a
+locality-o(log n) online-LOCAL algorithm can be used to construct a locality-O(log∗ n) LOCAL
+algorithm.
+
+E.1     LCL problems as automata: path-forms and path-flexibility
+The concept of path-flexibility is based on previous work on LCL problems on paths and cycles [20].
+Even though we are interested in rooted trees, we can still use results on directed paths by defining
+path-form for LCL problems. The path-form of an LCL problem can be seen as a relaxation of the
+original problem: Instead of requiring all children to have a compatible combination of labels, the
+path-form relaxes this condition by requiring that every child individually needs to have a valid
+label regardless of which labels its siblings have.
+Definition E.2 (path-form [8]). Let Π = (δ, Γ, C) be an LCL problem in rooted trees. The
+path-form of Π is an LCL problem Πpath = (1, Γ, C 0 ) on directed paths. A configuration (a : b)
+belongs to C 0 if and only if there exists a configuration (a : b1 , b2 , . . . , bδ ) in C with b = bi for some i.
+   Path-flexibility of label γ in problem Π is defined using an automaton M(Π) associated with
+the path-form Πpath of problem Π. The intuition with the automaton is that a sequence of labels
+on a directed path is valid for a problem Πpath exactly when there exists a sequence of transitions
+in M(Π) visiting the states corresponding to the labels in the same order.
+Definition E.3 (automaton associated with path-form [20]). Let Π = (δ, Γ, C) be an LCL problem,
+and let Πpath = (1, Γ, C 0 ) be its path-form. The automaton M(Π) associated with the path-form
+Πpath is a non-deterministic unary semiautomaton. The set of states is Γ, and the automaton has a
+transition a → b if the configuration (a : b) exists in C 0 .
+    Flexibility is a property of a state of an automaton, and is directly related to path-flexibility of
+a label. The intuition with path-flexibility is that, if a label is path-flexible, then it can be used
+to label far-away nodes on a path without knowing the exact distance between the nodes. If, on
+the other hand, a state is path-inflexible, then the labels can exists only at certain distances from
+each other. For example, consider the problem of 2-coloring a path with labels 1 and 2. Two nodes
+having label 1 can appear on a correctly colored path only if their distance is even, otherwise the
+path must be ill-colored. Therefore, the label 1 is path-inflexible.
+Definition E.4 (flexible state [15]). Let γ be a state of the automaton M(Π). The state γ is
+flexible if there exists a constant K such that for every d ≥ K, there exists a walk γ γ in M(Π)
+with length d.
+Definition E.5 (path-flexibility [8]). Let Π be an LCL problem, and let γ be one of its labels. The
+label γ is called path-flexible if the state γ is flexible in the automaton M(Π). Otherwise, the label
+is called path-inflexible.
+    Path-flexibility can also be generalized for multiple labels. The intuition is the same as with
+individual path-flexible labels: Nodes having labels from a path-inflexible pair can reside only at
+certain distances apart from each other.
+
+                                                       30
+Definition E.6 (path-flexible pair). Let Π be an LCL problem, and let (γ1 , γ2 ) be a pair of labels
+of Π. The pair is path-flexible if there exists a constant K such that for every d ≥ K, there exists
+walks γ1   γ2 and γ2      γ1 of length d in the automaton M(Π).
+
+   Path-flexibility of a pair is directly connected to path-flexibility of the individual labels that it
+consists of, as formalized in the following lemma:
+
+Lemma E.7. Let Π be an LCL problem. A label pair (γ1 , γ2 ) is path-flexible if and only if both γ1
+and γ2 belong to the same strongly connected component of M(Π) and are separately path-flexible.
+
+Proof. It is easy to see that if the labels belong to the same strongly connected component and
+both are path-flexible, then also the pair is path-flexible. The other direction is almost as easy: If
+the label pair is path-flexible, then there exists path-flexible walks from γ1 to γ2 , and vice versa.
+Hence the labels must belong to the same strongly connected component. The labels must also be
+path-flexible as we can combine two walks in opposite directions to get a walk of an arbitrary length
+from both labels to themselves.
+
+    If a pair of labels is path-inflexible, then it is easy to find a way to combine two fragments
+containing those labels such that no labeling exists for the resulting graph. This happens when the
+distance between the labeled nodes is such that the corresponding walk does not exist in M(Π).
+This is formalized in the following lemma.
+
+Lemma E.8. Let (γ1 , γ2 ) be a path-inflexible pair in M(Π). Then, for every pair p1 , p2 ∈ N, not
+all of the following walks can exist in M(Π):
+
+  (i) a walk γ1    γ2 of length p1 ,
+ (ii) a walk γ1    γ2 of length p1 + 1,
+(iii) a walk γ2    γ1 of length p2 , and
+(iv) a walk γ2     γ1 of length p2 + 1.
+
+Proof. Assume for contradiction that all of the walks existed. Then the claim is that there exists
+some K such that for every d ≥ K there exists walks γ1     γ2 and γ2  γ1 of length exactly d, and
+therefore (γ1 , γ2 ) is a path-flexible pair.
+   Such walks can be constructed. Consider the following walks from γ1 back to γ1 :
+
+ W1 Walk along (i) to go from γ1 to γ2 , and then take walk (iii) to go back to γ1 .
+ W2 Walk along (i) to go from γ1 to γ2 , and then take walk (iv) to go back to γ1 .
+
+The walk W1 has a length of p1 + p2 , and W2 has a length of p1 + p2 + 1. Combining the walks W1
+and W2 repeatedly makes it possible to construct a walk from γ1 back to itself for any length of at
+least K 0 = (p1 + p2 )(p1 + p2 − 1) [49].
+    A similar construction can be used to construct a self-walk from γ2 back to itself for any
+length of at least K 0 . Combining these with walks (i) and (iii), it is possible to construct walks
+γ1    γ2 and γ2     γ1 for any length d of at least K = K 0 + max(p1 , p2 ). Hence the pair (γ1 , γ2 ) is
+path-flexible.
+                            √
+E.2    2.5-coloring takes Ω( n) in online-LOCAL
+                                                                         √
+In this section, we will present an LCL problem that requires locality Ω( n) in the online-LOCAL
+model. The problem is called 2.5-coloring and was first introduced by Chang and Pettie [18].
+
+
+
+                                                   31
+                               A                 B
+                                                                A                B
+
+                                        X
+
+                                                                         X
+                               1                 2
+
+Figure 7: The automaton associated with the path-form of problem Π2.5 on the left, and the automaton
+associated with the path from of Π02.5 on the right. On the left, the states A, B and X are path-flexible as there
+exists walks from them to back themselves for all lengths of at least 4. The states 1 and 2 are path-inflexible
+as only self walks with even length are possible. On the right, all states A, B and X are path-inflexible. States
+A and B have only even-length self walks. The state X has no self walks.
+
+
+    Informally, the 2.5-coloring problem requires 2-coloring the tree near the root with labels A
+and B, and near the leaves with 1 and 2. The different 2-colored parts can be combined using an
+intermediate label X.
+    Formally, the 2.5-coloring problem Π2.5 is defined as follows:
+Definition E.9 (2.5-coloring problem Π2.5 ). Problem Π2.5 has five labels: A, B, X, 1, and 2. Nodes
+with label A can have any combination of children labeled with B and X. Similarly nodes with label
+B can have any combination of children labeled with A and X. Nodes with label X need to have at
+least one child with label 1, and the other child can have any label other than X. Nodes with label 1
+need to have two children labeled with 2, and nodes with label 2 need to have two children labeled
+with 1.
+    The reason for naming this problem 2.5-coloring is that any valid 2-coloring is also a valid
+2.5-coloring, and a valid 2.5-coloring can be transformed into a valid 3-coloring by mapping A 7→ 1
+and B 7→ 2. Hence the 2.5-coloring problem is at least as hard as the 3-coloring problem, but at
+most as hard as the 2-coloring problem.
+    By analyzing the problem description of Π2.5 , and the automaton associated with its path-form
+shown in Figure 7, the following observation can be made:
+Observation E.10. The labels 1 and 2 are path-inflexible in problem Π2.5 . This is because any
+path between two nodes labeled with labels 1 and 2 must form a valid 2-coloring. Denote the set of
+path-inflexible labels by Γ1 = {1, 2}.
+    Problem Π2.5 can be restricted by removing these labels from the set of possible labels. This
+gives the following restricted problem Π02.5 :
+Definition E.11 (restricted 2.5-coloring problem Π02.5 ). Problem Π02.5 has three labels: A, B, and X.
+Nodes with label A can have any combination of children labeled with B and X. Similarly, nodes
+with label B can have any combination of children labeled with A and X. Nodes with label X cannot
+have any children.
+   By analyzing the problem description of Π02.5 , and the automaton associated with its path-form
+shown in Figure 7, we arrive at the following observation:
+Observation E.12. All labels A, B and X are path-inflexible in problem Π02.5 . This is because the
+label X cannot be used to label any internal nodes of the tree, and hence this is (almost) a regular
+2-coloring problem with labels A and B. Denote the set of inflexible labels by Γ2 = {A, B, X}.
+
+                                                       32
+     The lower-bound construction for 2.5-coloring relies on the fact that an algorithm solving Π2.5
+cannot use labels 1 and 2 to label two nodes without seeing how the nodes are connected to each
+other. Otherwise the adversary could alter the length of the path connecting the nodes such that
+the labeling cannot be completed. This is because labels 1 and 2 are path-inflexible, as noted in
+Observation E.10.
+     Nevertheless any sufficiently local algorithm can be forced to use labels 1 and 2 in far-away
+parts of the graph using the following trick: Show the algorithm two fragments of the graph such
+that the algorithm does not know how they are connected. Based on the previous observation, the
+algorithm must use labels A, B and X to label the shown nodes.
+     By Observation E.12, labels A, B and X are path-inflexible in the restricted 2.5-coloring problem
+Π02.5 . Hence the adversary can connect the fragments in such a way that there exists no valid labeling
+for the path connecting the two fragments that satisfies the restricted problem Π02.5 . Therefore, the
+algorithm must use labels 1 and 2 somewhere along the connecting path. The construction can be
+repeated to create another node with label 1 or 2. By being careful with the construction, it can be
+ensured that the algorithm has not seen how the two nodes having labels 1 and 2 are connected to
+each other. Hence the adversary can force the distance between them to be such that there exists
+no valid labeling for Π2.5 for the resulting tree.
+     Informally, the components that are shown to the algorithm are formed in the following way:
+Let P be a directed path with x nodes from t to s, and let c be the middlemost node on the path.
+Collectively call the nodes on path P layer-2 nodes, and call node t the connector node. Identify
+each node along path P as the root of another path of x + 1 nodes, and call the newly-created nodes
+layer-1 nodes. As the last step, add one child node to each layer-1 node. Call these added nodes
+layer-0 nodes. We call the tree formed in this way T2x . Figure 8 shows an example of tree T25 .
+     We can now prove the lower bound for the 2.5-coloring problem. The proof is based on a
+simulation of an online-LOCAL algorithm A which supposedly solves the 2.5-coloring problem with
+           √
+locality o( n). We simulate algorithm A on disjoint graph fragments, and only after the algorithm
+has committed the labels for some nodes, we decide how the fragments are connected to each other.
+In the following, we will show how we can use the commitments of the algorithm to construct an
+input instance for which the algorithm must fail. We will also illustrate a concrete example of the
+construction for an algorithm with locality T (n) = 1 with parameter x = 5.
+     Assume for contradiction that there existed an online-LOCAL algorithm A solving problem Π2.5
+                         √
+with locality T (n) = o( n). We can now construct a failing instance GA as follows:
+   1. Construct 4 copies of tree T2x , namely G1 , G2 , G3 , G4 , with sufficiently large constant x 
+      2T (n), where n is the size of the graph. This is possible because each copy of tree T2x has
+      x + 2x2 nodes, and hence the whole graph has 4x + 8x2 < 16x2 nodes. By assumption, the
+                            √
+      locality is T (n) = o( n), and hence there exists some x such that x  2T (16x2 ) holds.
+   2. Reveal the center nodes on the core paths of the trees Gi to algorithm A. The algorithm must
+      commit to some labels for these nodes without seeing the roots or the connector nodes of
+      the trees. This means that the algorithm does not know how the trees Gi are connected to
+      each other. This is because x is larger than the diameter of the view that is revealed to the
+      algorithm. Figure 9 visualizes an example of this situation.
+   3. Consider now the following cases. In each one of them, we can force algorithm A to fail to
+      produce a valid labeling:
+       (i) Algorithm A labels at least two of the center nodes of the trees with labels from set Γ1 .
+           Let v1 and v2 be two distinct center nodes labeled with labels γ1 , γ2 ∈ Γ1 , respectively.
+           Without loss of generality, we may assume that nodes v1 and v2 are the center nodes of
+
+                                                  33
+                                                                                                s
+
+
+
+
+                                                                 c
+
+
+
+
+                                  t
+
+
+
+
+Figure 8: An example of a layered tree T25 . The darkest nodes belong to layer 2, the lighter nodes belong to
+layer 1, and the white leaf nodes belong to layer 0. Node s is the root, node t is the connector, and node c is
+the middlemost node on the core path.
+
+
+
+
+                                                      34
+                                     1                                                X
+
+
+
+
+                                     A                                                B
+
+
+
+
+Figure 9: Trees G1 , G2 , G3 and G4 . The algorithm has labeled the center nodes on the core paths with 1, X,
+A and B. The neighborhoods the algorithm has seen are visualized by thicker lines around nodes.
+
+
+
+
+                                                     35
+     trees G1 and G2 . By Observation E.10, the labels γ1 and γ2 are path-inflexible in Π2.5 ,
+     and hence the pair (γ1 , γ2 ) is a path-inflexible pair by Lemma E.8.
+     Consider two different ways of combining the trees G1 and G2 : The root of tree G2 can
+     be identified with the connector node of G1 , or, alternatively, the root of tree G2 can
+     be made a child of the connector node. Figure 10 visualizes both of these cases. In the
+     former case the length of the path between v1 and v2 is p and in the latter it is p + 1. As
+     p and p + 1 have different parity, only one of the walks γ1      γ2 of length p and p + 1
+     can exist in M(Π2.5 ). We can choose the option for which the walk of that length does
+     not exist. This implies that there is no way to label the path between v1 and v2 such
+     that the labeling would be valid according to the 2.5-coloring problem Π2.5 . Hence the
+     algorithm must fail.
+(ii) Algorithm A labels all center nodes of the trees with labels from set Γ2 .
+     In this case, two trees with labels from set Γ2 can be combined into one tree with a label
+     from set Γ1 . By repeating this for both pairs of trees, we can construct two trees with
+     labels from set Γ1 such that the algorithm has not seen how the trees are connected. A
+     contradiction can then be derived using the construction from case (i) on these trees.
+     To see how to construct a tree with a label from set Γ1 , consider two of the trees Gi , say
+     G1 and G2 . The corresponding center nodes are v1 and v2 , and their labels are γ1 and
+     γ2 , respectively. By Observation E.12, labels γ1 and γ2 are path-inflexible in Π02.5 . Using
+     a similar construction as in case (i), we can construct a tree in which algorithm A cannot
+     solve the restricted problem Π02.5 . In particular, algorithm A must fail to solve Π02.5 on
+     the path connecting v1 and v2 .
+     However, algorithm A is not actually trying to solve Π02.5 but Π2.5 , and hence it can
+     also use labels from set Γ1 to label some of the revealed nodes. By revealing the nodes
+     between v1 and v2 , as well as their children, to algorithm A, we can force the algorithm
+     to use a label from set Γ1 for some revealed node v without showing the root of the tree
+     to the algorithm. Moreover, revealing node v does not let the algorithm see the whole
+     subtree rooted at v. In particular, the node at the end of a path consisting of only layer-1
+     nodes is not shown to the algorithm. Therefore, we can use that node to connect the
+     tree to another tree.
+     Note that this is the case where the structure of the trees Gi comes into play. The layered
+     tree structure ensures that when node v is revealed to the algorithm, the algorithm has
+     not seen all layer-1 nodes in the subtree rooted at v. This is because the algorithm has
+     locality T (n), but the length of the path consisting of layer-1 nodes has length x  2T (n).
+     The layered tree structure is also needed for proving the general result in Appendix E.3.
+     Figure 11 shows an example of how two trees can be connected to force the algorithm to
+     use a label from set Γ1 .
+(iii) Algorithm A labels exactly one of the center nodes of the trees with label from set Γ1 , and
+      the rest of the center nodes from set Γ2 .
+      In this case, two of the trees whose center nodes have been labeled with labels from set
+      Γ2 can be combined like in case (ii) to produce a tree with a label from set Γ1 . To force
+      the algorithm to fail, this resulted tree can then be combined with the original tree whose
+      center node is from set Γ1 , just like in case (i). See Figure 12 for an example.
+
+This is an exhaustive list of all cases. As we can force algorithm A to fail to produce a valid
+labeling in all cases, the assumption that such an algorithm can exist must be false. The
+
+
+                                            36
+                          1
+                                                                     1
+
+
+
+
+                                                                                       1
+                                                 1
+
+
+
+
+Figure 10: Example for case (i). Two ways to connect trees with labels from set Γ1 ; in this example, the
+algorithm has decided to label both center nodes with label 1. Note that in this visualization the chain of
+layer-1 nodes has been made shorter to draw attention to layer 2; in reality there are more layer-1 and layer-0
+nodes. On the left, the root of the lower tree has been made a child of the connector node of the upper tree,
+while on the right they have been identified as one node. The distance between labeled nodes is 5 in the left
+tree and 4 in the right tree. Because the distance between nodes labeled with 1 must be even, the labeling on
+the left tree cannot be completed.
+
+
+
+
+                                                      37
+                                                      A
+
+                                                           B
+
+                                                           X   A
+
+                                                               X   X
+
+                                                                   1   B
+
+
+
+
+                                                  t
+
+
+
+
+Figure 11: Example for case (ii). We have connected trees G3 and G4 , having labels A and B, in such a way
+that the connecting path cannot be labeled according to the restricted problem Π02.5 . The algorithm has
+labeled the nodes on the connecting path, and the children of those nodes. Because there is no valid labeling
+according to the restricted problem Π02.5 , the algorithm had to use a label from set Γ1 to label at least one
+node. In this case, the algorithm has decided to use label 1. The node labeled with 1 is node v from the text,
+and the node marked with t is the connector node in the subtree rooted at v.
+
+
+
+
+                                                      38
+                                                      A
+
+                                                           B
+
+                                                           X   A
+
+                                                               X   X
+
+                                                                   1   B
+
+                                                               2   2
+
+                                                           1   1
+
+                                                      2    2
+
+                                                  !   1
+
+                                             1
+
+                                             2    2
+
+                                                  1   1
+
+
+
+
+Figure 12: Example for case (iii). In this case, we first combined trees G3 and G4 to get a node with label 1.
+We then made tree G1 a child of the connector node of the newly-formed tree. The algorithm has tried to
+label all nodes on the path connecting the two labeled parts, but as there exists no valid labeling for the
+path, the algorithm has failed to label the node marked with !.
+
+
+
+
+                                                      39
+                                                                               √
+      only assumption made about algorithm A is that it has locality T (n) = o( n), and hence the
+                                                        √
+      2.5-coloring problem Π2.5 must require locality Ω( n).
+
+   In the next section, we will generalize the techniques presented in this example to all LCL
+problems.
+
+E.3     Equivalence in the super-logarithmic region
+It is known that problems requiring locality nΩ(1) in the LOCAL model have a very specific
+structure [8]. In particular, such problems can be decomposed into hierarchical sequences of
+restricted problems by repeatedly removing path-inflexible labels from the problem. More formally:
+
+Definition E.13 (path-inflexible decomposition). Let Π be an LCL problem. The path-inflexible de-
+composition consists of a sequence of problems (Π0 , Π1 , . . . , Πk ) and a sequence of labels (Γ1 , Γ2 , . . . , Γk ).
+The sequences are defined as follows:
+
+   1. Π0 = Π.
+   2. For every i ∈ [1, k], let Γi be the set of path-inflexible labels in Πi−1 .
+   3. For every i ∈ [1, k], let Πi be the restriction of Π to label set Γ \ (Γ1 ∪ Γ2 ∪ · · · ∪ Γi ).
+   4. Problem Πk is either an empty problem, or all of its labels are path-flexible.
+
+    Note that every problem in the sequence (Π0 , Π1 , . . . , Πk ) is a restriction of the previous one. In
+particular, a solution to problem Πi is a valid solution also to any problem Πj with j ≤ i.
+    It is known that if all labels of an LCL problem are path-flexible, then the LCL problem can be
+solved with locality O(log n) in the LOCAL model [8]. This holds also for the case where Π itself
+has path-inflexible labels, but it has a restriction with only path-flexible labels. In particular, if such
+restriction exists, then the last problem in its path-inflexible decomposition is such a restriction.
+    From now onwards, we are only interested in the case where the last problem Πk in the path-
+inflexible decomposition (Π0 , . . . , Πk ) is an empty problem. We will show that in that case, the
+original problem requires locality Ω(n1/k ) to be solved in the online-LOCAL model. This lower
+bound also applies for the LOCAL model.
+    The hierarchical structure of a problem is really useful when proving the Ω(n1/k ) lower bound.
+In fact, we use matching k-layer trees to construct a counter example for any locality-o(n1/k )
+online-LOCAL algorithm. A layered tree Tkx with k layers and path length x can be constructed as
+follows:
+
+   1. If k = 0, then T0x is a single node. The node belongs to layer 0.
+
+   2. Otherwise construct a directed path (v1 , v2 , . . . , vx ) with x nodes. This path is called the core
+      path of Tkx . For each node vi , identify its children with the roots of δ − 1 copies of Tk−1x . The
+                                                                  x
+      nodes vi belong to layer k. Node vx is the root of Tk , and node v1 is its connector node.
+
+This layered structure is very useful. In particular, for almost every node v, there exists a node
+belonging to a lower layer in the subtree rooted at v that is far away from v. This happens even
+though the size of the tree is only polynomial. We formalize these observations in the following:
+
+Observation E.14. For every node v in Tkx belonging to layer i ≥ 2, there exists a layer-(i − 1)
+node u in the subtree rooted at v such that the distance between v and u is at least x.
+
+Observation E.15. Let Tkx be a layered tree. The tree consists of O(xk ) nodes.
+
+    We can now use the path-inflexible decomposition and layered trees to prove Theorem 5.3.
+
+                                                         40
+Proof of Theorem 5.3. Let Π = (δ, Γ, C) be an LCL problem, and let (Π0 , Π1 , . . . , Πk ) and (Γ1 , . . . , Γk )
+be its path-inflexible decomposition. If problem Πk is non-empty, then problem Π can be solved with
+locality O(log n) in the LOCAL model [8], and therefore also in the online-LOCAL model. Hence
+we will assume that Πk is an empty problem. Assume also that there existed an online-LOCAL
+algorithm A solving Π with locality T (n) = o(n1/k ), where k is the number of non-empty problems
+in the path-inflexible decomposition of Π.
+    We will construct a rooted tree GA on which algorithm A fails. We start by constructing many
+copies of Tkx for sufficiently large x. Then we use algorithm A to label one layer-k node on each of
+the trees. Finally we combine the trees together in a way which ensures that no valid labeling exists
+for whole tree, given the existing labels. This proves that no such algorithm A can exist.
+    More formally, the construction works as follows:
+
+   1. Construct 2k+1 copies of layered tree Tkx , with a sufficiently large parameter x  2T (n). Such
+      large parameter x exists, because each tree Tkx contains only O(xk ) nodes, and by assumption
+      T (n) = o(n1/k ).
+
+   2. Use algorithm A to label the middlemost nodes on the core paths of every tree. Because the
+      parameter x has been chosen to be large enough, algorithm A does not see the ends of the
+      core path.
+
+   3. Divide the trees into collections C1 , . . . , Ck based on the labels the algorithm has produced. If
+      the algorithm used label γ from set Γi to label the node in tree G, put tree G into collection Ci .
+      There are four properties which hold for every tree G in collection Ci :
+
+       (a) There exists a node v in the tree G such that the label of v belongs to set Γi ,
+       (b) the algorithm has not committed a label for any node whose layer is less than i,
+       (c) the algorithm has not seen the root nor the connector node of G, and
+       (d) the layer of the connector node is at least i.
+
+      All these properties hold trivially for the initial trees.
+
+   4. Iteratively combine two trees from collection Ci into one tree that can be added to collection Cj
+      for some j < i.
+      The combination of trees proceeds as follows: Consider two trees A and B from collection Ci .
+      By the construction of Ci , there exist nodes vA and vB in A and B, respectively, such that the
+      labels of nodes vA and vB belong to set Γi . Moreover, the layers of vA and vB are at least i.
+      There are four different ways in which trees A and B can be combined:
+
+       (a) identify the root of B with the connector node of A,
+       (b) identify the root of A with the connector node of B,
+       (c) make the root of B a child of the connector node of A, or
+       (d) make the root of A a child of the connector node of B.
+
+      Note that we could choose any one of these combinations without the algorithm knowing
+      which one we chose. This is because the algorithm has not seen the roots or the connector
+      nodes of either of the trees A and B, and therefore we can change the structure of the trees in
+      those neighborhoods freely.
+      Among these four combinations, choose one for which there exists no valid labeling for problem
+      Πi−1 . Such tree must exist by Lemma E.8. In particular, no valid labeling exists for the
+
+
+                                                      41
+      nodes and their children on the path connecting vA and vB . Call the resulting tree R. Any
+      attempt to label the nodes and their children on the path between vA and vB in R according
+      to problem Πi−1 must fail.
+      We now use algorithm A to label all the nodes, and their children, on the path between vA
+      and vB in R. Note that each of these nodes belongs to a layer whose index is at least i − 1. By
+      the choice of R, the algorithm cannot label all nodes using only labels present in problem Πi−1 .
+      Hence there must exist a node v on the path between vA and vB such that it and its children
+      do not form a valid configuration in problem Πi−1 . This is possible only if either v or at least
+      one of its children has label γ ∈ Γj for some j < i. Denote that node by v 0 .
+      By Observation E.14, there exists a layer-j node u in the subtree rooted at v such that the
+      distance between v and u is at least x. Hence the distance between v 0 and u is at least
+      x − 1 > T (n). This means that the algorithm has not seen node u yet. Make node u the
+      connector node of tree R.
+      It is easy to check that tree R constructed in this way fulfills all properties of a tree of collection
+      Cj , as described in step 3. We can therefore remove trees A and B from collection Ci and add
+      tree R to collection Cj . We repeat this step until collection C1 contains at least two trees, at
+      which point we move to the next step and force the algorithm to fail.
+
+   5. In this last step, we force algorithm A to fail. We do this by taking two trees A and B from
+      collection C1 . By construction of collection C1 , there exist nodes vA and vB on trees A and B
+      with labels γA and γB from set Γ1 , respectively. Recall that set Γ1 is the set of path-inflexible
+      labels in problem Π0 = Π, and hence the label pair (γA , γB ) is a path-inflexible pair of Π.
+      We combine the trees A and B in a similar way as in the previous step to get the tree R. This
+      time, there does not exist a valid labeling for the original problem Π in R. This is the tree
+      GA we aimed to construct. In particular, algorithm A must fail to produce a valid labeling
+      for tree GA .
+   As a final remark, the number of trees constructed in step 1 is large enough such that, no matter
+what labels the algorithm uses, we can always construct two trees for collection C1 .
+
+E.4    Equivalence in the sub-logarithmic region
+We conclude this section by proving Theorem 5.4. We prove the theorem by showing that the
+existence of a locality-o(log n) online-LOCAL algorithm for solving the LCL problem Π implies
+that there exists a certificate for O(log∗ n) solvability for Π. This in turn implies that problem Π is
+solvable with locality O(log∗ n) in the LOCAL model [8].
+Definition E.16 (certificate for O(log∗ n) solvability [8]). Let Π = (δ, Γ, C) be an LCL problem.
+A certificate for O(log∗ n) solvability of Π consists of labels ΓT = {γ1 , . . . , γt } ⊆ Γ, a depth pair
+(d1 , d2 ) and a pair sequences T 1 and T 2 of t labeled trees such that
+   1. The depths d1 and d2 are coprime.
+
+   2. Each tree of T 1 (resp. T 2 ) is a complete δ-ary tree of depth d1 ≥ 1 (resp. d2 ≥ 1).
+
+   3. Each tree is labeled by labels from Γ correctly according to problem Π.
+
+   4. Let T̄i1 (resp. T̄i2 ) be the tree obtained by starting from Ti1 (resp. Ti2 ) and removing the labels
+      of all non-leaf nodes. It must hold that all trees T̄i1 (resp. T̄i2 ) are isomorphic, preserving the
+      labeling. All the labels of the leaves of T̄i1 (resp. T̄i2 ) must be from set ΓT .
+
+                                                     42
+   5. The root of tree Ti1 (resp. Ti2 ) is labeled with label γi .
+
+   In the proof, we will construct a large set of complete δ-ary trees and label the nodes that are in
+the middle of the tree. We call these nodes the middle nodes.
+
+Definition E.17 (middle nodes). Let G be a complete δ-ary tree with depth 2d. The middle nodes
+of G are the nodes of G that are at distance d from the root and the leaves of G.
+
+   We are now ready construct a certificate.
+
+Proof of Theorem 5.4. Let Π = (δ, Γ, C) be an LCL problem, and let A be an online-LOCAL
+algorithm solving Π with locality T (n) = o(log n).
+    We use algorithm A to construct a certificate for O(log∗ n) solvability as follows:
+
+   1. Let n be large enough to satisfy (δ T (n)+2 + |Γ|)(δ 2T (n)+3 − 1)  n. Construct δ T (n)+2 + |Γ|
+      complete δ-ary trees with depth 2T (n) + 2. Each one of the tree has δ 2T (n)+3 − 1 nodes.
+
+   2. Use algorithm A to label the middle nodes of each tree. Because the depth of each tree is
+      larger than the visibility diameter of the algorithm, the algorithm does not see the roots or
+      the leaves of the trees. Let ΓT = {γ1 , . . . , γt } the set of labels the algorithm used to label
+      these nodes.
+
+   3. Divide the trees into two sets L and U. Set U is the minimal set such that for every label of
+      ΓT , there exists a tree with that label in U. Note that the size of set U is at most |Γ|, and
+      hence the size of L is at least δ T (n)+2 . Order the trees in set L in a consistent order.
+
+   4. We can now use the sets U and L to construct the individual trees Ti1 and Ti2 .
+      Consider each γi in ΓT one by one. Find a tree U from set U having a node u labeled with γi ;
+      by the construction of U, such a tree must exist. Consider the subtree of U rooted at u, and
+      denote that tree by Uu . Tree Uu has δ T (n)+1 leaves. Identify those leaves with the roots of the
+      first δ T (n)+1 trees of L.
+      Now the root of subtree Uu has label γi , and the nodes at depth 2T (n) + 2 have also been
+      labeled with labels from set ΓT . We can use algorithm A to label all the nodes in between.
+      As the result, we get that the depth-(2T (n) + 2) subtree of Uu is a complete labeled tree with
+      depth 2T (n) + 2; let it be Ti1 .
+      We can construct the trees Ti2 in an analogous way. The only difference is that instead of
+      identifying the roots of the first δ T (n)+1 trees of L with the leaves of the subtree Uu , we make
+      the first δ T (n)+2 trees of L the children of those leaves. Again, we use algorithm A to label
+      the nodes in between. This time we get a depth-(2T (n) + 3) labeled tree as Ti2 .
+      It is easy to verify that the sequence of trees T 1 and T 2 actually form a valid certificate for
+      O(log∗ n) solvability for problem Π. In particular, the depths 2T (n) + 2 and 2T (n) + 3 of the
+      trees are coprime, the leaves of each tree in both sets are labeled similarly using labels from
+      set ΓT , and for every label of set ΓT , there exists a tree in both sets having root labeled with
+      that label.
+
+    The fact that the existence of a locality-o(log n) online-LOCAL algorithm implies the existence of
+a certificate for O(log∗ n) solvability is sufficient to prove the theorem. In particular, if no certificate
+existed, we know that the locality of the problem in the online-LOCAL model must be Ω(log n).
+
+
+
+                                                    43
+

@@ -1,0 +1,1436 @@
+      Chosen Ciphertext Security from Injective
+                Trapdoor Functions?
+
+             Susan Hohenberger1 , Venkata Koppula2 , and Brent Waters3,4
+         1
+          Johns Hopkins University, Baltimore, MD, USA susan@cs.jhu.edu
+2
+    Weizmann Institute of Science, Rehovot, Israel venkata.koppula@weizmann.ac.il
+          3
+            University of Texas, Austin, TX, USA bwaters@cs.utexas.edu
+                             4
+                               NTT Research, CA, USA
+
+
+        Abstract. We provide a construction of chosen ciphertext secure public-
+        key encryption from (injective) trapdoor functions. Our construction is
+        black box and assumes no special properties (e.g. “lossy”, “correlated
+        product secure”) of the trapdoor function.
+
+
+1     Introduction
+A public-key encryption system is said to be chosen ciphertext attack (CCA)
+secure [31,34,7] if no polynomial-time attacker can distinguish whether a chal-
+lenge ciphertext ct∗ is an encryption of m0 or m1 even when given access to a
+decryption oracle for all ciphertexts except ct∗ . In most deployed encryptions
+systems, CCA security is necessary to protect against an active attacker that
+might induce a user to decrypt messages of its choosing or even gain leverage
+from just the knowledge that an attempted decryption failed. See Shoup [37] for
+an excellent discussion on the importance of CCA security.
+    Over time the cryptographic community has become rather adept at achiev-
+ing CCA security from many of the same assumptions that can be used to
+achieve chosen plaintext attack (CPA) security for public-key encryption, where
+the adversary is not given access to a decryption oracle. For instance we now
+have practical CCA secure encryption schemes from the Decisional [5,6] and
+Search [3] Diffie-Hellman, the difficulty of factoring [23,20], Learning with Er-
+rors (LWE) [33] and Learning Parity with Noise (LPN) [11,25] assumptions.
+    Despite the success in these ad-hoc number-theoretic rooted approaches,
+there is a strong drive to be able to understand CCA security from the perspec-
+tive of general assumptions with an ultimate goal of showing that the existence
+?
+    Susan Hohenberger is supported by NFS CNS-1414023, NSF CNS-1908181, the
+    Office of Naval Research N00014-19-1-2294, and a Packard Foundation Subaward
+    via UT Austin. Venkata Koppula is supported by the Binational Science Foun-
+    dation (Grant No. 2016726), and by the European Union Horizon 2020 Research
+    and Innovation Program via ERC Project REACT (Grant 756482) and via Project
+    PROMETHEUS (Grant 780701). This work was done [in part] while the author
+    was visiting the Simons Institute for the Theory of Computing. Brent Waters is
+    supported in part by NSF CNS-1414082, NSF CNS-1908611, Simons Investigator
+    Award and Packard Foundation Fellowship.
+of CPA secure public-key encryption implies CCA secure public-key encryption.
+In this work we make significant progress in this direction by showing that CCA
+secure public-key encryption can be built from any (injective) trapdoor function.
+Recall that a trapdoor function is a primitive in which any user given a public key
+tdf.pk can evaluate the input x by calling TDF.Eval(tdf.pk, x) → y. And a user
+with the secret key tdf.sk can can recover x from y as TDF.Invert(tdf.sk, y) → x.
+However, a polynomial-time attacker without the secret key should not be able
+to output x given y = TDF.Eval(tdf.pk, x) for a randomly chosen x. By injective,
+we require a one-to-one mapping of the function input and evaluation spaces.
+    There is a strong lineage connecting trapdoor functions with chosen cipher-
+text security. Fujisaki and Okamoto [13] showed how in the random oracle
+model any CPA secure encryption scheme can be transformed into a CCA se-
+cure scheme. Their transformation implicitly creates a trapdoor function (in a
+spirit similar to the random oracle based TDF construction of [1]) where the
+decryption algorithm recovers encryption randomness and re-encrypts to test
+ciphertext validity. If we allow the trapdoor function to be a “doubly enhanced”
+permutation [17], then they can be used to create non-interactive zero knowledge
+proofs which are known to give chosen ciphertext security via non-black box con-
+structions [31,7]. Peikert and Waters [33] introduced the notion of lossy trapdoor
+functions and showed that this primitive also gives rise to chosen ciphertext se-
+cure public-key encryption. Other works (e.g., [29,22]) extended and generalized
+this notion including Rosen and Segev [36] who showed that a “correlated prod-
+uct secure” TDF gives rise to CCA security. In each of these (standard model)
+cases an additional property of the trapdoor function (i.e., permutation and
+doubly enhanced, lossy, correlated product secure) was required and critical for
+achieving chosen ciphertext security leaving open the problem of building chosen
+ciphertext secure encryption by only assuming injective trapdoor functions.
+    Finally, Koppula and Waters [27] recently showed how to achieve chosen
+ciphertext security from CPA secure public-key encryption and a newly intro-
+duced “Hinting PRG” which is a pseudorandom generator that has a special form
+of circular security.5 Their construction can be viewed as a “partial trapdoor”
+where the decryption process recovers some, but not all of the randomness used
+to encrypt the ciphertext and re-encrypts parts of the ciphertext to check for va-
+lidity. They show how Hinting PRGs can be constructed from number theoretic
+assumptions such as CDH and LWE using techniques similar to [9,8,4,2,10,15].
+
+
+Our Results
+
+In this work we show a black box approach to construct chosen ciphertext secu-
+rity using just injective trapdoor functions (in addition to primitives known to
+be implied by TDFs.) We outline our approach, which begins with two abstrac-
+tions that we will use as building blocks in our construction. These abstractions
+5
+    Kitagawa and Matsuda [26] show how the Hinting PRG assumption can alternatively
+    be replaced with the assumption of symmetric key encryption with key-dependent
+    security.
+are called (1) encryption with randomness recovery, and (2) tagged set commit-
+ments. We build the first generically from injective trapdoor functions and the
+latter from pseudorandom generators, which are known to be implied by TDFs.
+These abstractions are intentionally simple, but useful for building intuition.
+
+Encryption with Randomness Recovery The “Encryption with Randomness Re-
+covery” abstraction is simply an IND-CPA secure public-key encryption where
+(1) the decryption algorithm recovers both the message and the encryption ran-
+domness r and (2) where there is also a Recover algorithm which can recover the
+message from a ciphertext given the encryption randomness r. That is, when
+Enc(pk, m, r) → ct, then Dec(sk, ct) → (m, r) and Recover(pk, ct, r) → m. We
+formally define this abstraction in Section 3, followed by an immediate construc-
+tion of Encryption with Randomness Recovery from injective trapdoor functions.
+Notably Yao’s method [38] of achieving encryption from trapdoor functions is
+actually Encryption with Randomness Recovery for 1-bit messages, where many
+such ciphertexts can be concatenated together to encrypt many bits.
+
+Tagged Set Commitments The “Tagged Set Commitment” abstraction is a com-
+mitment scheme that commits to a B-sized set of indices S ∈ [N ] with a
+tag tg (where N and B are inputs to a trusted setup algorithm) by produc-
+ing a commitment together with a membership proof for each i ∈ S; that is,
+Commit(pp, S, tg) → (com, (σi )i∈S ). The verification algorithm checks the mem-
+bership proof to verify that i ∈ S under tag tg. These algorithms take in a
+set of public parameters pp generated by a Setup algorithm with a bound B
+that enforces (the maximum) size of S. Additionally, for proof purposes, the
+scheme must support an alternative setup algorithm AltSetup that takes in a
+tag tg and produces public parameters together with a special commitment and
+a proof of membership for this commitment for every element in the commit-
+ting domain (which will exceed the bound B that all other commitments must
+abide by). In addition to the regular soundness property, we will require that no
+polynomial-time adversary can distinguish between when the parameters were
+generated by the regular or the alternative setup algorithm. We formally define
+this abstraction in Section 4, followed by a construction from pseudorandom
+generators. This abstraction is related to a number of prior works. It can be
+viewed as a generalization of the commitment scheme used in [27] to achieve a
+generic CCA compiler for attribute-based encryption schemes, which was itself
+related to Naor’s commitment from pseudorandom generators [30].
+
+Our CCA Construction Our construction uses three building blocks: a one-time
+signature scheme, a CPA-secure encryption scheme with randomness recovery
+and tagged set commitments. Our construction will create a CCA key that in-
+cludes N CPA keys. To encrypt a message a user will encrypt it to a subset
+of the keys. Decryption will then follow the paradigm of recovering randomness
+from (some of) the CPA encryptions and then re-encrypting to check for valid-
+ity. Conceptually, it is critical for us to perform a type of balancing act when
+encrypting the ciphertexts in order to prove security. At one step in the proof we
+want to have enough redundancy in the way randomness is chosen so that one
+can decrypt given any N − 1 of the private keys. However, at a later stage in the
+proof we want the fact that we choose any redundancy at all to statistically wash
+away. We sketch our construction below and show how we find this balance.
+     We begin by noting the parameterization of our scheme. The driving factor
+will be the length of randomness `rnd = `rnd (λ) of the underlying encryption with
+randomness recovery scheme for security parameter λ. We will choose integers
+N, B such that N > B and N            B > 2
+                                              `rnd +λ
+                                                      . For example, we could let N =
+2(`rnd + λ) and B = N/2.
+     The CCA setup algorithm initially chooses N key pairs from the CPA with
+randomness recovery scheme as (cpa.pki , cpa.ski ) ← CPA.Setup(1λ ). In addition,
+it samples the tagged set commitment as tsc.pp ← TSC.Setup(1λ , 1N , 1B , 1t )
+where t is the length of a verification key in the one-time signature scheme.
+     To encrypt one first chooses a uniformly random B-size subset S ⊂ [N ]. Next,
+choose a signing/verification key (sig.sk, sig.vk) ← Sig.Setup(1λ ). And then get a
+commitment to the set elements as (tsc.com, (tsc.σi )i∈S ) ← TSC.Commit(tsc.pp,
+S, sig.vk). At this point the encryptor will select the randomness used for en-
+cryption. For all i ∈ S choose ri ∈ {0, 1}`rnd uniformly at random with the
+constraint that these values XOR to 0`rnd . Observe that this slight redundancy
+implies that for a correctly formed ciphertext if we are given the set S along with
+the ri values for B − 1 of the indices in S, then we can derive the last one by
+simply XORing all the others together. For i ∈         / S simply choose ri at random.
+     To finalize encryption for i ∈ [N ], if i ∈ S encrypt the message along with
+proof for index i as cpa.cti = CPA.Enc(cpa.pki , 1|tsc.σi |m; ri ). Otherwise for i ∈         /S
+                                                                      `cpa
+encrypt
+          the  all 0’s string
+                               as  cpa.ct i =  CPA.Enc(cpa.pk   i , 0     ; r i ). Finally, sign
+  tsc.com, (cpa.cti )i∈[N ] with sig.sk to get sig.σ and output the ciphertext ct as
+                                         
+  sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] .
+                                                                                          
+     The decryption algorithm on ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] will
+first verify the signature and reject if that fails. Next, it will initialize a set
+U = ∅ and use the cpa.ski to decrypt all cpa.cti using the respective cpa.ski .
+For each i ∈ [N ], it gets a message yi which is parsed as gi |σi |mi and ran-
+domness ri . The decryption algorithm adds (i, yi ) to U if decryption is suc-
+cessful and (1) TSC.Verify(tsc.pp, tsc.com, i, tsc.σi , sig.vk) = 1 and (2) cpa.cti =
+CPA.Enc(cpa.pki , yi ; ri ). It then checks that there are exactly B entries in the set
+U , they all encrypt the same message and that ⊕(i,yi )∈U ri = 0` . If so, it outputs
+the message. We emphasize that the decryption algorithm both checks the well
+formness of ciphertext components in U via re-encryption and checks for the
+redundancy in randomness via the XOR operation. However, ciphertext com-
+ponents outside of the set U are not verified in this way. Indeed, the algorithm
+will allow decryption to proceed even it “knows” some components outside of U
+were malformed.
+     Our proof is given as a sequence of games where we show that for any poly-
+time attacker the advantage of the attacker must be negligibly close in successive
+games. We sketch the proof at a high level here and refer the reader to the main
+body for details.
+
+1. In the first step of our proof the decryption algorithm rejects all ciphertexts
+   that come with a signature under sig.vk∗ where sig.vk∗ is the signing key of
+   the challenge ciphertext. This step is proven via a standard reduction to a
+   strongly secure one-time signature scheme.
+2. In the next security
+                      game the set commitment
+                                                     parameters are chosen via
+   alternate setup: tsc.com , (tsc.σi )i∈[N ] ← AltSetup(1λ , 1N , 1B , 1t , sig.vk∗ ).
+                              ∗
+
+   This means that for the tag sig.vk∗ (and only the tag sig.vk∗ ) proof values
+   exist for every single index in [N ]. However, in the challenge ciphertext tsc.σi
+   are only used for i ∈ S ∗ where S ∗ is the set used in creating the challenge
+   ciphertext.
+3. In our proof for all indices i ∈    / S ∗ we will want to change cpa.cti from
+   an encryption of the all 0’s string to an encryption of 1|tsc.σi∗ |mb . We will
+   change these one at a time. Suppose we want to argue that no attacker can
+   detect such a change on the j-th index. To prove this we need a reduction
+   that will not have access to the j-th secret key cpa.skj , but will still be
+   able to decrypt in an equivalent (but not identical) manner to the original
+   decryption algorithm. To do this the alternative decryption algorithm uses
+   all N − 1 secret keys that it has to build a partial set U as in the actual
+   decryption algorithm above. It then branches its behavior on the size of U :
+   (1) If |U | > B, then reject. In this case the missing j-th component can only
+   add to the size of U which is already too big and will be rejected. (2) If
+   |U | < B − 1, then reject. The missing j-th component can make the set size
+   at most B − 1 which is too small and will be rejected. (3) If |U | = B, then
+   proceed with the remaining checks of decryption using the set U and ignore
+   the j-th component. By soundness of the tagged set commitment scheme,
+   this could not have contained tsc.σj for a tag sig.vk 6= sig.vk∗ so we can safely
+   ignore the j-th component. (4) If |U | = B − 1, compute rj = ⊕i∈U ri and use
+   this candidate randomness to decrypt cpa.ctj in lieu of the key cpa.skj . Once
+   this step is done, the result can be added (or not) to the set U and the rest
+   of decryption proceeds as before. We can show that the required redundancy
+   checks make this decryption case equivalent to the original as well.
+   Once this proof step has occurred for all j ∈ [N ] we have that each message
+   is 1|tsc.σi∗ |mb , but that the challenge ciphertext has the redundancy in the
+   randomness ⊕i∈S ∗ ri = 0`rnd .
+4. For the next game we want to remove the redundancy in the randomness
+   so that ri is chosen uniformly at random for all indices i. It turns out that
+   by the setting of our parameters this is statistically already done! A random
+                                         1
+   set of ri variables will have a 2`rnd     chance of XORing to 0`rnd . Thus, we
+   could then expect there will be approximately N           1
+                                                        
+                                                       B · 2`rnd sets of size B that
+   satisfy  this condition if all ri are chosen randomly. Recall that since we set
+    N
+       
+     B   >   2`rnd +λ we might then expect there to be an exponential amount
+   of sets meeting this condition. Therefore we would intuitively expect that
+    planting a single set S ∗ with this condition and choosing all ri randomly
+    will be statistically close. In the main body, we formalize this intuition by
+    applying the Leftover Hash Lemma [21].
+ 5. Now that the randomness in the challenge ciphertext is uncorrelated we want
+    to change all encryptions from 1|tsc.σi∗ |mb to 0`rnd . This can be done by a
+    hybrid over all j from 1 to N . (At this point in the security game there is
+    no set S ∗ .) This is done by again using an alternative decryption algorithm
+    that can decrypt using all but the j-th secret key.
+   Stepping back we can see that the XORing to 0`rnd condition on S gave enough
+redundancy where one could decrypt with all but one of the keys allowing Steps
+3 and 5 of the proof above to proceed. However, the redundant condition was
+limited enough where it could be statistically washed away in Step 4 of the proof.
+
+A further comparison to Koppula-Waters (CRYPTO 2019) We provide a closer
+comparison between our work and that of Koppula and Waters [27]. To do so we
+will imagine modifying our scheme above and arrive at something analogous to
+[27]. Suppose that instead of choosing the values ri in the set S at random with
+⊕i∈S ∗ ri = 0`rnd , we instead ran a pseudorandom generator (of output length
+B · `rnd ) on S as PRG(S) to determine the ri values for i ∈ S. The ri for i ∈  /S
+are random as before.
+    Using this encryption algorithm, one can create an analogous decryption
+algorithm that first recovers a candidate set U almost as before. However, instead
+of getting the random coins ri from decryption once it has U , the decryption
+algorithm can run PRG(U ) to determine the candidate set of ri values. At this
+point it can perform the same re-encryption and other checks as we outlined
+above. Indeed, the underlying encryption system does not even need to have
+randomness recovery and thus is not necessarily trapdoor based.
+    If we try to prove this system secure, we can mostly march along the same
+steps as above, but we hit a roadblock at Step 4. In our construction we argue
+that choosing random ri is statistically close to embedding the XOR condition. Is
+this true in the modified construction? Let’s imagine an arbitrary B-sized subset
+S of indices with randomly chosen ri . The probability   that PRG(S) outputs these
+ri values is 2−`rnd ·B . Even though there are N
+                                                    
+                                                  B   sets of size B, the chances of
+there being just one of these subsets that meets this condition is still negligibly
+small. Thus we cannot make a statistical argument.
+    To get past Step 4 in the modified construction then, we will be forced to
+contrive an assumption that these two distributions are computationally indistin-
+guishable. Conceptually, this assumption is very analogous to the “Hinting PRG”
+assumption introduced by Koppula and Waters. Altogether, our techniques ad-
+dress the main limitation of [27] which was the need for a “Hinting PRG” by
+creating an encryption scheme with less redundancy in the randomness. This
+allows us to bridge over a critical proof step with a statistical argument.
+
+1.1   Context on Trapdoor Functions
+We conclude by providing some more context on trapdoor functions.
+Constructions For many years the only known standard model technique for get-
+ting trapdoor functions was to use an assumption like RSA [35] that immediately
+gives a trapdoor function. Peikert and Waters [33] gave the first standard model
+constructions for trapdoor functions from the DDH and the LWE assumptions.
+More recently, Garg and Hajiabadi [15] and Garg, Gay and Hajiabadi [14] gave
+constructions from the Computational Diffie-Hellman assumption.
+
+On (Im)Perfect Correctness We observe that our security argument above relies
+on the trapdoor function to be perfectly correct when switching from the origi-
+nal decryption algorithm to the alternative decryption algorithm. Otherwise, an
+attacker could potentially detect the change by constructing a ciphertext compo-
+nent which is well formed, but does not decrypt correctly. (Even if the encryption
+with randomness recovery correctness error is negligible for randomly sampled
+coins, it might be easy to adversarially discover bad ciphertexts.) This creates
+an issue for schemes such as [15,14] that are not perfectly correct.
+     To address this issue, we recall the notion of almost-all-keys perfect correct-
+ness in encryption schemes, introduced by Dwork et al. [12]. In an almost-all-keys
+perfectly correct scheme, the key generation algorithm Setup(1λ ) will sample a
+public, private key pair (pk, sk) such that, with all but negligible probability,
+these particular keys will work perfectly. That is, any message m and coins r
+used for encryption by pk will decrypt to m using sk. (This is a stronger notion
+of (imperfect) correctness than the usual one where potentially every public, se-
+cret key pair has a messages and coin pairs that cause decryption failures.) We
+observe that almost-all-keys correctness is sufficient for our proof of security to
+go through. Since the attacker has no influence on the key generation algorithm,
+with all but negligible probability, he/she will be stuck with a keypair that has
+perfect correctness.
+     The CDH based scheme of Garg, Gay and Hajiabadi [14] satisfies almost-all-
+keys perfect correctness. However, for the scheme of Garg and Hajiabadi [15],
+it is not clear if the above approach can directly work.6 One might hope to use
+the transformation of [12] to go from an imperfectly correct encryption scheme
+to one that satisfies almost-all-keys perfect correctness. Unfortunately this does
+not appear to work as we require encryption with randomness recovery.
+
+TDFs with a Sample Algorithm The work of Bellare et al.[1] as well as the
+Katz-Lindell [24] textbook provide an alternative definition of trapdoor func-
+tions. In the standard definition the domain is simply all the strings of length
+`inp and the security experiment chooses x ∈ {0, 1}`inp to evaluate the trapdoor
+function on. In the alternative “sampling” definition there is an additional algo-
+rithm Sample that takes the public key along with random coins and outputs an
+element x in the domain. The TDF evaluation algorithm can then be run on x
+6
+    In [15], it appears that it is computationally difficult for an attacker to discover
+    a TDF input x where y = TDF.Eval(tdf.pk, x) and TDF.Invert(tdf.sk, y) 6= x. We
+    believe this property is also sufficient for our CCA transformation, but do not show
+    this formally.
+to give TDF.Eval(tdf.pk, x) → y. Notably, the domain can depend on the public
+key and while correctness stipulates that TDF.Invert(tdf.sk, y) → x, there is no
+requirement to recover the coins of the Sample algorithm.
+    At first glance it might appear that the differences in these two definitions
+is conceptually minor. However, these nuances are actually very important. As
+observed by Pandey [32] there exists a trivial construction of the sampling form
+of trapdoor functions from public key encryption. The public and secret key of
+the trapdoor function will just come from the PKE key generation algorithm.
+For a given public key pk, the domain consists of all (ct, m) pairs such that
+ct = Enc(pk, m; r) for some randomness r. The Sample algorithm will choose a
+random message m of sufficient length and output an encryption ct of m under
+the public key to give x = (ct, m). The TDF.Eval algorithm can simply drop
+m. That is TDF.Eval(tdf.pk, x = (ct, m)) → ct. And the inversion algorithm can
+recover (ct, m) from ct by simply decrypting. Security follows immediately from
+the IND-CPA security of the underlying encryption scheme.
+    If we want the Sample algorithm to sample uniformly in the domain, we
+will need two additional properties of the encryption algorithm. First, that for
+every public key pk and every pair of messages (m1 , m2 ) the number of distinct
+ciphertexts that can be generated from encrypting m1 under pk is the same as
+the number that can be generated by encrypting m2 under pk. And that for any
+pk and message m the likelihood of any ciphertext that it is in the support of
+encrypting m under pk is the same.
+    This construction feels like a cheat as it does not match our intuitive con-
+cept of what a trapdoor function is. It takes advantage of the fact that one is
+not required to recover the random coins used in the Sample algorithm. Thus
+the definition essentially allows for one to dispense with the recovery of coins
+requirement and seems to lose the spirit of trapdoor functions. An interesting
+question is whether such a transformation could be done in a definition where
+the Sample algorithm only took as input the security parameter and not the
+TDF’s public key.
+
+Looking Forward It is interesting to think what implications our work might have
+on the ultimate question of whether chosen plaintext security implies chosen
+ciphertext security. An immediate barrier is that there are black box separations
+on building TDFs from PKE [16]. However, it might be possible to leverage our
+construction or lessons from it into an abstraction that delivers “most” of the
+properties of a TDF.
+
+2   Preliminaries
+For any positive integer n, let [n] denote the set of integers {1, 2, . . . , n}. For
+any prime p and positive integer `, let Fp` denote the (unique) field of order
+p` . We will use bold letters to denote a vector/array of elements, and subscript
+i denotes the ith element (e.g. if w ∈ {0, 1}n , then wi denotes the ith bit).
+Given two distributions D1 , D2 over finite domain X , let SD(D1 , D2 ) denote the
+statistical distance between D1 and D2 .
+Definition 1 (Pseudorandom Generator). Let n, ` ∈ N and let PRG be a de-
+terministic polynomial-time algorithm such that for any s ∈ {0, 1}n , PRG(s, 1` )
+outputs a string of length `. (Here, we will not require that ` be polynomial in n.)
+We say that PRG is a pseudorandom generator if for all probabilistic polynomial-
+time distinguishers D, there exists a negligible function negl(·) such that for all
+n, `, λ ∈ N,
+
+               | Pr [D(r) = 1] − Pr D(PRG(s, 1` )) = 1 | ≤ negl(λ),
+                                                       
+
+where r is chosen uniformly at random from {0, 1}` , s is chosen uniformly at
+random from {0, 1}n , and the probabilities are taken over the choice of r and s
+and the coins of D.
+Definition 2 (Strongly Unforgeable One-Time Signature [28]). Let
+Σ = (KeyGen, Sign, Verify) be a one-time signature scheme for the message
+space M . Consider the following probabilistic experiment SU-OTS(Σ, A, λ) with
+A = (A1 , A2 ) and λ ∈ N:
+             SU-OTS(Π, A, λ)
+               (pk, sk) ← KeyGen(1λ )
+               (m, z) ← A1 (pk) s.t. m ∈ M
+               σ ← Sign(sk, m)
+               (m∗ , σ ∗ ) ← A2 (σ, z)
+               Output 1 iff (m 6= m∗ and Verify(pk, m∗ , σ ∗ ) = 1) or
+                     (σ 6= σ ∗ and Verify(pk, m, σ ∗ ) = 1).
+Signature scheme Σ is SU-OTS-secure if ∀ p.p.t. algorithms A, there exists a
+negligible function negl(·) such that
+
+                      Pr [SU-OTS(Π, A, λ) = 1] ≤ negl(λ),
+
+where this probability is taken over all random coins used in the experiment.
+Definition 3 (IND-CPA [19]). Let Π = (KeyGen, Enc, Dec) be an encryption
+scheme for the message space M . Consider the following probabilistic experiment
+IND-CPA(Π, A, λ) with A = (A1 , A2 ) and λ ∈ N:
+                    IND-CPA(Π, A, λ)
+                      (pk, sk) ← KeyGen(1λ )
+                      (m0 , m1 , z) ← A1 (pk) s.t. m0 , m1 ∈ M
+                      y ← Enc(pk, mb )
+                      b0 ← A2 (y, z)
+                      Output 1 if b0 = b and 0 otherwise.
+Encryption scheme Π is IND-CPA-secure if ∀ p.p.t. algorithms A, there exists a
+negligible function negl(·) such that
+                                                   1
+                    Pr [IND-CPA(Π, A, λ) = 1] ≤      + negl(λ),
+                                                   2
+where this probability is taken over all random coins used in the experiment.
+Definition 4 (IND-CCA [31,34,7]). Let Π = (KeyGen, Enc, Dec) be an en-
+cryption scheme for the message space M and let experiment IND-CCA(Π, A, λ)
+be identical to IND-CPA(Π, A, λ) except that both A1 and A2 have access to an
+oracle Dec(sk, ·) that returns the output of the decryption algorithm and A2 can-
+not query this oracle on input y. Encryption scheme Π is IND-CCA-secure if ∀
+p.p.t. algorithms A, there exists a negligible function negl(·) such that
+                                                  1
+                   Pr [IND-CCA(Π, A, λ) = 1] ≤      + negl(λ),
+                                                  2
+where this probability is taken over all random coins used in the experiment.
+
+Injective Trapdoor Functions An injective trapdoor function family T with input
+space {0, 1}`inp and output space {0, 1}`out , where `inp and `out are polynomial
+functions of the security parameter λ, consists of three PPT algorithms with
+syntax:
+ TDF.Setup(1λ ) → (tdf.pk, tdf.sk): The setup algorithm takes as input security
+   parameter λ and outputs a public key tdf.pk and secret key tdf.sk.
+ TDF.Eval(tdf.pk, x ∈ {0, 1}`inp , ) → y: The evaluation algorithm takes as input
+   an input x ∈ {0, 1}`inp and public key tdf.pk, and outputs y ∈ {0, 1}`out .
+ TDF.Invert(tdf.sk, y ∈ {0, 1}`out ) → x ∈ {0, 1}`inp ∪{⊥}: The inversion algorithm
+   takes as input y ∈ {0, 1}`out and secret key tdf.sk, and outputs x, which is
+   either ⊥ or a `inp -bit string.
+
+Almost-all-keys Injectivity We require that for nearly all public/secret keys,
+inversion works for all inputs. More formally, there exists a negligible function
+negl(·) such that for all λ ∈ N,
+       Pr [∃ x s.t. TDF.Invert(TDF.Eval(tdf.pk, x), tdf.sk) 6= x] ≤ negl(λ),
+where this probability is over the choice of (tdf.pk, tdf.sk) ← TDF.Setup(1λ ).
+Definition 5. An injective trapdoor family is hard-to-invert if for any PPT
+adversary A, there exists a negligible function negl(·) such that for all λ ∈ N,
+                             (tdf.pk, tdf.sk) ← TDF.Setup(1λ )
+                                                                  
+   Pr x ← A(tdf.pk, y) :                                             ≤ negl(λ).
+                          x ← {0, 1}`inp , y = TDF.Eval(tdf.pk, x)
+   Define (r · x) = ⊕ni=1 ri · xi where r = r1 . . . rn and x = x1 . . . xn . The
+Goldreich-Levin theorem for hard-core predicates [18] states that no polynomial
+time algorithm can compute (r · x) given a random r, the TDF public key tdf.pk
+and evaluation TDF.Eval(tdf.pk, x) on random input x, where |r| = |x|.
+Theorem 1 (Goldreich-Levin Hardcore Bit [18]). Assuming TDF is an
+injective trapdoor family, for any PPT adversary A, there exists a negligible
+function negl(·) such that for all λ ∈ N, the following holds:
+                                (tdf.pk, tdf.sk) ← TDF.Setup(1λ )
+                                                                   
+                                         x, s ← {0, 1}`inp ,        1
+    b ← A(tdf.pk, s, y, zb ) :
+                                                                    −
+ Pr 
+                                     y = TDF.Eval(tdf.pk, x)         2 ≤ negl(λ).
+                                z0 = s · x, z1 ← {0, 1}, b ← {0, 1}
+3     Encryption Scheme with Randomness Recovery
+
+An encryption scheme with randomness recovery is an IND-CPA secure encryp-
+tion scheme with two additional properties: (a) the decryption algorithm can
+be used to recover the message as well as the randomness used for encryption
+(b) the randomness used for encryption can be used to decrypt the ciphertext.
+Formally, it consists of four PPT algorithms with the following syntax. Here
+the message length `msg and the length of the randomness `rnd are polynomial
+functions of the security parameter λ.
+
+ Setup(1λ ) → (pk, sk): The setup algorithm takes as input the security parameter
+    λ and outputs a public key pk and secret key sk.
+ Enc(pk, m) → ct : The encryption algorithm is randomized; it takes as input a
+    public key pk and a message m, uses `rnd bits of randomness and outputs a
+    ciphertext ct. We will sometimes write Enc(pk, m; r), which runs Enc(pk, m)
+    using r as the randomness.               
+ Dec(sk, ct) → z ∈ {0, 1}`msg × {0, 1}`rnd ∪ {⊥}: The decryption algorithm
+    takes as input a secret key sk and a ciphertext ct, and either outputs z =⊥
+    or z = (m, r) where m ∈ {0, 1}`msg , r ∈ {0, 1}`rnd .
+ Recover(pk, ct, r) → z ∈ {0, 1}`msg ∪ {⊥}: The recovery algorithm takes as input
+    a public key pk, a ciphertext ct and string r ∈ {0, 1}`rnd . It either outputs ⊥
+    or a message m ∈ {0, 1}`msg .
+
+   These algorithms must satisfy the following almost-all-keys perfect correct-
+ness property.
+
+Almost-all-keys Perfect Correctness We require perfect correctness of decryption
+and recovery for all but a negligible fraction of (pk, sk) pairs. More formally, there
+exists a negligible function negl(·) such that for any security parameter λ,
+
+          Pr [∃ m, r s.t. Dec(sk, Enc(pk, m; r)) 6= (m, r)] ≤ negl(λ) and
+        Pr [∃ m, r s.t. Recover(pk, Enc(pk, m; r), r) 6= m] ≤ negl(λ)
+
+where m ∈ {0, 1}`cpa , r ∈ {0, 1}`rnd , and the probability is over the choice of
+(pk, sk) ← Setup(1λ ).
+   Koppula and Waters [27] defined a notion of “recovery from randomness”
+which has the above almost-all-keys perfect correctness requirement on the
+Recover algorithm, but not also on the Dec algorithm.
+
+
+3.1   Construction: Encryption Scheme with Randomness Recovery
+      from Injective TDFs
+
+We show an IND-CPA secure encryption scheme with randomness recovery for
+messages of length `msg where encryption uses `rnd -bits of randomness based
+on injective trapdoor functions. This construction is closely related to the CPA-
+secure encryption scheme of Yao [38]. Let tdf = (TDF.Setup, TDF.Eval, TDF.Invert)
+be an injective trapdoor function (see Section 2) with input space {0, 1}`inp and
+output space {0, 1}`out . Here `inp , `out , `msg and `rnd = `msg · `inp are polynomial
+functions in the security parameter λ.
+
+ Setup(1λ ) → (pk, sk): The setup algorithm chooses (tdf.pk, tdf.sk) ← TDF.Setup(1λ ).
+    Next, it choses a uniformly random string t ← {0, 1}`inp . The public key is
+    set to be pk = (tdf.pk, t) and the secret key is sk = (tdf.sk, t).
+ Enc pk = (tdf.pk, t) , m = (m1 , . . . , m`msg ) → ct : For each i ∈ [`msg ], the en-
+    cryption algorithm:
+      – chooses a random string ri ← {0, 1}`inp .
+      – sets ct1,i = (ri · t) + mi and ct2,i = TDF.Eval(tdf.pk, ri ).
+    For w ∈ {0, 1}, it sets ctw = (ctw,1 , . . . , ctw,`msg ) and outputs (ct1 , ct2 ).
+ Dec (sk = (tdf.sk, t), ct = (ct1 , ct2 )) → z: For each i ∈ [`msg ], the decryption
+    algorithm computes ri = TDF.Invert(tdf.sk, ct2,i ). If ri =⊥, it outputs ⊥ and
+    aborts. Else, it sets mi = ct1,i + (ri · t)(mod 2).
+    Finally, it outputs m = (m1 , . . . , m`msg ) and r = (r1 , . . . , r`msg ).
+ Recover (pk = (tdf.pk, t), ct = (ct1 , ct2 ), r) → z: The recovery algorithm per-
+    forms the following for each i ∈ [`msg ]: it computes zi = TDF.Eval(tdf.pk, ri ).
+    If zi 6= ct2,i , it outputs ⊥ and aborts. Else it sets mi = ct1,i + zi (mod 2).
+    Finally it outputs m = (m1 , . . . , m`msg ).
+
+    Almost-all-keys perfect correctness follows from the almost-all-keys perfect
+injectivity TDFs.
+
+Encrypting long messages In the construction above the number of random bits,
+`rnd required by encryption grows linearly in the message size as `rnd = `msg ·`inp .
+We observe that to encrypt long messages we could instead use the system
+above to encrypt a PRG seed k ∈ {0, 1}λ and then encrypt the message itself as
+PRG(k) ⊕ m for a pseudorandom generator of appropriate output length. This
+hybrid encryption method would maintain the randomness recovery property,
+but the growth of the random coins would be independent of the message length.
+
+
+IND-CPA Security
+Theorem 2. The Section 3.1 construction is IND-CPA-secure (per Definition 3)
+assuming TDF is a hard-to-invert injective trapdoor family (per Definition 5).
+    The proof of security follows via a simple sequence of hybrid experiments
+{Hj }j∈{0,...,`msg +1} defined as follows. H0 corresponds to the IND-CPA experi-
+ment of the construction in Section 3.1, While in hybrid H`msg +1 , the adversary
+will have advantage 0.
+
+Hybrid Hj with security parameter λ, for j ∈ {1, . . . , `msg + 1} :
+
+ – The challenger chooses (tdf.pk, tdf.sk) ← TDF.Setup(1λ ) and a random string
+   t ← {0, 1}`inp . It sends (tdf.pk, t) to the adversary.
+ – On receiving challenge messages m0 , m1 ∈ {0, 1}`msg from the adversary,
+   the challenger chooses b ← {0, 1}. Next, it chooses ri ← {0, 1}`inp for all
+   i ∈ [`msg ]. For i < j, it sets ct1,i uniformly at random. For i ≥ j, it sets
+   ct1,i = (ri · t) + mb,i . In either case, it sets ct2,i = TDF.Eval(tdf.pk, ri ) It
+   sends (ct1 , ct2 ) to the adversary and receives guess b0 . Adversary wins if
+   b = b0 .
+
+Analysis: For any PPT adversary A, let advA,j (λ) denote the advantage of A in
+Hj (with sec. par. λ).
+
+Claim. Assuming the hard-to-invert property of the injective TDF family T (see
+Definition 5), for any PPT adversary A, there exists a negligible function negl(·)
+such that for all λ ∈ N and j ∈ [0, `msg ], advA,j (λ) − advA,j+1 (λ) ≤ negl(λ).
+
+Proof. Suppose there exists a PPT adversary A and 0 ≤ j ≤ `msg such that
+advA,j − advA,j+1 = , where  is non-negligible.7 Then there exists a PPT
+algorithm B that breaks the hardcore bit property of T , since this property
+follows from the hard-to-invert property of T and Theorem 1, we have a con-
+tradiction. The algorithm B receives (tdf.pk, s, y, z) from the challenger, where
+y = TDF.Eval(tdf.pk, x) for a uniformly random x ∈ {0, 1}`inp , and z is either
+(s · x) or a uniformly random bit. B sets t = s and sends (tdf.pk, t) to A, and
+receives challenge messages m0 , m1 . The reduction then chooses w ← {0, 1}.
+For all i 6= j, the challenge ciphertext components ct1,i , ct2,i are identically dis-
+tributed, and the reduction algorithm can compute them using tdf.pk and t. It
+sets ctj,1 = z + mw,j and ctj,2 = y, and sends (ct1 , ct2 ) to A. The adversary
+sends its guess w0 . If w = w0 , then the reduction B outputs 0 (indicating that
+z = s · x), else it outputs 1 (indicating that z is uniformly random).
+    Note that if y = TDF.Eval(tdf.pk, x) and z = (s · x), then this corresponds to
+Hj ; if z is uniformly random, then this corresponds to Hj+1 . Let advTB denote
+B’s advantage in the hardcore bit experiment against T .
+
+       advTB = Pr[B outputs 0 | z = (s · x)] − Pr[B outputs 0 | z is random]
+             = Pr[A wins in Hj ] − Pr[A wins in Hj+1 ] = .
+
+
+4     Tagged Set Commitment
+
+We introduce an abstraction called a “tagged set commitment” and show that it
+can be constructed generically from a pseudorandom generator. We employ this
+abstraction shortly in our Section 5 construction.
+
+ Setup(1λ , 1N , 1B , 1t ) → pp: The setup algorithm takes as input the security
+    parameter λ, the universe size N , bound B on committed sets and tag length
+    t, and outputs public parameters pp.
+7
+    We drop dependence on λ for notational convenience.
+ Commit(pp, S ⊆ [N ], tg ∈ {0, 1}t ) → (com, (σi )i∈S ): The commit algorithm is
+    randomized; it takes as input the public parameters pp, set S of size B and
+    string tg, and outputs a commitment com together with ‘proofs’ σi for each
+    i ∈ S. 8
+ Verify(pp, com, i ∈ [N ], σi , tg ∈ {0, 1}t ) → {0, 1}: The verification algorithm
+    takes as input the public parameters, an index i, a proof σi , and tg. It
+    outputs 0/1.
+ AltSetup(1λ , 1N , 1B , 1t , tg) → (pp, com, (σi )i∈[N ] ): The scheme also has an ‘al-
+    ternate setup’ which is used in the proof. It takes the same inputs as Setup
+    together with a special tag tg, and outputs public parameters pp, commit-
+    ment com together with proofs σi for all i ∈ [N ].
+
+     These algorithms must satisfy the following perfect correctness requirements:
+
+Correctness of Setup and Commit: For all λ, N , B ≤ N , t, tg ∈ {0, 1}t and
+set S ⊆ [N ] of size B, if pp ← Setup(1λ , 1N , 1B , 1t ) and (com, (σi )i∈S ) ←
+Commit(pp, S, tg), then for all i ∈ S, Verify(pp, com, i, σi , tg) = 1.
+
+Correctness of AltSetup: For all λ, N , B ≤ N , t, tg ∈ {0, 1}t , if (pp, com, (σi )i∈[N ] )
+← AltSetup(1λ , 1N , 1B , 1t , tg), then for all i ∈ [N ], Verify(pp, com, i, σi , tg) = 1.
+
+Security We require two security properties of a tag set commitment.
+
+Indistinguishability of Setup : In this experiment, the adversary chooses a tag
+tg, set S and receives either public parameters, together with commitments for
+(S, tg), or receives public parameters and commitment/proofs (corresponding to
+set S) generated by AltSetup (for tag tg). The scheme satisfies indistinguishability
+of setup if no PPT adversary can distinguish between the two scenarios. This
+experiment is formally defined below.
+
+Definition 6. A tagged set commitment scheme Com = (Setup, Commit, Verify,
+AltSetup) satisfies indistinguishability of setup if for any PPT adversary A,
+there exists a negligible function negl(·) such that for all λ ∈ N, | Pr[1 ←
+Expt-Ind-SetupA (λ)] − 1/2| ≤ negl(λ), where Expt-Ind-SetupA is defined in Fig-
+ure 1.
+
+Soundness Security : The soundness property informally states that if public
+parameters are generated for bound B (using either regular setup or AltSetup),
+then no PPT adversary can produce a commitment with greater than B ‘proofs’.
+However, for our CCA application, we need a stronger guarantee: if the challenger
+generates the public parameters for a tag tg using AltSetup and the adversary
+gets all N proofs, even then it cannot generate a commitment with B + 1 proofs
+for a different tag tg0 .
+8
+    We require S to be of size exactly B for simplicity of presentation, however, one
+    could generalize this to allow S to be of size at most B.
+                                    Expt-Ind-SetupA (λ)
+
+         1. Adversary A receives input 1λ and sends 1N , 1B , 1t , tg, S such
+            that B ≤ N , tg ∈ {0, 1}t and |S| = B.
+                                                                                 0
+         2. Challenger chooses b ← {0, 1}.            It computes pp                ←
+            Setup(1λ , 1N , 1B , 1t ) and (com0 , σi0 i∈S ) ← Commit(pp, S, tg),
+            and (pp1 , com1 , σi1 i∈[N ] ) ← AltSetup(1λ , 1N , 1B , 1t , tg). It sends
+                                   
+
+            (ppb , comb , σib i∈S ) to A.
+                             
+
+         3. A outputs its guess b0 . The experiment outputs 1 iff b = b0 .
+
+                 Fig. 1. Experiment for Indistinguishability of Setup
+
+Definition 7. A tagged set commitment scheme Com = (Setup, Commit, Verify,
+AltSetup) satisfies soundness security if for any PPT adversary A, there exists
+a negligible function negl(·) such that for all λ ∈ N, Pr[1 ← Expt-SoundA (λ)] ≤
+negl(λ), where Expt-SoundA is defined in Figure 2.
+
+
+                                      Expt-SoundA (λ)
+
+         1. Adversary A receives input 1λ , sends 1N , 1B , 1t , tg such that B ≤
+            N , tg ∈ {0, 1}t .
+         2. Challenger          computes               (pp, com, (σi )i∈[N ] )    ←
+            AltSetup(1λ , 1N , 1B , 1t , tg), sends (pp, com, (σi )i∈[N ] ) to A.
+         3. A outputs tg0 6= tg, set S ⊆ [N ] of size greater than B, commit-
+            ment com0 and proofs (σi0 )i∈S . The experiment outputs 1 iff for
+            all i ∈ S, Verify(pp, com0 , i, σi0 , tg0 ) = 1.
+
+                      Fig. 2. Experiment for Soundness Security
+
+
+
+4.1   Construction of Tagged Set Commitment
+In this section, we will present a Tagged Set Commitment scheme TSC whose
+security is based on PRG security. Let PRG : ({0, 1}λ , 1` ) → F2` be a pseu-
+dorandom generator. Let emb be an injective and efficiently-computable func-
+tion that maps strings in {0, 1}t (tags) to elements in F2` . Below the notation
+p ← F2` [x]B−1 means that p is set to be a random degree B − 1 polynomial over
+variable x, where p is represented in canonical form with B randomly chosen
+coefficients in F2` .
+ Setup(1λ , 1N , 1B , 1t ): The setup algorithm sets ` = 2t + (B + 1) · log N + λ · (B +
+    1) + λ. Next it chooses N random elements Ai , Di ← F2` for all i ∈ [N ]. The
+    public parameters is set to be pp = (1` , (Ai , Di )i∈[N ] ).
+ Commit(pp = (1` , (Ai , Di )i ), S ⊆ [N ], tg): The commitment algorithm first
+    chooses si ← {0, 1}λ for each i ∈ S. Next, it chooses the degree B −1 polyno-
+    mial p(·) over F2` such that for all i ∈ S, p(i) = PRG(si , 1` )+Ai +Di ·emb(tg).
+    (Since we fix B points, there is a unique degree B − 1 polynomial p, which
+    is described in canonical form using B coefficients in F2` .) The commitment
+    com is the polynomial p, and the proof σi = si for each i ∈ S.
+ Verify(pp = (1` , (Ai , Di )i ), com = p, i, σi , tg): The verification algorithm out-
+    puts 1 iff p(i) = PRG(σi , 1` ) + Ai + Di · emb(tg).
+ AltSetup(1λ , 1N , 1B , 1t , tg) : The alternate setup algorithm chooses random
+    strings si ← {0, 1}λ , Di ← F2` for each i ∈ [N ], p ← F2` [x]B−1 and sets
+    Ai = p(i) − PRG(si , 1` ) − Di · emb(tg).
+
+     The correctness properties follow immediately from the construction.
+
+Security Proofs We need to show that the scheme satisfies indistinguishability
+of setup and soundness security (Definition 7). Due to space constraints, the
+proofs are included in the full version of our paper.
+
+
+5     Our CCA Secure Encryption Scheme
+In this section, we will present a CCA secure encryption scheme with message
+space {0, 1}`cca satisfying almost-all-keys perfect correctness. We require the fol-
+lowing parameters/notations for our construction.
+    - λ: security parameter
+    - N : number of ciphertext components of underlying CPA scheme
+    - B: size of set for ‘selected’ ciphertext components
+    - `tsc.σ : size of proofs output by tagged set commitment scheme
+    - `cpa : message space for underlying CPA scheme
+    - `rnd : number of random bits used by CPA scheme to encrypt `cpa bit message
+    - `vk : size of verification key of signature scheme
+    The construction uses the following primitives, which are defined in Sec-
+tions 2, 3 and 4 respectively:
+
+    - A Strongly Unforgeable One-Time Signature Scheme P1 = (Sig.Setup, Sig.Sign,
+      Sig.Verify).
+    - A CPA Secure almost-all-keys perfectly correct Encryption Scheme with
+      Randomness Recovery P2 = (CPA.Setup, CPA.Enc, CPA.Dec, CPA.Recover),
+      parameterized by polynomials `cpa (denoting the message space) and `rnd
+      (denoting the number of random bits used for encryption).9
+    - A Tagged Set Commitment Scheme P3 = (TSC.Setup, TSC.Commit, TSC.Verify,
+      TSC.AltSetup), parameterized by polynomials `tsc.σ (denoting the length of
+      proof for each index) and `com (denoting the length of commitment).
+
+     These parameters must satisfy the following constraints:
+9
+    For security parameter λ, the scheme will support `cpa (λ) bit messages, and the en-
+    cryption algorithm will use `rnd (λ) bits of randomness. We will drop the dependence
+    on λ when it is clear from context.
+     - `cpa= 1 + `tsc.σ + `cca
+               −1
+     - log N
+                  
+             B−1      > `rnd + 2λ
+
+
+ Setup(1λ ): The setup algorithm performs the following steps:
+     1. It first chooses public parameters for the commitment scheme. Let tsc.pp ←
+        TSC.Setup(1λ , 1N , 1B , 1`vk ).
+     2. Next, it chooses N public/secret keys for the encryption scheme. Let
+                                          λ
+                       i ) ← CPA.Setup(1 ).
+        (cpa.pki , cpa.sk                   
+    3. It sets pk = tsc.pp, (cpa.pki )i∈[N ] and sk = (cpa.ski )i∈[N ] .
+                                                                                  
+ Enc(pk, m): The encryption algorithm takes as input pk = tsc.pp, (cpa.pki )i∈[N ]
+       and m ∈ {0, 1}`cca , and performs the following steps:
+        1. It chooses a uniformly random B size subset S ⊂ [N ]. Let S = {i1 , i2 , . . . , iB }
+           where i1 < i2 < . . . < iB .
+        2. Next, it chooses a signing/verification key (sig.sk, sig.vk) ← Sig.Setup(1λ ).
+        3. It commits to the set S using sig.vk as tag. It computes (tsc.com, (tsc.σi )i∈S )
+           ← TSC.Commit(tsc.pp, S, sig.vk).
+        4. For all i 6= iB , it chooses random values ri ← {0, 1}`rnd , and sets riB =
+           ⊕j<B rij .
+        5. Using the ri values, the encryption algorithm computes N ciphertext
+           components. For i ∈ S, it computes cpa.cti = CPA.Enc(cpa.pki , 1|tsc.σi |m; ri ).
+           Else it sets cpa.cti = CPA.Enc(cpa.pki , 0`cpa ; ri ).                   
+    6. Finally, it computes sig.σ ← Sig.Sign sig.sk, tsc.com, (cpa.cti )i∈[N ]
+                                                             
+       and outputs sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] .
+                                                                                        
+ Dec(sk, ct): Let sk = (cpa.ski )i∈[N ] and ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] .
+   The decryption algorithm performs the following steps:
+                                                                                         
+    1. It first verifies sig.σ. If 0 ← Sig.Verify sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ]
+       then decryption outputs ⊥.
+    2. Next, it initializes a set U to be ∅. For each i ∈ [N ] it does the following:
+
+           (a) Let (yi , ri ) = CPA.Dec(cpa.ski , cpa.cti ).10 The decryption algorithm
+                adds (i, yi ) to U if Check(i, yi , ri ) = 1, where Check is defined in
+                Figure 3.
+        3. If the set U does not have exactly B elements then the decryption algo-
+           rithm outputs ⊥.
+        4. If ⊕(i,yi )∈U ri 6= 0`rnd , it outputs ⊥.
+        5. Finally, the decryption algorithm checks that for all (i, ri ) ∈ U , the mi
+           values recovered from yi are the same. If not, it outputs ⊥. Else it outputs
+           this common mi value as the decryption.
+10
+     Recall the decryption algorithm also recovers the randomness used for encryption.
+                                          Check
+        Hardwired: pk, ct
+                                   {0, 1} × {0, 1}`tsc.σ × {0, 1}`cca ∪ {⊥} , r ∈
+                                                                     
+        Input: i ∈ [N ], y ∈
+        {0, 1}`rnd
+        Output: 0/1.
+
+        Output 1 if and only if the following conditions are satisfied:
+
+          - y 6=⊥. Parse y = (g, tsc.σ, m)
+          - g = 1.
+          - TSC.Verify(tsc.pp, tsc.com, i, tsc.σ, sig.vk) = 1.
+          - cpa.cti = CPA.Enc(cpa.pki , y; r).
+
+      Fig. 3. Routine Check for checking if tuple (i, y) should be added to set U
+
+Perfect Correctness The message space is {0, 1}`cca , where `cca is a polynomial
+function in the security parameter λ. There exists a negligible function negl(·)
+such that for any security parameter λ,
+
+         Pr ∃ m, r ∈ {0, 1}`cca s.t. Dec(sk, Enc(pk, m)) 6= m ≤ negl(λ)
+                                                            
+
+
+where the probability is over the choice of (pk, sk) ← Setup(1λ ) and the random
+coins of Enc.
+    The almost-all-keys perfect correctness of the CCA scheme follows from the
+almost-all-keys perfect correctness of the CPA scheme and the (perfect) correct-
+ness of the signature and tagged set commitment schemes.
+
+Remark 1. Any signature or tagged set commitment scheme with negligible cor-
+rectness error can be transformed into one with perfect correctness. A signer or
+committer can check whether the respective signature or commitment verifies us-
+ing the public verification algorithm. If it does not, the signing algorithm can fall
+back to a trivial signature that is perfectly correct, but has no security against
+forgeries. In the case of commitments use a trivial scheme that is binding, but is
+not hiding. Since the correctness error is negligible, this will only happen with
+negligible probability in the security argument.
+
+
+5.1    Proof of Security
+
+Theorem 3. The above construction is IND-CCA-secure (per Definition 4) and
+almost-all-keys perfectly correct, assuming P1 is a strongly unforgeable one-time
+signature scheme (Definition 2), P2 is an IND-CPA-secure encryption scheme
+(Definition 3) with randomness recovery with almost-all-keys perfect correctness
+(Section 3) and P3 is a secure tagged set commitment scheme (Definitions 6
+and 7).
+
+   The following result follows immediately from the above theorem and known
+constructions of other building blocks from injective trapdoor functions.
+Corollary 1 (IND-CCA-secure Public-Key Encryption is Implied by
+(Injective) Trapdoor Functions). The above construction is IND-CCA-secure
+(per Definition 4) assuming injective trapdoor functions.
+   Proof of the main theorem proceeds via a sequence of hybrid experiments.
+
+Hybrid H0 This experiment corresponds to the CCA experiment. Here, we spell
+out the setup and encryption algorithms again in order to set up notations for
+the proof.
+
+ – Setup phase: This is identical to the scheme’s setup.
+    1. The challenger first chooses tsc.pp ← TSC.Setup(1λ , 1N , 1B , 1t ).
+                                                                 λ
+    2. Next, it chooses   (cpa.pki , cpa.ski ) ←CPA.Setup(1 ) for all i ∈ [N ].
+    3. It sends pk = tsc.pp, (cpa.pki )i∈[N ] to A and uses sk = (cpa.ski )i∈[N ]
+        for handling decryption queries.
+ – Pre-challenge decryption queries: The adversary
+                                                            makes polynomially many 
+   decryption queries. For each query ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] ,
+   the challenger outputs Dec(sk, ct).
+ – Challenge ciphertext: The adversary sends two challenge messages m0 , m1 ∈
+   {0, 1}`cca . The challenger chooses a bit b and does the following.
+    1. It chooses a uniformly random B size subset S ∗ = {ij }j∈[B] ⊂ [N ].
+    2. Next, it chooses a signing/verification key (sig.sk∗ , sig.vk∗ ) ← Sig.Setup(1λ ).
+    3. It then commits to the set S using sig.vk∗ as the tag. It computes
+        (tsc.com∗ , (tsc.σi∗ )i∈S ) ← TSC.Commit(tsc.pp, S ∗ , sig.vk∗ ).
+    4. For all i 6= iB , it chooses ri ← {0, 1}`rnd , and sets riB = ⊕j<B rij .
+    5. Using the ri values, the encryption algorithm computes N ciphertexts.
+        If i ∈ S, it computes cpa.ct∗i = CPA.Enc(cpa.pki , 1|tsc.σi∗ |mb ; ri ). Else it
+        sets cpa.ct∗i = CPA.Enc(cpa.pki , 0`cpa ; ri ).                             
+    6. Finally, it computes sig.σ ∗ ← Sig.Sign sig.sk∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ]
+                                                                   
+        and outputs sig.vk∗ , sig.σ ∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ] .
+ – Post-challenge decryption queries: Same as pre-challenge decryption queries,
+   but challenge ciphertext not allowed as a decryption query.
+ – Guess: The adversary sends bit b0 and wins if b = b0 .
+
+Hybrid H1 : This experiment is identical to the previous one except that the
+challenger chooses sig.vk∗ and S ∗ during setup, and uses these to compute the
+challenge ciphertext.
+
+ – Setup phase:
+    1. The challenger first chooses tsc.pp ← TSC.Setup(1λ , 1N , 1B , 1t ).
+    2. Next, it chooses (cpa.pki , cpa.ski ) ← CPA.Setup(1λ ) for all i ∈ [N ].
+    3. Then it chooses a uniformly random B size subset S ∗ = {ij }j∈[B] ⊂ [N ]
+       and (sig.sk∗ , sig.vk ∗
+                         ) ← Sig.Setup(1 ).
+                                             λ
+                                               
+    4. It sends pk = tsc.pp, (cpa.pki )i∈[N ] to A and uses sk = (cpa.ski )i∈[N ]
+       for handling decryption queries.
+Hybrid H2 : In this experiment, the challenger
+                                                 outputs ⊥ during the decryption
+                                                                               
+queries if the queried ciphertext ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] is such
+that sig.vk = sig.vk∗ .
+
+ – Pre-challenge decryption queries: The adversary
+                                                     makes polynomially many      
+   decryption queries. For each query ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] ,
+   if sig.vk = sig.vk∗ , then the challenger outputs ⊥, else it outputs Dec(sk, ct).
+ – Post-challenge decryption queries: Same as pre-challenge decryption queries,
+   but challenge ciphertext not allowed as a decryption query.
+
+Hybrid H3 : Here, the challenger runs TSC.AltSetup instead of TSC.Setup during
+the setup phase. During the challenge phase, it uses the commitment and proofs
+generated by TSC.AltSetup instead of computing them using TSC.Commit.
+
+ – Setup phase:
+    1. The challenger first chooses (cpa.pki , cpa.ski ) ← CPA.Setup(1λ ) for all
+       i ∈ [N ].
+    2. Next, it chooses a uniformly random B size subset S ∗ ⊂ [N ] and (sig.sk∗ ,
+       sig.vk∗ ) ←Sig.Setup(1λ ).      
+    3. It chooses tsc.com∗ , (tsc.σi )i∈[N ] ← TSC.AltSetup(1λ , 1N , 1B , 1t , sig.vk∗ ).
+                                               
+    4. It sends pk = tsc.pp, (cpa.pki )i∈[N ] to A and uses sk = (cpa.ski )i∈[N ]
+       for handling decryption queries.
+ – Challenge phase: Note that the signature keys (sig.sk∗ , sig.vk∗ ), set S ∗ and
+   commitment tsc.com∗ together with proofs (tsc.σi )i∈[N ] were chosen during
+   setup. Below we include the full challenge phase for readability.
+    1. For all i 6= iB , it chooses ri ← {0, 1}`rnd , and sets riB = ⊕j<B rij .
+    2. Using the ri values, the encryption algorithm computes N ciphertexts.
+       If i ∈ S, it computes cpa.ct∗i = CPA.Enc(cpa.pki , 1|tsc.σi∗ |mb ; ri ). Else it
+       sets cpa.ct∗i = CPA.Enc(cpa.pki , 0`cpa ; ri ).                             
+     3. Finally, it computes sig.σ ∗ ← Sig.Sign sig.sk∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ]
+                                                                   
+        and outputs sig.vk∗ , sig.σ ∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ] .
+
+Hybrid H4 : In this experiment, the challenger modifies the challenge ciphertext.
+Instead of encrypting 0`cpa at N −B positions, the challenger encrypts 1|tsc.σi |mb
+at position i for all i ∈ [N ].
+
+ – Challenge phase:
+    1. For all i 6= iB , it chooses ri ← {0, 1}`rnd , and sets riB = ⊕j<B rij .
+    2. Using the ri values, the encryption algorithm computes N ciphertexts.
+       For all i ∈ [N ], it computes cpa.ct∗i =CPA.Enc(cpa.pk
+                                                           
+                                                                              ∗
+                                                                   i , 1|tsc.σi |mb ; ri ).
+     3. Finally, it computes sig.σ ∗ ← Sig.Sign sig.sk∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ]
+                                                                   
+        and outputs sig.vk∗ , sig.σ ∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ] .
+Hybrid H5 : In this experiment, the challenger encrypts at all positions using
+true randomness.
+
+ – Challenge phase:
+    1. For all i ∈ [N ], the challenger chooses ri ← {0, 1}`rnd .
+    2. Using the ri values, the encryption algorithm computes N ciphertexts.
+       For all i ∈ [N ], it computes cpa.ct∗i =CPA.Enc(cpa.pk
+                                                       
+                                                                             ∗
+                                                                  i , 1|tsc.σi |mb ; ri ).
+     3. Finally, it computes sig.σ ∗ ← Sig.Sign sig.sk∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ]
+                                                                   
+        and outputs sig.vk∗ , sig.σ ∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ] .
+
+Hybrid H6 : In the final hybrid experiment, the challenger switches all challenge
+ciphertext components to encryptions of 0`cpa . As a result, in this hybrid, the
+adversary has advantage 0.
+
+ – Challenge phase:
+    1. For all i ∈ [N ], it chooses ri ← {0, 1}`rnd .
+    2. Using the ri values, the encryption algorithm computes N ciphertexts.
+       For all i ∈ [N ], it computes cpa.ct∗i =CPA.Enc(cpa.pk
+                                                              i, 0
+                                                                   `cpa
+                                                                        ; ri ). 
+     3. Finally, it computes sig.σ ∗ ← Sig.Sign sig.sk∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ]
+                                                                   
+        and outputs sig.vk∗ , sig.σ ∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ] .
+
+
+Analysis
+Lemma 1. For all λ ∈ N, and any adversary A, prA,0 (λ) − prA,1 (λ) = 0.
+
+Proof. In game H0 the challenge phase is used to choose a random S ∗ = {ij }j∈[B] ⊂
+[N ] and sample (sig.sk∗ , sig.vk∗ ) ← Sig.Setup(1λ ). Both of these samplings will
+use a fresh set of coins and their distribution will be completely independent of
+any attacker actions including the challenge messages selected by the attacker.
+Therefore the attacker’s sampling them in the challenge phase as in H0 or earlier
+as in H1 is identical.
+
+Lemma 2. Assuming that P1 is a strongly-unforgeable one-time signature scheme,
+there exists a negligible function negl(·) s.t. for all λ ∈ N, and any ppt. adversary
+A, prA,1 (λ) − prA,2 (λ) ≤ negl(λ).
+
+Proof. In game H1 , the challenger answers
+                                          all decryption queries, except when
+queried on the challenge ciphertext ct∗ = sig.vk∗ , sig.σ ∗ , tsc.com∗ , (cpa.ct∗i )i∈[N ] .
+                                                                                    ∗
+In game H2 , the challenger will not respond to decryption queries on ct and            
+returns ⊥ on any decryption query for ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ]
+where ct 6= ct∗ and sig.vk = sig.vk∗ . However, there are two cases to explore.
+First, if ct 6= ct∗ and sig.vk = sig.vk∗ but the signature sig.σ does not verify un-
+der sig.vk on message (tsc.com, (cpa.cti )i∈[N ] )), then the challenger of game H2
+immediately outputs ⊥ and the challenger of game H1 would also have returned
+⊥ (via rejection of this ciphertext by the regular decryption algorithm) and the
+two responses are identical.
+    Second if ct 6= ct∗ and sig.vk = sig.vk∗ , but the signature does verify, then the
+adversary’s view of these two games differ, but we argue that due to the strong
+unforgeability of the one-time signature scheme P1 , this case occurs with only
+negligible probability. To see this, we argue that any adversary with non-negligble
+prA,1 (λ) − prA,2 (λ) can be used to break P1 as follows. The reduction generates
+(pk, sk) ← Setup(1λ ) and sends pk to A. It receives sig.vk∗ from the SU-OTS
+challenger. If sig.vk∗ appears as the signing key in any phase I decryption query,
+then it aborts. Since A has no information about sig.vk∗ at this point, this can
+happen with probability at most the number of decryption queries (polynomial)
+divided by the size of the public key space for the signature scheme (exponen-
+tial), so with negligible probability. Once A outputs challenge messages m0 , m1 ,
+the reduction selects one of these messages randomly and encrypts it according
+to the normal encryption algorithm, except it uses sig.vk∗ as the verification key
+and obtains the corresponding signature sig.σ ∗ by calling the SU-OTS challenger
+to sign the message (tsc.com∗ , (cpa.ct∗i )i∈[N ] ) (this message is computed accord-
+ing to the normal encryption algorithm). It passes this        properly-distributed
+              ∗            ∗      ∗          ∗           ∗
+ciphertext ct = sig.vk , sig.σ , tsc.com , (cpa.cti )i∈[N ] back to A. When A
+                                                                                    
+issues a Phase II decryption query ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ]
+where ct 6= ct∗ , sig.vk = sig.vk∗ and sig.σ verifies, then the reduction outputs
+((tsc.com, (cpa.cti )i∈[N ] ), sig.σ) to win the SU-OTS challenge.
+Lemma 3. Assuming that P3 is a tagged set commitment scheme with indistin-
+guishability of setup (Definition 6), there exists a negligible function negl(·) s.t.
+for all λ ∈ N, and any ppt. adversary A, prA,2 (λ) − prA,3 (λ) ≤ negl(λ).
+Proof. In game H2 , the challenger uses TSC.Setup to generate the public com-
+mitment parameters and TSC.Commit to generate the commitment and proofs
+of membership (for the B items in S ⊆ [N ]), whereas in game H3 , the challenger
+uses TSC.AltSetup to generate the public parameters, commitment and proofs
+of membership (for all items in [N ]). Otherwise, these games are identical. If
+there exists an efficient A that can distinguish between H2 and H3 , then we can
+use this A to attack the indistinguishability of setup of P3 . The reduction works
+as follows. In both games, a random set S ∗ ⊂ [N ] and a signing/verification
+key (sig.sk∗ , sig.vk∗ ) ← Sig.Setup(1λ ) are chosen at the start of the game. The
+reduction sets tg = sig.vk∗ . It sends (1λ , 1B , 1t , tg, S ∗ ) to the Expt-Ind-Setup chal-
+lenger, who responds with (pp∗ , com∗ , (σi∗ )i∈S ), which are either generated by
+TSC.Setup (making this equivalent to H2 or TSC.AltSetup (making this equiva-
+                                                   λ CPA
+lent to H3 ). The reduction
+                           uses CPA.Setup(1     , 1 ) to generate N public/secret
+key pairs. It sets pk = pp∗ , (cpa.pki )i∈[N ] and sk = (cpa.ski )i∈[N ] . It sends pk
+to A. It answers each decryption query by running the normal decryption algo-
+rithm using sk. (In both games, we already have that if any decryption (pre or
+post challenge) query sig.vk = sig.vk∗ , then the response is ⊥, so if this some-
+how happens the response would be identical in both games.) Upon receiving
+challenge messages m0 , m1 , it chooses a random bit b and encrypts mb , using S ∗
+(which it chose randomly earlier) in step 1 of the encryption algorithm, setting
+(sig.sk∗ , sig.vk∗ ) as the signing/verification key in step 2 (instead of generating
+a new pair), using the commitment/proofs (com∗ , (σi∗ )i∈S ) (obtained earlier) in
+step 3, instead of computing them using TSC.Commit, and then following steps
+3-5 as normal to generate ct∗ . It sends this challenge ciphertext ct∗ to A. It
+continues to answer decryption queries for A using sk. Once A outputs a guess
+b0 if b = b0 , then it outputs 0 (guessing H2 ) and otherwise outputs 1 (guessing
+H3 ). Since our assumption is that A has a non-negligible advantage in Game
+H2 over Game H3 , then this reduction will have a non-negligible advantage in
+the indistinguishability of setup experiment for the tagged commitment scheme.
+Thus, we have a contradiction.
+
+Lemma 4. Assuming encryption scheme with randomness recovery P2 is an
+IND-CPA secure encryption scheme and the tagged set commitment scheme P3
+satisfies statistical soundness ( Definition 7), for any PPT adversary A, there
+exists a negligible function negl(·) such that for all λ ∈ N, advA,3 (λ)−advA,4 (λ) ≤
+negl(λ).
+
+Proof. First, we define the alternate decryption routine which works without the
+j th decryption key.
+     Dec-Altj (sk−j , ct): Let the secret key sk = (cpa.ski )i6=j and the ciphertext ct =
+                                         
+  sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] . The ‘alternate’ decryption oracle performs
+the following steps:
+                                                               
+ 1. If 0 ← Sig.Verify sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] then decryption out-
+     puts ⊥.
+ 2. Next, it initializes a set U 0 to be ∅. For each i 6= j it computes (yi , ri ) =
+     CPA.Dec(cpa.ski , cpa.cti ). Parse yi as gi |σi |mi . It adds (i, yi ) to U 0 if
+     Check(i, yi , ri ) = 1. 11
+ 3. If the set U 0 has B − 1 elements, then set rj = ⊕(i,yi )∈U 0 ri . Use rj to
+     recover the message from cpa.ctj . Let yj = CPA.Recover(cpa.pkj , cpa.ctj , rj ).
+     If yj 6=⊥ and Check(j, yj , rj ) = 1, then add (j, yj ) to U 0 .
+ 4. If the set U 0 does not have exactly B elements then the decryption algorithm
+     outputs ⊥.
+ 5. If ⊕(i,yi )∈U 0 ri 6= 0` , it outputs ⊥.
+ 6. Finally, the decryption algorithm checks that for all (i, ri ) ∈ U 0 , the mi
+     values recovered from yi are the same. If not, it outputs ⊥. Else it outputs
+     this common mi value as the decryption.
+
+  We will now show that with overwhelming probability (over the choice of the
+CPA keys and the output of TSC.AltSetup) there does not exist a ciphertext ct =
+11
+     Recall, Check was defined in Section 5. It outupts 1 if yi 6=⊥, gi = 1, the commitment
+     verifies and encryption of yi using public key cpa.pki and randomness ri outputs
+     cpa.cti .
+                                        
+ sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] with sig.vk 6= sig.vk∗ such that Dec(sk, ct) 6=
+Dec-Altj (sk−j , ct).
+
+Claim. There exists a negligible function negl(·) such that for all λ ∈ N and
+j ∈ [N ],
+                                                                 
+                ∃ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] s.t.
+           Pr  sig.vk 6= sig.vk∗ and                                ≤ negl(λ)
+                                                                   
+
+                Dec(sk, ct) 6= Dec-Altj (sk−j , ct)
+
+where the probability is over the choice of CPA keys12 and output of TSC.AltSetup.
+
+
+Proof. We consider the following cases:
+
+ 1. Both decryptions output non-bot but distinct messages.
+                                                                  
+                 ∃ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] s.t.
+                                 ∗
+                                                                    
+            Pr  sig.vk 6= sig.vk and                                 = 0.
+                                                                    
+                Dec(sk, ct) 6= Dec-Altj (sk−j , ct) and             
+                 (Dec(sk, ct), Dec-Altj (sk−j , ct)) 6= (⊥, ⊥)
+
+    This follows directly from the construction of our scheme. Note that Dec and
+    Dec-Altj agree on N −1 of the sub-decryptions. Hence the message recovered
+    must be the same if the output message is non-bot.
+ 2. Decryption using sk outputs ⊥ but decryption using sk−j outputs non-bot
+    message.
+                                                                 
+                ∃ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] s.t.
+                               ∗
+                                                                   
+          Pr  sig.vk 6= sig.vk and                                  ≤ negl(λ)
+                                                                   
+               Dec(sk, ct) 6= Dec-Altj (sk−j , ct) and             
+                Dec(sk, ct) =⊥
+
+      Here we have the following sub-cases, depending on which step of the de-
+      cryption outputs ⊥. For each of the sub-cases, we show that Dec-Altj also
+      outputs ⊥.
+      (a) Step 1 of Dec outputs ⊥ (that is, signature does not verify). Then Step
+          1 of Dec-Altj also outputs ⊥.
+12
+     For simplicity, we are assuming that the underlying PKE scheme is perfectly correct,
+     instead of almost-all-keys perfect correctness. Note that in an almost-all-keys perfect
+     scheme, there is a negligible probability that the (pk, sk) output by setup does not
+     satisfy correct decryption on all messages. However, since only a negligible fraction
+     of the keys are ‘bad’, it suffices to focus our attention on perfectly correct encryption
+     schemes.
+    (b) Step 3 of Dec outputs ⊥ (that is, the set U constructed by Dec has size
+        not equal to B). If |U | < B − 1, then Step 4 of Dec-Altj outputs ⊥ since
+        the set U 0 after Step 3 in Dec-Altj also has size less than B.
+        If |U | > B, then this can be used to break the statistical soundness
+        security of TSC (see Definition 7) because this ciphertext can produce
+        at least B + 1 commitments for tag sig.vk 6= sig.vk∗ .
+        If |U | = B − 1, then we will show that the size of set U 0 after Step 3
+        in Dec-Altj is also B − 1, hence Dec-Altj rejects in Step 4. Suppose on
+        the contrary, the set U 0 has size B after Step 3. This means (j, yj ) was
+        not added to U in Dec (Step 2), but the same tuple was added to U 0 in
+        Dec-Altj (Step 3). Note that this implies Check(j, yj , rj ) = 1 and there-
+        fore, CPA.Enc(cpa.pkj , yj ; rj ) = cpa.ctj . Using the perfect correctness of
+        the encryption scheme, CPA.Dec(cpa.skj , cpa.ctj ) = (yj , rj ). This leads
+        to a contradiction (as (j, yj ) ∈/ U ).
+    (c) Step 4 outputs ⊥. In this case, Step 5 of Dec-Altj also outputs ⊥ since the
+        set U recovered by Dec is identical to the set U 0 recovered by Dec-Altj .
+    (d) Step 5 outputs ⊥. Here again, since the set U recovered by Dec is identical
+        to the set U 0 recovered by Dec-Altj , Step 6 of Dec-Altj also rejects here.
+ 3. Decryption using sk−j outputs ⊥ but decryption using sk outputs non-bot
+    message.
+                                                                 
+                ∃ct = sig.vk, sig.σ, tsc.com, (cpa.cti )i∈[N ] s.t.
+                                ∗
+                                                                   
+           Pr  sig.vk 6= sig.vk and                                 ≤ negl(λ)
+                                                                   
+               Dec(sk, ct) 6= Dec-Altj (sk−j , ct) and             
+                Dec-Altj (sk−j , ct) =⊥
+      Here we have the following sub-cases, depending on which step of Dec-Altj
+      outputs ⊥. For each of the sub-cases, we show that Dec also outputs ⊥.
+      (a) Step 1 of Dec-Altj outputs ⊥ =⇒ Step 1 of Dec outputs ⊥.
+      (b) Step 4 of Dec-Altj outputs ⊥. Let U 0 be the set after Step 3 in Dec-Altj ,
+          and U the set after Step 2 in Dec. If |U 0 | > B, then Step 3 of Dec outputs
+          ⊥ since U also has size larger than B.
+          If |U 0 | < B − 1, then |U | < B, hence Step 3 of Dec outputs ⊥.
+          We will now show that if |U 0 | = B − 1, then either |U | is B − 1, or
+          Step 4 of Dec outputs ⊥. Since |U 0 | = B − 1, this means the (j, yj0 , rj0 )
+          tuple13 extracted in Step 3 does not satisfy Check(j, yj0 , rj0 ) = 1. Let
+          us now consider the implications of |U | = B and ⊕(i,yi )∈U ri = 0`rnd .
+          First, note that U = U 0 ∪ {(j, yj )}, and hence rj = ⊕(i,yi )∈U ri = rj0 .
+          Since Check(j, yj , rj ) = 1, encryption of yj using randomness rj outputs
+          cpa.ctj . Using the perfect correctness of the encryption scheme, it follows
+          that yj0 = yj , but this leads to a contradiction.
+      (c) Step 5 of Dec-Altj outputs ⊥ =⇒ Step 4 of Dec outputs ⊥ (the set U 0
+          recovered by Dec-Altj is identical to the set U recovered by Dec).
+      (d) Step 6 of Dec-Altj outputs ⊥ =⇒ Step 5 of Dec outputs ⊥ (same
+          reasoning as above).
+13
+     We use yj0 , rj0 here to distinguish it from yj , rj which are computed in Step 2 of Dec.
+    We will now use the alternate decryption algorithm to show that hybrids H3
+and H4 are computationally indistinguishable. We will first define intermediate
+hybrid experiments H3,j for 0 ≤ j ≤ N , where H3,0 corresponds to H3 and H3,N
+corresponds to H4 . In hybrid H3,j , for each i ≤ j, the ith challenge ciphertext
+component cpa.cti is an encryption of 1|tsc.σi∗ |mb . Therefore, it suffices to show
+that for all j ∈ [N ], H3,j and H3,j−1 are computationally indistinguishable.
+    In order to prove H3,j−1 ≈c H3,j , we will introduce two more intermediate
+hybrid experiments: Halt,j,0 and Halt,j,1 . The experiment Halt,j,0 is identical to
+H3,j−1 , except that the challenger uses Dec-Altj instead of Dec for answering
+decryption queries. Similarly, the experiment Halt,j,1 is identical to H3,j , except
+that the challenger uses Dec-Altj instead of Dec for answering decryption queries.
+(Note that in both these experiments, the challenger still rejects decryption
+queries corresponding to sig.vk∗ ).We will show that H3,j−1 ≈c Halt,j,0 , Halt,j,0 ≈c
+Halt,j,1 and Halt,j,1 ≈c H3,j .
+   As before, let advA,x denote the advantage of adversary A in hybrid Hx .
+
+Claim. There exists a negligible function negl(·) such that for any λ ∈ N and
+any adversary A, advA,3,j−1 (λ) − advA,alt,j,0 (λ) ≤ negl(λ).
+
+Proof. The proof of this claim follows from Claim 5.1.
+
+Claim. Assuming the encryption scheme P1 is IND-CPA secure, for any ppt. ad-
+versary A, there exists a negligible function negl(·) such that for all λ ∈ N,
+advA,alt,j,0 (λ) − advA,alt,j,1 (λ) ≤ negl(λ).
+
+Proof. Suppose there exists a ppt. adversary A such that advA,alt,j,0 −advA,alt,j,1 ≤
+negl(λ). We can use this adversary to build a reduction algorithm B that breaks
+the IND-CPA security of the encryption scheme P1 . The main observation here
+is that in Halt,j,0 and Halt,j,1 , the only component that possibly changes is the
+j th ciphertext component cpa.ctj , and we can reduce the computational indistin-
+guishability of these hybrids to the IND-CPA security because both these hybrids
+do not use the j th secret key cpa.skj .
+     The reduction algorithm receives the public key cpa.pkj from the challenger;
+it chooses a uniformly random B size set S, signing keys (sig.sk∗ , sig.vk∗ ), CPA
+scheme’s keys (cpa.pki , cpa.ski )i6=j , runs TSC.AltSetup and sends pk to A. The de-
+cryption queries are handled using (cpa.ski )i6=j since both hybrids use Dec-Altj .
+The adversary sends its challenge messages m0 , m1 , and the reduction algorithm
+chooses b ← {0, 1}. If j ∈   / S,14 the reduction algorithm sends 0`cpa , 1|tsc.σj∗ |mb
+to the challenger as challenge messages, and receives cpa.ctj . It then computes
+the remaining ciphertext components and sends the ciphertext ct to A. The ad-
+versary then makes polynomially many post-challenge decryption queries, and
+finally sends its guess b0 . The reduction algorithm guesses that cpa.ctj is encryp-
+tion of 0`cpa iff b = b0 .
+
+Claim. There exists a negligible function negl(·) such that for any λ ∈ N and
+any adversary A, advA,alt,j,1 (λ) − advA,3,j (λ) ≤ negl(λ).
+14
+     If j ∈ S, then these two hybrids are identical.
+Proof. The proof of this claim follows from Claim 5.1.
+
+Lemma 5. There exists a negligible function negl(·) s.t. for all λ ∈ N, and any
+adversary A, prA,4 (λ) − prA,5 (λ) ≤ negl(λ).
+
+Proof. First, let us consider the distribution D defined by the following experi-
+ment:
+                                                                      N −1
+ – choose a random vector x = (x1 , x2 , . . . , xN −1 ) ← {0, 1}`rnd       .
+ – choose a random vector z ← {0, 1}N −1 of Hamming weight B − 1.
+ – output (x, ⊕i:zi =1 xi ).
+                                                        N
+Let U be the uniform distribution over {0, 1}`rnd            .
+
+Claim.
+                                  SD(D, U ) ≤ 2−λ .
+
+Proof. This follows from the Leftover Hash Lemma [21]. Let hx be a hash func-
+tion defined by x = (x1 , . . . , xN −1 ) which maps N − 1 bits to `rnd bits as follows:
+hx (z) = ⊕i:zi =1 xi . Let Y denote the uniform distribution over all N − 1 bit
+strings
+     of Hamming
+                      weight B − 1. This distribution has min-entropy H∞ (Y) =
+      N −1
+log B−1 . Since the hash function family {hx }x∈({0,1}`rnd )N −1 is a pairwise-
+independent hash function family and H∞ (Y) > `rnd + 2λ, SD(D, U ) ≤ 2−λ .
+
+   As a corollary, it follows that the following distribution D0 is also close to
+uniform:
+
+ – choose a random vector z0 ← {0, 1}N of Hamming weight B. Let i1 < i2 <
+   . . . < iB denote the indices such that zi0j = 1.
+ – for each i 6= iB , choose x0i ← {0, 1}`rnd .
+ – set x0iB = ⊕j<B x0ij and output x0 .
+
+Corollary 2.
+                                  SD(D0 , U ) ≤ 2−λ .
+
+Proof. Given a sample x which is either from D or U , one can generate a sample
+from either D0 or U as follows: choose a random permutation π : [N ] → [N ],
+and permute the components of x according to π; that is, set x0i = xπ(i) for all
+                                                                          N
+i ∈ [N ]. Clearly, if x is a uniformly random sample from {0, 1}`rnd , then the
+resulting vector x0 is also a uniformly random sample.
+     Suppose x is a sample from D, and let z ∈ {0, 1}N −1 be the random B − 1
+weight vector chosen by D sampler with 1 at positions {i1 , . . . , iB−1 }. Let z0 ∈
+{0, 1}N be a B weight vector which has 1 at positions {π(i1 ), . . . , π(iB−1 ), π(N )}
+and 0 elsewhere. Since π is a uniformly random permutation, the vector z0 is a
+uniformly random B weight vector and the resulting vector x0 is from distribution
+D0 .
+    Using this corollary, we can now prove our lemma. Note that the only dif-
+ference between the two hybrid experiments is the choice of randomness for
+encryptions. In Hybrid H4 , the challenger chooses a B-size set S = {i1 , . . . , iB },
+chooses ri ← {0, 1}`rnd for all i 6= iB and sets riB = ⊕j∈[B] rij . This corresponds
+to the distribution D0 . In Hybrid H5 , all ri are chosen uniformly at random.
+
+Lemma 6. Assuming encryption scheme with randomness recovery P2 is an
+IND-CPA secure encryption scheme and the tagged set commitment scheme P3
+satisfies statistical soundness ( Definition 7), for any PPT adversary A, there
+exists a negligible function negl(·) such that for all λ ∈ N, advA,5 (λ)−advA,6 (λ) ≤
+negl(λ).
+
+Proof. The proof of this lemma is very similar to the proof of Lemma 4, the only
+difference being that there is no set S ∗ here (that is, we switch all ciphertexts to
+being encryptions of 0`cpa ; in Lemma 4, the ciphertext components corresponding
+to indices in set S ∗ were not altered). We include the proof in the full version of
+our paper.
+
+
+References
+ 1. Bellare, M., Halevi, S., Sahai, A., Vadhan, S.: Many-to-one trapdoor functions and
+    their relation to public-key cryptosystems. In: Annual International Cryptology
+    Conference (1998)
+ 2. Brakerski, Z., Lombardi, A., Segev, G., Vaikuntanathan, V.: Anonymous ibe, leak-
+    age resilience and circular security from new assumptions. In: Advances in Cryp-
+    tology - EUROCRYPT. pp. 535–564 (2018)
+ 3. Cash, D., Kiltz, E., Shoup, V.: The twin Diffie-Hellman problem and applications.
+    J. Cryptology 22(4), 470–504 (2009)
+ 4. Cho, C., Döttling, N., Garg, S., Gupta, D., Miao, P., Polychroniadou, A.: Laconic
+    oblivious transfer and its applications. In: Advances in Cryptology - CRYPTO. pp.
+    33–65 (2017)
+ 5. Cramer, R., Shoup, V.: A practical public key cryptosystem provably secure against
+    adaptive chosen ciphertext attack. In: CRYPTO. pp. 13–25. Springer, London, UK
+    (1998)
+ 6. Cramer, R., Shoup, V.: Universal hash proofs and a paradigm for adaptive chosen
+    ciphertext secure public-key encryption. In: Proceedings of Eurocrypt ’02. Lecture
+    Notes in Computer Science, vol. 2332, pp. 45–64 (2002)
+ 7. Dolev, D., Dwork, C., Naor, M.: Nonmalleable cryptography. SIAM J. Computing
+    30(2), 391–437 (2000)
+ 8. Döttling, N., Garg, S.: From selective IBE to full IBE and selective HIBE. In:
+    Theory of Cryptography. pp. 372–408 (2017)
+ 9. Döttling, N., Garg, S.: Identity-based encryption from the Diffie-Hellman assump-
+    tion. In: Advances in Cryptology - CRYPTO. pp. 537–569 (2017)
+10. Döttling, N., Garg, S., Hajiabadi, M., Masny, D.: New constructions of identity-
+    based and key-dependent message secure encryption schemes. In: Public-Key Cryp-
+    tography - PKC 2018 - 21st IACR International Conference on Practice and Theory
+    of Public-Key Cryptography, Rio de Janeiro, Brazil, March 25-29, 2018, Proceed-
+    ings, Part I. pp. 3–31 (2018)
+11. Döttling, N., Müller-Quade, J., Nascimento, A.C.A.: IND-CCA secure cryptogra-
+    phy based on a variant of the LPN problem. In: Advances in Cryptology - ASI-
+    ACRYPT. pp. 485–503 (2012)
+12. Dwork, C., Naor, M., Reingold, O.: Immunizing encryption schemes from decryp-
+    tion errors. In: Cachin, C., Camenisch, J. (eds.) Advances in Cryptology - EU-
+    ROCRYPT 2004, International Conference on the Theory and Applications of
+    Cryptographic Techniques, Interlaken, Switzerland, May 2-6, 2004, Proceedings.
+    Lecture Notes in Computer Science, vol. 3027, pp. 342–360. Springer (2004)
+13. Fujisaki, E., Okamoto, T.: How to enhance the security of public-key encryption
+    at minimum cost. In: International Workshop on Public Key Cryptography. pp.
+    53–68. Springer (1999)
+14. Garg, S., Gay, R., Hajiabadi, M.: New techniques for efficient trapdoor functions
+    and applications. In: Ishai, Y., Rijmen, V. (eds.) Advances in Cryptology - EU-
+    ROCRYPT 2019 - 38th Annual International Conference on the Theory and Ap-
+    plications of Cryptographic Techniques, Darmstadt, Germany, May 19-23, 2019,
+    Proceedings, Part III. Lecture Notes in Computer Science, vol. 11478
+15. Garg, S., Hajiabadi, M.: Trapdoor functions from the computational diffie-hellman
+    assumption. In: Advances in Cryptology - CRYPTO 2018 - 38th Annual Inter-
+    national Cryptology Conference, Santa Barbara, CA, USA, August 19-23, 2018,
+    Proceedings, Part II. pp. 362–391 (2018)
+16. Gertner, Y., Malkin, T., Reingold, O.: On the impossibility of basing trapdoor
+    functions on trapdoor predicates. In: 42nd Annual Symposium on Foundations of
+    Computer Science, FOCS 2001, 14-17 October 2001, Las Vegas, Nevada, USA. pp.
+    126–135. IEEE Computer Society (2001)
+17. Goldreich, O.: Basing non-interactive zero-knowledge on (enhanced) trapdoor per-
+    mutations: The state of the art. In: Studies in Complexity and Cryptography.
+    Miscellanea on the Interplay between Randomness and Computation, pp. 406–421
+    (2011)
+18. Goldreich, O., Levin, L.A.: A hard-core predicate for all one-way functions. In:
+    Proceedings of the 21st Annual ACM Symposium on Theory of Computing. pp.
+    25–32 (1989)
+19. Goldwasser, S., Micali, S.: Probabilistic encryption. Journal of Computer and Sys-
+    tem Sciences 28(2), 270–299 (1984)
+20. Hanaoka, G., Kurosawa, K.: Efficient chosen ciphertext secure public key encryp-
+    tion under the computational Diffie-Hellman assumption. In: Advances in Cryp-
+    tology - ASIACRYPT. pp. 308–325 (2008)
+21. Håstad, J., Impagliazzo, R., Levin, L.A., Luby, M.: A pseudorandom generator
+    from any one-way function. SIAM J. Comput. 28(4), 1364–1396 (1999)
+22. Hemenway, B., Ostrovsky, R.: Lossy trapdoor functions from smooth homomorphic
+    hash proof systems. Electronic Colloquium on Computational Complexity (ECCC)
+    16, 127 (2009)
+23. Hofheinz, D., Kiltz, E.: Practical chosen ciphertext secure encryption from factor-
+    ing. In: Advances in Cryptology - EUROCRYPT. pp. 313–332 (2009)
+24. Katz, J., Lindell, Y.: Introduction to Modern Cryptography. Chapman &
+    Hall/CRC (2008)
+25. Kiltz, E., Masny, D., Pietrzak, K.: Simple chosen-ciphertext security from low-noise
+    LPN. In: Public-Key Cryptography - PKC. pp. 1–18 (2014)
+26. Kitagawa, F., Matsuda, T.: Cpa-to-cca transformation for KDM security. In: The-
+    ory of Cryptography TCC. pp. 118–148 (2019)
+27. Koppula, V., Waters, B.: Realizing chosen ciphertext security generically in
+    attribute-based encryption and predicate encryption. In: Advances in Cryptology
+    - CRYPTO. pp. 671–700 (2019)
+28. Lamport, L.: Constructing digital signatures from a one-way function. Tech. Re-
+    port: SRI International Computer Science Laboratory (1979)
+29. Mol, P., Yilek, S.: Chosen-ciphertext security from slightly lossy trapdoor func-
+    tions. In: Public Key Cryptography - PKC. pp. 296–311 (2010)
+30. Naor, M.: Bit commitment using pseudo-randomness. In: Advances in Cryptology
+    - CRYPTO. pp. 128–136 (1989)
+31. Naor, M., Yung, M.: Public-key cryptosystems provably secure against chosen ci-
+    phertext attacks. In: Proceedings of the 22nd Annual ACM Symposium on Theory
+    of Computing, May 13-17, 1990, Baltimore, Maryland, USA. pp. 427–437 (1990)
+32. Pandey, O.: Personal communication (2013)
+33. Peikert, C., Waters, B.: Lossy trapdoor functions and their applications. In: Pro-
+    ceedings of the 40th Annual ACM Symposium on Theory of Computing, Victoria,
+    British Columbia, Canada, May 17-20, 2008. pp. 187–196 (2008)
+34. Rackoff, C., Simon, D.R.: Non-interactive zero-knowledge proof of knowledge and
+    chosen ciphertext attack. In: Advances in Cryptology - CRYPTO ’91, 11th Annual
+    International Cryptology Conference, Santa Barbara, California, USA, August 11-
+    15, 1991, Proceedings. pp. 433–444 (1991)
+35. Rivest, R.L., Shamir, A., Adleman, L.M.: A method for obtaining digital signatures
+    and public-key cryptosystems. Commun. ACM 21(2), 120–126 (1978)
+36. Rosen, A., Segev, G.: Chosen-ciphertext security via correlated products. SIAM J.
+    Comput. 39(7), 3058–3088 (2010)
+37. Shoup, V.: Why chosen ciphertext security matters (1998), iBM TJ Watson Re-
+    search Center
+38. Yao, A.C.: Theory and applications of trapdoor functions (extended abstract). In:
+    23rd Annual Symposium on Foundations of Computer Science. pp. 80–91 (1982)
+

@@ -1,0 +1,1391 @@
+                                                 Deterministic 3-Server on a Circle and the Limitation of
+                                                                  Canonical Potentials
+                                                                         Zhiyi Huang ∗              Hanwen Zhang †
+arXiv:2205.08103v1 [cs.DS] 17 May 2022
+
+
+
+
+                                                                                          May 2022
+
+
+
+                                                                                           Abstract
+                                                   The deterministic k-server conjecture states that there is a k-competitive deterministic algo-
+                                               rithm for the k-server problem for any metric space. We show that the work function algorithm
+                                               is 3-competitive for the 3-server problem on circle metrics, a case left open by Coester and
+                                               Koutsoupias (2021). Our analysis follows the existing framework but introduces a new potential
+                                               function which may be viewed as a relaxation of the counterpart by Coester and Koutsoupias
+                                               (2021). We further notice that the new potential function and many existing ones can be rewrit-
+                                               ten in a canonical form. Through a computer-aided verification, however, we find that no such
+                                               canonical potential function can resolve the deterministic 3-server conjecture for general metric
+                                               spaces under the current analysis framework.
+
+
+
+
+                                         ∗
+                                             The University of Hong Kong. Email: zhiyi@cs.hku.hk.
+                                         †
+                                             IIIS, Tsinghua University. Email: zhanghw18@mails.tsinghua.edu.cn.
+
+
+                                                                                               1
+1       Introduction
+We study the k-server problem introduced by Manasse, McGeoch, and Sleator [20]. Consider a
+metric space and k servers located in the space. In each round a point in the metric makes a
+request. If currently no server is at that point then the online algorithm needs to move a server
+there in this round. We want to minimize the total distance that the servers travel to serve the
+requests. Following the standard competitive analysis, we compare the algorithm’s total distance
+to the minimum total distance in hindsight. The maximum of this ratio over all possible instances
+is the competitive ratio of the algorithm.
+    The k-server problem is one of the oldest and hardest online algorithm problems, capturing
+online caching and paging as special cases. It oﬀers two long-standing open questions that have
+been an endless source of inspiration to online algorithm researchers:
+
+        Deterministic k-server conjecture:
+        For any metric space there is a deterministic k-competitive algorithm.
+
+        Randomized k-server conjecture:
+        For any metric space there is a randomized O(log k)-competitive algorithm.
+
+    This paper focuses on deterministic algorithms. On the one hand, Manasse et al. [20] showed
+that any deterministic algorithm’s competitive ratio is at least k. On the other hand, Koutsoupias
+and Papadimitriou [19] proposed the work function algorithm (WFA), and proved that the WFA is
+(2k − 1)-competitive for any metric space. Although it is widely conjectured that the WFA is in
+fact k-competitive, the 2k − 1 ratio remains the best known bound for general metric spaces after
+more than two decades of subsequent eﬀorts.
+    Since a direct attack to the deterministic k-server conjecture on general metrics appears beyond
+reach, a lot of eﬀorts have been devoted to special metric spaces. For example, Manasse et al. [20]
+resolved the case of k = 2 servers and the case when the metric space has only k +1 points; Chrobak,
+Karloof, Payne, and Vishwnathan [14] settled the case of line metrics; Chrobak and Larmore [12]
+proved the case of tree metrics; Bein, Chrobak, and Larmore [8] solved the case of k = 3 on a
+Manhattan plane; and Bartal and Koutsoupias [7] worked out the case when the metric has only
+k + 2 points and the case of weighted star metrics (a.k.a., the weighted paging problem).
+    The most recent progress was due to Coester and Koutsoupias [15], who gave a uniﬁed potential
+function covering all known metric spaces for which the WFA is known to be k-competitive. They
+highlighted two cases as the frontier of the deterministic k-server conjecture: k = 3 (because k = 2
+is known), and circle metrics (because they are the simplest non-tree metrics). They further used
+the combination of the two, i.e., 3 servers on circle metrics, to refute a lazy-adversary conjecture
+by Chrobak and Larmore [12]. They pointed out that their uniﬁed potential fails in the case of 3
+servers on circle metrics, and questioned whether the WFA is 3-competitive in this case and even
+the correctness of the deterministic k-server conjecture.1
+
+1.1     Our Contributions
+Our contributions are twofold. We introduce a new potential function and use it to prove that
+the WFA is 3-competitive for the 3-server problem on circle metrics, answering aﬃrmatively the
+question left by Coester and Koutsoupias [15]. The new potential may be viewed as a relaxation
+    1
+   Coester and Koutsoupias questioned the correctness of the deterministic 3-server conjecture in their paper, and
+Coester asked whether the WFA is 3-competitive for 3 servers on circle metrics in the conference talk.
+
+
+
+                                                        1
+of theirs. Our analysis still follows the existing framework, building on the known properties of
+the work functions, including quasi-convexity, duality, and the extended cost lemma. To this end,
+our result reconsolidates the belief that the WFA is k-competitive in general, optimistically even
+provable under the existing framework. See Section 3.
+    On the ﬂip side, we deﬁne a canonical family of potential functions that captures as special
+cases the new potential function in this paper, and the previous potential functions of Chrobak and
+Larmore [13], Bein et al. [8], and Coester and Koutsoupias [15]. We further provide evidence that
+this canonical family of potential functions cannot resolve the k = 3 case on general metrics. Hence,
+fundamentally new ideas are still needed for further advancement on the deterministic k-server
+conjecture. See Section 4.
+
+1.2    Further Related Works
+There has been lots of progresses on the randomized k-server conjecture. Bansal, Buchbinder, and
+Naor [3] solved the case of weighted star metrics (a.k.a., the weighted paging problem). For general
+metric spaces, a breakthrough by Bansal, Buchbinder, Madry, and Naor [2] gave a polylog(k, n)-
+competitive algorithm, where n is the number of points in the metric space. Subsequently, Bubeck
+et al. [10] gave an O(log2 k)-competitive algorithm for hierarchically separated trees (HST), which
+implies an improved O(log2 k log n)-competitive algorithm for general metrics via Bartal’s embed-
+ding (c.f., Bartal [5, 6] and Fakcharoenphol, Rao, and Talwar [16]), or an O(log3 k log ∆)-competitive
+algorithm through their own embedding, where ∆ is the ratio between the maximum and minimum
+distances between pairs of points. Their algorithm and analysis were later simpliﬁed by Buchbinder,
+Gupta, Molinaro, and Naor [11].
+    The WFA has found applications in other online algorithm problems, notably in several gener-
+alziations of the k-server problem. Borodin, Linial, and Saks [9] proved that the WFA achieves the
+optimal competitive ratio in metrical task systems. Sitters [22] showed that the WFA is constant
+competitive for the generalized 2-server problem. Bansal, Eliáš, and Koumoutsos [4] used the WFA
+to obtain a near optimal competitive ratio in the weighted k-server problem. Most recently, Argue,
+Gupta, Tang, and Guruganesh [1] and Sellke [21] applied the concept of work function to chasing
+convex bodies and got near optimal competitive ratios.
+
+
+2     Preliminaries
+Consider a metric space (Ω, d), where Ω is a set of points and d is a metric on Ω. In other words,
+d(x, y) is the distance between two points x, y ∈ Ω. Let Ωk denote the set of multi-sets of k points
+from Ω. We will abuse notation and let d(X, Y ) also denote the Wasserstein distance between two
+ﬁnite multi-sets X, Y ∈ Ωk . We further let xk denote the multi-set of k copies of x ∈ Ω, and let
+x1 x2 . . . xk denote the multi-set of k points x1 , x2 , . . . , xk ∈ Ω.
+    An instance of the k-server problem is deﬁned by an initial conﬁguration X0 ∈ Ωk , and a sequence
+of requests r1 , r2 , . . . , rT . The initial conﬁguration is given to the algorithm at the beginning. Then,
+the algorithm receives the requests one at a time. Upon receiving each request rt , the algorithm
+immediately chooses a conﬁguration Xt ∈ Ωk with rt ∈ Xt . The objective is to minimize the total
+distance between neighboring conﬁgurations, i.e.:
+                                             T
+                                             X                
+                                                   d Xt−1 , Xt .
+                                             t=1
+
+
+
+
+                                                       2
+   Let ALG denote the objective given by the algorithm’s conﬁgurations. Following the standard
+worst-case competitive analysis, we compare to the minimum cost in hindsight, i.e.:
+                                                                            T
+                                                                            X                 
+                             OPT =                      min                        d Xt−1 , Xt .
+                                           (X1 ,...,XT ) : ∀1≤t≤T,rt ∈Xt
+                                                                             t=1
+
+    The competitive ratio of an online algorithm with respect to (w.r.t.) a given metric space is the
+smallest Γ for which ALG ≤ Γ · OPT + O(1) for all instances of the k-server problem on this metric,
+where O(1) represents a term that does not depend on the number of requests T (but may depend
+on the number of servers k and the diameter of the metric).
+    It will be convenient to further consider the minimum cost up to any time 1 ≤ t ≤ T , and with
+a given final configuration. For any time 1 ≤ t ≤ T , and any conﬁguration Xt ∈ Ωk with rt ∈ Xt ,
+deﬁne:
+                                                               Xt
+                                                                              
+                    OPTt Xt =                   min                d Xi−1 , Xi .
+                                            (X1 ,...,Xt−1 ) : ∀1≤i≤t−1,ri ∈Xi
+                                                                                   i=1
+
+
+2.1      Work Functions and the Work Function Algorithm
+The work function wt : Ωk 7→ R at any time 0 ≤ t ≤ T is the optimal objective for processing the
+ﬁrst t requests, and further moving to a given final configuration, i.e.:
+                                                                     t
+                                                                     X
+                                                                                               
+                      wt X       =               min                       d Xi−1 , Xi + d Xt , X .
+                                     (X1 ,...,Xt ) : ∀1≤i≤t,ri ∈Xi
+                                                                     i=1
+
+      For 1 ≤ t ≤ T , this is equivalent to:
+                                                                                   
+                              wt X =         min                   OPTt Xt + d Xt , X .
+                                               Xt ∈Ωk   : rt ∈Xt
+
+   The work function algorithm (WFA) selects at each time 1 ≤ t ≤ T the minimizer in the above
+deﬁnition of the work function at time t when the input is Xt−1 , i.e.:
+                                                                     
+                            Xt ∈ arg min OPTt X + d X, Xt−1 .
+                                          X∈Ωk : rt ∈X
+
+Lemma 1 (c.f., Koutsoupias [18]). The work functions satisfy the following properties.
+
+  1. (Monotonicity) For any 1 ≤ t ≤ T , and any X ∈ Ωk :
+                                                        wt (X) ≥ wt−1 (X) ,
+        and it holds with equality when rt ∈ X.
+  2. (Lipschitzness) For any 0 ≤ t ≤ T , and any X, Y ∈ Ωk :
+                                                           
+                                     wt X − wt Y ≤ d X, Y .
+
+  3. (Quasi-convexity) For any 0 ≤ t ≤ T , and any multi-sets X, Y ∈ Ωk , there exists a bijection
+     π : X → Y ,2 such that for any partition X = X1 ⊔ X2 :
+                                                                        
+                       wt X + wt Y ≥ wt X1 ∪ π(X2 ) + wt π(X1 ) ∪ X2 .
+        Further, the bijection π maps the common points in X, Y to themselves.3
+  2
+      The bijection treats copies of the same point as distinct objects, and may map them differently in general.
+  3
+      That is, if an point x appears nX and nY times in X and Y respectively, π maps min{nX , nY } copies of x to x.
+
+
+                                                               3
+    4. (Duality) 4 For any 1 ≤ t ≤ T :
+                                                                                
+                        arg min wt−1 (X) − d(X, rtk ) ⊆ arg max wt (X) − wt−1 (X) .
+                          X∈Ωk                                  X∈Ωk
+
+
+    5. (Extended Cost Lemma) Suppose that for any k-server instance:
+                             T
+                             X                          
+                                   max wt (X) − wt−1 (X) ≤ (Γ + 1) OPT + O(1) .
+                                   X∈Ωk
+                             t=1
+
+          Then, the WFA is Γ-competitive.
+
+2.2       Potential-based Approach
+Most existing analyses of the WFA establish the condition of the Extended Cost Lemma (i.e., the
+last part of Lemma 1) by designing appropriate potentials Φ0 , Φ1 , . . . , ΦT such that:
+                                                    
+               Φt − Φt−1 ≥ max wt (X) − wt−1 (X) ,                           ∀1 ≤ t ≤ T ;   (1)
+                                   X∈Ωk
+                   ΦT − Φ0    ≤ (Γ + 1) OPT + O(1) .                                                           (2)
+
+   Speciﬁcally, Φt could be the sum of work function wt ’s values on Γ + 1 conﬁgurations, plus some
+other bounded terms. Then, the boundedness of the potentials implies the second condition above.
+
+
+3        Deterministic 3-Server on a Circle
+This section considers the circle metrics and k = 3 servers. Let ∆ > 0 denote the diameter of a
+circle metric. We may write the set of points as an interval Ω = [0, 2∆). The corresponding metric
+is d(x, y) = min{|x − y|, 2∆ − |x − y|} for any points x, y ∈ Ω.
+
+   Antipodes. For any x ∈ Ω, deﬁne its antipode as x̄ = x + ∆ if x ∈ [0, ∆) and x̄ = x − ∆ if
+x ∈ [∆, 2∆). The antipodes satisfy that for any x, y ∈ Ω:
+
+                                            d(x, y) + d(x̄, y) = ∆ .                                           (3)
+
+                                                            ıy. Deﬁne xı
+  Arcs. For any x, y ∈ Ω, denote the arc connecting them as x          x̄ = Ω. For any
+  ıy, we have:
+z∈x
+                              d(x, z) + d(z, y) = d(x, y) .
+        The next lemma follows from the Lipschitzness of work functions (Lemma 1).
+
+Lemma 2 (c.f., Koutsoupias [17]). For any 1 ≤ t ≤ T :
+                                                                        
+                                    r̄tk ∈ arg min wt−1 (X) − d(X, rtk ) .
+                                           X∈Ωk
+
+Theorem 3. The WFA is 3-competitive for 3-server on a circle.
+    4
+                                                                                                           
+    The original duality also asserts arg minX∈Ωk wt−1 (X) − d(X, rtk ) ⊆ arg minX∈Ωk wt (X) − d(X, rtk ) . It is
+not needed in this paper because we focus on metrics with antipodes including the circle metric and general metrics
+(through appropriate extension), and because of Lemma 2 in the next section.
+
+
+
+                                                        4
+Proof. For any work function wt and any points u, x, y, z ∈ Ω, deﬁne:
+
+      Φ(wt , u, x, y, z) = wt (ū3 ) + wt (uxȳ) + wt (uy z̄) + wt (uz x̄) − d(x, y) − d(y, z) − d(z, x) .        (4)
+
+    We remark that function Φ by deﬁnition is invariant to permuting x, y, z while keeping the same
+parity. It is also invariant to changing the parity of the permutation of x, y, z and changing them
+into their antipodes x̄, ȳ, z̄ respectively, since Eqn. (3) implies:
+
+       Φ(wt , u, x, y, z) = wt (ū3 ) + wt (uxȳ) + wt (uy z̄) + wt (uz x̄) − d(x, y) − d(y, z) − d(z, x)
+                          = wt (ū3 ) + wt (uxȳ) + wt (uy z̄) + wt (uz x̄) − d(x̄, ȳ) − d(ȳ, z̄) − d(z̄, x̄)
+                          = Φ(wt , u, ȳ, x̄, z̄) .
+
+   For any 0 ≤ t ≤ T , deﬁne the potential after request rt to be:
+
+                                         Φt =         min    Φ(wt , u, x, y, z) .                                 (5)
+                                                u,x,y,z∈Ω
+
+   The next lemma characterizes the minimizer in the above deﬁnition of potentials. We sketch its
+proof at the end of the section, and defer the complete proof to Appendix A.
+
+Lemma 4. For any 3-sever instance on a circle metric, and any time t, there are points xt , yt , zt ∈ Ω
+such that Φt = Φ(rt , xt , yt , zt ).
+
+   On the one hand, by wT (X) ≤ OPT + 3∆ for any X ∈ Ω3 and d(x, y), d(y, z), d(z, x) ≥ 0:
+
+                                               ΦT ≤ 4OPT + 12∆ .
+
+   On the other hand, by w0 (X) ≥ 0 for any X ∈ Ω3 and by d(x, y), d(y, z), d(z, x) ≤ ∆:
+
+                                                       Φ0 ≥ −3∆ .
+
+   Hence:
+                                 ΦT − Φ0 ≤ 4OPT + 15∆ = 4OPT + O(1) .
+   Finally, let xt , yt , zt ∈ Ω be the points from Lemma 4. We have:
+
+            Φt − Φt−1 = Φ(wt , rt , xt , yt , zt ) −        min    Φ(wt−1 , u, x, y, z)
+                                                       u,x,y,z∈Ω
+
+                        ≥ Φ(wt , rt , xt , yt , zt ) − Φ(wt−1 , rt , xt , yt , zt )
+                                                                                        
+                        = wt (r̄t3 ) − wt−1 (r̄t3 ) + wt (rt xt ȳt ) − wt−1 (rt xt ȳt )
+                                                                                                    
+                          + wt (rt yt z̄t ) − wt−1 (rt yt z̄t ) + wt (rt zt x̄t ) − wt−1 (rt zt x̄t )
+
+                        ≥ wt (r̄t3 ) − wt−1 (r̄t3 )                                       (Monotonicity in Lemma 1)
+                                               
+                        = max wt (X) − wt−1 (X) .                            (Lemma 2, and Duality in Lemma 1)
+                           X∈Ωk
+
+   The theorem now follows by the Extended Cost Lemma in Lemma 1.
+
+
+
+
+                                                             5
+    To prove Lemma 4, it is more convenient to consider an equivalent form of our potentials deﬁned
+in Equations (4) and (5).5 Deﬁne:
+
+                            Φ⋆ (wt , u, x, y, z) = wt (ū3 ) + wt (uxȳ) + wt (uy z̄) + wt (uz x̄) .                      (6)
+
+   Further let P denote the set of point tuples (x, y, z) ∈ Ω3 that are not in the interior of the same
+semi-circle:              
+                     P = (x, y, z) ∈ Ω3 | d(x, y) + d(y, z) + d(z, x) = 2∆ .
+      We establish the equivalence through the next lemma.
+
+Lemma 5. For any 1 ≤ t ≤ T :
+
+                                       Φt =         min         Φ⋆ (wt , u, x, y, z) − 2∆ .
+                                               u∈Ω,(x,y,z)∈P
+
+Proof. By the deﬁnitions of Φ and Φ⋆ , we have:
+
+                                       Φt ≤         min         Φ⋆ (wt , u, x, y, z) − 2∆ .
+                                               u∈Ω,(x,y,z)∈P
+
+   It remains to show the opposite direction. Suppose that Φt = Φ(wt , ut , xt , yt , zt ). If (xt , yt , zt ) ∈
+P the lemma holds by the deﬁnition of P .
+   Next suppose that (xt , yt , zt ) ∈
+                                     / P . By the symmetry of x, y, z in the deﬁnition of Φ, we may
+assume without loss of generality that zt ∈ x     ¯t yt . Recall that the metric is a circle of diameter ∆,
+we have:
+                                  d(xt , zt ) + d(yt , zt ) = d(xt , yt ) < ∆ .                              (7)
+Moving yt to x̄t decreases the distance terms by 2d(yt , x̄t ), and increases the work functions by at
+most this amount by Lipschitzness:
+
+               Φt = Φ(wt , ut , xt , yt , zt )
+                   = Φ⋆ (wt , ut , xt , yt , zt ) − d(xt , yt ) − d(yt , zt ) − d(zt , xt )              (Equations (4), (6))
+                        ⋆
+                   = Φ (wt , ut , xt , yt , zt ) − 2d(xt , yt )                                                   (Eqn. (7))
+                        ⋆
+                   = Φ (wt , ut , xt , yt , zt ) + d(xt , ȳt ) + d(x̄t , yt ) − 2∆                               (Eqn. (3))
+                        ⋆
+                   ≥ Φ (wt , ut , xt , x̄t , zt ) − 2∆                                           (Lipschizness in Lemma 1)
+                   = Φ(wt , ut , xt , x̄t , zt )
+                   ≥ Φt .
+
+    Since both ends are the same, this sequence of inequalities must hold with equality. In particular,
+since (xt , x̄t , zt ) ∈ P , we have:
+
+                    Φt = Φ⋆ (wt , ut , xt , x̄t , zt ) − 2∆ ≥            min         Φ⋆ (wt , u, x, y, z) − 2∆
+                                                                    u∈Ω,(x,y,z)∈P
+
+as needed.
+
+Proof Sketch of Lemma 4. By Lemma 5, it suﬃces to prove that for any u ∈ Ω and any (x, y, z) ∈ P ,
+there are x′ , y ′ , z ′ ∈ P such that:
+
+                                              Φ⋆ (u, x, y, z) ≥ Φ⋆ (rt , x′ , y ′ , z ′ ) .                               (8)
+  5
+      We choose the form in Eqn. (4) for consistency with the discussion in Section 4.
+
+
+                                                                   6
+     Speciﬁcally, our argument will consider x′ , y ′ , z ′ ∈ {u, ū, x, x̄, y, ȳ, z, z̄}.
+     Following the literature, we say that wt (X) resolves from x ∈ X for some conﬁguration X ∈ Ωk
+if in the cost-minimizing solution the server that serves the last request rt is at x ∈ X in the end.
+     Observe that both sides are the sum of the work function wt ’s values on four conﬁgurations. We
+will prove it through a sequence of transformations of the following kinds:
+
+  1. Resolving: Consider all possible points that the conﬁgurations on the left resolve from. For
+     each conﬁguration X, if wt (X) resolves from x ∈ X, write wt (X) = wt (X − x + rt ) + d(x, rt ),
+     where X − x + rt denotes the conﬁguration obtained by removing x from and adding rt to
+     X. We shall reorder the points in each conﬁguration so that rt is the ﬁrst after the resolving
+     step.
+
+  2. Quasi-convexity: Pick two conﬁgurations X, Y on the left and apply quasi-convexity to
+     swap a pair of points in X, Y . Importantly, we will always apply the resolving steps ﬁrst, so
+     that rt ∈ X, Y which will not be swapped according to Lemma 1.
+
+  3. Lipschitzness: For each d(x, y) on the left, ﬁnd a conﬁguration X containing one of the
+     points, say, x, and write wt (X) + d(x, y) ≥ wt (X − x + y).
+
+    The full proof unfortunately involves a tedious case analysis, which we defer to Appendix A.
+Below we present some representative cases to demonstrate the transformations. The case numbers
+are not consecutive because they are cherry-picked from the full analysis. For ease of notations we
+omit the subscript t and write w = wt and r = rt below.
+
+    Case 0: If w(uxȳ), w(uy z̄), w(uz x̄) all resolve from u, we only need the resolving and Lips-
+chitzness steps, eﬀectively moving all copies of u to r.
+
+           Φ⋆ (w, u, x, y, z) = w(ū3 ) + w(rxȳ) + w(ry z̄) + w(rz x̄) + 3d(r, u)       (Resolving)
+                            ≥ w(r̄ 3 ) + w(rxȳ) + w(ry z̄) + w(rz x̄)                (Lipschizness)
+                                 ⋆
+                            = Φ (w, r, x, y, z) .
+
+    Subcase 1a: Suppose that exactly two of w(uxȳ), w(uy z̄), w(uz x̄) resolve from points other
+than u (Case 1), and further suppose that these two resolve from points other than the pair of
+antipodes in their ﬁnal conﬁgurations (Subcase 1a). By symmetry, assume without loss of generality
+that w(uxȳ) resolves from u. The pair of antipodes in the other two are z and z̄, and therefore
+w(uy z̄) resolves from y and w(uz x̄) resolves from x̄.
+    We once again only need the resolving and Lipschitzness steps, since moving y and x̄ to r allows
+us to move both ȳ and x in the second conﬁguration to r̄. Finally, the ﬁrst conﬁguration must
+resolve from a copy of ū, moving which to r allows us to move u to r̄ in the second conﬁguration.
+Formally:
+
+                Φ⋆ (w, u, x, y, z) = w(rū2 ) + w(uxȳ) + w(ruz̄) + w(ruz)
+                                      + d(r, ū) + d(r, y) + d(r, x̄)                    (Resolving)
+                                         2          3
+                                 ≥ w(rū ) + w(r̄ ) + w(ruz̄) + w(ruz)                (Lipschizness)
+                                     ⋆
+                                 = Φ (w, r, u, z, ū)
+
+
+
+                                                        7
+    Subcase 2c: Suppose that exactly one of w(uxȳ), w(uy z̄), w(uz x̄) resolve from points other
+than u. By symmetry, assume without loss of generality that w(uxȳ) and w(uy z̄) resolve from u,
+                                                              ı̄ (Subcase 2c). Then the resolving
+and uz x̄ resolves from z (Case 2). Further suppose that r ∈ yz̄
+step is as follows, with an rearrangement of the distance terms:
+
+                   Φ⋆ (w, u, x, y, z) = w(rū2 ) + w(rxȳ) + w(ry z̄) + w(rux̄) + d(r, ū)
+                                           + 2d(r, u) + d(r, z)                                     (Resolving)
+                                              2
+                                      = w(rū ) + w(rxȳ) + w(ry z̄) + w(rux̄)
+                                           + ∆ + d(r, u) + d(r, z) .                                  (Eqn. (3))
+
+    Next, we will pick x′ ∈ {x, x̄}, y ′ ∈ {y, ȳ}, and z ′ ∈ {u, ū} to prove Eqn. (8). We remark that the
+points x, y, x̄, ȳ partition the circle into four arcs. Depending on which of the four arcs contain point
+u, there two exactly two choices of x′ , y ′ , z ′ in each case subject to (x′ , y ′ , z ′ ) ∈ P . For example, if
+u∈x  ıy then (x̄, ȳ, u), (x, y, ū) ∈ P . The following analysis therefore consists of four subcases.
+           ı̄ consider (x′ , y ′ , z ′ ) = (x, y, u) ∈ P . Then, we need to get conﬁgurations r̄ 3 , rxȳ, ry ū,
+    If u ∈ xȳ,
+and rux̄ from the transformations. The equation above already has conﬁgurations rxȳ and rux̄.
+Further applying quasi-convexity to swap a copy of ū in rū2 with y in ry z̄ gives conﬁguration ry ū
+(and conﬁguration rz̄ū). Finally, Lipschitzness transforms conﬁguration rz̄ ū into r̄ 3 . For clarity, we
+will write the two points being swapped in each quasi-convexity step in bold hereafter. Formally:
+
+                 Φ⋆ (w, u, x, y, z) ≥ w(ry ū) + w(rxȳ) + w(r ūz̄) + w(rux̄)
+                                        + ∆ + d(r, u) + d(r, z)                              (Quasi-convexity)
+                                                                  3
+                                   ≥ w(ry ū) + w(rxȳ) + w(r̄ ) + w(rux̄)                      (Lipschitzness)
+                                   = Φ⋆ (w, r, x, y, u) .
+
+   The other three subcases are the crux of the analysis where we use the assumption r ∈ yz̄    ı̄ to
+                    Ù This implies d(r, z) = d(r, ȳ) + d(ȳ, z), which allows us to eliminate point z̄
+conclude that ȳ ∈ rz.
+that is not in the ﬁnal conﬁgurations:
+
+   Φ⋆ (w, u, x, y, z) = w(rū2 ) + w(rxȳ) + w(ry z̄) + w(rux̄) + ∆ + d(r, u) + d(r, ȳ) + d(ȳ, z)
+                     ≥ w(rū2 ) + w(rxȳ) + w(ry 2 ) + w(rux̄) + ∆ + d(r, u) + d(r, ȳ) .        (Lipschizness)
+
+           ıy, consider (x′ , y ′ , z ′ ) = (x, y, ū) ∈ P . Then, we need to get conﬁgurations r̄ 3 , rxȳ, ryu,
+    If u ∈ x
+and rūx̄ from the transformations. We already have conﬁguration rxȳ. The remaining argument
+ﬁrst applies quasi-convexity to ry 2 and rux̄ to obtain conﬁguration ryu in the ﬁnal formula, and
+conﬁguration ry x̄. Further apply quasi-convexity to rū2 and ry x̄ to obtain conﬁguration rūx̄ in the
+ﬁnal formula. Finally, Lipschitzness transforms the last conﬁguration into r̄ 3 . Formally:
+
+                 Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxȳ) + w(rx̄y) + w(ruy)
+                                        + ∆ + d(r, u) + d(r, ȳ)                             (Quasi-convexity)
+                                   ≥ w(ry ū) + w(rxȳ) + w(rx̄ū) + w(ruy)
+                                        + ∆ + d(r, u) + d(r, ȳ)                             (Quasi-convexity)
+                                   ≥ w(r̄ 3 ) + w(rxȳ) + w(rx̄ū) + w(ruy)                     (Lipschitzness)
+                                   = Φ⋆ (w, r, x, y, ū) .
+
+
+
+                                                        8
+   If u ∈ yıx̄, consider (x, ȳ, u) ∈ P . Similar to the previous subcase, comparing the existing
+conﬁgurations with those in the ﬁnal formula gives a sequence of transformations below:
+
+                 Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxy) + w(ry ȳ) + w(rux̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                           (Quasi-convexity)
+                                   ≥ w(rūy) + w(rxy) + w(r ūȳ) + w(rux̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                           (Quasi-convexity)
+                                   ≥ w(r̄ 3 ) + w(rxy) + w(rūȳ) + w(rux̄)                    (Lipschizness)
+                                   = Φ(w, r, x, ȳ, u) .
+
+   If u ∈ xıȳ, we shall choose the ﬁnal conﬁgurations depending on the result of applying quasi-
+convexity to rxȳ and rux̄. If w(rxȳ)+w(rux̄) ≥ w(rxu)+w(r ȳ x̄), consider (x′ , y ′ , z ′ ) = (x̄, y, u) ∈ P
+because the right-hand-side already gives two of the ﬁnal conﬁgurations:
+
+                 Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxu) + w(ry 2 ) + w(r ȳ x̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                           (Quasi-convexity)
+                                   ≥ w(rūy) + w(rxu) + w(r ūy) + w(rȳ x̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                           (Quasi-convexity)
+                                   ≥ w(r̄ 3 ) + w(rxu) + w(rūy) + w(rȳ x̄)                   (Lipschizness)
+                                   = Φ⋆ (w, r, x̄, y, u) .
+
+   Otherwise, i.e., if w(rxȳ) + w(rux̄) ≥ wt (rxx̄) + w(ruȳ), consider (x′ , y ′ , z ′ ) = (x, ȳ, ū) ∈ P
+because the right-hand-side gives a conﬁguration ruȳ in the ﬁnal formula. Formally:
+
+                 Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxx̄) + w(ry 2 ) + w(ruȳ)
+                                        + ∆ + d(r, u) + d(r, ȳ)                           (Quasi-convexity)
+                                   ≥ w(rū2 ) + w(rxy) + w(rx̄y) + w(ruȳ)
+                                        + ∆ + d(r, u) + d(r, ȳ)                           (Quasi-convexity)
+                                   ≥ w(rūy) + w(rxy) + w(rx̄ū) + w(ruȳ)
+                                        + ∆ + d(r, u) + d(r, ȳ)                           (Quasi-convexity)
+                                   ≥ w(r̄ 3 ) + w(rxy) + w(rx̄ū) + w(ruȳ)                    (Lipschizness)
+                                   = Φ⋆ (w, x, ȳ, ū) .
+
+
+
+
+4    Canonical Potentials
+This section considers a canonical class of potential functions which capture as special cases many
+existing potential functions in the literature, including ours in Section 3. We shall examine whether
+these canonical potentials could resolve the deterministic k-server conjecture on general metrics.
+Since we consider general metrics, we will assume without loss of generality that for any point
+x ∈ Ω there is an antipode x̄ ∈ Ω such that for any y ∈ Ω, d(x, y) + d(y, x̄) = ∆, where ∆ > 0 is
+the diameter of the metric.
+
+                                                           9
+    A canonical potential function is parameterized by a subset P of distinct pairs of points (i, j) 6=
+(i′ , j ′ ), where i, i′ ∈ [k] and j, j ′ ∈ [k − 1].
+                                               It takes as input a work function wt , a point u, and an
+ordered set of points X = (xij )i∈[k],j∈[k−1]. For any i ∈ [k], we consider Xi = {xij }j∈[k−1] ∈ Ωk−1 as
+a conﬁguration of k − 1 points, and uXi as a conﬁguration of k points. The canonical potential is:
+                                                   k
+                                                   X                          X
+                     Φ(wt , u, X) = wt (ūk ) +          wt (uXi ) −                          d(xi,j , xi′ ,j ′ ) .           (9)
+                                                   i=1                 {(i,j),(i′ ,j ′ )}∈P
+
+    The distance terms can enforce various combinatorial constraints on the points in X. For
+example, letting a point pair (i, j), (i′ , j ′ ) be in P may impose a constraint that the two points are
+antipodes, i.e., xi,j = x̄i′ ,j ′ . Further, the potential function in Section 3 uses the distance terms to
+ensure that three points are not on the same semi-circle in the case of circle metrics (Lemma 5).
+    Then, let the potential value at any time 0 ≤ t ≤ T be:
+
+                                               Φt = min Φ(wt , u, X) .                                                      (10)
+                                                         u,X
+
+   Although one may further generalize the canonical potentials, such as considering arbitrary
+coeﬃcients of the distance terms instead of only 0 and −1, all examples for k-competitiveness to
+our knowledge only need the above more restricted form. 6 Below are some example potential
+functions in the literature, and we state without proofs how to write them in the canonical form
+(up to an ﬁxed additive term). Appendix B includes the detailed arguments for completeness.
+
+Example 1 (This Paper, Circle Metrics, k = 3). Our potential function in Eqn. (4) can be equiva-
+lently written in the canonical form as:
+
+        ΦCanonical (wt , u, X) = wt (ū3 ) + wt (uX1 ) + wt (uX2 ) + wt (uX3 )
+                                    − d(x12 , x21 ) − d(x22 , x31 ) − d(x32 , x11 )                       (Antipode constraints)
+                                    − d(x11 , x21 ) − d(x21 , x31 ) − d(x31 , x11 ) .                      (Not on a semi-circle)
+
+
+Example 2 (Chrobak and Larmore [13], General Metrics, k = 2). For any work function wt from
+a 2-server instance with rt as the last request, their original potential function is:
+
+                    ΦCL (wt ) = min wt (rt x) + wt (rt y) + wt (rt z) − d(rt , x) − d(y, z) ,
+                                  x,y,z∈Ω
+
+Since work functions are Lipchitzness, and because each of x and z only appears in one configuration,
+it is equivalent to
+
+                              ΦCL (wt ) = min wt (rt r̄t ) + wt (rt y) + wt (rt ȳ) − 2∆
+                                             y∈Ω
+
+                                         = wt (r̄t2 ) + wt (rt y) + wt (rt ȳ) − ∆ .
+
+Finally, even if we replace rt with an unconstrained point u, the potential would still achieve its
+minimum value at u = rt . We can therefore write it in the canonical form as:
+                                                   2
+                    ΦCL
+                     Canonical (wt , u, X) = wt (ū ) + wt (ux11 ) + wt (ux21 ) − d(x11 , x21 ) .
+   6
+    The potential proposed by Koutsoupias and Papadimitriou [19] is used to show (2k−1)-competitiveness in general
+metric, which is not captured by our canonical form, but can be captured by a generalized version. See Appendix B
+for details.
+
+
+                                                               10
+Example 3 (Bein, Chrobak, and Larmore [8], Manhattan plane, k = 3). For any work function wt
+from a 3-server instance on a Manhattan plane with rt as the last request, their original potential is
+defined as:
+
+              ΦBCL (wt ) =          min              wt (C) + wt (rt pb) + wt (rt pb′ ) + wt (rt aa′ )
+                             a,a′ ,b,b′ ,p∈Ω,C∈Ω3
+
+                                                        − d(C, rt3 ) − d(b, b′ ) − d(p, a) − d(p, a′ ) .
+
+Recall that we focus on general metrics that admit antipodes. The distance term d(C, rt3 ) effectively
+enforces that C = r̄t3 , i.e.:
+
+                  ΦBCL (wt ) =       min           wt (r̄t3 ) + wt (rt pb) + wt (rt pb′ ) + wt (rt aa′ )
+                                 a,a′ ,b,b′ ,p∈Ω
+
+                                                     − d(b, b′ ) − d(p, a) − d(p, a′ ) − 3∆ .
+
+Further, since work functions are Lipschitz and because each of a and a′ appears in only one con-
+figuration. The above is equivalent to:
+
+           ΦBCL (wt ) = min
+                        ′
+                            wt (r̄t3 ) + wt (rt pb) + wt (rt pb′ ) + wt (rt p̄2 ) − d(b, b′ ) − 5∆ .
+                         b,b ,p∈Ω
+
+Finally, even if we replace rt with an unconstrained point u, the potential would still achieve its
+minimum value at u = rt . We can therefore write it in the canonical form as:
+                                                                                      b     b′
+           BCL                           3                                          z}|{ z}|{
+          ΦCanonical (wt , u, X) = wt (ū ) + wt (uX1 ) + wt (uX2 ) + wt (uX3 ) − d( x12 , x22 )
+                                       − d(x11 , x31 ) − d(x11 , x32 ) − d(x21 , x31 ) − d(x21 , x32 ) .
+
+
+Example 4 (Coester and Koutsoupias [15], Various Metrics, e.g., Multi-ray Metrics, General Met-
+rics with k = 2, etc.). Their original potential function is:
+                                                               k+1
+                                                               X                             
+                         ΦCK (w, x1 , x2 , . . . , xk ) =            w x̄i−1
+                                                                         i−1 xi xi+1 . . . xk .
+                                                               i=1
+
+To write it in the canonical form, we use the distance terms to impose appropriate antipode con-
+straints, which implicitly enforce the identity constraints as well:
+                                                         k
+                                                         X                    X   k−1
+                                                                                k X
+                                                                              k X
+              ΦCK                            k
+               Canonical (wt , u, X) = wt (ū ) +              wt (uXi ) −                    d(xiℓ , xji ) .
+                                                         i=1                  i=1 j=i+1 ℓ=i
+
+
+4.1   Canonical Argument
+Recall that we typically aim to prove Equations (1) and (2), which we restate below:
+                                                    
+                Φt − Φt−1 ≥ max wt (X) − wt−1 (X) ,                   ∀1 ≤ t ≤ T ;
+                               X∈Ωk
+                  ΦT − Φ0 ≤ (k + 1)OPT + O(1) .
+
+    Further, the canonical potentials satisfy the second inequality by deﬁnition. It remains to argue
+that the change in the potential values from step t − 1 to step t upper bounds the extended cost on
+the right-hand-side. To do so, we only need to prove that the potential achieves its minimum value
+
+                                                            11
+when u equals the last request (see, e.g., the proof of Theorem 3 given Lemma 4). In other words,
+if for any work function w from a k-server instance with r as the last request:
+
+                          ∃X ∗ ∈ Ωk(k−1) :       (r, X ∗ ) ∈ arg min Φ(w, u, X) .                  (11)
+                                                               u,X
+
+    In fact, existing arguments do not inspect the request history behind the work function. All they
+need is that the work function is induced from a collection of support sets and their corresponding
+values, where the last request rt belongs to every support set. More precisely, suppose that (Si , vi ),
+1 ≤ i ≤ m, are a collection of support-set-value pairs, where Si ∈ Ωk and vi ∈ R. Then, the
+corresponding work function w is:
+                                                                
+                                   w(X) = min vi + d(Si , X) .                                   (12)
+                                              1≤i≤m
+
+    This leads to a natural question: Is there a canonical potential that satisfies Eqn. (11) for any
+function w defined by a collection of support-set-value pairs and the above Eqn. (12), and any point
+r that belongs to every support set?
+
+4.2      Limitation of Canonical Potentials
+Unfortunately, the answer is negative even for k = 3 servers, via a computer-aided argument. Recall
+that the case of k = 2 has already been resolved by Chrobak and Larmore [13] using a potential
+that can be rewritten in the canonical form. This negative result shows an intriguing separation
+between the 2-server and 3-server problems.
+
+Theorem 6. No canonical potential (which is defined for competitive ratio Γ = k) satisfies the
+canonical argument Eqn. (11) for any function w defined by a collection of support-set-value pairs
+and the above Eqn. (12), and any point r that belongs to every support set, even when k = 3.
+
+Proof. Since k = 3, there are only 6 points xij where 1 ≤ i ≤ 3 and 1 ≤ j ≤ 2. Hence, there are
+only 62 = 15 pairs of distinct points, and only 215 diﬀerent canonical potentials. Using a computer
+program,7 we show that each of them fails to satisfy Eqn. (11) on at least one of the following three
+test cases.
+
+    Test Case (a): This is the counter example from Coester and Koutsoupias [15], who used
+it to refute the lazy adversary conjecture. Consider a circle metric with 8 points names 0 to 7
+positioned clockwise, such that the distance between each pair of neighboring points equals 1.
+Consider r = 4 and let the support sets and values be w(456) = w(457) = 8, w(436) = w(437) = 9,
+w(416) = w(417) = w(425) = 10, w(423) = 11. See Figure 1a for an illustration.
+
+    Test Case (b): The second test case considers the same circle metric, but a diﬀerent collection
+of support sets and values. Still let r = 4 be the last request and let the support sets and values
+be w(456) = 8, w(405) = 9, w(416) = w(425) = w(446) = 10, w(401) = w(402) = 11, w(422) = 12.
+See Figure 1b for an illustration.
+  7
+      See https://github.com/FoolMike/K-server-Canonical-Potential for the code.
+
+
+
+
+                                                      12
+                       0                                           0                                 4                 6
+                                                                           11
+           7          10             1                  7                       1
+                                                             10
+               8           10                                     10       11       12   5                         7
+                                                                                                 0
+       6                   9    10       2          6                               2                      0
+                                                                       9
+           8                         11                 8                                        0                         2
+                           9                                      10                                 0
+           5                         3                  5                       3
+                    r=4                                       r=4                            1                 3
+                      (a)                                         (b)                                    (c)
+
+Figure 1: Illustrative ﬁgures for the test cases used in Theorem 6. In each test case, the red star
+denotes the last request; each dashed red arc ab, including the self-loop in the second test case, and
+its red label v represent a support set w(rab) = v. The metric is the shortest path distance w.r.t.
+the solid black arcs.
+
+
+   Test Case (c): The last test case is a three-dimensional Manhattan cube. Name the remaining
+points as 0 to 7. Let the last request be 7 and let the support sets and values be w(701) = w(702) =
+w(704) = 0. See Figure 1c for an illustration.
+
+   In fact, the computer veriﬁcation further shows that our potential is the only canonical potential
+that satisﬁes Eqn. (11) for k = 3 and the circle metrics, noting that the following potential is
+equivalent to ours:
+
+               Φ(wt , u, x, y, z) = wt (ū3 ) + wt (uxȳ) + wt (uy z̄) + wt (uz x̄)
+                                             − d(x, y) − d(y, z) − d(z, x) − d(x̄, ȳ) − d(ȳ, z̄) − d(z̄, x̄) .
+
+
+References
+ [1] CJ Argue, Anupam Gupta, Ziye Tang, and Guru Guruganesh. Chasing convex bodies with
+     linear competitive ratio. Journal of the ACM (JACM), 68(5):1–10, 2021.
+
+ [2] Nikhil Bansal, Niv Buchbinder, Aleksander Madry, and Joseph Naor. A polylogarithmic-
+     competitive algorithm for the k-server problem. In Proceedings of the 52nd Annual IEEE
+     Symposium on Foundations of Computer Science, pages 267–276. IEEE, 2011.
+
+ [3] Nikhil Bansal, Niv Buchbinder, and Joseph Naor. A primal-dual randomized algorithm for
+     weighted paging. Journal of the ACM, 59(4):1–24, 2012.
+
+ [4] Nikhil Bansal, Marek Eliáš, and Grigorios Koumoutsos. Weighted k-server bounds via combi-
+     natorial dichotomies. In Proceedings of the 58th Annual IEEE Symposium on Foundations of
+     Computer Science, pages 493–504. IEEE, 2017.
+
+ [5] Yair Bartal. Probabilistic approximation of metric spaces and its algorithmic applications.
+     In Proceedings of 37th Annual IEEE Symposium on Foundations of Computer Science, pages
+     184–193. IEEE, 1996.
+
+ [6] Yair Bartal. On approximating arbitrary metrices by tree metrics. In Proceedings of the 30th
+     Annual ACM Symposium on Theory of Computing, pages 161–168, 1998.
+
+                                                                   13
+ [7] Yair Bartal and Elias Koutsoupias. On the competitive ratio of the work function algorithm
+     for the k-server problem. Theoretical Computer Science, 324(2-3):337–345, 2004.
+
+ [8] Wolfgang W Bein, Marek Chrobak, and Lawrence L Larmore. The 3-server problem in the
+     plane. Theoretical Computer Science, 289(1):335–354, 2002.
+
+ [9] Allan Borodin, Nathan Linial, and Michael E Saks. An optimal on-line algorithm for metrical
+     task system. Journal of the ACM, 39(4):745–763, 1992.
+
+[10] Sébastien Bubeck, Michael B Cohen, Yin Tat Lee, James R Lee, and Aleksander Mądry.
+     k-Server via multiscale entropic regularization. In Proceedings of the 49th Annual ACM Sym-
+     posium on Theory of Computing, pages 3–16, 2018.
+
+[11] Niv Buchbinder, Anupam Gupta, Marco Molinaro, and Joseph Naor. k-servers with a smile:
+     Online algorithms via projections. In Proceedings of the 30th Annual ACM-SIAM Symposium
+     on Discrete Algorithms, pages 98–116. SIAM, 2019.
+
+[12] Marek Chrobak and Lawrence L Larmore. An optimal on-line algorithm for k servers on trees.
+     SIAM Journal on Computing, 20(1):144–148, 1991.
+
+[13] Marek Chrobak and Lawrence L Larmore. The server problem and on-line games. On-line
+     algorithms, 7:1–1, 1991.
+
+[14] Marek Chrobak, H Karloof, Tom Payne, and Sundar Vishwnathan. New results on server
+     problems. SIAM Journal on Discrete Mathematics, 4(2):172–181, 1991.
+
+[15] Christian Coester and Elias Koutsoupias. Towards the k-server conjecture: A unifying poten-
+     tial, pushing the frontier to the circle. In Proceedings of the 48th International Colloquium on
+     Automata, Languages, and Programming, 2021.
+
+[16] Jittat Fakcharoenphol, Satish Rao, and Kunal Talwar. A tight bound on approximating ar-
+     bitrary metrics by tree metrics. Journal of Computer and System Sciences, 69(3):485–497,
+     2004.
+
+[17] E. Koutsoupias. Weak adversaries for the k-server problem. In Proceedings of the 40th Annual
+     IEEE Symposium on Foundations of Computer Science, pages 444–449, 1999. doi: 10.1109/
+     SFFCS.1999.814616.
+
+[18] Elias Koutsoupias. The k-server problem. Computer Science Review, 3(2):105–118, 2009.
+
+[19] Elias Koutsoupias and Christos H Papadimitriou. On the k-server conjecture. Journal of the
+     ACM, 42(5):971–983, 1995.
+
+[20] Mark Manasse, Lyle McGeoch, and Daniel Sleator. Competitive algorithms for on-line prob-
+     lems. In Proceedings of the 20th Annual ACM Symposium on Theory of Computing, page
+     322–333, 1988.
+
+[21] Mark Sellke. Chasing convex bodies optimally. In Proceedings of the 31st Annual ACM-SIAM
+     Symposium on Discrete Algorithms, pages 1509–1518. SIAM, 2020.
+
+[22] René Sitters. The generalized work function algorithm is competitive for the generalized 2-
+     server problem. SIAM Journal on Computing, 43(1):96–125, 2014.
+
+
+
+                                                 14
+A     Proof of Lemma 4
+Recall that wt (X) resolves from x if x ∈ X and wt (X) = wt (X − x + r) + d(x, r). Let Φt =
+Φ⋆ (wt , u, x, y, z) + ∆ for some (x, y, z) ∈ P . In other words, points x, y, z are not in a semi-circle.
+    Similar to the proof sketch in the main text, we will drop the subscript t and write wt as w, rt
+as r for ease of notations.
+
+Case 0: all of w(uxȳ), w(uy z̄), w(uz x̄) resolve from u. This case is already covered in the main
+body. We restate it below to be self-contained.
+
+            Φ⋆ (w, u, x, y, z) = w(x̄3 ) + w(uxȳ) + w(uy z̄) + w(uz x̄)
+                             = w(x̄3 ) + w(ry z̄) + w(rz w̄) + w(rwȳ) + 3d(r, u)            (Resolving)
+                             ≥ w(r̄ 3 ) + w(ry z̄) + w(rz w̄) + w(rwȳ)                   (Lipschitzness)
+                                    ⋆
+                             = Φ (w, r, x, y, z) .
+
+Case 1: one of w(uxȳ), w(uy z̄), w(uz x̄) resolves from u. By the symmetry of the potential
+function, assume without loss of generality that w(uxȳ) resolves from u.
+
+    Subcase 1a: w(uy z̄) resolves from y and w(uz x̄) resolves from x̄. This subcase is rela-
+tively simple as we only need the resolving and Lipschitzness steps, as we have covered in the main
+text. In fact, we will not use the assumption that w(uxȳ) resolves from u. This feature will
+help simplify the analysis of Case 3.
+
+                Φ⋆ (w, u, x, y, z) = w(ū3 ) + w(uxȳ) + w(uy z̄) + w(uz x̄)
+                                    = w(rū2 ) + w(uxȳ) + w(ruz̄) + w(ruz)
+                                         + d(r, y) + d(r, x̄) + d(r, ū)                     (Resolving)
+                                            2         3
+                                    ≥ w(rū ) + w(r̄ ) + w(ruz̄) + w(ruz)                 (Lipschitzness)
+                                        ⋆
+                                    = Φ (w, r, u, z, ū) .
+
+    Subcase 1b: w(uy z̄) resolves from z̄ and w(uz x̄) resolves from z.              First we apply the
+resolving step and get that:
+
+             Φ⋆ (w, u, x, y, z) = w(ū3 ) + w(uxȳ) + w(uy z̄) + w(uz x̄)
+                              = w(rū2 ) + w(rxȳ) + w(ruy) + w(rux̄) + 2∆ .                 (Resolving)
+
+           ıy, then (x, y, ū) ∈ P . We further have:
+    If u ∈ x
+
+          Φ⋆ (w, u, x, y, z) ≥ w(rūu) + w(rxȳ) + w(ruy) + w(r ūx̄) + 2∆            (Quasi-convexity)
+                           ≥ w(r̄ 3 ) + w(rxȳ) + w(ruy) + w(rūx̄)                       (Lipschitzness)
+                                ⋆
+                           = Φ (w, r, x, y, ū) .
+
+           ı̄ , then (x, y, u) ∈ P . We further have:
+    If u ∈ xȳ
+
+          Φ⋆ (w, u, x, y, z) ≥ w(rūu) + w(rxȳ) + w(r ūy) + w(rux̄) + 2∆            (Quasi-convexity)
+                                    3
+                           ≥ w(r̄ ) + w(rxȳ) + w(rūy) + w(rux̄)                         (Lipschitzness)
+                                ⋆
+                           = Φ (w, r, x, y, u) .
+
+
+                                                          15
+   Next consider the remaining two cases, i.e., if u ∈ xı
+                                                        ȳ of if u ∈ yı
+                                                                      x̄. Apply quasi-convexity to
+w(rxȳ) and w(ruy). If w(rxȳ) + w(ruy) ≥ w(rxu) + w(r ȳy), then:
+
+          Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxu) + w(r ȳy) + w(rux̄) + 2∆             (Quasi-convexity)
+                                        2                     3
+                           ≥ w(rū ) + w(rxu) + w(r̄ ) + w(rux̄)                          (Lipschitzness)
+                                ⋆
+                           = Φ (w, r, u, x, ū) .
+
+   Otherwise, we have:
+
+         Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(ruȳ) + w(rxy) + w(rux̄) + 2∆ .             (Quasi-convexity)
+
+   If u ∈ xı
+           ȳ, then (u, y, x̄) ∈ P . We further have:
+
+          Φ⋆ (w, u, x, y, z) ≥ w(rūu) + w(ruȳ) + w(rxy) + w(rūx̄) + 2∆              (Quasi-convexity)
+                                    3
+                           ≥ w(r̄ ) + w(ruȳ) + w(rxy) + w(rūx̄)                         (Lipschitzness)
+                                ⋆
+                           = Φ (w, r, u, y, x̄) .
+
+   If u ∈ yı
+           x̄, then (u, x, ȳ) ∈ P . We further have:
+
+          Φ⋆ (w, u, x, y, z) ≥ w(rūu) + w(r ūȳ) + w(rxy) + w(rux̄) + 2∆             (Quasi-convexity)
+                           ≥ w(r̄ 3 ) + w(rūȳ) + w(rxy) + w(rux̄)                       (Lipschitzness)
+                                ⋆
+                           = Φ (w, r, u, x, ȳ) .
+
+    Subcase 1c: w(uy z̄) resolves from y and w(uz x̄) resolves from z. Once we prove this
+subcase, the remaining subcase when w(uy z̄) resolves from z̄ and w(uz x̄) resolves from x̄ follows by
+symmetry. Here we need to consider the location of r.
+            ı̄ , then by x̄ ∈ rÙz we get that w(uz x̄) can also resolve from x̄. Hence, it reduces to
+    If r ∈ xz̄
+Subcase 1a.
+            ı̄ , then by z̄ ∈ rı
+    If r ∈ yz̄                  y we get that w(uy z̄) can also resolve from z̄. Hence, it reduces to
+Subcase 1b.
+                          ı̄ We have that (x, y, r) ∈ P and therefore Φ⋆ (w, u, x, y, z) ≥ Φ⋆ (w, u, x, y, r).
+    Finally, consider r ∈ xȳ.
+As a result, we may assume without loss of generality that z = r. Next we move y towards r, dur-
+ing which Φ⋆ (w, u, x, y, r) will not increase. We may move y all the way to x̄ while maintaining
+(x, y, r) ∈ P . Hence, we may further assume without loss of generality that y = x̄. We then get
+that:
+
+                Φ⋆ (w, u, x, x̄, r) = w(ū3 ) + w(ux2 ) + w(ux̄r̄) + w(urx̄)
+                                    = w(rū2 ) + w(rx2 ) + w(rur̄) + w(rux̄)
+                                            + ∆ + d(r, x̄)                                    (Resolving)
+                                                2
+                                    ≥ w(rū ) + w(rxu) + w(rxr̄) + w(rux̄)
+                                            + ∆ + d(r, x̄)                             (Quasi-convexity)
+                                    ≥ w(rū2 ) + w(rxu) + w(r̄ 3 ) + w(urx̄)              (Lipschitzness)
+                                            ⋆
+                                    = Φ (w, r, u, x, ū) .
+
+
+
+
+                                                         16
+Case 2: two of w(uxȳ), w(uy z̄), w(uz x̄) resolve from u. Since the potential function is invariant
+to changing points x, y, z to their antipodes and changing the parity of their permutation, we may
+assume without loss of generality that the only conﬁguration that does not resolve from u must
+resolve from x, y, or z. Further, points x̄, ȳ, z̄ partition the circle into three arcs. By that the
+potential function and the ﬁrst assumption are both invariant to permuting x, y, z without changing
+                                                            ı̄. We then have three subcases depending
+parity, we will assume without loss of generality that r ∈ yz̄
+on which conﬁguration does not resolve from u.
+
+     Subcase 2a: w(uxȳ) resolves from x. By the assumption that r ∈ yz̄            ı̄ , we have that
+(r, y, z) ∈ P . Further by the assumption of the subcase that w(uxȳ) resolves from x, we have
+Φ⋆ (w, u, x, y, z) ≥ Φ⋆ (w, u, r, y, z). Therefore, we may assume without loss of generality that x = r.
+Then we apply the resolving step to get that:
+
+         Φ⋆ (w, u, r, y, z) = w(ū3 ) + w(urȳ) + w(uy z̄) + w(uzr̄)
+                          = w(rū2 ) + w(ruȳ) + w(ry z̄) + w(rzr̄) + ∆ + d(r, u) .         (Resolving)
+
+                                                                                             ı̄ , then
+    The remaining argument depends on the relative location of u w.r.t. y, ȳ, z, z̄. If u ∈ yz̄
+(u, y, z) ∈ P . We further have:
+
+               Φ⋆ (w, u, x, y, z) ≥ w(rūr̄) + w(ruȳ) + w(ry z̄) + w(rz ū)
+                                        + ∆ + d(r, u)                                 (Quasi-convexity)
+                                            3
+                                 ≥ w(r̄ ) + w(ruȳ) + w(ry z̄) + w(rz ū)               (Lipschitzness)
+                                        ⋆
+                                 = Φ (w, r, u, y, z) .
+
+   If u ∈ zıȳ, then (u, y, z̄) ∈ P . The argument of this case depends on the result of applying
+quasi-convexity to w(ry z̄) and w(rzr̄). If w(ry z̄) + w(rzr̄) ≥ w(ryz) + w(rz̄r̄), then:
+
+               Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(ruȳ) + w(ryz) + w(rz̄r̄)
+                                        + ∆ + d(r, u)                                 (Quasi-convexity)
+                                 ≥ w(rūz̄) + w(ruȳ) + w(ryz) + w(r ūr̄)
+                                        + ∆ + d(r, u)                                 (Quasi-convexity)
+                                                                           3
+                                 ≥ w(rūz̄) + w(ruȳ) + w(ryz) + w(r̄ )                 (Lipschitzness)
+                                        ⋆
+                                 = Φ (w, r, u, y, z̄) .
+
+   Otherwise, we have:
+
+                       Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(ruȳ) + w(ryr̄) + w(rz z̄)
+                                                + ∆ + d(r, u) .                       (Quasi-convexity)
+
+    Further, the assumptions that u lies on arc from z to ȳ that r lies on arc from ȳ to z̄ imply that
+ȳ ∈ rı
+      u. Therefore:
+
+              Φ⋆ (w, u, x, y, z) = w(rū2 ) + w(ruȳ) + w(ryr̄) + w(rzz̄)
+                                    + ∆ + d(r, ȳ) + d(ȳ, u)                                  (ȳ ∈ rı
+                                                                                                      u)
+                               ≥ w(rū2 ) + w(ru2 ) + w(r̄ 3 ) + w(rzz̄)                (Lipschitzness)
+                                            2                3
+                               ≥ w(rū ) + w(ruz̄) + w(r̄ ) + w(rzu)                  (Quasi-convexity)
+                                    ⋆
+                               = Φ (w, r, u, z, ū) .
+
+
+                                                      17
+   If u ∈ yız̄, then (u, ȳ, z) ∈ P . The argument of this case depends on the result of applying
+quasi-convexity to w(ruȳ) and wt (ry z̄). If w(ruȳ) + w(ry z̄) ≥ w(ruy) + w(r ȳ z̄), then:
+
+                Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(ruy) + w(r ȳ z̄) + w(rzr̄)
+                                        + ∆ + d(r, u)                                 (Quasi-convexity)
+                                 ≥ w(rz ū) + w(ruy) + w(rȳ z̄) + w(r ūr̄)
+                                        + ∆ + d(r, u)                                 (Quasi-convexity)
+                                                                             3
+                                 ≥ w(rz ū) + w(ruy) + w(rȳ z̄) + w(r̄ )                 (Lipschitzness)
+                                        ⋆
+                                 = Φ (w, r, u, ȳ, z) .
+
+     Otherwise, we have w(ruȳ) + w(ry z̄) ≥ w(ruz̄) + w(ry ȳ). Further by the assumptions that u
+lies on the arc from y to z̄ and that r lies on the arc from ȳ to z̄, we have z̄ ∈ rı
+                                                                                     u. Therefore, we get
+that:
+
+              Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(ruz̄) + w(ry ȳ) + w(rzr̄)
+                                    + ∆ + d(r, u)                                     (Quasi-convexity)
+                                            2
+                               = w(rū ) + w(ruz̄) + w(ry ȳ) + w(rzr̄)
+                                    + ∆ + d(r, z̄) + d(z̄, u)                                    (z̄ ∈ rı
+                                                                                                        u)
+                               ≥ w(rū2 ) + w(ru2 ) + w(ry ȳ) + w(r̄ 3 )                 (Lipschitzness)
+                                            2                            3
+                               ≥ w(rū ) + w(ruy) + w(ruȳ) + w(r̄ )                  (Quasi-convexity)
+                                    ⋆
+                               = Φ (w, r, u, y, ū) .
+
+                                          ı̄ , we have r̄ ∈ yız. In other words, the antipode of the
+   Finally, consider u ∈ yız. Since r ∈ yz̄
+request r̄ partitions arc yız into two sub-arcs yı
+                                                 r̄ and zı
+                                                         r̄. If u ∈ yı
+                                                                     r̄, then w(uy z̄) can also resolve
+from y because moving from u to r would reach y midway. It then reduces to Subcase 1c. If u ∈ zı     r̄,
+then w(uzr̄) can also resolve from z becuase moving from u to r would reach z midway. It then
+reduces to Subcase 1c.
+
+   Subcase 2b: w(uy z̄) resolves from y. By the assumption of the subcase, moving y towards r
+would not increase Φ⋆ (wt , u, x, y, z). We can move y all the way to z̄ while maintaining (x, y, z) ∈ P .
+Hence we may assume without loss of generality that y = z̄. Then we apply the resolving step and
+have:
+
+                       Φ⋆ (w, u, x, y, z) = w(rū2 ) + w(rxz) + w(ruz̄) + w(rz x̄)
+                                                + ∆ + d(r, u) + d(r, z̄) .                   (Resolving)
+
+          ı̄ , then (u, z, x) ∈ P . We further have:
+   If u ∈ xz̄
+
+                Φ⋆ (w, u, x, y, z) ≥ w(rūz) + w(rxū) + w(ruz̄) + w(rz x̄)
+                                        + ∆ + d(r, u) + d(r, z̄)                      (Quasi-convexity)
+                                            3
+                                 ≥ w(r̄ ) + w(rxū) + w(ruz̄) + w(rz x̄)                  (Lipschitznes)
+                                        ⋆
+                                 = Φ (w, r, u, z, x) .
+
+
+
+
+                                                      18
+   If u ∈ xı
+           z̄, then (u, z, x̄) ∈ P . We further have:
+
+               Φ⋆ (w, u, x, y, z) ≥ w(rūz̄) + w(rxz) + w(ruz̄) + w(r ū
+                                                                      ¯x̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                ≥ w(r̄ 3 ) + w(rxz) + w(ruz̄) + w(rūx̄)            (Lipschitzness)
+                                     ⋆
+                                = Φ (w, r, u, z, x̄) .
+
+          ız, then (u, x̄, z̄) ∈ P . The argument depends on the result of applying quasi-convexity
+   If x ∈ x
+to w(rxz) and w(ruz̄). If w(rxz) + w(ruz̄) ≥ w(rxu) + w(rzz̄), we have:
+
+               Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxu) + w(rzz̄) + w(rz x̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                ≥ w(rūz) + w(rxu) + w(r ūz̄) + w(rz x̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                         3
+                                ≥ w(r̄ ) + w(rxu) + w(rūz̄) + w(rz x̄)             (Lipschitzness)
+                                     ⋆
+                                = Φ (w, r, u, x̄, z̄) .
+
+   Otherwise, we have w(rxz) + w(ruz̄) ≥ w(rxz̄) + w(ruz). We then get that:
+
+               Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxz̄) + w(ruz) + w(rz x̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                ≥ w(rūz) + w(rxz̄) + w(ruz) + w(r ūx̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                ≥ w(r̄ 3 ) + w(rxz̄) + w(ruz) + w(rūx̄)            (Lipschitzness)
+                                     ⋆
+                                = Φ (w, r, u, z̄, x̄) .
+
+   Finally, if x ∈ zı
+                    x̄, then (u, x, z̄) ∈ P . Again, the argument depends on the result of applying
+quasi-convexity, to w(ruz̄) and w(rz x̄). If w(ruz̄) + w(rz x̄) ≥ w(rux̄) + w(rz z̄), we have:
+
+               Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxz) + w(rux̄) + w(rz z̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                ≥ w(rūz) + w(rxz) + w(rux̄) + w(r ūz̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                ≥ w(r̄ 3 ) + w(rxz) + w(rux̄) + w(rūz̄)            (Lipschitzness)
+                                     ⋆
+                                = Φ (w, r, u, x, z̄) .
+
+   Otherwise, we have w(ruz̄) + w(rz x̄) ≥ w(ruz) + w(rx̄z̄). We then get that:
+
+               Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxz) + w(ruz) + w(rx̄z̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                ≥ w(rūz) + w(rxū) + w(ruz) + w(rx̄z̄)
+                                     + ∆ + d(r, u) + d(r, z̄)                     (Quasi-convexity)
+                                ≥ w(r̄ 3 ) + w(rxū) + w(ruz) + w(rx̄z̄)            (Lipschitzness)
+                                     ⋆
+                                = Φ (w, r, u, z̄, x) .
+
+                                                     19
+   Subcase 2c: w(uz x̄) resolves form z. By the assumption of the subcase, moving z towards r
+would not increase Φ⋆ (wt , r, x, y, z). We can move z until it reaches ȳ while maintining (x, y, z) ∈ P .
+Hence, we may assume without loss of generality that z = ȳ. We then apply the resolving step to
+have have:
+
+                       Φ⋆ (w, u, x, y, ȳ) = w(ū3 ) + w(uxȳ) + w(uy 2 ) + w(ux̄ȳ)
+                                           = w(rū2 ) + w(rxȳ) + w(ry 2 ) + w(rux̄)
+                                                + ∆ + d(r, u) + d(r, ȳ) .                    (Resolving)
+
+          ı̄ , then (u, x, y) ∈ P . We further have:
+   If u ∈ xȳ
+
+                Φ⋆ (w, u, x, y, z) ≥ w(rūy) + w(rxȳ) + w(ry ū) + w(rux̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                       (Quasi-convexity)
+                                           3
+                                   ≥ w(r̄ ) + w(rxȳ) + w(ry ū) + w(rux̄)                (Lipschitzness)
+                                       ⋆
+                                   = Φ (w, r, u, x, y) .
+
+   If u ∈ xıȳ, then (u, x̄, y) ∈ P . The argumenet depends on the result of applying quasi-convexity
+to w(rxȳ) and w(rux̄). If w(rxȳ) + w(rux̄) ≥ wt (rxu) + w(r ȳ x̄), then:
+
+                Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxu) + w(ry 2 ) + w(rȳ x̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                       (Quasi-convexity)
+                                   ≥ w(rūy) + w(rxu) + w(ry ū) + wt (rȳx̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                       (Quasi-convexity)
+                                           3
+                                   ≥ w(r̄ ) + w(rxu) + w(ry ū) + w(rȳ x̄)               (Lipschitzness)
+                                       ⋆
+                                   = Φ (w, r, u, x̄, y) .
+
+   Otherwise, we have w(rxȳ) + w(rux̄) ≥ w(rxx̄) + w(ruȳ). We then get that:
+
+ Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxx̄) + w(ry 2 ) + w(ruȳ)
+                       + ∆ + d(r, u) + d(r, ȳ)                                        (Quasi-convexity)
+                               2
+                  ≥ w(rū ) + w(rxy) + w(ry x̄) + w(ruȳ) + ∆ + d(r, u) + d(r, ȳ) (Quasi-convexity)
+                  ≥ w(rūy) + w(rxy) + w(r ūx̄) + w(ruȳ) + ∆ + d(r, u) + d(r, ȳ)
+                                                                                       (Quasi-convexity)
+                           3
+                  ≥ w(r̄ ) + w(rxy) + w(rūx̄) + w(ruȳ)                                  (Lipschitzness)
+                       ⋆
+                  = Φ (w, r, u, y, x̄) .
+
+   If u ∈ yı
+           x̄, then (u, x, ȳ) ∈ P . We further have:
+
+                Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + wt(rxy) + w(ry ȳ) + w(rux̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                       (Quasi-convexity)
+                                   ≥ w(rūy) + w(rxy) + w(r ūȳ) + w(rux̄)
+                                        + ∆ + d(r, u) + d(r, ȳ)                       (Quasi-convexity)
+                                           3
+                                   ≥ w(r̄ ) + w(rxy) + w(rūȳ) + w(rux̄)                 (Lipschitzness)
+                                       ⋆
+                                   = Φ (w, r, u, x, ȳ) .
+
+
+                                                       20
+                    ıy, then (u, ȳ, x̄) ∈ P . We futher have:
+    Finally, if u ∈ x
+
+                Φ⋆ (w, u, x, y, z) ≥ w(rū2 ) + w(rxȳ) + w(ry x̄) + w(ruy)
+                                         + ∆ + d(r, u) + d(r, ȳ)                   (Quasi-convexity)
+                                 ≥ w(rūy) + w(rxȳ) + w(r ūx̄) + w(ruy)
+                                         + ∆ + d(r, u) + d(r, ȳ)                   (Quasi-convexity)
+                                 ≥ w(r̄ 3 ) + w(rxȳ) + w(rūx̄) + w(ruy)              (Lipschitzness)
+                                         ⋆
+                                 = Φ (w, r, u, ȳ, x̄) .
+
+Case 3: none of w(uxȳ), w(uy z̄), w(uz x̄) resolve from u. Suppose that at least one of them
+resolves from x, y, or z, and at least one of them resolves from x̄, ȳ, or z̄. Then, there will
+be two conﬁgurations that resolve from points other than u and the pair antipodes in the two
+conﬁgurations. This reduces to Subcase 1a, whose argument does not use the main assumption of
+Case 1 as remarked earlier.
+    Then, by symmetry, we may assume without loss of generality that w(uxȳ), w(uy z̄), w(uz x̄)
+resolve from x, y, z respectively. Further, this assumption and the potential function are both
+invariant to permuting x, y, z without changing parity. We may therefore assume without loss of
+generality that request r is on arc ȳ z̄. We then conclude that (r, y, z) ∈ P , and further assume
+without loss of generality that x = r because:
+
+             Φ⋆ (w, u, x, y, z) = w(ū3 ) + w(uxȳ) + w(uy z̄) + w(uz x̄)
+                              = w(ū3 ) + w(urȳ) + w(uy z̄) + w(uz x̄) + d(r, x)          (Resolving)
+                                         3
+                              ≥ wt (ū ) + wt (urȳ) + wt (uy z̄) + wt (uzr̄)          (Lipschitzness)
+                                   ⋆
+                              = Φ (w, u, r, y, z) .
+
+                                 ıy = ı
+    With x = r, we now have z̄ ∈ x    r y. Hence, w(uy z̄) can also resolve from z̄. It then reduces
+to Subcase 1a.
+
+
+B     Canonical Forms of Existing Potential Functions
+B.1    On Restricting u = rt Explicitly
+Some potential functions in the literature (e.g., Examples 2 and 3) explicitly restrict u = rt , where
+recall that rt is the last request of the work function wt under consideration. In other words, instead
+of deﬁning Φt = minu,X Φ(wt , u, X), they instead let the potential value be:
+
+                                             Φt = min Φ(wt , rt , X) .                            (13)
+                                                    X
+
+   We show that they are equivalent to the canonical form, as long as the diﬀerence between two
+consecutive potential values upper bounds the extended cost as in the canonical argument.
+Lemma 7. Suppose that a canonical potential function Φ in the form of Eqn. (9) ensures that for
+any k-server instance and any t, the potential values in Eqn. (13) satisfy:
+
+                                       Φt − Φt−1 ≥ wt (r̄tk ) − wt−1 (r̄tk ) ,
+
+then we also have:
+                                             Φt = min Φ(wt , u, X) .
+                                                   u,X
+
+
+                                                         21
+Proof. Suppose for contrary that there is a k-server instance and some round t for which the lemma
+does not hold. Let u∗ , X ∗ be the minimizer of Φ(wt , u, X). We have:
+
+                               Φ(wt , u∗ , X ∗ ) < Φt = min Φ(wt , rt , X) .
+                                                               X
+
+   Consider a new instance by letting rt+1 = u∗ . By the form of canonical potential function in
+Eqn. (9), we have:
+                                                k
+                                                X                                     X
+                                       3
+          Φ(wt+1 , rt+1 , X) = wt+1 (r̄t+1 )+         wt+1 (rt+1 Xi ) −                              d(xi,j , xi′ ,j ′ ) .
+                                                i=1                           {(i,j),(i′ ,j ′ )}∈P
+
+   Further by the equality case of monotonicity (Lemma 1), it can be written as:
+                                                   k
+                                                   X                               X
+                                          3
+             Φ(wt+1 , rt+1 , X) = wt+1 (r̄t+1 )+            wt (rt Xi ) −                          d(xi,j , xi′ ,j ′ )
+                                                      i=1                   {(i,j),(i′ ,j ′ )}∈P
+                                         3             3
+                               = wt+1 (r̄t+1 ) − wt (r̄t+1 ) + Φ(wt , rt+1 , X) .
+
+   Hence, we get that:
+
+                         Φt+1 = min Φ(wt+1 , rt+1 , X)
+                                   X
+                                         3             3
+                               = wt+1 (r̄t+1 ) − wt (r̄t+1 ) + min Φ(wt , rt+1 , X)
+                                                                     X
+                                         3             3
+                               = wt+1 (r̄t+1 ) − wt (r̄t+1 ) + Φ(wt , rt+1 , X ∗ ) .                                     (rt+1 = u∗ )
+
+   Combining it with the assumption for contrary, we get that:
+
+                   Φt+1 − Φt < Φt+1 − Φ(wt , rt+1 , X ∗ ) = wt+1 (r̄t+1
+                                                                    k             k
+                                                                        ) − wt (r̄t+1 ),
+
+contracting the lemma assumption.
+
+B.2    Equivalence of Existing Potentials and Their Canonical Forms
+We ﬁrst give some useful lemmas for enforcing antipode constraints.
+Lemma 8 (Antipodes in Potentials). For any 1-Lipschitz function f : Ω2m → R, where Ω is a
+metric with antipodes, we have:
+                                        XX
+                      min m f (X, Y ) −    d(x, y) = min f (um , ūm ) − m2 ∆
+                    X,Y ∈Ω                                          u∈Ω
+                                          x∈X y∈Y
+
+Proof. Note that the right-hand-side is a more restrictive minimization, requiring all x ∈ X be the
+same point, all y ∈ Y be the same point, and the two points are antipodes. Hence, the left-hand-side
+is less than or equal to the right-hand-side.
+     Next we establish the other direction. In other words, for any X, Y ∈ Ωm we shall ﬁnd u ∈ Ω
+such that:                                              XX XX
+                     f (um , ūm ) − f (X, Y ) ≤ m2 ∆ −      =          d(x, ȳ) .
+                                                              x∈X y∈Y         x∈X y∈Y
+
+   In fact, we will show that letting u be one of the points in X suﬃces, by proving that:
+                         X                                XX
+                              f (um , ūm ) − f (X, Y ) ≤ m        d(x, ȳ) .
+                         u∈X                                          x∈X y∈Y
+
+
+                                                        22
+   By the 1-Lipchitzness of f , we have:
+             X                              X                      X                         XX
+                   f (um , ūm ) − f (X, Y ) ≤                                  d(x, x′ ) +               d(x, ȳ) .
+               u∈X                                           x∈X x′ ∈X:x′ 6=x                  x∈X y∈Y
+
+   It remains to bound the ﬁrst summation on the right by (m − 1) times the second summation.
+Further any y ∈ Y we have:
+                    X X                      X X                             
+                                 d(x, x′ ) ≤             d(x, ȳ) + d(x′ , ȳ)
+                        x∈X x′ ∈X:x′ 6=x                    x∈X x′ ∈X:x′ 6=x
+                                                                        X
+                                                         = 2(m − 1)             d(x, ȳ) .
+                                                                        x∈X
+
+   Averaging over y ∈ Y , we have:
+            X        X                        2(m − 1) X X                    XX
+                               d(x, x′ ) ≤                 d(x, ȳ) ≤ (m − 1)    d(x, ȳ) .
+                                                 m
+            x∈X x′ ∈X:x′ 6=x                                 x∈X y∈Y                             x∈X y∈Y
+
+
+
+
+Corollary 9. For any 1-Lipschitz function f : (Ωm1 , Ωm1 , . . . , Ωmℓ , Ωmℓ ) → R, where Ω is a metric
+with antipodes, we have:
+                                                                       ℓ X X
+                                                                       X
+                            min m f (X1 , Y1 , . . . , Xℓ , Yℓ ) −                           d(x, y)
+                        Xi ,Yi ∈Ω      i
+                                                                        i=1 x∈Xi y∈Yi
+                                                                                                ℓ
+                                                                                                X
+                                                                            mℓ    mℓ
+                                =          min         f (um     m1
+                                                           1 , ū1 , . . . uℓ , ūℓ ) − ∆
+                                                            1
+                                                                                                       m2i .
+                                    (u1 ,...,uℓ )∈Ωℓ
+                                                                                                i=1
+
+
+Example 1. Recall the canonical form:
+
+          Φ(wt , u, X) = wt (ū3 ) + wt (uX1 ) + wt (uX2 ) + wt (uX3 )
+                                − d(x12 , x21 ) − d(x22 , x31 ) − d(x32 , x11 )                           (Antipode constraints)
+                                − d(x11 , x21 ) − d(x21 , x31 ) − d(x31 , x11 ) .                          (Not on a semi-circle)
+
+Since the work functions are Lipchitzness, and because each of x12 , x22 and x32 only appears in one
+conﬁguration, it is equivalent to
+
+       Φ(wt ) =         min            wt (ū3 ) + wt (ux11 x̄21 ) + wt (ux21 x̄31 ) + wt (ux31 x̄11 )
+                  u,x11 ,x21 ,x31 ∈Ω
+
+                     − d(x11 , x21 ) − d(x21 , x31 ) − d(x31 , x11 )
+              =      min      wt (ū3 ) + wt (uxȳ) + wt (uy z̄) + wt (uz x̄) − d(x, y) − d(y, z) − d(z, x)
+                  u,x,y,z∈Ω
+
+
+Examples 2 and 3.           These two cases are evident from the discussion in the main text and from
+Lemma 8.
+
+
+
+
+                                                                23
+Example 4. Recall the potential function
+                                                                     k+1
+                                                                     X                             
+                          Φ   CK
+                                   (w, x1 , x2 , . . . , xk ) =            w x̄i−1
+                                                                               i−1 xi xi+1 . . . xk .
+                                                                     i=1
+
+and the corresponding canonical potential
+                                                               k
+                                                               X                     X   k−1
+                                                                                       k X
+                                                                                     k X
+               ΦCK                            k
+                Canonical (wt , u, X) = wt (ū ) +                   wt (uXi ) −                      d(xiℓ , xji ) .
+                                                               i=1                    i=1 j=i+1 ℓ=i
+
+   Applying Corollary 9, let Xi = xi,i . . . xi,k−1 , Yi = xi+1,i . . . xk,i , there exists a minimizer such
+that xi,ℓ = ūi and xj,i = ui for any ℓ ∈ [i, k − 1], j ∈ [i + 1, k], so we have
+
+                                                                k
+                                                                X
+                ΦCK
+                 Canonical (wt ) =       min w(ū ) +   k
+                                                                      w(uu1 . . . ui−1 ūik−i )
+                                        u,ui ∈Ω
+                                                                i=1
+                                                                            k
+                                                                            X
+                                                                                                            k−i
+                                    =         min             w(x̄kk ) +           w(xk xk−1 . . . xk−i+1 x̄k−i )
+                                        xk ,xk−1 ,...,x1 ∈Ω
+                                                                             i=1
+                                                        k+1
+                                                        X                                 
+                                    =      min                w x̄i−1
+                                                                  i−1 xi xi+1 . . . xk
+                                        x1 ,...,xk ∈Ω
+                                                        i=1
+
+
+
+
+                                                                 24
+

@@ -1,0 +1,725 @@
+       When Connectivity Is Hard, Random Walks Are Easy with
+                         Non-determinism
+                              Dean Doron                                                                   Edward Pyne
+                           deand@bgu.ac.il                                                              epyne@mit.edu
+                         Ben-Gurion University                                                                MIT
+                           Beer Sheba, Israel                                                        Cambridge, United States
+
+                                Roei Tell                                                               R. Ryan Williams
+                         roei@cs.toronto.edu                                                             rrw@mit.edu
+                         University of Toronto                                                                MIT
+                           Toronto, Canada                                                           Cambridge, United States
+
+Abstract                                                                           2005) that can compress hard truth-tables to polylogarithmic size,
+Two fundamental problems on directed graphs are to decide 𝑠-𝑡                      and we design a version of the Chen–Tell generator (FOCS 2021)
+connectivity, and to estimate the behavior of random walks. Cur-                   that is particularly suitable for the space-bounded setting.
+rently, there is no known algorithm for 𝑠-𝑡 connectivity running in
+polynomial time and 𝑛𝑜 (1) space, and no known algorithm for esti-                 CCS Concepts
+mating the 𝑛-step random walk matrix running in non-deterministic                  • Theory of computation → Complexity classes; Pseudoran-
+logspace.                                                                          domness and derandomization; Random walks and Markov
+   We show that for every directed graph, at least one of these                    chains; Graph algorithms analysis.
+problems is solvable in time and space that significantly improve
+on the respective state-of-the-art. In particular, there is a pair of              Keywords
+algorithms 𝐴1 and 𝐴2 such that for every graph 𝐺, either:                          Derandomization, Complexity, Random Walks, Connectivity
+   (1) 𝐴1 (𝐺) outputs the transitive closure of 𝐺 in polynomial time
+                                                                                   ACM Reference Format:
+       and polylogarithmic space.                                                  Dean Doron, Edward Pyne, Roei Tell, and R. Ryan Williams. 2025. When
+   (2) 𝐴2 (𝐺) outputs an approximation of the 𝑛-step random walk                   Connectivity Is Hard, Random Walks Are Easy with Non-determinism. In
+       matrix of 𝐺 in non-deterministic logspace.                                  Proceedings of the 57th Annual ACM Symposium on Theory of Computing
+   As one application, we show surprisingly tight win-win results                  (STOC ’25), June 23–27, 2025, Prague, Czechia. ACM, New York, NY, USA,
+for space-bounded complexity. For example, for certain parameter                   10 pages. https://doi.org/10.1145/3717823.3718303
+regimes, either Savitch’s theorem can be non-trivially sped up, or
+randomized space can be almost completely derandomized.                            1    Introduction
+   We also apply our techniques to significantly weaken the as-                    How much time and space is necessary to simulate randomized
+sumptions required to derandomize space-bounded computation,                       small-space algorithms? To simulate non-deterministic small-space
+and to make non-deterministic space-bounded computation un-                        algorithms? These are two of the most well-studied questions in
+ambiguous. Specifically, we deduce such conclusions from lower                     space complexity, with particularly clean complete problems:
+bounds against uniform circuits of polynomial size, which is an ex-
+                                                                                       (1) For BPL = BPSPACE[𝑂 (log 𝑛)], the corresponding prob-
+ponential improvement on the required hardness in previous works
+                                                                                           lem is to estimate 𝑛-step random walk probabilities on an
+(Doron–Pyne–Tell STOC 2024, Li–Pyne–Tell FOCS 2024). We fur-
+                                                                                           𝑛-vertex graph, with small additive error.
+ther show similar results for minimal-memory derandomization
+                                                                                       (2) For NL = NSPACE[𝑂 (log 𝑛)], the problem is to decide 𝑠-𝑡
+(Doron–Tell CCC 2024).
+                                                                                           connectivity on an 𝑛-vertex graph.
+   To prove these results, we substantially improve the array of
+technical tools introduced in recent years for studying hardness-                     At the moment, we do not know how to solve either problem in
+vs.-randomness for bounded-space computation. In particular, we                    polynomial time and only logarithmic space. For problem (1), it is
+develop derandomized distinguish-to-predict transformations for                    widely conjectured that such an algorithm exists (i.e., that BPL = L,
+new types of distinguishers (corresponding to compositions of PRGs                 which follows from conjectured lower bounds [14, 15, 29]). How-
+with weak distinguishers), we construct a derandomized logspace                    ever, the best known algorithms work either in super-polynomial
+                                                                                                3/2−𝑜 (1)
+reconstruction procedure for the Shaltiel–Umans generator (JACM                    time 2log(𝑛)           and in space log(𝑛) 3/2−𝑜 (1) [24, 42], or in poly-
+                                                                                   nomial time and in larger space 𝑂 (log2 𝑛) [4, 33]. Moreover, it
+                                                                                   is not even known how to improve these algorithms using non-
+This work is licensed under a Creative Commons Attribution-NonCommercial-          deterministic computation (e.g., we do not know whether BPL ⊆
+NoDerivatives 4.0 International License.                                           NSPACE[log1.49 𝑛]).
+STOC ’25, Prague, Czechia                                                             For problem (2), there is seemingly no consensus on a widely be-
+© 2025 Copyright held by the owner/author(s).
+ACM ISBN 979-8-4007-1510-5/25/06                                                   lieved conjecture, and the most important reference point is the clas-
+https://doi.org/10.1145/3717823.3718303                                            sical algorithm of Savitch [44], which works in super-polynomial
+
+
+
+
+                                                                            1108
+STOC ’25, June 23–27, 2025, Prague, Czechia                                                                              Dean Doron, Edward Pyne, Roei Tell, and R. Ryan Williams
+
+
+time 2Θ(log 𝑛) and in space 𝑂 (log2 𝑛). A major open problem asks
+              2
+                                                                                                   We stress that the second item in Theorem 2 does not use non-
+whether Savitch’s algorithm can be improved. For example, al-                                   determinism (i.e., it is a scaled-up version of the statement BPL ⊆
+ready 30 years ago, Wigderson [52] asked whether an algorithm                                   SPACE[(log 𝑛) 1+𝜀 )]), in contrast to A2 from Theorem 1. Theorem 2
+can achieve polynomial time and space 𝑛 1−𝜀 for some 𝜀 > 0: This                                is not an immediate corollary of Theorem 1, but it does use the
+problem is still wide open, and the best known
+                                           √     polynomial-time                                techniques underlying the proof of the latter (i.e., a more general
+algorithm uses nearly-linear space 𝑛/2Θ( log 𝑛) [3]. In fact, in a                              construction of a pair of algorithms).
+natural restricted model encompassing all known deterministic,                                     Theorem 2 is particularly meaningful in two parameter regimes,
+randomized, and non-deterministic algorithms for directed (and                                  corresponding to choices of 𝜀 > 0. Specifically, the following two
+undirected) connectivity,1 there is a lower bound ruling out algo-                              instantiations assert that for each of the two problems we con-
+                           1.99                                                                 sider (i.e., 𝑠-𝑡 connectivity and estimating random walks), either
+rithms running in time 2log 𝑛 and space 𝑛 0.99 [16].
+                                                                                                we can non-trivially improve on the state-of-the-art for solving the
+                                                                                                problem, or we can near-optimally solve the other problem:
+1.1     Our Results, Part 1: A Pair of Algorithms
+                                                                                                      • With an arbitrarily small 𝜀 > 0: Either Savitch’s algorithm
+We prove that for every graph, at least one of these problems can                                                                                       2       2−𝜀
+be solved significantly more efficiently than previously known                                          can be non-trivially sped-up (i.e., replacing 2𝑛 with 2𝑛 ),
+algorithms:                                                                                             or we can near-optimally derandomize BPSPACE[𝑛].
+                                                                                                      • With 𝜀 = 0.49: Either the frontier derandomization of Saks–
+   Theorem 1. There are algorithms A1, A2 such that for every                                           Zhou can be non-trivially improved (i.e. SPACE[𝑛 1.5 ] with
+graph 𝐺 on 𝑛 vertices, one of the following holds:                                                      SPACE[𝑛 1.49 ]), or Savitch’s algorithm can be substantially
+                                                                                                                                  2         3/2+0.01
+      • A1 (𝐺) solves 𝑠-𝑡 connectivity in 𝐺 in polynomial time and                                      sped up (i.e. replacing 2𝑛 with 2𝑛           ).
+        polylogarithmic space.                                                                     If we are willing to settle for non-deterministic simulation of
+      • A2 (𝐺) estimates length-𝑛 random walk probabilities in 𝐺 in                             BPSPACE, we can leverage Theorem 1 to connect near-optimal
+        non-deterministic logspace.2                                                            solutions to both problems (i.e., rather than connecting a slight
+Moreover, both algorithms report if they fail to compute the desired                            improvement to the state-of-the-art for one problem to a near-
+answer, and do not exceed their resource bounds in any case.                                    optimal solution to the other problem). For example, either Savitch’s
+                                                                                                Theorem can be optimally sped up, or we can optimally simulate
+   We stress that the constructions of A1 and A2 are explicit (i.e.,                            probabilistic linear space using non-determinism:
+these are specific algorithms, and their descriptions will be given
+in Section 2.1), and that provably, for every graph, at least one of                               Theorem 3 (informal). It holds that either
+                                                                                                                                    h          i
+                                                                                                           NSPACE[𝑛] ⊆ 𝑖.𝑜.TISP 2𝑂 (𝑛) , 𝑛𝑂 (1) ,
+the algorithms works (and both of them never return an incorrect
+answer). Moreover, these algorithms run in time and space that sig-
+nificantly improve on the respective state-of-the-art: The algorithm                            or BPSPACE[𝑛] ⊆ NSPACE[𝑂 (𝑛)].
+A1 runs in polynomial
+                   √     time and uses only polylogarithmic space
+                                                                                                   Interpretation. If one believes that L = NL and BPL = L (i.e.,
+(compared to 𝑛/2 log 𝑛 space [3]); and A2 uses only logarithmic
+                                                                                                that we can solve 𝑠-𝑡 connectivity in logspace and estimate random
+space, alas it also uses non-determinism (i.e., it is akin to BPL ⊆ NL;
+                                                                                                walk probabilities in logspace), then Theorem 1 and the win-win
+in comparison, the algorithm of [23, 42] uses log(𝑛) 3/2−𝑜 (1) space).
+                                                                                                results can be interpreted as concrete steps towards proving both
+   Application: Tight win-win results in space-bounded complexity.                              statements. Alternatively, if one believes that (say) Savitch’s algo-
+Since the pair of algorithms A1 and A2 from Theorem 1 solve the                                 rithm cannot be sped up, then our results can be interpreted as
+complete problems for for NL and for BPL, respectively, we can use                              showing that such a statement implies optimal derandomization.
+them to tightly connect the challenges of simulating NL and BPL.                                In any case, our results in this section provide a new algorithmic
+As one application, we leverage the pair of algorithms to show that                             tool, and connect two fundamental problems.
+either Savitch’s theorem can be improved, or randomized space can
+be deterministically simulated near-optimally.                                                  1.2     Our Results, Part 2: Derandomization from
+                                                                                                        Very Weak Hardness
+   Theorem 2. For every constant 𝜀 > 0, at least one of the following
+                                                                                                One perspective on the win-win results above is that they convert
+holds:
+                               h                 i                                              hardness into randomness: Specifically, they deduce near-optimal
+    • NSPACE [𝑛] ⊆ 𝑖.𝑜.TISP 2𝑂 (𝑛 ) , 𝑛𝑂 (1) .
+                                     2−𝜀
+                                                                                                derandomization of small space from hardness of improving Sav-
+                                        
+    • BPSPACE[𝑛] ⊆ SPACE 𝑂 (𝑛 1+𝜀 ) .                                                           itch’s theorem (i.e., of solving 𝑠-𝑡 connectivity) by uniform, deter-
+                                                                                                ministic algorithms. We stress that typical results in hardness vs.
+1 Specifically, this is the Node-Named Jumping Automata on Graphs (NNJAG) model [12,            randomness deduce derandomization from stronger assumptions
+31, 37]. This model captures all known space-bounded directed and undirected con-               (i.e., from hardness for non-uniform circuits or for probabilistic
+nectivity algorithms, including Savitch, BFS, DFS, Immerman-Szelepcsényi [25, 47],
+Nisan et al. [35], Barnes et al. [3], Armoni et al. [2], and Reingold [40].
+                                                                                                algorithms).3
+2 The estimation is up to an additive 1/poly(𝑛) error. The algorithm runs in logspace,
+makes non-deterministic guesses, and either declares fail if the guess sequence is              3 Only very recently, several works deduced derandomization of small-space compu-
+bad, or a single canonical matrix only depends on the graph 𝐺 , or a special symbol ⊥           tation from hardness for uniform, deterministic algrithms (see [14, 30, 39]). Jumping
+indicating that A2 does not succeed on this input (in which case A1 succeeds on the             ahead, we build on these works and significantly develop the technical machinery
+input).                                                                                         introduced in them. For details, see Section 1.3.
+
+
+
+
+                                                                                         1109
+When Connectivity Is Hard, Random Walks Are Easy with Non-determinism                                                               STOC ’25, June 23–27, 2025, Prague, Czechia
+
+
+   From this perspective (i.e., if the goal is to deduce derandomiza-                         randomized space-𝑆 with deterministic space 𝑆 ′ = 2𝑆 + 𝑂 (log 𝑛)
+tion from weak hardness), we want to do better than Theorem 2                                 under two assumptions: very efficient cryptographic PRGs, and
+and Theorem 3, by deducing optimal derandomization – without                                  strong circuit lower bounds. The subsequent work [14] obtained
+non-determinism, and without an 𝑛 1+𝜀 space overhead. We are                                  the same conclusion without the cryptographic assumption, while
+indeed able to do so.                                                                         still requiring lower bounds for non-uniform circuits. We go further,
+                                                                                              deducing the same conclusion from hardness of compression of a
+   Full derandomization of BPSPACE from very weak hardness. A
+                                                                                              multi-output function by uniform, deterministic machines that run
+classical result of Klivans and van Melkebeek [29] (following [36])
+                                                                                              in polynomial time and sublinear space:
+showed that BPL = L follows from sufficiently explicit lower
+bounds against exponential sized non-uniform circuits (c.f. [15]).                               Theorem 5 (informal). Assume that for any large enough con-
+Since these circuit lower bounds currently seem out of reach, a                               stant 𝐶 there exists a function 𝑓 mapping 𝑛 bits to 𝑛 2 bits that is
+natural direction is to deduce derandomization from assumptions                               computable in space (𝐶 + 1) · log(𝑛), but for any deterministic algo-
+that are weak enough so that we hope to unconditionally prove                                 rithm 𝑅 that runs in space 𝑛 0.01 and time 𝑛𝑂 (𝐶 ) , there are at most
+them.                                                                                         finitely many 𝑥 ∈ {0, 1}𝑛 such that the following holds: When given
+   Recently, Doron, Pyne, and Tell [14] showed one such result,                               input 𝑥, the algorithm 𝑅(𝑥) prints an 𝑂 (𝑛)-length description of a
+in which they deduced derandomization from lower bounds for                                   machine 𝑀 that runs in space 𝐶 · log(𝑛) and prints 𝑓 (𝑥). Then, for
+exponential-sized circuits that can be printed by uniform, space-                             any 𝑆 (𝑛) = Ω(log 𝑛) and constant 𝜀 > 0,
+bounded machines (rather than non-uniform circuits). As they point                                              BPSPACE[𝑆] ⊆ SPACE[(2 + 𝜀) · 𝑆].
+out, proving such a lower bound seems significantly more tractable
+, since there are already known lower bounds against uniform                                     In the time-bounded regime, deducing extremely efficient (i.e.,
+circuits (see, e.g., Santhanam and Williams [43]).                                            superfast) derandomization from a strong circuit lower bound is
+   To be more precise, in [14] they proved that BPSPACE[𝑛] ⊆                                  still an open problem, let alone deducing it from hardness for uni-
+SPACE[𝑂 (𝑛)] follows from hardness of SPACE[𝑛] for logspace-                                  form deterministic algorithms; currently, all works require either
+uniform oracle circuits of size 2𝜀𝑛 ; that is, against exponential-sized                      cryptography, or lower bounds for non-deterministic non-uniform
+circuits that can be printed in space 𝑂 (𝑛). We deduce the same                               circuits (see, e.g., [8–10, 13, 46]).
+conclusion from lower bounds against uniform polynomial-sized                                     Disambiguating nondeterministic logspace. The final question
+circuits (equipped with an oracle that uses space 𝜀𝑛).                                        we consider is whether nondeterministic logspace can be made
+   Theorem 4. There is a constant 𝑐 > 1 such that the following                               unambiguous, in the sense that for every NL language, there is
+holds. Suppose there exists a constant 𝜀 > 0 such that SPACE[𝑛] is                            a (one-way logspace) verifier that is only convinced by a unique
+hard for TISP[2𝑐𝑛 , 𝑛𝑐 ]-uniform circuits of size 𝑛𝑐 with oracle access                       witness for every 𝑥 ∈ 𝐿. This is commonly known as the NL = UL
+to SPACE[𝜀𝑛].4 Then, BPSPACE[𝑛] ⊆ SPACE[𝑂 𝜀 (𝑛)].                                             question, and it is the space-bounded analogue of the NP vs. UP
+                                                                                              question. The disambiguation task reduces to a derandomization
+   Theorem 4 represents a near-exponential improvement in the                                 task, and specifically to derandomizing a graph-theoretic variant
+size of the circuits against which we need hardness, at the cost of                           of the classical isolation lemma by [50], where the variant was
+relaxing the uniformity condition from SPACE[𝑂 (𝑛)]-uniformity                                introduced by Reinhardt and Allender [41] (see also [18]).
+to TISP[2𝑂 (𝑛) , 𝑛𝑂 (1) ]-uniformity. The assumption in Theorem 4                                 Allender, Reinhardt, and Zhou [1] showed that if there is a prob-
+strikes us as very weak, and plausibly provable: It asserts that                              lem in SPACE[𝑂 (𝑛)] hard for non-uniform exponential-sized cir-
+there are 𝑁 -bit strings printable in space 𝑂 (log 𝑁 ) that cannot be                         cuits, then indeed NL = UL. Very recently, Li, Pyne, and Tell [30]
+deterministically compressed (in small time and space) to a circuit                           proved an analogous conclusion in a scaled-up regime (i.e. that
+of size polylog(𝑁 ) that can make oracle queries to space 𝜀 · log(𝑁 ).                        NSPACE[𝑛] = USPACE[𝑂 (𝑛)]) from hardness against uniform
+                                                                                              exponential-sized circuits (where the machine printing the circuit
+    Derandomization with minimal memory footprint. We also con-
+                                                                                              is itself an 𝑂 (𝑛) space unambiguous machine). In this context too,
+sider the question of derandomization with minimal memory over-
+                                                                                              we deduce the same conclusion from lower bounds against uniform
+head, which was introduced by Doron and Tell [15] (following [9,
+                                                                                              polynomial-sized circuits.
+13]). The classical conjecture BPL = L asserts that randomized
+space-𝑆 machines can be simulated in space 𝑆 ′ = 𝐶 · 𝑆, for some                                 Theorem 6. There is a constant 𝑐 > 1 such that the following
+(possibly large) constant 𝐶 > 1. The more ambitious goal from [15]                            holds. Suppose there exists a constant 𝜀 > 0 such that USPACE[𝑛] is
+is to have 𝑆 ′ as close as possible to 𝑆; for example, deduce simula-                         hard for circuits of size 𝑛𝑐 with oracle access to USPACE[𝜀𝑐𝑛], where
+tion with 𝑆 ′ ≈ 2𝑆 or even 𝑆 ′ ≈ 𝑆. Since we do not hope to show                              the circuits are uniformly generated by an algorithm that runs in
+this unconditionally at the moment, the goal is to deduce it under                            TISP[2𝑂 (𝑛) , poly(𝑛)] with oracle access to USPACE[𝑂 (𝑛)].5 Then,
+the weakest possible assumptions.                                                             NSPACE[𝑛] ⊆ USPACE[𝑂 𝜀 (𝑛)].
+    We base minimal-memory derandomization on assumptions that
+                                                                                                 Similarly to Theorem 4, the hardness assumption in Theorem 6
+are qualitatively weaker than those known to imply standard (i.e.
+                                                                                              represents a near-exponential improvement in the size of the cir-
+not superfast) derandomization in the time-bounded setting. To
+                                                                                              cuits against which we need hardness, at the cost of mildly increas-
+see this, recall that the work of [15] deduced derandomization of
+                                                                                              ing the space allowed for the uniform machine.
+4 The input length 𝑛 to the oracle is the same length as the input to the generating          5 Here too, the input length 𝑛 to the oracle is the same length as the input to the
+algorithm (so we do not let the machine write longer oracle queries).                         generating algorithm.
+
+
+
+
+                                                                                       1110
+STOC ’25, June 23–27, 2025, Prague, Czechia                                                              Dean Doron, Edward Pyne, Roei Tell, and R. Ryan Williams
+
+
+1.3     The Technical Contributions                                                       it in our constructions would not allow us to obtain our re-
+Our results are based on substantial improvements to the array                            sults. We thus develop a deterministic low-space reconstruc-
+of technical tools that have been introduced in recent years for                          tion procedure for the more efficient Shaltiel-Umans [45]
+studying hardness-vs.-randomness for bounded-space computation.                           generator, which we use for our results. See Section 2.1.3 for
+To contextualize this contribution, consider classical constructions                      details.
+of pseudorandom generators based on a hard function 𝑓 (e.g., the                      (3) A new targeted generator. For the pair of algorithms in The-
+Nisan-Wigderson [36] PRG). The analysis of these PRGs is based                            orem 1, we construct a new targeted generator with a de-
+on a reconstruction argument: If an efficient distinguisher is not                        terministic reconstruction procedure. This generator can
+fooled by the generator (built from 𝑓 ), then an efficient procedure                      be thought of as a variant of the Chen–Tell [8] generator
+computes 𝑓 .                                                                              that is particularly suited for space-bounded hardness-vs.-
+    Now, let us view both the pseudorandom generator and the                              randomness results. The construction is described in Sec-
+reconstruction as a pair of algorithms “of equal status”, rather than                     tion 2.1.
+thinking of the reconstruction as only part of the analysis; similar
+perspectives have been useful for extractor theory, meta-complexity,              2     Overview of Proofs
+learning, and pseudodeterministic algorithms (see, e.g., [5, 6, 22,               In this section we present high-level overviews of our proofs, aim-
+26, 49]). Observe that a generator with respect to 𝑓 is useful for                ing to present self-contained descriptions (especially for the proof
+derandomization, whereas the reconstruction procedure computes                    of Theorem 1). In particular, while describing the proofs we will
+𝑓 , and at least one of the two is guaranteed to work (cf., Theorem 1).           explain the role of the new complexity-theoretic tools mentioned
+We will use a function 𝑓 such that both the output of the generator               in Section 1.3 (i.e., the D2P transformations, the reconstructive gen-
+(when 𝑓 is hard) and the output of 𝑓 itself (when 𝑓 is easy) are                  erator, and the targeted generator for space-bounded settings), but
+useful.                                                                           we will present the constructions of these tools in separate subsec-
+    A key point for making this approach work is using both a                     tions. In particular, in Section 2.1 we explain the proof of Theorem 1,
+generator and a reconstruction procedure with low complexity. In                  in Section 2.2 we explain how to deduce the win-win corollaries,
+recent years, deterministic reconstruction procedures have been                   and in Section 2.3 we explain the proofs of results from Section 1.2.
+developed, following Pyne, Raz, and Zhan [39] (see also [14, 30]), in
+which case both the generator and the reconstruction algorithms                   2.1      The Pair of Algorithms
+are deterministic. Technically, in this work we develop new efficient             At a high level, our algorithms A1, A2 (for random walk estimation
+generators with deterministic reconstruction procedures, as well                  and 𝑠-𝑡 connectivity respectively) work as follows. Fixing a graph
+as deterministic reconstruction procedures for known generators                   𝐺 on 𝑛 vertices, we consider a reachability bootstrapping system (à
+that work in broader contexts than before. Specifically, our results              la [8]), which is a sequence of 𝑛 strings (“layers”) defined as follows.
+rely on the following technical contributions:                                                                                     2
+                                                                                  For 𝑖 ∈ [𝑛], the 𝑖 th layer, denoted 𝑃𝑖 ∈ {0, 1}𝑛 , is defined as:
+                                                                                      (𝑃𝑖 )𝑠,𝑡 = I [there exists a path from 𝑠 to 𝑡 of length at most 𝑖] .
+   (1) Derandomized D2Ps for PRG+Distinguisher. All known
+                                                                                  We observe two critical properties about this system:
+       derandomized reconstruction procedures rely on derandom-
+       ized transformations of distinguishers to predictors (D2P).                    (1) Downward self reducibility. There is a (deterministic)
+       Informally, a D2P transformation is a mapping from circuits                        logspace algorithm that, given input (𝐺, (𝑠, 𝑡)) and query
+       𝐶 into short sequences 𝑃1, . . . , 𝑃𝑚 of circuits, such that if                    access to 𝑃𝑖 , computes (𝑃𝑖+1 )𝑠,𝑡 .
+       𝐶 distinguishes a distribution D from uniform, then some                       (2) Nondeterministic computability. There is a nondeter-
+       𝑃𝑖 is a decent next-bit predictor for D. Yao’s [53] classical                      ministic logspace algorithm that, given (𝐺, 𝑖, 𝑠, 𝑡), computes
+       lemma can be thought of as a very general randomized D2P,                          (𝑃𝑖 )𝑠,𝑡 .
+       whereas we are interested in deterministic D2Ps.                           The algorithm in Item 1 is direct, whereas the algorithm in Item 2
+       Previously, deterministic D2Ps were known either for read-                 requires the Immerman-Szelepcsényi theorem [25, 47] that coNL =
+       once branching programs [14] or for specific distinguish-                  NL. Note that we could use the first algorithm to compute any
+       ers [30]. We develop deterministic D2Ps for compositions                   entry in the bootstrapping system (by repeatedly using downward
+       of PRGs with distinguishers, where both the distinguisher                  self-reducibility), but the recursion depth is 𝑛, yielding a space-
+       and the PRG may be of various types: Our D2Ps work for                     inefficient algorithm. The second algorithm allows us to “shortcut”,
+       compositions of Nisan’s [34] PRG with ROBPs, of the Forbes-                and compute each entry in the bootstrapping system using nonde-
+       Kelley [17] PRG with AOBPs, and of a PRG by van Melke-                     terminism.
+       beek and Prakriya [51] with a graph-theoretic distinguisher.                  We build the pair of algorithms A1, A2 around the following
+       See Section 2.1.2 and Section 2.3 for details.                             question: Is there an 𝑖 such that 𝑃𝑖 allows us to produce pseudoran-
+   (2) SU Generator with deterministic reconstruction. Previ-                     dom walks on 𝐺 (using complexity-theoretic tools)? Given such an
+       ous deterministic reconstruction procedures were for gener-                𝑖, we will estimate random walk probabilities; otherwise, we will
+       ators or targeted generators based on the Nisan-Wigderson                  solve 𝑠-𝑡 connectivity.
+       generator [36] (e.g., for the targeted generator of [8] instanti-             Specifically, for the purpose of producing pseudorandom walks
+       ated with [36]; see also [14, 30, 39]). However, the NW gener-             from 𝑃𝑖 , we build a pseudorandom generator GEN with the follow-
+       ator is well-known to have suboptimal parameters, and using                ing properties:
+
+
+
+
+                                                                           1111
+When Connectivity Is Hard, Random Walks Are Easy with Non-determinism                                                                          STOC ’25, June 23–27, 2025, Prague, Czechia
+
+                                                                         2
+    (1) Logspace computability. Given 𝑃 ∈ {0, 1}𝑛 and a graph                                          case, REC produces a small description of 𝑃). The pseudorandom-
+        𝐺 on 𝑛 vertices, GEN𝑃 (𝐺) is computable in logspace. More-                                     ness that we need in our setting is very specific: we just need to
+        over, the output is either G  e ∈ R𝑛×𝑛 or ⊥, where G     e is a                                approximate walk probabilities on a graph.
+        1/𝑛-approximation of G𝑛 , and G is the random walk matrix                                          A first attempt might be to instantiate a known PRG, such as
+        of 𝐺.                                                                                          NW [27, 36], with the truth table 𝑓 = 𝑃𝑖 , and use the output
+    (2) Deterministic reconstruction. There is an algorithm REC                                        of the generator to take random walks on 𝐺. A line of recent
+        running in polynomial time and polylogarithmic space that,                                     work [11, 14, 15, 30, 39] developed deterministic and space-efficient
+        given 𝑃 and 𝐺 such that GEN𝑃 (𝐺) =⊥, outputs a polylog(𝑛)-                                     reconstruction procedures for NW that work in our setting (i.e.,
+        size (oracle) circuit 𝐶 such that 𝐶𝐺 (𝑥) = 𝑃𝑥 for all 𝑥 ∈ [|𝑃 |].                              when using the output to approximate walks), but there is a funda-
+First we explain how to combine these ingredients to obtain The-                                       mental issue: If we use NW to produce 𝑛 pseudorandom bits (for an
+orem 1, then go further into the description of the generator. To                                      𝑛-step walk), then we can only guarantee that when NW fails, the
+estimate random walk probabilities in NL, we enumerate over 𝑖,                                         reconstruction compresses 𝑓 to size 𝑛𝑐 (for some constant 𝑐 > 1),
+and use GEN(𝐺) with 𝑃𝑖 to try to produce G        e ≈ G𝑛 . When GEN(𝐺)                                 which in our case would not compress the reachability matrix at
+tries to access entries of 𝑃𝑖 , we answer using the NL algorithm                                       all.
+from Item 2. This yields an NL algorithm A1 such that if there is an                                       Indeed, we need a generator that will produce 𝑛-step pseudoran-
+𝑖 for which GEN𝑃𝑖 (𝐺) ≠⊥, the algorithm outputs an approximation                                       dom walks, such that failure of this generator allows us to compress
+of 𝑛-step walks on 𝐺.6                                                                                 𝑓 to size polylog(𝑛). This is known to be impossible when using
+                                                                                                       standard black-box techniques to produce 𝑛 pseudorandom bits,8
+    Otherwise, it is the case that GEN𝑃𝑖 (𝐺) =⊥ for every 𝑖. In this
+                                                                                                       but since we only care about producing pseudorandom walks for a
+case, we iterate from 𝑖 = 1, . . . , 𝑛, at each stage using REC to build a
+                                                                                                       given graph (rather than arbitrary pseudorandom bits), we are able
+compressed representation 𝐶𝑖 of 𝑃𝑖 . This compressed representation
+                                                                                                       to bypass this barrier using two technical components.
+is of size polylog(𝑛), and can be evaluated in space polylog(𝑛).7
+Once we have a compressed representation 𝐶𝑛 of 𝑃𝑛 , we can output                                         Technical component 1: Using an unconditional “outer” PRG. In-
+the transitive closure of 𝐺 using polylog(𝑛) space and poly(𝑛) time.                                   stead of producing 𝑛-step walks, we use the PRG to produce a
+In more detail, in each iteration 𝑖 ∈ [𝑛]:                                                             polylog(𝑛)-bit seed for the pseudorandom generator of Nisan [32],
+    (1) Assume we have a representation 𝐶𝑖 −1 such that 𝐶𝑖𝐺−1 (𝑠, 𝑡) =                                 which stretches its seed to an 𝑛-step pseudorandom walk.9 Since
+        (𝑃𝑖 −1 )𝑠,𝑡 for all (𝑠, 𝑡) ∈ [𝑛] 2 . By Item 1, we can compute                                 our PRG now only needs to output polylog(𝑛) bits, when it fails
+        (𝑠, 𝑡) ↦→ (𝑃𝑖 )𝑠,𝑡 using queries to 𝐶𝑖 −1 .                                                    we can compress 𝑓 to size polylog(𝑛).
+        (In the first iteration 𝑖 = 1 we can compute each entry of 𝑃1                                     However, this breaks a key part of the argument. Specifically,
+        directly in logspace.)                                                                         the reconstruction REC for our PRG relies on a transformation of a
+    (2) By our assumption, GEN𝑃𝑖 (𝐺) =⊥. Hence, we can use the                                         distinguisher (for the output of the PRG) into a next-bit-predictor, à
+        algorithm REC from Item 2 to obtain 𝐶𝑖 such that 𝐶𝑖𝐺 (𝑠, 𝑡) =                                  la Yao [53], denoted D2P. Since we need REC to be deterministic,
+        (𝑃𝑖 )𝑠,𝑡 for all 𝑠, 𝑡.                                                                         we need the D2P to be deterministic. However, previous works [11,
+    (3) Finally, delete the representation 𝐶𝑖 −1 , and increment 𝑖.                                    14, 30, 39] constructed D2P transformations only for certain classes
+                                                                                                       of distinguishers, and the distinguisher “does the PRG output a seed
+Since each of the 𝑛 steps takes polylog(𝑛) space and poly(𝑛) time,
+                                                                                                       for NIS that causes it to produce good pseudorandom walks?” is not
+and space is reused across steps, the algorithm A2 runs in SC =
+                                                                                                       in these classes.
+TISP[poly(𝑛), polylog(𝑛)] as claimed.
+                                                                                                          Thus, we develop a new deterministic D2P for the latter dis-
+   Finally, note that both algorithms can detect failure. Specifically,
+                                                                                                       tinguisher. In fact, this is part of a broader contribution of this
+the NL algorithm A1 outputs ⊥ if no 𝑖 allowed it to produce G  e (i.e.,
+                                                                                                       work, in which we develop deterministic D2Ps for various types
+if GEN(𝐺) outputs ⊥ with all 𝑃𝑖 ). Similarly, the SC algorithm A2
+                                                                                                       of distinguishers of the form “composition of a PRG with a weak
+can check at each iteration 𝑖 that 𝐶𝑖𝐺 computes 𝑃𝑖 (otherwise, it
+                                                                                                       distinguisher”. Our D2P for the current specific distinguisher is
+outputs ⊥).
+                                                                                                       described in Section 2.1.2.
+   Outline of Technical Description. In Section 2.1.1, we give an
+                                                                                                          Technical component 2: A better “inner” PRG.. A well-known lim-
+overview of the construction of GEN. Then, in Section 2.1.2 and Sec-
+                                                                                                       itation of NW is that when producing polylog(𝑛) output bits and
+tion 2.1.3, we describe constructions of two key technical compo-
+                                                                                                       compressing 𝑓 to size polylog(𝑛), its seed is polylogarithmic rather
+nents that are necessary for the construction of GEN.
+                                                                                                       than logarithmic. Thus, it would not have the properties that we
+2.1.1 A walk generator with deterministic reconstruction. The con-                                     need from GEN (i.e., logspace and polytime computability). Instead
+struction of GEN is based on the hardness vs. randomness paradigm.                                     of using NW, we use a generator that does not suffer from this
+As explained in Section 1.3, this paradigm yields a pair of algorithms                                 limitation, namely the Shaltiel–Umans [45] generator SU.
+GEN and REC such that for every string 𝑃, either GEN produces                                          8 To be precise, whenever using the standard hybrid argument (or, more generally, a
+pseudorandomness from 𝑃 or REC efficiently computes 𝑃 (in this                                         distinguish-to-predict transform for arbitrary distinguishers) and black-box hardness
+                                                                                                       amplification to produce 𝑛 pseudorandom bits, an overhead of poly(𝑛) in compression
+6 To ensure the output is consistent for a fixed graph, the algorithm tries 𝑖 = 1, . . . , in
+                                                                                                       is unavoidable; see [20, 46] and [30, Appendix B].
+sequence and uses the first layer that produces an output.                                             9 In this simplified description, we consider NIS as an algorithm that takes as input a
+7 To be more accurate, the algorithm needs to evaluate 𝐶 𝐺 rather than 𝐶 . But since 𝐺
+                                                        𝑖               𝑖                              random seed and produces a set of random walks (and for most seeds, the uniform
+is given to the algorithm as input, whenever 𝐶𝑖 queries 𝐺 , the algorithm can answer                   distribution over the set of walks is pseudorandom). This idea was also used to reduce
+the query in logspace.                                                                                 the catalytic space complexity of producing random walks [38].
+
+
+
+
+                                                                                                1112
+STOC ’25, June 23–27, 2025, Prague, Czechia                                                                                Dean Doron, Edward Pyne, Roei Tell, and R. Ryan Williams
+
+
+   However, now another key part in the argument breaks. Recent                                   solves PCAPP for 𝑇 if given 𝑇 : {0, 1}𝑛 → {0, 1} and 𝑥 ∈ {0, 1} ≤𝑛 ,
+works developed deterministic logspace reconstruction algorithms                                  the machine estimates E𝑧 [𝑇 (𝑥 ◦ 𝑧)] to within error 1/𝑛 2 .
+for NW, but no such algorithms are known for SU. In fact, only
+very recently Chen et al. [6] showed a setting in which (a modifi-                                Theorem 2.5 ([30]). Suppose there is a logspace machine that solves
+cation of) SU has reconstruction that can be computed uniformly                                   PCAPP for 𝑇 . Then, there is a logspace computable D2P transforma-
+(rather than by non-uniform circuits), and their algorithm is nei-                                tion for 𝑇 .
+ther space-efficient nor randomness-efficient. Thus, we develop a                                     Naively, solving such a PCAPP problem may seem as hard as
+new reconstruction procedure, which simultaneously achieves both                                  solving CAPP directly for 𝑇 (which itself in general is as hard as
+these goals. This is described in Section 2.1.3.                                                  derandomization). However, we exploit the structure of 𝑇 to solve
+   By combining. the two foregoing technical components, we ob-                                   PCAPP more efficiently. In [30] they observed that this is possible
+tain GEN = SU such that GEN and REC have the properties needed                                    if the distinguisher obeys a certain polarization property, which in
+to construct the pair of algorithms described in Section 2.1.                                     our case is as follows. For every 𝐺, and prefix of hash functions
+                                                                                                  (ℎ 1, . . . , ℎ𝑖 ), the following dichotomy occurs:
+2.1.2 A D2P for Nisan’s generator composed with estimating random
+walks. Let us recall the definitions of distinguishers, predictors, and                               (1) There is a 𝑗 ≤ 𝑖 such that ℎ 𝑗 is a “bad” hash function. In this
+of D2P transformations (the latter were formally introduced in [14]                                       case, for every suffix 𝑧, E𝑧 [𝑇𝐺 (ℎ 1, . . . , ℎ𝑖 , 𝑧)] = 0.
+and studied more generally in [30]).                                                                  (2) There is no 𝑗 ≤ 𝑖 such that ℎ 𝑗 is a bad hash function. In this
+                                                                                                          case, E𝑧 [𝑇𝐺 (ℎ 1, . . . , ℎ𝑖 , 𝑧)] ≈ 1.
+Definition 2.1 (distinguisher). We say that 𝐶 : {0, 1}𝑛 → {0, 1} is
+                                                                                                  We show that (a slight modification of) the generator NIS indeed
+an 𝜀-distinguisher for a distribution D over {0, 1}𝑛 if E[𝐶 (U𝑛 )] −                              obeys this polarization property. Hence, when considering the out-
+E[𝐶 (D)] ≥ 𝜀, where U𝑛 is the uniform distribution.                                               put distribution of this (modified) generator, we can solve PCAPP
+                                                                                                  in a simple, deterministic way: we only need to test each of the hash
+Definition 2.2 (next-bit predictor). For 𝑖 ∈ [𝑛], we say that                                     functions in the given prefix (i.e., rather than estimate 𝑇 on a distri-
+𝑃 : {0, 1}𝑖 −1 → {0, 1} is a 𝛿-next-bit-predictor for a distribution D                            bution of suffixes). By the reduction of D2P to PCAPP from [30],
+over {0, 1}𝑛 if Pr𝑥←D [𝑃 (𝑥 <𝑖 ) = 𝑥𝑖 ] ≥ 12 + 𝛿.                                                 we obtain an efficient D2P transformation for 𝑇𝐺 .
+Definition 2.3 (D2P, simplified). An algorithm 𝐴 is a distinguish                                 2.1.3 A generator with uniform near-deterministic logspace recon-
+to predict (D2P) transformation for a class C if 𝐴 gets as input                                  struction. The generator SU maps 𝑓 ∈ {0, 1}𝑁 to a list of strings
+a description of a circuit 𝐶 : {0, 1}𝑛 → {0, 1} from C, and prints                                in {0, 1}𝑀 , which are hopefully pseudorandom. It is coupled with
+a list of circuits 𝑃1, ..., 𝑃𝑚 : {0, 1}★ → {0, 1} such that for every                             an efficient reconstruction algorithm RSU that converts any next-
+distribution D over {0, 1}𝑛 the following holds. If 𝐶 is a (1/3)-                                 bit-predictor 𝑃 for the list of 𝑀-bit strings into a circuit 𝐶 𝑃𝑓 of
+distinguisher for D, then there is an 𝑖 ∈ [𝑚] such that 𝑃𝑖 is an
+(1/𝑂 (𝑛))-predictor for D.                                                                        size poly(𝑀) ≪ 𝑁 that computes 𝑓 . In our setting 𝑁 = 𝑛 2 and
+                                                                                                  𝑀 = polylog(𝑛), and it is crucial that RSU is a small-space machine
+   Several prior works [11, 14, 19, 34, 39] yield deterministic D2P                               that uses only 𝑂 (log 𝑁 ) random coins (so that we can enumerate).
+transformations for the “random walk” distinguisher. In more detail,                                 A formal statement appears in the full version, and we now
+this distinguisher can be modeled as a read-once branching program                                describe some of the ideas in our modification, at a high-level. The
+(ROBP), and deterministic D2Ps for ROBPs are known.                                               generator SU, which we do not change, arithmetizes its input 𝑓 as a
+   Now, recall that Nisan’s PRG NIS chooses at random ℓ = log 𝑛                                   low-degree polynomial 𝑓ˆ : F𝑣 → F𝑞 , and outputs evaluations of 𝑓ˆ
+                                                                                                                                       𝑞
+hash functions ℎ® = (ℎ 1, . . . , ℎ ℓ ), each over 𝑂 (log 𝑛) bits, and for                        on “lines” going in a certain direction 𝐴 in F𝑞𝑣 .11 A simplified version
+every graph 𝐺, for almost all collections of hash functions, the                                  of the reconstruction is as follows: Choose a random low-degree
+generator NISℎ® produces a pseudorandom distribution of random                                    curve 𝐶 : F𝑞 → F𝑞𝑣 , and query 𝑓ˆ at the 𝑚 − 1 “preceding” curves
+walks for 𝐺. Our distinguisher is therefore
+                 h                                                 i                              going back from 𝐶 in direction 𝐴 −1 (i.e., query 𝑓ˆ at all points on the
+           ® = I NIS produces good random walks for 𝐺 ,
+      𝑇𝐺 (ℎ)                                                                                      curves 𝐴 −𝑖 · 𝐶 for 𝑖 ∈ [𝑚 − 1]). This curve 𝐶 and queried “starting
+                      ℎ®
+                                                                                                  points” define a circuit 𝐹 , which computes 𝑓ˆ. Specifically, when
+and this is not an ROBP (as the Nisan PRG reads each hash function
+                                                                                                  given 𝑧®, the circuit 𝐹 starts from 𝐶 0 = 𝐶 and repeatedly uses the
+repeatedly even to produce a single output). We overcome this issue
+                                                                                                  next-element-predictor – which predict in “direction” 𝐴 – to predict
+by constructing a D2P transformation for this distinguisher:
+                                                                                                  the next curve 𝐴 · 𝐶𝑖+1 , until reaching a curve that contains 𝑧®. (This
+Theorem 2.4 (informal). There is a deterministic logspace D2P                                     simplified description hides many details, among them the fact that
+transformation for 𝑇𝐺 . Moreover, each candidate predictor is evaluable                           𝐷 works in several “strides” of the form 𝐴𝑖 for 𝑖 = 𝑞, ..., 𝑞 𝑣−1 , and
+in logspace, given access to 𝐺.                                                                   the fact that 𝐶 actually uses two interleaved curves and relies on a
+   Our proof uses a reduction from the recent work of Li, Pyne, and                               list-decoding algorithm at each step.)
+Tell [30]. They show that producing a D2P transformation for a
+distinguisher 𝑇 reduces to solving a problem called “prefix-CAPP”                                 error. In a “prefix-CAPP” problem, we are given a prefix 𝑥 along with a device 𝑇 , and
+                                                                                                  wish to approximate the probability of acceptance of 𝑇 (𝑥 ◦ 𝑦) over random suffixes 𝑦 .
+(PCAPP) for 𝑇 .10 In particular, we say that a logspace machine                                   11 To be more accurate, consider a matrix 𝐴 ∈ F𝑣×𝑣 representing multiplication by a
+                                                                                                                                                   𝑞
+10 CAPP is short for Circuit Approximation Probability Problem [28], the problem of               primitive element in F𝑞 𝑣 . Then, the generator chooses a random 𝑥® ∈ F𝑞𝑣 and outputs
+estimating the probability of acceptance of a given circuit 𝐶 to within a fixed additive          the evaluations of 𝑓ˆ at the points 𝑥,
+                                                                                                                                      ® 𝐴 · 𝑥,
+                                                                                                                                            ® 𝐴2 · 𝑥,
+                                                                                                                                                   ® ..., 𝐴𝑚−1 · 𝑥®.
+
+
+
+
+                                                                                           1113
+When Connectivity Is Hard, Random Walks Are Easy with Non-determinism                                                                   STOC ’25, June 23–27, 2025, Prague, Czechia
+
+
+   We briefly explain how we make this reconstruction randomness-                                points of 𝐶 2 will be various shifts of 𝐶 1 , since that is not necessarily
+efficient. (Making the reconstruction space-efficient is relatively                              a low-degree curve. To get around this, we partition F𝑞 into a small
+easier, relying on the efficiency of many of its components as well                              number 𝑂 (log 𝑁 ) of large subfields, and for each subfield, we use
+as on ideas of Doron and Tell [15].)                                                             a sampler to choose defining points in the subfield, and define 𝐶 2
+                                                                                                 using an appropriate shift of 𝐶 1 on these defining points. As above,
+   Randomness-efficient samplers. A la [39], we use randomness-
+                                                                                                 we reuse randomness for the sampler across subfields.14 Since 𝐶 2 is
+efficient samplers to reduce the randomness complexity of various
+                                                                                                 a shift of 𝐶 1 on a pseudorandom set of points within each subfield,
+parts of the reconstruction. The underlying observation is that many
+                                                                                                 we can argue that 𝐶 2 behaves sufficiently similar to a shift of 𝐶 1 on
+of the components in the reconstruction repeat a single procedure
+                                                                                                 the entire subfield. Further details appear in the full version.
+that uses 𝑂 (log 𝑁 ) coins multiple times (and take, for example, an
+OR, or the majority vote). Instead of repeating the procedure with
+                                                                                                 2.2     Tight Win-Win Results in Space-Bounded
+independent coins, we can use a sampler with 𝑂 (log 𝑁 ) coins to
+output a sample such that (w.h.p.) the procedure behaves on the                                          Complexity
+sample approximately the same as on a uniformly chosen sample.                                   We now explain how to obtain the win-win results in space com-
+                                                                                                 plexity, based on (the proof of) Theorem 1. For Theorem 2, we first
+   Pseudorandom curves, and reusing randomness for defining points.                              modify the pair of algorithms. Rather than attempting to compute
+The procedure relies on the random low-degree curve having suffi-                                reachability and random walks on the same graph (equivalently,
+ciently strong sampling properties. First, it needs the curve to be a                            on two graphs of comparable size), we instead take a small graph
+good sampler (i.e., for any subset 𝑇 ⊆ F𝑞𝑣 , the points on the curve                                               1/2+𝜀/2
+                                                                                                 𝐺 1 (of size 2log         𝑛 ), and a large graph 𝐺 , and attempt to either
+                                                                                                                                                   2
+sample 𝑇 approximately correctly, with high probability). A natural
+                                                                                                 compute reachability on 𝐺 1 , or estimate random walk probabilities
+idea is to replace a random curve with a curve sampler, which pseu-
+                                                                                                 on 𝐺 2 . Also, instead of computing the reachability bootstrapping
+dorandmly outputs a curve with the needed sampling properties.
+                                                                                                 system in NL, we use Savitch’s Theorem [44] to compute the system
+Indeed such a sampler was designed by Guo [21] (following [48])
+                                                                                                 deterministically. This yields the following pair of algorithms:
+for this particular purpose – and in fact with our parameter regime
+in mind.                                                                                         Theorem 2.6 (informal). For every 𝜀 > 0, there are algorithms
+   Secondly, when considering the defining points for the ℓ-degree                               A1, A2 such that for every pair of graphs 𝐺 1 on 2log
+                                                                                                                                                        1/2+𝜀/2
+                                                                                                                                                                𝑛 vertices,
+curve, which are the points 𝑡 1, ..., 𝑡 ℓ ∈ F𝑞 such that we interpolate                          and 𝐺 2 on 𝑛 vertices, at least one of the following holds:
+the curve according to certain values on 𝑡 1, ..., 𝑡 ℓ , the procedure
+                                                                                                     • A1 (𝐺 1, 𝐺 2 ) computes 𝑠-𝑡 connectivity in 𝐺 1 in SC.
+splits these points into 𝑂 (log 𝑁 ) blocks, and needs the points in-
+                                                                                                     • A2 (𝐺 1, 𝐺 2 ) estimates length-𝑛 random walk probabilities in
+side each block to be good samplers (in F𝑞 ).12 A naive approach is
+                                                                                                        𝐺 2 in SPACE[log1+𝜀 𝑛].
+to choose the points in each block using a sampler, but this seem-
+ingly requires too much randomness (i.e., 𝑂 (log 𝑁 ) coins, times                                Moreover, both algorithms report if they fail to compute the desired
+the sampler’s randomness complexity). However, we show that the                                  answer, and do not exceed their resource bounds in any case.
+same randomness can be reused across blocks, since the analysis                                     Indeed, in the proof of Theorem 2.6, the bootstrapping system
+boils down to a union-bound over events that each depend on a                                    can be computed in nondeterministic space 𝑂 (log1/2+𝜀/2 𝑛), and
+single block.
+                                                                                                 hence in deterministic space 𝑂 (log1+𝜀 𝑛) by Savitch’s Theorem [44].
+    Pseudorandom interleaving. The last part of our modification is                              As such, in the case that the reachability bootstrapping system
+more subtle. Loosely speaking, in [45] they actually use two low-                                does contain a hard truth table, we can compute this truth table
+degree curves 𝐶 1 and 𝐶 2 , where 𝐶 1 is a random curve and 𝐶 2 is                               (and hence compute random walks on 𝐺 2 ) in space 𝑂 (log1+𝜀 𝑛),
+obtained by “shifting” the values of 𝐶 1 on some of the defining                                 obtaining a small overhead even for deterministic derandomization.
+points, by a small number 𝑂 (log 𝑁 ) of predetermined shift val-                                    We use the pair of algorithms from Theorem 2.6 to prove Theo-
+ues.13 In their argument, both 𝐶 1 and 𝐶 2 have sufficient sampling                              rem 2. Following the approach of [14, 30], we fix a BPSPACE[𝑛]
+properties, since the marginal distribution over each of the curves                              machine B and a NSPACE[𝑛 1/2+𝜀/2 ] machine N . For each pair
+is that of a random low-degree curve. However, in our argument,                                  (𝑥, 𝑦) ∈ {0, 1}𝑛 × {0, 1}𝑛 , consider the following two graphs:
+𝐶 2 is obtained by applying a sequence of predetermined shifts to                                               𝐺 1 (𝑦) = the configuration graph of N (𝑦)
+the values of a curve sampler 𝐶 1 on the defining points (and then
+interpolating), and it is not clear that this operation preserves the                                           𝐺 2 (𝑥) = the configuration graph of B (𝑥).
+sampling properties of 𝐶 1 .                                                                       Let us try and simulate B in SPACE[𝑛 1+𝜀 ] (if we fail, we will
+    If 𝐶 2 would have been obtained by applying shifts to all of the                             show another algorithm that simulates N in TISP[2𝑚 , poly(𝑚)]).
+points of 𝐶 1 (rather than applying them to the defining points                                  Our algorithm gets 𝑥 ∈ {0, 1}𝑛 and enumerates over all 𝑦 ∈ {0, 1}𝑛
+and then interpolating), then we would be able to prove that 𝐶 2                                 (which it can, since it is allowed to use super-linear space). It then
+is indeed a sampler. Of course, we cannot enforce that all of the                                runs A2 on the pair of graphs 𝐺 1 (𝑦), 𝐺 2 (𝑥); if A2 outputs an esti-
+12 This sampling property of the defining points of the curve 𝐶 is used to argue that,           mation of random walks on 𝐺 2 (𝑥), we are done, and otherwise we
+with high probability, the predictor succeeds in predicting sufficiently many points on          continue to the next 𝑦. The point is that one of two things happened:
+𝐶 (and on each 𝐴𝑖 · 𝐶 ).
+13 That is, if 𝐶 is defined by a small number of conditions of the form “𝐶 (𝑡 ) = 𝑧® ”           14 In fact, we set things up so that the 𝑂 (log 𝑁 ) subfields we use for pseudorandom
+                1                                                            1        𝑡
+(for a small number of 𝑡 ∈ F𝑞 and 𝑧®𝑡 ∈ F𝑞𝑣 ), then 𝐶 2 is defined by the conditions             interleaving are also exactly the 𝑂 (log 𝑁 ) blocks mentioned above (when discussing
+“𝐶 2 (𝑡 ) = 𝐴𝑡 · 𝑧®𝑡 ”, where 𝐴𝑡 is an invertible matrix in F𝑞𝑣 × F𝑞𝑣 .                          pseudorandom curves).
+
+
+
+
+                                                                                          1114
+STOC ’25, June 23–27, 2025, Prague, Czechia                                                                              Dean Doron, Edward Pyne, Roei Tell, and R. Ryan Williams
+
+
+Either for every 𝑥 there is 𝑦 such that this algorithm succeeds, in                            2.3.1 Derandomized D2P for AOBP ◦ FK. Consider an AOBP de-
+which case we simulated B in SPACE[𝑛 1+𝜀 ] on this input length;                               noted 𝐴 and the Forbes-Kelley PRG FK. Note that even if 𝐴 would
+or there exists 𝑥 such that for every 𝑦 this algorithm fails. In the                           have been an ROBP, the composition 𝐴 ◦ FK is not an ROBP, and
+latter case, a symmetric argument shows that for all 𝑦 ∈ {0, 1}𝑛 we                            thus we cannot use the known D2P transformations for ROBPs
+can simulate A1 in TISP[2𝑚 , poly(𝑚)] (i.e., given 𝑦, we enumerate                             (e.g., from [14]) for this composition.
+over all 𝑥 and simulate A1 with the two graphs). For further details                              We construct a derandomized D2P transform for a modified
+see the full version.                                                                          version of the Forbes-Kelley generator, where the modification
+                                                                                               facilitates the D2P transform. For our goal of minimal-memory
+2.3     Derandomization from Very Weak Hardness                                                overhead it will be crucial that the modified version of FK remains
+The basic idea behind all of our results that deduce derandomization                           strongly explicit (as is the original generator), but we can afford a
+from very weak hardness (i.e., Theorem 4, Theorem 6 and Theo-                                  seed length that is 𝑛𝜀 (rather than polylog(𝑛)). We give an informal
+rem 2.7) is the same. Let us describe the idea in general terms,                               statement of the result here:
+and then later focus on describing one particular result in more                               Theorem 2.7 (Forbes–Kelley D2P, informal). There is a generator
+                                                                                                           𝜀
+technical detail.                                                                              FK : {0, 1}𝑛 → {0, 1}𝑛 with the following properties.
+   To demonstrate the idea, consider trying to derandomize the                                    (1) Strong Explicitness. The map (𝑥, 𝑗) → FK(𝑥) 𝑗 is computable
+class BPSPACE[𝑂 (𝑛)] in SPACE[𝑂 (𝑛)]. We instantiate a genera-                                        in space 𝑂 (𝜀 log 𝑛) with catalytic access to 𝑗.16
+tor with a hard problem 𝐿 ∈ SPACE[𝑂 (𝑛)], say, the Shaltiel–Umans                                 (2) Fooling. The generator fools AOBPs of size 𝑛 to error 1/𝑛.
+generator SU from Section 2.1.3. Now, if the derandomization fails                                (3) White-Box D2P. There is a white-box D2P transform that
+on some input, then we can compress the hard truth-table, as fol-                                     can be computed in time poly(𝑛) and space 𝑂 (𝑛𝜀 ), where each
+lows. We enumerate over inputs 𝑥 ∈ {0, 1}𝑛 (indeed, we can do this                                    predictor can be evaluated in space log(𝑛) + 𝑂 (𝜀 log 𝑛).17
+since we are working in a scaled-up regime of linear space) and
+run the reconstruction algorithm. This algorithm is deterministic,                                Our actual construction makes several changes to the Forbes–
+and whenever the derandomization fails at 𝑥, the reconstruction                                Kelley generator, but the idea is the following. The generator is
+manages to compress the truth-table of 𝐿𝑂 (𝑛) . (For simplicity, we                            constructed as a sequence of random restrictions, each of which elim-
+ignore for a moment the distinguisher that is not fooled by SU and                             inate some variables while approximately preserving the expecta-
+whose description is part of the compressed version of 𝐿𝑂 (𝑛) .)                               tion of the branching program 𝐴. We think of the generator’s input
+   The key question is what is the size of the compressed version of                           as (𝐴1, 𝐵 1, . . . , 𝐴ℓ , 𝐵 ℓ ), where each 𝐴𝑖 , 𝐵𝑖 is the output of a 𝑘-wise
+𝐿𝑂 (𝑛) . For this question, a main bottleneck is the number of output                          independent generator over {0, 1}𝑛 . We then define FKℓ+1 = 0𝑛 ,
+bits that we ask SU to output; loosely speaking, if it outputs 𝑀 bits,                         and
+then the compressed version will be of size poly(𝑀).15 In settings                                                             FK𝑖 = 𝐴𝑖 ⊕ 𝐵𝑖 ∧ FK𝑖+1
+concerning derandomization in polynomial time or logarithmic                                   In particular, for 𝑗 ∈ [𝑛] where (𝐵𝑖 ) 𝑗 = 0, we say a variable has
+space, we have 𝑀 = 𝑁 Ω (1) , and thus poly(𝑀) = 𝑁 Θ(1) . For our                               been eliminated by level 𝑖, and further levels of the generator do
+results, we are interesting in obtaining a compressed representation                           not affect the output of the generator on that bit. Recall that by [30],
+of size only polylog(𝑁 ).                                                                      to produce a D2P transform, it suffices to solve prefix-CAPP, which
+                                                                                               in this case is the following:
+   The key: Unconditional PRGs and corresponding D2Ps. The way
+to achieve this goal will be similar to an idea from the proof of The-                         Question 2.8. Given an AOBP 𝐴 and
+orem 1. In all of our settings, we consider relatively weak distin-                                                   (𝑎, ® = (𝐴1, 𝐵 1, . . . , 𝐴𝑖 −1, 𝐵𝑖 −1 ),
+                                                                                                                       ® 𝑏)
+guishers, for which unconditional PRGs are known. For example,
+when derandomizing BPSPACE[𝑂 (𝑛)], the distinguisher 𝐷 is an                                   estimate
+                                                                                                                             E [𝐴(FK(𝑎, ® 𝑎®′, 𝑏®′ )].
+                                                                                                                                     ® 𝑏,
+ROBP, and we can compose it with Nisan’s [32] PRG to obtain a
+                                                                                                                           𝑎®′ ,𝑏®′
+distinguisher 𝐷 ◦ NIS over 𝑀 = polylog(𝑁 ) bits.
+   The main challenge is that we now need to develop derandom-                                    To see how the prefix affects the problem, consider the branching
+ized D2P transformations for distinguishers of the form “compose                               program 𝐴𝑎, ® 𝑏®
+                                                                                                                wherein every variable that has been eliminated is
+a weak distinguisher with an unconditional PRG”. Indeed, one such                              simply fixed to the value output by the generator at that bit. Thus,
+D2P was presented in Section 2.1.2, for a composition of ROBPs                                 we are now being asked to estimate
+with NIS. To further demonstrate out approach, we now describe                                                              E[𝐴𝑎,   (𝑧 ⊕ FK𝑖 (U))].
+                                                                                                                               ® 𝑏®
+another derandomized D2P, for the composition of an AOBP with (a
+modified version of) the Forbes-Kelley [17] PRG. The AOBP distin-                              where 𝑧 is a fixed vector that accounts for the prior levels of the
+guisher – which is an any-order branching program, defined in [7]                              generator.
+– comes up when constructing derandomization algorithms with                                      The key observation is that the Forbes-Kelley generator fools
+minimal memory overhead (and when using an idea from [15]), and                                branching programs, and so this expectation should itself be close
+the FK PRG fools such distinguishers with polylogarithmic seed.                                16 The algorithm is given access to a special read-write tape, initialized to (the binary
+                                                                                               representation of) 𝑗 . When the algorithm halts and returns FK(𝑥 ) 𝑗 , the tape must be
+                                                                                               restored to that initial configuration.
+15 This is since the reconstruction overhead is affected by the prediction advantage,          17 For technical reasons we construct a white-box Yao derandomization [30], where
+and the prediction advantage is at most 1/𝑀 whenever using a hybrid argument (or a             we are given access to the distribution D that does not fool 𝐴 ◦ FK and construct a
+deterministic D2P; see [30, Appendix B]).                                                      predictor for this distribution.
+
+
+
+
+                                                                                        1115
+When Connectivity Is Hard, Random Walks Are Easy with Non-determinism                                                                    STOC ’25, June 23–27, 2025, Prague, Czechia
+
+
+to E[𝐴𝑎, ® 𝑏®
+              (U)], i.e., filling in all non-eliminated variables with inde-                     [11] Kuan Cheng and William M. Hoza. 2022. Hitting Sets Give Two-Sided Deran-
+                                                                                                      domization of Small Space. Theory Comput. 18 (2022), 1–32.
+pendent true randomness. Estimating this quantity is easily seen to                              [12] Stephen A. Cook and Charles Rackoff. 1980. Space Lower Bounds for Maze
+be in BPL ⊆ SC, and so we obtain a SC-computable D2P transform                                        Threadability on Restricted Machines. SIAM J. Comput. 9, 3 (1980), 636–652.
+with this complexity.                                                                                 doi:10.1137/0209048
+                                                                                                 [13] Dean Doron, Dana Moshkovitz, Justin Oh, and David Zuckerman. 2022. Nearly
+    We remark that our actual construction is substantially different                                 Optimal Pseudorandomness From Hardness. Journal of the ACM 69, 6 (2022),
+from the above due to the following technical issues: First, we                                       1–55.
+cannot afford 𝑘 = 𝑂 (log 𝑛)-wise independent restrictions, as at                                 [14] Dean Doron, Edward Pyne, and Roei Tell. 2024. Opening Up the Distinguisher:
+                                                                                                      A Hardness to Randomness Approach for BPL = L that Uses Properties of BPL.
+several steps in our argument we must enumerate over all seeds                                        In Proc. 56th Annual ACM Symposium on Theory of Computing (STOC).
+                                                                    2
+in a single level of a generator, which would take time 2log 𝑛 ≫ 𝑛.                              [15] Dean Doron and Roei Tell. 2023. Derandomization with Minimal Memory Foot-
+                                                                                                      print. In Proc. 38 Annual IEEE Conference on Computational Complexity (CCC).
+Because of this, we can only afford 𝑂 (1/𝜀)-wise independence,                                        Schloss Dagstuhl - Leibniz-Zentrum für Informatik, Article 11.
+which requires a generator with 𝑛𝜀 levels, and a much smaller                                    [16] Jeff Edmonds, Chung Keung Poon, and Dimitris Achlioptas. 1999. Tight Lower
+                                                                                                      Bounds for st-Connectivity on the NNJAG Model. SIAM J. Comput. 28, 6 (1999),
+restriction probability.                                                                              2257–2284.
+    The second and larger issue is that it is not actually true that for                         [17] Michael A. Forbes and Zander Kelley. 2018. Pseudorandom generators for read-
+every prefix of a seed to the Forbes-Kelley generator, the output of                                  once branching programs, in any order. In Proc. 59th Annual IEEE Symposium on
+                                                                                                      Foundations of Computer Science (FOCS). 946–955.
+the generator on a random suffix of the generator is approximately                               [18] Anna Gál and Avi Wigderson. 1996. Boolean complexity classes vs. their arith-
+the same as filling in bits uniformly. For example, consider a patho-                                 metic analogs. Random Struct. Algorithms 9, 1-2 (1996), 99–111.
+logical prefix that eliminates far fewer variables than it should; then,                         [19] Uma Girish, Ran Raz, and Wei Zhan. 2023. Is Untrusted Randomness Helpful?. In
+                                                                                                      Proc. 14 Conference on Innovations in Theoretical Computer Science (ITCS) (LIPIcs,
+a random suffix of a seed for the generator will not eliminate all                                    Vol. 251). 56:1–56:18.
+the variables (with high probability), in which case the generator                               [20] Aryeh Grinberg, Ronen Shaltiel, and Emanuele Viola. 2018. Indistinguishability by
+                                                                                                      Adaptive Procedures with Advice, and Lower Bounds on Hardness Amplification
+fills in many bits with FKℓ+1 = 0𝑛 . (Needless to say, this is very far                               Proofs. In Proc. 59th Annual IEEE Symposium on Foundations of Computer Science
+from uniform.)                                                                                        (FOCS). 956–966.
+    Our solution is to construct an auxiliary D2P transform such                                 [21] Zeyu Guo. 2013. Randomness-Efficient Curve Samplers. In Approximation, Ran-
+                                                                                                      domization, and Combinatorial Optimization. Algorithms and Techniques (AP-
+that, if many prefixes are in deficient in this way, then we can solve                                PROX/RANDOM). Springer, 575–590.
+PCAPP on these prefixes very efficiently. This modification requires                             [22] Shuichi Hirahara. 2023. Non-black-box worst-case to average-case reductions
+changing the final level of the generator to behave differently when                                  within NP. SIAM Journal on Computing 52, 6 (2023), FOCS18–349–FOCS18–382.
+                                                                                                 [23] William M. Hoza. 2021. Better Pseudodistributions and Derandomization for
+few variables are left alive. By itself, this change would destroy                                    Space-Bounded Computation. In Proceedings of the 25th International Conference
+strong explicitness, but we are able to use ideas from catalytic                                      on Randomization and Computation (RANDOM). 28:1–28:23.
+                                                                                                 [24] William M. Hoza. 2022. Recent Progress on Derandomizing Space-Bounded
+computation to obtain a strongly explicit PRG with catalytic access                                   Computation. Bull. EATCS 138 (2022).
+to the input (which suffices for the minimal memory overhead                                     [25] Neil Immerman. 1988. Nondeterministic Space is Closed Under Complementation.
+application, as explained in the full version). The interested reader                                 SIAM J. Comput. 17, 5 (1988), 935–938. doi:10.1137/0217058
+                                                                                                 [26] Russell Impagliazzo, Ronen Shaltiel, and Avi Wigderson. 2006. Reducing the seed
+is referred to the full version for further details about the D2P.                                    length in the Nisan-Wigderson generator. Combinatorica 26, 6 (2006), 647–681.
+                                                                                                 [27] Russell Impagliazzo and Avi Wigderson. 1997. P = BPP if E requires exponential
+References                                                                                            circuits: derandomizing the XOR lemma. In Proc. 29th Annual ACM Symposium
+                                                                                                      on Theory of Computing (STOC). 220–229.
+ [1] Eric Allender, Klaus Reinhardt, and Shiyu Zhou. 1999. Isolation, Matching, and              [28] Valentine Kabanets, Charles Rackoff, and Stephen A. Cook. 2000. Efficiently
+     Counting Uniform and Nonuniform Upper Bounds. J. Comput. Syst. Sci. 59, 2                        Approximable Real-Valued Functions. Electron. Colloquium Comput. Complex.
+     (1999), 164–181.                                                                                 TR00-034 (2000). ECCC:TR00-034 https://eccc.weizmann.ac.il/eccc-reports/2000/
+ [2] Roy Armoni, Amnon Ta-Shma, Avi Wigderson, and Shiyu Zhou. 2000. An                               TR00-034/index.html
+     O(log(n)4/3 ) space algorithm for (s, t) connectivity in undirected graphs. J. ACM          [29] Adam R. Klivans and Dieter van Melkebeek. 2002. Graph Nonisomorphism Has
+     47, 2 (2000), 294–311. doi:10.1145/333979.333984                                                 Subexponential Size Proofs Unless the Polynomial-Time Hierarchy Collapses.
+ [3] Greg Barnes, Jonathan F. Buss, Walter L. Ruzzo, and Baruch Schieber. 1998. A                     SIAM Journal on Computing 31, 5 (2002), 1501–1526.
+     Sublinear Space, Polynomial Time Algorithm for Directed s-t Connectivity. SIAM              [30] Jiatu Li, Edward Pyne, and Roei Tell. 2024. Distinguishing, Predicting, and
+     J. Comput. 27, 5 (1998), 1273–1282.                                                              Certifying: On the Long Reach of Partial Notions of Pseudorandomness.
+ [4] Jin-yi Cai, Venkatesan T. Chakaravarthy, and Dieter van Melkebeek. 2006. Time-              [31] Pinyan Lu, Jialin Zhang, Chung Keung Poon, and Jin-yi Cai. 2005. Simulat-
+     Space Tradeoff in Derandomizing Probabilistic Logspace. Theory Comput. Syst.                     ing Undirected st-Connectivity Algorithms on Uniform JAGs and NNJAGs.
+     39, 1 (2006), 189–208. doi:10.1007/S00224-005-1264-9                                             In Proceedings of 16th International Symposium on Algorithms and Computa-
+ [5] Marco Carmosino, Russell Impagliazzo, Valentine Kabanets, and Antonina                           tion (ISAAC) (Lecture Notes in Computer Science, Vol. 3827). Springer, 767–776.
+     Kolokolova. 2015. Tighter Connections between Derandomization and Cir-                           doi:10.1007/11602613_77
+     cuit Lower Bounds. In Proc. 19th International Workshop on Randomization and                [32] Noam Nisan. 1991. Pseudorandom bits for constant depth circuits. Combinatorica
+     Approximation Techniques in Computer Science (RANDOM). 645–658.                                  11, 1 (1991), 63–70.
+ [6] Lijie Chen, Zhenjian Lu, Igor Carboni Oliveira, Hanlin Ren, and Rahul Santhanam.            [33] Noam Nisan. 1992. Pseudorandom generators for space-bounded computation.
+     2023. Polynomial-Time Pseudodeterministic Construction of Primes. arXiv                          Combinatorica 12, 4 (1992), 449–461.
+     preprint arXiv:2305.15140 (2023).                                                           [34] Noam Nisan. 1994. RL ⊆ SC. Computational Complexity 4 (1994), 1–11.
+ [7] Lijie Chen, Xin Lyu, Avishay Tal, and Hongxun Wu. 2023. New PRGs for                        [35] Noam Nisan, Endre Szemerédi, and Avi Wigderson. 1992. Undirected Connectivity
+     Unbounded-Width/Adaptive-Order Read-Once Branching Programs. In Proc.                            in 𝑂 (log1.5 𝑛) Space. In Proc. 33rd Annual IEEE Symposium on Foundations of
+     50 International Colloquium on Automata, Languages and Programming (ICALP)                       Computer Science (FOCS). 24–29.
+     (LIPIcs, Vol. 261). Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 39:1–39:20.          [36] Noam Nisan and Avi Wigderson. 1994. Hardness vs. randomness. Journal of
+ [8] Lijie Chen and Roei Tell. 2021. Hardness vs Randomness, Revised: Uniform,                        Computer and System Sciences 49, 2 (1994), 149–167.
+     Non-Black-Box, and Instance-Wise. In Proc. 62nd Annual IEEE Symposium on                    [37] Chung Keung Poon. 1993. Space Bounds for Graph Connectivity Problems
+     Foundations of Computer Science (FOCS). 125–136.                                                 on Node-named JAGs and Node-ordered JAGs. In 34th Annual Symposium on
+ [9] Lijie Chen and Roei Tell. 2021. Simple and fast derandomization from very hard                   Foundations of Computer Science (FOCS). IEEE Computer Society, 218–227. doi:10.
+     functions: Eliminating randomness at almost no cost. In Proc. 53st Annual ACM                    1109/SFCS.1993.366865
+     Symposium on Theory of Computing (STOC). 283–291.                                           [38] Edward Pyne. 2024. Derandomizing Logspace with a Small Shared Hard Drive. In
+[10] Lijie Chen and Roei Tell. 2023. When Arthur has Neither Random Coins nor                         Proc. 39th Annual IEEE Conference on Computational Complexity (CCC). 4:1–4:20.
+     Time to Spare: Superfast Derandomization of Proof Systems. In Proc. 55th Annual             [39] Edward Pyne, Ran Raz, and Wei Zhan. 2023. Certified Hardness vs. Randomness
+     ACM Symposium on Theory of Computing (STOC). 60–69.                                              for Log-Space. In 64th IEEE Annual Symposium on Foundations of Computer Science,
+
+
+
+
+                                                                                          1116
+STOC ’25, June 23–27, 2025, Prague, Czechia                                                                             Dean Doron, Edward Pyne, Roei Tell, and R. Ryan Williams
+
+
+     FOCS 2023.                                                                                 [47] Róbert Szelepcsényi. 1988. The Method of Forced Enumeration for Nondetermin-
+[40] Omer Reingold. 2008. Undirected connectivity in log-space. Journal of the ACM                   istic Automata. Acta Informatica 26, 3 (1988), 279–284.
+     55, 4 (2008), 17:1–17:24.                                                                  [48] Amnon Ta-Shma and Christopher Umans. 2006. Better lossless condensers
+[41] Klaus Reinhardt and Eric Allender. 2000. Making Nondeterminism Unambiguous.                     through derandomized curve samplers. In Proc. 47th Annual IEEE Symposium on
+     SIAM J. Comput. 29, 4 (2000), 1118–1131.                                                        Foundations of Computer Science (FOCS). 177–186.
+[42] Michael E. Saks and Shiyu Zhou. 1999. BPH SPACE[𝑆 ] ⊆ DSPACE[𝑆 3/2 ] .                     [49] Amnon Ta-Shma, Christopher Umans, and David Zuckerman. 2007. Lossless
+     Journal of Computer and System Sciences 58, 2 (1999), 376–403.                                  condensers, unbalanced expanders, and extractors. Combinatorica 27, 2 (2007),
+[43] Rahul Santhanam and R. Ryan Williams. 2013. On medium-uniformity and circuit                    213–240.
+     lower bounds. In Proc. 28th Annual IEEE Conference on Computational Complexity             [50] Leslie G. Valiant and Vijay V. Vazirani. 1986. NP is as Easy as Detecting Unique
+     (CCC). IEEE, 15–23.                                                                             Solutions. Theor. Comput. Sci. 47, 3 (1986), 85–93.
+[44] Walter J. Savitch. 1970. Relationships between nondeterministic and deterministic          [51] Dieter van Melkebeek and Gautam Prakriya. 2019. Derandomizing Isolation in
+     tape complexities. J. Comput. System Sci. 4 (1970), 177–192.                                    Space-Bounded Settings. SIAM J. Comput. 48, 3 (2019), 979–1021.
+[45] Ronen Shaltiel and Christopher Umans. 2005. Simple extractors for all min-                 [52] Avi Wigderson. 1992. The Complexity of Graph Connectivity. In Mathematical
+     entropies and a new pseudorandom generator. Journal of the ACM 52, 2 (2005),                    Foundations of Computer Science (MFCS) (Lecture Notes in Computer Science,
+     172–216.                                                                                        Vol. 629). Springer, 112–132.
+[46] Ronen Shaltiel and Emanuele Viola. 2022. On Hardness Assumptions Needed for                [53] Andrew C. Yao. 1982. Theory and Application of Trapdoor Functions. In Proc.
+     “Extreme High-End” PRGs and Fast Derandomization. In Proc. 13 Conference on                     23rd Annual IEEE Symposium on Foundations of Computer Science (FOCS). 80–91.
+     Innovations in Theoretical Computer Science (ITCS).
+                                                                                                Received 2024-11-04; accepted 2025-02-01
+
+
+
+
+                                                                                         1117
+

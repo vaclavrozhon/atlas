@@ -1,0 +1,1265 @@
+                                                       Improved Bounds for Fully Dynamic Matching via
+                                                              Ordered Ruzsa-Szemerédi Graphs
+                                                               Sepehr Assadi∗             Sanjeev Khanna†              Peter Kiss‡
+arXiv:2406.13573v2 [cs.DS] 18 Oct 2024
+
+
+
+
+                                                                                            Abstract
+                                                   In a very recent breakthrough, Behnezhad and Ghafari [FOCS’24] developed a novel fully
+                                                dynamic randomized algorithm for maintaining a (1 − ε)-approximation of maximum matching
+                                                with amortized update time potentially much better than the trivial O(n) update time. The
+                                                runtime of the BG algorithm is parameterized via the following graph theoretical concept:
+                                                  • For any n, define ORS(n)—standing for Ordered Ruzsa-Szemerédi Graph—to be the largest
+                                                    number of edge-disjoint matchings M1 , . . . , Mt of size Θ(n) in an n-vertex graph such that
+                                                    for every i ∈ [t], Mi is an induced matching in the subgraph Mi ∪ Mi+1 ∪ . . . ∪ Mt .
+                                                Then, for any fixed ε > 0, the BG algorithm runs in
+                                                                                     q                  
+                                                                                  O      n1+O(ε) · ORS(n)
+
+                                                amortized update time with high probability, even against an adaptive adversary. ORS(n) is a
+                                                close variant of a more well-known quantity regarding Ruzsa-Szemerédi graphs (which require
+                                                every matching to be induced regardless of the ordering). It is currently only known that
+                                                no(1) ⩽ ORS(n) ⩽ n1−o(1) , and closing this gap appears to be a notoriously challenging problem.
+                                                    If it turns out that ORS(n) = no(1) , namely, the current lower bounds are close to being
+                                                optimal, then, this algorithm achieves an update time of n1/2+o(1) for (1 − ε)-approximation of
+                                                fully dynamic matching, making progress on a major open question in the area.
+
+                                                Our Result: In this work, we further strengthen the result of Behnezhad and Ghafari and
+                                                push it to limit to obtain a randomized algorithm with amortized update time of
+
+                                                                                          no(1) · ORS(n)
+
+                                                with high probability, even against an adaptive adversary. In the limit, i.e., if current lower
+                                                bounds for ORS(n) = no(1) are almost optimal, our algorithm achieves an no(1) update time
+                                                for (1 − ε)-approximation of maximum matching, almost fully resolving this fundamental ques-
+                                                tion. In its current stage also, this fully reduces the algorithmic problem of designing dynamic
+                                                matching algorithms to a purely combinatorial problem of upper bounding ORS(n) with no
+                                                algorithmic considerations.
+
+                                            ∗
+                                             (sepehr@assadi.info) Cheriton School of Computer Science, University of Waterloo. Supported in part by a Sloan
+                                         Research Fellowship, an NSERC Discovery Grant, a University of Waterloo startup grant, and a Faculty of Math
+                                         Research Chair grant.
+                                            †
+                                              (sanjeev@cis.upenn.edu) Department of Computer and Information Science, University of Pennsylvania. Research
+                                         supported in part by NSF awards CCF-1934876, CCF-2008305, and CCF-2402284.
+                                            ‡
+                                             (peter.kiss@warwick.ac.uk) University of Vienna. The author completed parts of this project at the University
+                                         of Warwick.
+
+
+                                                                                                 i
+Contents
+
+1 Introduction                                                                                           1
+  1.1   Our Contribution . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .     2
+  1.2   Our Algorithm at a High Level . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        2
+
+2 Preliminaries                                                                                          4
+  2.1   Basic Notation and Representation of Graphs . . . . . . . . . . . . . . . . . . . . . .          4
+  2.2   Tools from Prior Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      4
+  2.3   An Auxiliary Lemma on ORS Graphs . . . . . . . . . . . . . . . . . . . . . . . . . .             5
+
+3 An Opportunistic Sublinear-Time Algorithm for Matching                                                 6
+
+4 A Key Intermediate Dynamic Problem                                                                    9
+  4.1   Base Case . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    9
+  4.2   The Recursive Step . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+
+5 A Fully Dynamic Algorithm for Maximum Matching                                                        18
+  5.1   Removing the Assumption on the Prior Knowledge of ORS . . . . . . . . . . . . . . 19
+
+Acknowledgement                                                                                         20
+
+
+
+
+                                                   ii
+1    Introduction
+We study the problem of maintaining an approximate maximum matching in a fully dynamic
+graph. In this problem, we have a graph G = (V, E) that undergoes insertion and deletion of
+edges by an adversary and our goal is to maintain (edges of) an approximate maximum matching
+of G after each update. This is one of the most central problems in the dynamic graph literature;
+see [OR10, GP13, BS15, BS16, Sol16, BGS18, BK22, Beh23, BKSW23, ABKL23, BKS23, Liu24, BG24]
+and references therein.
+    In a very recent breakthrough, [BG24] developed an algorithm that for any fixed ε > 0, maintains
+(edges of) a (1 − ε)-approximate maximum matching in a fully dynamic graph with potentially
+much better than Oε (n) update time. Specifically, the runtime of the algorithm of [BG24] is
+parameterized based on the density of a certain family of extremal graphs which are (quite) closely
+related to Ruzsa-Szemerédi (RS) graphs [RS78] (see [AMS12,FHS17] for more context on RS graphs,
+and [GKK12, ABKL23, AS23] and references therein for their applications to dynamic graph and
+other sublinear algorithms). [BG24] defined the following family of closely related graphs.
+
+Definition 1.1 (Ordered Ruzsa-Szemerédi (ORS) Graphs [BG24]). A graph G = (V, E) is called
+an (r, t)-ORS graph if its edges can be partitioned into an ordered set of t matchings M1 , . . . , Mt
+each of size r, such that for every i ∈ [t], the matching Mi is an induced matching in the subgraph
+of G on Mi ∪ Mi+1 ∪ . . . ∪ Mt .
+    We define ORS(n, r) as the largest choice of t such that an n-vertex (r, t)-ORS graph exist.
+
+    Unfortunately, exactly as in RS graphs, density of ORS graphs is quite poorly understood at
+this point. Currently, for any constant δ ∈ (0, 1/4), it is only known that
+                                                                                         n
+                  nΩδ (1/ log log n)         ⩽            ORS(n, δn)     ⩽          (poly(1/δ))
+                                                                                                        ,   (1)
+                                       [FLN+ 02, GKK12]                [BG24] log                 (n)
+
+where log(k) (n) is the k-iterated logarithm function, i.e.,
+
+                                          log(k) (n) := log log · · · log (n).
+                                                        |     {z        }
+                                                                k
+
+This is quite similar to the situation for RS graphs (modulo a slightly better dependence in
+RS graphs on the parameter δ in the upper bound due to [Fox11] (see also [FHS17]), namely,
+logO(log (1/δ)) (n) instead in the denominator).
+   The result of [BG24] is a randomized algorithm that given any fixed ε > 0 with high probability
+maintains a (1−ε)-approximation of maximum matching in a fully dynamic graph with an amortized
+update time of                      p                       
+                                  O     n1+ε · ORS(n, Θε (n)) .
+
+Thus, if it happens to be the case that ORS graphs cannot be dense, i.e., ORS(n, Θε (n)) = n1−Ω(1) ,
+this algorithm achieves an update time of n1−Ω(1) for this problem, making progress on a major
+open question in the dynamic matching literature [GP13, BS16, BK22, BKS23, BG24]. Moreover,
+in the limit, namely, if the current lower bounds of Eq (1) on ORS are almost optimal, then, this
+algorithm achieves an update time of n1/2+o(1) ; currently, the best algorithm known with such an
+update time due to [BS16] can only achieve a 2/3-approximation.
+
+
+
+
+                                                           1
+1.1       Our Contribution
+We build on the approach of [BG24] and push it to its limit to obtain the following result.
+
+  Result 1. There is an algorithm that for any fixed ε > 0 maintains a (1 − ε)-approximate
+  maximum matching of any fully dynamic graph with amortized update time of
+                                                        
+                                 O no(1) · ORS(n, Θε (n)) .a
+
+  The algorithm is randomized and its guarantees hold with high probability against an adaptive
+  adversary. The algorithm does not assume a prior knowledge of the value of ORS(n, Θε (n)) to
+  achieve its guarantee.
+      a
+       More specifically, for any β0 ∈ (0, 1), there is a β1 ∈ (0, 1) such that this runtime is O(nβ0 ·ORS(n, β1 ·f (ε)·n))
+  for some fixed function f independent of β0 , β1 .
+
+
+    In the limit, if ORS graphs cannot be much denser than the lower bounds in Eq (1), Result 1
+achieves an no(1) amortized update time, almost fully settling the question of (1 − ε)-approximation
+of fully dynamic matching. Beside the conditional upper bound of [BG24] (which would be an
+n1/2+o(1) update time algorithm √under this hypothesis), it is also known unconditionally how to
+obtain an update time of n/2Θ( log n) · poly(1/ε) on bipartite graphs [Liu24] (and presumably
+a similar runtime with O(1/ε)O(1/ε) -dependence instead on general graphs using the reduction
+of [McG05]; see Proposition 2.2). Moreover, [BKS23], building on [Beh23, BKSW23], designed an
+algorithm that for any fixed ε > 0, obtains an update time of m1/2−Ωε (1) for the easier problem of
+maintaining the size of the maximum matching (but not its edges).
+    Result 1 also suggests that almost any interesting lower bound for this problem (even under
+computational hardness assumptions) should effectively rule out existence of even mildly dense
+ORS graphs, which will constitute a big breakthrough given the close connection of these graphs
+to RS graphs (or alternatively, explicitly condition on the assumption that ORS graphs are dense;
+similar assumptions for RS graphs have been used to prove lower bounds for (1 − ε)-approximation
+of the maximum matching problem in other settings, e.g., in the streaming model [AS23]).
+    It is worth noting here that existing conditional lower bounds in [HKNS15] rule out n1−Ω(1)
+update time algorithms for computing an exact maximum matching, and more recently in [Liu24],
+for even a (1−ε)-approximation but only when ε = n−Ω(1) . On the other hand, our focus in Result 1
+is on the regime when ε ∈ (0, 1) is fixed and independent of n (which is often the main regime
+of interest in the context of sublinear algorithms). Indeed, the√RS graph constructions of [RS78]
+(see also [AMS12]) imply that ORS(n, δn) = Ω(n) for δ ⩽ 2−Θ( log n) . This implies that for small
+enough ε, it is already known that Result 1 cannot achieve any non-trivial guarantee.
+1.2       Our Algorithm at a High Level
+By the existing boosting frameworks for matchings (see Proposition 2.2), obtaining an εn additive
+approximation reduces to the following problem: given a fully dynamic graph G = (V, E), every
+Θε (n) updates we receive Oε (1) queries of the form U ⊆ V and must return an O(1)-approximate
+maximum matching in the induced subgraph G[U ] (see Problem 1). An additive εn approxima-
+tion to matching can also be turned into a multiplicative one, using another standard technique
+(see Proposition 2.4). Both these parts are by-now standard; see, e.g. [Kis22, Beh23, BKSW23,
+BKS23, ABR24, Liu24, BG24]. The main part then is to solve Problem 1.
+
+
+
+                                                             2
+The approach of [BG24]. The solution of [BG24] for Problem 1 can be summarized as follows.
+The algorithm processes the updates in batches. In each batch, G0 will be the current graph at
+the start of the batch and the new updates are inserted into a new graph G1 . There will also be
+a graph G2 which is created by moving certain edges from G0 (will be described later). Given a
+query U , the algorithm tries to find a large matching in (G1 ∪ G2 )[U ] and if it succeeds, it returns
+that one and moves on. This step is done using the greedy matching algorithm taking time linear
+in the size of G1 ∪ G2 . But, if (G1 ∪ G2 )[U ] does not have a large matching, the algorithm needs to
+search for a one in G0 [U ]. This is done via a novel sublinear time “opportunistic” algorithm: the
+algorithm takes O(n2+ε /d) time with high probability where d is the average degree of the graph
+G0 [V (M )]; i.e., if the matching M is “far from” being induced, then it can be found much faster
+than when it is close to being induced. The edges in this matching are then moved from G0 to G2 .
+    The runtime analysis of this algorithm is as follows. Suppose each batch consists of s updates.
+Since Oε (1) queries are called every Θε (n) updates, the algorithm needs to handle Oε (s/n) queries
+in a batch. Moreover, both graphs G1 and G2 can only have Oε (s) edges: the first one since there
+are s updates in a batch and the second because each of the Oε (s/n) queries may insert a matching
+inside G2 . Thus, the entire time spent in this batch for running the greedy algorithm on G1 ∪ G2 is
+Oε (s2 /n) time. The runtime on G0 however is calculated differently using a global argument. Using
+the fact that G0 only undergoes deletions during a batch, [BG24] come up with an elegant analysis
+that shows that if the algorithm is spending a “lot of time” in finding “near induced” matchings
+in G0 , then, one can find a “dense” ORS graph in G0 – this allows for bounding the entire time
+the algorithm is spending on G0 during this batch by O(n2+ε · ORS(n, Θε (n))) time. This implies
+that by taking s ≈ n3/2 · ORS(n, Θε (n))p
+                                        1/2 , the amortized update time of the algorithm will become
+
+Oε (s/n) (over s updates) which is Oε ( n1+ε · ORS(n, Θε (n))) time.
+Our approach. In the algorithm of [BG24], if the size of batch grows then so do the number
+of edges in the graph G1 ∪ G2 , and hence the cost of finding a greedy matching in (G1 ∪ G2 )[U ].
+However, the ORS-density based upper bound of the total running time of calls to the opportunistic
+algorithm remains unchanged with larger batches. Our main goal is to accelerate the step of
+finding matchings in G1 ∪ G2 to allow for larger batches to amortize over the running cost of the
+opportunistic algorithm. To do this, observe that G1 and G2 are both dynamic graphs undergoing
+a small number of updates per each update to the underlying graph. This suggests that instead of
+statically finding matchings in G1 ∪ G2 we may dynamically maintain them via an efficient dynamic
+matching algorithm.
+    We develop a recursive variant of the algorithm of [BG24]. The first main ingredient is a
+sublinear time algorithm that given a graph G = (V, E) with m edges and a query U ⊆ V , finds
+a large matching M in G in O(m1+ε /d) time where d is the maximum degree of M in G[V (M )].
+Thus, this result strengthens the algorithm of [BG24] in both relating it to the density of G (instead
+of O(n2 ) always) and providing a stronger guarantee on the maximum internal degree of M instead
+of the average degree. The main step however is how to perform the recursion.
+   We present a family of algorithms {Ai }i⩾1 with progressively better update times, where A1 is
+                                                                       p
+similar to the algorithm of [BG24] with a key difference of having Oε ( (m/n)1+ε · ORS(n, Θε (n)))
+update time instead (here, m is a promised upper bound on the number of edges in G). Let us now
+consider constructing A2 from A1 .
+   We also process the inputs in batches of size s with G0 being the current graph at the start of
+the batch, G1 receiving the updates during the batch, and G2 receiving some removed matchings
+from G0 while answering the queries. The main difference is that we are going to run A1 on G1 and
+G2 separately instead of the greedy algorithm. These graphs now are going to have Oε (s) edges
+
+
+                                                  3
+in total
+       p(similar to what argued earlier) and thus the total runtime of processing these graphs is
+Oε (s · (s/n)1+ε · ORS(n, Θε (n)). If we find a large matching for a given query U from either G1
+or G2 , we will be done, but if not, we need to rely on G0 [U ]. In this case, we run our new sublinear
+time algorithm to find a matching with maximum internal degree d in O(m1+ε /d) time. A similar
+argument as in [BG24] (in fact considerably simpler given our stronger maximum degree guarantee)
+allows us to bound the total runtime of this step with Oε (m1+ε · ORS(n, Θε (n))) time. Optimizing
+for the choice of s then leads to an Oε ((m/n)1/3+ε · ORS(n, Θε (n))2/3 ) amortized update time.
+   Continuing like this for A3 , A4 , · · · , while explicitly accounting for the loss in parameters (es-
+pecially size of induced matchings in ORS graphs), gives us our final algorithm.
+
+2     Preliminaries
+2.1   Basic Notation and Representation of Graphs
+For a graph G = (V, E), we use n := |V | and m := |E|. For a vertex v ∈ V , we use N (v) to denote
+the neighbors of v and deg(v) := |N (v)| to denote its degree. For a subset U ⊆ V , G[U ] denotes
+the induced subgraph of G on U . We use µ(G) to denote the maximum matching size in G.
+    Since we will be designing sublinear-time algorithms for a dynamically changing graph, we
+briefly describe how the graphs will be represented to support various operations, namely, insertion
+and deletion of edges, neighbor queries, and pair queries, each in O(1) expected time. For each
+vertex u ∈ V , we maintain a dynamic array Au , a dynamic hash table hu , and the current degree
+deg (u) of u. Here, dynamic refers to the property that at all times, the size of Au is Θ(deg (u)).
+    When an edge (u, v) is inserted, we increment deg (u) by 1, set Au [deg (u)] = v, and insert v in
+the hash table hu , storing along with it it the value deg (u), namely, the location of the vertex v in
+the array Au . This takes O(1) expected time.
+    When an edge (u, v) is deleted, let w be the vertex at Au [deg (u)]. We decrement deg (u) by 1.
+If w = v, we simply delete v from the hash table hu . Otherwise, let j be the location of the vertex
+v in Au which can be recovered using hu (v). We set Au [j] = w, delete both v and w from hu , and
+reinsert w in hu associating j to be its new location in Au . This takes O(1) expected time.
+   Finally, given any integer i ∈ [deg (u)], the task of outputting the i-th neighbor of u is done by
+simply returning the vertex stored in Au [i]. This also allows for sampling a random neighbor of u.
+2.2   Tools from Prior Work
+We start by recalling the following standard fact about the greedy algorithm for approximating
+maximum matchings.
+
+Fact 2.1. Let G = (V, E). The greedy algorithm that starts with M = ∅, iterates over edges of G
+in any arbitrary order, and add an edge to M if both its endpoints are currently unmatched, returns
+a matching M of size |M | ⩾ 1/2 · µ(G) in O(n + m) time.
+
+Boosting frameworks for approximate matching. We use standard boosting frameworks
+for obtaining a (1 − ε)-approximation to matching, using a “weak” approximation algorithm that
+only returns an O(1)-approximation. The original version of this framework is due to [McG05] and
+was de-randomized in [Tir18]; for bipartite graphs, more efficient reductions are known in [AG11,
+ALT21]. These results were tailored to additive approximation and dynamic graphs in [BKS23].
+
+Proposition 2.2 ([McG05, AG11, Tir18, ALT21, BKS23]). Let γ, ε ∈ (0, 1) be parameters. There
+exist functions f (γ, ε) and g(γ, ε) such that the following holds. Let Aweak be an algorithm that given
+
+
+                                                   4
+an n-vertex graph G = (V, E) and any set U ⊆ V of vertices with µ(G[U ]) ⩾ f (γ, ε) · n, returns a
+matching of size at least γ · f (γ, ε) · n in G[U ]. Then, there is a algorithm that given G = (V, E)
+makes g(γ, ε) calls to Aweak on adaptively chosen subsets of vertices, spending O(f (γ, ε) · n) time
+preparing each subset, and returns a matching of size µ(G) − ε · n in G.
+    For bipartite graphs, f (γ, ε) = poly(ε) and g(γ, ε) = poly(1/(γ · ε)) by [AG11, ALT21], while
+for general graphs, both f (γ, ε)−1 , g(γ, ε) = (1/(γ · ε))O(1/(γ·ε)) = Oγ,ε (1) by [McG05, Tir18].
+
+Sublinear-time estimation of maximum matching size.                      We also rely on the sublinear-time
+algorithm of [Beh21] for matching size estimation.
+
+Proposition 2.3 ( [Beh21]). There is a randomized algorithm Asublinear that for any n-vertex graph
+G = (V, E) and a parameter ε ∈ (0, 1), makes O(n
+                                               e · poly(1/ε)) queries to the adjacency matrix of
+G and with high probability outputs an estimate µ̃(G) such that
+                                   1
+                                     · µ(G) − ε · n ⩽ µ̃(G) ⩽ µ(G).
+                                   2
+
+Vertex sparsification. Finally, we use vertex sparsification approaches of [AKLY16, AKL16,
+CCE+ 16] as implemented by [Kis22] for dynamic graphs. These sparsification approaches reduce
+the number of vertices to O(µ(G)/ε) via vertex contraction while preserving a (1 − ε)-approximate
+maximum matching in the graph. This allows one to turn additive approximation to matching into
+a multiplicative one, with minor overhead (see, e.g. [BG24], for an example of how this is used).
+
+Proposition 2.4 ([AKLY16,AKL16,CCE+ 16,Kis22]). Suppose Aadditive is an algorithm that given
+a parameter ε > 0 can process a fully dynamic n-vertex graph G = (V, E) and maintains a matching
+of size at least µ(G) − ε · n in T (n, ε) amortized update time. Then, there is a randomized algorithm
+that can with high probability maintain a (1 − ε)-approximation to maximum matching in n-vertex
+fully dynamic graphs in O(T (n, Θ(ε2 )) · poly(log (n)/ε)) amortized update time.
+
+2.3   An Auxiliary Lemma on ORS Graphs
+For a matching M in a graph G, we define the maximum internal degree ∆in (M ) of M , as the
+maximum degree of the induced subgraph G[V (M )]. This way, ∆in (M ) = 1 iff M is an induced
+matching, and in general, smaller the value ∆in (M ), the “closer” M is to an induced matching.
+   The following lemma is a simplification of a similar result in [BG24, Lemma 14] (which even
+works for average internal degree instead of maximum degree), using a simple variant of the rounding
+approach of [GKK12] for RS graphs.
+
+Lemma 2.5. Let G = (V, E) be any graph and M := (M1 , . . . , Mρ ) be an ordered set of matchings
+in G, each of size ℓ, such that for every i ∈ [ρ], ∆in (Mi ) in the subgraph of G on edges Mi ∪ Mi+1 ∪
+. . . ∪ Mρ is some given di ⩾ 1. Then, for every η ∈ (0, 1/100),
+                                ρ
+                                X 1            34 log n
+                                           ⩽            · ORS(n, (1 − η) · ℓ).
+                                      di           η
+                                i=1
+
+Proof. For any integer d ∈ {1, 2, 4, . . . , n}, define M(d) := {Mi ∈ M | d ⩽ di < 2di } . Moreover, let
+                                                         X
+                                       d∗ := arg max           1/di .
+                                                    d
+                                                         Mi ∈M(d)
+
+
+
+
+                                                        5
+Since M(1), M(2), · · · partition M, we have that
+                                                                                     ρ
+                                       X        1               X       1      d∗ X 1
+                   |M(d∗ )| = d∗ ·               ∗
+                                                   ⩾ d∗ ·                  ⩾       ·    .         (2)
+                                              ∗
+                                                d                       di   log n   di
+                                     Mi ∈M(d )               Mi ∈M(d)               i=1
+
+
+    We now show that a random subset of M(d∗ ) indeed forms an ORS graph with induced match-
+ings of size (1 − η) · ℓ which will be enough to conclude the proof.
+    Pick M∗ = (M1 , . . . , Mρ′ ) ⊆ M(d∗ ) wherein each matching of M(d∗ ) is chosen with probability
+                                                          η
+                                                  p :=
+                                                         20d∗
+independently (with the sampled matchings ordered in the same manner as they were in M). Fix
+any matching Mi in M∗ . For any vertex v matched by Mi , define deg∗i (v) as the degree of v in the
+subgraph Mi+1 , . . . , Mρ′ ∈ M∗ (notice that this excludes degree of v in Mi itself). We have,
+                                  X                                            η       η
+           E [deg∗i (v)] =                  Pr (Mj is chosen in M∗ ) ⩽ 2d∗ ·     ∗
+                                                                                    = ,
+                                       ∗
+                                                                             20d       10
+                              j>i∈M(d )
+                          v has an edge in Mj
+
+where in the inequality uses the fact that degree of all vertices in M(d∗ ) in the suffix matchings is
+at most 2d∗ in the entire M (and thus among M(d∗ ) for sure).
+    We now say that v is bad for Mi iff deg∗i (v) ⩾ 1. By the above calculation and a Markov bound,
+the probability that v is bad for Mi is at most η/10. This means that the expected number of bad
+vertices for Mi is at most 2ℓ · η/10 = ℓ · η/5.
+   We further say that the matching Mi itself is bad if it has at least η · ℓ bad vertices. Another
+application of Markov bound implies that the probability Mi is bad is at most 1/5. This means
+that in expectation, at least 4/5 of the sampled matchings in M∗ are not bad.
+    By the probabilistic method (and since the size of M∗ is concentrated), there exist a set of
+3/5 · p · |M(d∗ )| matchings in M∗ none of which are bad. For each of these matchings, remove all
+their bad vertices which reduces their size to (1 − η) · ℓ in the worst case and arbitrarily remove
+more edges such that all of them have size (1 − η) · ℓ exactly. By definition, the resulting graph is
+now an (r, t)-ORS graph with parameters
+                                                              3   η
+                           r = (1 − η) · ℓ,      and t =        ·    · |M(d∗ )| .
+                                                              5 20d∗
+By definition, we have t ⩽ ORS(n, (1 − η) · ℓ) which implies that
+                                                34d∗
+                                |M(d∗ )| ⩽           · ORS(n, (1 − η) · ℓ).
+                                                 η
+Plugging in this bound in Eq (2) concludes the proof.
+
+3    An Opportunistic Sublinear-Time Algorithm for Matching
+In this section, we provide one of the key subroutines used by our dynamic algorithm. This
+subroutine takes as input a “base” static graph G and a set U with the promise that G[U ] is of size
+Ω(n), and outputs a matching of size Ω(n) in G[U ]. While the worst-case runtime of this algorithm
+is (almost) linear in the number of edges of the base graph, it can be much better if the maximum
+internal degree of the matching it outputs is large.
+
+                                                         6
+Lemma 3.1. There is an algorithm (Algorithm 1) that given an n-vertex graph G = (V, E) with
+m edges, parameters γ, δ ∈ (0, 1/6), and vertices U ⊆ V with µ(G[U ]) ⩾ δn, with high probability
+returns a matching M in G[U ] with size at least γ · δn in O(m · n3γ · log (n)/∆in (M )) time.
+
+    We note that the worst-case bound of Ω(m) in Lemma 3.1 is necessary due to a lower bound
+of [ACK19] (as opposed to Proposition 2.3 for size estimation); however, in the hard instances of
+that lower bound, one necessarily needs to find a large matching with maximum internal degree
+O(1), which means, one cannot benefit from the extra power of this lemma (as expected).
+    This result is inspired by [BG24, Lemma 9] and generalizes and strengthens it. Algorithm
+of [BG24] finds a matching of size γ · δn in O(n2+O(γ) /d) time (thus, does not benefit from the
+number of edges of G) and moreover d is the average degree of G[V (M )] instead of our stronger
+guarantee on maximum degree. To obtain our result, we use an argument similar in spirit to that
+of “residual sparsity guarantee” of the greedy algorithm used for maximal independent set and
+maximal matching problems, e.g., in [ACG+ 15, Kon18, AOSS19].
+    The algorithm in Lemma 3.1 works by sampling the edges of G with geometrically increasing
+probabilities and only consider edges of G that are sampled and belong to G[U ]. It then attempts to
+find a “large” matching in this sampled graph using the greedy algorithm; if it succeeds, it returns
+this matching only, otherwise, it will remove vertices of this matching and continues to the next
+sampling phase. Formally, the algorithm is as follows.
+
+  Algorithm 1 (The algorithm of Lemma 3.1).
+  Input: A graph G(V, E), a set U ⊆ V , s.t. µ(G[U ]) ⩾ δn, and γ, δ ∈ (0, 1/6).
+  Output: A matching M in G[U ] of size at least γ · δn.
+
+  • Let X1 = U . For i = 1 to Γ := 1/(3γ) iterations:
+
+     1. Let the sampling probability be pi := n(3γ)·i /n. For every vertex v ∈ Xi , pick a set
+        Ni (v) ⊆ N (v) by sampling each neighbor of v in G independently with probability pi .
+     2. Start with Mi = ∅. Iterate over vertices of Xi in a fixed order, and for each v ∈ Xi , if
+        both v and some w in Ni (v) ∩ Xi are unmatched by Mi , then add the edge (v, w) to Mi .
+     3. If |Mi | ⩾ γ · δn, return Mi and terminate. Otherwise, let Xi+1 = Xi \ V (Mi ), and
+        continue to the next sampling step.
+
+
+   We start by arguing that the algorithm always returns a matching in one of its iterations.
+
+Claim 3.2. Algorithm 1 always returns a matching Mi of size at least γ · δn in some i ∈ [Γ].
+
+Proof. Suppose the algorithm has not terminated until the beginning of the last iteration. This
+means that for all i < Γ, we have, |Mi | < γ · δn. Thus, the total number of vertices from U that
+are removed until reaching XΓ is
+                               Γ−1
+                               X
+                                      |V (Mi )| < Γ · 2 · (γ · δn) = 2δn/3,
+                                i=1
+
+given Γ = 1/(3γ). Given that G[U ] has a matching of size at least δn by the theorem statement,
+there is still a matching of size at least δn − 2δn/3 = δn/3 inside G[XΓ ] (after removing the vertices
+counted above). But, in iteration i = Γ, every edge is sampled with probability n3γ·1/(3γ) /n = 1
+
+                                                     7
+and thus Ni (v) is the entire neighborhood of v in G[XΓ ]. Hence, the greedy algorithm necessarily
+finds a matching of size at least δn/6 > γ · δn in this case (since γ < 1/6). Thus the algorithm
+terminates in this last iteration and outputs MΓ as the answer.
+
+       The next step is to bound the runtime of the algorithm based on the iteration it terminates in.
+Claim 3.3. With high probability, for every i ∈ [Γ], if Algorithm 1 returns the matching Mi and
+terminates in this iteration, then its runtime is O(m · pi ).
+
+Proof. Firstly, with high probability, the runtime of the algorithm in each iteration j ∈ [Γ] is
+O(m · pj ). This is because with high probability, the number of edges in Gj is O(m · pj ) by a simple
+application of Chernoff bound, and the edges can be sampled in this much time using standard
+ideas instead of explicitly going over each edge and sampling them1 . Running the greedy matching
+algorithm also take anotherP O(m · pj ) time now. Finally, since pj ’s form a geometric series (as
+pj+1 = n3γ · pj ), we have ij=1 pj = O(pi ) which concludes the proof.
+
+   We now bound ∆in (Mi ) for the matching Mi returned by the algorithm. Instead of bounding
+the maximum internal degree of the matching itself, we simply bound the maximum degree of the
+subgraph G[Xi ] where the matching Mi is chosen from.
+Claim 3.4. With high probability, for every i ∈ [Γ], max-degree of G[Xi ] is O(n3γ · log (n)/pi ).
+
+Proof. The claim trivially holds for i = 1 since p1 = n3γ /n and G[X1 ] can only have maximum
+degree n < n log (n) = n3γ log (n)/p1 . We focus on the i > 1 case in the following.
+    Fix any vertex v in G[Xi−1 ]. Consider the step wherein v is being processed by the greedy
+algorithm. First, suppose that the degree of v to vertices in Xi−1 \ V (Mi−1 ) at this point is
+at most 100 ln (n)/pi−1 . In this case, even if v remains unmatched, its degree in G[Xi ] will be
+O(log (n)/pi−1 ) = O(n3γ · log (n)/pi ) as desired.
+   On the other hand, consider the case where degree of v to vertices of Xi−1 \ V (Mi−1 ) is at least
+100 ln (n)/pi−1 when we start processing v. Then, the probability that none of these neighbors are
+sampled in Ni (v) is at most
+                                 (1 − pi−1 )100 log (n)/pi−1 ⩽ e−100 ln n = n−100 ;
+thus, with high probability, at least one of these vertices is sampled in Ni (v). Conditioned on this
+event, v will surely get matched (if it was not already matched) by the greedy algorithm. Taking
+a union bound over all vertices now ensures that with high probability, every vertex in Xi−1 that
+remains unmatched by Mi−1 has degree O(n3γ · log (n)/pi ) to other unmatched vertices in Xi−1 ,
+and hence in the graph G[Xi ]. This concludes the proof.
+
+       We are now ready to conclude the proof of Lemma 3.1.
+
+Proof of Lemma 3.1. By Claim 3.2, we know Algorithm 1 terminates in some iteration i ∈ [Γ] and
+returns a matching Mi of size at least γ · δn by the termination condition. By Claim 3.3, this takes
+O(m · pi ) time with high probability.
+   Finally, since V (Mi ) is a subset of Xi , we obtain that ∆in (Mi ) is at most the maximum degree
+of G[Xi ] which itself is at most O(n3γ · log (n)/pi ) with high probability by Claim 3.4. Thus, the
+runtime of the algorithm is O(m · n3γ · log (n)/∆in (Mi )) with high probability as desired.
+   1
+    For each vertex v, first sample a number kv from the binomial distribution of deg(v) and pi (using its closed-form
+formula); then, sample kv neighbors of v uniformly at random from N (v).
+
+
+                                                          8
+4      A Key Intermediate Dynamic Problem
+In order to prove our main result, we focus on solving the following intermediate problem. Similar
+versions of this problem also appear in recent work including [BKS23, Liu24, BG24].
+
+
+    Problem 1. The problem is parameterized by integers n, m, q ⩾ 1 and reals γ, δ, α ∈ (0, 1).
+    We have a fully dynamic n-vertex graph G = (V, E) that starts empty, i.e., has E = ∅, and
+    throughout, never has more than m edges, nor receives more than poly(n) updates in total.
+
+       Updates: The updates to G happen in chunks C1 , C2 , . . ., each consisting of exactly α · n
+    edge insertions or deletions in G.
+        Queries: After each chunk, there will be at most q queries, coming one at a time and in
+    an adaptive manner (based on the answer to all prior queries including the ones in this chunk).
+    Each query is a set U ⊆ V of vertices with the promise that µ(G[U ]) ⩾ δn; the algorithm should
+    respond with a matching of size at least γ · δn from µ(G[U ]).
+           For ease of reference, we list the parameters of this problem and their definitions:
+
+       n : number of vertices in the graph;
+      m : maximum number of edges at any point present in the graph;
+           q : number of adaptive queries made after each chunk;
+       γ : approximation ratio of the returned matching for each query;
+           δ : a lower bound on the fraction of vertices matched in the subgraph of G for the query;
+       α : a parameter for determining the size of each chunk as a function of n.
+
+    For technical reasons, we allow additional updates, called empty updates to also appear in
+    the chunks but these “updates” do not change any edge of the graph, although will be counted
+    toward the number of updates in their chunksa .
+       a
+          This is used for simplifying the exposition when solving this problem recursively; these empty updates will
+    still be counted when computing amortized runtime of these recursive algorithms.
+
+
+
+   We will design a family of recursive algorithms for solving Problem 1 in this section, starting
+with the base case, which also acts as a good warm-up for the key ideas of the algorithm.
+4.1        Base Case
+The proof of the following lemma follows a similar approach as used in [BG24] albeit with several
+modifications to take into account the dependence on the (overall) sparsity of the input graph
+and
+  pto match the requirements of Problem 1. This lemma effectively gives an algorithm with
+≈ (m/n · ORS(n, Θ(n))) update time for solving Problem 1.
+
+Lemma 4.1. There is an algorithm (Algorithm 2) for Problem 1 that with high probability takes
+                                 r
+                                  m · n6γ · ORS(n, γ · δn/2) 
+                           O q·                                 ,
+                                              α·n
+amortized time over the updates to maintain the answer to all given queries in each chunk. The
+algorithm works as long as γ < 1/12 and α ⩾ γ · δ.
+
+                                                           9
+    The algorithm in Lemma 4.1 processes the chunks in batches. p Each batch B processes t chunks
+of updates to G for some t to be fixed later (t is going to be ≈ (m/n · ORS(n, Θ(n)))). Whenever
+a batch starts, the algorithm maintains threes graphs (see also Figure 1 for an illustration):
+
+ • Gold which starts as the graph G at the beginning of the batch; no further insertions will be
+   added to Gold during the processing of this batch and if an edge already in Gold is deleted in
+   an update, the algorithm removes the edge from Gold (i.e., Gold is a decremental graph);
+ • Gbatch which starts as an empty graph and receives all subsequent insertion of edges to G
+   during the updates of this batch and will be updated based on their deletions also;
+ • Gmatch which starts as an empty graph and is updated by the algorithm by moving certain
+   matchings from Gold to Gmatch instead. Once an edge is moved to Gmatch , if it gets deleted,
+   the algorithm deletes the edge from Gmatch (and subsequent insertions are processed in Gbatch ;
+   in other words, insertions to Gmatch only come from moving edges from Gold to Gmatch ).
+
+    Given a query U ⊆ V , the algorithm starts by examining the edges of Gbatch to see if it can
+already find a large matching in Gbatch [U ]. This is done by running the greedy matching algorithm
+(in Fact 2.1) over the edges of Gbatch [U ] to obtain a matching Mbatch . If Mbatch is large enough,
+it will be returned as the answer to the query. Otherwise, the algorithm runs the greedy matching
+algorithm on Gmatch [U ] to obtain a matching Mmatch . Again, if this matching is large enough, it will
+be returned as the answer to the query. Finally, if neither of these cases happen, then the algorithm
+runs Algorithm 1 on Gold with the subgraph U to obtain a matching Mold ; we can guarantee this
+matching is large enough given G[U ] is promised to have a large matching. The algorithm then
+moves all edges of Mold from Gold to Gmatch and returns Mold as the answer to the query.
+   A formal specification of the algorithm is as follows.
+
+  Algorithm 2 (Algorithm of Lemma 4.1).
+    • Process the updates in batches B of t chunks C1 , . . . , Ct and for each batch:
+
+       1. Let Gold = G, Gbatch = ∅, and Gmatch = ∅ (on vertices V ). Maintain these graphs as
+          follows for updates in each chunk (these graphs may also be updated based on queries):
+           (a) For an edge insertion e = (u, v), add the edge to Gbatch .
+           (b) For an edge deletion e = (u, v), remove the edge e from each of the graphs Gold ,
+               Gbatch , or Gmatch that it belongs to currently.
+       2. After a chunk is updated, answer each query U ⊆ V as follows:
+           (a) Go over all edges of Gbatch and run the greedy matching algorithm on Gbatch [U ] to
+               obtain a matching Mbatch . If |Mbatch | ⩾ γ · δn, return Mbatch , otherwise continue.
+           (b) Go over all edges of Gmatch and run the greedy matching algorithm on Gmatch [U ] to
+               obtain a matching Mmatch . If |Mmatch | ⩾ γ ·δn, return Mmatch , otherwise continue.
+           (c) Run Algorithm 1 on Gold , the set U , and parameter 2γ with the guarantee that
+               µ(Gold [U ]) ⩾ δn/2 (which we establish in Claim 4.2) to obtain a matching Mold .
+               Move Mold from Gold to Gmatch and return Mold .
+
+   We start by establishing the correctness of Algorithm 2.
+Claim 4.2. With high probability, the answer to each query U in Algorithm 2 is a valid answer
+according to Problem 1.
+
+                                                  10
+Figure 1: An illustration of the three graphs Gold , Gbatch , Gmatch in Algorithm 2, their role, and how they
+are being processed. Notice that Gold is a decremental graph, while Gbatch , Gmatch are fully dynamic. The
+analysis of the algorithm forms an ORS from the edges of the matchings M1 , M2 , . . . , moved from Gold to
+Gmatch – this ORS is a subgraph of the static graph G at the beginning of the batch and does not contain
+any edges inserted in this batch.
+
+
+Proof. Notice that Gold , Gbatch , Gmatch at any point partition the current graph G. If either of
+Mbatch or Mmatch is of size at least γ · δn, the output is correct. Otherwise, by the guarantee of the
+greedy algorithm, we know that both µ(Gbatch [U ]), µ(Gmatch [U ]) are at most 2γ · δn. Thus,
+
+            µ(Gold [U ]) ⩾ µ(G[U ]) − µ(Gbatch [U ]) − µ(Gmatch [U ]) ⩾ δn − 4γ · δn ⩾ δn/2,
+
+by the choice of γ < 1/12. This implies that the requirement of Lemma 3.1 for Gold [U ] is satisfied
+(including having 2γ < 1/6) and thus, its output, with high probability, is of size 2γ · δn/2 = γ · δn.
+Thus, the returned matching in this case is also of the proper size, concluding the proof.
+
+    The main part is to analyze the running time of Algorithm 2. The following claim is the key to
+relating the runtime of this algorithm to the density of ORS graphs.
+
+Claim 4.3. Let M1 , M2 , . . . , Mρ be the matchings computed from Gold in Line (2c) of Algorithm 2
+and added to Gmatch at the time of their computation (i.e., here, we ignore the deletions that have
+happened subsequently, namely, some edges of Mi might have been deleted from Gold when we are
+inserting Mi+1 , but we still keep those edges in the definition of Mi ). These matchings are edge-
+disjoint and for every i ∈ [ρ], maximum degree of Mi among the matchings Mi , . . . , Mρ is at most
+∆in (Mi ) in the graph Gold at the time Mi was computed.
+
+Proof. The edge-disjoint part follows from the fact that each Mi is chosen from Gold and at that
+point, edges of M1 , . . . , Mi−1 are already removed from Gold (and cannot be inserted back to Gold ).
+    Fix any i ∈ [ρ] and matching Mi . Since Gold is a decremental graph, all edges in Mi+1 , . . . , Mρ
+belong to Gold at the time of computation of Mi . Thus, these edges will be counted toward ∆in (Mi )
+in Gold at the time of computation of Mi . As such, the maximum degree of Mi among the matchings
+Mi , . . . , Mρ is at most ∆in (Mi ) as desired.
+
+
+                                                     11
+   We can now bound the runtime of the algorithm.
+
+Claim 4.4. With high probability, when running Algorithm 2 on a single batch of t chunks:
+
+ 1. the total time spent for maintaining the graphs and bookkeeping is O(t · q · α · n) time;
+
+ 2. the total time spent computing Mbatch in Line (2a) is O(t · q · t · α · n) time;
+
+ 3. the total time spent computing Mmatch in Line (2b) is O(t · q · t · q · α · n) time;
+
+ 4. the total time spent computing Mold in Line (2c) is O(m · n6γ · log2 (n) · ORS(n, γ · δn/2)) time.
+
+Proof. There are t chunks in a batch, each involving αn updates and q queries. Processing the
+updates can be done in O(1) expected time for each update by maintaining the three graphs
+Gold , Gbatch , Gmatch as explained in Section 2.1. Thus, with high probability, these steps take
+O(t · q · α · n) time in total. Finally, given α ⩾ γ · δ in Lemma 4.1, moving each choice of Mold from
+Gold to Gmatch takes O(α · n) time per each query (at most), and thus O(t · q · α · n) in total.
+    For computing Mbatch for each query, the algorithm iterates over edges of Gbatch and takes
+linear time in the size of the entire Gbatch to run the greedy matching algorithm (on Gbatch [U ]).
+Given that Gbatch can only have ⩽ t · α · n edges at any point (before a new batch is restarted),
+the runtime for each query is O(t · α · n) time. Given there are t · q queries in total, this part takes
+O(t · q · t · α · n) time.
+    Similarly, computing Mmatch for each query is done by iterating over all edges of Gmatch and
+taking linear time on those. The edges in Gmatch come from inserting a matching of size γ · δn ⩽ αn
+(by the assumption in the statement of Lemma 4.1) after a query (possibly) and since there are
+most t · q queries, there can be at most O(t · q · α · n) edges in Gmatch . Thus, similar (but not
+identical) to the previous case, this step takes O(t · q · t · q · α · n) time (this is a factor q larger).
+    We now get to the main part of bounding the runtime of computing Mold . Let M1 , M2 , . . . , Mρ
+be the matchings computed as Mold throughout this entire batch. For each i ∈ [ρ], let ∆in (Mi )
+denote the maximum degree of Mi in Gold at the time Mi was computed; additionally, let di denote
+the maximum degree of Mi among the matchings Mi , . . . , Mρ . By Claim 4.3, we have ∆in (Mi ) ⩾ di .
+Moreover, by Lemma 3.1, the runtime for computing Mi in Algorithm 1 with high probability is
+O(m · n6γ · log (n)/∆in (Mi )). Putting these together with Claim 4.3 in Lemma 2.5 (for parameter
+η = 1/2, and since size of each matching is γ · δn by Claim 4.3), we have that the total time spent
+computing M1 , . . . , Mρ is
+             ρ                                                                     ρ
+             X
+                             6γ                   1                               X 1
+                   O(m · n        · log (n) ·           ) ⩽ O(m · n6γ · log(n)) ·
+                                              ∆in (Mi )                             di
+             i=1                                                                  i=1
+                                                                   6γ       2
+                                                       ⩽ O(m · n        · log (n) · ORS(n, γ · δn/2)).
+
+This concludes the proof.
+
+Proof of Lemma 4.1. The correctness of the algorithm follows from Claim 4.2 and a union bound
+over poly(n) intermediate graphs created in Problem 1 (by the assumption on number of updates).
+   Furthermore, the amortized runtime per each of t · α · n updates during a batch, by Claim 4.4 is
+                                            1
+                      O(t · q 2 ) + O(          · m · n6γ · log2 (n) · ORS(n, γ · δn/2)).
+                                          t·α·n
+
+
+                                                         12
+We can now balance these terms by setting
+                                                                        1/2
+                                           m · n6γ · ORS(n, γ · δn/2)
+                                       
+                                t :=                                           ,
+                                                    α · n · q2
+
+which leads to the desired update time of
+                                                                         1/2
+                                            m · n6γ · ORS(n, γ · δn/2)
+                                        
+                               O(q) ·                                              .
+                                                       α·n
+
+Note however that it is possible the entire number of updates to Problem 1 is less than t, namely,
+the algorithm does not receive even one full batch of updates. In that case, we cannot amortize
+the runtime as above given the fewer number of updates.
+    Nevertheless, since by the definition of Problem 1, the graph starts as an empty graph, in this
+case both Gold = ∅ and Gmatch = ∅ for the single batch processed by the algorithm. Thus, the
+entire runtime of the algorithm will be based on the first two items of Claim 4.4 and thus is still
+upper bounded as above.
+
+4.2   The Recursive Step
+We now design a family of recursive algorithms {A}∞  k=1 with progressively better update times
+for Problem 1 using Algorithm 2 as the base case of this family (i.e., A1 ). Roughly speaking, the
+algorithm Ak in this family achieves an update time ≈ (m/n)1/(k+1) · ORS(n, Θk (n))1−1/(k+1) .
+
+Lemma 4.5. There exists an absolute constant c ⩾ 1 such that the following holds. For any k ⩾ 1,
+there is an algorithm Ak (n, m, q, γ, δ, α) (Algorithm 3) for Problem 1 that with high probability takes
+                           m 1/k+1                                                 
+               O (2q)k−1 ·            · ORS(n, γ · δn/2)1−1/(k+1) · n6γ · (log (n)/δ)c ,
+                             n
+amortized time over the updates to maintain the answer to all given queries. The algorithm works
+as long as γ < (1/12)k and α ⩾ γ · δ.
+
+    We prove Lemma 4.5 by induction. The base case is handled by Lemma 4.1 for A1 . Now,
+suppose the lemma is true for some k ⩾ 1 and we prove it for k + 1. The algorithm Ak+1 follows
+the same approach of Algorithm 2 in processing the graph in batches of t chunks of size αk+1 · nk+1
+for some t to be determined later (it is going to be ≈ (m/n)k+1/(k+2) · ORS(n, Θ(n))1/(k+2) ). In
+each batch, the algorithm also partitions the graph into three subgraphs Gold , Gbatch , Gmatch with
+very similar definitions as in the past. The main difference however is that both graphs Gbatch
+and Gmatch are now handled by running algorithm Ak over them (instead of the greedy approach
+of Algorithm 2).
+   We first specify the parameters used for running Ak on Gbatch and Gmatch :
+
+                            nk := n             mk := t · q · α · n      qk := q
+                            γk := 12 · γ        δk := δ/12               αk := α.                   (3)
+
+    We will run Ak (nk , mk , qk , γk , δk , αk ) on Gbatch and Gmatch . By the assumption in Lemma 4.5,
+we have γ < (1/12)k+1 and thus γk = 12 · γ < (1/12)k ; hence we satisfy the condition for invoking
+the induction hypothesis of Ak . Similarly, we have α = αk and γk · δk = γ · δ and so αk ⩾ γk · δk
+also holds. Finally, at the beginning of each batch, Gbatch , Gmatch are both empty graphs and thus
+
+                                                      13
+satisfy the promise of Problem 1. As such, we can indeed apply the induction hypothesis to Ak in
+the following (the only remaining part we need to explicitly account for is to make sure that for
+each query U , we are guaranteed that µ(Gbatch [U ]) is at least δk · n, before calling Ak on Gbatch
+to be consistent with the definition of Problem 1 (similarly for Gmatch ); we use Proposition 2.3 for
+ensuring this guarantee).
+   The following algorithm follows the same strategy of Algorithm 2 modulo applying Ak to Gbatch
+and Gmatch instead of running the greedy algorithm over them (see also Figure 2).
+
+  Algorithm 3 (Algorithm Ak+1 (n, m, q, γ, δ, α) of Lemma 4.5).
+    • Process the updates in batches B of t chunks C1 , . . . , Ct and for each batch:
+
+       1. Let Gold = G, Gbatch = ∅, and Gmatch = ∅ (on vertices V ). Start two copies of
+          Ak (nk , mk , qk , γk , δk , αk ) on Gbatch and Gmatch separately with the parameters in Eq (3).
+          Maintain these graphs as follows for updates in each chunk (these graphs may also be
+          updated based on queries):
+          (a) For an edge insertion e = (u, v), add the edge to Gbatch .
+          (b) For an edge deletion e = (u, v), remove the edge e from any of the graphs Gold ,
+              Gbatch , or Gmatch that it belongs to currently.
+       2. After a chunk is updated, answer each query U ⊆ V as follows:
+          (a) Run Proposition 2.3 on Gbatch [U ] with parameter ε = (δk /2) to obtain an estimate
+              µ̃ := µ̃(Gbatch [U ]) of µ(Gbatch [U ]). If µ̃ ⩾ δk · n, pass the query U to Ak on Gbatch
+              and return its output matching Mbatch as the answer; otherwise, continue.
+          (b) Run Proposition 2.3 on Gmatch [U ] with parameter ε = (δk /2) to obtain an estimate
+              µ̃ := µ̃(Gmatch [U ]) of µ(Gmatch [U ]). If µ̃ ⩾ δk · n, pass the query U to Ak on Gmatch
+              and return its output matching Mmatch as the answer; otherwise, continue.
+          (c) Run Algorithm 1 on Gold , the set U , and parameter 2γ with the guarantee that
+              µ(Gold [U ]) ⩾ δn/2 (which we establish in Claim 4.7) to obtain a matching Mold .
+              Remove Mold from Gold and insert it into Gmatch .
+
+    A remark about the updates in Algorithm 3 is in order. Firstly, when processing an arriving
+chunk, to update Gbatch or Gmatch , we create two separate chunks of size αk · nk based on these
+updates for Ak on Gbatch and Gmatch separately (appending them with empty updates if needed,
+to have length exactly αk · nk ). We then pass these chunks to each algorithm as their updates. The
+updates to Gold are done directly. Moreover, in Line (2c), we insert Mold of size γ · δn ⩽ αk · nk (by
+the guarantee of Lemma 4.5 and choice of parameters in Eq (3)) as a single chunk (possibly with
+empty updates) to Ak running on Gmatch (there will be no queries after these chunks for Ak ).
+   We first ensure that the subroutine calls in Algorithm 3 are all valid.
+Claim 4.6. With high probability, when running Algorithm 3 on a single batch of t chunks:
+
+ 1. Gbatch starts empty, at any point it has at most mk edges, and in total it receives t chunks of
+    size αk · nk each; moreover, each query U to Ak on Gbatch satisfies µ(Gbatch [U ]) ⩾ δk · n;
+
+ 2. Gmatch starts empty, at any point it has at most mk edges, and in total it receives at most t·(q+1)
+    chunks of size αk · nk ; moreover, each query U to Ak on Gmatch satisfies µ(Gmatch [U ]) ⩾ δk · n;
+
+ 3. Gold , Gbatch , Gmatch at any point partition the edges of G.
+
+                                                   14
+Figure 2: An illustration of the three graphs Gold , Gbatch , Gmatch in Algorithm 3 for Ak+1 , their role,
+and how they are being processed. Notice that Gold is a decremental graph, while Gbatch , Gmatch are fully
+dynamic. The main difference with Algorithm 2 is that Gbatch and Gmatch are now being handled recursively
+with Ak (steps (a) and (b) also now involve running Proposition 2.3 to check if applying Ak is valid). This
+algorithm also form an ORS from the edges of the matchings M1 , M2 , . . . , moved from Gold to Gmatch .
+
+
+Proof. We prove each part as follows:
+
+ 1. At the beginning of the batch, we have Gbatch = ∅ and for each chunk as input to Algorithm 3,
+    Ak also receives a chunk of size αk ·nk = α·n as an update (possibly with empty updates; recall
+    that Gbatch only processes insertions in the batch and deletions of the edges inserted during the
+    batch). Since there are t chunks in each batch of Algorithm 3, there will be at most t · α · n edge
+    insertions to Gbatch which is equal to mk /q ⩽ mk by Eq (3). Moreover, running Proposition 2.3
+    with high probability, returns µ̃(Gbatch [U ]) ⩽ µ(Gbatch [U ]) and thus when Algorithm 3 decides
+    to query Ak on Gbatch , we have µ(Gbatch [U ]) ⩾ δk · n.
+
+ 2. At the beginning of the batch Gbatch = ∅ and for each chunk as input to Algorithm 3, Ak also
+    receives a chunk of size αk · nk = α · n as an update, which can only include deletions and empty
+    updates. Moreover, each time the algorithm reaches Line (2c), it will be inserting edges of a
+    matching Mold as updates in chunks of size αk · nk . Given that Mold is of size γ · δn ⩽ αn (by
+    the technical assumption on γ, δ, α in Problem 1), this translates into having one more chunk
+    here as well. Thus, for each chunk and each of its q queries, we may insert another chunk of
+    size αk ·n into Gmatch , implying that the total number of inserted chunks is t·(q +1). Moreover,
+    running Proposition 2.3 with high probability, returns µ̃(Gmatch [U ]) ⩽ µ(Gmatch [U ]) and thus
+    when Algorithm 3 decides to query Ak on Gmatch , we have µ(Gmatch [U ]) ⩾ δk · n.
+
+ 3. This step simply follows from the above (on validity of updating edges of Gbatch and Gmatch )
+    and since we only remove an edge from Gold if it is deleted or if it is moved to Gmatch .
+
+   We can now establish the correctness of Algorithm 3.
+Claim 4.7. With high probability, the answer to each query U in Algorithm 3 is a valid answer
+according to Problem 1.
+
+                                                    15
+Proof. Claim 4.6 ensures that each query to recursive calls on Ak on Gbatch and Gmatch returns a
+valid answer (given all promises required by Problem 1 and the induction hypothesis of Lemma 4.5
+for running this algorithm are satisfied). Thus, it remains to consider the case when Algorithm 3
+reaches Line (2c) to answer the query U .
+    Recall that we have the assumption µ(G[U ]) ⩾ δn. At the same time, each call to Proposition 2.3
+in Lines (2a) and (2b) guarantees that, respectively,
+                                             1                   1
+                            µ̃(Gbatch [U ]) ⩾  · µ(Gbatch [U ]) − · δk · n,
+                                             2                   2
+                                             1                   1
+                            µ̃(Gmatch [U ]) ⩾ · µ(Gmatch [U ]) − · δk · n.
+                                             2                   2
+Thus, if the algorithm has reached Line (2c), we know that
+
+                         µ(Gbatch [U ]) ⩽ 2µ̃(Gbatch [U ]) + δk · n ⩽ 3 · δk · n,
+                         µ(Gmatch [U ]) ⩽ 2µ̃(Gmatch [U ]) + δk · n ⩽ 3 · δk · n.
+
+We further have that Gold , Gbatch , Gmatch at any point partition G by Claim 4.6. Thus,
+
+           µ(Gold [U ]) ⩾ µ(G[U ]) − µ(Gbatch [U ]) − µ(Gmatch [U ]) ⩾ δn − 6 · δk n ⩾ δn/2,
+
+by the choice of δk = δ/12 in Eq (3). This implies that Gold [U ] satisfies the guarantee of Lemma 3.1
+for Algorithm 1 with parameters (δ/2) and (2γ). As such, this algorithm, with high probability,
+returns a matching Mold of size γ · δn from Gold [U ], concluding the proof.
+
+    The following claim is a direct analogue of Claim 4.3. Its proof is verbatim as before and hence
+is omitted here.
+
+Claim 4.8. Let M1 , M2 , . . . , Mρ be the matchings computed from Gold in Line (2c) of Algorithm 3
+and added to Gmatch at the time of their computation (i.e., here, we ignore the deletions that have
+happened subsequently, namely, some edges of Mi might have been deleted from Gold when we are
+inserting Mi+1 , but we still keep those edges in the definition of Mi ). These matchings are edge-
+disjoint and for every i ∈ [ρ], maximum degree of Mi among the matchings Mi , . . . , Mρ is at most
+∆in (Mi ) in the graph Gold at the time Mi was computed.
+
+   The last part is then to bound the runtime of the algorithm.
+
+Claim 4.9. With high probability, when running Algorithm 3 on a single batch of t chunks:
+
+ 1. the total time spent for maintaining the graphs and bookkeeping is
+
+                                                 O(t · α · n);
+
+ 2. the total time spent for running Proposition 2.3 in Lines (2a) and (2b) is
+
+                                        O(t · q · n · poly(log (n)/δ));
+
+ 3. the total time spent computing Mbatch in Line (2a) is
+                                           1/(k+1)                                             
+           O t · α · n · (2q)k−1 · t · q · α          · ORS(n, γ · δn/2)1−1/(k+1) · n6γ · log2 (n) ;
+
+                                                   16
+ 4. the total time spent computing Mmatch in Line (2b) is at most
+                                                1/(k+1)                                             
+        O t · (q + 1) · α · n · (2q)k−1 t · q · α          · ORS(n, γ · δn/2)1−1/(k+1) · n6γ · log2 (n) ;
+
+ 5. the total time spent computing Mold in Line (2c) is at most
+                                                                     
+                               O m · ORS(n, γ · δn/2) · n6γ · log2 (n) .
+
+Proof. The proof just follows the same argument as in Claim 4.4.
+    Specifically, the first part follows immediately, and the second part is by Proposition 2.3. For
+parts three and four, plugging the choice of mk = t · q · α · n when applying the induction hypothesis
+of Lemma 4.5 for Ak on Gbatch and Gmatch , implies the bounds.
+   Finally, the last part holds by Claim 4.8 and Lemma 2.5 exactly as in Claim 4.4 as here also,
+each matching Mold is of size γ ·δn and is chosen from Gold which is a decremental graph throughout
+the batch.
+
+Proof of Lemma 4.5. The correctness of the algorithm follows from Claim 4.7 and a union bound
+over poly(n) intermediate graphs created in Problem 1 (by the assumption on number of updates).
+   Furthermore, the runtime per each of t · α · n updates during a batch, by Claim 4.9, is at most
+
+      O(t · α · n)
+    + O(t · q · n · poly(log (n)/δ))
+                                     1/(k+1)                                               
+                         k−1                                        1−1/(k+1)    6γ      2
+    + O t · α · n · (2q)     · t·q·α             · ORS(n, γ · δn/2)           · n · log (n)
+                                              1/(k+1)                                             
+    + O t · (q + 1) · α · n · (2q)k−1 t · q · α          · ORS(n, γ · δn/2)1−1/(k+1) · n6γ · log2 (n)
+                                                
+    + O m · ORS(n, γ · δn/2) · n6γ · log2 (n)
+                                              1/(k+1)                                                  
+    = O t · (2q) · α · n · (2q)k−1 t · (2q) · α           · ORS(n, γ · δn/2)1−1/(k+1) · n6γ · (log(n)/δ)c
+                                                    
+    + O m · ORS(n, γ · δn/2) · n6γ · (log(n)/δ)c ,
+
+where in the equality, we used several loose upper bounds (to simplify the subsequent calculations)
+and use c as the absolute constant which is equal to the exponent of the poly-term in Proposition 2.3
+(we also take c > 2 to subsume the log2 (n) term of prior equations).
+   We can now balance these terms by setting
+                        m k+1/(k+2)                                               1
+                t :=                    · ORS(n, γ · δn/2)1/(k+2) ·          (k−1)·(k+1)+(k+2)
+                                                                                                      ,
+                        n                                             (2q)          k+2          ·α
+which leads to the amortized update time of
+                                                         1 
+          O m · ORS(n, γ · δn/2) · n6γ · (log(n)/δ)c ·
+                                                        t·α·n
+                       m 1/(k+2)                                                       
+                                                       1−1/(k+2)       k   6γ           c
+                 =O                 · ORS(n, γ · δn/2)           · (2q) · n · (log(n)/δ) ,
+                         n
+where we used (k − 1) · (k + 1) + (k + 2) = k 2 + k + 1 ⩽ k · (k + 2) for k ⩾ 1.
+
+                                                      17
+   Similar to the proof of Lemma 4.1, we should also handle the case wherein the total number of
+chunks given to the algorithm does not even reach a single batch. As before, in this case, given the
+promise that the graph G starts empty, the only graph that is non-empty will be Gbatch , and thus
+the amortized runtime of the algorithm is the same as Ak on Gbatch (with the given parameters,
+in particular mk = t · q · α · n). Thus, the amortized runtime of Algorithm 3 will be at most
+(by Claim 4.9 for bookkeeping, running Proposition 2.32 and running Ak on Gbatch ),
+                              1/(k+1)                                                 
+          O (2q)k−1 · t · q · α          · ORS(n, γ · δn/2)1−1/(k+1) · n6γ · (log(n)/δ)c
+                      m 1/(k+2)                                                            
+               =O                    · ORS(n, γ · δn/2)1−1/(k+2) · (2q)k−1 · n6γ · (log(n)/δ)c ,
+                        n
+by the choice of t (using the same exact calculation and the above step).
+    This proves the induction step of Lemma 4.5 and concludes the proof.
+
+5    A Fully Dynamic Algorithm for Maximum Matching
+The following theorem, which is the main contribution of our work, formalizes Result 1.
+
+Theorem 1. Let ε ∈ (0, 1/100) be a given parameter and k ⩾ 1 be any integer. Let γ = (1/20)k
+and f (γ, ε/4) and g(γ, ε/4) be as defined in Proposition 2.2.
+    There exists an algorithm for maintaining a (1 − ε)-approximation to maximum matching in a
+fully dynamic n-vertex graph that starts empty with amortized update time of
+                                       1                                         k
+                                                                                    
+                     O n1/k+1 · ORS(n , k · f (γ, Θ(ε)2 ) · n)1−1/(k+1) · n15/(20) .
+                                       15
+The guarantees of this algorithm hold with high probability even against an adaptive adversary.
+
+Proof of Theorem 1. The proof is a combination of the standard tools listed in Section 2.2 to reduce
+the problem to Problem 1 and then applying Lemma 4.5 for solving this problem.
+   We start by obtaining an algorithm for an additive ε · n approximation to maximum matching.
+Define the following parameters for solving Problem 1 via the algorithm Ak (nk , mk , qk , γk , δk , αk ):
+                                                 
+                                                 n
+                       nk := n            mk :=              qk := g(γ, ε/4)
+                                                  2
+                           γk := (1/15)k        δk := f (γ, ε/4)      αk := ε2 .                               (4)
+
+Suppose we have computed a (ε/4) · n additive approximate matching at some time. Then, for
+the next αk · n = ε2 · n this remains at least a (ε/2) · n approximation (even if all updates delete
+edges of this matching). At this point, we should recompute another (ε/4) · n additive approximate
+matching. By Proposition 2.2, at this point, we need to answer qk := g(γ, ε/4) queries U ⊆ V
+with µ(G[U ]) ⩾ δk n = f (γ, ε/4) · n and returning a matching of size µ(G[U ]) ⩾ γk · δk · n satisfies
+the requirement of answering the queries in Proposition 2.2. However, we do need to ensure that
+µ(G[U ]) ⩾ δk · n which can be done by running Proposition 2.3 first. At this point, the problem we
+need to solve to implement Proposition 2.2 is exactly Problem 1 with the parameters of Eq (4).
+   2
+     In fact, for the first batch, we do not even need to run Proposition 2.3, given that we know µ(G[U ]) ⩾ δn (by
+the promise of Problem 1 and since we know Gold = Gmatch = ∅. We ignore this extra optimization step since it does
+not affect the overall runtime of the algorithm.
+
+
+
+                                                        18
+    Running Ak for solving Problem 1 by Lemma 4.5 is going to have an amortized update time of
+
+                            mk 1/k+1
+                                                                                              
+            O (2qk )k−1 ·             · ORS(nk , γk · δk · n/2)1−1/(k+1) · n6γk · (log (n)/δk )c
+                            nk
+                                      1                                     k
+                                                                               
+              = O n1/k+1 · ORS(n , k · f (γ, ε/4) · n)1−1/(k+1) · n10/(20) ,
+                                     20
+                                                                               k                                  k
+with high probability; here, we used that (2g(γ, ε/4))k−1 · n6/(20) · (log (n)/δk )c = O(n10/(20) )
+given the values f (γ, ε), g(γ, ε), δk = Ok,ε (1). Also, the runtime of O(n · poly(log (n)/δk )) for
+running Proposition 2.3 amortized over the ε2 · n updates is asymptotically upper bounded by the
+above and can be neglected. All in all, this implies an algorithm with amortized update time of
+                                         1                                      k
+                                                                                   
+                       O n1/k+1 · ORS(n , k · f (γ, ε/4) · n)1−1/(k+1) · n10/(20) ,
+                                         20
+for maintaining an additive εn approximate matching in a dynamic graph, with high probability.
+    Finally, we apply Proposition 2.4 to turn this into a multiplicative (1 − ε)-approximation guar-
+antee. This effectively requires re-parameterizing ε with Θ(ε2 ) in the above bounds (and bounding
+        k                               k
+n10/(20) · poly(log (n)/ε) = O(n15/(20) ) by the range of parameters). This implies an algorithm
+with amortized update time promised in the theorem statement for maintaining a (multiplicative)
+(1 − ε)-approximation to maximum matching in a fully dynamic graph, with high probability.
+    We shall remark that in the arguments above—in particular, to satisfy the guarantee promised
+in Problem 1—we need to assume that the total number of updates is poly(n) to be able to apply
+union bound in conjunction with our high probability guarantees. This however can be easily fixed
+using a standard trick3 as we explain next.
+    After every, say, n10 updates to the underlying graph G, we entirely terminate the current run
+of the algorithm and erase all the data structures. Then, we start a new run of the algorithm
+on an initially empty graph H and insert the current edges in G to this new graph H using at
+most O(n2 ) insertions. After this step, the graph H becomes the same as G and we continue with
+processing the upcoming updates the current data structures we have. This does not change the
+asymptotic runtime of the algorithm, but now ensures that even if the algorithm needs to process
+super-polynomial number of updates, after each update, with high probability, the output is correct
+and the amortized runtime of the algorithm is as desired4 . This concludes the proof.
+
+5.1    Removing the Assumption on the Prior Knowledge of ORS
+In the description of our algorithms throughout this paper, we assumed that the algorithm is aware
+of the value of ORS(n, c · n) (for a proper choice of c in the algorithm) to find the right balancing
+point for size of batches. However, as we explain next, this knowledge is actually not necessary,
+which is a desirable feature given our current state of (lack of) understanding of ORS(n, c · n).
+    We again focus on the case of polynomially many updates. The algorithm starts with guessing
+that ORS(n, c · n) is some β = nΩ(1/ log log n) (the current best lower bound in Eq (1)), runs the
+algorithm of Theorem 1 with β as the value of ORS, and continues as long as the runtime does not
+exceed the bounds dictated by the current guess β. Now suppose during some run of the algorithm,
+    3
+      In fact, it appears that many of existing dynamic matching algorithms make this assumption implicitly, e.g.,
+in [BKS23, Liu24, BG24], although some are also more explicit about this, e.g. [BK22].
+    4
+      We shall emphasize that this does not mean on such a long sequence, the guarantees are satisfied throughout (as
+we simply cannot do a union bound over so many events). However, even an adaptive adversary cannot make sure
+that a fixed update returns a wrong answer or take longer than guaranteed except with negligible probability.
+
+
+                                                         19
+the runtime exceeds the current update time bound. Then there are two possibilities: either the
+high probability event of Theorem 1 has failed or the guess β of ORS(n, c · n) falls shorts of the true
+value. The first case happens with a negligible probability which we can ignore so let us focus on
+the second case.
+    The guarantees given in Lemma 4.5 hold for each fixed batch of updates (in other words, we
+amortize the runtime over a single batch and not beyond that). Suppose we have a batch with longer
+than expected runtime. We consider all the matchings moved from Gold to Gmatch throughout this
+batch and apply Lemma 2.5 to them in an algorithmic fashion—which takes linear time in the size
+of the graph—to explicitly construct an ORS graph. If we succeed in creating an ORS graph with
+strictly more matchings than the current estimate β, we terminate the current algorithm, increase
+the value of β by a factor of 4, and restart the process from the beginning of the last batch. Since
+for any k ⩾ 1, the target runtime of the algorithm Ak is proportional to ORS(n, c n)η for some
+η ⩾ 1/2, running the algorithm again with β increased by a factor of 4, results in a geometrically
+increasing sequence of runtimes. This makes the final runtime only a constant factor larger than if
+the algorithm had been run with the correct value of ORS(n, c · n) from the very beginning. We also
+note that the value of β only monotonically increases over the execution of the algorithm because
+at every occurrence, we recover a certificate of a new lower bound on the value of ORS(n, c · n). So
+the revision of parameter β occurs only O(log n) times over the entire execution of the algorithm.
+    In summary, we are able to recover the bounds of Theorem 1 without a prior knowledge of the
+value of ORS(n, c · n) as also advertised in Result 1.
+
+Acknowledgement
+We would like to thank Soheil Behnezhad and Alma Ghafari for helpful discussions on their results
+in [BG24], and Aaron Bernstein, Sayan Bhattacharya, and Thatchaphol Saranurak for their shared
+discussions and insights on this problem.
+    Part of this work was conducted while the first named author was visiting the Simons Institute
+for the Theory of Computing as part of the Sublinear Algorithms program.
+
+
+
+
+                                                  20
+References
+[ABKL23] S. Assadi, S. Behnezhad, S. Khanna, and H. Li. On regularity lemma and barriers in
+         streaming and dynamic matching. In B. Saha and R. A. Servedio, editors, Proceedings
+         of the 55th Annual ACM Symposium on Theory of Computing, STOC 2023, Orlando,
+         FL, USA, June 20-23, 2023, pages 131–144. ACM, 2023. 1
+                                                                                       √
+[ABR24] A. Azarmehr, S. Behnezhad, and M. Roghani. Fully dynamic matching: (2 − 2)-
+         approximation in polylog update time. In D. P. Woodruff, editor, Proceedings of the
+         2024 ACM-SIAM Symposium on Discrete Algorithms, SODA 2024, Alexandria, VA,
+         USA, January 7-10, 2024, pages 3040–3061. SIAM, 2024. 2
+
+[ACG+ 15] K. J. Ahn, G. Cormode, S. Guha, A. McGregor, and A. Wirth. Correlation clustering
+          in data streams. In F. R. Bach and D. M. Blei, editors, Proceedings of the 32nd
+          International Conference on Machine Learning, ICML 2015, Lille, France, 6-11 July
+          2015, volume 37 of JMLR Workshop and Conference Proceedings, pages 2237–2246.
+          JMLR.org, 2015. 7
+
+[ACK19]   S. Assadi, Y. Chen, and S. Khanna. Sublinear algorithms for (∆ + 1) vertex coloring.
+          In T. M. Chan, editor, Proceedings of the Thirtieth Annual ACM-SIAM Symposium
+          on Discrete Algorithms, SODA 2019, San Diego, California, USA, January 6-9, 2019,
+          pages 767–786. SIAM, 2019. 7
+
+[AG11]    K. J. Ahn and S. Guha. Linear programming in the semi-streaming model with appli-
+          cation to the maximum matching problem. In L. Aceto, M. Henzinger, and J. Sgall, ed-
+          itors, Automata, Languages and Programming - 38th International Colloquium, ICALP
+          2011, Zurich, Switzerland, July 4-8, 2011, Proceedings, Part II, volume 6756 of Lecture
+          Notes in Computer Science, pages 526–538. Springer, 2011. 4, 5
+
+[AKL16]   S. Assadi, S. Khanna, and Y. Li. The stochastic matching problem with (very) few
+          queries. In V. Conitzer, D. Bergemann, and Y. Chen, editors, Proceedings of the 2016
+          ACM Conference on Economics and Computation, EC ’16, Maastricht, The Nether-
+          lands, July 24-28, 2016, pages 43–60. ACM, 2016. 5
+
+[AKLY16] S. Assadi, S. Khanna, Y. Li, and G. Yaroslavtsev. Maximum matchings in dynamic
+         graph streams and the simultaneous communication model. In R. Krauthgamer, ed-
+         itor, Proceedings of the Twenty-Seventh Annual ACM-SIAM Symposium on Discrete
+         Algorithms, SODA 2016, Arlington, VA, USA, January 10-12, 2016, pages 1345–1364.
+         SIAM, 2016. 5
+
+[ALT21]   S. Assadi, S. C. Liu, and R. E. Tarjan. An auction algorithm for bipartite matching
+          in streaming and massively parallel computation models. In H. V. Le and V. King,
+          editors, 4th Symposium on Simplicity in Algorithms, SOSA 2021, Virtual Conference,
+          January 11-12, 2021, pages 165–171. SIAM, 2021. 4, 5
+
+[AMS12]   N. Alon, A. Moitra, and B. Sudakov. Nearly complete graphs decomposable into large
+          induced matchings and their applications. In Proceedings of the 44th Symposium on
+          Theory of Computing Conference, STOC 2012, New York, NY, USA, May 19 - 22,
+          2012, pages 1079–1090, 2012. 1, 2
+
+
+
+
+                                              21
+[AOSS19] S. Assadi, K. Onak, B. Schieber, and S. Solomon. Fully dynamic maximal independent
+         set with sublinear in n update time. In T. M. Chan, editor, Proceedings of the Thirti-
+         eth Annual ACM-SIAM Symposium on Discrete Algorithms, SODA 2019, San Diego,
+         California, USA, January 6-9, 2019, pages 1919–1936. SIAM, 2019. 7
+
+[AS23]     S. Assadi and J. Sundaresan. Hidden permutations to the rescue: Multi-pass streaming
+           lower bounds for approximate matchings. In 64th IEEE Annual Symposium on Foun-
+           dations of Computer Science, FOCS 2023, Santa Cruz, CA, USA, November 6-9, 2023,
+           pages 909–932. IEEE, 2023. 1, 2
+
+[Beh21]    S. Behnezhad. Time-optimal sublinear algorithms for matching and vertex cover. In
+           62nd IEEE Annual Symposium on Foundations of Computer Science, FOCS 2021,
+           Denver, CO, USA, February 7-10, 2022, pages 873–884. IEEE, 2021. 5
+
+[Beh23]    S. Behnezhad. Dynamic algorithms for maximum matching size. In N. Bansal and
+           V. Nagarajan, editors, Proceedings of the 2023 ACM-SIAM Symposium on Discrete
+           Algorithms, SODA 2023, Florence, Italy, January 22-25, 2023, pages 129–162. SIAM,
+           2023. 1, 2
+
+[BG24]     S. Behnezhad and A. Ghafari. Fully dynamic matching and Ordered Ruzsa-Szemerédi
+           graphs. arXiv preprint arXiv:2404.06069. To appear in FOCS 2024, 2024. 1, 2, 3, 4, 5,
+           7, 9, 19, 20
+
+[BGS18]    S. Baswana, M. Gupta, and S. Sen. Fully dynamic maximal matching in O(log n)
+           update time (corrected version). SIAM J. Comput., 47(3):617–650, 2018. 1
+
+[BK22]     S. Behnezhad and S. Khanna. New trade-offs for fully dynamic matching via hierarchical
+           EDCS. In J. S. Naor and N. Buchbinder, editors, Proceedings of the 2022 ACM-SIAM
+           Symposium on Discrete Algorithms, SODA 2022, Virtual Conference / Alexandria, VA,
+           USA, January 9 - 12, 2022, pages 3529–3566. SIAM, 2022. 1, 19
+
+[BKS23]    S. Bhattacharya, P. Kiss, and T. Saranurak. Dynamic (1 + ε)-approximate matching
+           size in truly sublinear update time. In 64th IEEE Annual Symposium on Foundations
+           of Computer Science, FOCS 2023, Santa Cruz, CA, USA, November 6-9, 2023, pages
+           1563–1588. IEEE, 2023. 1, 2, 4, 9, 19
+
+[BKSW23] S. Bhattacharya, P. Kiss, T. Saranurak, and D. Wajc. Dynamic matching with better-
+         than-2 approximation in polylogarithmic update time. In N. Bansal and V. Nagarajan,
+         editors, Proceedings of the 2023 ACM-SIAM Symposium on Discrete Algorithms, SODA
+         2023, Florence, Italy, January 22-25, 2023, pages 100–128. SIAM, 2023. 1, 2
+
+[BS15]     A. Bernstein and C. Stein. Fully dynamic matching in bipartite graphs. In M. M.
+           Halldórsson, K. Iwama, N. Kobayashi, and B. Speckmann, editors, Automata, Lan-
+           guages, and Programming - 42nd International Colloquium, ICALP 2015, Kyoto,
+           Japan, July 6-10, 2015, Proceedings, Part I, volume 9134 of Lecture Notes in Com-
+           puter Science, pages 167–179. Springer, 2015. 1
+
+[BS16]     A. Bernstein and C. Stein. Faster fully dynamic matchings with small approximation
+           ratios. In R. Krauthgamer, editor, Proceedings of the Twenty-Seventh Annual ACM-
+           SIAM Symposium on Discrete Algorithms, SODA 2016, Arlington, VA, USA, January
+           10-12, 2016, pages 692–711. SIAM, 2016. 1
+
+
+                                               22
+[CCE+ 16] R. Chitnis, G. Cormode, H. Esfandiari, M. Hajiaghayi, A. McGregor, M. Monemizadeh,
+          and S. Vorotnikova. Kernelization via sampling with applications to finding matchings
+          and related problems in dynamic graph streams. In R. Krauthgamer, editor, Proceedings
+          of the Twenty-Seventh Annual ACM-SIAM Symposium on Discrete Algorithms, SODA
+          2016, Arlington, VA, USA, January 10-12, 2016, pages 1326–1344. SIAM, 2016. 5
+
+[FHS17]    J. Fox, H. Huang, and B. Sudakov. On graphs decomposable into induced matchings
+           of linear sizes. Bulletin of the London Mathematical Society, 49(1):45–57, 2017. 1
+
+[FLN+ 02] E. Fischer, E. Lehman, I. Newman, S. Raskhodnikova, R. Rubinfeld, and A. Samorod-
+          nitsky. Monotonicity testing over general poset domains. In Proceedings on 34th An-
+          nual ACM Symposium on Theory of Computing, May 19-21, 2002, Montréal, Québec,
+          Canada, pages 474–483, 2002. 1
+
+[Fox11]    J. Fox. A new proof of the graph removal lemma. Annals of Mathematics, pages
+           561–579, 2011. 1
+
+[GKK12]    A. Goel, M. Kapralov, and S. Khanna. On the communication and streaming complexity
+           of maximum bipartite matching. In Y. Rabani, editor, Proceedings of the Twenty-Third
+           Annual ACM-SIAM Symposium on Discrete Algorithms, SODA 2012, Kyoto, Japan,
+           January 17-19, 2012, pages 468–485. SIAM, 2012. 1, 5
+
+[GP13]     M. Gupta and R. Peng. Fully dynamic (1 + ε)-approximate matchings. In 54th Annual
+           IEEE Symposium on Foundations of Computer Science, FOCS 2013, 26-29 October,
+           2013, Berkeley, CA, USA, pages 548–557. IEEE Computer Society, 2013. 1
+
+[HKNS15] M. Henzinger, S. Krinninger, D. Nanongkai, and T. Saranurak. Unifying and strength-
+         ening hardness for dynamic problems via the online matrix-vector multiplication con-
+         jecture. In R. A. Servedio and R. Rubinfeld, editors, Proceedings of the Forty-Seventh
+         Annual ACM on Symposium on Theory of Computing, STOC 2015, Portland, OR,
+         USA, June 14-17, 2015, pages 21–30. ACM, 2015. 2
+
+[Kis22]    P. Kiss. Deterministic dynamic matching in worst-case update time. In M. Braverman,
+           editor, 13th Innovations in Theoretical Computer Science Conference, ITCS 2022, Jan-
+           uary 31 - February 3, 2022, Berkeley, CA, USA, volume 215 of LIPIcs, pages 94:1–
+           94:21. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2022. 2, 5
+
+[Kon18]    C. Konrad. A simple augmentation method for matchings with applications to stream-
+           ing algorithms. In I. Potapov, P. G. Spirakis, and J. Worrell, editors, 43rd International
+           Symposium on Mathematical Foundations of Computer Science, MFCS 2018, August
+           27-31, 2018, Liverpool, UK, volume 117 of LIPIcs, pages 74:1–74:16. Schloss Dagstuhl
+           - Leibniz-Zentrum für Informatik, 2018. 7
+
+[Liu24]    Y. P. Liu. On approximate fully-dynamic matching and online matrix-vector multipli-
+           cation. CoRR, abs/2403.02582. To appear in FOCS 2024, 2024. 1, 2, 9, 19
+
+[LMSV11] S. Lattanzi, B. Moseley, S. Suri, and S. Vassilvitskii. Filtering: a method for solving
+         graph problems in mapreduce. In R. Rajaraman and F. M. auf der Heide, editors, SPAA
+         2011: Proceedings of the 23rd Annual ACM Symposium on Parallelism in Algorithms
+         and Architectures, San Jose, CA, USA, June 4-6, 2011 (Co-located with FCRC 2011),
+         pages 85–94. ACM, 2011.
+
+
+                                                23
+[McG05]   A. McGregor. Finding graph matchings in data streams. In C. Chekuri, K. Jansen,
+          J. D. P. Rolim, and L. Trevisan, editors, Approximation, Randomization and Com-
+          binatorial Optimization, Algorithms and Techniques, 8th International Workshop on
+          Approximation Algorithms for Combinatorial Optimization Problems, APPROX 2005
+          and 9th InternationalWorkshop on Randomization and Computation, RANDOM 2005,
+          Berkeley, CA, USA, August 22-24, 2005, Proceedings, volume 3624 of Lecture Notes in
+          Computer Science, pages 170–181. Springer, 2005. 2, 4, 5
+
+[OR10]    K. Onak and R. Rubinfeld. Maintaining a large matching and a small vertex cover.
+          In L. J. Schulman, editor, Proceedings of the 42nd ACM Symposium on Theory of
+          Computing, STOC 2010, Cambridge, Massachusetts, USA, 5-8 June 2010, pages 457–
+          464. ACM, 2010. 1
+
+[RS78]    I. Z. Ruzsa and E. Szemerédi. Triple systems with no six points carrying three triangles.
+          Combinatorics (Keszthely, 1976), Coll. Math. Soc. J. Bolyai, 18:939–945, 1978. 1, 2
+
+[Sol16]   S. Solomon. Fully dynamic maximal matching in constant update time. In I. Dinur,
+          editor, IEEE 57th Annual Symposium on Foundations of Computer Science, FOCS
+          2016, 9-11 October 2016, Hyatt Regency, New Brunswick, New Jersey, USA, pages
+          325–334. IEEE Computer Society, 2016. 1
+
+[Tir18]   S. Tirodkar. Deterministic algorithms for maximum matching on general graphs in the
+          semi-streaming model. In S. Ganguly and P. K. Pandya, editors, 38th IARCS Annual
+          Conference on Foundations of Software Technology and Theoretical Computer Science,
+          FSTTCS 2018, December 11-13, 2018, Ahmedabad, India, volume 122 of LIPIcs, pages
+          39:1–39:16. Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2018. 4, 5
+
+
+
+
+                                               24
+

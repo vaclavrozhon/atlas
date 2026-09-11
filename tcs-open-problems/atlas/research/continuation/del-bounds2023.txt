@@ -1,0 +1,1254 @@
+                                          Improved Upper and Lower Bounds on the Capacity
+                                                   of the Binary Deletion Channel
+                                                                     Ittai Rubinstein∗1 and Roni Con†2
+                                                            1
+                                                         Qedma Quantum Computing, Tel-Aviv, Israel
+                                          2
+                                              Blavatnik School of Computer Science, Tel Aviv University, Tel-Aviv,
+arXiv:2305.07156v1 [cs.IT] 11 May 2023
+
+
+
+
+                                                                            Israel
+
+                                                                                  May 15, 2023
+
+
+                                                                                      Abstract
+                                                      The binary deletion channel with deletion probability d (BDCd ) is a random
+                                                  channel that deletes each bit of the input message i.i.d with probability d. It has
+                                                  been studied extensively as a canonical example of a channel with synchronization
+                                                  errors [Mit09, MBT10, CR20].
+                                                      Perhaps the most important question regarding the BDC is determining its ca-
+                                                  pacity. Mitzenmacher and Drinea [MD06] and Kirsch and Drinea [KD09] show
+                                                  a method by which distributions on run lengths can be converted to codes for
+                                                  the BDC, yielding a lower bound of C(BDCd ) > 0.1185 · (1 − d). Fertonani
+                                                  and Duman [FD10], Dalai [Dal11] and Rahmati and Duman [RD14] use computer
+                                                  aided analyses based on the Blahut-Arimoto algorithm to prove an upper bound of
+                                                  C(BDCd ) < 0.4143 · (1 − d) in the high deletion probability regime (d > 0.65).
+                                                      In this paper, we show that the Blahut-Arimoto algorithm can be implemented
+                                                  with a lower space complexity, allowing us to extend the upper bound analyses, and
+                                                  prove an upper bound of C(BDCd ) < 0.3745·(1−d) for all d ≥ 0.68. Furthermore, we
+                                                  show that an extension of the Blahut-Arimoto algorithm can be used to select better
+                                                  run length distributions for Mitzenmacher and Drinea’s construction, yielding a
+                                                  lower bound of C(BDCd ) > 0.1221 · (1 − d).
+
+
+
+
+                                           ∗
+                                             ittai.rubinstein@gmail.com
+                                              †
+                                             roni.con93@gmail.com
+                                         The work of Roni Con was partially supported by the European Research Council (ERC grant number
+                                         852953) and by the Israel Science Foundation (ISF grant number 1030/15).
+
+                                                                                          1
+Contents
+1 Introduction                                                                             3
+  1.1 Previous Work . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .        4
+  1.2 Our results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .      4
+  1.3 Organization . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .       5
+
+2 Upper Bound Theory                                                                       6
+  2.1 Discrete Memoryless Channels and the Blahut-Arimoto Algorithm . . . .                6
+  2.2 Auxiliary Deletion Channels . . . . . . . . . . . . . . . . . . . . . . . . .        8
+
+3 Memory Efficient Implementation of the Blahut-Arimoto Algorithm                          9
+  3.1 Caching and Loop Nest Optimization . . . . . . . . . . . . . . . . . . . .          10
+  3.2 Using sparsity . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .    12
+  3.3 Results . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .   14
+
+4 A new Lower Bound                                                                       14
+  4.1 The framework of Drinea and Mitzenmacher . . . . . . . . . . . . . . . .            14
+  4.2 Our heuristic approach to find better input distributions . . . . . . . . .         17
+  4.3 Analysis of the heuristic . . . . . . . . . . . . . . . . . . . . . . . . . . .     18
+  4.4 Reduction to Convex Optimization . . . . . . . . . . . . . . . . . . . . .          21
+
+
+
+
+                                             2
+1         Introduction
+In this paper we focus on the binary deletion channel (BDC) which deletes each bit
+from the input message randomly and independently with a given deletion probability d.
+Loosely speaking, a channel is a medium over which messages are sent. A channel is
+defined by the way in which it introduces errors to the transmitted messages (also called
+codewords when they come from an error correcting code).
+    Two of the most well-studied channels are the Binary Erasure Channel (BECd ) where
+each bit is independently replaced by a question mark with probability d and the Binary
+Symmetric Channel (BSCd ) where each bit is independently flipped with probability
+d. We note that the BDC is very different from the BEC and the BSC. For example,
+consider the case where the transmitted message was 1110101 and corruptions occurred
+in locations 2 and 5. In this scenario, the BEC will return the word 1?10?01 and the BSC
+will return 1010001, while the BDC would return 11001.
+    In other words, while the BEC and the BSC may corrupt some bits in the message, the
+BDC can change the length of a codeword and the index in which a bit may appear. This
+makes the BDC a “synchronization channel”, and significantly complicates its analysis. In
+fact, one of the main reasons for introducing the BDC was to model synchronization errors
+in communication. More recently, codes correcting from deletions found applications in
+a variety of fields such as computational biology and DNA storage [BLC+ 16, YGM17,
+HMG19]. For a more detailed review of synchronization channels and their applications,
+we refer the interested reader to the excellent surveys by Mitzenmacher [Mit09], Mercier
+et al. [MBT10], and Cheraghchi and Ribeiro [CR20].
+    To explain the question that we study we need some basic notions from coding theory.
+Recall that a binary error correcting code can be described either as an encoding map
+C : {0, 1}k → {0, 1}n or, abusing notation, as the image of such a map C. The rate of
+such a code C is Rate(C) = k/n, which intuitively captures the amount of information
+encoded in every bit of a codeword. Naturally, we would like the rate to be as large as
+possible, but there is a tension between the rate of the code and the amount of errors/noise
+it can tolerate.
+    One of the most fundamental questions when studying a channel is to determine its
+capacity, i.e., the maximum achievable transmission rate over the channel that still allows
+recovering from the errors introduced by the channel, with high probability. Shannon
+proved in his seminal work [Sha48] that the capacity of the BSCd is 1 − h(d), where h(·)
+is the binary entropy function (for 0 < x < 1, h(x) = −x log x − (1 − x) log 1 − x).1
+Elias [Eli55], who introduced the BECd , proved that its capacity is 1 − d.
+    What about the capacity of the BDCd ? In spite of significant efforts by many re-
+searchers, much less is known about the capacity of the BDC. This is because the asyn-
+chronous nature of the BDC which makes it interesting also makes it harder to analyse.
+    In the extremal parameter regimes, the behavior of the capacity of the BDC is partially
+understood. When d → 0 the capacity approaches 1 − h(d) [KMS10]. For all d ∈ (0, 1),
+the capacity is bounded from below by C(BDCd ) > 0.1185 · (1 − d) [MD06], and when
+d > 0.65, it is bounded from above by C(BDCd ) < 0.4143 · (1 − d) [FD10, Dal11, RD14],
+giving us the asymptotic scaling as d → 1. For a more detailed picture of the known
+bounds on the capacity of the BDC, see Figure 1.
+    1
+        All logarithms in this paper are base 2.
+
+
+                                                   3
+1.1    Previous Work
+Our focus in this paper is in bounding the capacity of the BDC in either the bulk of the
+parameter regime d ∈ (ε, 1 − ε), or in the high-deletion probability regime d → 1. We
+will list here the best known results for these regimes.
+
+Lower bounds The best known lower bound on the capacity is due to Mitzenmacher
+and Drinea [MD06, DM07] who showed a lower bound of 0.1185 · (1 −d) for all d, meaning
+that there are codes of this rate such that every transmitted codeword is decoded correctly
+with high probability. This lower bound is the best known lower bound for the high
+deletion probability regime (d ≥ 0.95). For smaller values of d, Drinea and Mitzenmacher
+prove stronger bounds in [DM07, Table 1]. Their proof is constructive, but it does not
+directly yield an efficient decoding algorithm for the family of codes they construct.
+    Since then, several constructions of efficiently decodable codes for the BDC have
+been published [GL18, CS22], culminating in several constructions of efficiently decodable
+codes that achieve capacity [TPFV21, Rub22, PLW22]. In particular, [Rub22] presents
+a method for converting any code for the BDC to an efficiently decodable one with an
+arbitrarily close rate. Therefore, the codes generated using Mitzenmacher and Drinea’s
+construction can be converted to explicit and efficient constructions of high rate codes
+for the BDC.
+
+Upper bounds Fertonani and Duman [FD10] proved several upper bounds on the
+capacity of the BDC. They do this by providing the transmitter and the receiver with
+“hints” about the noise of the channel. Adding these hints only increases the information
+rate, allowing them to bound the capacity of the BDC from above by bounding the
+capacity of some auxiliary channels using the Blahut-Arimoto algorithm.
+    Dalai [Dal11] and Rahmati and Duman [RD14] refine this analysis and prove that
+for any d ∈ (0.65, 1), the capacity of the BDC is bounded from above by C(BDCd ) ≤
+0.4143(1 − d). Given unlimited computational resources, these methods will converge to
+the capacity of the channel, but this convergence is extremely slow.
+
+1.2    Our results
+In this work, we improve both the upper and the lower bounds on the capacity of the BDC.
+To improve the upper bound, we integrate into the classical Blahut-Arimoto algorithm
+several ingredients that reduce its memory requirements. These ingredients include loop
+nest optimization, caching, symmetries, and compressing sparse matrices. This allows us
+to extend the previous analyses to more computationally challenging regimes and gives
+us the following new upper bound
+
+Theorem 1.1. For any d ≥ 0.68, it holds that
+
+                              C(BDCd ) ≤ 0.3745 · (1 − d) .
+
+   Our second contribution is an improved lower bound on the capacity of the BDC
+based on Mitzenmacher and Drinea’s construction [DM07]. Mitzenmacher and Drinea’s
+construction is parametrized by a distribution on “run lengths” and outputs a provable
+
+                                            4
+       0.8
+                                                                New Upper Bound
+                                                                 New Lower Bound
+                                                             Best Known Upper Bound
+       0.6                                                   Best Known Lower Bound
+Rate
+
+
+
+
+       0.4
+
+
+
+       0.2
+
+
+
+        0
+             0    0.1   0.2    0.3     0.4       0.5   0.6       0.7   0.8     0.9         1
+                                                  d
+Figure 1: Our new upper and lower bounds compared to previous state-of-the-art upper and
+lower bounds. The best known lower bound is given in [DM07, MD06] and the best known
+upper bounds are taken from [DMP07, FD10, Dal11, RD14]
+
+
+lower bound on the capacity of the BDC. Mitzenmacher and Drinea apply their con-
+struction to various geometric run length distributions, but give no argument for why
+geometric distributions should be optimal. We propose a heuristic approach to selecting
+better run length distributions to be used as parameters for Mitzenmacher and Drinea’s
+rigorous analysis, yielding an improved lower bound (Theorem 1.2).
+Theorem 1.2. For any d ∈ (0, 1)
+
+                              C(BDCd ) > 0.1221 · (1 − d) .
+
+    Using the result of [Rub22] as a black box, we can efficiently construct a binary code
+that achieves this rate and has efficient encoding and decoding algorithms.
+    For a full characterization of the lower and upper bounds on the capacity of the BDC
+as a function of d, see Tables 1 and 2, and Figure 1.
+
+1.3          Organization
+In Section 2, we describe the main components of the Blahut-Arimoto algorithm and the
+best known upper bounds. In Section 3, we construct a memory efficient version of the
+Blahut-Arimoto algorithm and show that it can be used to prove tighter upper bounds
+on the capacity of the BDC. Finally, in Section 4 we present a heuristic approach to
+optimizing the input to Mitzenmacher and Drinea’s construction, allowing us to prove
+tighter lower bounds on the capacity of the BDC.
+    In the interest of reproducibility, we have made our code publicly available through
+github. The code used to generate the upper bounds in Sections 2 and 3 is available here.
+The code used to generate our lower bounds (see Section 4) is available here.
+
+                                             5
+2     Upper Bound Theory
+In this section, we will give an overview of the theory involved in our upper bound
+analysis. In Section 2.1, we will introduce discrete memoryless channels and the Blahut-
+Arimoto algorithm which can be used to compute their capacity. Then, in Section 2.2,
+we will introduce several auxiliary channels which will aid our analysis of the BDC. We
+will show that these auxiliary channels are DMCs, allowing us to use the Blahut-Arimoto
+algorithm to find their capacity, and that their capacities are related to those of the BDC.
+
+2.1    Discrete Memoryless Channels and the Blahut-Arimoto Al-
+       gorithm
+Our main results are achieved through improvements and extensions of the Blahut-
+Arimoto algorithm for finding the capacity of discrete memoryless channels. In this
+section, we will give a brief overview of these channels and the Blahut-Arimoto algorithm
+(for a more detailed review, see [Yeu08, Chapter 9]).
+    A discrete memoryless channel (DMC) is defined by a finite input alphabet X , a
+                                                                          |X |×|Y|
+finite output alphabet Y, and a transition probability matrix P ∈ R+               . The channel
+sends each input letter x to each output letter y with probability Px→y independently at
+random. We note that the BDC is not a memoryless channel, so the results discussed
+here cannot be used to bound its capacity directly. In Section 2.2, we will show that
+there exists a family of DMCs whose capacities converge on the capacity of the BDC
+from above.
+    In general, the capacity C of a channel represents the maximum rate at which infor-
+mation can be communicated reliably over it [Yeu08]. For DMCs, the capacity is given
+by
+                                           (                                  )
+                                             X                    Px→y
+              C = max {I(x; y)} = sup            Pi Px→y log P                              (2.1)
+                     P
+                                     P∈R X
+                                                               x ′ Px′ Px′ →y
+                   x←P                   +   x,y
+
+
+where the supremum is taken over input distributions P(x) that have a nonzero probabil-
+ity to output any letter x ∈ X . Both the input and the output alphabets are of finite size,
+so the information rate associated with any given input distribution P can be computed
+using the right-hand-side of eq. (2.1). However, it is not obvious that one can efficiently
+find a distribution P that maximizes this formula.
+    The Blahut-Arimoto algorithm (BAA - see Algorithm 1) is an iterative algorithm which
+rapidly converges to the capacity for any given DMC. It was introduced independently
+by Blahut and Arimoto in [Bla72, Ari72], who showed that it can be used to quickly find
+an input distribution whose rate is arbitrarily close to optimal.
+                                                                                    (ℓ)
+    We denote by P (ℓ) the input distribution used in the ℓth iteration, and by Qy,x the
+transition probabilities from the output alphabet to the input alphabet which can be
+thought of as the transitions of a probabilistic decoding algorithm. The algorithm runs
+by performing an alternating maximization on P and Q.
+
+Claim 2.1. [Ari72, Corollary 1] Let a > 0. The BAA algorirthm converges within O(1/a)
+iterations, and returns a distribution P with an information rate of at least R ≥ C(Ch)−a.
+
+
+                                               6
+ Algorithm 1: The Blahut-Arimoto algorithm.
+
+    input : Input and output alphabets X , Y
+    P : [0, 1]X ×Y - the channel’s transition probability matrix
+    a - capacity approximation parameter
+    output: R ∈ R - an upper bound on the capacity of this channel
+    P ∈ RX - an input distribution with a nearly optimal rate for this channel
+[1] Set ℓ = 0 and set P (1) to be the uniform distribution.
+[2] do
+           1. ℓ ← ℓ + 1
+
+         2. For every x ∈ X and y ∈ Y compute
+
+                                              (ℓ)              P (ℓ) (x)Px→y
+                                             Qy,x =P                (ℓ) ′
+                                                               x′ P (x )Px′ →y
+
+
+         3. For every x ∈ X , compute
+                                                                Q   (ℓ) Px→y
+                                            (ℓ+1)             y (Qy,x )
+                                       P            (x) = P Q          (ℓ) Px′ →y
+                                                           x′    y (Qy,x′ )
+
+                                                                    (ℓ)
+          where the product is over all y such that Qy,x > 0 and Px→y > 0.
+                   (ℓ+1) 
+   while maxx log2 PP (ℓ) (x)
+                           (x)
+                               ≥a
+[3] Compute
+                                                                                 !
+                                                                          (ℓ)
+                            XX
+                                      (ℓ)                             Qy,x
+                       R=            P (x) · Px→y · log
+                             x   y
+                                                                     P (ℓ) (x)
+                                                         (ℓ)
+     where the sums are over all x, y such that Qy,x > 0 and Px→y > 0.
+[4] Return P (ℓ+1) (x), R.
+
+
+
+
+                                                7
+2.2    Auxiliary Deletion Channels
+In Section 2.1, we defined discrete memoryless channels and presented the Blahut-Arimoto
+algorithm which can be used to bound their capacities. In this section, we will present
+several auxiliary channels. Originally introduced by Fertonani and Duman [FD10] and
+also used by Dalai [Dal11], these auxiliary channels are both discrete memoryless channels,
+allowing us to bound their capacities with the Blahut-Arimoto algorithm, and related to
+the BDC, allowing us to use them to bound the capacity of the BDC.
+    Let Wnd be the binary deletion channel with fixed input length n. Denote by Cn (d) :=
+max I(X1n ; Y ) its capacity where the maximum is taken over all input distributions on n
+bits, and Y = Wnd (X1n ) (i.e., the output of the channel on input X).
+
+Claim 2.2. [Dal11, Lemma 1] For any n ∈ N and d ∈ [0, 1],
+                                                      1
+                                    C(BDCd ) ≤          · Cn (d) .
+                                                      n
+   Similarly, we denote
+                      by Wn,k the channel with n-bit input whose output is uniformly
+                   n
+chosen within the k k-bit subsequences of the input (i.e. the channel deletes n − k of
+the bits at random). Denote its capacity by Cn,k := max I(X1n ; Y ) where Y = Wn,k (X1n ).
+   Fertonani and Duman, and then Dalai showed that the values of Cn,k can be used to
+bound Cn (d) from above with the following inequality.
+                                      n  
+                                     X   n n−k
+                            Cn (d) ≤       d (1 − d)k · Cn,k                                        (2.2)
+                                     k=1
+                                         k
+
+Proof of (2.2). The proof of this inequality is contained in the proof Lemma 4 in [Dal11].
+We repeat the details for completeness. Let X1n be an optimal distribution for Wnd and
+let Y = Wnd (X1n ) be the output distribution of the channel on X1n . Define the random
+variable L = |Y | (the length of Y ). Let Sd (n, k) be the probability that a string of length
+n is transformed into a string of length k after being transmitted through Wnd , namely,
+                                            
+                                             n n−k
+                               Sd (n, k) =       d (1 − d)k .
+                                             k
+   Then,
+                                   n
+                                   X                                       n
+                                                                           X
+        Cn (d) = I(X1n ; Y |L) =         Sd (n, k) · I(X1n ; Y |L = k) ≤         Sd (n, k) · Cn,k
+                                   k=0                                     k=1
+
+Where the first equality is due to the fact that X → Y → L is a Markov chain. The
+inequality follows since I(X1n ; Y |L = k) ≤ Cn,k and Cn,0 = 0.
+    Clearly, Cn,k describes the capacity of a channel with a finite input and a finite output
+                                                                      2n ×2k
+size. Therefore, we can describe it with a transition matrix P ∈ R+          and use the BAA
+algorithm to compute its capacity to within a given additive error. In [FD10], Fertonani
+and Duman, bounded Cn,k for all 1 ≤ k ≤ n ≤ 17, and for the specific case where k = n−1
+up to n = 22. However, they did not manage to go beyond these parameters due to the
+high computational complexity required [FD10]. In particular, we note the high memory
+
+                                                  8
+complexity of the BAA which is the main bottleneck in applying it to channels with large
+alphabets.
+    In Section 3, we will discuss several ways of decreasing the space complexity of the
+naı̈ve BAA implementation (Algorithm 1). Before that, we present several properties of
+Cn,k that we will use when computing the upper bound on Cn (d).
+Lemma 2.3. [FD10, Lemma 1] For all n and k, it holds that Cn+1,k ≤ Cn,k .
+Lemma 2.4. [FD10, Lemma 3] For all n and k ≥ 1, it holds that
+                                       
+                                     k                     k
+              Cn+1,k ≤ Cn,k−1 · 1 −       + (Cn,k + 1) ·      .
+                                    n+1                  n+1
+    The following claim can be seen as a straight forward generalization of Lemma 2.4.
+Lemma 2.5. For every s ∈ [n], it holds that
+                               s   s
+                                      n−s
+                             X     i
+                                      · k−i
+                     Cn,k ≤            n
+                                           · (Cs,i + Cn−s,k−i )
+                                    i=0       k
+
+Proof. Let X1n be an optimal distribution for the channel Wn,k . Denote by Rs the random
+variable that corresponds to the number of bits that survived the transmission of the last
+s bits of X. It holds that
+                                                   s
+                                                   X
+          Cn,k = I(X1n ; Y ) ≤ I(X1n ; Y |Rs ) =            Pr[Rs = i] · I(X1n ; Y |Rs = i)
+                                                      i=0
+
+where the inequality follows since Rs and X1n are independent. Now, Pr[Rs = i] =
+      k−i )
+(si)·(n−s
+            so we are left to show that I(X1n ; Y |Rs = i) ≤ Cs,i + Cn−s,k−i . Indeed, let
+    (k )
+     n
+
+
+Z (0) := Wn−s,k−i (X1n−s ), Z (1) := Ws,i (Xn−s+1
+                                            n
+                                                  ), and consider the following markov chain
+X1 → (Z , Z ) → Z where the second step is just the concatenation of Z (0) and Z (1) .
+   n         (0) (1)
+
+Thus, by the data processing inequality,
+
+           I(X1n ; Y |Rs = i) = I(X1n ; Z) ≤ I(X1n ; (Z (0) , Z (1) )) ≤ Cs,i + Cn−s,k−i .
+
+
+3     Memory Efficient Implementation of the Blahut-
+      Arimoto Algorithm
+Our ultimate goal is to run the Blahut-Arimoto algorithm on these auxiliary channels
+with larger input and output alphabets in order to find tighter upper bounds on the
+capacity of the BDC.
+    The main bottleneck in applying Algorithm 1 to larger input alphabets (X ) and output
+alphabets (Y), is its memory requirement. Recall that Algorithm 1 stores two |X × Y|-
+sized arrays: the transition probability matrix of the channel and the intermediate array
+  (ℓ)
+Qy,x computed in each iteration. This requires us to store and frequently access large
+arrays of floating point numbers, which increases the memory complexity of the algorithm,
+and poses the main technical limitation on our ability to scale to larger alphabets.
+
+                                                  9
+    To get a sense of how quickly the memory usage of Algorithm 1 becomes impractical,
+assume that we want to compute upper bound on C25,12 using the BAA algorithm (Al-
+gorithm 1). In this case, |X | = 225 , |Y| = 212 and saving just the transition matrix, P ,
+where each entry is represented by a double type floating point, would require a terabyte
+of RAM storage!
+    In the following section, Section 3.1, we use a combination of caching computation
+results and loop nest optimization to significantly reduce the asymptotic memory require-
+ments of the BAA algorithm, albeit with a small increase in runtime. In Section 3.2, we
+present a “sparse” version of Algorithm 1 that enables more efficient storage of the arrays.
+By employing these techniques, we were able to compute upper bounds on Cn,k for values
+of n and k that were unknown prior to this work. Finally, in Section 3.3, we present our
+computation which takes as input the upper bounds on Cn,k and produces the improved
+upper bounds on the capacity of the BDC.
+
+3.1    Caching and Loop Nest Optimization
+The main method we use to compute the bulk of our Cn,k capacity bounds is by remov-
+ing the requirement for storing the |X × Y| sized matrices Px→y , Qy,x altogether, and
+replacing them with asymptotically smaller arrays instead.
+    We can remove the memory requirements for the transition probability matrix from
+the Blahut-Arimoto algorithm by accepting an oracle access to its entries instead. Doing
+this requires a method of computing the channel’s transition probabilities quickly. The
+transition probabilities are proportional to the number of ways in which a given output
+string can be represented as a subsequence of a given input string, and the common
+approach to this computation would be to use the dynamic programming method shown
+in Algorithm 2.
+    However, Algorithm 2 runs in time Θ (n · k), which proved to be too slow in practice.
+Therefore, we used a slightly different approach shown in Algorithm3 which runs in time
+O(k), but requires a precomputed cache table of size Θ 2k+⌈n/2⌉ that are computed
+using Algorithm 2.
+    Using large caches might seem counter-intuitive when our goal is to reduce the memory
+complexity of an algorithm, but this added memory is far smaller than the original
+memory complexity. For instance, in the numerical example given above with n = 25
+and k = 12, this precomputed table would take up only about 256MB of RAM, making
+it much more practical.
+                                                (ℓ)
+    To avoid storing the intermediate array Qy,x , we use an algorithmic concept called
+loop nest optimization [Wol92], meaning that we alter the order in which the operations
+of the algorithm are performed, in order to reduce its memory storage and retrieval
+requirements. We perform this optimization to construct Algorithm 4, where we avoid
+                             (ℓ)
+computing the entries of Qy,x . Instead, we compute the same outputs of each iteration
+of the Blahut-Arimoto algorithm using only the O (|X | + |Y|) sized intermediate arrays
+  (ℓ)   (ℓ)
+Dy , Wx .
+    Since each step of the Blahut-Arimoto optimization is logically unchanged, Algo-
+rithm 4 converges with exactly the same number of iterations as Algorithm 1. In both
+algorithms, each iteration has Θ (|X × Y|) arithmetic operations and Algorithm 4 also
+requires Θ (|X × Y|) queries to the transition probability oracle, each of which takes
+
+                                            10
+  Algorithm 2: A dynamic programming algorithm for computing the transition
+  probabilities of the Cn,k channel.
+  This algorithm has time and memory complexity Θ (nk).
+    input : Input string x ∈ X ∈ {0, 1}n
+    Output string y ∈ Y ∈ {0, 1}k
+    output: Transition probability Px→y
+[1] Initialize a 2D array A of size (n + 1) × (k + 1) with all values as 0
+    for i from 0 to n do
+        for j from 0 to k do
+            if i = 0 and j = 0 then
+                Set A[i][j] := 1
+            end
+            if i > 0 and j = 0 then
+                Set A[i][j] := A[i − 1][j]
+            end
+            if i > 0 and j > 0 and xi = yj then
+                Set A[i][j] := A[i − 1][j − 1] + A[i − 1][j]
+            end
+            if i > 0 and j > 0 and xi 6= yj then
+                Set A[i][j] := A[i − 1][j]
+            end
+        end
+    end
+[2] Return
+                                             A[n][k]
+                                                n
+                                                  
+                                                  k
+
+
+
+
+ Algorithm 3: An algorithm for computing the transition probabilities of the
+ Cn,k channel.
+    input : Input string x ∈ X = {0, 1}n
+    Output string y ∈ Y = {0, 1}k
+    Cache table Px′ →y′ of all transition probabilities of C≤⌈n/2⌉,≤k channels
+    output: Transition
+             n         probability
+                             n      Px→y
+[1] Set n1 = 2 and n2 = 2 .
+[2] Define x1 = x:n1 and x2 = xn1 +1: to be the first n1 and the last n2 bits in x
+     (resp).
+[3] Return
+                                         X
+                                Px→y =        Px1 →y:k′ Px2 →yk′ +1:
+                                      0≤k ′ ≤k
+
+
+
+
+                                                 11
+O(k) time (when implemented using Algorithm 3). Therefore, the
+                                                              total   runtime of our
+                                                                  2n+k
+optimized BAA Algorithm 4 is O(k) · Θ (|X × Y|) · O(1/a) = O k · a .
+   Using Algorithm 4, we computed bounds on Cn,k for all n + k ≤ 39 where n ∈ [28].
+
+3.2    Using sparsity
+                                                                                         (ℓ)
+In this section, we will use the fact that when k is close to n, the matrices P and Qy,x
+are (very) sparse and thus can be represented in a compressed form. Recall that a major
+bottleneck in Algorithm 1 is the memory usage that it requires. Consider for example the
+case where k = n − 1. In this case, the size of P is 22n−1 but each row of P has at most n
+nonzero values which implies that each row contains at least 2n−1 − n zeros. Also, recall
+that Algorithm 1 does not consider zero values in its computations. This motivates us to
+try to modify Algorithm 1 and create a version that saves only the nonzero entries.
+    There are many ways of representing sparse matrices. We shall use the compressed
+sparse column format (CSC), in which the sparse matrix is saved using three (one di-
+mensional) arrays: the data array, the col-ind array and the row-ind array. The data
+array will store all the nonzero values of the sparse matrix and the row-ind will store
+the corresponding row indices of these values, respectively. The col-ind at index j will
+encode the total number of nonzero values before the jth column (the size of col-ind is
+the number of columns in the matrix plus 1). Another representation that we will use is
+the compressed sparse row format (CSR), that is similar to the CSC format. Here, the
+col-ind and row-ind array change roles. The col-ind will store the column indices of the
+data and the row ind at index j will encode the total number of nonzero values above
+the jth row.
+    In our implementation, we extend the CSC representation by incorporating two addi-
+tional arrays to compress the row data in a manner similar to the CSR format. The first
+of these arrays, called perm-data, stores the permutation that maps the data array of the
+CSC matrix to the data array of a CSR matrix. The second array, called row-ind-CSR,
+represents the row indices of the corresponding CSR matrix.
+    The modifications to Algorithm 1 are:
+
+   • The input to the algorithm is now the channel transition matrix P in the CSC
+     format.
+
+   • Prior to the loop in Step 2, we compute the two additional arrays discussed above:
+     the perm-data array and row-ind-CSR array.
+
+   • In Step 2, we loop over only the nonzero values of P and Q(ℓ) y, x to compute Q(ℓ) y, x
+     and P (ℓ+1) (x). The extension arrays we added allow us to iterate over the rows and
+     columns of the sparse matrix.
+
+    Another major advantage of the modifications is the significantly improved runtime
+                                                               (ℓ)
+of the algorithm. By looping over just the non-zero values of Qy,x and P (ℓ+1) , the number
+of arithmetic operations becomes linear in the sparsity order, rather than linear in the
+size of the matrices.
+                  k Specifically,
+                                  the runtime of the sparse BAA algorithm is O(1/a) ·
+     n
+        n        n ·2n
+O k ·2 =O            a
+                           .
+
+
+                                            12
+  Algorithm 4: A loop nest optimized implementation of the Blahut-Arimoto
+  algorithm.
+  Note that this algorithm contains arithmetic operations over real numbers, which
+  could lead to undefined intermediate values (e.g., due to a division by 0). We
+  work with the convention that the outputs of such operations are fixed to 0.
+    input : Input and output alphabets X , Y
+    P : X × Y → [0, 1] - an oracle to the channel transition probability
+    a - capacity approximation parameter
+    output: P ∈ RX - an input distribution with a nearly optimal rate for this
+              channel
+    R ∈ R - the information rate of P
+[1] Set ℓ = 0 and set P (1) to be the uniform distribution.
+[2] do
+           1. ℓ ← ℓ + 1
+
+         2. For every y ∈ Y compute                               X
+                                                     Dy(ℓ) =            P (ℓ) (x)Px→y
+                                                                  x∈X
+
+         3. For every x ∈ X compute
+                                                                                         !Px→y
+                                                           Y       P (ℓ) (x)Px→y
+                                                 Wx(ℓ) =                    (ℓ)
+                                                            y             Dy
+
+         4. For every x ∈ X , compute
+                                                                                   (ℓ)
+                                                          (ℓ+1)          Wx
+                                                      P           (x) = P    (ℓ)
+                                                                         x′ Wx′
+
+                      (ℓ+1)        
+                      P       (x)
+   while maxx log2     P (ℓ) (x)
+                                        ≥a
+[3] Compute
+                                                                                        !
+                                    XX                                     Px→y
+                             R=                  P(x) · Px→y · log                (ℓ)
+                                        x    y                              Dy
+    Return P (ℓ+1) (x), R.
+
+
+
+
+                                                      13
+                                                 (ℓ)
+    For example, when k = n − 2, computing Qy,x and P (ℓ) in Step 2 takes O(n2 · 2n ) time
+in the sparse implementation, while the naı̈ve implementation would take O(22n−2) time
+Using these modifications, we were able to compute Cn,k for all k, n such that n ∈ [18, 24]
+and k ∈ [n − 3, n − 1].
+
+3.3    Results
+In Section 2, we showed how the values Cn,k for all k ∈ [n] can be used to obtain an upper
+bound on Cn (d) via Equation (2.2). By employing our improved BAA algorithms, we were
+able to compute many previously unknown Cn,k values. Nevertheless, for 22 ≤ n ≤ 28,
+there are Cn,k values that we could not compute even with the improved algorithms. To
+obtain upper bounds on these unknown Cn,k values, we used the minimum value resulting
+from Lemma 2.3 and Lemma 2.5. Then, for every fixed d, we simply compute
+                                          n  
+                                                                    !
+                                       1 X n n−k               k
+                    C(BDCd ) ≤ min                 d (1 − d) Cn,k .                   (3.1)
+                                n∈[28] n       k
+                                          k=1
+
+To prove Theorem 1.1, we will use Rahmati and Duman’s result [RD14, Theorem 1].
+
+Theorem 3.1. [RD14, Theorem 1] Let λ, d′ ∈ [0, 1] and denote d = λd′ + 1 − λ. Then,
+
+                                 C(BDCd )   C(BDC′d )
+                                          ≤           .
+                                   1−d       1 − d′
+   When d′ = 0.68, we get that C(BDCd′ )/(1 − d′) = 0.3745 and thus, for every d ≥ 0.68,
+we have that C(BDCd ) ≤ 0.3745 · (1 − d). Results for smaller values of d are listed in
+Table 1 and plotted in Figure 1.
+
+
+4     A new Lower Bound
+4.1    The framework of Drinea and Mitzenmacher
+We give a brief description of the main framework given in [DM07]. Their framework
+suits any channel that introduce i.i.d. deletions and also i.i.d. duplications. Such a chan-
+nel is described by a probability distribution G over the nonnegative integers, where a
+nonnegative integer j is sampled with probability j. The BDCd is defined with G0 = p,
+G1 = 1 − p, and for every j ≥ 2, Gj = 0. Another channel we consider in this work is the
+PRCλ that is defined as follows
+
+Definition 1. Let λ > 0. The Poisson repeat channel with parameter λ (PRCλ ) replaces
+each transmitted bit randomly (and independently of other transmitted bits), with a dis-
+crete number of copies of that bit, distributed according to the Poisson distribution with
+parameter λ.
+
+   This channel was first defined by Mitzenmacher and Drinea in [MD06] who used it to
+prove a lower bound of (1 − d) /9 on the rate of the BDC. What they observed is that a
+code for the PRCλ having rate R, yields a code for the BDCd of rate (1 − d) · R/λ.
+
+
+                                            14
+                                                  Best Known
+                p   New Upper Bound        Upper Bound [FD10, DMP07]
+               0.01 0.9583 (n = 24)                  0.963
+               0.02 0.9189 (n = 24)                  0.926
+               0.03 0.8817 (n = 24)                  0.891
+               0.04 0.8467 (n = 24)                  0.858
+               0.05 0.8139 (n = 24)                  0.816
+               0.10 0.6762 (n = 22)                  0.689
+               0.15 0.5660 (n = 22)                  0.579
+               0.20 0.4786 (n = 22)                  0.491
+               0.25 0.4083 (n = 22)                  0.420
+               0.30 0.3513 (n = 22)                  0.362
+               0.35 0.3045 (n = 22)                  0.315
+               0.40 0.2648 (n = 23)                  0.275
+               0.45 0.2309 (n = 23)                  0.241
+               0.50 0.2015 (n = 24)                  0.212
+               0.55 0.1755 (n = 25)                  0.187
+               0.60 0.1524 (n = 27)                  0.165
+               0.65 0.1313 (n = 28)                  0.144
+               0.68 0.1199 (n = 28)                    −
+
+
+Table 1: Our upper bound compared to the upper bound computed in [FD10]. We note that
+for d = 0.05 the previous best known upper bound is given in [DMP07]. Alongside the bound,
+we write the value of n for which the minimum was obtained in left hand side of (3.1).
+
+
+
+
+                                           15
+    Drinea and Mitzenmacher define their code using a run length distribution P, which
+samples each non-negative integer j with probability Pj . 2
+    Each codeword of length N in the code is constructed as follows. The first symbol (0
+or 1) is chosen uniformly at random. The rest of the codeword is generated by deciding
+on the lengths of the runs that form it, where runs are defined as the maximal length
+substrings of the codeword of the same symbol (e.g., the string 110001 consists of 3 runs:
+11, 000 and 1, of lengths 2, 3, and 1, respectively). The lengths of the runs of the
+codeword are sampled i.i.d. from P and the symbols of the runs are alternating. The
+sampling stops when the length of the generating string is ≥ N. If the length of the
+generated string is strictly greater than N, it is truncated.
+    We now define the notion of types. Consider a transmitted codeword X and let Y be
+the output of the channel upon transmitting X. We write X and Y as a concatenation
+of their runs, that is, X = r0X ◦ r1X ◦ · ◦ rm
+                                             X
+                                               , Y = r0Y ◦ r1Y ◦ · ◦ rm
+                                                                      Y
+                                                                        ′
+
+
+Definition 2. Let rjY be a run of length k. Let j1 , . . . , js be a sequence of consecutive
+indices such that,
+       • The first bit of rjY corresponds to the first bit of rjX1 that was not deleted by the
+         channel.
+       • The runs rjX2 , rjX4 , . . . , rjXs−1 were deleted by the channel.
+       • The run rjXs+1 is not completely deleted by the channel.
+Then, the type of rjY is an s tuple         that represent the lengths of the runs indexed at
+                          X             X
+j1 , . . . , js , namely rj1 , . . . , rjs .
+       The probability of a type t = (z, s1 , r1 , . . . , si , ri ), is [DM07, Equation 3]
+                                                      i
+                                                                     !
+                                                   Y
+                                            z
+                                  Pz (1 − d )             Psℓ Prℓ ds ,
+                                                           ℓ=1
+
+where s := s1 + . . . si and d := G0 . Denote by T and K the random variables representing
+the length and type of a runs in Y , respectively. It holds that [DM07, Equation 34],
+
+                   Pr[T = t, K = k] = Pz Ps1 Ps1 · · · Psi Pri · ds · (ρz+r,k − ρr,k · dz )            (4.1)
+
+where ρa,b is the probability that a ≥ 1 bits transmitted over a channel with distribution
+G generate b bits. Note that ρz,0 = Gz0 = dz .
+   Let Qn,m be the P  probability that the length of m consecutive runs P is exactly n. It
+                        n−m+1                                                      z
+holds that Qn,m =       ℓ=1    Pℓ · Qn−ℓ,m−1 where Q0,0 = 1. Let D =         z Pz d be the
+probability that a run is deleted from X, the distribution K for run lengths in Y is given
+by [DM07, Equation 35]
+                                          ∞
+                                          X              ∞ X
+                                                         X ∞
+                                                     i
+                   Kk := Pr[K = k] =             D                 Pz Qr,i · (ρz+r,k − ρr,k · dz ) .   (4.2)
+                                           i=1           z=1 r=i
+
+   2
+    The distribution, P, must have a geometric decreasing tail, that is, there are two real constants
+cP ∈ (0, 1], αP ∈ [0, 1) and an integer constant MP such that (i) Pj ≤ cP for 1 ≤ j ≤ MP and (ii)
+Pj ≤ (1 − αP )αj−1
+                P  for j > MP .
+
+                                                           16
+    Given the distribution P we can compute the rate of the respective code constructed
+using this method with the following theorem.
+Theorem 4.1. [DM07, Theorem 4] The capacity of the the channel defined by the
+distribution G with G0 > 0 is lower bounded by
+                                                                 
+                        1         1+D
+                   1+D
+                        P               · H(P) − (H(T, K) − H(K))       (4.3)
+                   1−D
+                       · z zPz 1 − D
+where Pr[T = t, K = k] is given in (4.1) and K is given in (4.2).
+    Note that evaluating numerically (4.3) for a given distribution P is not an easy task
+since it involves infinite sums.
+    In [MD06, DM07], the authors limit themselves to the case where P is a geometric
+distribution. In this case, they managed to derive simpler expressions to (4.3) (see
+[MD06, Theorem 2] for the PRCλ and [DM07, Corollary 1] for the BDCd ). However, the
+authors do not provide an argument for why geometric distributions should be optimal.
+Indeed, we will improve upon this lower bounds by constructing a better distribution P.
+
+4.2    Our heuristic approach to find better input distributions
+In this section, we will present a heuristic approach to optimizing the input run length
+distribution P. Note that even though our optimization of P is heuristic, because P
+is used only as parameters for Mitzenmacher and Drinea’s rigorous construction, the
+resulting bounds are provably correct. Indeed, we plug in the resulting distribution in
+Theorem 4.1.
+    Our approach is based on a heuristic score function Rheur , which should approximate
+the information rate of Mitzenmacher and Drinea’s code for the given distribution. We
+select the score function so that it can be optimized with a Blahut-Arimoto type algo-
+rithm.
+    Our main observation is that for the distributions used by Mitzenmacher and Drinea,
+only a small fraction of the runs are deleted. If no runs were deleted, then we could
+view the channel as a DMC that maps input run lengths into output run lengths and
+its information rate would be given by eq. 4.4, where Px→y is the transition probability
+matrix of input run lengths to output run lengths.
+                                                                   
+                                  X                     Px→y
+                         RDMC =       Pi Px→y log P                                 (4.4)
+                                                     x ′ Px′ Px′ →y
+                                  x,y
+
+    Equation (4.4) overlooks two key effects: that the binary deletion channel can delete
+entire runs causing a loss of information, and the rate given in equation (4.4) is in bits per
+run. To correct for the first effect, we subtract from RDMC a loss function ∆ · Ex←P Dx
+where ∆ is a parameter and Dx is the probability that a run of length x will be deleted
+by the channel. To correct for the latter effect, we normalize the rate by the inverse of
+the average run length L(P) = Ex←P x.
+    After correcting for these effects, we get our heuristic score function in eq. (4.5). In
+Section 4.3, we give a more detailed analysis of these approximations.
+                                             "                    #
+                                 def   1              X
+                          Rheur = P           RDMC −      Pr ∆Dr                         (4.5)
+                                      r Pr r           r
+
+
+                                             17
+                           Best previous   Direct lower    PRC based
+                     d     lower bound        bound       lower Bound
+                    0.40     0.148410       0.149810        0.073313
+                    0.45     0.122860       0.124700        0.067204
+                    0.50     0.101860       0.104075        0.061094
+                    0.55     0.084323       0.086712        0.054985
+                    0.60     0.069564       0.071838        0.048875
+                    0.65     0.056858       0.059012        0.042766
+                    0.70     0.045324       0.047726        0.036657
+                    0.75     0.035984       0.037593        0.030547
+                    0.80     0.027266       0.028371        0.024438
+                    0.85     0.019380       0.019531        0.018328
+                    0.90     0.012378       0.012379        0.012219
+                    0.95     0.005741       0.005631        0.006105
+
+
+Table 2: Our lower bound compared to the lower bounds computed in [MD06, DM07].
+
+
+    In Section 4.4, we show how a Blahut-Arimoto type algorithm can be used to maximize
+eq. (4.5) w.r.t the input distribution P in polynomial time. Roughly speaking, this
+optimization works by enumerating over polynomially many potential values of L(P),
+and using an extension of the BAA similar to the one used in [LC19] to optimize P under
+the different constraints on the average run lengths.
+    In practice, this enumeration converges too slowly, so we use a heuristic basin-hopping
+optimization algorithm to select the external parameters ∆, L0 . For each setting of ∆, L0 ,
+we use a BAA type algorithm to find a distribution P(∆, L0 ) which maximizes eq. (4.5)
+under the constraint of L(P) = L0 . We use the basin-hopping optimization to select
+the parameters for which the distribution P(∆, L0 ) yields the best lower bound from
+Mitzenmacher and Drinea’s construction.
+    Recall that we use this heuristic only to optimize the parameters needed for applying
+Mitzenmacher and Drinea’s rigorous construction. Therefore, the lower-bounds obtained
+by this method are rigorous (though not necessarily tight).
+    We use this heuristic approach to optimize the input distribution for different deletion
+probabilities d ∈ (0, 1), giving us an improved lower bound in the intermediate deletion
+probability regime d ∈ [0.4, 0.9] (see Table 2). In order to lower bound the capacity of
+the BDC in the d → 1 regime, we use the same technique to lower bound the capacity of
+the PRC with a given parameter λ0 = 0.19, yielding the bound
+                       C(BDCd )   C(PRCλ0 )   0.0232
+                                ≥           >        > 0.1221 .
+                         1−d         λ0        0.19
+
+
+4.3    Analysis of the heuristic
+In Section 4, we recalled Mitzenmacher and Drinea’s approach to converting distributions
+on lengths of runs into error correcting codes for the binary deletion channel and the
+Poisson repeat channel [DM07]. We gave a very high-level heuristic formula for the
+
+                                            18
+information rate a Mitzenmacher and Drinea’s type code would achieve for a given run
+length distribution and optimized the input run length distribution using this heuristic
+formula. In this section, we will give a slightly more formal derivation of the heuristic
+formula from Section 4.
+    Let P be a distribution on run lengths to be input into Mitzenmacher and Drinea’s
+construction. If none of the input runs were completely deleted, then the channel could
+effectively be seen as a discrete memory-less channel on runs, and the information rate
+of the code (per run) would be given by
+                                                                    
+                                    X                    Px→y
+                      Rmemoryless =     Pi Px→y log P                              (4.6)
+                                                      x ′ Px′ Px′ →y
+                                    x,y
+
+    However, this formula for the rate overlooks two key aspects of the deletion channel
+and the code. Namely, that runs can be deleted (i.e., the BDC and the PRC are not
+memoryless channels) and that different run lengths have a different cost for the rate of
+the code.
+    Consider the effects of runs being deleted by the channel. Every time a run is deleted
+by the channel, this causes the preceding and following input runs to be merged and
+results in a loss of information as the output run can no longer be assigned to a single
+input run.
+    Let d denote the probability that the channel will delete any single bit (d is the deletion
+rate for the deletion channel and d = e−λ for the PRCλ channel), and let D = Ex←P dx
+denote the probability that any single input run is deleted.
+    The first approximation that we will make is that D is small. This assumption is
+reasonable for most useful distributions. For instance, for the distributions used in [MD06,
+DM07], the run deletion probabilities were around D ≈ 4.4%.
+    If we completely neglected the deletion probability D, then we would return to the
+formula for a memoryless channel and our optimization will no longer have any pressure to
+prefer longer runs which are less likely to be deleted by the channel, effectively increasing
+D and possibly invalidating our assumption. Therefore, we need to take into account
+some effects of order O(D), but we allow ourselves to neglect those of order O (D 2 ). In
+other words, we will take into account the effects of output runs resulting from merging
+at most 2 input runs.
+    Consider an input run of length r. The probability that this run will be deleted by
+the channel is Dr = dr . Denote by rbefore , rafter the lengths of the runs immediately before
+and after it, respectively. If the run r is deleted, then the latter two (rbefore , rafter ) will be
+merged by the channel.
+    The possibility of runs being deleted or merged can lead to two adverse effects. First,
+the added uncertainty of determining which runs were merged with which, can increase
+the entropy required for the decoding. Due to the high degree of difficulty in estimating
+this effect and some evidence that it is less significant (see e.g. [KD09]), we neglect it.
+The second effect, on which we will focus most of our efforts, is that some amount of
+information ∆I (rbefore , rafter ) is lost because we are given the output of the channel only
+on the merged run of length rbefore + rafter (and not on the individual runs of lengths
+rbefore , rafter ). The loss of information is quantified in eq. (4.7), by comparing the infor-
+mation rate of two separate runs of lengths r1 , r2 , with the rate of a single merged run of
+length r1 + r2 .
+
+                                                19
+                                                                                  
+              def
+                    X                               Pr1 →o1               Pr2 →o2
+   ∆I (r1 , r2 ) =        Pr1 →o1 Pr2 →o2 log P                   + log P                −
+                   o1 ,o2                          r P r P r→o1           r Pr P r→o2
+                                                                       !                     (4.7)
+                       X                            Pr1 +r2 →o
+                   −        Pr1 +r2 →o log P
+                          o                  ρ1 ,ρ2 Pρ1 Pρ2 Pρ1 +ρ2 →o
+
+
+     Note that this information loss depends only on the lengths of the runs being merged,
+and that these lengths are independent of the length of the run being deleted. Let ∆I =
+Er1 ,r2 ←P ∆I (r1 , r2 ) denote the average information lost due to such a merger. Denote
+by X the distribution of input codewords, by Y the output codeword and let T denote
+the random variable containing the division of input runs into types (i.e. which runs in
+X were merged due to deletions by the channel). Putting our approximations into an
+information theoretic language, we have:
+
+
+Information Rate = I (X; Y ) = H (X) − H (X | Y )
+                 = H (X) − H (T , X | Y ) + H (T | X, Y )
+                 = H (X) − H (X | Y, T ) − H (T | Y ) + H (T | X, Y )
+                     |X|                             
+                 =           Rmemoryless − D∆I + O D 2 − H (T | Y ) + H (T | X, Y )
+                   Er←P r
+                                                                              (4.8)
+
+  Equation (4.8) gives us our separation of the exact information rate into an approxi-
+mate formula (eq. (4.9)) and error terms.
+
+                                 1                               Information Rate
+                Rheuristic =            [Rmemoryless − D∆I ] ≈                               (4.9)
+                               Er←P r                                  |X|
+
+    The neglected error terms in eq. (4.8) are D 2 , H (T | Y ) /|X| and H (T | X, Y ) /|X|.
+The first term is negligible due to our assumption that D ≪ 1, and we neglect the other
+two mainly because of the difficulty of including them in the optimization (the latter term
+is also neglected by Mitzenmacher and Drinea [DM07] and both are difficult to compute
+directly [KD09]).
+    The last heuristic step in our analysis is to neglect the dependence of ∆I on the input
+                                                       ?
+distribution P. Instead, we will make estimates ∆ = ∆I , and maximize Rheuristic assuming
+this value ∆ of information loss per merge (but without limiting P to distributions
+that maintain the equation ∆I (P) = ∆). This is a heuristic approximation, but it is
+somewhat justified assuming that ∆I doesn’t vary too wildly between otherwise “good”
+input distributions and that this variation is then multiplied by D ≪ 1 in eq. (4.8)
+    Recall that the goal of eq. (4.9) is not to directly prove a lower bound, and may be far
+less accurate than using a calculation similar to the one described in [DM07]. The main
+reason to use this approximation is that it gives a closed formula, and that a BAA-style
+convex optimization algorithm can be used to maximize it, which can then be used as
+parameters for Mitzenmacher and Drinea’s construction.
+
+                                                 20
+4.4    Reduction to Convex Optimization
+In Section 4.3, we gave a heuristic argument for a simplified formula that can be used to
+estimate the information rate of Mitzenmacher-Drinea type codes for the binary deletion
+channel and the Poisson repeat channel. This formula can be seen as an information rate
+formula with 2 correction terms corresponding to different “costs” of sending different run
+lengths (the cost due to the information lost in the event of a deletion and the overhead of
+sending longer runs). In this section we will construct a Blahut-Arimoto type algorithm
+to maximize it.
+    In some sense, generalizing the Blahut-Arimoto algorithm to the cost types needed
+for our construction can be seen as an extension of the algorithm presented by Li and
+Cai [LC19] who show how to extend the Blahut-Arimoto to quantum-classical codes where
+only distributions below a certain total cost are allowed. We will reduce our optimization
+problem into an optimization problem in the class of problems solved by Li and Cai, and
+prove that our optimization yields a ±ε-approximation of the optimal distribution score
+within poly (1/ε, 1/(1 − d)) and poly(1/ε, λ, 1/λ) time for the binary deletion channel
+and the poisson repeat channel with parameters d and λ resp.
+    Our approximation for the rate of the resulting code is given by the formula
+                                            "                         #
+                                def   1                    X
+                     Rheuristic = P          Rmemoryless −    Pr ∆Dr                  (4.10)
+                                     r Pr r                r
+
+   This approximation can be viewed as a combination of three terms:
+   • The basic information rate of a memory-less channel of runs Rmemoryless .
+                                                                P
+   • A correction term for the information lost due to deletions r Pr ∆Dr .
+   • A “price factor” corresponding to the average resource cost of transmitting a run
+     P 1     .
+        Pr r
+        r
+
+    The main claim we will prove in this section is that a nearly optimal distribution for
+this heuristic formula can be efficiently found:
+Lemma 4.1. There exists an algorithm that returns a distribution P for which
+
+                          Rheuristic (P) ≥ sup {Rheuristic (P ′ )} − ε
+                                            P′
+
+in poly (1/ε, 1/(1 − d), ∆) time for the deletion channel with deletion probability d and
+poly (1/ε, λ, 1/λ, ∆) time for Poisson repeat channel with parameter λ.
+Proof of Lemma 4.1. The main difficulty in maximizing eq. (4.10) is that the price factor
+term P 1Pr r causes the relationship between Rheuristic and P to be non-convex. This issue
+       r
+                                                                                         def
+will be the main focus of this section, and we will overcome it by extracting L(P) =
+P
+   r Pr r to be an external hyperparameter of the optimization. We then separate the
+search into many searches under the external condition the L(P) = ℓ for different values
+of ℓ and show that polynomially many searches suffice.
+    Unlike ∆, neglecting the effect of the fact that P must satisfy L(P) = ℓ in each of
+these searches would lead us to select distributions of runs too heavily skewed towards
+
+                                                 21
+long runs, lowering the rate they can achieve. So for any given value ℓ, we limit our search
+to distributions P under the condition that L(P) = ℓ. The central point of our analysis
+will be to show that the supremum of Rheuristic with respect to P under the condition that
+L(P) = ℓ, cannot change too rapidly with ℓ, this is what allows us to enumerate over
+only polynomially many guesses for ℓ in order to approximate the optimal distribution
+P to within a small additive error.
+          def
+    Let η = max{log ∆, 1}. We begin with the simple observation that
+                                                                
+                                            1−d          min{1, λ}
+                       Rheuristic (P) ≥ Ω          , Ω
+                                             η               η
+can be achieved for the BDC and the PRC respectively. In particular, this is true for the
+Morse distribution
+                                          1       1
+                                    Pi = δi,t + δi,2t
+                                          2       2
+which returns either t or 2t each w.p. 1/2, for
+                                                         
+                                   100                   100
+                           t= η          , η max 100,
+                                  1−d                      λ
+                                                                       η
+                                                                          
+This distribution obtains a non-negligible rate, because L(P) ≤ t = O 1−d   , the deletion
+                                                      e−100
+probability for a run from this distribution is D < ∆ and the probability of missing
+the reconstruction of any run is also very small, implying that
+
+                  Rheuristic (P) L(P) = Rmemoryless (P) − ∆D(P) = Ω(1)
+
+    It is easy to see that setting L(P) = ℓ to be extremely large would result in an infor-
+mation transfer rate of at most O(log(ℓ)/ℓ) = o(1). Therefore, in order to approximately
+maximize Rheuristic (P), the average lengths of runs in this distribution L(P) is at most
+polynomially large in the parameters of Lemma 4.1.
+    Our next goal will be to prove that maximizing Rheuristic for a (small) discrete subset
+of values of ℓ suffices to approximate its maximum on the whole range of run lengths.
+We denote by h(P) the non-normalized version of eq. 4.10:
+
+                        def
+                  h(P) = Rheuristic (P) L(P) = Rmemoryless − ∆D
+                                                          
+                         X                     Pi→j             X                    (4.11)
+                       =     Pi Pi→j log P                   −∆   Pi Di
+                         i,j                 i′ Pi′ Pi′ →j      i
+
+   Let                  (                                                  )
+                                                 X
+                 Sℓ =    P ∈ RN | Er←P r = ℓ ∧        Pi = 1 ∧ ∀i Pi ≥ 0
+                                                  i
+                                                                    def
+be the set of distributions with average cost ℓ. We define I(ℓ) = supP∈Sℓ h(P) to be
+the optimal value of the non-normalized rate when fixing the average input run length to
+some value ℓ.
+   The main property of I that we will use in our analysis is that it is monotonously
+non-decreasing in ℓ on the range (0, ∞).
+
+                                            22
+Claim 4.2. For any 0 < ℓ1 < ℓ2 , it holds that I(ℓ2 ) ≥ I(ℓ1 ).
+   We leave the proof of Claim 4.2 to the end of the section. We use it to bound from
+above the speed with which our approximation for the rate of the code can change when
+optimizing under slightly different L = ℓ constraints. In particular, the fact that I is
+non-decreasing means that for any ℓ1 , ℓ2 and for any ℓ ∈ (ℓ1 , ℓ2 ), we have:
+
+              ℓ1                         I (ℓ1 )
+                  sup Rheuristic (P1 ) =         < sup Rheuristic (P) =
+              ℓ2 P1 ∈Sℓ1                   ℓ2      P∈Sℓ
+                                                                                            (4.12)
+                                            I (ℓ)   I (ℓ2 )   ℓ2
+                                          =       <         =     sup Rheuristic (P2 )
+                                              ℓ       ℓ1      ℓ1 P2 ∈Sℓ2
+    Eq. 4.12 proves that it suffices to compute I(ℓ) only in a discrete set of points ℓi , strictly
+separated on the logarithmic scale, in order to approximate it everywhere. Because
+we already showed that the value of ℓ for which Rheuristic is maximized is polynomially
+bounded as a function of the parameters of Lemma 4.1, this implies that polynomially
+many samples suffice to approximate this optimization.
+    The last step in our construction is to show that I(ℓ) can be efficiently approximated
+for any given ℓ. To this end we employ the algorithm proposed by Li and Cai [LC19]
+who show that the Blahut-Arimoto algorithm can be extended to maximize functions of
+the form of h(P), under “cost limit” constraints S    of the form L(P) ≤ ℓ. For any given
+                                                 ′
+ℓ we can generate a candidate distribution P ∈ ℓ′ ≤ℓ Sℓ using Li and Cai’s algorithm,
+and then convert it into a distribution P ∈ Sℓ for which h(P) is arbitrarily close to h(P ′ )
+using the same construction as in the proof of Claim 4.2.
+
+
+Proof of Claim 4.2. Let 12 > ε > 0 be some number, and let P1 ∈ Sℓ1 be some distribution
+for which h(P1 ) ≥ I(ℓ1 ) − ε. Our goal will be to show that there exists some P2 ∈ Sℓ2 for
+which I(ℓ2 ) ≥ h(P2 ) ≥ h(P1 ) − ε ≥ I(ℓ1 ) − 2ε. Because we prove this for an arbitrarily
+small ε, it will imply that I(ℓ2 ) ≥ I(ℓ1 ).
+    Let P2 = (1 − c) P1 + cδN be the distribution that returns a random sample from P1
+with probability 1 − c and the value N otherwise, where c = ℓN2 −ℓ 1
+                                                                 −ℓ1
+                                                                     > 0, and
+                              (                                            2      2 )
+                                   1                    Rmemoryless (P1 )         1
+                 N > max 2ℓ1 ,             ,                                  ,
+                               (ℓ2 − ℓ1 )2                   10ε                 10ε
+
+is a sufficiently large integer. From its construction P2 ∈ Sℓ2 .
+    Our next goal is to show that h(P2 ) ≥ h(P1 ) − ε. We do this by opening up the
+definition of h:
+
+
+  h (P2 ) = Rmemoryless (P2 ) − ∆ Er←P2 dr ≥ h (P1 ) − c (∆ + Rmemoryless (P1 ))            (4.13)
+            |     {z       }    | {z }                 |        {z             }
+             ≥(1−c)Rmemoryless (P1 )   ≤∆ Er←P1   dr +c∆                           ≤ε
+
+
+
+
+                                                     23
+References
+[Ari72]   Suguru Arimoto. An algorithm for computing the capacity of arbitrary discrete
+          memoryless channels. IEEE Transactions on Information Theory, 18(1):14–20,
+          1972.
+
+[Bla72]   Richard Blahut. Computation of channel capacity and rate-distortion func-
+          tions. IEEE transactions on Information Theory, 18(4):460–473, 1972.
+
+[BLC+ 16] James Bornholt, Randolph Lopez, Douglas M Carmean, Luis Ceze, Georg
+          Seelig, and Karin Strauss. A dna-based archival storage system. ACM
+          SIGARCH Computer Architecture News, 44(2):637–649, 2016.
+
+[CR20]    Mahdi Cheraghchi and João Ribeiro. An overview of capacity results for syn-
+          chronization channels. IEEE Transactions on Information Theory, 67(6):3207–
+          3232, 2020.
+
+[CS22]    Roni Con and Amir Shpilka. Improved constructions of coding schemes for the
+          binary deletion channel and the poisson repeat channel. IEEE Transactions
+          on Information Theory, 2022.
+
+[Dal11]   Marco Dalai. A new bound on the capacity of the binary deletion channel
+          with high deletion probabilities. In Information Theory Proceedings (ISIT),
+          2011 IEEE International Symposium on, pages 499–502. IEEE, 2011.
+
+[DM07]    Eleni Drinea and Michael Mitzenmacher. Improved lower bounds for the capac-
+          ity of iid deletion and duplication channels. IEEE Transactions on Information
+          Theory, 53(8):2693–2714, 2007.
+
+[DMP07] Suhas Diggavi, Michael Mitzenmacher, and Henry D Pfister. Capacity upper
+        bounds for the deletion channel. In 2007 IEEE International Symposium on
+        Information Theory, pages 1716–1720. IEEE, 2007.
+
+[Eli55]   Peter Elias. Coding for noisy channels. IRE Convention Record, 4:37–46, 1955.
+
+[FD10]    Dario Fertonani and Tolga M Duman. Novel bounds on the capacity of the bi-
+          nary deletion channel. IEEE Transactions on Information Theory, 56(6):2753–
+          2765, 2010.
+
+[GL18]    Venkatesan Guruswami and Ray Li. Polynomial time decodable codes for the
+          binary deletion channel. IEEE Transactions on Information Theory, 2018.
+
+[HMG19] Reinhard Heckel, Gediminas Mikutis, and Robert N Grass. A characterization
+        of the DNA data storage channel. Scientific reports, 9(1):1–12, 2019.
+
+[KD09]    Adam Kirsch and Eleni Drinea. Directly lower bounding the information ca-
+          pacity for channels with iid deletions and duplications. IEEE Transactions on
+          Information Theory, 56(1):86–102, 2009.
+
+
+
+
+                                          24
+[KMS10] Adam Kalai, Michael Mitzenmacher, and Madhu Sudan. Tight asymptotic
+        bounds for the deletion channel with small deletion probabilities. In Infor-
+        mation Theory Proceedings (ISIT), 2010 IEEE International Symposium on,
+        pages 997–1001. IEEE, 2010.
+[LC19]    Haobo Li and Ning Cai. A blahut-arimoto type algorithm for computing
+          classical-quantum channel capacity. In 2019 IEEE International Symposium
+          on Information Theory (ISIT), pages 255–259. IEEE, 2019.
+[MBT10] Hugues Mercier, Vijay K Bhargava, and Vahid Tarokh. A survey of error-
+        correcting codes for channels with symbol synchronization errors. IEEE Com-
+        munications Surveys & Tutorials, 12(1):87–96, 2010.
+[MD06]    Michael Mitzenmacher and Eleni Drinea. A simple lower bound for the ca-
+          pacity of the deletion channel. IEEE Transactions on Information Theory,
+          52(10):4657–4660, 2006.
+[Mit09]   Michael Mitzenmacher. A survey of results for deletion channels and related
+          synchronization channels. Probability Surveys, 6:1–33, 2009.
+[PLW22] Francisco Pernice, Ray Li, and Mary Wootters. Efficient capacity-achieving
+        codes for general repeat channels. In 2022 IEEE International Symposium on
+        Information Theory (ISIT), pages 3097–3102. IEEE, 2022.
+[RD14]    Mojtaba Rahmati and Tolga M Duman. Upper bounds on the capacity of dele-
+          tion channels using channel fragmentation. IEEE Transactions on Information
+          Theory, 61(1):146–156, 2014.
+[Rub22]   Ittai Rubinstein. Explicit and efficient construction of nearly optimal rate
+          codes for the binary deletion channel and the poisson repeat channel. In
+          Mikolaj Bojanczyk, Emanuela Merelli, and David P. Woodruff, editors, 49th
+          International Colloquium on Automata, Languages, and Programming, ICALP
+          2022, July 4-8, 2022, Paris, France, volume 229 of LIPIcs, pages 105:1–105:17.
+          Schloss Dagstuhl - Leibniz-Zentrum für Informatik, 2022.
+[Sha48]   Claude Elwood Shannon. A mathematical theory of communication. Bell
+          system technical journal, 27(3):379–423, 1948.
+[TPFV21] Ido Tal, Henry D Pfister, Arman Fazeli, and Alexander Vardy. Polar codes
+         for the deletion channel: Weak and strong polarization. IEEE Transactions
+         on Information Theory, 68(4):2239–2265, 2021.
+[Wol92]   Michael Edward Wolf. Improving locality and parallelism in nested loops. stan-
+          ford university, 1992.
+[Yeu08]   Raymond W Yeung. Information theory and network coding. Springer Science
+          & Business Media, 2008.
+[YGM17] S.M. Hossein Tabatabaei Yazdi, Ryan Gabrys, and Olgica Milenkovic. Portable
+        and error-free DNA-based data storage. Scientific reports, 7(1):1–6, 2017.
+
+
+                                          25
+
