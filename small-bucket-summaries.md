@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,180 five-sentence working summaries, based on saved source material.
+1,181 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (48)
@@ -4358,7 +4358,7 @@ A hypergraph transversal meets every hyperedge, and it is minimal when no select
 [Read in atlas](index.html#TCS-7112) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Structural graph theory and graph algorithms (61)
+## Structural graph theory and graph algorithms (62)
 
 ### TCS-6651 — Hadwiger’s conjecture: high chromatic number forces a clique minor
 
@@ -4505,6 +4505,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 The conjecture asks whether every oriented planar graph has a two-coloring with no monochromatic directed cycle. Arcs within a color class are allowed, so the coloring need not be proper. Loops and opposite pairs of arcs are excluded. The case without directed triangles is known, but directed triangles are allowed in the general target. The question is a directed analogue of central planar graph-decomposition principles.
 
 [Read in atlas](index.html#TCS-7254) · [Partitioning planar digraphs](https://www.openproblemgarden.org/op/partitioning_planar_digraphs) · [Planar digraphs of digirth four are 2-colourable](https://arxiv.org/abs/1606.06114) · [Partitions of planar (oriented) graphs into a connected acyclic and an independent set](https://arxiv.org/abs/2412.11774)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7180 — Is graph canonization polynomial-time reducible to graph isomorphism?
+
+Graph isomorphism recognizes when two labeled graphs have the same structure. Canonization assigns every presentation of that structure an identical representative. The question asks whether a polynomial-time algorithm can compute such representatives using only a graph-isomorphism decision oracle. General quasipolynomial canonization and efficient results for random graph families do not supply this reduction. A solution must handle every finite graph and keep its choices consistent across all relabelings.
+
+[Read in atlas](index.html#TCS-7180) · [Canonical Form for Graphs in Quasipolynomial Time](https://par.nsf.gov/servlets/purl/10179675) · [Canonical Labelling of Random Regular Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.114)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7245 — Can subcubic subgraphs preserve treewidth within a constant factor?
