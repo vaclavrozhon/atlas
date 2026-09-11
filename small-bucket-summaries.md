@@ -61,11 +61,11 @@ Shannon network coding studies transmission of random information through a netw
 [Read in atlas](index.html#TCS-0247) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0275 — Some questions around Weihrauch counterparts of ATR
+### TCS-0275 — Two comparisons between transfinite recursion and analytic choice
 
-Arithmetical transfinite recursion is a logical principle allowing constructions along well-orders. The source asks about counterparts of this principle in the Weihrauch framework of uniform computational reductions. The challenge is to identify how the computational task of performing such recursion compares with other represented problems. This connects proof-theoretic strength with a finer notion that tracks the uniform use of input and solution data. The seminar label does not name the exact operator, representation of orders, or intended equivalence, so these details must be recovered before assigning a Weihrauch degree.
+The source compares two versions of transfinite recursion and two forms of analytic choice. ATR₂ may return a jump hierarchy for a whole linear order or an infinite decreasing sequence, while ATR₂′ permits a hierarchy on a sufficiently large initial segment. The first question asks whether those two tasks are equivalent using arithmetical transformations. The second asks whether hyperarithmetical transformations reduce choice of an infinite sequence to countably many analytic choices of natural numbers. The inherited record still bundles these distinct targets, and a proved separation for ordinary computable transformations does not resolve the stronger comparison.
 
-[Read in atlas](index.html#TCS-0275) · [Measuring the Complexity of Computational Content: From Combinatorial Problems to Analysis](https://doi.org/10.4230/DagRep.8.9.1)
+[Read in atlas](index.html#TCS-0275) · [Measuring the Complexity of Computational Content: From Combinatorial Problems to Analysis](https://doi.org/10.4230/DagRep.8.9.1) · [A comparison of various analytic choice principles](https://doi.org/10.1017/jsl.2021.37)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0287 — Strong extractors for infinite sequences
@@ -84,16 +84,16 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0238 — An algorithmic Ahlswede–Körner lemma
 
-The Ahlswede–Körner lemma is an information-theoretic statement that the source seeks to translate into algorithmic information. The intended objects are individual descriptions and their Kolmogorov-complexity relationships rather than only random variables and entropies. An algorithmic analogue would show whether the same compression structure can be realized for particular finite data. This contributes to the broader comparison between Shannon theory and information measured by shortest programs. The saved index does not contain the desired complexity inequalities or additive error terms, so the exact auxiliary string construction must be recovered instead of inferred from the lemma's name.
+For individual binary strings x and y, side information z can shorten descriptions of either string and of their pair. The question asks whether another string z′ can preserve those three conditional description lengths to logarithmic accuracy. The replacement must have a logarithmically short description when x and y are both given. It need not be easy to obtain from z, and no fast construction is required. The source establishes a special case for stochastic pairs, while the general question tests the scope of an algorithmic analogue of the Ahlswede–Körner lemma.
 
-[Read in atlas](index.html#TCS-0238) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-0238) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0246 — Efficient search using a Kolmogorov-complexity oracle
 
-A Kolmogorov-complexity oracle supplies information about shortest descriptions that ordinary algorithms cannot generally compute. The source asks how such access can support efficient search. The issue is whether knowing description lengths helps locate a witness, rather than merely certify that a concise one exists. This separates information about compressibility from the computational work of extracting useful objects. The inherited title omits the oracle variant, permitted queries, and search problem, so it does not justify a particular complexity-class collapse or algorithm until those choices are restored from the original question.
+The oracle returns the exact shortest-program length C(q) for any queried binary string q. The source asks which useful search tasks become efficiently solvable with this access. It records that one can already construct an incompressible n-bit string in time polynomial in n. Knowing description lengths does not directly supply descriptions or make them fast to execute. The source intentionally leaves the search relation and classification criterion open, so those choices still prevent a single complete benchmark statement.
 
-[Read in atlas](index.html#TCS-0246) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
+[Read in atlas](index.html#TCS-0246) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0250 — Halving all complexities of a string tuple
@@ -112,9 +112,9 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0277 — Weihrauch strength of countable well-orderings
 
-Countable well-orderings encode transfinite order structure through countable presentations. The source asks about their strength under Weihrauch reductions, which compare tasks by uniform computational transformations. The goal is to determine what computational resources are required for the source's operation involving such orderings. Well-foundedness and transfinite structure can hide information not apparent from local comparisons in a presentation. The inherited label omits the input representation and required output, so it cannot yet be identified with recognition of well-orders, comparison of orders, or transfinite recursion without the original formulation.
+The source asks whether different principles about countable well-orders have different uniform computational strengths. A Weihrauch reduction converts an input to one task and every valid answer back to a solution of another task. The suggested tasks include comparing indecomposable orders and operations involving ordinal exponentiation. Later work gives a concrete equivalence between constructing well-order embeddings and constructing jump hierarchies. The source remains a menu of research questions rather than a selected operator with a complete acceptance criterion.
 
-[Read in atlas](index.html#TCS-0277) · [Measuring the Complexity of Computational Content: From Combinatorial Problems to Analysis](https://doi.org/10.4230/DagRep.8.9.1)
+[Read in atlas](index.html#TCS-0277) · [Measuring the Complexity of Computational Content: From Combinatorial Problems to Analysis](https://doi.org/10.4230/DagRep.8.9.1) · [Embeddings between well-orderings: Computability-theoretic reductions](https://doi.org/10.1016/j.apal.2020.102789)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0240 — Communication for algorithmic secret-key agreement
@@ -1632,9 +1632,9 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1136 — Near-linear PRGs without cryptographic hardness assumptions
 
-Pseudorandom generators expand a short uniform seed into a longer string that efficient tests cannot distinguish from randomness. The saved source asks for near-linear generators without cryptographic hardness assumptions. The intended efficiency pushes attention beyond existence toward how cheaply pseudorandom bits can actually be produced. A construction could improve the overhead of derandomization without relying on assumptions tailored to one-way functions. The title does not identify the precise near-linear resource, test class, or permitted noncryptographic hypotheses, so it should not be read as claiming unconditional cryptographic pseudorandomness.
+The target generator expands about n^ε random seed bits into n output bits. It should run in about n^(1+ε) time while appearing random to all linear-size Boolean circuits. The source wants such an ingredient without one-way-function assumptions or hardness against non-uniform NP or MA. A CCC 2025 improvement to the surrounding derandomization results still retains one-way functions. The permitted replacement hypothesis and exact error convention remain to be fixed before this becomes a single complete proposition.
 
-[Read in atlas](index.html#TCS-1136) · [New ways of studying the BPP = P conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
+[Read in atlas](index.html#TCS-1136) · [New ways of studying the BPP = P conjecture](https://eccc.weizmann.ac.il/report/2023/094/) · [Towards Free Lunch Derandomization from Necessary Assumptions (And OWFs)](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2025.31)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0051 — Explicit dispersers for large quadratic-system solution sets
@@ -4343,11 +4343,11 @@ Maintain a changing set of planar points while answering exact Euclidean nearest
 [Read in atlas](index.html#TCS-0387) · [The Open Problems Project](https://topp.openproblem.net/p63)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0544 — Polylog query time for a dynamic all-pairs problem in plane directed graphs
+### TCS-0544 — Incremental plane-digraph reachability with polylogarithmic queries
 
-A plane directed graph comes with an embedding that constrains how its edges are arranged. The saved question asks for polylogarithmic query time for a dynamic all-pairs problem in such graphs. Preprocessing and updates must retain enough global pairwise information to answer without a costly new search. Exploiting the embedding could make a difficult directed query problem more manageable. The inherited label does not identify whether the query concerns distance, reachability, or another relation, nor its update budget, so this draft does not select one by assumption.
+The graph and its planar embedding are given, with all edges initially inactive. Edges become active one at a time, and a query asks whether one chosen vertex can currently reach another. The target combines polylogarithmic query time with Õ(n^1.99) time for all activations. A later theorem achieves constant-time queries and subquadratic maintenance under edge deletions, which has a different update direction. The original activation question still needs explicit preprocessing, machine and randomized-correctness conventions for a complete benchmark.
 
-[Read in atlas](index.html#TCS-0544) · [Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45)
+[Read in atlas](index.html#TCS-0544) · [Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45) · [Subquadratic algorithms in minor-free digraphs: (weighted) distance oracles, decremental reachability, and more](https://arxiv.org/abs/2410.12003v1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0538 — Open Problem: Low-Degree Spanning Tree

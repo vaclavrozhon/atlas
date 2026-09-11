@@ -190,7 +190,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 35; importance ass
 | 6 | [Universality of Turing equivalence](index.html#TCS-6679) | 95 |
 | 7 | [Mortality of 2×2 integer matrix semigroups](index.html#TCS-7193) | 91 |
 | 8 | [Equivalence of Shannon and algorithmic network coding](index.html#TCS-0247) | 81 |
-| 9 | [Some questions around Weihrauch counterparts of ATR](index.html#TCS-0275) | 74 |
+| 9 | [Two comparisons between transfinite recursion and analytic choice](index.html#TCS-0275) | 74 |
 | 10 | [Strong extractors for infinite sequences](index.html#TCS-0287) | 74 |
 
 ## 2. Proof complexity (small)
