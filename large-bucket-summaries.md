@@ -936,7 +936,7 @@ Explicit model enumeration lists every satisfying assignment of a Boolean functi
 [Read in atlas](index.html#TCS-7132) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Algorithms (88)
+## Algorithms (87)
 
 ### TCS-6537 — Expected linear-time integer sorting for every word length
 
@@ -964,13 +964,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 An offline heap sequence specifies all insertions and delete-min requests before computation starts. Only the identities of items surviving at the end must be returned. The question asks whether linear many key comparisons always suffice, even when operations are arbitrarily interleaved. The surviving set need not be the largest inserted keys because some items arrive after earlier deletions. This separates the information needed for final membership from the much richer task of reporting the entire extraction order.
 
 [Read in atlas](index.html#TCS-0477) · [Scalable Data Structures (Dagstuhl Seminar 21071)](https://doi.org/10.4230/DagRep.11.1.1)
-Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-0475 — Does ordinary median-of-medians selection with groups of three run in linear time?
-
-Median-of-medians selection chooses a pivot recursively from medians of small groups and discards an irrelevant partition. This project fixes the ordinary version using one grouping pass with groups of three. The question is whether its worst-case number of comparisons is linear. The familiar recurrence allows a logarithmic overhead, but its recursive worst cases need not occur simultaneously on one input. Resolving their dependence would distinguish a loose analysis from a real limitation of this particularly simple deterministic selection rule.
-
-[Read in atlas](index.html#TCS-0475) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Selection Algorithms with Small Groups](https://adriandumitrescu.org/select.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1141 — Can reachability diameter be approximated within a constant in near-linear time?
@@ -7413,7 +7406,7 @@ Cryptographic hardness must occur on instances that honest users can efficiently
 [Read in atlas](index.html#TCS-6953) · [Mathematics and Computation](https://www.math.ias.edu/avi/book)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Quantum computation and information (113)
+## Quantum computation and information (114)
 
 ### TCS-6446 — Quantum PCP: a constant promise gap for local Hamiltonians
 
@@ -7491,6 +7484,13 @@ Quantum channel capacity describes the best asymptotic rate for transmitting qua
 
 [Read in atlas](index.html#TCS-6520) · [The private classical capacity and quantum capacity of a quantum channel](https://arxiv.org/abs/quant-ph/0304127) · [Continuity of quantum channel capacities](https://arxiv.org/abs/0810.4931) · [Unbounded number of channel uses may be required to detect quantum capacity](https://www.nature.com/articles/ncomms7739) · [Undecidability in Physics: a Review](https://arxiv.org/abs/2410.16532) · [Undecidability in physics: A review — journal version](https://doi.org/10.1016/j.physrep.2025.06.004) · [On the undecidability of quantum channel capacities](https://arxiv.org/abs/2601.22471)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7166 — Polynomial-time quantum algorithms for the general hidden subgroup problem
+
+Can a quantum algorithm recover a hidden subgroup of any finite group in polynomial total time? The oracle gives the same value exactly on each left coset of the hidden subgroup. The output must generate the entire subgroup. Polynomially many oracle calls are known to suffice, but their processing may be inefficient. The broad import still needs a precise group representation and access model before it is a complete computational statement.
+
+[Read in atlas](index.html#TCS-7166) · [The quantum query complexity of the hidden subgroup problem is polynomial](https://arxiv.org/abs/quant-ph/0401083) · [The Hidden Subgroup Problem in Semidirect Products and Quasi-Hamiltonian Groups](https://arxiv.org/abs/2608.05321)
+Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6521 — A polynomial-time quantum algorithm for the dihedral hidden subgroup problem
 

@@ -7,7 +7,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | Group | Category | Top 100 | Top 500 | Possible Top 1000 | Candidates |
 | --- | --- | ---: | ---: | ---: | ---: |
 | large 1 | Computational complexity | 5 | 25 | 50 | 137 |
-| large 2 | Algorithms | 5 | 25 | 50 | 88 |
+| large 2 | Algorithms | 5 | 25 | 50 | 87 |
 | large 3 | Automata and formal languages | 5 | 25 | 50 | 119 |
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 172 |
 | large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 172 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 64 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 7 |
 
-Candidate pool: 2623. Deleted records: 4636 (IDs and reasons only).
+Candidate pool: 2622. Deleted records: 4637 (IDs and reasons only).
 
 The possible 1,000-problem expansion has 1000 assigned places; reserved places: 0. Removal reasons are recorded in deleted_records.json. Final quota selection and a comprehensive deduplication audit remain pending.

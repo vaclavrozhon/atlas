@@ -38,7 +38,7 @@ Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-653
 
 ## Algorithms
 
-After the approved Data structures split, focus on integer sorting, structured real-key sorting, hypergraph cut sparsification, offline comparison complexity and deterministic selection. The first two retain their previous focus status; the other three replace the transferred data-structure topics. These choices balance saved importance and diversity without changing statements, evidence or importance scores.
+The focus spans integer sorting, structured real-key sorting, hypergraph cut sparsification, offline comparison complexity and directed reachability distance. These choices balance saved importance and distinct algorithmic tasks without changing statements, evidence or importance scores.
 
 Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 
@@ -48,9 +48,9 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
 | 3 | [Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
 | 4 | [Can the final survivors of an offline heap sequence be found with linear comparisons?](index.html#TCS-0477) (TCS-0477) | Offline comparison complexity | 74 | Finding final survivors of a fully known heap-operation sequence isolates the comparison information needed for a batch answer. It does not require an online priority queue or intermediate query responses. |
-| 5 | [Does ordinary median-of-medians selection with groups of three run in linear time?](index.html#TCS-0475) (TCS-0475) | Deterministic selection | 69 | The ordinary groups-of-three median-of-medians algorithm gives a precisely specified selection primitive whose worst-case analysis remains the saved question. It adds selection to the two sorting models. |
+| 5 | [Can reachability diameter be approximated within a constant in near-linear time?](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
 
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595, TCS-0946, TCS-0477, TCS-0475, TCS-5548.
+Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595, TCS-0946, TCS-0477, TCS-5548, TCS-1141.
 
 ## Automata and formal languages
 
