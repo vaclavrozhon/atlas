@@ -1,9 +1,9 @@
 # Working summaries — small categories
 
-1,181 five-sentence working summaries, based on saved source material.
+1,182 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computability and algorithmic information theory (48)
+## Computability and algorithmic information theory (49)
 
 ### TCS-6646 — Martin’s full conjecture for Turing-invariant functions under determinacy
 
@@ -45,6 +45,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Turing equivalence groups infinite binary sequences according to mutual computability. The question asks whether every countable Borel equivalence relation can be reduced to this relation by a Borel map. Such universality would mean that relative computability realizes the full classification complexity available among countable Borel equivalence relations. The map must preserve both equivalence and inequivalence for every pair, rather than merely describe typical behavior. The saved statement does not require the map to be computable or uniform on witnesses, making results about more restrictive reductions or resource-bounded equivalence separate issues.
 
 [Read in atlas](index.html#TCS-6679) · [The Fourteen Victoria Delfino Problems and Their Status in the Year 2019](https://preprint.math.uni-hamburg.de/public/papers/hbm/hbm770.pdf) · [The Theory of Countable Borel Equivalence Relations](https://www.pma.caltech.edu/documents/5921/CBER.pdf) · [Martin’s conjecture, arithmetic equivalence, and countable Borel equivalence relations](https://arxiv.org/abs/1109.1875) · [The universality of polynomial time Turing equivalence](https://arxiv.org/abs/1601.03343) · [Uniformity, Universality, and Computability Theory](https://arxiv.org/abs/1606.01976) · [On a question of Slaman and Steel](https://arxiv.org/abs/2004.00174)
+Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-7193 — Mortality of 2×2 integer matrix semigroups
+
+A finite list of two-by-two integer matrices generates all nonempty products with arbitrary order and repetition. The question asks whether a terminating algorithm can decide if any such product is the zero matrix. Matrix entries and the number of generators are unrestricted. NP-hardness is known, while decidability results for restricted determinants do not cover the general case. Resolving the question would locate a basic computability boundary for products of small matrices.
+
+[Read in atlas](index.html#TCS-7193) · [Mortality for 2 × 2 Matrices is NP-hard](https://cgi.csc.liv.ac.uk/~igor/papers/paper_BHP_MFCS2012.pdf) · [On Affine Reachability Problems](https://arxiv.org/abs/1905.05114v3) · [The membership problem for subsemigroups of GL₂(ℤ) is NP-complete](https://doi.org/10.1016/j.ic.2023.105132) · [On Word Representations and Embeddings in Complex Matrices](https://arxiv.org/abs/2604.15386v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0247 — Equivalence of Shannon and algorithmic network coding
