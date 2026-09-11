@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,182 five-sentence working summaries, based on saved source material.
+1,183 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (49)
@@ -5374,7 +5374,7 @@ Different repetitiveness measures summarize a string through different kinds of 
 [Read in atlas](index.html#TCS-6929) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Game theory, social choice and fair division (40)
+## Game theory, social choice and fair division (41)
 
 ### TCS-6632 — Constant-factor universally truthful auctions for submodular bidders
 
@@ -5417,6 +5417,13 @@ What is the smallest universal expected metric distortion achievable from full v
 
 [Read in atlas](index.html#TCS-6634) · [Metric Distortion for Tournament Voting and Beyond](https://arxiv.org/abs/2505.13630) · [Metric Distortion Bounds for Randomized Social Choice](https://arxiv.org/abs/2111.03694) · [An improved bound for the randomized metric distortion problem](https://arxiv.org/abs/2608.17863) · [Improving Randomized Metric Distortion to 2.1441](https://arxiv.org/abs/2608.29308v2) · [Stable Voting Rules on the Edge of Optimal Metric Distortion](https://arxiv.org/abs/2609.08259v1)
 Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7196 — Polynomial-time EFX for three additive agents
+
+Three agents must receive all indivisible goods under nonnegative additive valuations. An allocation is EFX when removing any one good from another agent’s bundle would eliminate the first agent’s envy. Such allocations are known to exist for three agents, including when values are zero or tied. The question asks for a deterministic algorithm polynomial in the binary valuation table’s length. Pseudopolynomial constructions and polynomial algorithms for weaker fairness guarantees do not settle this target.
+
+[Read in atlas](index.html#TCS-7196) · [EFX Exists for Three Agents](https://arxiv.org/abs/2002.05119v3) · [EF2X Exists for Four Agents](https://ojs.aaai.org/index.php/AAAI/article/view/33480) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371v1)
+Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1116 — Optimal universal approximation factor for EFX
 
