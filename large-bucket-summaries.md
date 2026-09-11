@@ -2699,13 +2699,6 @@ Quantitative algebras interpret operations as nonexpanding maps on metric spaces
 [Read in atlas](index.html#TCS-5491) · [Strongly Finitary Monads for Varieties of Quantitative Algebras](https://doi.org/10.4230/LIPIcs.CALCO.2023.10)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-5600 — Polynomial Vector Addition Systems With States — Explicit open question on PDF page 1
-
-Vector addition systems model computations by repeatedly adding integer vectors while keeping all counters nonnegative. Reachability asks whether an exact target configuration can be obtained from a given initial configuration. The 2018 source records the historical question of whether this problem has an elementary upper bound, meaning a bound within a fixed-height exponential tower. Later material saved in the repository cites the result that Petri-net reachability is not elementary, so this quotation should not be read as a current unresolved possibility. The problem's significance lies in the extreme complexity separating exact counter reachability from simpler bounded or coverability analyses.
-
-[Read in atlas](index.html#TCS-5600) · [Polynomial Vector Addition Systems With States](https://doi.org/10.4230/LIPIcs.ICALP.2018.134) · [https://doi.org/10.4230/LIPIcs.MFCS.2025.22](https://doi.org/10.4230/LIPIcs.MFCS.2025.22) · [https://doi.org/10.1145/3422822](https://doi.org/10.1145/3422822)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5642 — Exploring VASS Parameterised by Geometric Dimension — Conjecture 30
 
 Vector addition systems with states model transitions that add integer vectors to nonnegative counters. Coverability asks whether a reachable configuration can meet or exceed a specified target. The saved conjecture places coverability in PSPACE whenever the system's SCC dimension is fixed. This would show that controlling geometric behavior within strongly connected components can bound verification space even for otherwise large systems. The source-specific definition of SCC dimension is not reproduced in the saved sentence, so it must not be replaced by the ordinary number of counters.
@@ -2873,6 +2866,13 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-5600 — An elementary upper bound for vector-addition-system reachability
+
+A vector addition system repeatedly adds permitted integer vectors while keeping every counter nonnegative. Exact reachability asks whether a given initial vector can reach a specified target after finitely many such steps. The historical question asks whether one algorithm can decide all instances within a fixed-height tower of exponentials in the input length. The non-elementary lower bound published at STOC 2019 and in JACM 2021 rules out every such bound. The card therefore records a resolved negative answer, with the general model kept separate from the polynomial-growth subclass named in the original paper.
+
+[Read in atlas](index.html#TCS-5600) · [Polynomial Vector Addition Systems With States](https://doi.org/10.4230/LIPIcs.ICALP.2018.134) · [The Reachability Problem for Petri Nets Is Not Elementary](https://doi.org/10.1145/3422822) · [Reachability in Vector Addition Systems is Ackermann-complete](https://arxiv.org/abs/2104.13866v4) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.22)
+Existing status: `resolved` · Summary written: 2026-09-11
 
 ## Distributed, parallel and sublinear algorithms (153)
 
