@@ -22,9 +22,9 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 6 | Parameterized complexity and algorithms | 20 | 153 |
 | small 7 | Approximation algorithms and inapproximability | 20 | 71 |
 | small 8 | Online algorithms, scheduling and packing | 20 | 105 |
-| small 9 | Beyond worst-case and average-case analysis | 20 | 51 |
+| small 9 | Beyond worst-case and average-case analysis | 20 | 52 |
 | small 10 | Sampling, Markov chains and mixing times | 20 | 23 |
-| small 11 | Counting and enumeration | 20 | 47 |
+| small 11 | Counting and enumeration | 20 | 48 |
 | small 12 | Structural graph theory and graph algorithms | 20 | 74 |
 | small 13 | Dynamic algorithms | 20 | 40 |
 | small 14 | String algorithms and computational biology | 20 | 47 |
@@ -35,10 +35,10 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 19 | Property testing and distribution learning | 20 | 54 |
 | small 20 | Differential privacy | 20 | 22 |
 | small 21 | Constraint satisfaction | 20 | 37 |
-| small 22 | Automated reasoning, rewriting and unification | 20 | 36 |
+| small 22 | Automated reasoning, rewriting and unification | 20 | 37 |
 | small 23 | Database theory and finite model theory | 20 | 68 |
 | small 24 | Miscellaneous | 20 | 5 |
 
-Candidate pool: 2756. Archived: 4472 (4457 preliminary removals; 15 subject exclusions). Total saved: 7228.
+Candidate pool: 2759. Deleted records: 4480 (IDs and reasons only).
 
-Named targets total 980; reserved places: 20. Preliminary importance pruning is recorded in the manifests under to_delete/. Final quota selection and a comprehensive deduplication audit remain pending.
+Named targets total 980; reserved places: 20. Removal reasons are recorded in deleted_records.json. Final quota selection and a comprehensive deduplication audit remain pending.

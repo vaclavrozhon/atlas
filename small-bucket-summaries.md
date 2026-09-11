@@ -1924,6 +1924,13 @@ An ordered read-once branching program processes input bits sequentially while r
 [Read in atlas](index.html#TCS-6600) · [Pseudorandom generators for space-bounded computation](https://mathweb.ucsd.edu/~sbuss/CourseWeb/Math268_2013W/Nisan_PRG.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2021.28) · [Hitting Sets Give Two-Sided Derandomization of Small Space](https://theoryofcomputing.org/articles/v018a021/) · [Weighted Pseudorandom Generators for Read-Once Branching Programs via Weighted Pseudorandom Reductions](https://epubs.siam.org/doi/10.1137/1.9781611978971.124) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/) · [A Forward-Backward Weight Analysis of INW for Permutation Branching Programs](https://eccc.weizmann.ac.il/report/2026/123/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-0026 — Does deterministic logarithmic space equal bounded-error randomized logarithmic space?
+
+BPL permits bounded-error randomized decisions using logarithmic work space and polynomial time. The question asks whether every such language has a deterministic logarithmic-space decider. Random bits are fresh independent coin outcomes, and remembering them consumes counted work space. Known deterministic simulations and recent weighted-generator improvements still use more space or establish different parameter guarantees. The completed card keeps this class-equality target separate from constructing a particular optimal pseudorandom generator.
+
+[Read in atlas](index.html#TCS-0026) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/storage/00lipics/lipics-vol207-approx-random2021/LIPIcs.APPROX-RANDOM.2021.28/LIPIcs.APPROX-RANDOM.2021.28.pdf) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/)
+Existing status: `source_open` · Summary written: 2026-09-11
+
 ### TCS-6662 — Optimal deterministic restricted-isometry matrices
 
 A restricted-isometry matrix approximately preserves the Euclidean length of every sparse vector. The reviewed question asks for deterministic polynomial-time construction with O(s log(eN/s)) rows and fixed distortion. Random matrices achieve this row order, but a usable deterministic construction must control every sparse support simultaneously. Optimal explicit matrices would provide guaranteed measurement designs for compressed sensing without random setup choices. The saved review identifies the limitations of pairwise coherence analyses and notes that reduced randomness or success on typical signals does not establish the requested all-signal guarantee.
@@ -1936,13 +1943,6 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Randomized polynomial-time decision algorithms can be simulated deterministically by enumerating all their random choices. The saved question asks for an unconditional simulation in quasipolynomial or subexponential time. This relaxes the ambitious P=BPP target while still seeking a major saving over straightforward exhaustive enumeration. Even the weaker simulation would constrain how much computational power polynomially many random bits can provide. The source note does not fix its precise subexponential convention, and conditional simulations based on unproved hardness assumptions would not answer the unconditional version recorded here.
 
 [Read in atlas](index.html#TCS-1005) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0026 — L versus BPL
-
-L is deterministic logarithmic-space computation, while BPL permits randomness and bounded error with the same space scale. The recorded question asks whether these two decision classes coincide. A small memory bound restricts what a randomized computation can remember about its long random tape. Exploiting that restriction could show that randomness provides no additional language-recognition power at this basic space bound. Enumerating candidate random tapes must itself fit within logarithmic workspace, so a deterministic simulation using substantially more space does not resolve the comparison.
-
-[Read in atlas](index.html#TCS-0026) · [Mathematics and Computation (2018 draft)](https://www.math.ias.edu/files/mathandcomp.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1018 — Optimal generators for hardness-to-randomness transformations

@@ -31,7 +31,7 @@ Previous prefix: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540.
 | 4 | [Deterministic linear-time construction of static dictionaries](index.html#TCS-6586) (TCS-6586) | Deterministic static dictionaries | 94 | Optimal deterministic construction of a basic dictionary tests whether randomness is necessary for linear preprocessing with constant-time queries. |
 | 5 | [Sorting X+Y (Pairwise Sums)](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
 
-Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0474, TCS-0771, TCS-6512, TCS-0595.
+Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-6512, TCS-0595.
 
 ## Computational complexity
 
@@ -76,8 +76,8 @@ Previous prefix: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569.
 | 1 | [Is positivity of integer linear recurrences decidable?](index.html#TCS-6565) (TCS-6565) | Linear recurrence verification | 97 | A longstanding foundational decision problem with an elementary input model, strong links to verification, and consequences for the separate Skolem problem; unrestricted decidability is unknown before any efficiency requirement is imposed. |
 | 2 | [Can simple stochastic games be solved in polynomial time?](index.html#TCS-6567) (TCS-6567) | Stochastic game solving | 97 | An elementary game model with broad consequences for synthesis and stochastic verification; short optimal strategies and efficiently checkable certificates coexist with an unresolved polynomial-time search problem. |
 | 3 | [An internal tower of semisimplicial types in ordinary HoTT](index.html#TCS-6569) (TCS-6569) | Dependent type theory | 95 | A central expressiveness problem for homotopy type theory; precise internal construction would remove a major obstacle to formalizing higher structures without enriching the theory. |
-| 4 | [Scott-continuous model with exactly λβ equational theory](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
-| 5 | [Barendregt–Geuvers–Klop conjecture](index.html#TCS-6583) (TCS-6583) | Consistency of type systems | 94 | Asks whether the existence of a terminating reduction for every typable term forces every reduction of every such term to terminate. |
+| 4 | [Can a Scott-continuous lambda model validate exactly beta-conversion?](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
+| 5 | [Does weak normalization imply strong normalization for every pure type system?](index.html#TCS-6583) (TCS-6583) | Consistency of type systems | 94 | Asks whether the existence of a terminating reduction for every typable term forces every reduction of every such term to terminate. |
 
 Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632, TCS-0575, TCS-0637, TCS-0634, TCS-0150, TCS-0628, TCS-0639.
 
@@ -159,7 +159,7 @@ Previous prefix: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547.
 | 4 | [Unleveled fully homomorphic encryption from LWE alone](index.html#TCS-6551) (TCS-6551) | Computation on encrypted data | 95 | A central foundational gap in fully homomorphic encryption, separating established leveled LWE constructions from reusable fixed-depth-independent keys and their extra security assumptions. |
 | 5 | [Smaller shares for general secret sharing](index.html#TCS-0465) (TCS-0465) | Information-theoretic secret sharing | 88 | The share size needed for general secret sharing is a fundamental efficiency limit for realizing arbitrary access structures. |
 
-Candidates considered: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547, TCS-6546, TCS-6548, TCS-6551, TCS-6552, TCS-0465, TCS-6454, TCS-0461, TCS-0463, TCS-1138, TCS-0458, TCS-0460.
+Candidates considered: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547, TCS-6546, TCS-6548, TCS-6551, TCS-6552, TCS-0465, TCS-6454, TCS-0461, TCS-0463, TCS-1138, TCS-0460.
 
 ## Quantum computation and information
 

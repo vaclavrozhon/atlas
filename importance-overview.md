@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. Top 100 and Top 1000 use the first 5/2 and 50/20 category places respectively. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-1,423 records have an editorial importance assessment; 5,805 remain provisional.
+1,028 records have an editorial importance assessment; 1,731 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -59,20 +59,20 @@ Target: 50; candidates: 125; importance assessed: 57; provisional: 68.
 
 ## 4. Semantics, logic and verification (large)
 
-Target: 50; candidates: 176; importance assessed: 66; provisional: 110.
+Target: 50; candidates: 176; importance assessed: 67; provisional: 109.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Is positivity of integer linear recurrences decidable?](index.html#TCS-6565) | 97 |
 | 2 | [Can simple stochastic games be solved in polynomial time?](index.html#TCS-6567) | 97 |
 | 3 | [An internal tower of semisimplicial types in ordinary HoTT](index.html#TCS-6569) | 95 |
-| 4 | [Scott-continuous model with exactly λβ equational theory](index.html#TCS-6570) | 94 |
-| 5 | [Barendregt–Geuvers–Klop conjecture](index.html#TCS-6583) | 94 |
-| 6 | [Can mean-payoff games be solved in polynomial time?](index.html#TCS-6568) | 97 |
-| 7 | [Is the first-order theory of the real exponential field decidable?](index.html#TCS-7230) | 97 |
-| 8 | [Decidability of unbounded Continuous Skolem](index.html#TCS-6566) | 96 |
-| 9 | [Is multiplicative-exponential linear logic decidable?](index.html#TCS-7192) | 94 |
-| 10 | [Skolem Meets Schanuel — Explicit open question on PDF page 1](index.html#TCS-5773) | 90 |
+| 4 | [Can a Scott-continuous lambda model validate exactly beta-conversion?](index.html#TCS-6570) | 94 |
+| 5 | [Does weak normalization imply strong normalization for every pure type system?](index.html#TCS-6583) | 94 |
+| 6 | [Can parity games be solved in deterministic polynomial time?](index.html#TCS-4245) | 99 |
+| 7 | [Is the Skolem problem for integer linear recurrences decidable?](index.html#TCS-5773) | 98 |
+| 8 | [Can mean-payoff games be solved in polynomial time?](index.html#TCS-6568) | 97 |
+| 9 | [Is the first-order theory of the real exponential field decidable?](index.html#TCS-7230) | 97 |
+| 10 | [Decidability of unbounded Continuous Skolem](index.html#TCS-6566) | 96 |
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
@@ -252,9 +252,9 @@ Target: 20; candidates: 75; importance assessed: 38; provisional: 37.
 | --- | --- | --- |
 | 1 | [Can randomness always be removed from polynomial-time decision algorithms?](index.html#TCS-0003) | 97 |
 | 2 | [Optimal explicit pseudorandom generators for read-once branching programs](index.html#TCS-6600) | 97 |
-| 3 | [Optimal deterministic restricted-isometry matrices](index.html#TCS-6662) | 95 |
-| 4 | [Unconditional subexponential simulation of BPP](index.html#TCS-1005) | 90 |
-| 5 | [L versus BPL](index.html#TCS-0026) | 89 |
+| 3 | [Does deterministic logarithmic space equal bounded-error randomized logarithmic space?](index.html#TCS-0026) | 97 |
+| 4 | [Optimal deterministic restricted-isometry matrices](index.html#TCS-6662) | 95 |
+| 5 | [Unconditional subexponential simulation of BPP](index.html#TCS-1005) | 90 |
 | 6 | [Optimal generators for hardness-to-randomness transformations](index.html#TCS-1018) | 86 |
 | 7 | [Seeded extraction with constant total entropy loss](index.html#TCS-1015) | 83 |
 | 8 | [Extraction with log n plus constant seed length](index.html#TCS-1016) | 83 |
@@ -314,7 +314,7 @@ Target: 20; candidates: 105; importance assessed: 33; provisional: 72.
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
-Target: 20; candidates: 51; importance assessed: 11; provisional: 40.
+Target: 20; candidates: 52; importance assessed: 12; provisional: 40.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -322,12 +322,12 @@ Target: 20; candidates: 51; importance assessed: 11; provisional: 40.
 | 2 | [Does P≠NP imply a samplable NP problem outside AvgP?](index.html#TCS-0012) | 97 |
 | 3 | [The computational threshold for dense tensor PCA](index.html#TCS-6657) | 96 |
 | 4 | [The computational Kesten–Stigum threshold for sparse community recovery](index.html#TCS-6684) | 96 |
-| 5 | [Does average-case NP hardness imply infinitely-often one-way functions?](index.html#TCS-6453) | 95 |
-| 6 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
-| 7 | [Optimal average-case complexity of Shellsort](index.html#TCS-7173) | 79 |
-| 8 | [Does the expected redundancy of optimal alphabetic trees with random weights converge?](index.html#TCS-0480) | 65 |
-| 9 | [Semi-Random Streams](index.html#TCS-0997) | 65 |
-| 10 | [Self-improving sorting beyond independent input distributions](index.html#TCS-0355) | 58 |
+| 5 | [Can random 3-SAT at constant density be refuted in polynomial time?](index.html#TCS-7238) | 96 |
+| 6 | [Does average-case NP hardness imply infinitely-often one-way functions?](index.html#TCS-6453) | 95 |
+| 7 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
+| 8 | [Optimal average-case complexity of Shellsort](index.html#TCS-7173) | 79 |
+| 9 | [Does the expected redundancy of optimal alphabetic trees with random weights converge?](index.html#TCS-0480) | 65 |
+| 10 | [Semi-Random Streams](index.html#TCS-0997) | 65 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
@@ -348,20 +348,20 @@ Target: 20; candidates: 23; importance assessed: 3; provisional: 20.
 
 ## 11. Counting and enumeration (small)
 
-Target: 20; candidates: 47; importance assessed: 14; provisional: 33.
+Target: 20; candidates: 48; importance assessed: 15; provisional: 33.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [An FPRAS for perfect matchings in general graphs](index.html#TCS-6628) | 97 |
 | 2 | [Does #BIS admit an FPRAS?](index.html#TCS-7221) | 97 |
 | 3 | [A deterministic FPTAS for the nonnegative permanent](index.html#TCS-6629) | 96 |
-| 4 | [An FPRAS for counting undirected Euler tours](index.html#TCS-6671) | 93 |
-| 5 | [Minimal dominating sets enumeration and hypergraph colorings](index.html#TCS-0553) | 86 |
-| 6 | [Deterministic relative counting for DNF](index.html#TCS-1004) | 84 |
-| 7 | [Output-sensitive enumeration complexity classifications](index.html#TCS-0555) | 82 |
-| 8 | [Strong polynomial delay conjectures](index.html#TCS-0556) | 80 |
-| 9 | [Enumeration across primal and dual representations](index.html#TCS-0547) | 76 |
-| 10 | [Enumeration of vertex subsets with non-local properties](index.html#TCS-0551) | 71 |
+| 4 | [Can all vertices of a rational polytope be enumerated in output-polynomial time?](index.html#TCS-7240) | 95 |
+| 5 | [An FPRAS for counting undirected Euler tours](index.html#TCS-6671) | 93 |
+| 6 | [Minimal dominating sets enumeration and hypergraph colorings](index.html#TCS-0553) | 86 |
+| 7 | [Deterministic relative counting for DNF](index.html#TCS-1004) | 84 |
+| 8 | [Output-sensitive enumeration complexity classifications](index.html#TCS-0555) | 82 |
+| 9 | [Strong polynomial delay conjectures](index.html#TCS-0556) | 80 |
+| 10 | [Enumeration across primal and dual representations](index.html#TCS-0547) | 76 |
 
 ## 12. Structural graph theory and graph algorithms (small)
 
@@ -535,20 +535,20 @@ Target: 20; candidates: 37; importance assessed: 12; provisional: 25.
 
 ## 22. Automated reasoning, rewriting and unification (small)
 
-Target: 20; candidates: 36; importance assessed: 14; provisional: 22.
+Target: 20; candidates: 37; importance assessed: 15; provisional: 22.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
 | 1 | [Are word equations with linear length constraints decidable?](index.html#TCS-6562) | 97 |
 | 2 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) | 94 |
 | 3 | [Deterministic polynomial-time equivalence testing for d-DNNFs](index.html#TCS-6650) | 94 |
-| 4 | [Decidability of termination for one-rule string rewriting](index.html#TCS-6644) | 93 |
-| 5 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
-| 6 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
-| 7 | [What is the exact complexity of word unification?](index.html#TCS-0171) | 87 |
-| 8 | [Is unification modulo the theory of allegories decidable?](index.html#TCS-0169) | 77 |
-| 9 | [Is unification of patterns modulo any set of variable-preserving equations decidable?](index.html#TCS-0173) | 74 |
-| 10 | [Is satisfiability of lpo or rpo ordering constraints decidable in case of non-total precedences?](index.html#TCS-0176) | 70 |
+| 4 | [Does greedy CDCL without restarts p-simulate resolution?](index.html#TCS-7239) | 94 |
+| 5 | [Decidability of termination for one-rule string rewriting](index.html#TCS-6644) | 93 |
+| 6 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
+| 7 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
+| 8 | [What is the exact complexity of word unification?](index.html#TCS-0171) | 87 |
+| 9 | [Is unification modulo the theory of allegories decidable?](index.html#TCS-0169) | 77 |
+| 10 | [Is unification of patterns modulo any set of variable-preserving equations decidable?](index.html#TCS-0173) | 74 |
 
 ## 23. Database theory and finite model theory (small)
 
