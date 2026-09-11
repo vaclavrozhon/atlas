@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-1,433 five-sentence working summaries, based on saved source material.
+1,435 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (59)
@@ -10068,7 +10068,21 @@ Constant-delay enumeration aims to produce query answers promptly after an initi
 [Read in atlas](index.html#TCS-7128) · [Constant Delay Enumeration for Conjunctive Queries](https://databasetheory.org/sites/default/files/2016-06/segoufin.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Miscellaneous (2)
+## Miscellaneous (4)
+
+### TCS-7177 — The 1/3–2/3 conjecture
+
+A partial order records known comparisons, and its linear extensions are all compatible complete rankings. The conjecture asks whether every finite non-total order has an incomparable pair that appears in either relative order in at least one third of all extensions. The extensions are weighted uniformly, and both endpoints of the interval are allowed. A three-element order with only one comparison shows that the constant one third cannot be improved universally. A resolution would identify the sharp balance guarantee for a comparison in sorting with partial information.
+
+[Read in atlas](index.html#TCS-7177) · [Balancing pairs and the cross product conjecture](https://trotter.math.gatech.edu/papers/97.pdf) · [Linear extensions of finite posets](https://arxiv.org/abs/2311.02743) · [Balancing Extensions in Posets of Large Width](https://arxiv.org/abs/2509.11549) · [Balance Constants, Majority Cycles, and the Gold Partition Conjecture through Fourteen Elements](https://arxiv.org/abs/2607.23926v2)
+Existing status: `open` · Summary written: 2026-09-11
+
+### TCS-7176 — Determine the pancake numbers
+
+A prefix reversal turns over an initial segment of a permutation, at unit cost. The pancake number f(n) is the maximum, over n-symbol permutations, of the minimum number of such flips required to sort them. The problem concerns unsigned permutations, with neither orientations nor suffix reversals allowed. Known general lower and upper bounds are linear with different leading constants, while small exact values are known. The source’s request for exact determination still needs a formal acceptance requirement beyond the already possible finite exhaustive computation.
+
+[Read in atlas](index.html#TCS-7176) · [(15/14)n Flips are (almost) Sufficient to Sort Heydari and Sudborough’s Pancake Stack](https://www.jstage.jst.go.jp/article/transinf/advpub/0/advpub_2024FCL0002/_pdf) · [An (18/11)n upper bound for sorting by prefix reversals](https://www.amrita.edu/publication/an-18-11-n-upper-bound-for-sorting-by-prefix-reversals/) · [Sortowanie naleśników](https://www.deltami.edu.pl/2026/02/sortowanie-nalesnikow/) · [Average number of flips in pancake sorting](https://arxiv.org/abs/0901.3119)
+Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-1951 — Can execution bounded CRNs compute semilinear functions and predicates within polylogarithmic time?
 
