@@ -6162,12 +6162,12 @@ The amalgamation property asks whether two compatible finite structures can be c
 [Read in atlas](index.html#TCS-2008) · [Homogeneity and Homogenizability: Hard Problems for the Logic SNP](https://doi.org/10.4230/LIPIcs.ICALP.2024.150)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3120 — We do not know, however, whether for even n > 2, the extension closed properties in Σn can all be expressed in Πn or even […]
+### TCS-3120 — Do extension-closed even existential prefix classes collapse over finite structures?
 
-An extension-closed property remains true when a finite structure is enlarged in the source's sense. The question asks whether such properties expressed at certain even levels of the existential-first quantifier hierarchy can also be expressed in a universal-first level. This probes how semantic preservation constrains quantifier alternation over finite structures. A positive result would sharpen preservation theory by controlling the syntactic complexity of the equivalent formula. The excerpt ends before a further candidate class and omits the exact prefix conventions, so the retained Sigma-to-Pi comparison must be checked against the full source formulation.
+The property must be definable by a first-order sentence and survive every finite extension. For each even k at least four, the sentence initially lies in the existential-starting class Σ_k. The question asks for equivalent universal-starting Π_k sentences, and more strongly for Σ_{k−1} sentences. The source proves separations at odd levels while the second existential level already collapses. Equivalence is over all finite structures in the same vocabulary, with no algorithmic translation bound.
 
-[Read in atlas](index.html#TCS-3120) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic](https://doi.org/10.4230/LIPIcs.CSL.2021.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3120) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic](https://doi.org/10.4230/LIPIcs.CSL.2021.18) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic — author version](https://arxiv.org/abs/2007.05459) · [Preservation Theorems in Semiring Semantics](https://doi.org/10.4230/LIPIcs.ICALP.2026.172)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3557 — While it is known that Sp-Datalog(6=) ⊆ E [3], to the best of our knowledge, it is still an open question ? whether Str-Datalog(6=) ∩ […]
 

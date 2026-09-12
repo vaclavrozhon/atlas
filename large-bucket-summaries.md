@@ -2540,13 +2540,6 @@ Several combinatorial families admit determinant formulas that make counting pos
 [Read in atlas](index.html#TCS-3075) · [Sampling Arborescences in Parallel](https://doi.org/10.4230/LIPIcs.ITCS.2021.83)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3119 — Specifically, note that Y ′ (resp., Y ′′ ) is o(1)-close to being uniformly distributed over S ′ (resp., {0, 1}ℓ+4−t ). 45 Unlike in […]
-
-Robustly self-ordered graphs provide graph constructions whose structural identifications remain constrained under perturbation. The cited paper applies these constructions to property testing. The saved passage discusses random variables that are close to uniform over specified supports. That distributional control appears relevant to transferring information between the construction and a testing argument. The excerpt omits the definitions of the variables and ends before the unresolved issue, so the draft cannot identify the remaining question as an extractor guarantee, a testing bound, or another precise claim.
-
-[Read in atlas](index.html#TCS-3119) · [Robustly Self-Ordered Graphs: Constructions and Applications to Property Testing](https://doi.org/10.4230/LIPIcs.CCC.2021.12)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3134 — For example, the complexity of k-independent set detection in CONGEST remains open, whereas in the centralized setting, it is equivalent to k-clique – a correspondence […]
 
 Detecting a k-vertex independent set means determining whether a graph contains k mutually nonadjacent vertices. The question asks for the round complexity of this task in CONGEST, where processors communicate only along actual graph edges with bounded-size messages. In centralized computation, complementing the graph converts the task to clique detection. That conversion does not preserve a distributed communication network, because absent edges cannot simply become communication links. Understanding the complexity would expose how distributed pattern detection depends on the difference between information about missing edges and the physical routes available for exchanging that information.
@@ -2909,6 +2902,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 A fixed local first-order formula asks a question about the neighborhood of each graph vertex. The historical problem was to mark all satisfying vertices using only short messages along graph edges. Blin and coauthors give a deterministic O(log n)-round algorithm for every fixed bounded-expansion class. Their theorem answers the exact question restated in the 2024 source and was published at STOC 2026. The global first-order model-checking extension has an additional diameter term and is a separate result.
 
 [Read in atlas](index.html#TCS-2281) · [Distributed Model Checking on Graphs of Bounded Treedepth](https://doi.org/10.4230/LIPIcs.DISC.2024.25) · [What Can Be Computed Locally Revisited — First-Order Logic on Sparse Graphs in Distributed Computing](https://arxiv.org/abs/2411.14825v3) · [What Can Be Computed Locally Revisited: First-Order Logic on Sparse Graphs in Distributed Computing — STOC publication](https://doi.org/10.1145/3798129.3800849)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-3119 — Explicit dense robust graphs with efficient local self-ordering
+
+A robustly self-ordered graph changes many edges whenever many vertex names are permuted. Local self-ordering recovers one vertex’s canonical name using only a few adjacency queries. The source asks for efficiently constructed dense graphs having both properties. Goldreich’s later Corollary 1.7 supplies both properties with polylogarithmic time bounds. The original construction question is resolved, while a universal implication for every robust dense graph is a different problem.
+
+[Read in atlas](index.html#TCS-3119) · [Robustly Self-Ordered Graphs: Constructions and Applications to Property Testing](https://doi.org/10.4230/LIPIcs.CCC.2021.12) · [Robust Self-Ordering versus Local Self-Ordering](https://www.wisdom.weizmann.ac.il/~oded/COL3/rso-vs-lso.pdf) · [Robust Self-Ordering versus Local Self-Ordering — author page](https://www.wisdom.weizmann.ac.il/~oded/p_rso-lso.html) · [Computational Complexity and Local Algorithms](https://link.springer.com/book/10.1007/978-3-031-88946-2)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Optimization and numerical computation (34)
