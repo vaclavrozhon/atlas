@@ -1015,12 +1015,12 @@ The task is to find a branch decomposition whose every cut has no induced matchi
 [Read in atlas](index.html#TCS-2316) · [Finding Induced Subgraphs from Graphs with Small Mim-Width](https://doi.org/10.4230/LIPIcs.SWAT.2024.38) · [On the Hardness of Recognizing Graphs of Small Mim-Width and Its Variants](https://doi.org/10.4230/LIPIcs.ICALP.2026.83)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2822 — Even the complexity (P versus NP) of deciding whether a directed graph contains an (s, t)-path longer than distG (s, t) (the case of k […]
+### TCS-2822 — The complexity of finding a directed path longer than a shortest path
 
-The directed Longest Detour problem asks whether a simple path from s to t exceeds the shortest-path distance by at least k edges. Even the first nontrivial case asks whether any s-to-t path is longer than a shortest one. The source leaves the polynomial-time versus NP-hard classification unresolved for this case on general directed graphs. Its positive results for planar directed graphs do not settle the unrestricted problem. Resolving the k=1 case would determine whether a seemingly tiny deviation from shortest paths already introduces the complexity associated with finding long simple paths.
+The input is an unweighted directed graph with specified endpoints. The problem asks whether any simple path between them is longer than their shortest-path distance. Only one extra edge is required, and no path may repeat a vertex. Planar graphs have polynomial algorithms, but the general directed classification remains open in the checked sources. The NP-completeness of exceeding graph diameter concerns a different problem.
 
-[Read in atlas](index.html#TCS-2822) · [Detours in Directed Graphs](https://doi.org/10.4230/LIPIcs.STACS.2022.29)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2822) · [Detours in Directed Graphs](https://doi.org/10.4230/LIPIcs.STACS.2022.29) · [Detours in directed graphs — journal version](https://doi.org/10.1016/j.jcss.2023.05.001) · [Simpler and faster algorithms for detours in planar digraphs](https://arxiv.org/abs/2301.02421)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3263 — Thus, if there are no k disjoint shortest paths, then computing k disjoint paths minimizing their total length in polynomial time is still an open […]
 
