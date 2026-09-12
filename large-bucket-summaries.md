@@ -2484,12 +2484,12 @@ Population protocols consist of many small agents that repeatedly interact in ra
 [Read in atlas](index.html#TCS-3436) · [Message Complexity of Population Protocols](https://doi.org/10.4230/LIPIcs.DISC.2020.6)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3662 — Low-dimensional parallel oracle optimization lower bounds
+### TCS-3662 — Low-dimensional parallel convex-optimization lower bounds
 
-Parallel oracle optimization allows an algorithm to query several points at once before receiving the next batch of local information. The source asks for sharper lower bounds when the dimension is small relative to the demanded accuracy. Its conjecture combines linear dimension dependence, logarithmic inverse-accuracy dependence, and a logarithmic allowance for batch size and failure probability. The claim spans nonsmooth and suitably smooth convex objectives in the specified oracle setting. A tight result would quantify the limited benefit of parallel exploration after high-dimensional lower-bound constructions cease to capture the relevant regime.
+A parallel convex optimizer queries at most K points before seeing that round’s answers. The source conjectures a round lower bound proportional to d·ln(1/ε)/ln(K/γ) in low dimensions. Here γ is success confidence, and ε measures the additive gap from the optimum. The journal revision and recent high-dimensional smooth results address related but distinct regimes. The intended geometry, scale normalization and joint parameter range remain necessary to complete the conjecture.
 
-[Read in atlas](index.html#TCS-3662) · [Lower Bounds for Parallel and Randomized Convex Optimization](https://proceedings.mlr.press/v99/diakonikolas19c.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3662) · [Lower Bounds for Parallel and Randomized Convex Optimization](https://proceedings.mlr.press/v99/diakonikolas19c.html) · [Lower Bounds for Parallel and Randomized Convex Optimization](https://www.jmlr.org/papers/v21/19-771.html) · [Non-Euclidean High-Order Smooth Convex Optimization](https://proceedings.mlr.press/v291/contreras25a.html)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3726 — Deterministic message reduction without time loss
 
