@@ -1478,17 +1478,17 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3986 — Circuit lower bounds from inverse-polynomial-error heuristics
 
-The cited work develops efficient heuristics that may fail on an inverse-polynomial fraction of inputs. Its question asks whether such heuristics imply circuit lower bounds. A heuristic derandomization guarantee is weaker than correctness on every input, so standard hardness-versus-randomness implications may not transfer directly. A positive connection would show that even average-case algorithmic improvements contain evidence of computational hardness. The saved excerpt does not specify the distribution, error exponent, or heuristic runtime, and these quantitative details determine what lower-bound conclusion could reasonably follow.
+The source obtains polynomial-time simulations of BPP that err on at most an inverse-polynomial fraction of inputs at every sufficiently large length. For the deterministic version the input distribution is uniform, and a separate algorithm is allowed for each desired inverse-polynomial error rate. It asks whether such simulation guarantees imply circuit lower bounds. The known converse separates uniform time classes, while older nonuniform lower-bound consequences require much smaller exceptional-input sets. The desired hard language class, circuit model, lower-bound rate and exact simulation premise remain to be specified.
 
-[Read in atlas](index.html#TCS-3986) · [Fine-Grained Derandomization: From Problem-Centric to Resource-Centric Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2018.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3986) · [Fine-Grained Derandomization: From Problem-Centric to Resource-Centric Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2018.27) · [Fine-Grained Derandomization: From Problem-Centric to Resource-Centric Complexity — full version](https://eccc.weizmann.ac.il/report/2018/092/) · [Pseudorandom generators, typically-correct derandomization, and circuit lower bounds](https://doi.org/10.1007/s00037-011-0019-z) · [On The Utility of Fine-Grained Complexity Theory](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2020/EECS-2020-165.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-4003 — Prover complexity of public-coin pseudodeterministic proofs
+### TCS-4003 — Public-coin canonical isomorphism with a GI-oracle prover
 
-Pseudodeterministic proofs aim to make randomized verification support a consistently chosen output or conclusion. The source asks what computational power a prover would need if the protocol used public coins. Revealing the verifier's randomness can change which strategies a prover must compute to support a canonical outcome. Determining that power would clarify the resources needed to make reproducibility compatible with interactive verification. The saved question omits the underlying task and protocol guarantees, so it cannot yet specify a concrete prover complexity class or compare public and private randomness quantitatively.
+A pseudodeterministic graph-isomorphism proof must make the verifier return one fixed isomorphism with high probability. Even a cheating prover may usually cause only that same answer or rejection. The question asks for a constant-round public-coin protocol whose honest prover uses only polynomial time and a GI decision oracle. A private-coin protocol with this prover bound and a public-coin protocol with an unrestricted prover are already known. The full preprint and February 2022 thesis explicitly leave the combination open.
 
-[Read in atlas](index.html#TCS-4003) · [Pseudo-Deterministic Proofs](https://doi.org/10.4230/LIPIcs.ITCS.2018.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4003) · [Pseudo-Deterministic Proofs](https://doi.org/10.4230/LIPIcs.ITCS.2018.17) · [Pseudo-Deterministic Proofs — full preprint](https://arxiv.org/abs/1706.04641) · [Modern Interactive Proofs](https://dspace.mit.edu/server/api/core/bitstreams/da378ed3-3d46-4110-81fd-c4a81e27c5c7/content)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4318 — Explicit quadratic dispersers at near-full entropy
 
