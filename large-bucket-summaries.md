@@ -667,10 +667,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6784 — Spanners matching Thorup–Zwick emulator tradeoffs
 
-An emulator may add weighted shortcut edges, whereas a spanner must use actual edges from the input graph. Thorup-Zwick style constructions offer useful distance-error and size tradeoffs in the more permissive setting. The source asks whether comparable tradeoffs can be realized by genuine spanners. Replacing each shortcut with a path may greatly increase the total number of retained edges. The project seeks shared path structure that can recover the emulator's compactness without relying on artificial metric connections.
+A spanner keeps a subset of the original graph’s edges while approximately preserving all distances. An emulator may instead use weighted shortcut edges. The question asks whether spanners can match the precise size and sublinear distance-error tradeoffs of Thorup–Zwick emulators. A later construction gets arbitrarily close in the edge exponent, but its constants depend on the remaining slack. The target requires the exact exponent and fixed error constants at every fixed level of the hierarchy.
 
-[Read in atlas](index.html#TCS-6784) · [Graph spanners: a tutorial review](https://arxiv.org/abs/1909.03152)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6784) · [Graph spanners: a tutorial review](https://arxiv.org/abs/1909.03152) · [Spanners and emulators with sublinear distance errors](https://researchprofiles.ku.dk/en/publications/spanners-and-emulators-with-sublinear-distance-errors/) · [A Hierarchy of Lower Bounds for Sublinear Additive Spanners](https://doi.org/10.1137/16M1105815) · [Almost-Optimal Sublinear Additive Spanners](https://doi.org/10.1137/23M1581078)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6785 — Optimal additive error of linear-size spanners
 
