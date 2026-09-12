@@ -3033,12 +3033,12 @@ Entanglement-assisted communication protocols may begin with a large shared quan
 [Read in atlas](index.html#TCS-4991) · [Universality of EPR Pairs in Entanglement-Assisted Communication Complexity, and the Communication Cost of State Conversion](https://doi.org/10.4230/LIPIcs.CCC.2019.20)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5077 — Parallel repetition of entangled games
+### TCS-5077 — Exponential repetition of two-player entangled games
 
-Parallel repetition tries to reduce the success probability of a game by asking players to win many independent instances simultaneously. Entangled players can correlate their strategies across instances, making this amplification harder to analyze than independent play suggests. The extracted passage describes the historical question of whether a game with entangled value below one could retain a success probability bounded away from zero under arbitrarily many repetitions. The same paper then rules out that behavior for the setting it studies, while distinguishing this result from stronger quantitative decay claims and transformations of the game. This entry therefore introduces a source-resolved question and the surrounding amplification issue rather than treating the quoted historical uncertainty as a fresh unresolved claim.
+Two quantum players must win every copy of a fixed game repeated independently by the referee. They may use arbitrary finite-dimensional entanglement and joint local measurements across the copies. The target is exponential decay whenever the original optimal value is below one. The original paper establishes only polynomial decay, while game transformations give a different amplification guarantee. An August 2026 manuscript claims the full exponential theorem, but this review has not independently verified its proof.
 
-[Read in atlas](index.html#TCS-5077) · [A Parallel Repetition Theorem for All Entangled Games](https://doi.org/10.4230/LIPIcs.ICALP.2016.77)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5077) · [A Parallel Repetition Theorem for All Entangled Games](https://doi.org/10.4230/LIPIcs.ICALP.2016.77) · [Exponential Parallel Repetition for All Two-Player Entangled Games](https://cdn.openai.com/pdf/ten-proofs-oai.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-5202 — Quantum security of general seeded extractors
 
