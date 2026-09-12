@@ -2138,12 +2138,12 @@ Place points in a unit square, including its lower-left corner. Each point may a
 [Read in atlas](index.html#TCS-3059) · [On Greedily Packing Anchored Rectangles](https://doi.org/10.4230/LIPIcs.ICALP.2021.61)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4454 — Bounded-distortion snowflake embeddings into Wasserstein space
+### TCS-4454 — Half-snowflake embeddings into Wasserstein p-space
 
-Wasserstein spaces measure distances between probability distributions by the cost of transporting mass in Euclidean space. For each fixed p greater than two, the source conjectures that the square-root metric of every finite metric space embeds into Wp over three-dimensional Euclidean space with distortion bounded only by p. Its results establish the corresponding universality at \(p = 2\) but leave room for improvement for larger p. An embedding of \(\mathrm{W}_{2}\) itself into Wp would provide one route to the proposed conclusion. The conjecture would strengthen the geometric obstructions explaining why compact sketches and simple normed-space representations of transportation distances are difficult.
+The question asks whether every finite metric becomes a bounded-distortion subset of Wasserstein p-space over R³ after taking square roots of its distances. The exponent p is fixed above two, and the distortion bound must depend only on p. The known theorem works at snowflake exponent 1/p, which is smaller than one half in this range. Almost-isometric embeddings and embedding the entire Wasserstein-2 space are separate stronger questions. The later planar results checked here do not settle this three-dimensional half-snowflake conjecture.
 
-[Read in atlas](index.html#TCS-4454) · [Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost](https://doi.org/10.4230/LIPIcs.ICALP.2016.83)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4454) · [Impossibility of Sketching of the 3D Transportation Metric with Quadratic Cost](https://doi.org/10.4230/LIPIcs.ICALP.2016.83) · [Snowflake universality of Wasserstein spaces](https://doi.org/10.24033/asens.2363) · [Coarse Embeddability of Wasserstein Space and the Space of Persistence Diagrams](https://doi.org/10.1007/s00454-024-00674-6)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4549 — Polynomial-time colorful choice with polynomially many colors
 
