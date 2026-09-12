@@ -383,12 +383,12 @@ A king in a tournament is a vertex that can reach every other vertex along a dir
 [Read in atlas](index.html#TCS-1602) · [Hardness of Finding Kings and Strong Kings](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.36)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1936 — Does n2 -Ramsey belong to TFAP?
+### TCS-1936 — Does the n/2-Ramsey search problem belong to TFAP?
 
-The Ramsey search problem receives a succinctly represented graph on 2^n vertices and seeks a clique or independent set of size n/2. Ramsey's theorem guarantees a solution, placing the task in the landscape of total search problems. The question asks whether this problem belongs to TFAP, a class designed to capture search tasks with abundant solutions. The source also proposes the weaker target of finding a homogeneous set of size n/10. Membership would connect Ramsey search to abundance-based principles and yield consequences for oracle separations from classes whose hard instances can have very few solutions.
+Every graph on 2^n vertices has a clique or independent set of about n/2 vertices. The question asks whether finding one belongs to the abundant-solution class TFAP. Robustness means a nearly complete partial input already forces one valid answer across all its completions. TFAP permits low-depth reductions to robust problems, so the Ramsey presentation itself need not be robust. The source’s separate n/10 question and its white-box closure conventions do not replace this black-box membership target.
 
 [Read in atlas](index.html#TCS-1936) · [Total NP Search Problems with Abundant Solutions](https://doi.org/10.4230/LIPIcs.ITCS.2024.75)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2029 — In the other direction, we leave open whether FBPP ⊂ FBPPnegl or whether the two classes are incomparable.
 

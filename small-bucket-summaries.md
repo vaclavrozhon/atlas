@@ -2229,12 +2229,12 @@ The all-or-nothing flow problem makes discrete acceptance decisions about demand
 [Read in atlas](index.html#TCS-1243) · [Expander Decomposition with Almost Optimal Overhead](https://doi.org/10.4230/LIPIcs.ICALP.2026.22)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1930 — Can we prove PIH under W[1] ̸= FPT using some appropriate form of direct product testing theorems?
+### TCS-1930 — Does W[1] ≠ FPT imply the Parameterized Inapproximability Hypothesis?
 
-The Parameterized Inapproximability Hypothesis asserts a strong approximation barrier in parameterized constraint problems. The source asks whether it follows from W[1]≠FPT using a suitable direct-product testing theorem. Direct products try to amplify small inconsistencies by combining many local tests. An implication would base broad parameterized approximation hardness on a more familiar parameterized-complexity assumption. The saved excerpt does not reproduce the PIH gap or the testing parameters, so the challenge includes preserving parameter growth rather than merely applying an ordinary polynomial-time gap-amplification reduction.
+The hypothesis W[1]≠FPT says exact parameterized problems such as k-Clique do not admit fixed-parameter algorithms. The question asks whether it also rules out distinguishing satisfiable binary constraint systems from systems that force a constant fraction of violations. The parameter is the number of variables, while the alphabet may grow with the input. PIH is already known under the stronger ETH assumption, and Baby PIH is known under W[1]≠FPT. A proof of the full implication would provide a broad foundation for parameterized inapproximability.
 
-[Read in atlas](index.html#TCS-1930) · [Baby PIH: Parameterized Inapproximability of Min CSP](https://doi.org/10.4230/LIPIcs.CCC.2024.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1930) · [Baby PIH: Parameterized Inapproximability of Min CSP](https://doi.org/10.4230/LIPIcs.CCC.2024.27) · [Parameterized Inapproximability Hypothesis under ETH](https://doi.org/10.1145/3749982) · [Parameterized inapproximability: From Clique to PIH](https://doi.org/10.1016/j.cosrev.2025.100834)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2625 — For all ε, η > 0, given an undirected graph G = (V, E), it is NP-hard to distinguish between: Yes case: iCol3 (G) ⩾ […]
 
