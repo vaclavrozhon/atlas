@@ -3755,12 +3755,12 @@ Given a connected undirected graph, the goal is to find a spanning tree whose ma
 [Read in atlas](index.html#TCS-0538) · [Graph Algorithms: Distributed Meets Dynamic](https://doi.org/10.4230/DagRep.14.11.92)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3331 — Can ParityExists be maintained with first-order updates rules?
+### TCS-3331 — Can DynFO maintain the parity of vertices covered by red predecessors?
 
-Dynamic complexity maintains query answers as a database changes through a sequence of updates. The source asks whether its ParityExists query can be maintained using first-order update rules. The challenge is to track a parity-related global property through local logical updates rather than recomputing it from scratch. A solution would clarify the expressive power of first-order dynamic programs for counting-sensitive queries. The saved passage does not define ParityExists, initialization, or allowed modifications, so these conventions are necessary before comparing it with static first-order expressibility or ordinary parity computation.
+A vertex is covered if some red vertex has a directed edge into it. After each edge or color insertion or deletion, the program must report whether the number of covered vertices is odd. The question permits fixed first-order update formulas and polynomially many auxiliary bits, starting with empty relations. Quantifier-free updates are insufficient, while degree-filtered versions have positive first-order results. The unrestricted query remains open in the expanded source and tests the ability of dynamic first-order logic to handle counting beyond direct-set parity.
 
-[Read in atlas](index.html#TCS-3331) · [Dynamic Complexity of Parity Exists Queries](https://doi.org/10.4230/LIPIcs.CSL.2020.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3331) · [Dynamic Complexity of Parity Exists Queries](https://doi.org/10.4230/LIPIcs.CSL.2020.37) · [Dynamic Complexity of Parity Exists Queries](https://doi.org/10.46298/lmcs-17(4:9)2021)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-4307 — It remains open whether the answer relation of ECRPQs can be maintained on general graphs, even when only insertions are allowed.
 
