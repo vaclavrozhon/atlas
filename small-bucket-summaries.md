@@ -1326,10 +1326,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6379 — Polynomial kernels for Directed Feedback Vertex Set
 
-Directed Feedback Vertex Set deletes vertices to destroy every directed cycle. The cited work investigates polynomial kernels for deletion to classes of acyclic digraphs. The saved passage recalls a parameter-dependent exponential kernel arising from fixed-parameter tractability. The natural compression issue is whether a substantially smaller equivalent instance can preserve the directed cycle constraints. Because the unresolved continuation is missing, the draft does not assert that the paper asks exactly for the unrestricted polynomial kernel or silently assign its historical bound a current status.
+Directed Feedback Vertex Set asks whether deleting at most a given number of vertices destroys every directed cycle. The question is whether polynomial-time preprocessing can always replace an instance by one of size polynomial in that deletion budget. The replacement must preserve the exact yes or no answer. Known kernels with extra structural parameters or more restrictive deletion targets do not give this guarantee. Resolving the general question would clarify the limits of efficient compression for directed cycle problems.
 
-[Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55) · [Wannabe Bounded Treewidth Graphs Admit a Polynomial Kernel for Directed Feedback Vertex Set](https://doi.org/10.1145/3711669)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6728 — Chromatic number in \(2^{n}\) time and polynomial space
 
@@ -2330,13 +2330,6 @@ The girth conjecture asks for dense graphs with every short cycle forbidden. For
 [Read in atlas](index.html#TCS-2783) · [Space-Stretch Tradeoff in Routing Revisited](https://doi.org/10.4230/LIPIcs.DISC.2022.37) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://arxiv.org/abs/2607.07576)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-6409 — Logical expressiveness on hereditary graph classes
-
-Monadic second-order logic can quantify over sets, giving it more expressive tools than ordinary first-order formulas. The cited work studies fast evaluation on trees of fixed height and consequences for graph classes. The saved passage points toward characterizing hereditary classes on which certain logical expressive powers coincide. Such a characterization would connect structural simplicity with limits on how much stronger a logical language becomes. The excerpt omits the languages being compared and the rest of the condition, so it cannot yet state a definite equivalence theorem.
-
-[Read in atlas](index.html#TCS-6409) · [Faster Deciding MSO Properties of Trees of Fixed Height, and Some Consequences](https://doi.org/10.4230/LIPIcs.FSTTCS.2012.112)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6874 — Ramanujan graphs of every degree
 
 A d-regular Ramanujan graph has nontrivial adjacency eigenvalues within the source's optimal spectral range. The saved survey conjecture asks for arbitrarily large examples at every degree d at least three. The goal is a family at each fixed degree, not simply isolated small graphs or a degree sequence that grows with size. Such families provide exceptionally strong sparse connectivity and underpin many expander applications. This is a dated survey formulation whose present status is not rechecked in the draft, and bipartite conventions and treatment of trivial eigenvalues must be retained when comparing later constructions.
@@ -2384,6 +2377,13 @@ Existing status: `resolved` · Summary written: 2026-09-12
 The source sought a purely combinatorial description of monadically NIP graph classes. A 2024 theorem provides exactly such a description, called flip-breakability. After bounded-part adjacency flips, any sufficiently large vertex set contains two large subsets far from each other. This condition is equivalent to monadic NIP for arbitrary finite graph classes. The historical question is resolved; the 2025 literature supplies an additional weighted separation characterization.
 
 [Read in atlas](index.html#TCS-2401) · [Indiscernibles and Flatness in Monadically Stable and Monadically NIP Classes](https://doi.org/10.4230/LIPIcs.ICALP.2023.125) · [Flip-Breakability: A Combinatorial Dichotomy for Monadically Dependent Graph Classes](https://doi.org/10.1145/3618260.3649739) · [Separability Properties of Monadically Dependent Graph Classes](https://doi.org/10.4230/LIPIcs.ICALP.2025.147)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-6409 — Logical expressiveness on hereditary graph classes
+
+First-order graph logic quantifies over vertices, while MSO1 also quantifies over vertex sets. The historical question asks on which hereditary graph classes those languages define exactly the same properties. The proposed answer is precisely the classes of bounded shrub-depth. This requires fixed bounds on both the depth and number of colors in tree representations of every graph in the class. Mählmann’s published ICALP 2025 theorem proves the characterization.
+
+[Read in atlas](index.html#TCS-6409) · [Faster Deciding MSO Properties of Trees of Fixed Height, and Some Consequences](https://doi.org/10.4230/LIPIcs.FSTTCS.2012.112) · [Forbidden Induced Subgraphs for Bounded Shrub-Depth and the Expressive Power of MSO](https://doi.org/10.4230/LIPIcs.ICALP.2025.167)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Data structures (7)
