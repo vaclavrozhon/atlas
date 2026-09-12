@@ -1869,12 +1869,12 @@ Average-case algorithms may either recognize when they cannot answer or silently
 [Read in atlas](index.html#TCS-2680) · [Finding Errorless Pessiland in Error-Prone Heuristica](https://doi.org/10.4230/LIPIcs.CCC.2022.25)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4495 — Recovery hardness for planted dense subgraphs
+### TCS-4495 — Recovery hardness for sparse planted dense subgraphs
 
-Planted dense-subgraph models hide a subset with elevated edge density inside a random graph. The source identifies a region of its parameter diagram where recovery hardness remains unresolved. That region lies between established algorithmic, hardness, and information-theoretic regimes, making it important for locating the true computation threshold. A new algorithm or reduction could determine whether the apparent gap reflects unavailable techniques or an inherent barrier. The saved figure caption does not preserve the region's inequalities or recovery criterion, so the diagram and model definitions must be recovered before stating a specific threshold question.
+A random vertex set is planted with a constant-factor increase in its internal edge probability. The selected question asks for planted-clique-based hardness of exact recovery in the strict interior of the unresolved sparse region. The source’s detection and recovery algorithmic thresholds differ there. The planted size is binomial, and finding a dense K-vertex set is a different task. Later leakage-based reductions and low-degree results checked here do not settle this precise all-algorithm claim.
 
-[Read in atlas](index.html#TCS-4495) · [Computational Lower Bounds for Community Detection on Random Graphs](https://proceedings.mlr.press/v40/Hajek15.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4495) · [Computational Lower Bounds for Community Detection on Random Graphs](https://proceedings.mlr.press/v40/Hajek15.html) · [Detection-Recovery and Detection-Refutation Gaps via Reductions from Planted Clique](https://proceedings.mlr.press/v195/bresler23a.html) · [Recovery of Planted Subgraphs](https://proceedings.mlr.press/v336/huleihel26a.html)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4876 — Algorithmic threshold for random k-SAT
 
