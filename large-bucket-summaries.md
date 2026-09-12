@@ -3703,10 +3703,10 @@ Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4031 — Quasipolynomial AC⁰ self-learning
 
-The source asks whether AC0 can be self-learned by AC0 circuits of quasipolynomial size. Here both the target functions and the proposed learning machinery are restricted by shallow circuit structure. A learner may need computations more complex than evaluating any one member of the class it learns. Understanding this restriction would connect learnability with pseudoderandomization and representation complexity. The saved sentence does not define the learning access model or success guarantee, so examples, membership queries, and other forms of information cannot be treated as interchangeable resources.
+The target is to learn any polynomial-size constant-depth Boolean circuit using a constant-depth learner of quasipolynomial size. The learner can query the unknown function and uses random bits, with approximation measured on uniform inputs. Its output must itself describe a quasipolynomial-size constant-depth AND/OR/NOT circuit. Known sequential-time learning and threshold-augmented self-learning do not give this combination. The card states the source’s fixed-constant accuracy and confidence interpretation and records the same question in a 2020 thesis.
 
-[Read in atlas](index.html#TCS-4031) · [Pseudo-Derandomizing Learning and Approximation](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2018.55)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4031) · [Pseudo-Derandomizing Learning and Approximation](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2018.55) · [Pseudo-derandomizing learning and approximation — full report](https://eccc.weizmann.ac.il/report/2018/122/) · [The Complexity of Meta-Computational Problems](https://ora.ox.ac.uk/objects/uuid:f2fe5da6-1b6d-4147-88b5-85e9d818a559)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4074 — Sample complexity of proper PAC learning
 
