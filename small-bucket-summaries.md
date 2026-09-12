@@ -5978,13 +5978,6 @@ A word equation equates two concatenations containing constant symbols and unkno
 [Read in atlas](index.html#TCS-3484) · [Hardness Results for Constant-Free Pattern Languages and Word Equations](https://doi.org/10.4230/LIPIcs.ICALP.2020.140)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3552 — While weak definability is an interesting problem in its own right, another motivation for our work stems from the fact it is an open problem […]
-
-Linear arithmetic theories express additive relationships, while ordering adds comparisons between values. The cited work studies how much expressive power that ordering contributes. The saved passage links weak definability with another unresolved question motivating the study. Understanding the connection could show whether comparisons can be recovered from a language that initially lacks them. The extraction stops before naming the open problem, so the draft cannot identify the relevant structure, definability notion, or decision-complexity consequence without inventing the missing antecedent.
-
-[Read in atlas](index.html#TCS-3552) · [On the Power of Ordering in Linear Arithmetic Theories](https://doi.org/10.4230/LIPIcs.ICALP.2020.119)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5314 — An Improved Version of Hmelevskii’s Theorem on Three-Variable Word Equations — Explicit open question on PDF page 1
 
 A word equation equates two concatenations containing constants and unknown strings. Its satisfiability problem asks whether strings can be substituted for the variables to make the two sides identical. The selected question asks whether satisfiability belongs to NP, given the source's NP-hardness and nondeterministic linear-space upper bound. The paper's main result describes solutions to constant-free three-variable equations more simply, but the imported question concerns the broader satisfiability problem. An NP upper bound would require polynomially verifiable evidence of solvability despite the potentially enormous lengths of concrete string solutions.
@@ -6040,6 +6033,13 @@ The saved question asks whether a deterministic DNNF can be efficiently transfor
 
 [Read in atlas](index.html#TCS-7135) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-3552 — Decision complexity of weak Presburger arithmetic
+
+Weak Presburger arithmetic allows quantified integer linear equalities and Boolean connectives, but no ordering relation. The source asks whether deciding its sentences is easier than deciding full Presburger arithmetic. The input has binary integer constants and unrestricted variables and quantifier alternation. A 2022 theorem proves the same alternating complexity classification, even for two restricted fragments. The historical question is resolved, as also recorded in a March 2026 journal article.
+
+[Read in atlas](index.html#TCS-3552) · [On the Power of Ordering in Linear Arithmetic Theories](https://doi.org/10.4230/LIPIcs.ICALP.2020.119) · [Higher-Order Quantified Boolean Satisfiability](https://doi.org/10.4230/LIPIcs.MFCS.2022.33) · [On Polynomial-Time Decidability of k-Negations Fragments of First-Order Theories](https://doi.org/10.46298/lmcs-22(1:21)2026)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Database theory and finite model theory (34)
 
