@@ -5496,12 +5496,12 @@ The DoHO model samples long bit strings but charges the tester for every inspect
 [Read in atlas](index.html#TCS-2665) · [Testing Distributions of Huge Objects](https://doi.org/10.4230/LIPIcs.ITCS.2022.78) · [Testing Distributions of Huge Objects — corrected full version](https://www.wisdom.weizmann.ac.il/~oded/R3/doho.pdf) · [Settling the Complexity of Testing Grainedness of Distributions, and Application to Uniformity Testing in the Huge Object Model](https://doi.org/10.4230/LIPIcs.ITCS.2025.26)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3017 — We leave open an interesting question posed also in [12]: is it possible to test for uniformity in the scarce regime, and if so – […]
+### TCS-3017 — Sample complexity of uniformity testing with less than one stored sample
 
-Uniformity testing distinguishes a uniform distribution on n symbols from one whose probability mass is substantially different. In a streaming implementation, the tester sees samples sequentially and has limited memory. The source asks whether testing is possible in the scarce-memory regime, roughly below enough space to store one domain element, and what sample cost is necessary. Its more precise boundary also depends on the accuracy parameter. This probes whether many extra samples can compensate for extremely weak memory when ordinary collision-counting implementations cannot retain the symbols they need to compare.
+The task is to recognize a uniform distribution from one stream of independent samples. The tester retains m bits, potentially fewer than needed to store one sample. The target is the minimum sample count, including whether any finite count suffices. The source permits time-varying state transitions, with no computation-time restriction. A later logarithmic memory lower bound uses time-invariant updates and does not settle this model.
 
-[Read in atlas](index.html#TCS-3017) · [Comparison Graphs: A Unified Method for Uniformity Testing](https://doi.org/10.4230/LIPIcs.ITCS.2021.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3017) · [Comparison Graphs: A Unified Method for Uniformity Testing](https://doi.org/10.4230/LIPIcs.ITCS.2021.17) · [Communication and Memory Efficient Testing of Discrete Distributions](https://proceedings.mlr.press/v99/diakonikolas19a.html) · [On the Memory Complexity of Uniformity Testing](https://proceedings.mlr.press/v178/berg22a.html)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3162 — We conjecture that this second phase transition is inherent (and not an artifact of our techniques).
 
