@@ -2523,12 +2523,12 @@ A vertex is covered if some red vertex has a directed edge into it. After each e
 [Read in atlas](index.html#TCS-3331) · [Dynamic Complexity of Parity Exists Queries](https://doi.org/10.4230/LIPIcs.CSL.2020.37) · [Dynamic Complexity of Parity Exists Queries](https://doi.org/10.46298/lmcs-17(4:9)2021)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-5209 — Deterministic partially dynamic weighted shortest paths
+### TCS-5209 — Fully dynamic single-source distances beyond rebuilding
 
-Partially dynamic shortest-path algorithms allow only one direction of change, such as insertions or deletions. The cited work studies deterministic single-source distances in weighted graphs. The saved passage identifies a case where the authors know no method better than rebuilding after every update. Overcoming that obstacle would show how to reuse previous distance information even in the restricted setting. The relevant case is absent from the excerpt, so the draft does not attribute this limitation to every partially dynamic shortest-path problem or assert a current general lower bound.
+The cited rebuilding observation concerns fully dynamic insertions, deletions and weight changes. Queries ask for distances from a fixed source in the current weighted graph. Later randomized weighted approximation and deterministic exact unweighted algorithms beat rebuilding on dense instances. These improvements have different assumptions and do not yield one all-density weighted guarantee. The source passage still needs an explicit accuracy and update-time target to identify a remaining open benchmark.
 
-[Read in atlas](index.html#TCS-5209) · [Deterministic Partially Dynamic Single Source Shortest Paths in Weighted Graphs](https://doi.org/10.4230/LIPIcs.ICALP.2017.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5209) · [Deterministic Partially Dynamic Single Source Shortest Paths in Weighted Graphs](https://doi.org/10.4230/LIPIcs.ICALP.2017.44) · [Deterministic Partially Dynamic Single Source Shortest Paths in Weighted Graphs — full version](https://arxiv.org/abs/1705.10097) · [Dynamic Approximate Shortest Paths and Beyond: Subquadratic and Worst-Case Update Time](https://arxiv.org/abs/1909.10850) · [Deterministic Fully Dynamic SSSP and More](https://doi.org/10.1109/FOCS57990.2023.00142)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-6477 — Deterministic subquadratic dynamic s–t reachability
 
