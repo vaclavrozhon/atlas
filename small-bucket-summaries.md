@@ -2888,12 +2888,12 @@ Counting answers to a conjunctive database query can have several distinct level
 [Read in atlas](index.html#TCS-3609) · [Counting Answers to Existential Questions (Track B: Automata, Logic, Semantics, and Theory of Programming)](https://doi.org/10.4230/LIPIcs.ICALP.2019.113)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3635 — Extending counting-CSP classification to bounded-arity structures
+### TCS-3635 — Treewidth classification of approximate counting CSP
 
-Counting CSP asks how many assignments satisfy all constraints rather than whether one exists. The source asks whether its third theorem extends to all classes of bounded-arity relational structures. Bounded arity limits the size of each local relation but does not by itself control the global interaction pattern. A generalization could broaden the structural classification of approximate counting algorithms. The saved excerpt does not state the theorem or the restrictions it originally imposed, so neither its approximation guarantee nor its characterization direction can be inferred solely from this universal-extension question.
+The input asks how many homomorphisms map a source structure A from a fixed class C into an arbitrary target structure B. The conjecture says a fixed-parameter randomized approximation scheme exists exactly when C has bounded Gaifman treewidth. Relation arity is uniformly bounded, C is recursively enumerable, and the parameter is the size of A. The source proves this under a further fan-class condition and asks to remove it. The 2020 journal version retains that restriction, so exact-counting and fixed-target classifications do not settle the missing approximation direction.
 
-[Read in atlas](index.html#TCS-3635) · [Approximate Counting CSP Seen from the Other Side](https://doi.org/10.4230/LIPIcs.MFCS.2019.60)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3635) · [Approximate Counting CSP Seen from the Other Side](https://doi.org/10.4230/LIPIcs.MFCS.2019.60) · [Approximate Counting CSP Seen from the Other Side](https://doi.org/10.1145/3389390) · [Counting List Homomorphisms from Graphs of Bounded Treewidth: Tight Complexity Bounds](https://doi.org/10.1145/3640814)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3961 — Hardness of orthogonal-matrix permanents modulo primes
 
