@@ -453,13 +453,6 @@ A parity decision tree queries the XOR of a chosen subset of input bits at each 
 [Read in atlas](index.html#TCS-2434) · [Query Complexity of Search Problems](https://doi.org/10.4230/LIPIcs.MFCS.2023.34)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2464 — For every d ∈ N, ε ∈ (0, 1) for all large enough n, if X is samplable by a d-local function and is ε-close […]
-
-A d-local sampler produces each output bit from at most d independent random input bits. The conjecture considers samplers whose output is close in statistical distance to the uniform distribution on strings with allowed Hamming weights S. It predicts that, for fixed locality and sufficiently large dimension, the output must also be close to one of a short list of simple symmetric distributions. These are concentrated on all-zero strings, all-one strings, their pair, even weights, odd weights, or the full Boolean cube. Proving this structural restriction would sharply characterize which symmetric distributions constant-locality classical circuits can approximately generate.
-
-[Read in atlas](index.html#TCS-2464) · [Sampling and Certifying Symmetric Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.36)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2532 — Can one prove circuit lower bounds from the assumption that a (uniform) computationally-secure IO exists?
 
 Indistinguishability obfuscation hides which of two equivalent circuit implementations was supplied to an observer. The cited work shows that obfuscation secure against nonuniform polynomial-size circuits implies nontrivial circuit lower bounds. This project asks whether an analogous implication follows when security is assumed only against uniform efficient algorithms. Nonuniform attackers can use input-length-dependent advice, so the existing security hypothesis is stronger than the proposed replacement. Establishing lower bounds from uniform security would connect a more algorithmic cryptographic assumption with structural limitations on small circuits.
@@ -914,6 +907,13 @@ Explicit model enumeration lists every satisfying assignment of a Boolean functi
 
 [Read in atlas](index.html#TCS-7132) · [A Knowledge Compilation Map](https://arxiv.org/abs/1106.1819)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-2464 — Six possibilities for locally sampled uniform symmetric distributions
+
+Each output bit of a local sampler reads only a bounded number of independent random input bits. Suppose its output is close to a distribution uniform over a symmetric set of bit strings. The output must then be close to one of six possibilities: two point masses, their equal mixture, two parity classes, or the whole cube. The closeness loses only an absolute constant factor, independent of locality. The 2023 conjecture was resolved in work published at STOC 2025.
+
+[Read in atlas](index.html#TCS-2464) · [Sampling and Certifying Symmetric Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.36) · [Locally Sampleable Uniform Symmetric Distributions](https://arxiv.org/abs/2411.08183)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Algorithms (41)
 

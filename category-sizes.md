@@ -22,8 +22,8 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 4 | Fine-grained complexity | 2 | 10 | 20 | 40 |
 | small 5 | Pseudorandomness and derandomization | 2 | 10 | 20 | 65 |
 | small 6 | Parameterized complexity and algorithms | 2 | 10 | 20 | 62 |
-| small 7 | Approximation algorithms and inapproximability | 2 | 10 | 20 | 35 |
-| small 8 | Online algorithms, scheduling and packing | 2 | 10 | 20 | 50 |
+| small 7 | Approximation algorithms and inapproximability | 2 | 10 | 20 | 36 |
+| small 8 | Online algorithms, scheduling and packing | 2 | 10 | 20 | 49 |
 | small 9 | Beyond worst-case and average-case analysis | 2 | 10 | 20 | 32 |
 | small 10 | Sampling, Markov chains and mixing times | 2 | 10 | 20 | 14 |
 | small 11 | Counting and enumeration | 2 | 10 | 20 | 31 |

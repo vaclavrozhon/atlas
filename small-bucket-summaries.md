@@ -2150,7 +2150,7 @@ Directed Edge Multicut deletes arcs so that each specified source can no longer 
 [Read in atlas](index.html#TCS-7036) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Approximation algorithms and inapproximability (30)
+## Approximation algorithms and inapproximability (31)
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
@@ -2234,6 +2234,13 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 The hypothesis W[1]≠FPT says exact parameterized problems such as k-Clique do not admit fixed-parameter algorithms. The question asks whether it also rules out distinguishing satisfiable binary constraint systems from systems that force a constant fraction of violations. The parameter is the number of variables, while the alphabet may grow with the input. PIH is already known under the stronger ETH assumption, and Baby PIH is known under W[1]≠FPT. A proof of the full implication would provide a broad foundation for parameterized inapproximability.
 
 [Read in atlas](index.html#TCS-1930) · [Baby PIH: Parameterized Inapproximability of Min CSP](https://doi.org/10.4230/LIPIcs.CCC.2024.27) · [Parameterized Inapproximability Hypothesis under ETH](https://doi.org/10.1145/3749982) · [Parameterized inapproximability: From Clique to PIH](https://doi.org/10.1016/j.cosrev.2025.100834)
+Existing status: `source_open` · Summary written: 2026-09-12
+
+### TCS-2367 — A square-root-logarithmic approximation for generalized makespan
+
+Assign all jobs to unrelated machines while minimizing the maximum machine load. A machine’s load is a symmetric monotone norm of its assigned processing times, and norms may differ between machines. The conjectured ratio is O(√log n), improving on the known O(log n) guarantee. A matching-order fractional-relaxation gap is known, but it is not a matching hardness result for arbitrary algorithms. The exact norm-access and runtime conventions still need to be stated.
+
+[Read in atlas](index.html#TCS-2367) · [On Minimizing Generalized Makespan on Unrelated Machines](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.21) · [Generalized Unrelated Machine Scheduling Problem](https://doi.org/10.1137/1.9781611977554.ch110)
 Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2625 — For all ε, η > 0, given an undirected graph G = (V, E), it is NP-hard to distinguish between: Yes case: iCol3 (G) ⩾ […]
@@ -2362,7 +2369,7 @@ Minimization CSPs seek assignments minimizing a specified constraint-violation c
 [Read in atlas](index.html#TCS-6757) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Online algorithms, scheduling and packing (47)
+## Online algorithms, scheduling and packing (46)
 
 ### TCS-6575 — The deterministic k-server conjecture
 
@@ -2475,13 +2482,6 @@ One online forecaster must issue predictions before knowing which proper loss a 
 
 [Read in atlas](index.html#TCS-1529) · [Toward Simultaneously Optimal Regret in U-Calibration](https://proceedings.mlr.press/v336/frongillo26a.html) · [Toward Simultaneously Optimal Regret in U-Calibration — version record](https://arxiv.org/abs/2606.18527)
 Existing status: `source_open` · Summary written: 2026-09-11
-
-### TCS-2367 — √ We conjecture that GMP admits an O( log n) approximation, based on suitably rounding the configuration LP.
-
-Generalized makespan extends the largest-load objective for assigning jobs to unrelated machines. The cited work formulates a configuration linear program that represents whole feasible assignment patterns. The saved conjecture proposes a square-root-logarithmic approximation through suitable rounding of that relaxation. A successful rounding method would turn fractional organization into a schedule while controlling a broader load objective. The excerpt's mathematical formatting is displaced and GMP is not defined, so the precise norm or aggregation rule remains a source dependency rather than an assumed ordinary makespan objective.
-
-[Read in atlas](index.html#TCS-2367) · [On Minimizing Generalized Makespan on Unrelated Machines](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.21)
-Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3314 — For example, is it possible to obtain a finite competitive ratio for chasing 3 arbitrary sets on the real line?
 
@@ -3464,19 +3464,12 @@ Neighborhood complexity counts how many distinct intersections with a chosen ver
 [Read in atlas](index.html#TCS-1639) · [Adjacency Labeling Schemes for Small Classes](https://doi.org/10.4230/LIPIcs.ITCS.2025.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2371 — We leave it as an intriguing open problem to determine whether expanding Ramanujan graphs exist.
+### TCS-2371 — Growing Ramanujan graphs with bounded edge updates
 
-Ramanujan graphs satisfy an optimal spectral bound relative to their regular degree. The source asks whether graphs can satisfy that bound together with its stronger property of being expanding expanders. The additional requirement concerns expansion behavior beyond the ordinary definition already associated with Ramanujan graphs. An existence result would show that two desirable forms of robust connectivity can be achieved simultaneously. The saved phrase expanding is source-specific, so the question should not be reduced to ordinary existence of Ramanujan families without recovering the additional spectral or recursive condition.
+The graph family must grow while changing only a bounded number of edges at each step. Every graph must remain regular with one fixed degree and satisfy the exact Ramanujan spectral bound. The labels of existing vertices persist, so independently choosing a good graph at each size is insufficient. The source already constructs such growing families if any fixed positive spectral slack is allowed. The open existence question asks whether that slack can be removed.
 
-[Read in atlas](index.html#TCS-2371) · [Spectral Expanding Expanders](https://doi.org/10.4230/LIPIcs.CCC.2023.8)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-2401 — We leave as an open question whether a similar characterization of monadically NIP classes exists.
-
-Monadically NIP graph classes restrict the patterns definable after arbitrary unary labels are added. The source asks for a characterization analogous to one established in its study of indiscernibles and flatness. A successful characterization would translate a logical dependence condition into a concrete structural criterion. This could make the class easier to recognize and connect it with decomposition techniques used in algorithms. The saved passage does not identify the comparison theorem or proposed criterion, so the full source context is necessary before replacing the broad request with one exact equivalence.
-
-[Read in atlas](index.html#TCS-2401) · [Indiscernibles and Flatness in Monadically Stable and Monadically NIP Classes](https://doi.org/10.4230/LIPIcs.ICALP.2023.125)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2371) · [Spectral Expanding Expanders](https://doi.org/10.4230/LIPIcs.CCC.2023.8) · [Quantitative Results on Super-Ramanujan Graphs](https://eccc.weizmann.ac.il/report/2026/163/)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2783 — However, M2k+2 (n) ∈ Ω n1+ k has only been proven for k = 1, 2, 3, 5; for other k it remains an open […]
 
@@ -3560,6 +3553,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 An Erdős–Pósa property turns a bound on disjoint graph-pattern occurrences into a bound on the vertices needed to hit every occurrence. The conjecture asked for one minor-monotone parameter for each pattern H that recognizes exactly the minor-closed classes with this property. The parameter must work uniformly across all such classes. The same authors’ later FOCS 2024 obstruction theorem gives the required characterization. This settles the integral question, beyond the earlier half-integral result.
 
 [Read in atlas](index.html#TCS-2089) · [Delineating Half-Integrality of the Erdős-Pósa Property for Minors: The Case of Surfaces](https://doi.org/10.4230/LIPIcs.ICALP.2024.114) · [Obstructions to Erdős–Pósa Dualities for Minors](https://arxiv.org/abs/2407.09671v2) · [Obstructions to Erdős–Pósa Dualities for Minors — FOCS publication](https://doi.org/10.1109/FOCS61266.2024.00013)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-2401 — A combinatorial characterization of monadically NIP graph classes
+
+The source sought a purely combinatorial description of monadically NIP graph classes. A 2024 theorem provides exactly such a description, called flip-breakability. After bounded-part adjacency flips, any sufficiently large vertex set contains two large subsets far from each other. This condition is equivalent to monadic NIP for arbitrary finite graph classes. The historical question is resolved; the 2025 literature supplies an additional weighted separation characterization.
+
+[Read in atlas](index.html#TCS-2401) · [Indiscernibles and Flatness in Monadically Stable and Monadically NIP Classes](https://doi.org/10.4230/LIPIcs.ICALP.2023.125) · [Flip-Breakability: A Combinatorial Dichotomy for Monadically Dependent Graph Classes](https://doi.org/10.1145/3618260.3649739) · [Separability Properties of Monadically Dependent Graph Classes](https://doi.org/10.4230/LIPIcs.ICALP.2025.147)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Data structures (15)
@@ -4489,12 +4489,12 @@ Over finite fields, constructing an irreducible polynomial and factoring a suppl
 [Read in atlas](index.html#TCS-2181) · [Pseudo-Deterministic Construction of Irreducible Polynomials over Finite Fields](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.33)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2342 — Prove exponential lower bounds for constant-depth arithmetic formulas.
+### TCS-2342 — Exponential lower bounds for constant-depth arithmetic formulas
 
-Constant-depth arithmetic formulas compute polynomials through expression trees with only a bounded number of operation layers. The source asks for exponential lower bounds against this model. The goal is to prove that a concrete polynomial requires a very large tree even when additions, multiplications, and cancellations are available. This would sharpen our understanding of the tradeoff between shallow algebraic computation and expression size. The retained question does not name the polynomial family, field, or parameter underlying the exponential target, so those choices must be recovered before the requested separation becomes fully specified.
+The question asks how large a constant-depth arithmetic expression must be to compute an explicit polynomial. Addition and multiplication gates can have arbitrarily many inputs, and cancellation is allowed. Superpolynomial lower bounds are known; the desired strengthening is exponential. Recent exponential results impose extra restrictions on the field and the circuit. The source still needs a precise field, explicitness convention and exponential rate before this becomes one fully quantified conjecture.
 
-[Read in atlas](index.html#TCS-2342) · [Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization](https://doi.org/10.4230/LIPIcs.ICALP.2023.12)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2342) · [Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization](https://doi.org/10.4230/LIPIcs.ICALP.2023.12) · [Lower Bounds for Depth-5 Algebraic Circuits with Bounded Fan-in of Top Product Gates](https://eccc.weizmann.ac.il/report/2026/104/)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2506 — However, we do not know whether this containment is strict or not.
 
