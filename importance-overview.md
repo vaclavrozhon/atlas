@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-858 records have an editorial importance assessment; 819 remain provisional.
+859 records have an editorial importance assessment; 818 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -195,7 +195,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 33; importance ass
 
 ## 2. Proof complexity (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 44; importance assessed: 18; provisional: 26.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 44; importance assessed: 19; provisional: 25.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -342,7 +342,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 14; importance ass
 | 5 | [Optimal mixing of global Kawasaki dynamics on bounded-degree graphs](index.html#TCS-2076) | 50 |
 | 6 | [For example, can we efficiently sample from a WNR/NA/NR distribution for any marginals in a given matroid polytope?](index.html#TCS-2861) | 50 |
 | 7 | [For any vertex-transitive graph, is the blanket time of order nR2 for all δ > 1?](index.html#TCS-4599) | 50 |
-| 8 | [Testing Small Set Expansion in General Graphs — Unresolved-question passage on page 10](index.html#TCS-5935) | 50 |
+| 8 | [Testing small-set expansion](index.html#TCS-5935) | 50 |
 | 9 | [Prove polynomial mixing for grid Ising Glauber dynamics with all-plus boundaries at every temperature.](index.html#TCS-6839) | 50 |
 | 10 | [Establish the proposed monotonicity of Ising spectral gaps in temperature and interaction strengths.](index.html#TCS-6840) | 50 |
 
@@ -529,7 +529,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 11; importance ass
 | 5 | [Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](index.html#TCS-0507) | 76 |
 | 6 | [The main question that we leave open is whether there exists a differentially private algorithm for this task which is polynomial in n and d?](index.html#TCS-3312) | 50 |
 | 7 | [Communication lower bounds for interactive pure-private shuffled summation](index.html#TCS-3361) | 50 |
-| 8 | [Necessary Conditions in Multi-Server Differential Privacy — Explicit open question on PDF page 5](index.html#TCS-5236) | 50 |
+| 8 | [Noninteractive private parity learning in the multiserver model](index.html#TCS-5236) | 50 |
 | 9 | [Can computational privacy improve achievable utility in the trusted-curator model?](index.html#TCS-6825) | 50 |
 
 ## 22. Constraint satisfaction (small)
