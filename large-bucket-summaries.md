@@ -2935,12 +2935,12 @@ Sequential measurements can extract certified randomness from an entangled syste
 [Read in atlas](index.html#TCS-4238) · [A Single Entangled System Is an Unbounded Source of Nonlocal Correlations and of Certified Random Numbers](https://doi.org/10.4230/LIPIcs.TQC.2017.1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4457 — Computational dichotomy for two-qubit Hamiltonians
+### TCS-4457 — Simulation or postselection universality for two-qubit interactions
 
-A fixed two-qubit interaction can be repeatedly applied to build a larger quantum computation. This conjecture asks whether every such interaction falls into one of two computational regimes in the source's model. One regime permits efficient classical simulation, while the other becomes universal when postselection is allowed. The cited classification proves this dichotomy for commuting Hamiltonians, but ancillary qubits and encoded subspaces complicate the general case. A complete classification would organize elementary interactions by computational power and rule out intermediate behavior between the proposed alternatives.
+The proposed dichotomy covers every fixed two-qubit interaction, including noncommuting ones. Circuits begin and end in the computational basis and have no freely supplied local gates. The alternatives are efficient classical simulation or universality under postselection. The source handles commuting interactions, while later analog Hamiltonian-universality results use a different model. The general easy-branch accuracy and numerical representation still need specification before the statement is complete.
 
-[Read in atlas](index.html#TCS-4457) · [Complexity Classification of Two-Qubit Commuting Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2016.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4457) · [Complexity Classification of Two-Qubit Commuting Hamiltonians](https://doi.org/10.4230/LIPIcs.CCC.2016.28) · [The Space Around BQP](https://dspace.mit.edu/server/api/core/bitstreams/ad343002-e1d8-4966-96ac-7d32b3b215d4/content) · [General Conditions for Universality of Quantum Hamiltonians](https://doi.org/10.1103/PRXQuantum.3.010308)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-4615 — Quantum entropy inequalities beyond strong subadditivity
 
