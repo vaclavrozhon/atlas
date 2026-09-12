@@ -322,13 +322,6 @@ Resolution with linear equations allows numerical coefficients inside proof line
 [Read in atlas](index.html#TCS-3183) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://doi.org/10.4230/LIPIcs.CCC.2021.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3919 — Polynomial encoded size from short Stabbing Planes proofs
-
-Stabbing Planes reasons by branching on linear inequalities to refute integer infeasibility. The saved question asks whether a refutation measured by length can be simulated with polynomially bounded encoded size. A short derivation may still contain inequalities whose coefficients require many bits. A positive simulation would show that line-count efficiency does not conceal an essential numerical blowup in this proof system. The source excerpt truncates the polynomial's arguments and does not preserve the simulation variant, so those details remain necessary before stating a formal size bound.
-
-[Read in atlas](index.html#TCS-3919) · [Stabbing Planes](https://doi.org/10.4230/LIPIcs.ITCS.2018.10)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4187 — Polynomial-calculus lower bounds for roots-of-unity 3-coloring
 
 Graph three-colorability can be encoded by polynomial equations whose variable values are roots of unity. Polynomial calculus then derives contradictions when the graph cannot be colored. The question asks for graph families forcing large proof size in this particular encoding. High degree alone does not supply the desired size bound in the way it does for some other encodings. The project would show that choosing clever monomials cannot always keep algebraic noncolorability certificates and their associated linear systems small.
@@ -482,6 +475,13 @@ Resolution variable space counts the distinct variables represented in simultane
 
 [Read in atlas](index.html#TCS-6772) · [Pebble Games, Proof Complexity, and Time-Space Trade-offs](https://arxiv.org/abs/1307.3913)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-3919 — Polynomial bit size of short Stabbing Planes proofs
+
+Stabbing Planes refutes Boolean formulas by branching on integer linear inequalities. A short tree can still appear expensive to encode if its coefficients are enormous. Dadush and Tiwari showed that such proofs can be replaced by proofs with polynomial-bit coefficients and only O(n) more nodes per original node. Leaf infeasibility certificates can also be kept within polynomial encoded size for CNF inputs. The original authors’ 2023 revision explicitly records the resolution; polynomial bit size does not mean polynomial coefficient magnitude.
+
+[Read in atlas](index.html#TCS-3919) · [Stabbing Planes](https://doi.org/10.4230/LIPIcs.ITCS.2018.10) · [On the Complexity of Branching Proofs](https://doi.org/10.4230/LIPIcs.CCC.2020.34) · [Stabbing Planes](https://arxiv.org/abs/1710.03219)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Communication complexity and Boolean function analysis (66)
 
