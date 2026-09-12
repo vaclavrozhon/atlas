@@ -730,12 +730,12 @@ Approximate degree is the least degree of a real polynomial that approximates a 
 [Read in atlas](index.html#TCS-3799) · [The Large-Error Approximate Degree of AC^0](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.55) · [The Large-Error Approximate Degree of AC⁰](https://doi.org/10.4086/toc.2021.v017a007) · [A Nearly Optimal Lower Bound on the Approximate Degree of AC⁰](https://doi.org/10.1137/17M1161737) · [The Approximate Degree of DNF and CNF Formulas](https://doi.org/10.1137/23M1557593)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-3821 — Separating SoML from PPA in communication
+### TCS-3821 — SoML versus PPA in communication complexity
 
-The source compares communication analogues of total search classes connected with monotone complexity. Its question asks whether an existing separation involving PPADS can be strengthened to one involving SoML against PPA. The proposed strengthening would locate a harder search principle within a more specific part of the class landscape. Such results clarify how existence guarantees translate into communication requirements for finding witnesses. The extraction damages the relation symbol and does not define the classes or reductions, so the direction and exact meaning of the desired separation must be recovered from the original statement.
+SoML and PPA communication protocols describe different implicit graphs through low-cost local two-party protocols. SoML requires sink witnesses on directed paths with a decreasing meter, while PPA requires endpoint or exceptional-degree witnesses in undirected graphs. The question asks for a relation with polylogarithmic SoML cost but no polylogarithmic PPA cost. The source’s separation for the larger PPADS class and its comparator-circuit connection do not establish this claim. A 2024 query/oracle separation is known, but that paper explicitly leaves communication analogues for further work.
 
-[Read in atlas](index.html#TCS-3821) · [Adventures in Monotone Complexity and TFNP](https://doi.org/10.4230/LIPIcs.ITCS.2019.38)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3821) · [Adventures in Monotone Complexity and TFNP](https://doi.org/10.4230/LIPIcs.ITCS.2019.38) · [Adventures in Monotone Complexity and TFNP](https://eccc.weizmann.ac.il/report/2018/163/) · [Proofs, Circuits, and Communication](https://doi.org/10.1145/3532737.3532745) · [Separations in Proof Complexity and TFNP](https://doi.org/10.1145/3663758)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3871 — Private randomness in algorithmic mutual-information protocols
 
