@@ -11,33 +11,34 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 485 | 15 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 821 | 179 |
+| [Top 500](index.html?benchmark=top500) | 500 | 484 | 16 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 797 | 203 |
 
 ## Unfilled places
 
+- top500: Algorithms has 24/25 places.
 - top500: Sampling, Markov chains and mixing times has 9/10 places.
 - top500: Data structures has 7/10 places.
 - top500: Differential privacy has 7/10 places.
 - top500: Miscellaneous has 2/10 places.
-- top1000: Algorithms has 25/50 places.
-- top1000: Automata and formal languages has 34/50 places.
-- top1000: Semantics, logic and verification has 40/50 places.
-- top1000: Optimization and numerical computation has 29/50 places.
-- top1000: Geometry, topology and metric spaces has 47/50 places.
-- top1000: Learning theory has 47/50 places.
+- top1000: Algorithms has 24/50 places.
+- top1000: Automata and formal languages has 33/50 places.
+- top1000: Semantics, logic and verification has 39/50 places.
+- top1000: Optimization and numerical computation has 26/50 places.
+- top1000: Geometry, topology and metric spaces has 42/50 places.
+- top1000: Learning theory has 42/50 places.
 - top1000: Cryptography has 30/50 places.
-- top1000: Computability and algorithmic information theory has 19/20 places.
-- top1000: Beyond worst-case and average-case analysis has 16/20 places.
+- top1000: Computability and algorithmic information theory has 18/20 places.
+- top1000: Beyond worst-case and average-case analysis has 13/20 places.
 - top1000: Sampling, Markov chains and mixing times has 9/20 places.
 - top1000: Counting and enumeration has 17/20 places.
 - top1000: Data structures has 7/20 places.
 - top1000: Dynamic algorithms has 14/20 places.
-- top1000: String algorithms and computational biology has 14/20 places.
-- top1000: Property testing and distribution learning has 18/20 places.
+- top1000: String algorithms and computational biology has 13/20 places.
+- top1000: Property testing and distribution learning has 16/20 places.
 - top1000: Differential privacy has 7/20 places.
 - top1000: Constraint satisfaction has 19/20 places.
-- top1000: Automated reasoning, rewriting and unification has 17/20 places.
+- top1000: Automated reasoning, rewriting and unification has 16/20 places.
 - top1000: Miscellaneous has 2/20 places.
 
 ## Review needed after catalogue changes
@@ -172,7 +173,7 @@ Previous prefix: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0023.
 | 4 | [Polynomial-time distribution-free PAC learning of DNF](index.html#TCS-5358) (TCS-5358) | Distribution-free Boolean rule learning | 97 | A defining improper PAC-learning question for compact Boolean rules under arbitrary input distributions, with broad consequences for decision-tree and junta learning. The general target and its conditional-hardness evidence are now stated precisely. |
 | 5 | [Distribution-free learning of intersections of two halfspaces](index.html#TCS-6544) (TCS-6544) | Needs review | 92 | Unreviewed replacement |
 
-Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0691, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-5358.
+Candidates considered: TCS-6541, TCS-6542, TCS-6543, TCS-6544, TCS-0677, TCS-0694, TCS-0683, TCS-0670, TCS-0671, TCS-0664, TCS-0682, TCS-5358.
 
 ## Cryptography
 
@@ -308,7 +309,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [Deterministic competitiveness of k-server](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational quantitative question about the price of future uncertainty on arbitrary metrics, with a persistent gap between general upper and lower bounds despite many settled special cases. |
 | 2 | [Optimal approximation ratio for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-3314, TCS-3690, TCS-4983, TCS-5004, TCS-5030, TCS-5158, TCS-5221, TCS-5252, TCS-5349, TCS-5779, TCS-6575, TCS-6576, TCS-6577, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
+Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-4983, TCS-5030, TCS-5158, TCS-5221, TCS-5252, TCS-5779, TCS-6575, TCS-6576, TCS-6577, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
 
 ## Beyond worst-case and average-case analysis
 
@@ -503,7 +504,7 @@ Previous prefix: TCS-6562, TCS-6643.
 | 1 | [Word equations with linear length constraints](index.html#TCS-6562) (TCS-6562) | Word equations with arithmetic | 97 | A longstanding decidability question at the intersection of formal languages, number-theoretic constraints and automated verification; even unrestricted termination is unknown, before asking for efficient algorithms. |
 | 2 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) (TCS-6643) | Modal unification | 94 | The basic unresolved decidability boundary in modal unification, already in the minimal normal modal logic. |
 
-Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-0173, TCS-6650, TCS-0306, TCS-7134.
+Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-6650, TCS-0306, TCS-7134.
 
 ## Database theory and finite model theory
 

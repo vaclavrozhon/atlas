@@ -2,13 +2,13 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-738 records have an editorial importance assessment; 364 remain provisional.
+718 records have an editorial importance assessment; 331 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Computational complexity (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 80; importance assessed: 50; provisional: 30.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 78; importance assessed: 49; provisional: 29.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -25,7 +25,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 80; importance 
 
 ## 2. Algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 25; importance assessed: 13; provisional: 12.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 24; importance assessed: 13; provisional: 11.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -42,7 +42,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 25; importance 
 
 ## 3. Automata and formal languages (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 37; importance assessed: 23; provisional: 14.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 36; importance assessed: 22; provisional: 14.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 37; importance 
 
 ## 4. Semantics, logic and verification (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 43; importance assessed: 22; provisional: 21.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 42; importance assessed: 22; provisional: 20.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -76,7 +76,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 43; importance 
 
 ## 5. Distributed, parallel and sublinear algorithms (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 67; importance assessed: 44; provisional: 23.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 60; importance assessed: 41; provisional: 19.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -93,7 +93,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 67; importance 
 
 ## 6. Optimization and numerical computation (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 30; importance assessed: 24; provisional: 6.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 27; importance assessed: 22; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 30; importance 
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 48; importance assessed: 43; provisional: 5.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 43; importance assessed: 39; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -127,7 +127,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 48; importance 
 
 ## 8. Learning theory (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 49; importance assessed: 26; provisional: 23.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 44; importance assessed: 25; provisional: 19.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -178,7 +178,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 55; importance 
 
 ## 1. Computability and algorithmic information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 20; importance assessed: 15; provisional: 5.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 19; importance assessed: 15; provisional: 4.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 37; importance assessed: 24; provisional: 13.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 34; importance assessed: 23; provisional: 11.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -229,7 +229,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 37; importance 
 
 ## 4. Fine-grained complexity (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 17; provisional: 13.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 17; provisional: 11.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -246,7 +246,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 
 ## 5. Pseudorandomness and derandomization (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 44; importance assessed: 30; provisional: 14.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 43; importance assessed: 30; provisional: 13.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -263,7 +263,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 44; importance 
 
 ## 6. Parameterized complexity and algorithms (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 46; importance assessed: 28; provisional: 18.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 45; importance assessed: 27; provisional: 18.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -280,7 +280,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 46; importance 
 
 ## 7. Approximation algorithms and inapproximability (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 22; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 27; importance assessed: 22; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -297,7 +297,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance 
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 34; importance assessed: 21; provisional: 13.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 20; provisional: 10.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -314,7 +314,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 34; importance 
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 10; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 8; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -325,9 +325,9 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance 
 | 5 | [Polynomial-time refutation of random 3-SAT at constant density](index.html#TCS-7238) | 96 |
 | 6 | [Infinitely-often one-way functions from average-case NP hardness](index.html#TCS-6453) | 95 |
 | 7 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
-| 8 | [Adaptivity gap of influence maximization with full feedback](index.html#TCS-7288) | 81 |
-| 9 | [Relativizing subexponential UP from heuristic average-case NP](index.html#TCS-2680) | 50 |
-| 10 | [Recovery hardness for sparse planted dense subgraphs](index.html#TCS-4495) | 50 |
+| 8 | [Algorithmic threshold for random k-SAT](index.html#TCS-4876) | 50 |
+| 9 | [Algorithmic threshold for the symmetric binary perceptron](index.html#TCS-5011) | 50 |
+| 10 | [Optimization and certification in sparse random CSPs](index.html#TCS-5406) | 50 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
@@ -412,7 +412,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 15; importance 
 
 ## 15. String algorithms and computational biology (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 14; importance assessed: 11; provisional: 3.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 13; importance assessed: 11; provisional: 2.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -446,7 +446,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 24; importance 
 
 ## 17. Algebraic computation (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 70; importance assessed: 41; provisional: 29.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 65; importance assessed: 40; provisional: 25.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -463,7 +463,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 70; importance 
 
 ## 18. Lattices and computational number theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 24; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 29; importance assessed: 24; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -480,7 +480,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 
 ## 19. Coding and information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance assessed: 22; provisional: 8.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 28; importance assessed: 22; provisional: 6.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -497,7 +497,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 30; importance 
 
 ## 20. Property testing and distribution learning (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 12; provisional: 6.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 16; importance assessed: 11; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -545,7 +545,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 20; importance 
 
 ## 23. Automated reasoning, rewriting and unification (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance assessed: 13; provisional: 5.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 17; importance assessed: 12; provisional: 5.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -557,8 +557,8 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 18; importance 
 | 6 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
 | 7 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
 | 8 | [Complexity of word unification](index.html#TCS-0171) | 87 |
-| 9 | [Pattern unification modulo variable-preserving equations](index.html#TCS-0173) | 74 |
-| 10 | [Satisfiability of String Constraints with Subsequence relation](index.html#TCS-0114) | 69 |
+| 9 | [Satisfiability of String Constraints with Subsequence relation](index.html#TCS-0114) | 69 |
+| 10 | [Efficient negation of d-DNNFs](index.html#TCS-0306) | 69 |
 
 ## 24. Database theory and finite model theory (small)
 
