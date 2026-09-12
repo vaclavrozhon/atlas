@@ -357,12 +357,12 @@ An IPS refutation encodes unsatisfiability as a polynomial identity computed by 
 [Read in atlas](index.html#TCS-1905) · [Symmetric Proofs in the Ideal Proof System](https://doi.org/10.4230/LIPIcs.MFCS.2025.40) · [Symmetric Proofs in the Ideal Proof System — version record](https://arxiv.org/abs/2504.16820v1)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-2889 — Is it true that CSpace ≈ log ST or MSpace ≈ log ST ?
+### TCS-2889 — Does small proof space imply short tree-like resolution refutations?
 
-Proof-space measures describe how much information must be kept simultaneously during a derivation. The cited paper relates such measures to other complexity quantities and size-space tradeoffs. The saved question asks whether CSpace or MSpace is approximately logarithmic in a quantity written ST. An equivalence would make a space requirement predictable from another structural complexity measure. The abbreviations and approximation relation are undefined in the excerpt, so the draft cannot replace them with familiar clause-space, memory-space, or proof-size conventions without consulting the source.
+The source compares working memory in refutations with the logarithm of minimum tree-like resolution size. Its two memory measures are stored clauses in resolution and distinct monomials in polynomial calculus with resolution. The comparison allows polynomial losses and powers of log n, so it is much coarser than a constant-factor identity. A length-penalized version of space is already known to satisfy the comparison. The unresolved issue is whether ordinary space can be substantially smaller on this scale.
 
-[Read in atlas](index.html#TCS-2889) · [Space Characterizations of Complexity Measures and Size-Space Trade-Offs in Propositional Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.100)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2889) · [Space Characterizations of Complexity Measures and Size-Space Trade-Offs in Propositional Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.100) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.006)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3183 — Do we necessarily need large coefficients in some Res-LinB refutations with a small number of lines?
 
@@ -4510,12 +4510,12 @@ Generalized convolution combines two integer tables using an arbitrary operation
 [Read in atlas](index.html#TCS-2718) · [Computing Generalized Convolutions Faster Than Brute Force](https://doi.org/10.4230/LIPIcs.IPEC.2022.12) · [Computing Generalized Convolutions Faster Than Brute Force — journal version](https://doi.org/10.1007/s00453-023-01176-2)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2958 — While this question remains open for VP, our result shows that this additional restriction on the coefficients is essentially vital for the existence of efficiently […]
+### TCS-2958 — Efficient equations for VP with unrestricted complex coefficients
 
-The source investigates equations that distinguish or describe algebraic complexity classes. Its retained passage identifies a question still unresolved for VP and stresses the role of restrictions on coefficients. The issue concerns whether efficient algebraic descriptions survive when coefficients are allowed greater freedom. Understanding that dependence matters for lower-bound approaches that try to separate easy polynomial families using equations. Because the excerpt cuts off the object whose efficient existence is discussed, it does not support a particular VP theorem or conjecture until the surrounding definitions and coefficient model are recovered.
+An equation for VP is a nonzero polynomial that eventually vanishes on coefficient vectors of all polynomial-size arithmetic computations. Its own degree and circuit size should be polynomial in the coefficient-vector dimension. The question removes the bounded-integer-coefficient restriction from known positive results. Efficient equations here are nonuniform circuit families, without a separate construction-time requirement. The checked combined revision and new journal publication retain the distinction between this VP question and conditional hardness for VNP.
 
-[Read in atlas](index.html#TCS-2958) · [If VNP Is Hard, Then so Are Equations for It](https://doi.org/10.4230/LIPIcs.STACS.2022.44)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2958) · [If VNP Is Hard, Then so Are Equations for It](https://doi.org/10.4230/LIPIcs.STACS.2022.44) · [On the Existence of Algebraic Natural Proofs — combined full version](https://arxiv.org/abs/2004.14147) · [On the Existence of Algebraic Natural Proofs](https://doi.org/10.1007/s00037-026-00289-8)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3007 — Is it true that for infinitely many r there exists a matrix A ∈ Cr (Q, 2) with RQ (A, r) = r2 ?
 

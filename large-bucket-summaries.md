@@ -474,12 +474,12 @@ EOPL describes total search along succinct paths with potentials. UEOPL admits a
 [Read in atlas](index.html#TCS-2681) · [Further Collapses in TFNP](https://doi.org/10.4230/LIPIcs.CCC.2022.33) · [Unique End of Potential Line](https://doi.org/10.1016/j.jcss.2020.05.007) · [Separations in Proof Complexity and TFNP](https://doi.org/10.1145/3663758)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2914 — Namely, can one find a distribution that cannot be sampled in AC0 but can be sampled by ROBPs?
+### TCS-2914 — A distribution easy for read-once branching programs but hard for AC⁰ samplers
 
-Sampling complexity measures the resources needed to generate a probability distribution from independent random bits. This problem compares constant-depth Boolean circuits with oblivious read-once branching programs, which process their random inputs sequentially with limited memory. The source asks for a distribution efficiently sampled by such branching programs that cannot be sampled in AC0. It suggests constructing an extractor or disperser for AC0 sources that itself has a small-width branching program. A separation in this direction would distinguish the generative power of shallow parallel computation from that of a memory-limited sequential process.
+The goal is a distribution family generated easily by read-once branching programs but not by AC⁰ circuits. The sequential sampler reads fresh random bits once and emits output in a fixed layer schedule. The paper already proves a strong separation in the opposite direction. Hardness of computing a chosen generator does not establish hardness of sampling its output law. The intended small-width bound and exact-versus-approximate error convention remain unspecified.
 
-[Read in atlas](index.html#TCS-2914) · [The Space Complexity of Sampling](https://doi.org/10.4230/LIPIcs.ITCS.2022.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2914) · [The Space Complexity of Sampling](https://doi.org/10.4230/LIPIcs.ITCS.2022.40) · [The Space Complexity of Sampling — revised full version](https://eccc.weizmann.ac.il/report/2021/106/)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3095 — We conjecture that even G3 might be tractable, but again the only known general upper bound is PSPACE.
 
