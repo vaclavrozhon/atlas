@@ -1068,12 +1068,12 @@ MAX-3-SAT asks how many clauses of a three-literal Boolean formula can be satisf
 [Read in atlas](index.html#TCS-1161) · [Conditional Complexity Hardness: Monotone Circuit Size, Matrix Rigidity, and Tensor Rank](https://doi.org/10.4230/LIPIcs.STACS.2026.28)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3719 — Fine-grained classification of quantified graph properties
+### TCS-3719 — Hyperclique speedups for graph properties of fixed hardness
 
-The cited framework studies graph properties expressed by a fixed number of existential choices followed by a universal condition. Its saved question asks whether all properties with a designated hardness parameter admit an improved m-based exponent. Logical form restricts how candidate vertices interact with the rest of the graph. A uniform algorithmic result would complement a fine-grained dichotomy by explaining tractability across an entire definable class. The excerpt has damaged notation and omits an antecedent assumption, so neither the hardness parameter nor the claimed O(m^(k−ε)) regime is fully specified.
+The source classifies fixed ∃ᵏ∀ queries on explicitly partitioned graphs by a restriction-based Boolean hardness parameter. It proves conditional lower bounds from hyperclique detection at matching hyperedge arity. The remaining question asks whether fast hyperclique detection for all clique sizes also accelerates every graph query of that hardness. An equivalence for at least one query at each level is already known. The 2022 optimization analogue uses a different hardness parameter and does not settle the universal decision question.
 
-[Read in atlas](index.html#TCS-3719) · [A Fine-Grained Analogue of Schaefer’s Theorem in P: Dichotomy of Exists^k-Forall-Quantified First-Order Graph Properties](https://doi.org/10.4230/LIPIcs.CCC.2019.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3719) · [A Fine-Grained Analogue of Schaefer’s Theorem in P: Dichotomy of Exists^k-Forall-Quantified First-Order Graph Properties](https://doi.org/10.4230/LIPIcs.CCC.2019.31) · [A Structural Investigation of the Approximability of Polynomial-Time Problems](https://doi.org/10.4230/LIPIcs.ICALP.2022.30)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3807 — Superlinear Closest Pair lower bounds under SETH
 
@@ -5267,10 +5267,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3717 — Constant-round distribution-free junta testing
 
-A junta is a function depending on only a small number of input coordinates. Distribution-free testing measures distance using an unknown input distribution rather than the uniform one. The saved question asks whether a constant number of adaptive rounds can achieve query complexity polynomial in k and inverse accuracy. Such a result would combine efficient sampling with limited sequential interaction. The excerpt's denominator is damaged and its domain conventions are absent, so the precise proximity parameter and function model remain to be recovered from the source.
+The tester must distinguish a k-junta from a function ε-far from all k-juntas under an unknown distribution. The source asks for constantly many adaptive rounds and polynomially many queries in k/ε, independently of n. Fully adaptive algorithms already have almost-linear query complexity. The cited exponential nonadaptive lower bound charges labeled samples, while the source’s own definition counts only function queries and provides unlabeled samples. Sample accounting and the treatment of the preliminary sample phase must be reconciled before this becomes a complete benchmark.
 
-[Read in atlas](index.html#TCS-3717) · [Almost Optimal Distribution-Free Junta Testing](https://doi.org/10.4230/LIPIcs.CCC.2019.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3717) · [Almost Optimal Distribution-Free Junta Testing](https://doi.org/10.4230/LIPIcs.CCC.2019.2) · [Almost Optimal Distribution-free Junta Testing](https://arxiv.org/abs/1901.00717) · [Distribution-free Junta Testing](https://arxiv.org/abs/1802.04859)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3906 — Sample complexity of symmetric Markov-chain identity testing
 
