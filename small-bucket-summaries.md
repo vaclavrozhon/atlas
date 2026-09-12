@@ -2751,19 +2751,19 @@ Value iteration repeatedly updates estimates in discounted or mean-payoff games 
 [Read in atlas](index.html#TCS-2126) · [Smoothed Analysis of Deterministic Discounted and Mean-Payoff Games](https://doi.org/10.4230/LIPIcs.ICALP.2024.147)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2502 — For the problem of refuting q-colorability, a particular SoS formulation √ is known to fail when q ≫ n (Kothari and Manohar, 2021); however, it […]
+### TCS-2502 — Canonical SoS thresholds for random-graph colorability
 
-The source compares planted coloring with planted clique and studies attempts to refute q-colorability through sum-of-squares relaxations. Its retained passage reports failure of a particular formulation in a parameter regime and raises an unresolved extension. The distinction between one relaxation and unrestricted algorithms is central to interpreting the proposed hardness evidence. A sharper result could clarify whether the coloring problem shares the same apparent computational barrier as clique planting. The square-root notation and actual question are truncated, so the exact q regime and model must be recovered before a quantitative lower-bound claim is stated.
+The source asks when sum-of-squares can rule out q-colorings of a dense random graph. The key distinction is between at-least-one-color inequalities and exact-coloring equalities. A 2021 lower bound applied to the weaker formulation near the square-root color scale. Published 2025 work establishes the higher-degree barrier for the canonical model at every fixed color exponent above one half. A precise remaining threshold question has not been specified by the historical passage.
 
-[Read in atlas](index.html#TCS-2502) · [Is Planted Coloring Easier than Planted Clique?](https://proceedings.mlr.press/v195/kothari23a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2502) · [Is Planted Coloring Easier than Planted Clique?](https://proceedings.mlr.press/v195/kothari23a.html) · [A Stress-Free Sum-Of-Squares Lower Bound for Coloring](https://arxiv.org/abs/2105.07517) · [Sum-of-Squares Lower Bounds for Coloring Random Graphs](https://doi.org/10.1145/3717823.3718151) · [Spectral Techniques for Average-Case Complexity](https://csd-web-01.andrew.cmu.edu/sites/default/files/phd-thesis/CMU-CS-25-137.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-2621 — Establishing a rigorous positive result for tensor power iteration in this regime is challenging, and we leave it as an interesting open question for future […]
+### TCS-2621 — Does random-start tensor power iteration eventually recover a component?
 
-Tensor power iteration is a simple repeated update for recovering components of a tensor decomposition. The source studies random overcomplete tensors, whose number of components exceeds the ambient dimension. It rules out the previously suggested rapid convergence and asks whether polynomially many iterations nevertheless recover a component in the proposed rank regime. Numerical evidence supports that possibility, while the analysis shows that iterates can remain near their initialization for a long time. A positive theorem would distinguish slow initial movement from a genuine failure of this widely used iterative method.
+The input tensor is a sum of many independent Gaussian rank-one fourth-order tensors. Power iteration repeatedly contracts that tensor with its current direction and normalizes the result. The source asks whether an independent random start eventually finds a hidden component in polynomially many iterations when d≪k≪d². The proved polynomial delay and the later single-spike tensor PCA theorem do not settle that question. A quantitative recovery error and uniform time/output guarantee still need to be specified.
 
-[Read in atlas](index.html#TCS-2621) · [Lower Bounds for the Convergence of Tensor Power Iteration on Random Overcomplete Models](https://proceedings.mlr.press/v195/wu23b.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2621) · [Lower Bounds for the Convergence of Tensor Power Iteration on Random Overcomplete Models](https://proceedings.mlr.press/v195/wu23b.html) · [Sharp Analysis of Power Iteration for Tensor PCA](https://jmlr.org/papers/v25/24-0006.html)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2680 — For every oracle O, if DistNPO ⊆ HeurPO , then UPO ⊆ BPTIMEO [2O(n/ log n) ].
 
@@ -4496,12 +4496,12 @@ The question asks how large a constant-depth arithmetic expression must be to co
 [Read in atlas](index.html#TCS-2342) · [Low-Depth Arithmetic Circuit Lower Bounds: Bypassing Set-Multilinearization](https://doi.org/10.4230/LIPIcs.ICALP.2023.12) · [Lower Bounds for Depth-5 Algebraic Circuits with Bounded Fan-in of Top Product Gates](https://eccc.weizmann.ac.il/report/2026/104/)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2506 — However, we do not know whether this containment is strict or not.
+### TCS-2506 — Are algebraic branching programs stronger than formulas?
 
-The cited work studies how algebraic formulas can be transformed into formulas of smaller depth. The retained question asks whether a containment arising in that analysis is strict. A strict inclusion would mean that one of the compared resource regimes computes polynomial families unavailable to the other. This matters because simulation upper bounds can conceal a real gain from additional depth or formula structure. The excerpt omits both classes in the inclusion, so it supports this research direction but does not justify naming a particular hierarchy separation or quantitative lower bound.
+Algebraic formulas compute polynomials using arithmetic trees. Algebraic branching programs compute sums of products along paths and can share subcomputations. Every polynomial-size formula can be represented by a polynomial-size branching program. The question asks whether some branching-program family requires superpolynomial formula size over the specified field. Known results for bounded-depth or syntactically multilinear formulas do not settle this unrestricted separation.
 
-[Read in atlas](index.html#TCS-2506) · [Towards Optimal Depth-Reductions for Algebraic Formulas](https://doi.org/10.4230/LIPIcs.CCC.2023.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2506) · [Towards Optimal Depth-Reductions for Algebraic Formulas](https://doi.org/10.4230/LIPIcs.CCC.2023.28) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2718 — Can we hope for an O(|D| e · polylog(M )) time algorithm for f -Convolution for some ϵ > 0?
 
@@ -5482,12 +5482,12 @@ A low-rank sequence distribution has restricted linear structure in how observed
 [Read in atlas](index.html#TCS-2337) · [Learning Hidden Markov Models Using Conditional Samples](https://proceedings.mlr.press/v195/mahajan23a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2535 — For every Lipschitz function f : [0, 1]n → R, it holds that
+### TCS-2535 — A dimension-free directed L¹ Poincaré inequality
 
-A Lipschitz function on a continuous cube cannot change arbitrarily fast between nearby points. The cited work studies directed Poincaré inequalities and testing monotonicity in L¹ distance. The saved statement proposes an inequality intended to apply to every such function. A suitable inequality could relate local directional violations to the global change needed to make a function monotone. The extraction stops before the inequality itself, so its derivatives, constants, and dimension dependence cannot be supplied without inventing the core mathematical claim.
+The conjecture concerns every Lipschitz real-valued function on a continuous unit cube. It asks whether average distance to a monotone function is controlled by the average Euclidean magnitude of the negative gradient. The multiplicative constant must be independent of the dimension and the Lipschitz constant. A known inequality using the sum of coordinate decreases loses a square-root dimension factor. Later work proves a different inequality using squared quantities and explicitly leaves this conjecture open.
 
-[Read in atlas](index.html#TCS-2535) · [Directed Poincaré Inequalities and L¹ Monotonicity Testing of Lipschitz Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.61)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2535) · [Directed Poincaré Inequalities and L¹ Monotonicity Testing of Lipschitz Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.61) · [Directed Isoperimetry and Monotonicity Testing: A Dynamical Approach](https://arxiv.org/abs/2404.17882) · [Analytic Property Testing: Directed Isoperimetry and Monotonicity](https://uwspace.uwaterloo.ca/items/e1f421e1-2f50-4ef9-af1e-45cdc345e24d)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2665 — (a key challenge, relaxed formulation):5 For which label-invariant properties of distributions does it hold that testing them in the DoHO model has query complexity poly(1/ϵ) […]
 
