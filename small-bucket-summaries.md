@@ -3762,10 +3762,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4259 — Query cost of reducing testing adaptivity
 
-Adaptive property testers choose later queries after seeing earlier answers. The saved question asks for a general upper bound on queries when reducing the number of adaptive rounds from k to a smaller value. The desired function would quantify how much additional sampling can compensate for less sequential interaction. Such a theorem would give a systematic counterpart to separations in an adaptivity hierarchy. The excerpt truncates the baseline being improved and does not define its round convention, so no particular query blowup is asserted.
+The source asks how query complexity changes when a tester is allowed fewer batches of queries. Its convention counts k rounds of adaptivity as k+1 actual batches. A general exponential simulation and a better bound for removing one round are already known. The requested new bound must cover arbitrary properties and allow the number of queries in each batch to depend on earlier answers. The source leaves the amount and asymptotic regime of the desired improvement unspecified, which this card records explicitly.
 
-[Read in atlas](index.html#TCS-4259) · [An Adaptivity Hierarchy Theorem for Property Testing](https://doi.org/10.4230/LIPIcs.CCC.2017.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4259) · [An Adaptivity Hierarchy Theorem for Property Testing](https://doi.org/10.4230/LIPIcs.CCC.2017.27) · [An adaptivity hierarchy theorem for property testing — journal publication](https://doi.org/10.1007/s00037-018-0168-4) · [An adaptivity hierarchy theorem for property testing — institutional attachment](https://www.repository.cam.ac.uk/items/73b70279-d662-43f0-b591-98afd3ce529c)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-4376 — Characterizing sublinear-query testable graph properties
 
