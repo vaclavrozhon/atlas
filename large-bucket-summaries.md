@@ -1008,12 +1008,12 @@ A directed acyclic compression shares repeated pieces of a graph's adjacency str
 [Read in atlas](index.html#TCS-2247) · [Faster Graph Algorithms Through DAG Compression](https://doi.org/10.4230/LIPIcs.STACS.2024.8)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2316 — Finally, we end this paper by leaving the biggest open problem concerning mim-width: Given a graph G, is there a polynomial-time algorithm that computes a […]
+### TCS-2316 — Recognizing and constructing mim-width-one decompositions
 
-Mim-width measures induced matchings across the cuts of a branch decomposition. Many graph algorithms become efficient when a suitable small-width decomposition is supplied. The source asks whether one can recognize width at most one and construct such a decomposition in polynomial time. The alternative output must correctly certify that no width-one decomposition exists. This is a basic access problem for the parameter: structural algorithms are much less usable if their required decomposition cannot itself be found efficiently.
+The task is to find a branch decomposition whose every cut has no induced matching of size two. Only edges crossing a cut count toward its mim-width. The algorithm must also recognize when no such tree exists. Known width-one graph algorithms usually assume the tree has already been given. New hardness results reach width two and related width-one parameters, while ordinary mim-width one remains open.
 
-[Read in atlas](index.html#TCS-2316) · [Finding Induced Subgraphs from Graphs with Small Mim-Width](https://doi.org/10.4230/LIPIcs.SWAT.2024.38)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2316) · [Finding Induced Subgraphs from Graphs with Small Mim-Width](https://doi.org/10.4230/LIPIcs.SWAT.2024.38) · [On the Hardness of Recognizing Graphs of Small Mim-Width and Its Variants](https://doi.org/10.4230/LIPIcs.ICALP.2026.83)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2822 — Even the complexity (P versus NP) of deciding whether a directed graph contains an (s, t)-path longer than distG (s, t) (the case of k […]
 
@@ -2477,13 +2477,6 @@ Local certification gives each graph vertex a certificate that it verifies using
 [Read in atlas](index.html#TCS-2233) · [Local Certification of Geometric Graph Classes](https://doi.org/10.4230/LIPIcs.MFCS.2024.48)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2281 — We restate the open question of [59]: Given a local FO formula φ(x), i.e., a formula where φ(x) depends on a fixed-radius neighborhood of vertex […]
-
-A local first-order formula evaluated at a graph vertex depends only on a neighborhood of fixed radius around that vertex. The task is to make every vertex determine whether it satisfies a given local formula on the bounded-expansion graph classes considered by the source. The requested running time is O(log n) rounds in the CONGEST model, where messages along edges have bounded size. Local dependence alone does not make gathering an entire neighborhood cheap, because even a small-radius neighborhood can contain many vertices. Such an algorithm would strengthen distributed logical model checking from deciding global properties to identifying all satisfying vertices simultaneously.
-
-[Read in atlas](index.html#TCS-2281) · [Distributed Model Checking on Graphs of Bounded Treedepth](https://doi.org/10.4230/LIPIcs.DISC.2024.25)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2470 — While there has been progress on solving the natural list and defective coloring variants of O(β 2 ) coloring, it is still unknown if a […]
 
 An orientation with maximum outdegree β gives each vertex a bounded number of outgoing neighbors even when its total degree is large. Distributed coloring algorithms exploit this structure to obtain palettes related to β rather than maximum degree. The source asks whether some constant ε > 0 permits O(β^(2−ε)) colors in f(β) + O(log* n) rounds. Existing quadratic-palette techniques and progress on defective list coloring motivate the target, but do not establish this improved exponent with such weak dependence on network size. Achieving it would strengthen a basic building block for deterministic symmetry breaking on sparsely oriented graphs.
@@ -2911,6 +2904,13 @@ The nuclear norm of a matrix is the sum of its singular values and measures a di
 [Read in atlas](index.html#TCS-7010) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
 
+### TCS-2281 — Local first-order vertex marking in logarithmically many CONGEST rounds
+
+A fixed local first-order formula asks a question about the neighborhood of each graph vertex. The historical problem was to mark all satisfying vertices using only short messages along graph edges. Blin and coauthors give a deterministic O(log n)-round algorithm for every fixed bounded-expansion class. Their theorem answers the exact question restated in the 2024 source and was published at STOC 2026. The global first-order model-checking extension has an additional diameter term and is a separate result.
+
+[Read in atlas](index.html#TCS-2281) · [Distributed Model Checking on Graphs of Bounded Treedepth](https://doi.org/10.4230/LIPIcs.DISC.2024.25) · [What Can Be Computed Locally Revisited — First-Order Logic on Sparse Graphs in Distributed Computing](https://arxiv.org/abs/2411.14825v3) · [What Can Be Computed Locally Revisited: First-Order Logic on Sparse Graphs in Distributed Computing — STOC publication](https://doi.org/10.1145/3798129.3800849)
+Existing status: `resolved` · Summary written: 2026-09-12
+
 ## Optimization and numerical computation (34)
 
 ### TCS-0008 — Does general rational linear programming have a strongly polynomial algorithm?
@@ -3032,12 +3032,12 @@ A sparsifier chooses which items to query before learning which independently be
 [Read in atlas](index.html#TCS-1512) · [Near-Optimal Sparsifiers for Stochastic Knapsack and Assignment Problems](https://doi.org/10.4230/LIPIcs.ITCS.2026.51) · [Near-Optimal Sparsifiers for Stochastic Knapsack and Assignment Problems — version record](https://arxiv.org/abs/2512.01240)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2277 — There exists an algorithm that on input M ∈ Zd×n such that 0 ∈ int(P ), a vector v ∈ (Q(i)× )n , and ε […]
+### TCS-2277 — High-precision approximation of a log-sum-exp minimizer
 
-The cited paper studies robust orbit problems for torus actions, where algebraic transformations act on vectors. Its saved conjecture begins an algorithmic statement using an integer matrix, nonzero Gaussian-rational coordinates, and an accuracy parameter. The promise that zero lies inside a specified polytope signals geometric structure relevant to the orbit. An effective algorithm could connect numerical robustness with algebraic orbit questions and the number-theoretic bounds studied in the paper. The excerpt omits the output, runtime, and definition of the polytope, so no precise algorithmic guarantee can be reconstructed safely.
+The input defines a strictly convex logarithm of a weighted sum of exponentials. Its minimum exists and is unique, but the question asks to locate that minimum accurately. The required running time is polynomial in coefficient bit lengths and the number of desired accuracy bits. Existing small-objective-error guarantees can leave the point far from the minimizer. The related 2026 optimization theorem still supplies a value guarantee rather than this distance guarantee.
 
-[Read in atlas](index.html#TCS-2277) · [Complexity of Robust Orbit Problems for Torus Actions and the abc-Conjecture](https://doi.org/10.4230/LIPIcs.CCC.2024.14)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2277) · [Complexity of Robust Orbit Problems for Torus Actions and the abc-Conjecture](https://doi.org/10.4230/LIPIcs.CCC.2024.14) · [Interior-Point Methods on Manifolds: Theory and Applications](https://doi.org/10.1007/s10208-026-09756-8)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2675 — This open problem is whether there is an algorithm other than uniform sampling itself that performs uniformly no worse than uniform sampling in the fixed-budget […]
 
@@ -3785,12 +3785,12 @@ The target is a nonnegative weighted sum of k homogeneous ReLU units. Examples h
 [Read in atlas](index.html#TCS-2111) · [Efficiently Learning One-Hidden-Layer ReLU Networks via SchurPolynomials](https://proceedings.mlr.press/v247/diakonikolas24c.html) · [Small Covers for Near-Zero Sets of Polynomials and Learning Latent Variable Models](https://arxiv.org/abs/2012.07774)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2336 — Is it true that, for any concept class H, the optimal regret is Θ L(H)T ?
+### TCS-2336 — Sharp multiclass online regret without logarithmic factors
 
-Multiclass online classification predicts one of several labels before observing the correct answer. The Littlestone dimension measures the sequential complexity of the competing concept class. The source asks whether optimal regret has the sharp square-root dependence on dimension times horizon suggested by its lower bound, with no extra logarithmic factor. It points to the removal of an analogous factor in binary classification as motivation. A proof would identify whether multiple labels introduce an intrinsic additional penalty or whether the remaining logarithm is a limitation of the existing analysis.
+The learner predicts one of potentially infinitely many labels and is compared with the best fixed hypothesis in hindsight. Finite Littlestone dimension already guarantees sublinear regret. The open target is a sharp bound proportional to √(dimension × rounds), with one universal constant. The known general upper bound has an extra square-root logarithmic factor. A finite-label bound trades that factor for dependence on the number of labels, so it does not settle the universal question.
 
 [Read in atlas](index.html#TCS-2336) · [Multiclass Online Learning and Uniform Convergence](https://proceedings.mlr.press/v195/hanneke23b.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2339 — Is there a universal constant c > 0 such that, for each finite concept class C, we have that RTD(C) ≤ c · VCD(C)?
 
