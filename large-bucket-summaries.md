@@ -2632,12 +2632,12 @@ A weak one-way function resists inversion on a noticeable fraction of inputs, wh
 [Read in atlas](index.html#TCS-3025) · [Hardness of KT Characterizes Parallel Cryptography](https://doi.org/10.4230/LIPIcs.CCC.2021.35)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4754 — Zero knowledge for gap meta-complexity problems
+### TCS-4754 — Unconditional zero knowledge for gap circuit complexity
 
-Meta-complexity problems ask how much computational description is needed to represent a function or a string. The selected question asks whether an appropriate gap version of minimum circuit size or time-bounded description complexity admits a computational zero-knowledge proof system unconditionally. There is a tempting argument that an easy problem needs little proof, while a hard one might supply the one-way functions used to build zero knowledge. The missing case is worst-case hardness without the average-case hardness needed for that cryptographic implication. Closing this gap would connect structural complexity of descriptions with the ability to verify claims without revealing their witnesses.
+The input is a complete truth table promised to have either a small or a much larger minimum circuit. The selected question asks for some fixed gap admitting an unconditional computational zero-knowledge proof. The verifier is efficient, while soundness must hold even against an unbounded cheating prover. All promised inputs and all input lengths must satisfy the guarantees. Average-case protocols and the later one-way-function characterization do not establish this membership.
 
-[Read in atlas](index.html#TCS-4754) · [A Relativization Perspective on Meta-Complexity](https://doi.org/10.4230/LIPIcs.STACS.2022.54)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4754) · [A Relativization Perspective on Meta-Complexity](https://doi.org/10.4230/LIPIcs.STACS.2022.54) · [Robustness of Average-Case Meta-Complexity via Pseudorandomness](https://doi.org/10.1145/3519935.3520051) · [One-Way Functions and Zero Knowledge](https://doi.org/10.1137/24M1689971)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-5013 — Sublinear-communication secure computation with polynomial setup
 
