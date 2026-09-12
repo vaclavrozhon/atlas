@@ -3696,10 +3696,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3928 — Greedy versus bit-optimal LZ77 over arbitrary alphabets
 
-Greedy LZ77 chooses locally longest phrases, while bit-optimal encodings minimize the total encoded representation length. The source asks how their costs compare for arbitrary alphabets. The saved passage seeks bounds expressed jointly through text length n, phrase count z, and alphabet size σ. A sharp comparison would show when greedy structural compression also gives near-optimal bit cost. The excerpt points to a missing table and omits the precise ratios under study, so the draft cannot assert a particular worst-case gap or encoding convention.
+Greedy LZ77 minimizes the number of phrases, but variable-length codes can make another parsing shorter in bits. This question asks for the largest greedy-to-optimal bit-cost ratio jointly in text length n, greedy phrase count z and alphabet size σ. The model uses classical overlapping copy-plus-literal triples with fixed logarithmic integer codes. Known bounds settle constant alphabets and the ratio maximized over all phrase counts, but leave the full three-parameter tradeoff open. The extremal domain uses exact feasible phrase counts; existing lower-bound constructions reported with Θ(z) phrases are not silently treated as exact-count results.
 
-[Read in atlas](index.html#TCS-3928) · [Relations Between Greedy and Bit-Optimal LZ77 Encodings](https://doi.org/10.4230/LIPIcs.STACS.2018.46)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3928) · [Relations Between Greedy and Bit-Optimal LZ77 Encodings](https://doi.org/10.4230/LIPIcs.STACS.2018.46) · [Relations Between Greedy and Bit-Optimal LZ77 Encodings — arXiv version 2](https://arxiv.org/abs/1707.09789v2) · [Comparison of LZ77-type parsings](https://doi.org/10.1016/j.ipl.2018.09.005)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4208 — Truly subquadratic LCWIS over fixed alphabets
 
