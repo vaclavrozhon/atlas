@@ -3133,10 +3133,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5739 — Collapse of rational recurrence systems to single recurrences
 
-A rational recurrence system can evolve several mutually dependent sequences using rational functions at each step. The conjectured collapse asks whether every individual sequence obtained this way satisfies one rational recurrence of some finite depth. This would replace auxiliary coordinates by a finite window into the sequence itself. The source proves progress for symbolic initial conditions, suggesting algebraic elimination as a route while leaving the full numerical claim separate. A complete result would give a simpler normal form for a broad family of exactly specified sequences.
+A rationally recursive sequence is one coordinate of a finite system whose next state is a rational function of its current state. The conjecture asks whether finitely many past values of that coordinate always suffice to generate its next value. All coefficients and initial values are rational, and every denominator must remain nonzero along the sequence. A scalar recurrence may depend on the particular initial vector, but must work at every step. The known theorem with symbolic initial values does not settle the numerical case because specialization can make its denominators vanish.
 
-[Read in atlas](index.html#TCS-5739) · [On Rational Recursive Sequences](https://doi.org/10.4230/LIPIcs.STACS.2023.24)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5739) · [On Rational Recursive Sequences](https://doi.org/10.4230/LIPIcs.STACS.2023.24) · [On Rational Recursive Sequences — full author version](https://arxiv.org/abs/2210.01635)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-5777 — Monotone versus general spanning-tree polynomial circuits
 
