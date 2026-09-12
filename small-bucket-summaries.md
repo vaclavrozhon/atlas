@@ -4559,12 +4559,12 @@ The target is an explicit family of groups acting on n labeled points. A graph r
 [Read in atlas](index.html#TCS-3414) · [Compressing Permutation Groups into Grammars and Polytopes. A Graph Embedding Approach](https://doi.org/10.4230/LIPIcs.MFCS.2020.50) · [Compressing Permutation Groups into Grammars and Polytopes. A Graph Embedding Approach — full version](https://arxiv.org/abs/2001.05583)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3432 — Yet another question which is natural in the context of this work and remains open is to prove stronger lower bounds for ABPs.
+### TCS-3432 — Beyond quadratic lower bounds for general algebraic branching programs
 
-Algebraic branching programs compute a polynomial by summing products along source-to-sink paths. The cited work proves a quadratic lower bound and leaves stronger lower bounds as a further challenge. The aim is to identify polynomial structure forcing larger path-sum representations despite extensive reuse within the graph. Progress would sharpen a central restricted-model target between arithmetic formulas and general circuits. The passage does not specify a desired new exponent or the family and restrictions to which it should apply, so the eventual card must turn this broad improvement request into one quantitative question.
+Algebraic branching programs represent a polynomial as a sum of products along paths in a layered graph. This question concerns the number of vertices when edge labels are arbitrary affine forms and no homogeneity restriction is imposed. The source proves a tight quadratic bound for one power-sum family and asks for stronger lower bounds for explicit families. It does not specify the desired rate, polynomial degrees, field or uniform construction requirement. Those omissions remain visible, while separate multilinear results and a 2026 claim with an acknowledged gap are distinguished from progress on the general target.
 
-[Read in atlas](index.html#TCS-3432) · [A Quadratic Lower Bound for Algebraic Branching Programs](https://doi.org/10.4230/LIPIcs.CCC.2020.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3432) · [A Quadratic Lower Bound for Algebraic Branching Programs](https://doi.org/10.4230/LIPIcs.CCC.2020.2) · [Quadratic Lower Bounds for Algebraic Branching Programs and Formulas](https://doi.org/10.1007/s00037-022-00223-8) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/) · [An Unconditional Barrier for Proving Multilinear Algebraic Branching Program Lower Bounds — revision notice](https://eccc.weizmann.ac.il/report/2026/043/)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3731 — How crucial is the notion of inseparable degree in the context of testing algebraic independence?
 
