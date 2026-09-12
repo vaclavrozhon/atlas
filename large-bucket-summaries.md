@@ -2540,12 +2540,12 @@ Several combinatorial families admit determinant formulas that make counting pos
 [Read in atlas](index.html#TCS-3075) · [Sampling Arborescences in Parallel](https://doi.org/10.4230/LIPIcs.ITCS.2021.83)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3134 — For example, the complexity of k-independent set detection in CONGEST remains open, whereas in the centralized setting, it is equivalent to k-clique – a correspondence […]
+### TCS-3134 — Round complexity of detecting k pairwise nonadjacent vertices in CONGEST
 
-Detecting a k-vertex independent set means determining whether a graph contains k mutually nonadjacent vertices. The question asks for the round complexity of this task in CONGEST, where processors communicate only along actual graph edges with bounded-size messages. In centralized computation, complementing the graph converts the task to clique detection. That conversion does not preserve a distributed communication network, because absent edges cannot simply become communication links. Understanding the complexity would expose how distributed pattern detection depends on the difference between information about missing edges and the physical routes available for exchanging that information.
+The question is whether the communication graph contains k pairwise nonadjacent vertices. Here k is a fixed cardinality parameter, not a distance or maximality requirement. Nodes communicate only along existing edges using logarithmic-bit messages per round. The centralized complement correspondence with clique is therefore unavailable for free. The source’s distributed output and network/randomness conventions need clarification before its exact round complexity can be certified.
 
-[Read in atlas](index.html#TCS-3134) · [Beyond Distributed Subgraph Detection: Induced Subgraphs, Multicolored Problems and Graph Parameters](https://doi.org/10.4230/LIPIcs.OPODIS.2021.15)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3134) · [Beyond Distributed Subgraph Detection: Induced Subgraphs, Multicolored Problems and Graph Parameters](https://doi.org/10.4230/LIPIcs.OPODIS.2021.15) · [Beyond Distributed Subgraph Detection: Induced Subgraphs, Multicolored Problems and Graph Parameters — full version](https://arxiv.org/abs/2109.06561) · [Distributed Complexity of P_k-Freeness: Decision and Certification](https://doi.org/10.4230/LIPIcs.ISAAC.2025.51)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3192 — First, is it possible to obtain near singularly optimal bounds using a deterministic algorithm?
 
