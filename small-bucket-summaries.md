@@ -16,7 +16,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 Kolmogorov–Loveland betting strategies may adaptively inspect previously unseen bits in any order while making fair computable bets. The question asks whether every sequence defeating all such strategies is Martin-Löf random. Martin-Löf randomness instead requires avoidance of every effective sequence of small-measure exceptional sets. Equality would show that flexible computable betting captures the full statistical-test notion of algorithmic randomness. The reviewed model allows partial strategies and unbounded capital success, so limitations for fixed reading orders or weaker betting rules cannot settle the comparison.
 
-[Read in atlas](index.html#TCS-6648) · [Kolmogorov-Loveland betting strategies lose the Betting game on open sets](https://arxiv.org/abs/2403.19817) · [Kolmogorov–Loveland randomness and stochasticity](https://people.math.wisc.edu/~jsmiller8/Papers/kl.pdf) · [Comparing notions of randomness](https://people.math.wisc.edu/~slempp/papers/injrandom.pdf) · [A universal pair of 1/2-betting strategies](https://www.sciencedirect.com/science/article/pii/S0890540121000183)
+[Read in atlas](index.html#TCS-6648) · [Kolmogorov-Loveland betting strategies lose the Betting game on open sets](https://arxiv.org/abs/2403.19817) · [Kolmogorov–Loveland randomness and stochasticity](https://people.math.wisc.edu/~jsmiller8/Papers/kl.pdf) · [Comparing notions of randomness](https://people.math.wisc.edu/~slempp/papers/injrandom.pdf) · [A universal pair of \(1/2\)-betting strategies](https://www.sciencedirect.com/science/article/pii/S0890540121000183)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6647 — Rigidity of the Turing degrees
@@ -26,18 +26,18 @@ Turing degrees identify sets of integers that compute one another and order them
 [Read in atlas](index.html#TCS-6647) · [Defining the Turing Jump](https://math.berkeley.edu/~slaman/papers/jump.pdf) · [Global Properties of the Turing Degrees and the Turing Jump](https://math.berkeley.edu/~slaman/papers/IMS_slaman.pdf) · [Permutations of the Integers Induce Only the Trivial Automorphism of the Turing Degrees](https://arxiv.org/abs/1603.00525)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6685 — Busy Beaver BB(6)
+### TCS-6685 — Busy Beaver \(\mathrm{BB}(6)\)
 
-BB(6) is the maximum halting runtime among six-state, two-symbol Turing machines started on a blank tape. The accepted answer specifies one concrete machine and proves in Lean that it halts and no other halting machine in the same class runs longer. Its runtime describes BB(6) exactly, so no simple closed form, decimal expansion or full execution trace is required. The problem turns the general undecidability of halting into an exceptionally concrete finite classification challenge. The saved review records large candidate runtimes and unresolved holdouts, and distinguishes runtime from the separate Busy Beaver measure counting printed ones.
+\(\mathrm{BB}(6)\) is the maximum halting runtime among six-state, two-symbol Turing machines started on a blank tape. The accepted answer specifies one concrete machine and proves in Lean that it halts and no other halting machine in the same class runs longer. Its runtime describes \(\mathrm{BB}(6)\) exactly, so no simple closed form, decimal expansion or full execution trace is required. The problem turns the general undecidability of halting into an exceptionally concrete finite classification challenge. The saved review records large candidate runtimes and unresolved holdouts, and distinguishes runtime from the separate Busy Beaver measure counting printed ones.
 
-[Read in atlas](index.html#TCS-6685) · [BB(6)](https://wiki.bbchallenge.org/w/index.php?title=BB(6)&oldid=8417) · [Story: Turing machines and the Busy Beaver function](https://bbchallenge.org/story) · [Determination of the fifth Busy Beaver value](https://arxiv.org/abs/2509.12337v2) · [Antihydra](https://bbchallenge.org/antihydra) · [Holdouts lists](https://wiki.bbchallenge.org/wiki/Holdouts)
+[Read in atlas](index.html#TCS-6685) · [\(\mathrm{BB}(6)\)](https://wiki.bbchallenge.org/w/index.php?title=BB(6)&oldid=8417) · [Story: Turing machines and the Busy Beaver function](https://bbchallenge.org/story) · [Determination of the fifth Busy Beaver value](https://arxiv.org/abs/2509.12337v2) · [Antihydra](https://bbchallenge.org/antihydra) · [Holdouts lists](https://wiki.bbchallenge.org/wiki/Holdouts)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-6649 — Reversal of Hindman’s theorem to the ω-jump
+### TCS-6649 — Reversal of Hindman’s theorem to the \(\omega\)-jump
 
 Hindman's theorem finds an infinite set whose nonempty finite sums all receive the same color in any finite coloring. The question asks whether this principle proves the existence of every set's iterated omega-th Turing jump over RCA0. It measures the theorem's logical strength rather than asking whether the combinatorial statement is true in ordinary mathematics. A positive implication would show that unrestricted finite-sums homogeneity entails a strong closure principle for computability. The reviewed formulation allows sums of arbitrarily many distinct elements, so results for exactly two terms or other restricted variants do not answer it automatically.
 
-[Read in atlas](index.html#TCS-6649) · [New bounds on the strength of some restrictions of Hindman’s Theorem](https://iris.uniroma1.it/bitstream/11573/1393123/3/Carlucci_postprint_New-bounds_2020.pdf) · [The reverse mathematics of Hindman’s theorem for sums of exactly two elements](https://arxiv.org/abs/1804.09809) · [The strength of Ramsey’s theorem for coloring relatively large sets](https://arxiv.org/abs/1204.1134) · [The reverse mathematics of the Ordered Variable Word theorem](https://arxiv.org/abs/2606.12962) · [Π⁰₄ conservation of a Carlson-Simpson lemma for 1-variable words](https://arxiv.org/abs/2607.28116)
+[Read in atlas](index.html#TCS-6649) · [New bounds on the strength of some restrictions of Hindman’s Theorem](https://iris.uniroma1.it/bitstream/11573/1393123/3/Carlucci_postprint_New-bounds_2020.pdf) · [The reverse mathematics of Hindman’s theorem for sums of exactly two elements](https://arxiv.org/abs/1804.09809) · [The strength of Ramsey’s theorem for coloring relatively large sets](https://arxiv.org/abs/1204.1134) · [The reverse mathematics of the Ordered Variable Word theorem](https://arxiv.org/abs/2606.12962) · [\(\Pi ^{0}_{4}\) conservation of a Carlson-Simpson lemma for 1-variable words](https://arxiv.org/abs/2607.28116)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6679 — Universality of Turing equivalence
@@ -47,11 +47,11 @@ Turing equivalence groups infinite binary sequences according to mutual computab
 [Read in atlas](index.html#TCS-6679) · [The Fourteen Victoria Delfino Problems and Their Status in the Year 2019](https://preprint.math.uni-hamburg.de/public/papers/hbm/hbm770.pdf) · [The Theory of Countable Borel Equivalence Relations](https://www.pma.caltech.edu/documents/5921/CBER.pdf) · [Martin’s conjecture, arithmetic equivalence, and countable Borel equivalence relations](https://arxiv.org/abs/1109.1875) · [The universality of polynomial time Turing equivalence](https://arxiv.org/abs/1601.03343) · [Uniformity, Universality, and Computability Theory](https://arxiv.org/abs/1606.01976) · [On a question of Slaman and Steel](https://arxiv.org/abs/2004.00174)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7193 — Mortality of 2×2 integer matrix semigroups
+### TCS-7193 — Mortality of \(2\times 2\) integer matrix semigroups
 
 A finite list of two-by-two integer matrices generates all nonempty products with arbitrary order and repetition. The question asks whether a terminating algorithm can decide if any such product is the zero matrix. Matrix entries and the number of generators are unrestricted. NP-hardness is known, while decidability results for restricted determinants do not cover the general case. Resolving the question would locate a basic computability boundary for products of small matrices.
 
-[Read in atlas](index.html#TCS-7193) · [Mortality for 2 × 2 Matrices is NP-hard](https://cgi.csc.liv.ac.uk/~igor/papers/paper_BHP_MFCS2012.pdf) · [On Affine Reachability Problems](https://arxiv.org/abs/1905.05114v3) · [The membership problem for subsemigroups of GL₂(ℤ) is NP-complete](https://doi.org/10.1016/j.ic.2023.105132) · [On Word Representations and Embeddings in Complex Matrices](https://arxiv.org/abs/2604.15386v1)
+[Read in atlas](index.html#TCS-7193) · [Mortality for \(2 \times  2\) Matrices is NP-hard](https://cgi.csc.liv.ac.uk/~igor/papers/paper_BHP_MFCS2012.pdf) · [On Affine Reachability Problems](https://arxiv.org/abs/1905.05114v3) · [The membership problem for subsemigroups of \(GL_{2}(\mathbb{Z} )\) is NP-complete](https://doi.org/10.1016/j.ic.2023.105132) · [On Word Representations and Embeddings in Complex Matrices](https://arxiv.org/abs/2604.15386v1)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0250 — Scaling joint Kolmogorov-complexity profiles
@@ -77,7 +77,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0238 — An algorithmic Ahlswede–Körner lemma
 
-For individual binary strings x and y, side information z can shorten descriptions of either string and of their pair. The question asks whether another string z′ can preserve those three conditional description lengths to logarithmic accuracy. The replacement must have a logarithmically short description when x and y are both given. It need not be easy to obtain from z, and no fast construction is required. The source establishes a special case for stochastic pairs, while the general question tests the scope of an algorithmic analogue of the Ahlswede–Körner lemma.
+For individual binary strings x and y, side information z can shorten descriptions of either string and of their pair. The question asks whether another string \(z'\) can preserve those three conditional description lengths to logarithmic accuracy. The replacement must have a logarithmically short description when x and y are both given. It need not be easy to obtain from z, and no fast construction is required. The source establishes a special case for stochastic pairs, while the general question tests the scope of an algorithmic analogue of the Ahlswede–Körner lemma.
 
 [Read in atlas](index.html#TCS-0238) · [27 Open Problems in Kolmogorov Complexity](https://www.cs.umd.edu/~gasarch/open/kolm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -119,7 +119,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4463 — Markov computability versus K-computability
 
-Markov computability lets an algorithm operate using a program that computes its input object. The source asks whether some function from Cantor space to its represented space O(B) is Markov-computable but not K-computable. A separating example would show that access to a full input program provides information unavailable in the source's complexity-bounded representation. This clarifies what programs reveal beyond the mathematical objects they compute. The codomain representation and definition of K-computability are essential and omitted from the excerpt, so the target cannot be reduced to an ordinary noncomputable map between sets.
+Markov computability lets an algorithm operate using a program that computes its input object. The source asks whether some function from Cantor space to its represented space \(O(B)\) is Markov-computable but not K-computable. A separating example would show that access to a full input program provides information unavailable in the source's complexity-bounded representation. This clarifies what programs reveal beyond the mathematical objects they compute. The codomain representation and definition of K-computability are essential and omitted from the excerpt, so the target cannot be reduced to an ordinary noncomputable map between sets.
 
 [Read in atlas](index.html#TCS-4463) · [On the Information Carried by Programs about the Objects They Compute](https://doi.org/10.4230/LIPIcs.STACS.2015.447)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -149,9 +149,9 @@ Existing status: `resolved` · Summary written: 2026-09-12
 
 ### TCS-6601 — Superpolynomial Extended Frege lower bounds
 
-Extended Frege proves propositional tautologies while allowing reusable names for intermediate formulas. The question asks whether some tautologies require proofs larger than every polynomial in their encoded statement length. Reusable definitions can express shared computations compactly, defeating lower bounds based only on expanding formulas. An unconditional result would be a major limitation on a powerful, efficiently checkable proof language. The saved review emphasizes that proof size differs from proof-search time and that a lower bound for this particular system would not alone prove NP≠coNP.
+Extended Frege proves propositional tautologies while allowing reusable names for intermediate formulas. The question asks whether some tautologies require proofs larger than every polynomial in their encoded statement length. Reusable definitions can express shared computations compactly, defeating lower bounds based only on expanding formulas. An unconditional result would be a major limitation on a powerful, efficiently checkable proof language. The saved review emphasizes that proof size differs from proof-search time and that a lower bound for this particular system would not alone prove \(\mathrm{NP}\ne \mathrm{coNP}\).
 
-[Read in atlas](index.html#TCS-6601) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Towards P≠NP from Extended Frege lower bounds](https://arxiv.org/abs/2312.08163) · [SNARGs for NP from Unprovability of Mathematical Theorems](https://eccc.weizmann.ac.il/report/2026/098/) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://mirror.theoryofcomputing.org/articles/v022a004/)
+[Read in atlas](index.html#TCS-6601) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [Towards \(\mathrm{P}\ne \mathrm{NP}\) from Extended Frege lower bounds](https://arxiv.org/abs/2312.08163) · [SNARGs for NP from Unprovability of Mathematical Theorems](https://eccc.weizmann.ac.il/report/2026/098/) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://mirror.theoryofcomputing.org/articles/v022a004/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6663 — Frege versus Extended Frege
@@ -161,18 +161,18 @@ Extended Frege adds reusable formula definitions to ordinary Frege reasoning. Th
 [Read in atlas](index.html#TCS-6663) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Propositional Consistency Proofs](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/prop_consis/paper.pdf) · [Towards (Non-)Separations in Propositional Proof Complexity](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/Stanford_February2014/) · [Short Proofs of the Kneser–Lovász Coloring Principle](https://arxiv.org/abs/1505.05531) · [Extended Frege proofs, circuits and rewriting](https://arxiv.org/abs/2606.13367) · [Quasi-polynomial Frege Simulation of IPS beyond Noncommutativity](https://eccc.weizmann.ac.il/report/2026/166/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6602 — Superpolynomial AC⁰[p]-Frege lower bounds
+### TCS-6602 — Superpolynomial \(\mathrm{AC}^{0}[p]\)-Frege lower bounds
 
-AC⁰[p]-Frege uses bounded-depth proof formulas that may include modular counting connectives for a fixed prime p. The saved target asks for explicit polynomial-size DNF tautologies requiring superpolynomial proofs at every fixed formula depth. Modular gates can retain counting information that ordinary restriction methods erase. A lower bound would extend the reach of proof complexity beyond the established bounded-depth systems without modular counting. The reviewed record distinguishes logical depth within proof lines from derivation depth and explains why circuit lower bounds do not automatically imply the requested proof lower bound.
+\(\mathrm{AC}^{0}[p]\)-Frege uses bounded-depth proof formulas that may include modular counting connectives for a fixed prime p. The saved target asks for explicit polynomial-size DNF tautologies requiring superpolynomial proofs at every fixed formula depth. Modular gates can retain counting information that ordinary restriction methods erase. A lower bound would extend the reach of proof complexity beyond the established bounded-depth systems without modular counting. The reviewed record distinguishes logical depth within proof lines from derivation depth and explains why circuit lower bounds do not automatically imply the requested proof lower bound.
 
-[Read in atlas](index.html#TCS-6602) · [Extended Nullstellensatz proof systems](https://www.karlin.mff.cuni.cz/~krajicek/finitary.pdf) · [Exponential Lower Bounds for the Pigeonhole Principle](https://www.cs.toronto.edu/~toni/Papers/exp-pigeon.pdf) · [Amortized Closure and Its Applications in Lifting for Resolution over Parities](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2025.8) · [AC⁰(p)-Frege Cannot Efficiently Prove That Constant-Depth Algebraic Circuit Lower Bounds Are Hard](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.99) · [Resolution Width Lifts to Near-Quadratic-Depth Res(⊕) Size](https://eccc.weizmann.ac.il/report/2026/018/) · [Hard CNF Instances for Ideal Proof Systems](https://eccc.weizmann.ac.il/report/2026/070/)
+[Read in atlas](index.html#TCS-6602) · [Extended Nullstellensatz proof systems](https://www.karlin.mff.cuni.cz/~krajicek/finitary.pdf) · [Exponential Lower Bounds for the Pigeonhole Principle](https://www.cs.toronto.edu/~toni/Papers/exp-pigeon.pdf) · [Amortized Closure and Its Applications in Lifting for Resolution over Parities](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2025.8) · [\(\mathrm{AC}^{0}(p)\)-Frege Cannot Efficiently Prove That Constant-Depth Algebraic Circuit Lower Bounds Are Hard](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.99) · [Resolution Width Lifts to Near-Quadratic-Depth \(Res(\oplus )\) Size](https://eccc.weizmann.ac.il/report/2026/018/) · [Hard CNF Instances for Ideal Proof Systems](https://eccc.weizmann.ac.il/report/2026/070/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0025 — Superpolynomial lower bounds for unrestricted Frege proofs
 
-Frege systems formalize propositional deduction through finitely specified rules and reusable intermediate lemmas. The question asks whether tautologies sometimes require proofs exceeding every polynomial in their own encoded length. It concerns the shortest possible derivation, not the time spent by any particular proof-search strategy. A lower bound would establish a substantial limitation on a familiar model of mathematical reasoning. The saved review notes that powerful counting arguments give short Frege proofs where weaker systems struggle, and that separating Frege alone would not establish NP≠coNP.
+Frege systems formalize propositional deduction through finitely specified rules and reusable intermediate lemmas. The question asks whether tautologies sometimes require proofs exceeding every polynomial in their own encoded length. It concerns the shortest possible derivation, not the time spent by any particular proof-search strategy. A lower bound would establish a substantial limitation on a familiar model of mathematical reasoning. The saved review notes that powerful counting arguments give short Frege proofs where weaker systems struggle, and that separating Frege alone would not establish \(\mathrm{NP}\ne \mathrm{coNP}\).
 
-[Read in atlas](index.html#TCS-0025) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Polynomial Size Proofs of the Propositional Pigeonhole Principle](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/php_PolyFrege/FregePHP.pdf) · [Superpolynomial Length Lower Bounds for Tree-Like Semantic Proof Systems with Bounded Line Size](https://arxiv.org/abs/2604.28172) · [Res(log) Proves Bounded-Depth Frege Lower Bounds](https://eccc.weizmann.ac.il/report/2026/055/) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://mirror.theoryofcomputing.org/articles/v022a004/)
+[Read in atlas](index.html#TCS-0025) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Polynomial Size Proofs of the Propositional Pigeonhole Principle](https://mathweb.ucsd.edu/~sbuss/ResearchWeb/php_PolyFrege/FregePHP.pdf) · [Superpolynomial Length Lower Bounds for Tree-Like Semantic Proof Systems with Bounded Line Size](https://arxiv.org/abs/2604.28172) · [\(Res(\log )\) Proves Bounded-Depth Frege Lower Bounds](https://eccc.weizmann.ac.il/report/2026/055/) · [A Lower Bound for Polynomial Calculus with Extension Rule](https://mirror.theoryofcomputing.org/articles/v022a004/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7162 — Existence of p-optimal proof systems
@@ -203,35 +203,35 @@ Buss's bounded-arithmetic hierarchy organizes formal theories according to restr
 [Read in atlas](index.html#TCS-1099) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1096 — Unprovability of polynomial circuit upper bounds in S₂¹
+### TCS-1096 — Unprovability of polynomial circuit upper bounds in \(S_{2}^{1}\)
 
-The theory S₂¹ formalizes a restricted form of arithmetic associated with computational reasoning. This entry asks about its inability to prove polynomial circuit upper bounds. The issue concerns what the theory can certify, even if the underlying circuit claim has a definite mathematical truth value. An unprovability result would expose limits on formal arguments asserting broadly efficient nonuniform computation. The source label does not specify the language, circuit-size quantifiers, or required consistency assumptions, so it does not yet yield one self-contained bounded-arithmetic proposition.
+The theory \(S_{2}^{1}\) formalizes a restricted form of arithmetic associated with computational reasoning. This entry asks about its inability to prove polynomial circuit upper bounds. The issue concerns what the theory can certify, even if the underlying circuit claim has a definite mathematical truth value. An unprovability result would expose limits on formal arguments asserting broadly efficient nonuniform computation. The source label does not specify the language, circuit-size quantifiers, or required consistency assumptions, so it does not yet yield one self-contained bounded-arithmetic proposition.
 
 [Read in atlas](index.html#TCS-1096) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1097 — Unprovability of NP circuit upper bounds in T₂¹
+### TCS-1097 — Unprovability of NP circuit upper bounds in \(T_{2}^{1}\)
 
-Polynomial circuit upper bounds for NP would assert small nonuniform computations for nondeterministically verifiable problems. The saved question concerns whether such bounds are unprovable in T₂¹. It studies limitations of a formal arithmetic theory rather than directly proving that the circuit upper bounds are false. A separation between truth and available formal proof would clarify which reasoning principles are needed for major complexity assertions. The inherited label does not preserve the exact upper-bound schema or metatheoretic assumptions, so the intended unprovability statement remains to be specified.
+Polynomial circuit upper bounds for NP would assert small nonuniform computations for nondeterministically verifiable problems. The saved question concerns whether such bounds are unprovable in \(T_{2}^{1}\). It studies limitations of a formal arithmetic theory rather than directly proving that the circuit upper bounds are false. A separation between truth and available formal proof would clarify which reasoning principles are needed for major complexity assertions. The inherited label does not preserve the exact upper-bound schema or metatheoretic assumptions, so the intended unprovability statement remains to be specified.
 
 [Read in atlas](index.html#TCS-1097) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1098 — PV₁ cannot verify any polynomial-time SAT solver
+### TCS-1098 — \(PV_{1}\) cannot verify any polynomial-time SAT solver
 
-PV₁ is an arithmetic theory organized around polynomial-time computation. The saved question asks whether it can verify the correctness of any polynomial-time SAT solver. The target would rule out formal correctness proofs in that theory, rather than by itself rule out the existence of such a solver. It links the provability of algorithmic claims to the theory's limited reasoning strength. The index does not state how solvers and their correctness are encoded or which assumptions support the proposed unprovability, so those details remain essential to the final formulation.
+\(PV_{1}\) is an arithmetic theory organized around polynomial-time computation. The saved question asks whether it can verify the correctness of any polynomial-time SAT solver. The target would rule out formal correctness proofs in that theory, rather than by itself rule out the existence of such a solver. It links the provability of algorithmic claims to the theory's limited reasoning strength. The index does not state how solvers and their correctness are encoded or which assumptions support the proposed unprovability, so those details remain essential to the final formulation.
 
 [Read in atlas](index.html#TCS-1098) · [Meta-Mathematics of Computational Complexity Theory](https://arxiv.org/abs/2504.04416)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0071 — NC⁰ proof systems
+### TCS-0071 — \(\mathrm{NC}^{0}\) proof systems
 
-A propositional proof system maps proof strings to valid statements and must represent every statement in its target language. The saved entry studies systems computed by NC⁰ circuit families. In this model, each output bit depends on only a constant number of input bits, imposing a severe local restriction. Characterizing what such systems can express would test how little computation proof verification or proof generation can use. The inherited label does not identify the target language or completeness convention, so the precise existence or separation question still needs its source formulation.
+A propositional proof system maps proof strings to valid statements and must represent every statement in its target language. The saved entry studies systems computed by \(\mathrm{NC}^{0}\) circuit families. In this model, each output bit depends on only a constant number of input bits, imposing a severe local restriction. Characterizing what such systems can express would test how little computation proof verification or proof generation can use. The inherited label does not identify the target language or completeness convention, so the precise existence or separation question still needs its source formulation.
 
 [Read in atlas](index.html#TCS-0071) · [Circuits, Logic and Games](https://doi.org/10.4230/DagRep.5.9.105)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1253 — Superpolynomial Res[⊕] lower bounds
+### TCS-1253 — Superpolynomial Res\([\oplus ]\) lower bounds
 
 Resolution over parities allows proof lines to describe linear equations modulo two. The saved passage identifies superpolynomial lower bounds for this stronger resolution system as unresolved in its source. Parity reasoning can compress constraints that ordinary clauses express only indirectly. A general size lower bound would therefore push beyond limitations of weaker proof languages. The cited work connects this direction with range avoidance and proof-complexity generators, but the excerpt does not specify a hard formula family or establish that the source's historical status remains current.
 
@@ -384,7 +384,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 A polynomial threshold function takes the sign of a real polynomial on the Boolean cube. Total influence is the expected number of coordinate flips that change its output. The target is the largest possible influence as a joint function of dimension n and degree bound d, within universal constant factors. The asymptotic Gotsman–Linial conjecture gives a proposed upper scale, whereas a stronger exact-extremizer claim was disproved. The statement permits arbitrary realizing polynomials and does not prescribe a particular extremal construction.
 
-[Read in atlas](index.html#TCS-6664) · [The Gotsman–Linial Conjecture is False](https://arxiv.org/abs/2108.02288) · [A Dual Perspective on Computational Complexity](https://dspace.mit.edu/server/api/core/bitstreams/7f2e32fd-d615-4dba-97be-f26cd30ca234/content) · [The Correct Exponent for the Gotsman–Linial Conjecture](https://arxiv.org/abs/1210.1283) · [On Graphs and the Gotsman–Linial Conjecture for d = 2](https://arxiv.org/abs/1709.06650) · [The Boolean surface area of polynomial threshold functions](https://arxiv.org/abs/2604.08095) · [Rational degree is polynomially related to degree](https://arxiv.org/abs/2601.08727)
+[Read in atlas](index.html#TCS-6664) · [The Gotsman–Linial Conjecture is False](https://arxiv.org/abs/2108.02288) · [A Dual Perspective on Computational Complexity](https://dspace.mit.edu/server/api/core/bitstreams/7f2e32fd-d615-4dba-97be-f26cd30ca234/content) · [The Correct Exponent for the Gotsman–Linial Conjecture](https://arxiv.org/abs/1210.1283) · [On Graphs and the Gotsman–Linial Conjecture for \(d = 2\)](https://arxiv.org/abs/1709.06650) · [The Boolean surface area of polynomial threshold functions](https://arxiv.org/abs/2604.08095) · [Rational degree is polynomially related to degree](https://arxiv.org/abs/2601.08727)
 Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-7219 — Aanderaa–Karp–Rosenberg conjecture
@@ -410,7 +410,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6705 — Sharp low-degree Fourier weight of halfspaces
 
-A halfspace is the sign of a weighted sum of input bits and a threshold. Its degree-zero and degree-one Fourier coefficients measure its mean and coordinate correlations. The question asks whether their squared weight is always at least 2/π. Majority functions approach that proposed universal constant as dimension grows. The exact inequality is retained because a general algorithm for merely approximating the extremal constant is already known.
+A halfspace is the sign of a weighted sum of input bits and a threshold. Its degree-zero and degree-one Fourier coefficients measure its mean and coordinate correlations. The question asks whether their squared weight is always at least \(2/\pi\). Majority functions approach that proposed universal constant as dimension grows. The exact inequality is retained because a general algorithm for merely approximating the extremal constant is already known.
 
 [Read in atlas](index.html#TCS-6705) · [Analysis of Boolean Functions (updated author edition)](https://arxiv.org/abs/2105.10386) · [A robust Khintchine inequality, and algorithms for computing optimal constants in Fourier analysis and high-dimensional geometry](https://arxiv.org/abs/1207.2229) · [A Two-regime Khintchine Inequality and an Improved Bound on the Degree-1 Fourier Weight for Linear Threshold Functions](https://arxiv.org/abs/2608.27908)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -487,7 +487,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1540 — Influence lower bounds for noisy query complexity
 
-Noisy query algorithms receive unreliable information when inspecting input bits. The source conjectures a lower bound of order I(f) log I(f) for every Boolean function, with I(f) denoting influence in its model. The proposed logarithmic factor would quantify the extra cost of overcoming noise for functions sensitive to many coordinates. It links an analytic property of the function to the number of observations needed for reliable computation. The saved passage does not preserve the noise rate, error guarantee, or influence convention, and those choices are essential when interpreting both the bound and small-influence edge cases.
+Noisy query algorithms receive unreliable information when inspecting input bits. The source conjectures a lower bound of order \(I(f) \log  I(f)\) for every Boolean function, with \(I(f)\) denoting influence in its model. The proposed logarithmic factor would quantify the extra cost of overcoming noise for functions sensitive to many coordinates. It links an analytic property of the function to the number of observations needed for reliable computation. The saved passage does not preserve the noise rate, error guarantee, or influence convention, and those choices are essential when interpreting both the bound and small-influence edge cases.
 
 [Read in atlas](index.html#TCS-1540) · [Tight Bounds for Noisy Computation of High-Influence Functions, Connectivity, and Threshold](https://proceedings.mlr.press/v291/gu25a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -510,12 +510,12 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 A sign matrix can be represented by points and separating hyperplanes. Its margin measures how far every point stays from every relevant hyperplane after normalization. Its sign-rank is the smallest dimension of any representation with the correct signs. The question asks whether a fixed positive margin forces a dimension bound independent of matrix size. Recent work disproves a proposed Hamming-distance counterexample but explicitly leaves the general question open.
 
-[Read in atlas](index.html#TCS-2658) · [Lower Bound Methods for Sign-Rank and Their Limitations](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.22) · [Sign-Rank of k-Hamming Distance is Constant](https://eccc.weizmann.ac.il/report/2025/060/) · [A Z₂–Topological Framework for Sign-rank Lower Bounds](https://eccc.weizmann.ac.il/report/2026/056/)
+[Read in atlas](index.html#TCS-2658) · [Lower Bound Methods for Sign-Rank and Their Limitations](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.22) · [Sign-Rank of k-Hamming Distance is Constant](https://eccc.weizmann.ac.il/report/2025/060/) · [A \(Z_{2}\)–Topological Framework for Sign-rank Lower Bounds](https://eccc.weizmann.ac.il/report/2026/056/)
 Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3153 — Fourier rank versus sparsity
 
-A Boolean function has a Fourier expansion in parity characters. Its sparsity counts nonzero coefficients, while its rank is the F₂ dimension spanned by their index sets. The question asks whether rank can exceed the square root of sparsity by an unbounded factor. Known addressing examples attain the square-root scale, and the published universal upper bound allows an additional logarithmic factor. The answer requires either an asymptotically separating family or a universal square-root bound with an absolute constant.
+A Boolean function has a Fourier expansion in parity characters. Its sparsity counts nonzero coefficients, while its rank is the \(F_{2}\) dimension spanned by their index sets. The question asks whether rank can exceed the square root of sparsity by an unbounded factor. Known addressing examples attain the square-root scale, and the published universal upper bound allows an additional logarithmic factor. The answer requires either an asymptotically separating family or a universal square-root bound with an absolute constant.
 
 [Read in atlas](index.html#TCS-3153) · [Tight Chang’s-Lemma-Type Bounds for Boolean Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2021.10) · [Fourier Sparsity and Dimension](https://theoryofcomputing.org/articles/v015a011/) · [Spectral Norm, Economical Sieve, and Linear Invariance Testing of Boolean Functions](https://doi.org/10.4230/LIPIcs.STACS.2026.30)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -552,7 +552,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 A compression game lets computationally restricted players send information to a referee with unrestricted computation. The source studies constant-depth circuit restrictions and multiple rounds of interaction. The relevant conjecture proposes strong multiparty lower bounds for the Clique function. Such bounds would show that low communication cannot compensate for the players' limited computation. The project is significant because the source connects sufficiently strong compression-game hardness to separating NP from nonuniform logarithmic-depth circuits.
 
-[Read in atlas](index.html#TCS-5272) · [Majority is Incompressible by AC^0(p) Circuits](https://doi.org/10.4230/LIPIcs.CCC.2015.124)
+[Read in atlas](index.html#TCS-5272) · [Majority is Incompressible by \(\mathrm{AC}^{0}(p)\) Circuits](https://doi.org/10.4230/LIPIcs.CCC.2015.124)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5326 — Communication compression to information cost
@@ -585,7 +585,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6708 — Fourier Min-Entropy–Influence conjecture
 
-The squared Fourier coefficients of a Boolean function distribute its spectral weight among subsets of variables. The conjecture asks whether at least one coefficient has weight exp(−O(I)), where I is total influence. It predicts that limited average sensitivity forces some noticeable spectral concentration, even without controlling the entropy of the whole spectrum. This provides a focused bridge between local bit-flip behavior and a globally detectable Fourier component. The universal constant and uniform-distribution conventions must come from the source, and this largest-coefficient claim should be distinguished from the stronger full Fourier entropy–influence inequality.
+The squared Fourier coefficients of a Boolean function distribute its spectral weight among subsets of variables. The conjecture asks whether at least one coefficient has weight \(\exp (- O(I))\), where I is total influence. It predicts that limited average sensitivity forces some noticeable spectral concentration, even without controlling the entropy of the whole spectrum. This provides a focused bridge between local bit-flip behavior and a globally detectable Fourier component. The universal constant and uniform-distribution conventions must come from the source, and this largest-coefficient claim should be distinguished from the stronger full Fourier entropy–influence inequality.
 
 [Read in atlas](index.html#TCS-6708) · [Analysis of Boolean Functions (updated author edition)](https://arxiv.org/abs/2105.10386)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -615,7 +615,7 @@ Existing status: `resolved` · Summary written: 2026-09-12
 
 ### TCS-6595 — Strong Exponential Time Hypothesis
 
-The Strong Exponential Time Hypothesis concerns exact satisfiability of Boolean formulas with bounded clause width. It asserts that no fixed positive saving over exhaustive search's exponent works for every fixed width. Faster algorithms for small widths remain compatible with the hypothesis because their savings may vanish as width grows. The statement underlies precise conditional running-time barriers for many polynomial-time problems. The saved review fixes deterministic algorithms and emphasizes that neither a randomized improvement for 3-SAT nor ordinary P≠NP settles these stronger all-width quantifiers.
+The Strong Exponential Time Hypothesis concerns exact satisfiability of Boolean formulas with bounded clause width. It asserts that no fixed positive saving over exhaustive search's exponent works for every fixed width. Faster algorithms for small widths remain compatible with the hypothesis because their savings may vanish as width grows. The statement underlies precise conditional running-time barriers for many polynomial-time problems. The saved review fixes deterministic algorithms and emphasizes that neither a randomized improvement for 3-SAT nor ordinary \(\mathrm{P}\ne \mathrm{NP}\) settles these stronger all-width quantifiers.
 
 [Read in atlas](index.html#TCS-6595) · [On the Complexity of k-SAT](https://cseweb.ucsd.edu/~paturi/myPapers/pubs/ImpagliazzoPaturi_2001_jcss.pdf) · [Parameterized Algorithms](https://www.mimuw.edu.pl/~malcin/book/parameterized-algorithms.pdf) · [On some fine-grained questions in algorithms and complexity](https://people.csail.mit.edu/virgi/eccentri.pdf) · [A Better Analysis For PPSZ For 3-SAT](https://arxiv.org/abs/2607.10697v1)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -636,7 +636,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6597 — Algebraic k-Clique Hypothesis
 
-For each fixed k, graph k-Clique asks whether k vertices are all pairwise adjacent. The reviewed hypothesis asks whether the leading coefficient of the optimal time exponent approaches the matrix-multiplication benchmark ω/3. Grouping a candidate clique into three parts connects detection to multiplication on auxiliary graphs. A lower exponent would change the foundation of many conditional optimality results for other computational tasks. The comparison uses the true matrix-multiplication exponent, so beating an old numerical upper bound or saving logarithmic factors does not by itself refute the hypothesis.
+For each fixed k, graph k-Clique asks whether k vertices are all pairwise adjacent. The reviewed hypothesis asks whether the leading coefficient of the optimal time exponent approaches the matrix-multiplication benchmark \(\omega /3\). Grouping a candidate clique into three parts connects detection to multiplication on auxiliary graphs. A lower exponent would change the foundation of many conditional optimality results for other computational tasks. The comparison uses the true matrix-multiplication exponent, so beating an old numerical upper bound or saving logarithmic factors does not by itself refute the hypothesis.
 
 [Read in atlas](index.html#TCS-6597) · [Dynamic Boolean Formula Evaluation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ISAAC.2021.61) · [Faster Combinatorial k-Clique Algorithms](https://arxiv.org/abs/2401.13502v2) · [The Role of Regularity in (Hyper-)Clique Detection and Implications for Optimizing Boolean CSPs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.78) · [Conditionally Tight Algorithms for Maximum k-Coverage and Partial k-Dominating Set via Arity-Reducing Hypercuts](https://arxiv.org/abs/2601.16923) · [Improving the matrix multiplication exponent with modern optimization and AlphaEvolve](https://arxiv.org/abs/2608.16884)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -664,7 +664,7 @@ Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6598 — Min-Plus Convolution Hypothesis
 
-Min-plus convolution combines two arrays by taking, at each output index, the minimum sum of entries whose indices add to it. The saved question asks for a randomized bounded-error algorithm with running time O(n^(2−ε)) for some fixed positive ε. The straightforward method considers quadratically many pairs, even though only linearly many output values are returned. A faster algorithm would affect fine-grained barriers for several dynamic-programming and optimization tasks. The proposal explicitly restricts inputs to polynomially bounded integers on a word RAM, so changing numeric representation can change the relevant complexity claim.
+Min-plus convolution combines two arrays by taking, at each output index, the minimum sum of entries whose indices add to it. The saved question asks for a randomized bounded-error algorithm with running time \(O(n^{2- \varepsilon})\) for some fixed positive \(\varepsilon\). The straightforward method considers quadratically many pairs, even though only linearly many output values are returned. A faster algorithm would affect fine-grained barriers for several dynamic-programming and optimization tasks. The proposal explicitly restricts inputs to polynomially bounded integers on a word RAM, so changing numeric representation can change the relevant complexity claim.
 
 [Read in atlas](index.html#TCS-6598) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.119)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -748,7 +748,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6935 — Randomized Strong Exponential Time Hypothesis
 
-Randomized SETH asks whether bounded-width satisfiability resists every uniform fixed saving in the exhaustive-search exponent. For each positive ε, the conjecture requires some fixed width k with no randomized O(2^((1−ε)n)) algorithm. The width may grow as the demanded saving shrinks, so fast algorithms at individual small widths remain compatible. This randomized version supports lower bounds that must exclude randomized algorithms for their target tasks. The saved textbook note does not spell out error and polynomial input-length factors, and deterministic SETH alone cannot silently supply the stronger randomized exclusion.
+Randomized SETH asks whether bounded-width satisfiability resists every uniform fixed saving in the exhaustive-search exponent. For each positive \(\varepsilon\), the conjecture requires some fixed width k with no randomized \(O(2^{(1- \varepsilon )n})\) algorithm. The width may grow as the demanded saving shrinks, so fast algorithms at individual small widths remain compatible. This randomized version supports lower bounds that must exclude randomized algorithms for their target tasks. The saved textbook note does not spell out error and polynomial input-length factors, and deterministic SETH alone cannot silently supply the stronger randomized exclusion.
 
 [Read in atlas](index.html#TCS-6935) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -776,7 +776,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6944 — Min-Weight k-Clique hypothesis
 
-Minimum-Weight k-Clique selects k mutually adjacent vertices minimizing the sum of their edge weights. The source hypothesizes randomized running time essentially n^k in its specified weight range. Optimizing numeric interactions can be harder than merely detecting whether an unweighted clique exists. The conjecture serves as a strong benchmark for fine-grained reductions involving weighted selection problems. The saved note does not reproduce the allowed weights or exact quantifier convention, so matrix-multiplication algorithms for unweighted clique and improvements under special weight restrictions do not automatically address this target.
+Minimum-Weight k-Clique selects k mutually adjacent vertices minimizing the sum of their edge weights. The source hypothesizes randomized running time essentially \(n^{k}\) in its specified weight range. Optimizing numeric interactions can be harder than merely detecting whether an unweighted clique exists. The conjecture serves as a strong benchmark for fine-grained reductions involving weighted selection problems. The saved note does not reproduce the allowed weights or exact quantifier convention, so matrix-multiplication algorithms for unweighted clique and improvements under special weight restrictions do not automatically address this target.
 
 [Read in atlas](index.html#TCS-6944) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -813,14 +813,14 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0003 — P versus BPP
 
-BPP contains decision problems solvable in polynomial time using random bits with bounded error on every input. The question asks whether every such problem also has a deterministic polynomial-time algorithm, giving P=BPP. Trying every random tape removes error but generally takes exponential time. A positive answer would show that randomness changes algorithm design without enlarging this class of efficiently decidable problems. The saved review explains conditional routes through strong circuit lower bounds and distinguishes uniform algorithms from advice strings that merely exist for each input length.
+BPP contains decision problems solvable in polynomial time using random bits with bounded error on every input. The question asks whether every such problem also has a deterministic polynomial-time algorithm, giving \(\mathrm{P}=\mathrm{BPP}\). Trying every random tape removes error but generally takes exponential time. A positive answer would show that randomness changes algorithm design without enlarging this class of efficiently decidable problems. The saved review explains conditional routes through strong circuit lower bounds and distinguishes uniform algorithms from advice strings that merely exist for each input length.
 
-[Read in atlas](index.html#TCS-0003) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [P=BPP unless E has sub-exponential circuits: Derandomizing the XOR Lemma](https://www.math.ias.edu/~avi/PUBLICATIONS/MYPAPERS/IW97/proc.pdf) · [Pseudorandomness Beating the Hybrid Argument for Insensitive Algorithms](https://eccc.weizmann.ac.il/report/2026/082/) · [Probabilistic Computers (and Hence Quantum Computers) Are Rigorously More Powerful Than Classical Deterministic Computers, and Derandomization](https://arxiv.org/abs/2308.09549v9)
+[Read in atlas](index.html#TCS-0003) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [\(\mathrm{P}=\mathrm{BPP}\) unless E has sub-exponential circuits: Derandomizing the XOR Lemma](https://www.math.ias.edu/~avi/PUBLICATIONS/MYPAPERS/IW97/proc.pdf) · [Pseudorandomness Beating the Hybrid Argument for Insensitive Algorithms](https://eccc.weizmann.ac.il/report/2026/082/) · [Probabilistic Computers (and Hence Quantum Computers) Are Rigorously More Powerful Than Classical Deterministic Computers, and Derandomization](https://arxiv.org/abs/2308.09549v9)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6600 — Optimal explicit pseudorandom generators for read-once branching programs
 
-An ordered read-once branching program processes input bits sequentially while retaining only one of a bounded number of states. The target is an explicit pseudorandom generator with seed length O(log n+log w+log(1/ε)). One generated distribution must approximate acceptance probabilities for every length-n, width-w program without inspecting that program. Such a generator would provide a strong route to removing randomness from logarithmic-space computation. The saved review stresses that weighted pseudodistributions, hitting sets, and generators for permutation programs do not directly supply the ordinary distribution required for arbitrary merging transitions.
+An ordered read-once branching program processes input bits sequentially while retaining only one of a bounded number of states. The target is an explicit pseudorandom generator with seed length \(O(\log  n+\log  w+\log (1/\varepsilon ))\). One generated distribution must approximate acceptance probabilities for every length-n, width-w program without inspecting that program. Such a generator would provide a strong route to removing randomness from logarithmic-space computation. The saved review stresses that weighted pseudodistributions, hitting sets, and generators for permutation programs do not directly supply the ordinary distribution required for arbitrary merging transitions.
 
 [Read in atlas](index.html#TCS-6600) · [Pseudorandom generators for space-bounded computation](https://mathweb.ucsd.edu/~sbuss/CourseWeb/Math268_2013W/Nisan_PRG.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2021.28) · [Hitting Sets Give Two-Sided Derandomization of Small Space](https://theoryofcomputing.org/articles/v018a021/) · [Weighted Pseudorandom Generators for Read-Once Branching Programs via Weighted Pseudorandom Reductions](https://epubs.siam.org/doi/10.1137/1.9781611978971.124) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/) · [A Forward-Backward Weight Analysis of INW for Permutation Branching Programs](https://eccc.weizmann.ac.il/report/2026/123/)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -834,14 +834,14 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6662 — Optimal deterministic restricted-isometry matrices
 
-A restricted-isometry matrix approximately preserves the Euclidean length of every sparse vector. The reviewed question asks for deterministic polynomial-time construction with O(s log(eN/s)) rows and fixed distortion. Random matrices achieve this row order, but a usable deterministic construction must control every sparse support simultaneously. Optimal explicit matrices would provide guaranteed measurement designs for compressed sensing without random setup choices. The saved review identifies the limitations of pairwise coherence analyses and notes that reduced randomness or success on typical signals does not establish the requested all-signal guarantee.
+A restricted-isometry matrix approximately preserves the Euclidean length of every sparse vector. The reviewed question asks for deterministic polynomial-time construction with \(O(s \log (eN/s))\) rows and fixed distortion. Random matrices achieve this row order, but a usable deterministic construction must control every sparse support simultaneously. Optimal explicit matrices would provide guaranteed measurement designs for compressed sensing without random setup choices. The saved review identifies the limitations of pairwise coherence analyses and notes that reduced randomness or success on typical signals does not establish the requested all-signal guarantee.
 
 [Read in atlas](index.html#TCS-6662) · [Doubly transitive equiangular tight frames that contain regular simplices](https://www.sciencedirect.com/science/article/pii/S0024379525003143) · [The road to deterministic matrices with the restricted isometry property](https://www.math.ucdavis.edu/~strohmer/courses/270/road_to_rip.pdf) · [Explicit constructions of RIP matrices and related problems](https://arxiv.org/abs/1008.4535) · [Satisfying the restricted isometry property with the optimal number of rows and slightly less randomness](https://arxiv.org/abs/2311.07889)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1005 — Unconditional subexponential simulation of BPP
 
-Randomized polynomial-time decision algorithms can be simulated deterministically by enumerating all their random choices. The saved question asks for an unconditional simulation in quasipolynomial or subexponential time. This relaxes the ambitious P=BPP target while still seeking a major saving over straightforward exhaustive enumeration. Even the weaker simulation would constrain how much computational power polynomially many random bits can provide. The source note does not fix its precise subexponential convention, and conditional simulations based on unproved hardness assumptions would not answer the unconditional version recorded here.
+Randomized polynomial-time decision algorithms can be simulated deterministically by enumerating all their random choices. The saved question asks for an unconditional simulation in quasipolynomial or subexponential time. This relaxes the ambitious \(\mathrm{P}=\mathrm{BPP}\) target while still seeking a major saving over straightforward exhaustive enumeration. Even the weaker simulation would constrain how much computational power polynomially many random bits can provide. The source note does not fix its precise subexponential convention, and conditional simulations based on unproved hardness assumptions would not answer the unconditional version recorded here.
 
 [Read in atlas](index.html#TCS-1005) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -927,14 +927,14 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 Arthur–Merlin protocols combine public randomness with a prover who supplies information to help verify membership. The source asks for a characterization of promise-AM derandomization using targeted hitting sets. A hitting set guarantees that useful random choices are encountered, without necessarily reproducing their full distribution. Such a characterization could turn an interactive complexity question into a concrete combinatorial construction task. The saved entry does not define what the hitting set may target or how uniformly it is produced, and these restrictions determine whether the proposed equivalence has real algorithmic content.
 
-[Read in atlas](index.html#TCS-1135) · [New ways of studying the BPP = P conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
+[Read in atlas](index.html#TCS-1135) · [New ways of studying the \(\mathrm{BPP} = \mathrm{P}\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1137 — Derandomization from almost-everywhere uniform hardness
 
 Hardness-based derandomization constructs useful pseudorandomness from functions that resist efficient computation. The source asks for derandomization from almost-everywhere uniform hardness. Uniform hardness concerns algorithms rather than arbitrary circuit families, while almost-everywhere hardness restricts exceptions across input lengths. A result from this premise could clarify which kinds of computational difficulty are sufficient to remove randomness. The saved title gives no hardness rate or target simulation class, so a complete version must specify both before comparing this premise with stronger nonuniform assumptions.
 
-[Read in atlas](index.html#TCS-1137) · [New ways of studying the BPP = P conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
+[Read in atlas](index.html#TCS-1137) · [New ways of studying the \(\mathrm{BPP} = \mathrm{P}\) conjecture](https://eccc.weizmann.ac.il/report/2023/094/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0987 — Deterministic Heavy-Hitters & Fast Matrix Algorithms
@@ -946,7 +946,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1008 — Bipartite vertex expanders with constant expansion loss
 
-A bipartite vertex expander sends every sufficiently small set of left vertices to many distinct right neighbors. The textbook asks for explicit balanced constructions with expansion D−O(1), where D is the degree. This means only a constant amount of expansion is lost relative to the maximum D neighbors per vertex. Such graphs provide highly efficient spreading and sampling structures from bounded local connectivity. The saved note omits the range of sets that must expand and the explicitness requirement, so these must be restored before the additive-loss target becomes a complete construction specification.
+A bipartite vertex expander sends every sufficiently small set of left vertices to many distinct right neighbors. The textbook asks for explicit balanced constructions with expansion \(D- O(1)\), where D is the degree. This means only a constant amount of expansion is lost relative to the maximum D neighbors per vertex. Such graphs provide highly efficient spreading and sampling structures from bounded local connectivity. The saved note omits the range of sets that must expand and the explicitness requirement, so these must be restored before the additive-loss target becomes a complete construction specification.
 
 [Read in atlas](index.html#TCS-1008) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -1028,7 +1028,7 @@ The source obtains polynomial-time simulations of BPP that err on at most an inv
 [Read in atlas](index.html#TCS-3986) · [Fine-Grained Derandomization: From Problem-Centric to Resource-Centric Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2018.27) · [Fine-Grained Derandomization: From Problem-Centric to Resource-Centric Complexity — full version](https://eccc.weizmann.ac.il/report/2018/092/) · [Pseudorandom generators, typically-correct derandomization, and circuit lower bounds](https://doi.org/10.1007/s00037-011-0019-z) · [On The Utility of Fine-Grained Complexity Theory](https://www2.eecs.berkeley.edu/Pubs/TechRpts/2020/EECS-2020-165.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-4716 — AC⁰-distinguishable locally indistinguishable NC⁰ sources
+### TCS-4716 — \(\mathrm{AC}^{0}\)-distinguishable locally indistinguishable \(\mathrm{NC}^{0}\) sources
 
 Two random sources can have identical distributions on every small set of coordinates while differing in their global structure. This project asks whether sources generated by very local NC0 circuits can retain that indistinguishability on polynomially many coordinates yet be distinguished by an AC0 circuit. The distinguishing advantage should remain constant rather than vanish with the output length. A positive construction would yield an unusually simple form of secret sharing with local share generation and shallow reconstruction. A negative result would instead impose a strong limitation on global patterns that locally generated sources can hide from small observations.
 
@@ -1065,7 +1065,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6686 — P versus RP
 
-RP consists of polynomial-time randomized decision algorithms that never accept a false instance and accept true instances with substantial probability. The textbook asks whether every such language has a deterministic polynomial-time algorithm, giving P=RP. One-sided error makes an observed acceptance trustworthy but does not explain how to find a successful random tape efficiently. Resolving the equality would determine whether this basic use of randomness enlarges efficient decision power. The saved note is historical, and a deterministic simulation for only a particular RP problem would not settle the universal class comparison.
+RP consists of polynomial-time randomized decision algorithms that never accept a false instance and accept true instances with substantial probability. The textbook asks whether every such language has a deterministic polynomial-time algorithm, giving \(\mathrm{P}=\mathrm{RP}\). One-sided error makes an observed acceptance trustworthy but does not explain how to find a successful random tape efficiently. Resolving the equality would determine whether this basic use of randomness enlarges efficient decision power. The saved note is historical, and a deterministic simulation for only a particular RP problem would not settle the universal class comparison.
 
 [Read in atlas](index.html#TCS-6686) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -1077,9 +1077,9 @@ An averaging sampler chooses a small collection of locations whose observed aver
 [Read in atlas](index.html#TCS-6689) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6693 — Subpolynomial-seed pseudorandom generators for AC⁰[2]
+### TCS-6693 — Subpolynomial-seed pseudorandom generators for \(\mathrm{AC}^{0}[2]\)
 
-AC0[2] circuits combine constant-depth Boolean operations with parity gates. The textbook asks for pseudorandom generators with subpolynomial seed length that fool this circuit class. Such a seed would be smaller than every fixed positive power of the relevant input length. The target would provide a strong form of unconditional derandomization for circuits capable of detecting algebraic correlations. The saved historical note does not specify size, depth, or error dependencies, and a merely sublinear seed does not automatically meet the stronger subpolynomial requirement.
+\(\mathrm{AC}0[2]\) circuits combine constant-depth Boolean operations with parity gates. The textbook asks for pseudorandom generators with subpolynomial seed length that fool this circuit class. Such a seed would be smaller than every fixed positive power of the relevant input length. The target would provide a strong form of unconditional derandomization for circuits capable of detecting algebraic correlations. The saved historical note does not specify size, depth, or error dependencies, and a merely sublinear seed does not automatically meet the stronger subpolynomial requirement.
 
 [Read in atlas](index.html#TCS-6693) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -1093,7 +1093,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6699 — AM versus NP
 
-Arthur–Merlin protocols use public randomness and a prover to verify claims efficiently. The textbook asks whether their randomness can be removed so that AM collapses to NP. It singles out graph nonisomorphism, where the desired outcome would be polynomially checkable certificates that two graphs differ up to relabeling. Such certificates would replace an interactive randomized justification with a static witness. The specific graph problem is a consequence to seek rather than an equivalent restatement of full AM=NP, and the dated source note does not constitute a current-status review.
+Arthur–Merlin protocols use public randomness and a prover to verify claims efficiently. The textbook asks whether their randomness can be removed so that AM collapses to NP. It singles out graph nonisomorphism, where the desired outcome would be polynomially checkable certificates that two graphs differ up to relabeling. Such certificates would replace an interactive randomized justification with a static witness. The specific graph problem is a consequence to seek rather than an equivalent restatement of full \(\mathrm{AM}=\mathrm{NP}\), and the dated source note does not constitute a current-status review.
 
 [Read in atlas](index.html#TCS-6699) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -1107,18 +1107,18 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6879 — Explicit near-optimal vertex expanders
 
-Vertex expansion measures how many distinct outside neighbors a small vertex set has. The source asks for explicit regular graphs whose small-set expansion approaches d−2 at degree d. The target concerns neighbor diversity rather than only the number of crossing edges, so ordinary spectral quality may not directly yield the requested sharp bound. Such graphs would strengthen constructive tools where small sets must spread information to many new vertices. The saved question does not preserve the permitted set-size range or approximation slack, so those parameters must be recovered before comparing a graph family with the target.
+Vertex expansion measures how many distinct outside neighbors a small vertex set has. The source asks for explicit regular graphs whose small-set expansion approaches \(d- 2\) at degree d. The target concerns neighbor diversity rather than only the number of crossing edges, so ordinary spectral quality may not directly yield the requested sharp bound. Such graphs would strengthen constructive tools where small sets must spread information to many new vertices. The saved question does not preserve the permitted set-size range or approximation slack, so those parameters must be recovered before comparing a graph family with the target.
 
 [Read in atlas](index.html#TCS-6879) · [Expander Graphs and Their Applications](https://www.math.ias.edu/avi/node/974)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Parameterized complexity and algorithms (44)
 
-### TCS-6592 — FPT versus W[1]
+### TCS-6592 — FPT versus \(\mathrm{W}[1]\)
 
-A k-clique is a set of k graph vertices with every possible edge between them. The question asks whether exact detection admits time f(k)n^c with a computable f and an exponent c independent of k. Enumerating vertex subsets gives polynomial time for each fixed k, but its exponent grows with the requested clique. An algorithm of the required form would establish FPT=W[1] and change the interpretation of many parameterized hardness reductions. The saved review distinguishes this unconditional question from stronger lower bounds that assume ETH.
+A k-clique is a set of k graph vertices with every possible edge between them. The question asks whether exact detection admits time \(f(k)n^{c}\) with a computable f and an exponent c independent of k. Enumerating vertex subsets gives polynomial time for each fixed k, but its exponent grows with the requested clique. An algorithm of the required form would establish \(\mathrm{FPT}=\mathrm{W}[1]\) and change the interpretation of many parameterized hardness reductions. The saved review distinguishes this unconditional question from stronger lower bounds that assume ETH.
 
-[Read in atlas](index.html#TCS-6592) · [Parameterized Algorithms](https://www.mimuw.edu.pl/~malcin/book/parameterized-algorithms.pdf) · [On W(1)-Hardness as Evidence for Intractability](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2018.73) · [Constant Approximating k-Clique is W(1)-hard](https://arxiv.org/abs/2102.04769) · [Simple Combinatorial Construction of the k^{o(1)}-Lower Bound for Approximating the Parameterized k-Clique](https://arxiv.org/abs/2304.07516) · [Faster Combinatorial k-Clique Algorithms](https://weizmann.elsevierpure.com/en/publications/faster-combinatorial-k-clique-algorithms-2/)
+[Read in atlas](index.html#TCS-6592) · [Parameterized Algorithms](https://www.mimuw.edu.pl/~malcin/book/parameterized-algorithms.pdf) · [On \(\mathrm{W}(1)\)-Hardness as Evidence for Intractability](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2018.73) · [Constant Approximating k-Clique is \(\mathrm{W}(1)\)-hard](https://arxiv.org/abs/2102.04769) · [Simple Combinatorial Construction of the \(k^{o(1)}\)-Lower Bound for Approximating the Parameterized k-Clique](https://arxiv.org/abs/2304.07516) · [Faster Combinatorial k-Clique Algorithms](https://weizmann.elsevierpure.com/en/publications/faster-combinatorial-k-clique-algorithms-2/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6593 — Exponential Time Hypothesis
@@ -1153,12 +1153,12 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 Clique-width measures how many reusable vertex labels are needed to build a graph with four specified operations. Even a complete graph of arbitrary size needs only two labels. The question asks whether graphs of width at most k can be recognized in polynomial time for every fixed k. The polynomial exponent may depend on k, so known NP-completeness when k is input does not settle it. Small thresholds are understood, while approximate or supplied decompositions do not give exact recognition at every threshold.
 
-[Read in atlas](index.html#TCS-7181) · [Clique-width is NP-complete](https://doi.org/10.1137/070687256) · [Polynomial-time recognition of clique-width ≤3 graphs](https://doi.org/10.1016/j.dam.2011.03.020) · [Tight Bounds for Feedback Vertex Set Parameterized by Clique-Width](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.39)
+[Read in atlas](index.html#TCS-7181) · [Clique-width is NP-complete](https://doi.org/10.1137/070687256) · [Polynomial-time recognition of clique-width \(\le 3\) graphs](https://doi.org/10.1016/j.dam.2011.03.020) · [Tight Bounds for Feedback Vertex Set Parameterized by Clique-Width](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.39)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7247 — Independent set algorithms from tropical circuit size
 
-A tropical circuit combines vertex weights using only maximum and addition. For each graph, τ measures the smallest circuit that computes maximum independent-set weight for every nonnegative weight assignment. The question asks for a uniform algorithm whose runtime is polynomial in τ and the input size. The algorithm receives no circuit or decomposition and may use unrestricted deterministic computation. A positive answer would turn the existence of a compact dynamic program into an effective algorithmic guarantee.
+A tropical circuit combines vertex weights using only maximum and addition. For each graph, \(\tau\) measures the smallest circuit that computes maximum independent-set weight for every nonnegative weight assignment. The question asks for a uniform algorithm whose runtime is polynomial in \(\tau\) and the input size. The algorithm receives no circuit or decomposition and may use unrestricted deterministic computation. A positive answer would turn the existence of a compact dynamic program into an effective algorithmic guarantee.
 
 [Read in atlas](index.html#TCS-7247) · [Lower Bounds on Dynamic Programming for Maximum Weight Independent Set](https://arxiv.org/abs/2102.06901) · [Open problems: Can dynamic programming for independent set be automated?](https://tuukkakorhonen.com/problems.html)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -1179,7 +1179,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0734 — FPT Inapproximability Results Beyond Gap-ETH
 
-The seminar asks for stronger fixed-parameter inapproximability results that remain beyond known techniques even when Gap-ETH is assumed. For k-Set Cover, one target is approximation hardness of order log^0.99(n), where n is the number of elements to cover. A second target is to rule out every g(k)-factor FPT approximation for Exact k-Set Cover, whose promise is that a size-k cover consisting of disjoint sets exists. It also asks for o(k)-factor hardness of Densest k-Subgraph with perfect completeness under Gap-ETH, matching a result based on the Strongish Planted Clique Hypothesis. In particular, hardness with disjoint-cover completeness would support further reductions to coding and lattice problems.
+The seminar asks for stronger fixed-parameter inapproximability results that remain beyond known techniques even when Gap-ETH is assumed. For k-Set Cover, one target is approximation hardness of order \(\log ^{0.99}(n)\), where n is the number of elements to cover. A second target is to rule out every \(g(k)\)-factor FPT approximation for Exact k-Set Cover, whose promise is that a size-k cover consisting of disjoint sets exists. It also asks for \(o(k)\)-factor hardness of Densest k-Subgraph with perfect completeness under Gap-ETH, matching a result based on the Strongish Planted Clique Hypothesis. In particular, hardness with disjoint-cover completeness would support further reductions to coding and lattice problems.
 
 [Read in atlas](index.html#TCS-0734) · [Parameterized Approximation: Algorithms and Hardness](https://doi.org/10.4230/DagRep.13.7.96)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -1282,9 +1282,9 @@ Independent Set asks whether a graph contains k pairwise nonadjacent vertices. S
 [Read in atlas](index.html#TCS-3917) · [Parameterized Complexity of Independent Set in H-Free Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2018.17) · [Parameterized Complexity of Independent Set in H-Free Graphs](https://doi.org/10.1007/s00453-020-00730-6) · [When Maximum Stable Set Can Be Solved in FPT Time](https://doi.org/10.4230/LIPIcs.ISAAC.2019.49)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-4289 — W[2]-hardness of bounded-VC-dimension Hitting Set
+### TCS-4289 — \(\mathrm{W}[2]\)-hardness of bounded-VC-dimension Hitting Set
 
-Hitting Set asks for a small collection of elements that intersects every set in an input set system. Bounding the system's VC-dimension limits its shattering complexity and supports strong approximation results, but does not automatically make exact optimization tractable. The source asks whether Hitting Set remains W[2]-hard even when the VC-dimension is bounded by a constant. Here the parameter is the size of the requested hitting set, so the target is a stronger parameterized hardness classification within a structurally restricted family. An answer would sharpen the distinction between low-dimensional sampling structure and the difficulty of finding an exact small transversal.
+Hitting Set asks for a small collection of elements that intersects every set in an input set system. Bounding the system's VC-dimension limits its shattering complexity and supports strong approximation results, but does not automatically make exact optimization tractable. The source asks whether Hitting Set remains \(\mathrm{W}[2]\)-hard even when the VC-dimension is bounded by a constant. Here the parameter is the size of the requested hitting set, so the target is a stronger parameterized hardness classification within a structurally restricted family. An answer would sharpen the distinction between low-dimensional sampling structure and the difficulty of finding an exact small transversal.
 
 [Read in atlas](index.html#TCS-4289) · [Hitting Set for Hypergraphs of Low VC-dimension](https://doi.org/10.4230/LIPIcs.ESA.2016.23)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -1314,12 +1314,12 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 Subset Sum asks whether some subcollection of given numbers adds to a target. This source passage highlights the classical worst-case running-time barrier associated with meet-in-the-middle algorithms. The faster average-case and quantum algorithms discussed in the paper operate under different performance guarantees. The research target is to improve the worst-case exponent while retaining correctness for every input in the stated formulation. Keeping that distinction explicit prevents the paper's quantum headline or random-instance results from being mistaken for a solution to the general classical question.
 
-[Read in atlas](index.html#TCS-4790) · [Subset Sum Quantumly in 1.17^n](https://doi.org/10.4230/LIPIcs.TQC.2018.5)
+[Read in atlas](index.html#TCS-4790) · [Subset Sum Quantumly in \(1.17^{n}\)](https://doi.org/10.4230/LIPIcs.TQC.2018.5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5374 — Degeneracy-sensitive classification of homomorphism counting
 
-Pattern homomorphism counting measures adjacency-preserving maps from a pattern into a host graph. The source asks for an explicit criterion on computable pattern classes in its degeneracy-sensitive counting framework. The intended dichotomy places every satisfying class in FPT and every remaining class on the #W[1]-hard side. Such a criterion would explain a broad tractability boundary rather than only catalog individual easy patterns. The saved notation does not fully define the host restrictions or parameter combination, so those model details must be supplied before presenting the classification as self-contained.
+Pattern homomorphism counting measures adjacency-preserving maps from a pattern into a host graph. The source asks for an explicit criterion on computable pattern classes in its degeneracy-sensitive counting framework. The intended dichotomy places every satisfying class in FPT and every remaining class on the #\(\mathrm{W}[1]\)-hard side. Such a criterion would explain a broad tractability boundary rather than only catalog individual easy patterns. The saved notation does not fully define the host restrictions or parameter combination, so those model details must be supplied before presenting the classification as self-contained.
 
 [Read in atlas](index.html#TCS-5374) · [Exact and Approximate Pattern Counting in Degenerate Graphs: New Algorithms, Hardness Results, and Complexity Dichotomies](https://doi.org/10.1109/FOCS52979.2021.00036)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -1331,9 +1331,9 @@ Directed Feedback Vertex Set deletes vertices to destroy every directed cycle. T
 [Read in atlas](index.html#TCS-6379) · [Polynomial Kernels for Deletion to Classes of Acyclic Digraphs](https://doi.org/10.4230/LIPIcs.STACS.2016.55)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6728 — Chromatic number in 2ⁿ time and polynomial space
+### TCS-6728 — Chromatic number in \(2^{n}\) time and polynomial space
 
-The chromatic number is the fewest colors needed to color graph vertices so adjacent vertices receive different colors. The saved textbook question asks for O*(2^n) exact running time using only polynomial space. The star suppresses polynomial factors, making the exponential base and memory requirement the essential targets. Meeting both bounds would combine fast subset-based computation with a memory footprint that does not grow exponentially. This is a dated textbook formulation; the saved note does not provide a review of later algorithms or establish present open status.
+The chromatic number is the fewest colors needed to color graph vertices so adjacent vertices receive different colors. The saved textbook question asks for \(O*(2^{n})\) exact running time using only polynomial space. The star suppresses polynomial factors, making the exponential base and memory requirement the essential targets. Meeting both bounds would combine fast subset-based computation with a memory footprint that does not grow exponentially. This is a dated textbook formulation; the saved note does not provide a review of later algorithms or establish present open status.
 
 [Read in atlas](index.html#TCS-6728) · [Parameterized Algorithms](https://parameterized-algorithms.mimuw.edu.pl/)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -1361,14 +1361,14 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6814 — Efficient PTAS for fixed-machine job-shop makespan
 
-Job-shop scheduling assigns each job a sequence of operations that must use specified machines. The saved question asks for a makespan approximation scheme running in f(m,ε) times a polynomial in n. The exponent of input size must stay independent of machine count and requested accuracy. Such a scheme would isolate the expensive dependence in the structural and approximation parameters while remaining scalable in the number of jobs. The source note does not define its operation restrictions or parameter conventions, so those details remain required before asserting the exact scheme model.
+Job-shop scheduling assigns each job a sequence of operations that must use specified machines. The saved question asks for a makespan approximation scheme running in \(f(m,\varepsilon )\) times a polynomial in n. The exponent of input size must stay independent of machine count and requested accuracy. Such a scheme would isolate the expensive dependence in the structural and approximation parameters while remaining scalable in the number of jobs. The source note does not define its operation restrictions or parameter conventions, so those details remain required before asserting the exact scheme model.
 
 [Read in atlas](index.html#TCS-6814) · [Parameterized complexity of machine scheduling: 15 open problems](https://arxiv.org/abs/1709.01670)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6974 — Formula-SAT below exhaustive search
 
-Boolean formula satisfiability asks whether some assignment makes a formula true. With n variables, exhaustive search checks all 2^n assignments, paying an additional cost to evaluate the formula. The selected research direction seeks an algorithm that improves this worst-case search bound for general formulas. Restrictions on clause width, depth, or size can change which techniques apply, so gains for specialized families do not automatically answer it. A successful approach would identify exploitable structure in arbitrary formulas even when polynomial-time solvability remains out of reach.
+Boolean formula satisfiability asks whether some assignment makes a formula true. With n variables, exhaustive search checks all \(2^{n}\) assignments, paying an additional cost to evaluate the formula. The selected research direction seeks an algorithm that improves this worst-case search bound for general formulas. Restrictions on clause width, depth, or size can change which techniques apply, so gains for specialized families do not automatically answer it. A successful approach would identify exploitable structure in arbitrary formulas even when polynomial-time solvability remains out of reach.
 
 [Read in atlas](index.html#TCS-6974) · [The Status of the P versus NP Problem](https://lance.fortnow.com/papers/files/pnp-cacm.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -1426,9 +1426,9 @@ Existing status: `resolved` · Summary written: 2026-09-12
 
 ### TCS-6587 — Constant-factor approximation for Densest k-Subgraph
 
-Densest k-Subgraph asks which exactly k vertices of a graph contain the most internal edges. The target is a polynomial-time algorithm whose edge count stays within one universal constant of optimum. Fixing the number of vertices prevents using a larger, moderately dense region as a substitute. Such a guarantee would clarify a central gap in approximation theory and influence several related network problems. The saved review describes strong conditional hardness under ETH, while distinguishing this evidence from hardness based only on P≠NP.
+Densest k-Subgraph asks which exactly k vertices of a graph contain the most internal edges. The target is a polynomial-time algorithm whose edge count stays within one universal constant of optimum. Fixing the number of vertices prevents using a larger, moderately dense region as a substitute. Such a guarantee would clarify a central gap in approximation theory and influence several related network problems. The saved review describes strong conditional hardness under ETH, while distinguishing this evidence from hardness based only on \(\mathrm{P}\ne \mathrm{NP}\).
 
-[Read in atlas](index.html#TCS-6587) · [Detecting High Log-Densities — an O(n^1/4) Approximation for Densest k-Subgraph](https://arxiv.org/abs/1001.2891) · [Polynomial integrality gaps for strong SDP relaxations of Densest k-subgraph](https://arxiv.org/abs/1110.1360) · [Almost-Polynomial Ratio ETH-Hardness of Approximating Densest k-Subgraph](https://arxiv.org/abs/1611.05991) · [A New Conjecture on Hardness of 2-CSP’s with Implications to Hardness of Densest k-Subgraph and Other Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2023.38) · [A Scalable and Exact Relaxation for Densest k-Subgraph via Error Bounds](https://ojs.aaai.org/index.php/AAAI/article/view/38562) · [A Note on Approximability of Densest At-Least-k-Subgraph](https://arxiv.org/abs/2605.25464)
+[Read in atlas](index.html#TCS-6587) · [Detecting High Log-Densities — an \(O(n^{1}/4)\) Approximation for Densest k-Subgraph](https://arxiv.org/abs/1001.2891) · [Polynomial integrality gaps for strong SDP relaxations of Densest k-subgraph](https://arxiv.org/abs/1110.1360) · [Almost-Polynomial Ratio ETH-Hardness of Approximating Densest k-Subgraph](https://arxiv.org/abs/1611.05991) · [A New Conjecture on Hardness of 2-CSP’s with Implications to Hardness of Densest k-Subgraph and Other Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2023.38) · [A Scalable and Exact Relaxation for Densest k-Subgraph via Error Bounds](https://ojs.aaai.org/index.php/AAAI/article/view/38562) · [A Note on Approximability of Densest At-Least-k-Subgraph](https://arxiv.org/abs/2605.25464)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0006 — Unique Games Conjecture
@@ -1442,28 +1442,28 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 Directed Steiner Tree seeks a minimum-cost directed network connecting one root to every required terminal. The question asks for randomized polynomial-time approximation within a fixed power of the logarithm of the terminal count. Sharing arcs between routes can save substantially, but directionality complicates selecting useful branching structures. A positive result would close a major gap between polynomial-time algorithms and stronger guarantees obtainable in quasipolynomial time. The saved review warns that choosing a shrinking parameter in existing power-factor algorithms can destroy their polynomial running time.
 
-[Read in atlas](index.html#TCS-6588) · [Approximation Algorithms for Directed Steiner Problems](https://chekuri.web.engr.illinois.edu/pub.html) · [O(log² k/log log k)-Approximation Algorithm for Directed Steiner Tree: A Tight Quasi-Polynomial-Time Algorithm](https://people.idsia.ch/~grandoni/Pubblicazioni/GLL19stoc.pdf) · [An O(log k)-Approximation for Directed Steiner Tree in Planar Graphs](https://arxiv.org/abs/2302.04747) · [From Directed Steiner Tree to Directed Polymatroid Steiner Tree in Planar Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2024.42) · [On the Integrality Gap of Directed Steiner Tree LPs with Relatively Integral Solutions](https://arxiv.org/abs/2412.10744) · [Length-Constrained Network Design in Planar Digraphs](https://arxiv.org/abs/2607.25811)
+[Read in atlas](index.html#TCS-6588) · [Approximation Algorithms for Directed Steiner Problems](https://chekuri.web.engr.illinois.edu/pub.html) · [\(O(\log ^{2} k/\log  \log  k)\)-Approximation Algorithm for Directed Steiner Tree: A Tight Quasi-Polynomial-Time Algorithm](https://people.idsia.ch/~grandoni/Pubblicazioni/GLL19stoc.pdf) · [An \(O(\log  k)\)-Approximation for Directed Steiner Tree in Planar Graphs](https://arxiv.org/abs/2302.04747) · [From Directed Steiner Tree to Directed Polymatroid Steiner Tree in Planar Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2024.42) · [On the Integrality Gap of Directed Steiner Tree LPs with Relatively Integral Solutions](https://arxiv.org/abs/2412.10744) · [Length-Constrained Network Design in Planar Digraphs](https://arxiv.org/abs/2607.25811)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7160 — Small-Set Expansion Hypothesis
 
-Is it NP-hard to distinguish one poorly expanding small set from uniformly strong expansion at the same set size? The target set occupies a fixed fraction δ of the graph, with δ chosen after the gap parameter η. Expansion is the fraction of incident edges that leave the set. A sparse cut of a larger size does not necessarily reveal any poorly expanding set of the target size. Known reductions connect the hypothesis to Unique Games and conditional hardness without resolving it.
+Is it NP-hard to distinguish one poorly expanding small set from uniformly strong expansion at the same set size? The target set occupies a fixed fraction \(\delta\) of the graph, with \(\delta\) chosen after the gap parameter \(\eta\). Expansion is the fraction of incident edges that leave the set. A sparse cut of a larger size does not necessarily reveal any poorly expanding set of the target size. Known reductions connect the hypothesis to Unique Games and conditional hardness without resolving it.
 
 [Read in atlas](index.html#TCS-7160) · [Graph Expansion and the Unique Games Conjecture](https://www.dsteurer.org/paper/expansion.pdf) · [Reductions Between Expansion Problems](https://arxiv.org/abs/1011.2586) · [The Condition-Number Barrier in Sparse Least Squares](https://arxiv.org/abs/2608.02588)
 Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6589 — Subtour-LP integrality gap for metric TSP
 
-The metric traveling-salesperson problem asks for a cheapest tour through every point. Its subtour linear program permits fractional edges while preserving degree and cut constraints. This card asks for the supremum ratio of the integral tour optimum to that relaxation over all finite metrics. The classical 4/3 conjecture identifies a proposed value of this ratio. Benchmark acceptance requires a Lean-certified numerical value within absolute error 0.01, without assuming the supremum is attained.
+The metric traveling-salesperson problem asks for a cheapest tour through every point. Its subtour linear program permits fractional edges while preserving degree and cut constraints. This card asks for the supremum ratio of the integral tour optimum to that relaxation over all finite metrics. The classical \(4/3\) conjecture identifies a proposed value of this ratio. Benchmark acceptance requires a Lean-certified numerical value within absolute error 0.01, without assuming the supremum is attained.
 
-[Read in atlas](index.html#TCS-6589) · [Maximum Entropy is a 10/7-Approximation Algorithm for the TSP on Half-Integral Cycle Cut Instances](https://arxiv.org/abs/2607.01536v2) · [A (Slightly) Improved Bound on the Integrality Gap of the Subtour LP for TSP](https://arxiv.org/abs/2105.10043v3) · [From Trees to Polynomials and Back Again: New Capacity Bounds with Applications to TSP](https://arxiv.org/abs/2311.09072v2) · [A 4/3-Approximation Algorithm for Half-Integral Cycle Cut Instances of the TSP](https://arxiv.org/abs/2211.04639v2) · [The Integrality Gap of the Traveling Salesman Problem is 4/3 if the LP Solution Has at Most n+6 Non-zero Components](https://arxiv.org/abs/2507.07003v2) · [Extending Exact Integrality Gap Computations for the Metric TSP](https://arxiv.org/abs/2603.12995v5) · [A Sharper Explicit Bound on the Subtour-LP Integrality Gap for Metric TSP](https://www.preprints.org/manuscript/202609.0140/v1)
+[Read in atlas](index.html#TCS-6589) · [Maximum Entropy is a \(10/7\)-Approximation Algorithm for the TSP on Half-Integral Cycle Cut Instances](https://arxiv.org/abs/2607.01536v2) · [A (Slightly) Improved Bound on the Integrality Gap of the Subtour LP for TSP](https://arxiv.org/abs/2105.10043v3) · [From Trees to Polynomials and Back Again: New Capacity Bounds with Applications to TSP](https://arxiv.org/abs/2311.09072v2) · [A \(4/3\)-Approximation Algorithm for Half-Integral Cycle Cut Instances of the TSP](https://arxiv.org/abs/2211.04639v2) · [The Integrality Gap of the Traveling Salesman Problem is \(4/3\) if the LP Solution Has at Most \(n+6\) Non-zero Components](https://arxiv.org/abs/2507.07003v2) · [Extending Exact Integrality Gap Computations for the Metric TSP](https://arxiv.org/abs/2603.12995v5) · [A Sharper Explicit Bound on the Subtour-LP Integrality Gap for Metric TSP](https://www.preprints.org/manuscript/202609.0140/v1)
 Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6659 — Optimal polynomial-time approximation ratio for metric k-Median
 
-Metric k-Median selects at most k allowed facilities to minimize total client distance. The card asks for the infimum universal approximation ratio of randomized polynomial-time algorithms. The same algorithm must work for all input sizes at each fixed guarantee, with success probability at least two thirds. The familiar 1+2/e target and the saved algorithmic bounds locate competing possibilities for this infimum. Lean acceptance requires absolute error at most 0.01, with any complexity assumptions stated explicitly.
+Metric k-Median selects at most k allowed facilities to minimize total client distance. The card asks for the infimum universal approximation ratio of randomized polynomial-time algorithms. The same algorithm must work for all input sizes at each fixed guarantee, with success probability at least two thirds. The familiar \(1+2/e\) target and the saved algorithmic bounds locate competing possibilities for this infimum. Lean acceptance requires absolute error at most 0.01, with any complexity assumptions stated explicitly.
 
-[Read in atlas](index.html#TCS-6659) · [A (2+ε)-Approximation Algorithm for Metric k-Median](https://people.idsia.ch/~grandoni/Pubblicazioni/CGLSS25stoc.pdf) · [A threshold of ln n for approximating set cover](https://disco.ethz.ch/alumni/pascalv/refs/ds_1998_feige.pdf) · [A new greedy approach for facility location problems](https://cgi.di.uoa.gr/~vassilis/co/co-papers/jain02.pdf) · [Tight FPT Approximations for k-Median and k-Means](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2019.42) · [Almost-Optimal Upper and Lower Bounds for Clustering in Low Dimensional Euclidean Spaces](https://arxiv.org/abs/2603.09846) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654)
+[Read in atlas](index.html#TCS-6659) · [A \((2+\varepsilon )\)-Approximation Algorithm for Metric k-Median](https://people.idsia.ch/~grandoni/Pubblicazioni/CGLSS25stoc.pdf) · [A threshold of ln n for approximating set cover](https://disco.ethz.ch/alumni/pascalv/refs/ds_1998_feige.pdf) · [A new greedy approach for facility location problems](https://cgi.di.uoa.gr/~vassilis/co/co-papers/jain02.pdf) · [Tight FPT Approximations for k-Median and k-Means](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2019.42) · [Almost-Optimal Upper and Lower Bounds for Clustering in Low Dimensional Euclidean Spaces](https://arxiv.org/abs/2603.09846) · [Spectral Dual Fitting for k-Means](https://arxiv.org/abs/2607.14654)
 Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6590 — Subtour-LP integrality gap for asymmetric TSP
@@ -1494,9 +1494,9 @@ A dicoloring partitions a directed graph into color classes containing no direct
 [Read in atlas](index.html#TCS-1168) · [Hardness and Approximation for Coloring Digraphs](https://doi.org/10.4230/LIPIcs.ICALP.2026.53)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1930 — Parameterized Inapproximability Hypothesis from FPT ≠ W[1]
+### TCS-1930 — Parameterized Inapproximability Hypothesis from \(\mathrm{FPT} \ne  \mathrm{W}[1]\)
 
-The hypothesis W[1]≠FPT says exact parameterized problems such as k-Clique do not admit fixed-parameter algorithms. The question asks whether it also rules out distinguishing satisfiable binary constraint systems from systems that force a constant fraction of violations. The parameter is the number of variables, while the alphabet may grow with the input. PIH is already known under the stronger ETH assumption, and Baby PIH is known under W[1]≠FPT. A proof of the full implication would provide a broad foundation for parameterized inapproximability.
+The hypothesis \(\mathrm{W}[1]\ne \mathrm{FPT}\) says exact parameterized problems such as k-Clique do not admit fixed-parameter algorithms. The question asks whether it also rules out distinguishing satisfiable binary constraint systems from systems that force a constant fraction of violations. The parameter is the number of variables, while the alphabet may grow with the input. PIH is already known under the stronger ETH assumption, and Baby PIH is known under \(\mathrm{W}[1]\ne \mathrm{FPT}\). A proof of the full implication would provide a broad foundation for parameterized inapproximability.
 
 [Read in atlas](index.html#TCS-1930) · [Baby PIH: Parameterized Inapproximability of Min CSP](https://doi.org/10.4230/LIPIcs.CCC.2024.27) · [Parameterized Inapproximability Hypothesis under ETH](https://doi.org/10.1145/3749982) · [Parameterized inapproximability: From Clique to PIH](https://doi.org/10.1016/j.cosrev.2025.100834)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -1533,7 +1533,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 The d-to-1 and Unique Games conjectures concern hardness of satisfying labeled constraints with different local compatibility structures. The saved 2016 passage asks whether the former implies the latter. A reduction must preserve a sufficiently strong completeness–soundness gap while turning several compatible labels into unique compatibility. An implication could connect distinct assumptions used to prove approximation hardness for general-domain CSPs. The excerpt truncates the final name and does not specify completeness conventions, so later results for related games cannot be substituted without checking the exact quantified conjectures.
 
-[Read in atlas](index.html#TCS-5544) · [Near-Optimal UGC-hardness of Approximating Max k-CSP_R](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15)
+[Read in atlas](index.html#TCS-5544) · [Near-Optimal UGC-hardness of Approximating Max \(k-\mathrm{CSP}_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5554 — Near-linear-time edit-distance approximation
@@ -1573,7 +1573,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6757 — Min-CSP approximation at the SDP integrality gap
 
-Minimization CSPs seek assignments minimizing a specified constraint-violation cost. The textbook asks whether algorithms can match their semidefinite-programming integrality gaps within an additional factor 1+ε. An integrality gap measures how much cheaper a fractional or vector solution can appear than any genuine assignment. Matching that benchmark would show that rounding loses essentially no more than the relaxation itself. The saved historical note does not identify the exact CSP family, relaxation, or treatment of zero optimum, so these conventions remain necessary before the target becomes a precise uniform theorem.
+Minimization CSPs seek assignments minimizing a specified constraint-violation cost. The textbook asks whether algorithms can match their semidefinite-programming integrality gaps within an additional factor \(1+\varepsilon\). An integrality gap measures how much cheaper a fractional or vector solution can appear than any genuine assignment. Matching that benchmark would show that rounding loses essentially no more than the relaxation itself. The saved historical note does not identify the exact CSP family, relaxation, or treatment of zero optimum, so these conventions remain necessary before the target becomes a precise uniform theorem.
 
 [Read in atlas](index.html#TCS-6757) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -1624,7 +1624,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6577 — Minimax dimension dependence in bandit convex optimization
 
-What is the optimal expected regret for adversarial convex losses when only one value is observed per round? The learner competes with the best fixed point in hindsight over a known convex body. The losses lie in [0,1] and are chosen before the learner’s random actions, with no smoothness assumption. General upper and lower bounds still have different polynomial dependence on dimension. Two-point, strongly convex, smooth-loss and computational-efficiency results address different guarantees.
+What is the optimal expected regret for adversarial convex losses when only one value is observed per round? The learner competes with the best fixed point in hindsight over a known convex body. The losses lie in \([0,1]\) and are chosen before the learner’s random actions, with no smoothness assumption. General upper and lower bounds still have different polynomial dependence on dimension. Two-point, strongly convex, smooth-loss and computational-efficiency results address different guarantees.
 
 [Read in atlas](index.html#TCS-6577) · [Bandit Convex Optimisation](https://tor-lattimore.com/downloads/cvx-book/cvx.pdf) · [Improved Regret for Zeroth-Order Adversarial Bandit Convex Optimisation](https://arxiv.org/abs/2006.00475v3) · [Logarithmic High-Probability Regret for Online Convex Optimization with Two-Point Bandit Feedback](https://arxiv.org/abs/2603.25029v4) · [Adversarial Bandit Optimization with Globally Bounded Perturbations to Convex Losses](https://arxiv.org/abs/2606.19891v2)
 Existing status: `open` · Summary written: 2026-09-11
@@ -1645,7 +1645,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5030 — Optimal randomized competitive ratio of weighted k-server
 
-Weighted k-server assigns a separate movement-cost multiplier to each server. All distinct locations are at unit distance, isolating uncertainty about which weight to move. The target is the optimal randomized competitive ratio as a function of the number of servers. It takes the worst case over finite metric sizes and arbitrary positive weights against oblivious requests. The recent exp(O(k²)) upper bound removes the old doubly-exponential barrier but leaves a substantial gap above exponential lower bounds.
+Weighted k-server assigns a separate movement-cost multiplier to each server. All distinct locations are at unit distance, isolating uncertainty about which weight to move. The target is the optimal randomized competitive ratio as a function of the number of servers. It takes the worst case over finite metric sizes and arbitrary positive weights against oblivious requests. The recent \(\exp (O(k^{2}))\) upper bound removes the old doubly-exponential barrier but leaves a substantial gap above exponential lower bounds.
 
 [Read in atlas](index.html#TCS-5030) · [A Decomposition Approach to the Weighted k-Server Problem](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.6) · [Weighted k-Server Admits an Exponentially Competitive Algorithm](https://doi.org/10.1137/1.9781611978971.154) · [The Randomized Competitive Ratio of Weighted k-server is at Least Exponential](https://doi.org/10.4086/toc.2022.v018a023)
 Existing status: `open` · Summary written: 2026-09-12
@@ -1703,7 +1703,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 In online metric traveling salesperson problems, arriving points must be inserted into an evolving tour while preserving earlier ordering decisions. An array formulation also limits how much unused space is available for future insertions. The extracted question asks whether the classical logarithmic competitive ratio can be improved even when this space restriction is removed. Thus the obstacle persists beyond tight array capacity and concerns the underlying irreversible tour construction. A better guarantee would establish that online geometric ordering can approach the offline tour more closely than the long-standing insertion bound suggests.
 
-[Read in atlas](index.html#TCS-1241) · [Online Metric TSP: Beyond the √n Barrier](https://doi.org/10.4230/LIPIcs.ICALP.2026.18)
+[Read in atlas](index.html#TCS-1241) · [Online Metric TSP: Beyond the \(\sqrt{n}\) Barrier](https://doi.org/10.4230/LIPIcs.ICALP.2026.18)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-1529 — One forecaster with the optimal regret rate for every proper loss
@@ -1815,12 +1815,12 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6656 — Planted clique conjecture
 
-Planted clique detection distinguishes a random graph from one with a uniformly chosen clique inserted into it. The conjecture rules out polynomial-time classical randomized detection when the planted size is n^(1/2−epsilon) for fixed positive epsilon. The graph statistically contains a signal, but the challenge is finding a computationally accessible feature that reveals it below the square-root scale. This makes the problem a central candidate for a gap between information and computation. The reviewed model fixes clique size exactly and asks only for detection, so recovery algorithms, different planting distributions, or lower bounds for restricted relaxations do not automatically settle it.
+Planted clique detection distinguishes a random graph from one with a uniformly chosen clique inserted into it. The conjecture rules out polynomial-time classical randomized detection when the planted size is \(n^{1/2- \varepsilon}\) for fixed positive \(\varepsilon\). The graph statistically contains a signal, but the challenge is finding a computationally accessible feature that reveals it below the square-root scale. This makes the problem a central candidate for a gap between information and computation. The reviewed model fixes clique size exactly and asks only for detection, so recovery algorithms, different planting distributions, or lower bounds for restricted relaxations do not automatically settle it.
 
 [Read in atlas](index.html#TCS-6656) · [Finding a Large Hidden Clique in a Random Graph](https://people.math.ethz.ch/~sudakovb/hidden-clique.pdf) · [A Nearly Tight Sum-of-Squares Lower Bound for the Planted Clique Problem](https://doi.org/10.1137/17M1138236) · [Finding planted cliques using gradient descent](https://arxiv.org/abs/2311.07540v2) · [On optimal distinguishers for Planted Clique](https://arxiv.org/abs/2505.01990v2) · [Robust Algorithms for Finding Cliques in Random Intersection Graphs via Sum-of-Squares](https://proceedings.mlr.press/v336/gobel26a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0012 — Average-case NP hardness from P ≠ NP
+### TCS-0012 — Average-case NP hardness from \(\mathrm{P} \ne  \mathrm{NP}\)
 
 Worst-case NP hardness means that some efficiently verifiable problem resists polynomial-time solution on all inputs. The question asks whether P unequal to NP forces such a problem to remain hard on average under an efficiently samplable distribution. The hard instances must occur often enough in a distribution that can itself be generated feasibly. A positive implication would connect worst-case complexity with the distributional hardness needed in many algorithmic and cryptographic settings. The reviewed target uses deterministic exact decisions and Levin's moment-based average-time definition, which differs from allowing errors on rare inputs or requiring only a polynomial first moment.
 
@@ -1920,11 +1920,11 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Sampling, Markov chains and mixing times (9)
 
-### TCS-6621 — Rapid mixing of Glauber dynamics with Δ+2 colours
+### TCS-6621 — Rapid mixing of Glauber dynamics with \(\Delta +2\) colours
 
 Glauber dynamics samples graph colorings by repeatedly selecting a vertex and choosing a color allowed by its neighbors. The reviewed question asks for polynomial-time convergence to the uniform distribution whenever the palette has at least two more colors than the maximum degree. That amount of slack makes the state space connected, but connectivity alone does not exclude bottlenecks that trap a random walk. A universal mixing bound would show that the simplest local sampler works throughout this universally convergent range. The saved progress covers restricted graph classes or larger relative color slack, whose parameter dependence does not establish the additive two-color target for every graph.
 
-[Read in atlas](index.html#TCS-6621) · [Glauber dynamics for colourings of chordal graphs and graphs of bounded treewidth](https://arxiv.org/abs/2010.16158) · [Sampling Colorings with Fixed Color Class Sizes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.134) · [Flip Dynamics for Sampling Colorings: Improving (11/6−ε) Using a Simple Metric](https://arxiv.org/abs/2407.04870) · [Sampling Colorings Close to the Maximum Degree: Non-Markovian Coupling and Local Uniformity](https://arxiv.org/abs/2604.11938) · [A Spectral Local-to-Global Principle for Spin Systems on Graphs with Girth At Least Five](https://arxiv.org/abs/2608.25491)
+[Read in atlas](index.html#TCS-6621) · [Glauber dynamics for colourings of chordal graphs and graphs of bounded treewidth](https://arxiv.org/abs/2010.16158) · [Sampling Colorings with Fixed Color Class Sizes](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.134) · [Flip Dynamics for Sampling Colorings: Improving \((11/6- \varepsilon )\) Using a Simple Metric](https://arxiv.org/abs/2407.04870) · [Sampling Colorings Close to the Maximum Degree: Non-Markovian Coupling and Local Uniformity](https://arxiv.org/abs/2604.11938) · [A Spectral Local-to-Global Principle for Spin Systems on Graphs with Girth At Least Five](https://arxiv.org/abs/2608.25491)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6622 — Kannan–Tetali–Vempala conjecture
@@ -2015,7 +2015,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3037 — Parity subgraph-counting dichotomy
 
-The source studies counting copies of graph patterns modulo two under parameterized complexity. It conjectures that any computable pattern class with unbounded matching-split number yields a parity-subgraph problem complete for parity-W[1]. The width condition is intended to identify when the pattern structure crosses from manageable cases into parameterized hardness. A proof would complete a structural classification for modular counting rather than just add one hard pattern family. The matching-split parameter, reduction notion, and subgraph-counting convention must be taken from the source, since ordinary exact counting and parity counting can behave differently.
+The source studies counting copies of graph patterns modulo two under parameterized complexity. It conjectures that any computable pattern class with unbounded matching-split number yields a parity-subgraph problem complete for parity-\(\mathrm{W}[1]\). The width condition is intended to identify when the pattern structure crosses from manageable cases into parameterized hardness. A proof would complete a structural classification for modular counting rather than just add one hard pattern family. The matching-split parameter, reduction notion, and subgraph-counting convention must be taken from the source, since ordinary exact counting and parity counting can behave differently.
 
 [Read in atlas](index.html#TCS-3037) · [Modular Counting of Subgraphs: Matchings, Matching-Splittable Graphs, and Paths](https://doi.org/10.4230/LIPIcs.ESA.2021.34)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -2041,16 +2041,16 @@ A #P function counts the accepting computation paths of a nondeterministic polyn
 [Read in atlas](index.html#TCS-6820) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6821 — FP = #P from P = NP
+### TCS-6821 — FP = #P from \(\mathrm{P} = \mathrm{NP}\)
 
-The hypothesis P=NP would make existence of efficiently verifiable witnesses decidable in polynomial time. This question asks whether that hypothesis also forces exact polynomial-time computation of every #P counting function. The gap is that deciding whether a witness exists does not directly determine how many witnesses there are. Resolving the implication would clarify how much additional power exact counting can retain after decision complexity collapses. The source's standard uniform function-computation conventions must be preserved, and a method that enumerates all witnesses can still take exponential time despite a fast existence test.
+The hypothesis \(\mathrm{P}=\mathrm{NP}\) would make existence of efficiently verifiable witnesses decidable in polynomial time. This question asks whether that hypothesis also forces exact polynomial-time computation of every #P counting function. The gap is that deciding whether a witness exists does not directly determine how many witnesses there are. Resolving the implication would clarify how much additional power exact counting can retain after decision complexity collapses. The source's standard uniform function-computation conventions must be preserved, and a method that enumerates all witnesses can still take exponential time despite a fast existence test.
 
 [Read in atlas](index.html#TCS-6821) · [Computational Complexity: A Modern Approach](https://theory.cs.princeton.edu/complexity/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7082 — OutputP versus IncP
 
-OutputP permits total enumeration time polynomial in the input and complete output size. IncP additionally requires the initial portions of the output to arrive within incremental polynomial time. The source asks for a natural problem separating these classes and suggests a domination problem involving K_t-free structure. A separation would demonstrate that good total throughput can coexist with an unavoidable long wait for early answers. The candidate's precise domination condition and any assumed complexity hypothesis remain in the source, so the working summary preserves the class distinction without declaring the proposed example established.
+OutputP permits total enumeration time polynomial in the input and complete output size. IncP additionally requires the initial portions of the output to arrive within incremental polynomial time. The source asks for a natural problem separating these classes and suggests a domination problem involving \(K_{t}\)-free structure. A separation would demonstrate that good total throughput can coexist with an unavoidable long wait for early answers. The candidate's precise domination condition and any assumed complexity hypothesis remain in the source, so the working summary preserves the class distinction without declaring the proposed example established.
 
 [Read in atlas](index.html#TCS-7082) · [Enumeration Complexity: Incremental Time, Delay and Space](https://arxiv.org/abs/2309.17042)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -2103,14 +2103,14 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 Forbidding one fixed induced graph excludes both its edge pattern and its nonedge pattern. The Erdős–Hajnal conjecture predicts that every graph with this restriction has a clique or independent set of polynomial size. The exponent may depend on the forbidden graph but must stay positive as the host graph grows. This would show that every proper hereditary restriction forces much stronger homogeneous structure than arbitrary graphs guarantee. The saved review records special-case advances and unvalidated full-solution claims separately, and a near-polynomial bound with a vanishing exponent does not establish the required fixed exponent.
 
-[Read in atlas](index.html#TCS-6652) · [Ramsey-type theorems](https://mathweb.ucsd.edu/~asuk/erdos_hajnal.pdf) · [Induced subgraph density. I. A loglog step towards Erdős–Hajnal](https://arxiv.org/abs/2301.10147) · [Induced subgraph density. VII. The five-vertex path](https://arxiv.org/abs/2312.15333) · [Induced subgraph density. V. All paths approach Erdős–Hajnal](https://arxiv.org/abs/2307.15032) · [Erdős–Hajnal conjecture beyond five-vertex graphs](https://arxiv.org/abs/2606.06258) · [The Erdős–Hajnal Property for the six-vertex Graph with Edge Set {ab,bc,cd,de,af,bf,df}](https://arxiv.org/abs/2608.28551) · [Equivalence between Erdős–Hajnal and polynomial Rödl and Nikiforov conjectures](https://arxiv.org/abs/2403.08303) · [A Single-Exponential Erdős–Hajnal Bound for Graphs of Bounded VC-Dimension](https://arxiv.org/abs/2607.09049) · [On Induced Subgraphs of Finite Graphs not Containing Large Empty and Complete Subgraphs](https://arxiv.org/abs/1211.3876)
+[Read in atlas](index.html#TCS-6652) · [Ramsey-type theorems](https://mathweb.ucsd.edu/~asuk/erdos_hajnal.pdf) · [Induced subgraph density. I. A loglog step towards Erdős–Hajnal](https://arxiv.org/abs/2301.10147) · [Induced subgraph density. VII. The five-vertex path](https://arxiv.org/abs/2312.15333) · [Induced subgraph density. V. All paths approach Erdős–Hajnal](https://arxiv.org/abs/2307.15032) · [Erdős–Hajnal conjecture beyond five-vertex graphs](https://arxiv.org/abs/2606.06258) · [The Erdős–Hajnal Property for the six-vertex Graph with Edge Set \(\{ab,bc,cd,de,af,bf,df\}\)](https://arxiv.org/abs/2608.28551) · [Equivalence between Erdős–Hajnal and polynomial Rödl and Nikiforov conjectures](https://arxiv.org/abs/2403.08303) · [A Single-Exponential Erdős–Hajnal Bound for Graphs of Bounded VC-Dimension](https://arxiv.org/abs/2607.09049) · [On Induced Subgraphs of Finite Graphs not Containing Large Empty and Complete Subgraphs](https://arxiv.org/abs/1211.3876)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6682 — Reed’s conjecture
 
 Reed's conjecture bounds chromatic number by the rounded average of maximum degree plus one and clique number. It combines a local upper-bound scale from degree with the unavoidable coloring demand imposed by a largest clique. The question asks whether every finite simple graph admits a coloring at this intermediate threshold. A positive answer would give a unified quantitative relationship among three fundamental graph parameters. The saved formulation concerns ordinary vertex coloring on unrestricted graphs, so fractional, list, directed, or recoloring variants require separate interpretation and do not automatically settle the inequality.
 
-[Read in atlas](index.html#TCS-6682) · [ω, Δ, and χ](https://onlinelibrary.wiley.com/doi/10.1002/%28SICI%291097-0118%28199804%2927%3A4%3C177%3A%3AAID-JGT1%3E3.0.CO%3B2-K) · [Bounding χ by a fraction of Δ for graphs without large cliques](https://arxiv.org/abs/1803.01051) · [An improved procedure for colouring graphs of bounded local density](https://arxiv.org/abs/2007.07874) · [A Recolouring Version of a Conjecture of Reed](https://arxiv.org/abs/2502.10147) · [An analogue of Reed’s conjecture for digraphs](https://arxiv.org/abs/2407.05827)
+[Read in atlas](index.html#TCS-6682) · [\(\omega , \Delta\), and \(\chi\)](https://onlinelibrary.wiley.com/doi/10.1002/%28SICI%291097-0118%28199804%2927%3A4%3C177%3A%3AAID-JGT1%3E3.0.CO%3B2-K) · [Bounding \(\chi\) by a fraction of \(\Delta\) for graphs without large cliques](https://arxiv.org/abs/1803.01051) · [An improved procedure for colouring graphs of bounded local density](https://arxiv.org/abs/2007.07874) · [A Recolouring Version of a Conjecture of Reed](https://arxiv.org/abs/2502.10147) · [An analogue of Reed’s conjecture for digraphs](https://arxiv.org/abs/2407.05827)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7248 — Tutte’s 5-flow conjecture
@@ -2131,14 +2131,14 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 The Gyárfás–Sumner conjecture considers graphs excluding a fixed tree as an induced subgraph. It asks whether bounding clique number then also bounds chromatic number, independently of graph size. The proposed principle says that high coloring complexity with no large clique must eventually force every prescribed induced tree. This would organize a large collection of hereditary coloring classes through one structural mechanism. The saved review distinguishes genuinely induced trees from weaker path-induced copies and ordinary coloring from fractional results, while allowing an arbitrary bound rather than demanding polynomial growth.
 
-[Read in atlas](index.html#TCS-6653) · [A Note on the Gyárfás–Sumner Conjecture](https://arxiv.org/abs/2302.08922) · [Radius two trees specify χ-bounded classes](https://doi.org/10.1002/jgt.3190180203) · [Polynomial bounds for chromatic number. V. Excluding a tree of radius two and a complete multipartite graph](https://arxiv.org/abs/2202.05557) · [Trees and near-linear stable sets](https://link.springer.com/article/10.1007/s00493-025-00177-9) · [Polynomial Gyárfás–Sumner conjecture for graphs of bounded boxicity](https://igt.centre-mersenne.org/articles/10.5802/igt.17/)
+[Read in atlas](index.html#TCS-6653) · [A Note on the Gyárfás–Sumner Conjecture](https://arxiv.org/abs/2302.08922) · [Radius two trees specify \(\chi\)-bounded classes](https://doi.org/10.1002/jgt.3190180203) · [Polynomial bounds for chromatic number. V. Excluding a tree of radius two and a complete multipartite graph](https://arxiv.org/abs/2202.05557) · [Trees and near-linear stable sets](https://link.springer.com/article/10.1007/s00493-025-00177-9) · [Polynomial Gyárfás–Sumner conjecture for graphs of bounded boxicity](https://igt.centre-mersenne.org/articles/10.5802/igt.17/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6683 — Optimal bounds in the Excluded Grid Theorem
 
 The Excluded Grid Theorem guarantees a large grid minor when a graph has sufficiently large treewidth. The question asks for the optimal treewidth threshold forcing an r-by-r grid, including the correct logarithmic factors. Treewidth measures how difficult the graph is to decompose into small overlapping bags, while a grid supplies a concrete witness of large-scale complexity. Sharp bounds would quantify this foundational connection used throughout structural and algorithmic graph theory. The reviewed target concerns all graphs and grid side length, so bounds for an additional excluded-minor promise or suppressed polylogarithmic factors do not finish it.
 
-[Read in atlas](index.html#TCS-6683) · [Graph minors. V. Excluding a planar graph](https://doi.org/10.1016/0095-8956(86)90030-4) · [Quickly Excluding a Planar Graph](https://www.sciencedirect.com/science/article/pii/S0095895684710732) · [Polynomial Bounds for the Grid-Minor Theorem](https://arxiv.org/abs/1305.6577) · [Towards Tight(er) Bounds for the Excluded Grid Theorem](https://arxiv.org/abs/1901.07944) · [The Grid-Minor Theorem Revisited](https://link.springer.com/article/10.1007/s00493-025-00168-w) · [Catching Rats in H-minor-free Graphs](https://arxiv.org/abs/2506.22857)
+[Read in atlas](index.html#TCS-6683) · [Graph minors. V. Excluding a planar graph](https://doi.org/10.1016/0095-8956(86)90030-4) · [Quickly Excluding a Planar Graph](https://www.sciencedirect.com/science/article/pii/S0095895684710732) · [Polynomial Bounds for the Grid-Minor Theorem](https://arxiv.org/abs/1305.6577) · [Towards \(Tight(er)\) Bounds for the Excluded Grid Theorem](https://arxiv.org/abs/1901.07944) · [The Grid-Minor Theorem Revisited](https://link.springer.com/article/10.1007/s00493-025-00168-w) · [Catching Rats in H-minor-free Graphs](https://arxiv.org/abs/2506.22857)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7251 — Caccetta–Häggkvist conjecture
@@ -2164,7 +2164,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6655 — Cereceda’s conjecture
 
-A recoloring step changes one vertex's color while keeping the graph properly colored. The saved Cereceda question asks whether every pair of proper (d+2)-colorings of an n-vertex d-degenerate graph can be connected in O_d(n²) steps. Degeneracy ensures that every subgraph contains a vertex of degree at most d, providing a natural elimination structure. The challenge is using that structure without forcing an excessively long cascade of recolorings. A quadratic bound would make the reconfiguration space quantitatively navigable, while the saved proposal still requires a fuller source and progress review before becoming a completed card.
+A recoloring step changes one vertex's color while keeping the graph properly colored. The saved Cereceda question asks whether every pair of proper \((d+2)\)-colorings of an n-vertex d-degenerate graph can be connected in \(O_{d}(n^{2})\) steps. Degeneracy ensures that every subgraph contains a vertex of degree at most d, providing a natural elimination structure. The challenge is using that structure without forcing an excessively long cascade of recolorings. A quadratic bound would make the reconfiguration space quantitatively navigable, while the saved proposal still requires a fuller source and progress review before becoming a completed card.
 
 [Read in atlas](index.html#TCS-6655) · [Research reference · www.sciencedirect.com](https://www.sciencedirect.com/science/article/abs/pii/S0012365X26000798)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -2199,7 +2199,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6500 — Erdős girth conjecture
 
-The Erdős girth conjecture seeks graphs with many edges despite the absence of short cycles. For every fixed k, the target is arbitrarily large graphs with order n^(1+1/k) edges and girth greater than 2k. Such graphs would match the classical density upper bound up to a constant depending on k. They also force every stretch-(2k−1) spanner to retain all edges, connecting the extremal construction to sharp sparsification limits. The saved review notes that progress for special parameters or fault-tolerant spanner models does not supply the missing high-girth families in general.
+The Erdős girth conjecture seeks graphs with many edges despite the absence of short cycles. For every fixed k, the target is arbitrarily large graphs with order \(n^{1+1/k}\) edges and girth greater than 2k. Such graphs would match the classical density upper bound up to a constant depending on k. They also force every stretch-\((2k- 1)\) spanner to retain all edges, connecting the extremal construction to sharp sparsification limits. The saved review notes that progress for special parameters or fault-tolerant spanner models does not supply the missing high-girth families in general.
 
 [Read in atlas](index.html#TCS-6500) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://doi.org/10.4230/LIPIcs.ESA.2026.31) · [On Sparse Spanners of Weighted Graphs](https://doi.org/10.1007/BF02189308)
 Existing status: `open` · Summary written: 2026-09-11
@@ -2278,7 +2278,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 Three-colorability asks whether vertices can receive three colors with adjacent vertices always different. Here every pair of vertices is promised to have distance at most two. The question is whether this strong proximity condition permits deterministic polynomial-time recognition of three-colorable graphs. Adding a universal vertex cannot directly transfer general three-color hardness because it consumes an additional color. The problem therefore probes a precise structural boundary where very short graph distances may or may not simplify coloring.
 
-[Read in atlas](index.html#TCS-0594) · [Colouring Graphs of Bounded Diameter, in Graph Colouring: from Structure to Algorithms](https://doi.org/10.4230/DagRep.9.6.125) · [Algorithms and Almost Tight Results for 3-Colorability of Small Diameter Graphs](https://doi.org/10.1007/s00453-014-9949-6) · [Faster 3-coloring of small-diameter graphs](https://arxiv.org/abs/2104.13860v1) · [List 3-coloring C₄-free graphs of diameter-2 in polynomial-time](https://arxiv.org/abs/2606.30282v2)
+[Read in atlas](index.html#TCS-0594) · [Colouring Graphs of Bounded Diameter, in Graph Colouring: from Structure to Algorithms](https://doi.org/10.4230/DagRep.9.6.125) · [Algorithms and Almost Tight Results for 3-Colorability of Small Diameter Graphs](https://doi.org/10.1007/s00453-014-9949-6) · [Faster 3-coloring of small-diameter graphs](https://arxiv.org/abs/2104.13860v1) · [List 3-coloring \(C_{4}\)-free graphs of diameter-2 in polynomial-time](https://arxiv.org/abs/2606.30282v2)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0587 — Polylogarithmic treewidth with forbidden induced minors
@@ -2325,7 +2325,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-2783 — Erdős girth conjecture
 
-The girth conjecture asks for dense graphs with every short cycle forbidden. For each fixed k, the target is Ω(n^{1+1/k}) edges and girth at least 2k+2. The lower bound must hold for every sufficiently large n, with constants depending on k. The known cases are k=1,2,3,5, as still recorded in July 2026. A resolution would sharpen fundamental lower bounds for routing and graph spanners.
+The girth conjecture asks for dense graphs with every short cycle forbidden. For each fixed k, the target is \(\Omega (n^{1+1/k})\) edges and girth at least \(2k+2\). The lower bound must hold for every sufficiently large n, with constants depending on k. The known cases are \(k=1,2,3,5\), as still recorded in July 2026. A resolution would sharpen fundamental lower bounds for routing and graph spanners.
 
 [Read in atlas](index.html#TCS-2783) · [Space-Stretch Tradeoff in Routing Revisited](https://doi.org/10.4230/LIPIcs.DISC.2022.37) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://arxiv.org/abs/2607.07576)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -2399,7 +2399,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 A static data structure preprocesses a database and later answers queries by reading stored memory cells. This question seeks an explicitly computable Boolean query problem forcing more than logarithmically many reads despite unrestricted preprocessing. The saved formulation fixes short queries, logarithmic word size, near-linear space, and deterministic adaptive access. Free computation between reads makes this an information-access lower bound. Such an example would expose a fundamental limit on making useful information locally accessible through clever storage alone.
 
-[Read in atlas](index.html#TCS-6540) · [The Natural Proofs Barrier against Data-Structure Lower-Bounds](https://doi.org/10.1145/3798129.3800843) · [Stronger Cell Probe Lower Bounds via Local PRGs](https://eccc.weizmann.ac.il/report/2025/030/) · [Lower Bounds for Linear Operators](https://eccc.weizmann.ac.il/report/2025/155/) · [Crossing the Logarithmic Barrier for Dynamic Boolean Data Structure Lower Bounds](https://epubs.siam.org/doi/10.1137/18M1198429) · [An Ω((log n/log log n)²) Cell-Probe Lower Bound for Dynamic Boolean Data Structures](https://eccc.weizmann.ac.il/report/2026/047/)
+[Read in atlas](index.html#TCS-6540) · [The Natural Proofs Barrier against Data-Structure Lower-Bounds](https://doi.org/10.1145/3798129.3800843) · [Stronger Cell Probe Lower Bounds via Local PRGs](https://eccc.weizmann.ac.il/report/2025/030/) · [Lower Bounds for Linear Operators](https://eccc.weizmann.ac.il/report/2025/155/) · [Crossing the Logarithmic Barrier for Dynamic Boolean Data Structure Lower Bounds](https://epubs.siam.org/doi/10.1137/18M1198429) · [An \(\Omega ((\log  n/\log  \log  n)^{2})\) Cell-Probe Lower Bound for Dynamic Boolean Data Structures](https://eccc.weizmann.ac.il/report/2026/047/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6586 — Deterministic linear-time static dictionaries
@@ -2448,9 +2448,9 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6627 — Fully dynamic near-optimal matching with polylogarithmic updates
 
-A matching selects graph edges without shared endpoints. The reviewed question asks to maintain an explicit matching within a factor of one plus ε of maximum using polylogarithmic expected amortized update time. Although the optimum changes little after one update, repairing a particular matching may involve a long alternating path. A solution would combine nearly optimal allocation quality with efficient response to both insertions and deletions. The saved record requires actual partner information and distinguishes this task from estimating matching size or maintaining the weaker guarantee of maximality.
+A matching selects graph edges without shared endpoints. The reviewed question asks to maintain an explicit matching within a factor of one plus \(\varepsilon\) of maximum using polylogarithmic expected amortized update time. Although the optimum changes little after one update, repairing a particular matching may involve a long alternating path. A solution would combine nearly optimal allocation quality with efficient response to both insertions and deletions. The saved record requires actual partner information and distinguishes this task from estimating matching size or maintaining the weaker guarantee of maximality.
 
-[Read in atlas](index.html#TCS-6627) · [Sixteenth Biennial Scientific Report: March 2021–March 2023](https://pure.mpg.de/pubman/item/item_3527212_4/component/file_3527885/biennial-report-2023.pdf) · [Fully Dynamic Matching: (2−√2)-Approximation in Polylog Update Time](https://epubs.siam.org/doi/10.1137/1.9781611977912.109) · [Improved Bounds for Fully Dynamic Matching via Ordered Ruzsa-Szemeredi Graphs](https://arxiv.org/abs/2406.13573) · [A note on Ordered Ruzsa-Szemerédi graphs](https://arxiv.org/abs/2502.02455) · [On Approximate Fully-Dynamic Matching and Online Matrix-Vector Multiplication](https://arxiv.org/abs/2403.02582) · [A Faster Deterministic Algorithm for Fully Dynamic Maximal Matching](https://arxiv.org/abs/2605.00797)
+[Read in atlas](index.html#TCS-6627) · [Sixteenth Biennial Scientific Report: March 2021–March 2023](https://pure.mpg.de/pubman/item/item_3527212_4/component/file_3527885/biennial-report-2023.pdf) · [Fully Dynamic Matching: \((2- \sqrt{2})\)-Approximation in Polylog Update Time](https://epubs.siam.org/doi/10.1137/1.9781611977912.109) · [Improved Bounds for Fully Dynamic Matching via Ordered Ruzsa-Szemeredi Graphs](https://arxiv.org/abs/2406.13573) · [A note on Ordered Ruzsa-Szemerédi graphs](https://arxiv.org/abs/2502.02455) · [On Approximate Fully-Dynamic Matching and Online Matrix-Vector Multiplication](https://arxiv.org/abs/2403.02582) · [A Faster Deterministic Algorithm for Fully Dynamic Maximal Matching](https://arxiv.org/abs/2605.00797)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6626 — Polylogarithmic worst-case updates for exact dynamic minimum spanning forests
@@ -2511,7 +2511,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0538 — Low-degree spanning trees
 
-Given a connected undirected graph, the goal is to find a spanning tree whose maximum vertex degree is as small as possible. The seminar asks for a near-linear-time algorithm achieving an O(1) multiplicative approximation to this optimum. It recalls the O(mn)-time algorithm of Fürer and Raghavachari, which achieves an additive error of at most one in maximum degree. The source also observes that allowing an O(polylog(n)) multiplicative factor opens several approaches to near-linear running time. Closing this gap would provide a much faster constant-factor approximation for constructing a connected backbone with bounded load at each vertex.
+Given a connected undirected graph, the goal is to find a spanning tree whose maximum vertex degree is as small as possible. The seminar asks for a near-linear-time algorithm achieving an \(O(1)\) multiplicative approximation to this optimum. It recalls the \(O(mn)\)-time algorithm of Fürer and Raghavachari, which achieves an additive error of at most one in maximum degree. The source also observes that allowing an \(O(\operatorname{polylog}(n))\) multiplicative factor opens several approaches to near-linear running time. Closing this gap would provide a much faster constant-factor approximation for constructing a connected backbone with bounded load at each vertex.
 
 [Read in atlas](index.html#TCS-0538) · [Graph Algorithms: Distributed Meets Dynamic](https://doi.org/10.4230/DagRep.14.11.92)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -2553,16 +2553,16 @@ A deletion trace independently removes bits of an unknown string while preservin
 [Read in atlas](index.html#TCS-6623) · [New lower bounds for trace reconstruction](https://www.math.kent.edu/~zchase/tr_lower.pdf) · [New upper bounds for trace reconstruction](https://arxiv.org/abs/2009.03296) · [Trace Reconstruction from Local Statistical Queries](https://arxiv.org/abs/2407.11177) · [Near-Optimal Trace Reconstruction for Mildly Separated Strings](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2025.3) · [New Bounds for Circular Trace Reconstruction](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2026.30) · [Quasipolynomial Trace Reconstruction](https://arxiv.org/abs/2607.04073)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-6624 — Constant-factor edit-distance approximation in O(n polylog n) time
+### TCS-6624 — Constant-factor edit-distance approximation in \(O(n \operatorname{polylog} n)\) time
 
 Edit distance counts the cheapest sequence of insertions, deletions, and substitutions transforming one string into another. The reviewed question asks for a randomized universal constant-factor approximation in near-linear time. Insertions can shift many positions, making direct coordinate comparisons misleading even when edit distance is tiny. The target would estimate global alignment cost without constructing the full quadratic dynamic-programming table. The guarantee is purely multiplicative, so identical strings must yield zero and nearby strings cannot be hidden behind a large additive error.
 
 [Read in atlas](index.html#TCS-6624) · [Edit Distance in Near-Linear Time: It’s a Constant Factor](https://epubs.siam.org/doi/10.1137/21M1392322) · [Edit Distance in Near-Linear Time: it’s a Constant Factor — full manuscript](https://arxiv.org/abs/2005.07678) · [Approximating Edit Distance in Near-Linear Time](https://arxiv.org/abs/1109.5635) · [Constant factor approximations to edit distance on far input pairs in nearly linear time](https://arxiv.org/abs/1904.05459) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702) · [Edit Distance Cannot Be Computed in Strongly Subquadratic Time (unless SETH is false)](https://arxiv.org/abs/1412.0348)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7220 — Truly subquadratic (1+ε)-approximation of edit distance
+### TCS-7220 — Truly subquadratic \((1+\varepsilon )\)-approximation of edit distance
 
-Unit-cost edit distance counts the fewest single-symbol insertions, deletions and substitutions needed to transform one string into another. The question asks whether every fixed positive ε permits a randomized (1+ε)-approximation in O(n^(2−δ_ε)) time for some fixed δ_ε>0 on every input pair. Mao and Rubinstein’s 2026 approximation scheme gives a quasipolynomial speedup over quadratic time without establishing that fixed exponent saving. The numerical estimate must have purely multiplicative error even for strings with very small distance, and all preprocessing is included in the runtime. This accuracy target remains separate from TCS-6624, which allows a fixed constant factor but requires O(n polylog n) time.
+Unit-cost edit distance counts the fewest single-symbol insertions, deletions and substitutions needed to transform one string into another. The question asks whether every fixed positive \(\varepsilon\) permits a randomized \((1+\varepsilon )\)-approximation in \(O(n^{2- \delta _{\varepsilon}})\) time for some fixed \(\delta _{\varepsilon}>0\) on every input pair. Mao and Rubinstein’s 2026 approximation scheme gives a quasipolynomial speedup over quadratic time without establishing that fixed exponent saving. The numerical estimate must have purely multiplicative error even for strings with very small distance, and all preprocessing is included in the runtime. This accuracy target remains separate from TCS-6624, which allows a fixed constant factor but requires \(O(n \operatorname{polylog} n)\) time.
 
 [Read in atlas](index.html#TCS-7220) · [Approximating Edit Distance](https://theorydish.blog/2018/07/20/approximating-edit-distance/) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://arxiv.org/abs/2603.29702) · [Edit Distance in Near-Linear Time: it’s a Constant Factor](https://arxiv.org/abs/2005.07678)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -2581,9 +2581,9 @@ A grammar can compress a string by naming repeated pieces and assembling them th
 [Read in atlas](index.html#TCS-6513) · [The Smallest Grammar Problem](https://doi.org/10.1109/TIT.2005.850116) · [On the Complexity of the Smallest Grammar Problem over Fixed Alphabets](https://doi.org/10.1007/s00224-020-10013-w)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7297 — Optimal ℓ₁ distortion of edit distance
+### TCS-7297 — Optimal \(\ell\)\(_{1}\) distortion of edit distance
 
-Edit distance counts unit-cost insertions, deletions and substitutions between binary strings. An ℓ₁ embedding represents those distances by sums of coordinate differences, up to a common multiplicative distortion. The target is the smallest distortion as a function of string length, within constant factors. Embedding dimension and construction time are unrestricted. The earlier polylogarithmic-distortion question selects one possible growth regime of this extremal function.
+Edit distance counts unit-cost insertions, deletions and substitutions between binary strings. An \(\ell\)\(_{1}\) embedding represents those distances by sums of coordinate differences, up to a common multiplicative distortion. The target is the smallest distortion as a function of string length, within constant factors. Embedding dimension and construction time are unrestricted. The earlier polylogarithmic-distortion question selects one possible growth regime of this extremal function.
 
 [Read in atlas](index.html#TCS-7297) · [Low Distortion Embeddings for Edit Distance](https://doi.org/10.1145/1060590.1060623)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -2609,11 +2609,11 @@ Compressed pattern matching asks whether an explicit pattern occurs in a text su
 [Read in atlas](index.html#TCS-0468) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Pattern matching in Lempel-Ziv compressed strings: fast, simple, and deterministic](https://arxiv.org/abs/1104.4203) · [Pattern Matching on Grammar-Compressed Strings in Linear Time](https://arxiv.org/abs/2111.05016)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0470 — Grammar random access in O(g log g) bits
+### TCS-0470 — Grammar random access in \(O(g \log  g)\) bits
 
 A straight-line grammar can describe a string exponentially longer than its own rule list. The question asks for logarithmic-time character access with total storage comparable in bits to the grammar encoding. The representation must be built from the grammar in polynomial time without expanding the string. The obstacle is that navigation often stores expansion lengths requiring logarithmically many bits in the much larger text length. The saved review identifies removal of that length-storage overhead as the issue and distinguishes it from linear-word-space grammar access.
 
-[Read in atlas](index.html#TCS-0470) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Space-Efficient SLP Encoding for O(log N)-Time Random Access](https://doi.org/10.1007/s00224-025-10243-w) · [Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes](https://doi.org/10.4230/LIPIcs.ICALP.2026.86)
+[Read in atlas](index.html#TCS-0470) · [Adaptive and Scalable Data Structures (Dagstuhl Seminar 25191)](https://doi.org/10.4230/DagRep.15.5.1) · [Space-Efficient SLP Encoding for \(O(\log  N)\)-Time Random Access](https://doi.org/10.1007/s00224-025-10243-w) · [Random Access in Grammar-Compressed Strings: Optimal Trade-Offs in Almost All Parameter Regimes](https://doi.org/10.4230/LIPIcs.ICALP.2026.86)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-5288 — Entropy-optimal grammar compression
@@ -2632,7 +2632,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6928 — Linear-space representation from smallest string attractors
 
-A string attractor is a set of positions intersecting an occurrence of every distinct substring. Its minimum size γ provides a compact measure of repetitive structure. The saved question asks whether every string has an O(γ)-word representation, or at least an asymptotic improvement over the stated γ log n scale. Such a result would clarify whether the attractor's succinct description can be converted into an equally compact usable encoding. The survey note does not specify access requirements or word-size conventions, so a representation-only result must remain distinct from an efficient index.
+A string attractor is a set of positions intersecting an occurrence of every distinct substring. Its minimum size \(\gamma\) provides a compact measure of repetitive structure. The saved question asks whether every string has an \(O(\gamma )\)-word representation, or at least an asymptotic improvement over the stated \(\gamma  \log  n\) scale. Such a result would clarify whether the attractor's succinct description can be converted into an equally compact usable encoding. The survey note does not specify access requirements or word-size conventions, so a representation-only result must remain distinct from an efficient index.
 
 [Read in atlas](index.html#TCS-6928) · [Indexing Highly Repetitive String Collections](https://arxiv.org/abs/2004.02781)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -2648,7 +2648,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0011 — Existence of complete EFX allocations for additive valuations
 
-The problem asks whether every instance with at least four agents and nonnegative additive values admits a complete EFX allocation of indivisible goods. Complete means that each good is assigned to exactly one agent, with empty bundles allowed. For every potentially envious agent i and other bundle A_j, removing any good that i values positively must leave a bundle worth at most i’s own bundle. The statement permits zero values and fixes the positive-good EFX convention, without requiring payments or an efficient algorithm. Universal existence would establish this fairness guarantee despite the inability to divide individual goods.
+The problem asks whether every instance with at least four agents and nonnegative additive values admits a complete EFX allocation of indivisible goods. Complete means that each good is assigned to exactly one agent, with empty bundles allowed. For every potentially envious agent i and other bundle \(A_{j}\), removing any good that i values positively must leave a bundle worth at most i’s own bundle. The statement permits zero values and fixes the positive-good EFX convention, without requiring payments or an efficient algorithm. Universal existence would establish this fairness guarantee despite the inability to divide individual goods.
 
 [Read in atlas](index.html#TCS-0011) · [Problem 3: Does EFX always exist?](https://tcsopenproblems.com/problem/3)
 Existing status: `open` · Summary written: 2026-09-11
@@ -2690,14 +2690,14 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7197 — Polynomial-time approximation of EFX
 
-All indivisible goods must be allocated among agents with nonnegative additive values. An α-EFX allocation lets each agent retain at least an α fraction of the value she assigns to any other bundle after any one good is removed. The question asks for the supremum factor guaranteed by deterministic polynomial-time algorithms for arbitrarily many agents. A general factor of about 0.618 is known, while recent 2/3 guarantees cover only bounded numbers of agents. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
+All indivisible goods must be allocated among agents with nonnegative additive values. An \(\alpha -\mathrm{EFX}\) allocation lets each agent retain at least an \(\alpha\) fraction of the value she assigns to any other bundle after any one good is removed. The question asks for the supremum factor guaranteed by deterministic polynomial-time algorithms for arbitrarily many agents. A general factor of about 0.618 is known, while recent \(2/3\) guarantees cover only bounded numbers of agents. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
 
-[Read in atlas](index.html#TCS-7197) · [Fair division of indivisible goods: Recent progress and open questions](https://doi.org/10.1016/j.artint.2023.103965) · [Multiple Birds with One Stone: Beating 1/2 for EFX and GMMS via Envy Cycle Elimination](https://arxiv.org/abs/1909.07650v2) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371v1)
+[Read in atlas](index.html#TCS-7197) · [Fair division of indivisible goods: Recent progress and open questions](https://doi.org/10.1016/j.artint.2023.103965) · [Multiple Birds with One Stone: Beating \(1/2\) for EFX and GMMS via Envy Cycle Elimination](https://arxiv.org/abs/1909.07650v2) · [Approximate Envy-Free Allocations up to any k Goods](https://arxiv.org/abs/2605.10371v1)
 Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-7200 — Multiplicative MMS guarantee for chores
 
-Chores are indivisible tasks whose costs add, and each agent prefers a smaller burden. Her minimax share is the lowest worst-bundle cost she can obtain by partitioning all chores among the agents. The question asks for the smallest universal factor by which every agent’s share must be relaxed to make a complete allocation possible. The checked general bounds are 44/43 and 13/11, while stronger guarantees for restricted costs do not close this gap. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
+Chores are indivisible tasks whose costs add, and each agent prefers a smaller burden. Her minimax share is the lowest worst-bundle cost she can obtain by partitioning all chores among the agents. The question asks for the smallest universal factor by which every agent’s share must be relaxed to make a complete allocation possible. The checked general bounds are \(44/43\) and \(13/11\), while stronger guarantees for restricted costs do not close this gap. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
 
 [Read in atlas](index.html#TCS-7200) · [How to Fairly Allocate Easy and Difficult Chores](https://arxiv.org/abs/2110.11285) · [A tight negative example for MMS fair allocations](https://arxiv.org/abs/2104.04977v2) · [A Reduction from Chores Allocation to Job Scheduling](https://arxiv.org/abs/2302.04581v4) · [Improved Maximin Share Approximations for Chores by Bin Packing](https://ojs.aaai.org/index.php/AAAI/article/view/33518) · [Comparison-Based Fair Division of Indivisible Chores](https://arxiv.org/abs/2609.08687v1)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -2711,14 +2711,14 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7203 — Bounded protocols for connected envy-free proportional cake cutting
 
-The cake is a divisible interval valued differently by each agent. The desired division gives every agent one interval, eliminates envy, and guarantees at least one n-th of her value for the whole cake. Unallocated cake is allowed, but it cannot reduce that proportionality guarantee. Known connected partial protocols provide weaker guarantees for larger numbers of agents, while recent complete protocols allow fragmented shares. The question is whether a fixed finite query bound can achieve all the requested properties for every fixed n≥4.
+The cake is a divisible interval valued differently by each agent. The desired division gives every agent one interval, eliminates envy, and guarantees at least one n-th of her value for the whole cake. Unallocated cake is allowed, but it cannot reduce that proportionality guarantee. Known connected partial protocols provide weaker guarantees for larger numbers of agents, while recent complete protocols allow fragmented shares. The question is whether a fixed finite query bound can achieve all the requested properties for every fixed \(n\ge 4\).
 
 [Read in atlas](index.html#TCS-7203) · [Waste Makes Haste: Bounded Time Protocols for Envy-Free Cake Cutting with Free Disposal](https://arxiv.org/abs/1511.02599) · [A Discrete and Bounded Envy-Free Cake Cutting Protocol for Any Number of Agents](https://arxiv.org/abs/1604.03655) · [Envy-Free Cake Divisions Cannot Be Found by Finite Protocols](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfree.pdf) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0056 — Best α for α-MMS existence
+### TCS-0056 — Best \(\alpha\) for \(\alpha\)-MMS existence
 
-An agent's maximin share is the value they can secure by dividing the goods into bundles and receiving the least valuable one. The recorded question asks for the largest universally guaranteed multiplicative approximation α to these benchmarks. Each agent evaluates and partitions the same goods differently, so their individual guarantees may conflict. Determining α would quantify how much of this personal fairness entitlement can always be achieved simultaneously. The saved title does not specify valuation class, agent count, or goods-versus-chores conventions, which are essential before one universal constant is identified.
+An agent's maximin share is the value they can secure by dividing the goods into bundles and receiving the least valuable one. The recorded question asks for the largest universally guaranteed multiplicative approximation \(\alpha\) to these benchmarks. Each agent evaluates and partitions the same goods differently, so their individual guarantees may conflict. Determining \(\alpha\) would quantify how much of this personal fairness entitlement can always be achieved simultaneously. The saved title does not specify valuation class, agent count, or goods-versus-chores conventions, which are essential before one universal constant is identified.
 
 [Read in atlas](index.html#TCS-0056) · [TCS Open Problems](https://tcsopenproblems.com/problem/4)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -2811,7 +2811,7 @@ Existing status: `resolved` · Summary written: 2026-09-12
 
 ### TCS-0007 — Matrix multiplication exponent
 
-Matrix multiplication asks for every entry of the product of two arbitrary square matrices over the complex numbers. The target is the infimum arithmetic-circuit exponent ω. The well-known conjecture ω=2 is one possible value, rather than the only answer considered by this card. The infimum can be approached without an algorithm attaining its endpoint exponent. The Lean benchmark accepts a certified value with absolute error at most 0.01, while the saved literature supplies upper bounds and barriers for specific methods.
+Matrix multiplication asks for every entry of the product of two arbitrary square matrices over the complex numbers. The target is the infimum arithmetic-circuit exponent \(\omega\). The well-known conjecture \(\omega =2\) is one possible value, rather than the only answer considered by this card. The infimum can be approached without an algorithm attaining its endpoint exponent. The Lean benchmark accepts a certified value with absolute error at most 0.01, while the saved literature supplies upper bounds and barriers for specific methods.
 
 [Read in atlas](index.html#TCS-0007) · [Gaussian elimination is not optimal](https://doi.org/10.1007/BF02165411) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Limits on the Universal Method for Matrix Multiplication](https://arxiv.org/abs/1812.08731) · [More Asymmetry Yields Faster Matrix Multiplication](https://doi.org/10.1137/1.9781611978322.63) · [Improving the matrix multiplication exponent with modern optimization and AlphaEvolve](https://arxiv.org/abs/2608.16884v1) · [More Asymmetry Yields Faster Matrix Multiplication — August 2026 revision](https://arxiv.org/abs/2404.16349v3)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -2823,11 +2823,11 @@ The permanent adds permutation products without the signs that occur in a determ
 [Read in atlas](index.html#TCS-6611) · [A Lower Bound on Determinantal Complexity](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.CCC.2021.4) · [A quadratic bound for the determinant and permanent problem](https://math.univ-lyon1.fr/~ressayre/PDFs/permdet.pdf) · [Permanent v. determinant: An exponential lower bound assuming symmetry and a potential path towards Valiant’s conjecture](https://doi.org/10.1016/j.difgeo.2017.03.017) · [The Algebraic Cost of a Boolean Sum](https://doi.org/10.4230/LIPIcs.FSTTCS.2025.47) · [Bounds on determinantal complexity of two types of generalized permanents](https://www.sciencedirect.com/science/article/pii/S0304397526001210)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-6666 — Shub–Smale τ-conjecture
+### TCS-6666 — Shub–Smale \(\tau\)-conjecture
 
 A short arithmetic program can build an integer polynomial from just the constant one and a single variable. The Shub–Smale conjecture asks whether the number of distinct integer roots is bounded by a fixed polynomial in the program length. Repeated squaring shows why the polynomial's degree alone can be enormous despite a compact computation. The proposed root bound connects arithmetic structure to major lower-bound questions by limiting what computational compression can achieve. Arbitrary constants are forbidden and their construction is charged, so changing that convention would change the question substantially.
 
-[Read in atlas](index.html#TCS-6666) · [On the intractability of Hilbert’s Nullstellensatz and an algebraic version of “NP≠P?”](https://doi.org/10.1215/S0012-7094-95-08105-8) · [A Direct Ultrametric Approach to Additive Complexity and the Shub-Smale Tau Conjecture](https://arxiv.org/abs/math/0304100v2) · [Semialgebraic Proofs, IPS Lower Bounds, and the τ-Conjecture: Can a Natural Number be Negative?](https://doi.org/10.1137/20M1374523) · [The bottom of the Shub-Smale tau conjecture: an exact census of integer roots for constant-free straight-line programs of length at most eight](https://zenodo.org/records/22035884)
+[Read in atlas](index.html#TCS-6666) · [On the intractability of Hilbert’s Nullstellensatz and an algebraic version of “\(\mathrm{NP}\ne \mathrm{P}\)?”](https://doi.org/10.1215/S0012-7094-95-08105-8) · [A Direct Ultrametric Approach to Additive Complexity and the Shub-Smale Tau Conjecture](https://arxiv.org/abs/math/0304100v2) · [Semialgebraic Proofs, IPS Lower Bounds, and the \(\tau\)-Conjecture: Can a Natural Number be Negative?](https://doi.org/10.1137/20M1374523) · [The bottom of the Shub-Smale tau conjecture: an exact census of integer roots for constant-free straight-line programs of length at most eight](https://zenodo.org/records/22035884)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6612 — VP versus VBP over the complex numbers
@@ -2867,7 +2867,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6642 — Conjugacy problem for one-relator groups
 
-Conjugacy asks whether two group elements differ by a transformation of the form w⁻¹uw. The reviewed question seeks one algorithm deciding this for every finitely presented group with a single defining relation. Equality of words is decidable in these groups, but searching possible conjugators only semidecides positive answers. An algorithm would settle a classical decision problem for a remarkably concise family of infinite algebraic structures. The saved review explains that decomposition methods preserving word-problem decidability do not automatically preserve decidable conjugacy.
+Conjugacy asks whether two group elements differ by a transformation of the form \(w^{- 1}uw\). The reviewed question seeks one algorithm deciding this for every finitely presented group with a single defining relation. Equality of words is decidable in these groups, but searching possible conjugators only semidecides positive answers. An algorithm would settle a classical decision problem for a remarkably concise family of infinite algebraic structures. The saved review explains that decomposition methods preserving word-problem decidability do not automatically preserve decidable conjugacy.
 
 [Read in atlas](index.html#TCS-6642) · [The theory of one-relator groups: history and recent progress](https://arxiv.org/abs/2501.18306) · [Some aspects of one-relator groups](https://researchonline.jcu.edu.au/58078/) · [One-relator groups with torsion are conjugacy separable](https://arxiv.org/abs/1211.0488) · [Undecidable Diophantine problems in generalisations of one-relator groups](https://arxiv.org/abs/2605.30535) · [Undecidability of the Diophantine problem for one-relator groups and one-relation monoids](https://arxiv.org/abs/2608.01983) · [The word problem for two-generator one-relator inverse monoids](https://arxiv.org/abs/2608.04650)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -2881,9 +2881,9 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7174 — Bit complexity of integer multiplication
 
-What is the optimal worst-case bit complexity of multiplying two n-bit integers? The model charges individual steps of a fixed deterministic multitape Turing machine. An O(n log n) algorithm is known, but only a linear general lower bound is established. A 2025 theorem connects the conjectured matching lower bound to the unresolved cost of matrix transposition. Bounds for restricted branching programs do not determine the optimal cost in this model.
+What is the optimal worst-case bit complexity of multiplying two n-bit integers? The model charges individual steps of a fixed deterministic multitape Turing machine. An \(O(n \log  n)\) algorithm is known, but only a linear general lower bound is established. A 2025 theorem connects the conjectured matching lower bound to the unresolved cost of matrix transposition. Bounds for restricted branching programs do not determine the optimal cost in this model.
 
-[Read in atlas](index.html#TCS-7174) · [Integer multiplication in time O(n log n): publisher abstract](https://annals.math.princeton.edu/2021/193-2/p04) · [Integer multiplication is at least as hard as matrix transposition](https://arxiv.org/abs/2503.22848) · [Upper and lower bounds on the OBDD-width of a special integer multiplication](https://arxiv.org/abs/2608.30664)
+[Read in atlas](index.html#TCS-7174) · [Integer multiplication in time \(O(n \log  n)\): publisher abstract](https://annals.math.princeton.edu/2021/193-2/p04) · [Integer multiplication is at least as hard as matrix transposition](https://arxiv.org/abs/2503.22848) · [Upper and lower bounds on the OBDD-width of a special integer multiplication](https://arxiv.org/abs/2608.30664)
 Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-6615 — Polynomial-time finite-group isomorphism in the Cayley-table model
@@ -2900,7 +2900,7 @@ Must the discrete Fourier transform take order n log n exact arithmetic operatio
 [Read in atlas](index.html#TCS-7175) · [The Division Barrier: Optimal Bounds and Structural Limits in Toom-Cook Interpolation](https://epubs.siam.org/doi/10.1137/1.9781611978971.190) · [Lower Bounds on the Bounded Coefficient Complexity of Bilinear Maps](https://arxiv.org/abs/cs/0301016) · [A Lower Bound for Fourier Transform Computation in a Linear Model Over 2x2 Unitary Gates Using Matrix Entropy](https://arxiv.org/abs/1305.4745) · [Paraunitary Matrices, Entropy, Algebraic Condition Number and Fourier Computation](https://arxiv.org/abs/1609.03278v6)
 Existing status: `open` · Summary written: 2026-09-11
 
-### TCS-6616 — Breaking the 2^n barrier for exact permanent computation
+### TCS-6616 — Breaking the \(2^{n}\) barrier for exact permanent computation
 
 Exact permanent computation evaluates the unsigned sum of permutation products of a square matrix. The saved question asks for an arithmetic algorithm with running time O((2−epsilon)^n) for some fixed positive epsilon over characteristic zero. The target is an exponential-base improvement, not a polynomial factor saved from a two-to-the-n procedure. It probes whether the familiar inclusion-exclusion scale reflects a genuine obstacle in this canonical counting polynomial. The source formulation counts arithmetic operations, so coefficient bit complexity and approximate evaluation require separate treatment before comparing algorithms to this target.
 
@@ -3070,7 +3070,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3318 — Arithmetic circuit closure under pth roots
 
-In positive characteristic p, taking a p-th power interacts strongly with the algebraic structure of a polynomial. The source asks whether a small circuit for g(x)^p implies a small circuit for g(x) itself. This tests whether taking a root can uncover computational difficulty hidden by the characteristic-p power operation. A positive result would support efforts to relate algebraic hardness and derandomization in low characteristic. The excerpt leaves the quantitative size bound and field assumptions implicit, so a finished version must specify how circuit size, degree, and available constants are controlled.
+In positive characteristic p, taking a p-th power interacts strongly with the algebraic structure of a polynomial. The source asks whether a small circuit for \(g(x)^{p}\) implies a small circuit for \(g(x)\) itself. This tests whether taking a root can uncover computational difficulty hidden by the characteristic-p power operation. A positive result would support efforts to relate algebraic hardness and derandomization in low characteristic. The excerpt leaves the quantitative size bound and field assumptions implicit, so a finished version must specify how circuit size, degree, and available constants are controlled.
 
 [Read in atlas](index.html#TCS-3318) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -3145,7 +3145,7 @@ Monotone arithmetic circuits compute polynomials without using cancellation from
 [Read in atlas](index.html#TCS-5777) · [Monotone Complexity of Spanning Tree Polynomial Re-Visited](https://doi.org/10.4230/LIPIcs.ITCS.2022.39)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5921 — Membership in 2×2 integer matrix semigroups
+### TCS-5921 — Membership in \(2\times 2\) integer matrix semigroups
 
 Given finitely many integer matrices, semigroup membership asks whether a target matrix equals some nonempty product of the generators. This project concerns arbitrary two-by-two integer matrices and asks whether the problem is decidable. Products may use generators repeatedly but cannot freely introduce inverses as a group-membership problem would. The source proves positive results for other structured low-dimensional matrix classes without settling this unrestricted two-dimensional case. A resolution would locate a basic boundary for exact reachability in small-dimensional linear transformation systems.
 
@@ -3284,14 +3284,14 @@ Existing status: `resolved` · Summary written: 2026-09-12
 
 Hilbert's tenth problem over the rationals asks whether a polynomial equation with integer coefficients has any rational solution. The project seeks one algorithm that always decides this for unrestricted numbers of variables and degrees. Enumerating rational tuples eventually finds an existing solution, but supplies no stopping rule when none exists. Undecidability over the integers does not transfer automatically because allowing fractions removes the integrality restriction. A resolution would locate a fundamental computability boundary for exact arithmetic constraints and the geometry of rational points.
 
-[Read in atlas](index.html#TCS-6571) · [Hilbert’s Tenth Problem over Rings of Number-Theoretic Interest](https://math.mit.edu/~poonen/papers/aws2003.pdf) · [Defining ℤ in ℚ](https://annals.math.princeton.edu/wp-content/uploads/annals-v183-n1-p02-p.pdf) · [A survey of local-global methods for Hilbert’s Tenth Problem](https://arxiv.org/abs/2309.14987) · [Effectivity for existence of rational points is undecidable](https://arxiv.org/abs/2311.01958v2) · [Rank stability makes rings of integers diophantine](https://math.mit.edu/~poonen/papers/h10_over_OK.pdf) · [Rank stability in quadratic extensions and Hilbert’s tenth problem for the ring of integers of a number field](https://link.springer.com/article/10.1007/s00222-025-01392-3)
+[Read in atlas](index.html#TCS-6571) · [Hilbert’s Tenth Problem over Rings of Number-Theoretic Interest](https://math.mit.edu/~poonen/papers/aws2003.pdf) · [Defining \(\mathbb{Z}\) in \(\mathbb{Q}\)](https://annals.math.princeton.edu/wp-content/uploads/annals-v183-n1-p02-p.pdf) · [A survey of local-global methods for Hilbert’s Tenth Problem](https://arxiv.org/abs/2309.14987) · [Effectivity for existence of rational points is undecidable](https://arxiv.org/abs/2311.01958v2) · [Rank stability makes rings of integers diophantine](https://math.mit.edu/~poonen/papers/h10_over_OK.pdf) · [Rank stability in quadratic extensions and Hilbert’s tenth problem for the ring of integers of a number field](https://link.springer.com/article/10.1007/s00222-025-01392-3)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6667 — Polynomial-time, polynomial-factor approximation of Euclidean SVP
 
 The shortest vector problem seeks a nonzero integer combination of lattice basis vectors with minimum Euclidean length. The reviewed question asks for polynomial-time approximation within some fixed polynomial in the lattice rank. Long basis vectors can cancel to form much shorter vectors, so the input representation hides the relevant geometry. Reaching polynomial factors would close a major gap between general reduction algorithms and fundamental lattice-hardness regimes. The saved review separates subexponential approximation factors, decision certificates, and constant-factor hardness from the requested polynomial-factor search guarantee.
 
-[Read in atlas](index.html#TCS-6667) · [Factoring Polynomials with Rational Coefficients](https://www.math.ucdavis.edu/~deloera/MISC/LA-BIBLIO/trunk/Lovasz/LovaszLenstraLenstrafactor.pdf) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Tensor-based Hardness of the Shortest Vector Problem to within Almost Polynomial Factors](https://theoryofcomputing.org/articles/v008a023/v008a023.pdf) · [Lattice Problems in NP ∩ coNP](https://cims.nyu.edu/~regev/papers/cvpconp.pdf) · [A new BKZ-type reduction with provable termination and development of its self-dual variant](https://link.springer.com/article/10.1007/s13160-026-00799-6) · [One-Sided-Error Parameterized Reductions for the Minimum Distance and Shortest Vector Problems](https://arxiv.org/abs/2608.14305)
+[Read in atlas](index.html#TCS-6667) · [Factoring Polynomials with Rational Coefficients](https://www.math.ucdavis.edu/~deloera/MISC/LA-BIBLIO/trunk/Lovasz/LovaszLenstraLenstrafactor.pdf) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Tensor-based Hardness of the Shortest Vector Problem to within Almost Polynomial Factors](https://theoryofcomputing.org/articles/v008a023/v008a023.pdf) · [Lattice Problems in \(\mathrm{NP} \cap  \mathrm{coNP}\)](https://cims.nyu.edu/~regev/papers/cvpconp.pdf) · [A new BKZ-type reduction with provable termination and development of its self-dual variant](https://link.springer.com/article/10.1007/s13160-026-00799-6) · [One-Sided-Error Parameterized Reductions for the Minimum Distance and Shortest Vector Problems](https://arxiv.org/abs/2608.14305)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6617 — Integer factorization in randomized polynomial time
@@ -3303,7 +3303,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6618 — Prime-field discrete logarithms in randomized polynomial time
 
-A discrete logarithm in a prime field asks which exponent of a supplied generator produces a target nonzero residue. The question seeks a classical randomized algorithm with running time polynomial in log p for every promised input. Exponentiation is efficient, but reversing it requires identifying one exponent among p−1 possibilities. A solution would remove a foundational computational asymmetry used in finite-field cryptography. The saved review distinguishes prime fields from fixed-characteristic extension fields and explains why generic-group lower bounds do not rule out algorithms exploiting the concrete arithmetic of residues.
+A discrete logarithm in a prime field asks which exponent of a supplied generator produces a target nonzero residue. The question seeks a classical randomized algorithm with running time polynomial in log p for every promised input. Exponentiation is efficient, but reversing it requires identifying one exponent among \(p- 1\) possibilities. A solution would remove a foundational computational asymmetry used in finite-field cryptography. The saved review distinguishes prime fields from fixed-characteristic extension fields and explains why generic-group lower bounds do not rule out algorithms exploiting the concrete arithmetic of residues.
 
 [Read in atlas](index.html#TCS-6618) · [A Survey of Techniques Used in Algebraic and Number Theoretic Algorithms](https://www.csa.iisc.ac.in/~chandan/research/survey_CNT.pdf) · [The impact of the number field sieve on the discrete logarithm problem in finite fields](https://library.slmath.org/books/Book44/files/12oliver.pdf) · [Lower Bounds for Discrete Logarithms and Related Problems](https://www.shoup.net/papers/dlbounds1.pdf) · [Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer](https://arxiv.org/abs/quant-ph/9508027) · [Discrete logarithms in quasi-polynomial time in finite fields of fixed characteristic](https://arxiv.org/abs/1906.10668v2) · [Discrete Logarithm Factory](https://doi.org/10.62056/ah2ip2fgx)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -3317,7 +3317,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6620 — Vinogradov’s least quadratic nonresidue conjecture
 
-A quadratic nonresidue modulo an odd prime is a nonzero residue that is not the square of another residue. Vinogradov's conjecture asks whether the least positive example is smaller than p^ε for every fixed positive ε at sufficiently large primes. The question asserts that a small witness of nonsquareness always appears very early among the integers. Such a bound would sharpen the understanding of multiplicative structure and support deterministic searches for useful field elements. The saved proposal gives an asymptotic existence bound, not a polylogarithmic target or a reviewed account of later progress.
+A quadratic nonresidue modulo an odd prime is a nonzero residue that is not the square of another residue. Vinogradov's conjecture asks whether the least positive example is smaller than \(p^{\varepsilon}\) for every fixed positive \(\varepsilon\) at sufficiently large primes. The question asserts that a small witness of nonsquareness always appears very early among the integers. Such a bound would sharpen the understanding of multiplicative structure and support deterministic searches for useful field elements. The saved proposal gives an asymptotic existence bound, not a polylogarithmic target or a reviewed account of later progress.
 
 [Read in atlas](index.html#TCS-6620) · [Research reference · arXiv 1410.7073](https://arxiv.org/abs/1410.7073)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -3326,7 +3326,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 Can a quantum computer find an exactly shortest nonzero lattice vector in time polynomial in the encoded basis length? The output must be a classical integer combination of the basis, with success probability at least two thirds on every valid input. Randomized NP-hardness would make such an algorithm a major quantum complexity result, but is not a quantum impossibility proof. August 2026 exact-SVP preprints claim faster exponential algorithms with additional memory details. The disputed dihedral-coset proposal has an approximate-SVP consequence and does not settle this exact target.
 
-[Read in atlas](index.html#TCS-7169) · [The Shortest Vector in a Lattice is Hard to Approximate to within Some Constant](https://doi.org/10.1137/S0097539700373039) · [Improved Classical and Quantum Algorithms for the Shortest Vector Problem via Bounded Distance Decoding](https://ir.cwi.nl/pub/35122/35122.pdf) · [Solving the Shortest Vector Problem in 2^{0.6039n} Time via Mid-point Hessian](https://arxiv.org/abs/2608.02478v2) · [One Discrete Gaussian Sample in 2^{n/2+o(n)} Time](https://arxiv.org/abs/2608.03220v1) · [A Polynomial-Time Quantum Algorithm for the Dihedral Coset Problem](https://eprint.iacr.org/2026/1591) · [The ePrint:2026/1591 Quantum Algorithm Does Not Solve DCP](https://eprint.iacr.org/2026/1693)
+[Read in atlas](index.html#TCS-7169) · [The Shortest Vector in a Lattice is Hard to Approximate to within Some Constant](https://doi.org/10.1137/S0097539700373039) · [Improved Classical and Quantum Algorithms for the Shortest Vector Problem via Bounded Distance Decoding](https://ir.cwi.nl/pub/35122/35122.pdf) · [Solving the Shortest Vector Problem in \(2^{0.6039n}\) Time via Mid-point Hessian](https://arxiv.org/abs/2608.02478v2) · [One Discrete Gaussian Sample in \(2^{n/2+o(n)}\) Time](https://arxiv.org/abs/2608.03220v1) · [A Polynomial-Time Quantum Algorithm for the Dihedral Coset Problem](https://eprint.iacr.org/2026/1591) · [The ePrint:\(2026/1591\) Quantum Algorithm Does Not Solve DCP](https://eprint.iacr.org/2026/1693)
 Existing status: `open` · Summary written: 2026-09-11
 
 ### TCS-0658 — Standard-assumption hardness for cryptographic-factor SVP
@@ -3359,9 +3359,9 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-7170 — Scholz–Brauer conjecture
 
-An addition chain starts at one and builds its target by repeatedly adding two already available values. Its length counts additions and corresponds to the number of multiplications in the associated repeated-power computation. The conjecture asks whether the minimum length for 2ⁿ−1 is always at most n−1 plus the minimum length for n. The analogous theorem for star chains and known infinite families leave the unrestricted universal inequality open in the checked sources. Resolving it would explain how efficiently optimal exponentiation plans can control the cost of all-ones binary exponents.
+An addition chain starts at one and builds its target by repeatedly adding two already available values. Its length counts additions and corresponds to the number of multiplications in the associated repeated-power computation. The conjecture asks whether the minimum length for \(2^{n}- 1\) is always at most \(n- 1\) plus the minimum length for n. The analogous theorem for star chains and known infinite families leave the unrestricted universal inequality open in the checked sources. Resolving it would explain how efficiently optimal exponentiation plans can control the cost of all-ones binary exponents.
 
-[Read in atlas](index.html#TCS-7170) · [The Decompressed Tree Size of k-Ary Chains](https://link.springer.com/article/10.1007/s00026-026-00816-y) · [The Scholz Conjecture on Addition Chains Is True for Infinitely Many Integers with ℓ(2n)=ℓ(n)](https://math.colgate.edu/~integers/a17Proc23/a17Proc23.pdf) · [The Scholz Conjecture Is True for 2ⁿ−1 for Almost All n](https://vixra.org/pdf/2605.0012v1.pdf)
+[Read in atlas](index.html#TCS-7170) · [The Decompressed Tree Size of k-Ary Chains](https://link.springer.com/article/10.1007/s00026-026-00816-y) · [The Scholz Conjecture on Addition Chains Is True for Infinitely Many Integers with \(\ell\)\((2n)=\ell (n)\)](https://math.colgate.edu/~integers/a17Proc23/a17Proc23.pdf) · [The Scholz Conjecture Is True for \(2^{n}- 1\) for Almost All n](https://vixra.org/pdf/2605.0012v1.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-0651 — Deterministic NP-hardness reductions for Euclidean SVP
@@ -3406,9 +3406,9 @@ Module lattices carry additional algebraic structure beyond an arbitrary integer
 [Read in atlas](index.html#TCS-0661) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0662 — Unconditional exponential hardness of n^(1+ε)-GapSVP
+### TCS-0662 — Unconditional exponential hardness of \(n^{1+\varepsilon}\)-GapSVP
 
-The input is a rational basis for an n-dimensional lattice and a positive radius. The task distinguishes a nonzero vector within that radius from the promise that every nonzero vector is farther away by a factor n^(1+ε). The source asks for explicit c,ε>0 and an unconditional lower bound excluding 2^(cn)-time algorithms, up to polynomial input-processing factors. The bound must also exclude randomized and quantum computation with bounded error. Such a theorem would establish a powerful worst-case hardness foundation for lattice-based cryptography.
+The input is a rational basis for an n-dimensional lattice and a positive radius. The task distinguishes a nonzero vector within that radius from the promise that every nonzero vector is farther away by a factor \(n^{1+\varepsilon}\). The source asks for explicit \(c,\varepsilon >0\) and an unconditional lower bound excluding \(2^{cn}\)-time algorithms, up to polynomial input-processing factors. The bound must also exclude randomized and quantum computation with bounded error. Such a theorem would establish a powerful worst-case hardness foundation for lattice-based cryptography.
 
 [Read in atlas](index.html#TCS-0662) · [The Complexity of the Shortest Vector Problem](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf) · [Lattice Problems Beyond Polynomial Time](https://arxiv.org/abs/2211.11693)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -3427,9 +3427,9 @@ Quantum algorithms may exploit operations unavailable to classical lattice solve
 [Read in atlas](index.html#TCS-0653) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/svp-color.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1170 — ETH hardness of constant-factor shortest-vector approximation for 1≤p≤2
+### TCS-1170 — ETH hardness of constant-factor shortest-vector approximation for \(1\le p\le 2\)
 
-The shortest-vector problem asks how short a nonzero lattice vector can be. This card asks for constant-factor gap hardness in every norm ℓp with 1≤p≤2. The proposed lower bound excludes subexponential dependence on ambient dimension, with polynomial dependence on input encoding length. Its premise is ordinary deterministic ETH, and the approximation factor must stay bounded away from one as dimension grows. The source’s shortest-vector hardness theorem for p>2 uses randomized ETH and does not settle this stated interval or premise.
+The shortest-vector problem asks how short a nonzero lattice vector can be. This card asks for constant-factor gap hardness in every norm \(\ell p\) with \(1\le p\le 2\). The proposed lower bound excludes subexponential dependence on ambient dimension, with polynomial dependence on input encoding length. Its premise is ordinary deterministic ETH, and the approximation factor must stay bounded away from one as dimension grows. The source’s shortest-vector hardness theorem for \(p>2\) uses randomized ETH and does not settle this stated interval or premise.
 
 [Read in atlas](index.html#TCS-1170) · [Mind the Gap? Not for SVP Hardness Under ETH!](https://doi.org/10.4230/LIPIcs.ICALP.2026.8)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -3438,7 +3438,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 A lattice's covering radius is the farthest distance of any point from its nearest lattice point. The source studies the hardness of deciding and approximating this radius in different lp norms. The selected question emphasizes proving NP-hardness for the exact Euclidean case, where p equals two. The paper establishes approximation hardness for sufficiently large finite p, but those geometric constructions do not resolve the Euclidean target. A hardness proof would settle a basic classification question for one of the most natural lattice covering problems.
 
-[Read in atlas](index.html#TCS-5317) · [Hardness of the Binary Covering Radius Problem in Large l_p Norms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.10)
+[Read in atlas](index.html#TCS-5317) · [Hardness of the Binary Covering Radius Problem in Large \(l_{p}\) Norms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.10)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6466 — Polynomial tour complexity of BKZ
@@ -3487,7 +3487,7 @@ Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-1010 — Optimal asymptotic binary rate–distance tradeoff
 
-A binary code is any subset of binary strings of one length with a prescribed minimum pairwise Hamming distance. The function R₂(δ) is the limsup of the best achievable rate at relative distance δ. Determine this tradeoff for every real δ between zero and one half, allowing nonlinear codes and arbitrary block lengths. The benchmark accepts a Lean-certified curve with absolute rate error at most 0.01 bits per transmitted bit. The original limsup convention and the distinction between existence and efficient coding are retained.
+A binary code is any subset of binary strings of one length with a prescribed minimum pairwise Hamming distance. The function \(R_{2}(\delta )\) is the limsup of the best achievable rate at relative distance \(\delta\). Determine this tradeoff for every real \(\delta\) between zero and one half, allowing nonlinear codes and arbitrary block lengths. The benchmark accepts a Lean-certified curve with absolute rate error at most 0.01 bits per transmitted bit. The original limsup convention and the distinction between existence and efficient coding are retained.
 
 [Read in atlas](index.html#TCS-1010) · [Pseudorandomness](https://people.seas.harvard.edu/~salil/pseudorandomness/) · [New upper bounds on the rate of a code via the Delsarte–MacWilliams inequalities](https://doi.org/10.1109/TIT.1977.1055688) · [Asymptotic Improvement of the Gilbert–Varshamov Bound on the Size of Binary Codes](https://arxiv.org/abs/math/0404325) · [Improvement of the Gilbert-Varshamov Bound for Linear Codes and Quantum Codes](https://arxiv.org/abs/2601.18590) · [Binary code rate bounds via classical–quantum channels](https://arxiv.org/abs/2608.09347) · [Comments on the recent improvements of the MRRW bounds](https://arxiv.org/abs/2609.01860)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -3510,7 +3510,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 The binary deletion channel independently removes transmitted bits and hides their original positions. The question asks for capacity as a function of deletion probability, measured per input bit. Missing alignment makes this harder than an erasure channel that marks where losses occurred. Matching achievable rates and converse bounds would quantify the fundamental cost of synchronization uncertainty. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
 
-[Read in atlas](index.html#TCS-6607) · [An Overview of Capacity Results for Synchronization Channels](https://arxiv.org/abs/1910.07199) · [Optimal Coding for the Binary Deletion Channel With Small Deletion Probability](https://ykanoria.github.io/Deletion_paper.pdf) · [Improved Upper and Lower Bounds on the Capacity of the Binary Deletion Channel](https://arxiv.org/abs/2305.07156) · [Improved Capacity Upper Bounds for the Deletion Channel using a Parallelized Blahut-Arimoto Algorithm](https://arxiv.org/abs/2604.05867) · [A Certified Multi-Run Capacity Lower Bound for the Binary Deletion Channel at d = 1/2](https://zenodo.org/records/21780666)
+[Read in atlas](index.html#TCS-6607) · [An Overview of Capacity Results for Synchronization Channels](https://arxiv.org/abs/1910.07199) · [Optimal Coding for the Binary Deletion Channel With Small Deletion Probability](https://ykanoria.github.io/Deletion_paper.pdf) · [Improved Upper and Lower Bounds on the Capacity of the Binary Deletion Channel](https://arxiv.org/abs/2305.07156) · [Improved Capacity Upper Bounds for the Deletion Channel using a Parallelized Blahut-Arimoto Algorithm](https://arxiv.org/abs/2604.05867) · [A Certified Multi-Run Capacity Lower Bound for the Binary Deletion Channel at \(d = 1/2\)](https://zenodo.org/records/21780666)
 Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6608 — Decidability of unconditional Shannon information inequalities
@@ -3541,7 +3541,7 @@ Two correlated memoryless sources are compressed by separate encoders and recons
 [Read in atlas](index.html#TCS-7214) · [Network Information Theory](https://www.cambridge.org/core/books/network-information-theory/3ABE1D86EB0F0DF6A8764E415C2CA94A) · [Wikipedia: List of unsolved problems in information theory](https://en.wikipedia.org/wiki/List_of_unsolved_problems_in_information_theory) · [Wikipedia revision used for discovery](https://en.wikipedia.org/w/index.php?oldid=1351195847) · [Lecture Notes on Network Information Theory](https://arxiv.org/abs/1001.3404v4)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-6610 — Shannon capacity of C₇
+### TCS-6610 — Shannon capacity of \(C_{7}\)
 
 The seven-cycle describes which pairs of seven channel symbols can be confused. Its Shannon capacity is the supremum of independence numbers of strong graph powers raised to the reciprocal power. The card asks for this real number in distinguishable symbols per use, rather than bits per use. No finite graph power is assumed to attain the supremum. The Lean benchmark accepts an explicit value with certified absolute error at most 0.01.
 
@@ -3650,7 +3650,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 Binary two-way codes use interaction between communicating parties to tolerate corrupted transmissions. The source asks for the maximal noise tolerance, considering constant-rate and even zero-rate communication. Interaction can exploit feedback-like information that is unavailable to a sender using a fixed one-way block code. Determining the threshold would isolate the fundamental benefit of dialogue against noise. The saved question does not reproduce the adversary or turn-taking conventions, and positive constant rate is a stronger requirement than merely allowing communication whose rate tends to zero.
 
-[Read in atlas](index.html#TCS-4802) · [Binary Codes with Resilience Beyond 1/4 via Interaction](https://doi.org/10.1109/FOCS54457.2022.00008)
+[Read in atlas](index.html#TCS-4802) · [Binary Codes with Resilience Beyond \(1/4\) via Interaction](https://doi.org/10.1109/FOCS54457.2022.00008)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4968 — Linear versus nonlinear code parameters
@@ -3734,7 +3734,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0847 — Query complexity of directed acyclicity testing with bidirectional access
 
-The graph is directed and has bounded incoming and outgoing degree. A tester can ask for individual incoming or outgoing neighbors of any labeled vertex. It must distinguish graphs without directed cycles from graphs requiring more than εdn arc deletions to remove all directed cycles. The target is the optimal number of adaptive queries with error probability at most one third on either promised case. Recent lower bounds for outgoing-only access use a different model and do not by themselves settle this bidirectional question.
+The graph is directed and has bounded incoming and outgoing degree. A tester can ask for individual incoming or outgoing neighbors of any labeled vertex. It must distinguish graphs without directed cycles from graphs requiring more than \(\varepsilon dn\) arc deletions to remove all directed cycles. The target is the optimal number of adaptive queries with error probability at most one third on either promised case. Recent lower bounds for outgoing-only access use a different model and do not by themselves settle this bidirectional question.
 
 [Read in atlas](index.html#TCS-0847) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:41) · [An Optimal Separation Between Two Property Testing Models for Bounded Degree Directed Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2023.96) · [Lower Bounds for Testing Directed Acyclicity in the Unidirectional Bounded-Degree Model](https://arxiv.org/abs/2604.13577v1)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -3746,11 +3746,11 @@ Identity testing decides whether an unknown distribution matches a specified ref
 [Read in atlas](index.html#TCS-0672) · [COLT / PMLR](https://proceedings.mlr.press/v247/canonne24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2535 — A dimension-free directed L¹ Poincaré inequality
+### TCS-2535 — A dimension-free directed \(\mathrm{L}^{1}\) Poincaré inequality
 
 The conjecture concerns every Lipschitz real-valued function on a continuous unit cube. It asks whether average distance to a monotone function is controlled by the average Euclidean magnitude of the negative gradient. The multiplicative constant must be independent of the dimension and the Lipschitz constant. A known inequality using the sum of coordinate decreases loses a square-root dimension factor. Later work proves a different inequality using squared quantities and explicitly leaves this conjecture open.
 
-[Read in atlas](index.html#TCS-2535) · [Directed Poincaré Inequalities and L¹ Monotonicity Testing of Lipschitz Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.61) · [Directed Isoperimetry and Monotonicity Testing: A Dynamical Approach](https://arxiv.org/abs/2404.17882) · [Analytic Property Testing: Directed Isoperimetry and Monotonicity](https://uwspace.uwaterloo.ca/items/e1f421e1-2f50-4ef9-af1e-45cdc345e24d)
+[Read in atlas](index.html#TCS-2535) · [Directed Poincaré Inequalities and \(\mathrm{L}^{1}\) Monotonicity Testing of Lipschitz Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.61) · [Directed Isoperimetry and Monotonicity Testing: A Dynamical Approach](https://arxiv.org/abs/2404.17882) · [Analytic Property Testing: Directed Isoperimetry and Monotonicity](https://uwspace.uwaterloo.ca/items/e1f421e1-2f50-4ef9-af1e-45cdc345e24d)
 Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3906 — Sample complexity of symmetric Markov-chain identity testing
@@ -3762,7 +3762,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4259 — Query cost of reducing testing adaptivity
 
-The source asks how query complexity changes when a tester is allowed fewer batches of queries. Its convention counts k rounds of adaptivity as k+1 actual batches. A general exponential simulation and a better bound for removing one round are already known. The requested new bound must cover arbitrary properties and allow the number of queries in each batch to depend on earlier answers. The source leaves the amount and asymptotic regime of the desired improvement unspecified, which this card records explicitly.
+The source asks how query complexity changes when a tester is allowed fewer batches of queries. Its convention counts k rounds of adaptivity as \(k+1\) actual batches. A general exponential simulation and a better bound for removing one round are already known. The requested new bound must cover arbitrary properties and allow the number of queries in each batch to depend on earlier answers. The source leaves the amount and asymptotic regime of the desired improvement unspecified, which this card records explicitly.
 
 [Read in atlas](index.html#TCS-4259) · [An Adaptivity Hierarchy Theorem for Property Testing](https://doi.org/10.4230/LIPIcs.CCC.2017.27) · [An adaptivity hierarchy theorem for property testing — journal publication](https://doi.org/10.1007/s00037-018-0168-4) · [An adaptivity hierarchy theorem for property testing — institutional attachment](https://www.repository.cam.ac.uk/items/73b70279-d662-43f0-b591-98afd3ce529c)
 Existing status: `uncertain` · Summary written: 2026-09-12
@@ -3776,7 +3776,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5085 — Query complexity of Max-CSP testing
 
-The source asks how many local queries are needed to distinguish high-value from low-value Max-CSP instances. Its target covers every predicate family Γ and every completeness–soundness pair c,s in the bounded-degree model. A tester sees only a small portion of an instance, so global unsatisfiability must be reflected in accessible local evidence. A classification would map the boundary between sublinear testing and problems requiring much broader inspection. The saved statement does not reproduce the degree-oracle conventions or admissible gap parameters, which are necessary to assign exact query complexities.
+The source asks how many local queries are needed to distinguish high-value from low-value Max-CSP instances. Its target covers every predicate family \(\Gamma\) and every completeness–soundness pair c,s in the bounded-degree model. A tester sees only a small portion of an instance, so global unsatisfiability must be reflected in accessible local evidence. A classification would map the boundary between sublinear testing and problems requiring much broader inspection. The saved statement does not reproduce the degree-oracle conventions or admissible gap parameters, which are necessary to assign exact query complexities.
 
 [Read in atlas](index.html#TCS-5085) · [Unbounded-Width CSPs Are Untestable in a Sublinear Number of Queries](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.31)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -3834,7 +3834,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0507 — Optimal regret for private stochastic online learning
 
-Stochastic decision-theoretic online learning repeatedly selects among K actions with different expected losses. The 2024 source asks for the optimal gap-dependent pseudo-regret under epsilon-differential privacy. Its nonprivate benchmark scales as log(K) divided by the smallest positive gap between the best and competing actions. That gap measures how much statistical evidence is available for distinguishing good decisions from worse ones. Determining the private counterpart would isolate the additional cost of protecting individual observations, including whether it introduces a dependence on the number of rounds that the nonprivate benchmark avoids.
+Stochastic decision-theoretic online learning repeatedly selects among K actions with different expected losses. The 2024 source asks for the optimal gap-dependent pseudo-regret under epsilon-differential privacy. Its nonprivate benchmark scales as \(\log (K)\) divided by the smallest positive gap between the best and competing actions. That gap measures how much statistical evidence is available for distinguishing good decisions from worse ones. Determining the private counterpart would isolate the additional cost of protecting individual observations, including whether it introduces a dependence on the number of rounds that the nonprivate benchmark avoids.
 
 [Read in atlas](index.html#TCS-0507) · [COLT / PMLR](https://proceedings.mlr.press/v247/hu24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -3887,7 +3887,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 The input graph is promised to admit a proper coloring with three colors. The question asks whether some fixed constant number of colors can always be found in randomized polynomial time. The promise hides a small partition into independent sets, while the algorithm may use a larger palette. A positive result would show that a fixed relaxation of the domain makes this central promise problem tractable. The saved review distinguishes hardness for small output palettes and restricted logical models from hardness for every constant, while polynomially growing color counts remain short of the target.
 
-[Read in atlas](index.html#TCS-6637) · [Better coloring of 3-colorable graphs](https://arxiv.org/abs/2406.00357) · [Algebraic Approach to Promise Constraint Satisfaction](https://arxiv.org/abs/1811.00970) · [d-To-1 Hardness of Coloring 3-Colorable Graphs with O(1) Colors](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.62) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904) · [Undefinability of Approximation of 2-to-2 Games](https://arxiv.org/abs/2504.03523)
+[Read in atlas](index.html#TCS-6637) · [Better coloring of 3-colorable graphs](https://arxiv.org/abs/2406.00357) · [Algebraic Approach to Promise Constraint Satisfaction](https://arxiv.org/abs/1811.00970) · [d-To-1 Hardness of Coloring 3-Colorable Graphs with \(O(1)\) Colors](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2020.62) · [Improved SDP-Based Algorithm for Coloring 3-Colorable Graphs](https://arxiv.org/abs/2602.05904) · [Undefinability of Approximation of 2-to-2 Games](https://arxiv.org/abs/2504.03523)
 Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6675 — Search-to-decision equivalence for finite promise CSPs
@@ -3899,7 +3899,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-3585 — Exact exponential-time equivalence for nonnegative Boolean Max-CSP
 
-A Boolean Max-CSP instance asks for an assignment satisfying constraints of maximum total nonnegative weight. Each fixed language has a degree defined by the real multilinear polynomials of its predicates. The question asks whether an exact algorithm with exponential base α for any NP-hard degree-d language yields the same base for weighted Max d-CNF-SAT. The known classification allows negative weights or imposes closure properties on the language. The remaining issue is preserving the exponential base when removing the sign restriction; the 2024 journal article still asks it.
+A Boolean Max-CSP instance asks for an assignment satisfying constraints of maximum total nonnegative weight. Each fixed language has a degree defined by the real multilinear polynomials of its predicates. The question asks whether an exact algorithm with exponential base \(\alpha\) for any NP-hard degree-d language yields the same base for weighted Max d-CNF-SAT. The known classification allows negative weights or imposes closure properties on the language. The remaining issue is preserving the exponential base when removing the sign restriction; the 2024 journal article still asks it.
 
 [Read in atlas](index.html#TCS-3585) · [Optimal Polynomial-Time Compression for Boolean Max CSP](https://doi.org/10.4230/LIPIcs.ESA.2020.63) · [Optimal Polynomial-Time Compression for Boolean Max CSP](https://doi.org/10.1145/3624704)
 Existing status: `open` · Summary written: 2026-09-12
@@ -3932,16 +3932,16 @@ Boolean MinCSP seeks assignments violating as few constraints as possible. The w
 [Read in atlas](index.html#TCS-0444) · [PACS 2024 workshop](https://pacs2024.github.io/pacs2024-open-problems.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1173 — NP-intermediate ω-categorical CSPs
+### TCS-1173 — NP-intermediate \(\omega\)-categorical CSPs
 
-An ω-categorical structure has a strong finiteness property for the types of finite tuples under its symmetries. The source asks whether, assuming P≠NP, some CSP over such a structure is NP-intermediate. That would mean it lies in NP but is neither polynomial-time solvable nor NP-complete. An example would show that symmetry alone does not force the familiar tractable-versus-hard dichotomy. The saved question is broader than finitely bounded homogeneous template conjectures, and additional representational restrictions cannot be silently imposed when assessing whether those conjectures answer it.
+An \(\omega\)-categorical structure has a strong finiteness property for the types of finite tuples under its symmetries. The source asks whether, assuming \(\mathrm{P}\ne \mathrm{NP}\), some CSP over such a structure is NP-intermediate. That would mean it lies in NP but is neither polynomial-time solvable nor NP-complete. An example would show that symmetry alone does not force the familiar tractable-versus-hard dichotomy. The saved question is broader than finitely bounded homogeneous template conjectures, and additional representational restrictions cannot be silently imposed when assessing whether those conjectures answer it.
 
-[Read in atlas](index.html#TCS-1173) · [The Polynomial Hierarchy and ω-Categorical CSPs](https://doi.org/10.4230/LIPIcs.MFCS.2026.96)
+[Read in atlas](index.html#TCS-1173) · [The Polynomial Hierarchy and \(\omega\)-Categorical CSPs](https://doi.org/10.4230/LIPIcs.MFCS.2026.96)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1555 — VCSP tractability without pp-constructions of K₃
+### TCS-1555 — VCSP tractability without pp-constructions of \(K_{3}\)
 
-Valued CSPs optimize sums of local costs instead of merely asking whether all relations are satisfied. The temporal source asks whether VCSP(A) is polynomial-time solvable whenever A cannot pp-construct K3. Primitive-positive constructions transfer the structure responsible for hardness from one template to another. A positive theorem would turn the absence of this obstruction into an algorithmic tractability criterion. The saved question does not spell out the valued construction notion or permitted temporal cost functions, so an ordinary relational no-K3 criterion cannot automatically be substituted.
+Valued CSPs optimize sums of local costs instead of merely asking whether all relations are satisfied. The temporal source asks whether \(VCSP(A)\) is polynomial-time solvable whenever A cannot pp-construct K3. Primitive-positive constructions transfer the structure responsible for hardness from one template to another. A positive theorem would turn the absence of this obstruction into an algorithmic tractability criterion. The saved question does not spell out the valued construction notion or permitted temporal cost functions, so an ordinary relational no-K3 criterion cannot automatically be substituted.
 
 [Read in atlas](index.html#TCS-1555) · [Temporal Valued Constraint Satisfaction Problems](https://doi.org/10.4230/LIPIcs.MFCS.2025.24)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -3969,7 +3969,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6725 — Logarithmic-color approximation of 3-colorable graphs
 
-The input is an n-vertex graph promised to admit a proper coloring with three colors. The textbook asks whether polynomial time suffices to produce a proper coloring using only O(log n) colors. The promise ensures a very small solution exists but does not reveal the hidden partition into independent sets. Achieving a logarithmic color count would substantially narrow the gap between existence and efficient recovery of a coloring. The question is preserved from the 2011 source, and its current status has not been independently established by this drafting pass.
+The input is an n-vertex graph promised to admit a proper coloring with three colors. The textbook asks whether polynomial time suffices to produce a proper coloring using only \(O(\log  n)\) colors. The promise ensures a very small solution exists but does not reveal the hidden partition into independent sets. Achieving a logarithmic color count would substantially narrow the gap between existence and efficient recovery of a coloring. The question is preserved from the 2011 source, and its current status has not been independently established by this drafting pass.
 
 [Read in atlas](index.html#TCS-6725) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -3981,9 +3981,9 @@ A Boolean decision-Holant problem asks whether local constraints on incident Boo
 [Read in atlas](index.html#TCS-6748) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-7116 — Universal representation of NP by ω-categorical CSPs
+### TCS-7116 — Universal representation of NP by \(\omega\)-categorical CSPs
 
-The source asks whether every problem in NP is polynomial-time equivalent to a CSP with an ω-categorical template. Such templates may be infinite while retaining a strong symmetry property on finite tuples. A representation theorem would show that local constraint solving over this structured universe captures all nondeterministic polynomial-time tasks. It would also clarify how broad infinite-template CSP theory can be compared with finite-template classifications. The saved formulation is historical and does not specify its reduction conventions or effective template presentation, which remain relevant before one uniform encoding claim is made.
+The source asks whether every problem in NP is polynomial-time equivalent to a CSP with an \(\omega\)-categorical template. Such templates may be infinite while retaining a strong symmetry property on finite tuples. A representation theorem would show that local constraint solving over this structured universe captures all nondeterministic polynomial-time tasks. It would also clarify how broad infinite-template CSP theory can be compared with finite-template classifications. The saved formulation is historical and does not specify its reduction conventions or effective template presentation, which remain relevant before one uniform encoding claim is made.
 
 [Read in atlas](index.html#TCS-7116) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
@@ -4067,7 +4067,7 @@ Deterministic decomposable negation normal form is a circuit representation supp
 [Read in atlas](index.html#TCS-0306) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#ptime-complementation-of-d-dnnf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1595 — Decidability of fifth-order β-matching
+### TCS-1595 — Decidability of fifth-order \(\beta\)-matching
 
 Higher-order beta-matching asks whether one simply typed lambda term can be instantiated to become beta-equivalent to another. The order of the types controls how deeply functions can take other functions as arguments. The source identifies order five as the gap between a decidable order-four case and higher-order undecidability constructions. This project asks whether matching remains decidable at that intermediate order. Pinning down the threshold would explain which level of functional structure first permits the encoding of unrestricted computational behavior.
 
@@ -4162,7 +4162,7 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0482 — Linear-round convergence over stable semirings
 
-A polynomial system over a commutative semiring can be evaluated by repeatedly updating every coordinate from the previous vector. The question asks whether p-stability guarantees convergence after O((p+1)n) rounds from the zero vector. The proposed bound is linear in the number of coordinates and uniform across coefficients and polynomial degrees. It would sharpen convergence guarantees for grounded Datalog computations carrying semiring annotations. The saved formulation counts synchronous rounds rather than arithmetic time, so a bound on evaluation cost or a result for a different update schedule would address a separate resource question.
+A polynomial system over a commutative semiring can be evaluated by repeatedly updating every coordinate from the previous vector. The question asks whether p-stability guarantees convergence after \(O((p+1)n)\) rounds from the zero vector. The proposed bound is linear in the number of coordinates and uniform across coefficients and polynomial degrees. It would sharpen convergence guarantees for grounded Datalog computations carrying semiring annotations. The saved formulation counts synchronous rounds rather than arithmetic time, so a bound on evaluation cost or a result for a different update schedule would address a separate resource question.
 
 [Read in atlas](index.html#TCS-0482) · [Semirings in Databases, Automata, and Logic (Dagstuhl Seminar 25081)](https://doi.org/10.4230/DagRep.15.2.89) · [Polynomial Time Convergence of the Iterative Evaluation of Datalogo Programs](https://arxiv.org/abs/2312.14063v2) · [Publication listing: Optimal Convergence of Iterative Methods for Datalogo](https://hung-q-ngo.github.io/publications.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
@@ -4260,7 +4260,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Miscellaneous (2)
 
-### TCS-7177 — 1/3–2/3 conjecture
+### TCS-7177 — \(1/3\)–\(2/3\) conjecture
 
 A partial order records known comparisons, and its linear extensions are all compatible complete rankings. The conjecture asks whether every finite non-total order has an incomparable pair that appears in either relative order in at least one third of all extensions. The extensions are weighted uniformly, and both endpoints of the interval are allowed. A three-element order with only one comparison shows that the constant one third cannot be improved universally. A resolution would identify the sharp balance guarantee for a comparison in sorting with partial information.
 

@@ -57,7 +57,7 @@ Previous prefix: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531.
 | 1 | [P versus NP](index.html#TCS-0001) (TCS-0001) | Nondeterministic computation | 100 | The central boundary between efficient verification and efficient computation, with implications throughout TCS. It is the highest-priority landmark in the complexity category. |
 | 2 | [P versus PSPACE](index.html#TCS-6530) (TCS-6530) | Time versus space | 100 | A defining question about the relationship between the two basic computational resources, time and working memory. It is a top-priority foundational class separation. |
 | 3 | [L versus P](index.html#TCS-6531) (TCS-6531) | Space-efficient computation | 98 | A canonical unresolved boundary between time and memory, asking whether any polynomial-time decision problem intrinsically needs more than logarithmic workspace. |
-| 4 | [Nonuniform TC⁰ versus NC¹](index.html#TCS-6535) (TCS-6535) | Shallow threshold circuits | 97 | A flagship unresolved containment between basic circuit classes, with explicit complete problems and connections to arithmetic, algebraic automata theory, and lower-bound amplification. |
+| 4 | [Nonuniform \(\mathrm{TC}^{0}\) versus \(\mathrm{NC}^{1}\)](index.html#TCS-6535) (TCS-6535) | Shallow threshold circuits | 97 | A flagship unresolved containment between basic circuit classes, with explicit complete problems and connections to arithmetic, algebraic automata theory, and lower-bound amplification. |
 | 5 | [Berman–Hartmanis conjecture](index.html#TCS-6534) (TCS-6534) | Structure of complete problems | 96 | A defining structural-complexity conjecture about the entire NP-complete degree, stronger than P≠NP and supported by substantial restricted-model theorems and oracle barriers. |
 
 Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-6535, TCS-0002, TCS-0015, TCS-0016, TCS-6534, TCS-6533, TCS-0004, TCS-0020, TCS-1056, TCS-0018, TCS-1054, TCS-6681.
@@ -71,8 +71,8 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) (TCS-6537) | Integer sorting | 96 | A foundational algorithmic primitive whose optimal complexity tests the computational power of the word RAM and would affect many tasks built on ordering integer keys. |
-| 2 | [Sorting X + Y](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
-| 3 | [Hypergraph cut sparsifiers with O(n/ε²) hyperedges](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
+| 2 | [Sorting \(X + Y\)](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
+| 3 | [Hypergraph cut sparsifiers with \(O(n/\varepsilon ^{2})\) hyperedges](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
 | 4 | [Near-linear-time approximation of reachability diameter](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
 | 5 | [Optimal size of four-additive graph spanners](index.html#TCS-6783) (TCS-6783) | Needs review | 89 | Unreviewed replacement |
 
@@ -105,7 +105,7 @@ Previous prefix: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569.
 | 1 | [Positivity problem for linear recurrences](index.html#TCS-6565) (TCS-6565) | Linear recurrence verification | 97 | A longstanding foundational decision problem with an elementary input model, strong links to verification, and consequences for the separate Skolem problem; unrestricted decidability is unknown before any efficiency requirement is imposed. |
 | 2 | [Simple stochastic games in polynomial time](index.html#TCS-6567) (TCS-6567) | Stochastic game solving | 97 | An elementary game model with broad consequences for synthesis and stochastic verification; short optimal strategies and efficiently checkable certificates coexist with an unresolved polynomial-time search problem. |
 | 3 | [Internal semisimplicial types in ordinary HoTT](index.html#TCS-6569) (TCS-6569) | Dependent type theory | 95 | A central expressiveness problem for homotopy type theory; precise internal construction would remove a major obstacle to formalizing higher structures without enriching the theory. |
-| 4 | [Scott-continuous lambda models with theory λβ](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
+| 4 | [Scott-continuous lambda models with theory \(\lambda \beta\)](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
 | 5 | [Barendregt–Geuvers–Klop conjecture](index.html#TCS-6583) (TCS-6583) | Consistency of type systems | 94 | Asks whether the existence of a terminating reduction for every typable term forces every reduction of every such term to terminate. |
 
 Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632.
@@ -121,7 +121,7 @@ Previous prefix: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555.
 | 1 | [P versus NC](index.html#TCS-6553) (TCS-6553) | Parallelizability | 99 | The foundational tractability question for parallel computation: whether every polynomial-time task admits polylogarithmic dependency depth with polynomial work. |
 | 2 | [Directed reachability with nearly linear memory and polylogarithmic passes](index.html#TCS-6556) (TCS-6556) | Streaming reachability | 95 | A basic directed-graph primitive with a polynomial-versus-polylogarithmic pass gap, connections to communication lower bounds and consequences for other streaming tasks. |
 | 3 | [Perfect matching in NC](index.html#TCS-6504) (TCS-6504) | Parallel algebraic derandomization | 94 | A canonical deterministic parallel-algorithm and derandomization question for a basic graph optimization problem. |
-| 4 | [Distributed Lovász Local Lemma in O(log log n) rounds](index.html#TCS-6554) (TCS-6554) | Local distributed symmetry breaking | 94 | A canonical obstacle to resolving local conflicts rapidly, with consequences for many distributed graph algorithms. |
+| 4 | [Distributed Lovász Local Lemma in \(O(\log  \log  n)\) rounds](index.html#TCS-6554) (TCS-6554) | Local distributed symmetry breaking | 94 | A canonical obstacle to resolving local conflicts rapidly, with consequences for many distributed graph algorithms. |
 | 5 | [Optimal exact single-source shortest paths in CONGEST](index.html#TCS-6555) (TCS-6555) | Bandwidth-limited distributed paths | 94 | A basic distributed graph primitive with an unresolved gap between algorithms and communication lower bounds. |
 
 Candidates considered: TCS-6553, TCS-6556, TCS-6504, TCS-6554, TCS-6555, TCS-6557, TCS-6507, TCS-0522, TCS-6499, TCS-6505, TCS-6506, TCS-0998, TCS-0515.
@@ -183,7 +183,7 @@ Previous prefix: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Public-key encryption from one-way functions](index.html#TCS-6545) (TCS-6545) | Public-key foundations | 98 | A central minimal-assumption question in cryptographic foundations, separating the known reach of generic one-wayness from public-key communication. |
-| 2 | [One-way functions from P ≠ NP](index.html#TCS-0022) (TCS-0022) | Complexity foundations of cryptography | 97 | A foundational question about the weakest assumptions supporting cryptography, linking NP hardness, average-case complexity, inversion, and pseudorandomness. |
+| 2 | [One-way functions from \(\mathrm{P} \ne  \mathrm{NP}\)](index.html#TCS-0022) (TCS-0022) | Complexity foundations of cryptography | 97 | A foundational question about the weakest assumptions supporting cryptography, linking NP hardness, average-case complexity, inversion, and pseudorandomness. |
 | 3 | [Circuit obfuscation from polynomial-hard LWE](index.html#TCS-6550) (TCS-6550) | Program obfuscation | 97 | A central assumption-minimization problem for general obfuscation, with consequences throughout cryptography and a crucial distinction between ordinary LWE and strengthened LWE-based assumptions. |
 | 4 | [Unleveled fully homomorphic encryption from LWE alone](index.html#TCS-6551) (TCS-6551) | Computation on encrypted data | 95 | A central foundational gap in fully homomorphic encryption, separating established leveled LWE constructions from reusable fixed-depth-independent keys and their extra security assumptions. |
 | 5 | [Sub-square-root share-size exponents in perfect secret sharing](index.html#TCS-0465) (TCS-0465) | Information-theoretic secret sharing | 88 | The share size needed for general secret sharing is a fundamental efficiency limit for realizing arbitrary access structures. |
@@ -279,7 +279,7 @@ Previous prefix: TCS-6592, TCS-6593.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [FPT versus W[1]](index.html#TCS-6592) (TCS-6592) | Parameterized tractability | 99 | The defining unresolved tractability separation of parameterized complexity, with Clique as a precise and widely used complete problem. |
+| 1 | [FPT versus \(\mathrm{W}[1]\)](index.html#TCS-6592) (TCS-6592) | Parameterized tractability | 99 | The defining unresolved tractability separation of parameterized complexity, with Clique as a precise and widely used complete problem. |
 | 2 | [Exponential Time Hypothesis](index.html#TCS-6593) (TCS-6593) | Exact exponential algorithms | 98 | A foundational quantitative hardness hypothesis underlying exact, parameterized, graph, and geometric algorithm lower bounds. |
 
 Candidates considered: TCS-6592, TCS-6593, TCS-6594, TCS-6660, TCS-0787.
@@ -319,7 +319,7 @@ Previous prefix: TCS-6656, TCS-0012.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Planted clique conjecture](index.html#TCS-6656) (TCS-6656) | Planted inference | 98 | A canonical computational threshold with broad consequences in average-case complexity, statistical inference, and the study of algorithmic lower-bound frameworks. |
-| 2 | [Average-case NP hardness from P ≠ NP](index.html#TCS-0012) (TCS-0012) | Worst-case versus average-case hardness | 97 | One of the central missing implications in complexity theory, connecting worst-case lower bounds to feasible instance generation and the limits of algorithms on typical inputs. |
+| 2 | [Average-case NP hardness from \(\mathrm{P} \ne  \mathrm{NP}\)](index.html#TCS-0012) (TCS-0012) | Worst-case versus average-case hardness | 97 | One of the central missing implications in complexity theory, connecting worst-case lower bounds to feasible instance generation and the limits of algorithms on typical inputs. |
 
 Candidates considered: TCS-6656, TCS-0012, TCS-6657, TCS-6684, TCS-6453, TCS-6658.
 
@@ -331,7 +331,7 @@ Previous prefix: TCS-6621, TCS-6622.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Rapid mixing of Glauber dynamics with Δ+2 colours](index.html#TCS-6621) (TCS-6621) | Colouring-chain mixing | 95 | A longstanding general-graph conjecture linking local algorithms, approximate counting and spin systems; recent near-threshold results still require structural restrictions. |
+| 1 | [Rapid mixing of Glauber dynamics with \(\Delta +2\) colours](index.html#TCS-6621) (TCS-6621) | Colouring-chain mixing | 95 | A longstanding general-graph conjecture linking local algorithms, approximate counting and spin systems; recent near-threshold results still require structural restrictions. |
 | 2 | [Kannan–Tetali–Vempala conjecture](index.html#TCS-6622) (TCS-6622) | Sampling prescribed-degree graphs | 94 | A central obstruction to a general theory of uniform sampling with fixed combinatorial marginals. |
 
 Candidates considered: TCS-6621, TCS-6622, TCS-6668.
@@ -397,7 +397,7 @@ Previous prefix: TCS-6623, TCS-6624.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Worst-case sample complexity of trace reconstruction](index.html#TCS-6623) (TCS-6623) | Reconstruction from noisy strings | 96 | A defining worst-case recovery problem for synchronization noise, linking string algorithms, information theory, statistics and complex-analytic methods. |
-| 2 | [Constant-factor edit-distance approximation in O(n polylog n) time](index.html#TCS-6624) (TCS-6624) | Sequence distance algorithms | 95 | A central remaining precision–runtime boundary for edit distance, distinct from the established n^{1+ε} constant-factor algorithms and from exact-computation hardness. |
+| 2 | [Constant-factor edit-distance approximation in \(O(n \operatorname{polylog} n)\) time](index.html#TCS-6624) (TCS-6624) | Sequence distance algorithms | 95 | A central remaining precision–runtime boundary for edit distance, distinct from the established n^{1+ε} constant-factor algorithms and from exact-computation hardness. |
 
 Candidates considered: TCS-6623, TCS-6624, TCS-6669, TCS-6513, TCS-0467, TCS-0468, TCS-0470, TCS-7220.
 
@@ -526,7 +526,7 @@ Previous prefix: TCS-7222.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [1/3–2/3 conjecture](index.html#TCS-7177) (TCS-7177) | Partial-order balance | 90 | Would provide a universally informative comparison for sorting with partial-order information; retained as a computationally motivated combinatorial exception. |
+| 1 | [\(1/3\)–\(2/3\) conjecture](index.html#TCS-7177) (TCS-7177) | Partial-order balance | 90 | Would provide a universally informative comparison for sorting with partial-order information; retained as a computationally motivated combinatorial exception. |
 | 2 | [Extremal size of sunflower-free set families](index.html#TCS-7290) (TCS-7290) | Needs review | 89 | Unreviewed replacement |
 
 Candidates considered: TCS-7222, TCS-7177.
