@@ -3788,12 +3788,12 @@ Pattern-freeness testing asks whether a sequence or function avoids a specified 
 [Read in atlas](index.html#TCS-5210) · [Strongly Sublinear Algorithms for Testing Pattern Freeness](https://doi.org/10.4230/LIPIcs.ICALP.2022.98)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5334 — Efficient learning of latent-tree Ising models
+### TCS-5334 — Sample-efficient latent-tree Ising learning
 
-Latent-tree Ising models describe correlated binary variables organized by a tree that may include unobserved vertices. The cited paper studies efficient learning and testing for these models. The saved question asks whether an efficient algorithm can achieve an additional guarantee. Such a result would clarify how hidden structure affects the possibility of recovering or checking an observed distribution. The extraction stops before the algorithm's required output, so the core guarantee remains missing and cannot be filled by assuming exact tree recovery or a particular distribution-learning metric.
+The learner sees independent spin samples only at the leaves of a hidden zero-field Ising tree. It must output another tree model with nearly the same joint distribution on those leaves. Polynomial-time proper learners already exist, but use many more samples than the information-theoretic scale. The conference question omits a logarithmic factor required by its own unknown-topology lower bound. The topology setting and allowed logarithmic precision must be fixed before treating the card as a complete open conjecture.
 
-[Read in atlas](index.html#TCS-5334) · [Learning and Testing Latent-Tree Ising Models Efficiently](https://proceedings.mlr.press/v195/kandiros23a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5334) · [Learning and Testing Latent-Tree Ising Models Efficiently](https://proceedings.mlr.press/v195/kandiros23a.html) · [Learning and Testing Latent-Tree Ising Models Efficiently — full author version](https://arxiv.org/abs/2211.13291) · [A Note on Minimax Learning of Tree Models](https://frkoehle.github.io/tv_note.pdf) · [Estimating Ising Models in Total Variation Distance](https://proceedings.mlr.press/v336/daskalakis26a.html)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-5443 — Polynomial-time learning of Gaussian mixtures
 
