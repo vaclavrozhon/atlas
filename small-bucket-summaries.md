@@ -1303,12 +1303,12 @@ Planar Steiner Tree connects a specified terminal set at minimum cost in a plana
 [Read in atlas](index.html#TCS-4637) · [Subexponential-Time Parameterized Algorithm for Steiner Tree on Planar Graphs](https://doi.org/10.4230/LIPIcs.STACS.2013.353)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4695 — Parameterized complexity of forbidden-minor deletion
+### TCS-4695 — Polynomial kernels for forbidden-minor vertex deletion
 
-Forbidden-minor deletion removes a bounded number of vertices to exclude every graph in a specified family as a minor. The saved passage recalls fixed-parameter tractability and then begins a broader question about all such deletion problems. The cited paper's focus is approximation and kernelization, where tractability does not automatically imply efficient preprocessing or strong solution guarantees. A universal extension would unify many graph modification tasks under one structural principle. The actual predicate after the question is truncated, so the draft cannot decide whether the intended target is a kernel, an approximation, or both.
+Delete at most a specified number of vertices to eliminate every minor from a fixed finite family. The question asks for polynomial-time preprocessing to one equivalent instance of polynomial size in that budget. The polynomial may depend on the forbidden family. Families containing a planar obstruction are covered, while planarization remains a key open case. Later lossy and structural-parameter results do not establish the full exact-kernel claim.
 
-[Read in atlas](index.html#TCS-4695) · [Hitting forbidden minors: Approximation and Kernelization](https://doi.org/10.4230/LIPIcs.STACS.2011.189)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4695) · [Hitting forbidden minors: Approximation and Kernelization](https://doi.org/10.4230/LIPIcs.STACS.2011.189) · [Planar F-Deletion: Approximation, Kernelization and Optimal FPT Algorithms](https://doi.org/10.1109/FOCS.2012.62) · [Lossy Planarization: A Constant-Factor Approximate Kernelization for Planar Vertex Deletion](https://doi.org/10.1137/22M152058X) · [Kernelization Dichotomies for Hitting Minors Under Structural Parameterizations](https://doi.org/10.4230/LIPIcs.STACS.2026.17)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4790 — Classical worst-case complexity of Subset Sum
 
