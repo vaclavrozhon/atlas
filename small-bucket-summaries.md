@@ -124,13 +124,6 @@ Conditional pKt measures a probabilistic, time-sensitive form of description com
 [Read in atlas](index.html#TCS-2202) · [Impagliazzo’s Worlds Through the Lens of Conditional Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2024.110)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3619 — Exponential lower bounds for deciding rKt complexity
-
-The quantity rKt is a randomized time-sensitive version of Kolmogorov complexity used by the source. The question asks for an exponential lower bound on the complexity of deciding the associated description-length property. It seeks strong computational hardness for recognizing information content, rather than merely showing that some strings need long descriptions. Such a bound would sharpen connections between randomness and intractability for finite objects. The saved sentence does not identify the decision gap, machine model, or parameter governing the exponential scale, so these details remain necessary before a concrete lower-bound statement can be fixed.
-
-[Read in atlas](index.html#TCS-3619) · [Randomness and Intractability in Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2019.32)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4009 — Decidability of balance in integer circuits
 
 Integer circuits can combine sets or values using operations such as addition, complement, union, and intersection. The source asks whether adding some subset of the latter operations makes its balance problem BC undecidable. The goal is to locate a precise threshold where a restricted arithmetic representation acquires enough power to defeat every decision algorithm. This would classify how the choice of operations changes the computational nature of the problem. The excerpt defines neither balance nor the circuit semantics, so the meaning of complement and the integer domain must be recovered before selecting a candidate operation set.
@@ -193,6 +186,13 @@ The Mandelbrot set consists of complex parameters for which repeatedly applying 
 
 [Read in atlas](index.html#TCS-6105) · [Semicomputable Geometry](https://doi.org/10.4230/LIPIcs.ICALP.2018.129)
 Existing status: `uncertain` · Summary written: 2026-09-11
+
+### TCS-3619 — Exponential lower bounds for deciding rKt complexity
+
+Randomized Kolmogorov complexity measures the length of a program that prints a string reliably, plus the logarithm of its running time. The historical question asks whether deciding a threshold for that quantity needs exponential time. Hirahara’s published 2022 theorem gives an unconditional exponential lower bound for exact threshold decision, even with randomized deciding algorithms. The accompanying approximation theorem imposes a bounded-error condition on all inputs, including those outside the approximation promise. Later work explicitly preserves this distinction, so the exact-decision resolution does not certify every stronger promise variant.
+
+[Read in atlas](index.html#TCS-3619) · [Randomness and Intractability in Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2019.32) · [Symmetry of Information from Meta-Complexity](https://doi.org/10.4230/LIPIcs.CCC.2022.26) · [Failure of Symmetry of Information for Randomized Computations](https://eccc.weizmann.ac.il/report/2026/021/)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Proof complexity (41)
 
