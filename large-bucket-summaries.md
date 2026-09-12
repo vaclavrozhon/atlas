@@ -1,9 +1,9 @@
 # Working summaries — large categories
 
-669 five-sentence working summaries, based on saved source material.
+665 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
-## Computational complexity (125)
+## Computational complexity (122)
 
 ### TCS-0001 — P versus NP
 
@@ -628,20 +628,6 @@ String matching determines whether a pattern occurs as a contiguous part of a te
 [Read in atlas](index.html#TCS-5149) · [String Matching: Communication, Circuits, and Learning](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.56)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5246 — Graph isomorphism in polynomial time
-
-Graph isomorphism asks whether a bijection between two vertex sets preserves adjacency. The saved introductory question asks whether this can always be decided in polynomial time. The cited CSP paper studies fractional homomorphisms and refinement hierarchies that provide related ways to compare graph structure. Understanding their power helps explain which structural information supports isomorphism testing. This entry is an inherited reference to the general graph-isomorphism question rather than a distinct new conjecture about the Sherali–Adams hierarchy, and it does not assert that the surrounding relaxation methods resolve it.
-
-[Read in atlas](index.html#TCS-5246) · [Fractional Homomorphism, Weisfeiler-Leman Invariance, and the Sherali-Adams Hierarchy for the Constraint Satisfaction Problem](https://doi.org/10.4230/LIPIcs.MFCS.2021.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5312 — NP-hardness of Minimum Circuit Size
-
-The Minimum Circuit Size Problem takes a Boolean truth table and asks whether some circuit below a specified size computes it. The selected passage asks whether this problem is NP-hard. The source studies this question through simple extensions of functions and compares total truth tables with partially specified ones. Hardness results for partial circuit minimization do not immediately extend because the corresponding total extension problems can become easy. Understanding this obstacle could clarify why minimizing unrestricted Boolean circuits has resisted the reductions that succeed for several specialized variants.
-
-[Read in atlas](index.html#TCS-5312) · [Simple Circuit Extensions for XOR in PTIME](https://doi.org/10.4230/LIPIcs.STACS.2026.23)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5315 — Randomized query complexity of extremal low-degree Forrelation
 
 Forrelation measures the correlation of one Boolean function with the Fourier transform of another. The extremal problem promises that this quantity is exactly positive one or negative one and asks for its sign. The conjecture restricts the input functions to degree-d polynomials over F2 and predicts randomized query complexity n^(Ω(d)). A quantum algorithm can exploit the Fourier structure, while a classical algorithm can always learn the low-degree polynomials before computing the answer. The lower bound would show that the promise of a simple polynomial description does not remove the essential classical difficulty.
@@ -661,13 +647,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 For a uniformly random bit string, the Rank distribution records every prefix sum of its bits. Generating one sample therefore means producing a mutually consistent sequence of counts rather than answering one isolated rank query. The source asks whether polynomial-size AC0 circuits can sample this distribution. It proves sampling lower bounds for decision forests and notes a quasipolynomial-size shallow-circuit construction from related results. Resolving the polynomial-size case would compare the power of constant-depth sampling with the global dependencies in even a simple random walk of prefix sums.
 
 [Read in atlas](index.html#TCS-5397) · [New Sampling Lower Bounds via the Separator](https://doi.org/10.4230/LIPIcs.CCC.2023.26)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5501 — NP-hardness of Minimum Circuit Size
-
-The Minimum Circuit Size Problem asks whether a Boolean function given by its truth table has a circuit below a supplied size threshold. The saved passage identifies NP-hardness of this task as unresolved in its source. The cited work approaches the problem through sums-of-squares lower bounds. An NP-hardness result would connect circuit minimization with the broad landscape of efficiently verifiable search and decision problems. The excerpt does not specify the reduction convention, and lower bounds for a restricted relaxation do not themselves prove the requested classical hardness statement.
-
-[Read in atlas](index.html#TCS-5501) · [Sum-Of-Squares Lower Bounds for the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.CCC.2023.31)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5593 — Black-Box Hypothesis
@@ -3025,7 +3004,7 @@ The task is to minimize population risk for arbitrary convex Lipschitz losses on
 [Read in atlas](index.html#TCS-3142) · [SGD Generalizes Better Than GD (And Regularization Doesn’t Help)](https://proceedings.mlr.press/v134/amir21a.html) · [Never Go Full Batch (in Stochastic Convex Optimization)](https://proceedings.neurips.cc/paper/2021/hash/d27b95cac4c27feb850aaa4070cc4675-Abstract.html) · [Never Go Full Batch — complete author version](https://arxiv.org/abs/2107.00469)
 Existing status: `resolved` · Summary written: 2026-09-12
 
-## Geometry, topology and metric spaces (63)
+## Geometry, topology and metric spaces (62)
 
 ### TCS-6523 — Kannan–Lovász–Simonovits conjecture
 
@@ -3207,13 +3186,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A universal point set must support a crossing-free straight-line drawing of every planar graph with n vertices. For each graph, its vertices may use a different subset of the same fixed points. The question asks how small this common geometric host can be, especially whether a linear number of points suffices. Rectangular grid drawings give a useful construction but impose additional structure on the host. The target measures how much geometric freedom is needed to realize all planar combinatorial structures of one size.
 
 [Read in atlas](index.html#TCS-0377) · [The Open Problems Project](https://topp.openproblem.net/p45)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0423 — Efficient algorithms for multiparameter persistence
-
-Computing two-parameter persistence can require changing basis in matrices whose rows carry pairs of filtration labels. The cited construction minimizes the resulting column labels but can turn a few sparse columns into very dense ones. The source asks for an algorithm that avoids this fill-in in typical instances while retaining the required algebraic outcome. A small number of dense columns can dominate memory and computation across millions of columns. The concrete project is therefore sparse matrix control inside persistence computation, rather than an unspecified faster topology algorithm.
-
-[Read in atlas](index.html#TCS-0423) · [Applied and Combinatorial Topology](https://doi.org/10.4230/DagRep.14.2.206)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0326 — Similarity of Curves (Fréchet Distance)

@@ -2,13 +2,13 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The primary target is 500 problems; Top 100 is its priority subset with secondary editorial attention. Top 100, Top 500 and the legacy Top 1000 view use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-793 records have an editorial importance assessment; 795 remain provisional.
+792 records have an editorial importance assessment; 790 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Computational complexity (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 131; importance assessed: 60; provisional: 71.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 128; importance assessed: 60; provisional: 68.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 38; importance 
 
 ## 7. Geometry, topology and metric spaces (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 64; importance assessed: 47; provisional: 17.
+Top 100: 5; Top 500: 25; Top 1000 (legacy view): 50; candidates: 63; importance assessed: 46; provisional: 17.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -212,7 +212,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance 
 
 ## 3. Communication complexity and Boolean function analysis (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 66; importance assessed: 27; provisional: 39.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 66; importance assessed: 28; provisional: 38.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -382,7 +382,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 56; importance 
 
 ## 13. Data structures (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 15; importance assessed: 8; provisional: 7.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 14; importance assessed: 8; provisional: 6.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -484,7 +484,7 @@ Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 32; importance 
 
 ## 19. Coding and information theory (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 42; importance assessed: 29; provisional: 13.
+Top 100: 2; Top 500: 10; Top 1000 (legacy view): 20; candidates: 41; importance assessed: 28; provisional: 13.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |

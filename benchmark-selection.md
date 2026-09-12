@@ -12,7 +12,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 491 | 9 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 919 | 81 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 918 | 82 |
 
 ## Unfilled places
 
@@ -22,7 +22,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Optimization and numerical computation has 37/50 places.
 - top1000: Cryptography has 36/50 places.
 - top1000: Sampling, Markov chains and mixing times has 13/20 places.
-- top1000: Data structures has 15/20 places.
+- top1000: Data structures has 14/20 places.
 - top1000: Dynamic algorithms has 17/20 places.
 - top1000: Differential privacy has 8/20 places.
 - top1000: Miscellaneous has 3/20 places.
@@ -360,7 +360,7 @@ Previous prefix: empty.
 | 1 | [Dynamic optimality conjecture](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
 | 2 | [Superlogarithmic static cell-probe lower bounds](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
 
-Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6514, TCS-4997, TCS-5706, TCS-5768, TCS-5103, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-5825.
+Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6514, TCS-4997, TCS-5768, TCS-5103, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-5825.
 
 ## Dynamic algorithms
 

@@ -1,6 +1,6 @@
 # Working summaries — small categories
 
-854 five-sentence working summaries, based on saved source material.
+852 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computability and algorithmic information theory (27)
@@ -28,7 +28,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6685 — Busy Beaver BB(6)
 
-BB(6) is the maximum halting runtime among six-state, two-symbol Turing machines started on a blank tape. The task accepts a real approximation with Lean-certified absolute error at most 0.01 under the stated transition and step-counting conventions. The answer may be an unambiguous expression or certified interval, without an integer output or a simple exact formula for the maximum. The problem turns the general undecidability of halting into an exceptionally concrete finite classification challenge. The saved review records large candidate runtimes and unresolved holdouts, and distinguishes runtime from the separate Busy Beaver measure counting printed ones.
+BB(6) is the maximum halting runtime among six-state, two-symbol Turing machines started on a blank tape. The accepted answer specifies one concrete machine and proves in Lean that it halts and no other halting machine in the same class runs longer. Its runtime describes BB(6) exactly, so no simple closed form, decimal expansion or full execution trace is required. The problem turns the general undecidability of halting into an exceptionally concrete finite classification challenge. The saved review records large candidate runtimes and unresolved holdouts, and distinguishes runtime from the separate Busy Beaver measure counting printed ones.
 
 [Read in atlas](index.html#TCS-6685) · [BB(6)](https://wiki.bbchallenge.org/w/index.php?title=BB(6)&oldid=8417) · [Story: Turing machines and the Busy Beaver function](https://bbchallenge.org/story) · [Determination of the fifth Busy Beaver value](https://arxiv.org/abs/2509.12337v2) · [Antihydra](https://bbchallenge.org/antihydra) · [Holdouts lists](https://wiki.bbchallenge.org/wiki/Holdouts)
 Existing status: `source_open` · Summary written: 2026-09-12
@@ -723,12 +723,12 @@ Conditional disclosure of secrets lets parties reveal a secret only when a predi
 [Read in atlas](index.html#TCS-3761) · [Placing Conditional Disclosure of Secrets in the Communication Complexity Universe](https://doi.org/10.4230/LIPIcs.ITCS.2019.4)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3799 — Large-error approximate-degree lower bounds for AC⁰
+### TCS-3799 — Large-error approximate degree at logarithmic AC⁰ depth
 
-Approximate degree measures the degree needed for a polynomial to approximate a Boolean function. The cited question seeks strong lower bounds for AC0 functions when the allowed error is large. It specifically links circuit depth to a parameter δ and proposes degree nearly linear in the number of inputs. Such examples would clarify how much polynomial complexity survives even when approximation is very weak. The source excerpt truncates the error specification and damages the degree notation, so the precise norm, error convention, and parameter range cannot yet be reconstructed safely.
+Approximate degree is the least degree of a real polynomial that approximates a Boolean function at every input. This question allows error 1 minus an exponentially small quantity, while still demanding degree of order n^{1−δ}. Such lower bounds are known for polynomial-size AC⁰ circuits of depth O(1/δ). The target is a universal O(log(1/δ)) depth bound for every small fixed δ. The 2021 journal version retains this question and distinguishes it from known constant-error bounds and from threshold degree.
 
-[Read in atlas](index.html#TCS-3799) · [The Large-Error Approximate Degree of AC^0](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.55)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3799) · [The Large-Error Approximate Degree of AC^0](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.55) · [The Large-Error Approximate Degree of AC⁰](https://doi.org/10.4086/toc.2021.v017a007) · [A Nearly Optimal Lower Bound on the Approximate Degree of AC⁰](https://doi.org/10.1137/17M1161737)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3821 — Separating SoML from PPA in communication
 
@@ -3387,7 +3387,7 @@ The source sought a purely combinatorial description of monadically NIP graph cl
 [Read in atlas](index.html#TCS-2401) · [Indiscernibles and Flatness in Monadically Stable and Monadically NIP Classes](https://doi.org/10.4230/LIPIcs.ICALP.2023.125) · [Flip-Breakability: A Combinatorial Dichotomy for Monadically Dependent Graph Classes](https://doi.org/10.1145/3618260.3649739) · [Separability Properties of Monadically Dependent Graph Classes](https://doi.org/10.4230/LIPIcs.ICALP.2025.147)
 Existing status: `resolved` · Summary written: 2026-09-12
 
-## Data structures (15)
+## Data structures (14)
 
 ### TCS-6498 — Dynamic optimality conjecture
 
@@ -3471,13 +3471,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 A search tree on a tree generalizes binary search by recursively choosing a query vertex and continuing in a remaining component. The input also gives a probability distribution over the possible targets. The source asks whether an optimal static search tree minimizing expected search cost can be found in polynomial time. Approximation schemes do not establish exact optimization. The project examines how branching in the underlying tree changes the familiar ordered-search problem and whether its recursive choices admit an efficiently solvable global structure.
 
 [Read in atlas](index.html#TCS-5103) · [The Diameter of Caterpillar Associahedra](https://doi.org/10.4230/LIPIcs.SWAT.2022.14)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-5706 — Unified bound for binary search trees
-
-The unified bound for binary search trees combines temporal reuse and proximity in key order. An access can be cheap when it lies near a recently accessed key, even if neither pure frequency nor consecutive-access distance captures the pattern. The source asks whether one BST algorithm can achieve the full unified bound. Restricted windows and separate locality guarantees give partial guidance. The project seeks one legal tree-restructuring strategy that realizes this combined notion of locality on every access sequence.
-
-[Read in atlas](index.html#TCS-5706) · [The Group Access Bounds for Binary Search Trees](https://doi.org/10.4230/LIPIcs.ICALP.2024.38)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-5768 — Sublogarithmic competitiveness of splay trees
@@ -4876,7 +4869,7 @@ NTRU-like problems use structured algebraic relations involving short secret ele
 [Read in atlas](index.html#TCS-6868) · [A Decade of Lattice Cryptography](https://eprint.iacr.org/2015/939)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-## Coding and information theory (41)
+## Coding and information theory (40)
 
 ### TCS-6606 — Capacity of the two-user Gaussian interference channel
 
@@ -5037,13 +5030,6 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 Structural semigraphoids provide a formal setting for collections of conditional-independence statements. The recorded question asks whether a finite inference system captures the relevant implications. Local rules are attractive because they could derive consequences without searching through all possible probabilistic structures. A complete finite system would clarify whether this type of independence reasoning admits a compact logical calculus. The saved title does not reproduce the semantic definition or allowed rule format, so finite axiomatizability must not be conflated with merely having an effective enumeration of some valid implications.
 
 [Read in atlas](index.html#TCS-0188) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
-### TCS-0194 — Maximum entropy versus the Copy lemma
-
-The maximum-entropy method and the Copy lemma are techniques for deriving information-theoretic constraints. The saved question asks about their relative power. One approach optimizes distributions under specified information, while the other introduces auxiliary variables with controlled dependence properties. Understanding whether they simulate each other could organize proof methods for inequalities beyond the elementary Shannon rules. The title does not state the exact implication to prove or the permitted auxiliary constructions, so this draft preserves the comparison without asserting an equivalence or a known separation.
-
-[Read in atlas](index.html#TCS-0194) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-0195 — Non-entropic extreme entropy-cone rays
