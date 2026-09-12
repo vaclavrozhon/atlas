@@ -1814,12 +1814,12 @@ Deleting at most k vertices should leave a graph in a fixed minor-closed class. 
 [Read in atlas](index.html#TCS-3580) · [An FPT-Algorithm for Recognizing k-Apices of Minor-Closed Graph Classes](https://doi.org/10.4230/LIPIcs.ICALP.2020.95) · [k-apices of minor-closed graph classes. II. Parameterized algorithms](https://arxiv.org/abs/2004.12692) · [Faster parameterized algorithms for modification problems to minor-closed classes](https://doi.org/10.46298/theoretics.24.19) · [Graph Modification of Bounded Size to Minor-Closed Classes as Fast as Vertex Deletion](https://doi.org/10.4230/LIPIcs.ESA.2025.7)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-3745 — Approximation of parameterized Set Cover in n^(k−ε) time
+### TCS-3745 — Approximation tradeoff for Set Cover below exhaustive search
 
-Parameterized Set Cover asks for a small collection of sets covering an entire universe. The source asks for the best approximation obtainable in a time regime intended to improve on n^k-style enumeration. This connects solution quality directly to the exponent one is willing to spend on the input size. A sharp tradeoff would show how much approximation is gained by accepting almost exhaustive parameterized search. The saved time expression is truncated after k minus a missing quantity, so the precise budget and approximation target remain unresolved.
+Set Cover seeks the fewest set vertices covering all element vertices in an explicit incidence graph. The source asks for the optimal approximation ratio in time n^{k−ε}, with a fixed positive exponent saving. Known conditional lower bounds leave a gap below the polynomial-time logarithmic approximation. A September 2026 follow-up still describes that gap, while obtaining results for related monotone-circuit problems. The card recovers the missing exponent but leaves the parameter promise, allowed f(k) factor and exact optimality criterion to be specified.
 
-[Read in atlas](index.html#TCS-3745) · [A Simple Gap-Producing Reduction for the Parameterized Set Cover Problem](https://doi.org/10.4230/LIPIcs.ICALP.2019.81)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3745) · [A Simple Gap-Producing Reduction for the Parameterized Set Cover Problem](https://doi.org/10.4230/LIPIcs.ICALP.2019.81) · [A Simple Gap-producing Reduction for the Parameterized Set Cover Problem](https://arxiv.org/abs/1902.03702v2) · [On the Approximability of Parameterized Minimum Monotone Satisfying Assignment](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.20)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3917 — Disjoint-union closure of FPT forbidden-pattern independent set
 
@@ -4358,10 +4358,10 @@ Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3731 — Inseparable degree in algebraic-independence testing
 
-Algebraic independence asks whether given polynomials satisfy any nonzero polynomial relation. The source studies methods over finite-characteristic fields and asks how essential inseparable degree is to testing independence. Inseparability records characteristic-specific behavior that can disappear from familiar derivative-based reasoning. Removing or reducing dependence on that quantity could make the algorithms apply under weaker algebraic promises. The saved question is qualitative, so a full target must identify the algorithmic bound or theorem whose dependence is being challenged and state the relevant field and input representations.
+Algebraic independence means that no nonzero polynomial relation holds among the input polynomials. In small characteristic, the source uses a Frobenius-power inseparability parameter in its criterion and restricted faithful-map construction. That parameter is not the conventional inseparable extension degree. Interactive AM∩coAM verification already avoids the parameter promise, but does not give an ordinary randomized polynomial-time algorithm. The source does not select which stronger test or construction should lose its dependence, so an exact new target remains to be specified.
 
-[Read in atlas](index.html#TCS-3731) · [Constructing Faithful Homomorphisms over Fields of Finite Characteristic](https://doi.org/10.4230/LIPIcs.FSTTCS.2019.11)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3731) · [Constructing Faithful Homomorphisms over Fields of Finite Characteristic](https://doi.org/10.4230/LIPIcs.FSTTCS.2019.11) · [Constructing Faithful Homomorphisms over Fields of Finite Characteristic](https://arxiv.org/abs/1812.10249v3) · [Algebraic Independence over Positive Characteristic: New Criterion and Applications to Locally Low-Algebraic-Rank Circuits](https://doi.org/10.1007/s00037-018-0167-5) · [Algebraic Dependencies and PSPACE Algorithms in Approximative Complexity](https://doi.org/10.4230/LIPIcs.CCC.2018.10)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3866 — Polynomial slide distances between graphs of groups
 
