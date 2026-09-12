@@ -2477,12 +2477,12 @@ Local certification gives each graph vertex a certificate that it verifies using
 [Read in atlas](index.html#TCS-2233) · [Local Certification of Geometric Graph Classes](https://doi.org/10.4230/LIPIcs.MFCS.2024.48)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2470 — While there has been progress on solving the natural list and defective coloring variants of O(β 2 ) coloring, it is still unknown if a […]
+### TCS-2470 — Breaking the quadratic color bound for bounded outdegree
 
-An orientation with maximum outdegree β gives each vertex a bounded number of outgoing neighbors even when its total degree is large. Distributed coloring algorithms exploit this structure to obtain palettes related to β rather than maximum degree. The source asks whether some constant ε > 0 permits O(β^(2−ε)) colors in f(β) + O(log* n) rounds. Existing quadratic-palette techniques and progress on defective list coloring motivate the target, but do not establish this improved exponent with such weak dependence on network size. Achieving it would strengthen a basic building block for deterministic symmetry breaking on sparsely oriented graphs.
+The network comes with an orientation having at most β outgoing edges at every vertex. A deterministic distributed algorithm can already color it with O(β²) colors in O(log* n) rounds. The question is whether β² can be replaced by β^{2−ε} for one fixed ε>0. Additional time may depend arbitrarily on β, but the dependence on n must remain additive O(log* n). New results for list and defective colorings have not supplied this proper-coloring guarantee.
 
-[Read in atlas](index.html#TCS-2470) · [List Defective Colorings: Distributed Algorithms and Applications](https://doi.org/10.4230/LIPIcs.DISC.2023.22)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2470) · [List Defective Colorings: Distributed Algorithms and Applications](https://doi.org/10.4230/LIPIcs.DISC.2023.22) · [Greedy-Like Defective Coloring: Distributed Algorithms and Applications](https://arxiv.org/abs/2608.02386)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2540 — Is there an MSO2 property requiring certificates of Ω(nϵ ) bits, for some ϵ > 0, on graphs of bounded clique-width?
 

@@ -1877,12 +1877,12 @@ Nearest Codeword seeks a codeword close to a target vector under the specified d
 [Read in atlas](index.html#TCS-1945) · [Improved Lower Bounds for Approximating Parameterized Nearest Codeword and Related Problems Under ETH](https://doi.org/10.4230/LIPIcs.ICALP.2024.107)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2489 — While a sufficient and necessary criterion for the fixed-parameter tractability of, say #Sub(H → G), must depend on the set of forbidden subgraphs of G, […]
+### TCS-2489 — Characterizing countable patterns in monotone somewhere-dense hosts
 
-Counting subgraphs asks how many copies of a pattern H occur inside a host graph G. The source investigates this task for structured families of host graphs, including somewhere dense settings. Its saved passage says that any fixed-parameter tractability criterion must depend on the host family's forbidden subgraphs. A classification would therefore need to account for both pattern complexity and restrictions on the ambient graph. The sentence is truncated before its full question, so the intended necessary-and-sufficient condition and parameter convention are not supplied here.
+Count copies of a small input pattern inside a host graph, allowing extra edges between the copied vertices. The goal is a structural criterion for runtime f(pattern size) times a polynomial with fixed exponent. Hosts remain closed under subgraphs and somewhere dense, while the pattern class may be arbitrary. The source already classifies hereditary pattern classes and asks to remove that restriction. It does not propose the criterion or fully specify what counts as an explicit combinatorial characterization.
 
-[Read in atlas](index.html#TCS-2489) · [Counting Subgraphs in Somewhere Dense Graphs](https://doi.org/10.4230/LIPIcs.ITCS.2023.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2489) · [Counting Subgraphs in Somewhere Dense Graphs](https://doi.org/10.4230/LIPIcs.ITCS.2023.27) · [Counting Subgraphs in Somewhere Dense Graphs](https://doi.org/10.1137/22M1535668)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2565 — Can we find for every t a pattern for which we get classes that contain W[t]-hard problems and are contained in W[t]?
 
@@ -5787,12 +5787,12 @@ A restricted constraint satisfaction problem asks whether an input structure map
 [Read in atlas](index.html#TCS-1807) · [Restricted CSPs and F-Free Digraph Algorithmics](https://doi.org/10.4230/LIPIcs.ICALP.2025.158)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2428 — Take any Max-CSP and consider the associated spin glass SGξ , where ξ is defined as in Equation (1).
+### TCS-2428 — Do random CSPs and their spin glasses have the same overlap laws?
 
-A random Max-CSP seeks an assignment maximizing satisfied constraints in a randomly generated instance. The cited source associates such a problem with a spin-glass model described by a function ξ. Spin-glass structure can encode a rugged objective landscape that affects the performance of optimization algorithms. A precise transfer could explain algorithmic hardness through properties of the associated statistical-mechanical model. The saved sentence only introduces the construction and omits the conjectured conclusion and definition of ξ, so it is not yet a complete question about thresholds or algorithm classes.
+The source associates each signed Boolean Max-CSP predicate with a Gaussian spin-glass model. It conjectures that randomly sampled near-optimal solutions have matching limiting overlap distributions. The overlap vector includes correlations among every subset of the sampled solutions. Known results relate optimal values and overlap gaps, which do not determine full probability distributions. The solution-selection law, optimality window and convergence notion still require specification.
 
-[Read in atlas](index.html#TCS-2428) · [Random Max-CSPs Inherit Algorithmic Hardness from Spin Glasses](https://doi.org/10.4230/LIPIcs.ITCS.2023.77)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2428) · [Random Max-CSPs Inherit Algorithmic Hardness from Spin Glasses](https://doi.org/10.4230/LIPIcs.ITCS.2023.77) · [Local Algorithms and the Failure of Log-Depth Quantum Advantage on Sparse Random CSPs](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.78)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3585 — Although we were able to get rid of the latter assumption in several cases, there is still a gap in this classification: does improving the […]
 
