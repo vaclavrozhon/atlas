@@ -3303,12 +3303,12 @@ The girth conjecture asks for dense graphs with every short cycle forbidden. For
 [Read in atlas](index.html#TCS-2783) · [Space-Stretch Tradeoff in Routing Revisited](https://doi.org/10.4230/LIPIcs.DISC.2022.37) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://arxiv.org/abs/2607.07576)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3915 — Transductions of bounded-expansion relational classes
+### TCS-3915 — Structural characterization of bounded-expansion transductions
 
-First-order transductions build new structures from old ones using logical formulas and auxiliary labels. The source asks to characterize relational structures obtainable from bounded-expansion classes, extending a result formulated for graphs. Relations of higher arity can encode interactions that do not behave like ordinary edges under a graph construction. A characterization would broaden the structural account of logically interpretable sparse information. The excerpt cuts off the precise source class and omits the permitted signatures, so the final target must restore those details before applying a graph-only theorem to arbitrary relational structures.
+First-order transductions can encode dense structures using sparse graph sources. For graph outputs, low shrubdepth covers give a known combinatorial characterization. The source asks for a corresponding characterization when outputs have relations of higher arity. The 2023 alternative decomposition theorem still concerns graphs and does not by itself answer that extension. The transduction property is now defined, but the requested new structural answer condition remains to be specified.
 
-[Read in atlas](index.html#TCS-3915) · [First-Order Interpretations of Bounded Expansion Classes](https://doi.org/10.4230/LIPIcs.ICALP.2018.126)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3915) · [First-Order Interpretations of Bounded Expansion Classes](https://doi.org/10.4230/LIPIcs.ICALP.2018.126) · [First-order interpretations of bounded expansion classes](https://arxiv.org/abs/1810.02389) · [First-Order Interpretations of Bounded Expansion Classes](https://doi.org/10.1145/3382093) · [Lacon-, Shrub- and Parity-Decompositions: Characterizing Transductions of Bounded Expansion Classes](https://lmcs.episciences.org/11437)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-4336 — Characterizing large token-reconfiguration thresholds
 
