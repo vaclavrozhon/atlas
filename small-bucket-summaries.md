@@ -1536,12 +1536,12 @@ The task compares two arbitrary explicit strings using unit-cost insertions, del
 [Read in atlas](index.html#TCS-5554) · [An Algorithmic Bridge Between Hamming and Levenshtein Distances](https://doi.org/10.4230/LIPIcs.ITCS.2023.58) · [Edit Distance in Near-Linear Time: it’s a Constant Factor](https://doi.org/10.1109/FOCS46700.2020.00096) · [Does Preprocessing Help in Fast Sequence Comparisons?](https://doi.org/10.1145/3357713.3384300) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://doi.org/10.1145/3798129.3800789)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-5787 — Approximating graph crossing number
+### TCS-5787 — Constant-factor approximation of graph crossing number
 
-The crossing number of a graph is the fewest edge crossings possible in a drawing. The cited edge-insertion paper includes an introductory question about approximating that quantity. Its saved excerpt reports hardness for some constant factor and then cuts off before the unresolved contrast. Understanding approximation would measure how closely efficient drawing methods can approach the best global layout. The missing conclusion could concern a different ratio or graph class, so this entry should retain its topic-level scope until the full question and drawing conventions are recovered.
+Draw every graph in the plane using at most a fixed constant times its minimum possible number of crossings. The constant must be independent of the graph size and maximum degree. The algorithm must construct a drawing in polynomial time; bounded-error randomization is allowed. Existing low-degree and dense-graph results do not provide this guarantee for all graphs. Hardness for one fixed ratio above one leaves open the possibility of a larger universal constant.
 
-[Read in atlas](index.html#TCS-5787) · [Inserting Multiple Edges into a Planar Graph](https://doi.org/10.4230/LIPIcs.SoCG.2016.30)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5787) · [Inserting Multiple Edges into a Planar Graph](https://doi.org/10.4230/LIPIcs.SoCG.2016.30) · [A Subpolynomial Approximation Algorithm for Graph Crossing Number in Low-Degree Graphs](https://arxiv.org/abs/2202.06827) · [An Algorithm for Estimating the Crossing Number of Dense Graphs, and Continuous Analogs of the Crossing and Rectilinear Crossing Numbers](https://doi.org/10.1007/s00454-025-00783-w)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6309 — Constant-factor approximation for capacitated k-Median
 
