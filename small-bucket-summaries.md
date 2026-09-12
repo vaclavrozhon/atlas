@@ -725,9 +725,9 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3799 — Large-error approximate degree at logarithmic AC⁰ depth
 
-Approximate degree is the least degree of a real polynomial that approximates a Boolean function at every input. This question allows error 1 minus an exponentially small quantity, while still demanding degree of order n^{1−δ}. Such lower bounds are known for polynomial-size AC⁰ circuits of depth O(1/δ). The target is a universal O(log(1/δ)) depth bound for every small fixed δ. The 2021 journal version retains this question and distinguishes it from known constant-error bounds and from threshold degree.
+Approximate degree is the least degree of a real polynomial that approximates a Boolean function at every input. This question allows error 1 minus an exponentially small quantity, while still demanding degree of order n^{1−δ}. Such lower bounds are known for polynomial-size AC⁰ circuits of depth O(1/δ). The target is a universal O(log(1/δ)) depth bound for every small fixed δ. Later depth-two DNF/CNF results reach inverse-polynomial advantage, leaving the exponentially small advantage in this question outside their guarantees.
 
-[Read in atlas](index.html#TCS-3799) · [The Large-Error Approximate Degree of AC^0](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.55) · [The Large-Error Approximate Degree of AC⁰](https://doi.org/10.4086/toc.2021.v017a007) · [A Nearly Optimal Lower Bound on the Approximate Degree of AC⁰](https://doi.org/10.1137/17M1161737)
+[Read in atlas](index.html#TCS-3799) · [The Large-Error Approximate Degree of AC^0](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2019.55) · [The Large-Error Approximate Degree of AC⁰](https://doi.org/10.4086/toc.2021.v017a007) · [A Nearly Optimal Lower Bound on the Approximate Degree of AC⁰](https://doi.org/10.1137/17M1161737) · [The Approximate Degree of DNF and CNF Formulas](https://doi.org/10.1137/23M1557593)
 Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3821 — Separating SoML from PPA in communication
