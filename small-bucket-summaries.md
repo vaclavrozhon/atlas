@@ -4552,12 +4552,12 @@ The goal is to construct an n×n matrix family for which every two-factor repres
 [Read in atlas](index.html#TCS-3395) · [Lower Bounds for Matrix Factorization](https://doi.org/10.4230/LIPIcs.CCC.2020.5) · [Kronecker Powers, Orthogonal Vectors, and the Asymptotic Spectrum](https://arxiv.org/abs/2509.14489) · [Improved Depth-2 Linear Circuits for Disjointness via Quenched Lyapunov Exponents](https://arxiv.org/abs/2603.15565v2)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3414 — Indeed, constructing an explicit class of groups with superpolynomial graph embedding complexity is still an open problem, although a conjecture of Babai states that the […]
+### TCS-3414 — Explicit permutation groups requiring superpolynomial graph embeddings
 
-A permutation group can be realized inside a connected graph through the source's graph-embedding notion. The project seeks an explicit family for which every such graph requires superpolynomially many vertices relative to the permutation degree. The alternating groups provide a proposed exponential lower-bound family. Bounds for graphs having a specified abstract automorphism group do not automatically establish the stronger action-sensitive statement needed here. A construction would expose concrete limits on how economically graph structure can encode prescribed permutation symmetries.
+The target is an explicit family of groups acting on n labeled points. A graph represents the group when all its automorphisms preserve those points and induce exactly the given permutations on them. Additional vertices and automorphisms acting trivially on the original points are allowed. The question asks whether every such connected graph must have more than polynomially many vertices for a uniformly constructible family. Known abstract-group and restricted-host lower bounds address different requirements and do not settle this target.
 
-[Read in atlas](index.html#TCS-3414) · [Compressing Permutation Groups into Grammars and Polytopes. A Graph Embedding Approach](https://doi.org/10.4230/LIPIcs.MFCS.2020.50)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3414) · [Compressing Permutation Groups into Grammars and Polytopes. A Graph Embedding Approach](https://doi.org/10.4230/LIPIcs.MFCS.2020.50) · [Compressing Permutation Groups into Grammars and Polytopes. A Graph Embedding Approach — full version](https://arxiv.org/abs/2001.05583)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3432 — Yet another question which is natural in the context of this work and remains open is to prove stronger lower bounds for ABPs.
 

@@ -2568,12 +2568,12 @@ Constant-depth AC⁰ circuits offer a highly parallel but weak model of computat
 [Read in atlas](index.html#TCS-3384) · [Kernelizing the Hitting Set Problem in Linear Sequential and Constant Parallel Time](https://doi.org/10.4230/LIPIcs.SWAT.2020.9)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3416 — As there are only non-blocking linearizable (not relaxed) queue implementations using objects with consensus number two, it is an open question if there is such […]
+### TCS-3416 — Does a wait-free exact FIFO queue belong to Common₂?
 
-Linearizable queues must behave like a single exact FIFO queue even when operations from many processes overlap. The question asks whether such a queue has a wait-free implementation using only objects with consensus number two. Wait-freedom strengthens nonblocking progress by requiring every correct process's operation to finish despite the behavior of others. The source obtains a wait-free implementation for a relaxed queue and contrasts it with nonblocking exact implementations based on primitives of the same consensus power. An exact construction or impossibility result would clarify the synchronization strength needed to combine FIFO semantics with individual progress guarantees.
+The question asks for an exact FIFO queue shared by any fixed finite number of processes. Every process may enqueue and dequeue, and each operation must finish in finitely many of its own steps despite other processes stopping. Only read/write registers and Test&Set bits are supplied. Relaxed queues and algorithms that merely guarantee system-wide progress do not meet this requirement. The checked 2026 impossibility concerns strong linearizability, so the ordinary Common₂ question remains open in the cited sources.
 
-[Read in atlas](index.html#TCS-3416) · [Relaxed Queues and Stacks from Read/Write Operations](https://doi.org/10.4230/LIPIcs.OPODIS.2020.13)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3416) · [Relaxed Queues and Stacks from Read/Write Operations](https://doi.org/10.4230/LIPIcs.OPODIS.2020.13) · [Nontrivial and Universal Helping for Wait-Free Queues and Stacks](https://doi.org/10.4230/LIPIcs.OPODIS.2015.31) · [Set-Linearizable Implementations from Read/Write Operations: Sets, Fetch &Increment, Stacks and Queues with Multiplicity](https://doi.org/10.1007/s00446-022-00440-y) · [Impossibility Results for Strong Linearizability: The Difficulty of Consistent Refereeing](https://doi.org/10.1145/3796701.3815906)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3436 — Based on this, we conjecture that probability-1 leader election using O(1) messages requires Ω(n) time to stabilize.
 
