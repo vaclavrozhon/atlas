@@ -4545,12 +4545,12 @@ In positive characteristic p, taking a p-th power interacts strongly with the al
 [Read in atlas](index.html#TCS-3318) · [Algebraic Hardness Versus Randomness in Low Characteristic](https://doi.org/10.4230/LIPIcs.CCC.2020.37)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3395 — An important problem that continues to remain open is to prove a lower bound of the form Ω(n1+ε ) for some constant ε > 0 […]
+### TCS-3395 — A polynomial-power lower bound for explicit depth-two linear circuits
 
-The cited problem concerns lower bounds for representing matrices through a factorization model. The retained target is a bound of order at least n^(1+epsilon) for a fixed positive epsilon. This asks for a power-law separation from linear cost rather than a small logarithmic improvement. Such lower bounds would show that explicit linear-algebra objects require substantial representation complexity even when factoring is allowed. The excerpt omits the matrix family and the resource charged in a factorization, so neither the model nor a concrete candidate lower bound can be supplied safely from the saved text alone.
+The goal is to construct an n×n matrix family for which every two-factor representation has many nonzero entries in total. The desired bound is c n^{1+ε} for a fixed positive ε, with arbitrary intermediate factor width and unrestricted coefficients. One uniform algorithm must output the matrices in polynomial time in n. Known subexponential constructions and lower bounds for restricted factorizations do not meet all these requirements. The field and encoding conventions still need to be fixed, and the checked 2025–2026 results do not supply the requested unconditional family.
 
-[Read in atlas](index.html#TCS-3395) · [Lower Bounds for Matrix Factorization](https://doi.org/10.4230/LIPIcs.CCC.2020.5)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3395) · [Lower Bounds for Matrix Factorization](https://doi.org/10.4230/LIPIcs.CCC.2020.5) · [Kronecker Powers, Orthogonal Vectors, and the Asymptotic Spectrum](https://arxiv.org/abs/2509.14489) · [Improved Depth-2 Linear Circuits for Disjointness via Quenched Lyapunov Exponents](https://arxiv.org/abs/2603.15565v2)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3414 — Indeed, constructing an explicit class of groups with superpolynomial graph embedding complexity is still an open problem, although a conjecture of Babai states that the […]
 
