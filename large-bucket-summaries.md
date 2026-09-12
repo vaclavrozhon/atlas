@@ -3046,13 +3046,6 @@ The source compares adaptive and uniform sampling for selecting the best arm aft
 [Read in atlas](index.html#TCS-2675) · [Open Problem: Optimal Best Arm Identification with Fixed-Budget](https://proceedings.mlr.press/v178/open-problem-qin22a.html) · [On Universally Optimal Algorithms for A/B Testing](https://proceedings.mlr.press/v235/wang24c.html) · [Admissibility of Completely Randomized Trials: A Large-Deviation Approach](https://arxiv.org/abs/2506.05329)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-3142 — Nevertheless we leave it as an open problem if there is some first-order optimization method that achieves rate of 𝑇 = 𝑂 (1/ε2 ) (see […]
-
-Stochastic convex optimization seeks small population risk from a finite sample of convex loss functions. The source separates the generalization behavior of stochastic gradient descent from full-batch gradient descent on the empirical risk. Its remaining question asks whether another first-order method using empirical-risk information can reach excess risk epsilon in order epsilon to the minus two iterations. The target is population accuracy, so rapidly minimizing training loss alone is insufficient. A solution would identify whether the observed disadvantage belongs specifically to gradient descent or extends to the broader full-batch first-order information model.
-
-[Read in atlas](index.html#TCS-3142) · [SGD Generalizes Better Than GD (And Regularization Doesn’t Help)](https://proceedings.mlr.press/v134/amir21a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3429 — We conjecture that the optimal complexity of monotone inclusion is: (i) Θ( LD 1 L LD ) when the operator is either L-Lipschitz or L […]
 
 Monotone inclusion seeks a point where a monotone operator satisfies an appropriate zero or feasibility condition. The source connects this task with variational inequalities, nonexpansive fixed points, and proximal methods. Its question asks to close the remaining gaps between oracle upper and lower bounds. The conjectured rates distinguish Lipschitz or cocoercive operators from operators that are also strongly monotone. Matching results would determine exactly how regularity and the initial distance scale control the number of operator evaluations needed for an approximate solution, rather than only showing that particular iterative methods converge.
@@ -3150,6 +3143,13 @@ Robust low-rank approximation measures reconstruction error by the sum of absolu
 
 [Read in atlas](index.html#TCS-7008) · [Sketching as a Tool for Numerical Linear Algebra](https://arxiv.org/abs/1411.4357)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-3142 — Can full-batch first-order methods match SGD’s O(ε⁻²) generalization rate?
+
+The task is to minimize population risk for arbitrary convex Lipschitz losses on a unit ball. A full-batch method sees only the value and averaged subgradient of one fixed empirical sample. The source asks whether such a method can generalize in O(ε⁻²) calls using dimension-independent samples. The later NeurIPS theorem requires Ω(ε⁻⁴) calls for general full-batch methods in this setting. The negative resolution does not apply to individual-example access, fixed low-dimensional regimes or extra regularity assumptions.
+
+[Read in atlas](index.html#TCS-3142) · [SGD Generalizes Better Than GD (And Regularization Doesn’t Help)](https://proceedings.mlr.press/v134/amir21a.html) · [Never Go Full Batch (in Stochastic Convex Optimization)](https://proceedings.neurips.cc/paper/2021/hash/d27b95cac4c27feb850aaa4070cc4675-Abstract.html) · [Never Go Full Batch — complete author version](https://arxiv.org/abs/2107.00469)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Geometry, topology and metric spaces (65)
 

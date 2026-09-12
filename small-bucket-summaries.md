@@ -758,12 +758,12 @@ The problem concerns symmetric convex sets under standard Gaussian measure. A sp
 [Read in atlas](index.html#TCS-2664) · [Convex Influences](https://doi.org/10.4230/LIPIcs.ITCS.2022.53) · [Convex Influences — full version](https://arxiv.org/abs/2109.03107)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3146 — The linear sketching model is more powerful, in general, than the edge-probe model, and we leave open the question of e 2 /k 4 ) […]
+### TCS-3146 — Adaptive linear-sketch query complexity of planted-clique detection
 
-The cited work compares access models for average-case statistical problems, including linear sketches and individual edge probes. The retained passage emphasizes that linear sketching is the more powerful model and asks whether a related hardness statement survives there. A lower bound in the stronger model would exclude algorithms that aggregate many input coordinates in one measurement. This matters because edge-by-edge hardness alone does not control what a sketch can reveal collectively. The extracted bound is damaged and the exact task is missing, so the model distinction can be summarized but the intended numerical lower bound cannot yet be stated reliably.
+The algorithm distinguishes a random graph from one with a uniformly planted clique. It can adaptively query integer linear combinations of adjacency entries with polynomially bounded coefficients. The cost is the number of scalar queries, with no computation-time restriction. For polynomial clique sizes below √n, the source leaves a gap between n²/k⁴ and n²/k² up to logarithmic factors. The target is matching bounds in this exact oracle and planting model, rather than recovering the clique or solving a promise variant.
 
-[Read in atlas](index.html#TCS-3146) · [Average-Case Communication Complexity of Statistical Problems](https://proceedings.mlr.press/v134/rashtchian21a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3146) · [Average-Case Communication Complexity of Statistical Problems](https://proceedings.mlr.press/v134/rashtchian21a.html) · [Average-Case Communication Complexity of Statistical Problems — author version record](https://arxiv.org/abs/2107.01335)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3153 — This still p leaves the following question open: do there exist Boolean functions f for which r(f ) = ω( k(f ))?
 
