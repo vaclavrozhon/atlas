@@ -397,12 +397,12 @@ For a relation, an algorithm may output any answer satisfying the input-output s
 [Read in atlas](index.html#TCS-2029) · [A Qubit, a Coin, and an Advice String Walk into a Relational Problem](https://doi.org/10.4230/LIPIcs.ITCS.2024.1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2093 — It is an open problem to give an unconditional depth hierarchy theorem that separates NDepth [a log n] from NDepth [b log n] for any […]
+### TCS-2093 — An unconditional hierarchy for uniform NAND depth
 
-Circuit-depth hierarchies ask whether allowing more layers necessarily lets a circuit family compute additional functions. Here the source's NDepth notation refers specifically to uniform NAND formulas of logarithmic depth. The question asks for an unconditional separation between depth bounds with any two distinct constant coefficients of log n. The paper obtains a conditional hierarchy useful for its SAT lower-bound argument, but that assumption-dependent result is weaker than the requested theorem. Removing the assumption would sharpen the understanding of how much computational power each constant-factor increase in uniform formula depth provides.
+The question asks whether every larger constant multiplying log n in NAND depth gives a strictly stronger uniform computation class. The source proves this only under a shallow-formula assumption for nondeterministic linear-time computations. Its separate lower bound for SAT does not establish the whole hierarchy. The uniformity machine can inspect the input while describing gates. That input dependence and the coefficient range need precise conventions before the recovered question is a complete benchmark.
 
-[Read in atlas](index.html#TCS-2093) · [Towards Stronger Depth Lower Bounds](https://doi.org/10.4230/LIPIcs.ITCS.2024.10)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2093) · [Towards Stronger Depth Lower Bounds](https://doi.org/10.4230/LIPIcs.ITCS.2024.10) · [Towards Stronger Depth Lower Bounds — full version](https://eccc.weizmann.ac.il/report/2023/184/)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-2215 — Can we prove a real version of Toda’s theorem [30]?
 
@@ -994,12 +994,12 @@ A submodular hypergraph assigns each hyperedge a flexible submodular cost for be
 [Read in atlas](index.html#TCS-2018) · [Cut Sparsification and Succinct Representation of Submodular Hypergraphs](https://doi.org/10.4230/LIPIcs.ICALP.2024.97)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2103 — For every integers t, r there exists a polynomial-time algorithm that, given an St,t,t -free and Kr -free vertex-weighted graph (G, w) computes the maximum […]
+### TCS-2103 — Maximum-weight independent set with no long induced claw or large clique
 
-Maximum Weight Independent Set selects mutually nonadjacent vertices of maximum total weight. The conjecture restricts graphs by excluding both a fixed clique and a fixed long subdivided claw as induced subgraphs. For every fixed pair of forbidden patterns, it asks for a polynomial-time algorithm. The source already handles additional structural restrictions through decomposition techniques. Removing those extra assumptions would show that excluding large cliques together with one branching induced pattern suffices to control the global optimization problem.
+The input graph has no long induced three-armed claw and no clique above a fixed size. The question asks for the exact maximum weight of a set of pairwise nonadjacent vertices in polynomial time. The arm length and forbidden clique size are fixed constants. Known algorithms also require bounded degree or exclusion of a fixed biclique. Removing that extra sparsity requirement is the unresolved step.
 
 [Read in atlas](index.html#TCS-2103) · [Max Weight Independent Set in Sparse Graphs with No Long Claws](https://doi.org/10.4230/LIPIcs.STACS.2024.4)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2247 — Is it true that all graphs of, say, bounded flip-width admit a linear-size dag compression?
 
@@ -2463,12 +2463,12 @@ A LOCAL algorithm may finish in t rounds while sending messages across many netw
 [Read in atlas](index.html#TCS-1965) · [The Singular Optimality of Distributed Computation in LOCAL](https://doi.org/10.4230/LIPIcs.OPODIS.2024.26) · [The Singular Optimality of Distributed Computation in LOCAL — version record](https://arxiv.org/abs/2411.07011)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-2097 — We conjecture that the lower bound of 3/2, which has been shown for a specific class of algorithms, holds more generally, i.e., with one or […]
+### TCS-2097 — A general 3/2 communication lower bound for reliable broadcast
 
-Byzantine reliable broadcast distributes a sender's message despite nodes that may behave arbitrarily. The source measures communication overhead relative to the basic cost of delivering the message throughout the network. It proves a three-halves lower bound for a restricted algorithm class with limited initial communication and a three-round requirement. The conjecture asks whether the same bound holds after removing one or both restrictions. Extending it would identify an intrinsic redundancy cost of reliable dissemination, beyond the particular coding patterns and timing assumptions covered by the existing proof.
+Reliable broadcast must give all honest parties a consistent outcome despite Byzantine behavior. New protocols can do this with leading worst-case communication cost 1.5 times n times the payload length. The open question asks whether that constant is unavoidable for all protocols. The proved lower bound still restricts latency and first-round sender communication. Removing both restrictions is different from improving a protocol’s failure-free cost.
 
-[Read in atlas](index.html#TCS-2097) · [Byzantine Reliable Broadcast with Low Communication and Time Complexity](https://doi.org/10.4230/LIPIcs.OPODIS.2024.16)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2097) · [Byzantine Reliable Broadcast with Low Communication and Time Complexity](https://doi.org/10.4230/LIPIcs.OPODIS.2024.16) · [MiniCast: Minimizing the Communication Complexity of Reliable Broadcast](https://eprint.iacr.org/2024/571) · [Towards Reliable Broadcast with Optimal Communication and Round Complexity](https://eprint.iacr.org/2025/779) · [Efficient Byzantine Reliable Broadcast in the Failure Case](https://doi.org/10.4230/LIPIcs.OPODIS.2025.12)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2233 — Are there hereditary (or even monotone) classes of local complexity Ω(nc ) for c > 1?
 
@@ -3778,12 +3778,12 @@ Improper learning allows a learner to output a hypothesis outside the representa
 [Read in atlas](index.html#TCS-1573) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2111 — The existence of a fully-polynomial time algorithm remains open even for the special case of positive weights, where the best known algorithm (Diakonikolas and Kane, […]
+### TCS-2111 — Fully polynomial learning of positive ReLU networks under Gaussian inputs
 
-A one-hidden-layer ReLU network is a linear combination of k rectified linear functions of a d-dimensional input. The source studies learning its predictions from Gaussian examples under squared error. It asks for running time polynomial jointly in dimension, network width, and inverse accuracy, even when all output weights are positive. Its existing algorithms and correlational-query lower bounds leave open whether stronger learning methods can avoid exponential parameter dependence. A fully polynomial learner would show that expressive interactions among a modest number of ReLU units need not create an inherent computational barrier under Gaussian inputs.
+The target is a nonnegative weighted sum of k homogeneous ReLU units. Examples have standard Gaussian inputs and exact labels. The question asks for a learner polynomial in dimension, width and inverse prediction error simultaneously. It may output any efficiently evaluable predictor and need not recover the hidden parameters. The positive-weight upper bound still has a quasipolynomial dependence on width and accuracy.
 
-[Read in atlas](index.html#TCS-2111) · [Efficiently Learning One-Hidden-Layer ReLU Networks via SchurPolynomials](https://proceedings.mlr.press/v247/diakonikolas24c.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2111) · [Efficiently Learning One-Hidden-Layer ReLU Networks via SchurPolynomials](https://proceedings.mlr.press/v247/diakonikolas24c.html) · [Small Covers for Near-Zero Sets of Polynomials and Learning Latent Variable Models](https://arxiv.org/abs/2012.07774)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2336 — Is it true that, for any concept class H, the optimal regret is Θ L(H)T ?
 
