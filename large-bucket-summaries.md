@@ -3046,12 +3046,12 @@ The source compares adaptive and uniform sampling for selecting the best arm aft
 [Read in atlas](index.html#TCS-2675) · [Open Problem: Optimal Best Arm Identification with Fixed-Budget](https://proceedings.mlr.press/v178/open-problem-qin22a.html) · [On Universally Optimal Algorithms for A/B Testing](https://proceedings.mlr.press/v235/wang24c.html) · [Admissibility of Completely Randomized Trials: A Large-Deviation Approach](https://arxiv.org/abs/2506.05329)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-3429 — We conjecture that the optimal complexity of monotone inclusion is: (i) Θ( LD 1 L LD ) when the operator is either L-Lipschitz or L […]
+### TCS-3429 — Sharp oracle complexity of approximate monotone inclusion
 
-Monotone inclusion seeks a point where a monotone operator satisfies an appropriate zero or feasibility condition. The source connects this task with variational inequalities, nonexpansive fixed points, and proximal methods. Its question asks to close the remaining gaps between oracle upper and lower bounds. The conjectured rates distinguish Lipschitz or cocoercive operators from operators that are also strongly monotone. Matching results would determine exactly how regularity and the initial distance scale control the number of operator evaluations needed for an approximate solution, rather than only showing that particular iterative methods converge.
+The task is to make a monotone operator small after allowing a normal vector from the constraint set. The conjectured query costs are linear in LD/ε without strong monotonicity and logarithmic in accuracy with an L/m condition-number factor under strong monotonicity. Exact operator evaluations are charged, and residual accuracy is distinct from a weak variational-inequality gap. Later work supplies the general constrained linear-rate upper bound, sharper fixed-point lower bounds and strong root-finding guarantees. The source’s distance convention and joint asymptotic regimes still need to be fixed before the whole passage can be certified as one current benchmark.
 
-[Read in atlas](index.html#TCS-3429) · [Halpern Iteration for Near-Optimal and Parameter-Free Monotone Inclusion and Strong Solutions to Variational Inequalities](https://proceedings.mlr.press/v125/diakonikolas20a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3429) · [Halpern Iteration for Near-Optimal and Parameter-Free Monotone Inclusion and Strong Solutions to Variational Inequalities](https://proceedings.mlr.press/v125/diakonikolas20a.html) · [Accelerated Algorithms for Monotone Inclusions and Constrained Nonconvex-Nonconcave Min-Max Optimization](https://cs.yale.edu/homes/cai/publication/cai-accelerated-2022/) · [Exact Optimal Accelerated Complexity for Fixed-Point Iterations](https://proceedings.mlr.press/v162/park22c.html) · [Accelerated Minimax Algorithms Flock Together](https://doi.org/10.1137/22M1504597)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3676 — The exact complexity of the following variant of the problem remains open: given an MDP and a horizon encoded in binary, determine whether there exists […]
 
