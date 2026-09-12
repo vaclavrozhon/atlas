@@ -3941,12 +3941,12 @@ In an all-pay bidding graph game, both players spend their bids to compete for c
 [Read in atlas](index.html#TCS-2744) · [An Updated Survey of Bidding Games on Graphs (Invited Talk)](https://doi.org/10.4230/LIPIcs.MFCS.2022.3)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3867 — Polynomial-time black-box cost-sharing reductions
+### TCS-3867 — Polynomial-time cost sharing with concave edge costs
 
-Separable cost sharing assigns portions of a shared service's cost to individual participants. The cited paper develops black-box reductions and asks whether polynomial running time can be guaranteed for a particular procedure. A reduction may preserve incentive or approximation properties while making many costly calls to its component algorithms. A time bound would determine whether the conceptual transformation yields an efficient implementable mechanism. The saved sentence omits the procedure and its oracle assumptions, so the number of reduction steps and the cost of each step remain necessary before the guarantee is precise.
+Players choose terminal-connecting paths and split the edge costs while paying their own fixed delays. On the source’s n-series-parallel networks, a low-cost allocation can be transformed into an equilibrium without increasing social cost. For fixed edge costs this transformation is polynomial-time; for concave costs the source leaves its running time open. The card asks for a polynomial-time transformation with exact budget balance and an efficiently evaluable local sharing rule. The full 2018 source was checked; the later journal abstract was accessible, but its full text was not.
 
-[Read in atlas](index.html#TCS-3867) · [Efficient Black-Box Reductions for Separable Cost Sharing](https://doi.org/10.4230/LIPIcs.ICALP.2018.154)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3867) · [Efficient Black-Box Reductions for Separable Cost Sharing](https://doi.org/10.4230/LIPIcs.ICALP.2018.154) · [Efficient Black-Box Reductions for Separable Cost Sharing](https://arxiv.org/abs/1802.10351) · [Efficient Black-Box Reductions for Separable Cost Sharing](https://doi.org/10.1287/moor.2020.1050)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4151 — Rational versus real strategies in flow games
 
