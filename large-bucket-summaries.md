@@ -1,6 +1,6 @@
 # Working summaries — large categories
 
-668 five-sentence working summaries, based on saved source material.
+669 five-sentence working summaries, based on saved source material.
 These intermediate explanations preserve each record's existing evidence and status; they do not constitute completed research cards or a new open-status review.
 
 ## Computational complexity (125)
@@ -1164,12 +1164,12 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Automata and formal languages (54)
 
-### TCS-6558 — Černý conjecture
+### TCS-6558 — Maximum reset threshold of synchronizing automata
 
-A reset word drives a finite automaton to one common state, regardless of where it started. The project asks whether every synchronizing complete deterministic automaton with n states has such a word of length at most (n−1)². Explicit automata attain this length, so the proposed bound cannot be reduced. The difficulty is coordinating successive mergers of possible states without paying a cubic total cost. A solution would identify the exact worst-case effort required to regain control of an unknown finite-state system.
+A reset word drives a finite automaton to one common state regardless of its initial state. The target is the maximum shortest reset-word length among all complete synchronizing n-state automata. Determine this integer-valued function for every n, with both a universal upper bound and matching automata. The Černý conjecture proposes the formula (n−1)². Arbitrary finite alphabets are permitted, and no endpoint, connectivity or algorithmic restriction is added.
 
 [Read in atlas](index.html#TCS-6558) · [Synchronizing Automata: Open Problems](https://arxiv.org/abs/2608.24245) · [Synchronization of finite automata](https://doi.org/10.4213/rm10005e) · [List of Results on the Černý Conjecture and Reset Thresholds for Synchronizing Automata](https://arxiv.org/abs/2508.15655) · [Improving the Upper Bound on the Length of the Shortest Reset Word](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.STACS.2018.56) · [An Improvement to a Recent Upper Bound for Synchronizing Words of Finite Automata](https://doi.org/10.25596/jalc-2019-367) · [The Černý Conjecture for One-Cluster Automata via Annular Spectral Descent](https://arxiv.org/abs/2607.19675)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6560 — Sakoda–Sipser problem
 
@@ -3025,7 +3025,7 @@ The task is to minimize population risk for arbitrary convex Lipschitz losses on
 [Read in atlas](index.html#TCS-3142) · [SGD Generalizes Better Than GD (And Regularization Doesn’t Help)](https://proceedings.mlr.press/v134/amir21a.html) · [Never Go Full Batch (in Stochastic Convex Optimization)](https://proceedings.neurips.cc/paper/2021/hash/d27b95cac4c27feb850aaa4070cc4675-Abstract.html) · [Never Go Full Batch — complete author version](https://arxiv.org/abs/2107.00469)
 Existing status: `resolved` · Summary written: 2026-09-12
 
-## Geometry, topology and metric spaces (62)
+## Geometry, topology and metric spaces (63)
 
 ### TCS-6523 — Kannan–Lovász–Simonovits conjecture
 
@@ -3054,6 +3054,13 @@ The vertex-edge graph of a convex polyhedron records which feasible vertices can
 
 [Read in atlas](index.html#TCS-6573) · [Geometry: Combinatorics and Algorithms 2025 — Chapter 10, Convex Polytopes](https://ti.inf.ethz.ch/ew/courses/Geo25/lecture/gca25-10.pdf) · [A counterexample to the Hirsch Conjecture](https://annals.math.princeton.edu/2012/176-1/p07) · [An improved Kalai–Kleitman bound for the diameter of a polyhedron](https://arxiv.org/abs/1402.3579) · [An Asymptotically Improved Upper Bound on the Diameter of Polyhedra](https://link.springer.com/article/10.1007/s00454-018-0016-y) · [Computing the Polytope Diameter is Even Harder than NP-hard (Already for Perfect Matchings)](https://arxiv.org/abs/2502.16398v3) · [Circuit Diameter of Polyhedra is Strongly Polynomial](https://arxiv.org/abs/2602.06958v2)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-0318 — Planar k-set extremal function
+
+A planar k-set is a k-element subset of a point set that one line strictly separates from all remaining points. The target is the maximum number of such subsets over n points with no three collinear. Determine its growth within universal constant factors jointly in n and k, for 1≤k≤⌊n/2⌋. The problem counts subsets rather than separating lines and asks for combinatorial complexity rather than an enumeration algorithm. Both a uniform bound for every point set and matching examples throughout the parameter range are required.
+
+[Read in atlas](index.html#TCS-0318) · [The Open Problems Project: Problem 7, k-sets](https://topp.openproblem.net/p7) · [Improved Bounds for Planar k-Sets and Related Problems](https://courses.cs.duke.edu/cps234/fall08/handouts/dey.pdf) · [Point Sets with Many k-Sets](https://link.springer.com/article/10.1007/s004540010022) · [An Improved, Simple Construction of Many Halving Edges](https://rangevoting.org/many_halving_edges.pdf) · [An Improvement of the Upper Bound for the Number of Halving Lines of Planar Sets](https://oa.upm.es/89576/1/10302927.pdf)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6524 — Lang–Plaut problem
 
@@ -3710,10 +3717,10 @@ Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3691 — Uniform convergence under Dobrushin dependence
 
-Uniform convergence requires empirical losses to approximate population losses simultaneously over an entire hypothesis class. The source studies data whose coordinates are dependent but satisfy weak-influence conditions. It asks whether Dobrushin's condition alone supports suitable uniform convergence bounds for every finite-VC class. The paper proves results under a stronger logarithmic-influence condition and uses other techniques for some learning guarantees. Resolving the question would determine whether a standard notion of weak dependence is enough to recover the broad statistical control normally supplied by independent samples.
+A dependent training sample has identical marginal distributions and a bounded total influence on every coordinate. Uniform convergence requires every hypothesis’s empirical zero-one loss to approximate its population loss. The card asks whether every finite-VC class has the usual square-root rate when the ordinary Dobrushin coefficient stays below one. The source already proves learnability under that condition, but its uniform-convergence theorem requires stronger logarithmic influences. The formulation makes the iid-order rate and fixed dependence slack explicit, without claiming an optimal constant near the boundary.
 
-[Read in atlas](index.html#TCS-3691) · [Learning from Weakly Dependent Data under Dobrushin’s Condition](https://proceedings.mlr.press/v99/dagan19a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3691) · [Learning from Weakly Dependent Data under Dobrushin’s Condition](https://proceedings.mlr.press/v99/dagan19a.html) · [Learning from Weakly Dependent Data under Dobrushin’s Condition](https://arxiv.org/abs/1906.09247)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3787 — Unlabeled compression of ample classes
 
@@ -4188,12 +4195,12 @@ Passive quantum memory aims to preserve an encoded qubit through the natural dyn
 [Read in atlas](index.html#TCS-6517) · [Thermodynamic stability criteria for a quantum memory based on stabilizer and subsystem codes](https://arxiv.org/abs/0907.2807) · [Quantum memories at finite temperature](https://arxiv.org/abs/1411.6643) · [Symmetry protected self correcting quantum memory in three space dimensions](https://arxiv.org/abs/2103.08622) · [Cored product codes for quantum self-correction in three dimensions](https://arxiv.org/abs/2510.05479) · [A passive self-correcting quantum memory in three dimensions](https://arxiv.org/abs/2605.10943) · [Partial Self-Correction in Layer Codes](https://journals.aps.org/prl/abstract/10.1103/mb89-8436)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6519 — Exact quantum capacity of the qubit depolarizing channel
+### TCS-6519 — Quantum capacity of the qubit depolarizing channel
 
-A depolarizing channel models a qubit subjected to randomly chosen Pauli errors. Its quantum capacity measures how much unknown quantum information can be transmitted reliably per channel use when many uses are encoded together. The goal is an exact capacity formula throughout the noise range under the unassisted coding convention fixed in the card. Coding across several uses can behave differently from optimizing a single use, which complicates attempts to match achievable rates with impossibility bounds. Understanding this basic symmetric noise model would provide a benchmark for quantum communication and the value of collective error correction.
+A depolarizing channel models a qubit subjected to randomly chosen Pauli errors. Its quantum capacity measures how much unknown quantum information can be transmitted reliably per channel use when many uses are encoded together. The goal is the capacity curve throughout the noise range under the unassisted coding convention fixed in the card. Coding across several uses can behave differently from optimizing a single use, which complicates attempts to match achievable rates with impossibility bounds. The Lean benchmark accepts a certified determination with absolute error at most 0.01 throughout the stated numerical domain.
 
 [Read in atlas](index.html#TCS-6519) · [The private classical capacity and quantum capacity of a quantum channel](https://arxiv.org/abs/quant-ph/0304127) · [Quantum cloning and the capacity of the Pauli channel](https://arxiv.org/abs/quant-ph/9803058) · [Quantum and private capacities of low-noise channels](https://arxiv.org/abs/1705.04335) · [Geometric optimization for quantum communication](https://arxiv.org/abs/2509.15106) · [Enhanced quantum capacity thresholds from symmetry](https://arxiv.org/abs/2605.09138) · [A certified lower bound on the quantum-capacity threshold of the depolarizing channel](https://arxiv.org/abs/2608.15870) · [Sharp Quantum Capacity Thresholds: Exponential Strong Converses for Degradable and Antidegradable Channels](https://arxiv.org/abs/2608.01308)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-0037 — NP outside BQP
 

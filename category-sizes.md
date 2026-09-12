@@ -12,7 +12,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | large 4 | Semantics, logic and verification | 5 | 25 | 50 | 75 |
 | large 5 | Distributed, parallel and sublinear algorithms | 5 | 25 | 50 | 109 |
 | large 6 | Optimization and numerical computation | 5 | 25 | 50 | 38 |
-| large 7 | Geometry, topology and metric spaces | 5 | 25 | 50 | 63 |
+| large 7 | Geometry, topology and metric spaces | 5 | 25 | 50 | 64 |
 | large 8 | Learning theory | 5 | 25 | 50 | 68 |
 | large 9 | Cryptography | 5 | 25 | 50 | 37 |
 | large 10 | Quantum computation and information | 5 | 25 | 50 | 81 |
@@ -34,7 +34,7 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 16 | Game theory, social choice and fair division | 2 | 10 | 20 | 39 |
 | small 17 | Algebraic computation | 2 | 10 | 20 | 94 |
 | small 18 | Lattices and computational number theory | 2 | 10 | 20 | 32 |
-| small 19 | Coding and information theory | 2 | 10 | 20 | 37 |
+| small 19 | Coding and information theory | 2 | 10 | 20 | 42 |
 | small 20 | Property testing and distribution learning | 2 | 10 | 20 | 31 |
 | small 21 | Differential privacy | 2 | 10 | 20 | 10 |
 | small 22 | Constraint satisfaction | 2 | 10 | 20 | 25 |
@@ -42,6 +42,6 @@ Counts are saved candidate records, not verified distinct open problems.
 | small 24 | Database theory and finite model theory | 2 | 10 | 20 | 35 |
 | small 25 | Miscellaneous | 2 | 10 | 20 | 3 |
 
-Candidate pool: 1582. Deleted records: 5742 (IDs and reasons only).
+Candidate pool: 1588. Deleted records: 5736 (IDs and reasons only).
 
 The possible 1,000-problem expansion has 1000 assigned places; reserved places: 0. Removal reasons are recorded in deleted_records.json. Final quota selection and a comprehensive deduplication audit remain pending.

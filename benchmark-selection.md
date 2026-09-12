@@ -1,6 +1,6 @@
 # Benchmark selection review
 
-Reviewed on 2026-09-11 across 35 categories.
+Reviewed on 2026-09-12 across 35 categories.
 
 We aim for benchmarks of 100 and 500 problems, with a possible expansion to 1,000. All three use the same category order and the same ranking within each category.
 
@@ -30,9 +30,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 ## Review needed after catalogue changes
 
 - Unreviewed focus places in Algorithms: 1
-- Unreviewed focus places in Geometry, topology and metric spaces: 1
 - Unreviewed focus places in Learning theory: 1
-- Unreviewed focus places in Coding and information theory: 2
 - Unreviewed focus places in Miscellaneous: 1
 
 ## Computational complexity
@@ -75,7 +73,7 @@ Previous prefix: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Černý conjecture](index.html#TCS-6558) (TCS-6558) | Synchronization | 98 | The flagship quantitative question about synchronizing automata, connecting finite-state control, extremal combinatorics, and linear-algebraic methods. |
+| 1 | [Maximum reset threshold of synchronizing automata](index.html#TCS-6558) (TCS-6558) | Synchronization | 98 | The flagship quantitative question about synchronizing automata, connecting finite-state control, extremal combinatorics, and linear-algebraic methods. |
 | 2 | [Sakoda–Sipser problem](index.html#TCS-6560) (TCS-6560) | Two-way nondeterminism | 97 | The flagship state-complexity problem for two-way finite automata, open since 1978, with unusually direct connections between finite-state descriptions and logarithmic-space complexity. |
 | 3 | [Generalized star-height problem](index.html#TCS-6559) (TCS-6559) | Regular-expression complexity | 96 | A longstanding foundational problem connecting regular expressions, finite automata, algebraic language theory and logical descriptions. |
 | 4 | [Decidability of every level of the dot-depth hierarchy](index.html#TCS-6561) (TCS-6561) | Logical language hierarchies | 95 | A longstanding structural decision problem linking finite automata, logical definability and finite monoids; a full solution would explain much more than the known low-level algorithms. |
@@ -133,7 +131,7 @@ Candidates considered: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585, TCS-657
 
 ## Geometry, topology and metric spaces
 
-The existing leaders cover concentration, embeddings, topology, polytope diameter and planar incidence structure. Keep this mix; the saved claimed-solution caveat on unknot recognition remains visible. On 12 September 2026, the specify-or-delete review removed TCS-0318; their focus slots are left for a separate selection decision.
+The existing leaders cover concentration, embeddings, topology, polytope diameter and planar incidence structure. Keep this mix; the saved claimed-solution caveat on unknot recognition remains visible. The later user-authorized quantitative review restores TCS-0318 to its former focus position because an unknown answer format is not a defect in its defined extremal target.
 
 Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 
@@ -143,9 +141,9 @@ Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 | 2 | [Gupta–Newman–Rabinovich–Sinclair conjecture](index.html#TCS-6525) (TCS-6525) | Metric embeddings | 95 | A central link between graph minor structure, metric embeddings and the quality of the basic sparsest-cut relaxation, already open in the planar case. |
 | 3 | [Unknot recognition in polynomial time](index.html#TCS-6528) (TCS-6528) | Computational topology | 95 | A central algorithmic topology problem in NP∩coNP; a fresh claimed polynomial-time solution makes precise formulation and validation especially valuable. |
 | 4 | [Polynomial Hirsch conjecture](index.html#TCS-6573) (TCS-6573) | Polytope geometry | 95 | The surviving fundamental diameter question after the original Hirsch bound failed; it separates geometric existence of short routes from algorithmic navigation and the newly resolved circuit analogue. |
-| 5 | [Lang–Plaut problem](index.html#TCS-6524) (TCS-6524) | Needs review | 94 | Unreviewed replacement |
+| 5 | [Planar k-set extremal function](index.html#TCS-0318) (TCS-0318) | Planar extremal geometry | 94 | A defining two-parameter extremal problem underlying levels and geometric selection; its source-defined asymptotic function is admissible under the restored numerical/function policy. |
 
-Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-6529, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
+Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-6529, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
 
 ## Learning theory
 
@@ -288,14 +286,14 @@ Candidates considered: TCS-6587, TCS-0006, TCS-6588, TCS-6589, TCS-6659, TCS-659
 
 ## Online algorithms, scheduling and packing
 
-The user merged the online and scheduling/packing categories with one small-category quota. Pair the deterministic k-server conjecture with unrelated-machine makespan to represent competitive analysis and offline scheduling. Bandit convex optimization and bin packing remain active candidates below this two-problem focus prefix; importance scores are preserved.
+The user merged the online and scheduling/packing categories with one small-category quota. Pair the deterministic k-server competitive function with unrelated-machine makespan to represent competitive analysis and offline scheduling. Bandit convex optimization and bin packing remain active candidates below this two-problem focus prefix; importance scores are preserved.
 
 Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [k-server conjecture](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational conjecture about online decision-making, with an optimal lower bound, one broadly applicable candidate algorithm, and a persistent gap on general metrics despite many resolved special cases. |
-| 2 | [Beating factor two for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
+| 1 | [Deterministic competitiveness of k-server](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational quantitative question about the price of future uncertainty on arbitrary metrics, with a persistent gap between general upper and lower bounds despite many settled special cases. |
+| 2 | [Optimal approximation ratio for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
 Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-3314, TCS-3392, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-5004, TCS-5030, TCS-5126, TCS-5158, TCS-5182, TCS-5186, TCS-5221, TCS-5252, TCS-5349, TCS-5514, TCS-5747, TCS-5779, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
 
@@ -385,7 +383,7 @@ Previous prefix: TCS-6623, TCS-6624.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Polynomial-sample worst-case trace reconstruction](index.html#TCS-6623) (TCS-6623) | Reconstruction from noisy strings | 96 | A defining worst-case recovery problem for synchronization noise, linking string algorithms, information theory, statistics and complex-analytic methods. |
+| 1 | [Worst-case sample complexity of trace reconstruction](index.html#TCS-6623) (TCS-6623) | Reconstruction from noisy strings | 96 | A defining worst-case recovery problem for synchronization noise, linking string algorithms, information theory, statistics and complex-analytic methods. |
 | 2 | [Constant-factor edit-distance approximation in O(n polylog n) time](index.html#TCS-6624) (TCS-6624) | Sequence distance algorithms | 95 | A central remaining precision–runtime boundary for edit distance, distinct from the established n^{1+ε} constant-factor algorithms and from exact-computation hardness. |
 
 Candidates considered: TCS-6623, TCS-6624, TCS-6669, TCS-6513, TCS-0467, TCS-0468, TCS-0470, TCS-7220.
@@ -431,16 +429,16 @@ Candidates considered: TCS-6571, TCS-6617, TCS-6618, TCS-6667, TCS-6619, TCS-662
 
 ## Coding and information theory
 
-Pair Gaussian interference capacity with the binary rate–distance tradeoff. Move the second multiuser capacity question below the prefix so that coding theory has a leading representative. Preserve the existing uncertainty around the Gaussian-capacity claim. On 12 September 2026, the specify-or-delete review removed TCS-6606, TCS-1010; their focus slots are left for a separate selection decision.
+Pair Gaussian interference capacity with the binary rate–distance tradeoff. Move the second multiuser capacity question below the prefix so that coding theory has a leading representative. Preserve the existing uncertainty around the Gaussian-capacity claim. The later user-authorized numerical review reinstates these former focus choices with explicit 1/100 absolute rate accuracy; it does not change their importance scores or certify openness at that tolerance.
 
 Previous prefix: TCS-6606, TCS-6665.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Capacity of the general broadcast channel](index.html#TCS-6665) (TCS-6665) | Needs review | 97 | Unreviewed replacement |
-| 2 | [Li–Li conjecture](index.html#TCS-6584) (TCS-6584) | Needs review | 96 | Unreviewed replacement |
+| 1 | [Capacity of the two-user Gaussian interference channel](index.html#TCS-6606) (TCS-6606) | Multiuser channel capacity | 97 | A central continuous-alphabet interference tradeoff, with a fully specified weighted-capacity target and the saved uncertainty about recent claims preserved. |
+| 2 | [Optimal asymptotic binary rate–distance tradeoff](index.html#TCS-1010) (TCS-1010) | Coding rate versus distance | 96 | The fundamental asymptotic binary coding tradeoff; its well-defined rate curve is restored as a distinct coding-theory focus alongside multiuser communication. |
 
-Candidates considered: TCS-6665, TCS-6584, TCS-6607, TCS-6608, TCS-6609, TCS-6610.
+Candidates considered: TCS-6606, TCS-6665, TCS-1010, TCS-6584, TCS-6607, TCS-6608, TCS-6609, TCS-6610.
 
 ## Property testing and distribution learning
 
@@ -516,6 +514,6 @@ Previous prefix: TCS-7222.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [1/3–2/3 conjecture](index.html#TCS-7177) (TCS-7177) | Partial-order balance | 90 | Would provide a universally informative comparison for sorting with partial-order information; retained as a computationally motivated combinatorial exception. |
-| 2 | [Sunflower conjecture](index.html#TCS-7290) (TCS-7290) | Needs review | 89 | Unreviewed replacement |
+| 2 | [Extremal size of sunflower-free set families](index.html#TCS-7290) (TCS-7290) | Needs review | 89 | Unreviewed replacement |
 
 Candidates considered: TCS-7222, TCS-7177, TCS-3520.
