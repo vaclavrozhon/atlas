@@ -467,12 +467,12 @@ Tarski-style search finds a fixed point of an order-preserving map on a finite l
 [Read in atlas](index.html#TCS-2537) · [Reducing Tarski to Unique Tarski (In the Black-Box Model)](https://doi.org/10.4230/LIPIcs.CCC.2023.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2681 — As mentioned in the introduction, it remains open whether UEOPL = EOPL.
+### TCS-2681 — Does UEOPL equal EOPL?
 
-EOPL studies total search through implicitly represented paths equipped with a potential that increases along each path. UEOPL imposes a uniqueness structure, with suitable witnesses allowed when that structure fails. The source identifies EOPL with the intersection of PLS and PPAD and asks whether UEOPL has the same power. A first proposed step is a separation in the black-box model, where algorithms learn the paths through queries. Understanding the role of uniqueness would help classify natural problems in UEOPL and assess whether they could be complete for the broader intersection.
+EOPL describes total search along succinct paths with potentials. UEOPL admits additional answers witnessing failures of uniqueness. The question asks whether both ordinary circuit-defined classes nevertheless have the same power. A published theorem separates them in the black-box model, which does not decide this equality. Resolving it would clarify the computational role of uniqueness in total search.
 
-[Read in atlas](index.html#TCS-2681) · [Further Collapses in TFNP](https://doi.org/10.4230/LIPIcs.CCC.2022.33)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2681) · [Further Collapses in TFNP](https://doi.org/10.4230/LIPIcs.CCC.2022.33) · [Unique End of Potential Line](https://doi.org/10.1016/j.jcss.2020.05.007) · [Separations in Proof Complexity and TFNP](https://doi.org/10.1145/3663758)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2914 — Namely, can one find a distribution that cannot be sampled in AC0 but can be sampled by ROBPs?
 

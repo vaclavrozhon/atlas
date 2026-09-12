@@ -152,12 +152,12 @@ Conditional pKt measures a probabilistic, time-sensitive form of description com
 [Read in atlas](index.html#TCS-2202) · [Impagliazzo’s Worlds Through the Lens of Conditional Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2024.110)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2776 — We leave it as an intriguing open problem to determine whether the “standard” conditional time-bounded Kolmogorov complexity (where interpreting a program as a Turing machine) […]
+### TCS-2776 — NP-completeness of conditional time-bounded Kolmogorov complexity for Turing-machine programs
 
-Conditional time-bounded Kolmogorov complexity measures the length of a short program that generates an output quickly when auxiliary information is provided. The source proves NP-completeness for a version in which the programs are random-access machines. This project asks whether the standard Turing-machine version is also NP-complete under the intended polynomial time bounds. Although the machine models simulate each other, their overhead can matter in a reduction that tightly controls time and program length. A matching theorem would show whether the hardness characterization reflects the underlying compression problem or depends on the random-access formulation.
+Conditional time-bounded Kolmogorov complexity asks how short a program can be when it has side information and limited running time. The source proves randomized-reduction NP-completeness for RAM programs. It leaves the standard Turing-machine version as a separate question. The exact interpreter and time-counting convention must be fixed before the target is a single decision language. Later chain-rule and conditional gap-hardness results do not establish this unconditional exact theorem.
 
-[Read in atlas](index.html#TCS-2776) · [On One-Way Functions from NP-Complete Problems](https://doi.org/10.4230/LIPIcs.CCC.2022.36)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2776) · [On One-Way Functions from NP-Complete Problems](https://doi.org/10.4230/LIPIcs.CCC.2022.36) · [Kolmogorov’s Approach to P vs. NP: Chain Rules for Time-Bounded Kolmogorov Complexity](https://doi.org/10.1145/3798129.3800780)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2821 — We conjecture that aperiodic configurations in Z3 SFTs behave similarly as in Z2 subshifts: each Z3 SFT containing aperiodic configurations seems to have “centers” of […]
 
@@ -4503,12 +4503,12 @@ Algebraic formulas compute polynomials using arithmetic trees. Algebraic branchi
 [Read in atlas](index.html#TCS-2506) · [Towards Optimal Depth-Reductions for Algebraic Formulas](https://doi.org/10.4230/LIPIcs.CCC.2023.28) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2718 — Can we hope for an O(|D| e · polylog(M )) time algorithm for f -Convolution for some ϵ > 0?
+### TCS-2718 — A uniform exponent saving for arbitrary generalized convolution
 
-Generalized convolution combines values indexed by a domain according to an operation specified by a function f. The source asks whether this computation can improve on brute-force combination of inputs. The displayed target separates dependence on domain size from polylogarithmic dependence on a numerical quantity M. An improvement could accelerate dynamic programs whose main cost is repeatedly merging partial solutions. The exponent involving ε is damaged in the saved extraction, and neither f nor the domain model is defined there, so an exact running-time target cannot safely be reconstructed.
+Generalized convolution combines two integer tables using an arbitrary operation on each coordinate. The card asks to compute the entire output table with a fixed saving over the brute-force exponent. The saving must be independent of the size of the coordinate domain. The improved journal algorithm reduces the exponential base by a constant factor, which gives a domain-dependent exponent saving only. A faster algorithm for one output entry does not meet the full-table target.
 
-[Read in atlas](index.html#TCS-2718) · [Computing Generalized Convolutions Faster Than Brute Force](https://doi.org/10.4230/LIPIcs.IPEC.2022.12)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2718) · [Computing Generalized Convolutions Faster Than Brute Force](https://doi.org/10.4230/LIPIcs.IPEC.2022.12) · [Computing Generalized Convolutions Faster Than Brute Force — journal version](https://doi.org/10.1007/s00453-023-01176-2)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2958 — While this question remains open for VP, our result shows that this additional restriction on the coefficients is essentially vital for the existence of efficiently […]
 
