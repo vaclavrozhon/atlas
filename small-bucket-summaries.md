@@ -1289,12 +1289,12 @@ Hitting Set asks for a small collection of elements that intersects every set in
 [Read in atlas](index.html#TCS-4289) · [Hitting Set for Hypergraphs of Low VC-dimension](https://doi.org/10.4230/LIPIcs.ESA.2016.23)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4440 — Fixed-parameter enumeration from small-witness decision algorithms
+### TCS-4440 — Expected FPT delay from small-witness decision
 
-Small-witness enumeration asks to list all solutions of size k, rather than merely decide whether one exists. The cited work studies randomized enumeration with access to a decision oracle. The saved question begins by asking what follows from fixed-parameter tractability of deciding a self-contained witness problem. A general transfer could turn existence algorithms into systematic solution generators with controlled delay or total work. The conclusion of the question and its enumeration guarantee are truncated, so neither a delay bound nor a deterministic conversion is claimed in this draft.
+A self-contained witness is a k-element subset whose validity survives restriction to any universe containing it. An FPT decision algorithm can therefore test whether a chosen subset contains a witness. The selected question asks whether this always yields exact enumeration with expected FPT time between outputs, including startup and termination. The source already controls expected total work but leaves the stronger delay guarantee open. Incremental time, deterministic delay and enumeration with possible omissions are separate variants.
 
-[Read in atlas](index.html#TCS-4440) · [Randomised Enumeration of Small Witnesses Using a Decision Oracle](https://doi.org/10.4230/LIPIcs.IPEC.2016.22)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4440) · [Randomised Enumeration of Small Witnesses Using a Decision Oracle](https://doi.org/10.4230/LIPIcs.IPEC.2016.22) · [Randomised Enumeration of Small Witnesses Using a Decision Oracle](https://doi.org/10.1007/s00453-018-0404-y)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4637 — Subexponential Planar Steiner Tree by terminal count
 
