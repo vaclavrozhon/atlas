@@ -11,11 +11,12 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 494 | 6 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 936 | 64 |
+| [Top 500](index.html?benchmark=top500) | 500 | 493 | 7 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 935 | 65 |
 
 ## Unfilled places
 
+- top500: Differential privacy has 9/10 places.
 - top500: Miscellaneous has 4/10 places.
 - top1000: Algorithms has 41/50 places.
 - top1000: Optimization and numerical computation has 42/50 places.
@@ -23,7 +24,7 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 - top1000: Sampling, Markov chains and mixing times has 14/20 places.
 - top1000: Data structures has 15/20 places.
 - top1000: Dynamic algorithms has 17/20 places.
-- top1000: Differential privacy has 10/20 places.
+- top1000: Differential privacy has 9/20 places.
 - top1000: Miscellaneous has 4/20 places.
 
 ## Review needed after catalogue changes

@@ -2930,9 +2930,9 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-1693 — Sharp temperature thresholds for functional inequalities in the SK model
 
-The SK model assigns a random interaction to every pair of spins. The question concerns temperature thresholds for useful variance or entropy relaxation bounds for local spin updates. Some finite inequality always holds in each finite irreducible instance. The unresolved issue must therefore specify how the constants may grow with system size. Recent weak Poincaré progress concerns warm-start sampling and does not by itself settle a sharp strong-inequality threshold.
+The SK model assigns a random interaction to every pair of spins. The question concerns temperature thresholds for useful variance or entropy relaxation bounds for local spin updates. Some finite inequality always holds in each finite irreducible instance. The unresolved issue must therefore specify how the constants may grow with system size. July weak-PI and August strong-PI/modified-LSI preprints give progress below β=1/2, without determining the full sharp threshold.
 
-[Read in atlas](index.html#TCS-1693) · [Optimization, Isoperimetric Inequalities, and Sampling via Lyapunov Potentials](https://proceedings.mlr.press/v291/chen25g.html) · [Weak Poincaré Inequalities via Approximate Stochastic Localization: Application to Sampling the Sherrington-Kirkpatrick Model](https://arxiv.org/abs/2607.08160)
+[Read in atlas](index.html#TCS-1693) · [Optimization, Isoperimetric Inequalities, and Sampling via Lyapunov Potentials](https://proceedings.mlr.press/v291/chen25g.html) · [Weak Poincaré Inequalities via Approximate Stochastic Localization: Application to Sampling the Sherrington-Kirkpatrick Model](https://arxiv.org/abs/2607.08160) · [Optimal Mixing of Glauber Dynamics for the Sherrington–Kirkpatrick Model at β<1/2](https://arxiv.org/abs/2608.22159v2)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-2076 — If 0 ≤ β < βu or if β > βu and |η| > ηa , then the Kawasaki dynamics for µ̂G,β,η are optimally mixing: […]
@@ -3464,13 +3464,6 @@ Neighborhood complexity counts how many distinct intersections with a chosen ver
 [Read in atlas](index.html#TCS-1639) · [Adjacency Labeling Schemes for Small Classes](https://doi.org/10.4230/LIPIcs.ITCS.2025.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2089 — For every graph H, there exists a minor-monotone graph parameter EPH such that MH has the Erdős-Pósa property in a minor-closed graph class G if […]
-
-The Erdős–Pósa property relates many disjoint models of a graph pattern to a small vertex set meeting every model. The source conjectures a minor-monotone parameter characterizing when this property holds inside minor-closed classes. Such a parameter would give a unified obstruction-based explanation for packing-versus-covering behavior. The half-integral context also asks how much overlap between packed models may be tolerated. The excerpt truncates the characterization after its condition begins, so the exact family M_H, packing convention, and parameter threshold must be recovered before the proposed equivalence can be stated.
-
-[Read in atlas](index.html#TCS-2089) · [Delineating Half-Integrality of the Erdős-Pósa Property for Minors: The Case of Surfaces](https://doi.org/10.4230/LIPIcs.ICALP.2024.114)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-2371 — We leave it as an intriguing open problem to determine whether expanding Ramanujan graphs exist.
 
 Ramanujan graphs satisfy an optimal spectral bound relative to their regular degree. The source asks whether graphs can satisfy that bound together with its stronger property of being expanding expanders. The additional requirement concerns expansion behavior beyond the ordinary definition already associated with Ramanujan graphs. An existence result would show that two desirable forms of robust connectivity can be achieved simultaneously. The saved phrase expanding is source-specific, so the question should not be reduced to ordinary existence of Ramanujan families without recovering the additional spectral or recursive condition.
@@ -3561,6 +3554,13 @@ A quasi-order is well-quasi-ordered when every infinite sequence contains an ear
 
 [Read in atlas](index.html#TCS-7145) · [Rank-width: Algorithmic and Structural Results](https://arxiv.org/abs/1601.03800)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-2089 — A minor-monotone parameter characterizing integral Erdős–Pósa duality
+
+An Erdős–Pósa property turns a bound on disjoint graph-pattern occurrences into a bound on the vertices needed to hit every occurrence. The conjecture asked for one minor-monotone parameter for each pattern H that recognizes exactly the minor-closed classes with this property. The parameter must work uniformly across all such classes. The same authors’ later FOCS 2024 obstruction theorem gives the required characterization. This settles the integral question, beyond the earlier half-integral result.
+
+[Read in atlas](index.html#TCS-2089) · [Delineating Half-Integrality of the Erdős-Pósa Property for Minors: The Case of Surfaces](https://doi.org/10.4230/LIPIcs.ICALP.2024.114) · [Obstructions to Erdős–Pósa Dualities for Minors](https://arxiv.org/abs/2407.09671v2) · [Obstructions to Erdős–Pósa Dualities for Minors — FOCS publication](https://doi.org/10.1109/FOCS61266.2024.00013)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Data structures (15)
 
@@ -5305,12 +5305,12 @@ List recovery seeks codewords consistent with small sets of possible symbols sup
 [Read in atlas](index.html#TCS-1771) · [Near-Optimal List-Recovery of Linear Code Families](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2025.53)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1912 — Can we show that this lower bound actually applies to every q-ary linear code?
+### TCS-1912 — Exponential erasure-list sizes for every small-field linear code
 
-The cited work studies list recovery of random linear codes over small finite fields. Its saved question asks whether a particular lower bound extends to every q-ary linear code. A statement about a random ensemble need not hold for specially structured or unusually favorable individual codes. A universal bound would identify a limitation imposed by linearity itself rather than by typical behavior. The excerpt does not state the bound or its recovery parameters, so it cannot yet support a numerical impossibility theorem covering all linear codes.
+An erasure-list recovery instance provides a few possible symbols at each retained coordinate. At rate ε below capacity over q=ℓ^t, random linear codes can have exponentially many compatible codewords in 1/ε. The question is whether every linear code over these fixed extension fields must suffer that cost. The relevant capacity is (1−α)(1−1/t), where α is the erased fraction. Known all-linear-code results near the large-alphabet error threshold do not establish the same lower bound here.
 
-[Read in atlas](index.html#TCS-1912) · [List-Recovery of Random Linear Codes over Small Fields](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2025.57)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1912) · [List-Recovery of Random Linear Codes over Small Fields](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2025.57) · [Bounds for List-Decoding and List-Recovery of Random Linear Codes](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.9) · [List Recoverable Codes: The Good, the Bad, and the Unknown (hopefully not Ugly)](https://arxiv.org/abs/2510.07597) · [Near-Optimal List-Recovery of Linear Code Families](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2025.53)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3347 — The implication problem for Conditional Independence statements has been extensively studied in the literature, but its complexity remains an open problem.
 
@@ -5659,13 +5659,6 @@ Stochastic decision-theoretic online learning repeatedly selects among K actions
 [Read in atlas](index.html#TCS-0507) · [COLT / PMLR](https://proceedings.mlr.press/v247/hu24a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2069 — However, the question of whether generic learners can be designed remains open.
-
-The source studies how the number of prediction mistakes grows when an online learner must preserve differential privacy. Its remaining question asks for generic learners, meaning a method that applies broadly across the concept classes covered by its framework. A construction for one easy family would not explain whether the lower-bound picture can be matched in general. The difficulty is to update predictions from sequential feedback without accumulating excessive disclosure about earlier examples. The saved passage does not retain the proposed mistake rate or the scope of the generic construction, so this summary preserves the algorithmic direction without inventing those missing quantifiers.
-
-[Read in atlas](index.html#TCS-2069) · [On the Growth of Mistakes in Differentially Private Online Learning: A Lower Bound Perspective](https://proceedings.mlr.press/v247/dmitriev24a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3312 — The main question that we leave open is whether there exists a differentially private algorithm for this task which is polynomial in n and d?
 
 The geometric task is to output a point inside the convex hull of a private collection of points. The 2020 source asks whether this can be done in running time polynomial in both the number n of points and the ambient dimension d. Without privacy, choosing an input point already gives a convex-hull point, but that output can directly disclose an individual's record. The problem therefore combines a geometric feasibility condition with restrictions on how much any single input can influence the output. A polynomial-time solution would make private convex-hull methods more broadly usable, subject to the source's domain assumptions, sample requirement, and allowed failure probability.
@@ -5700,6 +5693,13 @@ Statistical-query release publishes a vector of bounded averages while protectin
 
 [Read in atlas](index.html#TCS-6631) · [Open Problem: Optimal Query Release for Pure Differential Privacy](https://differentialprivacy.org/open-problem-optimal-query-release/) · [Private Query Release via the Johnson-Lindenstrauss Transform](https://arxiv.org/abs/2208.07410) · [Private Query Release via the Johnson-Lindenstrauss Transform](https://journalprivacyconfidentiality.org/index.php/jpc/article/view/873) · [Pure-DP Statistical Query Release at the Conjectured Square-Root Rate](https://arxiv.org/abs/2607.20418v2)
 Existing status: `resolved` · Summary written: 2026-09-11
+
+### TCS-2069 — Generic pure-private online learning against oblivious adversaries
+
+The learner predicts sequentially while protecting each training example across its entire released history. The historical question asked for a generic pure-private online learner. Li, Wang and Ye answered it for every class of finite representation dimension against oblivious adversaries. Their expected mistake count is polylogarithmic in the number of rounds for each fixed class and privacy parameter. The published theorem permits improper hypotheses and unrestricted computation; it does not cover adaptive adversaries.
+
+[Read in atlas](index.html#TCS-2069) · [On the Growth of Mistakes in Differentially Private Online Learning: A Lower Bound Perspective](https://proceedings.mlr.press/v247/dmitriev24a.html) · [The Limits of Differential Privacy in Online Learning](https://proceedings.neurips.cc/paper_files/paper/2024/hash/77fa8253adfc8b33209639f3e9985741-Abstract-Conference.html)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Constraint satisfaction (25)
 

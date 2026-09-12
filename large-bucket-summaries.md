@@ -2456,12 +2456,12 @@ In a beeping network, simultaneous one-bit transmissions from neighbors combine 
 [Read in atlas](index.html#TCS-1784) · [Beeping Deterministic CONGEST Algorithms in Graphs](https://doi.org/10.4230/LIPIcs.ESA.2025.20)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1965 — A question that we leave open is whether any problem that admits a O(t)-round algorithm in the LOCAL model, for any t ≤ D, can […]
+### TCS-1965 — Nearly linear messages without slowing local distributed computation
 
-A distributed algorithm can minimize its round count while still sending many messages across the network. The source studies whether both costs can be near-optimal simultaneously when nodes initially know their neighbors, as in KT1. It asks whether every O(t)-round LOCAL problem with t at most the diameter admits roughly O(t) rounds and O(n) messages, up to polylogarithmic factors. The paper establishes this kind of simultaneous efficiency for global tasks at the diameter scale. The remaining question is whether faster local tasks can also avoid redundant communication without sacrificing their round complexity.
+A LOCAL algorithm may finish in t rounds while sending messages across many network edges. The question asks whether the same task can always be solved in nearly t rounds with only nearly n total messages. KT1 gives processors their neighbors’ identifiers at the start, and LOCAL permits unbounded message length. The paper already achieves the desired message bound at the global diameter scale. The all-t extension still needs precise randomness, success and initial-information conventions.
 
-[Read in atlas](index.html#TCS-1965) · [The Singular Optimality of Distributed Computation in LOCAL](https://doi.org/10.4230/LIPIcs.OPODIS.2024.26)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1965) · [The Singular Optimality of Distributed Computation in LOCAL](https://doi.org/10.4230/LIPIcs.OPODIS.2024.26) · [The Singular Optimality of Distributed Computation in LOCAL — version record](https://arxiv.org/abs/2411.07011)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-2097 — We conjecture that the lower bound of 3/2, which has been shown for a specific class of algorithms, holds more generally, i.e., with one or […]
 
