@@ -1567,12 +1567,12 @@ Weighted SOS complexity counts monomials inside a representation as a field-weig
 [Read in atlas](index.html#TCS-3222) · [A Largish Sum-Of-Squares Implies Circuit Hardness and Derandomization](https://doi.org/10.4230/LIPIcs.ITCS.2021.23) · [Weighted Sum-of-Squares Lower Bounds for Univariate Polynomials Imply VP ≠ VNP](https://doi.org/10.1007/s00037-024-00249-0)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3393 — In light of Proposition 8, we leave as an interesting open question whether there is any barrier explaining the difficulty of proving NP-hardness of the […]
+### TCS-3393 — A barrier to NP-hardness proofs for non-disjoint Kolmogorov promise problems
 
-The cited paper examines promise problems arising from a meta-computational view of pseudorandom generator construction. Its saved question asks whether a barrier explains the difficulty of proving NP-hardness for a particular problem. Non-disjoint promise formulations require care because their acceptable input regimes need not behave like an ordinary language partition. A barrier result could explain why familiar hardness reductions fail in this setting. The excerpt truncates the target problem and relies on an unstated proposition, so it presently supports a question about proof limitations rather than a definite NP-hardness claim.
+The target compares short SAT-oracle descriptions of a string with longer descriptions that have no oracle. Its yes and no sets may overlap, so a conventional separator may not exist even though mapping reductions can be defined. The source asks for a formal barrier to proving NP-hardness of this target. A standard barrier statement for a disjoint minimization problem would imply an unconditional complexity separation if transplanted here. The source still does not fix the obstruction, reduction class or approximation quantifiers needed for one complete benchmark.
 
-[Read in atlas](index.html#TCS-3393) · [Non-Disjoint Promise Problems from Meta-Computational View of Pseudorandom Generator Constructions](https://doi.org/10.4230/LIPIcs.CCC.2020.20)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3393) · [Non-Disjoint Promise Problems from Meta-Computational View of Pseudorandom Generator Constructions](https://doi.org/10.4230/LIPIcs.CCC.2020.20) · [Non-Disjoint Promise Problems from Meta-Computational View of Pseudorandom Generator Constructions](https://theoryofcomputing.org/articles/v019a004/)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3514 — For example, is the Learning is Hard assumption of [10] equivalent to the non-existence of natural proofs under the Conjecture?
 
