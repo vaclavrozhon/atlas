@@ -863,13 +863,6 @@ Two players build infinite labeled trees and compare their membership in two reg
 [Read in atlas](index.html#TCS-4659) · [The Determinacy of Context-Free Games](https://doi.org/10.4230/LIPIcs.STACS.2012.555) · [The Determinacy of Context-Free Games — journal version](https://doi.org/10.2178/jsl.7804050) · [On the topological complexity of tree languages](https://www.mimuw.edu.pl/~niwinski/Prace/lobo_d.pdf) · [Wadge-Wagner Hierarchy of Regular Tree Languages](https://www.ims.uni-stuttgart.de/events/TTATT2016/proceedings.pdf)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-4673 — Collapsible versus noncollapsible higher-order pushdown automata
-
-Collapsible higher-order pushdown automata enrich nested stacks with links that support a collapse operation. The project asks for a language recognized by a deterministic collapsible machine but by no deterministic noncollapsible machine of any finite order. A separation at the same stack order is insufficient because raising the noncollapsible order might simulate the missing operation. The source supplies a second-order candidate language and leaves the unrestricted-order separation as the target. Such a result would establish that collapse adds expressive power beyond simply increasing stack nesting depth.
-
-[Read in atlas](index.html#TCS-4673) · [Collapse Operation Increases Expressive Power of Deterministic Higher Order Pushdown Automata](https://doi.org/10.4230/LIPIcs.STACS.2011.603)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4677 — Deciding first-order definability of orbit-finite automata
 
 Orbit-finite automata recognize data words using infinitely many states organized into finitely many symmetry classes. The project asks whether first-order definability of the recognized language can be decided. The source conjectures that aperiodicity of the syntactic monoid provides the correct criterion within this automaton class. Infinite-data languages outside the class show that aperiodicity alone is not a universal characterization. Proving an effective criterion would extend a central connection between finite automata, algebra and logic to a controlled infinite-alphabet setting.
@@ -945,6 +938,13 @@ Existing status: `resolved` · Summary written: 2026-09-11
 A tree language describes which labelled branching structures satisfy a specification. The source asks whether its probability can be computed for every regular language, beyond weak automata. The probability is over independent uniform labels, or more generally a finite rational branching process. A 2023 theorem computes an exact algebraic answer for arbitrary parity tree automata. The full version, published in JACM in 2026, resolves the original computability question.
 
 [Read in atlas](index.html#TCS-3553) · [Computing Measures of Weak-MSO Definable Sets of Trees](https://doi.org/10.4230/LIPIcs.ICALP.2020.136) · [The Probabilistic Rabin Tree Theorem](https://doi.org/10.1109/LICS56636.2023.10175800) · [On the Computability of Measures of Regular Sets of Infinite Trees](https://arxiv.org/abs/2304.12158) · [On the Computability of Measures of Regular Sets of Infinite Trees](https://doi.org/10.1145/3819061)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-4673 — Collapse versus arbitrary higher-order stacks
+
+Higher-order stacks consist of stacks nested inside other stacks. Collapse follows information recorded when a symbol was pushed. The historical question asks whether any number of ordinary nesting levels can always replace this operation. A later theorem proves that one deterministic order-two collapsible language defeats every deterministic ordinary order. The result concerns finite words over a finite alphabet and does not extend its claim to nondeterministic competitors.
+
+[Read in atlas](index.html#TCS-4673) · [Collapse Operation Increases Expressive Power of Deterministic Higher Order Pushdown Automata](https://doi.org/10.4230/LIPIcs.STACS.2011.603) · [On the Expressive Power of Higher-Order Pushdown Systems](https://lmcs.episciences.org/6723)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Semantics, logic and verification (41)
