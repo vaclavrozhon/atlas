@@ -266,12 +266,12 @@ Proof size counts the extent of a derivation, while depth measures the longest c
 [Read in atlas](index.html#TCS-5275) · [On the Power and Limitations of Branch and Cut](https://doi.org/10.4230/LIPIcs.CCC.2021.6)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-5292 — Existence of optimal proof systems
+### TCS-5292 — Optimal proof systems outside NP
 
-An optimal proof system can simulate every competing proof system with the specified efficient overhead. The cited paper studies these systems through recursive jump operators. The saved passage notes that existence remains unknown for many target sets and points toward barriers to proving it. Understanding those barriers would clarify whether a universally efficient proof language is available for a given class of statements. The excerpt truncates the barrier discussion and does not specify optimal versus polynomial-time simulation conventions, so no particular universal system is asserted to exist.
+The question asks whether any language outside NP has an optimal proof system. Each system is a polynomial-time algorithm that maps proofs to exactly the statements in its language. Optimality means that every competing system’s proofs can be matched with at most polynomial growth in length. A fast algorithm for translating proofs is a separate, stronger requirement. Recent oracle barriers and jump-operator results do not decide the ordinary existence question.
 
-[Read in atlas](index.html#TCS-5292) · [Recursive Jump Operators and Optimal Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2026.88)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5292) · [Recursive Jump Operators and Optimal Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2026.88) · [Optimal Proof Systems for Complex Sets Are Hard to Find](https://doi.org/10.1145/3717823.3718182) · [Recursive Jump Operators and Optimal Proof Systems — full version](https://arxiv.org/abs/2606.01242)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-5332 — Complexity of resolution automatability
 
