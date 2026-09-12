@@ -418,13 +418,6 @@ UL consists of logarithmic-space computations with at most one accepting computa
 [Read in atlas](index.html#TCS-6285) · [Depth-First Search in Directed Planar Graphs, Revisited](https://doi.org/10.4230/LIPIcs.MFCS.2021.7)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6488 — Grundy-value computation versus winner determination
-
-The Grundy value of an impartial game contains more information than whether the current player can force a win. The imported question asks for a general efficient reduction from computing that value to determining a winner. The source exhibits a sharp separation for Undirected Geography, where winner determination is efficient but Grundy computation is PSPACE-complete. That result supplies a complexity-theoretic obstruction to the proposed general reduction. The project explains why composing individually tractable games may require information much harder to obtain than their separate win-loss outcomes.
-
-[Read in atlas](index.html#TCS-6488) · [Winning the War by (Strategically) Losing Battles: Settling the Complexity of Grundy-Values in Undirected Geography](https://doi.org/10.1109/FOCS52979.2021.00119)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6712 — Nonuniform \(\mathrm{NC}^{1}\) versus P/poly
 
 A polynomial-size Boolean circuit represents an efficient nonuniform computation, but its longest chain of dependent gates can be large. The question asks whether every such computation can be reorganized into logarithmic depth while retaining polynomial size. Logarithmic depth would permit much greater parallelism without allowing an excessive number of gates. Counting arguments and restricted circuit lower bounds do not settle this comparison for unrestricted Boolean circuits. Resolving it would determine whether polynomial-size circuits and the nonuniform version of NC1 have the same expressive power.
@@ -521,6 +514,13 @@ Existing status: `resolved` · Summary written: 2026-09-12
 The task is to output the parity of n values of the same total Boolean function on separate input blocks. The source asks whether this can require n log n times the cost of computing one value. Cost is worst-case randomized bit queries with error at most one third on every input. A published 2023 corollary gives a growing family of total functions attaining the logarithmic overhead. This resolves the original XOR-or-majority existence question through its XOR alternative.
 
 [Read in atlas](index.html#TCS-3568) · [When Is Amplification Necessary for Composition in Randomized Query Complexity?](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.28) · [Optimal Separation and Strong Direct Sum for Randomized Query Complexity](https://doi.org/10.4230/LIPIcs.CCC.2019.29) · [A Strong XOR Lemma for Randomized Query Complexity](https://doi.org/10.4086/toc.2023.v019a011)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-6488 — Grundy-value computation versus strategic determination
+
+An impartial game has a Grundy value that records more than whether the next player can win. The historical question asks whether that value can always be computed efficiently using a procedure that finds winning moves. Undirected Geography has polynomial-time strategic determination but PSPACE-hard Grundy computation. The cited paper therefore rules out the proposed general reduction unless P equals PSPACE. This is a conditional answer already present in the original source.
+
+[Read in atlas](index.html#TCS-6488) · [Winning the War by (Strategically) Losing Battles: Settling the Complexity of Grundy-Values in Undirected Geography](https://doi.org/10.1109/FOCS52979.2021.00119) · [Winning the War by (Strategically) Losing Battles: Settling the Complexity of Grundy-Values in Undirected Geography](https://arxiv.org/abs/2106.02114)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Algorithms (25)
