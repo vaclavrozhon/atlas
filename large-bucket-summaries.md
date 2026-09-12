@@ -481,12 +481,12 @@ Tarski's fixed-point theorem guarantees a fixed point for an order-preserving ma
 [Read in atlas](index.html#TCS-3509) · [Tarski’s Theorem, Supermodular Games, and the Complexity of Equilibria](https://doi.org/10.4230/LIPIcs.ITCS.2020.18)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3685 — Average-case formula lower bounds for generalized Andreev functions
+### TCS-3685 — Average-case formula hardness of the majority Andreev function
 
-Boolean formula lower bounds measure how large a tree of logical operations must be to compute a function. This source studies a generalized Andreev function whose components use majority and asks how hard it is to approximate on random inputs. A simple linear-size formula already achieves a small advantage over random guessing, so extremely strong average-case hardness is impossible. The conjecture is that substantially improving that advantage requires almost cubic formula size. A proof would connect worst-case formula lower bounds with a sharper understanding of how approximation quality increases with available computation.
+The majority Andreev function uses row majorities as an address into an input truth table. The source proposes almost cubic formula hardness even for inverse-polynomial agreement advantage under uniform input. In that literal model, one table-bit literal already has agreement at least 1/2+1/(2n). This does not contradict the source’s worst-case formula theorem, but it prevents certifying the extracted average-case claim. The intended distribution, encoding or advantage threshold must be corrected from a source before the card becomes a complete open problem.
 
-[Read in atlas](index.html#TCS-3685) · [Cubic Formula Size Lower Bounds Based on Compositions with Majority](https://doi.org/10.4230/LIPIcs.ITCS.2019.35)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3685) · [Cubic Formula Size Lower Bounds Based on Compositions with Majority](https://doi.org/10.4230/LIPIcs.ITCS.2019.35) · [Cubic Formula Size Lower Bounds Based on Compositions with Majority](https://eccc.weizmann.ac.il/report/2018/160/)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3718 — NP circuit bounds versus infinitely-often hierarchy collapse
 
@@ -3703,10 +3703,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-3689 — Non-clashing teaching dimension versus VC dimension
 
-Non-clashing teaching assigns each concept a small labeled witness so that distinct concepts cannot mutually agree with both witnesses. The minimum largest witness size defines the non-clashing teaching dimension. The source asks how this measure relates in general to VC dimension. It records an upper bound by VC dimension for finite maximum classes, using special representation maps. Extending or separating that relationship would explain whether the information needed to teach individual concepts is controlled by the same combinatorial complexity that governs learning them from randomly sampled examples.
+A teacher assigns correctly labeled examples to each concept in a finite class. No two different concepts may both fit each other’s assigned examples. The conjecture asks whether at most d examples per concept always suffice when the VC dimension is d. A quadratic general bound and exact bounds for certain special classes are known. The sharp signed-example inequality remains distinct from positive-only teaching, computational map-finding and sample-compression questions.
 
-[Read in atlas](index.html#TCS-3689) · [Optimal Collusion-Free Teaching](https://proceedings.mlr.press/v98/kirkpatrick19a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3689) · [Optimal Collusion-Free Teaching](https://proceedings.mlr.press/v98/kirkpatrick19a.html) · [On Batch Teaching Without Collusion](https://www.jmlr.org/papers/v24/22-0330.html) · [Non-Clashing Teaching Maps for Balls in Graphs](https://proceedings.mlr.press/v247/chalopin24a.html)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3691 — Uniform convergence under Dobrushin dependence
 
