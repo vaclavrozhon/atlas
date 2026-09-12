@@ -3337,10 +3337,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4061 — UGC hardness of homology localization
 
-One-dimensional homology localization seeks a smallest representative of a prescribed homology class on a triangulated surface. The source asks whether the Unique Games Conjecture implies hardness of approximation within every constant factor greater than one. The coefficient group may grow with the requested hardness factor. Existing reductions lose too much of their approximation gap to establish this target directly. The problem would connect an influential conjecture about constraint satisfaction with the limits of simplifying topological cycles on two-dimensional manifolds.
+Homology localization minimizes the number of edges supporting a cycle in a prescribed homology class. The question asks for Unique-Games-based hardness at every constant approximation factor on surface triangulations. The coefficient modulus may depend on the desired hardness factor but cannot grow with the input. The source proves only a smaller constant gap for triangulations while establishing the stronger result for general cell decompositions. Later parameterized results checked here do not settle the precise unweighted all-constant approximation target.
 
-[Read in atlas](index.html#TCS-4061) · [Computational Topology and the Unique Games Conjecture](https://doi.org/10.4230/LIPIcs.SoCG.2018.43)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4061) · [Computational Topology and the Unique Games Conjecture](https://doi.org/10.4230/LIPIcs.SoCG.2018.43) · [Computational Topology and the Unique Games Conjecture — full version](https://arxiv.org/abs/1803.06800) · [Homology localization through the looking-glass of parameterized complexity theory](https://doi.org/10.1007/s41468-025-00212-0)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4236 — Hyperbolic-geodesic realizability of combinatorial immersions
 
