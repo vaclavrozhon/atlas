@@ -637,19 +637,19 @@ The directed disjoint-shortest-paths problem asks for paths connecting prescribe
 [Read in atlas](index.html#TCS-6173) · [A Local-To-Global Theorem for Congested Shortest Paths](https://doi.org/10.4230/LIPIcs.ESA.2023.8)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6251 — Polynomial-time independent set with forbidden long claws
+### TCS-6251 — Polynomial-time independent set under a forbidden forest
 
-Maximum Weight Independent Set is difficult even though checking a proposed set is simple. The source exploits the exclusion of a fixed long subdivided claw to obtain subexponential algorithms and quasipolynomial approximation. Its broader direction is to improve the relevant bounds toward polynomial time across the remaining forbidden-pattern families. Methods based on small separators must also accommodate line-graph-like regions with different structure. The project seeks a unified decomposition that combines branching and matching-style techniques instead of forcing one method to handle every region.
+Fix a forest whose components are paths or subdivided three-leaf claws. Given a graph with no induced copy of that forest, find an independent vertex set of maximum total weight. The question asks for polynomial time for every fixed forbidden forest, with the polynomial allowed to depend on that forest. The input graph may have arbitrarily large degree, cliques and bicliques. Quasipolynomial algorithms now cover the whole family, but known general results still fall short of polynomial time.
 
-[Read in atlas](index.html#TCS-6251) · [Max Weight Independent Set in Graphs with No Long Claws: An Analog of the Gyárfás' Path Argument](https://doi.org/10.4230/LIPIcs.ICALP.2022.93)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6251) · [Max Weight Independent Set in Graphs with No Long Claws: An Analog of the Gyárfás' Path Argument](https://doi.org/10.4230/LIPIcs.ICALP.2022.93) · [Maximum Weight Independent Set in Graphs with no Long Claws in Quasi-Polynomial Time](https://doi.org/10.1145/3618260.3649791) · [Graphs with No Long Claws: An Improved Bound for the Analog of the Gyárfás’ Path Argument](https://doi.org/10.4230/LIPIcs.MFCS.2025.28)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6270 — Near-linear-query reconstruction of bounded-degree graphs
 
-Distance-query reconstruction learns every edge of a hidden connected bounded-degree graph. The source analyzes a simple sampling-based method that is especially efficient on random regular graphs. The question asks for nearly linear queries on every graph with the degree promise. Specific tree-shaped examples show why the analyzed method does not achieve that general guarantee. The project needs a more adaptive way to discover distinguishing vertices, avoiding repeated queries to regions that reveal little about uncertain adjacency elsewhere.
+All vertices of a connected bounded-degree graph are known, but its edges are hidden. One query returns only the shortest-path distance between two named vertices. The goal is to recover every edge using a linear number of vertices times polylogarithmically many expected queries. The expectation is over the algorithm’s randomness for each fixed graph, and the returned answer must be exact. Near-linear results for random regular or bounded-treelength graphs do not cover every graph in the question.
 
-[Read in atlas](index.html#TCS-6270) · [A Simple Algorithm for Graph Reconstruction](https://doi.org/10.4230/LIPIcs.ESA.2021.68)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6270) · [A Simple Algorithm for Graph Reconstruction](https://doi.org/10.4230/LIPIcs.ESA.2021.68) · [Cutwidth Versus BFS-Width with Applications to Graph Reconstruction from Distance Queries](https://doi.org/10.4230/LIPIcs.SWAT.2026.24) · [Reconstructing Bounded Treelength Graphs with Linearithmic Shortest Path Distance Queries](https://arxiv.org/abs/2603.10432)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6421 — Isomorphism dichotomy for finitely forbidden hereditary classes
 
