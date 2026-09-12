@@ -2399,12 +2399,12 @@ A dependent training sample has identical marginal distributions and a bounded t
 [Read in atlas](index.html#TCS-3691) · [Learning from Weakly Dependent Data under Dobrushin’s Condition](https://proceedings.mlr.press/v99/dagan19a.html) · [Learning from Weakly Dependent Data under Dobrushin’s Condition](https://arxiv.org/abs/1906.09247)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-4186 — Learning–pseudorandomness connections under uniform examples
+### TCS-4186 — Learning speedups from random examples
 
-The cited source connects learning algorithms, circuit lower bounds, and pseudorandomness. Its saved question asks whether an analogous result holds for learning from random examples under the uniform distribution. Random examples provide less control than models allowing the learner to choose exactly which inputs it observes. An extension would show that the source's complexity connection survives this more passive information model. The excerpt omits the original theorem and target concept class, so the consequence being sought and the required learning accuracy still need to be recovered.
+The question asks whether a weak passive learner with a superpolynomial saving over 2ⁿ must imply dramatically faster passive learners. Targets range over standard polynomial-size circuit classes, and all examples are independent and uniform. The desired learners attain every fixed inverse-polynomial error in time 2^{n^ε} for every fixed ε>0. The source establishes this implication when learners may choose membership queries. A later generalized speedup still permits such queries in its conclusion, leaving the passive implication unestablished by that result.
 
-[Read in atlas](index.html#TCS-4186) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4186) · [Conspiracies Between Learning Algorithms, Circuit Lower Bounds, and Pseudorandomness](https://doi.org/10.4230/LIPIcs.CCC.2017.18) · [Conspiracies between Learning Algorithms, Circuit Lower Bounds and Pseudorandomness — full preprint](https://arxiv.org/abs/1611.01190) · [Learning algorithms from circuit lower bounds](https://doi.org/10.1007/s00037-024-00261-4)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4592 — Time complexity of Gaussian agnostic halfspace learning
 

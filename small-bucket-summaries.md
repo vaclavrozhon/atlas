@@ -245,13 +245,6 @@ The source compares working memory in refutations with the logarithm of minimum 
 [Read in atlas](index.html#TCS-2889) · [Space Characterizations of Complexity Measures and Size-Space Trade-Offs in Propositional Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.100) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.006)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-4221 — Sum-of-squares automatability on the Boolean cube
-
-Sum-of-squares methods search for algebraic certificates using polynomial constraints on variables. The cited source asks whether an earlier automatizability question becomes positive when inequalities x_i²≤1 are replaced by equalities x_i²=1. The equality restriction forces each real variable onto a two-point domain. Understanding this special case could separate difficulties caused by continuous feasible regions from those already present in Boolean-style domains. The saved fragment does not reproduce the earlier question's running time or approximation parameters, so it cannot yet specify the complete certificate-search target.
-
-[Read in atlas](index.html#TCS-4221) · [SOS Is Not Obviously Automatizable, Even Approximately](https://doi.org/10.4230/LIPIcs.ITCS.2017.59)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4982 — Frege automatability versus learning
 
 Learning algorithms infer a representation of a function from permitted observations. Automatability concerns efficiently finding short proofs when they exist. The cited work establishes connections between learning and Frege proof search, while the saved passage leaves reverse implications unresolved. Settling those directions could show whether algorithmic progress in one setting necessarily transfers back to the other. The excerpt does not reproduce the proved implications, learning model, or resource bounds, so the draft cannot select a particular converse or treat the broad connection as an equivalence.
@@ -348,6 +341,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Stabbing Planes refutes Boolean formulas by branching on integer linear inequalities. A short tree can still appear expensive to encode if its coefficients are enormous. Dadush and Tiwari showed that such proofs can be replaced by proofs with polynomial-bit coefficients and only O(n) more nodes per original node. Leaf infeasibility certificates can also be kept within polynomial encoded size for CNF inputs. The original authors’ 2023 revision explicitly records the resolution; polynomial bit size does not mean polynomial coefficient magnitude.
 
 [Read in atlas](index.html#TCS-3919) · [Stabbing Planes](https://doi.org/10.4230/LIPIcs.ITCS.2018.10) · [On the Complexity of Branching Proofs](https://doi.org/10.4230/LIPIcs.CCC.2020.34) · [Stabbing Planes](https://arxiv.org/abs/1710.03219)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-4221 — Sum-of-squares automatability on the Boolean cube
+
+The question asks whether Boolean constraints make low-degree sum-of-squares certificates efficiently recoverable. The running time must include writing every coefficient in ordinary binary form. Raghavendra and Weitz give Boolean examples with degree-two certificates but unavoidable enormous coefficients at low degree. The obstruction survives a fixed small weakening of the objective, so allowing vanishing additive error does not help. Later positive results concern additional structural conditions, while deciding certificate existence is a separate task.
+
+[Read in atlas](index.html#TCS-4221) · [SOS Is Not Obviously Automatizable, Even Approximately](https://doi.org/10.4230/LIPIcs.ITCS.2017.59) · [On the Bit Complexity of Sum-of-Squares Proofs](https://doi.org/10.4230/LIPIcs.ICALP.2017.80) · [On the Degree Automatability of Sum-Of-Squares Proofs](https://doi.org/10.4230/LIPIcs.ICALP.2025.34)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Communication complexity and Boolean function analysis (37)

@@ -41,7 +41,7 @@
     return id&&cardsById.has(id)?`<a href="#${encodeURIComponent(id)}" class="canonical-card-link">${c.scope_exclusion?.duplicate_of?'Retained question':'Read full card'} · ${esc(id)} →</a>`:'';
   }
   function cite(c,id){let i=c.references.findIndex(r=>r.id===id);return i<0?'':` <a class="citation" href="${esc(safeURL(c.references[i].url))}" target="_blank" rel="noopener noreferrer" title="${esc(c.references[i].title)}">[${i+1}]</a>`;}
-  function paragraphs(text,cls=''){return String(text||'').split(/\n\n+/).filter(Boolean).map(p=>`<p${cls?` class="${cls}"`:''}>${esc(p)}</p>`).join('');}
+  const paragraphs=(text,cls='')=>window.ATLAS_MATH.paragraphs(text,cls);
   function statementNotice(c){
     const review=c.statement_review;if(!review)return '';
     return review.status==='needs_specification'
@@ -76,7 +76,7 @@
   function renderCompactCard(c){
     const r=c.references?.[0],draft=c.evidence!=='reviewed';
     const raw=(c.statement_review?c.formal:c.source_formulation?.text)||c.formal||c.title;
-    const text=raw.length>700?raw.slice(0,700).replace(/\s+\S*$/,'')+' […]':raw;
+    const text=window.ATLAS_MATH.excerpt(raw);
     const duplicated=norm(text)===norm(c.title);
     const truncated=raw.length>700||c.source_excerpt_complete===false||/\[?…\]?|\[\.\.\.\]/.test(text)||c.legacy?.excerpt_truncated;
     const note=c.status==='excluded'?'Retired after review · '+c.review_outcome?.reason:c.status==='resolved'?'Resolved / materially changed · see the recorded update':draft?(truncated?'Incomplete excerpt · formulation and status need review':c.legacy?.statement_form==='index_label'?'Topic label · precise statement still to write':'Saved question · formulation and status need review'):(statuses[c.status]||c.status);
@@ -101,7 +101,7 @@
     const resolution=c.answer_criterion?`<section class="card-section resolution"><h3>What would settle it · ${questionLabel}</h3>${paragraphs(c.answer_criterion)}</section>`:'';
     return `<article class="problem-card" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><span>${esc(c.id)}</span><span>${esc(cardAreaLabel(c))}</span></div>${importanceBadge(c)}<div class="card-heading"><h2>${esc(c.title_cs||c.title)}</h2></div>${window.ATLAS_VOTES?.html(c.id)||''}<p class="subtitle">${c.title_cs?esc(c.title)+' · ':''}${esc(c.year||'Undated')}${mainRef?.authors?' · '+esc(mainRef.authors):''}</p>${statementNotice(c)}${workingSummary(c)}<section class="card-section"><h3>Problem statement</h3>${formal}${source}</section>${resolution}<section class="card-section"><h3>Context</h3>${context}</section><section class="card-section why"><h3>Why it matters</h3>${paragraphs(c.why)}</section><div class="status-line"><strong>${statuses[c.status]||esc(c.status)}</strong> · ${esc(c.status_note||'')}</div><details class="card-details"><summary>Progress, definitions & references</summary><div class="details-body">${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${c.context_excerpt?`<blockquote class="source-statement">${esc(c.context_excerpt.text)}<span class="source-caption">${esc(c.context_excerpt.caption)}${cite(c,c.context_excerpt.citation)}</span></blockquote>`:''}<h3>Documented progress</h3><div class="progress">${progress||'<p>An individual progress review has not yet been completed.</p>'}</div>${related}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}${c.review_note?'<p class="small muted">'+esc(c.review_note)+'</p>':''}</div></details>${relatedProblems(c)}${publicNotes(c)}<div class="card-footer"><button type="button" data-public-note="${esc(c.id)}">Add public note</button><a href="#${encodeURIComponent(c.id)}" data-action="permalink">Link to card ↗</a>${canonicalLink(c)}${mainRef?link(mainRef,'Primary source ↗'):''}</div></article>`;
   }
-  function math(root){if(typeof renderMathInElement==='function')renderMathInElement(root,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}],throwOnError:false,trust:false,strict:'ignore',ignoredClasses:['source-statement','references','public-notes']});}
+  const math=root=>window.ATLAS_MATH.render(root);
   function loadMore(){const batch=state.matches.slice(state.shown,state.shown+state.batch);if(!batch.length)return;const wrap=document.createElement('div');wrap.innerHTML=batch.filter(c=>!document.getElementById(c.id)).map(renderCard).join('');while(wrap.firstChild){const c=wrap.firstChild;$('cards').appendChild(c);math(c);}state.shown+=batch.length;$('more').hidden=state.shown>=state.matches.length;}
   function filter(scroll=false){
     rebuildVoteRanks();
@@ -313,5 +313,5 @@
     finally{polling=false;}
   }
   if(['http:','https:'].includes(location.protocol)){setInterval(checkUpdates,4000);checkUpdates();document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkUpdates();});}
-  window.ATLAS_DEBUG={filter,go,state,data,isActive,checkUpdates,applyPublication};
+  window.ATLAS_DEBUG={filter,go,state,data,isActive,checkUpdates,applyPublication,renderCard,math};
 })();
