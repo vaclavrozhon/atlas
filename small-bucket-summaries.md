@@ -5489,12 +5489,12 @@ The conjecture concerns every Lipschitz real-valued function on a continuous uni
 [Read in atlas](index.html#TCS-2535) · [Directed Poincaré Inequalities and L¹ Monotonicity Testing of Lipschitz Functions](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.61) · [Directed Isoperimetry and Monotonicity Testing: A Dynamical Approach](https://arxiv.org/abs/2404.17882) · [Analytic Property Testing: Directed Isoperimetry and Monotonicity](https://uwspace.uwaterloo.ca/items/e1f421e1-2f50-4ef9-af1e-45cdc345e24d)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2665 — (a key challenge, relaxed formulation):5 For which label-invariant properties of distributions does it hold that testing them in the DoHO model has query complexity poly(1/ϵ) […]
+### TCS-2665 — Which huge-object properties need only a few bit queries per sample?
 
-The distributions-over-huge-objects model samples long strings but charges for individual bit probes into those samples. Distribution distance uses transportation cost induced by relative Hamming distance between strings. The source asks which label-invariant properties can be tested with probe complexity close to their sample complexity, apart from accuracy and logarithmic factors. It proves this for properties closed under arbitrary mappings and gives examples showing that not all label-invariant properties behave alike. A characterization would identify when learning only tiny portions of sampled objects retains almost all the information needed for distribution testing.
+The DoHO model samples long bit strings but charges the tester for every inspected bit. Distance between distributions is earth-mover distance using normalized Hamming costs. The source asks which label-invariant properties need only polynomial-in-accuracy and logarithmic overhead over their DoHO sample complexity. Its corrected full version weakens one claimed general transfer theorem, while a 2025 paper sharpens bounds for a particular uniformity property. A precise general characterization criterion remains to be specified.
 
-[Read in atlas](index.html#TCS-2665) · [Testing Distributions of Huge Objects](https://doi.org/10.4230/LIPIcs.ITCS.2022.78)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2665) · [Testing Distributions of Huge Objects](https://doi.org/10.4230/LIPIcs.ITCS.2022.78) · [Testing Distributions of Huge Objects — corrected full version](https://www.wisdom.weizmann.ac.il/~oded/R3/doho.pdf) · [Settling the Complexity of Testing Grainedness of Distributions, and Application to Uniformity Testing in the Huge Object Model](https://doi.org/10.4230/LIPIcs.ITCS.2025.26)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3017 — We leave open an interesting question posed also in [12]: is it possible to test for uniformity in the scarce regime, and if so – […]
 
