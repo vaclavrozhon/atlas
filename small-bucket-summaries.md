@@ -744,19 +744,19 @@ Karchmer–Wigderson games turn differences in Boolean function values into a co
 [Read in atlas](index.html#TCS-2571) · [TFNP Characterizations of Proof Systems and Monotone Circuits](https://doi.org/10.4230/LIPIcs.ITCS.2023.30)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2658 — Is there a function η such that for every sign matrix A, we have rank± (A) ≤ η(m(A)−1 )?
+### TCS-2658 — Does a constant margin force bounded sign-rank?
 
-Sign rank is the smallest rank of a real matrix realizing a prescribed pattern of positive and negative entries. The source asks whether it can be bounded solely by a function of the inverse of its parameter m(A). This would make that parameter a complete qualitative controller of sign rank, even without a specified efficient numerical bound. The question helps identify whether a lower-bound method loses essential information or merely quantitative sharpness. The excerpt omits the definition of m(A), so the proposed dependence must remain symbolic until the paper's invariant and conventions are recovered.
+A sign matrix can be represented by points and separating hyperplanes. Its margin measures how far every point stays from every relevant hyperplane after normalization. Its sign-rank is the smallest dimension of any representation with the correct signs. The question asks whether a fixed positive margin forces a dimension bound independent of matrix size. Recent work disproves a proposed Hamming-distance counterexample but explicitly leaves the general question open.
 
-[Read in atlas](index.html#TCS-2658) · [Lower Bound Methods for Sign-Rank and Their Limitations](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.22)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2658) · [Lower Bound Methods for Sign-Rank and Their Limitations](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.22) · [Sign-Rank of k-Hamming Distance is Constant](https://eccc.weizmann.ac.il/report/2025/060/) · [A Z₂–Topological Framework for Sign-rank Lower Bounds](https://eccc.weizmann.ac.il/report/2026/056/)
+Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2664 — Are low-influence directions (almost) irrelevant?
+### TCS-2664 — Can a low-influence direction be removed from a convex set?
 
-The source develops a notion of influence for convex objects and individual directions. Its conjecture asks whether directions of low influence are almost irrelevant to the object's behavior. The intended principle is that a weak directional effect should allow a lower-dimensional approximation that largely ignores that direction. If valid, it would connect local geometric sensitivity with global structural simplification. The saved phrase does not quantify influence, approximation error, or the underlying measure, so the paper's formal conjecture is needed before interpreting almost irrelevant as a precise distance or probability bound.
+The problem concerns symmetric convex sets under standard Gaussian measure. A specified direction has small convex influence, measured by a normalized second-moment statistic. The conjecture asks whether the set is close to a symmetric convex cylinder that ignores this direction. The approximation error must tend to zero with influence independently of dimension. The exact zero-influence case is known, while the robust dimension-free statement remains the source’s Conjecture 2.
 
-[Read in atlas](index.html#TCS-2664) · [Convex Influences](https://doi.org/10.4230/LIPIcs.ITCS.2022.53)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2664) · [Convex Influences](https://doi.org/10.4230/LIPIcs.ITCS.2022.53) · [Convex Influences — full version](https://arxiv.org/abs/2109.03107)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3146 — The linear sketching model is more powerful, in general, than the edge-probe model, and we leave open the question of e 2 /k 4 ) […]
 
@@ -2243,12 +2243,12 @@ Assign all jobs to unrelated machines while minimizing the maximum machine load.
 [Read in atlas](index.html#TCS-2367) · [On Minimizing Generalized Makespan on Unrelated Machines](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.21) · [Generalized Unrelated Machine Scheduling Problem](https://doi.org/10.1137/1.9781611977554.ch110)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2625 — For all ε, η > 0, given an undirected graph G = (V, E), it is NP-hard to distinguish between: Yes case: iCol3 (G) ⩾ […]
+### TCS-2625 — Almost 3-colorable graphs versus graphs with no large independent set
 
-A graph is almost three-colorable when deleting a small fraction of its vertices leaves a three-colorable induced subgraph. The conjecture asks whether it is NP-hard to distinguish such graphs from graphs with no independent set occupying even a prescribed small fraction of the vertices. Both fractions may be arbitrarily small positive constants. The source proves related hardness for almost coloring with more colors, but its quantitative parameters do not establish this stronger gap. Achieving the conjecture would also improve hardness of approximation for Vertex Cover, connecting a robust coloring promise to a basic covering problem.
+The yes instances become 3-colorable after deleting an arbitrarily small fixed fraction of vertices. The no instances have no independent set occupying a prescribed small fixed fraction of all vertices. The conjecture asks for NP-hardness of distinguishing these two cases. The source proves a weaker almost-coloring gap with randomized reductions. The stronger independent-set gap would improve hardness of approximating Vertex Cover toward a factor of three halves.
 
 [Read in atlas](index.html#TCS-2625) · [NP-Hardness of Almost Coloring Almost 3-Colorable Graphs](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.51)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2971 — In particular, for every symmetric submodular function f : 2V → R+ defined over a n-element ground set V , does ′ there exist a […]
 
