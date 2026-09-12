@@ -1835,13 +1835,6 @@ Zero Extension extends terminal labels to other vertices while minimizing costs 
 [Read in atlas](index.html#TCS-3992) · [Parameterized Algorithms for Zero Extension and Metric Labelling Problems](https://doi.org/10.4230/LIPIcs.ICALP.2018.94)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4054 — Sublinear-in-row exponents for integer programming
-
-Integer-programming feasibility asks whether a system Ax = b has a nonnegative integral solution. The source analyzes its complexity jointly in the numbers of rows and columns, coefficient magnitude, and right-hand-side magnitude. It asks whether certain subexponential-in-the-row-count algorithms become possible when polynomial or joint dependence on the numerical parameters is allowed. The alternative is stronger conditional lower bounds excluding those tradeoffs. Settling these variants would sharpen the parameter landscape beyond a single running-time estimate and reveal which combinations of small constraints and small coefficients actually make integer programming easier.
-
-[Read in atlas](index.html#TCS-4054) · [On the Optimality of Pseudo-polynomial Algorithms for Integer Programming](https://doi.org/10.4230/LIPIcs.ESA.2018.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4195 — Fixed-parameter tractability of huge n-fold integer programming
 
 Huge n-fold integer programming describes repeated blocks of integer constraints with potentially very large multiplicities. The saved question asks for fixed-parameter tractability in the structural quantities r, s, t, and a. The huge encoding makes multiplicities part of the difficulty because expanding all repeated blocks may already be too expensive. An algorithm controlled by the listed parameters would show that compact algebraic structure can overcome that representational obstacle. The excerpt does not define the parameters or allowed coefficient encoding, so their precise roles must be retained from the original model.
@@ -2023,6 +2016,13 @@ Directed Edge Multicut deletes arcs so that each specified source can no longer 
 
 [Read in atlas](index.html#TCS-7036) · [A Survey of Parameterized Algorithms and the Complexity of Edge Modification](https://arxiv.org/abs/2001.06867)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-4054 — Sublinear row exponents for integer programming
+
+The historical question concerns exact feasibility of integer equalities with nonnegative integer variables. It asks whether the exponent on row count and numerical parameters can be made sublinear in the number of rows. A 2019 theorem rules out both proposed runtimes under deterministic ETH, even for 0/1 matrices with few variables and moderate right-hand sides. The original authors explicitly acknowledge that lower-bound resolution in their later journal article. The card is therefore resolved conditionally, with the input representation and all parameter dependencies recorded.
+
+[Read in atlas](index.html#TCS-4054) · [On the Optimality of Pseudo-polynomial Algorithms for Integer Programming](https://doi.org/10.4230/LIPIcs.ESA.2018.31) · [Tight Complexity Lower Bounds for Integer Linear Programming with Few Constraints](https://doi.org/10.4230/LIPIcs.STACS.2019.44) · [Tight complexity lower bounds for integer linear programming with few constraints — full version](https://arxiv.org/abs/1811.01296) · [On the optimality of pseudo-polynomial algorithms for integer programming — journal version](https://doi.org/10.1007/s10107-022-01783-x)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Approximation algorithms and inapproximability (29)
 
