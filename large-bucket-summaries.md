@@ -4615,12 +4615,12 @@ The local Hamiltonian problem asks whether the minimum energy of a quantum syste
 [Read in atlas](index.html#TCS-3379) · [Oracle Complexity Classes and Local Measurements on Physical Hamiltonians](https://doi.org/10.4230/LIPIcs.STACS.2020.20)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3573 — Can we prove the conjecture that the purified and discrete query input models are equivalent for classical distributions, with respect to the query complexity of […]
+### TCS-3573 — Purified versus discrete quantum access for classical distribution testing
 
-Quantum distribution testing depends on exactly how an algorithm accesses the distribution. One model supplies a purification through a quantum preparation operation, while another supplies discrete query access to a classical description or sampling mechanism. This conjecture asks whether the two models have equivalent query power for testing properties of classical distributions. Algorithms and lower bounds proved in one interface need not transfer automatically to the other. An equivalence would unify complexity results across access conventions, while a separation would identify information provided by one oracle but absent from the other.
+Quantum testers can access a distribution either through a reversible sampler with an ancillary register or through queries to a finite list of outcome labels. The conjecture asks whether these two interfaces have the same power for classical distribution testing when the list is sufficiently large. The list interface already implements purified access with constant query overhead. Known two-distribution results and entropy algorithms do not prove the missing general direction. The acceptable overhead and the relation among list length, accuracy and the represented distributions still need to be fixed.
 
-[Read in atlas](index.html#TCS-3573) · [Distributional Property Testing in a Quantum World](https://doi.org/10.4230/LIPIcs.ITCS.2020.25)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3573) · [Distributional Property Testing in a Quantum World](https://doi.org/10.4230/LIPIcs.ITCS.2020.25) · [Quantum Algorithms for Classical Probability Distributions](https://doi.org/10.4230/LIPIcs.ESA.2019.16) · [Sublinear quantum algorithms for estimating von Neumann entropy](https://arxiv.org/abs/2111.11139)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3709 — Lifting quantum query complexity to communication
 
