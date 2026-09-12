@@ -609,12 +609,12 @@ Hypergraph isomorphism compares set systems up to a relabeling of their underlyi
 [Read in atlas](index.html#TCS-3346) · [Graph Isomorphism in Quasipolynomial Time Parameterized by Treewidth](https://doi.org/10.4230/LIPIcs.ICALP.2020.103)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4417 — Linear-time bottleneck paths and spanning trees
+### TCS-4417 — Linear-time directed bottleneck paths and trees
 
-A bottleneck path minimizes its largest edge weight instead of the sum of all weights. The analogous directed spanning-tree problem minimizes the heaviest edge needed to reach every vertex from a root. The question asks for linear-time algorithms for these two tasks. The source improves very slowly growing overhead factors but does not eliminate them. The project investigates whether threshold connectivity can expose the optimum without sorting weights or repeatedly reexamining a substantial part of the graph.
+A bottleneck path minimizes its heaviest edge, and a rooted bottleneck tree minimizes the heaviest edge needed to reach all vertices. The open target is expected linear total time for exact solutions on arbitrary directed graphs using only comparisons of edge weights. The source already achieves a very slowly growing overhead and gives linear time in the stronger word-RAM model. The path and tree targets are equivalent at the expected-linear scale through the source reductions. An August 2026 preprint corrects a related graphical-games claim and continues to state the comparison-based path question as open.
 
-[Read in atlas](index.html#TCS-4417) · [Bottleneck Paths and Trees and Deterministic Graphical Games](https://doi.org/10.4230/LIPIcs.STACS.2016.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4417) · [Bottleneck Paths and Trees and Deterministic Graphical Games](https://doi.org/10.4230/LIPIcs.STACS.2016.27) · [Bottleneck Paths Reduce to Deterministic Graphical Games and a Counterexample to a Claimed Linear-Time Algorithm](https://arxiv.org/abs/2608.04279)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-5705 — Logarithmic adjacency labels for monotone graph classes
 

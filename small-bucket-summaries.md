@@ -3084,10 +3084,10 @@ Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-4350 — Uniform compressed word problem for graph groups
 
-A graph group specifies which generators commute, and a compressed word represents a potentially enormous product through a straight-line program. The uniform word problem asks whether that product is the identity when the group description is also input. The source asks whether this problem is in polynomial time or at least NP. Algorithms for one fixed group can hide costs that grow badly with the changing commutation graph. The project would also improve upper bounds for compressed exponent equations over input-specified graph groups.
+The input gives both a graph group and a compact straight-line program representing a word in its generators. The main question is whether one deterministic algorithm can test identity in polynomial time in the combined input size. Polynomial time for each fixed graph group does not provide that uniform guarantee. Randomized one-sided polynomial-time testing is known, while NP membership is a separate weaker target. A 2024 result handles uniform power words but explicitly leaves arbitrary straight-line programs open.
 
-[Read in atlas](index.html#TCS-4350) · [Knapsack in Graph Groups, HNN-Extensions and Amalgamated Products](https://doi.org/10.4230/LIPIcs.STACS.2016.50)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4350) · [Knapsack in Graph Groups, HNN-Extensions and Amalgamated Products](https://doi.org/10.4230/LIPIcs.STACS.2016.50) · [Knapsack in Graph Groups](https://doi.org/10.1007/s00224-017-9808-3) · [The Power Word Problem in Graph Products](https://doi.org/10.1007/s00224-024-10173-z)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4490 — Complexity of positive matrix powers
 
