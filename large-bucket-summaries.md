@@ -3813,13 +3813,6 @@ Universal online learning seeks vanishing average regret against every fixed mea
 [Read in atlas](index.html#TCS-2654) · [Universally Consistent Online Learning with Arbitrarily Dependent Responses](https://proceedings.mlr.press/v167/hanneke22a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2827 — In the case of bounded losses, both the question of the existence of optimistically universal online learning rules, and of concisely characterizing the set SUOL, […]
-
-Optimistically universal online learning asks for one rule that succeeds on every input process for which universal learning is possible. For bounded losses, the source also proposes characterizing those processes by how slowly they visit new cells of every countable measurable partition. The required number of visited cells grows sublinearly with time. The passage frames both the algorithm and characterization as questions in its historical setting. Later work cited elsewhere in the collection reports progress on the algorithmic question, so developing this record further requires separating that history from the exact remaining process-characterization task.
-
-[Read in atlas](index.html#TCS-2827) · [Universal Online Learning with Unbounded Losses: Memory Is All You Need](https://proceedings.mlr.press/v167/blanchard22a.html) · [https://proceedings.mlr.press/v167/hanneke22a.html](https://proceedings.mlr.press/v167/hanneke22a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3113 — Whether hypothesis classes of finite VC dimension exist which are not improperly CPAC learnable in the agnostic case remains an open question.
 
 Finite VC dimension characterizes statistical PAC learnability without requiring the learner to be computable. The source asks whether a finite-VC class can fail computable agnostic learning even when the learner may output hypotheses outside the class. The agnostic setting allows labels that no member fits perfectly, so the learner must compete with the best available hypothesis. Known failures of proper computable learning do not settle this more permissive output model. A counterexample or positive theorem would locate how much computational difficulty can be removed by abandoning the requirement to return a member of the original class.
@@ -4078,6 +4071,13 @@ Covariate shift changes the distribution of inputs between training and evaluati
 
 [Read in atlas](index.html#TCS-6135) · [Mitigating Covariate Shift in Misspecified Regression with Applications to Reinforcement Learning](https://proceedings.mlr.press/v247/amortila24a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-2827 — Optimistically universal online learning with bounded losses
+
+Optimistically universal online learning asks for one rule that succeeds whenever any universally consistent rule can. For bounded losses and deterministic measurable target labels, the input process can have arbitrary temporal dependence. Blanchard’s COLT 2022 theorem supplies such a rule and proves that learnability is exactly sublinear measurable visits. The partition condition is stronger than a statement about visits to finitely many selected regions. Both historical questions in this card are therefore resolved in their intended noiseless setting.
+
+[Read in atlas](index.html#TCS-2827) · [Universal Online Learning with Unbounded Losses: Memory Is All You Need](https://proceedings.mlr.press/v167/blanchard22a.html) · [Open Problem: Is There an Online Learning Algorithm That Learns Whenever Online Learning Is Possible?](https://proceedings.mlr.press/v134/hanneke21b.html) · [Universal Online Learning: an Optimistically Universal Learning Rule](https://proceedings.mlr.press/v178/blanchard22b.html)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Cryptography (31)
 
