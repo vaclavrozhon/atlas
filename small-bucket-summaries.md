@@ -1574,12 +1574,12 @@ The target compares short SAT-oracle descriptions of a string with longer descri
 [Read in atlas](index.html#TCS-3393) · [Non-Disjoint Promise Problems from Meta-Computational View of Pseudorandom Generator Constructions](https://doi.org/10.4230/LIPIcs.CCC.2020.20) · [Non-Disjoint Promise Problems from Meta-Computational View of Pseudorandom Generator Constructions](https://theoryofcomputing.org/articles/v019a004/)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3514 — For example, is the Learning is Hard assumption of [10] equivalent to the non-existence of natural proofs under the Conjecture?
+### TCS-3514 — PAC-learning hardness versus natural-proof barriers under universality
 
-Natural proofs are a broad type of circuit lower-bound argument constrained by known pseudorandomness barriers. The cited source asks whether its “Learning is Hard” assumption is equivalent to the nonexistence of natural proofs under another conjecture. Learning algorithms and circuit-distinguishing procedures can encode related information about Boolean functions. An equivalence would connect two ways of expressing why efficient recognition of circuit structure might fail. The saved passage does not state either assumption or the intervening conjecture, so their quantifiers and computational models cannot be replaced by general claims that learning or lower bounds are hard.
+The question assumes a universal construction of succinct pseudorandom generators whenever suitable succinct distributions exist. It asks whether ordinary distribution-free improper PAC-learning hardness is then equivalent to the absence of the specified natural properties. The learner receives random labeled examples and must work for every distribution without a sampler description. Natural properties are tested on complete truth tables and must reject every sufficiently small circuit while accepting at least half of all functions. The source already proves a related equivalence with membership-query access under the uniform distribution, which is a different learning model.
 
-[Read in atlas](index.html#TCS-3514) · [Pseudorandomness and the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.ITCS.2020.68)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3514) · [Pseudorandomness and the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.ITCS.2020.68) · [On Basing Lower-Bounds for Learning on Worst-Case Assumptions](https://www.wisdom.weizmann.ac.il/~bennyap/pubs/ABX08.pdf) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3617 — Parsimonious Universal Family: Deterministic Construction We do not know how to deterministically construct small δ-parsimonious universal families.
 
