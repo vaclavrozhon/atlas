@@ -1124,13 +1124,6 @@ Multi-objective probabilistic synthesis asks one strategy to satisfy several qua
 [Read in atlas](index.html#TCS-4302) · [Model Checking and Strategy Synthesis for Stochastic Games: From Theory to Practice (Invited Talk)](https://doi.org/10.4230/LIPIcs.ICALP.2016.4)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4640 — Reachability in piecewise-affine integer dynamics
-
-An orbit problem asks whether repeated application of a given transformation to an initial value ever reaches a specified target. The retained sentence appears in a discussion of piecewise-affine integer dynamics and its connections to program termination. The 2013 source reports decidability and complexity results that change sharply with the transformation class and dimension. It also recalls a polynomial-time solution for linear transformations over rational vector spaces, illustrating why those model distinctions matter. The extracted sentence introduces the orbit problem rather than specifying one of the paper's subsequent open questions, so this working summary does not turn it into an unsupported open-status claim.
-
-[Read in atlas](index.html#TCS-4640) · [Mortality of Iterated Piecewise Affine Functions over the Integers: Decidability and Complexity (Extended Abstract)](https://doi.org/10.4230/LIPIcs.STACS.2013.514)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5682 — One-dimensional piecewise-affine reachability
 
 A piecewise affine map chooses among finitely many affine update rules according to the region containing the current point. In one dimension, its orbit is obtained by repeatedly applying this update to a rational starting value. The question asks whether exact reachability of a rational target is decidable in the general one-dimensional setting, even with only two pieces. The source contrasts this gap with decidable subclasses and with undecidability already available for unrestricted two-dimensional maps. Resolving the two-piece case would locate a basic boundary between simple numerical iteration and computations complicated enough to defeat algorithmic reachability analysis.
@@ -1228,6 +1221,13 @@ A linear-constraint loop specifies its next state by a conjunction of linear ine
 
 [Read in atlas](index.html#TCS-7157) · [On Linear Recurrence Sequences and Loop Termination](https://people.mpi-sws.org/~joel/publications/lrs-survey15abs.html)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-4640 — Reachability in piecewise-affine integer dynamics
+
+Iterate a finite piecewise-affine integer map from a specified starting vector. Ask whether one specified integer target is ever reached. The source already states PSPACE-completeness in one dimension and undecidability in two. Its extracted question introduced this known task rather than an open problem. Separate questions about restricted universal mortality are not substituted here.
+
+[Read in atlas](index.html#TCS-4640) · [Mortality of Iterated Piecewise Affine Functions over the Integers: Decidability and Complexity (Extended Abstract)](https://doi.org/10.4230/LIPIcs.STACS.2013.514)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ### TCS-5600 — An elementary upper bound for vector-addition-system reachability
 
