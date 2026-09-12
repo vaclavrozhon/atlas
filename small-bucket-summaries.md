@@ -124,12 +124,12 @@ Conditional pKt measures a probabilistic, time-sensitive form of description com
 [Read in atlas](index.html#TCS-2202) · [Impagliazzo’s Worlds Through the Lens of Conditional Kolmogorov Complexity](https://doi.org/10.4230/LIPIcs.ICALP.2024.110)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4009 — Decidability of balance in integer circuits
+### TCS-4009 — Decidability of additive balance circuits
 
-Integer circuits can combine sets or values using operations such as addition, complement, union, and intersection. The source asks whether adding some subset of the latter operations makes its balance problem BC undecidable. The goal is to locate a precise threshold where a restricted arithmetic representation acquires enough power to defeat every decision algorithm. This would classify how the choice of operations changes the computational nature of the problem. The excerpt defines neither balance nor the circuit semantics, so the meaning of complement and the integer domain must be recovered before selecting a candidate operation set.
+An integer circuit here computes finite sets using union, intersection, set difference and pairwise addition. Its unknown inputs may be arbitrary finite sets of nonnegative integers. The question asks whether deciding the existence of an assignment with exactly half the numbers up to the output maximum present is undecidable. Multiplication with set difference already yields an undecidable problem, but this does not establish the additive case. The 2021 author thesis explicitly retains the question; using all allowed set operations is equivalent to asking whether some subset makes it undecidable.
 
-[Read in atlas](index.html#TCS-4009) · [Balance Problems for Integer Circuits](https://doi.org/10.4230/LIPIcs.MFCS.2018.5)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4009) · [Balance Problems for Integer Circuits](https://doi.org/10.4230/LIPIcs.MFCS.2018.5) · [Balance Problems for Integer Circuits — revised full report](https://eccc.weizmann.ac.il/report/2018/055/) · [Balance problems for integer circuits](https://doi.org/10.1016/j.tcs.2019.09.052) · [Balance Problems for Integer Circuits and Separations of Relativized Conjectures on Incompleteness in Promise Classes](https://www1.pub.informatik.uni-wuerzburg.de/pub/theses/2021-dose-dissertation.pdf)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4185 — Existence of strings without simple optimal hypotheses
 
