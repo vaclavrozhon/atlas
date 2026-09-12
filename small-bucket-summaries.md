@@ -1785,10 +1785,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6721 — Additive-one approximation for bin packing
 
-Bin packing places numerical items into unit-capacity bins and minimizes their number. The saved textbook question asks for a polynomial-time packing using at most one bin more than optimum. It also identifies any universal constant additive error as a weaker milestone. The additive-one target is demanding because its allowance remains fixed even for very large optima. The dated source note does not specify randomness conventions or review later results, and a multiplicative approximation scheme alone does not automatically provide the requested uniform additive guarantee.
+Bin packing assigns indivisible items of known sizes to bins of unit capacity. The goal is to find a packing that uses at most one bin more than the minimum possible. The algorithm must run in polynomial time in the complete binary input length. Known general algorithms achieve a logarithmic additive loss, while approximation schemes do not guarantee one extra bin. The question asks how closely efficient computation can approach the exact optimum of a fundamental packing problem.
 
-[Read in atlas](index.html#TCS-6721) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6721) · [The Design of Approximation Algorithms](https://www.designofapproxalgs.com/) · [A Logarithmic Additive Integrality Gap for Bin Packing](https://doi.org/10.1137/1.9781611974782.172)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6724 — Constant-factor related-machine precedence scheduling
 
