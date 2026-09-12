@@ -2027,12 +2027,12 @@ The input asks how many homomorphisms map a source structure A from a fixed clas
 [Read in atlas](index.html#TCS-3635) · [Approximate Counting CSP Seen from the Other Side](https://doi.org/10.4230/LIPIcs.MFCS.2019.60) · [Approximate Counting CSP Seen from the Other Side](https://doi.org/10.1145/3389390) · [Counting List Homomorphisms from Graphs of Bounded Treewidth: Tight Complexity Bounds](https://doi.org/10.1145/3640814)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-4671 — Decision versus approximate-counting complexity of k-SAT
+### TCS-4671 — Decision versus approximate counting for fixed-width SAT
 
-Counting k-SAT asks for the number of satisfying assignments of a bounded-width Boolean formula. The cited paper studies approximation algorithms for that count. The saved question asks to close a gap, possibly through an algorithmic analogue of the Valiant–Vazirani isolation idea. A suitable transfer could relate decision-style satisfiability improvements to more efficient approximate counting. The excerpt does not preserve the gap, error guarantee, or resource model, so this draft does not claim that a particular randomized reduction already yields the desired counting algorithm.
+A fixed-width CNF formula has a finite number of satisfying assignments. Decision tests whether that number is positive; approximation estimates it to relative error. The question asks whether the optimal exponential rates in the variable count coincide for each fixed width. Polynomial accuracy costs and arbitrarily small losses in the exponential rate are allowed. Later all-width and subexponential equivalences do not settle this fixed-width comparison.
 
-[Read in atlas](index.html#TCS-4671) · [An Approximation Algorithm for #k-SAT](https://doi.org/10.4230/LIPIcs.STACS.2012.78)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4671) · [An Approximation Algorithm for #k-SAT](https://doi.org/10.4230/LIPIcs.STACS.2012.78) · [Exploiting Independent Subformulas: A Faster Approximation Scheme for #k-SAT](https://doi.org/10.1016/j.ipl.2013.02.013) · [Fine-Grained Reductions from Approximate Counting to Decision](https://doi.org/10.1145/3442352)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6820 — FP versus #P
 
