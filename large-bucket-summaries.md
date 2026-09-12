@@ -2519,13 +2519,6 @@ Leaderless population protocols begin with only the ordinary input agents, witho
 [Read in atlas](index.html#TCS-3894) · [Large Flocks of Small Birds: on the Minimal Size of Population Protocols](https://doi.org/10.4230/LIPIcs.STACS.2018.16)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3910 — Sublinear-round clique detection in CONGEST
-
-Distributed clique detection asks whether the communication graph contains a complete subgraph of a prescribed constant size. In CONGEST, learning the necessary adjacency information competes for limited bandwidth on the same graph being inspected. The 2018 source asks whether detecting a four-clique can take sublinear time or requires nearly linear rounds. Its two-party communication lower-bound method reaches a barrier, while improved triangle algorithms suggest that faster detection might be possible. The question focuses on whether the additional pairwise relationships inside four vertices create a fundamentally larger distributed coordination cost than triangle detection.
-
-[Read in atlas](index.html#TCS-3910) · [Detecting Cliques in CONGEST Networks](https://doi.org/10.4230/LIPIcs.DISC.2018.16)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4006 — Intermediate sliding-window space for context-free languages
 
 A sliding-window algorithm checks membership of only the most recent portion of an input stream. This project asks whether some deterministic context-free language has optimal memory strictly above squared logarithmic space but below linear space in window length. The source considers both fixed-size and variable-size windows. Standard regular-language classifications leave no such intermediate regime, while stack-based languages permit more complicated behavior. A separating example or gap theorem would map how recursive language structure changes the possible memory costs of continuously forgetting old input.
@@ -2790,6 +2783,13 @@ Existing status: `resolved` · Summary written: 2026-09-12
 A robustly self-ordered graph changes many edges whenever many vertex names are permuted. Local self-ordering recovers one vertex’s canonical name using only a few adjacency queries. The source asks for efficiently constructed dense graphs having both properties. Goldreich’s later Corollary 1.7 supplies both properties with polylogarithmic time bounds. The original construction question is resolved, while a universal implication for every robust dense graph is a different problem.
 
 [Read in atlas](index.html#TCS-3119) · [Robustly Self-Ordered Graphs: Constructions and Applications to Property Testing](https://doi.org/10.4230/LIPIcs.CCC.2021.12) · [Robust Self-Ordering versus Local Self-Ordering](https://www.wisdom.weizmann.ac.il/~oded/COL3/rso-vs-lso.pdf) · [Robust Self-Ordering versus Local Self-Ordering — author page](https://www.wisdom.weizmann.ac.il/~oded/p_rso-lso.html) · [Computational Complexity and Local Algorithms](https://link.springer.com/book/10.1007/978-3-031-88946-2)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-3910 — Sublinear-round clique detection in CONGEST
+
+Network processors seek a fixed-size clique while sending only logarithmically many bits per edge per round. The original question asked whether sublinear rounds suffice, especially for K₄. A later theorem lists all fixed p-cliques in Õ(n^{1−2/p}) rounds and therefore resolves detection affirmatively. For K₄ this matches the known lower bound up to logarithmic factors. A 2022 theorem also gives deterministic sublinear algorithms; growing clique size and global announcements are different requirements.
+
+[Read in atlas](index.html#TCS-3910) · [Detecting Cliques in CONGEST Networks](https://doi.org/10.4230/LIPIcs.DISC.2018.16) · [Tight Distributed Listing of Cliques](https://doi.org/10.1137/1.9781611976465.171) · [Deterministic Near-Optimal Distributed Listing of Cliques](https://doi.org/10.1145/3519270.3538434)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Optimization and numerical computation (30)
