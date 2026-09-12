@@ -3941,13 +3941,6 @@ In an all-pay bidding graph game, both players spend their bids to compete for c
 [Read in atlas](index.html#TCS-2744) · [An Updated Survey of Bidding Games on Graphs (Invited Talk)](https://doi.org/10.4230/LIPIcs.MFCS.2022.3)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3857 — Low-distortion cardinal versus ordinal mechanisms
-
-Cardinal voting mechanisms use numerical utility information, while ordinal mechanisms use only preference rankings. The cited source asks whether low-distortion cardinal mechanisms can behave substantially differently from ordinal ones. Distortion measures the welfare lost because a mechanism lacks or does not exploit full utility information. A structural comparison could explain whether good welfare guarantees force a common form of voting behavior. The saved sentence introduces a question the paper addresses rather than certifying that it remains unresolved, and it does not quantify what counts as being very different.
-
-[Read in atlas](index.html#TCS-3857) · [On the Welfare of Cardinal Voting Mechanisms](https://doi.org/10.4230/LIPIcs.FSTTCS.2018.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3867 — Polynomial-time black-box cost-sharing reductions
 
 Separable cost sharing assigns portions of a shared service's cost to individual participants. The cited paper develops black-box reductions and asks whether polynomial running time can be guaranteed for a particular procedure. A reduction may preserve incentive or approximation properties while making many costly calls to its component algorithms. A time bound would determine whether the conceptual transformation yields an efficient implementable mechanism. The saved sentence omits the procedure and its oracle assumptions, so the number of reduction steps and the cost of each step remain necessary before the guarantee is precise.
@@ -4024,6 +4017,13 @@ Global connection and cost-sharing games let agents choose network resources whi
 
 [Read in atlas](index.html#TCS-6961) · [Algorithmic Game Theory](https://www.cs.cmu.edu/~sandholm/cs15-892F13/algorithmic-game-theory.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-3857 — Low-distortion cardinal versus ordinal mechanisms
+
+Cardinal voting accepts numerical utilities, whereas ordinal voting uses only rankings. The card asks whether truthful cardinal mechanisms with good welfare can violate structural properties of ordinal mechanisms. The original paper already answers yes with a randomized mechanism of distortion O(√(m log m)). Its three-alternative examples violate both non-perversity and localization. The adjacent question about the best possible distortion is separate; this extracted structural question is resolved.
+
+[Read in atlas](index.html#TCS-3857) · [On the Welfare of Cardinal Voting Mechanisms](https://doi.org/10.4230/LIPIcs.FSTTCS.2018.27)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Algebraic computation (90)
 
