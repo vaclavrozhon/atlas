@@ -5265,12 +5265,12 @@ A symmetric Markov chain evolves through transition probabilities that are symme
 [Read in atlas](index.html#TCS-3906) · [Testing Symmetric Markov Chains From a Single Trajectory](https://proceedings.mlr.press/v75/daskalakis18a.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3945 — MA versus AM proofs of proximity
+### TCS-3945 — Quadratic advantage of MA over AM proofs of proximity
 
-Proofs of proximity let a verifier inspect a small part of an input while using a prover's message to distinguish valid objects from objects far from the property. In an MA proof the message precedes private verifier randomness, while an AM proof can depend on public randomness. The source asks for a property with an MA proof of complexity O(sqrt(n)) but requiring Ω(n) complexity in the AM model. A general simulation limits this advantage to roughly a quadratic factor. An example meeting the bound would show that revealing randomness can sometimes impose the maximum possible loss in these proximity-proof models.
+An MA proof is fixed before the verifier’s private coins, whereas an AM proof can depend on the complete public random tape. Both costs count proof bits plus bits read from the input. The question asks whether some property has an O(√n) MA proof but requires Ω(n) cost from every AM proof at fixed positive proximity. A general simulation prevents MA from gaining more than a quadratic factor, and the 2021 journal version still asks whether that limit is attained. The known exponential separation favors AM and does not answer this opposite-direction question.
 
-[Read in atlas](index.html#TCS-3945) · [An Exponential Separation Between MA and AM Proofs of Proximity](https://doi.org/10.4230/LIPIcs.ICALP.2018.73)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3945) · [An Exponential Separation Between MA and AM Proofs of Proximity](https://doi.org/10.4230/LIPIcs.ICALP.2018.73) · [An Exponential Separation Between MA and AM Proofs of Proximity](https://doi.org/10.1007/s00037-021-00212-3)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3960 — Earthmover-resilient testing versus tolerant testing
 
