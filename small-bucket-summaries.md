@@ -1508,13 +1508,6 @@ The yes instances become 3-colorable after deleting an arbitrarily small fixed f
 [Read in atlas](index.html#TCS-2625) · [NP-Hardness of Almost Coloring Almost 3-Colorable Graphs](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.51)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-5180 — Approximating VC and Littlestone dimensions
-
-VC-dimension and Littlestone dimension measure the complexity of a binary concept class for statistical and online learning respectively. When the class is listed explicitly, the motivating question asks whether either dimension can be approximated within any constant factor in polynomial time. The source answers this negatively under specified complexity assumptions through reductions from an unbalanced biclique problem. Under stronger assumptions it obtains hardness even for approximation factors smaller than logarithmic in the input size. This record captures a question answered conditionally within its cited paper, showing that even coarse evaluation of a class's learning complexity can be computationally difficult.
-
-[Read in atlas](index.html#TCS-5180) · [Improved Inapproximability of VC Dimension and Littlestone’s Dimension via (Unbalanced) Biclique](https://doi.org/10.4230/LIPIcs.ITCS.2023.85)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-5407 — Optimal approximation for submodular maximization over a matroid
 
 Constrained submodular maximization chooses an independent set of a matroid to maximize a nonnegative submodular objective. The objective need not be monotone, so adding a feasible element can reduce its value. The extracted question asks for the best possible approximation factor in this general setting. It appears as background to a paper that additionally studies linear regularization, rather than being restricted to that modified objective. Matching oracle algorithms and lower bounds would determine the precise cost of combining diminishing returns, possible negative marginal gains, and matroid feasibility.
@@ -1583,6 +1576,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Linear discrepancy is the worst fractional vector’s smallest possible binary rounding error, measured in the maximum row norm. The source conjectured that approximating this matrix quantity within some constant factor is Π₂-hard. Manurangsi proved hardness at every factor strictly between 1 and 9/8. The result was published in 2021 and is explicitly extended by a 2026 binary covering-radius paper. The conjecture is resolved; the 3/2 factor mentioned in the original passage belongs to a covering-radius comparison and is not the achieved linear-discrepancy ratio.
 
 [Read in atlas](index.html#TCS-3399) · [On the Computational Complexity of Linear Discrepancy](https://doi.org/10.4230/LIPIcs.ESA.2020.69) · [Linear discrepancy is Π₂-hard to approximate](https://doi.org/10.1016/j.ipl.2021.106164) · [Hardness of the Binary Covering Radius Problem in Large ℓp Norms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.10)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-5180 — Approximating VC and Littlestone dimensions
+
+The entire Boolean concept class is supplied as a binary matrix. The historical question asks for a fixed-factor polynomial-time estimate of either VC or Littlestone dimension. The approximation is multiplicative, with zero handled exactly. The cited paper already rules this out for each dimension under randomized ETH. Constructing an efficient online learner with a near-optimal mistake bound is a separate question.
+
+[Read in atlas](index.html#TCS-5180) · [Improved Inapproximability of VC Dimension and Littlestone’s Dimension via (Unbalanced) Biclique](https://doi.org/10.4230/LIPIcs.ITCS.2023.85)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Online algorithms, scheduling and packing (32)
