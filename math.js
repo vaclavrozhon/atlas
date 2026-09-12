@@ -23,6 +23,15 @@
     return result;
   }
   const escape=text=>String(text).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function plain(text){
+    const symbols={alpha:'α',beta:'β',gamma:'γ',delta:'δ',varepsilon:'ε',epsilon:'ϵ',theta:'θ',lambda:'λ',mu:'μ',nu:'ν',pi:'π',rho:'ρ',sigma:'σ',tau:'τ',phi:'φ',varphi:'φ',chi:'χ',psi:'ψ',omega:'ω',Gamma:'Γ',Delta:'Δ',Theta:'Θ',Sigma:'Σ',Pi:'Π',Omega:'Ω',ell:'ℓ',le:'≤',leq:'≤',ge:'≥',geq:'≥',ne:'≠',neq:'≠',in:'∈',notin:'∉',subseteq:'⊆',to:'→',infty:'∞',sum:'Σ',prod:'Π',int:'∫',sqrt:'√',cdot:'·',times:'×',ldots:'…',cdots:'⋯'};
+    return parts(text).map(part=>{
+      if(!part.math)return part.text;
+      let value=part.formula.replace(/\\(?:mathrm|mathbb|mathcal|operatorname|text)\s*\{([^{}]*)\}/g,'$1');
+      value=value.replace(/\\([A-Za-z]+)\s*/g,(_,name)=>symbols[name]||name).replace(/\\([{}|,;! ])/g,'$1').replace(/[{}]/g,'');
+      return value;
+    }).join('');
+  }
   function paragraphs(text,cls=''){
     const paragraphs=[''];
     for(const part of parts(text)){
@@ -59,7 +68,7 @@
     renderMathInElement(root,{delimiters,throwOnError:false,trust:false,strict:'ignore',ignoredClasses:['katex','public-notes','problem-votes']});
     if(!frame)frame=requestAnimationFrame(fit);
   }
-  const api={parts,paragraphs,excerpt,render};
+  const api={parts,plain,paragraphs,excerpt,render};
   if(typeof module!=='undefined'&&module.exports)module.exports=api;
   if(typeof window!=='undefined'){
     window.ATLAS_MATH=api;

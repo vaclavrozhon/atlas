@@ -5,7 +5,7 @@
   if(!data){document.getElementById('cards').textContent='The catalogue data could not be loaded.';return;}
   const $=id=>document.getElementById(id);
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const norm=s=>String(s??'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+  const norm=s=>window.ATLAS_MATH.plain(String(s??'')).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
   const safeURL=s=>{try{const u=new URL(s);return ['https:','http:'].includes(u.protocol)?u.href:'#';}catch{return '#';}};
   const num=n=>n.toLocaleString('en-US');
   const statuses={open:'Documented as open',source_open:'Open in the dated source',uncertain:'Current status unverified',resolved:'Resolved / materially changed',excluded:'Retired after review'};
