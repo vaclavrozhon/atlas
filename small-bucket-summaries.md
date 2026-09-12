@@ -5964,12 +5964,12 @@ Presburger arithmetic describes integers using addition and order without unrest
 [Read in atlas](index.html#TCS-1992) · [An Introduction to the Theory of Linear Integer Arithmetic (Invited Paper)](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3079 — Likewise, we do not know whether the NEXP upper bounds for p-existence can be improved.
+### TCS-3079 — Complexity of choosing a satisfying base in Büchi and p-adic linear arithmetic
 
-Linear arithmetic over p-adic integers combines additive constraints with a prime-dependent number system. The cited paper studies deciding such constraints across choices of prime. The saved question asks whether NEXP upper bounds for a task called p-existence can be improved. A sharper bound would clarify the computational cost of choosing a compatible prime as well as satisfying the arithmetic conditions. The excerpt does not define p-existence or the input language, so the historical upper-bound comparison is retained without reconstructing the exact quantified decision problem.
+The input is an existential linear-arithmetic formula with a symbolic base p. The decision asks whether some base makes that formula satisfiable. Büchi arithmetic allows every integer base at least two, whereas the p-adic variant allows primes. The source proves NEXP upper bounds and does not obtain the missing classification from its universality hardness theorem. The exact desired complexity precision and the cited infinity conventions remain to be completed.
 
-[Read in atlas](index.html#TCS-3079) · [On Deciding Linear Arithmetic Constraints Over p-adic Integers for All Primes](https://doi.org/10.4230/LIPIcs.MFCS.2021.55)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3079) · [On Deciding Linear Arithmetic Constraints Over p-adic Integers for All Primes](https://doi.org/10.4230/LIPIcs.MFCS.2021.55) · [Effective Quantifier Elimination for Presburger Arithmetic with Infinity](https://doi.org/10.1007/978-3-642-04103-7_18) · [Polynomial-Time Tractable Problems over the p-Adic Numbers](https://doi.org/10.4230/LIPIcs.MFCS.2025.25)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3484 — Is the satisfiability problem of word equations in NP?
 

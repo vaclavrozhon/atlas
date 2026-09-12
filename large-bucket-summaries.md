@@ -3827,12 +3827,12 @@ An optimistically universal online learner succeeds whenever the observed input 
 [Read in atlas](index.html#TCS-3114) · [Open Problem: Is There an Online Learning Algorithm That Learns Whenever Online Learning Is Possible?](https://proceedings.mlr.press/v134/open-problem-hanneke21b.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3117 — Any learner that tries to learn x ∈ {0, 1}n from a stream of samples of the form (a, b), where a ∈ {0, 1}n […]
+### TCS-3117 — Does noisy parity learning require Ω(n²/ε²) memory or exponentially many samples?
 
-Learning parity with noise observes random linear equations whose labels are only slightly more likely to be correct than incorrect. The source studies learners restricted to a small working memory while processing a stream of these equations. It conjectures that avoiding exponentially many samples requires memory of order n squared divided by epsilon squared, where epsilon is the bias toward correct labels. The proved lower bound has a weaker dependence on that bias. Matching it would quantify how little per-sample information forces a learner to retain increasingly large state, beyond noiseless parity-learning barriers.
+A hidden binary vector is observed through uniformly random parity equations with independent noise. Each equation is correct with probability one half plus ε. The proposed lower bound requires either Ω(n²/ε²) stored bits or exponentially many samples. The source proves the weaker Ω(n²/ε) memory threshold and gives a matching-to-the-conjecture space upper bound. The card fixes bounded-error exact recovery and requires constants uniform in ε.
 
-[Read in atlas](index.html#TCS-3117) · [Memory-Sample Lower Bounds for Learning Parity with Noise](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.60)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3117) · [Memory-Sample Lower Bounds for Learning Parity with Noise](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2021.60) · [Toward Lower Bounds on Memory-Sample Tradeoffs for Learning Parity with Noise](https://dimacs.rutgers.edu/reu-project-detail/toward-lower-bounds-on-memory-sample-tradeoffs-for)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3177 — In other words, does polynomial time learnability of NP/poly imply polynomial time learnability of PH/poly?
 
