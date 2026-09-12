@@ -1796,12 +1796,12 @@ A one-dimensional grammar-controlled vector addition system combines a nonnegati
 [Read in atlas](index.html#TCS-2033) · [Challenges of the Reachability Problem in Infinite-State Systems (Invited Paper)](https://doi.org/10.4230/LIPIcs.MFCS.2024.2)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2824 — We conjecture that if c(A1 , . . . , An ) is a formula defined in terms of the standard connectives, and we derive […]
+### TCS-2824 — When does truth-table reconstruction preserve an intuitionistic connective?
 
-Truth-table natural deduction derives introduction and elimination rules for a connective from its Boolean truth table. In constructive logic, those derived rules need not recover the meaning of a formula originally built from standard connectives. The source conjectures a sufficient syntactic condition for equivalence: the indicated disjuncts, implication antecedents, and negated subformulas must contain neither negation nor implication. Thus the sensitive positions are restricted to expressions built from monotone connectives, preventing some classical truth-table identifications from changing constructive meaning. Proving the conjecture would clarify which defined connectives can safely be reconstructed by this generic proof-rule generation method.
+The source generates introduction and elimination rules from a connective’s Boolean truth table. In intuitionistic logic, this reconstruction can change the meaning of a formula built from standard connectives. The conjecture identifies a sufficient restriction on disjuncts, implication antecedents and negated subformulas. For every template satisfying it, reconstruction should preserve both directions of derivability under arbitrary substitutions. A resolution would delineate a class in which truth-table proof-rule generation preserves constructive meaning.
 
 [Read in atlas](index.html#TCS-2824) · [Classical Natural Deduction from Truth Tables](https://doi.org/10.4230/LIPIcs.TYPES.2022.2)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3031 — We conjecture that Coq’s restriction preventing large elimination principles for non-sub-singleton propositions makes LEM and CT consistent in Coq.
 
@@ -2519,12 +2519,12 @@ Strong Byzantine agreement requires correct processes to agree while preserving 
 [Read in atlas](index.html#TCS-2753) · [Make Every Word Count: Adaptive Byzantine Agreement with Fewer Words](https://doi.org/10.4230/LIPIcs.OPODIS.2022.18)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2816 — It remains an open question whether it is possible to implement an exact wait-free linearizable FIFO queue with worst-case logarithmic step complexity without restriction on […]
+### TCS-2816 — An unrestricted exact wait-free FIFO queue in O(log n) steps
 
-A concurrent FIFO queue should return items in insertion order while allowing many processes to enqueue and dequeue simultaneously. Wait-freedom requires each operation to finish after a bounded number of its own steps regardless of interference. The question asks for an exact linearizable queue with O(log n) worst-case step complexity and no restriction on which of the n processes may perform either operation. The source reaches logarithmic bounds by relaxing semantics or limiting dequeuers, leaving the unrestricted exact version separate. An implementation would reconcile strong progress and ordering guarantees with low latency under arbitrary concurrent access.
+All n asynchronous processes must be allowed to enqueue and dequeue from the same exact FIFO queue. Every operation should complete in O(log n) of its own steps despite arbitrary interference or crashes. The bound is worst-case and independent of queue length. A later queue obtains polylogarithmic bounds but retains an extra logarithm and queue-length dependence for dequeues. The memory-word convention must be fixed because much wider words already permit logarithmic universal constructions.
 
-[Read in atlas](index.html#TCS-2816) · [Efficient Wait-Free Queue Algorithms with Multiple Enqueuers and Multiple Dequeuers](https://doi.org/10.4230/LIPIcs.OPODIS.2022.4)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2816) · [Efficient Wait-Free Queue Algorithms with Multiple Enqueuers and Multiple Dequeuers](https://doi.org/10.4230/LIPIcs.OPODIS.2022.4) · [A Wait-free Queue with Polylogarithmic Step Complexity](https://doi.org/10.1145/3583668.3594565)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2896 — We leave it as an open problem whether a constant-factor approximation in sublinear (in n = 2k) space is possible
 

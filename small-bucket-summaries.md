@@ -159,12 +159,12 @@ Conditional time-bounded Kolmogorov complexity asks how short a program can be w
 [Read in atlas](index.html#TCS-2776) · [On One-Way Functions from NP-Complete Problems](https://doi.org/10.4230/LIPIcs.CCC.2022.36) · [Kolmogorov’s Approach to P vs. NP: Chain Rules for Time-Bounded Kolmogorov Complexity](https://doi.org/10.1145/3798129.3800780)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2821 — We conjecture that aperiodic configurations in Z3 SFTs behave similarly as in Z2 subshifts: each Z3 SFT containing aperiodic configurations seems to have “centers” of […]
+### TCS-2821 — Centers of aperiodicity in three-dimensional shifts of finite type
 
-A shift of finite type describes configurations on a lattice through finitely many forbidden local patterns. The source conjectures that aperiodic configurations in three dimensions share a particular structural behavior with two-dimensional subshifts. The retained passage refers to centers of that behavior but cuts off their definition. Establishing such a principle could help explain the algorithmic difficulty of detecting aperiodicity in higher-dimensional tiling systems. The missing center condition is mathematically essential, so the draft preserves the dimensional comparison without manufacturing a concrete local pattern criterion or decidability consequence.
+A three-dimensional shift of finite type is an infinite tiling space given by finitely many local prohibitions. An aperiodic configuration breaks every nonzero translation vector. The source conjectures that some such configuration organizes these witnesses around a center. It explicitly permits this configuration to differ from other aperiodic points and their orbit closures. The geometry and strength of the proposed radius control remain unspecified and are essential to the benchmark.
 
-[Read in atlas](index.html#TCS-2821) · [The Aperiodic Domino Problem in Higher Dimension](https://doi.org/10.4230/LIPIcs.STACS.2022.19)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2821) · [The Aperiodic Domino Problem in Higher Dimension](https://doi.org/10.4230/LIPIcs.STACS.2022.19) · [Aperiodic points in subshifts — research description](https://perso.lisn.upsaclay.fr/hellouin/index_en.html)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3619 — We leave open the problem of showing an exponential lower bound on the complexity of deciding rKt complexity.
 
@@ -4130,12 +4130,12 @@ In an all-pay bidding graph game, both players spend their bids to compete for c
 [Read in atlas](index.html#TCS-2744) · [An Updated Survey of Bidding Games on Graphs (Invited Talk)](https://doi.org/10.4230/LIPIcs.MFCS.2022.3)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2815 — The use of finite-horizon objectives simplifies the analysis (note that the existence of infinite-horizon NE for CSGs is an open problem [7], and the verification […]
+### TCS-2815 — Exact Nash equilibria for infinite-horizon concurrent stochastic games
 
-Concurrent stochastic games model several agents choosing actions simultaneously while probabilistic transitions determine the next state. A Nash equilibrium is a strategy profile in which no agent can improve its own objective by changing strategy alone. The cited discussion highlights the existence question for infinite-horizon equilibria, contrasting it with finite-horizon analysis by backward induction. The catalogue excerpt does not specify enough payoff and strategy assumptions to treat this as an unrestricted equilibrium theorem, so those conditions must be taken from the underlying game model. The research direction concerns when stable behavior persists beyond a fixed execution horizon in verification and synthesis.
+The question concerns stable strategic behavior in games with simultaneous actions and no fixed time horizon. Exact Nash equilibrium forbids any profitable unilateral change of strategy. Finite-horizon and approximate equilibrium results do not automatically imply exact infinite-horizon existence. The survey and its underlying citation use different information conventions and discuss several payoff classes. Those choices must be reconciled before this card can specify one universal existence theorem.
 
-[Read in atlas](index.html#TCS-2815) · [Probabilistic Model Checking for Strategic Equilibria-Based Decision Making: Advances and Challenges (Invited Talk)](https://doi.org/10.4230/LIPIcs.MFCS.2022.4)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2815) · [Probabilistic Model Checking for Strategic Equilibria-Based Decision Making: Advances and Challenges (Invited Talk)](https://doi.org/10.4230/LIPIcs.MFCS.2022.4) · [Mixed Nash Equilibria in Concurrent Terminal-Reward Games](https://doi.org/10.4230/LIPIcs.FSTTCS.2014.351)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3857 — We instead address the following question: can cardinal mechanisms with low distortion be very different from ordinal mechanisms?
 
