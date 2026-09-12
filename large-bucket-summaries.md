@@ -1416,13 +1416,6 @@ Two-dimensional shifts of finite type impose finitely many local constraints on 
 [Read in atlas](index.html#TCS-3378) · [Decidability and Periodicity of Low Complexity Tilings](https://doi.org/10.4230/LIPIcs.STACS.2020.14)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3553 — Whether our techniques can be extended beyond weak automata – hopefully to all tree automata or, equivalently, full MSO logic, or full µ-calculus – remains […]
-
-A regular language of infinite trees defines an event under a random tree-generating process. This project asks whether its probability measure can be computed for general tree automata, extending the source's result for weak automata. General acceptance allows alternation between least and greatest fixed points, bringing more complicated limiting behavior. The corresponding logical target includes full monadic second-order logic and the modal mu-calculus. A general algorithm would enable exact probabilistic analysis of branching specifications whose recurring obligations exceed the weak acceptance fragment.
-
-[Read in atlas](index.html#TCS-3553) · [Computing Measures of Weak-MSO Definable Sets of Trees](https://doi.org/10.4230/LIPIcs.ICALP.2020.136)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3594 — We leave open the question of whether alternating GFG automata of stronger acceptance conditions allow for doubly-exponential succinctness compared to deterministic automata.
 
 Alternating good-for-games automata combine existential and universal branching while retaining choices compatible with game composition. The project asks whether stronger infinite-word acceptance conditions allow them to be doubly exponentially smaller than equivalent deterministic automata. Existing transformations for Büchi acceptance provide context but do not settle these richer conditions. Both the language and the good-for-games requirement must be preserved when constructing separating families. A tight succinctness result would measure how much alternating branching can compress specifications while maintaining their usefulness in interactive verification.
@@ -1590,6 +1583,13 @@ A min-plus weighted automaton assigns each finite word the minimum accumulated c
 
 [Read in atlas](index.html#TCS-0121) · [Automata Exchange](https://automata.exchange/22.05-decidability-of-min-plus-weighted-automata-determinization/) · [Determinization of Min-Plus Weighted Automata is Decidable](https://arxiv.org/abs/2503.23826v1) · [Determinization of Min-Plus Weighted Automata is Decidable](https://epubs.siam.org/doi/10.1137/1.9781611978971.11) · [A Complexity Bound for Determinisation of Min-Plus Weighted Automata](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.LICS.2026.5)
 Existing status: `resolved` · Summary written: 2026-09-11
+
+### TCS-3553 — Computing measures of all regular languages of infinite trees
+
+A tree language describes which labelled branching structures satisfy a specification. The source asks whether its probability can be computed for every regular language, beyond weak automata. The probability is over independent uniform labels, or more generally a finite rational branching process. A 2023 theorem computes an exact algebraic answer for arbitrary parity tree automata. The full version, published in JACM in 2026, resolves the original computability question.
+
+[Read in atlas](index.html#TCS-3553) · [Computing Measures of Weak-MSO Definable Sets of Trees](https://doi.org/10.4230/LIPIcs.ICALP.2020.136) · [The Probabilistic Rabin Tree Theorem](https://doi.org/10.1109/LICS56636.2023.10175800) · [On the Computability of Measures of Regular Sets of Infinite Trees](https://arxiv.org/abs/2304.12158) · [On the Computability of Measures of Regular Sets of Infinite Trees](https://doi.org/10.1145/3819061)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Semantics, logic and verification (77)
 
