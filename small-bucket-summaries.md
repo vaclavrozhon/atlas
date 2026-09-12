@@ -1559,10 +1559,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6756 — Optimal approximation of general-domain k-CSP
 
-General-domain k-CSPs assign variables values from a finite alphabet while optimizing constraints of bounded arity. The saved question asks whether the source's stated approximation guarantee is asymptotically optimal. Alphabet size introduces an additional parameter that can change both a random assignment baseline and the power of algorithmic relaxations. A matching lower bound would explain the full parameter dependence of that guarantee. The imported note omits the algorithmic formula and parameter regime, and its 2017 provenance does not establish whether later work has already changed the relevant approximation landscape.
+Each variable takes one of several labels, and each constraint inspects a bounded number of variables. The goal is to maximize the number of satisfied constraints. The source asks whether its approximation factor has the best possible dependence on both arity and domain size. The known matching regime is corrected from the original theorem, and new Boolean claims are kept separate. The hardness assumption and the algorithmic uniformity convention still need specification.
 
-[Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6756) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7) · [Approximation Algorithm for Non-Boolean Max-\(k\)-CSP](https://doi.org/10.4086/toc.2014.v010a013) · [Near-Optimal UGC-hardness of Approximating Max \(k\)-CSP\(_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15) · [On the Approximability of Boolean Max-\(k\)-CSP](https://arxiv.org/abs/2608.05331) · [Sharp Analysis of Gaussian Rounding for Boolean Max \(k\)-CSP](https://arxiv.org/abs/2608.07800)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-6757 — Min-CSP approximation at the SDP integrality gap
 
