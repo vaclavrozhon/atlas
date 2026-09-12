@@ -2497,12 +2497,12 @@ All servers on the real line are known before requests arrive. Each new request 
 [Read in atlas](index.html#TCS-3392) · [Online Minimum Cost Matching with Recourse on the Line](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.37) · [Online Metric Matching on the Line with Recourse](https://doi.org/10.1007/s00453-025-01299-8) · [On the Stability of Minimum-Weight Perfect Matching on the Line](https://doi.org/10.4230/LIPIcs.ESA.2026.27)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3566 — It thus remains open to obtain a ε−3 -complexity algorithm for general convex sets that does not depend on the dimension, or show that this […]
+### TCS-3566 — Dimension-independent ε⁻³ oracle complexity for smooth online optimization
 
-Projection-free online optimization accesses its convex feasible region through linear optimization instead of expensive projections. The source improves the accuracy dependence using follow-the-perturbed-leader and smoothing, but retains a dimension-dependent factor for general domains. It asks for complexity of order epsilon to the minus three with no dimension dependence, or an impossibility result. The number of linear optimizations and gradient evaluations per iteration remains restricted in this framework. A solution would determine whether the cost of the smoothing geometry can be removed while preserving the main reason projection-free methods are computationally attractive.
+The learner repeatedly chooses a point in a convex set before seeing that round’s loss. The question asks for expected average regret at most ε using O(ε⁻³) total gradient and linear-optimization calls. Losses are smooth and convex, but the feasible set and its ambient dimension are arbitrary. The source’s bound has an extra dimension factor, while later checked improvements use stronger loss assumptions or different oracles. Resolving the question requires a bound uniform in dimension and feasible geometry, or a lower bound ruling out that uniform rate.
 
-[Read in atlas](index.html#TCS-3566) · [Faster Projection-free Online Learning](https://proceedings.mlr.press/v125/hazan20a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3566) · [Faster Projection-free Online Learning](https://proceedings.mlr.press/v125/hazan20a.html) · [Projection-free Online Exp-concave Optimization](https://proceedings.mlr.press/v195/garber23a.html) · [Online Convex Optimization with a Separation Oracle](https://arxiv.org/abs/2410.02476) · [Projection-free Algorithms for Online Convex Optimization with Adversarial Constraints](https://proceedings.mlr.press/v300/sarkar26a.html)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3690 — Regarding the adversarial bandit setting, it remains an open problem to construct an algorithm with optimal regret bounds without a priori tuning in respect to […]
 
