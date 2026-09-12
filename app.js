@@ -16,7 +16,8 @@
   const cardAreaLabel=c=>areaLabel(c.area);
   const benchmarks={top100:{label:'Top 100',quotas:{large:5,small:2}},top500:{label:'Top 500',quotas:{large:25,small:10}},top1000:{label:'Top 1000',tentative:true,quotas:{large:50,small:20}}};
   const isActive=c=>!!c&&!c.scope_exclusion&&!['resolved','excluded'].includes(c.status);
-  const inBenchmark=(c,name)=>isActive(c)&&Number.isInteger(c.importance_rank)&&c.importance_rank>0&&c.importance_rank<=(benchmarks[name]?.quotas[areasByName.get(c.area)?.group]||0);
+  let voteRanks=new Map(),areaPositions=new Map();
+  const inBenchmark=(c,name)=>isActive(c)&&(voteRanks.get(c.id)||Infinity)<=(benchmarks[name]?.quotas[areasByName.get(c.area)?.group]||0);
   const benchmarkSummary=name=>{
     const b=benchmarks[name],cards=data.cards.filter(c=>inBenchmark(c,name));
     const assigned_target=data.areas.reduce((n,a)=>n+b.quotas[a.group],0);
@@ -59,8 +60,17 @@
     return `<section class="textbook-notes"><h3>Questions recorded in textbooks and surveys</h3><p class="small muted">Dated paraphrases; definitions and assumptions are at the cited locations. A source note does not override a later review of this card.</p><ol>${c.textbook_notes.map(n=>`<li><p><strong>${esc(kinds[n.kind]||n.kind)}.</strong> ${esc(n.summary)}</p><p class="small">${esc(n.reference.authors)} · ${esc(n.reference.year)} · ${link(n.reference)} · ${esc(n.reference.locator)} · ${link({url:n.reference.pdf_url},'Original PDF ↗')}</p><p class="small muted">${esc(n.status_note)}</p>${n.caution?`<p class="small muted">Source caveat: ${esc(n.caution)}</p>`:''}</li>`).join('')}</ol></section>`;
   }
   const importanceOrder=(a,b)=>Number(a.status==='resolved')-Number(b.status==='resolved')||(a.benchmark_focus?.position??Infinity)-(b.benchmark_focus?.position??Infinity)||(b.importance?.score??50)-(a.importance?.score??50)||a.id.localeCompare(b.id,'en');
+  const votedOrder=(a,b)=>(window.ATLAS_VOTES?.score(b.id)||0)-(window.ATLAS_VOTES?.score(a.id)||0)||importanceOrder(a,b);
+  const catalogueOrder=(a,b)=>(areaPositions.get(a.area)??Infinity)-(areaPositions.get(b.area)??Infinity)||votedOrder(a,b);
+  function rebuildVoteRanks(){
+    areaPositions=new Map(data.areas.map((a,i)=>[a.area,i]));
+    voteRanks=new Map();const counts=new Map();
+    for(const c of data.cards.filter(isActive).sort(catalogueOrder)){
+      const rank=(counts.get(c.area)||0)+1;counts.set(c.area,rank);voteRanks.set(c.id,rank);
+    }
+  }
   function importanceBadge(c){
-    return Number.isInteger(c.importance_rank)?`<span class="importance-badge">#${num(c.importance_rank)} in category</span>`:'';
+    return voteRanks.has(c.id)?`<span class="importance-badge">#${num(voteRanks.get(c.id))} in category</span>`:'';
   }
   const publicNotes=c=>window.ATLAS_COMMUNITY?.notesHTML(c.id)||'';
   function renderCompactCard(c){
@@ -75,7 +85,7 @@
     const progress=(c.progress||[]).map(p=>`<p>${esc(p.date)} · ${esc(p.text)}${cite(c,p.citation)}</p>`).join('');
     const savedQuestion=(c.working_summary||c.statement_review)&&draft?`<h3>Saved question</h3>${paragraphs(raw,c.source_formulation?'source-statement':'compact-question')}`:'';
     const expanded=draft?`${c.answer_criterion?'<h3>Answer criterion</h3>'+paragraphs(c.answer_criterion):''}${c.source_formulation?paragraphs(c.formal):''}${c.context?'<h3>Saved context</h3>'+paragraphs(c.context):''}${c.why?'<h3>Why it matters</h3>'+paragraphs(c.why):''}`:`<h3>Full statement</h3>${paragraphs(c.formal,'formal')}<h3>What would settle it</h3>${paragraphs(c.answer_criterion)}<h3>Context</h3>${paragraphs(c.context)}<h3>Why it matters</h3>${paragraphs(c.why)}`;
-    return `<article class="problem-card compact-card" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">${esc(c.id)}</a><span>${esc(cardAreaLabel(c))}</span>${importanceBadge(c)}</div><div class="card-heading"><h2>${esc(c.title)}</h2></div>${statementNotice(c)}${c.statement_review?paragraphs(text,'formal'):c.working_summary?workingSummary(c):duplicated?'':paragraphs(text,c.source_formulation?'source-statement':'compact-question')}<div class="compact-caption">${source}<p class="compact-status">${esc(note)}</p></div><details class="card-details"><summary>Details</summary><div class="details-body">${savedQuestion}${expanded}${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${progress?'<h3>Saved progress</h3>'+progress:''}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}<p class="small muted">${esc(c.status_note||'')} ${esc(c.review_note||'')}</p></div></details>${relatedProblems(c)}${publicNotes(c)}<div class="card-footer"><button type="button" data-public-note="${esc(c.id)}">Add public note</button>${canonicalLink(c)}</div></article>`;
+    return `<article class="problem-card compact-card" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><a href="#${encodeURIComponent(c.id)}" data-action="permalink">${esc(c.id)}</a><span>${esc(cardAreaLabel(c))}</span>${importanceBadge(c)}</div><div class="card-heading"><h2>${esc(c.title)}</h2></div>${window.ATLAS_VOTES?.html(c.id)||''}${statementNotice(c)}${c.statement_review?paragraphs(text,'formal'):c.working_summary?workingSummary(c):duplicated?'':paragraphs(text,c.source_formulation?'source-statement':'compact-question')}<div class="compact-caption">${source}<p class="compact-status">${esc(note)}</p></div><details class="card-details"><summary>Details</summary><div class="details-body">${savedQuestion}${expanded}${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${progress?'<h3>Saved progress</h3>'+progress:''}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}<p class="small muted">${esc(c.status_note||'')} ${esc(c.review_note||'')}</p></div></details>${relatedProblems(c)}${publicNotes(c)}<div class="card-footer"><button type="button" data-public-note="${esc(c.id)}">Add public note</button>${canonicalLink(c)}</div></article>`;
   }
   function renderCard(c){
     if($('view').value==='compact')return renderCompactCard(c);
@@ -89,16 +99,17 @@
     const context=c.context_blocks?.length?c.context_blocks.map(b=>`<p>${esc(b.text)}${b.citation?cite(c,b.citation):''}</p>`).join(''):paragraphs(c.context);
     const questionLabel=({yes_no:'Yes / no',asymptotic_complexity:'Asymptotic complexity',exact_value:'Exact value',numerical_value:'Numerical value',function:'Function / curve'})[c.question_type]||'Answer';
     const resolution=c.answer_criterion?`<section class="card-section resolution"><h3>What would settle it · ${questionLabel}</h3>${paragraphs(c.answer_criterion)}</section>`:'';
-    return `<article class="problem-card" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><span>${esc(c.id)}</span><span>${esc(cardAreaLabel(c))}</span></div>${importanceBadge(c)}<div class="card-heading"><h2>${esc(c.title_cs||c.title)}</h2></div><p class="subtitle">${c.title_cs?esc(c.title)+' · ':''}${esc(c.year||'Undated')}${mainRef?.authors?' · '+esc(mainRef.authors):''}</p>${statementNotice(c)}${workingSummary(c)}<section class="card-section"><h3>Problem statement</h3>${formal}${source}</section>${resolution}<section class="card-section"><h3>Context</h3>${context}</section><section class="card-section why"><h3>Why it matters</h3>${paragraphs(c.why)}</section><div class="status-line"><strong>${statuses[c.status]||esc(c.status)}</strong> · ${esc(c.status_note||'')}</div><details class="card-details"><summary>Progress, definitions & references</summary><div class="details-body">${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${c.context_excerpt?`<blockquote class="source-statement">${esc(c.context_excerpt.text)}<span class="source-caption">${esc(c.context_excerpt.caption)}${cite(c,c.context_excerpt.citation)}</span></blockquote>`:''}<h3>Documented progress</h3><div class="progress">${progress||'<p>An individual progress review has not yet been completed.</p>'}</div>${related}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}${c.review_note?'<p class="small muted">'+esc(c.review_note)+'</p>':''}</div></details>${relatedProblems(c)}${publicNotes(c)}<div class="card-footer"><button type="button" data-public-note="${esc(c.id)}">Add public note</button><a href="#${encodeURIComponent(c.id)}" data-action="permalink">Link to card ↗</a>${canonicalLink(c)}${mainRef?link(mainRef,'Primary source ↗'):''}</div></article>`;
+    return `<article class="problem-card" id="${esc(c.id)}" data-id="${esc(c.id)}"><div class="card-meta"><span>${esc(c.id)}</span><span>${esc(cardAreaLabel(c))}</span></div>${importanceBadge(c)}<div class="card-heading"><h2>${esc(c.title_cs||c.title)}</h2></div>${window.ATLAS_VOTES?.html(c.id)||''}<p class="subtitle">${c.title_cs?esc(c.title)+' · ':''}${esc(c.year||'Undated')}${mainRef?.authors?' · '+esc(mainRef.authors):''}</p>${statementNotice(c)}${workingSummary(c)}<section class="card-section"><h3>Problem statement</h3>${formal}${source}</section>${resolution}<section class="card-section"><h3>Context</h3>${context}</section><section class="card-section why"><h3>Why it matters</h3>${paragraphs(c.why)}</section><div class="status-line"><strong>${statuses[c.status]||esc(c.status)}</strong> · ${esc(c.status_note||'')}</div><details class="card-details"><summary>Progress, definitions & references</summary><div class="details-body">${c.definitions?'<h3>Model & notation</h3>'+paragraphs(c.definitions,'formal'):''}${c.context_excerpt?`<blockquote class="source-statement">${esc(c.context_excerpt.text)}<span class="source-caption">${esc(c.context_excerpt.caption)}${cite(c,c.context_excerpt.citation)}</span></blockquote>`:''}<h3>Documented progress</h3><div class="progress">${progress||'<p>An individual progress review has not yet been completed.</p>'}</div>${related}<h3>References</h3><ol class="references">${refs}</ol>${textbookNotes(c)}${c.review_note?'<p class="small muted">'+esc(c.review_note)+'</p>':''}</div></details>${relatedProblems(c)}${publicNotes(c)}<div class="card-footer"><button type="button" data-public-note="${esc(c.id)}">Add public note</button><a href="#${encodeURIComponent(c.id)}" data-action="permalink">Link to card ↗</a>${canonicalLink(c)}${mainRef?link(mainRef,'Primary source ↗'):''}</div></article>`;
   }
   function math(root){if(typeof renderMathInElement==='function')renderMathInElement(root,{delimiters:[{left:'$$',right:'$$',display:true},{left:'\\[',right:'\\]',display:true},{left:'\\(',right:'\\)',display:false},{left:'$',right:'$',display:false}],throwOnError:false,trust:false,strict:'ignore',ignoredClasses:['source-statement','references','public-notes']});}
   function loadMore(){const batch=state.matches.slice(state.shown,state.shown+state.batch);if(!batch.length)return;const wrap=document.createElement('div');wrap.innerHTML=batch.filter(c=>!document.getElementById(c.id)).map(renderCard).join('');while(wrap.firstChild){const c=wrap.firstChild;$('cards').appendChild(c);math(c);}state.shown+=batch.length;$('more').hidden=state.shown>=state.matches.length;}
   function filter(scroll=false){
+    rebuildVoteRanks();
     const terms=norm($('search').value).trim().split(/\s+/).filter(Boolean);
     const benchmark=$('benchmark').value,b=benchmarks[benchmark];
-    // Filtering narrows the editorial selection; it never fills its vacated places.
+    // Rank the whole category before narrowing by search or category filters.
     const pool=data.cards.filter(c=>isActive(c)&&(!b||inBenchmark(c,benchmark)));
-    state.matches=pool.filter(c=>(!state.areas.size||state.areas.has(c.area))&&terms.every(t=>searchIndex.get(c.id).includes(t))).sort(importanceOrder);
+    state.matches=pool.filter(c=>(!state.areas.size||state.areas.has(c.area))&&terms.every(t=>searchIndex.get(c.id).includes(t))).sort(catalogueOrder);
     state.shown=0;$('cards').replaceChildren();
     $('result-count').textContent=b?`${num(state.matches.length)} of ${num(pool.length)} problems · ${b.label}`:`${num(state.matches.length)} problems`;
     $('empty').hidden=state.matches.length>0;$('more').hidden=!state.matches.length;$('collapse').hidden=true;
@@ -148,7 +159,7 @@
     const active=data.cards.filter(isActive),counts=new Map();
     for(const c of active)counts.set(c.area,(counts.get(c.area)||0)+1);
     const selections=Object.keys(benchmarks).map(name=>{const summary=benchmarkSummary(name),b=benchmarks[name];return `${b.tentative?'The legacy '+b.label+' view':b.label} uses the first ${b.quotas.large} problems per large category and ${b.quotas.small} per small category: ${num(summary.total)} of ${num(summary.target)} places filled${summary.reserved_target?`, including ${num(summary.reserved_target)} places reserved for future categories`:''}.`;});
-    $('selection-plan').textContent=selections.join(' ')+' All three use the same category order and the same ranking within each category: Top 100 is contained in Top 500, which is contained in Top 1000. The first 5/2 places balance importance and diversity. Search and category filters narrow the selection; they do not promote other problems into unfilled places.';
+    $('selection-plan').textContent=selections.join(' ')+' Within each category, thumbs up minus thumbs down determines both order and selection; ties use the catalogue priority. Top 100 is contained in Top 500, which is contained in Top 1000. Search and category filters narrow these selections without filling their places with other problems.';
     $('coverage-table').innerHTML=`<table><thead><tr><th>Category</th>${Object.values(benchmarks).map(b=>`<th>${b.tentative?'Possible ':''}${b.label}</th>`).join('')}<th>Active problems</th></tr></thead><tbody>${data.areas.map(a=>`<tr><th scope="row"><button class="category-link" data-area="${esc(a.area)}">${esc(a.label)}</button></th>${Object.values(benchmarks).map(b=>`<td>${b.quotas[a.group]}</td>`).join('')}<td>${num(counts.get(a.area)||0)}</td></tr>`).join('')}</tbody></table>`;
   }
   updateStats();renderAreas();updateCoverage();
@@ -188,7 +199,37 @@
   history.replaceState(null,'',url);
   if(benchmarks[params.get('benchmark')])$('benchmark').value=params.get('benchmark');
   $('view').value=params.get('view')==='full'?'full':'compact';
-  renderAreas();filter();const hash=decodeURIComponent(location.hash.slice(1));if(cardsById.has(hash))go(hash);else revealSection(hash);
+  rebuildVoteRanks();renderAreas();filter();updateCoverage();const hash=decodeURIComponent(location.hash.slice(1));if(cardsById.has(hash))go(hash);else revealSection(hash);
+  let voteFrame=0;
+  document.addEventListener('atlas:votes',event=>{
+    cancelAnimationFrame(voteFrame);
+    voteFrame=requestAnimationFrame(()=>{
+      const scrollY=window.scrollY,toolbarBottom=document.querySelector('.toolbar').getBoundingClientRect().bottom;
+      const visible=document.getElementById(event.detail?.problemId)||[...$('cards').children].find(el=>el.getBoundingClientRect().bottom>toolbarBottom&&el.getBoundingClientRect().top<innerHeight);
+      const anchor=visible?{id:visible.id,top:visible.getBoundingClientRect().top}:null;
+      const existing=new Map([...$('cards').children].map(el=>[el.id,el])),shown=state.shown;
+      const terms=norm($('search').value).trim().split(/\s+/).filter(Boolean),benchmark=$('benchmark').value,b=benchmarks[benchmark];
+      rebuildVoteRanks();
+      const pool=data.cards.filter(c=>isActive(c)&&(!b||inBenchmark(c,benchmark)));
+      state.matches=pool.filter(c=>(!state.areas.size||state.areas.has(c.area))&&terms.every(t=>searchIndex.get(c.id).includes(t))).sort(catalogueOrder);
+      state.shown=Math.min(shown||state.batch,state.matches.length);
+      const selected=new Set(state.matches.slice(0,state.shown).map(c=>c.id));
+      for(const [id,el] of existing)if(id===anchor?.id||el.querySelector('details[open]'))selected.add(id);
+      const fragment=document.createDocumentFragment();
+      for(const c of state.matches){
+        if(!selected.has(c.id))continue;
+        let el=existing.get(c.id);
+        if(!el){const wrap=document.createElement('div');wrap.innerHTML=renderCard(c);el=wrap.firstChild;math(el);}
+        const badge=el.querySelector('.importance-badge');if(badge)badge.textContent=`#${num(voteRanks.get(c.id))} in category`;
+        fragment.appendChild(el);
+      }
+      $('cards').replaceChildren(fragment);
+      $('more').hidden=state.shown>=state.matches.length;$('empty').hidden=state.matches.length>0;
+      $('result-count').textContent=b?`${num(state.matches.length)} of ${num(pool.length)} problems · ${b.label}`:`${num(state.matches.length)} problems`;
+      renderAreas();updateCoverage();
+      if(anchor&&document.getElementById(anchor.id))window.scrollBy(0,document.getElementById(anchor.id).getBoundingClientRect().top-anchor.top);else window.scrollTo(0,scrollY);
+    });
+  });
   let currentVersion=data.meta.version||'',polling=false;
   async function applyPublication(update){
     if(!update?.version||!Array.isArray(update.cards)||!Array.isArray(update.areas))throw new Error('Invalid publication');
@@ -216,7 +257,7 @@
     // A metadata-only rename changes search terms even when every card is unchanged.
     for(const c of areasChanged?data.cards:changes)searchIndex.set(c.id,searchable(c));
     for(const a of state.areas)if(!areasByName.has(a))state.areas.delete(a);
-    updateStats();renderAreas();updateCoverage();
+    rebuildVoteRanks();updateStats();renderAreas();updateCoverage();
     $('cards').classList.add('publishing');
     // Publication size must not determine the number of DOM cards. Inserting
     // thousands of changed cards here used to freeze the page on bulk updates.

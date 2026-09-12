@@ -1075,12 +1075,12 @@ The source classifies fixed ∃ᵏ∀ queries on explicitly partitioned graphs b
 [Read in atlas](index.html#TCS-3719) · [A Fine-Grained Analogue of Schaefer’s Theorem in P: Dichotomy of Exists^k-Forall-Quantified First-Order Graph Properties](https://doi.org/10.4230/LIPIcs.CCC.2019.31) · [A Structural Investigation of the Approximability of Polynomial-Time Problems](https://doi.org/10.4230/LIPIcs.ICALP.2022.30)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-3807 — Superlinear Closest Pair lower bounds under SETH
+### TCS-3807 — SETH hardness of factor-two Closest Pair
 
-Closest Pair seeks two input points with the smallest distance in a specified metric. The source asks for a SETH-based lower bound excluding a mildly superlinear running time for a version denoted 2-CP. Fine-grained hardness depends on whether all points come from one set or a pair must cross two designated sets. A lower bound valid across the intended metrics would strengthen understanding of when geometric structure helps nearest-neighbor search. The saved sentence truncates a final condition and does not define 2-CP, so its dimension and metric restrictions cannot safely be reconstructed.
+The question concerns returning a pair within factor two of the closest distance in one point set. It asks whether SETH can rule out some n^{1+ε}-time algorithm in dimensions above logarithmic. Known ℓ∞ hardness below factor two does not settle the closed factor-two guarantee. The source’s triangle-inequality discussion is a limitation of certain reductions rather than a general impossibility theorem. The card recovers these distinctions but still needs a metric, representation, dimension-cost regime and randomness convention.
 
-[Read in atlas](index.html#TCS-3807) · [On Closest Pair in Euclidean Metric: Monochromatic is as Hard as Bichromatic](https://doi.org/10.4230/LIPIcs.ITCS.2019.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3807) · [On Closest Pair in Euclidean Metric: Monochromatic is as Hard as Bichromatic](https://doi.org/10.4230/LIPIcs.ITCS.2019.17) · [On Closest Pair in Euclidean Metric: Monochromatic is as Hard as Bichromatic](https://arxiv.org/abs/1812.00901) · [On the Complexity of Closest Pair via Polar-Pair of Point-Sets](https://doi.org/10.4230/LIPIcs.SoCG.2018.28) · [On Diameter Approximation in Directed Graphs](https://doi.org/10.4230/LIPIcs.ESA.2023.2)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3940 — Note however that we do not know whether these lower bounds imply general algorithmic hardness.
 

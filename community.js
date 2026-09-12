@@ -72,7 +72,7 @@
     const problems=contributions.filter(item=>item.kind==='problem');
     $('community-count').textContent=problems.length?`(${problems.length})`:'';
     $('community-problem-count').textContent=`(${problems.length})`;
-    $('community-problems').innerHTML=problems.length?problems.slice(0,displayed).map(item=>`<article class="community-problem" id="${item.id}"><div class="card-meta"><span>${item.id}</span><span>Community draft · not reviewed</span><span>${esc(categoryLabel(item.category))}</span></div><h2>${esc(item.title)}</h2><p class="community-author">${byAuthor(item)}</p><p class="community-statement">${esc(item.statement)}</p>${Object.keys(sectionNames).filter(key=>key!=='statement'&&item[key]).map(key=>`<section><h3>${esc(sectionNames[key])}</h3><p class="community-text">${esc(item[key])}</p></section>`).join('')}${notesHTML(item.id)}<div class="community-actions"><button type="button" data-public-note="${item.id}">Add public note</button><a href="${item.url}" target="_blank" rel="noopener noreferrer">Discuss or edit on GitHub ↗</a></div></article>`).join('')+(problems.length>displayed?'<button type="button" id="more-community">Load more community problems</button>':''):`<p class="community-empty">${loadedAt?'No community problems have been submitted yet. Use “New problem” to add the first one.':'Shared problems will appear here after contributions load.'}</p>`;
+    $('community-problems').innerHTML=problems.length?problems.slice(0,displayed).map(item=>`<article class="community-problem" id="${item.id}"><div class="card-meta"><span>${item.id}</span><span>Community draft · not reviewed</span><span>${esc(categoryLabel(item.category))}</span></div><h2>${esc(item.title)}</h2>${window.ATLAS_VOTES?.html(item.id)||''}<p class="community-author">${byAuthor(item)}</p><p class="community-statement">${esc(item.statement)}</p>${Object.keys(sectionNames).filter(key=>key!=='statement'&&item[key]).map(key=>`<section><h3>${esc(sectionNames[key])}</h3><p class="community-text">${esc(item[key])}</p></section>`).join('')}${notesHTML(item.id)}<div class="community-actions"><button type="button" data-public-note="${item.id}">Add public note</button><a href="${item.url}" target="_blank" rel="noopener noreferrer">Discuss or edit on GitHub ↗</a></div></article>`).join('')+(problems.length>displayed?'<button type="button" id="more-community">Load more community problems</button>':''):`<p class="community-empty">${loadedAt?'No community problems have been submitted yet. Use “New problem” to add the first one.':'Shared problems will appear here after contributions load.'}</p>`;
     for(const slot of document.querySelectorAll('[data-public-notes]'))slot.innerHTML=notesContent(slot.dataset.publicNotes);
     revealHash();
   }
@@ -269,6 +269,7 @@
   document.addEventListener('atlas:publication',render);
   window.addEventListener('focus',()=>refresh());
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+  document.addEventListener('atlas:votes',()=>window.ATLAS_VOTES?.render());
   window.ATLAS_COMMUNITY={notesHTML,refresh,parseIssue,submission,get contributions(){return contributions;},get loadedAt(){return loadedAt;}};
   render();refresh();
 })();
