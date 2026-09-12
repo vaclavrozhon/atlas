@@ -562,12 +562,12 @@ A communication protocol can transmit many bits while revealing much less inform
 [Read in atlas](index.html#TCS-5326) · [Multi-Party Protocols, Information Complexity and Privacy](https://doi.org/10.4230/LIPIcs.MFCS.2016.57)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5892 — Direct sums in communication complexity
+### TCS-5892 — Direct sums in randomized communication
 
-Direct-sum questions ask whether solving many communication tasks together costs roughly the sum of solving them separately. The source contrasts a near-perfect nondeterministic result with another communication setting that remains unresolved in the omitted continuation. The issue is whether combining instances permits savings that ordinary single-instance complexity fails to predict. The surrounding equality-lifting framework suggests a route for transferring lower bounds into that setting. Because the passage cuts off the actual opposing model and question, this draft retains the direct-sum direction without inventing the missing protocol convention or strength of the requested theorem.
+Alice and Bob must solve many communication tasks together, each on its own pair of private inputs. The question asks how much they can save compared with solving the tasks separately. The recovered source continuation names randomized communication but omits the exact direct-sum inequality and model. A new preprint claims a relation counterexample in a global-error model while leaving a total-function version open. The task class, error convention and quantitative bound must be fixed before this card has a single verifiable target.
 
-[Read in atlas](index.html#TCS-5892) · [Lifting Theorems for Equality](https://doi.org/10.4230/LIPIcs.STACS.2019.50)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5892) · [Lifting Theorems for Equality](https://doi.org/10.4230/LIPIcs.STACS.2019.50) · [Efficient Communication Using Partial Information](https://eccc.weizmann.ac.il/report/2010/083/) · [Zero-error information equals amortized communication complexity](https://arxiv.org/abs/2608.04141)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-6198 — Majority hardness of balanced functions
 
