@@ -502,12 +502,12 @@ SAPEPP consists of sparse total search tasks defined by a fixed polynomial-time 
 [Read in atlas](index.html#TCS-3228) · [Total Functions in the Polynomial Hierarchy](https://doi.org/10.4230/LIPIcs.ITCS.2021.44)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3308 — For example, here is an open question that we have not addressed: for (say) the game Hex, does there necessarily exist a polynomial-size circuit that […]
+### TCS-3308 — Polynomial-size circuits for optimal play in Hex
 
-Strategy-stealing arguments can prove that a player has a winning strategy without revealing how to execute it. For Hex, the source asks whether optimal play can always be represented by a circuit whose size is polynomial in the board size. The circuit would take a position and supply the appropriate move, even if constructing that circuit were computationally difficult. This separates the existence of a compact strategy from the algorithmic task of discovering one. Understanding this distinction would clarify how much constructive content can be extracted from nonconstructive proofs about combinatorial games.
+Ordinary Hex on a symmetric board always has a first-player winning strategy. The source asks whether optimal play can be represented by Boolean circuits of polynomial size as the board grows. The circuits need only exist; there is no requirement to find or generate them efficiently. This is different from computing one winning opening move or proving hardness for broader classes of games. The source must still specify whether the circuit handles only play under an empty-board winning strategy or every legal intermediate position.
 
-[Read in atlas](index.html#TCS-3308) · [Strategy-Stealing Is Non-Constructive](https://doi.org/10.4230/LIPIcs.ITCS.2020.21)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3308) · [Strategy-Stealing Is Non-Constructive](https://doi.org/10.4230/LIPIcs.ITCS.2020.21) · [Strategy-Stealing is Non-Constructive — author preprint record](https://arxiv.org/abs/1911.06907)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3509 — Is Tarski in CLS (or in EOPL)?
 
@@ -1029,12 +1029,12 @@ The graph is undirected and unweighted, with a fixed number k of prescribed term
 [Read in atlas](index.html#TCS-3263) · [Using a Geometric Lens to Find k Disjoint Shortest Paths](https://doi.org/10.4230/LIPIcs.ICALP.2021.26) · [Packing Short Cycles](https://doi.org/10.1145/3765285) · [Shortest Disjoint Paths on a Grid](https://doi.org/10.1137/1.9781611977912.14) · [Planar Disjoint Shortest Paths is Fixed-Parameter Tractable](https://arxiv.org/abs/2505.03353)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3291 — This motivates the following natural question: is there a notion of spectral sparsification that generalizes cut sparsification in directed graphs?
+### TCS-3291 — Directed spectral sparsification that preserves outgoing cuts
 
-Undirected spectral sparsifiers preserve all quadratic forms and therefore also preserve cut values. Directed graphs lack an immediately equivalent formulation with the same implication. The source asks for a useful notion of directed spectral sparsification that genuinely extends directed cut sparsification. It suggests preserving a family of one-sided difference energies and studies the role of graph balance. The project must identify both the right analytic quantity and sparse representations that preserve it, rather than simply reuse an undirected Laplacian definition.
+Directed cut balance compares the total weights crossing any cut in its two directions. The source proposes preserving a positive-part squared energy on every real vertex potential, which also preserves outgoing cut values. It asks whether this yields useful spectral guarantees and sparse representations for balanced digraphs. A September 2026 preprint claims a superlinear Eulerian lower bound, near-linear tournament sparsifiers and a quadratic-flow interpretation. Those fresh claims are recorded with their scope, while the source’s exact size and application requirements still need specification.
 
-[Read in atlas](index.html#TCS-3291) · [Sparsification of Directed Graphs via Cut Balance](https://doi.org/10.4230/LIPIcs.ICALP.2021.45)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3291) · [Sparsification of Directed Graphs via Cut Balance](https://doi.org/10.4230/LIPIcs.ICALP.2021.45) · [Beyond Cut Balance: Spectral Sparsification of the Nonlinear Directed Laplacian](https://arxiv.org/abs/2609.08177) · [Fully Dynamic Spectral and Cut Sparsifiers for Directed Graphs](https://doi.org/10.4230/LIPIcs.ICALP.2026.157)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3346 — Indeed, it is an open problem whether the running time for the hypergraph isomorphism problem can be improved to 2polylog ∣V ∣ ⋅ ∣H∣O(1) [2].
 
