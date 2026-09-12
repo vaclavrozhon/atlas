@@ -1022,12 +1022,12 @@ The input is an unweighted directed graph with specified endpoints. The problem 
 [Read in atlas](index.html#TCS-2822) · [Detours in Directed Graphs](https://doi.org/10.4230/LIPIcs.STACS.2022.29) · [Detours in directed graphs — journal version](https://doi.org/10.1016/j.jcss.2023.05.001) · [Simpler and faster algorithms for detours in planar digraphs](https://arxiv.org/abs/2301.02421)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3263 — Thus, if there are no k disjoint shortest paths, then computing k disjoint paths minimizing their total length in polynomial time is still an open […]
+### TCS-3263 — Polynomial-time minimum-total-length disjoint paths for fixed k
 
-Several terminal pairs in an undirected graph need mutually vertex-disjoint connecting paths. This question minimizes their total length even when the individually shortest routes cannot be chosen disjointly. The source asks for polynomial-time algorithms for a fixed number of pairs at least three. Methods deciding whether disjoint individual shortest paths exist rely on structure that disappears when detours are permitted. The project studies how global congestion constraints alter length optimization once the ideal independent routes are incompatible.
+The graph is undirected and unweighted, with a fixed number k of prescribed terminal pairs. The task is to find vertex-disjoint routes with the smallest possible total number of edges, or report that routing is impossible. Individual routes may need to be longer than their own shortest paths to avoid the others. The source asks for polynomial time at every fixed k≥3, allowing the exponent to depend on k. Recent grid and individually-shortest-path results do not settle the general problem, which a 2025 published paper still lists as open for three pairs.
 
-[Read in atlas](index.html#TCS-3263) · [Using a Geometric Lens to Find k Disjoint Shortest Paths](https://doi.org/10.4230/LIPIcs.ICALP.2021.26)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3263) · [Using a Geometric Lens to Find k Disjoint Shortest Paths](https://doi.org/10.4230/LIPIcs.ICALP.2021.26) · [Packing Short Cycles](https://doi.org/10.1145/3765285) · [Shortest Disjoint Paths on a Grid](https://doi.org/10.1137/1.9781611977912.14) · [Planar Disjoint Shortest Paths is Fixed-Parameter Tractable](https://arxiv.org/abs/2505.03353)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3291 — This motivates the following natural question: is there a notion of spectral sparsification that generalizes cut sparsification in directed graphs?
 
@@ -4601,12 +4601,12 @@ A quantum partition function aggregates contributions from a Hamiltonian describ
 [Read in atlas](index.html#TCS-2707) · [Polynomial-Time Approximation of Zero-Free Partition Functions](https://doi.org/10.4230/LIPIcs.ICALP.2022.108)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3275 — Error reduction of StoqMA remains open since this class was defined in 2006 [9] because this class does not permit amplification of gap between thresholds […]
+### TCS-3275 — Can StoqMA amplify both completeness and soundness?
 
-StoqMA is a restricted quantum proof class motivated by Hamiltonians with nonnegative structure after the appropriate representation. Its verifier accepts valid and invalid inputs with probabilities separated by at least an inverse-polynomial gap. The question is whether that gap can be amplified efficiently while remaining within the same restricted verifier model. The usual strategy of repeating a test and taking a majority is not automatically an allowed StoqMA computation. A solution would clarify the robustness of the class definition and whether weakly distinguishable stoquastic proofs can be converted into strongly reliable ones.
+A StoqMA verifier uses classical reversible gates, special initial ancillas and one final measurement in the plus/minus basis. It accepts a suitable nonnegative quantum witness on yes instances and must reject arbitrary witnesses with the prescribed soundness bound on no instances. The question asks whether every inverse-polynomial gap can be amplified to completeness exponentially close to one and soundness exponentially close to one half. Soundness-only repetition is known, but it does not provide this simultaneous improvement. A published theorem makes full error reduction equivalent to StoqMA=MA, and July 2026 work still states the general problem as open.
 
-[Read in atlas](index.html#TCS-3275) · [StoqMA Meets Distribution Testing](https://doi.org/10.4230/LIPIcs.TQC.2021.4)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3275) · [StoqMA Meets Distribution Testing](https://doi.org/10.4230/LIPIcs.TQC.2021.4) · [StoqMA vs. MA: the power of error reduction](https://doi.org/10.22331/q-2025-09-11-1853) · [The power of unentanglement without destructive interference](https://arxiv.org/abs/2604.27886) · [The Collapse of Unentangled Stoquastic Merlin-Arthur Proof Systems](https://arxiv.org/abs/2605.16249)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3379 — The complexity of k-LH on a 1D line remains open for local dimension 2 ≤ d ≤ 7.
 

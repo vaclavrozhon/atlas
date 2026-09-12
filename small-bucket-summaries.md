@@ -1560,12 +1560,12 @@ The source asks for a construction that turns any candidate hard Boolean functio
 [Read in atlas](index.html#TCS-2663) · [On Hardness Assumptions Needed for "Extreme High-End" PRGs and Fast Derandomization](https://doi.org/10.4230/LIPIcs.ITCS.2022.116) · [On Hardness Assumptions Needed for “Extreme High-End” PRGs and Fast Derandomization — full version](https://arxiv.org/abs/2311.11663) · [Towards Free Lunch Derandomization from Necessary Assumptions (And OWFs)](https://doi.org/10.4230/LIPIcs.CCC.2025.31)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3222 — Does existence of a SOS-hard family solve PIT completely?
+### TCS-3222 — Does weighted SOS hardness imply polynomial-time blackbox PIT?
 
-Polynomial identity testing decides whether a represented polynomial is identically zero. The cited paper asks whether the existence of a family hard for its sum-of-squares representation would completely derandomize PIT. Hard algebraic families can sometimes serve as ingredients for test sets that distinguish nonzero polynomials. A full implication would connect a concrete algebraic lower-bound problem to one of the main derandomization questions in symbolic computation. The saved sentence does not define SOS-hardness or the circuits covered by complete PIT, so those assumptions must remain attached to the source's precise framework.
+Weighted SOS complexity counts monomials inside a representation as a field-weighted sum of polynomial squares. The source assumes an explicit constant-variate family whose complexity grows slightly faster than the basic square-root scale. It asks whether that hypothesis gives a deterministic polynomial-time blackbox identity test for general arithmetic circuits. The known SOS consequences are weaker, and the 2024 journal version still poses the full derandomization question. Field, coefficient representation and operation-cost conventions must be finalized without replacing the original explicitness hypothesis.
 
-[Read in atlas](index.html#TCS-3222) · [A Largish Sum-Of-Squares Implies Circuit Hardness and Derandomization](https://doi.org/10.4230/LIPIcs.ITCS.2021.23)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3222) · [A Largish Sum-Of-Squares Implies Circuit Hardness and Derandomization](https://doi.org/10.4230/LIPIcs.ITCS.2021.23) · [Weighted Sum-of-Squares Lower Bounds for Univariate Polynomials Imply VP ≠ VNP](https://doi.org/10.1007/s00037-024-00249-0)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3393 — In light of Proposition 8, we leave as an interesting open question whether there is any barrier explaining the difficulty of proving NP-hardness of the […]
 
