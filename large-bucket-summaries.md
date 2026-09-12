@@ -1810,12 +1810,12 @@ Church's thesis, as a type-theoretic axiom, says that every total function from 
 [Read in atlas](index.html#TCS-3031) · [Church’s Thesis and Related Axioms in Coq’s Type Theory](https://doi.org/10.4230/LIPIcs.CSL.2021.21)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3152 — The characterization of the class of types satisfying this property is an open problem (a partial characterization is described in [46]).
+### TCS-3152 — Which polymorphic types have instantiation overflow?
 
-The cited paper studies decidability questions about atomic polymorphism in a type-theoretic setting. The saved passage asks for a characterization of the types satisfying a particular property. A classification would explain which syntactic type forms permit the behavior established in the surrounding results. The source mentions a partial characterization, suggesting a gap between known sufficient conditions and the full class. The excerpt does not preserve the property itself, so it cannot safely be interpreted as a CSP polymorphism question merely because the same word appears in both subjects.
+Atomic System F allows a universally quantified type to be instantiated directly only at another type variable. A type has instantiation overflow if atomic-typed terms can still realize every arbitrary substitution into its quantified body. The question asks for a classification of all such types, including bodies with nested quantifiers. The cited characterization covers only quantifier-free bodies, and decidability is a separately stated question. The property is now explicit, but the source still leaves the required form of a general characterization unspecified.
 
-[Read in atlas](index.html#TCS-3152) · [What’s Decidable About (Atomic) Polymorphism?](https://doi.org/10.4230/LIPIcs.FSCD.2021.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3152) · [What’s Decidable About (Atomic) Polymorphism?](https://doi.org/10.4230/LIPIcs.FSCD.2021.27) · [Proof nets and the instantiation overflow property](https://arxiv.org/abs/1803.09297) · [Paolo Pistone — publications](https://perso.ens-lyon.fr/paolo.pistone/) · [The Naturality of Natural Deduction (II): On Atomic Polymorphism and Generalized Propositional Connectives](https://doi.org/10.1007/s11225-021-09964-z)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3324 — The decidability of Th(Rexp ) is an open problem and hinges upon Schanuel’s conjecture [24].
 

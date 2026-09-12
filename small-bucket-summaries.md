@@ -765,12 +765,12 @@ The algorithm distinguishes a random graph from one with a uniformly planted cli
 [Read in atlas](index.html#TCS-3146) · [Average-Case Communication Complexity of Statistical Problems](https://proceedings.mlr.press/v134/rashtchian21a.html) · [Average-Case Communication Complexity of Statistical Problems — author version record](https://arxiv.org/abs/2107.01335)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3153 — This still p leaves the following question open: do there exist Boolean functions f for which r(f ) = ω( k(f ))?
+### TCS-3153 — Can Boolean Fourier rank grow faster than the square root of sparsity?
 
-The source studies structural Fourier parameters of Boolean functions through strengthened forms of Chang's lemma. Its question asks whether there are functions with r(f) asymptotically larger than the square-root scale suggested for k(f). Such examples would establish a separation between two measures of spectral complexity rather than merely improve an upper-bound proof. They would clarify how sharply the source's structural estimates can constrain Boolean Fourier support. The extraction has displaced the square-root notation and does not define r or k, so the exact comparison must be recovered before constructing examples or claiming an asymptotic gap.
+A Boolean function has a Fourier expansion in parity characters. Its sparsity counts nonzero coefficients, while its rank is the F₂ dimension spanned by their index sets. The question asks whether rank can exceed the square root of sparsity by an unbounded factor. Known addressing examples attain the square-root scale, and the published universal upper bound allows an additional logarithmic factor. The answer requires either an asymptotically separating family or a universal square-root bound with an absolute constant.
 
-[Read in atlas](index.html#TCS-3153) · [Tight Chang’s-Lemma-Type Bounds for Boolean Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2021.10)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3153) · [Tight Chang’s-Lemma-Type Bounds for Boolean Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2021.10) · [Fourier Sparsity and Dimension](https://theoryofcomputing.org/articles/v015a011/) · [Spectral Norm, Economical Sieve, and Linear Invariance Testing of Boolean Functions](https://doi.org/10.4230/LIPIcs.STACS.2026.30)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3512 — What general upper bounds can we get on universal SMP in terms of weakly-universal SMP?
 
@@ -3063,12 +3063,12 @@ The source studies counting copies of graph patterns modulo two under parameteri
 [Read in atlas](index.html#TCS-3037) · [Modular Counting of Subgraphs: Matchings, Matching-Splittable Graphs, and Paths](https://doi.org/10.4230/LIPIcs.ESA.2021.34)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3151 — It remains open whether the problem of enumerating equivalence classes is hard without this restriction.
+### TCS-3151 — Enumerating equivalent solutions without AND/OR decomposability
 
-Enumeration modulo an equivalence relation outputs one representative for each class of solutions. The source asks whether a hardness result persists after removing a particular restriction. The distinction matters because many raw solutions may encode the same object, and eliminating duplicates can be harder than generating witnesses. A stronger result would show that the difficulty comes from quotient enumeration itself rather than the restricted input format used in the proof. The saved passage does not name that restriction or equivalence model, so the exact hardness target must be recovered before this becomes a standalone statement.
+The input is an acyclic AND/OR graph representing alternative decompositions of solutions. Solutions are grouped by the colored rooted trees obtained after removing their AND steps. The source can enumerate these classes with polynomial delay when subproblems below each AND vertex are disjoint. It asks whether enumeration becomes hard after that decomposability condition is removed. Shared descendants then require an explicit choice of solution semantics, class identity and output-size convention, which the conclusion does not supply.
 
-[Read in atlas](index.html#TCS-3151) · [A General Framework for Enumerating Equivalence Classes of Solutions](https://doi.org/10.4230/LIPIcs.ESA.2021.80)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3151) · [A General Framework for Enumerating Equivalence Classes of Solutions](https://doi.org/10.4230/LIPIcs.ESA.2021.80) · [A general framework for enumerating equivalence classes of solutions — extended version](https://arxiv.org/abs/2004.12143)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3609 — In particular, we conjecture that there exists a class of conjunctive queries ∆ for which #Hom(∆) is #Wfunc [2]-equivalent.
 
