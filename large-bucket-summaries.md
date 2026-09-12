@@ -1180,13 +1180,6 @@ Reachability in a three-dimensional vector addition system asks for a legal coun
 [Read in atlas](index.html#TCS-6245) · [Involved VASS Zoo (Invited Talk)](https://doi.org/10.4230/LIPIcs.CONCUR.2022.5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6279 — Milner’s completeness problem for regular expressions
-
-Regular expressions can describe branching processes as well as word languages, and bisimulation compares their stepwise behavior. Milner's completeness question asks whether the proposed axiom system proves every equality between bisimilar regular-expression processes. This is stronger than checking that the axioms are sound and differs from the familiar equational theory of language equivalence. The 2021 source suggests using coequations and coalgebraic methods developed for Guarded Kleene Algebra with Tests to advance the completeness argument. The research project connects operational process semantics with a deductive account of iteration, choice, and sequential composition.
-
-[Read in atlas](index.html#TCS-6279) · [Guarded Kleene Algebra with Tests: Coequations, Coinduction, and Completeness](https://doi.org/10.4230/LIPIcs.ICALP.2021.142)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-6359 — Decidability and completeness of concurrent Kleene algebra
 
 Concurrent Kleene algebra represents executions as partially ordered multisets of events, preserving distinctions between sequential and parallel behavior. Refinement compares such executions by allowing additional ordering, and the interchange law captures a basic relationship between sequential and parallel composition. The quoted question concerns decidability and completeness for refinement of expressions with iteration. The source itself settles the decision problem for series-rational expressions without parallel iteration, proving EXPSPACE-completeness, while the broader signature and axiomatization questions are distinct. This distinction matters when deciding whether a concurrent specification permits an implementation with a greater degree of sequentialization.
@@ -1235,6 +1228,13 @@ A vector addition system repeatedly adds permitted integer vectors while keeping
 
 [Read in atlas](index.html#TCS-5600) · [Polynomial Vector Addition Systems With States](https://doi.org/10.4230/LIPIcs.ICALP.2018.134) · [The Reachability Problem for Petri Nets Is Not Elementary](https://doi.org/10.1145/3422822) · [Reachability in Vector Addition Systems is Ackermann-complete](https://arxiv.org/abs/2104.13866v4) · [On the Reachability Problem for Two-Dimensional Branching VASS](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2025.22)
 Existing status: `resolved` · Summary written: 2026-09-11
+
+### TCS-6279 — Milner’s completeness problem
+
+Regular expressions here describe branching processes with deadlock and successful termination. Two expressions are equivalent when their transitions and termination behavior match by bisimulation. Milner’s rules give a sound way to prove such equivalences. The question was whether every equivalence has a finite proof in that system. Grabmayer’s published 2022 theorem answers yes for the full language.
+
+[Read in atlas](index.html#TCS-6279) · [Guarded Kleene Algebra with Tests: Coequations, Coinduction, and Completeness](https://doi.org/10.4230/LIPIcs.ICALP.2021.142) · [Milner’s Proof System for Regular Expressions Modulo Bisimilarity is Complete: Crystallization: Near-Collapsing Process Graph Interpretations of Regular Expressions](https://doi.org/10.1145/3531130.3532430) · [A General Completeness Theorem for Skip-Free Star Algebras](https://doi.org/10.1007/978-3-031-90897-2_13)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Distributed, parallel and sublinear algorithms (66)
 
