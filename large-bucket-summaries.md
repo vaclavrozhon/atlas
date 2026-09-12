@@ -1353,12 +1353,12 @@ Alternating good-for-games automata combine existential and universal branching 
 [Read in atlas](index.html#TCS-3594) · [Good for Games Automata: From Nondeterminism to Alternation](https://doi.org/10.4230/LIPIcs.CONCUR.2019.19)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3801 — State lower bounds for alternating parity translations
+### TCS-3801 — State complexity of parity-to-weak word automata
 
-Alternating parity word automata can be translated into weaker acceptance models at a cost in their number of states. This project asks for lower bounds improving the source's longstanding n-log-n barrier for such translations. Candidate techniques combine carefully chosen full automata with structural arguments based on universal trees or graphs. Upper bounds alone do not show that their added states are necessary, particularly when both kinds of alternation can cooperate. Stronger lower bounds would identify the unavoidable representation cost of simplifying recurring-priority acceptance.
+Alternating parity automata recognize infinite-word languages using a parity condition on recurring states. An alternating weak automaton must label each strongly connected component consistently as accepting or rejecting. The question now asks for the worst-case minimum number of weak states as a function of the number of parity states, up to constant factors. Known lower bounds are Ω(n log n), whereas the general upper bound is quasipolynomial. The source asks to improve the lower bound; the expanded quantitative target must apply to arbitrary translations over words, not only particular constructions or tree languages.
 
-[Read in atlas](index.html#TCS-3801) · [Alternating Weak Automata from Universal Trees](https://doi.org/10.4230/LIPIcs.CONCUR.2019.18)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3801) · [Alternating Weak Automata from Universal Trees](https://doi.org/10.4230/LIPIcs.CONCUR.2019.18) · [On the Way to Alternating Weak Automata](https://doi.org/10.4230/LIPIcs.FSTTCS.2018.21) · [Singly Exponential Translation of Alternating Weak Büchi Automata to Unambiguous Büchi Automata](https://doi.org/10.4230/LIPIcs.CONCUR.2023.37)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3863 — Containment of finitely ambiguous automata
 
@@ -2491,12 +2491,12 @@ Set agreement lets n processes decide at most k proposed values. Its task has an
 [Read in atlas](index.html#TCS-3792) · [On Deterministic Linearizable Set Agreement Objects](https://doi.org/10.4230/LIPIcs.OPODIS.2019.16) · [On the Number of Objects with Distinct Power and the Linearizability of Set Agreement Objects](https://doi.org/10.4230/LIPIcs.DISC.2017.12) · [Life beyond set agreement](https://doi.org/10.1007/s00446-020-00372-5)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-3806 — Polynomial-pass parameterized streaming Vertex Cover
+### TCS-3806 — Polynomial-pass streaming Vertex Cover
 
-A parameterized streaming vertex-cover algorithm asks whether a graph has a cover of at most k vertices while scanning its edges. The source gives an insertion-only algorithm using O(k log n) bits, but it may require exponentially many passes in k. The question is whether polynomially many passes suffice at that same space bound or whether a superpolynomial pass lower bound can be proved. Available lower bounds leave a large gap, so optimal memory alone does not determine practical efficiency. Resolving the tradeoff would show whether compact storage of a small candidate solution can coexist with a manageable number of complete input scans.
+The graph arrives as an arbitrary fixed-order stream of edges, and k is a proposed upper bound on a vertex cover’s size. The target is an exact cover or a correct NO answer using O(k log n) bits and polynomially many passes. Known algorithms attain that memory bound with 2^k passes, while one-pass solutions use more memory. Randomized algorithms with constant success probability are allowed, but space and pass bounds are worst case. A 2024 polynomial-pass kernelization uses the desired memory to emit a small graph; it does not solve that graph within the same resources.
 
-[Read in atlas](index.html#TCS-3806) · [Towards a Theory of Parameterized Streaming Algorithms](https://doi.org/10.4230/LIPIcs.IPEC.2019.7)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3806) · [Towards a Theory of Parameterized Streaming Algorithms](https://doi.org/10.4230/LIPIcs.IPEC.2019.7) · [Towards a Theory of Parameterized Streaming Algorithms](https://arxiv.org/abs/1911.09650) · [Parameterized Complexity of Streaming Diameter and Connectivity Problems](https://doi.org/10.1007/s00453-024-01246-z)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3845 — Efficient distributed multicommodity routing
 
