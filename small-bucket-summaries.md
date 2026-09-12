@@ -4517,12 +4517,12 @@ An equation for VP is a nonzero polynomial that eventually vanishes on coefficie
 [Read in atlas](index.html#TCS-2958) · [If VNP Is Hard, Then so Are Equations for It](https://doi.org/10.4230/LIPIcs.STACS.2022.44) · [On the Existence of Algebraic Natural Proofs — combined full version](https://arxiv.org/abs/2004.14147) · [On the Existence of Algebraic Natural Proofs](https://doi.org/10.1007/s00037-026-00289-8)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3007 — Is it true that for infinitely many r there exists a matrix A ∈ Cr (Q, 2) with RQ (A, r) = r2 ?
+### TCS-3007 — Maximal rational rigidity despite a quadratic-field diagonal correction
 
-Matrix rigidity counts the entries that must be changed to reduce a matrix to a specified rank. The source distinguishes changes over the rational numbers from changes allowed in the extension field obtained by adjoining the square root of two. It asks whether its structured family of rational 2r-by-2r matrices contains examples with rank-r rational rigidity exactly r squared for infinitely many r. Members of this family can have their rank reduced using only linearly many changes over the extension field. Such examples would make the choice of permissible field dramatically affect rigidity, reaching the largest possible rational value at this target rank.
+The input class consists of rational matrices that become rank at most half their order after a quadratic-field diagonal correction. At most 2r entries need change when values from ℚ(√2) are allowed. The question asks whether rational-only changes can require the maximum r² entries for infinitely many orders. The source proves only a linear rational lower bound within this class. The exact quadratic target would demonstrate an extreme dependence of rigidity on the permitted field.
 
 [Read in atlas](index.html#TCS-3007) · [Matrix Rigidity Depends on the Target Field](https://doi.org/10.4230/LIPIcs.CCC.2021.41)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3056 — We leave it as an open problem whether similarly efficient deterministic algorithms exist under the presence of negative entries.
 
