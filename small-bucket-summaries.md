@@ -4363,12 +4363,12 @@ Graphs of groups describe a group by assembling vertex groups along a graph with
 [Read in atlas](index.html#TCS-3866) · [The Isomorphism Problem for Finite Extensions of Free Groups Is In PSPACE](https://doi.org/10.4230/LIPIcs.ICALP.2018.139)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3959 — AnnAtZero and approximate polynomial satisfiability in AM under GRH
+### TCS-3959 — Approximate polynomial satisfiability in AM under GRH
 
-This record concerns the algebraic decision problems denoted AnnAtZero and APS in the cited paper. It asks whether they lie in Arthur–Merlin interactive proof complexity over characteristic-zero fields under the Generalized Riemann Hypothesis. The surrounding study connects algebraic dependencies with algorithms for approximative computation. Such a containment would give a substantially different complexity upper-bound perspective than the PSPACE methods named in the source title. The saved sentence does not expand the two problem definitions or specify their input fields and encodings, and the number-theoretic assumption must remain explicit.
+Approximate polynomial satisfiability asks whether a rational polynomial system can have all residuals arbitrarily close to zero over the complex numbers. The approximating points may diverge, so an exact common root need not exist. Equivalently, every algebraic relation among the input polynomials must have zero constant term. The question asks whether a polynomial-time public-coin interactive verifier can decide this under GRH; APS is currently known to be NP-hard and in PSPACE. A February 2026 extension treats containment of approximate solution sets in PSPACE and does not supply the requested AM bound.
 
-[Read in atlas](index.html#TCS-3959) · [Algebraic Dependencies and PSPACE Algorithms in Approximative Complexity](https://doi.org/10.4230/LIPIcs.CCC.2018.10)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3959) · [Algebraic Dependencies and PSPACE Algorithms in Approximative Complexity](https://doi.org/10.4230/LIPIcs.CCC.2018.10) · [Algebraic Dependencies and PSPACE Algorithms in Approximative Complexity over Any Field](https://doi.org/10.4086/toc.2019.v015a016) · [When Hilbert approximates: A Strong Nullstellensatz for Approximate Polynomial Satisfiability](https://eccc.weizmann.ac.il/report/2026/026/)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4110 — Real-stability testing in three or more variables
 
