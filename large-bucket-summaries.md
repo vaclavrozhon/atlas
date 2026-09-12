@@ -1838,12 +1838,12 @@ Rounded linear dynamics repeatedly applies a rational matrix and then rounds coo
 [Read in atlas](index.html#TCS-3344) · [Reachability in Dynamical Systems with Rounding](https://doi.org/10.4230/LIPIcs.FSTTCS.2020.36)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3401 — We leave the decidability status open for Dsum, but nevertheless show decidability for a large class, namely when the discount factor is of N the […]
+### TCS-3401 — Decidability of approximate synthesis with arbitrary rational discounting
 
-Quantitative synthesis seeks a reactive transducer whose finite executions achieve values specified by a weighted automaton. In approximate synthesis, the output must remain within the prescribed tolerance of the best achievable value for the relevant input. The problem asks for decidability when execution values are discounted sums with a general permitted discount factor. The source handles the special factors 1/n using determinization results, but its techniques do not settle the full discounted-sum setting. A general decision procedure would determine when controllers can be synthesized to make uniformly near-optimal choices despite the differing influence of early and late actions.
+The input specification is a deterministic weighted automaton on alternating input and output symbols. A finite-state transducer must generate outputs online and accept exactly the input words for which some admissible output exists. Its discounted value must stay within a given additive tolerance of the best admissible output chosen in hindsight for the same finite input word. The source decides this for reciprocal-integer discounts but leaves arbitrary rational discounts open. The later functional-determinization result concerns the restricted discount regime and does not settle the general approximate-synthesis question.
 
-[Read in atlas](index.html#TCS-3401) · [Synthesis from Weighted Specifications with Partial Domains over Finite Words](https://doi.org/10.4230/LIPIcs.FSTTCS.2020.46)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3401) · [Synthesis from Weighted Specifications with Partial Domains over Finite Words](https://doi.org/10.4230/LIPIcs.FSTTCS.2020.46) · [Synthesis from Weighted Specifications with Partial Domains over Finite Words — full version](https://arxiv.org/abs/2103.05550) · [Determinization of Integral Discounted-Sum Automata is Decidable](https://doi.org/10.1007/978-3-031-57228-9_10)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3479 — Can Markov chains with continuous emissions be model-checked efficiently?
 
