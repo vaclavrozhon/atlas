@@ -858,10 +858,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4659 — Determinacy of Wadge games for Muller tree languages
 
-Wadge games compare two languages by asking players to construct objects whose membership outcomes correspond. This project concerns languages of infinite labeled trees recognized by Muller tree automata. It asks whether determinacy of all such games can be proved within ordinary ZFC set theory or requires stronger assumptions. The source establishes independence phenomena for related counter-automaton word games, which do not automatically cover regular tree languages. Resolving the tree case would locate the set-theoretic strength hidden in games defined by finite automata.
+Two players build infinite labeled trees and compare their membership in two regular tree languages. The second player may delay output but must eventually build a full infinite tree. The question asks whether ZFC proves that one player always has a winning strategy. Muller automata may recognize non-Borel languages, so the Borel theorem alone is insufficient. Known word-game independence and long regular-tree hierarchy constructions do not settle this universal tree question.
 
-[Read in atlas](index.html#TCS-4659) · [The Determinacy of Context-Free Games](https://doi.org/10.4230/LIPIcs.STACS.2012.555)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4659) · [The Determinacy of Context-Free Games](https://doi.org/10.4230/LIPIcs.STACS.2012.555) · [The Determinacy of Context-Free Games — journal version](https://doi.org/10.2178/jsl.7804050) · [On the topological complexity of tree languages](https://www.mimuw.edu.pl/~niwinski/Prace/lobo_d.pdf) · [Wadge-Wagner Hierarchy of Regular Tree Languages](https://www.ims.uni-stuttgart.de/events/TTATT2016/proceedings.pdf)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4673 — Collapsible versus noncollapsible higher-order pushdown automata
 
