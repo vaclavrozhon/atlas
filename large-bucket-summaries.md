@@ -539,10 +539,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4076 — Simulating monotone real circuits with MLP gates
 
-Monotone linear-programming circuits use gates defined through linear-programming feasibility to compute partial Boolean functions. The source compares their expressive efficiency with monotone real circuits. It proves a separation in one direction and leaves open whether suitable linear-programming gates can simulate every monotone real circuit with polynomial overhead. The direction of simulation matters because a model can outperform another on one task without containing it efficiently on all tasks. Answering the question would clarify the hierarchy of monotone computation models that connect optimization formulations with proof-complexity lower bounds.
+A monotone real circuit uses arbitrary monotone functions of at most two real arguments as gates. The question asks whether its behavior on Boolean promises always has a polynomial-size representation by one monotone linear-programming gate. The LP counts rows and internal variables and need only separate Boolean outputs by the sign of its optimum. The reverse simulation direction is already known to fail on some functions. The expanded 2019 manuscript retains this nonuniform representation question; allowing all six LP types can be expressed by the strong-max type through duality.
 
-[Read in atlas](index.html#TCS-4076) · [Representations of Monotone Boolean Functions by Linear Programs](https://doi.org/10.4230/LIPIcs.CCC.2017.3)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4076) · [Representations of Monotone Boolean Functions by Linear Programs](https://doi.org/10.4230/LIPIcs.CCC.2017.3) · [Representations of Monotone Boolean Functions by Linear Programs — full report](https://eccc.weizmann.ac.il/report/2017/106/) · [Representations of Monotone Boolean Functions by Linear Programs](https://doi.org/10.1145/3337787)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4205 — Invariant versus unrestricted bounded-depth formulas
 
