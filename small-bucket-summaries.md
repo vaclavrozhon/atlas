@@ -520,12 +520,12 @@ A Boolean function has a Fourier expansion in parity characters. Its sparsity co
 [Read in atlas](index.html#TCS-3153) · [Tight Chang’s-Lemma-Type Bounds for Boolean Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2021.10) · [Fourier Sparsity and Dimension](https://theoryofcomputing.org/articles/v015a011/) · [Spectral Norm, Economical Sieve, and Linear Invariance Testing of Boolean Functions](https://doi.org/10.4230/LIPIcs.STACS.2026.30)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-4301 — Formally, we leave the resolution of the following conjecture as an open problem.
+### TCS-4301 — Two-sided hardness amplification by ODD-MAX-BIT
 
-This record points to a conjecture about approximate degree of block-composed Boolean functions. Block composition builds a larger function by applying an outer function to outputs of repeated inner functions. The relevant research asks how polynomial approximation complexity behaves under that operation. A precise composition theorem could transfer lower bounds from simple components to larger constructions. The extracted sentence only announces that a conjecture is left open, without preserving its statement, so neither a multiplicative degree formula nor a particular error regime can be claimed from the saved material.
+The conjecture asks whether ODD-MAX-BIT amplifies the ordinary approximate-degree hardness of every total Boolean function. The same inner function is evaluated on disjoint blocks, and the outer function reads the parity of the last negative block output. The composed function must retain the full original degree lower bound even for approximation error exponentially close to one. The source proves this only under a stronger positive one-sided hardness assumption. Later specific OMB applications checked here do not settle the universal two-sided extension.
 
-[Read in atlas](index.html#TCS-4301) · [Lower Bounds for the Approximate Degree of Block-Composed Functions](https://doi.org/10.4230/LIPIcs.ICALP.2016.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4301) · [Lower Bounds for the Approximate Degree of Block-Composed Functions](https://doi.org/10.4230/LIPIcs.ICALP.2016.17) · [Lower Bounds for the Approximate Degree of Block-Composed Functions — full revision](https://eccc.weizmann.ac.il/report/2014/150/) · [Approximate Degree in Classical and Quantum Computing](https://doi.org/10.1561/0400000107)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4419 — Structural randomized query lower bounds for subgraph containment
 
