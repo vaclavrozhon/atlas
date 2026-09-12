@@ -1859,12 +1859,12 @@ Imperfect-information games can specify indistinguishable histories through sync
 [Read in atlas](index.html#TCS-3530) · [Observation and Distinction. Representing Information in Infinite Games](https://doi.org/10.4230/LIPIcs.STACS.2020.48)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3547 — It appears fairly straightforward to obtain results of this kind in semantics, but syntactic results are much murkier; similar conservativity questions for homotopy and cubical […]
+### TCS-3547 — Conservativity of internal parametricity for function-free judgments
 
-Parametric cubical type theory combines computational paths and univalence with principles expressing uniform behavior of polymorphic functions. Those additional principles can prove statements unavailable in ordinary type theory, so unrestricted conservativity is not expected. The source proposes that proofs may still translate back when their assumptions and conclusions contain no function types. It identifies a gap between obtaining semantic conservativity results and constructing a corresponding translation or theorem at the level of syntax. Resolving that gap would explain which ordinary statements retain the same proof strength after adding powerful parametric and higher-dimensional reasoning tools.
+The conjecture concerns proofs made in a type theory with internal parametricity. It asks whether an inhabited type already has an inhabitant in the base theory when the assumptions and result type contain no function types. The richer derivation itself may use function types and parametricity. Unrestricted conservativity is already ruled out by the source, but the restricted claim lacks an exact base calculus and fragment grammar. Later semantic and implementation developments are distinguished from the missing syntactic conservativity theorem.
 
-[Read in atlas](index.html#TCS-3547) · [Internal Parametricity for Cubical Type Theory](https://doi.org/10.4230/LIPIcs.CSL.2020.13)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3547) · [Internal Parametricity for Cubical Type Theory](https://doi.org/10.4230/LIPIcs.CSL.2020.13) · [Internal Parametricity for Cubical Type Theory](https://lmcs.episciences.org/8651) · [Internal and Observational Parametricity for Cubical Agda](https://hott-uf.github.io/2024/abstracts/HoTTUF_2024_paper_13.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3655 — As mentioned in Section 4.2.2, it also remains an open problem whether IITs are reducible to inductive types in a UIP-free setting.
 
