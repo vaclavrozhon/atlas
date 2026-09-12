@@ -1821,12 +1821,12 @@ Set Cover seeks the fewest set vertices covering all element vertices in an expl
 [Read in atlas](index.html#TCS-3745) · [A Simple Gap-Producing Reduction for the Parameterized Set Cover Problem](https://doi.org/10.4230/LIPIcs.ICALP.2019.81) · [A Simple Gap-producing Reduction for the Parameterized Set Cover Problem](https://arxiv.org/abs/1902.03702v2) · [On the Approximability of Parameterized Minimum Monotone Satisfying Assignment](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.20)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-3917 — Disjoint-union closure of FPT forbidden-pattern independent set
+### TCS-3917 — Disjoint-union closure of tractable forbidden patterns
 
-Maximum Independent Set seeks a largest collection of pairwise nonadjacent graph vertices. The source studies its fixed-parameter tractability on classes excluding a graph H. The saved conjecture proposes that combining two individually easy forbidden patterns by disjoint union should again yield an easy case. If valid under the intended conventions, this would provide a structural closure principle for a tractability classification. The extraction omits part of the formal implication and the containment convention, so the complete quantified conjecture still needs the source statement.
+Independent Set asks whether a graph contains k pairwise nonadjacent vertices. Suppose the problem is fixed-parameter tractable when either one of two fixed induced patterns is forbidden. The conjecture asks whether tractability persists when only their disjoint union is forbidden. This is already known when the forbidden components are cliques, and the 2020 journal manuscript retains the general conjecture. The problem concerns the forbidden pattern, not whether the input graph itself is disconnected.
 
-[Read in atlas](index.html#TCS-3917) · [Parameterized Complexity of Independent Set in H-Free Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2018.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3917) · [Parameterized Complexity of Independent Set in H-Free Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2018.17) · [Parameterized Complexity of Independent Set in H-Free Graphs](https://doi.org/10.1007/s00453-020-00730-6) · [When Maximum Stable Set Can Be Solved in FPT Time](https://doi.org/10.4230/LIPIcs.ISAAC.2019.49)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3992 — Metric sparsifier lower bounds for Zero Extension
 
