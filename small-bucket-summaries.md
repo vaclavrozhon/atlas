@@ -1131,12 +1131,12 @@ MAX-3-SAT asks how many clauses of a three-literal Boolean formula can be satisf
 [Read in atlas](index.html#TCS-1161) · [Conditional Complexity Hardness: Monotone Circuit Size, Matrix Rigidity, and Tensor Rank](https://doi.org/10.4230/LIPIcs.STACS.2026.28)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3123 — 6 Final Remarks It remains open whether an Õ(n2 )-time algorithm for undirected real-weighted graphs is possible if ω = 2, even with a large […]
+### TCS-3123 — Constant-additive real-weighted APSP in near-quadratic time when ω=2
 
-Approximate all-pairs shortest paths permits a fixed additive error when edge weights lie in a bounded real interval. The question asks whether undirected graphs admit nearly quadratic time if the matrix multiplication exponent equals two. The source leaves this target unresolved even for a relatively large constant error. Multiplicative approximation or unweighted exact distances do not automatically give the requested additive guarantee. The project tests how close one can get to output-linear computation while preserving fine numerical distinctions between weighted paths.
+The graph is undirected and its arbitrary real edge weights lie between zero and one. The algorithm must output every distance with no underestimation and only a constant additive error. The target time is n² up to polylogarithmic factors under the source’s ω=2 hypothesis. The known source bound has exponent 7/3 when evaluated at ω=2, and recent unweighted improvements do not settle this real-weighted problem. The precise real-arithmetic machine, randomization and exponent-attainment conventions remain to be fixed.
 
-[Read in atlas](index.html#TCS-3123) · [All-Pairs Shortest Paths for Real-Weighted Undirected Graphs with Small Additive Error](https://doi.org/10.4230/LIPIcs.ESA.2021.27)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3123) · [All-Pairs Shortest Paths for Real-Weighted Undirected Graphs with Small Additive Error](https://doi.org/10.4230/LIPIcs.ESA.2021.27) · [Improved Additive Approximation Algorithms for APSP](https://doi.org/10.1137/1.9781611978971.133) · [Timothy M. Chan’s publications](https://tmc.web.engr.illinois.edu/pub.html)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3719 — Can we 0 then solve all hardness-h ∃k ∀ graph properties in time O(mk−ε )?
 
