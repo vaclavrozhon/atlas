@@ -1878,10 +1878,10 @@ Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4876 — Algorithmic threshold for random k-SAT
 
-Random k-SAT generates Boolean clauses according to a specified distribution and asks for a satisfying assignment. The source asks whether such assignments can be found efficiently in a density regime where their existence is known. The question separates statistical satisfiability from algorithmic accessibility. The surrounding overlap-gap analysis investigates whether the geometry of solutions obstructs broad algorithm families near that regime. The saved density notation is damaged and the algorithmic model is unstated, so its dependence on k and required success probability must be recovered before claiming a precise computational threshold.
+The input is a random conjunction of fixed-width clauses, with all literal positions sampled independently. The algorithm must find an assignment satisfying every clause with probability tending to one. The conjectured leading threshold is two to the clause width times its natural logarithm, divided by the width. Known algorithms reach this scale, while satisfying assignments exist at substantially higher densities. Existing overlap-gap and low-degree barriers do not establish optimality against every polynomial-time algorithm.
 
-[Read in atlas](index.html#TCS-4876) · [Sharp Thresholds for the Overlap Gap Property: Ising p-Spin Glass and Random k-SAT](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2025.48)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4876) · [Sharp Thresholds for the Overlap Gap Property: Ising p-Spin Glass and Random k-SAT — full version](https://arxiv.org/abs/2309.09913) · [A Better Algorithm for Random k-SAT](https://doi.org/10.1137/09076516X) · [The Algorithmic Phase Transition of Random k-SAT for Low Degree Polynomials](https://arxiv.org/abs/2106.02129)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-5011 — Algorithmic threshold for the symmetric binary perceptron
 
