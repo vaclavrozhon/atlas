@@ -5479,12 +5479,12 @@ A Boolean Max-CSP instance asks for an assignment satisfying constraints of maxi
 [Read in atlas](index.html#TCS-3585) · [Optimal Polynomial-Time Compression for Boolean Max CSP](https://doi.org/10.4230/LIPIcs.ESA.2020.63) · [Optimal Polynomial-Time Compression for Boolean Max CSP](https://doi.org/10.1145/3624704)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-3678 — Testing tractability of core crisp constraint languages
+### TCS-3678 — Polynomial-time tractability testing for core crisp CSP languages
 
-A crisp constraint language expresses feasibility relations rather than finite-valued optimization costs. The source asks whether a theorem for testing valued-language complexity has an analogue for core crisp languages. This concerns recognizing tractable templates from their descriptions, not solving a fixed input CSP. An effective analogue would turn structural tractability results into a usable meta-algorithm for relational languages. The excerpt truncates the solvability criterion and does not state the theorem, so its representation, core assumption, and target recognition complexity remain necessary missing details.
+A crisp constraint language lists the allowed tuples over a finite domain, and the input is promised to be a core. The question asks for a polynomial-time test for an idempotent four-ary Siggers polymorphism. Both the domain and every relation are part of the input, so one uniform polynomial bound is required. The known finite-valued test and unrestricted-language NP-hardness do not answer this promised-core question. An ICALP 2026 article explicitly retains the relevant Siggers testing problem as open.
 
-[Read in atlas](index.html#TCS-3678) · [Testing the Complexity of a Valued CSP Language](https://doi.org/10.4230/LIPIcs.ICALP.2019.77)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3678) · [Testing the Complexity of a Valued CSP Language](https://doi.org/10.4230/LIPIcs.ICALP.2019.77) · [Testing the complexity of a valued CSP language](https://arxiv.org/abs/1803.02289) · [The Complexity of Finding Coset-Generating Polymorphisms and the Promise Metaproblem](https://doi.org/10.4230/LIPIcs.ICALP.2026.169)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3770 — Polymorphisms for unique primitive-positive definability
 

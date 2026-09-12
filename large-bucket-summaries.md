@@ -2927,12 +2927,12 @@ The input defines a strictly convex logarithm of a weighted sum of exponentials.
 [Read in atlas](index.html#TCS-2277) · [Complexity of Robust Orbit Problems for Torus Actions and the abc-Conjecture](https://doi.org/10.4230/LIPIcs.CCC.2024.14) · [Interior-Point Methods on Manifolds: Theory and Applications](https://doi.org/10.1007/s10208-026-09756-8)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3676 — Complexity of binary-horizon Markov decision processes
+### TCS-3676 — Binary-horizon MDP reward-threshold complexity
 
-A finite-horizon Markov decision process asks a controller to maximize expected accumulated reward over a prescribed number of steps. Here the horizon is encoded in binary and can greatly exceed the written input size. The project asks the exact complexity of deciding whether any policy reaches a supplied expected-reward threshold. No restriction is imposed on which actions the policy may use, distinguishing the target from related value-iteration questions. Understanding this version would reveal the cost of planning across a very long but succinctly specified time interval.
+The input is a finite MDP, an initial state, a binary-encoded horizon and an exact rational reward threshold. The question asks whether any policy attains at least that expected discounted reward and seeks the exact decision complexity. Policies may depend on time and state, and all first actions remain available. The source’s EXPTIME-completeness theorem instead concerns whether a specified first action is optimal. Exact value iteration gives an exponential-time upper bound, but the unrestricted threshold variant is separately left open.
 
-[Read in atlas](index.html#TCS-3676) · [On the Complexity of Value Iteration (Track B: Automata, Logic, Semantics, and Theory of Programming)](https://doi.org/10.4230/LIPIcs.ICALP.2019.102)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3676) · [On the Complexity of Value Iteration (Track B: Automata, Logic, Semantics, and Theory of Programming)](https://doi.org/10.4230/LIPIcs.ICALP.2019.102) · [On the Complexity of Value Iteration](https://arxiv.org/abs/1807.04920)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4293 — PLS-completeness of k-means local minima
 
