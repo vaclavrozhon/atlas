@@ -28,10 +28,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6685 — Busy Beaver BB(6)
 
-BB(6) is the maximum halting runtime among six-state, two-symbol Turing machines started on a blank tape. The task is to determine this exact finite integer under the saved transition and step-counting conventions. Finding a long-running halting machine supplies only a lower bound; every remaining machine must also be shown to halt within the claimed maximum or never halt. The problem turns the general undecidability of halting into an exceptionally concrete finite classification challenge. The saved review records large candidate runtimes and unresolved holdouts, and distinguishes runtime from the separate Busy Beaver measure counting printed ones.
+BB(6) is the maximum halting runtime among six-state, two-symbol Turing machines started on a blank tape. The task accepts a real approximation with Lean-certified absolute error at most 0.01 under the stated transition and step-counting conventions. The answer may be an unambiguous expression or certified interval, without an integer output or a simple exact formula for the maximum. The problem turns the general undecidability of halting into an exceptionally concrete finite classification challenge. The saved review records large candidate runtimes and unresolved holdouts, and distinguishes runtime from the separate Busy Beaver measure counting printed ones.
 
 [Read in atlas](index.html#TCS-6685) · [BB(6)](https://wiki.bbchallenge.org/w/index.php?title=BB(6)&oldid=8417) · [Story: Turing machines and the Busy Beaver function](https://bbchallenge.org/story) · [Determination of the fifth Busy Beaver value](https://arxiv.org/abs/2509.12337v2) · [Antihydra](https://bbchallenge.org/antihydra) · [Holdouts lists](https://wiki.bbchallenge.org/wiki/Holdouts)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-6649 — Reversal of Hindman’s theorem to the ω-jump
 
@@ -3452,12 +3452,12 @@ An indexed list supports access both by stored item and by its position in an ev
 [Read in atlas](index.html#TCS-2730) · [Succinct List Indexing in Optimal Time](https://doi.org/10.4230/LIPIcs.ISAAC.2022.65)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3788 — Randomized partitioning data structures
+### TCS-3788 — Randomized complexity of ordered integer partitioning
 
-Approximate rank and selection allow an ordered-set query to err by a controlled number of positions. The source builds word-RAM structures using integer partitioning as an internal primitive. It asks whether randomization can accelerate that partitioning and thereby improve the supported operations. Fast randomized sorting provides motivation but does not directly yield the needed partition maintenance. The project studies whether relaxing exact order information opens additional algorithmic speedups once both approximation tolerance and machine word length are taken into account.
+Ordered partitioning places word-sized keys into ordered buckets without sorting inside each bucket. The source relates the cost per item to approximate-minimum heap operations. It asks whether randomization gives further improvements over its deterministic bounds. Randomized sorting and linear-time square-root-bucket partitioning are already known and do not identify the intended remaining target. The card recovers the primitive and parameters while leaving the new bound, parameter regime and randomized guarantee to be specified.
 
-[Read in atlas](index.html#TCS-3788) · [Dynamic Ordered Sets with Approximate Queries, Approximate Heaps and Soft Heaps](https://doi.org/10.4230/LIPIcs.ICALP.2019.95)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3788) · [Dynamic Ordered Sets with Approximate Queries, Approximate Heaps and Soft Heaps](https://doi.org/10.4230/LIPIcs.ICALP.2019.95) · [A Linear Time Algorithm for Ordered Partition](https://doi.org/10.1007/978-3-319-19647-3_9)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-4997 — Explicit optimal nonadaptive dictionaries
 
@@ -3838,10 +3838,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7201 — Ordinal MMS guarantee for goods
 
-An agent’s 1-out-of-d maximin share is the best least-bundle value she can achieve by partitioning all goods into d bundles. The allocation itself still distributes the goods among n actual agents. The question asks for the smallest denominator that guarantees every agent her corresponding share in every additive goods instance. Known bounds allow roughly four benchmark bundles for every three agents, with separate rounding improvements for smaller n. Determining the exact denominator would describe the strongest universally attainable fairness standard of this form.
+An agent’s 1-out-of-d maximin share is the best least-bundle value she can achieve by partitioning all goods into d bundles. The allocation itself still distributes the goods among n actual agents. The question asks for the smallest denominator that guarantees every agent her corresponding share in every additive goods instance. Known bounds allow roughly four benchmark bundles for every three agents, with separate rounding improvements for smaller n. A real approximation to this denominator function is accepted with Lean-certified absolute error at most 0.01 for every n; a simple exact expression is not required.
 
 [Read in atlas](index.html#TCS-7201) · [Envy-free matchings in bipartite graphs and their applications to fair division](https://doi.org/10.1016/j.ins.2021.11.059) · [Improving Approximation Guarantees for Maximin Share](https://arxiv.org/abs/2307.12916v2) · [Simultaneous Ordinal Maximin Share and Envy-Based Guarantees](https://arxiv.org/abs/2602.15566v2)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-7203 — Bounded protocols for connected envy-free proportional cake cutting
 
@@ -3873,10 +3873,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-7204 — Minimum cuts for finite envy-free cake-cutting protocols
 
-The whole cake must be allocated so that every agent prefers her own bundle to anyone else’s. A finite query protocol may give an agent several intervals and may mark more candidate boundaries than it ultimately uses. The objective is the smallest worst-case number of final allocation cuts for each n. Connected envy-free divisions exist, but for n≥3 no finite protocol can always find one. An exact answer would measure the unavoidable fragmentation of an envy-free division that can actually be found by finite interaction.
+The whole cake must be allocated so that every agent prefers her own bundle to anyone else’s. A finite query protocol may give an agent several intervals and may mark more candidate boundaries than it ultimately uses. The objective is the smallest worst-case number of final allocation cuts for each n. Connected envy-free divisions exist, but for n≥3 no finite protocol can always find one. A real approximation to this cut-count function is accepted with Lean-certified absolute error at most 0.01 for every n; a simple exact expression is not required.
 
 [Read in atlas](index.html#TCS-7204) · [Envy-Free Cake Divisions Cannot Be Found by Finite Protocols](https://www.cs.umd.edu/~gasarch/TOPICS/cake/lbenvyfree.pdf) · [A Discrete and Bounded Envy-Free Cake Cutting Protocol for Any Number of Agents](https://arxiv.org/abs/1604.03655) · [Cutting Down the Tower: Single-Exponential Envy-Free Cake Cutting](https://arxiv.org/abs/2609.05191) · [Exact Cut Complexity of Equal-Length Proportional Cake Cutting](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.MFCS.2026.34)
-Existing status: `source_open` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-1115 — Polynomial-time EF1 and Pareto-optimal goods allocation
 
