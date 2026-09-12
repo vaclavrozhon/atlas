@@ -1845,12 +1845,12 @@ The input specification is a deterministic weighted automaton on alternating inp
 [Read in atlas](index.html#TCS-3401) · [Synthesis from Weighted Specifications with Partial Domains over Finite Words](https://doi.org/10.4230/LIPIcs.FSTTCS.2020.46) · [Synthesis from Weighted Specifications with Partial Domains over Finite Words — full version](https://arxiv.org/abs/2103.05550) · [Determinization of Integral Discounted-Sum Automata is Decidable](https://doi.org/10.1007/978-3-031-57228-9_10)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3479 — Can Markov chains with continuous emissions be model-checked efficiently?
+### TCS-3479 — Model checking Markov chains with continuous observations
 
-A hidden Markov model can emit real-valued observations drawn from continuous distributions that depend on its hidden state. Such emissions describe measurements like durations or sensor readings more naturally than a fixed finite output alphabet. The source asks whether Markov chains with these continuous emissions admit efficient model-checking algorithms. Its framework for representing and comparing emission profiles provides a possible starting point, but the choice of distribution representation and specification language remains central. Developing suitable algorithms would extend probabilistic verification to observation models where enumerating all possible emitted values is impossible.
+A finite hidden Markov model can emit real observations at discrete transitions. The source represents their densities by finite symbolic profiles and proves a polynomial-time equivalence test. It then asks whether specifications of these models can also be checked efficiently. The specification language, observation predicates, probability semantics and requested complexity remain unspecified. The revised card separates those missing choices from the established equivalence result and defines the probabilistic model without prescribing an algorithm.
 
-[Read in atlas](index.html#TCS-3479) · [Equivalence of Hidden Markov Models with Continuous Observations](https://doi.org/10.4230/LIPIcs.FSTTCS.2020.43)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3479) · [Equivalence of Hidden Markov Models with Continuous Observations](https://doi.org/10.4230/LIPIcs.FSTTCS.2020.43) · [Equivalence of Hidden Markov Models with Continuous Observations — full version](https://arxiv.org/abs/2009.12978)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3530 — Can the set of all winning strategies be described by finite-state automata?
 
