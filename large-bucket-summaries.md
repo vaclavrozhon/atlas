@@ -4545,12 +4545,12 @@ Positional proofs restrict communication through locations and message-arrival d
 [Read in atlas](index.html#TCS-1490) · [Quantum Advantage in Proof Systems Without Entanglement](https://doi.org/10.4230/LIPIcs.ICALP.2026.6)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1882 — Any algorithm that distinguishes p = ud from dTV (p, ud ) > ε with success probability at least .99 requires Ω(min{d1/3 /ε4/3 , d1/2 […]
+### TCS-1882 — Tight quantum query lower bounds for uniformity testing
 
-Uniformity testing asks whether an unknown distribution is exactly uniform or noticeably far from uniform. Here the algorithm receives access to the code that generates the distribution, enabling quantum operations beyond ordinary independent sampling. The conjecture proposes a lower bound matching the paper's algorithm across both domain size and distance parameter. It further asks for that obstruction in a stronger quantum string-oracle model. Proving the joint parameter dependence would determine how much useful information quantum access to a sampler can provide for this basic statistical test.
+A quantum tester must distinguish exact uniformity from a distribution whose total variation distance exceeds ε. It can invoke a coherent sampler, its inverse and a controlled invocation. The best known query upper bound is the smaller of d^{1/3}/ε^{4/3} and √d/ε. The question is whether every tester must pay this cost in the worst case across both parameters. The source also proposes a stronger lower bound for string oracles, whose extra structure is kept separate from the main target.
 
-[Read in atlas](index.html#TCS-1882) · [Uniformity Testing When You Have the Source Code](https://doi.org/10.4230/LIPIcs.TQC.2025.7)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1882) · [Uniformity Testing When You Have the Source Code](https://doi.org/10.4230/LIPIcs.TQC.2025.7) · [Uniformity testing when you have the source code — version record](https://arxiv.org/abs/2411.04972v1)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-1955 — Then we ask, is W≥t [F ] ∈ O(exp(−t))?
 

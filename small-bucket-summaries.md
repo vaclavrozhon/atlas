@@ -350,12 +350,12 @@ Resolution over parities allows proof lines to describe linear equations modulo 
 [Read in atlas](index.html#TCS-1253) · [Hardness of Range Avoidance and Proof Complexity Generators from Demi-Bits](https://doi.org/10.4230/LIPIcs.ITCS.2026.111)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1905 — That is, for suitably defined symmetric analogues of VP and VNP, would super-polynomial lower bounds against symmetric refutations of Boolean CNFs entail a separation of […]
+### TCS-1905 — Do symmetric IPS lower bounds imply a symmetric VP–VNP separation?
 
-The Ideal Proof System represents contradictions through algebraic identities computed by circuits. The source studies symmetric versions of these refutations. The saved question asks whether superpolynomial lower bounds for symmetric Boolean-CNF refutations would imply a corresponding separation between symmetric analogues of VP and VNP. This would connect proof hardness with algebraic circuit complexity under a shared symmetry restriction. The extraction truncates the conclusion and leaves the symmetric classes undefined, so the proposed implication must remain conditional on a suitable formal choice of those notions.
+An IPS refutation encodes unsatisfiability as a polynomial identity computed by an arithmetic circuit. A symmetric refutation must let every permitted instance relabeling extend to the circuit gates. The source asks whether proving such refutations require superpolynomial size would separate symmetric analogues of VP and VNP. The ordinary IPS-to-algebraic-complexity connection motivates this proposed implication. The appropriate symmetric algebraic classes and their compatibility with the formula families still need to be defined.
 
-[Read in atlas](index.html#TCS-1905) · [Symmetric Proofs in the Ideal Proof System](https://doi.org/10.4230/LIPIcs.MFCS.2025.40)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1905) · [Symmetric Proofs in the Ideal Proof System](https://doi.org/10.4230/LIPIcs.MFCS.2025.40) · [Symmetric Proofs in the Ideal Proof System — version record](https://arxiv.org/abs/2504.16820v1)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-2889 — Is it true that CSpace ≈ log ST or MSpace ≈ log ST ?
 
