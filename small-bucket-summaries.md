@@ -1518,12 +1518,12 @@ Two individually memory-efficient algorithms can have a composition with a large
 [Read in atlas](index.html#TCS-1104) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/) · [Composing Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2025/140/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1566 — Can we show the existence of √ low-degree low-error two-source extractors for min-entropy below n?
+### TCS-1566 — Low-degree two-source extraction below square-root min-entropy
 
-A two-source extractor combines independent weak random sources to produce output close to uniform. The cited paper asks whether low-degree, low-error constructions exist below a specified entropy threshold. Low algebraic degree restricts the form of the extractor, making successful extraction more surprising and potentially easier to analyze. Pushing the entropy requirement downward would clarify how much randomness simple polynomial maps can recover. The saved threshold contains damaged square-root formatting, so its exact value and the error dependence must be checked before any numerical entropy bound is repeated.
+Two independent weak random strings must yield an almost unbiased output bit. The combining function is restricted to a low-degree polynomial over F₂. The question asks for entropy requirements below sqrt(n). Existing approximate-duality arguments supply a linear-entropy result but have their own square-root barrier. The intended degree, error and asymptotic improvement still need to be fixed.
 
 [Read in atlas](index.html#TCS-1566) · [Low-Degree Polynomials Are Good Extractors](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2025.38)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-1956 — Does the existence of a demi-bit imply the existence of a super-bit?
 
@@ -2737,12 +2737,12 @@ Does FLIP for Max-Cut have polynomial expected path length on every graph under 
 [Read in atlas](index.html#TCS-6658) · [Local Max-Cut on Sparse Graphs](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ESA.2024.98) · [Smoothed complexity of local Max-Cut and binary Max-CSP](https://arxiv.org/abs/1911.10381) · [Superpolynomial smoothed complexity of 3-FLIP in Local Max-Cut](https://people.maths.ox.ac.uk/michel/Papers/smoothed-complexity-local-max-cut-3-flip.pdf)
 Existing status: `open` · Summary written: 2026-09-11
 
-### TCS-1699 — The first one had already been posed by Feige in the original formulation of the problem: is it possible to prove any hardness result under […]
+### TCS-1699 — Conditional hardness of finding a clique randomly planted in an arbitrary graph
 
-The source studies a clique planted randomly inside an otherwise arbitrary graph. Its question asks for a hardness result under an additional condition that is omitted from the saved excerpt. The semirandom setting separates randomness in the hidden object from adversarial structure in the surrounding instance. A lower bound would clarify whether the planted information is algorithmically useful enough to overcome that adversarial freedom. The missing hardness assumption and input promise are essential, so this draft cannot transfer the ordinary Erdős–Rényi planted-clique conjecture to the arbitrary-background model without the full source statement.
+An adversary first chooses a graph, then a clique is added on a uniformly random subset of vertices. The algorithm sees only the resulting graph. The question seeks a hardness theorem under a suitable complexity hypothesis. A known positive result already finds a linear-sized clique under a maximum-degree promise. The exact hypothesis, parameter regime and required output remain to be specified.
 
 [Read in atlas](index.html#TCS-1699) · [On Finding Randomly Planted Cliques in Arbitrary Graphs](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2025.11)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2126 — In particular, we do not know if the value iteration algorithm has polynomial smoothed complexity and we leave this problem as an open question.
 
@@ -2928,12 +2928,12 @@ The three-dimensional Ising model assigns interacting plus or minus spins to the
 [Read in atlas](index.html#TCS-6668) · [Log-Sobolev inequality for near critical Ising models](https://arxiv.org/abs/2202.02301) · [Polynomial Mixing of the critical Glauber Dynamics for the Ising Model](https://arxiv.org/abs/2411.10318)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1693 — For example, it remains open for the Sherrington-Kirkpatrick model, for a PI/LSI w.r.t. the Glauber Dynamics.
+### TCS-1693 — Sharp temperature thresholds for functional inequalities in the SK model
 
-The Sherrington-Kirkpatrick model is a disordered spin system whose many interacting coordinates can create a complicated probability landscape. The retained source note points to Poincare or logarithmic Sobolev inequalities for its Glauber dynamics. These inequalities provide quantitative control of relaxation toward equilibrium through variance or entropy decay. They would connect the geometry of the distribution with guarantees for local sampling rather than merely with finding a low-energy configuration. The note omits the temperature regime and the desired scaling of the constants, so it cannot support an unrestricted assertion that every such inequality for this model is unknown.
+The SK model assigns a random interaction to every pair of spins. The question concerns temperature thresholds for useful variance or entropy relaxation bounds for local spin updates. Some finite inequality always holds in each finite irreducible instance. The unresolved issue must therefore specify how the constants may grow with system size. Recent weak Poincaré progress concerns warm-start sampling and does not by itself settle a sharp strong-inequality threshold.
 
-[Read in atlas](index.html#TCS-1693) · [Optimization, Isoperimetric Inequalities, and Sampling via Lyapunov Potentials](https://proceedings.mlr.press/v291/chen25g.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1693) · [Optimization, Isoperimetric Inequalities, and Sampling via Lyapunov Potentials](https://proceedings.mlr.press/v291/chen25g.html) · [Weak Poincaré Inequalities via Approximate Stochastic Localization: Application to Sampling the Sherrington-Kirkpatrick Model](https://arxiv.org/abs/2607.08160)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-2076 — If 0 ≤ β < βu or if β > βu and |η| > ηa , then the Kawasaki dynamics for µ̂G,β,η are optimally mixing: […]
 
@@ -3049,12 +3049,12 @@ Polynomial-delay enumeration bounds the waiting time before the first answer, be
 [Read in atlas](index.html#TCS-0556) · [Algorithmic Enumeration: Output-sensitive, Input-Sensitive, Parameterized, Approximative](https://doi.org/10.4230/DagRep.8.10.63)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1610 — For any ε > 0, there is no O(m2−ε )-time algorithm for computing SubH△ (G).
+### TCS-1610 — A quadratic barrier for counting the four-edge hypergraph H△
 
-The source studies counting fixed subgraph patterns in graphs of bounded degeneracy. Its conjecture rules out a truly subquadratic algorithm for the quantity Sub_(H_triangle)(G), measured in the number of edges m. The proposed barrier asks whether sparsity still leaves a particular pattern-counting task inherently expensive. This would sharpen the boundary between subquadratic counting algorithms and patterns that resist them. The pattern H_triangle and any complexity assumptions are absent from the excerpt, so the formula cannot be treated as an unconditional lower bound or identified with ordinary triangle counting without source context.
+H△ is a six-vertex hypergraph with four triples, every pair meeting in one vertex. The task is to count all its non-induced occurrences in an arbitrary host hypergraph. The conjecture excludes any polynomial improvement over quadratic time in the number of host hyperedges. The source uses this conjecture to obtain a barrier for ten-vertex graph patterns on bounded-degeneracy graphs. It is a new proposed hardness assumption, not an already proved consequence of a familiar one.
 
 [Read in atlas](index.html#TCS-1610) · [Subgraph Counting in Subquadratic Time for Bounded Degeneracy Graphs](https://doi.org/10.4230/LIPIcs.ICALP.2025.124)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3037 — For any computable pattern class H: If H has unbounded matching-split number, then the problem ⊕Sub(H) is ⊕W[1]-complete.
 
@@ -4109,12 +4109,12 @@ A multi-issue voting problem forms an outcome by selecting a value for each of m
 [Read in atlas](index.html#TCS-0064) · [Computational Social Dynamics](https://doi.org/10.4230/DagRep.12.11.28)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1714 — Besides some open questions in Table 1, the main problem we leave open for further research is whether it is possible to find a stable […]
+### TCS-1714 — Polynomial-time stable matching in unimodular hypergraphs
 
-Stable hypergraph matching generalizes matching to groups of participants whose preferences may block a proposed solution. For unimodular hypergraphs, existence results guarantee a stable matching under the source's assumptions. The question asks whether one can actually find such a matching in polynomial time. Network hypergraphs provide a particularly interesting structured case. The project separates a mathematical existence guarantee from an efficient construction, with motivation from allocation problems where compatible groups must remain stable against mutually preferred alternatives.
+Vertices are participants and hyperedges are feasible coalitions. Each participant strictly ranks the coalitions containing them. A stable matching leaves no unchosen coalition preferred by all its members. Total unimodularity guarantees existence, but the question asks for an efficient construction. An August 2026 preprint addresses network hypergraphs while the full unimodular target remains open in the checked sources.
 
-[Read in atlas](index.html#TCS-1714) · [Stable Hypergraph Matching in Unimodular Hypergraphs](https://doi.org/10.4230/LIPIcs.ICALP.2025.31)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-1714) · [Stable Hypergraph Matching in Unimodular Hypergraphs](https://doi.org/10.4230/LIPIcs.ICALP.2025.31) · [Polynomial-time Stable Matching in Network Hypergraphs](https://arxiv.org/abs/2608.24728)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-2427 — Whether it is possible to compute an (exact or approximate) NE in even zero-sum TBSGs with an increasing discount factor remains open [2].
 
@@ -5943,12 +5943,12 @@ Deterministic decomposable negation normal form is a circuit representation supp
 [Read in atlas](index.html#TCS-0306) · [Antoine Amarilli: research questions](https://a3nm.net/work/research/questions/#ptime-complementation-of-d-dnnf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-1562 — Is there a polynomial-time algorithm for the satisfiability problem of systems of weak linear inequalities where the coefficients of the inequalities are of the form […]
+### TCS-1562 — Polynomial-time feasibility of linear inequalities with succinct powers of two
 
-Linear-inequality satisfiability asks whether one assignment can satisfy an entire system of bounds. The cited work studies polynomial-time tractability over p-adic numbers. The saved question asks for a polynomial-time algorithm for weak inequalities whose coefficients have a particular restricted form. Such a restriction could expose an efficiently solvable algebraic fragment despite the unusual underlying domain. The coefficient form is truncated and the excerpt does not define how inequalities are interpreted, so neither ordinary real linear programming nor a specific p-adic ordering is assumed.
+The question concerns ordinary linear inequalities with very large or very small coefficients. Each coefficient is specified by a binary exponent of two, which may be exponentially shorter than its usual rational representation. The goal is polynomial-time feasibility in this compressed input length. The source relates a positive answer to polynomial-time mean-payoff games. The p-adic setting motivates the question, but the inequalities use the usual rational order and still need explicit encoding conventions.
 
 [Read in atlas](index.html#TCS-1562) · [Polynomial-Time Tractable Problems over the p-Adic Numbers](https://doi.org/10.4230/LIPIcs.MFCS.2025.25)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-1595 — While β-matching at order 4 is decidable [14], decidability at order 5 remains an open question.
 
