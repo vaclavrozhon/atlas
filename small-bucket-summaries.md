@@ -725,13 +725,6 @@ Four-cycle and triangle problems detect or report two basic graph patterns of di
 [Read in atlas](index.html#TCS-4869) · [Listing 4-Cycles](https://doi.org/10.4230/LIPIcs.FSTTCS.2023.25)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-5235 — Subcubic weighted Gomory–Hu trees
-
-A Gomory-Hu tree compactly represents all pairwise minimum-cut values of an undirected graph. The source achieves an almost-quadratic construction for unweighted graphs. The question asks for a subcubic construction when edges carry weights. Running separate maximum-flow computations for many pairs can repeat substantial work. The project seeks to share cut information across pairs in the weighted setting, testing whether the compact final representation can also be produced substantially faster than traditional all-pairs approaches.
-
-[Read in atlas](index.html#TCS-5235) · [APMF < APSP? Gomory-Hu Tree for Unweighted Graphs in Almost-Quadratic Time](https://doi.org/10.1109/FOCS52979.2021.00112)
-Existing status: `source_open` · Summary written: 2026-09-11
-
 ### TCS-5422 — Consequences of linear-time Orthogonal Vectors
 
 Orthogonal Vectors asks whether two Boolean vector collections contain a pair with no coordinate where both vectors have a one. The selected question concerns an essentially linear-time algorithm for this problem in the source's setting. It asks whether the existence of such an algorithm would refute the Exponential Time Hypothesis. Known connections to the stronger SETH assumption do not automatically establish that implication. Proving it would ground a basic fine-grained lower bound in a weaker assumption and clarify the role of limited nondeterminism in polynomial-time hardness.
@@ -808,6 +801,13 @@ SETH, the APSP hypothesis, and the 3SUM hypothesis assert precise barriers for t
 
 [Read in atlas](index.html#TCS-6950) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-5235 — Subcubic weighted Gomory–Hu trees
+
+The input is an undirected graph with binary-encoded integer capacities. The output is a tree representing exact minimum-cut values and separating partitions for every vertex pair. The 2021 source asks whether its construction can beat cubic time in the number of vertices. A published 2022 randomized nearly quadratic algorithm answers this affirmatively. A 2025 result further gives deterministic almost-linear time for polynomially bounded integer weights.
+
+[Read in atlas](index.html#TCS-5235) · [APMF < APSP? Gomory-Hu Tree for Unweighted Graphs in Almost-Quadratic Time — full version](https://arxiv.org/abs/2106.02981) · [Breaking the Cubic Barrier for All-Pairs Max-Flow: Gomory-Hu Tree in Nearly Quadratic Time](https://doi.org/10.1109/FOCS54457.2022.00088) · [Deterministic Almost-Linear-Time Gomory-Hu Trees](https://doi.org/10.1109/FOCS63196.2025.00035)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Pseudorandomness and derandomization (43)
 
