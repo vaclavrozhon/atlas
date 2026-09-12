@@ -4517,13 +4517,6 @@ The source investigates equations that distinguish or describe algebraic complex
 [Read in atlas](index.html#TCS-2958) · [If VNP Is Hard, Then so Are Equations for It](https://doi.org/10.4230/LIPIcs.STACS.2022.44)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2987 — Closely related to the above, but for higher-order and unbalanced formats, what is the exact value of the generic subrank Q(n1 , . . . […]
-
-Tensor subrank measures how large a diagonal tensor can be obtained by applying linear maps to the tensor's factors. The source asks for exact generic subrank values for higher-order tensors and unbalanced dimension formats. Generic behavior concerns the typical algebraic case rather than every exceptional tensor of the same dimensions. An exact formula would quantify how many independent scalar multiplications such tensors can support through these reductions. The saved passage truncates the dimension tuple, so the allowed field and meaning of genericity must be recovered before proposing values or transferring bounds between tensor formats.
-
-[Read in atlas](index.html#TCS-2987) · [Subrank and Optimal Reduction of Scalar Multiplications to Generic Tensors](https://doi.org/10.4230/LIPIcs.CCC.2022.9)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3007 — Is it true that for infinitely many r there exists a matrix A ∈ Cr (Q, 2) with RQ (A, r) = r2 ?
 
 Matrix rigidity counts the entries that must be changed to reduce a matrix to a specified rank. The source distinguishes changes over the rational numbers from changes allowed in the extension field obtained by adjoining the square root of two. It asks whether its structured family of rational 2r-by-2r matrices contains examples with rank-r rational rigidity exactly r squared for infinitely many r. Members of this family can have their rank reduced using only linearly many changes over the extension field. Such examples would make the choice of permissible field dramatically affect rigidity, reaching the largest possible rational value at this target rank.
@@ -4873,6 +4866,13 @@ The source asks for lower bounds beyond n log n for unrestricted noncommutative 
 
 [Read in atlas](index.html#TCS-1254) · [Lower Bounds for Noncommutative Circuits with Low Syntactic Degree](https://doi.org/10.4230/LIPIcs.ITCS.2026.115) · [Polynomial Lower Bounds for Arithmetic Circuits over Non-Commutative Rings](https://eccc.weizmann.ac.il/report/2026/061/) · [A Quadratic Lower Bound for Noncommutative Circuits](https://arxiv.org/abs/2604.20575v3) · [FOCS 2026 Accepted Papers](https://focs.computer.org/2026/accepted-papers/)
 Existing status: `resolved` · Summary written: 2026-09-11
+
+### TCS-2987 — Exact generic subrank in arbitrary tensor formats
+
+Tensor subrank measures how many independent diagonal products can be extracted by linear maps on the factors. Generic subrank is the value on a nonempty Zariski-open set of tensors of a fixed format. The source asks for its exact value for all higher-order and unbalanced formats. A 2025 published theorem gives the minimum of the factor dimensions and the rounded-down (k−1)st root of their sum minus k−1. This resolves the original question over algebraically closed fields; a 2026 follow-up clarifies that field assumption.
+
+[Read in atlas](index.html#TCS-2987) · [Subrank and Optimal Reduction of Scalar Multiplications to Generic Tensors](https://doi.org/10.4230/LIPIcs.CCC.2022.9) · [Exact values of generic subrank](https://doi.org/10.1016/j.aim.2025.110234) · [Symmetric subrank and its border analogue](https://arxiv.org/abs/2604.12801)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Lattices and computational number theory (31)
 
