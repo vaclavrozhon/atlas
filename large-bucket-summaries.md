@@ -4200,12 +4200,12 @@ A distributed point function splits a vector that is nonzero at one hidden posit
 [Read in atlas](index.html#TCS-2732) · [Information-Theoretic Distributed Point Functions](https://doi.org/10.4230/LIPIcs.ITC.2022.17)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2813 — Improving the gap in Theorem 19 requires proving better lower-bounds of ω(n2 / log n) for secret sharing schemes – a task that remains open […]
+### TCS-2813 — A stronger separation between secret sharing and monotone real formulas
 
-An access structure can be easy to compute yet expensive to realize through information-theoretic secret sharing. This source compares the total size of shares with the size of monotone real formulas computing the corresponding authorization function. It gives a separation using a linear-size formula and a total-share lower bound near the quadratic scale. The selected problem asks for a larger separation, which requires improving general secret-sharing lower bounds that the existing argument cannot surpass. A stronger result would reveal a deeper gap between recognizing authorized groups and distributing information so that only those groups can reconstruct the secret.
+This problem compares the size of monotone real formulas with the total information needed for perfect secret sharing of the same access structure. The source gives linear formula size and a nearly quadratic total-share lower bound. It seeks a larger separation, but does not fix the precise strengthened comparison. An August 2026 preprint claims a quadratic general share lower bound without supplying the corresponding small-MRF separation. The card therefore records the new claim and the remaining formulation issue separately.
 
-[Read in atlas](index.html#TCS-2813) · [Secret Sharing, Slice Formulas, and Monotone Real Circuits](https://doi.org/10.4230/LIPIcs.ITCS.2022.8)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2813) · [Secret Sharing, Slice Formulas, and Monotone Real Circuits](https://doi.org/10.4230/LIPIcs.ITCS.2022.8) · [Secret Sharing at the Shannon Ceiling](https://arxiv.org/abs/2608.17047)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3025 — Indeed, it is an open problem whether the existence of exponentially-hard weak one-way functions is equivalent to the existence of exponentially-hard strong one-way functions [31].
 
