@@ -273,12 +273,12 @@ The question asks whether any language outside NP has an optimal proof system. E
 [Read in atlas](index.html#TCS-5292) · [Recursive Jump Operators and Optimal Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2026.88) · [Optimal Proof Systems for Complex Sets Are Hard to Find](https://doi.org/10.1145/3717823.3718182) · [Recursive Jump Operators and Optimal Proof Systems — full version](https://arxiv.org/abs/2606.01242)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-5332 — Complexity of resolution automatability
+### TCS-5332 — Weak automatability of Resolution
 
-Automating resolution means finding refutations efficiently relative to the proof resources available. The cited talk discusses how proof complexity informs SAT-solving algorithms. The saved passage recalls NP-hardness of full resolution automatability and begins a remaining open question. That distinction matters because practical or restricted forms of proof search may behave differently from the unrestricted task. The unresolved continuation is missing, so the draft does not guess whether it concerns approximation, parameterization, or another proof system, and the recalled hardness remains attributed to the source.
+The input is a CNF formula and a proof-length budget written in unary. The algorithm must distinguish satisfiable formulas from those having a short general Resolution refutation. The proof is not supplied, and the algorithm need not produce a Resolution proof. Unsatisfiable formulas whose shortest refutations exceed the budget can receive either answer. Known hardness for finding Resolution proofs does not settle this weaker recognition problem.
 
-[Read in atlas](index.html#TCS-5332) · [Proof Complexity and Its Relations to SAT Solving (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2025.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5332) · [Proof Complexity and Its Relations to SAT Solving (Invited Talk)](https://doi.org/10.4230/LIPIcs.STACS.2025.1) · [Regular resolution effectively simulates resolution](https://doi.org/10.1016/j.ipl.2024.106489) · [Automating Resolution is NP-Hard](https://arxiv.org/abs/1904.02991) · [The Proof Analysis Problem](https://arxiv.org/abs/2506.16956)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-5333 — Linear-space Cutting Planes refutations
 
