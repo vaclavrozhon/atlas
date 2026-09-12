@@ -737,13 +737,6 @@ SoML and PPA communication protocols describe different implicit graphs through 
 [Read in atlas](index.html#TCS-3821) · [Adventures in Monotone Complexity and TFNP](https://doi.org/10.4230/LIPIcs.ITCS.2019.38) · [Adventures in Monotone Complexity and TFNP](https://eccc.weizmann.ac.il/report/2018/163/) · [Proofs, Circuits, and Communication](https://doi.org/10.1145/3532737.3532745) · [Separations in Proof Complexity and TFNP](https://doi.org/10.1145/3663758)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-3871 — Private randomness in algorithmic mutual-information protocols
-
-The cited paper gives an operational interpretation of mutual information in algorithmic information theory. Its saved question asks whether the same bound holds when protocol participants have private random bits. Shared randomness can coordinate behavior without communication, whereas private sources must be reconciled through the protocol itself. Extending the bound would clarify how much its information interpretation relies on common random resources. The excerpt omits the bound and communication task, so the quantitative target and the precise form of algorithmic mutual information remain to be restored.
-
-[Read in atlas](index.html#TCS-3871) · [An Operational Characterization of Mutual Information in Algorithmic Information Theory](https://doi.org/10.4230/LIPIcs.ICALP.2018.95)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4084 — Unbounded-round hardness of INBA in M2
 
 The source uses a problem called INBA to study direct-sum phenomena through multiparty communication. It conjectures that this problem stays hard in the model M2 even when the number of rounds is unrestricted. Removing a round bound asks whether adaptivity can circumvent the existing communication obstruction. A persistent lower bound would show that the difficulty is not merely caused by forcing players to act too quickly. The excerpt does not define INBA, M2, or hard quantitatively, so those source-specific ingredients remain necessary before formulating a complete unbounded-round lower-bound conjecture.
@@ -946,6 +939,13 @@ A deterministic protocol partitions a communication matrix into monochromatic re
 
 [Read in atlas](index.html#TCS-6711) · [Communication Complexity (early author draft)](https://yehudayoff.net.technion.ac.il/files/2016/03/book.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-3871 — Private randomness in algorithmic secret-key agreement
+
+Two parties hold correlated strings and communicate publicly to create a shared secret. The original question asks whether the known worst-case communication lower bound survives independent private randomness. Gürpınar and Romashchenko answered the bounded-error secret-key question in 2020; their expanded 2024 result removes the cap on random bits. Some input pairs require about min{C(x|y),C(y|x)} bits even for much shorter secret keys. The result is a worst-case statement with a supplied complexity profile, not a lower bound for every pair of correlated strings.
+
+[Read in atlas](index.html#TCS-3871) · [An Operational Characterization of Mutual Information in Algorithmic Information Theory](https://doi.org/10.4230/LIPIcs.ICALP.2018.95) · [An Operational Characterization of Mutual Information in Algorithmic Information Theory](https://doi.org/10.1145/3356867) · [Communication Complexity of the Secret Key Agreement in Algorithmic Information Theory](https://doi.org/10.4230/LIPIcs.MFCS.2020.44) · [Communication Complexity of the Secret Key Agreement in Algorithmic Information Theory](https://doi.org/10.1145/3665163)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Fine-grained complexity (37)
 
