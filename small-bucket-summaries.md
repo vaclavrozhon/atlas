@@ -2257,13 +2257,6 @@ The source asks whether every symmetric submodular function has a constant-facto
 [Read in atlas](index.html#TCS-2971) · [Approximate Representation of Symmetric Submodular Functions via Hypergraph Cut Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2022.6) · [Approximate Representation of Symmetric Submodular Functions via Hypergraph Cut Functions — author draft](https://chekuri.cs.illinois.edu/papers/symsubmod-hypergraph-representation.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-12
 
-### TCS-3399 — Further, Haviv and Regev also showed that CRP is Π2 -hard to approximate to with-in a factor of 32 , and we conjecture that a […]
-
-This record comes from a study of the computational complexity of linear discrepancy. Its saved passage cites approximation hardness for CRP and then begins a conjecture that was not preserved. The source places the problem among geometric or rounding quantities whose exact values can be difficult to compute. Recovering a sharper approximation boundary could distinguish the power of numerical estimation from the complexity of exact discrepancy information. However, the expansion of CRP, the conjectured conclusion, and even the displayed hardness fraction need verification before this fragment supports a numerical target.
-
-[Read in atlas](index.html#TCS-3399) · [On the Computational Complexity of Linear Discrepancy](https://doi.org/10.4230/LIPIcs.ESA.2020.69)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-3991 — Can we remove the restriction of planar graphs?
 
 The source asks about approximating the Tutte polynomial T_G(x,1) for x>1 on general undirected graphs. These evaluations encode weighted counts of acyclic spanning subgraphs, so the objects being counted are forests. The paper gives an FPRAS for all-terminal network reliability, equivalently weighted counting of connected spanning subgraphs, on general undirected graphs. For planar graphs, the identity T_G(x,1)=T_G*(1,x) transfers this result through the planar dual G* to the acyclic-subgraph evaluations. The open question is whether efficient approximation of these forest counts extends beyond planar graphs; the saved source does not establish its later status.
@@ -2368,6 +2361,13 @@ Minimization CSPs seek assignments minimizing a specified constraint-violation c
 
 [Read in atlas](index.html#TCS-6757) · [The Constraint Satisfaction Problem: Complexity and Approximability](https://drops.dagstuhl.de/entities/volume/DFU-volume-7)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-3399 — Constant-factor Π₂ hardness of approximating linear discrepancy
+
+Linear discrepancy is the worst fractional vector’s smallest possible binary rounding error, measured in the maximum row norm. The source conjectured that approximating this matrix quantity within some constant factor is Π₂-hard. Manurangsi proved hardness at every factor strictly between 1 and 9/8. The result was published in 2021 and is explicitly extended by a 2026 binary covering-radius paper. The conjecture is resolved; the 3/2 factor mentioned in the original passage belongs to a covering-radius comparison and is not the achieved linear-discrepancy ratio.
+
+[Read in atlas](index.html#TCS-3399) · [On the Computational Complexity of Linear Discrepancy](https://doi.org/10.4230/LIPIcs.ESA.2020.69) · [Linear discrepancy is Π₂-hard to approximate](https://doi.org/10.1016/j.ipl.2021.106164) · [Hardness of the Binary Covering Radius Problem in Large ℓp Norms](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2026.10)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Online algorithms, scheduling and packing (46)
 
