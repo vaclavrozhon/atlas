@@ -2,13 +2,13 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-860 records have an editorial importance assessment; 817 remain provisional.
+861 records have an editorial importance assessment; 816 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
 ## 1. Computational complexity (large)
 
-Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 136; importance assessed: 63; provisional: 73.
+Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 136; importance assessed: 64; provisional: 72.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -34,11 +34,11 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 41; importance ass
 | 3 | [Hypergraph cut sparsifiers with O(n/ε²) hyperedges](index.html#TCS-0946) | 76 |
 | 4 | [Near-linear-time approximation of reachability diameter](index.html#TCS-1141) | 75 |
 | 5 | [Mincost flow in planar graphs](index.html#TCS-0809) | 62 |
-| 6 | [It is unknown whether there exists a deterministic algorithm to reconstruct bounded-degree graphs in o(n2 ) queries.](index.html#TCS-1292) | 50 |
+| 6 | [Deterministic subquadratic-query graph reconstruction](index.html#TCS-1292) | 50 |
 | 7 | [Set-system sparsifiers of size proportional to chain length](index.html#TCS-1338) | 50 |
-| 8 | [For any subcubic graph H, H-ISC is in P if and only if H is planar.](index.html#TCS-1617) | 50 |
-| 9 | [We do not know yet if temporal cliques admit O(n) spanners, thus the latter result might not appear very decisive.](index.html#TCS-1664) | 50 |
-| 10 | [Does every n-node undirected graph have a constant-stretch shortestpaths preserving graph of aspect ratio poly(n)?](index.html#TCS-1934) | 50 |
+| 8 | [Planarity dichotomy for induced subdivision detection](index.html#TCS-1617) | 50 |
+| 9 | [Linear-size spanners for temporal cliques](index.html#TCS-1664) | 50 |
+| 10 | [Bounded-aspect-ratio shortest-path-preserving graphs](index.html#TCS-1934) | 50 |
 
 ## 3. Automata and formal languages (large)
 
@@ -66,8 +66,8 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 80; importance ass
 | 1 | [Positivity problem for linear recurrences](index.html#TCS-6565) | 97 |
 | 2 | [Simple stochastic games in polynomial time](index.html#TCS-6567) | 97 |
 | 3 | [An internal tower of semisimplicial types in ordinary HoTT](index.html#TCS-6569) | 95 |
-| 4 | [Can a Scott-continuous lambda model validate exactly beta-conversion?](index.html#TCS-6570) | 94 |
-| 5 | [Weak versus strong normalization for pure type systems](index.html#TCS-6583) | 94 |
+| 4 | [Scott-continuous lambda models with theory λβ](index.html#TCS-6570) | 94 |
+| 5 | [Barendregt–Geuvers–Klop conjecture](index.html#TCS-6583) | 94 |
 | 6 | [Parity games in polynomial time](index.html#TCS-4245) | 99 |
 | 7 | [Skolem problem](index.html#TCS-5773) | 98 |
 | 8 | [Mean-payoff games in polynomial time](index.html#TCS-6568) | 97 |
@@ -140,7 +140,7 @@ Top 100: 5; Top 500: 25; Top 1000 (possible): 50; candidates: 71; importance ass
 | 7 | [Efficient learning for stochastic linear Bellman-complete MDPs](index.html#TCS-7325) | 91 |
 | 8 | [Distribution-free improper learning of two unrestricted halfspaces](index.html#TCS-7293) | 90 |
 | 9 | [Statistically optimal sparse robust Gaussian mean estimation in polynomial time](index.html#TCS-7296) | 88 |
-| 10 | [Properly learning decision trees in polynomial time?](index.html#TCS-0677) | 86 |
+| 10 | [Proper decision-tree learning in polynomial time](index.html#TCS-0677) | 86 |
 
 ## 9. Cryptography (large)
 
@@ -207,7 +207,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 44; importance ass
 | 6 | [A complete disjoint NP pair](index.html#TCS-7273) | 90 |
 | 7 | [Does Resolution effectively polynomially simulate Extended Frege?](index.html#TCS-7163) | 86 |
 | 8 | [Frege lower bounds from circuit hardness](index.html#TCS-0024) | 84 |
-| 9 | [Separate two levels of Buss's arithmetic hierarchy](index.html#TCS-1099) | 82 |
+| 9 | [Separating levels of bounded arithmetic](index.html#TCS-1099) | 82 |
 | 10 | [Unprovability of polynomial circuit upper bounds in S₂¹](index.html#TCS-1096) | 79 |
 
 ## 3. Communication complexity and Boolean function analysis (small)
@@ -310,7 +310,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 49; importance ass
 | 7 | [Matroid secretary conjecture](index.html#TCS-7316) | 94 |
 | 8 | [A polylogarithmic randomized competitive ratio for k-server on every metric](index.html#TCS-7317) | 93 |
 | 9 | [Minimax rate of sequential binary calibration](index.html#TCS-7319) | 89 |
-| 10 | [Precedence-Constrained Scheduling on Identical Machines to minimize weighted completion time](index.html#TCS-0924) | 88 |
+| 10 | [Precedence scheduling for weighted completion time](index.html#TCS-0924) | 88 |
 
 ## 9. Beyond worst-case and average-case analysis (small)
 
@@ -327,7 +327,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 32; importance ass
 | 7 | [Polynomial smoothed complexity of FLIP for Max-Cut](index.html#TCS-6658) | 94 |
 | 8 | [Constant adaptivity gap for influence maximization with full feedback](index.html#TCS-7288) | 81 |
 | 9 | [Conditional hardness of finding a clique randomly planted in an arbitrary graph](index.html#TCS-1699) | 50 |
-| 10 | [In particular, we do not know if the value iteration algorithm has polynomial smoothed complexity and we leave this problem as an open question.](index.html#TCS-2126) | 50 |
+| 10 | [Polynomial smoothed complexity of value iteration](index.html#TCS-2126) | 50 |
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
@@ -340,8 +340,8 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 14; importance ass
 | 3 | [Polynomial mixing of critical three-dimensional Ising dynamics](index.html#TCS-6668) | 93 |
 | 4 | [Sharp temperature thresholds for functional inequalities in the SK model](index.html#TCS-1693) | 50 |
 | 5 | [Optimal mixing of global Kawasaki dynamics on bounded-degree graphs](index.html#TCS-2076) | 50 |
-| 6 | [For example, can we efficiently sample from a WNR/NA/NR distribution for any marginals in a given matroid polytope?](index.html#TCS-2861) | 50 |
-| 7 | [For any vertex-transitive graph, is the blanket time of order nR2 for all δ > 1?](index.html#TCS-4599) | 50 |
+| 6 | [Efficient negatively dependent sampling from matroid polytopes](index.html#TCS-2861) | 50 |
+| 7 | [Blanket time of local-search load balancing](index.html#TCS-4599) | 50 |
 | 8 | [Testing small-set expansion](index.html#TCS-5935) | 50 |
 | 9 | [Prove polynomial mixing for grid Ising Glauber dynamics with all-plus boundaries at every temperature.](index.html#TCS-6839) | 50 |
 | 10 | [Establish the proposed monotonicity of Ising spectral gaps in temperature and interaction strengths.](index.html#TCS-6840) | 50 |
@@ -393,9 +393,9 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 15; importance ass
 | 5 | [Deque conjecture](index.html#TCS-6508) | 81 |
 | 6 | [Optimal decrease-key in pure pairing heaps](index.html#TCS-6514) | 68 |
 | 7 | [The randomized complexity of online labeling](index.html#TCS-0300) | 60 |
-| 8 | [Is there a sparse fault-tolerant exact or approximate distance oracle for an arbitrary subset P of V × V ?](index.html#TCS-1798) | 50 |
+| 8 | [Sparse fault-tolerant pairwise distance oracles](index.html#TCS-1798) | 50 |
 | 9 | [Thus, even in the non-succinct case, designing worst-case update operations is an open problem.](index.html#TCS-2730) | 50 |
-| 10 | [It is an open problem whether randomization can speed up partitioning algorithms and lead, in particular, to faster data structures for the various operations considered \[…\]](index.html#TCS-3788) | 50 |
+| 10 | [Randomized partitioning data structures](index.html#TCS-3788) | 50 |
 
 ## 14. Dynamic algorithms (small)
 
@@ -525,8 +525,8 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 11; importance ass
 | 1 | [Private PAC sample complexity from VC and Littlestone dimensions](index.html#TCS-0506) | 88 |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) | 94 |
 | 3 | [Polynomial-time private release of all marginals](index.html#TCS-7236) | 94 |
-| 4 | [Do you pay for Privacy in Online learning?](index.html#TCS-0510) | 80 |
-| 5 | [Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](index.html#TCS-0507) | 76 |
+| 4 | [Cost of privacy in online learning](index.html#TCS-0510) | 80 |
+| 5 | [Optimal regret for private stochastic online learning](index.html#TCS-0507) | 76 |
 | 6 | [The main question that we leave open is whether there exists a differentially private algorithm for this task which is polynomial in n and d?](index.html#TCS-3312) | 50 |
 | 7 | [Communication lower bounds for interactive pure-private shuffled summation](index.html#TCS-3361) | 50 |
 | 8 | [Noninteractive private parity learning in the multiserver model](index.html#TCS-5236) | 50 |
@@ -543,11 +543,11 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 26; importance ass
 | 3 | [Constant-colour polynomial-time colouring of 3-colourable graphs](index.html#TCS-6637) | 96 |
 | 4 | [Search-to-decision equivalence for finite promise CSPs](index.html#TCS-6675) | 96 |
 | 5 | [Hardness of 6-coloring 3-colorable graphs](index.html#TCS-7237) | 94 |
-| 6 | [It is unknown whether it is always true that a PCSP(A, B) that is solvable by BLP is also polynomially solvable in its search variant.](index.html#TCS-1978) | 83 |
+| 6 | [Search tractability of BLP-solvable promise CSPs](index.html#TCS-1978) | 83 |
 | 7 | [Characterizing CSP languages with linear non-redundancy](index.html#TCS-0441) | 76 |
 | 8 | [Uniform algorithms across tractable CSPs](index.html#TCS-0504) | 76 |
 | 9 | [Polynomial kernels for Boolean MinCSP](index.html#TCS-0444) | 72 |
-| 10 | [Assuming P ̸= NP, does there exist an NP-intermediate ω-categorical CSP?](index.html#TCS-1173) | 50 |
+| 10 | [NP-intermediate ω-categorical CSPs](index.html#TCS-1173) | 50 |
 
 ## 23. Automated reasoning, rewriting and unification (small)
 
@@ -562,8 +562,8 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 25; importance ass
 | 5 | [Decidability of termination for one-rule string rewriting](index.html#TCS-6644) | 93 |
 | 6 | [Singly exponential shortest solutions of word equations](index.html#TCS-7194) | 90 |
 | 7 | [Complexity of satisfiable word equations](index.html#TCS-0163) | 87 |
-| 8 | [What is the exact complexity of word unification?](index.html#TCS-0171) | 87 |
-| 9 | [Is unification of patterns modulo any set of variable-preserving equations decidable?](index.html#TCS-0173) | 74 |
+| 8 | [Complexity of word unification](index.html#TCS-0171) | 87 |
+| 9 | [Pattern unification modulo variable-preserving equations](index.html#TCS-0173) | 74 |
 | 10 | [Satisfiability of String Constraints with Subsequence relation](index.html#TCS-0114) | 69 |
 
 ## 24. Database theory and finite model theory (small)
@@ -592,4 +592,4 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 4; importance asse
 | 1 | [1/3–2/3 conjecture](index.html#TCS-7177) | 90 |
 | 2 | [Sunflower conjecture](index.html#TCS-7290) | 89 |
 | 3 | [Computational universality of nondirected planar temperature-1 tile assembly](index.html#TCS-7255) | 82 |
-| 4 | [Does every class C with unbounded grid-width contain arbitrarily large connected monotone grid subclasses?](index.html#TCS-3520) | 50 |
+| 4 | [Monotone grid subclasses from unbounded grid-width](index.html#TCS-3520) | 50 |
