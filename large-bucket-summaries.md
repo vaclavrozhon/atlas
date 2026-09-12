@@ -3039,12 +3039,12 @@ The input defines a strictly convex logarithm of a weighted sum of exponentials.
 [Read in atlas](index.html#TCS-2277) · [Complexity of Robust Orbit Problems for Torus Actions and the abc-Conjecture](https://doi.org/10.4230/LIPIcs.CCC.2024.14) · [Interior-Point Methods on Manifolds: Theory and Applications](https://doi.org/10.1007/s10208-026-09756-8)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2675 — This open problem is whether there is an algorithm other than uniform sampling itself that performs uniformly no worse than uniform sampling in the fixed-budget […]
+### TCS-2675 — Can adaptive best-arm identification dominate uniform sampling?
 
-Uniform sampling allocates the same number of observations to each arm before recommending the best one. In fixed-budget best-arm identification, the source asks whether another algorithm can perform asymptotically no worse on every instance. The comparison uses the decay rate of recommendation error, rather than cumulative reward during sampling. Adaptive allocation can improve selected instances, but it may pay for those improvements on other reward configurations. A uniformly dominating method would give a principled alternative to equal allocation without requiring advance knowledge of which instance-specific exploration pattern is favorable.
+The source compares adaptive and uniform sampling for selecting the best arm after a fixed budget. Performance is measured by the asymptotic exponential rate of recommendation error on each instance. Two Bernoulli arms admit no strict uniform improvement over equal allocation. For at least three Gaussian arms of common variance, a 2025 preprint proves strict improvement on every instance. The original unspecified reward class and nontriviality criterion must be fixed before declaring a residual open problem.
 
-[Read in atlas](index.html#TCS-2675) · [Open Problem: Optimal Best Arm Identification with Fixed-Budget](https://proceedings.mlr.press/v178/open-problem-qin22a.html)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2675) · [Open Problem: Optimal Best Arm Identification with Fixed-Budget](https://proceedings.mlr.press/v178/open-problem-qin22a.html) · [On Universally Optimal Algorithms for A/B Testing](https://proceedings.mlr.press/v235/wang24c.html) · [Admissibility of Completely Randomized Trials: A Large-Deviation Approach](https://arxiv.org/abs/2506.05329)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3142 — Nevertheless we leave it as an open problem if there is some first-order optimization method that achieves rate of 𝑇 = 𝑂 (1/ε2 ) (see […]
 
