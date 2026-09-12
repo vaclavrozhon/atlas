@@ -5319,12 +5319,12 @@ Conditional-independence implication asks whether given independence relations f
 [Read in atlas](index.html#TCS-3347) · [Decision Problems in Information Theory](https://doi.org/10.4230/LIPIcs.ICALP.2020.106)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3457 — How can we obtain near optimal linear codes?
+### TCS-3457 — Near-optimal explicit binary linear codes for erasure list decoding
 
-Erasure list decoding reconstructs a short list of possible messages when some transmitted symbols are missing but their positions are known. The source asks how to obtain near-optimal linear codes for this task. Linearity supports compact algebraic descriptions, yet may constrain the combinations of symbols that survive erasures. An efficient construction with strong parameters would make near-capacity recovery compatible with this useful structure. The saved question does not specify whether it asks for existence or explicit algorithms, nor its list-size and rate targets, so those distinctions remain necessary.
+The target is a single explicit binary linear code that keeps only a small list of possible messages after adversarial erasures. Its parameters are the surviving coordinate fraction, encoding rate and maximum list size. The source’s nonlinear construction achieves a list-size advantage that cannot simply be required of linear codes. It does not specify the desired linear rate/list tradeoff or the full parameter and construction regime. Later larger-alphabet and code-ensemble results are recorded with their different guarantees, while the missing benchmark choices remain explicit.
 
-[Read in atlas](index.html#TCS-3457) · [Near-Optimal Erasure List-Decodable Codes](https://doi.org/10.4230/LIPIcs.CCC.2020.1)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3457) · [Near-Optimal Erasure List-Decodable Codes](https://doi.org/10.4230/LIPIcs.CCC.2020.1) · [Probabilistic Guarantees to Explicit Constructions: Local Properties of Linear Codes](https://eccc.weizmann.ac.il/report/2025/158/) · [Optimal Erasure Codes and Codes on Graphs](https://arxiv.org/abs/2504.03090)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3513 — Given any adversarial channel, when we are “below the Plotkin point” (i.e., there are non-confusable CP distributions), can we construct explicit codes of positive rate?
 
