@@ -2490,12 +2490,12 @@ A metrical service system repeatedly requests membership in one of several feasi
 [Read in atlas](index.html#TCS-3314) · [Parametrized Metrical Task Systems](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.54)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3392 — Further, it remains open whether constant recourse per request is sufficient for maintaining an O(1)-competitive matching on the line, as for the case of alternating […]
+### TCS-3392 — Constant lifetime recourse for competitive online matching on the line
 
-Online matching on the line pairs arriving requests with distinct servers while minimizing total distance. Recourse allows earlier matches to be changed after new requests reveal that previous choices were poor. The source shows that logarithmically many changes per request on average suffice for a constant competitive ratio. It asks whether only a constant amount of recourse per request can provide the same quality guarantee. This would determine whether a very small allowance for revising decisions can remove much of the difficulty caused by irreversible matching in one-dimensional geometry.
+All servers on the real line are known before requests arrive. Each new request must be matched immediately, while earlier assignments can be revised. The question asks for a constant competitive ratio and a constant bound on the lifetime number of moves of every request. The known general result bounds average recourse by O(log n), whereas alternating instances admit constant recourse for each request. The 2025 journal version still asks for the general improvement, and the 2026 stability lower bound uses a different arrival model and budget.
 
-[Read in atlas](index.html#TCS-3392) · [Online Minimum Cost Matching with Recourse on the Line](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3392) · [Online Minimum Cost Matching with Recourse on the Line](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2020.37) · [Online Metric Matching on the Line with Recourse](https://doi.org/10.1007/s00453-025-01299-8) · [On the Stability of Minimum-Weight Perfect Matching on the Line](https://doi.org/10.4230/LIPIcs.ESA.2026.27)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3566 — It thus remains open to obtain a ε−3 -complexity algorithm for general convex sets that does not depend on the dimension, or show that this […]
 
@@ -5666,12 +5666,12 @@ The geometric task is to output a point inside the convex hull of a private coll
 [Read in atlas](index.html#TCS-3312) · [How to Find a Point in the Convex Hull Privately](https://doi.org/10.4230/LIPIcs.SoCG.2020.52)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3361 — Alternately, can we prove any non-trivial lower bound that holds also with interaction?
+### TCS-3361 — Communication lower bounds for interactive pure-private shuffled summation
 
-Anonymous-message summation estimates an aggregate from user messages whose senders are concealed. The saved question asks for a nontrivial lower bound that remains valid when the protocol allows interaction. Interaction can let later messages depend on earlier observations, changing the power of the protocol relative to a single round of communication. A robust lower bound would clarify whether this flexibility can overcome limitations of pure differentially private aggregation. The excerpt does not retain which resource or error quantity the proposed bound should constrain, so the exact tradeoff must still be recovered from the source's model.
+Each user holds one bit and an analyst must estimate the sum from anonymous messages. Pure differential privacy protects the entire transcript when one user’s bit changes. The original lower bound concerns worst-case bits per user in noninteractive protocols with sub-square-root expected absolute error. The question asks for a communication lower bound that also permits interaction. The interactive model and the strength of a nontrivial bound must still be fixed; later bounds on expected communication do not resolve those choices.
 
-[Read in atlas](index.html#TCS-3361) · [Pure Differentially Private Summation from Anonymous Messages](https://doi.org/10.4230/LIPIcs.ITC.2020.15)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3361) · [Pure Differentially Private Summation from Anonymous Messages](https://doi.org/10.4230/LIPIcs.ITC.2020.15) · [Pure Differentially Private Summation from Anonymous Messages — full version](https://arxiv.org/abs/2002.01919) · [Pure-DP Aggregation in the Shuffle Model: Error-Optimal and Communication-Efficient](https://doi.org/10.4230/LIPIcs.ITC.2024.4)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-5236 — Necessary Conditions in Multi-Server Differential Privacy — Explicit open question on PDF page 5
 

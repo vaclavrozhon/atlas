@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-839 records have an editorial importance assessment; 838 remain provisional.
+841 records have an editorial importance assessment; 836 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -297,7 +297,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 36; importance ass
 
 ## 8. Online algorithms, scheduling and packing (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 49; importance assessed: 18; provisional: 31.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 49; importance assessed: 19; provisional: 30.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -518,7 +518,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 34; importance ass
 
 ## 21. Differential privacy (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 11; importance assessed: 7; provisional: 4.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 11; importance assessed: 8; provisional: 3.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -528,7 +528,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 11; importance ass
 | 4 | [Do you pay for Privacy in Online learning?](index.html#TCS-0510) | 80 |
 | 5 | [Optimal Rates for Stochastic Decision-Theoretic Online Learning Under Differentially Privacy](index.html#TCS-0507) | 76 |
 | 6 | [The main question that we leave open is whether there exists a differentially private algorithm for this task which is polynomial in n and d?](index.html#TCS-3312) | 50 |
-| 7 | [Alternately, can we prove any non-trivial lower bound that holds also with interaction?](index.html#TCS-3361) | 50 |
+| 7 | [Communication lower bounds for interactive pure-private shuffled summation](index.html#TCS-3361) | 50 |
 | 8 | [Necessary Conditions in Multi-Server Differential Privacy — Explicit open question on PDF page 5](index.html#TCS-5236) | 50 |
 | 9 | [Can computational privacy improve achievable utility in the trusted-curator model?](index.html#TCS-6825) | 50 |
 
