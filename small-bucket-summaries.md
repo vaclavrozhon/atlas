@@ -245,12 +245,12 @@ The source compares working memory in refutations with the logarithm of minimum 
 [Read in atlas](index.html#TCS-2889) · [Space Characterizations of Complexity Measures and Size-Space Trade-Offs in Propositional Proof Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.100) · [Space characterizations of complexity measures and size-space trade-offs in propositional proof systems](https://doi.org/10.1016/j.jcss.2023.04.006)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-4982 — Frege automatability versus learning
+### TCS-4982 — Worst-case hardness behind circuit learning
 
-Learning algorithms infer a representation of a function from permitted observations. Automatability concerns efficiently finding short proofs when they exist. The cited work establishes connections between learning and Frege proof search, while the saved passage leaves reverse implications unresolved. Settling those directions could show whether algorithmic progress in one setting necessarily transfers back to the other. The excerpt does not reproduce the proved implications, learning model, or resource bounds, so the draft cannot select a particular converse or treat the broad connection as an equivalence.
+The selected paragraph concerns converses relating circuit learning to P=NP and pseudorandomness. The principal target here is whether efficient learning forces P=NP. The learner asks membership queries and must predict well under the uniform distribution. Reduction barriers and later restricted learning results do not settle that implication. Uniform versus non-uniform resources and the complete efficiency quantifiers remain to be fixed.
 
-[Read in atlas](index.html#TCS-4982) · [Learning Algorithms Versus Automatability of Frege Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.101)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4982) · [Learning Algorithms Versus Automatability of Frege Systems](https://doi.org/10.4230/LIPIcs.ICALP.2022.101) · [Learning algorithms versus automatability of Frege systems — full author version](https://arxiv.org/abs/2111.10626) · [On Basing Lower-Bounds for Learning on Worst-Case Assumptions](https://www.wisdom.weizmann.ac.il/~bennyap/pubs/ABX08Full.pdf) · [Pseudorandomness and the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.ITCS.2020.68) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-5114 — Lovász–Schrijver versus cutting planes
 
