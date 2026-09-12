@@ -2505,12 +2505,12 @@ A graph-streaming random-walk simulator sees edges once and later outputs the se
 [Read in atlas](index.html#TCS-3762) · [Simulating Random Walks on Graphs in the Streaming Model](https://doi.org/10.4230/LIPIcs.ITCS.2019.46)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3792 — Linearizable objects equivalent to set agreement
+### TCS-3792 — Deterministic linearizable objects for set agreement
 
-An (n,k)-set agreement task permits n processes to decide at most k distinct proposed values. The question asks whether any deterministic linearizable object can have exactly the same implementation power as that task when n > k > 2. The source conjectures that no such object exists because enforcing deterministic sequential behavior gives the object stronger agreement power. It proves a related impossibility for k = 2 and n at least four, but the number of possible sequential behaviors grows rapidly for larger k. A general proof would clarify the gap between one-shot coordination tasks and reusable objects with deterministic linearizable semantics.
+Set agreement lets n processes decide at most k proposed values. Its task has an equivalent linearizable object and an equivalent deterministic object, but these known objects do not possess both properties. The conjecture says no object can possess both properties while retaining exactly the task’s implementation power whenever n>k>2. Equivalence uses deterministic wait-free reductions with registers and allows repeated operations through n ports. The source proves the analogous separation for k=2 and n≥4; later existential object separations do not settle the universal higher-k question.
 
-[Read in atlas](index.html#TCS-3792) · [On Deterministic Linearizable Set Agreement Objects](https://doi.org/10.4230/LIPIcs.OPODIS.2019.16)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3792) · [On Deterministic Linearizable Set Agreement Objects](https://doi.org/10.4230/LIPIcs.OPODIS.2019.16) · [On the Number of Objects with Distinct Power and the Linearizability of Set Agreement Objects](https://doi.org/10.4230/LIPIcs.DISC.2017.12) · [Life beyond set agreement](https://doi.org/10.1007/s00446-020-00372-5)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3806 — Polynomial-pass parameterized streaming Vertex Cover
 

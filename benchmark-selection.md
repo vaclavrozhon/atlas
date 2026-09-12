@@ -2,17 +2,17 @@
 
 Reviewed on 2026-09-12 across 35 categories.
 
-We aim for benchmarks of 100 and 500 problems, with a possible expansion to 1,000. All three use the same category order and the same ranking within each category.
+Our primary goal is a benchmark of 500 problems. Top 100 is a priority subset of those same 500, with secondary editorial attention. Both use the same category order and the same ranking within each category. The existing Top 1000 view is not an active benchmark goal.
 
 Individual editorial review of saved titles, importance rationales, problem statements, source notes and working summaries. This is a review of importance and topical diversity, not a fresh verification of open status or completion of draft formulations. Importance scores are preserved.
 
-Top 100 takes the first 5/2 places in each large/small category. Top 500 takes the first 25/10 and the possible Top 1000 expansion takes the first 50/20 places from the same order. Top 100 is contained in Top 500, which is contained in Top 1000. Focus places balance scientific importance and topical diversity; remaining places retain score order. None of these subsets certifies current open status.
+Top 100 takes the first 5/2 places in each large/small category. Top 500 takes the first 25/10 and the legacy Top 1000 view takes the first 50/20 places from the same order. Top 100 is contained in Top 500, which is contained in Top 1000. Focus places balance scientific importance and topical diversity; remaining places retain score order. None of these subsets certifies current open status.
 
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
 | [Top 500](index.html?benchmark=top500) | 500 | 491 | 9 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 919 | 81 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 919 | 81 |
 
 ## Unfilled places
 

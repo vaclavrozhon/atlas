@@ -1,6 +1,6 @@
 # Current category sizes
 
-We aim for benchmarks of 100 and 500 problems, with a possible expansion to 1,000. All three use the same category order and the same ranking within each category.
+Our primary goal is a benchmark of 500 problems. Top 100 is a priority subset of those same 500, with secondary editorial attention. Both use the same category order and the same ranking within each category. The existing Top 1000 view is not an active benchmark goal.
 
 Counts are saved candidate records, not verified distinct open problems.
 
