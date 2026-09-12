@@ -476,10 +476,10 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ### TCS-6934 — Unconditional SAT time lower bounds
 
-SAT asks whether a Boolean formula admits a satisfying assignment. The source calls for unconditional superlinear time lower bounds in robust general computation models and ultimately stronger exponential bounds. Many known barriers depend on unproved hypotheses or restrictions on memory and algorithm structure. An unrestricted lower bound would directly demonstrate that a concrete fundamental problem requires more than near-input-reading work. The saved note intentionally states a research direction rather than one fixed exponent, so a finished card must select the encoding, machine model, and quantitative threshold it intends to resolve.
+Boolean satisfiability asks whether some assignment makes a formula or circuit true. The source asks for unconditional time lower bounds on general computation models. It contrasts the ambition of exponential lower bounds with the unresolved milestone of excluding linear time without a workspace restriction. Recent multitape time-space results establish lower bounds for other languages and do not resolve this SAT question. A single representation, machine model and quantitative target still need to be selected.
 
-[Read in atlas](index.html#TCS-6934) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6934) · [On Some Fine-Grained Questions in Algorithms and Complexity](https://people.csail.mit.edu/virgi/) · [Time-space lower bounds for satisfiability](https://doi.org/10.1145/1101821.1101822) · [Simulating Time with Square-Root Space](https://doi.org/10.1145/3798104)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-6977 — Super-near-linear SAT time lower bounds
 
