@@ -3708,13 +3708,6 @@ The target is to learn any polynomial-size constant-depth Boolean circuit using 
 [Read in atlas](index.html#TCS-4031) · [Pseudo-Derandomizing Learning and Approximation](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2018.55) · [Pseudo-derandomizing learning and approximation — full report](https://eccc.weizmann.ac.il/report/2018/122/) · [The Complexity of Meta-Computational Problems](https://ora.ox.ac.uk/objects/uuid:f2fe5da6-1b6d-4147-88b5-85e9d818a559)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-4074 — Sample complexity of proper PAC learning
-
-A proper PAC learner must return a hypothesis belonging to the original concept class. The sample-complexity question asks whether proper learning requires an extra logarithmic factor in inverse accuracy. The cited quantum-learning work proposes removing that factor with quantum examples as a potentially easier intermediate target. The properness restriction matters because allowing hypotheses outside the class can change the best achievable sample bound. An improved learner or a lower bound would explain whether the statistical cost comes from identifying a good prediction rule or from expressing that rule inside the prescribed class.
-
-[Read in atlas](index.html#TCS-4074) · [Optimal Quantum Sample Complexity of Learning Algorithms](https://doi.org/10.4230/LIPIcs.CCC.2017.25)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-4134 — Computing the self-directed learning mistake bound
 
 In self-directed learning, a learner chooses which unlabeled example to predict next and then observes its correct label. For a finite concept class, the associated mistake bound measures the smallest worst-case number of errors achievable by choosing examples and predictions adaptively. The question is how difficult it is to compute this combinatorial parameter from a representation of the class. The source raises it beside hardness results for other learning dimensions and also suggests studying approximation and recursive teaching dimension. A complexity classification would distinguish the existence of a good teaching order from the ability to find or evaluate one efficiently.
@@ -3902,6 +3895,13 @@ Existing status: `source_open` · Summary written: 2026-09-11
 Optimistically universal online learning asks for one rule that succeeds whenever any universally consistent rule can. For bounded losses and deterministic measurable target labels, the input process can have arbitrary temporal dependence. Blanchard’s COLT 2022 theorem supplies such a rule and proves that learnability is exactly sublinear measurable visits. The partition condition is stronger than a statement about visits to finitely many selected regions. Both historical questions in this card are therefore resolved in their intended noiseless setting.
 
 [Read in atlas](index.html#TCS-2827) · [Universal Online Learning with Unbounded Losses: Memory Is All You Need](https://proceedings.mlr.press/v167/blanchard22a.html) · [Open Problem: Is There an Online Learning Algorithm That Learns Whenever Online Learning Is Possible?](https://proceedings.mlr.press/v134/hanneke21b.html) · [Universal Online Learning: an Optimistically Universal Learning Rule](https://proceedings.mlr.press/v178/blanchard22b.html)
+Existing status: `resolved` · Summary written: 2026-09-12
+
+### TCS-4074 — Sample complexity of proper PAC learning
+
+A proper learner must always return a hypothesis from the known concept class. The historical question asks whether this restriction can force an additional logarithmic factor in sample complexity. The answer is yes for some classes, even with randomized learners and unlimited computation. The 2018 journal version acknowledges this, and a 2020 theorem supplies matching worst-case lower bounds with finite-domain constructions. Other classes, including halfspaces, can still attain the smaller proper-learning bound.
+
+[Read in atlas](index.html#TCS-4074) · [Optimal Quantum Sample Complexity of Learning Algorithms](https://doi.org/10.4230/LIPIcs.CCC.2017.25) · [Optimal Quantum Sample Complexity of Learning Algorithms — journal version](https://www.jmlr.org/papers/v19/18-195.html) · [Proper Learning, Helly Number, and an Optimal SVM Bound](https://proceedings.mlr.press/v125/bousquet20a.html)
 Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Cryptography (30)
