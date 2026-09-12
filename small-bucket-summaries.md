@@ -4081,12 +4081,12 @@ Presburger arithmetic describes integers using addition and order without unrest
 [Read in atlas](index.html#TCS-1992) · [An Introduction to the Theory of Linear Integer Arithmetic (Invited Paper)](https://doi.org/10.4230/LIPIcs.FSTTCS.2024.1)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5603 — Polynomial-time term-equation satisfiability over finite algebras
+### TCS-5603 — Polynomial-time recognition of abelian cores
 
-Term-equation satisfiability asks whether variables can be assigned elements of a finite algebra to satisfy all given identities. The cited paper studies a complexity dichotomy for this task. The saved question asks whether quasipolynomial algorithms from a specified theorem can be improved to polynomial time. Such an improvement would close an intermediate algorithmic regime and strengthen the proposed classification. The theorem's algebraic hypotheses are absent from the excerpt, so the draft does not generalize the desired speedup to every finite algebra or every equation language.
+The input is an entire finite algebra specified by tables of its basic operations. It is promised to possess an idempotent Taylor term, although no witness is supplied. The task is to decide whether its smallest endomorphic image is abelian in the universal-algebraic sense. A quasipolynomial-time recognition algorithm is known. This is a classification problem for algebras, distinct from solving a particular list of term equations.
 
-[Read in atlas](index.html#TCS-5603) · [On the Complexity Dichotomy for the Satisfiability of Systems of Term Equations over Finite Algebras](https://doi.org/10.4230/LIPIcs.MFCS.2023.66)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5603) · [On the Complexity Dichotomy for the Satisfiability of Systems of Term Equations over Finite Algebras](https://doi.org/10.4230/LIPIcs.MFCS.2023.66) · [Equations over finite algebras](https://www.algebra.uni-linz.ac.at/Slides/sl-aaa105-6.pdf)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6016 — Satisfiability of weak MSO+U over infinite words
 
