@@ -1529,12 +1529,12 @@ The d-to-1 and Unique Games conjectures concern hardness of satisfying labeled c
 [Read in atlas](index.html#TCS-5544) · [Near-Optimal UGC-hardness of Approximating Max \(k-\mathrm{CSP}_{R}\)](https://doi.org/10.4230/LIPIcs.APPROX-RANDOM.2016.15)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5554 — Near-linear-time edit-distance approximation
+### TCS-5554 — Subquadratic factor-three edit-distance approximation
 
-Hamming distance compares aligned symbols, whereas Levenshtein distance allows insertions and deletions that change alignment. The cited paper connects algorithms for these two string-comparison measures. Its saved passage reports a constant-factor edit-distance approximation in near-linear time and begins an unresolved existence question. Further progress could clarify how efficiently alignment changes can be handled while preserving a useful distance guarantee. Because the extraction stops before stating the missing algorithm's target, it does not justify asserting a particular approximation scheme, runtime exponent, or present-day status for that question.
+The task compares two arbitrary explicit strings using unit-cost insertions, deletions and substitutions. The estimate must lie between the true edit distance and three times that distance. The algorithm must save a fixed positive power over quadratic time on every input. Known truly subquadratic algorithms approach factor three from above. The 2026 approximation scheme achieves better accuracy, but its proved time saving is smaller than a fixed power of the input length.
 
-[Read in atlas](index.html#TCS-5554) · [An Algorithmic Bridge Between Hamming and Levenshtein Distances](https://doi.org/10.4230/LIPIcs.ITCS.2023.58)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5554) · [An Algorithmic Bridge Between Hamming and Levenshtein Distances](https://doi.org/10.4230/LIPIcs.ITCS.2023.58) · [Edit Distance in Near-Linear Time: it’s a Constant Factor](https://doi.org/10.1109/FOCS46700.2020.00096) · [Does Preprocessing Help in Fast Sequence Comparisons?](https://doi.org/10.1145/3357713.3384300) · [Approximation Schemes for Edit Distance and LCS in Quasi-Strongly Subquadratic Time](https://doi.org/10.1145/3798129.3800789)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-5787 — Approximating graph crossing number
 
