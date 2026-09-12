@@ -11,26 +11,28 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 493 | 7 |
-| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 933 | 67 |
+| [Top 500](index.html?benchmark=top500) | 500 | 491 | 9 |
+| [Top 1000 (possible expansion)](index.html?benchmark=top1000) | 1000 | 919 | 81 |
 
 ## Unfilled places
 
-- top500: Differential privacy has 9/10 places.
-- top500: Miscellaneous has 4/10 places.
-- top1000: Algorithms has 41/50 places.
-- top1000: Optimization and numerical computation has 41/50 places.
-- top1000: Cryptography has 42/50 places.
-- top1000: Sampling, Markov chains and mixing times has 14/20 places.
+- top500: Differential privacy has 8/10 places.
+- top500: Miscellaneous has 3/10 places.
+- top1000: Algorithms has 40/50 places.
+- top1000: Optimization and numerical computation has 37/50 places.
+- top1000: Cryptography has 36/50 places.
+- top1000: Sampling, Markov chains and mixing times has 13/20 places.
 - top1000: Data structures has 15/20 places.
 - top1000: Dynamic algorithms has 17/20 places.
-- top1000: Differential privacy has 9/20 places.
-- top1000: Miscellaneous has 4/20 places.
+- top1000: Differential privacy has 8/20 places.
+- top1000: Miscellaneous has 3/20 places.
 
 ## Review needed after catalogue changes
 
 - Unreviewed focus places in Algorithms: 1
+- Unreviewed focus places in Geometry, topology and metric spaces: 1
 - Unreviewed focus places in Learning theory: 1
+- Unreviewed focus places in Coding and information theory: 2
 - Unreviewed focus places in Miscellaneous: 1
 
 ## Computational complexity
@@ -91,7 +93,7 @@ Previous prefix: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569.
 | ---: | --- | --- | ---: | --- |
 | 1 | [Positivity problem for linear recurrences](index.html#TCS-6565) (TCS-6565) | Linear recurrence verification | 97 | A longstanding foundational decision problem with an elementary input model, strong links to verification, and consequences for the separate Skolem problem; unrestricted decidability is unknown before any efficiency requirement is imposed. |
 | 2 | [Simple stochastic games in polynomial time](index.html#TCS-6567) (TCS-6567) | Stochastic game solving | 97 | An elementary game model with broad consequences for synthesis and stochastic verification; short optimal strategies and efficiently checkable certificates coexist with an unresolved polynomial-time search problem. |
-| 3 | [An internal tower of semisimplicial types in ordinary HoTT](index.html#TCS-6569) (TCS-6569) | Dependent type theory | 95 | A central expressiveness problem for homotopy type theory; precise internal construction would remove a major obstacle to formalizing higher structures without enriching the theory. |
+| 3 | [Internal semisimplicial types in ordinary HoTT](index.html#TCS-6569) (TCS-6569) | Dependent type theory | 95 | A central expressiveness problem for homotopy type theory; precise internal construction would remove a major obstacle to formalizing higher structures without enriching the theory. |
 | 4 | [Scott-continuous lambda models with theory λβ](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
 | 5 | [Barendregt–Geuvers–Klop conjecture](index.html#TCS-6583) (TCS-6583) | Consistency of type systems | 94 | Asks whether the existence of a terminating reduction for every typable term forces every reduction of every such term to terminate. |
 
@@ -131,7 +133,7 @@ Candidates considered: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585, TCS-657
 
 ## Geometry, topology and metric spaces
 
-The existing leaders cover concentration, embeddings, topology, polytope diameter and planar incidence structure. Keep this mix; the saved claimed-solution caveat on unknot recognition remains visible.
+The existing leaders cover concentration, embeddings, topology, polytope diameter and planar incidence structure. Keep this mix; the saved claimed-solution caveat on unknot recognition remains visible. On 12 September 2026, the specify-or-delete review removed TCS-0318; their focus slots are left for a separate selection decision.
 
 Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 
@@ -141,9 +143,9 @@ Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 | 2 | [Gupta–Newman–Rabinovich–Sinclair conjecture](index.html#TCS-6525) (TCS-6525) | Metric embeddings | 95 | A central link between graph minor structure, metric embeddings and the quality of the basic sparsest-cut relaxation, already open in the planar case. |
 | 3 | [Unknot recognition in polynomial time](index.html#TCS-6528) (TCS-6528) | Computational topology | 95 | A central algorithmic topology problem in NP∩coNP; a fresh claimed polynomial-time solution makes precise formulation and validation especially valuable. |
 | 4 | [Polynomial Hirsch conjecture](index.html#TCS-6573) (TCS-6573) | Polytope geometry | 95 | The surviving fundamental diameter question after the original Hirsch bound failed; it separates geometric existence of short routes from algorithmic navigation and the newly resolved circuit analogue. |
-| 5 | [Planar k-set problem](index.html#TCS-0318) (TCS-0318) | Discrete geometric complexity | 94 | A defining extremal-complexity question for geometric algorithms, already unresolved in the plane and connected to levels, geometric selection, and parametric optimization. |
+| 5 | [Lang–Plaut problem](index.html#TCS-6524) (TCS-6524) | Needs review | 94 | Unreviewed replacement |
 
-Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-6529, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
+Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-6529, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
 
 ## Learning theory
 
@@ -321,7 +323,7 @@ Previous prefix: TCS-6621, TCS-6622.
 | 1 | [Rapid mixing of Glauber dynamics with Δ+2 colours](index.html#TCS-6621) (TCS-6621) | Colouring-chain mixing | 95 | A longstanding general-graph conjecture linking local algorithms, approximate counting and spin systems; recent near-threshold results still require structural restrictions. |
 | 2 | [Kannan–Tetali–Vempala conjecture](index.html#TCS-6622) (TCS-6622) | Sampling prescribed-degree graphs | 94 | A central obstruction to a general theory of uniform sampling with fixed combinatorial marginals. |
 
-Candidates considered: TCS-6621, TCS-6622, TCS-6668, TCS-1693.
+Candidates considered: TCS-6621, TCS-6622, TCS-6668.
 
 ## Counting and enumeration
 
@@ -429,16 +431,16 @@ Candidates considered: TCS-6571, TCS-6617, TCS-6618, TCS-6667, TCS-6619, TCS-662
 
 ## Coding and information theory
 
-Pair Gaussian interference capacity with the binary rate–distance tradeoff. Move the second multiuser capacity question below the prefix so that coding theory has a leading representative. Preserve the existing uncertainty around the Gaussian-capacity claim.
+Pair Gaussian interference capacity with the binary rate–distance tradeoff. Move the second multiuser capacity question below the prefix so that coding theory has a leading representative. Preserve the existing uncertainty around the Gaussian-capacity claim. On 12 September 2026, the specify-or-delete review removed TCS-6606, TCS-1010; their focus slots are left for a separate selection decision.
 
 Previous prefix: TCS-6606, TCS-6665.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Capacity of the Gaussian interference channel](index.html#TCS-6606) (TCS-6606) | Network channel capacity | 97 | A foundational multi-user capacity frontier with a simple channel model, strong approximate results and unresolved exact tradeoffs. Recent disputed claims make the precise formulation and status record especially valuable. |
-| 2 | [The optimal asymptotic binary rate–distance tradeoff](index.html#TCS-1010) (TCS-1010) | Error-correcting code limits | 96 | A foundational coding-theory limit with a precise extremal target, a large gap between existence and converse bounds, and connections to combinatorics, information theory and quantum methods. |
+| 1 | [Capacity of the general broadcast channel](index.html#TCS-6665) (TCS-6665) | Needs review | 97 | Unreviewed replacement |
+| 2 | [Li–Li conjecture](index.html#TCS-6584) (TCS-6584) | Needs review | 96 | Unreviewed replacement |
 
-Candidates considered: TCS-6606, TCS-6665, TCS-1010, TCS-6584, TCS-6607, TCS-6608, TCS-6609, TCS-6610.
+Candidates considered: TCS-6665, TCS-6584, TCS-6607, TCS-6608, TCS-6609, TCS-6610.
 
 ## Property testing and distribution learning
 
