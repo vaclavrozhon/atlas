@@ -1056,12 +1056,12 @@ A hitting-set generator outputs strings intersecting every sufficiently large ac
 [Read in atlas](index.html#TCS-5341) · [Errorless Versus Error-Prone Average-Case Complexity](https://doi.org/10.4230/LIPIcs.ITCS.2022.84)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-5798 — Pseudodeterministic algorithms for randomized search
+### TCS-5798 — Pseudodeterministic construction of primes at every length
 
-A randomized search algorithm may produce different valid solutions when run repeatedly on the same input. The cited source raises the existence of pseudodeterministic polynomial-time algorithms for fundamental tasks of this kind. Pseudodeterminism requires concentrating output on one preferred solution while retaining the advantages of randomness. Such algorithms would make randomized computation more reproducible without necessarily making it fully deterministic. Although the paper concerns bipartite matching in parallel complexity, the saved passage is broader and truncates its named examples, so it must not be treated as a new unresolved matching theorem.
+Given a length in unary, generate a prime with exactly that many binary digits in polynomial time. For each length, independent runs must return the same fixed prime with probability at least two thirds. The fixed prime may depend on the algorithm; it is not prescribed in advance. The requirement must hold at every length of at least two bits. The known polynomial-time construction meets this requirement only on infinitely many lengths.
 
-[Read in atlas](index.html#TCS-5798) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87)
-Existing status: `source_open` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-5798) · [Bipartite Perfect Matching in Pseudo-Deterministic NC](https://doi.org/10.4230/LIPIcs.ICALP.2017.87) · [Polynomial-Time Pseudodeterministic Construction of Primes](https://doi.org/10.1145/3803408)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6686 — P versus RP
 
