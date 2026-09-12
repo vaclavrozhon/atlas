@@ -1919,12 +1919,12 @@ A disjunctive kernel represents an input decision by an OR of answers to smaller
 [Read in atlas](index.html#TCS-3207) · [Lower Bounds for Conjunctive and Disjunctive Turing Kernels](https://doi.org/10.4230/LIPIcs.IPEC.2021.12)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-3339 — That is, can it be solved in time f (r)(mn)O(1) for some computable function f ?
+### TCS-3339 — FPT recovery of graph incidence matrices under low-rank binary perturbations
 
-An incidence matrix records which objects participate in which sets or relations. The source asks whether its recovery problem admits running time f(r)(mn)^O(1), with an arbitrary computable dependence on r. This is a fixed-parameter tractability target: the polynomial exponent must not grow with the parameter. Such an algorithm would make recovery feasible when the relevant structural parameter is small even if the matrix dimensions are large. The excerpt does not define the supplied measurements or r, so those details are needed before the task can be identified with a specific matrix reconstruction problem.
+The input is a binary matrix thought of as graph incidences plus a low-rank binary perturbation. The algorithm must decide whether some incidence matrix of a graph in the specified fixed class differs from it by rank at most r over F₂. The source has algorithms polynomial for each fixed r, with an exponent that grows with r. The question asks whether the exponent can be made independent of r, leaving only a computable multiplicative parameter cost. This concerns rank of the error matrix, not the number of flipped bits, and covers simple graphs, forests, trees, connected graphs and fixed-arboricity graphs.
 
 [Read in atlas](index.html#TCS-3339) · [On the Complexity of Recovering Incidence Matrices](https://doi.org/10.4230/LIPIcs.ESA.2020.50)
-Existing status: `uncertain` · Summary written: 2026-09-11
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3480 — Can such a result be excluded, even for the apparently more demanding situation of sparsifiers for 0-Extension instances (as in Theorem 22)?
 
