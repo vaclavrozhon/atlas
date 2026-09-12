@@ -41,7 +41,7 @@ Previous prefix: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Does P equal NP?](index.html#TCS-0001) (TCS-0001) | Nondeterministic computation | 100 | The central boundary between efficient verification and efficient computation, with implications throughout TCS. It is the highest-priority landmark in the complexity category. |
+| 1 | [P versus NP](index.html#TCS-0001) (TCS-0001) | Nondeterministic computation | 100 | The central boundary between efficient verification and efficient computation, with implications throughout TCS. It is the highest-priority landmark in the complexity category. |
 | 2 | [P versus PSPACE](index.html#TCS-6530) (TCS-6530) | Time versus space | 100 | A defining question about the relationship between the two basic computational resources, time and working memory. It is a top-priority foundational class separation. |
 | 3 | [L versus P](index.html#TCS-6531) (TCS-6531) | Space-efficient computation | 98 | A canonical unresolved boundary between time and memory, asking whether any polynomial-time decision problem intrinsically needs more than logarithmic workspace. |
 | 4 | [Nonuniform TC⁰ versus NC¹](index.html#TCS-6535) (TCS-6535) | Shallow threshold circuits | 97 | A flagship unresolved containment between basic circuit classes, with explicit complete problems and connections to arithmetic, algebraic automata theory, and lower-bound amplification. |
@@ -58,8 +58,8 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Expected linear-time integer sorting for every word length](index.html#TCS-6537) (TCS-6537) | Integer sorting | 96 | A foundational algorithmic primitive whose optimal complexity tests the computational power of the word RAM and would affect many tasks built on ordering integer keys. |
-| 2 | [Can all pairwise sums X+Y be sorted in quadratic time?](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
-| 3 | [Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
+| 2 | [Sorting X + Y](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
+| 3 | [Hypergraph cut sparsifiers with O(n/ε²) hyperedges](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
 | 4 | [Near-linear-time approximation of reachability diameter](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
 | 5 | [Mincost flow in planar graphs](index.html#TCS-0809) (TCS-0809) | Needs review | 62 | Unreviewed replacement |
 
@@ -121,7 +121,7 @@ Previous prefix: TCS-0008, TCS-6572, TCS-6574, TCS-6575, TCS-6585.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Does general rational linear programming have a strongly polynomial algorithm?](index.html#TCS-0008) (TCS-0008) | Linear programming complexity | 97 | A leading open question in optimization, separating ordinary polynomial-time solvability from a dimension-only arithmetic bound. Its reach includes general linear programming and many combinatorial optimization problems. |
+| 1 | [Strongly polynomial linear programming](index.html#TCS-0008) (TCS-0008) | Linear programming complexity | 97 | A leading open question in optimization, separating ordinary polynomial-time solvability from a dimension-only arithmetic bound. Its reach includes general linear programming and many combinatorial optimization problems. |
 | 2 | [Exact semidefinite feasibility in polynomial time](index.html#TCS-6574) (TCS-6574) | Exact semidefinite optimization | 97 | A foundational complexity gap in a widely used convex optimization model; exact decision remains open despite powerful approximation algorithms, exact duality and symbolic decidability. |
 | 3 | [Conforti–Cornuéjols conjecture](index.html#TCS-7227) (TCS-7227) | Integral packing and covering | 90 | The packing versus max-flow min-cut conjecture adds a fundamental combinatorial integrality question alongside continuous optimization and numerical computation. |
 | 4 | [Nearly linear-time solution of general sparse linear systems](index.html#TCS-6585) (TCS-6585) | Numerical linear algebra | 97 | A fundamental input-size complexity question for one of the most widely used computational primitives, with meaningful positive results for structured classes and general reductions from apparently special systems. |
@@ -141,7 +141,7 @@ Previous prefix: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318.
 | 2 | [Gupta–Newman–Rabinovich–Sinclair conjecture](index.html#TCS-6525) (TCS-6525) | Metric embeddings | 95 | A central link between graph minor structure, metric embeddings and the quality of the basic sparsest-cut relaxation, already open in the planar case. |
 | 3 | [Unknot recognition in polynomial time](index.html#TCS-6528) (TCS-6528) | Computational topology | 95 | A central algorithmic topology problem in NP∩coNP; a fresh claimed polynomial-time solution makes precise formulation and validation especially valuable. |
 | 4 | [Polynomial Hirsch conjecture](index.html#TCS-6573) (TCS-6573) | Polytope geometry | 95 | The surviving fundamental diameter question after the original Hirsch bound failed; it separates geometric existence of short routes from algorithmic navigation and the newly resolved circuit analogue. |
-| 5 | [How many k-element subsets can a line separate from a planar point set?](index.html#TCS-0318) (TCS-0318) | Discrete geometric complexity | 94 | A defining extremal-complexity question for geometric algorithms, already unresolved in the plane and connected to levels, geometric selection, and parametric optimization. |
+| 5 | [Planar k-set problem](index.html#TCS-0318) (TCS-0318) | Discrete geometric complexity | 94 | A defining extremal-complexity question for geometric algorithms, already unresolved in the plane and connected to levels, geometric selection, and parametric optimization. |
 
 Candidates considered: TCS-6523, TCS-6525, TCS-6528, TCS-6573, TCS-0318, TCS-6524, TCS-6526, TCS-0406, TCS-6527, TCS-6529, TCS-0403, TCS-0408, TCS-0427, TCS-0410.
 
@@ -170,10 +170,10 @@ Previous prefix: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Public-key encryption from one-way functions](index.html#TCS-6545) (TCS-6545) | Public-key foundations | 98 | A central minimal-assumption question in cryptographic foundations, separating the known reach of generic one-wayness from public-key communication. |
-| 2 | [Does P≠NP imply the existence of one-way functions?](index.html#TCS-0022) (TCS-0022) | Complexity foundations of cryptography | 97 | A foundational question about the weakest assumptions supporting cryptography, linking NP hardness, average-case complexity, inversion, and pseudorandomness. |
+| 2 | [One-way functions from P ≠ NP](index.html#TCS-0022) (TCS-0022) | Complexity foundations of cryptography | 97 | A foundational question about the weakest assumptions supporting cryptography, linking NP hardness, average-case complexity, inversion, and pseudorandomness. |
 | 3 | [Circuit obfuscation from polynomial-hard LWE](index.html#TCS-6550) (TCS-6550) | Program obfuscation | 97 | A central assumption-minimization problem for general obfuscation, with consequences throughout cryptography and a crucial distinction between ordinary LWE and strengthened LWE-based assumptions. |
 | 4 | [Unleveled fully homomorphic encryption from LWE alone](index.html#TCS-6551) (TCS-6551) | Computation on encrypted data | 95 | A central foundational gap in fully homomorphic encryption, separating established leveled LWE constructions from reusable fixed-depth-independent keys and their extra security assumptions. |
-| 5 | [Can every perfect secret-sharing access structure use shares below exponent one half?](index.html#TCS-0465) (TCS-0465) | Information-theoretic secret sharing | 88 | The share size needed for general secret sharing is a fundamental efficiency limit for realizing arbitrary access structures. |
+| 5 | [Sub-square-root share-size exponents in perfect secret sharing](index.html#TCS-0465) (TCS-0465) | Information-theoretic secret sharing | 88 | The share size needed for general secret sharing is a fundamental efficiency limit for realizing arbitrary access structures. |
 
 Candidates considered: TCS-6545, TCS-0022, TCS-6549, TCS-6550, TCS-6547, TCS-6546, TCS-6548, TCS-6551, TCS-6552, TCS-0465, TCS-6454, TCS-1138.
 
@@ -186,7 +186,7 @@ Previous prefix: TCS-6446, TCS-0036, TCS-6516, TCS-6580, TCS-6515.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Quantum PCP conjecture](index.html#TCS-6446) (TCS-6446) | Local Hamiltonian hardness | 98 | A defining quantum-complexity conjecture connecting robust verification, approximation hardness, and the structure of many-body Hamiltonians. |
-| 2 | [Does BPP differ from BQP?](index.html#TCS-0036) (TCS-0036) | Quantum computational advantage | 97 | A central foundational separation between classical and quantum efficient computation, with consequences for algorithms, simulation, and the computational interpretation of quantum mechanics. |
+| 2 | [BPP versus BQP](index.html#TCS-0036) (TCS-0036) | Quantum computational advantage | 97 | A central foundational separation between classical and quantum efficient computation, with consequences for algorithms, simulation, and the computational interpretation of quantum mechanics. |
 | 3 | [Area law for gapped two-dimensional Hamiltonians](index.html#TCS-6516) (TCS-6516) | Ground-state entanglement | 97 | A fundamental unresolved link between spectral gaps, geometric locality, entanglement, and the resources needed to describe quantum many-body ground states. |
 | 4 | [Information-theoretic classical verification of quantum computation](index.html#TCS-6580) (TCS-6580) | Classical verification | 97 | A central quantum-complexity question connecting interactive proofs, delegation and the minimum resources needed to verify computations beyond classical simulation. |
 | 5 | [NPT bound entanglement](index.html#TCS-6518) (TCS-6518) | Entanglement distillation | 96 | A central structural boundary in entanglement theory, with canonical finite-dimensional candidates and consequences for what quantum correlations can accomplish under local operations. |
@@ -253,7 +253,7 @@ Previous prefix: TCS-0003, TCS-6600.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Can randomness always be removed from polynomial-time decision algorithms?](index.html#TCS-0003) (TCS-0003) | General derandomization | 97 | The main general derandomization question for polynomial-time decision algorithms, with broad consequences for the role of randomness and for hardness-versus-randomness techniques. |
+| 1 | [P versus BPP](index.html#TCS-0003) (TCS-0003) | General derandomization | 97 | The main general derandomization question for polynomial-time decision algorithms, with broad consequences for the role of randomness and for hardness-versus-randomness techniques. |
 | 2 | [Optimal explicit pseudorandom generators for read-once branching programs](index.html#TCS-6600) (TCS-6600) | Space-bounded pseudorandomness | 97 | A central constructive route to L=BPL, with optimal nonconstructive seed length known and a persistent gap for uniform space-efficient generators despite advances in restricted and weighted models. |
 
 Candidates considered: TCS-0003, TCS-6600, TCS-6662, TCS-1005, TCS-0026, TCS-1018, TCS-1015, TCS-1016.
@@ -280,7 +280,7 @@ Previous prefix: TCS-6587, TCS-0006.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Constant-factor approximation for Densest k-Subgraph](index.html#TCS-6587) (TCS-6587) | Approximation algorithms for dense subgraphs | 97 | A flagship approximation problem with a simple objective, a large algorithmic gap, strong conditional and relaxation barriers, and consequences for several other optimization problems. |
-| 2 | [Unique Games: is near-satisfiability NP-hard to distinguish from low value?](index.html#TCS-0006) (TCS-0006) | Hardness of approximation | 96 | An organizing conjecture for approximation thresholds, with consequences for whole families of constraint satisfaction problems and strong connections to SDP algorithms, PCPs, and analysis. |
+| 2 | [Unique Games Conjecture](index.html#TCS-0006) (TCS-0006) | Hardness of approximation | 96 | An organizing conjecture for approximation thresholds, with consequences for whole families of constraint satisfaction problems and strong connections to SDP algorithms, PCPs, and analysis. |
 
 Candidates considered: TCS-6587, TCS-0006, TCS-6588, TCS-6589, TCS-6659, TCS-6590, TCS-6591, TCS-0088.
 
@@ -306,7 +306,7 @@ Previous prefix: TCS-6656, TCS-0012.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Planted clique conjecture](index.html#TCS-6656) (TCS-6656) | Planted inference | 98 | A canonical computational threshold with broad consequences in average-case complexity, statistical inference, and the study of algorithmic lower-bound frameworks. |
-| 2 | [Does P≠NP imply a samplable NP problem outside AvgP?](index.html#TCS-0012) (TCS-0012) | Worst-case versus average-case hardness | 97 | One of the central missing implications in complexity theory, connecting worst-case lower bounds to feasible instance generation and the limits of algorithms on typical inputs. |
+| 2 | [Average-case NP hardness from P ≠ NP](index.html#TCS-0012) (TCS-0012) | Worst-case versus average-case hardness | 97 | One of the central missing implications in complexity theory, connecting worst-case lower bounds to feasible instance generation and the limits of algorithms on typical inputs. |
 
 Candidates considered: TCS-6656, TCS-0012, TCS-6657, TCS-6684, TCS-6453, TCS-6658.
 
@@ -409,7 +409,7 @@ Previous prefix: TCS-0007, TCS-6611.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Is the matrix multiplication exponent equal to two?](index.html#TCS-0007) (TCS-0007) | Matrix multiplication | 98 | One of the main questions in algebraic algorithms, governing a widely used primitive and many dependent complexity bounds. Both faster constructions and a superquadratic lower bound would have broad consequences. |
+| 1 | [Matrix multiplication exponent](index.html#TCS-0007) (TCS-0007) | Matrix multiplication | 98 | One of the main questions in algebraic algorithms, governing a widely used primitive and many dependent complexity bounds. Both faster constructions and a superquadratic lower bound would have broad consequences. |
 | 2 | [Permanent versus determinant](index.html#TCS-6611) (TCS-6611) | Algebraic representation lower bounds | 98 | The principal permanent-versus-determinant lower-bound problem, connecting algebraic computation, branching programs, geometry, and symmetry. |
 
 Candidates considered: TCS-0007, TCS-6611, TCS-6666, TCS-6612, TCS-0005, TCS-6613, TCS-6641, TCS-6614.
@@ -449,7 +449,7 @@ Previous prefix: TCS-6630, TCS-6672, TCS-0672.
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
 | 1 | [Effective classification of polynomially testable hereditary graph properties](index.html#TCS-6630) (TCS-6630) | Graph property classification | 95 | An effective formulation of the major finite-family classification problem; it separates polynomial sampling from mere testability and abstract quantitative equivalences. |
-| 2 | [Does polynomial testability imply polynomial distance estimation for dense graph properties?](index.html#TCS-1033) (TCS-1033) | Testing versus distance estimation | 96 | A universal polynomial tester-to-estimator implication would convert robust graph-property recognition into quantitative distance measurement across the dense model. |
+| 2 | [Polynomial testability versus distance estimation](index.html#TCS-1033) (TCS-1033) | Testing versus distance estimation | 96 | A universal polynomial tester-to-estimator implication would convert robust graph-property recognition into quantitative distance measurement across the dense model. |
 
 Candidates considered: TCS-6630, TCS-6672, TCS-1030, TCS-1029, TCS-1033, TCS-0672, TCS-1033.
 
@@ -461,7 +461,7 @@ Previous prefix: TCS-6631, TCS-0506.
 
 | Position | Problem | Topic | Saved importance score | Selection rationale |
 | ---: | --- | --- | ---: | --- |
-| 1 | [Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
+| 1 | [Private PAC sample complexity from VC and Littlestone dimensions](index.html#TCS-0506) (TCS-0506) | Private learnability | 88 | Seeks a quantitative sample-complexity characterization of private learnability in terms of two basic dimensions, with consequences across hypothesis classes. |
 | 2 | [Optimal error for pure-DP continual counting](index.html#TCS-6673) (TCS-6673) | Private continual counting | 94 | The saved target asks for optimal worst-time error when releasing every prefix sum under pure differential privacy. It complements sample-complexity bounds for private learning with a fundamental sequential data-release problem. |
 
 Candidates considered: TCS-6631, TCS-6673, TCS-0506, TCS-0510, TCS-0507.

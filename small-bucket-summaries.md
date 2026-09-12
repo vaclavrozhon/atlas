@@ -1280,7 +1280,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Pseudorandomness and derandomization (64)
 
-### TCS-0003 — Can randomness always be removed from polynomial-time decision algorithms?
+### TCS-0003 — P versus BPP
 
 BPP contains decision problems solvable in polynomial time using random bits with bounded error on every input. The question asks whether every such problem also has a deterministic polynomial-time algorithm, giving P=BPP. Trying every random tape removes error but generally takes exponential time. A positive answer would show that randomness changes algorithm design without enlarging this class of efficiently decidable problems. The saved review explains conditional routes through strong circuit lower bounds and distinguishes uniform algorithms from advice strings that merely exist for each input length.
 
@@ -1294,7 +1294,7 @@ An ordered read-once branching program processes input bits sequentially while r
 [Read in atlas](index.html#TCS-6600) · [Pseudorandom generators for space-bounded computation](https://mathweb.ucsd.edu/~sbuss/CourseWeb/Math268_2013W/Nisan_PRG.pdf) · [Better Pseudodistributions and Derandomization for Space-Bounded Computation](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.APPROX/RANDOM.2021.28) · [Hitting Sets Give Two-Sided Derandomization of Small Space](https://theoryofcomputing.org/articles/v018a021/) · [Weighted Pseudorandom Generators for Read-Once Branching Programs via Weighted Pseudorandom Reductions](https://epubs.siam.org/doi/10.1137/1.9781611978971.124) · [Improved Error Reduction for Weighted PRGs](https://eccc.weizmann.ac.il/report/2026/064/) · [A Forward-Backward Weight Analysis of INW for Permutation Branching Programs](https://eccc.weizmann.ac.il/report/2026/123/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0026 — Does deterministic logarithmic space equal bounded-error randomized logarithmic space?
+### TCS-0026 — L versus BPL
 
 BPL permits bounded-error randomized decisions using logarithmic work space and polynomial time. The question asks whether every such language has a deterministic logarithmic-space decider. Random bits are fresh independent coin outcomes, and remembering them consumes counted work space. Known deterministic simulations and recent weighted-generator improvements still use more space or establish different parameter guarantees. The completed card keeps this class-equality target separate from constructing a particular optimal pseudorandom generator.
 
@@ -2159,7 +2159,7 @@ Densest k-Subgraph asks which exactly k vertices of a graph contain the most int
 [Read in atlas](index.html#TCS-6587) · [Detecting High Log-Densities — an O(n^1/4) Approximation for Densest k-Subgraph](https://arxiv.org/abs/1001.2891) · [Polynomial integrality gaps for strong SDP relaxations of Densest k-subgraph](https://arxiv.org/abs/1110.1360) · [Almost-Polynomial Ratio ETH-Hardness of Approximating Densest k-Subgraph](https://arxiv.org/abs/1611.05991) · [A New Conjecture on Hardness of 2-CSP’s with Implications to Hardness of Densest k-Subgraph and Other Problems](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2023.38) · [A Scalable and Exact Relaxation for Densest k-Subgraph via Error Bounds](https://ojs.aaai.org/index.php/AAAI/article/view/38562) · [A Note on Approximability of Densest At-Least-k-Subgraph](https://arxiv.org/abs/2605.25464)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0006 — Unique Games: is near-satisfiability NP-hard to distinguish from low value?
+### TCS-0006 — Unique Games Conjecture
 
 A Unique Games instance assigns labels to vertices, with each edge specifying a permutation relating its endpoint labels. The conjecture asks whether almost satisfiable instances are NP-hard to distinguish from instances with very small optimum value. Although perfect satisfiability can be checked by propagating labels, a small allowance for violated constraints changes the challenge. The conjecture would explain approximation thresholds for many constraint satisfaction problems through semidefinite programming. The saved review emphasizes that hardness with completeness one half does not establish the required completeness arbitrarily close to one.
 
@@ -2702,7 +2702,7 @@ Planted clique detection distinguishes a random graph from one with a uniformly 
 [Read in atlas](index.html#TCS-6656) · [Finding a Large Hidden Clique in a Random Graph](https://people.math.ethz.ch/~sudakovb/hidden-clique.pdf) · [A Nearly Tight Sum-of-Squares Lower Bound for the Planted Clique Problem](https://doi.org/10.1137/17M1138236) · [Finding planted cliques using gradient descent](https://arxiv.org/abs/2311.07540v2) · [On optimal distinguishers for Planted Clique](https://arxiv.org/abs/2505.01990v2) · [Robust Algorithms for Finding Cliques in Random Intersection Graphs via Sum-of-Squares](https://proceedings.mlr.press/v336/gobel26a.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0012 — Does P≠NP imply a samplable NP problem outside AvgP?
+### TCS-0012 — Average-case NP hardness from P ≠ NP
 
 Worst-case NP hardness means that some efficiently verifiable problem resists polynomial-time solution on all inputs. The question asks whether P unequal to NP forces such a problem to remain hard on average under an efficiently samplable distribution. The hard instances must occur often enough in a distribution that can itself be generated feasibly. A positive implication would connect worst-case complexity with the distributional hardness needed in many algorithmic and cryptographic settings. The reviewed target uses deterministic exact decisions and Levin's moment-based average-time definition, which differs from allowing errors on rare inputs or requiring only a polynomial first moment.
 
@@ -3387,7 +3387,7 @@ Each edge of an undirected graph carries a color label. The objective is to find
 [Read in atlas](index.html#TCS-7246) · [Shortest Cycles With Monotone Submodular Costs](https://arxiv.org/abs/2211.04797) · [Open problems: Complexity of minimum color cycle](https://tuukkakorhonen.com/problems.html)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0588 — Albertson’s chromatic-number crossing conjecture
+### TCS-0588 — Albertson’s conjecture
 
 The crossing number of a graph measures the fewest edge crossings in a drawing in the plane. Albertson's conjecture relates this geometric complexity to chromatic number by comparing with the corresponding complete graph. The intuition is that a graph requiring many colors should also require substantial crossing complexity even if it contains no large clique as a subgraph. A proof would connect coloring obstruction with the geometry of graph drawings. The saved index does not preserve the exact graph and drawing conventions, so the source's formal inequality must be recovered before giving a parameterized statement or claiming special cases.
 
@@ -3408,7 +3408,7 @@ Treewidth measures how a graph can be assembled from overlapping vertex bags arr
 [Read in atlas](index.html#TCS-0771) · [Algorithms for Optimization Problems in Planar Graphs](https://doi.org/10.4230/DagRep.6.5.94)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0594 — Is 3-colorability polynomial-time decidable on diameter-two graphs?
+### TCS-0594 — 3-colorability of diameter-two graphs
 
 Three-colorability asks whether vertices can receive three colors with adjacent vertices always different. Here every pair of vertices is promised to have distance at most two. The question is whether this strong proximity condition permits deterministic polynomial-time recognition of three-colorable graphs. Adding a universal vertex cannot directly transfer general three-color hardness because it consumes an additional color. The problem therefore probes a precise structural boundary where very short graph distances may or may not simplify coloring.
 
@@ -3699,7 +3699,7 @@ The global minimum cut is the smallest number of edges separating a graph into t
 [Read in atlas](index.html#TCS-6670) · [Deterministic and Exact Fully-dynamic Minimum Cut of Superpolylogarithmic Size in Subpolynomial Time](https://arxiv.org/abs/2512.13105) · [Unifying and Strengthening Hardness for Dynamic Problems via the Online Matrix-Vector Multiplication Conjecture](https://people.csail.mit.edu/virgi/6.s078/papers/omv.pdf) · [Incremental Exact Min-Cut in Polylogarithmic Amortized Update Time](https://arxiv.org/abs/1611.06500) · [Fully Dynamic Exact Edge Connectivity in Sublinear Time](https://arxiv.org/abs/2302.05951) · [Tree-Packing Revisited: Faster Fully Dynamic Min-Cut and Arboricity](https://link.springer.com/article/10.1007/s00453-026-01394-4) · [Fully Dynamic Approximate Minimum Cut in Subpolynomial Time per Operation](https://arxiv.org/abs/2412.15069)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0478 — Can exact fully dynamic APSP have edge-linear amortized updates and polylogarithmic queries?
+### TCS-0478 — Dynamic APSP with edge-linear updates
 
 Dynamic all-pairs shortest paths must answer exact distances while directed weighted edges change. The reviewed target combines polylogarithmic worst-case queries with amortized update time nearly linear in the edge bound m. It allows polynomial preprocessing and space while requiring deterministic answers. The principal gap is sparse graphs, where updates should cost much less than rebuilding a full distance table. The saved review explains that many distances changing simultaneously is not an impossibility argument, because the oracle may represent those changes implicitly and expose only one queried pair.
 
@@ -3720,14 +3720,14 @@ A low-stretch spanning tree approximates graph connections by keeping tree dista
 [Read in atlas](index.html#TCS-0541) · [Dynamic Graph Algorithms](https://doi.org/10.4230/DagRep.12.11.45)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0536 — An Open Problem in Dynamic Edge Coloring
+### TCS-0536 — Dynamic edge coloring
 
 An edge coloring assigns colors so that edges meeting at a vertex receive different colors. The saved question asks how to maintain such a coloring when edges change. A new edge may force recoloring beyond its immediate endpoints if the current local color choices conflict. The dynamic challenge is to balance a small palette against update work and the number of changed colors. The source label does not preserve the degree assumptions or palette target, so the draft cannot infer whether the intended question concerns optimal coloring or a looser approximation.
 
 [Read in atlas](index.html#TCS-0536) · [Graph Algorithms: Distributed Meets Dynamic](https://doi.org/10.4230/DagRep.14.11.92)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0537 — Open Problem: Dynamic Brooks’ Theorem
+### TCS-0537 — Dynamic Brooks’ theorem
 
 Brooks-type coloring bounds exploit graph structure to use few vertex colors beyond elementary greedy guarantees. The saved entry asks for a dynamic version as edges are inserted or deleted. Updates can invalidate existing colors and alter whether exceptional graph structures are present. A suitable algorithm would turn a static structural coloring theorem into an efficiently maintained solution. The inherited label does not reproduce the exact palette bound, exceptions, or recourse requirements, so it does not justify a particular dynamic theorem merely from the familiar name.
 
@@ -3748,7 +3748,7 @@ Maintain a changing set of planar points while answering exact Euclidean nearest
 [Read in atlas](index.html#TCS-0387) · [The Open Problems Project](https://topp.openproblem.net/p63)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0538 — Open Problem: Low-Degree Spanning Tree
+### TCS-0538 — Low-degree spanning trees
 
 Given a connected undirected graph, the goal is to find a spanning tree whose maximum vertex degree is as small as possible. The seminar asks for a near-linear-time algorithm achieving an O(1) multiplicative approximation to this optimum. It recalls the O(mn)-time algorithm of Fürer and Raghavachari, which achieves an additive error of at most one in maximum degree. The source also observes that allowing an O(polylog(n)) multiplicative factor opens several approaches to near-linear running time. Closing this gap would provide a much faster constant-factor approximation for constructing a connected backbone with bounded load at each vertex.
 
@@ -3834,21 +3834,21 @@ A grammar can compress a string by naming repeated pieces and assembling them th
 [Read in atlas](index.html#TCS-6513) · [The Smallest Grammar Problem](https://doi.org/10.1109/TIT.2005.850116) · [On the Complexity of the Smallest Grammar Problem over Fixed Alphabets](https://doi.org/10.1007/s00224-020-10013-w)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0467 — Can LZ77 random access use linear compressed space and logarithmic query time?
+### TCS-0467 — Linear-space LZ77 random access
 
 An LZ77 parse represents repeated text through references to earlier occurrences, possibly allowing overlap. The reviewed question asks for random character access in logarithmic time using space linear in the number of phrases. The original uncompressed string is unavailable when queries arrive. A solution must navigate arbitrary chains of copied material while keeping every stored shortcut inside the compressed-space budget. The saved record distinguishes ordinary LZ77 from restricted parsing variants and notes that converting to a larger grammar does not automatically preserve the required linear space.
 
 [Read in atlas](index.html#TCS-0467) · [Adaptive and Scalable Data Structures — Two problems on Lempel-Ziv compression](https://doi.org/10.4230/DagRep.15.5.1) · [Balancing Straight-Line Programs](https://arxiv.org/abs/1902.03568) · [Random Access to LZ-End: Faster and Deterministic](https://arxiv.org/abs/2607.14923)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0468 — Can pattern matching run in linear time in the LZ77 input size?
+### TCS-0468 — Linear-time LZ77 pattern matching
 
 Compressed pattern matching asks whether an explicit pattern occurs in a text supplied only as LZ77 phrases. The reviewed target is deterministic time linear in the phrase count plus pattern length, with comparable working space. Occurrences can cross phrase boundaries or lie inside copied regions, so isolated phrase inspection is insufficient. Such an algorithm would make search depend on the compressed input rather than the potentially enormous expanded text. The statement includes all preprocessing and allows self-referencing phrases, preventing an uncharged index or an easier parsing convention from weakening the target.
 
 [Read in atlas](index.html#TCS-0468) · [Adaptive and Scalable Data Structures](https://doi.org/10.4230/DagRep.15.5.1) · [Pattern matching in Lempel-Ziv compressed strings: fast, simple, and deterministic](https://arxiv.org/abs/1104.4203) · [Pattern Matching on Grammar-Compressed Strings in Linear Time](https://arxiv.org/abs/2111.05016)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0470 — Can grammar random access use O(g log g) bits with logarithmic query time?
+### TCS-0470 — Grammar random access in O(g log g) bits
 
 A straight-line grammar can describe a string exponentially longer than its own rule list. The question asks for logarithmic-time character access with total storage comparable in bits to the grammar encoding. The representation must be built from the grammar in polynomial time without expanding the string. The obstacle is that navigation often stores expansion lengths requiring logarithmically many bits in the much larger text length. The saved review identifies removal of that length-storage overhead as the issue and distinguishes it from linear-word-space grammar access.
 
@@ -4223,7 +4223,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Algebraic computation (93)
 
-### TCS-0007 — Is the matrix multiplication exponent equal to two?
+### TCS-0007 — Matrix multiplication exponent
 
 Matrix multiplication asks for all entries of the product of two arbitrary square matrices using exact arithmetic over the complex numbers. The conjecture is that its circuit size approaches the quadratic output scale, with exponent two. This permits a different algorithm and constant for every positive slack in the exponent. Shared intermediate computations already improve substantially on computing every inner product separately, making this a basic test of algebraic efficiency. The saved review describes tensor-method improvements and barriers, while emphasizing that barriers for particular tensors do not constrain every possible circuit.
 
@@ -4251,7 +4251,7 @@ Arithmetic circuits allow intermediate polynomial computations to be reused free
 [Read in atlas](index.html#TCS-6612) · [A primer on the closure of algebraic complexity classes under factoring](https://eccc.weizmann.ac.il/report/2025/083/revision/1/download/) · [Homogeneous Algebraic Complexity Theory and Algebraic Formulas](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ITCS.2024.43) · [Factorization of Polynomials Given by Arithmetic Branching Programs](https://doi.org/10.1007/s00037-021-00215-0) · [Lower Bounds in Algebraic Complexity via Symmetry and Homomorphism Polynomials](https://arxiv.org/abs/2601.09343) · [Multilinear Algebraic Branching Programs and the Min-Partition Rank Method](https://eccc.weizmann.ac.il/report/2026/001/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0005 — Does the permanent have polynomial-size arithmetic circuits?
+### TCS-0005 — VP versus VNP
 
 The permanent sums one matrix-entry product for each permutation of the columns. The question is whether this exponentially described polynomial nevertheless has arithmetic circuits of polynomial size over the complex numbers. Because circuits can reuse expressions and cancel terms, counting its monomials does not establish a lower bound. The problem captures the VP versus VNP question and tests whether algebraically summing efficiently described contributions is inherently expensive. The saved formulation permits arbitrary complex constants but requires exact polynomial equality, so approximation or limits of circuits would address different models.
 
@@ -4321,7 +4321,7 @@ Exact permanent computation evaluates the unsigned sum of permutation products o
 [Read in atlas](index.html#TCS-6616) · [Research reference · drops.dagstuhl.de](https://drops.dagstuhl.de/entities/document/10.4230/LIPIcs.ICALP.2026.36)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0481 — Do single-pair shortest paths require cubic-size min-plus circuits?
+### TCS-0481 — Cubic min-plus circuit lower bounds for shortest paths
 
 A min-plus circuit computes by a fixed network of minimum and addition gates. The question asks whether even one shortest-path distance in a complete nonnegatively weighted graph requires cubic circuit size. Ordinary graph algorithms can branch on comparisons and therefore need not translate into equally small circuits. Repeated relaxation provides a cubic upper bound, while dependence on all edge inputs gives only a weaker basic lower bound. The project seeks to understand how much sharing fixed tropical computations can achieve across competing paths.
 
@@ -4335,7 +4335,7 @@ Matrix rigidity measures how many entries must be changed before a matrix's rank
 [Read in atlas](index.html#TCS-1058) · [Boolean Function Complexity: Advances and Frontiers (author's early draft)](https://web.vu.lt/mif/s.jukna/boolean/index.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0055 — Sum of Square Roots
+### TCS-0055 — Sum-of-square-roots problem
 
 The saved entry identifies the sum-of-square-roots problem, an exact comparison question involving quantities described by radicals. Its geometric relevance comes from distances that can be written as square roots even when the underlying coordinates are simple. The computational difficulty is deciding a comparison reliably when two such expressions are extremely close. The catalogue currently preserves only an index label and a pointer to the original problem collection, rather than its complete input conventions or requested complexity class. Those details must be recovered before this working description can become a precise claim about an algorithm or lower bound.
 
@@ -4412,7 +4412,7 @@ A rational linear recurrence specifies an infinite sequence using finitely many 
 [Read in atlas](index.html#TCS-0095) · [Automata Exchange](https://automata.exchange/25.4-efficient-lrs-evaluation/)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0042 — Is there an algorithm to compute the stable image of an endomorphism of a free group?
+### TCS-0042 — Computing stable images of free-group endomorphisms
 
 Iterating an endomorphism of a free group produces a descending sequence of image subgroups. The stable image is the intersection of all those iterated images, recording the part that persists indefinitely. The question asks for an algorithm that computes this subgroup from the endomorphism. It connects finite descriptions of group maps with behavior defined by infinitely many iterations, where inspecting a few initial images need not certify the final intersection. The inherited record does not preserve the required output representation or rank conventions, which must be recovered from the cited seminar discussion.
 
@@ -5405,7 +5405,7 @@ Induced-F-freeness excludes every graph in a finite family as an induced subgrap
 [Read in atlas](index.html#TCS-6630) · [Polynomial Property Testing](https://arxiv.org/html/2508.16878v1) · [A Characterization of the (Natural) Graph Properties Testable with One-Sided Error](https://epubs.siam.org/doi/10.1137/06064888X) · [Removal Lemmas with Polynomial Bounds](https://arxiv.org/abs/1611.10315) · [Easily Testable Graph Properties](https://www.cambridge.org/core/product/identifier/S0963548314000765/type/journal_article) · [Efficient Removal without Efficient Regularity](https://arxiv.org/abs/1709.08159) · [A Quantitative Container Characterization of One-Sided Testability](https://eccc.weizmann.ac.il/report/2026/144/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-1033 — Does polynomial testability imply polynomial distance estimation for dense graph properties?
+### TCS-1033 — Polynomial testability versus distance estimation
 
 A dense-graph tester queries adjacencies to distinguish membership in a property from graphs far from it. A distance estimator instead approximates the minimum fraction of edge changes needed to reach that property. The question asks whether a query bound polynomial in inverse accuracy for testing always entails such a polynomial bound for estimation. Each algorithm is uniform and the query bound is independent of graph size, while local computation is unrestricted. This card isolates the polynomial implication in its title from the stronger quantitative conversion posed in the cited survey.
 
@@ -5631,7 +5631,7 @@ Existing status: `source_open` · Summary written: 2026-09-11
 
 ## Differential privacy (10)
 
-### TCS-0506 — Is private PAC sample complexity polynomial in VC dimension and log-star Littlestone dimension?
+### TCS-0506 — Private PAC sample complexity from VC and Littlestone dimensions
 
 A private PAC learner must infer a Boolean concept from examples while limiting what its output reveals about any one example. The reviewed question asks whether sample complexity is polynomial in VC dimension and the iterated logarithm of Littlestone dimension. VC dimension measures ordinary statistical capacity, whereas Littlestone dimension measures how many adaptive prediction challenges the class can support. A positive answer would bound the additional sample cost of privacy by a remarkably slow-growing contribution from that online complexity. The saved formulation fixes constant accuracy and confidence, permits improper hypotheses and unlimited computation, and specifies approximate privacy with an additive privacy parameter shrinking quadratically in sample size.
 
@@ -6071,7 +6071,7 @@ An expressive ontology describes facts and rules that can require additional unn
 [Read in atlas](index.html#TCS-6680) · [Absorption-Based Query Entailment Checking for Expressive Description Logics](https://ceur-ws.org/Vol-2373/paper-25.pdf) · [The Even More Irresistible SROIQ](https://www.cs.ox.ac.uk/people/ian.horrocks/Publications/download/2006/HoKS06a.pdf) · [Nominals, Inverses, Counting, and Conjunctive Queries or: Why Infinity is your Friend!](https://www.cs.ox.ac.uk/files/2175/paper.pdf) · [Query Answering in the Horn Fragments of the Description Logics SHOIQ and SROIQ](https://www.ijcai.org/Proceedings/11/Papers/178.pdf) · [The Curse of Finiteness: Undecidability of Database-Inspired Reasoning Problems in Very Expressive Description Logics](https://ceur-ws.org/Vol-1577/paper_12.pdf) · [Revisiting Conjunctive Query Entailment for S](https://arxiv.org/abs/2511.07933)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0492 — Is containment of conjunctive queries under bag semantics decidable?
+### TCS-0492 — Conjunctive-query containment under bag semantics
 
 Under bag semantics, database tuples and query answers have multiplicities rather than just presence or absence. The question asks whether containment of two conjunctive queries is decidable when their output multiplicities must be ordered on every finite bag database. Each query sums products of input multiplicities over satisfying assignments, so ordinary set-containment reasoning does not directly capture the comparison. A decision procedure would settle a basic semantic question relevant to duplicate-preserving query transformations. The saved review distinguishes progress for unions or restricted joins from the plain unrestricted conjunctive-query problem retained here.
 
@@ -6085,7 +6085,7 @@ Entropy-based bounds use information inequalities to limit the number of answers
 [Read in atlas](index.html#TCS-0488) · [Algorithmic Aspects of Information Theory](https://doi.org/10.4230/DagRep.12.7.180)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0482 — Does naive evaluation over p-stable semirings converge in O((p+1)n) rounds?
+### TCS-0482 — Linear-round convergence over stable semirings
 
 A polynomial system over a commutative semiring can be evaluated by repeatedly updating every coordinate from the previous vector. The question asks whether p-stability guarantees convergence after O((p+1)n) rounds from the zero vector. The proposed bound is linear in the number of coordinates and uniform across coefficients and polynomial degrees. It would sharpen convergence guarantees for grounded Datalog computations carrying semiring annotations. The saved formulation counts synchronous rounds rather than arithmetic time, so a bound on evaluation cost or a result for a different update schedule would address a separate resource question.
 
@@ -6169,12 +6169,12 @@ The property must be definable by a first-order sentence and survive every finit
 [Read in atlas](index.html#TCS-3120) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic](https://doi.org/10.4230/LIPIcs.CSL.2021.18) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic — author version](https://arxiv.org/abs/2007.05459) · [Preservation Theorems in Semiring Semantics](https://doi.org/10.4230/LIPIcs.ICALP.2026.172)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3557 — While it is known that Sp-Datalog(6=) ⊆ E [3], to the best of our knowledge, it is still an open question ? whether Str-Datalog(6=) ∩ […]
+### TCS-3557 — Does extension preservation eliminate stratified intensional negation?
 
-The source compares Datalog variants involving negation, inequality, and monotonicity. Its retained passage asks about a class relationship beyond a stated inclusion for a semipositive variant. The intended issue is whether semantic monotonicity allows a stratified computation to be expressed in a more restricted framework. This helps separate the power of a language's syntax from the behavior of the queries it happens to define. The formula is truncated at an intersection and its relation symbol is damaged, so the exact classes and direction must be recovered before a containment or separation can be asserted.
+Stratified Datalog can negate relations already computed in earlier stages. Semi-positive Datalog only negates input relations. The question asks whether preserving answers when new values extend a database always permits the simpler semi-positive form. The input growth must preserve every relation on tuples of old values, which differs from unrestricted monotonicity. The source leaves this converse expressiveness question open, and the checked later first-order preservation results do not resolve it.
 
-[Read in atlas](index.html#TCS-3557) · [Datalog with Negation and Monotonicity](https://doi.org/10.4230/LIPIcs.ICDT.2020.19)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3557) · [Datalog with Negation and Monotonicity](https://doi.org/10.4230/LIPIcs.ICDT.2020.19) · [Weaker Forms of Monotonicity for Declarative Networking](https://www.basketsman.com/public/documents/posters/poster_pods2014.pdf) · [Extension Preservation in the Finite and Prefix Classes of First Order Logic](https://doi.org/10.4230/LIPIcs.CSL.2021.18)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-3631 — It remains open whether the concepts used in CLogspace can be used to obtain a stronger logic that could capture all queries in Logspace.
 

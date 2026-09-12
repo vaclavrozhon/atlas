@@ -5,7 +5,7 @@ These intermediate explanations preserve each record's existing evidence and sta
 
 ## Computational complexity (130)
 
-### TCS-0001 — Does P equal NP?
+### TCS-0001 — P versus NP
 
 P versus NP asks whether every problem with efficiently checkable solutions also has an efficient deterministic decision algorithm. Boolean satisfiability is a representative test case because all NP problems reduce to it. Checking one assignment is easy, while deciding whether any assignment works requires accounting for all possibilities. The target concerns worst-case polynomial time on arbitrarily large inputs. A resolution would establish a fundamental relationship between searching and verifying, without by itself determining practical exponents or average-case difficulty.
 
@@ -47,21 +47,21 @@ The polynomial hierarchy adds successive alternating blocks of efficiently bound
 [Read in atlas](index.html#TCS-6532) · [Mathematics and Computation](https://www.math.ias.edu/files/Book-online-Aug0619.pdf) · [The Polynomial-Time Hierarchy](https://research.ibm.com/publications/the-polynomial-time-hierarchy) · [The Polynomial Hierarchy, Random Oracles, and Boolean Circuits](https://www.cs.columbia.edu/~rocco/Public/sigact15.pdf) · [An Average-Case Depth Hierarchy Theorem for Boolean Circuits](https://arxiv.org/abs/1504.03398) · [Upper and Lower Bounds for the Linear Ordering Principle](https://eccc.weizmann.ac.il/report/2025/142/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0021 — Does NP contain a language without polynomial-size Boolean circuits?
+### TCS-0021 — NP versus P/poly
 
 Nonuniform Boolean circuits may choose a separate computational design for each input length. The question asks whether some language in NP requires more than polynomially many gates despite that freedom. A uniform running-time lower bound would not automatically establish this stronger claim. Counting shows that most functions have large circuits but does not supply the necessary NP language. The project seeks explicit hardness robust to arbitrary length-specific preprocessing and would connect circuit lower bounds to the structure of the polynomial hierarchy.
 
 [Read in atlas](index.html#TCS-0021) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Natural Proofs](https://doi.org/10.1006/jcss.1997.1494) · [Nonuniform ACC Circuit Lower Bounds](https://people.csail.mit.edu/rrw/acc-lbs-journal-final.pdf) · [Super-quadratic Lower Bounds for Depth-2 Linear Threshold Circuits](https://eccc.weizmann.ac.il/report/2026/039/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0002 — Does every unsatisfiable Boolean formula have a short efficiently checkable certificate?
+### TCS-0002 — NP versus coNP
 
 An unsatisfiable formula has no assignment that makes every clause true. The question asks whether one fixed efficient verifier can always check a polynomial-length certificate of that impossibility. The certificate format is unrestricted as long as it is sound for every formula. This is equivalent to asking whether NP equals coNP. The project concerns the possibility of universally concise explanations for the failure of all candidate solutions, rather than lower bounds for any one particular set of proof rules.
 
 [Read in atlas](index.html#TCS-0002) · [The Relative Efficiency of Propositional Proof Systems](https://www.cs.toronto.edu/~sacook/homepage/cook_reckhow.pdf) · [Mathematics and Computation](https://www.math.ias.edu/files/mathandcomp.pdf) · [Circuits, Communication, and Proofs](https://www.icts.res.in/program/ccp)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0015 — An explicit function with no linear-size Boolean circuits
+### TCS-0015 — Superlinear Boolean circuit lower bounds
 
 A multi-output Boolean function can share intermediate computations among all its output bits. The question asks for one polynomial-time computable family whose unrestricted Boolean circuits exceed every fixed linear size bound. The saved formulation uses as many output bits as input bits. An arbitrary hard truth table does not satisfy the explicitness requirement. The project seeks a modest but fundamental lower bound demonstrating that some efficiently specified transformations intrinsically need more than a constant amount of circuit work per input bit.
 
@@ -96,7 +96,7 @@ An ordinary nondeterministic reachability algorithm can have many accepting path
 [Read in atlas](index.html#TCS-6533) · [Making Nondeterminism Unambiguous](https://people.cs.rutgers.edu/~allender/papers/nlul.pdf) · [Derandomizing Isolation in Space-Bounded Settings](https://pages.cs.wisc.edu/~dieter/Papers/r-ul-sicomp.pdf) · [When Connectivity Is Hard, Random Walks Are Easy With Non-Determinism](https://eccc.weizmann.ac.il/report/2025/077/download) · [Using Hardness vs Randomness to Design Low-Space Algorithms](https://eccc.weizmann.ac.il/report/2026/045/) · [Derandomizing Isolation In Catalytic Logspace](https://arxiv.org/abs/2512.09374) · [Deterministic, Oblivious Isolation for Space-Bounded Computation Requires Large Weights](https://eccc.weizmann.ac.il/report/2026/124/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0004 — Can directed reachability be decided in deterministic logarithmic space?
+### TCS-0004 — L versus NL
 
 Directed reachability asks whether a path leads from a specified source to a specified target. Nondeterminism solves it with logarithmic memory by guessing successive vertices. The question asks for a deterministic algorithm using the same tiny workspace on an explicitly stored graph. Repeated input scans are allowed, but a full visited array or search frontier is not. The project would settle L versus NL by showing whether all the essential information in directed exploration can be organized without guessing or substantial stored history.
 
@@ -152,7 +152,7 @@ Stable ternary compaction moves every 2 to the end while preserving the order of
 [Read in atlas](index.html#TCS-7243) · [Linear-size circuits for stable 0,1 < 2 sorting?](https://www.openproblemgarden.org/op/linear_size_circuits_for_stable_0_1_2_sorting) · [Sorting Short Keys in Circuits of Size o(n log n)](https://arxiv.org/abs/2010.09884)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0017 — Karchmer–Raz–Wigderson formula composition conjecture
+### TCS-0017 — Karchmer–Raz–Wigderson conjecture
 
 Composing Boolean functions means applying one function to separate input blocks and feeding the results into another. A straightforward formula substitutes a copy of the inner formula for each outer input occurrence. The KRW conjecture asks whether formula complexity must essentially multiply under this operation. Unexpected sharing is unavailable in formulas, but alternate logical factorizations might still save size. The project seeks a composition lower bound powerful enough to separate efficient circuits from much larger formulas.
 
@@ -924,14 +924,14 @@ Integer sorting can inspect the bits of keys instead of treating them only as ob
 [Read in atlas](index.html#TCS-6537) · [Integer sorting in O(n√(log log n)) expected time and linear space](https://doi.org/10.1109/SFCS.2002.1181890) · [Deterministic sorting in O(n log log n) time and linear space](https://www.sciencedirect.com/science/article/pii/S019667740300155X) · [Expected Linear Time Sorting for Word Size Ω(log² n log log n)](https://cs.au.dk/~gerth/papers/swat14sort.pdf) · [Integer models of computation and integer sorting](https://www.cs.cmu.edu/~15451-s25/slides/lecture03.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0388 — Can all pairwise sums X+Y be sorted in quadratic time?
+### TCS-0388 — Sorting X + Y
 
 Given two lists of n numbers, form every sum consisting of one number from each list. The task is to sort these quadratically many sums as quickly as possible. They have substantial inherited order, so they are not an arbitrary collection of unrelated values. The source distinguishes having few comparisons from implementing those comparisons with equally small total running time. Removing avoidable overhead would improve both structured sorting and geometric problems whose events are ordered by pairwise sums.
 
 [Read in atlas](index.html#TCS-0388) · [The Open Problems Project](https://topp.openproblem.net/p41)
 Existing status: `open` · Summary written: 2026-09-11
 
-### TCS-0946 — Does every hypergraph have a cut sparsifier with O(n/ε²) hyperedges?
+### TCS-0946 — Hypergraph cut sparsifiers with O(n/ε²) hyperedges
 
 A hypergraph cut counts the total weight of hyperedges meeting both sides of a vertex partition. A cut sparsifier replaces the hypergraph by a smaller weighted hypergraph that approximately preserves every cut at once. The question asks whether O(n/epsilon squared) hyperedges always suffice for multiplicative error epsilon. This matches the natural target from ordinary graphs, while a hyperedge can involve arbitrarily many vertices. The size measure counts hyperedges rather than their total incidence size, making the project specifically about how many distinct multiway interactions must be retained.
 
@@ -1698,7 +1698,7 @@ A term rewriting system has polynomial derivational complexity when all reductio
 [Read in atlas](index.html#TCS-0869) · [RTA Open Problems](https://www.cs.tau.ac.il/~nachum/rtaloop/problems/107.html)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0913 — Is the word problem for the S -combinator decidable?
+### TCS-0913 — Word problem for the S-combinator
 
 The S-combinator is governed by the single rule that rewrites S applied to x, y and z into the application of xz to yz. This project asks whether convertibility of two closed terms built only from S and application is decidable. Conversion allows the equivalence generated by the rule, rather than requiring one particular forward evaluation path. Knowing whether an individual term normalizes does not automatically compare arbitrary nonnormalizing terms. A decision procedure would show how far removing all other combinators simplifies symbolic equality.
 
@@ -2225,7 +2225,7 @@ A streaming algorithm compresses an input while processing it sequentially, wher
 [Read in atlas](index.html#TCS-0998) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:19)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0515 — Does sublinear deterministic volume always collapse to O(log* n)?
+### TCS-0515 — Deterministic volume gap
 
 The VOLUME model measures how many graph vertices an adaptive local algorithm inspects to determine one requested output. Outputs from separate queries must still fit together into a single valid labeling. The conjecture says every deterministic locally checkable problem with sublinear worst-case volume actually has O(log-star n) volume. It concerns fixed bounded-degree graph families with exact size information and polynomially bounded identifiers. Proving the collapse would eliminate an entire intermediate range of deterministic local information complexity, despite the richer range available to randomized algorithms.
 
@@ -2239,7 +2239,7 @@ Distance sketching compresses vectors so that their dissimilarity can be approxi
 [Read in atlas](index.html#TCS-0986) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:5)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0469 — What is the deterministic round complexity of maximum independent set in the congested clique?
+### TCS-0469 — Maximum independent set in the congested clique
 
 Maximum independent set asks for a largest collection of pairwise nonadjacent vertices. Here each vertex is a processor in a congested clique, whose communication links exist even between nonadjacent input vertices. The question asks for the optimal deterministic number of rounds, with unlimited local computation and storage. Collecting the full graph at one processor gives an elementary upper bound, after which even exhaustive local optimization costs no communication rounds. The challenge is to determine how much information must move to identify an exact optimum, independently of the usual centralized NP-hardness barrier.
 
@@ -2288,7 +2288,7 @@ Maximum weighted matching chooses disjoint edges with the greatest total weight.
 [Read in atlas](index.html#TCS-0994) · [Sublinear.info](https://sublinear.info/index.php?title=Open_Problems:16)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0524 — Can deterministic (Delta+1)-coloring beat square-root dependence on degree?
+### TCS-0524 — LOCAL coloring below square-root degree dependence
 
 A proper coloring with Delta plus one colors always exists for a graph of maximum degree Delta. The question asks for a deterministic LOCAL algorithm running in O(Delta^0.499 plus log-star n) rounds. The degree exponent deliberately lies just below one half, while the network-size dependence retains the small symmetry-breaking term. Processors must reduce a large identifier-based palette without causing conflicts among adjacent vertices acting simultaneously. Crossing this degree threshold would improve the coordination of dense local neighborhoods without paying a larger dependence on the total number of vertices.
 
@@ -2323,7 +2323,7 @@ The project concerns streaming algorithms that approximate Max Cut increasingly 
 [Read in atlas](index.html#TCS-0943) · [SIGACT Open Problems Column](https://www.cs.umd.edu/~gasarch/open/streamapprox.pdf)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0517 — Can deterministic LOCAL coloring use a near-linear palette in log-star n rounds?
+### TCS-0517 — Near-linear-palette LOCAL coloring in O(log* n) rounds
 
 Distributed graph coloring can run faster when it is allowed more than the minimum useful number of colors. The question asks for a deterministic LOCAL algorithm using O(Delta^1.001) colors in O(log-star n) rounds. Both hidden constants must be independent of maximum degree Delta and graph size n. Classical color reduction reaches a palette quadratic in the degree within that round budget. Reducing the palette to nearly linear size would improve extremely fast symmetry breaking without hiding additional degree-dependent communication in the running time.
 
@@ -2913,7 +2913,7 @@ Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Optimization and numerical computation (34)
 
-### TCS-0008 — Does general rational linear programming have a strongly polynomial algorithm?
+### TCS-0008 — Strongly polynomial linear programming
 
 Linear programming optimizes a linear objective subject to linear equality and nonnegativity constraints. The question asks whether every rational instance can be solved using a number of arithmetic operations polynomial only in its numbers of variables and constraints. Intermediate numbers must also have encoding lengths bounded polynomially in the full input length. Existing polynomial-time guarantees may depend on how many bits describe the coefficients, which is the dependence this target seeks to remove. A solution must handle exact optima, infeasibility, and unbounded objectives within the same strongly polynomial framework.
 
@@ -2948,7 +2948,7 @@ The simplex method solves a linear program by moving between feasible bases thro
 [Read in atlas](index.html#TCS-6572) · [Smoothed Analysis of Algorithms: Why the Simplex Algorithm Usually Takes Polynomial Time](https://www.cs.yale.edu/homes/spielman/simplex/) · [An unconditional lower bound for the active-set method on the hypercube](https://arxiv.org/abs/2502.18019) · [An Unconditional Lower Bound for the Active-Set Method in Convex Quadratic Maximization](https://epubs.siam.org/doi/10.1137/1.9781611978971.14) · [Lower Bounds for Ranking-Based Pivot Rules](https://drops.dagstuhl.de/storage/00lipics/lipics-vol364-stacs2026/html/LIPIcs.STACS.2026.31/LIPIcs.STACS.2026.31.html) · [On the number of degenerate simplex pivots](https://link.springer.com/article/10.1007/s10107-026-02349-x)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0491 — Can every fixed-dimensional Tarski problem be solved with O(log² n) queries?
+### TCS-0491 — Log-squared query complexity for fixed-dimensional Tarski
 
 A monotone function on a finite multidimensional grid is guaranteed to have a fixed point. The project asks whether one can find any such point using only a squared-logarithmic number of value queries in the grid side length. The dimension is fixed, and the multiplicative constant may depend arbitrarily on it. Incomparable grid points complicate the interval-discarding ideas that make one-dimensional search efficient. A positive answer would show that higher fixed dimensions need not increase the logarithmic query exponent, independently of the computation performed between queries.
 
@@ -2983,7 +2983,7 @@ Extension complexity measures how many facets are needed in a higher-dimensional
 [Read in atlas](index.html#TCS-0344) · [Computational Geometry](https://doi.org/10.4230/DagRep.9.4.107)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-0687 — Best Arm Identification: Almost Instance-Wise Optimality and the Gap Entropy Conjecture
+### TCS-0687 — Gap-entropy conjecture
 
 Best-arm identification tries to find the option with the largest expected reward while minimizing the number of samples. The source asks for an algorithm whose sample complexity is close to optimal for each individual configuration of reward gaps. Exact instance optimality already faces an obstruction for two arms, so the proposal allows a separate additive term reflecting that difficulty. Its gap-entropy conjecture uses the distribution of arms across gap scales to describe the remaining cost. Establishing this characterization would explain how an instance's detailed structure affects exploration beyond a single worst-gap or total-inverse-gap summary.
 
@@ -3181,7 +3181,7 @@ The vertex-edge graph of a convex polyhedron records which feasible vertices can
 [Read in atlas](index.html#TCS-6573) · [Geometry: Combinatorics and Algorithms 2025 — Chapter 10, Convex Polytopes](https://ti.inf.ethz.ch/ew/courses/Geo25/lecture/gca25-10.pdf) · [A counterexample to the Hirsch Conjecture](https://annals.math.princeton.edu/2012/176-1/p07) · [An improved Kalai–Kleitman bound for the diameter of a polyhedron](https://arxiv.org/abs/1402.3579) · [An Asymptotically Improved Upper Bound on the Diameter of Polyhedra](https://link.springer.com/article/10.1007/s00454-018-0016-y) · [Computing the Polytope Diameter is Even Harder than NP-hard (Already for Perfect Matchings)](https://arxiv.org/abs/2502.16398v3) · [Circuit Diameter of Polyhedra is Strongly Polynomial](https://arxiv.org/abs/2602.06958v2)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0318 — How many k-element subsets can a line separate from a planar point set?
+### TCS-0318 — Planar k-set problem
 
 A k-set is a selection of k points that a line strictly separates from all remaining points of a planar configuration. The problem asks for the largest possible number of distinct k-sets among n points in general position. The desired estimate must remain sharp when k grows with n, including nearly balanced cuts. Duality turns this into a question about levels in arrangements of lines. Closing the gap between constructions and upper bounds would clarify the complexity of geometric selection and related optimization problems.
 
@@ -3209,7 +3209,7 @@ A weak ε-net places auxiliary points so that every convex set containing at lea
 [Read in atlas](index.html#TCS-6526) · [Research reference · arXiv 1808.02686](https://arxiv.org/abs/1808.02686)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0406 — Edge-Unfolding Convex Polyhedra
+### TCS-0406 — Dürer’s conjecture
 
 Take a convex polyhedron and cut selected edges while leaving its faces attached as one piece. The question is whether the resulting surface can always be flattened into a single polygon without overlapping interiors. Cuts through the middle of a face are disallowed, making the available choices depend on the polyhedron's edge structure. Convexity is central because the unrestricted nonconvex version has counterexamples. A solution would explain whether every convex solid has a conventional paper net using only its original faces.
 
@@ -4088,7 +4088,7 @@ A one-way function is easy to evaluate but hard to invert on a randomly generate
 [Read in atlas](index.html#TCS-6545) · [Foundations of Cryptography, Lecture 10](https://mit6875.github.io/FA23SLIDES/lec10.pdf) · [The Complexity of Public-Key Cryptography](https://eprint.iacr.org/2017/365) · [Limits on the provable consequences of one-way permutations](https://doi.org/10.1145/73007.73012) · [A Pseudorandom Generator from any One-way Function](https://johanhastad.se/prgfromowf.pdf) · [Merkle Puzzles are Optimal — an O(n²)-query attack on any key exchange from a random oracle](https://www.boazbarak.org/Papers/merkle.pdf) · [Public-Key Encryption from the MinRank Problem](https://arxiv.org/abs/2510.03752)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0022 — Does P≠NP imply the existence of one-way functions?
+### TCS-0022 — One-way functions from P ≠ NP
 
 The statement P ≠ NP guarantees that some efficiently verifiable problems cannot be solved efficiently on every input. Cryptographic one-way functions require a stronger kind of difficulty: efficient attackers must fail to invert outputs generated from random inputs. This project asks whether worst-case hardness alone forces that average-case cryptographic hardness to exist. A function that is hard only on an extremely rare set would not provide the required security. Resolving the implication would clarify whether the most familiar complexity assumption already contains the foundations of computational cryptography.
 
@@ -4109,7 +4109,7 @@ Fully homomorphic encryption lets a server evaluate computations on encrypted da
 [Read in atlas](index.html#TCS-6551) · [Efficient Fully Homomorphic Encryption from (Standard) LWE](https://epubs.siam.org/doi/10.1137/120868669) · [Quantum FHE (Almost) As Secure As Classical](https://www.iacr.org/archive/crypto2018/10993383/10993383.pdf) · [Fully Homomorphic Encryption: definitional issues and open problems](https://cseweb.ucsd.edu/classes/wi23/cse208-a/FHEorg.pdf) · [Bootstrapping Homomorphic Encryption via Functional Encryption](https://eprint.iacr.org/2023/1376.pdf) · [Bootstrapping Homomorphic Encryption via Functional Encryption — conference version](https://drops.dagstuhl.de/storage/00lipics/lipics-vol251-itcs2023/LIPIcs.ITCS.2023.17/LIPIcs.ITCS.2023.17.pdf) · [Dynamic multi-key FHE without CRS from LWE](https://link.springer.com/article/10.1186/s42400-025-00431-z) · [Efficient Quantum Fully Homomorphic Encryption](https://arxiv.org/abs/2604.23490)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0465 — Can every perfect secret-sharing access structure use shares below exponent one half?
+### TCS-0465 — Sub-square-root share-size exponents in perfect secret sharing
 
 Secret sharing lets authorized groups reconstruct a secret while unauthorized groups learn nothing. The target asks for a universal bound K·2^(cn) bits per share for every n-party access structure, with c<1/2 and a one-bit secret. Perfect reconstruction and privacy are required, and nonlinear schemes are allowed. Nir’s August 2026 preprint states a 2^{0.496n+o(n)} bound that would meet this target. The claimed resolution is recorded with uncertain status because its proof has not been independently verified in this review.
 
@@ -4307,7 +4307,7 @@ The quantum PCP conjecture asks whether even a coarse estimate of a quantum syst
 [Read in atlas](index.html#TCS-6446) · [The Quantum PCP Conjecture](https://arxiv.org/abs/1309.7495) · [Private PCPs from Product Expansion](https://eccc.weizmann.ac.il/report/2026/150/)
 Existing status: `source_open` · Summary written: 2026-09-11
 
-### TCS-0036 — Does BPP differ from BQP?
+### TCS-0036 — BPP versus BQP
 
 This problem asks whether efficient quantum computation can decide something that efficient randomized classical computation cannot. BPP and BQP both require a reliable yes-or-no answer on every input, with bounded probability of error. Quantum interference gives promising candidate advantages, including the algorithms underlying factoring, but those examples do not establish an unconditional classical lower bound. Separations using special oracles or restricted classical circuits concern narrower comparisons. Settling the ordinary class separation would identify whether quantum computers enlarge the set of efficiently decidable problems at its most basic level.
 
