@@ -1898,12 +1898,12 @@ A constant-gap Max-Clique problem distinguishes graphs with a large clique from 
 [Read in atlas](index.html#TCS-2662) · [On Lower Bounds of Approximating Parameterized k-Clique](https://doi.org/10.4230/LIPIcs.ICALP.2022.90)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2804 — No XNLP-hard problem has an algorithm that runs in nf (k) time and f (k)nc space, with f a computable function, k the parameter, n […]
+### TCS-2804 — The Slice-wise Polynomial Space Conjecture for XNLP-hard problems
 
-XNLP captures parameterized problems solvable nondeterministically with fixed-parameter polynomial time and space proportional to a parameter-dependent factor times log n. The Slice-wise Polynomial Space Conjecture predicts a simultaneous time-space obstruction for every XNLP-hard problem. It excludes algorithms taking n^(f(k)) time while using only f(k)n^c space, where c is an absolute constant. Thus allowing a parameter-dependent polynomial time exponent is conjectured insufficient to obtain a fixed polynomial space exponent. The conjecture would explain why familiar dynamic programs cannot always trade their large memory usage for slower but still slice-wise polynomial computation.
+XNLP describes parameterized problems with short nondeterministic working memory and fixed-parameter polynomial running time. The conjecture forbids deterministic algorithms for XNLP-hard problems with both slice-wise polynomial time and a fixed polynomial space exponent. One algorithm must meet both guarantees on every input. The parameter may affect the time exponent and the space multiplier, but not the space exponent. Later completeness results retain this as a conjecture that would explain memory barriers in dynamic programming.
 
-[Read in atlas](index.html#TCS-2804) · [On the Complexity of Problems on Tree-Structured Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2022.6)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2804) · [On the Complexity of Problems on Tree-Structured Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2022.6) · [XNLP-Completeness for Parameterized Problems on Graphs with a Linear Structure](https://doi.org/10.1007/s00453-024-01274-9)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3196 — Is isomorphism testing fixed-parameter tractable on Gh parameterized by h?
 
@@ -2772,12 +2772,12 @@ Average-case algorithms may either recognize when they cannot answer or silently
 [Read in atlas](index.html#TCS-2680) · [Finding Errorless Pessiland in Error-Prone Heuristica](https://doi.org/10.4230/LIPIcs.CCC.2022.25)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2799 — There exists a poly(n, 1ε ) time algorithm A that outputs a (1 - ε)-approximate cut of a random d-regular graph G with high probability […]
+### TCS-2799 — Near-optimal Max-Cut on random regular graphs at every fixed degree
 
-This conjecture concerns finding nearly maximum cuts in random regular graphs. Under a no-overlap-gap assumption, it asks for an algorithm polynomial in graph size and inverse accuracy for every fixed degree at least three. The motivating message-passing result requires degree to become sufficiently large as the desired error decreases. Extending it to small fixed degrees therefore needs more than applying the same high-degree approximation argument. Although collected in a quantum-algorithms paper, the proposed algorithm is classical and would sharpen the benchmark against which quantum optimization methods are compared.
+The problem concerns almost-maximum cuts in uniformly random regular graphs. For each fixed degree, the desired algorithm must reach every fixed accuracy in time polynomial in graph size and inverse accuracy. The source states this conditionally on a no-overlap-gap premise that it does not fully define. The known large-degree theorem has a specific SK hypothesis and still requires degree to increase with the desired precision. The hypothesis and intended AMP restriction must be settled before this becomes a complete conditional benchmark.
 
-[Read in atlas](index.html#TCS-2799) · [Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond](https://doi.org/10.4230/LIPIcs.ICALP.2022.41)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2799) · [Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond](https://doi.org/10.4230/LIPIcs.ICALP.2022.41) · [Local algorithms for maximum cut and minimum bisection on locally treelike regular graphs of large degree](https://doi.org/10.1002/rsa.21149)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3185 — How about the exact case?
 
@@ -3471,12 +3471,12 @@ The graph family must grow while changing only a bounded number of edges at each
 [Read in atlas](index.html#TCS-2371) · [Spectral Expanding Expanders](https://doi.org/10.4230/LIPIcs.CCC.2023.8) · [Quantitative Results on Super-Ramanujan Graphs](https://eccc.weizmann.ac.il/report/2026/163/)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2783 — However, M2k+2 (n) ∈ Ω n1+ k has only been proven for k = 1, 2, 3, 5; for other k it remains an open […]
+### TCS-2783 — Erdős’s girth conjecture: dense graphs without short cycles
 
-The extremal girth problem asks how many edges a graph can have while excluding all sufficiently short cycles. For fixed k, the source seeks graphs of girth at least 2k + 2 with Ω(n^(1+1/k)) edges. Such constructions would match the corresponding upper-order bound, with the cited discussion recording known cases k = 1, 2, 3, and 5. The question appears in a routing paper because dense high-girth graphs force compact routing schemes to retain substantial local information. Progress would therefore sharpen both an extremal graph-theory conjecture and lower bounds relating routing-table size to path stretch.
+The girth conjecture asks for dense graphs with every short cycle forbidden. For each fixed k, the target is Ω(n^{1+1/k}) edges and girth at least 2k+2. The lower bound must hold for every sufficiently large n, with constants depending on k. The known cases are k=1,2,3,5, as still recorded in July 2026. A resolution would sharpen fundamental lower bounds for routing and graph spanners.
 
-[Read in atlas](index.html#TCS-2783) · [Space-Stretch Tradeoff in Routing Revisited](https://doi.org/10.4230/LIPIcs.DISC.2022.37)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2783) · [Space-Stretch Tradeoff in Routing Revisited](https://doi.org/10.4230/LIPIcs.DISC.2022.37) · [Unconditional Lower Bounds for Degree Fault Tolerant Spanners](https://arxiv.org/abs/2607.07576)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3915 — On the other hand, it remains an open question to characterize classes of relational structures, rather than just graphs, which are transductions of bounded expansion […]
 
