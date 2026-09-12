@@ -1462,12 +1462,12 @@ The question assumes a universal construction of succinct pseudorandom generator
 [Read in atlas](index.html#TCS-3514) · [Pseudorandomness and the Minimum Circuit Size Problem](https://doi.org/10.4230/LIPIcs.ITCS.2020.68) · [On Basing Lower-Bounds for Learning on Worst-Case Assumptions](https://www.wisdom.weizmann.ac.il/~bennyap/pubs/ABX08.pdf) · [Witness Encryption and NP-Hardness of Learning](https://doi.org/10.4230/LIPIcs.CCC.2025.34)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3617 — Deterministic parsimonious universal families
+### TCS-3617 — Small deterministic parsimonious universal families
 
-The cited counting algorithm uses objects called δ-parsimonious universal families. Its open construction question asks for small such families produced deterministically. Universal families provide combinatorial coverage, while the additional parsimony requirement controls the multiplicity relevant to the source's counting method. An explicit construction could strengthen deterministic approximation of the number of k-vertex paths without relying on random choices. The saved sentence does not give the coverage property, multiplicity bound, or requested family size, so those parameters remain necessary before this becomes an implementable construction task.
+A universal family separates every disjoint p-set and q-set in an n-element universe. Parsimony additionally requires approximately the same number of family entries to separate each pair. The desired deterministic size has leading scale 2^k for balanced pairs, where k=p+q. The source supplies a random construction and a deterministic relaxation for selected pairs, rather than the general construction. The suppressed universe-size and accuracy dependence, along with deterministic resource bounds, still need specification.
 
-[Read in atlas](index.html#TCS-3617) · [Approximate Counting of k-Paths: Deterministic and in Polynomial Space](https://doi.org/10.4230/LIPIcs.ICALP.2019.24)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3617) · [Approximate Counting of k-Paths: Deterministic and in Polynomial Space](https://doi.org/10.4230/LIPIcs.ICALP.2019.24) · [Approximate Counting of k-Paths: Simpler, Deterministic, and in Polynomial Space](https://doi.org/10.1145/3461477)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3958 — Pseudorandom generators for superlinear-size depth-two threshold circuits
 
