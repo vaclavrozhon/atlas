@@ -4246,10 +4246,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-6372 — Cai–Fürer–Immerman definability in choiceless polynomial time
 
-Choiceless polynomial time is a logic-inspired model designed to compute without arbitrary ordering choices. The source studies whether particular Cai–Fürer–Immerman properties are definable in this model. A property outside the model could witness a separation from a broader polynomial-time framework. These structures are useful because their symmetries can conceal information that ordinary ordered algorithms readily exploit. The saved passage does not name the unresolved property or the comparison class after the cutoff, so the exact candidate separation must be recovered before claiming a specific limitation of choiceless computation.
+CFI graphs hide an even-or-odd parity in symmetric gadgets built over a base graph. The input provides adjacency but no arbitrary order or labels revealing the hidden parity. The question asks for one choiceless polynomial-time program with counting that recovers parity for every base graph. The model may construct nested sets, but its total resources are polynomial in the expanded input size. Known positive cases and restricted lower bounds do not settle the full unordered question.
 
-[Read in atlas](index.html#TCS-6372) · [Definability of Cai-Fürer-Immerman Problems in Choiceless Polynomial Time](https://doi.org/10.4230/LIPIcs.CSL.2016.19)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6372) · [Definability of Cai-Fürer-Immerman Problems in Choiceless Polynomial Time](https://doi.org/10.4230/LIPIcs.CSL.2016.19) · [Lower Bounds for Choiceless Polynomial Time via Symmetric XOR-Circuits](https://doi.org/10.4230/LIPIcs.MFCS.2023.73) · [Choiceless Computation and Symmetry: Limitations of Definability](https://doi.org/10.4230/LIPIcs.CSL.2021.33) · [Symmetric Proofs in the Ideal Proof System](https://doi.org/10.4230/LIPIcs.MFCS.2025.40)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-7128 — Unconditional constant-delay query-enumeration lower bounds
 
