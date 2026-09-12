@@ -2528,10 +2528,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4039 — Bottleneck communication versus streaming space
 
-Bottleneck complexity measures the communication burden placed on the busiest participant in a distributed protocol. A small-memory streaming algorithm gives one way to achieve a low burden by passing its state between participants. This project asks for a function with a low-bottleneck protocol that nevertheless requires large memory in the corresponding streaming model. General communication networks can aggregate information through structures richer than the chain or repeated cycle used by a streaming simulation. A separation would demonstrate that balanced distributed communication enables computations beyond those explained by small streaming state alone.
+Bottleneck complexity charges the largest expected communication load of any participant. A small-memory streaming algorithm with few passes gives a low-bottleneck distributed protocol. The source asks for a function with small bottleneck but large streaming memory, without secrecy requirements. Its passage does not fix the pass budget, input-order convention or quantitative gap. The card records those missing choices and distinguishes subsequent private-MPC lower bounds.
 
-[Read in atlas](index.html#TCS-4039) · [The Bottleneck Complexity of Secure Multiparty Computation](https://doi.org/10.4230/LIPIcs.ICALP.2018.24)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4039) · [The Bottleneck Complexity of Secure Multiparty Computation](https://doi.org/10.4230/LIPIcs.ICALP.2018.24) · [The Bottleneck Complexity of Secure Multiparty Computation — full author manuscript](https://www.cse.iitb.ac.in/~mp/pub/bottleneck.pdf) · [Lower Bounds on the Bottleneck Complexity of Secure Multiparty Computation](https://eprint.iacr.org/2025/990)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-4099 — Pseudodeterministic NC perfect matching in general graphs
 
