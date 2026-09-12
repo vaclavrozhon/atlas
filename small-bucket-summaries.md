@@ -2250,12 +2250,12 @@ The yes instances become 3-colorable after deleting an arbitrarily small fixed f
 [Read in atlas](index.html#TCS-2625) · [NP-Hardness of Almost Coloring Almost 3-Colorable Graphs](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2023.51)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2971 — In particular, for every symmetric submodular function f : 2V → R+ defined over a n-element ground set V , does ′ there exist a […]
+### TCS-2971 — Constant-factor hypergraph representation with extra vertices
 
-The cited paper investigates representing symmetric submodular set functions by hypergraph cut functions. The saved question quantifies over every such function on an n-element ground set, but its requested conclusion is truncated. Symmetry treats a set and its complement equally, matching a basic property of cut values. A good representation could transfer hypergraph techniques to optimization problems presented through more general set functions. The excerpt does not preserve the representation size or approximation factor being requested, so these are unresolved formulation details rather than bounds that can be supplied by inference.
+The source asks whether every symmetric submodular function has a constant-factor hypergraph representation. It permits exponentially many vertices beyond the original ground set. The same-vertex model already has a growing-factor lower bound. The printed notation does not explain how the auxiliary vertices are placed when a subset is evaluated. That rule is essential because ordinary cut evaluation would give the auxiliary vertices no useful effect for normalized functions.
 
-[Read in atlas](index.html#TCS-2971) · [Approximate Representation of Symmetric Submodular Functions via Hypergraph Cut Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2022.6)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2971) · [Approximate Representation of Symmetric Submodular Functions via Hypergraph Cut Functions](https://doi.org/10.4230/LIPIcs.FSTTCS.2022.6) · [Approximate Representation of Symmetric Submodular Functions via Hypergraph Cut Functions — author draft](https://chekuri.cs.illinois.edu/papers/symsubmod-hypergraph-representation.pdf)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3399 — Further, Haviv and Regev also showed that CRP is Π2 -hard to approximate to with-in a factor of 32 , and we conjecture that a […]
 

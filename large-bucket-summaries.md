@@ -1388,12 +1388,12 @@ Visibly pushdown languages are recognized by automata whose input symbols determ
 [Read in atlas](index.html#TCS-2243) · [The AC⁰-Complexity of Visibly Pushdown Languages](https://doi.org/10.4230/LIPIcs.STACS.2024.38)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2851 — We conjecture that the techniques introduced in this paper can be extended to show that any continuous regular function is deterministic regular.
+### TCS-2851 — Deterministic realization of continuous regular stream functions
 
-Regular transformations of infinite words may use descriptions whose output depends on arbitrarily distant input information. This conjecture asks whether continuity is sufficient to realize every such transformation by a deterministic regular machine. Continuity means that each finite output prefix is determined after seeing a sufficiently long finite input prefix. The source proves an analogous construction for rational functions and proposes extending its buffering techniques to the broader regular class. A proof would connect topological realizability of infinite-output behavior with an explicit deterministic transducer representation.
+The question concerns regular transformations of infinite words whose output prefixes depend continuously on input prefixes. The proposed implementation uses a deterministic two-way finite-state transducer without lookahead. The source already proves an extension theorem for the narrower rational class. Literal equality of partial-function domains is false, as a 2024 paper explains with a restricted identity function. The general extension reading remains the intended candidate, but its relation to the source’s abbreviated conjecture must be confirmed.
 
-[Read in atlas](index.html#TCS-2851) · [Continuous Rational Functions Are Deterministic Regular](https://doi.org/10.4230/LIPIcs.MFCS.2022.28)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2851) · [Continuous Rational Functions Are Deterministic Regular](https://doi.org/10.4230/LIPIcs.MFCS.2022.28) · [Reversible Transducers over Infinite Words](https://doi.org/10.4230/LIPIcs.CONCUR.2024.21)
+Existing status: `uncertain` · Summary written: 2026-09-12
 
 ### TCS-3030 — However, the complexity of UBA universality is an open problem [30]; only membership in PSPACE is known.
 
