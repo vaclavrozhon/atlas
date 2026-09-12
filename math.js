@@ -27,7 +27,8 @@
     const symbols={alpha:'α',beta:'β',gamma:'γ',delta:'δ',varepsilon:'ε',epsilon:'ϵ',theta:'θ',lambda:'λ',mu:'μ',nu:'ν',pi:'π',rho:'ρ',sigma:'σ',tau:'τ',phi:'φ',varphi:'φ',chi:'χ',psi:'ψ',omega:'ω',Gamma:'Γ',Delta:'Δ',Theta:'Θ',Sigma:'Σ',Pi:'Π',Omega:'Ω',ell:'ℓ',le:'≤',leq:'≤',ge:'≥',geq:'≥',ne:'≠',neq:'≠',in:'∈',notin:'∉',subseteq:'⊆',to:'→',infty:'∞',sum:'Σ',prod:'Π',int:'∫',sqrt:'√',cdot:'·',times:'×',ldots:'…',cdots:'⋯'};
     return parts(text).map(part=>{
       if(!part.math)return part.text;
-      let value=part.formula.replace(/\\(?:mathrm|mathbb|mathcal|operatorname|text)\s*\{([^{}]*)\}/g,'$1');
+      let value=part.formula.replace(/\\(?:mathrm|mathbb|mathcal|operatorname|text)\s*\{([^{}]*)\}/g,'{$1}');
+      value=value.replace(/\\(?:mathrm|mathbb|mathcal)\s+([A-Za-z])/g,'{$1}');
       value=value.replace(/\\([A-Za-z]+)\s*/g,(_,name)=>symbols[name]||name).replace(/\\([{}|,;! ])/g,'$1').replace(/[{}]/g,'');
       return value;
     }).join('');

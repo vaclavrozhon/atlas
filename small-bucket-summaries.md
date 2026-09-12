@@ -3967,13 +3967,6 @@ A proper hypergraph coloring assigns colors to vertices so that no hyperedge is 
 [Read in atlas](index.html#TCS-3984) · [NP-Hardness of Coloring 2-Colorable Hypergraph with Poly-Logarithmically Many Colors](https://doi.org/10.4230/LIPIcs.ICALP.2018.15)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-4267 — Treewidth-dependent exponential hardness of CSPs
-
-The source studies exponential-time CSP algorithms through universal algebra and structural graph parameters. Its saved question asks whether NP-complete languages remain resistant to subexponential algorithms under a condition involving primal treewidth. Primal treewidth measures how tightly variables interact through shared constraints. A lower bound could identify when sparse decomposition structure genuinely permits faster exact solving. The final treewidth condition and any complexity assumption are missing from the excerpt, so NP-completeness alone must not be presented as proving an exponential running-time requirement.
-
-[Read in atlas](index.html#TCS-4267) · [Time Complexity of Constraint Satisfaction via Universal Algebra](https://doi.org/10.4230/LIPIcs.MFCS.2017.17)
-Existing status: `uncertain` · Summary written: 2026-09-11
-
 ### TCS-6725 — Logarithmic-color approximation of 3-colorable graphs
 
 The input is an n-vertex graph promised to admit a proper coloring with three colors. The textbook asks whether polynomial time suffices to produce a proper coloring using only O(log n) colors. The promise ensures a very small solution exists but does not reveal the hidden partition into independent sets. Achieving a logarithmic color count would substantially narrow the gap between existence and efficient recovery of a coloring. The question is preserved from the 2011 source, and its current status has not been independently established by this drafting pass.
@@ -4001,6 +3994,13 @@ Some CSPs lie in NP even when their templates are infinite or structurally gener
 
 [Read in atlas](index.html#TCS-7124) · [Constraint Satisfaction Problems with Infinite Templates](https://www.lix.polytechnique.fr/~bodirsky/publications/csp-survey.pdf)
 Existing status: `source_open` · Summary written: 2026-09-11
+
+### TCS-4267 — CSP hardness under linear treewidth caps
+
+The question restricts a fixed finite-domain CSP by a linear upper bound on primal treewidth. The cap is tw≤cn, not a requirement that every input has large treewidth. Disjoint copies preserve the language and satisfiability while making any fixed positive linear cap hold. The source’s unrestricted lower bound therefore transfers once the algebraic dichotomy is available. The resulting no-subexponential-time conclusion is conditional on ETH and does not classify arbitrary graph families of large treewidth.
+
+[Read in atlas](index.html#TCS-4267) · [Time Complexity of Constraint Satisfaction via Universal Algebra](https://doi.org/10.4230/LIPIcs.MFCS.2017.17) · [Time Complexity of Constraint Satisfaction via Universal Algebra — full version](https://arxiv.org/abs/1706.05902) · [On the Subexponential Time Complexity of CSP](https://doi.org/10.1609/aaai.v27i1.8609) · [A Dichotomy Theorem for Nonuniform CSPs](https://doi.org/10.1109/FOCS.2017.37)
+Existing status: `resolved` · Summary written: 2026-09-12
 
 ## Automated reasoning, rewriting and unification (16)
 
