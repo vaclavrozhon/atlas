@@ -3722,12 +3722,12 @@ A dependent training sample has identical marginal distributions and a bounded t
 [Read in atlas](index.html#TCS-3691) · [Learning from Weakly Dependent Data under Dobrushin’s Condition](https://proceedings.mlr.press/v99/dagan19a.html) · [Learning from Weakly Dependent Data under Dobrushin’s Condition](https://arxiv.org/abs/1906.09247)
 Existing status: `open` · Summary written: 2026-09-12
 
-### TCS-3787 — Unlabeled compression of ample classes
+### TCS-3787 — Proper unlabeled compression of ample classes
 
-An unlabeled sample compression scheme stores selected input points without their labels and reconstructs a consistent concept. The source gives an optimal-size construction for maximum classes, whose size attains the VC counting bound. It asks whether this construction extends to the broader family of ample classes. Earlier corner-peeling arguments do not settle the question because the source exhibits maximum classes without the required corners. A solution would generalize compression through the cubical geometry and unique-sink-orientation structure of these classes, rather than relying on that invalid simplification.
+An ample class strongly shatters every set of coordinates that it shatters. A compressor selects at most d input points from any realizable labeled sample, where d is the class’s VC dimension. A reconstructor must recover a concept in the original class consistent with all sample labels while receiving only the selected points. Maximum classes satisfy this exact bound, and labeled compression is known more generally. The 2024 oriented-matroid results still leave proper unlabeled size-d compression for all ample classes open.
 
-[Read in atlas](index.html#TCS-3787) · [Unlabeled Sample Compression Schemes and Corner Peelings for Ample and Maximum Classes](https://doi.org/10.4230/LIPIcs.ICALP.2019.34)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3787) · [Unlabeled Sample Compression Schemes and Corner Peelings for Ample and Maximum Classes](https://doi.org/10.4230/LIPIcs.ICALP.2019.34) · [Unlabeled Sample Compression Schemes and Corner Peelings for Ample and Maximum Classes](https://doi.org/10.1016/j.jcss.2022.01.003) · [Unlabeled Sample Compression Schemes for Oriented Matroids](https://doi.org/10.1016/j.disc.2024.114006)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-4031 — Quasipolynomial AC⁰ self-learning
 
