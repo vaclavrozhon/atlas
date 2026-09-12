@@ -2781,10 +2781,10 @@ Existing status: `uncertain` · Summary written: 2026-09-11
 
 ### TCS-4584 — Nash equilibria in concurrent terminal-reward games
 
-Concurrent terminal-reward games let players act simultaneously while rewards depend on reaching terminal outcomes. The saved source discusses the unresolved existence of Nash equilibria in a particular class of such games. Infinite continuation can complicate compactness and payoff continuity even when the number of players is small. An existence theorem would determine whether strategic stability is guaranteed before asking how efficiently an equilibrium can be found. The excerpt truncates the game restrictions and is dated 2014, so it does not establish current openness or justify substituting the equilibrium theorem for finite normal-form games.
+Two players act simultaneously in a finite state graph. A terminal state pays each player a nonnegative reward once; infinite nonterminating play pays zero. The question asks whether an exact Nash equilibrium always exists in randomized state-history strategies with unrestricted memory. Negative terminal rewards already admit counterexamples. A later existence theorem uses imprecise deviations and does not settle the exact question.
 
-[Read in atlas](index.html#TCS-4584) · [Mixed Nash Equilibria in Concurrent Terminal-Reward Games](https://doi.org/10.4230/LIPIcs.FSTTCS.2014.351)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-4584) · [Mixed Nash Equilibria in Concurrent Terminal-Reward Games](https://doi.org/10.4230/LIPIcs.FSTTCS.2014.351) · [Stochastic Equilibria under Imprecise Deviations in Terminal-Reward Concurrent Games](https://doi.org/10.4204/EPTCS.226.5)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6957 — Characterizing domains restricted to affine maximizers
 
