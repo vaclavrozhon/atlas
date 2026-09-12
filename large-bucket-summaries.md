@@ -2159,12 +2159,12 @@ The Hausdorff distance compares two sets by taking the worst nearest-neighbor di
 [Read in atlas](index.html#TCS-5875) · [Between Shapes, Using the Hausdorff Distance](https://doi.org/10.4230/LIPIcs.ISAAC.2020.13)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-6199 — Decidability of low-dimensional simple-homotopy equivalence
+### TCS-6199 — Decidability of contractibility for finite two-dimensional complexes
 
-Simple-homotopy equivalence transforms simplicial complexes through elementary expansions and collapses. The source discusses low-dimensional complexes, where bounds on intermediate dimension and the ability to decide equivalence become delicate. Its extracted question concerns decidability in the setting related to triviality of balanced group presentations. Nearby existence statements for contractible complexes do not by themselves provide a decision procedure for recognizing the relevant inputs. Clarifying this distinction is essential before turning the passage into a precise computational problem with explicit promises on the complexes and permitted intermediate dimensions.
+The input is a finite simplicial complex made of vertices, edges and triangles. Decide whether expansions and collapses can transform it into a single vertex. Intermediate complexes may be larger and higher-dimensional than the input. The algorithm must halt with a correct answer on every input, but no efficiency bound is imposed. This recognition problem differs from limiting expansions to dimension three or using collapses alone.
 
-[Read in atlas](index.html#TCS-6199) · [Parametrized Complexity of Expansion Height](https://doi.org/10.4230/LIPIcs.ESA.2019.13)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-6199) · [Parametrized Complexity of Expansion Height](https://doi.org/10.4230/LIPIcs.ESA.2019.13) · [Random simple-homotopy theory](https://doi.org/10.1007/s41468-023-00139-4)
+Existing status: `open` · Summary written: 2026-09-12
 
 ### TCS-6880 — Efficient constant-distortion cut-cone approximation
 
