@@ -2,7 +2,7 @@
 
 Importance ordering is an editorial assessment of foundational significance, breadth of consequences, and influence on other questions. Each assessed card gives a reason. The category-wide review also uses shared priority bands for questions of comparable scope; it does not claim that these ties have a scientifically meaningful internal order. Unassessed drafts share a provisional score of 50; their relative order is only an ID tie-break, not an importance judgment. The first 5/2 places in each large/small category are an explicit editorial focus selection balancing importance and topical diversity. Focus ordering does not alter importance scores; remaining candidates use score and ID order. The targets are 100 and 500 problems, with a possible expansion to 1,000. Top 100, Top 500 and the possible Top 1000 use the first 5/2, 25/10 and 50/20 category places respectively, all from the same ranking. Category positions include all candidates and remain fixed when filtering. Publication date, source date, and card detail do not increase importance. Records marked resolved are placed after the remaining candidates, without changing their historical importance score. Importance review does not establish that a saved question is still open.
 
-769 records have an editorial importance assessment; 908 remain provisional.
+771 records have an editorial importance assessment; 906 remain provisional.
 
 The full ordered candidate list, with reasons and statuses, is in [importance-ranking.csv](importance-ranking.csv). Below are the first ten candidates in each category. The focus prefix balances importance and diversity; full decisions are in [benchmark-selection.md](benchmark-selection.md).
 
@@ -331,7 +331,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 32; importance ass
 
 ## 10. Sampling, Markov chains and mixing times (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 14; importance assessed: 4; provisional: 10.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 14; importance assessed: 5; provisional: 9.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
@@ -339,7 +339,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 14; importance ass
 | 2 | [The Kannan–Tetali–Vempala switch-chain conjecture for binary matrices](index.html#TCS-6622) | 94 |
 | 3 | [Polynomial mixing of critical three-dimensional Ising dynamics](index.html#TCS-6668) | 93 |
 | 4 | [Sharp temperature thresholds for functional inequalities in the SK model](index.html#TCS-1693) | 50 |
-| 5 | [If 0 ≤ β < βu or if β > βu and \|η\| > ηa , then the Kawasaki dynamics for µ̂G,β,η are optimally mixing: \[…\]](index.html#TCS-2076) | 50 |
+| 5 | [Optimal mixing of global Kawasaki dynamics on bounded-degree graphs](index.html#TCS-2076) | 50 |
 | 6 | [For example, can we efficiently sample from a WNR/NA/NR distribution for any marginals in a given matroid polytope?](index.html#TCS-2861) | 50 |
 | 7 | [For any vertex-transitive graph, is the blanket time of order nR2 for all δ > 1?](index.html#TCS-4599) | 50 |
 | 8 | [Testing Small Set Expansion in General Graphs — Unresolved-question passage on page 10](index.html#TCS-5935) | 50 |
@@ -450,7 +450,7 @@ Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 44; importance ass
 
 ## 17. Algebraic computation (small)
 
-Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 97; importance assessed: 34; provisional: 63.
+Top 100: 2; Top 500: 10; Top 1000 (possible): 20; candidates: 97; importance assessed: 35; provisional: 62.
 
 | Category position | Problem | Editorial priority |
 | --- | --- | --- |
