@@ -1926,12 +1926,12 @@ The input is a binary matrix thought of as graph incidences plus a low-rank bina
 [Read in atlas](index.html#TCS-3339) · [On the Complexity of Recovering Incidence Matrices](https://doi.org/10.4230/LIPIcs.ESA.2020.50)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3480 — Can such a result be excluded, even for the apparently more demanding situation of sparsifiers for 0-Extension instances (as in Theorem 22)?
+### TCS-3480 — Polynomial exact metric sparsifiers with a crossing-edge budget
 
-A sparsifier replaces a large optimization instance by a smaller object intended to preserve selected terminal behavior. The cited work studies multicut-mimicking networks and related kernelization questions. The saved passage asks whether an earlier proposed guarantee can be ruled out even for 0-Extension sparsifiers. An impossibility result would locate a limit on compressing terminal-dependent metric or cut information. The antecedent guarantee and the referenced theorem are absent from the extraction, so the precise size, distortion, and preservation requirements remain unknown rather than being reconstructed by analogy.
+A graph with terminals is queried by choosing labels for the terminals and a metric on the labels. The goal is a small retained edge set that supports an optimal extension for every such query. Only labelings with at most p crossing edges are compared, and the retained set must have size polynomial in p plus the number of terminals. The original claimed quasipolynomial metric-sparsifier result was explicitly retracted in the corrected paper. Ordinary multicut sparsifiers preserve a different collection of values and do not settle this universal metric question.
 
-[Read in atlas](index.html#TCS-3480) · [On Quasipolynomial Multicut-Mimicking Networks and Kernelization of Multiway Cut Problems](https://doi.org/10.4230/LIPIcs.ICALP.2020.101)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3480) · [On Quasipolynomial Multicut-Mimicking Networks and Kernelization of Multiway Cut Problems](https://doi.org/10.4230/LIPIcs.ICALP.2020.101) · [Quasipolynomial multicut-mimicking networks and kernelization of multiway cut problems — corrected full version](https://arxiv.org/abs/2002.08825v3) · [Quasipolynomial Multicut-mimicking Networks and Kernels for Multiway Cut Problems](https://doi.org/10.1145/3501304) · [Approximating Small Sparse Cuts](https://arxiv.org/abs/2403.08983)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3580 — Is there a way to prove that this behavior is unavoidable subject to some complexity assumption?
 
