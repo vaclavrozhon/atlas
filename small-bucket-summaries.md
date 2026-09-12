@@ -1546,19 +1546,19 @@ Range avoidance asks for an output string that a given expanding circuit never p
 [Read in atlas](index.html#TCS-2644) · [Range Avoidance for Low-Depth Circuits and Connections to Pseudorandomness](https://doi.org/10.4230/LIPIcs.APPROX/RANDOM.2022.20)
 Existing status: `uncertain` · Summary written: 2026-09-11
 
-### TCS-2659 — Construct a sufficiently dense infinite family of explicit 3-uniform d-regular hypergraphs which are λ-spectral for λ ≤ √2d · (1 + dc ), where c […]
+### TCS-2659 — Explicit nearly Ramanujan 3-uniform hypergraphs
 
-Spectral hypergraphs can serve as combinatorial building blocks for error-correcting codes and small-bias distributions. The source asks for explicit regular three-uniform hypergraph families approaching its nearly Ramanujan spectral target. The family must be sufficiently dense in its available sizes for the downstream constructions. The stored formula has extraction damage, so the original definition of the spectral parameter governs the exact bound. The project seeks deterministic structured objects that could replace random choices in efficient coding constructions.
+The desired hypergraphs use ordered triples with uniform marginals in every coordinate. Their three-way deviation from independent sampling must satisfy a specific ℓ₂–ℓ∞–ℓ₂ inequality. The target parameter is at most (2/√d)(1+d^c) for a fixed negative c. Such deterministic families would strengthen constructions of decodable codes and small-bias sets; a 2026 paper still records their absence. The required density of available sizes and uniform construction interface need specification.
 
-[Read in atlas](index.html#TCS-2659) · [New Near-Linear Time Decodable Codes Closer to the GV Bound](https://doi.org/10.4230/LIPIcs.CCC.2022.10)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2659) · [New Near-Linear Time Decodable Codes Closer to the GV Bound](https://doi.org/10.4230/LIPIcs.CCC.2022.10) · [New Near-Linear Time Decodable Codes Closer to the GV Bound — full version](https://eccc.weizmann.ac.il/report/2022/027/) · [Wide Replacement Products Meet Gray Codes: Toward Optimal Small-Bias Sets](https://doi.org/10.4230/LIPIcs.CCC.2026.21)
+Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-2663 — Does there exist a black-box hard-function ⇒ PRG proof with: Seed length: r = (1 + o(1)) · ℓ. (Any black-box proof must have r […]
+### TCS-2663 — An extreme high-end black-box hardness-to-randomness proof
 
-A black-box hardness-to-randomness proof builds a pseudorandom generator by accessing a hard function. The source asks for seed length r=(1+o(1))ℓ together with further conditions omitted by the extraction. This near-equality seeks to minimize the extra randomness used beyond the hard function's underlying input scale. A construction could support especially fast derandomization by reducing the number of seeds that must be enumerated. The saved passage truncates the hardness and output requirements, so the short-seed condition alone is insufficient to specify the intended extreme-efficiency transformation.
+The source asks for a construction that turns any candidate hard Boolean function into a candidate generator. Every distinguisher breaking that generator must permit exact reconstruction of the original function using a single advice string. The desired seed, output, advice and query parameters are all specified simultaneously at extreme high-end scales. The construction map itself is allowed to be computationally unrestricted, and later targeted-generator results do not settle this model. The required fine-scale gap between the advice budget and the full truth-table length needs an explicit convention.
 
-[Read in atlas](index.html#TCS-2663) · [On Hardness Assumptions Needed for "Extreme High-End" PRGs and Fast Derandomization](https://doi.org/10.4230/LIPIcs.ITCS.2022.116)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-2663) · [On Hardness Assumptions Needed for "Extreme High-End" PRGs and Fast Derandomization](https://doi.org/10.4230/LIPIcs.ITCS.2022.116) · [On Hardness Assumptions Needed for “Extreme High-End” PRGs and Fast Derandomization — full version](https://arxiv.org/abs/2311.11663) · [Towards Free Lunch Derandomization from Necessary Assumptions (And OWFs)](https://doi.org/10.4230/LIPIcs.CCC.2025.31)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3222 — Does existence of a SOS-hard family solve PIT completely?
 
