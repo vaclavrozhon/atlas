@@ -8,7 +8,7 @@
   const validTotal=v=>v&&validId(v.problem_id)&&[v.up,v.down].every(n=>Number.isSafeInteger(n)&&n>=0)&&v.score===v.up-v.down;
   const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const online=['http:','https:'].includes(location.protocol);
-  let token='',storageAvailable=true,loaded=false,loading=null,generation=0,lastClick=0;
+  let token='',storageAvailable=true,loaded=false,loading=null,generation=0,lastClick=0,rankingSignature=null;
   let totals=new Map(),mine=new Map();
   const busy=new Set(),errors=new Map();
   const read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key))??fallback;}catch{return fallback;}};
@@ -46,7 +46,11 @@
       if(focus)slot.querySelector(`[data-vote="${focus}"]`)?.focus({preventScroll:true});
     }
   }
-  function changed(id){persist();render(id);document.dispatchEvent(new CustomEvent('atlas:votes',{detail:{problemId:id}}));}
+  function changed(id){
+    persist();render(id);
+    const signature=JSON.stringify([...totals.values()].filter(v=>v.score).map(v=>[v.problem_id,v.score]).sort());
+    if(signature!==rankingSignature){rankingSignature=signature;document.dispatchEvent(new CustomEvent('atlas:votes',{detail:{problemId:id}}));}
+  }
   async function request(options={}){
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),12000);
     try{
@@ -63,6 +67,8 @@
   }
   async function send(id,payload){
     if(busy.has(id))return;
+    const focused=document.activeElement?.closest('[data-vote]');
+    const focus=focused?.closest('[data-problem-votes]')?.dataset.problemVotes===id?focused.dataset.vote:null;
     busy.add(id);generation++;errors.delete(id);render(id);
     try{
       const result=await request({method:'POST',body:JSON.stringify(payload)});
@@ -70,7 +76,10 @@
     }catch(error){
       if(error.status===409){accept(error.result,id);forget(id);errors.set(id,'Vote updated in another tab. Please try again.');}
       else errors.set(id,'Vote not confirmed. Please retry.');
-    }finally{busy.delete(id);generation++;changed(id);}
+    }finally{
+      busy.delete(id);generation++;changed(id);
+      if(focus&&document.activeElement===document.body)document.querySelector(`[data-problem-votes="${id}"] [data-vote="${focus}"]`)?.focus({preventScroll:true});
+    }
   }
   async function refresh(){
     if(!online||document.hidden)return;

@@ -204,6 +204,7 @@
   document.addEventListener('atlas:votes',event=>{
     cancelAnimationFrame(voteFrame);
     voteFrame=requestAnimationFrame(()=>{
+      const focused=document.activeElement;
       const scrollY=window.scrollY,toolbarBottom=document.querySelector('.toolbar').getBoundingClientRect().bottom;
       const visible=document.getElementById(event.detail?.problemId)||[...$('cards').children].find(el=>el.getBoundingClientRect().bottom>toolbarBottom&&el.getBoundingClientRect().top<innerHeight);
       const anchor=visible?{id:visible.id,top:visible.getBoundingClientRect().top}:null;
@@ -224,6 +225,7 @@
         fragment.appendChild(el);
       }
       $('cards').replaceChildren(fragment);
+      if(focused?.isConnected&&focused!==document.body)focused.focus({preventScroll:true});
       $('more').hidden=state.shown>=state.matches.length;$('empty').hidden=state.matches.length>0;
       $('result-count').textContent=b?`${num(state.matches.length)} of ${num(pool.length)} problems · ${b.label}`:`${num(state.matches.length)} problems`;
       renderAreas();updateCoverage();
