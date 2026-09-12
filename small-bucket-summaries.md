@@ -1905,12 +1905,12 @@ XNLP describes parameterized problems with short nondeterministic working memory
 [Read in atlas](index.html#TCS-2804) · [On the Complexity of Problems on Tree-Structured Graphs](https://doi.org/10.4230/LIPIcs.IPEC.2022.6) · [XNLP-Completeness for Parameterized Problems on Graphs with a Linear Structure](https://doi.org/10.1007/s00453-024-01274-9)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3196 — Is isomorphism testing fixed-parameter tractable on Gh parameterized by h?
+### TCS-3196 — Graph isomorphism parameterized by vertex deletion to planarity
 
-Graph isomorphism asks whether two graphs are identical after a relabeling of vertices. The source asks whether this test is fixed-parameter tractable on a graph family denoted G_h with parameter h. The surrounding paper concerns genus and related structural restrictions, suggesting that h controls allowable graph complexity. A positive result would confine the difficult part of symmetry comparison to that structural parameter. The excerpt does not define G_h, so this account cannot equate it with bounded-genus graphs or another particular family merely from the article title.
+Each input graph becomes planar after deleting at most h vertices. The algorithm must decide whether the full graphs are isomorphic, without being given deletion sets or embeddings. The target is time f(h)n^c for one deterministic algorithm, a computable f and an exponent c independent of h. A 2022 excluded-minor theorem already supplies the shape of this bound but does not establish that its parameter function is computable. The remaining question under the usual FPT convention is an effective bound, rather than polynomial time for each separately fixed h.
 
-[Read in atlas](index.html#TCS-3196) · [Isomorphism Testing Parameterized by Genus and Beyond](https://doi.org/10.4230/LIPIcs.ESA.2021.72)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3196) · [Isomorphism Testing Parameterized by Genus and Beyond](https://doi.org/10.4230/LIPIcs.ESA.2021.72) · [Fixed-Parameter Tractability of Graph Isomorphism in Graphs with an Excluded Minor](https://doi.org/10.1145/3519935.3520076)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3207 — Can we prove the nonexistence of disjunctive kernels for any of the WK[1]-hard problems?
 
@@ -2779,12 +2779,12 @@ The problem concerns almost-maximum cuts in uniformly random regular graphs. For
 [Read in atlas](index.html#TCS-2799) · [Limitations of Local Quantum Algorithms on Random MAX-k-XOR and Beyond](https://doi.org/10.4230/LIPIcs.ICALP.2022.41) · [Local algorithms for maximum cut and minimum bisection on locally treelike regular graphs of large degree](https://doi.org/10.1002/rsa.21149)
 Existing status: `source_open` · Summary written: 2026-09-12
 
-### TCS-3185 — How about the exact case?
+### TCS-3185 — Exact-clique SOS degree lower bounds in G(n,p)
 
-The cited paper studies sum-of-squares lower bounds for an exact planted-clique model. Its saved question asks whether an argument or result from the surrounding discussion also holds in the exact case. Exact planting can preserve algebraic constraints that differ from nearby randomized-size formulations. Understanding that distinction matters when transferring evidence for computational hardness between superficially similar clique distributions. The excerpt contains no antecedent for the requested extension, so the full page is required before identifying whether the missing target concerns detection, recovery, degree, or a particular lower-bound construction.
+The input is an ordinary random graph with independent edge probability p. The proof system tries to refute a clique of a specified exact size using polynomial equations and sums of squares. The exact size equation must hold under all permitted polynomial multipliers, unlike the weaker expected-size relaxation. The source proves strong degree lower bounds at p=1/2 and asks for corresponding bounds at other densities, especially sparse ones. It does not choose the relationship between density and clique size or the required precision of those bounds.
 
-[Read in atlas](index.html#TCS-3185) · [SOS Lower Bound for Exact Planted Clique](https://doi.org/10.4230/LIPIcs.CCC.2021.26)
-Existing status: `uncertain` · Summary written: 2026-09-11
+[Read in atlas](index.html#TCS-3185) · [SOS Lower Bound for Exact Planted Clique](https://doi.org/10.4230/LIPIcs.CCC.2021.26) · [SOS lower bound for exact planted clique — version record](https://eccc.weizmann.ac.il/report/2021/070/) · [Shuo Pang — research papers](https://shuopang.net/)
+Existing status: `source_open` · Summary written: 2026-09-12
 
 ### TCS-3363 — We leave open the question of the complexity of testing whether a given function is instance optimizable.
 
