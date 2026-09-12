@@ -11,21 +11,33 @@ Top 100 takes the first 5/2 places in each large/small category. Top 500 takes t
 | Benchmark | Target | Available | Missing |
 | --- | ---: | ---: | ---: |
 | [Top 100](index.html?benchmark=top100) | 100 | 100 | 0 |
-| [Top 500](index.html?benchmark=top500) | 500 | 491 | 9 |
-| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 918 | 82 |
+| [Top 500](index.html?benchmark=top500) | 500 | 485 | 15 |
+| [Top 1000 (legacy view)](index.html?benchmark=top1000) | 1000 | 825 | 175 |
 
 ## Unfilled places
 
-- top500: Differential privacy has 8/10 places.
-- top500: Miscellaneous has 3/10 places.
-- top1000: Algorithms has 40/50 places.
-- top1000: Optimization and numerical computation has 37/50 places.
-- top1000: Cryptography has 36/50 places.
-- top1000: Sampling, Markov chains and mixing times has 13/20 places.
-- top1000: Data structures has 14/20 places.
-- top1000: Dynamic algorithms has 17/20 places.
-- top1000: Differential privacy has 8/20 places.
-- top1000: Miscellaneous has 3/20 places.
+- top500: Sampling, Markov chains and mixing times has 9/10 places.
+- top500: Data structures has 7/10 places.
+- top500: Differential privacy has 7/10 places.
+- top500: Miscellaneous has 2/10 places.
+- top1000: Algorithms has 25/50 places.
+- top1000: Automata and formal languages has 35/50 places.
+- top1000: Semantics, logic and verification has 42/50 places.
+- top1000: Optimization and numerical computation has 29/50 places.
+- top1000: Geometry, topology and metric spaces has 47/50 places.
+- top1000: Learning theory has 47/50 places.
+- top1000: Cryptography has 30/50 places.
+- top1000: Computability and algorithmic information theory has 19/20 places.
+- top1000: Beyond worst-case and average-case analysis has 16/20 places.
+- top1000: Sampling, Markov chains and mixing times has 9/20 places.
+- top1000: Counting and enumeration has 17/20 places.
+- top1000: Data structures has 7/20 places.
+- top1000: Dynamic algorithms has 14/20 places.
+- top1000: String algorithms and computational biology has 14/20 places.
+- top1000: Property testing and distribution learning has 18/20 places.
+- top1000: Differential privacy has 7/20 places.
+- top1000: Automated reasoning, rewriting and unification has 17/20 places.
+- top1000: Miscellaneous has 2/20 places.
 
 ## Review needed after catalogue changes
 
@@ -47,7 +59,7 @@ Previous prefix: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531.
 | 4 | [Nonuniform TC⁰ versus NC¹](index.html#TCS-6535) (TCS-6535) | Shallow threshold circuits | 97 | A flagship unresolved containment between basic circuit classes, with explicit complete problems and connections to arithmetic, algebraic automata theory, and lower-bound amplification. |
 | 5 | [Berman–Hartmanis conjecture](index.html#TCS-6534) (TCS-6534) | Structure of complete problems | 96 | A defining structural-complexity conjecture about the entire NP-complete degree, stronger than P≠NP and supported by substantial restricted-model theorems and oracle barriers. |
 
-Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-6535, TCS-0002, TCS-0015, TCS-0016, TCS-6534, TCS-6533, TCS-0004, TCS-0020, TCS-1056, TCS-0018, TCS-1054, TCS-6681, TCS-3873, TCS-7129, TCS-7130, TCS-7131, TCS-7132.
+Candidates considered: TCS-0001, TCS-6530, TCS-6532, TCS-0021, TCS-6531, TCS-6535, TCS-0002, TCS-0015, TCS-0016, TCS-6534, TCS-6533, TCS-0004, TCS-0020, TCS-1056, TCS-0018, TCS-1054, TCS-6681.
 
 ## Algorithms
 
@@ -61,7 +73,7 @@ Previous prefix: TCS-6498, TCS-6537, TCS-6540, TCS-6586, TCS-0388.
 | 2 | [Sorting X + Y](index.html#TCS-0388) (TCS-0388) | Structured comparison sorting | 79 | Sorting all pairwise sums is a classical structured comparison problem: the output is quadratic, but exploiting the inherited order with equally efficient total computation remains the target. It adds real-key comparison algorithms alongside word-RAM integer sorting and data structures. |
 | 3 | [Hypergraph cut sparsifiers with O(n/ε²) hyperedges](index.html#TCS-0946) (TCS-0946) | Combinatorial sparsification | 76 | A universal cut-preserving reduction of hypergraphs to few weighted hyperedges is a broad compression target supporting many downstream algorithms. Its focus is the size of a combinatorial sparsifier, with no query-interface guarantee. |
 | 4 | [Near-linear-time approximation of reachability diameter](index.html#TCS-1141) (TCS-1141) | Directed reachability distance | 75 | A constant-factor estimate of the largest finite directed distance in near-linear time is a broad algorithmic target alongside sorting, sparsification and offline comparisons. It is the highest-ranked remaining candidate in this category; its saved importance score and statement are preserved. |
-| 5 | [Mincost flow in planar graphs](index.html#TCS-0809) (TCS-0809) | Needs review | 62 | Unreviewed replacement |
+| 5 | [Optimal size of four-additive graph spanners](index.html#TCS-6783) (TCS-6783) | Needs review | 89 | Unreviewed replacement |
 
 Candidates considered: TCS-6498, TCS-6536, TCS-6537, TCS-6538, TCS-6540, TCS-6539, TCS-6586, TCS-6511, TCS-0949, TCS-0611, TCS-6508, TCS-0388, TCS-0771, TCS-0946, TCS-1141.
 
@@ -79,7 +91,7 @@ Previous prefix: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563.
 | 4 | [Decidability of every level of the dot-depth hierarchy](index.html#TCS-6561) (TCS-6561) | Logical language hierarchies | 95 | A longstanding structural decision problem linking finite automata, logical definability and finite monoids; a full solution would explain much more than the known low-level algorithms. |
 | 5 | [Equivalence of deterministic macro tree transducers](index.html#TCS-6563) (TCS-6563) | Tree-transducer equivalence | 95 | A central longstanding transducer-equivalence problem, connecting functional program verification with finite-state methods, algebraic invariants and structural recursion. |
 
-Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0121, TCS-0146, TCS-0135, TCS-0156, TCS-0167, TCS-0136.
+Candidates considered: TCS-6558, TCS-6560, TCS-6559, TCS-6561, TCS-6563, TCS-6582, TCS-6564, TCS-0164, TCS-0121, TCS-0146, TCS-0135, TCS-0167, TCS-0136.
 
 ## Semantics, logic and verification
 
@@ -95,7 +107,7 @@ Previous prefix: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569.
 | 4 | [Scott-continuous lambda models with theory λβ](index.html#TCS-6570) (TCS-6570) | Denotational semantics | 94 | The classical completeness question of whether denotational semantics can capture exactly the syntactic equality of a basic programming model. |
 | 5 | [Barendregt–Geuvers–Klop conjecture](index.html#TCS-6583) (TCS-6583) | Consistency of type systems | 94 | Asks whether the existence of a terminating reduction for every typable term forces every reduction of every such term to terminate. |
 
-Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632, TCS-0575.
+Candidates considered: TCS-6565, TCS-6567, TCS-6568, TCS-6566, TCS-6569, TCS-6570, TCS-6583, TCS-5773, TCS-0619, TCS-0632.
 
 ## Distributed, parallel and sublinear algorithms
 
@@ -295,7 +307,7 @@ Previous prefix: TCS-6575, TCS-6577, TCS-6638, TCS-6640.
 | 1 | [Deterministic competitiveness of k-server](index.html#TCS-6575) (TCS-6575) | Online algorithms | 97 | A foundational quantitative question about the price of future uncertainty on arbitrary metrics, with a persistent gap between general upper and lower bounds despite many settled special cases. |
 | 2 | [Optimal approximation ratio for unrelated-machine makespan](index.html#TCS-6638) (TCS-6638) | Heterogeneous-machine scheduling | 97 | A decades-old central scheduling problem with a large hardness gap, robust LP barriers and formal consequences for fair allocation. |
 
-Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-3314, TCS-3392, TCS-3566, TCS-3690, TCS-3878, TCS-4132, TCS-4393, TCS-4449, TCS-4581, TCS-4655, TCS-4983, TCS-5004, TCS-5030, TCS-5126, TCS-5158, TCS-5182, TCS-5186, TCS-5221, TCS-5252, TCS-5349, TCS-5514, TCS-5747, TCS-5779, TCS-6575, TCS-6576, TCS-6577, TCS-6833, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
+Candidates considered: TCS-0700, TCS-0708, TCS-0711, TCS-0715, TCS-0716, TCS-1241, TCS-1529, TCS-3314, TCS-3690, TCS-4983, TCS-5004, TCS-5030, TCS-5158, TCS-5221, TCS-5252, TCS-5349, TCS-5779, TCS-6575, TCS-6576, TCS-6577, TCS-6836, TCS-6838, TCS-6638, TCS-6676, TCS-6640, TCS-0924, TCS-0935, TCS-0922.
 
 ## Beyond worst-case and average-case analysis
 
@@ -334,7 +346,7 @@ Previous prefix: TCS-6628, TCS-6629, TCS-7112.
 | 1 | [FPRAS for counting perfect matchings](index.html#TCS-6628) (TCS-6628) | Approximate counting | 97 | The major missing generalization of the permanent FPRAS, with an established obstruction to the direct Markov-chain approach and consequences beyond matchings. |
 | 2 | [FPRAS for #BIS](index.html#TCS-7221) (TCS-7221) | Approximate counting | 97 | #BIS is the canonical intermediate approximate-counting problem: an FPRAS would resolve a central boundary shared by many spin-system and combinatorial counting tasks. |
 
-Candidates considered: TCS-6628, TCS-6629, TCS-6671, TCS-0553, TCS-1004, TCS-0556, TCS-7221, TCS-7112.
+Candidates considered: TCS-6628, TCS-6629, TCS-6671, TCS-1004, TCS-7221, TCS-7112.
 
 ## Structural graph theory and graph algorithms
 
@@ -360,7 +372,7 @@ Previous prefix: empty.
 | 1 | [Dynamic optimality conjecture](index.html#TCS-6498) (TCS-6498) | Adaptive search trees | 97 | Dynamic optimality is a central benchmark for adaptive data structures: one simple online BST would compete with every offline BST on every access sequence. |
 | 2 | [Superlogarithmic static cell-probe lower bounds](index.html#TCS-6540) (TCS-6540) | Static data-structure lower bounds | 96 | A model-wide challenge connecting algorithms, communication complexity, pseudorandomness and circuit lower bounds, with implications beyond any single geometric or graph problem. |
 
-Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-6514, TCS-4997, TCS-5768, TCS-5103, TCS-1798, TCS-0300, TCS-2730, TCS-3788, TCS-5825.
+Candidates considered: TCS-6498, TCS-6540, TCS-6586, TCS-0949, TCS-6508, TCS-0300, TCS-5825.
 
 ## Dynamic algorithms
 
@@ -373,7 +385,7 @@ Previous prefix: TCS-6625, TCS-6626.
 | 1 | [Deterministic fully dynamic connectivity with polylogarithmic worst-case updates](index.html#TCS-6625) (TCS-6625) | Dynamic connectivity | 97 | A foundational dynamic-graph frontier directly relevant to data structures, with a new randomized breakthrough and an explicit remaining deterministic bottleneck. |
 | 2 | [Fully dynamic near-optimal matching with polylogarithmic updates](index.html#TCS-6627) (TCS-6627) | Dynamic matching | 95 | A central dynamic graph problem connecting approximation, explicit solution maintenance and extremal induced-matching structure. |
 
-Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0543, TCS-0541, TCS-0300, TCS-2730, TCS-3788, TCS-5825, TCS-0387, TCS-5612, TCS-3331, TCS-4307.
+Candidates considered: TCS-6625, TCS-6626, TCS-6627, TCS-6670, TCS-0478, TCS-0543, TCS-0541, TCS-0300, TCS-5825, TCS-0387, TCS-3331.
 
 ## String algorithms and computational biology
 
@@ -490,7 +502,7 @@ Previous prefix: TCS-6562, TCS-6643.
 | 1 | [Word equations with linear length constraints](index.html#TCS-6562) (TCS-6562) | Word equations with arithmetic | 97 | A longstanding decidability question at the intersection of formal languages, number-theoretic constraints and automated verification; even unrestricted termination is unknown, before asking for efficient algorithms. |
 | 2 | [Decidability of unification in the basic modal logic K](index.html#TCS-6643) (TCS-6643) | Modal unification | 94 | The basic unresolved decidability boundary in modal unification, already in the minimal normal modal logic. |
 
-Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-0173, TCS-6650, TCS-0306, TCS-7134, TCS-7135.
+Candidates considered: TCS-6562, TCS-6643, TCS-6644, TCS-0163, TCS-0171, TCS-0173, TCS-6650, TCS-0306, TCS-7134.
 
 ## Database theory and finite model theory
 
@@ -503,7 +515,7 @@ Previous prefix: TCS-6678, TCS-6645.
 | 1 | [FO model checking on hereditary monadically dependent graph classes](index.html#TCS-6678) (TCS-6678) | Finite-model-theoretic tractability | 96 | The central proposed tractability boundary for first-order model checking on hereditary graph classes, connecting database queries, model theory, sparsity and dense graph structure. |
 | 2 | [Constant-delay conjunctive-query classification](index.html#TCS-6645) (TCS-6645) | Database query enumeration | 95 | A central database-theory classification question: identify exactly which fixed queries permit optimal preprocessing and delay, including the self-joins excluded by classical dichotomies. |
 
-Candidates considered: TCS-6678, TCS-6645, TCS-0492, TCS-0488, TCS-0482, TCS-0487, TCS-0494, TCS-6680, TCS-4206.
+Candidates considered: TCS-6678, TCS-6645, TCS-0492, TCS-0488, TCS-0482, TCS-0487, TCS-0494, TCS-6680.
 
 ## Miscellaneous
 
@@ -516,4 +528,4 @@ Previous prefix: TCS-7222.
 | 1 | [1/3–2/3 conjecture](index.html#TCS-7177) (TCS-7177) | Partial-order balance | 90 | Would provide a universally informative comparison for sorting with partial-order information; retained as a computationally motivated combinatorial exception. |
 | 2 | [Extremal size of sunflower-free set families](index.html#TCS-7290) (TCS-7290) | Needs review | 89 | Unreviewed replacement |
 
-Candidates considered: TCS-7222, TCS-7177, TCS-3520.
+Candidates considered: TCS-7222, TCS-7177.
